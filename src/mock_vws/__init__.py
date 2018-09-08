@@ -186,5 +186,5 @@ class MockVWS(ContextDecorator):
         return False
 
 
-__version__ = get_versions()['version']
+__version__ = get_versions()['version']  # type: ignore
 del get_versions
