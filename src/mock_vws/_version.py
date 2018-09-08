@@ -42,7 +42,7 @@ def get_config():
     cfg.VCS = "git"
     cfg.style = "pep440"
     cfg.tag_prefix = ""
-    cfg.parentdir_prefix = "mock_vws-"
+    cfg.parentdir_prefix = "mock_vws"
     cfg.versionfile_source = "src/mock_vws/_version.py"
     cfg.verbose = False
     return cfg
