@@ -1,7 +1,7 @@
 |Build Status| |codecov| |Updates|
 
-vws-python
-==========
+VWS Python Mock
+===============
 
 Python mock for the Vuforia Web Services (VWS) API and the Vuforia Web Query API.
 
@@ -19,7 +19,7 @@ For now it is possible to install the work in progress:
 
 .. code:: sh
 
-    pip install git+https://github.com/adamtheturtle/vws-python@master
+    pip install git+https://github.com/adamtheturtle/vws-python-mock@master
 
 This requires Python 3.6+.
 Get in touch with ``adamdangoor@gmail.com`` if you would like to use this with another language.
@@ -44,7 +44,7 @@ However, an exception will be raised if any requests to unmocked addresses are m
 Allowing HTTP requests to unmocked addresses
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This can be done by setting the parameter ``real_http`` to ``True`` in either the context manager’s instantiation.
+This can be done by setting the parameter ``real_http`` to ``True`` in the context manager’s instantiation.
 
 For example:
 
@@ -140,7 +140,7 @@ Differences between the mock and the real Vuforia Web Services
 --------------------------------------------------------------
 
 The mock attempts to be realistic, but it was built without access to the source code of the original API.
-Please report any issues `here <https://github.com/adamtheturtle/vws-python/issues>`__.
+Please report any issues `here <https://github.com/adamtheturtle/vws-python-mock/issues>`__.
 There is no attempt to make the image matching realistic.
 
 Speed and summary accuracy
