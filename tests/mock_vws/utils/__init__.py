@@ -3,8 +3,8 @@ Utilities for tests.
 """
 
 import io
-import random
 import json
+import random
 from time import sleep
 from typing import Any, Dict
 from urllib.parse import urljoin
@@ -19,8 +19,8 @@ from urllib3.filepost import encode_multipart_formdata
 from mock_vws._constants import ResultCodes, TargetStatuses
 from tests.mock_vws.utils.authorization import (
     VuforiaDatabaseKeys,
-    rfc_1123_date,
     authorization_header,
+    rfc_1123_date,
 )
 
 
