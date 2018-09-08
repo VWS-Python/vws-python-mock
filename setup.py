@@ -1,7 +1,8 @@
 """Setup script for VWS Python Mock, a mock of Vuforia's Web Services APIs."""
 
-import versioneer
 from setuptools import find_packages, setup
+
+import versioneer
 
 # We use requirements.txt instead of just declaring the requirements here
 # because this helps with Docker package caching.
