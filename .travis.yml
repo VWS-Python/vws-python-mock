@@ -1,4 +1,3 @@
-
 sudo: false
 language: python
 python:
@@ -37,6 +36,8 @@ addons:
     packages:
     - enchant
 before_install:
+- openssl aes-256-cbc -K $encrypted_61e4bc3d8ae5_key -iv $encrypted_61e4bc3d8ae5_iv
+  -in secrets.tar.enc -out secrets.tar -d
 - openssl aes-256-cbc -K $encrypted_5c29411ed445_key -iv $encrypted_5c29411ed445_iv
   -in secrets.tar.enc -out secrets.tar -d
 - tar xvf secrets.tar
