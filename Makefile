@@ -14,7 +14,14 @@ lint:
 	pylint *.py src tests ci
 	pyroma --min 10 .
 	vulture . --min-confidence 100
-	yapf --diff --recursive src/ tests/ ci/
+	yapf \
+		--diff \
+		--recursive \
+		--exclude versioneer.py \
+		--exclude src/mock_vws/_version.py \
+		src/ \
+		tests/ \
+		ci/
 
 .PHONY: fix-lint
 fix-lint:
