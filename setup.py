@@ -1,4 +1,4 @@
-"""Setup script for VWS Python, a wrapper for Vuforia's Web Services APIs."""
+"""Setup script for VWS Python Mock, a mock of Vuforia's Web Services APIs."""
 
 from setuptools import find_packages, setup
 
@@ -16,16 +16,16 @@ with open('README.rst') as f:
     LONG_DESCRIPTION = f.read()
 
 setup(
-    name='VWS Python',
+    name='VWS Python Mock',
     version='0.1',
     author='Adam Dangoor',
     author_email='adamdangoor@gmail.com',
-    description='Interact with the Vuforia Web Services (VWS) API.',
+    description='A mock for the Vuforia Web Services (VWS) API.',
     long_description=LONG_DESCRIPTION,
     license='MIT',
     packages=find_packages(where='src'),
     zip_safe=False,
-    url='http://vws-python.readthedocs.io',
+    url='http://vws-python-mock.readthedocs.io',
     keywords='vuforia mock fake client',
     package_dir={'': 'src'},
     install_requires=INSTALL_REQUIRES,
@@ -37,5 +37,6 @@ setup(
         'Environment :: Web Environment',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ],
 )

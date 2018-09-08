@@ -192,4 +192,4 @@ Performing a release
 --------------------
 
 There is currently no release process.
-See `this issue <https://github.com/adamtheturtle/vws-python/issues/55>`__ for details.
+See `this issue <https://github.com/adamtheturtle/vws-python/issues/770>`__ for details.
