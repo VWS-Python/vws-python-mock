@@ -163,7 +163,7 @@ def assert_query_success(response: Response) -> None:
 
     assert response.json()['result_code'] == 'Success'
     # Figure out when this header is applied.
-    # See https://github.com/adamtheturtle/vws-python/issues/602.
+    # See https://github.com/adamtheturtle/vws-python-mock/issues/1.
     content_encoding = response.headers.pop('Content-Encoding', 'gzip')
     assert content_encoding == 'gzip'
 
