@@ -104,9 +104,6 @@ class TestFormat:
         header is not in the expected format (RFC 1123) to VWS API.
 
         An `UNAUTHORIZED` response is returned to the VWQ API.
-
-        See https://github.com/adamtheturtle/vws-python/issues/553 for trying
-        more formats.
         """
         gmt = pytz.timezone('GMT')
         with freeze_time(datetime.now(tz=gmt)):
