@@ -2,19 +2,18 @@
 Tools for using a fake implementation of Vuforia.
 """
 
+import email.utils
 import re
 import uuid
 from contextlib import ContextDecorator
-from urllib.parse import urljoin
-import email.utils
-
 from typing import Optional, Tuple, Union
+from urllib.parse import urljoin
 
 from requests_mock.mocker import Mocker
 
 from ._constants import States
-from ._mock_web_services_api import MockVuforiaWebServicesAPI
 from ._mock_web_query_api import MockVuforiaWebQueryAPI
+from ._mock_web_services_api import MockVuforiaWebServicesAPI
 from ._version import get_versions
 
 
