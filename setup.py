@@ -35,6 +35,7 @@ setup(
     extras_require={
         'dev': DEV_REQUIRES,
     },
+    include_package_data=True,
     classifiers=[
         'Operating System :: POSIX',
         'Environment :: Web Environment',
