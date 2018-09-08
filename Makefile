@@ -1,5 +1,25 @@
 SHELL := /bin/bash -euxo pipefail
 
+.PHONY: fix-yapf
+fix-yapf:
+	yapf \
+	    --in-place \
+		--recursive \
+		--exclude versioneer.py \
+		--exclude src/mock_vws/_version.py \
+	    .
+
+.PHONY: autoflake
+autoflake:
+	autoflake \
+	    --in-place \
+	    --recursive \
+	    --remove-all-unused-imports \
+	    --remove-unused-variables \
+	    --expand-star-imports \
+	    --exclude src/mock_vws/_version.py,versioneer.py \
+	    .
+
 .PHONY: lint
 lint:
 	check-manifest .
@@ -19,14 +39,10 @@ lint:
 		--recursive \
 		--exclude versioneer.py \
 		--exclude src/mock_vws/_version.py \
-		src/ \
-		tests/ \
-		ci/
+		.
 
 .PHONY: fix-lint
-fix-lint:
-	autoflake --in-place --recursive --remove-all-unused-imports --remove-unused-variables .
-	yapf --in-place --recursive .
+fix-lint: fix-yapf autoflake
 	isort --recursive --apply
 
 .PHONY: update-secrets
