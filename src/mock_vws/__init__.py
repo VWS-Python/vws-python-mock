@@ -14,6 +14,7 @@ from requests_mock.mocker import Mocker
 from ._constants import States
 from ._mock_web_query_api import MockVuforiaWebQueryAPI
 from ._mock_web_services_api import MockVuforiaWebServicesAPI
+from ._version import get_versions
 
 
 class MockVWS(ContextDecorator):
@@ -183,3 +184,7 @@ class MockVWS(ContextDecorator):
 
         self._mock.stop()
         return False
+
+
+__version__ = get_versions()['version']  # type: ignore
+del get_versions
