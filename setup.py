@@ -20,6 +20,7 @@ with open('README.rst') as f:
 setup(
     name='VWS Python Mock',
     version=versioneer.get_version(),  # type: ignore
+    cmdclass=versioneer.get_cmdclass(),  # type: ignore
     author='Adam Dangoor',
     author_email='adamdangoor@gmail.com',
     description='A mock for the Vuforia Web Services (VWS) API.',
