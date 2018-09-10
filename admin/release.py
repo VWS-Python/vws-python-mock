@@ -107,6 +107,17 @@ def build() -> None:
         subprocess.run(args=args, check=True)
 
 
+def upload_to_pypi() -> None:
+    """
+    Upload builds to PyPI.
+    """
+    for args in (
+        ['rm', '-rf', 'build'],
+        ['python', 'setup.py', 'sdist', 'bdist_wheel'],
+    ):
+        subprocess.run(args=args, check=True)
+
+
 def main() -> None:
     """
     Perform a release.
@@ -118,6 +129,7 @@ def main() -> None:
     update_changelog(version=version_str)
     commit_and_push(version=version_str, repository=repository)
     build()
+    upload_to_pypi()
     create_github_release(
         repository=repository,
         version=version_str,
