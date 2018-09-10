@@ -4,7 +4,6 @@ Release the next version of VWS Python Mock.
 
 import datetime
 import os
-import re
 from pathlib import Path
 
 from dulwich.porcelain import add, commit, push, tag_list

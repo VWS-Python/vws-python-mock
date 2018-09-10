@@ -4,6 +4,7 @@ ascii
 bool
 boolean
 bytesio
+changelog
 chunked
 cmyk
 connectionerror
