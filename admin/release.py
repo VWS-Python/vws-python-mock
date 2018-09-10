@@ -96,6 +96,9 @@ def get_repo(github_token: str, github_owner: str) -> Repository:
 
 
 def main() -> None:
+    """
+    Perform a release.
+    """
     github_token = os.environ['GITHUB_TOKEN']
     github_owner = os.environ['GITHUB_OWNER']
     repository = get_repo(github_token=github_token, github_owner=github_owner)
