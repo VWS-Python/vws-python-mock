@@ -125,12 +125,12 @@ def main() -> None:
     version_str = get_version()
     update_changelog(version=version_str)
     commit_and_push(version=version_str, repository=repository)
-    build()
-    upload_to_pypi()
     create_github_release(
         repository=repository,
         version=version_str,
     )
+    build()
+    upload_to_pypi()
 
 
 if __name__ == '__main__':
