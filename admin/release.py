@@ -104,7 +104,7 @@ def build() -> None:
         ['git', 'fetch'],
         ['rm', '-rf', 'build'],
         ['python', 'setup.py', 'sdist', 'bdist_wheel'],
-        ['twine', 'upload', '-r', 'pypi', 'dist/*']
+        ['twine', 'upload', '-r', 'pypi', 'dist/*'],
     ):
         subprocess.run(args=args, check=True)
 
