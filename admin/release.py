@@ -4,6 +4,7 @@ Release the next version of VWS Python Mock.
 
 import datetime
 import os
+import subprocess
 from pathlib import Path
 
 from dulwich.porcelain import add, commit, push, tag_list
@@ -95,6 +96,17 @@ def get_repo(github_token: str, github_owner: str) -> Repository:
     return github_user_or_org.get_repo('vws-python-mock')
 
 
+def build() -> None:
+    """
+    Build source and binary distributions.
+    """
+    for args in (
+        ['rm', '-rf', 'build'],
+        ['python', 'setup.py', 'sdist', 'bdist_wheel'],
+    ):
+        subprocess.run(args=args, check=True)
+
+
 def main() -> None:
     """
     Perform a release.
@@ -105,6 +117,7 @@ def main() -> None:
     version_str = get_version()
     update_changelog(version=version_str)
     commit_and_push(version=version_str, repository=repository)
+    build()
     create_github_release(
         repository=repository,
         version=version_str,
