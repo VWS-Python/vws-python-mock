@@ -140,8 +140,6 @@ Travis CI Settings
 ~~~~~~~~~~~~~~~~~~
 
 All targets are deleted from the database between each test.
-Therefore there may be conflicts if the test suite is run concurrently as Travis CI is configured to connect to one Vuforia database.
-As such, Travis CI is configured not to run multiple instances of the test suite concurrently.
 
 Learnings about VWS
 -------------------
