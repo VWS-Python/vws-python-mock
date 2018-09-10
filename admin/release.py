@@ -111,11 +111,8 @@ def upload_to_pypi() -> None:
     """
     Upload builds to PyPI.
     """
-    for args in (
-        ['rm', '-rf', 'build'],
-        ['python', 'setup.py', 'sdist', 'bdist_wheel'],
-    ):
-        subprocess.run(args=args, check=True)
+    args = ['twine', 'upload', '-r', 'pypi', 'dist/*']
+    subprocess.run(args=args, check=True)
 
 
 def main() -> None:
