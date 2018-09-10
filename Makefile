@@ -7,6 +7,7 @@ fix-yapf:
 		--recursive \
 		--exclude versioneer.py \
 		--exclude src/mock_vws/_version.py \
+		--exclude build \
 	    .
 
 .PHONY: autoflake
@@ -38,6 +39,7 @@ lint:
 		--diff \
 		--recursive \
 		--exclude versioneer.py \
+		--exclude build \
 		--exclude src/mock_vws/_version.py \
 		.
 
