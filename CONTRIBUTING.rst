@@ -191,5 +191,35 @@ However, JPEG images up to 2MiB are accepted.
 Performing a release
 --------------------
 
-There is currently no release process.
-See `this issue <https://github.com/adamtheturtle/vws-python-mock/issues/12>`__ for details.
+Outcomes
+~~~~~~~~
+
+* A new ``git`` tag available to install.
+
+Prerequisites
+~~~~~~~~~~~~~
+
+* ``python3`` on your ``PATH`` set to Python 3.5+.
+* ``virtualenv``.
+* Push access to this repository.
+* Trust that ``master`` is ready and high enough quality for release.
+
+Perform a Release
+~~~~~~~~~~~~~~~~~
+
+#. Get a GitHub access token:
+
+   Follow the `GitHub instructions <https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/>`__ for getting an access token.
+
+#. Set environment variables to GitHub credentials, e.g.:
+
+    .. code:: sh
+
+       export GITHUB_TOKEN=75c72ad718d9c346c13d30ce762f121647b502414
+       export GITHUB_OWNER=adamtheturtle
+
+#. Perform a release:
+
+    .. code:: sh
+
+       curl https://raw.githubusercontent.com/"$GITHUB_OWNER"/vws-python-mock/master/admin/release.sh | bash
