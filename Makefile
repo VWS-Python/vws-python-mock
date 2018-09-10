@@ -27,11 +27,11 @@ lint:
 	dodgy
 	flake8 .
 	isort --recursive --check-only
-	mypy src/ tests/ ci/
+	mypy src/ tests/ ci/ admin
 	pip-extra-reqs src/
 	pip-missing-reqs src/
 	pydocstyle
-	pylint *.py src tests ci
+	pylint *.py src tests ci admin
 	pyroma --min 10 .
 	vulture . --min-confidence 100
 	yapf \
