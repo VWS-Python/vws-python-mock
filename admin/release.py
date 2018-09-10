@@ -101,18 +101,12 @@ def build() -> None:
     Build source and binary distributions.
     """
     for args in (
+        ['git', 'fetch'],
         ['rm', '-rf', 'build'],
         ['python', 'setup.py', 'sdist', 'bdist_wheel'],
+        ['twine', 'upload', '-r', 'pypi', 'dist/*']
     ):
         subprocess.run(args=args, check=True)
-
-
-def upload_to_pypi() -> None:
-    """
-    Upload builds to PyPI.
-    """
-    args = ['twine', 'upload', '-r', 'pypi', 'dist/*']
-    subprocess.run(args=args, check=True)
 
 
 def main() -> None:
@@ -130,7 +124,6 @@ def main() -> None:
         version=version_str,
     )
     build()
-    upload_to_pypi()
 
 
 if __name__ == '__main__':
