@@ -1,2 +1,8 @@
 [run]
 branch = True
+omit =
+    src/mock_vws/_version.py
+
+[report]
+exclude_lines =
+    pragma: no cover
