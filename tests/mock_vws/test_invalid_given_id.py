@@ -1,5 +1,6 @@
 """
-Tests for passing invalid endpoints which require a target ID to be given.
+Tests for passing invalid target IDs to endpoints which
+require a target ID to be given.
 """
 
 import pytest
