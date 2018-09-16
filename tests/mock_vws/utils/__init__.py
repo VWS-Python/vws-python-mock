@@ -176,7 +176,7 @@ def wait_for_target_processed(
 
     Raises:
         TimeoutError: The target remained in the processing stage for more
-            than two minutes.
+            than five minutes.
     """
     while True:
         response = get_vws_target(
