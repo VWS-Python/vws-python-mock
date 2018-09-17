@@ -11,7 +11,7 @@ freezegun==0.3.10  # Freeze time in tests
 hypothesis==3.71.5  # Generate test cases
 isort==4.3.4  # Lint imports
 keyring==15.1.0
-mypy==0.620  # Type checking
+mypy==0.630  # Type checking
 pip_check_reqs==2.0.3
 pydocstyle==2.1.1  # Lint docstrings
 pyenchant==2.0.0  # Bindings for a spellchecking sytem
