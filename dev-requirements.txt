@@ -20,7 +20,7 @@ pylint==2.1.1  # Lint
 pyroma==2.4  # Packaging best practices checker
 pytest-cov==2.6.0  # Measure code coverage
 pytest-envfiles==0.1.0  # Use files for environment variables for tests
-pytest==3.8.0  # Test runners
+pytest==3.8.1  # Test runners
 timeout-decorator==0.4.0  # Decorate functions to time out.
 twine==1.11.0
 vulture==0.29
