@@ -12,6 +12,7 @@ import pytest
 from requests import Response, codes
 
 from mock_vws._constants import ResultCodes
+from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import (
     add_target_to_vws,
     delete_target,
@@ -22,7 +23,6 @@ from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
     assert_vws_response,
 )
-from tests.mock_vws.utils.authorization import VuforiaDatabase
 
 
 def assert_success(response: Response) -> None:
