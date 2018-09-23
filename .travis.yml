@@ -2,6 +2,10 @@ language: python
 python: 3.7
 dist: xenial
 sudo: true
+addons:
+  apt:
+    packages:
+    - enchant
 before_install:
 - openssl aes-256-cbc -K $encrypted_61e4bc3d8ae5_key -iv $encrypted_61e4bc3d8ae5_iv
   -in secrets.tar.enc -out secrets.tar -d
