@@ -43,7 +43,7 @@ def validate_project_state(
     """
     _, context = args
 
-    if instance.mock_web_services_api.state != States.PROJECT_INACTIVE:
+    if instance.database.state != States.PROJECT_INACTIVE:
         return wrapped(*args, **kwargs)
 
     context.status_code = codes.FORBIDDEN
