@@ -371,11 +371,10 @@ def validate_date_format(
     """
     request, context = args
 
+    date_header = request.headers['Date']
+    date_format = '%a, %d %b %Y %H:%M:%S GMT'
     try:
-        date_from_header = datetime.datetime.strptime(
-            request.headers['Date'],
-            '%a, %d %b %Y %H:%M:%S GMT',
-        )
+        datetime.datetime.strptime(date_header, date_format)
     except ValueError:
         context.status_code = codes.BAD_REQUEST
         body = {
