@@ -20,10 +20,8 @@ def run_test(ci_pattern: str) -> None:
             '-vvv',
             '--exitfirst',
             str(path),
-            '--cov'
-            'src',
-            '--cov'
-            'tests',
+            '--cov=src',
+            '--cov=tests',
         ],
     )
     sys.exit(result)
