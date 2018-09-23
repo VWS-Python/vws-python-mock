@@ -1,4 +1,4 @@
-|Build Status| |codecov| |Updates|
+|Build Status| |codecov| |Updates| |PyPI|
 
 VWS Python Mock
 ===============
@@ -207,3 +207,5 @@ The database summary endpoint returns quotas which match the quotas given for a 
    :target: https://codecov.io/gh/adamtheturtle/vws-python-mock
 .. |Updates| image:: https://pyup.io/repos/github/adamtheturtle/vws-python-mock/shield.svg
    :target: https://pyup.io/repos/github/adamtheturtle/vws-python-mock/
+.. |PyPI| image:: https://badge.fury.io/py/VWS-Python-Mock.svg
+    :target: https://badge.fury.io/py/VWS-Python-Mock
