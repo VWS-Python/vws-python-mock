@@ -366,8 +366,7 @@ def validate_date(
 
     Returns:
         The result of calling the endpoint.
-        A `BAD_REQUEST` response if the date is not given, or is in the wrong
-        format.
+        A `BAD_REQUEST` response if the date is in the wrong format.
         A `FORBIDDEN` response if the date is out of range.
     """
     request, context = args
