@@ -30,8 +30,8 @@ from ._validators import validate_auth_header_exists, validate_authorization
 ROUTES = set([])
 
 
-def _parse_multipart(
-    fp: io.BytesIO,  # pylint: disable=invalid-name
+def _parse_multipart(  # pylint: disable=invalid-name
+    fp: io.BytesIO,
     pdict: Mapping[str, bytes],
 ) -> Dict[str, List[Union[str, bytes]]]:
     """
