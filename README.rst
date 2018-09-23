@@ -201,7 +201,7 @@ Database summary quotas
 
 The database summary endpoint returns quotas which match the quotas given for a free license.
 
-.. |Build Status| image:: https://travis-ci.org/adamtheturtle/vws-python-mock.svg?branch=master
+.. |Build Status| image:: https://travis-ci.com/adamtheturtle/vws-python-mock.svg?branch=master
    :target: https://travis-ci.com/adamtheturtle/vws-python-mock
 .. |codecov| image:: https://codecov.io/gh/adamtheturtle/vws-python-mock/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/adamtheturtle/vws-python-mock
