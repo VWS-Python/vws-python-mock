@@ -137,7 +137,7 @@ def _delete_target(
 
 
 @pytest.fixture()
-def _database_summary(vuforia_database_keys: VuforiaDatabase, ) -> Endpoint:
+def _database_summary(vuforia_database_keys: VuforiaDatabase) -> Endpoint:
     """
     Return details of the endpoint for getting details about the database.
     """
