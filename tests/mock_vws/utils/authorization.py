@@ -8,7 +8,7 @@ import hashlib
 import hmac
 
 
-class VuforiaDatabaseKeys:
+class VuforiaDatabase:
     """
     Credentials for VWS APIs.
     """

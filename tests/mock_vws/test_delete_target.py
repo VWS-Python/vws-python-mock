@@ -15,7 +15,7 @@ from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
     assert_vws_response,
 )
-from tests.mock_vws.utils.authorization import VuforiaDatabaseKeys
+from tests.mock_vws.utils.authorization import VuforiaDatabase
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -27,7 +27,7 @@ class TestDelete:
     def test_no_wait(
         self,
         target_id: str,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         When attempting to delete a target immediately after creating it, a
@@ -52,7 +52,7 @@ class TestDelete:
     def test_processed(
         self,
         target_id: str,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         When a target has finished processing, it can be deleted.
@@ -93,7 +93,7 @@ class TestInactiveProject:
 
     def test_inactive_project(
         self,
-        inactive_database_keys: VuforiaDatabaseKeys,
+        inactive_database_keys: VuforiaDatabase,
     ) -> None:
         """
         If the project is inactive, a FORBIDDEN response is returned.

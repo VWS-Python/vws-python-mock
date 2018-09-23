@@ -21,11 +21,11 @@ from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
     assert_vws_response,
 )
-from tests.mock_vws.utils.authorization import VuforiaDatabaseKeys
+from tests.mock_vws.utils.authorization import VuforiaDatabase
 
 
 def target_duplicates(
-    vuforia_database_keys: VuforiaDatabaseKeys,
+    vuforia_database_keys: VuforiaDatabase,
     target_id: str,
 ) -> Response:
     """
@@ -58,7 +58,7 @@ class TestDuplicates:
 
     def test_duplicates(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         high_quality_image: io.BytesIO,
         image_file_success_state_low_rating: io.BytesIO,
     ) -> None:
@@ -143,7 +143,7 @@ class TestDuplicates:
 
     def test_status(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -206,7 +206,7 @@ class TestActiveFlag:
 
     def test_active_flag_duplicate(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         high_quality_image: io.BytesIO,
     ) -> None:
         """
@@ -264,7 +264,7 @@ class TestActiveFlag:
 
     def test_active_flag_original(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         high_quality_image: io.BytesIO,
     ) -> None:
         """
@@ -322,7 +322,7 @@ class TestProcessing:
 
     def test_processing(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         high_quality_image: io.BytesIO,
     ) -> None:
         """
@@ -392,7 +392,7 @@ class TestInactiveProject:
 
     def test_inactive_project(
         self,
-        inactive_database_keys: VuforiaDatabaseKeys,
+        inactive_database_keys: VuforiaDatabase,
     ) -> None:
         """
         If the project is inactive, a FORBIDDEN response is returned.

@@ -17,7 +17,7 @@ from urllib3.filepost import encode_multipart_formdata
 from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import (
     Endpoint,
-    VuforiaDatabaseKeys,
+    VuforiaDatabase,
     authorization_header,
     rfc_1123_date,
     wait_for_target_processed,
@@ -29,7 +29,7 @@ VWQ_HOST = 'https://cloudreco.vuforia.com'
 
 @pytest.fixture()
 def _add_target(
-    vuforia_database_keys: VuforiaDatabaseKeys,
+    vuforia_database_keys: VuforiaDatabase,
     image_file_failed_state: io.BytesIO,
 ) -> Endpoint:
     """
@@ -87,7 +87,7 @@ def _add_target(
 
 @pytest.fixture()
 def _delete_target(
-    vuforia_database_keys: VuforiaDatabaseKeys,
+    vuforia_database_keys: VuforiaDatabase,
     target_id: str,
 ) -> Endpoint:
     """
@@ -137,9 +137,7 @@ def _delete_target(
 
 
 @pytest.fixture()
-def _database_summary(
-    vuforia_database_keys: VuforiaDatabaseKeys,
-) -> Endpoint:
+def _database_summary(vuforia_database_keys: VuforiaDatabase) -> Endpoint:
     """
     Return details of the endpoint for getting details about the database.
     """
@@ -186,7 +184,7 @@ def _database_summary(
 
 @pytest.fixture()
 def _get_duplicates(
-    vuforia_database_keys: VuforiaDatabaseKeys,
+    vuforia_database_keys: VuforiaDatabase,
     target_id: str,
 ) -> Endpoint:
     """
@@ -240,7 +238,7 @@ def _get_duplicates(
 
 @pytest.fixture()
 def _get_target(
-    vuforia_database_keys: VuforiaDatabaseKeys,
+    vuforia_database_keys: VuforiaDatabase,
     target_id: str,
 ) -> Endpoint:
     """
@@ -292,7 +290,7 @@ def _get_target(
 
 
 @pytest.fixture()
-def _target_list(vuforia_database_keys: VuforiaDatabaseKeys) -> Endpoint:
+def _target_list(vuforia_database_keys: VuforiaDatabase) -> Endpoint:
     """
     Return details of the endpoint for getting a list of targets.
     """
@@ -339,7 +337,7 @@ def _target_list(vuforia_database_keys: VuforiaDatabaseKeys) -> Endpoint:
 
 @pytest.fixture()
 def _target_summary(
-    vuforia_database_keys: VuforiaDatabaseKeys,
+    vuforia_database_keys: VuforiaDatabase,
     target_id: str,
 ) -> Endpoint:
     """
@@ -392,7 +390,7 @@ def _target_summary(
 
 @pytest.fixture()
 def _update_target(
-    vuforia_database_keys: VuforiaDatabaseKeys,
+    vuforia_database_keys: VuforiaDatabase,
     target_id: str,
 ) -> Endpoint:
     """
@@ -448,7 +446,7 @@ def _update_target(
 
 @pytest.fixture()
 def _query(
-    vuforia_database_keys: VuforiaDatabaseKeys,
+    vuforia_database_keys: VuforiaDatabase,
     high_quality_image: io.BytesIO,
 ) -> Endpoint:
     """

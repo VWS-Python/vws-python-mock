@@ -37,7 +37,7 @@ from tests.mock_vws.utils.assertions import (
     assert_vwq_failure,
 )
 from tests.mock_vws.utils.authorization import (
-    VuforiaDatabaseKeys,
+    VuforiaDatabase,
     authorization_header,
     rfc_1123_date,
 )
@@ -61,7 +61,7 @@ class TestContentType:
     def test_incorrect_no_boundary(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         content_type: str,
     ) -> None:
         """
@@ -110,7 +110,7 @@ class TestContentType:
     def test_incorrect_with_boundary(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         If a Content-Type header which is not ``multipart/form-data`` is given
@@ -172,7 +172,7 @@ class TestContentType:
     def test_no_boundary(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         content_type: str,
     ) -> None:
         """
@@ -225,7 +225,7 @@ class TestContentType:
     def test_bogus_boundary(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         If a bogus boundary is given, a ``BAD_REQUEST`` is returned.
@@ -277,7 +277,7 @@ class TestContentType:
     def test_extra_section(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         If sections that are not the boundary section are given in the header,
@@ -329,7 +329,7 @@ class TestSuccess:
     def test_no_results(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         When there are no matching images in the database, an empty list of
@@ -349,7 +349,7 @@ class TestSuccess:
     def test_match(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         If the exact image that was added is queried for, target data is shown.
@@ -410,7 +410,7 @@ class TestIncorrectFields:
 
     def test_missing_image(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         If an image is not given, a ``BAD_REQUEST`` response is returned.
@@ -430,7 +430,7 @@ class TestIncorrectFields:
     def test_extra_fields(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         If extra fields are given, a ``BAD_REQUEST`` response is returned.
@@ -455,7 +455,7 @@ class TestIncorrectFields:
 
     def test_missing_image_and_extra_fields(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         If extra fields are given and no image field is given, a
@@ -489,7 +489,7 @@ class TestMaxNumResults:
     def test_default(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         The default ``max_num_results`` is 1.
@@ -531,7 +531,7 @@ class TestMaxNumResults:
     def test_valid_accepted(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         num_results: Union[int, bytes],
     ) -> None:
         """
@@ -564,7 +564,7 @@ class TestMaxNumResults:
     def test_valid_works(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         A maximum of ``max_num_results`` results are returned.
@@ -606,7 +606,7 @@ class TestMaxNumResults:
     def test_out_of_range(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         num_results: Union[int, bytes],
     ) -> None:
         """
@@ -647,7 +647,7 @@ class TestMaxNumResults:
     def test_invalid_type(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         num_results: bytes,
     ) -> None:
         """
@@ -683,7 +683,7 @@ class TestMaxNumResults:
 @pytest.fixture()
 def add_targets(
     high_quality_image: io.BytesIO,
-    vuforia_database_keys: VuforiaDatabaseKeys,
+    vuforia_database_keys: VuforiaDatabase,
 ) -> None:
     """
     Add two targets with the "high_quality_image" fixture contents.
@@ -721,7 +721,7 @@ class TestIncludeTargetData:
     def test_default(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         The default ``include_target_data`` is 'top'.
@@ -746,7 +746,7 @@ class TestIncludeTargetData:
     def test_top(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         include_target_data: str,
     ) -> None:
         """
@@ -774,7 +774,7 @@ class TestIncludeTargetData:
     def test_none(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         include_target_data: str,
     ) -> None:
         """
@@ -802,7 +802,7 @@ class TestIncludeTargetData:
     def test_all(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         include_target_data: str,
     ) -> None:
         """
@@ -829,7 +829,7 @@ class TestIncludeTargetData:
     def test_invalid_value(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         A ``BAD_REQUEST`` error is given when a string that is not one of
@@ -878,7 +878,7 @@ class TestAcceptHeader:
     def test_valid(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         extra_headers: Dict[str, str],
     ) -> None:
         """
@@ -923,7 +923,7 @@ class TestAcceptHeader:
     def test_invalid(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         A NOT_ACCEPTABLE response is returned if an ``Accept`` header is given
@@ -979,7 +979,7 @@ class TestActiveFlag:
     def test_inactive(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         Images which are not active are not matched.
@@ -1023,7 +1023,7 @@ class TestBadImage:
 
     def test_corrupted(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         corrupted_image_file: io.BytesIO,
     ) -> None:
         """
@@ -1067,7 +1067,7 @@ class TestMaximumImageSize:
 
     def test_png(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         According to
@@ -1134,7 +1134,7 @@ class TestMaximumImageSize:
 
     def test_jpeg(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         According to
@@ -1209,7 +1209,7 @@ class TestImageFormats:
     def test_supported(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         file_format: str,
     ) -> None:
         """
@@ -1233,7 +1233,7 @@ class TestImageFormats:
     def test_unsupported(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         File formats which are not PNG or JPEG are not supported.
@@ -1285,7 +1285,7 @@ class TestProcessing:
     def test_processing(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         active_flag: bool,
     ) -> None:
         """
@@ -1370,7 +1370,7 @@ class TestUpdate:
         self,
         high_quality_image: io.BytesIO,
         different_high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         After a target is updated, only the new image can be matched.
@@ -1483,7 +1483,7 @@ class TestDeleted:
     def test_deleted(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         Within approximately 7 seconds of deleting a target, querying for its
@@ -1535,7 +1535,7 @@ class TestDeleted:
     def test_deleted_and_wait(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         After waiting approximately 7 seconds (we wait more to be safer), a
@@ -1597,7 +1597,7 @@ class TestDeleted:
     def test_deleted_inactive(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         No error is returned when querying for an image of recently deleted,
@@ -1648,7 +1648,7 @@ class TestTargetStatusFailed:
     def test_status_failed(
         self,
         image_file_failed_state: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         Targets with the status "failed" are not found in query results.
@@ -1712,7 +1712,7 @@ class TestDateFormats:
     def test_date_formats(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         datetime_format: str,
         include_tz: bool,
     ) -> None:
@@ -1772,7 +1772,7 @@ class TestInactiveProject:
 
     def test_inactive_project(
         self,
-        inactive_database_keys: VuforiaDatabaseKeys,
+        inactive_database_keys: VuforiaDatabase,
         high_quality_image: io.BytesIO,
     ) -> None:
         """

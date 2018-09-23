@@ -21,7 +21,7 @@ from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
     assert_vws_response,
 )
-from tests.mock_vws.utils.authorization import VuforiaDatabaseKeys
+from tests.mock_vws.utils.authorization import VuforiaDatabase
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -32,7 +32,7 @@ class TestGetRecord:
 
     def test_get_vws_target(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -101,7 +101,7 @@ class TestGetRecord:
 
     def test_active_flag_not_set(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -132,7 +132,7 @@ class TestGetRecord:
 
     def test_active_flag_set_to_none(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -164,7 +164,7 @@ class TestGetRecord:
 
     def test_fail_status(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -203,7 +203,7 @@ class TestGetRecord:
 
     def test_success_status(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         image_file_success_state_low_rating: io.BytesIO,
     ) -> None:
         """
@@ -263,7 +263,7 @@ class TestInactiveProject:
 
     def test_inactive_project(
         self,
-        inactive_database_keys: VuforiaDatabaseKeys,
+        inactive_database_keys: VuforiaDatabase,
     ) -> None:
         """
         The project's active state does not affect getting a target.
