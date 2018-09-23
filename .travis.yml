@@ -1,7 +1,36 @@
+sudo: false
 language: python
-python: 3.7
-dist: xenial
-sudo: true
+python:
+- '3.7-dev'
+matrix:
+  fast_finish: true
+env:
+  matrix:
+  - CI_PATTERN=''
+  - CI_PATTERN=test_query.py
+  - CI_PATTERN=test_add_target.py
+  - CI_PATTERN=test_authorization_header.py
+  - CI_PATTERN=test_database_summary.py
+  - CI_PATTERN=test_date_header.py::TestFormat
+  - CI_PATTERN=test_date_header.py::TestMissing
+  - CI_PATTERN=test_date_header.py::TestSkewedTime
+  - CI_PATTERN=test_delete_target.py
+  - CI_PATTERN=test_get_duplicates.py
+  - CI_PATTERN=test_get_target.py
+  - CI_PATTERN=test_invalid_given_id.py
+  - CI_PATTERN=test_invalid_json.py
+  - CI_PATTERN=test_target_list.py
+  - CI_PATTERN=test_target_summary.py
+  - CI_PATTERN=test_unexpected_json.py
+  - CI_PATTERN=test_update_target.py::TestActiveFlag
+  - CI_PATTERN=test_update_target.py::TestApplicationMetadata
+  - CI_PATTERN=test_update_target.py::TestImage
+  - CI_PATTERN=test_update_target.py::TestTargetName
+  - CI_PATTERN=test_update_target.py::TestUnexpectedData
+  - CI_PATTERN=test_update_target.py::TestUpdate
+  - CI_PATTERN=test_update_target.py::TestWidth
+  - CI_PATTERN=test_update_target.py::TestInactiveProject
+  - CI_PATTERN=test_usage.py
 addons:
   apt:
     packages:
@@ -15,7 +44,8 @@ install:
 - travis_retry pip install --upgrade --editable .[dev]
 cache: pip
 before_script:
+- python ci/set_secrets_file.py
 script:
-- isort --recursive
+- python ci/run_script.py
 after_success:
 - codecov
