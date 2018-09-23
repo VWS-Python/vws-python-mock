@@ -2,8 +2,10 @@
 Common utilities for creating mock routes.
 """
 
+import cgi
+import io
 import json
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Callable, Dict, List, Mapping, Tuple, Union
 
 import wrapt
 from requests_mock.request import _RequestObjectProxy
@@ -76,3 +78,26 @@ def set_content_length_header(
     result = wrapped(*args, **kwargs)
     context.headers['Content-Length'] = str(len(result))
     return result
+
+
+def parse_multipart(  # pylint: disable=invalid-name
+    fp: io.BytesIO,
+    pdict: Mapping[str, bytes],
+) -> Dict[str, List[Union[str, bytes]]]:
+    """
+    This wraps ``_parse_multipart`` to work around
+    https://bugs.python.org/issue34226.
+
+    See https://docs.python.org/3.7/library/cgi.html#_parse_multipart.
+    """
+    pdict = {
+        'CONTENT-LENGTH': str(len(fp.getvalue())).encode(),
+        **pdict,
+    }
+
+    # Ignore type error as per
+    # https://github.com/python/typeshed/issues/2473
+    return cgi.parse_multipart(  # type: ignore
+        fp=fp,
+        pdict=pdict,
+    )
