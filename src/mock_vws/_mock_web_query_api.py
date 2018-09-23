@@ -10,7 +10,7 @@ import datetime
 import io
 import uuid
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Set, Tuple, Union
+from typing import Any, Callable, Dict, List, Mapping, Set, Tuple, Union
 
 import pytz
 import requests
@@ -28,6 +28,29 @@ from mock_vws._mock_web_services_api import MockVuforiaWebServicesAPI, Target
 from ._validators import validate_auth_header_exists, validate_authorization
 
 ROUTES = set([])
+
+
+def _parse_multipart(  # pylint: disable=invalid-name
+    fp: io.BytesIO,
+    pdict: Mapping[str, bytes],
+) -> Dict[str, List[Union[str, bytes]]]:
+    """
+    This wraps ``_parse_multipart`` to work around
+    https://bugs.python.org/issue34226.
+
+    See https://docs.python.org/3.7/library/cgi.html#_parse_multipart.
+    """
+    pdict = {
+        'CONTENT-LENGTH': str(len(fp.getvalue())).encode(),
+        **pdict,
+    }
+
+    # Ignore type error as per
+    # https://github.com/python/typeshed/issues/2473
+    return cgi.parse_multipart(  # type: ignore
+        fp=fp,
+        pdict=pdict,
+    )
 
 
 @wrapt.decorator
@@ -96,7 +119,7 @@ def validate_image_file_size(
     body_file = io.BytesIO(request.body)
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
-    parsed = cgi.parse_multipart(
+    parsed = _parse_multipart(
         fp=body_file,
         pdict={
             'boundary': pdict['boundary'].encode(),
@@ -140,7 +163,7 @@ def validate_image_format(
     body_file = io.BytesIO(request.body)
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
-    parsed = cgi.parse_multipart(
+    parsed = _parse_multipart(
         fp=body_file,
         pdict={
             'boundary': pdict['boundary'].encode(),
@@ -149,6 +172,7 @@ def validate_image_format(
 
     [image] = parsed['image']
 
+    assert isinstance(image, bytes)
     image_file = io.BytesIO(image)
     pil_image = Image.open(image_file)
 
@@ -194,7 +218,7 @@ def validate_image_file_contents(
     body_file = io.BytesIO(request.body)
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
-    parsed = cgi.parse_multipart(
+    parsed = _parse_multipart(
         fp=body_file,
         pdict={
             'boundary': pdict['boundary'].encode(),
@@ -203,7 +227,9 @@ def validate_image_file_contents(
 
     [image] = parsed['image']
 
+    assert isinstance(image, bytes)
     image_file = io.BytesIO(image)
+
     try:
         Image.open(image_file).verify()
     except SyntaxError:
@@ -280,15 +306,15 @@ def validate_max_num_results(
     body_file = io.BytesIO(request.body)
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
-    parsed = cgi.parse_multipart(
+    parsed = _parse_multipart(
         fp=body_file,
         pdict={
             'boundary': pdict['boundary'].encode(),
         },
     )
-    [max_num_results] = parsed.get('max_num_results', [b'1'])
+    [max_num_results] = parsed.get('max_num_results', ['1'])
     invalid_type_error = (
-        f"Invalid value '{max_num_results.decode()}' in form data part "
+        f"Invalid value '{max_num_results}' in form data part "
         "'max_result'. "
         'Expecting integer value in range from 1 to 50 (inclusive).'
     )
@@ -341,21 +367,21 @@ def validate_include_target_data(
     body_file = io.BytesIO(request.body)
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
-    parsed = cgi.parse_multipart(
+    parsed = _parse_multipart(
         fp=body_file,
         pdict={
             'boundary': pdict['boundary'].encode(),
         },
     )
 
-    [include_target_data] = parsed.get('include_target_data', [b'top'])
+    [include_target_data] = parsed.get('include_target_data', ['top'])
     include_target_data = include_target_data.lower()
-    allowed_included_target_data = {b'top', b'all', b'none'}
+    allowed_included_target_data = {'top', 'all', 'none'}
     if include_target_data in allowed_included_target_data:
         return wrapped(*args, **kwargs)
 
     unexpected_target_data_message = (
-        f"Invalid value '{include_target_data.decode()}' in form data part "
+        f"Invalid value '{include_target_data}' in form data part "
         "'include_target_data'. "
         "Expecting one of the (unquoted) string values 'all', 'none' or 'top'."
     )
@@ -579,7 +605,7 @@ def validate_image_field_given(
     body_file = io.BytesIO(request.body)
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
-    parsed = cgi.parse_multipart(
+    parsed = _parse_multipart(
         fp=body_file,
         pdict={
             'boundary': pdict['boundary'].encode(),
@@ -617,7 +643,7 @@ def validate_extra_fields(
     body_file = io.BytesIO(request.body)
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
-    parsed = cgi.parse_multipart(
+    parsed = _parse_multipart(
         fp=body_file,
         pdict={
             'boundary': pdict['boundary'].encode(),
@@ -745,16 +771,16 @@ class MockVuforiaWebQueryAPI:
         body_file = io.BytesIO(request.body)
 
         _, pdict = cgi.parse_header(request.headers['Content-Type'])
-        parsed = cgi.parse_multipart(
+        parsed = _parse_multipart(
             fp=body_file,
             pdict={
                 'boundary': pdict['boundary'].encode(),
             },
         )
 
-        [max_num_results] = parsed.get('max_num_results', [b'1'])
+        [max_num_results] = parsed.get('max_num_results', ['1'])
 
-        [include_target_data] = parsed.get('include_target_data', [b'top'])
+        [include_target_data] = parsed.get('include_target_data', ['top'])
         include_target_data = include_target_data.lower()
 
         [image] = parsed['image']
@@ -816,12 +842,12 @@ class MockVuforiaWebQueryAPI:
                 'application_metadata': target.application_metadata,
             }
 
-            if include_target_data == b'all':
+            if include_target_data == 'all':
                 result = {
                     'target_id': target.target_id,
                     'target_data': target_data,
                 }
-            elif include_target_data == b'top' and not results:
+            elif include_target_data == 'top' and not results:
                 result = {
                     'target_id': target.target_id,
                     'target_data': target_data,
