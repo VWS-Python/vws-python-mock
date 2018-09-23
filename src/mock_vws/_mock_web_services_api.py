@@ -29,8 +29,9 @@ from ._validators import (
     validate_active_flag,
     validate_auth_header_exists,
     validate_authorization,
-    validate_date,
+    validate_date_format,
     validate_date_header_given,
+    validate_date_in_range,
     validate_image_color_space,
     validate_image_data_type,
     validate_image_encoding,
@@ -173,7 +174,8 @@ def route(
                 validate_authorization,
                 key_validator,
                 validate_not_invalid_json,
-                validate_date,
+                validate_date_in_range,
+                validate_date_format,
                 validate_date_header_given,
             ]
         else:
@@ -196,7 +198,8 @@ def route(
                 validate_name_type,
                 validate_width,
                 key_validator,
-                validate_date,
+                validate_date_in_range,
+                validate_date_format,
                 validate_date_header_given,
                 validate_not_invalid_json,
             ]

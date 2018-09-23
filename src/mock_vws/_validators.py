@@ -349,14 +349,14 @@ def validate_date_header_given(
 
 
 @wrapt.decorator
-def validate_date(
+def validate_date_format(
     wrapped: Callable[..., str],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
 ) -> str:
     """
-    Validate the date header given to a VWS endpoint.
+    Validate the format of the date header given to a VWS endpoint.
 
     Args:
         wrapped: An endpoint function for `requests_mock`.
@@ -383,6 +383,37 @@ def validate_date(
             'result_code': ResultCodes.FAIL.value,
         }
         return json_dump(body)
+
+    return wrapped(*args, **kwargs)
+
+
+@wrapt.decorator
+def validate_date_in_range(
+    wrapped: Callable[..., str],
+    instance: Any,  # pylint: disable=unused-argument
+    args: Tuple[_RequestObjectProxy, _Context],
+    kwargs: Dict,
+) -> str:
+    """
+    Validate the date header given to a VWS endpoint is in range.
+
+    Args:
+        wrapped: An endpoint function for `requests_mock`.
+        instance: The class that the endpoint function is in.
+        args: The arguments given to the endpoint function.
+        kwargs: The keyword arguments given to the endpoint function.
+
+    Returns:
+        The result of calling the endpoint.
+        A `BAD_REQUEST` response if the date is in the wrong format.
+        A `FORBIDDEN` response if the date is out of range.
+    """
+    request, context = args
+
+    date_from_header = datetime.datetime.strptime(
+        request.headers['Date'],
+        '%a, %d %b %Y %H:%M:%S GMT',
+    )
 
     gmt = pytz.timezone('GMT')
     now = datetime.datetime.now(tz=gmt)
