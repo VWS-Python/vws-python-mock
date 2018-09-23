@@ -450,7 +450,7 @@ def validate_date_format(
 
 
 @wrapt.decorator
-def validate_date(
+def validate_date_in_range(
     wrapped: Callable[..., str],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
@@ -693,7 +693,7 @@ def route(
 
         decorators = [
             validate_authorization,
-            validate_date,
+            validate_date_in_range,
             validate_date_format,
             validate_date_header_given,
             validate_include_target_data,
