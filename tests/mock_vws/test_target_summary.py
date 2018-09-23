@@ -23,7 +23,7 @@ from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
     assert_vws_response,
 )
-from tests.mock_vws.utils.authorization import VuforiaDatabaseKeys
+from tests.mock_vws.utils.authorization import VuforiaDatabase
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -34,7 +34,7 @@ class TestTargetSummary:
 
     def test_target_summary(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -109,7 +109,7 @@ class TestTargetSummary:
 
     def test_after_processing(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -166,7 +166,7 @@ class TestActiveFlag:
     @pytest.mark.parametrize('active_flag', [True, False])
     def test_active_flag(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
         active_flag: bool,
     ) -> None:
@@ -202,7 +202,7 @@ class TestRecognitionCounts:
 
     def test_recognition(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         high_quality_image: io.BytesIO,
     ) -> None:
         """
@@ -256,7 +256,7 @@ class TestInactiveProject:
 
     def test_inactive_project(
         self,
-        inactive_database_keys: VuforiaDatabaseKeys,
+        inactive_database_keys: VuforiaDatabase,
     ) -> None:
         """
         The project's active state does not affect getting a target.

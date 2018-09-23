@@ -22,7 +22,7 @@ from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
     assert_vws_response,
 )
-from tests.mock_vws.utils.authorization import VuforiaDatabaseKeys
+from tests.mock_vws.utils.authorization import VuforiaDatabase
 
 
 def assert_success(response: Response) -> None:
@@ -69,7 +69,7 @@ class TestContentTypes:
     )
     def test_content_types(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
         content_type: str,
     ) -> None:
@@ -103,7 +103,7 @@ class TestMissingData:
     @pytest.mark.parametrize('data_to_remove', ['name', 'width', 'image'])
     def test_missing_data(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
         data_to_remove: str,
     ) -> None:
@@ -145,7 +145,7 @@ class TestWidth:
     )
     def test_width_invalid(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
         width: Any,
     ) -> None:
@@ -174,7 +174,7 @@ class TestWidth:
 
     def test_width_valid(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -223,7 +223,7 @@ class TestTargetName:
         self,
         name: str,
         image_file_failed_state: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         Names between 1 and 64 characters in length are valid.
@@ -271,7 +271,7 @@ class TestTargetName:
         self,
         name: str,
         image_file_failed_state: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         status_code: int,
     ) -> None:
         """
@@ -301,7 +301,7 @@ class TestTargetName:
     def test_existing_target_name(
         self,
         image_file_failed_state: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         Only one target can have a given name.
@@ -334,7 +334,7 @@ class TestTargetName:
     def test_deleted_existing_target_name(
         self,
         image_file_failed_state: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         A target can be added with the name of a deleted target.
@@ -384,7 +384,7 @@ class TestImage:
 
     def test_image_valid(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         image_files_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -411,7 +411,7 @@ class TestImage:
     def test_bad_image_format_or_color_space(
         self,
         bad_image_file: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         A `BAD_REQUEST` response is returned if an image which is not a JPEG
@@ -440,7 +440,7 @@ class TestImage:
 
     def test_corrupted(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         corrupted_image_file: io.BytesIO,
     ) -> None:
         """
@@ -464,7 +464,7 @@ class TestImage:
 
     def test_image_too_large(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         An `ImageTooLarge` result is returned if the image is above a certain
@@ -542,7 +542,7 @@ class TestImage:
 
     def test_not_base64_encoded(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         If the given image is not decodable as base64 data then a `Fail`
@@ -572,7 +572,7 @@ class TestImage:
 
     def test_not_image(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         If the given image is not an image file then a `BadImage` result is
@@ -602,7 +602,7 @@ class TestImage:
     def test_invalid_type(
         self,
         invalid_type_image: Any,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         If the given image is not a string, a `Fail` result is returned.
@@ -636,7 +636,7 @@ class TestActiveFlag:
         self,
         active_flag: Union[bool, None],
         image_file_failed_state: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         Boolean values and NULL are valid active flags.
@@ -663,7 +663,7 @@ class TestActiveFlag:
     def test_invalid(
         self,
         image_file_failed_state: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         Values which are not Boolean values or NULL are not valid active flags.
@@ -701,7 +701,7 @@ class TestUnexpectedData:
 
     def test_invalid_extra_data(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -747,7 +747,7 @@ class TestApplicationMetadata:
     )
     def test_base64_encoded(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
         metadata: bytes,
     ) -> None:
@@ -774,7 +774,7 @@ class TestApplicationMetadata:
 
     def test_null(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -799,7 +799,7 @@ class TestApplicationMetadata:
 
     def test_invalid_type(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -835,7 +835,7 @@ class TestApplicationMetadata:
 
     def test_not_base64_encoded(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -869,7 +869,7 @@ class TestApplicationMetadata:
 
     def test_metadata_too_large(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -908,7 +908,7 @@ class TestInactiveProject:
 
     def test_inactive_project(
         self,
-        inactive_database_keys: VuforiaDatabaseKeys,
+        inactive_database_keys: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """

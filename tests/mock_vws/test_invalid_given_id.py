@@ -14,7 +14,7 @@ from tests.mock_vws.utils import (
     wait_for_target_processed,
 )
 from tests.mock_vws.utils.assertions import assert_vws_failure
-from tests.mock_vws.utils.authorization import VuforiaDatabaseKeys
+from tests.mock_vws.utils.authorization import VuforiaDatabase
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -26,7 +26,7 @@ class TestInvalidGivenID:
 
     def test_not_real_id(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         endpoint: Endpoint,
         target_id: str,
     ) -> None:

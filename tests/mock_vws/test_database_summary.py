@@ -21,12 +21,12 @@ from tests.mock_vws.utils import (
     wait_for_target_processed,
 )
 from tests.mock_vws.utils.assertions import assert_vws_response
-from tests.mock_vws.utils.authorization import VuforiaDatabaseKeys
+from tests.mock_vws.utils.authorization import VuforiaDatabase
 
 
 @timeout_decorator.timeout(seconds=300)
 def wait_for_image_numbers(
-    vuforia_database_keys: VuforiaDatabaseKeys,
+    vuforia_database_keys: VuforiaDatabase,
     active_images: int,
     inactive_images: int,
     failed_images: int,
@@ -89,7 +89,7 @@ class TestDatabaseSummary:
 
     def test_success(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         It is possible to get a success response.
@@ -134,7 +134,7 @@ class TestDatabaseSummary:
 
     def test_active_images(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         target_id: str,
     ) -> None:
         """
@@ -155,7 +155,7 @@ class TestDatabaseSummary:
 
     def test_failed_images(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -192,7 +192,7 @@ class TestDatabaseSummary:
 
     def test_inactive_images(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         image_file_success_state_low_rating: io.BytesIO,
     ) -> None:
         """
@@ -231,7 +231,7 @@ class TestDatabaseSummary:
 
     def test_inactive_failed(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -269,7 +269,7 @@ class TestDatabaseSummary:
 
     def test_deleted(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -338,7 +338,7 @@ class TestProcessingImages:
         }
 
         with MockVWS() as mock:
-            vuforia_database_keys = VuforiaDatabaseKeys(
+            vuforia_database_keys = VuforiaDatabase(
                 server_access_key=mock.server_access_key,
                 server_secret_key=mock.server_secret_key,
                 database_name=mock.database_name,
@@ -366,7 +366,7 @@ class TestQuotas:
     Tests for quotas and thresholds.
     """
 
-    def test_quotas(self, vuforia_database_keys: VuforiaDatabaseKeys) -> None:
+    def test_quotas(self, vuforia_database_keys: VuforiaDatabase) -> None:
         """
         Quotas are included in the database summary.
         These match the quotas given for a free license.
@@ -388,7 +388,7 @@ class TestRecos:
 
     def test_query_request(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         high_quality_image: io.BytesIO,
     ) -> None:
         """
@@ -419,7 +419,7 @@ class TestRequestUsage:
 
     def test_target_request(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         The ``request_usage`` count increases with each request to the target
@@ -440,7 +440,7 @@ class TestRequestUsage:
 
     def test_bad_target_request(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         The ``request_usage`` count increases with each request to the target
@@ -468,7 +468,7 @@ class TestRequestUsage:
 
     def test_query_request(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         high_quality_image: io.BytesIO,
     ) -> None:
         """
@@ -506,7 +506,7 @@ class TestInactiveProject:
 
     def test_inactive_project(
         self,
-        inactive_database_keys: VuforiaDatabaseKeys,
+        inactive_database_keys: VuforiaDatabase,
     ) -> None:
         """
         The project's active state does not affect the database summary.

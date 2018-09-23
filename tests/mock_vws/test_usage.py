@@ -20,7 +20,7 @@ from requests_mock.exceptions import NoMockAddress
 from mock_vws import MockVWS, States
 from mock_vws._constants import TargetStatuses
 from tests.mock_vws.utils import (
-    VuforiaDatabaseKeys,
+    VuforiaDatabase,
     add_target_to_vws,
     database_summary,
     delete_target,
@@ -77,7 +77,7 @@ def assert_valid_server_credentials(
         AssertionError: The given credentials fail to authenticate with a
             Vuforia database.
     """
-    credentials = VuforiaDatabaseKeys(
+    credentials = VuforiaDatabase(
         database_name=uuid.uuid4().hex,
         server_access_key=server_access_key,
         server_secret_key=server_secret_key,
@@ -146,7 +146,7 @@ class TestProcessingTime:
         }
 
         with MockVWS() as mock:
-            vuforia_database_keys = VuforiaDatabaseKeys(
+            vuforia_database_keys = VuforiaDatabase(
                 database_name=uuid.uuid4().hex,
                 server_access_key=mock.server_access_key,
                 server_secret_key=mock.server_secret_key,
@@ -192,7 +192,7 @@ class TestProcessingTime:
         }
 
         with MockVWS(processing_time_seconds=0.1) as mock:
-            vuforia_database_keys = VuforiaDatabaseKeys(
+            vuforia_database_keys = VuforiaDatabase(
                 database_name=uuid.uuid4().hex,
                 server_access_key=mock.server_access_key,
                 server_secret_key=mock.server_secret_key,
@@ -233,7 +233,7 @@ class TestDatabaseName:
         By default, the database has a random name.
         """
         with MockVWS() as mock:
-            vuforia_database_keys = VuforiaDatabaseKeys(
+            vuforia_database_keys = VuforiaDatabase(
                 database_name=uuid.uuid4().hex,
                 server_access_key=mock.server_access_key,
                 server_secret_key=mock.server_secret_key,
@@ -247,7 +247,7 @@ class TestDatabaseName:
             first_database_name = response.json()['name']
 
         with MockVWS() as mock:
-            vuforia_database_keys = VuforiaDatabaseKeys(
+            vuforia_database_keys = VuforiaDatabase(
                 database_name=uuid.uuid4().hex,
                 server_access_key=mock.server_access_key,
                 server_secret_key=mock.server_secret_key,
@@ -270,7 +270,7 @@ class TestDatabaseName:
         It is possible to set a custom database name.
         """
         with MockVWS(database_name=database_name) as mock:
-            vuforia_database_keys = VuforiaDatabaseKeys(
+            vuforia_database_keys = VuforiaDatabase(
                 database_name=database_name,
                 server_access_key=mock.server_access_key,
                 server_secret_key=mock.server_secret_key,
@@ -306,7 +306,7 @@ class TestPersistence:
         }
 
         with MockVWS() as mock:
-            vuforia_database_keys = VuforiaDatabaseKeys(
+            vuforia_database_keys = VuforiaDatabase(
                 database_name=uuid.uuid4().hex,
                 server_access_key=mock.server_access_key,
                 server_secret_key=mock.server_secret_key,
@@ -329,7 +329,7 @@ class TestPersistence:
             assert response.status_code == codes.OK
 
         with MockVWS() as mock:
-            vuforia_database_keys = VuforiaDatabaseKeys(
+            vuforia_database_keys = VuforiaDatabase(
                 database_name=uuid.uuid4().hex,
                 server_access_key=mock.server_access_key,
                 server_secret_key=mock.server_secret_key,
@@ -436,7 +436,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
     def _recognize_deletion_seconds(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> float:
         """
         XXX
@@ -493,7 +493,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
     def test_default(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         By default it takes three seconds for the Query API on the mock to
@@ -519,7 +519,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
     def test_custom(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         It is possible to use set a custom amount of time that it takes for the

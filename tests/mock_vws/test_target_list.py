@@ -12,7 +12,7 @@ from tests.mock_vws.utils import (
     wait_for_target_processed,
 )
 from tests.mock_vws.utils.assertions import assert_vws_response
-from tests.mock_vws.utils.authorization import VuforiaDatabaseKeys
+from tests.mock_vws.utils.authorization import VuforiaDatabase
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -23,7 +23,7 @@ class TestTargetList:
 
     def test_success(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         It is possible to get a success response.
@@ -40,7 +40,7 @@ class TestTargetList:
 
     def test_includes_targets(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         target_id: str,
     ) -> None:
         """
@@ -51,7 +51,7 @@ class TestTargetList:
 
     def test_deleted(
         self,
-        vuforia_database_keys: VuforiaDatabaseKeys,
+        vuforia_database_keys: VuforiaDatabase,
         target_id: str,
     ) -> None:
         """
@@ -78,7 +78,7 @@ class TestInactiveProject:
 
     def test_inactive_project(
         self,
-        inactive_database_keys: VuforiaDatabaseKeys,
+        inactive_database_keys: VuforiaDatabase,
     ) -> None:
         """
         The project's active state does not affect the target list.

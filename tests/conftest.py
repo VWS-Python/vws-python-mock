@@ -23,7 +23,7 @@ from tests.mock_vws.utils import (
     wait_for_target_processed,
 )
 from tests.mock_vws.utils.assertions import assert_vws_response
-from tests.mock_vws.utils.authorization import VuforiaDatabaseKeys
+from tests.mock_vws.utils.authorization import VuforiaDatabase
 
 pytest_plugins = [  # pylint: disable=invalid-name
     'tests.mock_vws.fixtures.prepared_requests',
@@ -35,7 +35,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-def _delete_all_targets(database_keys: VuforiaDatabaseKeys) -> None:
+def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
     """
     Delete all targets.
 
@@ -82,7 +82,7 @@ def _delete_all_targets(database_keys: VuforiaDatabaseKeys) -> None:
 @pytest.fixture()
 def target_id(
     image_file_success_state_low_rating: io.BytesIO,
-    vuforia_database_keys: VuforiaDatabaseKeys,
+    vuforia_database_keys: VuforiaDatabase,
 ) -> str:
     """
     Return the target ID of a target in the database.
@@ -110,7 +110,7 @@ def target_id(
 @pytest.fixture(params=[True, False], ids=['Real Vuforia', 'Mock Vuforia'])
 def verify_mock_vuforia(
     request: SubRequest,
-    vuforia_database_keys: VuforiaDatabaseKeys,
+    vuforia_database_keys: VuforiaDatabase,
 ) -> Generator:
     """
     Test functions which use this fixture are run twice. Once with the real
@@ -151,7 +151,7 @@ def verify_mock_vuforia(
 @pytest.fixture(params=[True, False], ids=['Real Vuforia', 'Mock Vuforia'])
 def verify_mock_vuforia_inactive(
     request: SubRequest,
-    inactive_database_keys: VuforiaDatabaseKeys,
+    inactive_database_keys: VuforiaDatabase,
 ) -> Generator:
     """
     Test functions which use this fixture are run twice. Once with the real

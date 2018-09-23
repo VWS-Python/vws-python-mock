@@ -18,7 +18,7 @@ from urllib3.filepost import encode_multipart_formdata
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from tests.mock_vws.utils.authorization import (
-    VuforiaDatabaseKeys,
+    VuforiaDatabase,
     authorization_header,
     rfc_1123_date,
 )
@@ -71,7 +71,7 @@ class Endpoint:
 
 
 def add_target_to_vws(
-    vuforia_database_keys: VuforiaDatabaseKeys,
+    vuforia_database_keys: VuforiaDatabase,
     data: Dict[str, Any],
     content_type: str = 'application/json',
 ) -> Response:
@@ -119,7 +119,7 @@ def add_target_to_vws(
 
 def get_vws_target(
     target_id: str,
-    vuforia_database_keys: VuforiaDatabaseKeys,
+    vuforia_database_keys: VuforiaDatabase,
 ) -> Response:
     """
     Return a response from a request to the endpoint to get a target record.
@@ -141,7 +141,7 @@ def get_vws_target(
     return response
 
 
-def database_summary(vuforia_database_keys: VuforiaDatabaseKeys) -> Response:
+def database_summary(vuforia_database_keys: VuforiaDatabase) -> Response:
     """
     Return the response of a request to the database summary endpoint.
 
@@ -163,7 +163,7 @@ def database_summary(vuforia_database_keys: VuforiaDatabaseKeys) -> Response:
 
 @timeout_decorator.timeout(seconds=60 * 5)
 def wait_for_target_processed(
-    vuforia_database_keys: VuforiaDatabaseKeys,
+    vuforia_database_keys: VuforiaDatabase,
     target_id: str,
 ) -> None:
     """
@@ -249,7 +249,7 @@ def target_api_request(
 
 
 def delete_target(
-    vuforia_database_keys: VuforiaDatabaseKeys,
+    vuforia_database_keys: VuforiaDatabase,
     target_id: str,
 ) -> Response:
     """
@@ -275,7 +275,7 @@ def delete_target(
 
 
 def update_target(
-    vuforia_database_keys: VuforiaDatabaseKeys,
+    vuforia_database_keys: VuforiaDatabase,
     data: Dict[str, Any],
     target_id: str,
     content_type: str = 'application/json',
@@ -324,7 +324,7 @@ def update_target(
     return response
 
 
-def list_targets(vuforia_database_keys: VuforiaDatabaseKeys) -> Response:
+def list_targets(vuforia_database_keys: VuforiaDatabase) -> Response:
     """
     Get a list of targets.
 
@@ -347,7 +347,7 @@ def list_targets(vuforia_database_keys: VuforiaDatabaseKeys) -> Response:
 
 
 def target_summary(
-    vuforia_database_keys: VuforiaDatabaseKeys,
+    vuforia_database_keys: VuforiaDatabase,
     target_id: str,
 ) -> Response:
     """
@@ -373,7 +373,7 @@ def target_summary(
 
 
 def query(
-    vuforia_database_keys: VuforiaDatabaseKeys,
+    vuforia_database_keys: VuforiaDatabase,
     body: Dict[str, Any],
 ) -> Response:
     """
