@@ -238,14 +238,13 @@ class MockVuforiaWebServicesAPI:
                 deterministic.
 
         Attributes:
-            database_name: The name of a VWS target manager database name.
+            database: A Vuforia database.
             access_key (str): A VWS server access key.
             secret_key (str): A VWS server secret key.
             routes: The `Route`s to be used in the mock.
             state: The state of the services being mocked.
         """
         self.database = vuforia_database
-        self.database_name = vuforia_database.database_name
 
         self.access_key: str = vuforia_database.server_access_key.decode()
         self.secret_key: str = vuforia_database.server_secret_key.decode()
@@ -395,7 +394,7 @@ class MockVuforiaWebServicesAPI:
         body = {
             'result_code': ResultCodes.SUCCESS.value,
             'transaction_id': uuid.uuid4().hex,
-            'name': self.database_name,
+            'name': self.database.database_name,
             'active_images': active_images,
             'inactive_images': inactive_images,
             'failed_images': failed_images,
@@ -607,7 +606,7 @@ class MockVuforiaWebServicesAPI:
             'status': target.status,
             'transaction_id': uuid.uuid4().hex,
             'result_code': ResultCodes.SUCCESS.value,
-            'database_name': self.database_name,
+            'database_name': self.database.database_name,
             'target_name': target.name,
             'upload_date': target.upload_date.strftime('%Y-%m-%d'),
             'active_flag': target.active_flag,
