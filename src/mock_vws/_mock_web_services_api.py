@@ -239,18 +239,11 @@ class MockVuforiaWebServicesAPI:
 
         Attributes:
             database (VuforiaDatabase): A Vuforia database.
-            access_key (bytes): A VWS server access key.
-            secret_key (bytes): A VWS server secret key.
             routes: The `Route`s to be used in the mock.
             request_count: The number of requests made to this API.
         """
         self.database = vuforia_database
-
-        self.access_key: bytes = vuforia_database.server_access_key
-        self.secret_key: bytes = vuforia_database.server_secret_key
-
         self.routes: Set[Route] = ROUTES
-
         self._processing_time_seconds = processing_time_seconds
         self.request_count = 0
 
