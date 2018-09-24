@@ -269,8 +269,7 @@ class MockVuforiaWebServicesAPI:
         database = self.database
 
         targets = (
-            target for target in database.targets
-            if not target.delete_date
+            target for target in database.targets if not target.delete_date
         )
         if any(target.name == name for target in targets):
             context.status_code = codes.FORBIDDEN
