@@ -17,7 +17,56 @@ from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
 from mock_vws._constants import ResultCodes, States
-from mock_vws._mock_common import json_dump, parse_multipart
+from mock_vws._mock_common import (
+    authorization_header,
+    json_dump,
+    parse_multipart,
+)
+
+
+@wrapt.decorator
+def validate_authorization(
+    wrapped: Callable[..., str],
+    instance: Any,
+    args: Tuple[_RequestObjectProxy, _Context],
+    kwargs: Dict,
+) -> str:
+    """
+    Validate the authorization header given to the query endpoint.
+
+    Args:
+        wrapped: An endpoint function for `requests_mock`.
+        instance: The class that the endpoint function is in.
+        args: The arguments given to the endpoint function.
+        kwargs: The keyword arguments given to the endpoint function.
+
+    Returns:
+        The result of calling the endpoint.
+        A `BAD_REQUEST` response if the "Authorization" header is not as
+        expected.
+    """
+    request, context = args
+
+    content_type = request.headers.get('Content-Type', '').split(';')[0]
+    expected_authorization_header = authorization_header(
+        access_key=instance.access_key,
+        secret_key=instance.secret_key,
+        method=request.method,
+        content=request.body or b'',
+        content_type=content_type,
+        date=request.headers.get('Date', ''),
+        request_path=request.path,
+    )
+
+    if request.headers['Authorization'] == expected_authorization_header:
+        return wrapped(*args, **kwargs)
+
+    context.status_code = codes.UNAUTHORIZED
+    text = 'Malformed authorization header.'
+    content_type = 'text/plain; charset=ISO-8859-1'
+    context.headers['Content-Type'] = content_type
+    context.headers['WWW-Authenticate'] = 'VWS'
+    return text
 
 
 @wrapt.decorator
