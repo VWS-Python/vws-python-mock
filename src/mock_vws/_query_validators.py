@@ -79,10 +79,11 @@ def validate_authorization(
     """
     request, context = args
 
+    database = instance.database
     content_type = request.headers.get('Content-Type', '').split(';')[0]
     expected_authorization_header = authorization_header(
-        access_key=instance.database.client_access_key,
-        secret_key=instance.database.client_secret_key,
+        access_key=database.client_access_key,
+        secret_key=database.client_secret_key,
         method=request.method,
         content=request.body or b'',
         content_type=content_type,
@@ -124,7 +125,8 @@ def validate_project_state(
     """
     _, context = args
 
-    if instance.database.state != States.PROJECT_INACTIVE:
+    database = instance.database
+    if database.state != States.PROJECT_INACTIVE:
         return wrapped(*args, **kwargs)
 
     context.status_code = codes.FORBIDDEN

@@ -170,7 +170,8 @@ class MockVuforiaWebQueryAPI:
             seconds=self._query_recognizes_deletion_seconds,
         )
 
-        for target in self.database.targets:
+        database = self.database
+        for target in database.targets:
             delete_processing = bool(
                 target.delete_date
                 and (now - target.delete_date) < minimum_time_since_delete,
