@@ -91,7 +91,8 @@ def validate_project_state(
     """
     request, context = args
 
-    if instance.database.state != States.PROJECT_INACTIVE:
+    database = instance.database
+    if database.state != States.PROJECT_INACTIVE:
         return wrapped(*args, **kwargs)
 
     if request.method == 'GET' and 'duplicates' not in request.path:
@@ -220,9 +221,10 @@ def validate_authorization(
     request, context = args
 
     content_type = request.headers.get('Content-Type', '').split(';')[0]
+    database = instance.database
     expected_authorization_header = authorization_header(
-        access_key=instance.database.server_access_key,
-        secret_key=instance.database.server_secret_key,
+        access_key=database.server_access_key,
+        secret_key=database.server_secret_key,
         method=request.method,
         content=request.body or b'',
         content_type=content_type,

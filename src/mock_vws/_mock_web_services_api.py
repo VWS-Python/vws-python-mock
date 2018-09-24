@@ -104,10 +104,11 @@ def parse_target_id(
         return wrapped(*args, **kwargs)
 
     target_id = split_path[-1]
+    database = instance.database
 
     try:
         [matching_target] = [
-            target for target in instance.database.targets
+            target for target in database.targets
             if target.target_id == target_id and not target.delete_date
         ]
     except ValueError:
@@ -265,10 +266,10 @@ class MockVuforiaWebServicesAPI:
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Add-a-Target
         """
         name = request.json()['name']
+        database = self.database
 
         targets = (
-            target for target in self.database.targets
-            if not target.delete_date
+            target for target in database.targets if not target.delete_date
         )
         if any(target.name == name for target in targets):
             context.status_code = codes.FORBIDDEN
@@ -294,7 +295,7 @@ class MockVuforiaWebServicesAPI:
             processing_time_seconds=self._processing_time_seconds,
             application_metadata=request.json().get('application_metadata'),
         )
-        self.database.targets.append(new_target)
+        database.targets.append(new_target)
 
         context.status_code = codes.CREATED
         body = {
@@ -351,9 +352,10 @@ class MockVuforiaWebServicesAPI:
         """
         body: Dict[str, Union[str, int]] = {}
 
+        database = self.database
         active_images = len(
             [
-                target for target in self.database.targets
+                target for target in database.targets
                 if target.status == TargetStatuses.SUCCESS.value
                 and target.active_flag and not target.delete_date
             ],
@@ -361,7 +363,7 @@ class MockVuforiaWebServicesAPI:
 
         failed_images = len(
             [
-                target for target in self.database.targets
+                target for target in database.targets
                 if target.status == TargetStatuses.FAILED.value
                 and not target.delete_date
             ],
@@ -369,7 +371,7 @@ class MockVuforiaWebServicesAPI:
 
         inactive_images = len(
             [
-                target for target in self.database.targets
+                target for target in database.targets
                 if target.status == TargetStatuses.SUCCESS.value
                 and not target.active_flag and not target.delete_date
             ],
@@ -377,7 +379,7 @@ class MockVuforiaWebServicesAPI:
 
         processing_images = len(
             [
-                target for target in self.database.targets
+                target for target in database.targets
                 if target.status == TargetStatuses.PROCESSING.value
                 and not target.delete_date
             ],
@@ -386,7 +388,7 @@ class MockVuforiaWebServicesAPI:
         body = {
             'result_code': ResultCodes.SUCCESS.value,
             'transaction_id': uuid.uuid4().hex,
-            'name': self.database.database_name,
+            'name': database.database_name,
             'active_images': active_images,
             'inactive_images': inactive_images,
             'failed_images': failed_images,
@@ -413,8 +415,9 @@ class MockVuforiaWebServicesAPI:
         Fake implementation of
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Get-a-Target-List-for-a-Cloud-Database
         """
+        database = self.database
         results = [
-            target.target_id for target in self.database.targets
+            target.target_id for target in database.targets
             if not target.delete_date
         ]
 
@@ -468,7 +471,8 @@ class MockVuforiaWebServicesAPI:
         Fake implementation of
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Check-for-Duplicate-Targets
         """
-        other_targets = set(self.database.targets) - set([target])
+        database = self.database
+        other_targets = set(database.targets) - set([target])
 
         similar_targets: List[str] = [
             other.target_id for other in other_targets
@@ -510,6 +514,7 @@ class MockVuforiaWebServicesAPI:
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Update-a-Target
         """
         body: Dict[str, str] = {}
+        database = self.database
 
         if target.status != TargetStatuses.SUCCESS.value:
             context.status_code = codes.FORBIDDEN
@@ -546,7 +551,7 @@ class MockVuforiaWebServicesAPI:
 
         if 'name' in request.json():
             name = request.json()['name']
-            other_targets = set(self.database.targets) - set([target])
+            other_targets = set(database.targets) - set([target])
             if any(
                 other.name == name for other in other_targets
                 if not other.delete_date
@@ -594,11 +599,12 @@ class MockVuforiaWebServicesAPI:
         Fake implementation of
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Retrieve-a-Target-Summary-Report
         """
+        database = self.database
         body = {
             'status': target.status,
             'transaction_id': uuid.uuid4().hex,
             'result_code': ResultCodes.SUCCESS.value,
-            'database_name': self.database.database_name,
+            'database_name': database.database_name,
             'target_name': target.name,
             'upload_date': target.upload_date.strftime('%Y-%m-%d'),
             'active_flag': target.active_flag,
