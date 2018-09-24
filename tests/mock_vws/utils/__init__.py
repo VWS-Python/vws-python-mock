@@ -445,14 +445,12 @@ def make_image_file(
     """
     image_buffer = io.BytesIO()
     image = Image.new(color_space, (width, height))
-    pixels = image.load()
-    for i in range(height):
-        for j in range(width):
-            red = random.randint(0, 255)
-            green = random.randint(0, 255)
-            blue = random.randint(0, 255)
-            if color_space != 'L':
-                pixels[j, i] = (red, green, blue)
+    if color_space != 'L':
+        reds = random.choices(population=range(0, 255), k=width * height)
+        greens = random.choices(population=range(0, 255), k=width * height)
+        blues = random.choices(population=range(0, 255), k=width * height)
+        pixels = list(zip(reds, greens, blues))
+        image.putdata(pixels)
     image.save(image_buffer, file_format)
     image_buffer.seek(0)
     return image_buffer
