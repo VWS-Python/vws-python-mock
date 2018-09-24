@@ -22,7 +22,7 @@ from requests_mock.response import _Context
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database import VuforiaDatabase
-from mock_vws._mock_common import Route, json_dump, set_content_length_header
+from mock_vws._mock_common import Route, json_dump, set_content_length_header, get_database
 
 from ._target import Target
 from ._validators import (
@@ -104,7 +104,7 @@ def parse_target_id(
         return wrapped(*args, **kwargs)
 
     target_id = split_path[-1]
-    database = instance.database
+    database = get_database(request=request, databases=[instance.database])
 
     try:
         [matching_target] = [

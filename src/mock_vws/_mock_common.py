@@ -14,6 +14,7 @@ import wrapt
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
+from mock_vws._database import VuforiaDatabase
 
 class Route:
     """
@@ -162,3 +163,12 @@ def authorization_header(  # pylint: disable=too-many-arguments
     )
     auth_header = b'VWS %s:%s' % (access_key, signature)
     return auth_header
+
+
+def get_database(
+    request: _RequestObjectProxy,
+    databases: List[VuforiaDatabase],
+) -> VuforiaDatabase:
+    return databases[0]
+    import pdb; pdb.set_trace()
+    pass
