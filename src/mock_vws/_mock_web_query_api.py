@@ -82,7 +82,6 @@ def route(
         )
 
         decorators = [
-            validate_authorization,
             validate_date_in_range,
             validate_date_format,
             validate_date_header_given,
@@ -95,8 +94,9 @@ def route(
             validate_extra_fields,
             validate_content_type_header,
             validate_accept_header,
-            validate_auth_header_exists,
             validate_project_state,
+            validate_authorization,
+            validate_auth_header_exists,
             set_content_length_header,
         ]
 

@@ -19,6 +19,7 @@ from requests_mock.response import _Context
 from mock_vws._constants import ResultCodes, States
 from mock_vws._mock_common import (
     authorization_header,
+    get_database_matching_client_keys,
     json_dump,
     parse_multipart,
 )
@@ -79,19 +80,12 @@ def validate_authorization(
     """
     request, context = args
 
-    database = instance.database
-    content_type = request.headers.get('Content-Type', '').split(';')[0]
-    expected_authorization_header = authorization_header(
-        access_key=database.client_access_key,
-        secret_key=database.client_secret_key,
-        method=request.method,
-        content=request.body or b'',
-        content_type=content_type,
-        date=request.headers.get('Date', ''),
-        request_path=request.path,
+    database = get_database_matching_client_keys(
+        request=request,
+        databases=[instance.database],
     )
 
-    if request.headers['Authorization'] == expected_authorization_header:
+    if database is not None:
         return wrapped(*args, **kwargs)
 
     context.status_code = codes.UNAUTHORIZED
@@ -123,9 +117,12 @@ def validate_project_state(
         A `FORBIDDEN` response with an InactiveProject result code if the
         project is inactive.
     """
-    _, context = args
+    request, context = args
 
-    database = instance.database
+    database = get_database_matching_client_keys(
+        request=request,
+        databases=[instance.database],
+    )
     if database.state != States.PROJECT_INACTIVE:
         return wrapped(*args, **kwargs)
 
