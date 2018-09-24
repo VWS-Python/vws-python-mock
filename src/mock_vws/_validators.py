@@ -287,8 +287,8 @@ def validate_authorization(
 
     content_type = request.headers.get('Content-Type', '').split(';')[0]
     expected_authorization_header = authorization_header(
-        access_key=bytes(instance.access_key, encoding='utf-8'),
-        secret_key=bytes(instance.secret_key, encoding='utf-8'),
+        access_key=instance.database.server_access_key,
+        secret_key=instance.database.server_secret_key,
         method=request.method,
         content=request.body or b'',
         content_type=content_type,
