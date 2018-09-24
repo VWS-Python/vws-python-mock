@@ -6,13 +6,13 @@ import pytest
 from requests import codes
 
 from mock_vws._constants import ResultCodes
+from mock_vws._database import VuforiaDatabase
 from tests.mock_vws.utils import (
     delete_target,
     list_targets,
     wait_for_target_processed,
 )
 from tests.mock_vws.utils.assertions import assert_vws_response
-from tests.mock_vws.utils.authorization import VuforiaDatabase
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')

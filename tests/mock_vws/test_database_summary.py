@@ -13,6 +13,7 @@ from requests import codes
 
 from mock_vws import MockVWS
 from mock_vws._constants import ResultCodes
+from mock_vws._database import VuforiaDatabase
 from tests.mock_vws.utils import (
     add_target_to_vws,
     database_summary,
@@ -21,7 +22,6 @@ from tests.mock_vws.utils import (
     wait_for_target_processed,
 )
 from tests.mock_vws.utils.assertions import assert_vws_response
-from tests.mock_vws.utils.authorization import VuforiaDatabase
 
 
 @timeout_decorator.timeout(seconds=300)

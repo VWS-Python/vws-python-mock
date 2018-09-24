@@ -17,8 +17,8 @@ from requests_mock import DELETE, GET, POST, PUT
 from urllib3.filepost import encode_multipart_formdata
 
 from mock_vws._constants import ResultCodes, TargetStatuses
+from mock_vws._database import VuforiaDatabase
 from tests.mock_vws.utils.authorization import (
-    VuforiaDatabase,
     authorization_header,
     rfc_1123_date,
 )

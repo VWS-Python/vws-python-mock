@@ -12,6 +12,7 @@ from urllib.parse import urljoin
 from requests_mock.mocker import Mocker
 
 from ._constants import States
+from ._database import VuforiaDatabase
 from ._mock_web_query_api import MockVuforiaWebQueryAPI
 from ._mock_web_services_api import MockVuforiaWebServicesAPI
 from ._version import get_versions
@@ -111,17 +112,25 @@ class MockVWS(ContextDecorator):
         Returns:
             ``self``.
         """
-        mock_vws_api = MockVuforiaWebServicesAPI(
-            database_name=self.database_name,
+        database = VuforiaDatabase(
             server_access_key=self.server_access_key,
             server_secret_key=self.server_secret_key,
+            client_access_key=self.client_access_key,
+            client_secret_key=self.client_secret_key,
+            database_name=self.database_name,
+        )
+
+        mock_vws_api = MockVuforiaWebServicesAPI(
+            server_access_key=database.server_access_key.decode(),
+            server_secret_key=database.server_secret_key.decode(),
+            database_name=database.database_name,
             state=self._state,
             processing_time_seconds=self._processing_time_seconds,
         )
 
         mock_vwq_api = MockVuforiaWebQueryAPI(
-            client_access_key=self.client_access_key,
-            client_secret_key=self.client_secret_key,
+            client_access_key=database.client_access_key.decode(),
+            client_secret_key=database.client_secret_key.decode(),
             database=mock_vws_api,
             query_recognizes_deletion_seconds=(
                 self._query_recognizes_deletion_seconds
