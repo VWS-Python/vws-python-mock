@@ -21,6 +21,7 @@ from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
 from mock_vws._constants import ResultCodes, TargetStatuses
+from mock_vws._database import VuforiaDatabase
 from mock_vws._mock_common import Route, json_dump, set_content_length_header
 
 from ._constants import States
@@ -227,17 +228,13 @@ class MockVuforiaWebServicesAPI:
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
-        server_access_key: str,
-        server_secret_key: str,
-        database_name: str,
+        vuforia_database: VuforiaDatabase,
         state: States,
         processing_time_seconds: Union[int, float],
     ) -> None:
         """
         Args:
-            database_name: The name of a VWS target manager database.
-            server_access_key: A VWS server access key.
-            server_secret_key: A VWS server secret key.
+            vuforia_database: A Vuforia database.
             state: The state of the services being mocked.
             processing_time_seconds: The number of seconds to process each
                 image for. In the real Vuforia Web Services, this is not
@@ -251,10 +248,10 @@ class MockVuforiaWebServicesAPI:
             routes: The `Route`s to be used in the mock.
             state: The state of the services being mocked.
         """
-        self.database_name = database_name
+        self.database_name = vuforia_database.database_name
 
-        self.access_key: str = server_access_key
-        self.secret_key: str = server_secret_key
+        self.access_key: str = vuforia_database.server_access_key.decode()
+        self.secret_key: str = vuforia_database.server_secret_key.decode()
 
         self.targets: List[Target] = []
         self.routes: Set[Route] = ROUTES
