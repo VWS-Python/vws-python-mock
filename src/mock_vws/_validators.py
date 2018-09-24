@@ -151,7 +151,7 @@ def validate_project_state(
     """
     request, context = args
 
-    if instance.state != States.PROJECT_INACTIVE:
+    if instance.database.state != States.PROJECT_INACTIVE:
         return wrapped(*args, **kwargs)
 
     if request.method == 'GET' and 'duplicates' not in request.path:

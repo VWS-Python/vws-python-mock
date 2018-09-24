@@ -242,7 +242,6 @@ class MockVuforiaWebServicesAPI:
             access_key (str): A VWS server access key.
             secret_key (str): A VWS server secret key.
             routes: The `Route`s to be used in the mock.
-            state: The state of the services being mocked.
         """
         self.database = vuforia_database
 
@@ -250,7 +249,6 @@ class MockVuforiaWebServicesAPI:
         self.secret_key: str = vuforia_database.server_secret_key.decode()
 
         self.routes: Set[Route] = ROUTES
-        self.state = vuforia_database.state
 
         self._processing_time_seconds = processing_time_seconds
         self.request_count = 0
