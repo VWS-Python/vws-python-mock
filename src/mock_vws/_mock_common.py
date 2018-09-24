@@ -187,4 +187,8 @@ def get_database_matching_client_keys(
         )
 
         if auth_header == expected_authorization_header:
+            import pdb; pdb.set_trace()
             return database
+
+    import pdb; pdb.set_trace()
+    pass
