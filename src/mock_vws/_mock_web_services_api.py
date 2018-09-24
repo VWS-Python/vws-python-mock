@@ -242,6 +242,7 @@ class MockVuforiaWebServicesAPI:
             access_key (bytes): A VWS server access key.
             secret_key (bytes): A VWS server secret key.
             routes: The `Route`s to be used in the mock.
+            request_count: The number of requests made to this API.
         """
         self.database = vuforia_database
 
