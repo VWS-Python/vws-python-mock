@@ -129,13 +129,9 @@ class MockVuforiaWebQueryAPI:
 
         Attributes:
             routes: The `Route`s to be used in the mock.
-            access_key (str): A VWS client access key.
-            secret_key (str): A VWS client secret key.
             database (VuforiaDatabase): An instance of a mock web services API.
         """
         self.routes: Set[Route] = ROUTES
-        self.access_key: bytes = vuforia_database.client_access_key
-        self.secret_key: bytes = vuforia_database.client_secret_key
         self.database = vuforia_database
         self._query_recognizes_deletion_seconds = (
             query_recognizes_deletion_seconds
