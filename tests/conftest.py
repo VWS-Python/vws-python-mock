@@ -183,6 +183,10 @@ def verify_mock_vuforia_inactive(
             decode('ascii'),
             server_secret_key=inactive_database_keys.server_secret_key.
             decode('ascii'),
+            client_access_key=inactive_database_keys.client_access_key.
+            decode('ascii'),
+            client_secret_key=inactive_database_keys.client_secret_key.
+            decode('ascii'),
         ):
             yield
 
