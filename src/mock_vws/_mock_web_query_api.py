@@ -26,7 +26,7 @@ from mock_vws._mock_common import (
     parse_multipart,
     set_content_length_header,
 )
-from mock_vws._mock_web_services_api import MockVuforiaWebServicesAPI, Target
+from mock_vws._mock_web_services_api import Target
 
 from ._query_validators import (
     validate_accept_header,
@@ -117,13 +117,11 @@ class MockVuforiaWebQueryAPI:
     def __init__(
         self,
         vuforia_database: VuforiaDatabase,
-        database: MockVuforiaWebServicesAPI,
         query_recognizes_deletion_seconds: Union[int, float],
     ) -> None:
         """
         Args:
             vuforia_database: A Vuforia database.
-            database: An instance of a mock web services API.
             query_recognizes_deletion_seconds: The number of seconds after a
                 target has been deleted that the query endpoint will return a
                 500 response for on a match.
@@ -132,13 +130,12 @@ class MockVuforiaWebQueryAPI:
             routes: The `Route`s to be used in the mock.
             access_key (str): A VWS client access key.
             secret_key (str): A VWS client secret key.
-            database (MockVuforiaWebServicesAPI): An instance of a mock web
-                services API.
+            database (VuforiaDatabase): An instance of a mock web services API.
         """
         self.routes: Set[Route] = ROUTES
         self.access_key: str = vuforia_database.client_access_key.decode()
         self.secret_key: str = vuforia_database.client_secret_key.decode()
-        self.database = database
+        self.database = vuforia_database
         self._query_recognizes_deletion_seconds = (
             query_recognizes_deletion_seconds
         )

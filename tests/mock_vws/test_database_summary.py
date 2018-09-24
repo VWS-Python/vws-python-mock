@@ -12,7 +12,7 @@ import timeout_decorator
 from requests import codes
 
 from mock_vws import MockVWS
-from mock_vws._constants import ResultCodes
+from mock_vws._constants import ResultCodes, States
 from mock_vws._database import VuforiaDatabase
 from tests.mock_vws.utils import (
     add_target_to_vws,
@@ -344,6 +344,7 @@ class TestProcessingImages:
                 database_name=mock.database_name,
                 client_access_key=uuid.uuid4().hex,
                 client_secret_key=uuid.uuid4().hex,
+                state=States.WORKING,
             )
 
             add_target_to_vws(

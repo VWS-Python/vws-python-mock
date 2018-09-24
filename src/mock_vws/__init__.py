@@ -118,17 +118,16 @@ class MockVWS(ContextDecorator):
             client_access_key=self.client_access_key,
             client_secret_key=self.client_secret_key,
             database_name=self.database_name,
+            state=self._state,
         )
 
         mock_vws_api = MockVuforiaWebServicesAPI(
             vuforia_database=database,
-            state=self._state,
             processing_time_seconds=self._processing_time_seconds,
         )
 
         mock_vwq_api = MockVuforiaWebQueryAPI(
             vuforia_database=database,
-            database=mock_vws_api,
             query_recognizes_deletion_seconds=(
                 self._query_recognizes_deletion_seconds
             ),

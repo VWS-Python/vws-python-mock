@@ -24,7 +24,6 @@ from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database import VuforiaDatabase
 from mock_vws._mock_common import Route, json_dump, set_content_length_header
 
-from ._constants import States
 from ._target import Target
 from ._validators import (
     validate_active_flag,
@@ -108,7 +107,7 @@ def parse_target_id(
 
     try:
         [matching_target] = [
-            target for target in instance.targets
+            target for target in instance.database.targets
             if target.target_id == target_id and not target.delete_date
         ]
     except ValueError:
@@ -229,13 +228,11 @@ class MockVuforiaWebServicesAPI:
     def __init__(  # pylint: disable=too-many-arguments
         self,
         vuforia_database: VuforiaDatabase,
-        state: States,
         processing_time_seconds: Union[int, float],
     ) -> None:
         """
         Args:
             vuforia_database: A Vuforia database.
-            state: The state of the services being mocked.
             processing_time_seconds: The number of seconds to process each
                 image for. In the real Vuforia Web Services, this is not
                 deterministic.
@@ -244,18 +241,17 @@ class MockVuforiaWebServicesAPI:
             database_name: The name of a VWS target manager database name.
             access_key (str): A VWS server access key.
             secret_key (str): A VWS server secret key.
-            targets: The ``Target``s in the database.
             routes: The `Route`s to be used in the mock.
             state: The state of the services being mocked.
         """
+        self.database = vuforia_database
         self.database_name = vuforia_database.database_name
 
         self.access_key: str = vuforia_database.server_access_key.decode()
         self.secret_key: str = vuforia_database.server_secret_key.decode()
 
-        self.targets: List[Target] = []
         self.routes: Set[Route] = ROUTES
-        self.state = state
+        self.state = vuforia_database.state
 
         self._processing_time_seconds = processing_time_seconds
         self.request_count = 0
@@ -279,7 +275,10 @@ class MockVuforiaWebServicesAPI:
         """
         name = request.json()['name']
 
-        targets = (target for target in self.targets if not target.delete_date)
+        targets = (
+            target for target in self.database.targets
+            if not target.delete_date
+        )
         if any(target.name == name for target in targets):
             context.status_code = codes.FORBIDDEN
             body = {
@@ -304,7 +303,7 @@ class MockVuforiaWebServicesAPI:
             processing_time_seconds=self._processing_time_seconds,
             application_metadata=request.json().get('application_metadata'),
         )
-        self.targets.append(new_target)
+        self.database.targets.append(new_target)
 
         context.status_code = codes.CREATED
         body = {
@@ -363,7 +362,7 @@ class MockVuforiaWebServicesAPI:
 
         active_images = len(
             [
-                target for target in self.targets
+                target for target in self.database.targets
                 if target.status == TargetStatuses.SUCCESS.value
                 and target.active_flag and not target.delete_date
             ],
@@ -371,7 +370,7 @@ class MockVuforiaWebServicesAPI:
 
         failed_images = len(
             [
-                target for target in self.targets
+                target for target in self.database.targets
                 if target.status == TargetStatuses.FAILED.value
                 and not target.delete_date
             ],
@@ -379,7 +378,7 @@ class MockVuforiaWebServicesAPI:
 
         inactive_images = len(
             [
-                target for target in self.targets
+                target for target in self.database.targets
                 if target.status == TargetStatuses.SUCCESS.value
                 and not target.active_flag and not target.delete_date
             ],
@@ -387,7 +386,7 @@ class MockVuforiaWebServicesAPI:
 
         processing_images = len(
             [
-                target for target in self.targets
+                target for target in self.database.targets
                 if target.status == TargetStatuses.PROCESSING.value
                 and not target.delete_date
             ],
@@ -424,7 +423,7 @@ class MockVuforiaWebServicesAPI:
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Get-a-Target-List-for-a-Cloud-Database
         """
         results = [
-            target.target_id for target in self.targets
+            target.target_id for target in self.database.targets
             if not target.delete_date
         ]
 
@@ -478,7 +477,7 @@ class MockVuforiaWebServicesAPI:
         Fake implementation of
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Check-for-Duplicate-Targets
         """
-        other_targets = set(self.targets) - set([target])
+        other_targets = set(self.database.targets) - set([target])
 
         similar_targets: List[str] = [
             other.target_id for other in other_targets
@@ -556,7 +555,7 @@ class MockVuforiaWebServicesAPI:
 
         if 'name' in request.json():
             name = request.json()['name']
-            other_targets = set(self.targets) - set([target])
+            other_targets = set(self.database.targets) - set([target])
             if any(
                 other.name == name for other in other_targets
                 if not other.delete_date

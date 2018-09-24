@@ -6,6 +6,7 @@ import os
 
 import pytest
 
+from mock_vws._constants import States
 from tests.mock_vws.utils import VuforiaDatabase
 
 
@@ -20,6 +21,7 @@ def vuforia_database_keys() -> VuforiaDatabase:
         server_secret_key=os.environ['VUFORIA_SERVER_SECRET_KEY'],
         client_access_key=os.environ['VUFORIA_CLIENT_ACCESS_KEY'],
         client_secret_key=os.environ['VUFORIA_CLIENT_SECRET_KEY'],
+        state=States.WORKING,
     )
     return credentials
 
@@ -36,5 +38,6 @@ def inactive_database_keys() -> VuforiaDatabase:
         server_secret_key=os.environ['INACTIVE_VUFORIA_SERVER_SECRET_KEY'],
         client_access_key=os.environ['INACTIVE_VUFORIA_CLIENT_ACCESS_KEY'],
         client_secret_key=os.environ['INACTIVE_VUFORIA_CLIENT_SECRET_KEY'],
+        state=States.PROJECT_INACTIVE,
     )
     return credentials

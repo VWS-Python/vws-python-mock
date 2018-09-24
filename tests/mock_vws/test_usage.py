@@ -83,6 +83,7 @@ def assert_valid_server_credentials(
         server_secret_key=server_secret_key,
         client_access_key=uuid.uuid4().hex,
         client_secret_key=uuid.uuid4().hex,
+        state=States.WORKING,
     )
 
     response = get_vws_target(
@@ -152,6 +153,7 @@ class TestProcessingTime:
                 server_secret_key=mock.server_secret_key,
                 client_access_key=uuid.uuid4().hex,
                 client_secret_key=uuid.uuid4().hex,
+                state=States.WORKING,
             )
 
             response = add_target_to_vws(
@@ -198,6 +200,7 @@ class TestProcessingTime:
                 server_secret_key=mock.server_secret_key,
                 client_access_key=uuid.uuid4().hex,
                 client_secret_key=uuid.uuid4().hex,
+                state=States.WORKING,
             )
 
             response = add_target_to_vws(
@@ -239,6 +242,7 @@ class TestDatabaseName:
                 server_secret_key=mock.server_secret_key,
                 client_access_key=uuid.uuid4().hex,
                 client_secret_key=uuid.uuid4().hex,
+                state=States.WORKING,
             )
 
             response = database_summary(
@@ -253,6 +257,7 @@ class TestDatabaseName:
                 server_secret_key=mock.server_secret_key,
                 client_access_key=uuid.uuid4().hex,
                 client_secret_key=uuid.uuid4().hex,
+                state=States.WORKING,
             )
             response = database_summary(
                 vuforia_database_keys=vuforia_database_keys,
@@ -276,6 +281,7 @@ class TestDatabaseName:
                 server_secret_key=mock.server_secret_key,
                 client_access_key=uuid.uuid4().hex,
                 client_secret_key=uuid.uuid4().hex,
+                state=States.WORKING,
             )
             response = database_summary(
                 vuforia_database_keys=vuforia_database_keys,
@@ -312,6 +318,7 @@ class TestPersistence:
                 server_secret_key=mock.server_secret_key,
                 client_access_key=uuid.uuid4().hex,
                 client_secret_key=uuid.uuid4().hex,
+                state=States.WORKING,
             )
 
             response = add_target_to_vws(
@@ -335,6 +342,7 @@ class TestPersistence:
                 server_secret_key=mock.server_secret_key,
                 client_access_key=uuid.uuid4().hex,
                 client_secret_key=uuid.uuid4().hex,
+                state=States.WORKING,
             )
 
             response = get_vws_target(
