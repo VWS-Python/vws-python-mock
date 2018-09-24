@@ -238,15 +238,15 @@ class MockVuforiaWebServicesAPI:
                 deterministic.
 
         Attributes:
-            database: A Vuforia database.
-            access_key (str): A VWS server access key.
-            secret_key (str): A VWS server secret key.
+            database (VuforiaDatabase): A Vuforia database.
+            access_key (bytes): A VWS server access key.
+            secret_key (bytes): A VWS server secret key.
             routes: The `Route`s to be used in the mock.
         """
         self.database = vuforia_database
 
-        self.access_key: str = vuforia_database.server_access_key.decode()
-        self.secret_key: str = vuforia_database.server_secret_key.decode()
+        self.access_key: bytes = vuforia_database.server_access_key
+        self.secret_key: bytes = vuforia_database.server_secret_key
 
         self.routes: Set[Route] = ROUTES
 
