@@ -225,7 +225,7 @@ class MockVuforiaWebServicesAPI:
     This implementation is tied to the implementation of `requests_mock`.
     """
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(
         self,
         vuforia_database: VuforiaDatabase,
         processing_time_seconds: Union[int, float],
