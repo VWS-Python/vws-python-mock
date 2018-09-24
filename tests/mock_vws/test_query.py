@@ -1764,7 +1764,6 @@ class TestDateFormats:
         assert response.json()['results'] == []
 
 
-# @pytest.mark.usefixtures('verify_mock_vuforia')
 @pytest.mark.usefixtures('verify_mock_vuforia_inactive')
 class TestInactiveProject:
     """
@@ -1774,7 +1773,6 @@ class TestInactiveProject:
     def test_inactive_project(
         self,
         inactive_database_keys: VuforiaDatabase,
-        vuforia_database_keys: VuforiaDatabase,
         high_quality_image: io.BytesIO,
     ) -> None:
         """
