@@ -30,6 +30,7 @@ from mock_vws._mock_web_services_api import Target
 
 from ._query_validators import (
     validate_accept_header,
+    validate_authorization,
     validate_content_type_header,
     validate_date_format,
     validate_date_header_given,
@@ -43,7 +44,7 @@ from ._query_validators import (
     validate_max_num_results,
     validate_project_state,
 )
-from ._validators import validate_auth_header_exists, validate_authorization
+from ._validators import validate_auth_header_exists
 
 ROUTES = set([])
 
