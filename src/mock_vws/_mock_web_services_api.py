@@ -321,7 +321,7 @@ class MockVuforiaWebServicesAPI:
     @route(path_pattern='/targets/.+', http_methods=[DELETE])
     def delete_target(
         self,
-        request: _RequestObjectProxy,  # pylint: disable=unused-argument
+        request: _RequestObjectProxy,
         context: _Context,
         target: Target,
     ) -> str:
@@ -354,7 +354,7 @@ class MockVuforiaWebServicesAPI:
     @route(path_pattern='/summary', http_methods=[GET])
     def database_summary(
         self,
-        request: _RequestObjectProxy,  # pylint: disable=unused-argument
+        request: _RequestObjectProxy,
         context: _Context,  # pylint: disable=unused-argument
     ) -> str:
         """
@@ -424,7 +424,7 @@ class MockVuforiaWebServicesAPI:
     @route(path_pattern='/targets', http_methods=[GET])
     def target_list(
         self,
-        request: _RequestObjectProxy,  # pylint: disable=unused-argument
+        request: _RequestObjectProxy,
         context: _Context,  # pylint: disable=unused-argument
     ) -> str:
         """
@@ -454,7 +454,7 @@ class MockVuforiaWebServicesAPI:
     @route(path_pattern='/targets/.+', http_methods=[GET])
     def get_target(
         self,
-        request: _RequestObjectProxy,  # pylint: disable=unused-argument
+        request: _RequestObjectProxy,
         context: _Context,  # pylint: disable=unused-argument
         target: Target,
     ) -> str:
@@ -484,7 +484,7 @@ class MockVuforiaWebServicesAPI:
     @route(path_pattern='/duplicates/.+', http_methods=[GET])
     def get_duplicates(
         self,
-        request: _RequestObjectProxy,  # pylint: disable=unused-argument
+        request: _RequestObjectProxy,
         context: _Context,  # pylint: disable=unused-argument
         target: Target,
     ) -> str:
@@ -622,7 +622,7 @@ class MockVuforiaWebServicesAPI:
     @route(path_pattern='/summary/.+', http_methods=[GET])
     def target_summary(
         self,
-        request: _RequestObjectProxy,  # pylint: disable=unused-argument
+        request: _RequestObjectProxy,
         context: _Context,  # pylint: disable=unused-argument
         target: Target,
     ) -> str:
