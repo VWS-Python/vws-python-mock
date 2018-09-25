@@ -1147,7 +1147,7 @@ class TestMaximumImageSize:
         future.
         """
         max_bytes = 2 * 1024 * 1024
-        width = height = 1864
+        width = height = 1865
         png_not_too_large = make_image_file(
             file_format='JPEG',
             color_space='RGB',
@@ -1162,7 +1162,8 @@ class TestMaximumImageSize:
         # We check that the image we created is just slightly smaller than the
         # maximum file size.
         #
-        # This is just because of the implementation details of ``image_file``.
+        # This is just because of the implementation details of
+        # ``make_image_file``.
         assert image_content_size < max_bytes
         assert (image_content_size * 1.05) > max_bytes
 
@@ -1174,7 +1175,7 @@ class TestMaximumImageSize:
         assert_query_success(response=response)
         assert response.json()['results'] == []
 
-        width = height = 1865
+        width = height = 1866
         png_not_too_large = make_image_file(
             file_format='JPEG',
             color_space='RGB',
@@ -1188,7 +1189,8 @@ class TestMaximumImageSize:
         # We check that the image we created is just slightly larger than the
         # maximum file size.
         #
-        # This is just because of the implementation details of ``image_file``.
+        # This is just because of the implementation details of
+        # ``make_image_file``.
         assert image_content_size > max_bytes
         assert (image_content_size * 0.95) < max_bytes
 
