@@ -25,6 +25,7 @@ from mock_vws._mock_common import (
     json_dump,
     parse_multipart,
     set_content_length_header,
+    get_database_matching_client_keys,
 )
 from mock_vws._mock_web_services_api import Target
 
@@ -170,7 +171,10 @@ class MockVuforiaWebQueryAPI:
             seconds=self._query_recognizes_deletion_seconds,
         )
 
-        database = self.database
+        database = get_database_matching_client_keys(
+            request=request,
+            databases=[self.database],
+        )
         for target in database.targets:
             delete_processing = bool(
                 target.delete_date
