@@ -8,11 +8,23 @@ import hashlib
 import hmac
 import io
 import json
-from typing import Any, Callable, Dict, List, Mapping, Tuple, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Mapping,
+    Optional,
+    Tuple,
+    Union,
+)
 
 import wrapt
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
+
+from mock_vws._database import VuforiaDatabase
 
 
 class Route:
@@ -162,3 +174,34 @@ def authorization_header(  # pylint: disable=too-many-arguments
     )
     auth_header = b'VWS %s:%s' % (access_key, signature)
     return auth_header
+
+
+def get_database_matching_client_keys(
+    request: _RequestObjectProxy,
+    databases: Iterable[VuforiaDatabase],
+) -> Optional[VuforiaDatabase]:
+    """
+    Return which, if any, of the given databases is being accessed by the given
+    client request.
+
+    Args:
+        request: A request made to the query API.
+        databases: A request made to the query API.
+    """
+    content_type = request.headers.get('Content-Type', '').split(';')[0]
+    auth_header = request.headers.get('Authorization')
+
+    for database in databases:
+        expected_authorization_header = authorization_header(
+            access_key=database.client_access_key,
+            secret_key=database.client_secret_key,
+            method=request.method,
+            content=request.body or b'',
+            content_type=content_type,
+            date=request.headers.get('Date', ''),
+            request_path=request.path,
+        )
+
+        if auth_header == expected_authorization_header:
+            return database
+    return None

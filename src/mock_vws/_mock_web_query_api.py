@@ -22,6 +22,7 @@ from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database import VuforiaDatabase
 from mock_vws._mock_common import (
     Route,
+    get_database_matching_client_keys,
     json_dump,
     parse_multipart,
     set_content_length_header,
@@ -82,7 +83,6 @@ def route(
         )
 
         decorators = [
-            validate_authorization,
             validate_date_in_range,
             validate_date_format,
             validate_date_header_given,
@@ -95,8 +95,9 @@ def route(
             validate_extra_fields,
             validate_content_type_header,
             validate_accept_header,
-            validate_auth_header_exists,
             validate_project_state,
+            validate_authorization,
+            validate_auth_header_exists,
             set_content_length_header,
         ]
 
@@ -170,7 +171,12 @@ class MockVuforiaWebQueryAPI:
             seconds=self._query_recognizes_deletion_seconds,
         )
 
-        database = self.database
+        database = get_database_matching_client_keys(
+            request=request,
+            databases=[self.database],
+        )
+
+        assert isinstance(database, VuforiaDatabase)
         for target in database.targets:
             delete_processing = bool(
                 target.delete_date
