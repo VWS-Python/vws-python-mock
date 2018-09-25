@@ -8,13 +8,24 @@ import hashlib
 import hmac
 import io
 import json
-from typing import Any, Callable, Dict, List, Mapping, Optional, Tuple, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Mapping,
+    Optional,
+    Tuple,
+    Union,
+)
 
 import wrapt
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
 from mock_vws._database import VuforiaDatabase
+
 
 class Route:
     """
@@ -167,14 +178,15 @@ def authorization_header(  # pylint: disable=too-many-arguments
 
 def get_database_matching_client_keys(
     request: _RequestObjectProxy,
-    databases: List[VuforiaDatabase],
+    databases: Iterable[VuforiaDatabase],
 ) -> Optional[VuforiaDatabase]:
     """
     Return which, if any, of the given databases is being accessed by the given
     client request.
 
     Args:
-        XXX
+        request: A request made to the query API.
+        databases: A request made to the query API.
     """
     content_type = request.headers.get('Content-Type', '').split(';')[0]
     auth_header = request.headers.get('Authorization')
