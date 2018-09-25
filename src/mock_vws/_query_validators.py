@@ -17,8 +17,8 @@ from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
 from mock_vws._constants import ResultCodes, States
+from mock_vws._database import VuforiaDatabase
 from mock_vws._mock_common import (
-    authorization_header,
     get_database_matching_client_keys,
     json_dump,
     parse_multipart,
@@ -123,6 +123,8 @@ def validate_project_state(
         request=request,
         databases=[instance.database],
     )
+
+    assert isinstance(database, VuforiaDatabase)
     if database.state != States.PROJECT_INACTIVE:
         return wrapped(*args, **kwargs)
 

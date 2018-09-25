@@ -204,3 +204,4 @@ def get_database_matching_client_keys(
 
         if auth_header == expected_authorization_header:
             return database
+    return None
