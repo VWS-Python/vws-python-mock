@@ -122,16 +122,17 @@ class MockVWS(ContextDecorator):
         )
 
         mock_vws_api = MockVuforiaWebServicesAPI(
-            vuforia_database=database,
             processing_time_seconds=self._processing_time_seconds,
         )
 
         mock_vwq_api = MockVuforiaWebQueryAPI(
-            vuforia_database=database,
             query_recognizes_deletion_seconds=(
                 self._query_recognizes_deletion_seconds
             ),
         )
+
+        mock_vws_api.databases.append(database)
+        mock_vwq_api.databases.append(database)
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
 

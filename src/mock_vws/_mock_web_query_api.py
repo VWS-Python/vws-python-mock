@@ -118,12 +118,10 @@ class MockVuforiaWebQueryAPI:
 
     def __init__(
         self,
-        vuforia_database: VuforiaDatabase,
         query_recognizes_deletion_seconds: Union[int, float],
     ) -> None:
         """
         Args:
-            vuforia_database: A Vuforia database.
             query_recognizes_deletion_seconds: The number of seconds after a
                 target has been deleted that the query endpoint will return a
                 500 response for on a match.
@@ -133,7 +131,7 @@ class MockVuforiaWebQueryAPI:
             databases: Target databases.
         """
         self.routes: Set[Route] = ROUTES
-        self.databases: List[VuforiaDatabase] = [vuforia_database]
+        self.databases: List[VuforiaDatabase] = []
         self._query_recognizes_deletion_seconds = (
             query_recognizes_deletion_seconds
         )
