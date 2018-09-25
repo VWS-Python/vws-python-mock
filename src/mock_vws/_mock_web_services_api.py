@@ -238,12 +238,10 @@ class MockVuforiaWebServicesAPI:
 
     def __init__(
         self,
-        vuforia_database: VuforiaDatabase,
         processing_time_seconds: Union[int, float],
     ) -> None:
         """
         Args:
-            vuforia_database: A Vuforia database.
             processing_time_seconds: The number of seconds to process each
                 image for. In the real Vuforia Web Services, this is not
                 deterministic.
@@ -253,7 +251,7 @@ class MockVuforiaWebServicesAPI:
             routes: The `Route`s to be used in the mock.
             request_count: The number of requests made to this API.
         """
-        self.databases: List[VuforiaDatabase] = [vuforia_database]
+        self.databases: List[VuforiaDatabase] = []
         self.routes: Set[Route] = ROUTES
         self._processing_time_seconds = processing_time_seconds
         self.request_count = 0
@@ -356,7 +354,7 @@ class MockVuforiaWebServicesAPI:
     @route(path_pattern='/summary', http_methods=[GET])
     def database_summary(
         self,
-        request: _RequestObjectProxy,  # pylint: disable=unused-argument
+        request: _RequestObjectProxy,
         context: _Context,  # pylint: disable=unused-argument
     ) -> str:
         """
@@ -426,7 +424,7 @@ class MockVuforiaWebServicesAPI:
     @route(path_pattern='/targets', http_methods=[GET])
     def target_list(
         self,
-        request: _RequestObjectProxy,  # pylint: disable=unused-argument
+        request: _RequestObjectProxy,
         context: _Context,  # pylint: disable=unused-argument
     ) -> str:
         """
@@ -486,7 +484,7 @@ class MockVuforiaWebServicesAPI:
     @route(path_pattern='/duplicates/.+', http_methods=[GET])
     def get_duplicates(
         self,
-        request: _RequestObjectProxy,  # pylint: disable=unused-argument
+        request: _RequestObjectProxy,
         context: _Context,  # pylint: disable=unused-argument
         target: Target,
     ) -> str:
@@ -624,7 +622,7 @@ class MockVuforiaWebServicesAPI:
     @route(path_pattern='/summary/.+', http_methods=[GET])
     def target_summary(
         self,
-        request: _RequestObjectProxy,  # pylint: disable=unused-argument
+        request: _RequestObjectProxy,
         context: _Context,  # pylint: disable=unused-argument
         target: Target,
     ) -> str:
