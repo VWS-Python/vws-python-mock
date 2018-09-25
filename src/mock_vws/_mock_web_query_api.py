@@ -22,10 +22,10 @@ from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database import VuforiaDatabase
 from mock_vws._mock_common import (
     Route,
+    get_database_matching_client_keys,
     json_dump,
     parse_multipart,
     set_content_length_header,
-    get_database_matching_client_keys,
 )
 from mock_vws._mock_web_services_api import Target
 
