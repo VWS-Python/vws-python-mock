@@ -2,7 +2,7 @@
 Utilities for managing mock Vuforia databases.
 """
 
-from typing import List, Type
+from typing import List
 
 from ._constants import States
 from ._target import Target
@@ -20,7 +20,7 @@ class VuforiaDatabase:
         client_access_key: str,
         client_secret_key: str,
         database_name: str,
-        state: States = Type[States],
+        state: States = States.WORKING,
     ) -> None:
         """
         Args:
