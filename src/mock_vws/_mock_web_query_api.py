@@ -175,6 +175,8 @@ class MockVuforiaWebQueryAPI:
             request=request,
             databases=[self.database],
         )
+
+        assert isinstance(database, VuforiaDatabase)
         for target in database.targets:
             delete_processing = bool(
                 target.delete_date
