@@ -22,7 +22,12 @@ from requests_mock.response import _Context
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database import VuforiaDatabase
-from mock_vws._mock_common import Route, json_dump, set_content_length_header
+from mock_vws._mock_common import (
+    Route,
+    get_database_matching_server_keys,
+    json_dump,
+    set_content_length_header,
+)
 
 from ._target import Target
 from ._validators import (
@@ -104,7 +109,12 @@ def parse_target_id(
         return wrapped(*args, **kwargs)
 
     target_id = split_path[-1]
-    database = instance.database
+    database = get_database_matching_server_keys(
+        request=request,
+        databases=[instance.database],
+    )
+
+    assert isinstance(database, VuforiaDatabase)
 
     try:
         [matching_target] = [
@@ -182,8 +192,8 @@ def route(
         else:
             decorators = [
                 parse_target_id,
-                validate_authorization,
                 validate_project_state,
+                validate_authorization,
                 validate_metadata_size,
                 validate_metadata_encoding,
                 validate_metadata_type,
@@ -266,7 +276,12 @@ class MockVuforiaWebServicesAPI:
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Add-a-Target
         """
         name = request.json()['name']
-        database = self.database
+        database = get_database_matching_server_keys(
+            request=request,
+            databases=[self.database],
+        )
+
+        assert isinstance(database, VuforiaDatabase)
 
         targets = (
             target for target in database.targets if not target.delete_date
@@ -352,7 +367,12 @@ class MockVuforiaWebServicesAPI:
         """
         body: Dict[str, Union[str, int]] = {}
 
-        database = self.database
+        database = get_database_matching_server_keys(
+            request=request,
+            databases=[self.database],
+        )
+
+        assert isinstance(database, VuforiaDatabase)
         active_images = len(
             [
                 target for target in database.targets
@@ -415,7 +435,12 @@ class MockVuforiaWebServicesAPI:
         Fake implementation of
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Get-a-Target-List-for-a-Cloud-Database
         """
-        database = self.database
+        database = get_database_matching_server_keys(
+            request=request,
+            databases=[self.database],
+        )
+
+        assert isinstance(database, VuforiaDatabase)
         results = [
             target.target_id for target in database.targets
             if not target.delete_date
@@ -471,7 +496,12 @@ class MockVuforiaWebServicesAPI:
         Fake implementation of
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Check-for-Duplicate-Targets
         """
-        database = self.database
+        database = get_database_matching_server_keys(
+            request=request,
+            databases=[self.database],
+        )
+
+        assert isinstance(database, VuforiaDatabase)
         other_targets = set(database.targets) - set([target])
 
         similar_targets: List[str] = [
@@ -514,7 +544,12 @@ class MockVuforiaWebServicesAPI:
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Update-a-Target
         """
         body: Dict[str, str] = {}
-        database = self.database
+        database = get_database_matching_server_keys(
+            request=request,
+            databases=[self.database],
+        )
+
+        assert isinstance(database, VuforiaDatabase)
 
         if target.status != TargetStatuses.SUCCESS.value:
             context.status_code = codes.FORBIDDEN
@@ -599,7 +634,12 @@ class MockVuforiaWebServicesAPI:
         Fake implementation of
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Retrieve-a-Target-Summary-Report
         """
-        database = self.database
+        database = get_database_matching_server_keys(
+            request=request,
+            databases=[self.database],
+        )
+
+        assert isinstance(database, VuforiaDatabase)
         body = {
             'status': target.status,
             'transaction_id': uuid.uuid4().hex,

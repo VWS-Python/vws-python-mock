@@ -205,3 +205,34 @@ def get_database_matching_client_keys(
         if auth_header == expected_authorization_header:
             return database
     return None
+
+
+def get_database_matching_server_keys(
+    request: _RequestObjectProxy,
+    databases: Iterable[VuforiaDatabase],
+) -> Optional[VuforiaDatabase]:
+    """
+    Return which, if any, of the given databases is being accessed by the given
+    server request.
+
+    Args:
+        request: A request made to the services API.
+        databases: A request made to the services API.
+    """
+    content_type = request.headers.get('Content-Type', '').split(';')[0]
+    auth_header = request.headers.get('Authorization')
+
+    for database in databases:
+        expected_authorization_header = authorization_header(
+            access_key=database.server_access_key,
+            secret_key=database.server_secret_key,
+            method=request.method,
+            content=request.body or b'',
+            content_type=content_type,
+            date=request.headers.get('Date', ''),
+            request_path=request.path,
+        )
+
+        if auth_header == expected_authorization_header:
+            return database
+    return None

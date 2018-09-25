@@ -20,7 +20,8 @@ from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
 from mock_vws._constants import ResultCodes
-from mock_vws._mock_common import authorization_header, json_dump
+from mock_vws._database import VuforiaDatabase
+from mock_vws._mock_common import get_database_matching_server_keys, json_dump
 
 from ._constants import States
 
@@ -91,7 +92,12 @@ def validate_project_state(
     """
     request, context = args
 
-    database = instance.database
+    database = get_database_matching_server_keys(
+        request=request,
+        databases=[instance.database],
+    )
+
+    assert isinstance(database, VuforiaDatabase)
     if database.state != States.PROJECT_INACTIVE:
         return wrapped(*args, **kwargs)
 
@@ -220,19 +226,12 @@ def validate_authorization(
     """
     request, context = args
 
-    content_type = request.headers.get('Content-Type', '').split(';')[0]
-    database = instance.database
-    expected_authorization_header = authorization_header(
-        access_key=database.server_access_key,
-        secret_key=database.server_secret_key,
-        method=request.method,
-        content=request.body or b'',
-        content_type=content_type,
-        date=request.headers.get('Date', ''),
-        request_path=request.path,
+    database = get_database_matching_server_keys(
+        request=request,
+        databases=[instance.database],
     )
 
-    if request.headers['Authorization'] == expected_authorization_header:
+    if database is not None:
         return wrapped(*args, **kwargs)
 
     context.status_code = codes.BAD_REQUEST
