@@ -130,10 +130,10 @@ class MockVuforiaWebQueryAPI:
 
         Attributes:
             routes: The `Route`s to be used in the mock.
-            database (VuforiaDatabase): An instance of a mock web services API.
+            databases: Target databases.
         """
         self.routes: Set[Route] = ROUTES
-        self.database = vuforia_database
+        self.databases: List[VuforiaDatabase] = [vuforia_database]
         self._query_recognizes_deletion_seconds = (
             query_recognizes_deletion_seconds
         )
@@ -173,7 +173,7 @@ class MockVuforiaWebQueryAPI:
 
         database = get_database_matching_client_keys(
             request=request,
-            databases=[self.database],
+            databases=self.databases,
         )
 
         assert isinstance(database, VuforiaDatabase)

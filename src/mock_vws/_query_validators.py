@@ -82,7 +82,7 @@ def validate_authorization(
 
     database = get_database_matching_client_keys(
         request=request,
-        databases=[instance.database],
+        databases=instance.databases,
     )
 
     if database is not None:
@@ -121,7 +121,7 @@ def validate_project_state(
 
     database = get_database_matching_client_keys(
         request=request,
-        databases=[instance.database],
+        databases=instance.databases,
     )
 
     assert isinstance(database, VuforiaDatabase)

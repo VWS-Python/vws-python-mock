@@ -111,7 +111,7 @@ def parse_target_id(
     target_id = split_path[-1]
     database = get_database_matching_server_keys(
         request=request,
-        databases=[instance.database],
+        databases=instance.databases,
     )
 
     assert isinstance(database, VuforiaDatabase)
@@ -249,11 +249,11 @@ class MockVuforiaWebServicesAPI:
                 deterministic.
 
         Attributes:
-            database (VuforiaDatabase): A Vuforia database.
+            databases: Target databases.
             routes: The `Route`s to be used in the mock.
             request_count: The number of requests made to this API.
         """
-        self.database = vuforia_database
+        self.databases: List[VuforiaDatabase] = [vuforia_database]
         self.routes: Set[Route] = ROUTES
         self._processing_time_seconds = processing_time_seconds
         self.request_count = 0
@@ -278,7 +278,7 @@ class MockVuforiaWebServicesAPI:
         name = request.json()['name']
         database = get_database_matching_server_keys(
             request=request,
-            databases=[self.database],
+            databases=self.databases,
         )
 
         assert isinstance(database, VuforiaDatabase)
@@ -369,7 +369,7 @@ class MockVuforiaWebServicesAPI:
 
         database = get_database_matching_server_keys(
             request=request,
-            databases=[self.database],
+            databases=self.databases,
         )
 
         assert isinstance(database, VuforiaDatabase)
@@ -437,7 +437,7 @@ class MockVuforiaWebServicesAPI:
         """
         database = get_database_matching_server_keys(
             request=request,
-            databases=[self.database],
+            databases=self.databases,
         )
 
         assert isinstance(database, VuforiaDatabase)
@@ -498,7 +498,7 @@ class MockVuforiaWebServicesAPI:
         """
         database = get_database_matching_server_keys(
             request=request,
-            databases=[self.database],
+            databases=self.databases,
         )
 
         assert isinstance(database, VuforiaDatabase)
@@ -546,7 +546,7 @@ class MockVuforiaWebServicesAPI:
         body: Dict[str, str] = {}
         database = get_database_matching_server_keys(
             request=request,
-            databases=[self.database],
+            databases=self.databases,
         )
 
         assert isinstance(database, VuforiaDatabase)
@@ -636,7 +636,7 @@ class MockVuforiaWebServicesAPI:
         """
         database = get_database_matching_server_keys(
             request=request,
-            databases=[self.database],
+            databases=self.databases,
         )
 
         assert isinstance(database, VuforiaDatabase)
