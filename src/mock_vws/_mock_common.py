@@ -170,7 +170,11 @@ def get_database_matching_client_keys(
     databases: List[VuforiaDatabase],
 ) -> Optional[VuforiaDatabase]:
     """
-    XXX
+    Return which, if any, of the given databases is being accessed by the given
+    client request.
+
+    Args:
+        XXX
     """
     content_type = request.headers.get('Content-Type', '').split(';')[0]
     auth_header = request.headers.get('Authorization')
