@@ -321,7 +321,7 @@ class MockVuforiaWebServicesAPI:
     @route(path_pattern='/targets/.+', http_methods=[DELETE])
     def delete_target(
         self,
-        request: _RequestObjectProxy,
+        request: _RequestObjectProxy,  # pylint: disable=unused-argument
         context: _Context,
         target: Target,
     ) -> str:
@@ -454,7 +454,7 @@ class MockVuforiaWebServicesAPI:
     @route(path_pattern='/targets/.+', http_methods=[GET])
     def get_target(
         self,
-        request: _RequestObjectProxy,
+        request: _RequestObjectProxy,  # pylint: disable=unused-argument
         context: _Context,  # pylint: disable=unused-argument
         target: Target,
     ) -> str:
