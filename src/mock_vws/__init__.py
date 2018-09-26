@@ -89,7 +89,6 @@ class MockVWS(ContextDecorator):
         self._real_http = real_http
         self._mock = Mocker()
         self._state = state
-        self._processing_time_seconds = processing_time_seconds
 
         self.server_access_key = server_access_key
         self.server_secret_key = server_secret_key
@@ -100,9 +99,25 @@ class MockVWS(ContextDecorator):
         self._base_vws_url = base_vws_url
         self._base_vwq_url = base_vwq_url
 
-        self._query_recognizes_deletion_seconds = (
-            query_recognizes_deletion_seconds
+        self._mock_vws_api = MockVuforiaWebServicesAPI(
+            processing_time_seconds=processing_time_seconds,
         )
+
+        self._mock_vwq_api = MockVuforiaWebQueryAPI(
+            query_recognizes_deletion_seconds=(
+                query_recognizes_deletion_seconds
+            ),
+        )
+
+    def _add_database(self, database: VuforiaDatabase) -> None:
+        """
+        Add a cloud database.
+
+        Args:
+            database: The database to add.
+        """
+        self._mock_vws_api.databases.append(database)
+        self._mock_vwq_api.databases.append(database)
 
     def __enter__(self) -> 'MockVWS':
         """
@@ -112,27 +127,6 @@ class MockVWS(ContextDecorator):
         Returns:
             ``self``.
         """
-        database = VuforiaDatabase(
-            server_access_key=self.server_access_key,
-            server_secret_key=self.server_secret_key,
-            client_access_key=self.client_access_key,
-            client_secret_key=self.client_secret_key,
-            database_name=self.database_name,
-            state=self._state,
-        )
-
-        mock_vws_api = MockVuforiaWebServicesAPI(
-            processing_time_seconds=self._processing_time_seconds,
-        )
-
-        mock_vwq_api = MockVuforiaWebQueryAPI(
-            query_recognizes_deletion_seconds=(
-                self._query_recognizes_deletion_seconds
-            ),
-        )
-
-        mock_vws_api.databases.append(database)
-        mock_vwq_api.databases.append(database)
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
 
@@ -144,7 +138,7 @@ class MockVWS(ContextDecorator):
         }
 
         with Mocker(real_http=self._real_http) as mock:
-            for route in mock_vws_api.routes:
+            for route in self._mock_vws_api.routes:
                 url_pattern = urljoin(
                     base=self._base_vws_url,
                     url=route.path_pattern + '$',
@@ -154,11 +148,11 @@ class MockVWS(ContextDecorator):
                     mock.register_uri(
                         method=http_method,
                         url=re.compile(url_pattern),
-                        text=getattr(mock_vws_api, route.route_name),
+                        text=getattr(self._mock_vws_api, route.route_name),
                         headers=headers,
                     )
 
-            for route in mock_vwq_api.routes:
+            for route in self._mock_vwq_api.routes:
                 url_pattern = urljoin(
                     base=self._base_vwq_url,
                     url=route.path_pattern + '$',
@@ -168,12 +162,23 @@ class MockVWS(ContextDecorator):
                     mock.register_uri(
                         method=http_method,
                         url=re.compile(url_pattern),
-                        text=getattr(mock_vwq_api, route.route_name),
+                        text=getattr(self._mock_vwq_api, route.route_name),
                         headers=headers,
                     )
 
         self._mock = mock
         self._mock.start()
+
+        database = VuforiaDatabase(
+            server_access_key=self.server_access_key,
+            server_secret_key=self.server_secret_key,
+            client_access_key=self.client_access_key,
+            client_secret_key=self.client_secret_key,
+            database_name=self.database_name,
+            state=self._state,
+        )
+        self._add_database(database=database)
+
         return self
 
     def __exit__(self, *exc: Tuple[None, None, None]) -> bool:
