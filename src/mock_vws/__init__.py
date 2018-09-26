@@ -88,13 +88,21 @@ class MockVWS(ContextDecorator):
 
         self._real_http = real_http
         self._mock = Mocker()
-        self._state = state
 
         self.server_access_key = server_access_key
         self.server_secret_key = server_secret_key
         self.client_access_key = client_access_key
         self.client_secret_key = client_secret_key
         self.database_name = database_name
+
+        self._database = VuforiaDatabase(
+            server_access_key=server_access_key,
+            server_secret_key=server_secret_key,
+            client_access_key=client_access_key,
+            client_secret_key=client_secret_key,
+            database_name=database_name,
+            state=state,
+        )
 
         self._base_vws_url = base_vws_url
         self._base_vwq_url = base_vwq_url
@@ -168,16 +176,7 @@ class MockVWS(ContextDecorator):
 
         self._mock = mock
         self._mock.start()
-
-        database = VuforiaDatabase(
-            server_access_key=self.server_access_key,
-            server_secret_key=self.server_secret_key,
-            client_access_key=self.client_access_key,
-            client_secret_key=self.client_secret_key,
-            database_name=self.database_name,
-            state=self._state,
-        )
-        self._add_database(database=database)
+        self._add_database(database=self._database)
 
         return self
 
