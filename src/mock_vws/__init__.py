@@ -89,7 +89,6 @@ class MockVWS(ContextDecorator):
         self._real_http = real_http
         self._mock = Mocker()
         self._state = state
-        self._processing_time_seconds = processing_time_seconds
 
         self.server_access_key = server_access_key
         self.server_secret_key = server_secret_key
@@ -100,8 +99,14 @@ class MockVWS(ContextDecorator):
         self._base_vws_url = base_vws_url
         self._base_vwq_url = base_vwq_url
 
-        self._query_recognizes_deletion_seconds = (
-            query_recognizes_deletion_seconds
+        self._mock_vws_api = MockVuforiaWebServicesAPI(
+            processing_time_seconds=processing_time_seconds,
+        )
+
+        self._mock_vwq_api = MockVuforiaWebQueryAPI(
+            query_recognizes_deletion_seconds=(
+                query_recognizes_deletion_seconds
+            ),
         )
 
     def _add_database(self, database: VuforiaDatabase) -> None:
@@ -122,15 +127,6 @@ class MockVWS(ContextDecorator):
         Returns:
             ``self``.
         """
-        self._mock_vws_api = MockVuforiaWebServicesAPI(
-            processing_time_seconds=self._processing_time_seconds,
-        )
-
-        self._mock_vwq_api = MockVuforiaWebQueryAPI(
-            query_recognizes_deletion_seconds=(
-                self._query_recognizes_deletion_seconds
-            ),
-        )
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
 
