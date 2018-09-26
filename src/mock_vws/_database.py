@@ -2,7 +2,8 @@
 Utilities for managing mock Vuforia databases.
 """
 
-from typing import List
+import uuid
+from typing import List, Optional
 
 from ._constants import States
 from ._target import Target
@@ -15,11 +16,11 @@ class VuforiaDatabase:
 
     def __init__(
         self,
-        server_access_key: str,
-        server_secret_key: str,
-        client_access_key: str,
-        client_secret_key: str,
-        database_name: str,
+        server_access_key: Optional[str] = None,
+        server_secret_key: Optional[str] = None,
+        client_access_key: Optional[str] = None,
+        client_secret_key: Optional[str] = None,
+        database_name: Optional[str] = None,
         state: States = States.WORKING,
     ) -> None:
         """
@@ -41,6 +42,22 @@ class VuforiaDatabase:
             targets: The ``Target``s in the database.
             state: The state of the database.
         """
+
+        if database_name is None:
+            database_name = uuid.uuid4().hex
+
+        if server_access_key is None:
+            server_access_key = uuid.uuid4().hex
+
+        if server_secret_key is None:
+            server_secret_key = uuid.uuid4().hex
+
+        if client_access_key is None:
+            client_access_key = uuid.uuid4().hex
+
+        if client_secret_key is None:
+            client_secret_key = uuid.uuid4().hex
+
         self.server_access_key: bytes = bytes(
             server_access_key,
             encoding='utf-8',
