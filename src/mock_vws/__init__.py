@@ -4,7 +4,6 @@ Tools for using a fake implementation of Vuforia.
 
 import email.utils
 import re
-import uuid
 from contextlib import ContextDecorator
 from typing import Optional, Tuple, Union
 from urllib.parse import urljoin
@@ -70,22 +69,6 @@ class MockVWS(ContextDecorator):
                 database.
         """
         super().__init__()
-
-        if database_name is None:
-            database_name = uuid.uuid4().hex
-
-        if server_access_key is None:
-            server_access_key = uuid.uuid4().hex
-
-        if server_secret_key is None:
-            server_secret_key = uuid.uuid4().hex
-
-        if client_access_key is None:
-            client_access_key = uuid.uuid4().hex
-
-        if client_secret_key is None:
-            client_secret_key = uuid.uuid4().hex
-
         self._real_http = real_http
         self._mock = Mocker()
 
