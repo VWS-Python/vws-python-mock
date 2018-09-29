@@ -101,7 +101,8 @@ To change the state, use the ``state`` parameter when calling the mock.
 .. code:: python
 
     import requests
-    from mock_vws import MockVWS, States
+    from mock_vws import MockVWS
+    from mock_vws.states import States
 
     def my_function():
         with MockVWS(state=States.PROJECT_INACTIVE) as mock:

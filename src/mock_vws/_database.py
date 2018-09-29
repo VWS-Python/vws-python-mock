@@ -5,8 +5,8 @@ Utilities for managing mock Vuforia databases.
 import uuid
 from typing import List, Optional
 
-from ._constants import States
 from ._target import Target
+from .states import States
 
 
 class VuforiaDatabase:

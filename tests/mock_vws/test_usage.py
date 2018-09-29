@@ -17,7 +17,8 @@ from hypothesis.strategies import text
 from requests import codes
 from requests_mock.exceptions import NoMockAddress
 
-from mock_vws import MockVWS, States
+from mock_vws import States
+from mock_vws.states import MockVWS
 from mock_vws._constants import TargetStatuses
 from tests.mock_vws.utils import (
     VuforiaDatabase,

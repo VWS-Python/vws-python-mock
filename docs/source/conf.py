@@ -17,6 +17,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
     'sphinx.ext.napoleon',
+    'sphinx_autodoc_typehints',
     'sphinxcontrib.spelling',
 ]
 
@@ -56,7 +57,7 @@ html_sidebars = {
 htmlhelp_basename = 'VWSPYTHONMOCKdoc'
 autoclass_content = 'init'
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3.5', None),
+    'python': ('https://docs.python.org/3.7', None),
     'docker': ('http://docker-py.readthedocs.io/en/stable', None),
 }
 nitpicky = True

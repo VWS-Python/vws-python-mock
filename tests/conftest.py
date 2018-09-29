@@ -12,9 +12,10 @@ import pytest
 from _pytest.fixtures import SubRequest
 from requests import codes
 
-from mock_vws import MockVWS, States
+from mock_vws import MockVWS
 from mock_vws._constants import ResultCodes
 from mock_vws._database import VuforiaDatabase
+from mock_vws.states import States
 from tests.mock_vws.utils import (
     Endpoint,
     add_target_to_vws,
