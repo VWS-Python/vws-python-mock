@@ -33,8 +33,7 @@ class VuforiaDatabase:
             state: The state of the database.
 
         Attributes:
-            database_name (str): The name of a VWS target manager database
-                name.
+            database_name (str): The name of a VWS target manager database.
             server_access_key (bytes): A VWS server access key.
             server_secret_key (bytes): A VWS server secret key.
             client_access_key (bytes): A VWS client access key.
