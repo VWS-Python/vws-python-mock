@@ -77,6 +77,7 @@ class TestMalformed:
         """
         XXX
         """
+        authorization_string = 'gibberish'
         date = rfc_1123_date()
 
         headers: Dict[str, Union[str, bytes]] = {
