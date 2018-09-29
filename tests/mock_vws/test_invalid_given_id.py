@@ -26,7 +26,7 @@ class TestInvalidGivenID:
 
     def test_not_real_id(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         endpoint: Endpoint,
         target_id: str,
     ) -> None:
@@ -38,12 +38,12 @@ class TestInvalidGivenID:
             return
 
         wait_for_target_processed(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=target_id,
         )
 
         delete_target(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=target_id,
         )
         session = requests.Session()

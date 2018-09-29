@@ -61,7 +61,7 @@ class TestContentType:
     def test_incorrect_no_boundary(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         content_type: str,
     ) -> None:
         """
@@ -75,8 +75,8 @@ class TestContentType:
         content, _ = encode_multipart_formdata(body)
         method = POST
 
-        access_key = vuforia_database_keys.client_access_key
-        secret_key = vuforia_database_keys.client_secret_key
+        access_key = vuforia_database.client_access_key
+        secret_key = vuforia_database.client_secret_key
         authorization_string = authorization_header(
             access_key=access_key,
             secret_key=secret_key,
@@ -110,7 +110,7 @@ class TestContentType:
     def test_incorrect_with_boundary(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         If a Content-Type header which is not ``multipart/form-data`` is given
@@ -126,8 +126,8 @@ class TestContentType:
 
         content_type = 'text/html'
 
-        access_key = vuforia_database_keys.client_access_key
-        secret_key = vuforia_database_keys.client_secret_key
+        access_key = vuforia_database.client_access_key
+        secret_key = vuforia_database.client_secret_key
         authorization_string = authorization_header(
             access_key=access_key,
             secret_key=secret_key,
@@ -172,7 +172,7 @@ class TestContentType:
     def test_no_boundary(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         content_type: str,
     ) -> None:
         """
@@ -185,8 +185,8 @@ class TestContentType:
         content, _ = encode_multipart_formdata(body)
         method = POST
 
-        access_key = vuforia_database_keys.client_access_key
-        secret_key = vuforia_database_keys.client_secret_key
+        access_key = vuforia_database.client_access_key
+        secret_key = vuforia_database.client_secret_key
         authorization_string = authorization_header(
             access_key=access_key,
             secret_key=secret_key,
@@ -225,7 +225,7 @@ class TestContentType:
     def test_bogus_boundary(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         If a bogus boundary is given, a ``BAD_REQUEST`` is returned.
@@ -237,8 +237,8 @@ class TestContentType:
         content, _ = encode_multipart_formdata(body)
         method = POST
 
-        access_key = vuforia_database_keys.client_access_key
-        secret_key = vuforia_database_keys.client_secret_key
+        access_key = vuforia_database.client_access_key
+        secret_key = vuforia_database.client_secret_key
         authorization_string = authorization_header(
             access_key=access_key,
             secret_key=secret_key,
@@ -277,7 +277,7 @@ class TestContentType:
     def test_extra_section(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         If sections that are not the boundary section are given in the header,
@@ -290,8 +290,8 @@ class TestContentType:
         content, content_type_header = encode_multipart_formdata(body)
         method = POST
 
-        access_key = vuforia_database_keys.client_access_key
-        secret_key = vuforia_database_keys.client_secret_key
+        access_key = vuforia_database.client_access_key
+        secret_key = vuforia_database.client_secret_key
         authorization_string = authorization_header(
             access_key=access_key,
             secret_key=secret_key,
@@ -329,7 +329,7 @@ class TestSuccess:
     def test_no_results(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         When there are no matching images in the database, an empty list of
@@ -339,7 +339,7 @@ class TestSuccess:
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
         response = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 
@@ -349,7 +349,7 @@ class TestSuccess:
     def test_match(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         If the exact image that was added is queried for, target data is shown.
@@ -365,7 +365,7 @@ class TestSuccess:
             'application_metadata': metadata_encoded,
         }
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=add_target_data,
         )
 
@@ -374,13 +374,13 @@ class TestSuccess:
 
         wait_for_target_processed(
             target_id=target_id,
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
         )
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
         response = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 
@@ -410,13 +410,13 @@ class TestIncorrectFields:
 
     def test_missing_image(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         If an image is not given, a ``BAD_REQUEST`` response is returned.
         """
         response = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body={},
         )
 
@@ -430,7 +430,7 @@ class TestIncorrectFields:
     def test_extra_fields(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         If extra fields are given, a ``BAD_REQUEST`` response is returned.
@@ -442,7 +442,7 @@ class TestIncorrectFields:
         }
 
         response = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 
@@ -455,7 +455,7 @@ class TestIncorrectFields:
 
     def test_missing_image_and_extra_fields(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         If extra fields are given and no image field is given, a
@@ -468,7 +468,7 @@ class TestIncorrectFields:
         }
 
         response = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 
@@ -489,7 +489,7 @@ class TestMaxNumResults:
     def test_default(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         The default ``max_num_results`` is 1.
@@ -504,7 +504,7 @@ class TestMaxNumResults:
             }
 
             response = add_target_to_vws(
-                vuforia_database_keys=vuforia_database_keys,
+                vuforia_database=vuforia_database,
                 data=add_target_data,
             )
 
@@ -512,7 +512,7 @@ class TestMaxNumResults:
 
             wait_for_target_processed(
                 target_id=target_id,
-                vuforia_database_keys=vuforia_database_keys,
+                vuforia_database=vuforia_database,
             )
 
         body = {
@@ -520,7 +520,7 @@ class TestMaxNumResults:
         }
 
         response = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 
@@ -531,7 +531,7 @@ class TestMaxNumResults:
     def test_valid_accepted(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         num_results: Union[int, bytes],
     ) -> None:
         """
@@ -554,7 +554,7 @@ class TestMaxNumResults:
         }
 
         response = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 
@@ -564,7 +564,7 @@ class TestMaxNumResults:
     def test_valid_works(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         A maximum of ``max_num_results`` results are returned.
@@ -579,7 +579,7 @@ class TestMaxNumResults:
             }
 
             response = add_target_to_vws(
-                vuforia_database_keys=vuforia_database_keys,
+                vuforia_database=vuforia_database,
                 data=add_target_data,
             )
 
@@ -587,7 +587,7 @@ class TestMaxNumResults:
 
             wait_for_target_processed(
                 target_id=target_id,
-                vuforia_database_keys=vuforia_database_keys,
+                vuforia_database=vuforia_database,
             )
         body = {
             'image': ('image.jpeg', image_content, 'image/jpeg'),
@@ -595,7 +595,7 @@ class TestMaxNumResults:
         }
 
         response = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 
@@ -606,7 +606,7 @@ class TestMaxNumResults:
     def test_out_of_range(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         num_results: Union[int, bytes],
     ) -> None:
         """
@@ -625,7 +625,7 @@ class TestMaxNumResults:
         }
 
         response = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 
@@ -647,7 +647,7 @@ class TestMaxNumResults:
     def test_invalid_type(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         num_results: bytes,
     ) -> None:
         """
@@ -663,7 +663,7 @@ class TestMaxNumResults:
             'max_num_results': (None, num_results, 'text/plain'),
         }
         response = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 
@@ -683,7 +683,7 @@ class TestMaxNumResults:
 @pytest.fixture()
 def add_targets(
     high_quality_image: io.BytesIO,
-    vuforia_database_keys: VuforiaDatabase,
+    vuforia_database: VuforiaDatabase,
 ) -> None:
     """
     Add two targets with the "high_quality_image" fixture contents.
@@ -699,7 +699,7 @@ def add_targets(
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=add_target_data,
         )
 
@@ -708,7 +708,7 @@ def add_targets(
     for target_id in target_ids:
         wait_for_target_processed(
             target_id=target_id,
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
         )
 
 
@@ -721,7 +721,7 @@ class TestIncludeTargetData:
     def test_default(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         The default ``include_target_data`` is 'top'.
@@ -733,7 +733,7 @@ class TestIncludeTargetData:
         }
 
         response = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 
@@ -746,7 +746,7 @@ class TestIncludeTargetData:
     def test_top(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         include_target_data: str,
     ) -> None:
         """
@@ -761,7 +761,7 @@ class TestIncludeTargetData:
         }
 
         response = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 
@@ -774,7 +774,7 @@ class TestIncludeTargetData:
     def test_none(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         include_target_data: str,
     ) -> None:
         """
@@ -789,7 +789,7 @@ class TestIncludeTargetData:
         }
 
         response = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 
@@ -802,7 +802,7 @@ class TestIncludeTargetData:
     def test_all(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         include_target_data: str,
     ) -> None:
         """
@@ -817,7 +817,7 @@ class TestIncludeTargetData:
         }
 
         response = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 
@@ -829,7 +829,7 @@ class TestIncludeTargetData:
     def test_invalid_value(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         A ``BAD_REQUEST`` error is given when a string that is not one of
@@ -842,7 +842,7 @@ class TestIncludeTargetData:
             'include_target_data': (None, include_target_data, 'text/plain'),
         }
         response = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 
@@ -878,7 +878,7 @@ class TestAcceptHeader:
     def test_valid(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         extra_headers: Dict[str, str],
     ) -> None:
         """
@@ -891,8 +891,8 @@ class TestAcceptHeader:
         content, content_type_header = encode_multipart_formdata(body)
         method = POST
 
-        access_key = vuforia_database_keys.client_access_key
-        secret_key = vuforia_database_keys.client_secret_key
+        access_key = vuforia_database.client_access_key
+        secret_key = vuforia_database.client_secret_key
         authorization_string = authorization_header(
             access_key=access_key,
             secret_key=secret_key,
@@ -923,7 +923,7 @@ class TestAcceptHeader:
     def test_invalid(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         A NOT_ACCEPTABLE response is returned if an ``Accept`` header is given
@@ -936,8 +936,8 @@ class TestAcceptHeader:
         content, content_type_header = encode_multipart_formdata(body)
         method = POST
 
-        access_key = vuforia_database_keys.client_access_key
-        secret_key = vuforia_database_keys.client_secret_key
+        access_key = vuforia_database.client_access_key
+        secret_key = vuforia_database.client_secret_key
         authorization_string = authorization_header(
             access_key=access_key,
             secret_key=secret_key,
@@ -979,7 +979,7 @@ class TestActiveFlag:
     def test_inactive(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         Images which are not active are not matched.
@@ -994,7 +994,7 @@ class TestActiveFlag:
             'active_flag': False,
         }
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=add_target_data,
         )
 
@@ -1002,12 +1002,12 @@ class TestActiveFlag:
 
         wait_for_target_processed(
             target_id=target_id,
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
         )
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
         response = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 
@@ -1023,7 +1023,7 @@ class TestBadImage:
 
     def test_corrupted(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         corrupted_image_file: io.BytesIO,
     ) -> None:
         """
@@ -1034,7 +1034,7 @@ class TestBadImage:
         body = {'image': ('image.jpeg', corrupted_data, 'image/jpeg')}
 
         response = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 
@@ -1067,7 +1067,7 @@ class TestMaximumImageSize:
 
     def test_png(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         According to
@@ -1100,7 +1100,7 @@ class TestMaximumImageSize:
         assert (image_content_size * 1.05) > max_bytes
 
         response = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 
@@ -1128,13 +1128,13 @@ class TestMaximumImageSize:
 
         with pytest.raises(requests.exceptions.ConnectionError):
             query(
-                vuforia_database_keys=vuforia_database_keys,
+                vuforia_database=vuforia_database,
                 body=body,
             )
 
     def test_jpeg(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         According to
@@ -1168,7 +1168,7 @@ class TestMaximumImageSize:
         assert (image_content_size * 1.05) > max_bytes
 
         response = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 
@@ -1196,7 +1196,7 @@ class TestMaximumImageSize:
 
         with pytest.raises(requests.exceptions.ConnectionError):
             query(
-                vuforia_database_keys=vuforia_database_keys,
+                vuforia_database=vuforia_database,
                 body=body,
             )
 
@@ -1211,7 +1211,7 @@ class TestImageFormats:
     def test_supported(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         file_format: str,
     ) -> None:
         """
@@ -1225,7 +1225,7 @@ class TestImageFormats:
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
         response = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 
@@ -1235,7 +1235,7 @@ class TestImageFormats:
     def test_unsupported(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         File formats which are not PNG or JPEG are not supported.
@@ -1249,7 +1249,7 @@ class TestImageFormats:
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
         response = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 
@@ -1287,7 +1287,7 @@ class TestProcessing:
     def test_processing(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         active_flag: bool,
     ) -> None:
         """
@@ -1306,7 +1306,7 @@ class TestProcessing:
             'active_flag': active_flag,
         }
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=add_target_data,
         )
 
@@ -1314,7 +1314,7 @@ class TestProcessing:
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
         response = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 
@@ -1332,7 +1332,7 @@ class TestProcessing:
         # If the target is no longer in the processing state here, that is a
         # flaky test that is the test's fault and this must be rethought.
         get_target_response = get_vws_target(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=target_id,
         )
 
@@ -1372,7 +1372,7 @@ class TestUpdate:
         self,
         high_quality_image: io.BytesIO,
         different_high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         After a target is updated, only the new image can be matched.
@@ -1391,7 +1391,7 @@ class TestUpdate:
             'application_metadata': metadata_encoded,
         }
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=add_target_data,
         )
 
@@ -1400,7 +1400,7 @@ class TestUpdate:
 
         wait_for_target_processed(
             target_id=target_id,
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
         )
 
         new_image_content = different_high_quality_image.getvalue()
@@ -1418,7 +1418,7 @@ class TestUpdate:
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
         response = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
         [result] = response.json()['results']
@@ -1427,7 +1427,7 @@ class TestUpdate:
         original_target_timestamp = int(target_timestamp)
 
         update_target(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=update_data,
             target_id=target_id,
         )
@@ -1436,12 +1436,12 @@ class TestUpdate:
 
         wait_for_target_processed(
             target_id=target_id,
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
         )
 
         body = {'image': ('image.jpeg', new_image_content, 'image/jpeg')}
         response = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 
@@ -1469,7 +1469,7 @@ class TestUpdate:
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
         response = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
         assert_query_success(response=response)
@@ -1485,7 +1485,7 @@ class TestDeleted:
     def test_deleted(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         Within approximately 7 seconds of deleting a target, querying for its
@@ -1499,7 +1499,7 @@ class TestDeleted:
             'image': image_data_encoded,
         }
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=add_target_data,
         )
 
@@ -1507,18 +1507,18 @@ class TestDeleted:
 
         wait_for_target_processed(
             target_id=target_id,
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
         )
 
         delete_target(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=target_id,
         )
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
         response = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 
@@ -1537,7 +1537,7 @@ class TestDeleted:
     def test_deleted_and_wait(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         After waiting approximately 7 seconds (we wait more to be safer), a
@@ -1551,7 +1551,7 @@ class TestDeleted:
             'image': image_data_encoded,
         }
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=add_target_data,
         )
 
@@ -1559,11 +1559,11 @@ class TestDeleted:
 
         wait_for_target_processed(
             target_id=target_id,
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
         )
 
         response = delete_target(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=target_id,
         )
 
@@ -1576,7 +1576,7 @@ class TestDeleted:
         total_waited = 0
         while True:
             response = query(
-                vuforia_database_keys=vuforia_database_keys,
+                vuforia_database=vuforia_database,
                 body=body,
             )
 
@@ -1599,7 +1599,7 @@ class TestDeleted:
     def test_deleted_inactive(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         No error is returned when querying for an image of recently deleted,
@@ -1614,7 +1614,7 @@ class TestDeleted:
             'active_flag': False,
         }
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=add_target_data,
         )
 
@@ -1622,18 +1622,18 @@ class TestDeleted:
 
         wait_for_target_processed(
             target_id=target_id,
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
         )
 
         delete_target(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=target_id,
         )
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
         response = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 
@@ -1650,7 +1650,7 @@ class TestTargetStatusFailed:
     def test_status_failed(
         self,
         image_file_failed_state: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         Targets with the status "failed" are not found in query results.
@@ -1663,7 +1663,7 @@ class TestTargetStatusFailed:
             'image': image_data_encoded,
         }
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=add_target_data,
         )
 
@@ -1671,13 +1671,13 @@ class TestTargetStatusFailed:
 
         wait_for_target_processed(
             target_id=target_id,
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
         )
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
         response = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 
@@ -1714,7 +1714,7 @@ class TestDateFormats:
     def test_date_formats(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         datetime_format: str,
         include_tz: bool,
     ) -> None:
@@ -1737,8 +1737,8 @@ class TestDateFormats:
         content, content_type_header = encode_multipart_formdata(body)
         method = POST
 
-        access_key = vuforia_database_keys.client_access_key
-        secret_key = vuforia_database_keys.client_secret_key
+        access_key = vuforia_database.client_access_key
+        secret_key = vuforia_database.client_secret_key
         authorization_string = authorization_header(
             access_key=access_key,
             secret_key=secret_key,
@@ -1774,7 +1774,7 @@ class TestInactiveProject:
 
     def test_inactive_project(
         self,
-        inactive_database_keys: VuforiaDatabase,
+        inactive_database: VuforiaDatabase,
         high_quality_image: io.BytesIO,
     ) -> None:
         """
@@ -1784,7 +1784,7 @@ class TestInactiveProject:
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
         response = query(
-            vuforia_database_keys=inactive_database_keys,
+            vuforia_database=inactive_database,
             body=body,
         )
 

@@ -69,7 +69,7 @@ class TestContentTypes:
     )
     def test_content_types(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
         content_type: str,
     ) -> None:
@@ -86,7 +86,7 @@ class TestContentTypes:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
             content_type=content_type,
         )
@@ -103,7 +103,7 @@ class TestMissingData:
     @pytest.mark.parametrize('data_to_remove', ['name', 'width', 'image'])
     def test_missing_data(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
         data_to_remove: str,
     ) -> None:
@@ -121,7 +121,7 @@ class TestMissingData:
         data.pop(data_to_remove)
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
         )
 
@@ -145,7 +145,7 @@ class TestWidth:
     )
     def test_width_invalid(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
         width: Any,
     ) -> None:
@@ -162,7 +162,7 @@ class TestWidth:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
         )
 
@@ -174,7 +174,7 @@ class TestWidth:
 
     def test_width_valid(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -190,7 +190,7 @@ class TestWidth:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
             content_type='application/json',
         )
@@ -223,7 +223,7 @@ class TestTargetName:
         self,
         name: str,
         image_file_failed_state: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         Names between 1 and 64 characters in length are valid.
@@ -238,7 +238,7 @@ class TestTargetName:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
             content_type='application/json',
         )
@@ -271,7 +271,7 @@ class TestTargetName:
         self,
         name: str,
         image_file_failed_state: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         status_code: int,
     ) -> None:
         """
@@ -288,7 +288,7 @@ class TestTargetName:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
         )
 
@@ -301,7 +301,7 @@ class TestTargetName:
     def test_existing_target_name(
         self,
         image_file_failed_state: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         Only one target can have a given name.
@@ -316,12 +316,12 @@ class TestTargetName:
         }
 
         add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
         )
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
         )
 
@@ -334,7 +334,7 @@ class TestTargetName:
     def test_deleted_existing_target_name(
         self,
         image_file_failed_state: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         A target can be added with the name of a deleted target.
@@ -349,24 +349,24 @@ class TestTargetName:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
         )
 
         target_id = response.json()['target_id']
 
         wait_for_target_processed(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=target_id,
         )
 
         delete_target(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=target_id,
         )
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
         )
 
@@ -384,7 +384,7 @@ class TestImage:
 
     def test_image_valid(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         image_files_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -401,7 +401,7 @@ class TestImage:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
             content_type='application/json',
         )
@@ -411,7 +411,7 @@ class TestImage:
     def test_bad_image_format_or_color_space(
         self,
         bad_image_file: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         A `BAD_REQUEST` response is returned if an image which is not a JPEG
@@ -428,7 +428,7 @@ class TestImage:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
         )
 
@@ -440,7 +440,7 @@ class TestImage:
 
     def test_corrupted(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         corrupted_image_file: io.BytesIO,
     ) -> None:
         """
@@ -456,7 +456,7 @@ class TestImage:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
         )
 
@@ -464,7 +464,7 @@ class TestImage:
 
     def test_image_too_large(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         An `ImageTooLarge` result is returned if the image is above a certain
@@ -497,7 +497,7 @@ class TestImage:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
         )
 
@@ -530,7 +530,7 @@ class TestImage:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
         )
 
@@ -542,7 +542,7 @@ class TestImage:
 
     def test_not_base64_encoded(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         If the given image is not decodable as base64 data then a `Fail`
@@ -560,7 +560,7 @@ class TestImage:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
         )
 
@@ -572,7 +572,7 @@ class TestImage:
 
     def test_not_image(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         If the given image is not an image file then a `BadImage` result is
@@ -588,7 +588,7 @@ class TestImage:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
         )
 
@@ -602,7 +602,7 @@ class TestImage:
     def test_invalid_type(
         self,
         invalid_type_image: Any,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         If the given image is not a string, a `Fail` result is returned.
@@ -614,7 +614,7 @@ class TestImage:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
         )
 
@@ -636,7 +636,7 @@ class TestActiveFlag:
         self,
         active_flag: Union[bool, None],
         image_file_failed_state: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         Boolean values and NULL are valid active flags.
@@ -653,7 +653,7 @@ class TestActiveFlag:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
             content_type=content_type,
         )
@@ -663,7 +663,7 @@ class TestActiveFlag:
     def test_invalid(
         self,
         image_file_failed_state: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         Values which are not Boolean values or NULL are not valid active flags.
@@ -681,7 +681,7 @@ class TestActiveFlag:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
             content_type=content_type,
         )
@@ -701,7 +701,7 @@ class TestUnexpectedData:
 
     def test_invalid_extra_data(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -718,7 +718,7 @@ class TestUnexpectedData:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
         )
 
@@ -747,7 +747,7 @@ class TestApplicationMetadata:
     )
     def test_base64_encoded(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
         metadata: bytes,
     ) -> None:
@@ -766,7 +766,7 @@ class TestApplicationMetadata:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
         )
 
@@ -774,7 +774,7 @@ class TestApplicationMetadata:
 
     def test_null(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -791,7 +791,7 @@ class TestApplicationMetadata:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
         )
 
@@ -799,7 +799,7 @@ class TestApplicationMetadata:
 
     def test_invalid_type(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -817,7 +817,7 @@ class TestApplicationMetadata:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
         )
 
@@ -835,7 +835,7 @@ class TestApplicationMetadata:
 
     def test_not_base64_encoded(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -857,7 +857,7 @@ class TestApplicationMetadata:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
         )
 
@@ -869,7 +869,7 @@ class TestApplicationMetadata:
 
     def test_metadata_too_large(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -889,7 +889,7 @@ class TestApplicationMetadata:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
         )
 
@@ -908,7 +908,7 @@ class TestInactiveProject:
 
     def test_inactive_project(
         self,
-        inactive_database_keys: VuforiaDatabase,
+        inactive_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -924,7 +924,7 @@ class TestInactiveProject:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=inactive_database_keys,
+            vuforia_database=inactive_database,
             data=data,
             content_type='application/json',
         )

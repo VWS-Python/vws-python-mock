@@ -34,7 +34,7 @@ class TestTargetSummary:
 
     def test_target_summary(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -50,7 +50,7 @@ class TestTargetSummary:
         date_before_add_target = datetime.datetime.now(tz=gmt).date()
 
         target_response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data={
                 'name': name,
                 'width': 1,
@@ -63,7 +63,7 @@ class TestTargetSummary:
         date_after_add_target = datetime.datetime.now(tz=gmt).date()
 
         response = target_summary(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=target_id,
         )
 
@@ -90,7 +90,7 @@ class TestTargetSummary:
         assert response.json().keys() == expected_keys
         assert response.json()['status'] == TargetStatuses.PROCESSING.value
         response_database_name = response.json()['database_name']
-        assert response_database_name == vuforia_database_keys.database_name
+        assert response_database_name == vuforia_database.database_name
         assert response.json()['target_name'] == name
 
         # In case the date changes while adding a target
@@ -109,7 +109,7 @@ class TestTargetSummary:
 
     def test_after_processing(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -120,7 +120,7 @@ class TestTargetSummary:
         image_data_encoded = base64.b64encode(image_data).decode('ascii')
 
         target_response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data={
                 'name': 'example',
                 'width': 1,
@@ -133,17 +133,17 @@ class TestTargetSummary:
         # The tracking rating may change during processing.
         # Therefore we wait until processing ends.
         wait_for_target_processed(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=target_id,
         )
 
         response = target_summary(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=target_id,
         )
 
         get_target_response = get_vws_target(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=target_id,
         )
 
@@ -166,7 +166,7 @@ class TestActiveFlag:
     @pytest.mark.parametrize('active_flag', [True, False])
     def test_active_flag(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
         active_flag: bool,
     ) -> None:
@@ -177,7 +177,7 @@ class TestActiveFlag:
         image_data_encoded = base64.b64encode(image_data).decode('ascii')
 
         target_response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data={
                 'name': 'example',
                 'width': 1,
@@ -188,7 +188,7 @@ class TestActiveFlag:
 
         target_id = target_response.json()['target_id']
         response = target_summary(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=target_id,
         )
         assert response.json()['active_flag'] == active_flag
@@ -202,7 +202,7 @@ class TestRecognitionCounts:
 
     def test_recognition(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         high_quality_image: io.BytesIO,
     ) -> None:
         """
@@ -212,7 +212,7 @@ class TestRecognitionCounts:
         image_data_encoded = base64.b64encode(image_content).decode('ascii')
 
         target_response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data={
                 'name': 'example',
                 'width': 1,
@@ -223,14 +223,14 @@ class TestRecognitionCounts:
         target_id = target_response.json()['target_id']
 
         wait_for_target_processed(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=target_id,
         )
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
         query_response = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 
@@ -238,7 +238,7 @@ class TestRecognitionCounts:
         assert result['target_id'] == target_id
 
         response = target_summary(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=target_id,
         )
 
@@ -256,14 +256,14 @@ class TestInactiveProject:
 
     def test_inactive_project(
         self,
-        inactive_database_keys: VuforiaDatabase,
+        inactive_database: VuforiaDatabase,
     ) -> None:
         """
         The project's active state does not affect getting a target.
         """
         response = target_summary(
             target_id=uuid.uuid4().hex,
-            vuforia_database_keys=inactive_database_keys,
+            vuforia_database=inactive_database,
         )
 
         assert_vws_failure(

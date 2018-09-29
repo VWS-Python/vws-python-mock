@@ -11,7 +11,7 @@ from tests.mock_vws.utils import VuforiaDatabase
 
 
 @pytest.fixture()
-def vuforia_database_keys() -> VuforiaDatabase:
+def vuforia_database() -> VuforiaDatabase:
     """
     Return VWS credentials from environment variables.
     """
@@ -27,7 +27,7 @@ def vuforia_database_keys() -> VuforiaDatabase:
 
 
 @pytest.fixture()
-def inactive_database_keys() -> VuforiaDatabase:
+def inactive_database() -> VuforiaDatabase:
     """
     Return VWS credentials for an inactive project from environment variables.
     """
