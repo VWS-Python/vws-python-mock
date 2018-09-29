@@ -69,7 +69,7 @@ def validate_auth_header_number_of_parts(
 
     header = request.headers['Authorization']
     parts = header.split(' ')
-    if len(parts) == 2:
+    if len(parts) == 2 and len(parts[1]):
         return wrapped(*args, **kwargs)
 
     context.status_code = codes.UNAUTHORIZED
@@ -79,6 +79,40 @@ def validate_auth_header_number_of_parts(
     context.headers['WWW-Authenticate'] = 'VWS'
     return text
 
+@wrapt.decorator
+def validate_auth_header_has_signature(
+    wrapped: Callable[..., str],
+    instance: Any,
+    args: Tuple[_RequestObjectProxy, _Context],
+    kwargs: Dict,
+) -> str:
+    """
+    Validate the authorization header includes a signature.
+
+    Args:
+        wrapped: An endpoint function for `requests_mock`.
+        instance: The class that the endpoint function is in.
+        args: The arguments given to the endpoint function.
+        kwargs: The keyword arguments given to the endpoint function.
+
+    Returns:
+        The result of calling the endpoint.
+        An ``UNAUTHORIZED`` response if the "Authorization" header is not as
+        expected.
+    """
+    request, context = args
+
+    header = request.headers['Authorization']
+    if header.count(':') == 1 and len(header.split(':')[1]):
+        return wrapped(*args, **kwargs)
+
+    context.status_code = codes.INTERNAL_SERVER_ERROR
+    text = 'Malformed authorization header.'
+    content_type = 'text/html; charset=ISO-8859-1'
+    context.headers['Content-Type'] = content_type
+    cache_control = 'must-revalidate,no-cache,no-store'
+    context.headers['Cache-Control'] = cache_control
+    return text
 
 @wrapt.decorator
 def validate_authorization(
