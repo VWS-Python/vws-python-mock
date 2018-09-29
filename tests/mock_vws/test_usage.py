@@ -70,7 +70,7 @@ class TestRealHTTP:
         By default, the mock stops any requests made with `requests` to
         non-Vuforia addresses, but not to mocked Vuforia endpoints.
         """
-        with MockVWS(database=VuforiaDatabase()):
+        with MockVWS():
             with pytest.raises(NoMockAddress):
                 request_unmocked_address()
 
@@ -87,7 +87,7 @@ class TestRealHTTP:
         When the `real_http` parameter given to the context manager is set to
         `True`, requests made to unmocked addresses are not stopped.
         """
-        with MockVWS(real_http=True, database=VuforiaDatabase()):
+        with MockVWS(real_http=True):
             with pytest.raises(requests.exceptions.ConnectionError):
                 request_unmocked_address()
 
@@ -111,7 +111,8 @@ class TestProcessingTime:
         }
 
         database = VuforiaDatabase()
-        with MockVWS(database=database):
+        with MockVWS() as mock:
+            mock.add_database(database=database)
             response = add_target_to_vws(
                 vuforia_database_keys=database,
                 data=data,
@@ -150,7 +151,8 @@ class TestProcessingTime:
         }
 
         database = VuforiaDatabase()
-        with MockVWS(processing_time_seconds=0.1, database=database):
+        with MockVWS(processing_time_seconds=0.1) as mock:
+            mock.add_database(database=database)
             response = add_target_to_vws(
                 vuforia_database_keys=database,
                 data=data,
@@ -210,7 +212,6 @@ class TestCustomBaseURLs:
         with MockVWS(
             base_vws_url='https://vuforia.vws.example.com',
             real_http=False,
-            database=VuforiaDatabase(),
         ):
             with pytest.raises(NoMockAddress):
                 requests.get('https://vws.vuforia.com/summary')
@@ -225,7 +226,6 @@ class TestCustomBaseURLs:
         with MockVWS(
             base_vwq_url='https://vuforia.vwq.example.com',
             real_http=False,
-            database=VuforiaDatabase(),
         ):
             with pytest.raises(NoMockAddress):
                 requests.post('https://cloudreco.vuforia.com/v1/query')
@@ -310,7 +310,8 @@ class TestCustomQueryRecognizesDeletionSeconds:
         See ``test_query`` for more information.
         """
         database = VuforiaDatabase()
-        with MockVWS(database=database):
+        with MockVWS() as mock:
+            mock.add_database(database=database)
             recognize_deletion_seconds = self._recognize_deletion_seconds(
                 high_quality_image=high_quality_image,
                 vuforia_database_keys=database,
@@ -331,9 +332,9 @@ class TestCustomQueryRecognizesDeletionSeconds:
         query_recognizes_deletion = 0.1
         database = VuforiaDatabase()
         with MockVWS(
-            database=database,
             query_recognizes_deletion_seconds=query_recognizes_deletion,
-        ):
+        ) as mock:
+            mock.add_database(database=database)
             recognize_deletion_seconds = self._recognize_deletion_seconds(
                 high_quality_image=high_quality_image,
                 vuforia_database_keys=database,

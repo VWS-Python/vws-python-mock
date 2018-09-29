@@ -146,10 +146,8 @@ def verify_mock_vuforia(
         _delete_all_targets(database_keys=vuforia_database_keys)
         yield
     else:
-        with MockVWS(
-            database=database,
-            processing_time_seconds=0.2,
-        ):
+        with MockVWS(processing_time_seconds=0.2) as mock:
+            mock.add_database(database=database)
             yield
 
 
@@ -194,7 +192,8 @@ def verify_mock_vuforia_inactive(
     if use_real_vuforia:
         yield
     else:
-        with MockVWS(database=database):
+        with MockVWS() as mock:
+            mock.add_database(database=database)
             yield
 
 
