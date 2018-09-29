@@ -1,3 +1,7 @@
+KiB
+MPixel
+MiB
+Ubuntu
 api
 args
 ascii
@@ -31,6 +35,8 @@ json
 kib
 kwargs
 linters
+linting
+macOS
 mb
 metadata
 mib
