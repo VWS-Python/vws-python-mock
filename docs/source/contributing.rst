@@ -44,7 +44,7 @@ To fix some lint errors, run the following:
 
 .. _Homebrew: https://brew.sh
 
-Running tests
+Running Tests
 -------------
 
 Create an environment variable file for secrets:
@@ -92,7 +92,7 @@ When this happens, create a new target database to use for testing.
 .. _Vuforia License Manager: https://developer.vuforia.com/targetmanager/licenseManager/licenseListing
 .. _Vuforia Target Manager: https://developer.vuforia.com/targetmanager
 
-Skipping some tests
+Skipping Some Tests
 -------------------
 
 Set either ``SKIP_MOCK`` or ``SKIP_REAL`` to ``1`` to skip tests against the mock, or tests against the real implementation, for tests which run against both.
@@ -113,7 +113,7 @@ For example, build ``2045.1`` will use a different credentials file to build ``2
 This should avoid conflicts, but in theory the same credentials file may be run across two Pull Request builds.
 This may cause errors.
 
-How to set Travis CI secrets
+How to Set Travis CI Secrets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Create environment variable files for secrets:
