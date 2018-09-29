@@ -45,7 +45,7 @@ def validate_auth_header_exists(
 
 
 @wrapt.decorator
-def validate_number_of_parts(
+def validate_auth_header_number_of_parts(
     wrapped: Callable[..., str],
     instance: Any,
     args: Tuple[_RequestObjectProxy, _Context],
@@ -67,12 +67,9 @@ def validate_number_of_parts(
     """
     request, context = args
 
-    database = get_database_matching_client_keys(
-        request=request,
-        databases=instance.databases,
-    )
-
-    if database is not None:
+    header = request.headers['Authorization']
+    parts = header.split(' ')
+    if len(parts) == 2:
         return wrapped(*args, **kwargs)
 
     context.status_code = codes.UNAUTHORIZED
