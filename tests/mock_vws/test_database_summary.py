@@ -338,23 +338,16 @@ class TestProcessingImages:
             'image': image_data_encoded,
         }
 
-        with MockVWS() as mock:
-            vuforia_database_keys = VuforiaDatabase(
-                server_access_key=mock.server_access_key,
-                server_secret_key=mock.server_secret_key,
-                database_name=mock.database_name,
-                client_access_key=uuid.uuid4().hex,
-                client_secret_key=uuid.uuid4().hex,
-                state=States.WORKING,
-            )
+        database = VuforiaDatabase()
 
+        with MockVWS(database=database) as mock:
             add_target_to_vws(
-                vuforia_database_keys=vuforia_database_keys,
+                vuforia_database_keys=database,
                 data=data,
             )
 
             wait_for_image_numbers(
-                vuforia_database_keys=vuforia_database_keys,
+                vuforia_database_keys=database,
                 active_images=0,
                 inactive_images=0,
                 failed_images=0,
