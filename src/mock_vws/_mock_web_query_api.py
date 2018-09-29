@@ -43,7 +43,6 @@ from ._query_validators import (
     validate_max_num_results,
     validate_project_state,
 )
-
 from ._query_validators.date_validators import (
     validate_date_format,
     validate_date_header_given,

@@ -12,12 +12,8 @@ from requests import codes
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
-from mock_vws._constants import ResultCodes
-from mock_vws._mock_common import (
-    get_database_matching_client_keys,
-    json_dump,
-    parse_multipart,
-)
+from .._constants import ResultCodes
+from .._mock_common import json_dump
 
 
 @wrapt.decorator
@@ -49,7 +45,6 @@ def validate_date_header_given(
     content_type = 'text/plain; charset=ISO-8859-1'
     context.headers['Content-Type'] = content_type
     return 'Date header required.'
-
 
 
 def _accepted_date_formats() -> Set[str]:
