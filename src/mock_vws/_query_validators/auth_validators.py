@@ -48,7 +48,7 @@ def validate_auth_header_exists(
 @wrapt.decorator
 def validate_auth_header_number_of_parts(
     wrapped: Callable[..., str],
-    instance: Any,
+    instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
 ) -> str:
@@ -70,7 +70,7 @@ def validate_auth_header_number_of_parts(
 
     header = request.headers['Authorization']
     parts = header.split(' ')
-    if len(parts) == 2 and len(parts[1]):
+    if len(parts) == 2 and parts[1]:
         return wrapped(*args, **kwargs)
 
     context.status_code = codes.UNAUTHORIZED
@@ -84,7 +84,7 @@ def validate_auth_header_number_of_parts(
 @wrapt.decorator
 def validate_auth_header_has_signature(
     wrapped: Callable[..., str],
-    instance: Any,
+    instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
 ) -> str:
@@ -105,7 +105,7 @@ def validate_auth_header_has_signature(
     request, context = args
 
     header = request.headers['Authorization']
-    if header.count(':') == 1 and len(header.split(':')[1]):
+    if header.count(':') == 1 and header.split(':')[1]:
         return wrapped(*args, **kwargs)
 
     context.status_code = codes.INTERNAL_SERVER_ERROR

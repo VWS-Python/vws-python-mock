@@ -123,7 +123,8 @@ class TestMalformed:
         )
 
     @pytest.mark.parametrize(
-        'authorization_string', [
+        'authorization_string',
+        [
             'VWS foobar:',
             'VWS foobar',
         ],
