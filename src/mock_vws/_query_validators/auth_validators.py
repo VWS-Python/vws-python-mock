@@ -69,10 +69,12 @@ def validate_auth_header_number_of_parts(
     request, context = args
 
     header = request.headers['Authorization']
-    if isinstance(header, bytes):
-        parts = header.split(b' ')
-    else isinstance(header, str):
-        parts = header.split(' ')
+    if isinstance(header, str):
+        divider = ' '
+    else:
+        divider = b' '
+
+    parts = header.split(divider)
 
     if len(parts) == 2 and parts[1]:
         return wrapped(*args, **kwargs)
@@ -110,11 +112,12 @@ def validate_auth_header_has_signature(
 
     header = request.headers['Authorization']
     if isinstance(header, str):
-        if header.count(':') == 1 and header.split(':')[1]:
-            return wrapped(*args, **kwargs)
-    else isinstance(header, bytes):
-        if header.count(b':') == 1 and header.split(b':')[1]:
-            return wrapped(*args, **kwargs)
+        divider = ':'
+    else:
+        divider = b':'
+
+    if header.count(divider) == 1 and header.split(divider)[1]:
+        return wrapped(*args, **kwargs)
 
     context.status_code = codes.INTERNAL_SERVER_ERROR
     current_parent = Path(__file__).parent

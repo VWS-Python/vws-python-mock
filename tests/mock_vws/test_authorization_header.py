@@ -2,6 +2,8 @@
 Tests for the `Authorization` header.
 """
 
+import io
+import uuid
 from pathlib import Path
 from typing import Dict, Union
 from urllib.parse import urlparse
@@ -12,16 +14,13 @@ from requests import codes
 from requests.structures import CaseInsensitiveDict
 
 from mock_vws._constants import ResultCodes
-from tests.mock_vws.utils import Endpoint
+from mock_vws.database import VuforiaDatabase
+from tests.mock_vws.utils import Endpoint, get_vws_target, query
 from tests.mock_vws.utils.assertions import (
     assert_vwq_failure,
     assert_vws_failure,
 )
 from tests.mock_vws.utils.authorization import rfc_1123_date
-from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import get_vws_target, query
-import uuid
-import io
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -184,6 +183,7 @@ class TestBadKey:
     """
     Tests for making requests with incorrect keys.
     """
+
     def test_bad_access_key_services(
         self,
         vuforia_database: VuforiaDatabase,
