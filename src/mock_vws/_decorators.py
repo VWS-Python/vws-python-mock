@@ -60,7 +60,7 @@ class MockVWS(ContextDecorator):
         """
         super().__init__()
         self._real_http = real_http
-        self._mock = Mocker()
+        self._mock: Mocker
 
         self._database = database
         self._base_vws_url = base_vws_url
@@ -88,8 +88,7 @@ class MockVWS(ContextDecorator):
 
     def __enter__(self) -> 'MockVWS':
         """
-        Start an instance of a Vuforia mock with access keys set from
-        environment variables.
+        Start an instance of a Vuforia mock.
 
         Returns:
             ``self``.
