@@ -104,6 +104,51 @@ class TestAuthorizationHeader:
         )
 
 
+    def test_bad_access_key_services(
+        self,
+        vuforia_database_keys: VuforiaDatabase,
+    ) -> None:
+        """
+        If the server access key given does not match any database, a
+        ``Fail`` response is returned.
+        """
+        keys = vuforia_database_keys
+        keys.server_access_key = b'example'
+        response = get_vws_target(
+            target_id=uuid.uuid4().hex,
+            vuforia_database_keys=keys,
+        )
+
+        assert_vws_failure(
+            response=response,
+            status_code=codes.BAD_REQUEST,
+            result_code=ResultCodes.FAIL,
+        )
+
+    def test_bad_access_key_query(
+        self,
+        vuforia_database_keys: VuforiaDatabase,
+        high_quality_image: io.BytesIO,
+    ) -> None:
+        """
+        If the client access key given is incorrect, an
+        ``UNAUTHORIZED`` response is returned.
+        """
+        vuforia_database_keys.client_access_key = b'example'
+        image_content = high_quality_image.getvalue()
+        body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
+
+        response = query(
+            vuforia_database_keys=vuforia_database_keys,
+            body=body,
+        )
+
+        assert_vwq_failure(
+            response=response,
+            status_code=codes.UNAUTHORIZED,
+            content_type='application/json',
+        )
+
     def test_bad_secret_key_services(
         self,
         vuforia_database_keys: VuforiaDatabase,
