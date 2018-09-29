@@ -107,7 +107,7 @@ class TestRealHTTP:
         By default, the mock stops any requests made with `requests` to
         non-Vuforia addresses, but not to mocked Vuforia endpoints.
         """
-        with MockVWS():
+        with MockVWS(database=VuforiaDatabase()):
             with pytest.raises(NoMockAddress):
                 request_unmocked_address()
 
@@ -124,7 +124,7 @@ class TestRealHTTP:
         When the `real_http` parameter given to the context manager is set to
         `True`, requests made to unmocked addresses are not stopped.
         """
-        with MockVWS(real_http=True):
+        with MockVWS(real_http=True, database=VuforiaDatabase()):
             with pytest.raises(requests.exceptions.ConnectionError):
                 request_unmocked_address()
 
@@ -236,7 +236,7 @@ class TestDatabaseName:
         """
         By default, the database has a random name.
         """
-        with MockVWS() as mock:
+        with MockVWS(database=VuforiaDatabase()) as mock:
             vuforia_database_keys = VuforiaDatabase(
                 database_name=uuid.uuid4().hex,
                 server_access_key=mock.server_access_key,

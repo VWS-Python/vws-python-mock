@@ -5,12 +5,10 @@ Decorators for using the mock.
 import email.utils
 import re
 from contextlib import ContextDecorator
-from typing import Optional, Tuple, Union
+from typing import Tuple, Union
 from urllib.parse import urljoin
 
 from requests_mock.mocker import Mocker
-
-from mock_vws.states import States
 
 from ._database import VuforiaDatabase
 from ._mock_web_query_api import MockVuforiaWebQueryAPI
@@ -24,15 +22,10 @@ class MockVWS(ContextDecorator):
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
+        database: VuforiaDatabase,
         base_vws_url: str = 'https://vws.vuforia.com',
         base_vwq_url: str = 'https://cloudreco.vuforia.com',
         real_http: bool=False,
-        state: States=States.WORKING,
-        server_access_key: Optional[str]=None,
-        server_secret_key: Optional[str]=None,
-        client_access_key: Optional[str]=None,
-        client_secret_key: Optional[str]=None,
-        database_name: Optional[str]=None,
         processing_time_seconds: Union[int, float]=0.5,
         query_recognizes_deletion_seconds: Union[int, float]=3,
     ) -> None:
@@ -52,17 +45,7 @@ class MockVWS(ContextDecorator):
                 they are not handled by the mock.
                 See
                 http://requests-mock.readthedocs.io/en/latest/mocker.html#real-http-requests.
-            state: The state of the services being mocked.
-            database_name: The name of the mock VWS target manager database.
-                By default this is a random string.
-            server_access_key: A VWS server access key for the mock.
-                By default this is a random string.
-            server_secret_key: A VWS server secret key for the mock.
-                By default this is a random string.
-            client_access_key: A VWS client access key for the mock.
-                By default this is a random string.
-            client_secret_key: A VWS client secret key for the mock.
-                By default this is a random string.
+            database: A Vuforia databse.
             processing_time_seconds: The number of seconds to process each
                 image for. In the real Vuforia Web Services, this is not
                 deterministic.
@@ -71,7 +54,6 @@ class MockVWS(ContextDecorator):
             query_recognizes_deletion_seconds: The number of seconds after a
                 target has been deleted that the query endpoint will return a
                 500 response for on a match.
-
 
         Attributes:
             client_access_key (str): A VWS client access key for the mock.
@@ -85,14 +67,7 @@ class MockVWS(ContextDecorator):
         self._real_http = real_http
         self._mock = Mocker()
 
-        self._database = VuforiaDatabase(
-            server_access_key=server_access_key,
-            server_secret_key=server_secret_key,
-            client_access_key=client_access_key,
-            client_secret_key=client_secret_key,
-            database_name=database_name,
-            state=state,
-        )
+        self._database = database
 
         self.server_access_key = self._database.server_access_key.decode()
         self.server_secret_key = self._database.server_secret_key.decode()
