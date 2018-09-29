@@ -141,8 +141,8 @@ class TestMalformed:
         if netloc == 'cloudreco.vuforia.com':
             assert_vwq_failure(
                 response=response,
-                status_code=codes.UNAUTHORIZED,
-                content_type='text/plain; charset=ISO-8859-1',
+                status_code=codes.INTERNAL_SERVER_ERROR,
+                content_type='text/html; charset=ISO-8859-1',
             )
             assert response.text == 'Malformed authorization header.'
             return
