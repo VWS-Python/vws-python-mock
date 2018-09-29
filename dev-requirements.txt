@@ -2,6 +2,7 @@ attrs==18.2.0  # Modern attrs is required for pytest
 autoflake==1.2
 check-manifest==0.37
 codecov==2.0.15 # Upload coverage data
+doc8==0.8.0
 dodgy==0.1.9  # Look for uploaded secrets
 dulwich==0.19.6
 flake8==3.5.0  # Lint
@@ -26,4 +27,4 @@ twine==1.12.1
 vulture==0.29
 yapf==0.24.0  # Automatic formatting for Python
 PyYAML==3.13
-# Sphinx==1.8.1
+Sphinx==1.8.1
