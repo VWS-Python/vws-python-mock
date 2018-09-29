@@ -122,10 +122,12 @@ class TestMalformed:
             result_code=ResultCodes.FAIL,
         )
 
-    @pytest.mark.parametrize('authorization_string', [
-        'VWS foobar:',
-        'VWS foobar',
-    ])
+    @pytest.mark.parametrize(
+        'authorization_string', [
+            'VWS foobar:',
+            'VWS foobar',
+        ],
+    )
     def test_missing_signature(
         self,
         endpoint: Endpoint,
@@ -139,8 +141,10 @@ class TestMalformed:
 
         headers: Dict[str, Union[str, bytes]] = {
             **endpoint.prepared_request.headers,
-            'Authorization': authorization_string,
-            'Date': date,
+            'Authorization':
+            authorization_string,
+            'Date':
+            date,
         }
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)

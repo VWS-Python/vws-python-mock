@@ -80,6 +80,7 @@ def validate_auth_header_number_of_parts(
     context.headers['WWW-Authenticate'] = 'VWS'
     return text
 
+
 @wrapt.decorator
 def validate_auth_header_has_signature(
     wrapped: Callable[..., str],
@@ -116,6 +117,7 @@ def validate_auth_header_has_signature(
     cache_control = 'must-revalidate,no-cache,no-store'
     context.headers['Cache-Control'] = cache_control
     return known_response.read_text()
+
 
 @wrapt.decorator
 def validate_authorization(
