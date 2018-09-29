@@ -18,8 +18,8 @@ from requests import codes
 from requests_mock.exceptions import NoMockAddress
 
 from mock_vws import MockVWS
-from mock_vws.states import States
 from mock_vws._constants import TargetStatuses
+from mock_vws.states import States
 from tests.mock_vws.utils import (
     VuforiaDatabase,
     add_target_to_vws,
