@@ -31,13 +31,15 @@ from mock_vws.target import Target
 
 from ._query_validators import (
     validate_accept_header,
-    validate_auth_header_exists,
-    validate_authorization,
     validate_content_type_header,
     validate_extra_fields,
     validate_include_target_data,
     validate_max_num_results,
     validate_project_state,
+)
+from ._query_validators.auth_validators import (
+    validate_auth_header_exists,
+    validate_authorization,
 )
 from ._query_validators.date_validators import (
     validate_date_format,
