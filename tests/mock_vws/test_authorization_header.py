@@ -85,7 +85,9 @@ class TestMalformed:
         authorization_string: str,
     ) -> None:
         """
-        XXX
+	A valid authorization string is two "parts" when split on a space. When
+	a string is given which is one "part", a ``BAD_REQUEST`` or
+	``UNAUTHORIZED`` response is returned.
         """
         date = rfc_1123_date()
 
