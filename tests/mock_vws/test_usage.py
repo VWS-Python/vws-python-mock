@@ -114,7 +114,7 @@ class TestProcessingTime:
         with MockVWS() as mock:
             mock.add_database(database=database)
             response = add_target_to_vws(
-                vuforia_database_keys=database,
+                vuforia_database=database,
                 data=data,
             )
 
@@ -124,7 +124,7 @@ class TestProcessingTime:
 
             while True:
                 response = get_vws_target(
-                    vuforia_database_keys=database,
+                    vuforia_database=database,
                     target_id=target_id,
                 )
 
@@ -154,7 +154,7 @@ class TestProcessingTime:
         with MockVWS(processing_time_seconds=0.1) as mock:
             mock.add_database(database=database)
             response = add_target_to_vws(
-                vuforia_database_keys=database,
+                vuforia_database=database,
                 data=data,
             )
 
@@ -164,7 +164,7 @@ class TestProcessingTime:
 
             while True:
                 response = get_vws_target(
-                    vuforia_database_keys=database,
+                    vuforia_database=database,
                     target_id=target_id,
                 )
 
@@ -243,7 +243,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
     def _recognize_deletion_seconds(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> float:
         """
         The number of seconds it takes for the query endpoint to recognize a
@@ -257,7 +257,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
             'image': image_data_encoded,
         }
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=add_target_data,
         )
 
@@ -265,11 +265,11 @@ class TestCustomQueryRecognizesDeletionSeconds:
 
         wait_for_target_processed(
             target_id=target_id,
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
         )
 
         response = delete_target(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=target_id,
         )
 
@@ -279,7 +279,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
 
         while True:
             response = query(
-                vuforia_database_keys=vuforia_database_keys,
+                vuforia_database=vuforia_database,
                 body=body,
             )
 
@@ -314,7 +314,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
             mock.add_database(database=database)
             recognize_deletion_seconds = self._recognize_deletion_seconds(
                 high_quality_image=high_quality_image,
-                vuforia_database_keys=database,
+                vuforia_database=database,
             )
 
         expected = 3
@@ -337,7 +337,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
             mock.add_database(database=database)
             recognize_deletion_seconds = self._recognize_deletion_seconds(
                 high_quality_image=high_quality_image,
-                vuforia_database_keys=database,
+                vuforia_database=database,
             )
 
         expected = query_recognizes_deletion

@@ -27,7 +27,7 @@ class TestDelete:
     def test_no_wait(
         self,
         target_id: str,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         When attempting to delete a target immediately after creating it, a
@@ -39,7 +39,7 @@ class TestDelete:
         fail state before the deletion attempt.
         """
         response = delete_target(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=target_id,
         )
 
@@ -52,18 +52,18 @@ class TestDelete:
     def test_processed(
         self,
         target_id: str,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         When a target has finished processing, it can be deleted.
         """
         wait_for_target_processed(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=target_id,
         )
 
         response = delete_target(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=target_id,
         )
 
@@ -74,7 +74,7 @@ class TestDelete:
         )
 
         response = get_vws_target(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=target_id,
         )
 
@@ -93,14 +93,14 @@ class TestInactiveProject:
 
     def test_inactive_project(
         self,
-        inactive_database_keys: VuforiaDatabase,
+        inactive_database: VuforiaDatabase,
     ) -> None:
         """
         If the project is inactive, a FORBIDDEN response is returned.
         """
         target_id = 'does_not_exist'
         response = delete_target(
-            vuforia_database_keys=inactive_database_keys,
+            vuforia_database=inactive_database,
             target_id=target_id,
         )
 
