@@ -36,13 +36,13 @@ Matching targets in the processing state
 ----------------------------------------
 
 Matching a target which is in the processing state sometimes returns a successful response with no results.
-Sometimes a 500 (INTERNAL SERVER ERROR) response is given.
+Sometimes a 500 (``INTERNAL SERVER ERROR``) response is given.
 The mock always gives a 500 response.
 
 Matching deleted targets
 ------------------------
 
-Matching a target which has been deleted returns a 500 (INTERNAL SERVER ERROR) response within the first few seconds.
+Matching a target which has been deleted returns a 500 (``INTERNAL SERVER ERROR``) response within the first few seconds.
 This timeframe is not consistent on the real Vuforia Web Services.
 On the mock, this timeframe is three seconds by default.
 ``MockVWS`` takes a parameter ``query_recognizes_deletion_seconds`` to change this.
