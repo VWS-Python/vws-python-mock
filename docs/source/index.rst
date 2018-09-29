@@ -10,6 +10,8 @@ Reference
 
 .. autoclass:: mock_vws.MockVWS
 
+.. autoclass:: mock_vws.VuforiaDatabase
+
 Reference
 ---------
 

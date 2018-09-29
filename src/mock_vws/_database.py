@@ -38,7 +38,7 @@ class VuforiaDatabase:
             server_secret_key (bytes): A VWS server secret key.
             client_access_key (bytes): A VWS client access key.
             client_secret_key (bytes): A VWS client secret key.
-            targets: The ``Target``s in the database.
+            targets: The ``Target``\s in the database.
             state: The state of the database.
         """
 
