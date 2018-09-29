@@ -67,7 +67,16 @@ class TestAuthorizationHeader:
             result_code=ResultCodes.AUTHENTICATION_FAILURE,
         )
 
-    def test_malformed(self, endpoint: Endpoint) -> None:
+    @pytest.mark.parametrize('authorization_string', [
+        'gibberish',
+        'VWS foo:bar',
+        'VWS foobar',
+    ])
+    def test_malformed(
+        self,
+        endpoint: Endpoint,
+        authorization_string: str,
+    ) -> None:
         """
         If a malformed `Authorization` header is given, a `BAD_REQUEST`
         response is given.
