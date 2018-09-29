@@ -64,6 +64,7 @@ unmocked
 url
 usefixtures
 validators
+versioning
 vuforia
 vuforia's
 vwq
