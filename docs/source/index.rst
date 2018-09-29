@@ -20,6 +20,7 @@ Reference
 .. toctree::
    :maxdepth: 3
 
+   installation
    differences-to-vws
    contributing
 
