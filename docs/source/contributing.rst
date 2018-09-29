@@ -15,7 +15,7 @@ Install Python dependencies in a virtual environment.
     pip install --editable .[dev]
 
 Spell checking requires ``enchant``.
-This can be installed on macOS, for example, with `Homebrew <https://brew.sh>`__:
+This can be installed on macOS, for example, with `Homebrew`_:
 
 .. code:: sh
 
@@ -42,6 +42,8 @@ To fix some lint errors, run the following:
 
     make fix-lint
 
+.. _Homebrew: https://brew.sh
+
 Running tests
 -------------
 
@@ -52,8 +54,8 @@ Create an environment variable file for secrets:
     cp vuforia_secrets.env.example vuforia_secrets.env
 
 Some tests require Vuforia credentials.
-To run these tests, add the Vuforia credentials to the file ``vuforia_secrets.env``.
-See “Connecting to Vuforia”.
+To run these tests, add the Vuforia credentials to the file :file:`vuforia_secrets.env`.
+See :ref:`connecting-to-vuforia`.
 
 Then run ``pytest``:
 
@@ -61,29 +63,34 @@ Then run ``pytest``:
 
     pytest
 
+.. _connecting-to-vuforia:
+
 Connecting to Vuforia
 ---------------------
 
 To connect to Vuforia, Vuforia target databases must be created via the Vuforia Web UI.
 Then, secret keys must be set as environment variables.
 
-The test infrastructure allows those keys to be set in the file ``vuforia_secrets.env``.
-See ``vuforia_secrets.env.example`` for the environment variables to set.
+The test infrastructure allows those keys to be set in the file :file:`vuforia_secrets.env`.
+See :file:`vuforia_secrets.env.example` for the environment variables to set.
 
 Do not use a target database that you are using for other purposes.
 This is because the test suite adds and deletes targets.
 
-To create a target database, first create a license key in the `License Manager <https://developer.vuforia.com/targetmanager/licenseManager/licenseListing>`__.
-Then, add a database from the `Target Manager <https://developer.vuforia.com/targetmanager>`__.
+To create a target database, first create a license key in the `Vuforia License Manager`_.
+Then, add a database from the `Vuforia Target Manager`_.
 
-To find the environment variables to set in the ``vuforia_secrets.env`` file, visit the Target Database in the Target Manager and view the “Database Access Keys”.
+To find the environment variables to set in the :file:`vuforia_secrets.env` file, visit the Target Database in the `Vuforia Target Manager`_ and view the "Database Access Keys".
 
 Two databases are necessary in order to run all the tests.
 One of those must be an inactive project.
 To create an inactive project, delete the license key associated with a database.
 
-Targets sometimes get stuck at the “Processing” stage meaning that they cannot be deleted.
+Targets sometimes get stuck at the "Processing" stage meaning that they cannot be deleted.
 When this happens, create a new target database to use for testing.
+
+.. _Vuforia License Manager: https://developer.vuforia.com/targetmanager/licenseManager/licenseListing
+.. _Vuforia Target Manager: https://developer.vuforia.com/targetmanager
 
 Skipping some tests
 -------------------
@@ -94,15 +101,15 @@ Travis CI
 ---------
 
 Tests are run on Travis CI.
-The configuration for this is in ``.travis.yml``.
+The configuration for this is in :file:`.travis.yml`.
 
 Travis CI is set up with secrets for connecting to Vuforia.
-These variables include those from ``vuforia_secrets.env.example``.
+These variables include those from :file:`vuforia_secrets.env.example`.
 
 To avoid hitting request quotas and to avoid conflicts when running multiple tests in parallel, we use multiple target databases.
 
 Travis builds use a different credentials file depending on the build number.
-For example, build 2045.1 will use a different credentials file to build 2045.2.
+For example, build ``2045.1`` will use a different credentials file to build ``2045.2``.
 This should avoid conflicts, but in theory the same credentials file may be run across two Pull Request builds.
 This may cause errors.
 
@@ -136,11 +143,6 @@ Add the encrypted secrets files to the repository and Travis CI:
 
 Note that the `Travis CI documentation <https://docs.travis-ci.com/user/encrypting-files/#Caveat>`__ warns that this might not work on Windows.
 
-Travis CI Settings
-~~~~~~~~~~~~~~~~~~
-
-All targets are deleted from the database between each test.
-
 Learnings about VWS
 -------------------
 
@@ -159,9 +161,9 @@ The database summary from ``GET /summary`` has multiple undocumented return fiel
 
 The database summary from ``GET /summary`` has is not immediately accurate.
 
-Some of the `Vuforia Web Services documentation <https://library.vuforia.com/articles/Training/Image-Target-Guide>`__ states that “The size of the input images must 2 MB or less”.
-However, other `Vuforia Web Services documentation <https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query>`__ is more accurate: “Maximum image size: 2.1 MPixel.
-512 KiB for JPEG, 2MiB for PNG”.
+Some of the `Vuforia Web Services documentation <https://library.vuforia.com/articles/Training/Image-Target-Guide>`__ states that "The size of the input images must 2 MB or less".
+However, the documentation page `How To Perform an Image Recognition Query`_ is more accurate:
+"Maximum image size: 2.1 MPixel. 512 KiB for JPEG, 2MiB for PNG".
 
 The documentation page `How To Perform an Image Recognition Query`_ states that the ``Content-Type`` header must be set to ``multipart/form-data``.
 However, it must be set to ``multipart/form-data; boundary=<BOUNDARY>`` where ``<BOUNDARY>`` is the boundary used when encoding the form data.
