@@ -63,16 +63,33 @@ class TestAuthorizationHeader:
             result_code=ResultCodes.AUTHENTICATION_FAILURE,
         )
 
-    def test_incorrect(self, endpoint: Endpoint) -> None:
+
+@pytest.mark.usefixtures('verify_mock_vuforia')
+class TestMalformed:
+    """
+    Tests for passing a malformed ``Authorization`` header.
+    """
+
+    @pytest.mark.parametrize('authorization_string', [
+        'gibberish',
+        'VWS',
+        'VWS ',
+    ])
+    def test_one_part(
+        self,
+        endpoint: Endpoint,
+        authorization_string: str,
+    ) -> None:
         """
-        If an incorrect `Authorization` header is given, a `BAD_REQUEST`
-        response is given.
+	A valid authorization string is two "parts" when split on a space. When
+	a string is given which is one "part", a ``BAD_REQUEST`` or
+	``UNAUTHORIZED`` response is returned.
         """
         date = rfc_1123_date()
 
         headers: Dict[str, Union[str, bytes]] = {
             **endpoint.prepared_request.headers,
-            'Authorization': 'gibberish',
+            'Authorization': authorization_string,
             'Date': date,
         }
 
