@@ -7,6 +7,7 @@ Reference
 .. toctree::
    :maxdepth: 3
 
+   differences-to-vws
    contributing
 
 .. toctree::
