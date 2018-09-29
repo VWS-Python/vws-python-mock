@@ -384,7 +384,7 @@ class TestProcessing:
         assert response.json()['similar_targets'] == [processed_target_id]
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia_inactive')
+@pytest.mark.usefixtures('verify_mock_vuforia')
 class TestInactiveProject:
     """
     Tests for inactive projects.

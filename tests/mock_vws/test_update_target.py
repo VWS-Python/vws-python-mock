@@ -1036,7 +1036,7 @@ class TestImage:
         assert original_tracking_rating != new_tracking_rating
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia_inactive')
+@pytest.mark.usefixtures('verify_mock_vuforia')
 class TestInactiveProject:
     """
     Tests for inactive projects.
