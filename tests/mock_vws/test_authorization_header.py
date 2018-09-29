@@ -103,7 +103,26 @@ class TestAuthorizationHeader:
         )
 
 
-    def test_foobar(
+    def test_bad_secret_key_services(
+        self,
+        vuforia_database_keys: VuforiaDatabase,
+    ) -> None:
+        """
+        """
+        keys = vuforia_database_keys
+        keys.server_secret_key = b'example'
+        response = get_vws_target(
+            target_id=uuid.uuid4().hex,
+            vuforia_database_keys=keys,
+        )
+
+        assert_vws_failure(
+            response=response,
+            status_code=codes.UNAUTHORIZED,
+            result_code=ResultCodes.AUTHENTICATION_FAILURE,
+        )
+
+    def test_bad_secret_key_query(
         self,
         vuforia_database_keys: VuforiaDatabase,
     ) -> None:
