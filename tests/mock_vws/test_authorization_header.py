@@ -18,8 +18,9 @@ from tests.mock_vws.utils.assertions import (
 )
 from tests.mock_vws.utils.authorization import rfc_1123_date
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import get_vws_target
+from tests.mock_vws.utils import get_vws_target, query
 import uuid
+import io
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -66,9 +67,9 @@ class TestAuthorizationHeader:
             result_code=ResultCodes.AUTHENTICATION_FAILURE,
         )
 
-    def test_incorrect(self, endpoint: Endpoint) -> None:
+    def test_malformed(self, endpoint: Endpoint) -> None:
         """
-        If an incorrect `Authorization` header is given, a `BAD_REQUEST`
+        If a malformed `Authorization` header is given, a `BAD_REQUEST`
         response is given.
         """
         date = rfc_1123_date()
@@ -125,18 +126,21 @@ class TestAuthorizationHeader:
     def test_bad_secret_key_query(
         self,
         vuforia_database_keys: VuforiaDatabase,
+        high_quality_image: io.BytesIO,
     ) -> None:
         """
         """
-        keys = vuforia_database_keys
-        keys.server_secret_key = b'example'
-        response = get_vws_target(
-            target_id=uuid.uuid4().hex,
-            vuforia_database_keys=keys,
+        vuforia_database_keys.client_secret_key = b'example'
+        image_content = high_quality_image.getvalue()
+        body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
+
+        response = query(
+            vuforia_database_keys=vuforia_database_keys,
+            body=body,
         )
 
-        assert_vws_failure(
+        assert_vwq_failure(
             response=response,
             status_code=codes.UNAUTHORIZED,
-            result_code=ResultCodes.AUTHENTICATION_FAILURE,
+            content_type='application/json',
         )
