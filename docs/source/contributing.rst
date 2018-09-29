@@ -69,8 +69,8 @@ Connecting to Vuforia
 To connect to Vuforia, Vuforia target databases must be created via the Vuforia Web UI.
 Then, secret keys must be set as environment variables.
 
-The test infrastructure allows those keys to be set in the file ``vuforia_secrets.env``.
-See ``vuforia_secrets.env.example`` for the environment variables to set.
+The test infrastructure allows those keys to be set in the file :file:`vuforia_secrets.env`.
+See :file:`vuforia_secrets.env.example` for the environment variables to set.
 
 Do not use a target database that you are using for other purposes.
 This is because the test suite adds and deletes targets.
