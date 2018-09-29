@@ -45,6 +45,45 @@ def validate_auth_header_exists(
 
 
 @wrapt.decorator
+def validate_number_of_parts(
+    wrapped: Callable[..., str],
+    instance: Any,
+    args: Tuple[_RequestObjectProxy, _Context],
+    kwargs: Dict,
+) -> str:
+    """
+    Validate the authorization header includes text either side of a space.
+
+    Args:
+        wrapped: An endpoint function for `requests_mock`.
+        instance: The class that the endpoint function is in.
+        args: The arguments given to the endpoint function.
+        kwargs: The keyword arguments given to the endpoint function.
+
+    Returns:
+        The result of calling the endpoint.
+        An ``UNAUTHORIZED`` response if the "Authorization" header is not as
+        expected.
+    """
+    request, context = args
+
+    database = get_database_matching_client_keys(
+        request=request,
+        databases=instance.databases,
+    )
+
+    if database is not None:
+        return wrapped(*args, **kwargs)
+
+    context.status_code = codes.UNAUTHORIZED
+    text = 'Malformed authorization header.'
+    content_type = 'text/plain; charset=ISO-8859-1'
+    context.headers['Content-Type'] = content_type
+    context.headers['WWW-Authenticate'] = 'VWS'
+    return text
+
+
+@wrapt.decorator
 def validate_authorization(
     wrapped: Callable[..., str],
     instance: Any,
