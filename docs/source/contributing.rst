@@ -15,7 +15,7 @@ Install Python dependencies in a virtual environment.
     pip install --editable .[dev]
 
 Spell checking requires ``enchant``.
-This can be installed on macOS, for example, with `Homebrew <https://brew.sh>`__:
+This can be installed on macOS, for example, with `Homebrew`_:
 
 .. code:: sh
 
@@ -41,6 +41,8 @@ To fix some lint errors, run the following:
 .. code:: sh
 
     make fix-lint
+
+.. _Homebrew: https://brew.sh
 
 Running tests
 -------------
@@ -75,10 +77,10 @@ See :file:`vuforia_secrets.env.example` for the environment variables to set.
 Do not use a target database that you are using for other purposes.
 This is because the test suite adds and deletes targets.
 
-To create a target database, first create a license key in the `License Manager <https://developer.vuforia.com/targetmanager/licenseManager/licenseListing>`__.
-Then, add a database from the `Target Manager <https://developer.vuforia.com/targetmanager>`__.
+To create a target database, first create a license key in the `Vuforia License Manager`_.
+Then, add a database from the `Vuforia Target Manager`_.
 
-To find the environment variables to set in the :file:`vuforia_secrets.env` file, visit the Target Database in the Target Manager and view the "Database Access Keys".
+To find the environment variables to set in the :file:`vuforia_secrets.env` file, visit the Target Database in the `Vuforia Target Manager`_ and view the "Database Access Keys".
 
 Two databases are necessary in order to run all the tests.
 One of those must be an inactive project.
@@ -86,6 +88,9 @@ To create an inactive project, delete the license key associated with a database
 
 Targets sometimes get stuck at the "Processing" stage meaning that they cannot be deleted.
 When this happens, create a new target database to use for testing.
+
+.. _Vuforia License Manager: https://developer.vuforia.com/targetmanager/licenseManager/licenseListing
+.. _Vuforia Target Manager: https://developer.vuforia.com/targetmanager
 
 Skipping some tests
 -------------------
