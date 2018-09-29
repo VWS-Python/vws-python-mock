@@ -20,9 +20,6 @@ from ._mock_web_services_api import MockVuforiaWebServicesAPI
 class MockVWS(ContextDecorator):
     """
     Route requests to Vuforia's Web Service APIs to fakes of those APIs.
-
-    This creates a mock which uses access keys from the environment.
-    See the README to find which secrets to set.
     """
 
     def __init__(  # pylint: disable=too-many-arguments
@@ -40,6 +37,16 @@ class MockVWS(ContextDecorator):
         query_recognizes_deletion_seconds: Union[int, float]=3,
     ) -> None:
         """
+        Route requests to Vuforia's Web Service APIs to fakes of those APIs.
+
+        Connecting to the Vuforia Web Services requires an access key and a secret key.
+        The mock also requires these keys as it provides realistic authentication support.
+
+        By default, the mock uses random strings as the access and secret keys.
+
+        The mock does not check whether the access and secret keys are valid.
+        It only checks whether the keys used to set up the mock instance match those used to create requests.
+
         Args:
             real_http: Whether or not to forward requests to the real server if
                 they are not handled by the mock.
