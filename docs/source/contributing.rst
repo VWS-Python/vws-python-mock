@@ -1,5 +1,5 @@
-Contributing to VWS Python Mock
-===============================
+Contributing
+============
 
 Contributions to this repository must pass tests and linting.
 
