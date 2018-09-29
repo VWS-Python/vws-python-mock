@@ -57,27 +57,12 @@ class MockVWS(ContextDecorator):
             query_recognizes_deletion_seconds: The number of seconds after a
                 target has been deleted that the query endpoint will return a
                 500 response for on a match.
-
-        Attributes:
-            client_access_key (str): A VWS client access key for the mock.
-            client_secret_key (str): A VWS client secret key for the mock.
-            server_access_key (str): A VWS server access key for the mock.
-            server_secret_key (str): A VWS server secret key for the mock.
-            database_name (str): The name of the mock VWS target manager
-                database.
         """
         super().__init__()
         self._real_http = real_http
         self._mock = Mocker()
 
         self._database = database
-
-        self.server_access_key = self._database.server_access_key.decode()
-        self.server_secret_key = self._database.server_secret_key.decode()
-        self.client_access_key = self._database.client_access_key.decode()
-        self.client_secret_key = self._database.client_secret_key.decode()
-        self.database_name = self._database.database_name
-
         self._base_vws_url = base_vws_url
         self._base_vwq_url = base_vwq_url
 
