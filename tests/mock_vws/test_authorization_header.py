@@ -109,6 +109,8 @@ class TestAuthorizationHeader:
         vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
+        If the server secret key given is incorrect, an
+        ``AuthenticationFailure`` response is returned.
         """
         keys = vuforia_database_keys
         keys.server_secret_key = b'example'
@@ -129,6 +131,8 @@ class TestAuthorizationHeader:
         high_quality_image: io.BytesIO,
     ) -> None:
         """
+        If the client secret key given is incorrect, an
+        ``UNAUTHORIZED`` response is returned.
         """
         vuforia_database_keys.client_secret_key = b'example'
         image_content = high_quality_image.getvalue()
