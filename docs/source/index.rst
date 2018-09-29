@@ -29,3 +29,4 @@ Reference
 
    changelog
    release-process
+   ci-setup
