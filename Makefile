@@ -38,6 +38,7 @@ lint:
 	pylint *.py src tests ci admin
 	pyroma --min 10 .
 	vulture . --min-confidence 100
+	$(MAKE) -C docs spelling SPHINXOPTS=$(SPHINXOPTS)
 	yapf \
 		--diff \
 		--recursive \
