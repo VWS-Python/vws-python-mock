@@ -2,6 +2,7 @@
 Authorization validators to use in the mock query API.
 """
 
+from pathlib import Path
 from typing import Any, Callable, Dict, Tuple
 
 import wrapt
@@ -107,12 +108,14 @@ def validate_auth_header_has_signature(
         return wrapped(*args, **kwargs)
 
     context.status_code = codes.INTERNAL_SERVER_ERROR
-    text = 'Malformed authorization header.'
+    current_parent = Path(__file__).parent
+    resources = current_parent / 'resources'
+    known_response = resources / 'query_out_of_bounds_response'
     content_type = 'text/html; charset=ISO-8859-1'
     context.headers['Content-Type'] = content_type
     cache_control = 'must-revalidate,no-cache,no-store'
     context.headers['Cache-Control'] = cache_control
-    return text
+    return known_response.read_text()
 
 @wrapt.decorator
 def validate_authorization(
