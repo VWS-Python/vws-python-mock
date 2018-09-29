@@ -17,7 +17,6 @@ from requests_mock.response import _Context
 from mock_vws._constants import ResultCodes
 from mock_vws._mock_common import (
     get_database_matching_client_keys,
-    json_dump,
     parse_multipart,
 )
 from mock_vws.database import VuforiaDatabase
