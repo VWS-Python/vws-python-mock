@@ -28,6 +28,7 @@ autoflake:
 lint:
 	check-manifest .
 	pytest -vvv -x ci/custom_linters.py
+	doc8 .
 	dodgy
 	flake8 .
 	isort --recursive --check-only
@@ -39,6 +40,7 @@ lint:
 	pyroma --min 10 .
 	vulture . --min-confidence 100
 	$(MAKE) -C docs spelling SPHINXOPTS=$(SPHINXOPTS)
+	$(MAKE) -C docs linkcheck SPHINXOPTS=$(SPHINXOPTS)
 	yapf \
 		--diff \
 		--recursive \
