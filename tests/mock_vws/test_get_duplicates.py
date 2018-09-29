@@ -25,14 +25,14 @@ from tests.mock_vws.utils.assertions import (
 
 
 def target_duplicates(
-    vuforia_database_keys: VuforiaDatabase,
+    vuforia_database: VuforiaDatabase,
     target_id: str,
 ) -> Response:
     """
     Get duplicates of a target.
 
     Args:
-        vuforia_database_keys: The credentials to use to connect to
+        vuforia_database: The credentials to use to connect to
             Vuforia.
         target_id: The ID of the target to get duplicates for.
 
@@ -40,8 +40,8 @@ def target_duplicates(
         The response returned by the API.
     """
     response = target_api_request(
-        server_access_key=vuforia_database_keys.server_access_key,
-        server_secret_key=vuforia_database_keys.server_secret_key,
+        server_access_key=vuforia_database.server_access_key,
+        server_secret_key=vuforia_database.server_secret_key,
         method=GET,
         content=b'',
         request_path='/duplicates/' + target_id,
@@ -58,7 +58,7 @@ class TestDuplicates:
 
     def test_duplicates(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         high_quality_image: io.BytesIO,
         image_file_success_state_low_rating: io.BytesIO,
     ) -> None:
@@ -92,17 +92,17 @@ class TestDuplicates:
         }
 
         original_add_resp = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=original_data,
         )
 
         similar_add_resp = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=similar_data,
         )
 
         different_add_resp = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=different_data,
         )
 
@@ -116,12 +116,12 @@ class TestDuplicates:
             different_target_id,
         }:
             wait_for_target_processed(
-                vuforia_database_keys=vuforia_database_keys,
+                vuforia_database=vuforia_database,
                 target_id=target_id,
             )
 
         response = target_duplicates(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=original_target_id,
         )
 
@@ -143,7 +143,7 @@ class TestDuplicates:
 
     def test_status(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -165,12 +165,12 @@ class TestDuplicates:
         }
 
         original_add_resp = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=original_data,
         )
 
         similar_add_resp = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=similar_data,
         )
 
@@ -179,19 +179,19 @@ class TestDuplicates:
 
         for target_id in {original_target_id, similar_target_id}:
             wait_for_target_processed(
-                vuforia_database_keys=vuforia_database_keys,
+                vuforia_database=vuforia_database,
                 target_id=target_id,
             )
 
         response = get_vws_target(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=original_target_id,
         )
 
         assert response.json()['status'] == 'failed'
 
         response = target_duplicates(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=original_target_id,
         )
 
@@ -206,7 +206,7 @@ class TestActiveFlag:
 
     def test_active_flag_duplicate(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         high_quality_image: io.BytesIO,
     ) -> None:
         """
@@ -237,12 +237,12 @@ class TestActiveFlag:
         }
 
         original_add_resp = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=original_data,
         )
 
         similar_add_resp = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=similar_data,
         )
 
@@ -251,12 +251,12 @@ class TestActiveFlag:
 
         for target_id in {original_target_id, similar_target_id}:
             wait_for_target_processed(
-                vuforia_database_keys=vuforia_database_keys,
+                vuforia_database=vuforia_database,
                 target_id=target_id,
             )
 
         response = target_duplicates(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=original_target_id,
         )
 
@@ -264,7 +264,7 @@ class TestActiveFlag:
 
     def test_active_flag_original(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         high_quality_image: io.BytesIO,
     ) -> None:
         """
@@ -288,12 +288,12 @@ class TestActiveFlag:
         }
 
         original_add_resp = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=original_data,
         )
 
         similar_add_resp = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=similar_data,
         )
 
@@ -302,12 +302,12 @@ class TestActiveFlag:
 
         for target_id in {original_target_id, similar_target_id}:
             wait_for_target_processed(
-                vuforia_database_keys=vuforia_database_keys,
+                vuforia_database=vuforia_database,
                 target_id=target_id,
             )
 
         response = target_duplicates(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=original_target_id,
         )
 
@@ -322,7 +322,7 @@ class TestProcessing:
 
     def test_processing(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         high_quality_image: io.BytesIO,
     ) -> None:
         """
@@ -345,38 +345,38 @@ class TestProcessing:
         }
 
         resp_1 = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data_1,
         )
 
         processed_target_id = resp_1.json()['target_id']
 
         wait_for_target_processed(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=processed_target_id,
         )
 
         resp_2 = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data_2,
         )
 
         processing_target_id = resp_2.json()['target_id']
 
         response = target_duplicates(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=processed_target_id,
         )
 
         assert response.json()['similar_targets'] == []
 
         response = target_duplicates(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=processing_target_id,
         )
 
         status_response = get_vws_target(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=processing_target_id,
         )
 
@@ -392,14 +392,14 @@ class TestInactiveProject:
 
     def test_inactive_project(
         self,
-        inactive_database_keys: VuforiaDatabase,
+        inactive_database: VuforiaDatabase,
     ) -> None:
         """
         If the project is inactive, a FORBIDDEN response is returned.
         """
         response = target_duplicates(
             target_id=uuid.uuid4().hex,
-            vuforia_database_keys=inactive_database_keys,
+            vuforia_database=inactive_database,
         )
 
         assert_vws_failure(

@@ -2,6 +2,7 @@
 Tests for the `Authorization` header.
 """
 
+from pathlib import Path
 from typing import Dict, Union
 from urllib.parse import urlparse
 
@@ -74,27 +75,32 @@ class TestMalformed:
     Tests for passing a malformed ``Authorization`` header.
     """
 
-    @pytest.mark.parametrize('authorization_string', [
-        'gibberish',
-        'VWS',
-        'VWS ',
-    ])
+    @pytest.mark.parametrize(
+        'authorization_string',
+        [
+            'gibberish',
+            'VWS',
+            'VWS ',
+        ],
+    )
     def test_one_part(
         self,
         endpoint: Endpoint,
         authorization_string: str,
     ) -> None:
         """
-	A valid authorization string is two "parts" when split on a space. When
-	a string is given which is one "part", a ``BAD_REQUEST`` or
-	``UNAUTHORIZED`` response is returned.
+        A valid authorization string is two "parts" when split on a space. When
+        a string is given which is one "part", a ``BAD_REQUEST`` or
+        ``UNAUTHORIZED`` response is returned.
         """
         date = rfc_1123_date()
 
         headers: Dict[str, Union[str, bytes]] = {
             **endpoint.prepared_request.headers,
-            'Authorization': authorization_string,
-            'Date': date,
+            'Authorization':
+            authorization_string,
+            'Date':
+            date,
         }
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
@@ -120,10 +126,13 @@ class TestMalformed:
             result_code=ResultCodes.FAIL,
         )
 
-    @pytest.mark.parametrize('authorization_string', [
-        'VWS foobar:',
-        'VWS foobar',
-    ])
+    @pytest.mark.parametrize(
+        'authorization_string',
+        [
+            'VWS foobar:',
+            'VWS foobar',
+        ],
+    )
     def test_missing_signature(
         self,
         endpoint: Endpoint,
@@ -137,8 +146,10 @@ class TestMalformed:
 
         headers: Dict[str, Union[str, bytes]] = {
             **endpoint.prepared_request.headers,
-            'Authorization': authorization_string,
-            'Date': date,
+            'Authorization':
+            authorization_string,
+            'Date':
+            date,
         }
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
@@ -155,8 +166,10 @@ class TestMalformed:
                 status_code=codes.INTERNAL_SERVER_ERROR,
                 content_type='text/html; charset=ISO-8859-1',
             )
-            # TODO
-            # assert response.text == 'Malformed authorization header.'
+            current_parent = Path(__file__).parent
+            resources = current_parent / 'resources'
+            known_response = resources / 'query_out_of_bounds_response'
+            assert response.text == known_response.read_text()
             return
 
         assert_vws_failure(
@@ -173,17 +186,17 @@ class TestBadKey:
     """
     def test_bad_access_key_services(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         If the server access key given does not match any database, a
         ``Fail`` response is returned.
         """
-        keys = vuforia_database_keys
+        keys = vuforia_database
         keys.server_access_key = b'example'
         response = get_vws_target(
             target_id=uuid.uuid4().hex,
-            vuforia_database_keys=keys,
+            vuforia_database=keys,
         )
 
         assert_vws_failure(
@@ -194,19 +207,19 @@ class TestBadKey:
 
     def test_bad_access_key_query(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         high_quality_image: io.BytesIO,
     ) -> None:
         """
         If the client access key given is incorrect, an
         ``UNAUTHORIZED`` response is returned.
         """
-        vuforia_database_keys.client_access_key = b'example'
+        vuforia_database.client_access_key = b'example'
         image_content = high_quality_image.getvalue()
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
         response = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 
@@ -218,17 +231,17 @@ class TestBadKey:
 
     def test_bad_secret_key_services(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         If the server secret key given is incorrect, an
         ``AuthenticationFailure`` response is returned.
         """
-        keys = vuforia_database_keys
+        keys = vuforia_database
         keys.server_secret_key = b'example'
         response = get_vws_target(
             target_id=uuid.uuid4().hex,
-            vuforia_database_keys=keys,
+            vuforia_database=keys,
         )
 
         assert_vws_failure(
@@ -239,19 +252,19 @@ class TestBadKey:
 
     def test_bad_secret_key_query(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         high_quality_image: io.BytesIO,
     ) -> None:
         """
         If the client secret key given is incorrect, an
         ``UNAUTHORIZED`` response is returned.
         """
-        vuforia_database_keys.client_secret_key = b'example'
+        vuforia_database.client_secret_key = b'example'
         image_content = high_quality_image.getvalue()
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
         response = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 

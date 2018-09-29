@@ -29,7 +29,7 @@ VWQ_HOST = 'https://cloudreco.vuforia.com'
 
 @pytest.fixture()
 def _add_target(
-    vuforia_database_keys: VuforiaDatabase,
+    vuforia_database: VuforiaDatabase,
     image_file_failed_state: io.BytesIO,
 ) -> Endpoint:
     """
@@ -49,8 +49,8 @@ def _add_target(
 
     content = bytes(json.dumps(data), encoding='utf-8')
 
-    access_key = vuforia_database_keys.server_access_key
-    secret_key = vuforia_database_keys.server_secret_key
+    access_key = vuforia_database.server_access_key
+    secret_key = vuforia_database.server_secret_key
     authorization_string = authorization_header(
         access_key=access_key,
         secret_key=secret_key,
@@ -87,14 +87,14 @@ def _add_target(
 
 @pytest.fixture()
 def _delete_target(
-    vuforia_database_keys: VuforiaDatabase,
+    vuforia_database: VuforiaDatabase,
     target_id: str,
 ) -> Endpoint:
     """
     Return details of the endpoint for deleting a target.
     """
     wait_for_target_processed(
-        vuforia_database_keys=vuforia_database_keys,
+        vuforia_database=vuforia_database,
         target_id=target_id,
     )
     date = rfc_1123_date()
@@ -102,8 +102,8 @@ def _delete_target(
     method = DELETE
     content = b''
 
-    access_key = vuforia_database_keys.server_access_key
-    secret_key = vuforia_database_keys.server_secret_key
+    access_key = vuforia_database.server_access_key
+    secret_key = vuforia_database.server_secret_key
     authorization_string = authorization_header(
         access_key=access_key,
         secret_key=secret_key,
@@ -137,7 +137,7 @@ def _delete_target(
 
 
 @pytest.fixture()
-def _database_summary(vuforia_database_keys: VuforiaDatabase) -> Endpoint:
+def _database_summary(vuforia_database: VuforiaDatabase) -> Endpoint:
     """
     Return details of the endpoint for getting details about the database.
     """
@@ -147,8 +147,8 @@ def _database_summary(vuforia_database_keys: VuforiaDatabase) -> Endpoint:
 
     content = b''
 
-    access_key = vuforia_database_keys.server_access_key
-    secret_key = vuforia_database_keys.server_secret_key
+    access_key = vuforia_database.server_access_key
+    secret_key = vuforia_database.server_secret_key
     authorization_string = authorization_header(
         access_key=access_key,
         secret_key=secret_key,
@@ -184,7 +184,7 @@ def _database_summary(vuforia_database_keys: VuforiaDatabase) -> Endpoint:
 
 @pytest.fixture()
 def _get_duplicates(
-    vuforia_database_keys: VuforiaDatabase,
+    vuforia_database: VuforiaDatabase,
     target_id: str,
 ) -> Endpoint:
     """
@@ -192,7 +192,7 @@ def _get_duplicates(
     target.
     """
     wait_for_target_processed(
-        vuforia_database_keys=vuforia_database_keys,
+        vuforia_database=vuforia_database,
         target_id=target_id,
     )
     date = rfc_1123_date()
@@ -201,8 +201,8 @@ def _get_duplicates(
 
     content = b''
 
-    access_key = vuforia_database_keys.server_access_key
-    secret_key = vuforia_database_keys.server_secret_key
+    access_key = vuforia_database.server_access_key
+    secret_key = vuforia_database.server_secret_key
     authorization_string = authorization_header(
         access_key=access_key,
         secret_key=secret_key,
@@ -238,14 +238,14 @@ def _get_duplicates(
 
 @pytest.fixture()
 def _get_target(
-    vuforia_database_keys: VuforiaDatabase,
+    vuforia_database: VuforiaDatabase,
     target_id: str,
 ) -> Endpoint:
     """
     Return details of the endpoint for getting details of a target.
     """
     wait_for_target_processed(
-        vuforia_database_keys=vuforia_database_keys,
+        vuforia_database=vuforia_database,
         target_id=target_id,
     )
     date = rfc_1123_date()
@@ -254,8 +254,8 @@ def _get_target(
 
     content = b''
 
-    access_key = vuforia_database_keys.server_access_key
-    secret_key = vuforia_database_keys.server_secret_key
+    access_key = vuforia_database.server_access_key
+    secret_key = vuforia_database.server_secret_key
     authorization_string = authorization_header(
         access_key=access_key,
         secret_key=secret_key,
@@ -290,7 +290,7 @@ def _get_target(
 
 
 @pytest.fixture()
-def _target_list(vuforia_database_keys: VuforiaDatabase) -> Endpoint:
+def _target_list(vuforia_database: VuforiaDatabase) -> Endpoint:
     """
     Return details of the endpoint for getting a list of targets.
     """
@@ -300,8 +300,8 @@ def _target_list(vuforia_database_keys: VuforiaDatabase) -> Endpoint:
 
     content = b''
 
-    access_key = vuforia_database_keys.server_access_key
-    secret_key = vuforia_database_keys.server_secret_key
+    access_key = vuforia_database.server_access_key
+    secret_key = vuforia_database.server_secret_key
     authorization_string = authorization_header(
         access_key=access_key,
         secret_key=secret_key,
@@ -337,14 +337,14 @@ def _target_list(vuforia_database_keys: VuforiaDatabase) -> Endpoint:
 
 @pytest.fixture()
 def _target_summary(
-    vuforia_database_keys: VuforiaDatabase,
+    vuforia_database: VuforiaDatabase,
     target_id: str,
 ) -> Endpoint:
     """
     Return details of the endpoint for getting a summary report of a target.
     """
     wait_for_target_processed(
-        vuforia_database_keys=vuforia_database_keys,
+        vuforia_database=vuforia_database,
         target_id=target_id,
     )
     date = rfc_1123_date()
@@ -353,8 +353,8 @@ def _target_summary(
 
     content = b''
 
-    access_key = vuforia_database_keys.server_access_key
-    secret_key = vuforia_database_keys.server_secret_key
+    access_key = vuforia_database.server_access_key
+    secret_key = vuforia_database.server_secret_key
     authorization_string = authorization_header(
         access_key=access_key,
         secret_key=secret_key,
@@ -390,14 +390,14 @@ def _target_summary(
 
 @pytest.fixture()
 def _update_target(
-    vuforia_database_keys: VuforiaDatabase,
+    vuforia_database: VuforiaDatabase,
     target_id: str,
 ) -> Endpoint:
     """
     Return details of the endpoint for updating a target.
     """
     wait_for_target_processed(
-        vuforia_database_keys=vuforia_database_keys,
+        vuforia_database=vuforia_database,
         target_id=target_id,
     )
     data: Dict[str, Any] = {}
@@ -408,8 +408,8 @@ def _update_target(
     date = rfc_1123_date()
     method = PUT
 
-    access_key = vuforia_database_keys.server_access_key
-    secret_key = vuforia_database_keys.server_secret_key
+    access_key = vuforia_database.server_access_key
+    secret_key = vuforia_database.server_secret_key
     authorization_string = authorization_header(
         access_key=access_key,
         secret_key=secret_key,
@@ -446,7 +446,7 @@ def _update_target(
 
 @pytest.fixture()
 def _query(
-    vuforia_database_keys: VuforiaDatabase,
+    vuforia_database: VuforiaDatabase,
     high_quality_image: io.BytesIO,
 ) -> Endpoint:
     """
@@ -460,8 +460,8 @@ def _query(
 
     content, content_type_header = encode_multipart_formdata(files)
 
-    access_key = vuforia_database_keys.client_access_key
-    secret_key = vuforia_database_keys.client_secret_key
+    access_key = vuforia_database.client_access_key
+    secret_key = vuforia_database.client_secret_key
     authorization_string = authorization_header(
         access_key=access_key,
         secret_key=secret_key,

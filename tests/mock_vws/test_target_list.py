@@ -23,12 +23,12 @@ class TestTargetList:
 
     def test_success(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         It is possible to get a success response.
         """
-        response = list_targets(vuforia_database_keys=vuforia_database_keys)
+        response = list_targets(vuforia_database=vuforia_database)
         assert_vws_response(
             response=response,
             status_code=codes.OK,
@@ -40,33 +40,33 @@ class TestTargetList:
 
     def test_includes_targets(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         target_id: str,
     ) -> None:
         """
         Targets in the database are returned in the list.
         """
-        response = list_targets(vuforia_database_keys=vuforia_database_keys)
+        response = list_targets(vuforia_database=vuforia_database)
         assert response.json()['results'] == [target_id]
 
     def test_deleted(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         target_id: str,
     ) -> None:
         """
         Deleted targets are not returned in the list.
         """
         wait_for_target_processed(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=target_id,
         )
 
         delete_target(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=target_id,
         )
-        response = list_targets(vuforia_database_keys=vuforia_database_keys)
+        response = list_targets(vuforia_database=vuforia_database)
         assert response.json()['results'] == []
 
 
@@ -78,12 +78,12 @@ class TestInactiveProject:
 
     def test_inactive_project(
         self,
-        inactive_database_keys: VuforiaDatabase,
+        inactive_database: VuforiaDatabase,
     ) -> None:
         """
         The project's active state does not affect the target list.
         """
-        response = list_targets(vuforia_database_keys=inactive_database_keys)
+        response = list_targets(vuforia_database=inactive_database)
         assert_vws_response(
             response=response,
             status_code=codes.OK,
