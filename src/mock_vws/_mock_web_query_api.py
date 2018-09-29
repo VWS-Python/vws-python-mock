@@ -35,10 +35,6 @@ from ._query_validators import (
     validate_authorization,
     validate_content_type_header,
     validate_extra_fields,
-    validate_image_field_given,
-    validate_image_file_contents,
-    validate_image_file_size,
-    validate_image_format,
     validate_include_target_data,
     validate_max_num_results,
     validate_project_state,
@@ -47,6 +43,12 @@ from ._query_validators.date_validators import (
     validate_date_format,
     validate_date_header_given,
     validate_date_in_range,
+)
+from ._query_validators.image_validators import (
+    validate_image_field_given,
+    validate_image_file_contents,
+    validate_image_file_size,
+    validate_image_format,
 )
 
 ROUTES = set([])
