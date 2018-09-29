@@ -39,6 +39,8 @@ from ._query_validators import (
 )
 from ._query_validators.auth_validators import (
     validate_auth_header_exists,
+    validate_auth_header_has_signature,
+    validate_auth_header_number_of_parts,
     validate_authorization,
 )
 from ._query_validators.date_validators import (
@@ -103,6 +105,8 @@ def route(
             validate_accept_header,
             validate_project_state,
             validate_authorization,
+            validate_auth_header_has_signature,
+            validate_auth_header_number_of_parts,
             validate_auth_header_exists,
             set_content_length_header,
         ]

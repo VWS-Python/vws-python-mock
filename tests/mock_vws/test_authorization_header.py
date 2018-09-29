@@ -2,6 +2,7 @@
 Tests for the `Authorization` header.
 """
 
+from pathlib import Path
 from typing import Dict, Union
 from urllib.parse import urlparse
 
@@ -113,6 +114,58 @@ class TestMalformed:
                 content_type='text/plain; charset=ISO-8859-1',
             )
             assert response.text == 'Malformed authorization header.'
+            return
+
+        assert_vws_failure(
+            response=response,
+            status_code=codes.BAD_REQUEST,
+            result_code=ResultCodes.FAIL,
+        )
+
+    @pytest.mark.parametrize(
+        'authorization_string',
+        [
+            'VWS foobar:',
+            'VWS foobar',
+        ],
+    )
+    def test_missing_signature(
+        self,
+        endpoint: Endpoint,
+        authorization_string: str,
+    ) -> None:
+        """
+        If a signature is missing `Authorization` header is given, a
+        ``BAD_REQUEST`` response is given.
+        """
+        date = rfc_1123_date()
+
+        headers: Dict[str, Union[str, bytes]] = {
+            **endpoint.prepared_request.headers,
+            'Authorization':
+            authorization_string,
+            'Date':
+            date,
+        }
+
+        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        session = requests.Session()
+        response = session.send(  # type: ignore
+            request=endpoint.prepared_request,
+        )
+
+        url = str(endpoint.prepared_request.url)
+        netloc = urlparse(url).netloc
+        if netloc == 'cloudreco.vuforia.com':
+            assert_vwq_failure(
+                response=response,
+                status_code=codes.INTERNAL_SERVER_ERROR,
+                content_type='text/html; charset=ISO-8859-1',
+            )
+            current_parent = Path(__file__).parent
+            resources = current_parent / 'resources'
+            known_response = resources / 'query_out_of_bounds_response'
+            assert response.text == known_response.read_text()
             return
 
         assert_vws_failure(
