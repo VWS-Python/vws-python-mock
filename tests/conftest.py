@@ -14,7 +14,7 @@ from requests import codes
 
 from mock_vws import MockVWS
 from mock_vws._constants import ResultCodes
-from mock_vws._database import VuforiaDatabase
+from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
 from tests.mock_vws.utils import (
     Endpoint,
@@ -130,20 +130,24 @@ def verify_mock_vuforia(
     if not use_real_vuforia and skip_mock:  # pragma: no cover
         pytest.skip()
 
+    database = VuforiaDatabase(
+        database_name=vuforia_database_keys.database_name,
+        server_access_key=vuforia_database_keys.server_access_key.
+        decode('ascii'),
+        server_secret_key=vuforia_database_keys.server_secret_key.
+        decode('ascii'),
+        client_access_key=vuforia_database_keys.client_access_key.
+        decode('ascii'),
+        client_secret_key=vuforia_database_keys.client_secret_key.
+        decode('ascii'),
+    )
+
     if use_real_vuforia:
         _delete_all_targets(database_keys=vuforia_database_keys)
         yield
     else:
         with MockVWS(
-            database_name=vuforia_database_keys.database_name,
-            server_access_key=vuforia_database_keys.server_access_key.
-            decode('ascii'),
-            server_secret_key=vuforia_database_keys.server_secret_key.
-            decode('ascii'),
-            client_access_key=vuforia_database_keys.client_access_key.
-            decode('ascii'),
-            client_secret_key=vuforia_database_keys.client_secret_key.
-            decode('ascii'),
+            database=database,
             processing_time_seconds=0.2,
         ):
             yield
@@ -174,21 +178,23 @@ def verify_mock_vuforia_inactive(
     if not use_real_vuforia and skip_mock:  # pragma: no cover
         pytest.skip()
 
+    database = VuforiaDatabase(
+        state=States.PROJECT_INACTIVE,
+        database_name=inactive_database_keys.database_name,
+        server_access_key=inactive_database_keys.server_access_key.
+        decode('ascii'),
+        server_secret_key=inactive_database_keys.server_secret_key.
+        decode('ascii'),
+        client_access_key=inactive_database_keys.client_access_key.
+        decode('ascii'),
+        client_secret_key=inactive_database_keys.client_secret_key.
+        decode('ascii'),
+    )
+
     if use_real_vuforia:
         yield
     else:
-        with MockVWS(
-            state=States.PROJECT_INACTIVE,
-            database_name=inactive_database_keys.database_name,
-            server_access_key=inactive_database_keys.server_access_key.
-            decode('ascii'),
-            server_secret_key=inactive_database_keys.server_secret_key.
-            decode('ascii'),
-            client_access_key=inactive_database_keys.client_access_key.
-            decode('ascii'),
-            client_secret_key=inactive_database_keys.client_secret_key.
-            decode('ascii'),
-        ):
+        with MockVWS(database=database):
             yield
 
 

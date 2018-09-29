@@ -6,15 +6,10 @@ import base64
 import datetime
 import io
 import socket
-import string
 import time
-import uuid
 
 import pytest
 import requests
-from hypothesis import given
-from hypothesis.strategies import text
-from requests import codes
 from requests_mock.exceptions import NoMockAddress
 
 from mock_vws import MockVWS
@@ -23,7 +18,6 @@ from mock_vws.states import States
 from tests.mock_vws.utils import (
     VuforiaDatabase,
     add_target_to_vws,
-    database_summary,
     delete_target,
     get_vws_target,
     query,
@@ -66,37 +60,6 @@ def request_mocked_address() -> None:
     )
 
 
-def assert_valid_server_credentials(
-    server_access_key: str,
-    server_secret_key: str,
-) -> None:
-    """
-    Given server credentials, assert that they can authenticate with a Vuforia
-    database.
-
-    Raises:
-        AssertionError: The given credentials fail to authenticate with a
-            Vuforia database.
-    """
-    credentials = VuforiaDatabase(
-        database_name=uuid.uuid4().hex,
-        server_access_key=server_access_key,
-        server_secret_key=server_secret_key,
-        client_access_key=uuid.uuid4().hex,
-        client_secret_key=uuid.uuid4().hex,
-        state=States.WORKING,
-    )
-
-    response = get_vws_target(
-        vuforia_database_keys=credentials,
-        target_id=uuid.uuid4().hex,
-    )
-
-    # This shows that the response does not include an authentication
-    # error which is what would happen if the keys were incorrect.
-    assert response.status_code == codes.NOT_FOUND
-
-
 class TestRealHTTP:
     """
     Tests for making requests to mocked and unmocked addresses.
@@ -107,7 +70,7 @@ class TestRealHTTP:
         By default, the mock stops any requests made with `requests` to
         non-Vuforia addresses, but not to mocked Vuforia endpoints.
         """
-        with MockVWS():
+        with MockVWS(database=VuforiaDatabase()):
             with pytest.raises(NoMockAddress):
                 request_unmocked_address()
 
@@ -124,7 +87,7 @@ class TestRealHTTP:
         When the `real_http` parameter given to the context manager is set to
         `True`, requests made to unmocked addresses are not stopped.
         """
-        with MockVWS(real_http=True):
+        with MockVWS(real_http=True, database=VuforiaDatabase()):
             with pytest.raises(requests.exceptions.ConnectionError):
                 request_unmocked_address()
 
@@ -147,18 +110,10 @@ class TestProcessingTime:
             'image': image_data_encoded,
         }
 
-        with MockVWS() as mock:
-            vuforia_database_keys = VuforiaDatabase(
-                database_name=uuid.uuid4().hex,
-                server_access_key=mock.server_access_key,
-                server_secret_key=mock.server_secret_key,
-                client_access_key=uuid.uuid4().hex,
-                client_secret_key=uuid.uuid4().hex,
-                state=States.WORKING,
-            )
-
+        database = VuforiaDatabase()
+        with MockVWS(database=database):
             response = add_target_to_vws(
-                vuforia_database_keys=vuforia_database_keys,
+                vuforia_database_keys=database,
                 data=data,
             )
 
@@ -168,7 +123,7 @@ class TestProcessingTime:
 
             while True:
                 response = get_vws_target(
-                    vuforia_database_keys=vuforia_database_keys,
+                    vuforia_database_keys=database,
                     target_id=target_id,
                 )
 
@@ -194,18 +149,10 @@ class TestProcessingTime:
             'image': image_data_encoded,
         }
 
-        with MockVWS(processing_time_seconds=0.1) as mock:
-            vuforia_database_keys = VuforiaDatabase(
-                database_name=uuid.uuid4().hex,
-                server_access_key=mock.server_access_key,
-                server_secret_key=mock.server_secret_key,
-                client_access_key=uuid.uuid4().hex,
-                client_secret_key=uuid.uuid4().hex,
-                state=States.WORKING,
-            )
-
+        database = VuforiaDatabase()
+        with MockVWS(processing_time_seconds=0.1, database=database):
             response = add_target_to_vws(
-                vuforia_database_keys=vuforia_database_keys,
+                vuforia_database_keys=database,
                 data=data,
             )
 
@@ -215,7 +162,7 @@ class TestProcessingTime:
 
             while True:
                 response = get_vws_target(
-                    vuforia_database_keys=vuforia_database_keys,
+                    vuforia_database_keys=database,
                     target_id=target_id,
                 )
 
@@ -236,170 +183,19 @@ class TestDatabaseName:
         """
         By default, the database has a random name.
         """
-        with MockVWS() as mock:
-            vuforia_database_keys = VuforiaDatabase(
-                database_name=uuid.uuid4().hex,
-                server_access_key=mock.server_access_key,
-                server_secret_key=mock.server_secret_key,
-                client_access_key=uuid.uuid4().hex,
-                client_secret_key=uuid.uuid4().hex,
-                state=States.WORKING,
-            )
+        database_details = VuforiaDatabase()
+        other_database_details = VuforiaDatabase()
+        assert (
+            database_details.database_name !=
+            other_database_details.database_name
+        )
 
-            response = database_summary(
-                vuforia_database_keys=vuforia_database_keys,
-            )
-            first_database_name = response.json()['name']
-
-        with MockVWS() as mock:
-            vuforia_database_keys = VuforiaDatabase(
-                database_name=uuid.uuid4().hex,
-                server_access_key=mock.server_access_key,
-                server_secret_key=mock.server_secret_key,
-                client_access_key=uuid.uuid4().hex,
-                client_secret_key=uuid.uuid4().hex,
-                state=States.WORKING,
-            )
-            response = database_summary(
-                vuforia_database_keys=vuforia_database_keys,
-            )
-            second_database_name = response.json()['name']
-
-        assert first_database_name != second_database_name
-
-    @given(database_name=text())
-    def test_custom_name(
-        self,
-        database_name: str,
-    ) -> None:
+    def test_custom_name(self) -> None:
         """
         It is possible to set a custom database name.
         """
-        with MockVWS(database_name=database_name) as mock:
-            vuforia_database_keys = VuforiaDatabase(
-                database_name=database_name,
-                server_access_key=mock.server_access_key,
-                server_secret_key=mock.server_secret_key,
-                client_access_key=uuid.uuid4().hex,
-                client_secret_key=uuid.uuid4().hex,
-                state=States.WORKING,
-            )
-            response = database_summary(
-                vuforia_database_keys=vuforia_database_keys,
-            )
-            assert response.json()['name'] == database_name
-
-
-class TestPersistence:
-    """
-    Tests for isolation between instances of the mock.
-    """
-
-    def test_context_manager(
-        self,
-        image_file_failed_state: io.BytesIO,
-    ) -> None:
-        """
-        When the context manager is used, targets are not persisted between
-        invocations.
-        """
-        image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
-
-        data = {
-            'name': 'example',
-            'width': 1,
-            'image': image_data_encoded,
-        }
-
-        with MockVWS() as mock:
-            vuforia_database_keys = VuforiaDatabase(
-                database_name=uuid.uuid4().hex,
-                server_access_key=mock.server_access_key,
-                server_secret_key=mock.server_secret_key,
-                client_access_key=uuid.uuid4().hex,
-                client_secret_key=uuid.uuid4().hex,
-                state=States.WORKING,
-            )
-
-            response = add_target_to_vws(
-                vuforia_database_keys=vuforia_database_keys,
-                data=data,
-            )
-
-            target_id = response.json()['target_id']
-
-            response = get_vws_target(
-                vuforia_database_keys=vuforia_database_keys,
-                target_id=target_id,
-            )
-
-            assert response.status_code == codes.OK
-
-        with MockVWS() as mock:
-            vuforia_database_keys = VuforiaDatabase(
-                database_name=uuid.uuid4().hex,
-                server_access_key=mock.server_access_key,
-                server_secret_key=mock.server_secret_key,
-                client_access_key=uuid.uuid4().hex,
-                client_secret_key=uuid.uuid4().hex,
-                state=States.WORKING,
-            )
-
-            response = get_vws_target(
-                vuforia_database_keys=vuforia_database_keys,
-                target_id=target_id,
-            )
-
-            assert response.status_code == codes.NOT_FOUND
-
-
-class TestCredentials:
-    """
-    Tests for setting credentials for the mock.
-    """
-
-    def test_default(self) -> None:
-        """
-        By default the mock uses a random access key and secret key.
-        """
-        with MockVWS() as first_mock:
-            with MockVWS() as second_mock:
-                assert (
-                    first_mock.server_access_key !=
-                    second_mock.server_access_key
-                )
-                assert (
-                    first_mock.server_secret_key !=
-                    second_mock.server_secret_key
-                )
-                assert first_mock.database_name != second_mock.database_name
-
-    # We limit this to ASCII letters because some characters are not allowed
-    # in request headers (e.g. a leading space).
-    @given(
-        server_access_key=text(alphabet=string.ascii_letters),
-        server_secret_key=text(alphabet=string.ascii_letters),
-    )
-    def test_custom_credentials(
-        self,
-        server_access_key: str,
-        server_secret_key: str,
-    ) -> None:
-        """
-        It is possible to set custom credentials.
-        """
-        with MockVWS(
-            server_access_key=server_access_key,
-            server_secret_key=server_secret_key,
-        ) as mock:
-            assert mock.server_access_key == server_access_key
-            assert mock.server_secret_key == server_secret_key
-
-            assert_valid_server_credentials(
-                server_access_key=server_access_key,
-                server_secret_key=server_secret_key,
-            )
+        database_details = VuforiaDatabase(database_name='foo')
+        assert database_details.database_name == 'foo'
 
 
 class TestCustomBaseURLs:
@@ -414,6 +210,7 @@ class TestCustomBaseURLs:
         with MockVWS(
             base_vws_url='https://vuforia.vws.example.com',
             real_http=False,
+            database=VuforiaDatabase(),
         ):
             with pytest.raises(NoMockAddress):
                 requests.get('https://vws.vuforia.com/summary')
@@ -428,6 +225,7 @@ class TestCustomBaseURLs:
         with MockVWS(
             base_vwq_url='https://vuforia.vwq.example.com',
             real_http=False,
+            database=VuforiaDatabase(),
         ):
             with pytest.raises(NoMockAddress):
                 requests.post('https://cloudreco.vuforia.com/v1/query')
@@ -448,7 +246,8 @@ class TestCustomQueryRecognizesDeletionSeconds:
         vuforia_database_keys: VuforiaDatabase,
     ) -> float:
         """
-        XXX
+        The number of seconds it takes for the query endpoint to recognize a
+        deletion.
         """
         image_content = high_quality_image.getvalue()
         image_data_encoded = base64.b64encode(image_content).decode('ascii')
@@ -502,7 +301,6 @@ class TestCustomQueryRecognizesDeletionSeconds:
     def test_default(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         By default it takes three seconds for the Query API on the mock to
@@ -511,15 +309,11 @@ class TestCustomQueryRecognizesDeletionSeconds:
         The real Query API takes between seven and thirty seconds.
         See ``test_query`` for more information.
         """
-        with MockVWS(
-            client_access_key=vuforia_database_keys.client_access_key.decode(),
-            client_secret_key=vuforia_database_keys.client_secret_key.decode(),
-            server_access_key=vuforia_database_keys.server_access_key.decode(),
-            server_secret_key=vuforia_database_keys.server_secret_key.decode(),
-        ):
+        database = VuforiaDatabase()
+        with MockVWS(database=database):
             recognize_deletion_seconds = self._recognize_deletion_seconds(
                 high_quality_image=high_quality_image,
-                vuforia_database_keys=vuforia_database_keys,
+                vuforia_database_keys=database,
             )
 
         expected = 3
@@ -528,7 +322,6 @@ class TestCustomQueryRecognizesDeletionSeconds:
     def test_custom(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database_keys: VuforiaDatabase,
     ) -> None:
         """
         It is possible to use set a custom amount of time that it takes for the
@@ -536,16 +329,14 @@ class TestCustomQueryRecognizesDeletionSeconds:
         """
         # We choose a low time for a quick test.
         query_recognizes_deletion = 0.1
+        database = VuforiaDatabase()
         with MockVWS(
-            client_access_key=vuforia_database_keys.client_access_key.decode(),
-            client_secret_key=vuforia_database_keys.client_secret_key.decode(),
-            server_access_key=vuforia_database_keys.server_access_key.decode(),
-            server_secret_key=vuforia_database_keys.server_secret_key.decode(),
+            database=database,
             query_recognizes_deletion_seconds=query_recognizes_deletion,
         ):
             recognize_deletion_seconds = self._recognize_deletion_seconds(
                 high_quality_image=high_quality_image,
-                vuforia_database_keys=vuforia_database_keys,
+                vuforia_database_keys=database,
             )
 
         expected = query_recognizes_deletion

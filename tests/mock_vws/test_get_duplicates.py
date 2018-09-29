@@ -11,7 +11,7 @@ from requests import Response, codes
 from requests_mock import GET
 
 from mock_vws._constants import ResultCodes
-from mock_vws._database import VuforiaDatabase
+from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import (
     add_target_to_vws,
     get_vws_target,

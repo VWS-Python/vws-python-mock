@@ -12,7 +12,7 @@ import pytz
 from requests import codes
 
 from mock_vws._constants import ResultCodes, TargetStatuses
-from mock_vws._database import VuforiaDatabase
+from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import (
     add_target_to_vws,
     get_vws_target,

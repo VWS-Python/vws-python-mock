@@ -24,7 +24,7 @@ import wrapt
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
-from mock_vws._database import VuforiaDatabase
+from mock_vws.database import VuforiaDatabase
 
 
 class Route:

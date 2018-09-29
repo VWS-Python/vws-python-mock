@@ -12,7 +12,7 @@ Reference
 
 .. autoclass:: mock_vws.MockVWS
 
-.. autoclass:: mock_vws.VuforiaDatabase
+.. autoclass:: mock_vws.database.VuforiaDatabase
 
 Reference
 ---------

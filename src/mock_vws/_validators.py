@@ -20,8 +20,8 @@ from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
 from mock_vws._constants import ResultCodes
-from mock_vws._database import VuforiaDatabase
 from mock_vws._mock_common import get_database_matching_server_keys, json_dump
+from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
 
 
