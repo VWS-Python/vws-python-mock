@@ -71,7 +71,7 @@ class Endpoint:
 
 
 def add_target_to_vws(
-    vuforia_database_keys: VuforiaDatabase,
+    vuforia_database: VuforiaDatabase,
     data: Dict[str, Any],
     content_type: str = 'application/json',
 ) -> Response:
@@ -79,7 +79,7 @@ def add_target_to_vws(
     Return a response from a request to the endpoint to add a target.
 
     Args:
-        vuforia_database_keys: The credentials to use to connect to Vuforia.
+        vuforia_database: The credentials to use to connect to Vuforia.
         data: The data to send, in JSON format, to the endpoint.
         content_type: The `Content-Type` header to use.
 
@@ -92,8 +92,8 @@ def add_target_to_vws(
     content = bytes(json.dumps(data), encoding='utf-8')
 
     authorization_string = authorization_header(
-        access_key=vuforia_database_keys.server_access_key,
-        secret_key=vuforia_database_keys.server_secret_key,
+        access_key=vuforia_database.server_access_key,
+        secret_key=vuforia_database.server_secret_key,
         method=POST,
         content=content,
         content_type=content_type,
@@ -119,21 +119,21 @@ def add_target_to_vws(
 
 def get_vws_target(
     target_id: str,
-    vuforia_database_keys: VuforiaDatabase,
+    vuforia_database: VuforiaDatabase,
 ) -> Response:
     """
     Return a response from a request to the endpoint to get a target record.
 
     Args:
-        vuforia_database_keys: The credentials to use to connect to Vuforia.
+        vuforia_database: The credentials to use to connect to Vuforia.
         target_id: The ID of the target to return a record for.
 
     Returns:
         The response returned by the API.
     """
     response = target_api_request(
-        server_access_key=vuforia_database_keys.server_access_key,
-        server_secret_key=vuforia_database_keys.server_secret_key,
+        server_access_key=vuforia_database.server_access_key,
+        server_secret_key=vuforia_database.server_secret_key,
         method=GET,
         content=b'',
         request_path='/targets/' + target_id,
@@ -141,19 +141,19 @@ def get_vws_target(
     return response
 
 
-def database_summary(vuforia_database_keys: VuforiaDatabase) -> Response:
+def database_summary(vuforia_database: VuforiaDatabase) -> Response:
     """
     Return the response of a request to the database summary endpoint.
 
     Args:
-        vuforia_database_keys: The credentials to use to connect to Vuforia.
+        vuforia_database: The credentials to use to connect to Vuforia.
 
     Returns:
         The response of a request to the database summary endpoint.
     """
     response = target_api_request(
-        server_access_key=vuforia_database_keys.server_access_key,
-        server_secret_key=vuforia_database_keys.server_secret_key,
+        server_access_key=vuforia_database.server_access_key,
+        server_secret_key=vuforia_database.server_secret_key,
         method=GET,
         content=b'',
         request_path='/summary',
@@ -163,7 +163,7 @@ def database_summary(vuforia_database_keys: VuforiaDatabase) -> Response:
 
 @timeout_decorator.timeout(seconds=60 * 5)
 def wait_for_target_processed(
-    vuforia_database_keys: VuforiaDatabase,
+    vuforia_database: VuforiaDatabase,
     target_id: str,
 ) -> None:
     """
@@ -171,7 +171,7 @@ def wait_for_target_processed(
     stage.
 
     Args:
-        vuforia_database_keys: The credentials to use to connect to Vuforia.
+        vuforia_database: The credentials to use to connect to Vuforia.
         target_id: The ID of the target to wait for.
 
     Raises:
@@ -181,7 +181,7 @@ def wait_for_target_processed(
     while True:
         response = get_vws_target(
             target_id=target_id,
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
         )
 
         if response.json()['status'] != TargetStatuses.PROCESSING.value:
@@ -249,14 +249,14 @@ def target_api_request(
 
 
 def delete_target(
-    vuforia_database_keys: VuforiaDatabase,
+    vuforia_database: VuforiaDatabase,
     target_id: str,
 ) -> Response:
     """
     Delete a given target.
 
     Args:
-        vuforia_database_keys: The credentials to the Vuforia target database
+        vuforia_database: The credentials to the Vuforia target database
             to delete the target in.
         target_id: The ID of the target to delete.
 
@@ -264,8 +264,8 @@ def delete_target(
         The response returned by the API.
     """
     response = target_api_request(
-        server_access_key=vuforia_database_keys.server_access_key,
-        server_secret_key=vuforia_database_keys.server_secret_key,
+        server_access_key=vuforia_database.server_access_key,
+        server_secret_key=vuforia_database.server_secret_key,
         method=DELETE,
         content=b'',
         request_path=f'/targets/{target_id}',
@@ -275,7 +275,7 @@ def delete_target(
 
 
 def update_target(
-    vuforia_database_keys: VuforiaDatabase,
+    vuforia_database: VuforiaDatabase,
     data: Dict[str, Any],
     target_id: str,
     content_type: str = 'application/json',
@@ -284,7 +284,7 @@ def update_target(
     Make a request to the endpoint to update a target.
 
     Args:
-        vuforia_database_keys: The credentials to use to connect to
+        vuforia_database: The credentials to use to connect to
             Vuforia.
         data: The data to send, in JSON format, to the endpoint.
         target_id: The ID of the target to update.
@@ -299,8 +299,8 @@ def update_target(
     content = bytes(json.dumps(data), encoding='utf-8')
 
     authorization_string = authorization_header(
-        access_key=vuforia_database_keys.server_access_key,
-        secret_key=vuforia_database_keys.server_secret_key,
+        access_key=vuforia_database.server_access_key,
+        secret_key=vuforia_database.server_secret_key,
         method=PUT,
         content=content,
         content_type=content_type,
@@ -324,20 +324,20 @@ def update_target(
     return response
 
 
-def list_targets(vuforia_database_keys: VuforiaDatabase) -> Response:
+def list_targets(vuforia_database: VuforiaDatabase) -> Response:
     """
     Get a list of targets.
 
     Args:
-        vuforia_database_keys: The credentials to use to connect to
+        vuforia_database: The credentials to use to connect to
             Vuforia.
 
     Returns:
         The response returned by the API.
     """
     response = target_api_request(
-        server_access_key=vuforia_database_keys.server_access_key,
-        server_secret_key=vuforia_database_keys.server_secret_key,
+        server_access_key=vuforia_database.server_access_key,
+        server_secret_key=vuforia_database.server_secret_key,
         method=GET,
         content=b'',
         request_path='/targets',
@@ -347,14 +347,14 @@ def list_targets(vuforia_database_keys: VuforiaDatabase) -> Response:
 
 
 def target_summary(
-    vuforia_database_keys: VuforiaDatabase,
+    vuforia_database: VuforiaDatabase,
     target_id: str,
 ) -> Response:
     """
     Get a summary of a target.
 
     Args:
-        vuforia_database_keys: The credentials to use to connect to
+        vuforia_database: The credentials to use to connect to
             Vuforia.
         target_id: The ID of the target to get a summary for.
 
@@ -362,8 +362,8 @@ def target_summary(
         The response returned by the API.
     """
     response = target_api_request(
-        server_access_key=vuforia_database_keys.server_access_key,
-        server_secret_key=vuforia_database_keys.server_secret_key,
+        server_access_key=vuforia_database.server_access_key,
+        server_secret_key=vuforia_database.server_secret_key,
         method=GET,
         content=b'',
         request_path='/summary/' + target_id,
@@ -373,14 +373,14 @@ def target_summary(
 
 
 def query(
-    vuforia_database_keys: VuforiaDatabase,
+    vuforia_database: VuforiaDatabase,
     body: Dict[str, Any],
 ) -> Response:
     """
     Make a request to the endpoint to make an image recognition query.
 
     Args:
-        vuforia_database_keys: The credentials to use to connect to
+        vuforia_database: The credentials to use to connect to
             Vuforia.
         body: The request body to send in ``multipart/formdata`` format.
 
@@ -392,8 +392,8 @@ def query(
     content, content_type_header = encode_multipart_formdata(body)
     method = POST
 
-    access_key = vuforia_database_keys.client_access_key
-    secret_key = vuforia_database_keys.client_secret_key
+    access_key = vuforia_database.client_access_key
+    secret_key = vuforia_database.client_secret_key
     authorization_string = authorization_header(
         access_key=access_key,
         secret_key=secret_key,

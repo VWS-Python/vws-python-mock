@@ -32,7 +32,7 @@ class TestGetRecord:
 
     def test_get_vws_target(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -52,7 +52,7 @@ class TestGetRecord:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
             content_type='application/json',
         )
@@ -60,7 +60,7 @@ class TestGetRecord:
         target_id = response.json()['target_id']
         response = get_vws_target(
             target_id=target_id,
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
         )
 
         assert_vws_response(
@@ -101,7 +101,7 @@ class TestGetRecord:
 
     def test_active_flag_not_set(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -117,14 +117,14 @@ class TestGetRecord:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
         )
 
         target_id = response.json()['target_id']
         response = get_vws_target(
             target_id=target_id,
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
         )
 
         target_record = response.json()['target_record']
@@ -132,7 +132,7 @@ class TestGetRecord:
 
     def test_active_flag_set_to_none(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -149,14 +149,14 @@ class TestGetRecord:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
         )
 
         target_id = response.json()['target_id']
         response = get_vws_target(
             target_id=target_id,
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
         )
 
         target_record = response.json()['target_record']
@@ -164,7 +164,7 @@ class TestGetRecord:
 
     def test_fail_status(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -181,20 +181,20 @@ class TestGetRecord:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
         )
 
         target_id = response.json()['target_id']
 
         wait_for_target_processed(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=target_id,
         )
 
         response = get_vws_target(
             target_id=target_id,
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
         )
 
         assert response.json()['status'] == TargetStatuses.FAILED.value
@@ -203,7 +203,7 @@ class TestGetRecord:
 
     def test_success_status(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         image_file_success_state_low_rating: io.BytesIO,
     ) -> None:
         """
@@ -224,20 +224,20 @@ class TestGetRecord:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
         )
 
         target_id = response.json()['target_id']
 
         wait_for_target_processed(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=target_id,
         )
 
         response = get_vws_target(
             target_id=target_id,
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
         )
 
         assert response.json()['status'] == TargetStatuses.SUCCESS.value
@@ -248,7 +248,7 @@ class TestGetRecord:
         # The tracking rating stays stable across requests
         response = get_vws_target(
             target_id=target_id,
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
         )
         new_target_record = response.json()['target_record']
         new_tracking_rating = new_target_record['tracking_rating']
@@ -263,14 +263,14 @@ class TestInactiveProject:
 
     def test_inactive_project(
         self,
-        inactive_database_keys: VuforiaDatabase,
+        inactive_database: VuforiaDatabase,
     ) -> None:
         """
         The project's active state does not affect getting a target.
         """
         response = get_vws_target(
             target_id=uuid.uuid4().hex,
-            vuforia_database_keys=inactive_database_keys,
+            vuforia_database=inactive_database,
         )
 
         assert_vws_failure(

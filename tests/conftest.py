@@ -44,7 +44,7 @@ def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
         database_keys: The credentials to the Vuforia target database to delete
             all targets in.
     """
-    response = list_targets(vuforia_database_keys=database_keys)
+    response = list_targets(vuforia_database=database_keys)
 
     if 'results' not in response.json():  # pragma: no cover
         message = f'Results not found.\nResponse is: {response.json()}'
@@ -54,23 +54,23 @@ def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
 
     for target in targets:
         wait_for_target_processed(
-            vuforia_database_keys=database_keys,
+            vuforia_database=database_keys,
             target_id=target,
         )
 
         # Even deleted targets can be matched by a query for a few seconds so
         # we change the target to inactive before deleting it.
         update_target(
-            vuforia_database_keys=database_keys,
+            vuforia_database=database_keys,
             data={'active_flag': False},
             target_id=target,
         )
         wait_for_target_processed(
-            vuforia_database_keys=database_keys,
+            vuforia_database=database_keys,
             target_id=target,
         )
         response = delete_target(
-            vuforia_database_keys=database_keys,
+            vuforia_database=database_keys,
             target_id=target,
         )
         assert_vws_response(
@@ -83,7 +83,7 @@ def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
 @pytest.fixture()
 def target_id(
     image_file_success_state_low_rating: io.BytesIO,
-    vuforia_database_keys: VuforiaDatabase,
+    vuforia_database: VuforiaDatabase,
 ) -> str:
     """
     Return the target ID of a target in the database.
@@ -100,7 +100,7 @@ def target_id(
     }
 
     response = add_target_to_vws(
-        vuforia_database_keys=vuforia_database_keys,
+        vuforia_database=vuforia_database,
         data=data,
         content_type='application/json',
     )
@@ -111,8 +111,8 @@ def target_id(
 @pytest.fixture(params=[True, False], ids=['Real Vuforia', 'Mock Vuforia'])
 def verify_mock_vuforia(
     request: SubRequest,
-    vuforia_database_keys: VuforiaDatabase,
-    inactive_database_keys: VuforiaDatabase,
+    vuforia_database: VuforiaDatabase,
+    inactive_database: VuforiaDatabase,
 ) -> Generator:
     """
     Test functions which use this fixture are run twice. Once with the real
@@ -132,31 +132,23 @@ def verify_mock_vuforia(
         pytest.skip()
 
     working_database = VuforiaDatabase(
-        database_name=vuforia_database_keys.database_name,
-        server_access_key=vuforia_database_keys.server_access_key.
-        decode('ascii'),
-        server_secret_key=vuforia_database_keys.server_secret_key.
-        decode('ascii'),
-        client_access_key=vuforia_database_keys.client_access_key.
-        decode('ascii'),
-        client_secret_key=vuforia_database_keys.client_secret_key.
-        decode('ascii'),
+        database_name=vuforia_database.database_name,
+        server_access_key=vuforia_database.server_access_key.decode('ascii'),
+        server_secret_key=vuforia_database.server_secret_key.decode('ascii'),
+        client_access_key=vuforia_database.client_access_key.decode('ascii'),
+        client_secret_key=vuforia_database.client_secret_key.decode('ascii'),
     )
 
     inactive_database = VuforiaDatabase(
         state=States.PROJECT_INACTIVE,
-        database_name=inactive_database_keys.database_name,
-        server_access_key=inactive_database_keys.server_access_key.
-        decode('ascii'),
-        server_secret_key=inactive_database_keys.server_secret_key.
-        decode('ascii'),
-        client_access_key=inactive_database_keys.client_access_key.
-        decode('ascii'),
-        client_secret_key=inactive_database_keys.client_secret_key.
-        decode('ascii'),
+        database_name=inactive_database.database_name,
+        server_access_key=inactive_database.server_access_key.decode('ascii'),
+        server_secret_key=inactive_database.server_secret_key.decode('ascii'),
+        client_access_key=inactive_database.client_access_key.decode('ascii'),
+        client_secret_key=inactive_database.client_secret_key.decode('ascii'),
     )
     if use_real_vuforia:
-        _delete_all_targets(database_keys=vuforia_database_keys)
+        _delete_all_targets(database_keys=vuforia_database)
         yield
     else:
         with MockVWS(processing_time_seconds=0.2) as mock:

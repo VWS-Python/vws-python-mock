@@ -25,7 +25,7 @@ from tests.mock_vws.utils.assertions import assert_vws_response
 
 @timeout_decorator.timeout(seconds=300)
 def wait_for_image_numbers(
-    vuforia_database_keys: VuforiaDatabase,
+    vuforia_database: VuforiaDatabase,
     active_images: int,
     inactive_images: int,
     failed_images: int,
@@ -42,7 +42,7 @@ def wait_for_image_numbers(
     no images, and the endpoint adds images with a delay, we will not know.
 
     Args:
-        vuforia_database_keys: The credentials to use to connect to
+        vuforia_database: The credentials to use to connect to
             Vuforia.
         active_images: The expected number of active images.
         inactive_images: The expected number of inactive images.
@@ -61,9 +61,7 @@ def wait_for_image_numbers(
     }
 
     while True:
-        response = database_summary(
-            vuforia_database_keys=vuforia_database_keys,
-        )
+        response = database_summary(vuforia_database=vuforia_database)
 
         requirements = {
             requirement: value
@@ -88,14 +86,12 @@ class TestDatabaseSummary:
 
     def test_success(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         It is possible to get a success response.
         """
-        response = database_summary(
-            vuforia_database_keys=vuforia_database_keys,
-        )
+        response = database_summary(vuforia_database=vuforia_database)
 
         assert_vws_response(
             response=response,
@@ -121,10 +117,10 @@ class TestDatabaseSummary:
         }
 
         response_name = response.json()['name']
-        assert response_name == vuforia_database_keys.database_name
+        assert response_name == vuforia_database.database_name
 
         wait_for_image_numbers(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             active_images=0,
             inactive_images=0,
             failed_images=0,
@@ -133,7 +129,7 @@ class TestDatabaseSummary:
 
     def test_active_images(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         target_id: str,
     ) -> None:
         """
@@ -141,11 +137,11 @@ class TestDatabaseSummary:
         """
         wait_for_target_processed(
             target_id=target_id,
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
         )
 
         wait_for_image_numbers(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             active_images=1,
             inactive_images=0,
             failed_images=0,
@@ -154,7 +150,7 @@ class TestDatabaseSummary:
 
     def test_failed_images(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -170,7 +166,7 @@ class TestDatabaseSummary:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
         )
 
@@ -178,11 +174,11 @@ class TestDatabaseSummary:
 
         wait_for_target_processed(
             target_id=target_id,
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
         )
 
         wait_for_image_numbers(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             active_images=0,
             inactive_images=0,
             failed_images=1,
@@ -191,7 +187,7 @@ class TestDatabaseSummary:
 
     def test_inactive_images(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         image_file_success_state_low_rating: io.BytesIO,
     ) -> None:
         """
@@ -209,7 +205,7 @@ class TestDatabaseSummary:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
         )
 
@@ -217,11 +213,11 @@ class TestDatabaseSummary:
 
         wait_for_target_processed(
             target_id=target_id,
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
         )
 
         wait_for_image_numbers(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             active_images=0,
             inactive_images=1,
             failed_images=0,
@@ -230,7 +226,7 @@ class TestDatabaseSummary:
 
     def test_inactive_failed(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -247,7 +243,7 @@ class TestDatabaseSummary:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
         )
 
@@ -255,11 +251,11 @@ class TestDatabaseSummary:
 
         wait_for_target_processed(
             target_id=target_id,
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
         )
 
         wait_for_image_numbers(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             active_images=0,
             inactive_images=0,
             failed_images=1,
@@ -268,7 +264,7 @@ class TestDatabaseSummary:
 
     def test_deleted(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -284,24 +280,24 @@ class TestDatabaseSummary:
         }
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             data=data,
         )
 
         target_id = response.json()['target_id']
 
         wait_for_target_processed(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=target_id,
         )
 
         delete_target(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             target_id=target_id,
         )
 
         wait_for_image_numbers(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             active_images=0,
             inactive_images=0,
             failed_images=0,
@@ -341,12 +337,12 @@ class TestProcessingImages:
         with MockVWS() as mock:
             mock.add_database(database=database)
             add_target_to_vws(
-                vuforia_database_keys=database,
+                vuforia_database=database,
                 data=data,
             )
 
             wait_for_image_numbers(
-                vuforia_database_keys=database,
+                vuforia_database=database,
                 active_images=0,
                 inactive_images=0,
                 failed_images=0,
@@ -360,14 +356,12 @@ class TestQuotas:
     Tests for quotas and thresholds.
     """
 
-    def test_quotas(self, vuforia_database_keys: VuforiaDatabase) -> None:
+    def test_quotas(self, vuforia_database: VuforiaDatabase) -> None:
         """
         Quotas are included in the database summary.
         These match the quotas given for a free license.
         """
-        response = database_summary(
-            vuforia_database_keys=vuforia_database_keys,
-        )
+        response = database_summary(vuforia_database=vuforia_database)
 
         assert response.json()['target_quota'] == 1000
         assert response.json()['request_quota'] == 100000
@@ -382,7 +376,7 @@ class TestRecos:
 
     def test_query_request(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         high_quality_image: io.BytesIO,
     ) -> None:
         """
@@ -391,15 +385,13 @@ class TestRecos:
         image_content = high_quality_image.getvalue()
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
         query_resp = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 
         assert query_resp.status_code == codes.OK
 
-        response = database_summary(
-            vuforia_database_keys=vuforia_database_keys,
-        )
+        response = database_summary(vuforia_database=vuforia_database)
         assert response.json()['total_recos'] == 0
         assert response.json()['current_month_recos'] == 0
         assert response.json()['previous_month_recos'] == 0
@@ -413,79 +405,67 @@ class TestRequestUsage:
 
     def test_target_request(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         The ``request_usage`` count increases with each request to the target
         API.
         """
-        response = database_summary(
-            vuforia_database_keys=vuforia_database_keys,
-        )
+        response = database_summary(vuforia_database=vuforia_database)
 
         original_request_usage = response.json()['request_usage']
 
-        response = database_summary(
-            vuforia_database_keys=vuforia_database_keys,
-        )
+        response = database_summary(vuforia_database=vuforia_database)
 
         new_request_usage = response.json()['request_usage']
         assert new_request_usage == original_request_usage + 1
 
     def test_bad_target_request(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         The ``request_usage`` count increases with each request to the target
         API, even if it is a bad request.
         """
-        response = database_summary(
-            vuforia_database_keys=vuforia_database_keys,
-        )
+        response = database_summary(vuforia_database=vuforia_database)
 
         original_request_usage = response.json()['request_usage']
 
         response = add_target_to_vws(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             # Missing data.
             data={},
         )
 
         assert response.status_code == codes.BAD_REQUEST
 
-        response = database_summary(
-            vuforia_database_keys=vuforia_database_keys,
-        )
+        response = database_summary(vuforia_database=vuforia_database)
         new_request_usage = response.json()['request_usage']
         assert new_request_usage == original_request_usage + 2
 
     def test_query_request(
         self,
-        vuforia_database_keys: VuforiaDatabase,
+        vuforia_database: VuforiaDatabase,
         high_quality_image: io.BytesIO,
     ) -> None:
         """
         The ``request_usage`` count does not increase with each query.
         """
-        response = database_summary(
-            vuforia_database_keys=vuforia_database_keys,
-        )
+        response = database_summary(vuforia_database=vuforia_database)
 
         original_request_usage = response.json()['request_usage']
 
         image_content = high_quality_image.getvalue()
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
         query_resp = query(
-            vuforia_database_keys=vuforia_database_keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 
         assert query_resp.status_code == codes.OK
 
-        response = database_summary(
-            vuforia_database_keys=vuforia_database_keys,
-        )
+        response = database_summary(vuforia_database=vuforia_database)
         new_request_usage = response.json()['request_usage']
         # The request usage goes up for the database summary request, not the
         # query.
@@ -500,14 +480,12 @@ class TestInactiveProject:
 
     def test_inactive_project(
         self,
-        inactive_database_keys: VuforiaDatabase,
+        inactive_database: VuforiaDatabase,
     ) -> None:
         """
         The project's active state does not affect the database summary.
         """
-        response = database_summary(
-            vuforia_database_keys=inactive_database_keys,
-        )
+        response = database_summary(vuforia_database=inactive_database)
 
         assert_vws_response(
             response=response,
