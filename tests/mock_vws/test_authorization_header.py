@@ -70,11 +70,14 @@ class TestMalformed:
     Tests for passing a malformed ``Authorization`` header.
     """
 
-    @pytest.mark.parametrize('authorization_string', [
-        'gibberish',
-        'VWS',
-        'VWS ',
-    ])
+    @pytest.mark.parametrize(
+        'authorization_string',
+        [
+            'gibberish',
+            'VWS',
+            'VWS ',
+        ],
+    )
     def test_one_part(
         self,
         endpoint: Endpoint,
@@ -89,8 +92,10 @@ class TestMalformed:
 
         headers: Dict[str, Union[str, bytes]] = {
             **endpoint.prepared_request.headers,
-            'Authorization': authorization_string,
-            'Date': date,
+            'Authorization':
+            authorization_string,
+            'Date':
+            date,
         }
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
