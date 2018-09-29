@@ -17,6 +17,9 @@ from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
 )
 from tests.mock_vws.utils.authorization import rfc_1123_date
+from mock_vws.database import VuforiaDatabase
+from tests.mock_vws.utils import get_vws_target
+import uuid
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -97,4 +100,24 @@ class TestAuthorizationHeader:
             response=response,
             status_code=codes.BAD_REQUEST,
             result_code=ResultCodes.FAIL,
+        )
+
+
+    def test_foobar(
+        self,
+        vuforia_database_keys: VuforiaDatabase,
+    ) -> None:
+        """
+        """
+        keys = vuforia_database_keys
+        keys.server_secret_key = b'example'
+        response = get_vws_target(
+            target_id=uuid.uuid4().hex,
+            vuforia_database_keys=keys,
+        )
+
+        assert_vws_failure(
+            response=response,
+            status_code=codes.UNAUTHORIZED,
+            result_code=ResultCodes.AUTHENTICATION_FAILURE,
         )
