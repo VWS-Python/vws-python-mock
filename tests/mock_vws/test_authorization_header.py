@@ -77,6 +77,7 @@ class TestMalformed:
     @pytest.mark.parametrize('authorization_string', [
         'gibberish',
         'VWS',
+        'VWS ',
     ])
     def test_one_part(
         self,
