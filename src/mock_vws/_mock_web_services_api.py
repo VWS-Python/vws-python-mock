@@ -29,7 +29,7 @@ from mock_vws._mock_common import (
 )
 from mock_vws.database import VuforiaDatabase
 
-from ._validators import (
+from ._services_validators import (
     validate_active_flag,
     validate_auth_header_exists,
     validate_authorization,
