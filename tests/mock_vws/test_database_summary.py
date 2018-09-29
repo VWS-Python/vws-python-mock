@@ -12,8 +12,9 @@ import timeout_decorator
 from requests import codes
 
 from mock_vws import MockVWS
-from mock_vws._constants import ResultCodes, States
+from mock_vws._constants import ResultCodes
 from mock_vws._database import VuforiaDatabase
+from mock_vws.states import States
 from tests.mock_vws.utils import (
     add_target_to_vws,
     database_summary,

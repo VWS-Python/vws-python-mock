@@ -6,7 +6,7 @@ import os
 
 import pytest
 
-from mock_vws._constants import States
+from mock_vws.states import States
 from tests.mock_vws.utils import VuforiaDatabase
 
 
