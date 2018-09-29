@@ -18,7 +18,6 @@ from mock_vws.states import States
 from tests.mock_vws.utils import (
     VuforiaDatabase,
     add_target_to_vws,
-    database_summary,
     delete_target,
     get_vws_target,
     query,
@@ -112,7 +111,7 @@ class TestProcessingTime:
         }
 
         database = VuforiaDatabase()
-        with MockVWS(database=database) as mock:
+        with MockVWS(database=database):
             response = add_target_to_vws(
                 vuforia_database_keys=database,
                 data=data,
@@ -151,7 +150,7 @@ class TestProcessingTime:
         }
 
         database = VuforiaDatabase()
-        with MockVWS(processing_time_seconds=0.1, database=database) as mock:
+        with MockVWS(processing_time_seconds=0.1, database=database):
             response = add_target_to_vws(
                 vuforia_database_keys=database,
                 data=data,

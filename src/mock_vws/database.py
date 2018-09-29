@@ -38,7 +38,8 @@ class VuforiaDatabase:
             server_secret_key (bytes): A VWS server secret key.
             client_access_key (bytes): A VWS client access key.
             client_secret_key (bytes): A VWS client secret key.
-            targets (typing.List[Target]): The :class:`~mock_vws.target.Target` s in the database.
+            targets (typing.List[Target]): The
+                :class:`~mock_vws.target.Target` s in the database.
             state (States): The state of the database.
         """
 

@@ -338,7 +338,7 @@ class TestProcessingImages:
 
         database = VuforiaDatabase()
 
-        with MockVWS(database=database) as mock:
+        with MockVWS(database=database):
             add_target_to_vws(
                 vuforia_database_keys=database,
                 data=data,

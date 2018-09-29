@@ -33,20 +33,22 @@ class MockVWS(ContextDecorator):
         """
         Route requests to Vuforia's Web Service APIs to fakes of those APIs.
 
-        Connecting to the Vuforia Web Services requires an access key and a secret key.
-        The mock also requires these keys as it provides realistic authentication support.
+        Connecting to the Vuforia Web Services requires an access key and a
+        secret key.  The mock also requires these keys as it provides realistic
+        authentication support.
 
         By default, the mock uses random strings as the access and secret keys.
 
         The mock does not check whether the access and secret keys are valid.
-        It only checks whether the keys used to set up the mock instance match those used to create requests.
+        It only checks whether the keys used to set up the mock instance match
+        those used to create requests.
 
         Args:
             real_http: Whether or not to forward requests to the real server if
                 they are not handled by the mock.
                 See
                 http://requests-mock.readthedocs.io/en/latest/mocker.html#real-http-requests.
-            database: A Vuforia databse.
+            database: A Vuforia database.
             processing_time_seconds: The number of seconds to process each
                 image for. In the real Vuforia Web Services, this is not
                 deterministic.
