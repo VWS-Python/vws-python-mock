@@ -4,6 +4,11 @@ VWS Python Mock
 Reference
 ---------
 
+.. autoclass:: mock_vws.MockVWS
+
+Reference
+---------
+
 .. toctree::
    :maxdepth: 3
 

@@ -44,7 +44,7 @@ class MockVWS(ContextDecorator):
             real_http: Whether or not to forward requests to the real server if
                 they are not handled by the mock.
                 See
-                http://requests-mock.readthedocs.io/en/latest/mocker.html#real-http-requests
+                http://requests-mock.readthedocs.io/en/latest/mocker.html#real-http-requests.
             state: The state of the services being mocked.
             database_name: The name of the mock VWS target manager database.
                 By default this is a random string.
@@ -63,6 +63,8 @@ class MockVWS(ContextDecorator):
 
 
         Attributes:
+            client_access_key (str): A VWS client access key for the mock.
+            client_secret_key (str): A VWS client secret key for the mock.
             server_access_key (str): A VWS server access key for the mock.
             server_secret_key (str): A VWS server secret key for the mock.
             database_name (str): The name of the mock VWS target manager
