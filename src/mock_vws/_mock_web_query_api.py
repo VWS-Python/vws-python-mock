@@ -27,7 +27,7 @@ from mock_vws._mock_common import (
     parse_multipart,
     set_content_length_header,
 )
-from mock_vws._target import Target
+from mock_vws.target import Target
 
 from ._query_validators import (
     validate_accept_header,

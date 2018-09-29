@@ -5,8 +5,8 @@ Utilities for managing mock Vuforia databases.
 import uuid
 from typing import List, Optional
 
-from ._target import Target
 from .states import States
+from .target import Target
 
 
 class VuforiaDatabase:
@@ -38,8 +38,8 @@ class VuforiaDatabase:
             server_secret_key (bytes): A VWS server secret key.
             client_access_key (bytes): A VWS client access key.
             client_secret_key (bytes): A VWS client secret key.
-            targets: The ``Target``s in the database.
-            state: The state of the database.
+            targets (typing.List[Target]): The :class:`~mock_vws.target.Target` s in the database.
+            state (States): The state of the database.
         """
 
         if database_name is None:
