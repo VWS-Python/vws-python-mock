@@ -26,3 +26,4 @@ twine==1.12.1
 vulture==0.29
 yapf==0.24.0  # Automatic formatting for Python
 PyYAML==3.13
+# Sphinx==1.8.1

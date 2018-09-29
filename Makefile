@@ -1,5 +1,8 @@
 SHELL := /bin/bash -euxo pipefail
 
+# Treat Sphinx warnings as errors
+SPHINXOPTS := -W
+
 .PHONY: fix-yapf
 fix-yapf:
 	yapf \
@@ -54,3 +57,14 @@ update-secrets:
 	git add secrets.tar.enc .travis.yml
 	git commit -m 'Update secret archive [skip ci]'
 	git push
+
+
+.PHONY: docs
+docs:
+	make -C docs clean html SPHINXOPTS=$(SPHINXOPTS)
+
+.PHONY: open-docs
+open-docs:
+	xdg-open docs/build/html/index.html >/dev/null 2>&1 || \
+	open docs/build/html/index.html >/dev/null 2>&1 || \
+	echo "Requires 'xdg-open' or 'open' but neither is available."
