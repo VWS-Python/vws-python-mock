@@ -99,7 +99,7 @@ The configuration for this is in ``.travis.yml``.
 Travis CI is set up with secrets for connecting to Vuforia.
 These variables include those from ``vuforia_secrets.env.example``.
 
-To avoid hitting request quotas and to avoid conflicts when running multiple tests in prallel, we use multiple target databases.
+To avoid hitting request quotas and to avoid conflicts when running multiple tests in parallel, we use multiple target databases.
 
 Travis builds use a different credentials file depending on the build number.
 For example, build 2045.1 will use a different credentials file to build 2045.2.
@@ -146,7 +146,7 @@ Learnings about VWS
 
 Vuforia Web Services, at the time of writing, does not behave exactly as documented.
 
-The following list includes details of differences between VWS and expected or documented behaviour.
+The following list includes details of differences between VWS and expected or documented behavior.
 
 When attempting to delete a target immediately after creating it, a ``FORBIDDEN`` response is returned.
 This is because the target goes into a processing state.
