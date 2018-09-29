@@ -48,9 +48,13 @@ class MockVWS(ContextDecorator):
             database_name: The name of the mock VWS target manager database.
                 By default this is a random string.
             server_access_key: A VWS server access key for the mock.
+                By default this is a random string.
             server_secret_key: A VWS server secret key for the mock.
+                By default this is a random string.
             client_access_key: A VWS client access key for the mock.
+                By default this is a random string.
             client_secret_key: A VWS client secret key for the mock.
+                By default this is a random string.
             processing_time_seconds: The number of seconds to process each
                 image for. In the real Vuforia Web Services, this is not
                 deterministic.
