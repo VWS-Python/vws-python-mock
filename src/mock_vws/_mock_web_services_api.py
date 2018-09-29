@@ -29,7 +29,6 @@ from mock_vws._mock_common import (
     set_content_length_header,
 )
 
-from ._target import Target
 from ._validators import (
     validate_active_flag,
     validate_auth_header_exists,
@@ -54,6 +53,7 @@ from ._validators import (
     validate_project_state,
     validate_width,
 )
+from .target import Target
 
 
 @wrapt.decorator

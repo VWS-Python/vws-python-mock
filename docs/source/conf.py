@@ -66,6 +66,8 @@ nitpick_ignore = [
     ('py:exc', 'RetryError'),
     # See https://bugs.python.org/issue31024 for why Sphinx cannot find this.
     ('py:class', 'typing.Tuple'),
+    ('py:class', 'typing.Optional'),
+    ('py:class', '_io.BytesIO'),
     ('py:class', 'docker.types.services.Mount'),
 ]
 

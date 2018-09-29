@@ -58,7 +58,7 @@ class Target:  # pylint: disable=too-many-instance-attributes
                 Vuforia's documentation).
             application_metadata (str): The base64 encoded application metadata
                 associated with the target.
-            delete_date (Optional[datetime.datetime]): The time that the target
+            delete_date (typing.Optional[datetime.datetime]): The time that the target
                 was deleted.
         """
         self.name = name

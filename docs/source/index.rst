@@ -4,6 +4,8 @@ VWS Python Mock
 Reference
 ---------
 
+.. autoclass:: mock_vws.target.Target
+
 .. autoclass:: mock_vws.states.States
    :members:
    :undoc-members:
