@@ -67,20 +67,59 @@ class TestAuthorizationHeader:
             result_code=ResultCodes.AUTHENTICATION_FAILURE,
         )
 
+
+@pytest.mark.usefixtures('verify_mock_vuforia')
+class TestMalformed:
+    """
+    Tests for passing a malformed ``Authorization`` header.
+    """
+    def test_not_start_with_vws(self, endpoint: Endpoint) -> None:
+        """
+        XXX
+        """
+        date = rfc_1123_date()
+
+        headers: Dict[str, Union[str, bytes]] = {
+            **endpoint.prepared_request.headers,
+            'Authorization': authorization_string,
+            'Date': date,
+        }
+
+        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        session = requests.Session()
+        response = session.send(  # type: ignore
+            request=endpoint.prepared_request,
+        )
+
+        url = str(endpoint.prepared_request.url)
+        netloc = urlparse(url).netloc
+        if netloc == 'cloudreco.vuforia.com':
+            assert_vwq_failure(
+                response=response,
+                status_code=codes.UNAUTHORIZED,
+                content_type='text/plain; charset=ISO-8859-1',
+            )
+            assert response.text == 'Malformed authorization header.'
+            return
+
+        assert_vws_failure(
+            response=response,
+            status_code=codes.BAD_REQUEST,
+            result_code=ResultCodes.FAIL,
+        )
+
     @pytest.mark.parametrize('authorization_string', [
-        'gibberish',
-        # 'VWS foo:bar',
+        'VWS foobar:',
         'VWS foobar',
-        # 'VWS 4b4d86a7705d6a05f6f34622d42b857c3611d9a7:0MObK1V6QOIiOgpcIXxSVxL0dR8=',
     ])
-    def test_malformed(
+    def test_missing_signature(
         self,
         endpoint: Endpoint,
         authorization_string: str,
     ) -> None:
         """
-        If a malformed `Authorization` header is given, a `BAD_REQUEST`
-        response is given.
+        If a signature is missing `Authorization` header is given, a
+        ``BAD_REQUEST`` response is given.
         """
         date = rfc_1123_date()
 
@@ -114,6 +153,11 @@ class TestAuthorizationHeader:
         )
 
 
+@pytest.mark.usefixtures('verify_mock_vuforia')
+class TestBadKey:
+    """
+    Tests for making requests with incorrect keys.
+    """
     def test_bad_access_key_services(
         self,
         vuforia_database_keys: VuforiaDatabase,

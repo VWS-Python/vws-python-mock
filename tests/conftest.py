@@ -167,7 +167,7 @@ def verify_mock_vuforia(
 
 @pytest.fixture(
     params=[
-        # '_add_target',
+        '_add_target',
         # '_database_summary',
         # '_delete_target',
         # '_get_duplicates',
@@ -175,7 +175,7 @@ def verify_mock_vuforia(
         # '_target_list',
         # '_target_summary',
         # '_update_target',
-        '_query',
+        # '_query',
     ],
 )
 def endpoint(request: SubRequest) -> Endpoint:
