@@ -69,8 +69,9 @@ class TestAuthorizationHeader:
 
     @pytest.mark.parametrize('authorization_string', [
         'gibberish',
-        'VWS foo:bar',
+        # 'VWS foo:bar',
         'VWS foobar',
+        # 'VWS 4b4d86a7705d6a05f6f34622d42b857c3611d9a7:0MObK1V6QOIiOgpcIXxSVxL0dR8=',
     ])
     def test_malformed(
         self,
@@ -85,7 +86,7 @@ class TestAuthorizationHeader:
 
         headers: Dict[str, Union[str, bytes]] = {
             **endpoint.prepared_request.headers,
-            'Authorization': 'gibberish',
+            'Authorization': authorization_string,
             'Date': date,
         }
 
