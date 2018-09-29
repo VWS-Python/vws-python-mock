@@ -52,14 +52,16 @@ Create an environment variable file for secrets:
     cp vuforia_secrets.env.example vuforia_secrets.env
 
 Some tests require Vuforia credentials.
-To run these tests, add the Vuforia credentials to the file ``vuforia_secrets.env``.
-See “Connecting to Vuforia”.
+To run these tests, add the Vuforia credentials to the file :file:`vuforia_secrets.env`.
+See :ref:`connecting-to-vuforia`.
 
 Then run ``pytest``:
 
 .. code:: sh
 
     pytest
+
+.. _connecting-to-vuforia:
 
 Connecting to Vuforia
 ---------------------
