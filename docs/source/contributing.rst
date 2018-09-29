@@ -109,7 +109,7 @@ These variables include those from :file:`vuforia_secrets.env.example`.
 To avoid hitting request quotas and to avoid conflicts when running multiple tests in parallel, we use multiple target databases.
 
 Travis builds use a different credentials file depending on the build number.
-For example, build 2045.1 will use a different credentials file to build 2045.2.
+For example, build ``2045.1`` will use a different credentials file to build ``2045.2``.
 This should avoid conflicts, but in theory the same credentials file may be run across two Pull Request builds.
 This may cause errors.
 
