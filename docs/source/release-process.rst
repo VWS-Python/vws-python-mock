@@ -33,7 +33,7 @@ Perform a Release
 
 Register at `PyPI <https://pypi.org>`__.
 
-Add the following information to ``~/.pypirc``.
+Add the following information to :file:`~/.pypirc`.
 
 .. code:: ini
 
