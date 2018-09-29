@@ -2,7 +2,6 @@ KiB
 MPixel
 MiB
 Ubuntu
-Ubuntu
 api
 args
 ascii
