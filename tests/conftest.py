@@ -112,6 +112,7 @@ def target_id(
 def verify_mock_vuforia(
     request: SubRequest,
     vuforia_database_keys: VuforiaDatabase,
+    inactive_database_keys: VuforiaDatabase,
 ) -> Generator:
     """
     Test functions which use this fixture are run twice. Once with the real
@@ -130,7 +131,7 @@ def verify_mock_vuforia(
     if not use_real_vuforia and skip_mock:  # pragma: no cover
         pytest.skip()
 
-    database = VuforiaDatabase(
+    working_database = VuforiaDatabase(
         database_name=vuforia_database_keys.database_name,
         server_access_key=vuforia_database_keys.server_access_key.
         decode('ascii'),
@@ -142,41 +143,7 @@ def verify_mock_vuforia(
         decode('ascii'),
     )
 
-    if use_real_vuforia:
-        _delete_all_targets(database_keys=vuforia_database_keys)
-        yield
-    else:
-        with MockVWS(processing_time_seconds=0.2) as mock:
-            mock.add_database(database=database)
-            yield
-
-
-@pytest.fixture(params=[True, False], ids=['Real Vuforia', 'Mock Vuforia'])
-def verify_mock_vuforia_inactive(
-    request: SubRequest,
-    inactive_database_keys: VuforiaDatabase,
-) -> Generator:
-    """
-    Test functions which use this fixture are run twice. Once with the real
-    Vuforia in an inactive state, and once with the mock in an inactive state.
-
-    This is useful for verifying the mock.
-
-    To create an inactive project, delete the license key associated with a
-    database.
-    """
-    skip_real = os.getenv('SKIP_REAL') == '1'
-    skip_mock = os.getenv('SKIP_MOCK') == '1'
-
-    use_real_vuforia = request.param
-
-    if use_real_vuforia and skip_real:  # pragma: no cover
-        pytest.skip()
-
-    if not use_real_vuforia and skip_mock:  # pragma: no cover
-        pytest.skip()
-
-    database = VuforiaDatabase(
+    inactive_database = VuforiaDatabase(
         state=States.PROJECT_INACTIVE,
         database_name=inactive_database_keys.database_name,
         server_access_key=inactive_database_keys.server_access_key.
@@ -188,12 +155,13 @@ def verify_mock_vuforia_inactive(
         client_secret_key=inactive_database_keys.client_secret_key.
         decode('ascii'),
     )
-
     if use_real_vuforia:
+        _delete_all_targets(database_keys=vuforia_database_keys)
         yield
     else:
-        with MockVWS() as mock:
-            mock.add_database(database=database)
+        with MockVWS(processing_time_seconds=0.2) as mock:
+            mock.add_database(database=working_database)
+            mock.add_database(database=inactive_database)
             yield
 
 
