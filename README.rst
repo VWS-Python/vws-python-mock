@@ -26,9 +26,9 @@ Using the mock redirects requests to Vuforia made with ``requests`` to an in-mem
     import requests
     from mock_vws import MockVWS, VuforiaDatabase
 
-    database = VuforiaDatabase()
-
     with MockVWS(database=database) as mock:
+        database = VuforiaDatabase()
+        mock.add_database(database=database)
         # This will use the Vuforia mock.
         requests.get('https://vws.vuforia.com/summary')
 
