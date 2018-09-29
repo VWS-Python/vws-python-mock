@@ -6,7 +6,7 @@ import pytest
 from requests import codes
 
 from mock_vws._constants import ResultCodes
-from mock_vws._database import VuforiaDatabase
+from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import (
     delete_target,
     get_vws_target,

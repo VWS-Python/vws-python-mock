@@ -6,15 +6,10 @@ import base64
 import datetime
 import io
 import socket
-import string
 import time
-import uuid
 
 import pytest
 import requests
-from hypothesis import given
-from hypothesis.strategies import text
-from requests import codes
 from requests_mock.exceptions import NoMockAddress
 
 from mock_vws import MockVWS

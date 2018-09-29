@@ -10,7 +10,8 @@ from urllib.parse import urljoin
 
 from requests_mock.mocker import Mocker
 
-from ._database import VuforiaDatabase
+from mock_vws.database import VuforiaDatabase
+
 from ._mock_web_query_api import MockVuforiaWebQueryAPI
 from ._mock_web_services_api import MockVuforiaWebServicesAPI
 
