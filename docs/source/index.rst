@@ -22,6 +22,7 @@ Reference
 
    installation
    differences-to-vws
+   versioning-and-api-stability
    contributing
 
 .. toctree::
