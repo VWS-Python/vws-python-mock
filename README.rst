@@ -5,11 +5,6 @@ VWS Python Mock
 
 Python mock for the Vuforia Web Services (VWS) API and the Vuforia Web Query API.
 
-Contributing
-------------
-
-See `CONTRIBUTING.rst <./CONTRIBUTING.rst>`_ for details on how to contribute to this project.
-
 Installation
 ------------
 
@@ -35,7 +30,12 @@ Using the mock redirects requests to Vuforia made with ``requests`` to an in-mem
         # This will use the Vuforia mock.
         requests.get('https://vws.vuforia.com/summary')
 
-However, an exception will be raised if any requests to unmocked addresses are made.
+However, by default, an exception will be raised if any requests to unmocked addresses are made.
+
+Full Documentation
+------------------
+
+See the `full documentation <https://vws-python-mock.readthedocs.io/en/latest>`__.
 
 Allowing HTTP requests to unmocked addresses
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
