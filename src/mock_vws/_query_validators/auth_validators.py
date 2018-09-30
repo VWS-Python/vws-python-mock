@@ -86,7 +86,7 @@ def validate_auth_header_number_of_parts(
 @wrapt.decorator
 def validate_client_key_exists(
     wrapped: Callable[..., str],
-    instance: Any,
+    instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
 ) -> str:
@@ -106,8 +106,8 @@ def validate_client_key_exists(
     request, context = args
 
     header = request.headers['Authorization']
-    before_signature, _ = header.split(b':')
-    _, access_key = before_signature.split(b' ')
+    first_part, signature = header.split(b':')
+    _, access_key = first_part.split(b' ')
     for database in instance.databases:
         if access_key == database.client_access_key:
             return wrapped(*args, **kwargs)
