@@ -17,6 +17,8 @@ from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import Endpoint, get_vws_target, query
 from tests.mock_vws.utils.assertions import (
+    assert_valid_date_header,
+    assert_valid_transaction_id,
     assert_vwq_failure,
     assert_vws_failure,
 )
@@ -228,7 +230,21 @@ class TestBadKey:
             status_code=codes.UNAUTHORIZED,
             content_type='application/json',
         )
-        assert response.text == 'Malformed authorization header.'
+
+        assert response.json().keys() == {'transaction_id', 'result_code'}
+        assert_valid_transaction_id(response=response)
+        assert_valid_date_header(response=response)
+        result_code = response.json()['result_code']
+        transaction_id = response.json()['transaction_id']
+        assert result_code == ResultCodes.AUTHENTICATION_FAILURE.value
+        # The separators are inconsistent and we test this.
+        expected_text = (
+            '{"transaction_id":'
+            f'"{transaction_id}",'
+            f'"result_code":"{result_code}"'
+            '}'
+        )
+        assert response.text == expected_text
 
     def test_bad_secret_key_services(
         self,
