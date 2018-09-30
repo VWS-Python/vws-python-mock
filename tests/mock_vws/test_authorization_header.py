@@ -77,15 +77,15 @@ class TestMalformed:
     @pytest.mark.parametrize(
         'authorization_string',
         [
-            'gibberish',
-            'VWS',
-            'VWS ',
+            b'gibberish',
+            b'VWS',
+            b'VWS ',
         ],
     )
     def test_one_part(
         self,
         endpoint: Endpoint,
-        authorization_string: str,
+        authorization_string: bytes,
     ) -> None:
         """
         A valid authorization string is two "parts" when split on a space. When
@@ -128,8 +128,8 @@ class TestMalformed:
     @pytest.mark.parametrize(
         'authorization_string',
         [
-            'VWS foobar:',
-            'VWS foobar',
+            b'VWS foobar:',
+            b'VWS foobar',
         ],
     )
     def test_missing_signature(
