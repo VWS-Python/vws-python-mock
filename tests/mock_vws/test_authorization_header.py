@@ -228,6 +228,7 @@ class TestBadKey:
             status_code=codes.UNAUTHORIZED,
             content_type='application/json',
         )
+        assert response.text == 'Malformed authorization header.'
 
     def test_bad_secret_key_services(
         self,
