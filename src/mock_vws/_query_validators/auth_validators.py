@@ -2,6 +2,7 @@
 Authorization validators to use in the mock query API.
 """
 
+import uuid
 from pathlib import Path
 from typing import Any, Callable, Dict, Tuple
 
@@ -10,6 +11,7 @@ from requests import codes
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
+from .._constants import ResultCodes
 from .._mock_common import get_database_matching_client_keys
 
 
@@ -112,7 +114,15 @@ def validate_client_key_exists(
 
     context.status_code = codes.UNAUTHORIZED
     context.headers['WWW-Authenticate'] = 'VWS'
-    return 'foo'
+    transaction_id = uuid.uuid4().hex
+    result_code = ResultCodes.AUTHENTICATION_FAILURE.value
+    text = (
+        '{"transaction_id":'
+        f'"{transaction_id}",'
+        f'"result_code":"{result_code}"'
+        '}'
+    )
+    return text
 
 
 @wrapt.decorator
