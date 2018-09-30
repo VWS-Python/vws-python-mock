@@ -69,7 +69,7 @@ def validate_auth_header_number_of_parts(
     request, context = args
 
     header = request.headers['Authorization']
-    parts = header.split(' ')
+    parts = header.split(b' ')
     if len(parts) == 2 and parts[1]:
         return wrapped(*args, **kwargs)
 
@@ -105,7 +105,7 @@ def validate_auth_header_has_signature(
     request, context = args
 
     header = request.headers['Authorization']
-    if header.count(':') == 1 and header.split(':')[1]:
+    if header.count(b':') == 1 and header.split(b':')[1]:
         return wrapped(*args, **kwargs)
 
     context.status_code = codes.INTERNAL_SERVER_ERROR
