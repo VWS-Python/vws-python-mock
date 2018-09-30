@@ -78,6 +78,7 @@ def validate_authorization(
     if database is not None:
         return wrapped(*args, **kwargs)
 
+    import pdb; pdb.set_trace()
     context.status_code = codes.BAD_REQUEST
     body = {
         'transaction_id': uuid.uuid4().hex,
