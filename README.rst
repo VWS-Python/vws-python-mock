@@ -19,7 +19,7 @@ Mocking Vuforia
 ---------------
 
 Requests made to Vuforia can be mocked.
-Using the mock redirects requests to Vuforia made with ``requests`` to an in-memory implementation.
+Using the mock redirects requests to Vuforia made with `requests <https://pypi.org/project/requests/>`_ to an in-memory implementation.
 
 .. code:: python
 
