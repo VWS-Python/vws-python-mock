@@ -3,6 +3,7 @@ Tests for the `Authorization` header.
 """
 
 import io
+import uuid
 from pathlib import Path
 from typing import Dict, Union
 from urllib.parse import urlparse
@@ -14,7 +15,7 @@ from requests.structures import CaseInsensitiveDict
 
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import Endpoint, query
+from tests.mock_vws.utils import Endpoint, get_vws_target, query
 from tests.mock_vws.utils.assertions import (
     assert_valid_date_header,
     assert_valid_transaction_id,
@@ -184,6 +185,27 @@ class TestBadKey:
     """
     Tests for making requests with incorrect keys.
     """
+
+    def test_bad_access_key_services(
+        self,
+        vuforia_database: VuforiaDatabase,
+    ) -> None:
+        """
+        If the server access key given does not match any database, a
+        ``Fail`` response is returned.
+        """
+        keys = vuforia_database
+        keys.server_access_key = b'example'
+        response = get_vws_target(
+            target_id=uuid.uuid4().hex,
+            vuforia_database=keys,
+        )
+
+        assert_vws_failure(
+            response=response,
+            status_code=codes.BAD_REQUEST,
+            result_code=ResultCodes.FAIL,
+        )
 
     def test_bad_access_key_query(
         self,
