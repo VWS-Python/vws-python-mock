@@ -2,6 +2,7 @@
 Authorization validators to use in the mock query API.
 """
 
+import uuid
 from pathlib import Path
 from typing import Any, Callable, Dict, Tuple
 
@@ -10,6 +11,7 @@ from requests import codes
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
+from .._constants import ResultCodes
 from .._mock_common import get_database_matching_client_keys
 
 
@@ -78,6 +80,48 @@ def validate_auth_header_number_of_parts(
     content_type = 'text/plain; charset=ISO-8859-1'
     context.headers['Content-Type'] = content_type
     context.headers['WWW-Authenticate'] = 'VWS'
+    return text
+
+
+@wrapt.decorator
+def validate_client_key_exists(
+    wrapped: Callable[..., str],
+    instance: Any,
+    args: Tuple[_RequestObjectProxy, _Context],
+    kwargs: Dict,
+) -> str:
+    """
+    Validate the authorization header includes a client key for a database.
+
+    Args:
+        wrapped: An endpoint function for `requests_mock`.
+        instance: The class that the endpoint function is in.
+        args: The arguments given to the endpoint function.
+        kwargs: The keyword arguments given to the endpoint function.
+
+    Returns:
+        The result of calling the endpoint.
+        An ``UNAUTHORIZED`` FOOBAR.
+    """
+    request, context = args
+
+    header = request.headers['Authorization']
+    before_signature, _ = header.split(b':')
+    _, access_key = before_signature.split(b' ')
+    for database in instance.databases:
+        if access_key == database.client_access_key:
+            return wrapped(*args, **kwargs)
+
+    context.status_code = codes.UNAUTHORIZED
+    context.headers['WWW-Authenticate'] = 'VWS'
+    transaction_id = uuid.uuid4().hex
+    result_code = ResultCodes.AUTHENTICATION_FAILURE.value
+    text = (
+        '{"transaction_id":'
+        f'"{transaction_id}",'
+        f'"result_code":"{result_code}"'
+        '}'
+    )
     return text
 
 

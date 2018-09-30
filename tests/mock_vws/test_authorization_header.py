@@ -2,6 +2,7 @@
 Tests for the `Authorization` header.
 """
 
+import io
 from pathlib import Path
 from typing import Dict, Union
 from urllib.parse import urlparse
@@ -12,8 +13,11 @@ from requests import codes
 from requests.structures import CaseInsensitiveDict
 
 from mock_vws._constants import ResultCodes
-from tests.mock_vws.utils import Endpoint
+from mock_vws.database import VuforiaDatabase
+from tests.mock_vws.utils import Endpoint, query
 from tests.mock_vws.utils.assertions import (
+    assert_valid_date_header,
+    assert_valid_transaction_id,
     assert_vwq_failure,
     assert_vws_failure,
 )
@@ -173,3 +177,49 @@ class TestMalformed:
             status_code=codes.BAD_REQUEST,
             result_code=ResultCodes.FAIL,
         )
+
+
+@pytest.mark.usefixtures('verify_mock_vuforia')
+class TestBadKey:
+    """
+    Tests for making requests with incorrect keys.
+    """
+
+    def test_bad_access_key_query(
+        self,
+        vuforia_database: VuforiaDatabase,
+        high_quality_image: io.BytesIO,
+    ) -> None:
+        """
+        If the client access key given is incorrect, an
+        ``UNAUTHORIZED`` response is returned.
+        """
+        vuforia_database.client_access_key = b'example'
+        image_content = high_quality_image.getvalue()
+        body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
+
+        response = query(
+            vuforia_database=vuforia_database,
+            body=body,
+        )
+
+        assert_vwq_failure(
+            response=response,
+            status_code=codes.UNAUTHORIZED,
+            content_type='application/json',
+        )
+
+        assert response.json().keys() == {'transaction_id', 'result_code'}
+        assert_valid_transaction_id(response=response)
+        assert_valid_date_header(response=response)
+        result_code = response.json()['result_code']
+        transaction_id = response.json()['transaction_id']
+        assert result_code == ResultCodes.AUTHENTICATION_FAILURE.value
+        # The separators are inconsistent and we test this.
+        expected_text = (
+            '{"transaction_id":'
+            f'"{transaction_id}",'
+            f'"result_code":"{result_code}"'
+            '}'
+        )
+        assert response.text == expected_text
