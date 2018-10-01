@@ -54,7 +54,7 @@ def request_mocked_address() -> None:
         url='https://vws.vuforia.com/summary',
         headers={
             'Date': rfc_1123_date(),
-            'Authorization': 'bad_auth_token',
+            'Authorization': b'bad_auth_token',
         },
         data=b'',
     )

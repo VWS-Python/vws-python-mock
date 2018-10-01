@@ -246,6 +246,27 @@ class TestBadKey:
         )
         assert response.text == expected_text
 
+    def test_bad_secret_key_services(
+        self,
+        vuforia_database: VuforiaDatabase,
+    ) -> None:
+        """
+        If the server secret key given is incorrect, an
+        ``AuthenticationFailure`` response is returned.
+        """
+        keys = vuforia_database
+        keys.server_secret_key = b'example'
+        response = get_vws_target(
+            target_id=uuid.uuid4().hex,
+            vuforia_database=keys,
+        )
+
+        assert_vws_failure(
+            response=response,
+            status_code=codes.UNAUTHORIZED,
+            result_code=ResultCodes.AUTHENTICATION_FAILURE,
+        )
+
     def test_bad_secret_key_query(
         self,
         vuforia_database: VuforiaDatabase,

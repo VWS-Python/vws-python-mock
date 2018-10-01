@@ -48,6 +48,79 @@ def validate_auth_header_exists(
 
 
 @wrapt.decorator
+def validate_access_key_exists(
+    wrapped: Callable[..., str],
+    instance: Any,
+    args: Tuple[_RequestObjectProxy, _Context],
+    kwargs: Dict,
+) -> str:
+    """
+    Validate the authorization header includes an access key for a database.
+
+    Args:
+        wrapped: An endpoint function for `requests_mock`.
+        instance: The class that the endpoint function is in.
+        args: The arguments given to the endpoint function.
+        kwargs: The keyword arguments given to the endpoint function.
+
+    Returns:
+        The result of calling the endpoint.
+        An ``UNAUTHORIZED`` response if the access key is unknown.
+    """
+    request, context = args
+
+    header = request.headers['Authorization']
+    first_part, _ = header.split(b':')
+    _, access_key = first_part.split(b' ')
+    for database in instance.databases:
+        if access_key == database.server_access_key:
+            return wrapped(*args, **kwargs)
+
+    context.status_code = codes.BAD_REQUEST
+
+    body = {
+        'transaction_id': uuid.uuid4().hex,
+        'result_code': ResultCodes.FAIL.value,
+    }
+    return json_dump(body)
+
+
+@wrapt.decorator
+def validate_auth_header_has_signature(
+    wrapped: Callable[..., str],
+    instance: Any,  # pylint: disable=unused-argument
+    args: Tuple[_RequestObjectProxy, _Context],
+    kwargs: Dict,
+) -> str:
+    """
+    Validate the authorization header includes a signature.
+
+    Args:
+        wrapped: An endpoint function for `requests_mock`.
+        instance: The class that the endpoint function is in.
+        args: The arguments given to the endpoint function.
+        kwargs: The keyword arguments given to the endpoint function.
+
+    Returns:
+        The result of calling the endpoint.
+        An ``UNAUTHORIZED`` response if the "Authorization" header is not as
+        expected.
+    """
+    request, context = args
+
+    header = request.headers['Authorization']
+    if header.count(b':') == 1 and header.split(b':')[1]:
+        return wrapped(*args, **kwargs)
+
+    context.status_code = codes.BAD_REQUEST
+    body = {
+        'transaction_id': uuid.uuid4().hex,
+        'result_code': ResultCodes.FAIL.value,
+    }
+    return json_dump(body)
+
+
+@wrapt.decorator
 def validate_authorization(
     wrapped: Callable[..., str],
     instance: Any,
@@ -78,9 +151,9 @@ def validate_authorization(
     if database is not None:
         return wrapped(*args, **kwargs)
 
-    context.status_code = codes.BAD_REQUEST
+    context.status_code = codes.UNAUTHORIZED
     body = {
         'transaction_id': uuid.uuid4().hex,
-        'result_code': ResultCodes.FAIL.value,
+        'result_code': ResultCodes.AUTHENTICATION_FAILURE.value,
     }
     return json_dump(body)
