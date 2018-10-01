@@ -245,3 +245,42 @@ class TestBadKey:
             '}'
         )
         assert response.text == expected_text
+
+    def test_bad_secret_key_query(
+        self,
+        vuforia_database: VuforiaDatabase,
+        high_quality_image: io.BytesIO,
+    ) -> None:
+        """
+        If the client secret key given is incorrect, an
+        ``UNAUTHORIZED`` response is returned.
+        """
+        vuforia_database.client_secret_key = b'example'
+        image_content = high_quality_image.getvalue()
+        body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
+
+        response = query(
+            vuforia_database=vuforia_database,
+            body=body,
+        )
+
+        assert_vwq_failure(
+            response=response,
+            status_code=codes.UNAUTHORIZED,
+            content_type='application/json',
+        )
+
+        assert response.json().keys() == {'transaction_id', 'result_code'}
+        assert_valid_transaction_id(response=response)
+        assert_valid_date_header(response=response)
+        result_code = response.json()['result_code']
+        transaction_id = response.json()['transaction_id']
+        assert result_code == ResultCodes.AUTHENTICATION_FAILURE.value
+        # The separators are inconsistent and we test this.
+        expected_text = (
+            '{"transaction_id":'
+            f'"{transaction_id}",'
+            f'"result_code":"{result_code}"'
+            '}'
+        )
+        assert response.text == expected_text
