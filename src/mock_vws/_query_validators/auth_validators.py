@@ -195,8 +195,13 @@ def validate_authorization(
         return wrapped(*args, **kwargs)
 
     context.status_code = codes.UNAUTHORIZED
-    text = 'Malformed authorization header.'
-    content_type = 'text/plain; charset=ISO-8859-1'
-    context.headers['Content-Type'] = content_type
     context.headers['WWW-Authenticate'] = 'VWS'
+    transaction_id = uuid.uuid4().hex
+    result_code = ResultCodes.AUTHENTICATION_FAILURE.value
+    text = (
+        '{"transaction_id":'
+        f'"{transaction_id}",'
+        f'"result_code":"{result_code}"'
+        '}'
+    )
     return text
