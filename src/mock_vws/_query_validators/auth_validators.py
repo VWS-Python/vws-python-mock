@@ -101,7 +101,7 @@ def validate_client_key_exists(
 
     Returns:
         The result of calling the endpoint.
-        An ``UNAUTHORIZED`` FOOBAR.
+        An ``UNAUTHORIZED`` response if the client key is unknown.
     """
     request, context = args
 
