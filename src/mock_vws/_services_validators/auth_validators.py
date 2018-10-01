@@ -55,7 +55,7 @@ def validate_access_key_exists(
     kwargs: Dict,
 ) -> str:
     """
-    Validate the authorization header includes a client key for a database.
+    Validate the authorization header includes an access key for a database.
 
     Args:
         wrapped: An endpoint function for `requests_mock`.
@@ -65,7 +65,7 @@ def validate_access_key_exists(
 
     Returns:
         The result of calling the endpoint.
-        An ``UNAUTHORIZED`` response if the client key is unknown.
+        An ``UNAUTHORIZED`` response if the access key is unknown.
     """
     request, context = args
 
