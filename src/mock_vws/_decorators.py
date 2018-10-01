@@ -36,7 +36,7 @@ class MockVWS(ContextDecorator):
             real_http: Whether or not to forward requests to the real server if
                 they are not handled by the mock.
                 See
-                http://requests-mock.readthedocs.io/en/latest/mocker.html#real-http-requests.
+                https://requests-mock.readthedocs.io/en/latest/mocker.html#real-http-requests.
             processing_time_seconds: The number of seconds to process each
                 image for. In the real Vuforia Web Services, this is not
                 deterministic.
