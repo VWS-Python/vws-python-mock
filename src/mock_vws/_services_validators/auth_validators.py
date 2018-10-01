@@ -46,6 +46,7 @@ def validate_auth_header_exists(
     }
     return json_dump(body)
 
+
 @wrapt.decorator
 def validate_access_key_exists(
     wrapped: Callable[..., str],
@@ -117,6 +118,7 @@ def validate_auth_header_has_signature(
         'result_code': ResultCodes.FAIL.value,
     }
     return json_dump(body)
+
 
 @wrapt.decorator
 def validate_authorization(

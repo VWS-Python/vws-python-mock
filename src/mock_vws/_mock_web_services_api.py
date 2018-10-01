@@ -44,8 +44,8 @@ from ._services_validators import (
 )
 from ._services_validators.auth_validators import (
     validate_access_key_exists,
-    validate_auth_header_has_signature,
     validate_auth_header_exists,
+    validate_auth_header_has_signature,
     validate_authorization,
 )
 from ._services_validators.date_validators import (
