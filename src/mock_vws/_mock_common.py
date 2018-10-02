@@ -100,7 +100,9 @@ def parse_multipart(  # pylint: disable=invalid-name
     pdict: Mapping[str, bytes],
 ) -> Dict[str, List[Union[str, bytes]]]:
     """
-    This wraps ``_parse_multipart`` to work around
+    Return parsed ``pdict``.
+
+    Wrapper for ``_parse_multipart`` to work around
     https://bugs.python.org/issue34226.
 
     See https://docs.python.org/3.7/library/cgi.html#_parse_multipart.
