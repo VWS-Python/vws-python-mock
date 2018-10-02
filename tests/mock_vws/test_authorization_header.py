@@ -167,8 +167,6 @@ class TestMalformed:
                 status_code=codes.INTERNAL_SERVER_ERROR,
                 content_type='text/html; charset=ISO-8859-1',
             )
-            current_parent = Path(__file__).parent
-            resources = current_parent / 'resources'
             # We have seen multiple responses given.
             assert 'Powered by Jetty' in response.text
             assert '500 Server Error' in response.text
