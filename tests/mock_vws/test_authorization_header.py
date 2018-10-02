@@ -4,7 +4,6 @@ Tests for the `Authorization` header.
 
 import io
 import uuid
-from pathlib import Path
 from typing import Dict, Union
 from urllib.parse import urlparse
 
