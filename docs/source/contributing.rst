@@ -104,7 +104,7 @@ Documentation
 
 Documentation is built on Read the Docs.
 
-Run the following commands to build and view documentation locally;
+Run the following commands to build and view documentation locally:
 
 .. code:: sh
 
