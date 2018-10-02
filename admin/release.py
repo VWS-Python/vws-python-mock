@@ -14,7 +14,7 @@ from github import Github, Repository, UnknownObjectException
 
 def get_version() -> str:
     """
-    Returns the next version of VWS Python Mock.
+    Return the next version of VWS Python Mock.
     This is today’s date in the format ``YYYY.MM.DD.MICRO``.
     ``MICRO`` refers to the number of releases created on this date,
     starting from ``0``.
