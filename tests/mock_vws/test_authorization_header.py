@@ -169,8 +169,17 @@ class TestMalformed:
             )
             current_parent = Path(__file__).parent
             resources = current_parent / 'resources'
-            known_response = resources / 'query_out_of_bounds_response'
-            assert response.text == known_response.read_text()
+            # We have seen both responses given.
+            known_response_1 = (
+                resources / 'query_out_of_bounds_response_with_1'
+            )
+            known_response_2 = (
+                resources / 'query_out_of_bounds_response_without_1'
+            )
+            assert response.text in (
+                known_response_1.read_text(),
+                known_response_2.read_text(),
+            )
             return
 
         assert_vws_failure(
