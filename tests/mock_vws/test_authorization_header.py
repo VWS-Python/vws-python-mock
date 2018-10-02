@@ -169,18 +169,9 @@ class TestMalformed:
             )
             current_parent = Path(__file__).parent
             resources = current_parent / 'resources'
-            # We have seen both responses given.
-            known_response_1 = (
-                resources / 'query_out_of_bounds_response_with_1'
-            )
-            known_response_2 = (
-                resources / 'query_out_of_bounds_response_without_1'
-            )
-            assert response.text in (
-                known_response_1.read_text(),
-                known_response_2.read_text(),
-            )
-            return
+            # We have seen multiple responses given.
+            assert 'Powered by Jetty' in response.text
+            assert '500 Server Error' in response.text
 
         assert_vws_failure(
             response=response,
