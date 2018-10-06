@@ -467,7 +467,7 @@ class TestImage:
         vuforia_database: VuforiaDatabase,
     ) -> None:
         """
-        An `ImageTooLarge` result is returned if the image is above a certain
+        An ``ImageTooLarge`` result is returned if the image is above a certain
         threshold.
         """
         max_bytes = 2.3 * 1024 * 1024
