@@ -169,6 +169,7 @@ class TestMalformed:
             # We have seen multiple responses given.
             assert 'Powered by Jetty' in response.text
             assert '500 Server Error' in response.text
+            return
 
         assert_vws_failure(
             response=response,
