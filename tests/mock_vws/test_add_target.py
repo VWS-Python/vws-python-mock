@@ -414,9 +414,9 @@ class TestImage:
         vuforia_database: VuforiaDatabase,
     ) -> None:
         """
-        A `BAD_REQUEST` response is returned if an image which is not a JPEG
-        or PNG file is given, or if the given image is not in the greyscale or
-        RGB color space.
+        An `UNPROCESSABLE_ENTITY` response is returned if an image which is not
+        a JPEG or PNG file is given, or if the given image is not in the
+        greyscale or RGB color space.
         """
         image_data = bad_image_file.read()
         image_data_encoded = base64.b64encode(image_data).decode('ascii')
