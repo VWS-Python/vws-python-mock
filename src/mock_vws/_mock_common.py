@@ -112,12 +112,7 @@ def parse_multipart(  # pylint: disable=invalid-name
         **pdict,
     }
 
-    # Ignore type error as per
-    # https://github.com/python/typeshed/issues/2473
-    return cgi.parse_multipart(  # type: ignore
-        fp=fp,
-        pdict=pdict,
-    )
+    return cgi.parse_multipart(fp=fp, pdict=pdict)
 
 
 def _compute_hmac_base64(key: bytes, data: bytes) -> bytes:
