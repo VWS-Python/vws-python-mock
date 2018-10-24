@@ -25,9 +25,9 @@ class MockVWS(ContextDecorator):
         self,
         base_vws_url: str = 'https://vws.vuforia.com',
         base_vwq_url: str = 'https://cloudreco.vuforia.com',
-        real_http: bool=False,
-        processing_time_seconds: Union[int, float]=0.5,
-        query_recognizes_deletion_seconds: Union[int, float]=3,
+        real_http: bool = False,
+        processing_time_seconds: Union[int, float] = 0.5,
+        query_recognizes_deletion_seconds: Union[int, float] = 3,
     ) -> None:
         """
         Route requests to Vuforia's Web Service APIs to fakes of those APIs.
