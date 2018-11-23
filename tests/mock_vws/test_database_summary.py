@@ -408,8 +408,8 @@ class TestRequestUsage:
         vuforia_database: VuforiaDatabase,
     ) -> None:
         """
-        The ``request_usage`` count increases with each request to the target
-        API.
+        The ``request_usage`` count does not increase with each request to the
+        target API.
         """
         response = database_summary(vuforia_database=vuforia_database)
 
@@ -418,15 +418,15 @@ class TestRequestUsage:
         response = database_summary(vuforia_database=vuforia_database)
 
         new_request_usage = response.json()['request_usage']
-        assert new_request_usage == original_request_usage + 1
+        assert new_request_usage == original_request_usage
 
     def test_bad_target_request(
         self,
         vuforia_database: VuforiaDatabase,
     ) -> None:
         """
-        The ``request_usage`` count increases with each request to the target
-        API, even if it is a bad request.
+        The ``request_usage`` count does not increase with each request to the
+        target API, even if it is a bad request.
         """
         response = database_summary(vuforia_database=vuforia_database)
 
@@ -442,7 +442,7 @@ class TestRequestUsage:
 
         response = database_summary(vuforia_database=vuforia_database)
         new_request_usage = response.json()['request_usage']
-        assert new_request_usage == original_request_usage + 2
+        assert new_request_usage == original_request_usage
 
     def test_query_request(
         self,
@@ -469,7 +469,7 @@ class TestRequestUsage:
         new_request_usage = response.json()['request_usage']
         # The request usage goes up for the database summary request, not the
         # query.
-        assert new_request_usage == original_request_usage + 1
+        assert new_request_usage == original_request_usage
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')

@@ -159,6 +159,8 @@ This is not the case.
 The documentation page `How To Perform an Image Recognition Query`_ states "Maximum image size: 2.1 MPixel. 512 KiB for JPEG, 2MiB for PNG".
 However, JPEG images up to 2MiB are accepted.
 
+The ``request_count`` in a database summary is always ``0``.
+
 .. _How To Perform an Image Recognition Query: https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query
 
 Release Process
