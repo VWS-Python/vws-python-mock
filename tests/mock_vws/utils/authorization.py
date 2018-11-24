@@ -28,8 +28,8 @@ def rfc_1123_date() -> str:
 
 
 def authorization_header(  # pylint: disable=too-many-arguments
-    access_key: bytes,
-    secret_key: bytes,
+    access_key: str,
+    secret_key: str,
     method: str,
     content: bytes,
     content_type: str,
@@ -74,11 +74,11 @@ def authorization_header(  # pylint: disable=too-many-arguments
     ]
     string_to_sign = '\n'.join(components_to_sign)
     signature = compute_hmac_base64(
-        key=secret_key,
+        key=secret_key.encode(),
         data=bytes(
             string_to_sign,
             encoding='utf-8',
         ),
     )
-    auth_header = b'VWS %s:%s' % (access_key, signature)
+    auth_header = b'VWS %s:%s' % (access_key.encode(), signature)
     return auth_header

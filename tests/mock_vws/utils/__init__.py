@@ -33,16 +33,16 @@ class Endpoint:
     successful_headers_result_code: ResultCodes
     successful_headers_status_code: int
     auth_header_content_type: str
-    access_key: bytes
-    secret_key: bytes
+    access_key: str
+    secret_key: str
 
     def __init__(
         self,
         prepared_request: requests.PreparedRequest,
         successful_headers_result_code: ResultCodes,
         successful_headers_status_code: int,
-        access_key: bytes,
-        secret_key: bytes,
+        access_key: str,
+        secret_key: str,
     ) -> None:
         """
         Args:
@@ -99,8 +99,8 @@ def add_target_to_vws(
     content = bytes(json.dumps(data), encoding='utf-8')
 
     authorization_string = authorization_header(
-        access_key=vuforia_database.server_access_key,
-        secret_key=vuforia_database.server_secret_key,
+        access_key=vuforia_database.server_access_key.decode(),
+        secret_key=vuforia_database.server_secret_key.decode(),
         method=POST,
         content=content,
         content_type=content_type,
@@ -228,8 +228,8 @@ def target_api_request(
     content_type = 'application/json'
 
     signature_string = authorization_header(
-        access_key=server_access_key,
-        secret_key=server_secret_key,
+        access_key=server_access_key.decode(),
+        secret_key=server_secret_key.decode(),
         method=method,
         content=content,
         content_type=content_type,
@@ -306,8 +306,8 @@ def update_target(
     content = bytes(json.dumps(data), encoding='utf-8')
 
     authorization_string = authorization_header(
-        access_key=vuforia_database.server_access_key,
-        secret_key=vuforia_database.server_secret_key,
+        access_key=vuforia_database.server_access_key.decode(),
+        secret_key=vuforia_database.server_secret_key.decode(),
         method=PUT,
         content=content,
         content_type=content_type,
@@ -399,8 +399,8 @@ def query(
     content, content_type_header = encode_multipart_formdata(body)
     method = POST
 
-    access_key = vuforia_database.client_access_key
-    secret_key = vuforia_database.client_secret_key
+    access_key = vuforia_database.client_access_key.decode()
+    secret_key = vuforia_database.client_secret_key.decode()
     authorization_string = authorization_header(
         access_key=access_key,
         secret_key=secret_key,
