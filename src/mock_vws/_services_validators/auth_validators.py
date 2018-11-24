@@ -73,7 +73,7 @@ def validate_access_key_exists(
     first_part, _ = header.split(b':')
     _, access_key = first_part.split(b' ')
     for database in instance.databases:
-        if access_key == database.server_access_key:
+        if access_key == database.server_access_key.encode():
             return wrapped(*args, **kwargs)
 
     context.status_code = codes.BAD_REQUEST

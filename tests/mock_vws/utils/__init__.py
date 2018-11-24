@@ -99,8 +99,8 @@ def add_target_to_vws(
     content = bytes(json.dumps(data), encoding='utf-8')
 
     authorization_string = authorization_header(
-        access_key=vuforia_database.server_access_key.decode(),
-        secret_key=vuforia_database.server_secret_key.decode(),
+        access_key=vuforia_database.server_access_key,
+        secret_key=vuforia_database.server_secret_key,
         method=POST,
         content=content,
         content_type=content_type,
@@ -201,8 +201,8 @@ def wait_for_target_processed(
 
 
 def target_api_request(
-    server_access_key: bytes,
-    server_secret_key: bytes,
+    server_access_key: str,
+    server_secret_key: str,
     method: str,
     content: bytes,
     request_path: str,
@@ -228,8 +228,8 @@ def target_api_request(
     content_type = 'application/json'
 
     signature_string = authorization_header(
-        access_key=server_access_key.decode(),
-        secret_key=server_secret_key.decode(),
+        access_key=server_access_key,
+        secret_key=server_secret_key,
         method=method,
         content=content,
         content_type=content_type,
@@ -306,8 +306,8 @@ def update_target(
     content = bytes(json.dumps(data), encoding='utf-8')
 
     authorization_string = authorization_header(
-        access_key=vuforia_database.server_access_key.decode(),
-        secret_key=vuforia_database.server_secret_key.decode(),
+        access_key=vuforia_database.server_access_key,
+        secret_key=vuforia_database.server_secret_key,
         method=PUT,
         content=content,
         content_type=content_type,
@@ -399,8 +399,8 @@ def query(
     content, content_type_header = encode_multipart_formdata(body)
     method = POST
 
-    access_key = vuforia_database.client_access_key.decode()
-    secret_key = vuforia_database.client_secret_key.decode()
+    access_key = vuforia_database.client_access_key
+    secret_key = vuforia_database.client_secret_key
     authorization_string = authorization_header(
         access_key=access_key,
         secret_key=secret_key,

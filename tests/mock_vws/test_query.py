@@ -75,8 +75,8 @@ class TestContentType:
         content, _ = encode_multipart_formdata(body)
         method = POST
 
-        access_key = vuforia_database.client_access_key.decode()
-        secret_key = vuforia_database.client_secret_key.decode()
+        access_key = vuforia_database.client_access_key
+        secret_key = vuforia_database.client_secret_key
         authorization_string = authorization_header(
             access_key=access_key,
             secret_key=secret_key,
@@ -126,8 +126,8 @@ class TestContentType:
 
         content_type = 'text/html'
 
-        access_key = vuforia_database.client_access_key.decode()
-        secret_key = vuforia_database.client_secret_key.decode()
+        access_key = vuforia_database.client_access_key
+        secret_key = vuforia_database.client_secret_key
         authorization_string = authorization_header(
             access_key=access_key,
             secret_key=secret_key,
@@ -185,8 +185,8 @@ class TestContentType:
         content, _ = encode_multipart_formdata(body)
         method = POST
 
-        access_key = vuforia_database.client_access_key.decode()
-        secret_key = vuforia_database.client_secret_key.decode()
+        access_key = vuforia_database.client_access_key
+        secret_key = vuforia_database.client_secret_key
         authorization_string = authorization_header(
             access_key=access_key,
             secret_key=secret_key,
@@ -237,8 +237,8 @@ class TestContentType:
         content, _ = encode_multipart_formdata(body)
         method = POST
 
-        access_key = vuforia_database.client_access_key.decode()
-        secret_key = vuforia_database.client_secret_key.decode()
+        access_key = vuforia_database.client_access_key
+        secret_key = vuforia_database.client_secret_key
         authorization_string = authorization_header(
             access_key=access_key,
             secret_key=secret_key,
@@ -290,8 +290,8 @@ class TestContentType:
         content, content_type_header = encode_multipart_formdata(body)
         method = POST
 
-        access_key = vuforia_database.client_access_key.decode()
-        secret_key = vuforia_database.client_secret_key.decode()
+        access_key = vuforia_database.client_access_key
+        secret_key = vuforia_database.client_secret_key
         authorization_string = authorization_header(
             access_key=access_key,
             secret_key=secret_key,
@@ -891,8 +891,8 @@ class TestAcceptHeader:
         content, content_type_header = encode_multipart_formdata(body)
         method = POST
 
-        access_key = vuforia_database.client_access_key.decode()
-        secret_key = vuforia_database.client_secret_key.decode()
+        access_key = vuforia_database.client_access_key
+        secret_key = vuforia_database.client_secret_key
         authorization_string = authorization_header(
             access_key=access_key,
             secret_key=secret_key,
@@ -936,8 +936,8 @@ class TestAcceptHeader:
         content, content_type_header = encode_multipart_formdata(body)
         method = POST
 
-        access_key = vuforia_database.client_access_key.decode()
-        secret_key = vuforia_database.client_secret_key.decode()
+        access_key = vuforia_database.client_access_key
+        secret_key = vuforia_database.client_secret_key
         authorization_string = authorization_header(
             access_key=access_key,
             secret_key=secret_key,
@@ -1737,8 +1737,8 @@ class TestDateFormats:
         content, content_type_header = encode_multipart_formdata(body)
         method = POST
 
-        access_key = vuforia_database.client_access_key.decode()
-        secret_key = vuforia_database.client_secret_key.decode()
+        access_key = vuforia_database.client_access_key
+        secret_key = vuforia_database.client_secret_key
         authorization_string = authorization_header(
             access_key=access_key,
             secret_key=secret_key,

@@ -193,7 +193,7 @@ class TestBadKey:
         ``Fail`` response is returned.
         """
         keys = vuforia_database
-        keys.server_access_key = b'example'
+        keys.server_access_key = 'example'
         response = get_vws_target(
             target_id=uuid.uuid4().hex,
             vuforia_database=keys,
@@ -214,7 +214,7 @@ class TestBadKey:
         If the client access key given is incorrect, an
         ``UNAUTHORIZED`` response is returned.
         """
-        vuforia_database.client_access_key = b'example'
+        vuforia_database.client_access_key = 'example'
         image_content = high_quality_image.getvalue()
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
@@ -253,7 +253,7 @@ class TestBadKey:
         ``AuthenticationFailure`` response is returned.
         """
         keys = vuforia_database
-        keys.server_secret_key = b'example'
+        keys.server_secret_key = 'example'
         response = get_vws_target(
             target_id=uuid.uuid4().hex,
             vuforia_database=keys,
@@ -274,7 +274,7 @@ class TestBadKey:
         If the client secret key given is incorrect, an
         ``UNAUTHORIZED`` response is returned.
         """
-        vuforia_database.client_secret_key = b'example'
+        vuforia_database.client_secret_key = 'example'
         image_content = high_quality_image.getvalue()
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 

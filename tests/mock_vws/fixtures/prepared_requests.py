@@ -49,8 +49,8 @@ def _add_target(
 
     content = bytes(json.dumps(data), encoding='utf-8')
 
-    access_key = vuforia_database.server_access_key.decode()
-    secret_key = vuforia_database.server_secret_key.decode()
+    access_key = vuforia_database.server_access_key
+    secret_key = vuforia_database.server_secret_key
     authorization_string = authorization_header(
         access_key=access_key,
         secret_key=secret_key,
@@ -102,8 +102,8 @@ def _delete_target(
     method = DELETE
     content = b''
 
-    access_key = vuforia_database.server_access_key.decode()
-    secret_key = vuforia_database.server_secret_key.decode()
+    access_key = vuforia_database.server_access_key
+    secret_key = vuforia_database.server_secret_key
     authorization_string = authorization_header(
         access_key=access_key,
         secret_key=secret_key,
@@ -147,8 +147,8 @@ def _database_summary(vuforia_database: VuforiaDatabase) -> Endpoint:
 
     content = b''
 
-    access_key = vuforia_database.server_access_key.decode()
-    secret_key = vuforia_database.server_secret_key.decode()
+    access_key = vuforia_database.server_access_key
+    secret_key = vuforia_database.server_secret_key
     authorization_string = authorization_header(
         access_key=access_key,
         secret_key=secret_key,
@@ -201,8 +201,8 @@ def _get_duplicates(
 
     content = b''
 
-    access_key = vuforia_database.server_access_key.decode()
-    secret_key = vuforia_database.server_secret_key.decode()
+    access_key = vuforia_database.server_access_key
+    secret_key = vuforia_database.server_secret_key
     authorization_string = authorization_header(
         access_key=access_key,
         secret_key=secret_key,
@@ -254,8 +254,8 @@ def _get_target(
 
     content = b''
 
-    access_key = vuforia_database.server_access_key.decode()
-    secret_key = vuforia_database.server_secret_key.decode()
+    access_key = vuforia_database.server_access_key
+    secret_key = vuforia_database.server_secret_key
     authorization_string = authorization_header(
         access_key=access_key,
         secret_key=secret_key,
@@ -300,8 +300,8 @@ def _target_list(vuforia_database: VuforiaDatabase) -> Endpoint:
 
     content = b''
 
-    access_key = vuforia_database.server_access_key.decode()
-    secret_key = vuforia_database.server_secret_key.decode()
+    access_key = vuforia_database.server_access_key
+    secret_key = vuforia_database.server_secret_key
     authorization_string = authorization_header(
         access_key=access_key,
         secret_key=secret_key,
@@ -353,8 +353,8 @@ def _target_summary(
 
     content = b''
 
-    access_key = vuforia_database.server_access_key.decode()
-    secret_key = vuforia_database.server_secret_key.decode()
+    access_key = vuforia_database.server_access_key
+    secret_key = vuforia_database.server_secret_key
     authorization_string = authorization_header(
         access_key=access_key,
         secret_key=secret_key,
@@ -408,8 +408,8 @@ def _update_target(
     date = rfc_1123_date()
     method = PUT
 
-    access_key = vuforia_database.server_access_key.decode()
-    secret_key = vuforia_database.server_secret_key.decode()
+    access_key = vuforia_database.server_access_key
+    secret_key = vuforia_database.server_secret_key
     authorization_string = authorization_header(
         access_key=access_key,
         secret_key=secret_key,
@@ -460,8 +460,8 @@ def _query(
 
     content, content_type_header = encode_multipart_formdata(files)
 
-    access_key = vuforia_database.client_access_key.decode()
-    secret_key = vuforia_database.client_secret_key.decode()
+    access_key = vuforia_database.client_access_key
+    secret_key = vuforia_database.client_secret_key
     authorization_string = authorization_header(
         access_key=access_key,
         secret_key=secret_key,

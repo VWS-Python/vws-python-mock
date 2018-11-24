@@ -133,19 +133,19 @@ def verify_mock_vuforia(
 
     working_database = VuforiaDatabase(
         database_name=vuforia_database.database_name,
-        server_access_key=vuforia_database.server_access_key.decode('ascii'),
-        server_secret_key=vuforia_database.server_secret_key.decode('ascii'),
-        client_access_key=vuforia_database.client_access_key.decode('ascii'),
-        client_secret_key=vuforia_database.client_secret_key.decode('ascii'),
+        server_access_key=vuforia_database.server_access_key,
+        server_secret_key=vuforia_database.server_secret_key,
+        client_access_key=vuforia_database.client_access_key,
+        client_secret_key=vuforia_database.client_secret_key,
     )
 
     inactive_database = VuforiaDatabase(
         state=States.PROJECT_INACTIVE,
         database_name=inactive_database.database_name,
-        server_access_key=inactive_database.server_access_key.decode('ascii'),
-        server_secret_key=inactive_database.server_secret_key.decode('ascii'),
-        client_access_key=inactive_database.client_access_key.decode('ascii'),
-        client_secret_key=inactive_database.client_secret_key.decode('ascii'),
+        server_access_key=inactive_database.server_access_key,
+        server_secret_key=inactive_database.server_secret_key,
+        client_access_key=inactive_database.client_access_key,
+        client_secret_key=inactive_database.client_secret_key,
     )
     if use_real_vuforia:
         _delete_all_targets(database_keys=vuforia_database)

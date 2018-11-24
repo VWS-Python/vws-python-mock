@@ -15,10 +15,10 @@ class VuforiaDatabase:
     """
 
     database_name: str
-    server_access_key: bytes
-    server_secret_key: bytes
-    client_access_key: bytes
-    client_secret_key: bytes
+    server_access_key: str
+    server_secret_key: str
+    client_access_key: str
+    client_secret_key: str
     targets: List[Target]
     state: States
 
@@ -66,22 +66,10 @@ class VuforiaDatabase:
         if client_secret_key is None:
             client_secret_key = uuid.uuid4().hex
 
-        self.server_access_key: bytes = bytes(
-            server_access_key,
-            encoding='utf-8',
-        )
-        self.server_secret_key: bytes = bytes(
-            server_secret_key,
-            encoding='utf-8',
-        )
-        self.client_access_key: bytes = bytes(
-            client_access_key,
-            encoding='utf-8',
-        )
-        self.client_secret_key: bytes = bytes(
-            client_secret_key,
-            encoding='utf-8',
-        )
+        self.server_access_key = server_access_key
+        self.server_secret_key = server_secret_key
+        self.client_access_key = client_access_key
+        self.client_secret_key = client_secret_key
         self.database_name = database_name
         self.targets: List[Target] = []
         self.state = state

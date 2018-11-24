@@ -194,8 +194,8 @@ def get_database_matching_client_keys(
 
     for database in databases:
         expected_authorization_header = authorization_header(
-            access_key=database.client_access_key.decode(),
-            secret_key=database.client_secret_key.decode(),
+            access_key=database.client_access_key,
+            secret_key=database.client_secret_key,
             method=request.method,
             content=request.body or b'',
             content_type=content_type,
@@ -225,8 +225,8 @@ def get_database_matching_server_keys(
 
     for database in databases:
         expected_authorization_header = authorization_header(
-            access_key=database.server_access_key.decode(),
-            secret_key=database.server_secret_key.decode(),
+            access_key=database.server_access_key,
+            secret_key=database.server_secret_key,
             method=request.method,
             content=request.body or b'',
             content_type=content_type,
