@@ -427,7 +427,9 @@ class MockVuforiaWebServicesAPI:
             'processing_images': processing_images,
             'reco_threshold': 1000,
             'request_quota': 100000,
-            'request_usage': self.request_count,
+            # We have ``self.request_count`` but Vuforia always shows 0.
+            # This was not always the case.
+            'request_usage': 0,
         }
         return json_dump(body)
 
