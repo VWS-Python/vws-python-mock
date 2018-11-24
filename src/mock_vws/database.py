@@ -14,6 +14,14 @@ class VuforiaDatabase:
     Credentials for VWS APIs.
     """
 
+    database_name: str
+    server_access_key: bytes
+    server_secret_key: bytes
+    client_access_key: bytes
+    client_secret_key: bytes
+    targets: List[Target]
+    state: States
+
     def __init__(
         self,
         server_access_key: Optional[str] = None,

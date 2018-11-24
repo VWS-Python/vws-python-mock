@@ -21,6 +21,18 @@ class Target:  # pylint: disable=too-many-instance-attributes
     https://developer.vuforia.com/target-manager.
     """
 
+    name: str
+    target_id: str
+    active_flag: bool
+    width: float
+    upload_date: datetime.datetime
+    last_modified_date: datetime.datetime
+    processed_tracking_rating: int
+    image: io.BytesIO
+    reco_rating: str
+    application_metadata: str
+    delete_date: Optional[datetime.datetime]
+
     def __init__(  # pylint: disable=too-many-arguments
         self,
         name: str,
@@ -46,7 +58,7 @@ class Target:  # pylint: disable=too-many-instance-attributes
             name (str): The name of the target.
             target_id (str): The unique ID of the target.
             active_flag (bool): Whether or not the target is active for query.
-            width (int): The width of the image in scene unit.
+            width (float): The width of the image in scene unit.
             upload_date (datetime.datetime): The time that the target was
                 created.
             last_modified_date (datetime.datetime): The time that the target

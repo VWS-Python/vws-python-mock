@@ -35,6 +35,10 @@ class Route:
     later.
     """
 
+    route_name: str
+    path_pattern: str
+    http_methods: List[str]
+
     def __init__(
         self,
         route_name: str,
