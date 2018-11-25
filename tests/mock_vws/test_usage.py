@@ -10,6 +10,7 @@ import time
 
 import pytest
 import requests
+from requests.exceptions import MissingSchema
 from requests_mock.exceptions import NoMockAddress
 
 from mock_vws import MockVWS
@@ -232,6 +233,26 @@ class TestCustomBaseURLs:
 
             requests.post(url='https://vuforia.vwq.example.com/v1/query')
             requests.get('https://vws.vuforia.com/summary')
+
+    def test_no_scheme(self) -> None:
+        """
+        An error if raised if a URL is given with no scheme.
+        """
+        with pytest.raises(MissingSchema) as exc:
+            MockVWS(base_vws_url='vuforia.vws.example.com')
+
+        expected = (
+            'Invalid URL "vuforia.vws.example.com": No scheme supplied. '
+            'Perhaps you meant "https://vuforia.vws.example.com".'
+        )
+        assert str(exc.value) == expected
+        with pytest.raises(MissingSchema) as exc:
+            MockVWS(base_vwq_url='vuforia.vwq.example.com')
+        expected = (
+            'Invalid URL "vuforia.vwq.example.com": No scheme supplied. '
+            'Perhaps you meant "https://vuforia.vwq.example.com".'
+        )
+        assert str(exc.value) == expected
 
 
 class TestCustomQueryRecognizesDeletionSeconds:
