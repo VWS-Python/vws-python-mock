@@ -6,8 +6,9 @@ import email.utils
 import re
 from contextlib import ContextDecorator
 from typing import Tuple, Union
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
+from requests.exceptions import MissingSchema
 from requests_mock.mocker import Mocker
 
 from mock_vws.database import VuforiaDatabase
@@ -45,6 +46,10 @@ class MockVWS(ContextDecorator):
             query_recognizes_deletion_seconds: The number of seconds after a
                 target has been deleted that the query endpoint will return a
                 500 response for on a match.
+
+        Raises:
+            requests.exceptions.MissingSchema: There is no schema in a given
+                URL.
         """
         super().__init__()
         self._real_http = real_http
@@ -52,6 +57,14 @@ class MockVWS(ContextDecorator):
 
         self._base_vws_url = base_vws_url
         self._base_vwq_url = base_vwq_url
+        missing_scheme_error = (
+            'Invalid URL "{url}": No scheme supplied. '
+            'Perhaps you meant "https://{url}".'
+        )
+        for url in (base_vwq_url, base_vws_url):
+            result = urlparse(url)
+            if not result.scheme:
+                raise MissingSchema(missing_scheme_error.format(url=url))
 
         self._mock_vws_api = MockVuforiaWebServicesAPI(
             processing_time_seconds=processing_time_seconds,
