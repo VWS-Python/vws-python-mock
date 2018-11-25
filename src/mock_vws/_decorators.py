@@ -8,7 +8,7 @@ from contextlib import ContextDecorator
 from typing import Tuple, Union
 from urllib.parse import urljoin, urlparse
 
-from requests.exceptions import MissingSchema
+import requests
 from requests_mock.mocker import Mocker
 
 from mock_vws.database import VuforiaDatabase
@@ -48,8 +48,8 @@ class MockVWS(ContextDecorator):
                 500 response for on a match.
 
         Raises:
-            requests.exceptions.MissingSchema: There is no schema in a given
-                URL.
+            ``requests.exceptions.MissingSchema``: There is no schema in a
+                given URL.
         """
         super().__init__()
         self._real_http = real_http
@@ -64,7 +64,8 @@ class MockVWS(ContextDecorator):
         for url in (base_vwq_url, base_vws_url):
             result = urlparse(url)
             if not result.scheme:
-                raise MissingSchema(missing_scheme_error.format(url=url))
+                error = missing_scheme_error.format(url=url)
+                raise requests.exceptions.MissingSchema(error)
 
         self._mock_vws_api = MockVuforiaWebServicesAPI(
             processing_time_seconds=processing_time_seconds,
