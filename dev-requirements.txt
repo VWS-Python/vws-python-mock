@@ -28,4 +28,4 @@ sphinxcontrib-spelling==4.2.0
 timeout-decorator==0.4.0  # Decorate functions to time out.
 twine==1.12.1
 vulture==1.0
-yapf==0.24.0  # Automatic formatting for Python
+yapf==0.25.0  # Automatic formatting for Python
