@@ -2,3 +2,4 @@ recursive-include src/mock_vws/resources *
 recursive-include src/mock_vws/_query_validators/resources *
 include versioneer.py
 include src/mock_vws/_version.py
+include src/mock_vws/py.typed
