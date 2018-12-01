@@ -6,6 +6,9 @@ Changelog
 Next
 ----
 
+2018.12.01.0
+------------
+
 - Distribute type information.
 
 2018.11.25.0
