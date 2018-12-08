@@ -82,7 +82,6 @@ class TestUpdate:
             result_code=ResultCodes.TARGET_STATUS_NOT_SUCCESS,
         )
 
-
     def test_empty_content_type(
         self,
         vuforia_database: VuforiaDatabase,

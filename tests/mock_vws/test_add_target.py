@@ -60,7 +60,10 @@ class TestContentTypes:
             # Other content types also work.
             'other/content_type',
         ],
-        ids=['Documented Content-Type', 'Undocumented Content-Type',],
+        ids=[
+            'Documented Content-Type',
+            'Undocumented Content-Type',
+        ],
     )
     def test_content_types(
         self,

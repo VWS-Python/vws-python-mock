@@ -48,6 +48,9 @@ from ._services_validators.auth_validators import (
     validate_auth_header_has_signature,
     validate_authorization,
 )
+from ._services_validators.content_type_validators import (
+    validate_content_type_header_given,
+)
 from ._services_validators.date_validators import (
     validate_date_format,
     validate_date_header_given,
@@ -61,7 +64,6 @@ from ._services_validators.image_validators import (
     validate_image_is_image,
     validate_image_size,
 )
-from ._services_validators.content_type_validators import validate_content_type_header_given
 from .target import Target
 
 
