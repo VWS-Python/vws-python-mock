@@ -375,3 +375,13 @@ class TestStates:
         Test for the representation of a ``State``.
         """
         assert repr(States.WORKING) == '<States.WORKING>'
+
+
+class TestAddDatabase:
+    """
+    Tests for adding databases to the mock.
+    """
+
+    def test_duplicate_keys(self) -> None:
+        database = VuforiaDatabase()
+        pass
