@@ -61,6 +61,7 @@ from ._services_validators.image_validators import (
     validate_image_is_image,
     validate_image_size,
 )
+from ._services_validators.content_type_validators import validate_content_type_header_given
 from .target import Target
 
 
@@ -217,6 +218,7 @@ def route(
                 validate_name_type,
                 validate_width,
                 key_validator,
+                validate_content_type_header_given,
                 validate_date_in_range,
                 validate_date_format,
                 validate_date_header_given,
