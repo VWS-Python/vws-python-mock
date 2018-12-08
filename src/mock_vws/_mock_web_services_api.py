@@ -48,6 +48,9 @@ from ._services_validators.auth_validators import (
     validate_auth_header_has_signature,
     validate_authorization,
 )
+from ._services_validators.content_type_validators import (
+    validate_content_type_header_given,
+)
 from ._services_validators.date_validators import (
     validate_date_format,
     validate_date_header_given,
@@ -217,6 +220,7 @@ def route(
                 validate_name_type,
                 validate_width,
                 key_validator,
+                validate_content_type_header_given,
                 validate_date_in_range,
                 validate_date_format,
                 validate_date_header_given,
