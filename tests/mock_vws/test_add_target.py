@@ -59,13 +59,8 @@ class TestContentTypes:
             'application/json',
             # Other content types also work.
             'other/content_type',
-            '',
         ],
-        ids=[
-            'Documented Content-Type',
-            'Undocumented Content-Type',
-            'Empty',
-        ],
+        ids=['Documented Content-Type', 'Undocumented Content-Type',],
     )
     def test_content_types(
         self,
@@ -74,7 +69,7 @@ class TestContentTypes:
         content_type: str,
     ) -> None:
         """
-        Any `Content-Type` header is allowed.
+        Any non-empty ``Content-Type`` header is allowed.
         """
         image_data = image_file_failed_state.read()
         image_data_encoded = base64.b64encode(image_data).decode('ascii')
@@ -92,6 +87,36 @@ class TestContentTypes:
         )
 
         assert_success(response=response)
+
+    def test_empty_content_type(
+        self,
+        vuforia_database: VuforiaDatabase,
+        image_file_failed_state: io.BytesIO,
+    ) -> None:
+        """
+        An ``UNAUTHORIZED`` response is given if an empty ``Content-Type``
+        header is given.
+        """
+        image_data = image_file_failed_state.read()
+        image_data_encoded = base64.b64encode(image_data).decode('ascii')
+
+        data = {
+            'name': 'example',
+            'width': 1,
+            'image': image_data_encoded,
+        }
+
+        response = add_target_to_vws(
+            vuforia_database=vuforia_database,
+            data=data,
+            content_type='',
+        )
+
+        assert_vws_failure(
+            response=response,
+            status_code=codes.UNAUTHORIZED,
+            result_code=ResultCodes.AUTHENTICATION_FAILURE,
+        )
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
