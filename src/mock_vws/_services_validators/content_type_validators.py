@@ -23,7 +23,7 @@ def validate_content_type_header_given(
     kwargs: Dict,
 ) -> str:
     """
-    Validate that there is an authorization header given to a VWS endpoint.
+    Validate that there is a non-empty content type header given if required.
 
     Args:
         wrapped: An endpoint function for `requests_mock`.
@@ -33,7 +33,8 @@ def validate_content_type_header_given(
 
     Returns:
         The result of calling the endpoint.
-        An `UNAUTHORIZED` response if there is no "Authorization" header.
+        An `UNAUTHORIZED` response if there is no "Content-Type" header or the
+        given header is empty.
     """
     request, context = args
     request_needs_content_type = bool(request.method in (POST, PUT))
