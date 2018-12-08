@@ -39,13 +39,8 @@ class TestUpdate:
             'application/json',
             # Other content types also work.
             'other/content_type',
-            '',
         ],
-        ids=[
-            'Documented Content-Type',
-            'Undocumented Content-Type',
-            'Empty',
-        ],
+        ids=['Documented Content-Type', 'Undocumented Content-Type'],
     )
     def test_content_types(
         self,
@@ -54,7 +49,8 @@ class TestUpdate:
         content_type: str,
     ) -> None:
         """
-        The `Content-Type` header does not change the response.
+        The ``Content-Type`` header does not change the response as long as it
+        is not empty.
         """
         image_data = image_file_failed_state.read()
         image_data_encoded = base64.b64encode(image_data).decode('ascii')
@@ -84,6 +80,45 @@ class TestUpdate:
             response=response,
             status_code=codes.FORBIDDEN,
             result_code=ResultCodes.TARGET_STATUS_NOT_SUCCESS,
+        )
+
+
+    def test_empty_content_type(
+        self,
+        vuforia_database: VuforiaDatabase,
+        image_file_failed_state: io.BytesIO,
+    ) -> None:
+        """
+        An ``UNAUTHORIZED`` response is given if an empty ``Content-Type``
+        header is given.
+        """
+        image_data = image_file_failed_state.read()
+        image_data_encoded = base64.b64encode(image_data).decode('ascii')
+
+        data = {
+            'name': 'example',
+            'width': 1,
+            'image': image_data_encoded,
+        }
+
+        response = add_target_to_vws(
+            vuforia_database=vuforia_database,
+            data=data,
+        )
+
+        target_id = response.json()['target_id']
+
+        response = update_target(
+            vuforia_database=vuforia_database,
+            data={'name': 'Adam'},
+            target_id=target_id,
+            content_type='',
+        )
+
+        assert_vws_failure(
+            response=response,
+            status_code=codes.UNAUTHORIZED,
+            result_code=ResultCodes.AUTHENTICATION_FAILURE,
         )
 
     def test_no_fields_given(
