@@ -83,7 +83,42 @@ class MockVWS(ContextDecorator):
 
         Args:
             database: The database to add.
+
+        Raises:
+            ValueError: One of the given database keys matches a key for an
+                existing database.
         """
+        message_fmt = (
+            'All {key_name}s must be unique. '
+            'There is already a database with the {key_name} "{value}".'
+        )
+        for existing_db in self._mock_vws_api.databases:
+            for existing, new, key_name in (
+                (
+                    existing_db.server_access_key,
+                    database.server_access_key,
+                    'server access key',
+                ),
+                (
+                    existing_db.server_secret_key,
+                    database.server_secret_key,
+                    'server secret key',
+                ),
+                (
+                    existing_db.client_access_key,
+                    database.client_access_key,
+                    'client access key',
+                ),
+                (
+                    existing_db.client_secret_key,
+                    database.client_secret_key,
+                    'client secret key',
+                ),
+            ):
+                if existing == new:
+                    message = message_fmt.format(key_name=key_name, value=new)
+                    raise ValueError(message)
+
         self._mock_vws_api.databases.append(database)
         self._mock_vwq_api.databases.append(database)
 
