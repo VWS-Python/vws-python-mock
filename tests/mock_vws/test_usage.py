@@ -383,5 +383,24 @@ class TestAddDatabase:
     """
 
     def test_duplicate_keys(self) -> None:
-        database = VuforiaDatabase()
-        pass
+        """
+        It is possible to have multiple databases with matching keys.
+
+        See https://github.com/adamtheturtle/vws-python-mock/issues/152 for
+        changing this.
+        """
+        with MockVWS() as mock:
+            mock.add_database(database=VuforiaDatabase(server_access_key=1))
+            mock.add_database(database=VuforiaDatabase(server_access_key=1))
+
+        with MockVWS() as mock:
+            mock.add_database(database=VuforiaDatabase(server_secret_key=1))
+            mock.add_database(database=VuforiaDatabase(server_secret_key=1))
+
+        with MockVWS() as mock:
+            mock.add_database(database=VuforiaDatabase(client_access_key=1))
+            mock.add_database(database=VuforiaDatabase(client_access_key=1))
+
+        with MockVWS() as mock:
+            mock.add_database(database=VuforiaDatabase(client_secret_key=1))
+            mock.add_database(database=VuforiaDatabase(client_secret_key=1))
