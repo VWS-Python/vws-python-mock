@@ -390,17 +390,26 @@ class TestAddDatabase:
         changing this.
         """
         with MockVWS() as mock:
-            mock.add_database(database=VuforiaDatabase(server_access_key=1))
-            mock.add_database(database=VuforiaDatabase(server_access_key=1))
+            mock.add_database(database=VuforiaDatabase(server_access_key='1'))
+            with pytest.raises(ValueError) as exc:
+                mock.add_database(
+                    database=VuforiaDatabase(server_access_key='1'),
+                )
+
+        expected_message = (
+            'All server access keys must be unique. '
+            'There is already a database with the server access key "1".'
+        )
+        assert exc.message == expected_message
 
         with MockVWS() as mock:
-            mock.add_database(database=VuforiaDatabase(server_secret_key=1))
-            mock.add_database(database=VuforiaDatabase(server_secret_key=1))
+            mock.add_database(database=VuforiaDatabase(server_secret_key='1'))
+            mock.add_database(database=VuforiaDatabase(server_secret_key='1'))
 
         with MockVWS() as mock:
-            mock.add_database(database=VuforiaDatabase(client_access_key=1))
-            mock.add_database(database=VuforiaDatabase(client_access_key=1))
+            mock.add_database(database=VuforiaDatabase(client_access_key='1'))
+            mock.add_database(database=VuforiaDatabase(client_access_key='1'))
 
         with MockVWS() as mock:
-            mock.add_database(database=VuforiaDatabase(client_secret_key=1))
-            mock.add_database(database=VuforiaDatabase(client_secret_key=1))
+            mock.add_database(database=VuforiaDatabase(client_secret_key='1'))
+            mock.add_database(database=VuforiaDatabase(client_secret_key='1'))

@@ -94,7 +94,6 @@ class MockVWS(ContextDecorator):
         Returns:
             ``self``.
         """
-
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
 
         headers = {
