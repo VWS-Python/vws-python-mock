@@ -209,8 +209,8 @@ class MockVuforiaWebQueryAPI:
             # We return an example 500 response.
             # Each response given by Vuforia is different.
             #
-            # Sometimes Vuforia will do the equivalent of `continue`
-            # here, but we choose to:
+            # Sometimes Vuforia will ignore matching targets with the
+            # processing status, but we choose to:
             # * Do the most unexpected thing.
             # * Be consistent with every response.
             resources_dir = Path(__file__).parent / 'resources'
