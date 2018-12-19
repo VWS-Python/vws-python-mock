@@ -27,7 +27,6 @@ from mock_vws._mock_common import (
     set_content_length_header,
 )
 from mock_vws.database import VuforiaDatabase
-from mock_vws.target import Target
 
 from ._query_validators import (
     validate_accept_header,
@@ -199,13 +198,13 @@ class MockVuforiaWebQueryAPI:
 
         active_matching_targets_delete_processing = [
             target for target in database.targets
-            if target.active_flag and target.delete_date
-            and (now - target.delete_date) < minimum_time_since_delete
+            if target.active_flag and target.delete_date and
+            (now - target.delete_date) < minimum_time_since_delete
         ]
 
         if (
-                matching_targets_with_processing_status or
-                active_matching_targets_delete_processing
+            matching_targets_with_processing_status
+            or active_matching_targets_delete_processing
         ):
             # We return an example 500 response.
             # Each response given by Vuforia is different.
@@ -225,9 +224,9 @@ class MockVuforiaWebQueryAPI:
             return Path(match_processing_resp_file).read_text()
 
         matches = [
-            target for target in matching_targets if target.active_flag and
-            not target.delete_date and
-            t target.status == TargetStatuses.SUCCESS.value
+            target for target in matching_targets
+            if target.active_flag and not target.delete_date
+            and target.status == TargetStatuses.SUCCESS.value
         ]
 
         results: List[Dict[str, Any]] = []
