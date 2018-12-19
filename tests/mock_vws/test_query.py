@@ -1582,6 +1582,8 @@ class TestDeleted:
         # quota.
         sleep_seconds = 2
 
+        server_error_seen = False
+
         while True:
             response = query(
                 vuforia_database=vuforia_database,
@@ -1591,6 +1593,7 @@ class TestDeleted:
             try:
                 assert_query_success(response=response)
             except AssertionError:
+                server_error_seen = True
                 # The response text for a 500 response is not consistent.
                 # Therefore we only test for consistent features.
                 assert 'Error 500 Server Error' in response.text
@@ -1600,10 +1603,11 @@ class TestDeleted:
                 total_waited += sleep_seconds
             else:
                 if response.json()['results']:
-                    # It takes some time for a deletion to take effect.
-                    # TODO also make this true in the mock
                     [result] = response.json()['results']
                     assert result['target_id'] == target_id
+                    # We never see the target ID after having seen the server
+                    # error.
+                    assert not server_error_seen
                     time.sleep(sleep_seconds)
                     total_waited += sleep_seconds
                 else:
