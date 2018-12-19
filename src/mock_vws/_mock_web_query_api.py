@@ -27,7 +27,6 @@ from mock_vws._mock_common import (
     set_content_length_header,
 )
 from mock_vws.database import VuforiaDatabase
-from mock_vws.target import Target
 
 from ._query_validators import (
     validate_accept_header,
@@ -173,7 +172,6 @@ class MockVuforiaWebQueryAPI:
         include_target_data = include_target_data.lower()
 
         [image] = parsed['image']
-        matches: Set[Target] = set([])
         gmt = pytz.timezone('GMT')
         now = datetime.datetime.now(tz=gmt)
 
@@ -192,45 +190,44 @@ class MockVuforiaWebQueryAPI:
             target for target in database.targets
             if target.image.getvalue() == image
         ]
-        for target in matching_targets:
-            delete_processing = bool(
-                target.delete_date
-                and (now - target.delete_date) < minimum_time_since_delete,
-            )
-            if target.status == TargetStatuses.PROCESSING.value:
-                # We return an example 500 response.
-                # Each response given by Vuforia is different.
-                #
-                # Sometimes Vuforia will do the equivalent of `continue`
-                # here, but we choose to:
-                # * Do the most unexpected thing.
-                # * Be consistent with every response.
-                resources_dir = Path(__file__).parent / 'resources'
-                filename = 'match_processing_response'
-                match_processing_resp_file = resources_dir / filename
-                context.status_code = codes.INTERNAL_SERVER_ERROR
-                cache_control = 'must-revalidate,no-cache,no-store'
-                context.headers['Cache-Control'] = cache_control
-                content_type = 'text/html; charset=ISO-8859-1'
-                context.headers['Content-Type'] = content_type
-                return Path(match_processing_resp_file).read_text()
-            if target.active_flag and delete_processing:
-                # We return an example 500 response.
-                # Each response given by Vuforia is different.
-                resources_dir = Path(__file__).parent / 'resources'
-                filename = 'match_processing_response'
-                match_processing_resp_file = resources_dir / filename
-                context.status_code = codes.INTERNAL_SERVER_ERROR
-                cache_control = 'must-revalidate,no-cache,no-store'
-                context.headers['Cache-Control'] = cache_control
-                content_type = 'text/html; charset=ISO-8859-1'
-                context.headers['Content-Type'] = content_type
-                return Path(match_processing_resp_file).read_text()
-            if (
-                target.active_flag and not target.delete_date
-                and target.status == TargetStatuses.SUCCESS.value
-            ):
-                matches.add(target)
+
+        matching_targets_with_processing_status = [
+            target for target in matching_targets
+            if target.status == TargetStatuses.PROCESSING.value
+        ]
+
+        active_matching_targets_delete_processing = [
+            target for target in matching_targets
+            if target.active_flag and target.delete_date and
+            (now - target.delete_date) < minimum_time_since_delete
+        ]
+
+        if (
+            matching_targets_with_processing_status
+            or active_matching_targets_delete_processing
+        ):
+            # We return an example 500 response.
+            # Each response given by Vuforia is different.
+            #
+            # Sometimes Vuforia will ignore matching targets with the
+            # processing status, but we choose to:
+            # * Do the most unexpected thing.
+            # * Be consistent with every response.
+            resources_dir = Path(__file__).parent / 'resources'
+            filename = 'match_processing_response'
+            match_processing_resp_file = resources_dir / filename
+            context.status_code = codes.INTERNAL_SERVER_ERROR
+            cache_control = 'must-revalidate,no-cache,no-store'
+            context.headers['Cache-Control'] = cache_control
+            content_type = 'text/html; charset=ISO-8859-1'
+            context.headers['Content-Type'] = content_type
+            return Path(match_processing_resp_file).read_text()
+
+        matches = [
+            target for target in matching_targets
+            if target.active_flag and not target.delete_date
+            and target.status == TargetStatuses.SUCCESS.value
+        ]
 
         results: List[Dict[str, Any]] = []
         for target in matches:
