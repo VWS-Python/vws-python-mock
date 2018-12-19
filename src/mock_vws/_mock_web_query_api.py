@@ -189,7 +189,7 @@ class MockVuforiaWebQueryAPI:
         assert isinstance(database, VuforiaDatabase)
 
         matching_targets = [
-            target for target in database.target
+            target for target in database.targets
             if target.image.getvalue() == image
         ]
         for target in matching_targets:
