@@ -192,12 +192,12 @@ class MockVuforiaWebQueryAPI:
         ]
 
         matching_targets_with_processing_status = [
-            target for target in database.targets
+            target for target in matching_targets
             if target.status == TargetStatuses.PROCESSING.value
         ]
 
         active_matching_targets_delete_processing = [
-            target for target in database.targets
+            target for target in matching_targets
             if target.active_flag and target.delete_date and
             (now - target.delete_date) < minimum_time_since_delete
         ]
