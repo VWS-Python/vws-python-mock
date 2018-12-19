@@ -1570,10 +1570,13 @@ class TestDeleted:
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
         # In practice, we have seen a delay of up to 30 seconds between
-        # deleting a target and having no 500 errors.
-        #
-        # We wait up to 60 seconds to be safe to avoid .
+        # deleting a target and getting a valid response which has a result
+        # array without the deleted item.
         total_waited = 0
+
+        # We wait up to 60 seconds to be safe to avoid indefinite waits and
+        # using up our quota.
+        max_wait_seconds = 60
 
         # We do not want to retry immediately else we risk using our request
         # quota.
@@ -1607,7 +1610,7 @@ class TestDeleted:
                     assert response.json()['results'] == []
                     break
 
-            assert total_waited < 60
+            assert total_waited < max_wait_seconds
 
         # The deletion never takes effect immediately.
         import pdb; pdb.set_trace()
