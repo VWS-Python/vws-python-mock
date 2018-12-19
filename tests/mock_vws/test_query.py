@@ -1572,8 +1572,13 @@ class TestDeleted:
         # In practice, we have seen a delay of up to 30 seconds between
         # deleting a target and having no 500 errors.
         #
-        # We wait up to 60 seconds to be safe.
+        # We wait up to 60 seconds to be safe to avoid .
         total_waited = 0
+
+        # We do not want to retry immediately else we risk using our request
+        # quota.
+        sleep_seconds = 2
+
         while True:
             response = query(
                 vuforia_database=vuforia_database,
@@ -1588,13 +1593,25 @@ class TestDeleted:
                 assert 'Error 500 Server Error' in response.text
                 assert 'HTTP ERROR 500' in response.text
                 assert 'Problem accessing /v1/query' in response.text
-                time.sleep(2)
-                total_waited += 2
+                time.sleep(sleep_seconds)
+                total_waited += sleep_seconds
             else:
-                assert response.json()['results'] == []
-                break
+                if response.json()['results']:
+                    # It takes some time for a deletion to take effect.
+                    # TODO also make this true in the mock
+                    [result] = response.json()['results']
+                    assert result['target_id'] == target_id
+                    time.sleep(sleep_seconds)
+                    total_waited += sleep_seconds
+                else:
+                    assert response.json()['results'] == []
+                    break
 
             assert total_waited < 60
+
+        # The deletion never takes effect immediately.
+        import pdb; pdb.set_trace()
+        assert total_waited
 
     def test_deleted_inactive(
         self,
