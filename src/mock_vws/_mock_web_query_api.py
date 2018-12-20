@@ -129,11 +129,11 @@ class MockVuforiaWebQueryAPI:
 
     def __init__(
         self,
-        query_recognizes_deletion_seconds: Union[int, float],
+        query_processes_deletion_seconds: Union[int, float],
     ) -> None:
         """
         Args:
-            query_recognizes_deletion_seconds: The number of seconds after a
+            query_processes_deletion_seconds: The number of seconds after a
                 target has been deleted that the query endpoint will return a
                 500 response for on a match.
 
@@ -143,8 +143,8 @@ class MockVuforiaWebQueryAPI:
         """
         self.routes: Set[Route] = ROUTES
         self.databases: List[VuforiaDatabase] = []
-        self._query_recognizes_deletion_seconds = (
-            query_recognizes_deletion_seconds
+        self._query_processes_deletion_seconds = (
+            query_processes_deletion_seconds
         )
 
     @route(path_pattern='/v1/query', http_methods=[POST])
@@ -175,8 +175,8 @@ class MockVuforiaWebQueryAPI:
         gmt = pytz.timezone('GMT')
         now = datetime.datetime.now(tz=gmt)
 
-        minimum_time_since_delete = datetime.timedelta(
-            seconds=self._query_recognizes_deletion_seconds,
+        processing_timedelta = datetime.timedelta(
+            seconds=self._query_processes_deletion_seconds,
         )
 
         database = get_database_matching_client_keys(
@@ -199,7 +199,7 @@ class MockVuforiaWebQueryAPI:
         active_matching_targets_delete_processing = [
             target for target in matching_targets
             if target.active_flag and target.delete_date and
-            (now - target.delete_date) < minimum_time_since_delete
+            (now - target.delete_date) < processing_timedelta
         ]
 
         if (

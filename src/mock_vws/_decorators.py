@@ -45,8 +45,8 @@ class MockVWS(ContextDecorator):
             base_vwq_url: The base URL for the VWQ API.
             base_vws_url: The base URL for the VWS API.
             query_recognizes_deletion_seconds: The number of seconds after a
-                target has been deleted that the query endpoint will return a
-                500 response on a match.
+                target has been deleted that the query endpoint will still
+                recognize the target for.
             query_processes_deletion_seconds: The number of seconds after a
                 target deletion is recognized that the query endpoint will
                 return a 500 response on a match.
@@ -76,8 +76,8 @@ class MockVWS(ContextDecorator):
         )
 
         self._mock_vwq_api = MockVuforiaWebQueryAPI(
-            query_recognizes_deletion_seconds=(
-                query_recognizes_deletion_seconds
+            query_processes_deletion_seconds=(
+                query_processes_deletion_seconds
             ),
             query_processes_deletion_seconds=(
                 query_processes_deletion_seconds
