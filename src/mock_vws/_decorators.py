@@ -79,8 +79,8 @@ class MockVWS(ContextDecorator):
             query_processes_deletion_seconds=(
                 query_processes_deletion_seconds
             ),
-            query_processes_deletion_seconds=(
-                query_processes_deletion_seconds
+            query_recognizes_deletion_seconds=(
+                query_recognizes_deletion_seconds
             ),
         )
 
