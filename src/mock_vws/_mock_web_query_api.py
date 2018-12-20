@@ -179,6 +179,8 @@ class MockVuforiaWebQueryAPI:
             seconds=self._query_processes_deletion_seconds,
         )
 
+        recognition_timedelta = datetime.timedelta(seconds=0)
+
         database = get_database_matching_client_keys(
             request=request,
             databases=self.databases,
@@ -191,15 +193,28 @@ class MockVuforiaWebQueryAPI:
             if target.image.getvalue() == image
         ]
 
+        not_deleted_matches = [
+            target for target in matching_targets
+            if target.active_flag and not target.delete_date
+            and target.status == TargetStatuses.SUCCESS.value
+        ]
+
+        deletion_not_recognized_matches = [
+            target for target in matching_targets
+            if target.active_flag and target.delete_date and
+            (now - target.delete_date) < recognition_timedelta
+        ]
+
         matching_targets_with_processing_status = [
             target for target in matching_targets
             if target.status == TargetStatuses.PROCESSING.value
         ]
 
         active_matching_targets_delete_processing = [
-            target for target in matching_targets
-            if target.active_flag and target.delete_date and
-            (now - target.delete_date) < processing_timedelta
+            target for target in matching_targets if target.active_flag
+            and target.delete_date and (now - target.delete_date) <
+            (recognition_timedelta + processing_timedelta)
+            and target not in deletion_not_recognized_matches
         ]
 
         if (
@@ -223,11 +238,7 @@ class MockVuforiaWebQueryAPI:
             context.headers['Content-Type'] = content_type
             return Path(match_processing_resp_file).read_text()
 
-        matches = [
-            target for target in matching_targets
-            if target.active_flag and not target.delete_date
-            and target.status == TargetStatuses.SUCCESS.value
-        ]
+        matches = not_deleted_matches + deletion_not_recognized_matches
 
         results: List[Dict[str, Any]] = []
         for target in matches:
