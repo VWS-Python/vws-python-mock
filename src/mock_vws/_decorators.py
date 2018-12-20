@@ -45,7 +45,7 @@ class MockVWS(ContextDecorator):
             base_vws_url: The base URL for the VWS API.
             query_recognizes_deletion_seconds: The number of seconds after a
                 target has been deleted that the query endpoint will return a
-                500 response for on a match.
+                500 response on a match.
 
         Raises:
             ``requests.exceptions.MissingSchema``: There is no schema in a
