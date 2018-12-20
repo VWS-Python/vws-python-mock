@@ -255,6 +255,9 @@ class TestCustomBaseURLs:
         assert str(exc.value) == expected
 
 
+class TestCustomQueryRecognizesDeletionSeconds:
+    pass
+
 class TestCustomQueryProcessDeletionSeconds:
     """
     Tests for setting the amount of time after a target has been deleted
