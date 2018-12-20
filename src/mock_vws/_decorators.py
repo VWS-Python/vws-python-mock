@@ -28,7 +28,8 @@ class MockVWS(ContextDecorator):
         base_vwq_url: str = 'https://cloudreco.vuforia.com',
         real_http: bool = False,
         processing_time_seconds: Union[int, float] = 0.5,
-        query_recognizes_deletion_seconds: Union[int, float] = 3,
+        query_recognizes_deletion_seconds: Union[int, float] = 0.5,
+        query_processes_deletion_seconds: Union[int, float] = 3,
     ) -> None:
         """
         Route requests to Vuforia's Web Service APIs to fakes of those APIs.
@@ -46,6 +47,9 @@ class MockVWS(ContextDecorator):
             query_recognizes_deletion_seconds: The number of seconds after a
                 target has been deleted that the query endpoint will return a
                 500 response on a match.
+            query_processes_deletion_seconds: The number of seconds after a
+                target deletion is recognized that the query endpoint will
+                return a 500 response on a match.
 
         Raises:
             ``requests.exceptions.MissingSchema``: There is no schema in a
@@ -74,6 +78,9 @@ class MockVWS(ContextDecorator):
         self._mock_vwq_api = MockVuforiaWebQueryAPI(
             query_recognizes_deletion_seconds=(
                 query_recognizes_deletion_seconds
+            ),
+            query_processes_deletion_seconds=(
+                query_processes_deletion_seconds
             ),
         )
 
