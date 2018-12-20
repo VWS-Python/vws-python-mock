@@ -255,13 +255,13 @@ class TestCustomBaseURLs:
         assert str(exc.value) == expected
 
 
-class TestCustomQueryRecognizesDeletionSeconds:
+class TestCustomQueryProcessDeletionSeconds:
     """
     Tests for setting the amount of time after a target has been deleted
-    until it is not recognized by the query endpoint.
+    until it is not processed by the query endpoint.
     """
 
-    def _recognize_deletion_seconds(
+    def _process_deletion_seconds(
         self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
@@ -325,7 +325,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
     ) -> None:
         """
         By default it takes three seconds for the Query API on the mock to
-        recognize that a target has been deleted.
+        process that a target has been deleted.
 
         The real Query API takes between seven and thirty seconds.
         See ``test_query`` for more information.
@@ -333,13 +333,13 @@ class TestCustomQueryRecognizesDeletionSeconds:
         database = VuforiaDatabase()
         with MockVWS() as mock:
             mock.add_database(database=database)
-            recognize_deletion_seconds = self._recognize_deletion_seconds(
+            process_deletion_seconds = self._process_deletion_seconds(
                 high_quality_image=high_quality_image,
                 vuforia_database=database,
             )
 
         expected = 3
-        assert abs(expected - recognize_deletion_seconds) < 0.2
+        assert abs(expected - process_deletion_seconds) < 0.2
 
     def test_custom(
         self,
@@ -347,22 +347,22 @@ class TestCustomQueryRecognizesDeletionSeconds:
     ) -> None:
         """
         It is possible to use set a custom amount of time that it takes for the
-        Query API on the mock to recognize that a target has been deleted.
+        Query API on the mock to process that a target has been deleted.
         """
         # We choose a low time for a quick test.
-        query_recognizes_deletion = 0.1
+        query_processes_deletion = 0.1
         database = VuforiaDatabase()
         with MockVWS(
-            query_recognizes_deletion_seconds=query_recognizes_deletion,
+            query_processes_deletion_seconds=query_processes_deletion,
         ) as mock:
             mock.add_database(database=database)
-            recognize_deletion_seconds = self._recognize_deletion_seconds(
+            process_deletion_seconds = self._process_deletion_seconds(
                 high_quality_image=high_quality_image,
                 vuforia_database=database,
             )
 
-        expected = query_recognizes_deletion
-        assert abs(expected - recognize_deletion_seconds) < 0.2
+        expected = query_processes_deletion
+        assert abs(expected - process_deletion_seconds) < 0.2
 
 
 class TestStates:
