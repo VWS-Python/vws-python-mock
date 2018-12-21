@@ -129,13 +129,17 @@ class MockVuforiaWebQueryAPI:
 
     def __init__(
         self,
+        query_recognizes_deletion_seconds: Union[int, float],
         query_processes_deletion_seconds: Union[int, float],
     ) -> None:
         """
         Args:
+            query_recognizes_deletion_seconds: The number of seconds after a
+                target has been deleted that the query endpoint will still
+                recognize the target for.
             query_processes_deletion_seconds: The number of seconds after a
-                target has been deleted that the query endpoint will return a
-                500 response for on a match.
+                target deletion is recognized that the query endpoint will
+                return a 500 response on a match.
 
         Attributes:
             routes: The `Route`s to be used in the mock.
@@ -146,7 +150,9 @@ class MockVuforiaWebQueryAPI:
         self._query_processes_deletion_seconds = (
             query_processes_deletion_seconds
         )
-        self._query_recognizes_deletion_seconds = 0
+        self._query_recognizes_deletion_seconds = (
+            query_recognizes_deletion_seconds
+        )
 
     @route(path_pattern='/v1/query', http_methods=[POST])
     def query(
