@@ -26,13 +26,32 @@ class TestIncorrect:
         if not endpoint_headers.get('Content-Type'):
             return
 
-        content_length = str(len(endpoint.prepared_request.body) + 1000000)
-        headers = {
-            **endpoint_headers,
-            # This is the root cause - the content length.
-            # TODO error if too big or too small
-            'Content-Length': content_length,
+        content_length = str(len(endpoint.prepared_request.body) + 1)
+        headers = {**endpoint_headers, 'Content-Length': content_length}
+
+        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        session = requests.Session()
+        response = session.send(  # type: ignore
+            request=endpoint.prepared_request,
+        )
+
+        assert response.text == ''
+        assert response.headers == {
+            'Content-Length': '0',
+            'Connection': 'keep-alive',
         }
+        assert response.status_code == codes.GATEWAY_TIMEOUT
+
+    def test_too_small(self, endpoint: Endpoint) -> None:
+        """
+        XXX
+        """
+        endpoint_headers = dict(endpoint.prepared_request.headers)
+        if not endpoint_headers.get('Content-Type'):
+            return
+
+        content_length = str(len(endpoint.prepared_request.body) - 1)
+        headers = {**endpoint_headers, 'Content-Length': content_length}
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
