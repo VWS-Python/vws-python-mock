@@ -46,7 +46,8 @@ class Test504:
             'Date': date,
             'Content-Type': content_type,
             # This is the root cause - the content length.
-            'Content-Length': str(len(content) + 1),
+            # TODO error if too big or too small
+            'Content-Length': str(len(content) - 1),
         }
 
         endpoint.prepared_request.prepare_body(  # type: ignore
