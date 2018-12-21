@@ -146,6 +146,9 @@ class MockVuforiaWebQueryAPI:
         self._query_processes_deletion_seconds = (
             query_processes_deletion_seconds
         )
+        self._query_recognizes_deletion_seconds = (
+            query_recognizes_deletion_seconds
+        )
 
     @route(path_pattern='/v1/query', http_methods=[POST])
     def query(
