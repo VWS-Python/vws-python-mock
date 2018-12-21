@@ -29,6 +29,8 @@ class Test504:
 
         endpoint_headers = dict(endpoint.prepared_request.headers)
         content_type = endpoint_headers.get('Content-Type', '')
+        if not content_type:
+            return
         assert isinstance(content_type, str)
         endpoint_headers = dict(endpoint.prepared_request.headers)
 
@@ -69,16 +71,5 @@ class Test504:
             assert response.status_code == codes.GATEWAY_TIMEOUT
             return
 
-        # This is an undocumented difference between `/summary` and other
-        # endpoints.
-        if endpoint.prepared_request.path_url == '/summary':
-            assert_vws_failure(
-                response=response,
-                status_code=codes.UNAUTHORIZED,
-                result_code=ResultCodes.AUTHENTICATION_FAILURE,
-            )
-            return
-
-        assert response.status_code == codes.BAD_REQUEST
-        assert response.text == ''
-        assert 'Content-Type' not in response.headers
+        # TODO get rid of this
+        assert False
