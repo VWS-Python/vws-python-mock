@@ -30,21 +30,8 @@ class TestIncorrect:
             return
         assert isinstance(content_type, str)
 
-        authorization_string = authorization_header(
-            access_key=endpoint.access_key,
-            secret_key=endpoint.secret_key,
-            method=str(endpoint.prepared_request.method),
-            content=content,
-            content_type=endpoint.auth_header_content_type,
-            date=date,
-            request_path=endpoint.prepared_request.path_url,
-        )
-
         headers = {
             **endpoint_headers,
-            'Authorization': authorization_string,
-            'Date': date,
-            'Content-Type': content_type,
             # This is the root cause - the content length.
             # TODO error if too big or too small
             'Content-Length': str(len(content) + 1),
