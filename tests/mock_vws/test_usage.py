@@ -432,7 +432,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
                 vuforia_database=database,
             )
 
-        expected = 0
+        expected = query_recognizes_deletion
         assert abs(expected - recognize_deletion_seconds) < 0.1
 
 
