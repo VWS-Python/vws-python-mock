@@ -15,8 +15,9 @@ from tests.mock_vws.utils.authorization import (
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
-class Test504:
-    def test_example(self, endpoint: Endpoint) -> None:
+class TestIncorrect:
+
+    def test_too_large(self, endpoint: Endpoint) -> None:
         """
         XXX
         """
@@ -47,7 +48,7 @@ class Test504:
             'Content-Type': content_type,
             # This is the root cause - the content length.
             # TODO error if too big or too small
-            'Content-Length': str(len(content) - 1),
+            'Content-Length': str(len(content) + 1),
         }
 
         endpoint.prepared_request.prepare_body(  # type: ignore
@@ -61,11 +62,6 @@ class Test504:
             request=endpoint.prepared_request,
         )
 
-        if content_type:
-            assert response.text == ''
-            assert response.headers == {'Content-Length': '0', 'Connection': 'keep-alive'}
-            assert response.status_code == codes.GATEWAY_TIMEOUT
-            return
-
-        # TODO get rid of this
-        assert False
+        assert response.text == ''
+        assert response.headers == {'Content-Length': '0', 'Connection': 'keep-alive'}
+        assert response.status_code == codes.GATEWAY_TIMEOUT
