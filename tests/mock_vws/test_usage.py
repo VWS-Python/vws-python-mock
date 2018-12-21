@@ -259,6 +259,9 @@ def _add_and_delete_target(
     image: io.BytesIO,
     vuforia_database: VuforiaDatabase,
 ) -> None:
+    """
+    Add and delete a target with the given image.
+    """
     image_content = image.getvalue()
     image_data_encoded = base64.b64encode(image_content).decode('ascii')
     add_target_data = {
@@ -289,7 +292,11 @@ def _wait_for_deletion_recognized(
     vuforia_database: VuforiaDatabase,
 ) -> None:
     """
-    XXX
+    Wait until the query endpoint "recognizes" the deletion of all targets with
+    an image matching the given image.
+
+    That is, wait until querying the given image does not return a result with
+    targets.
     """
     image_content = image.getvalue()
     body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
@@ -318,6 +325,13 @@ def _wait_for_deletion_processed(
     image: io.BytesIO,
     vuforia_database: VuforiaDatabase,
 ) -> None:
+    """
+    Wait until the query endpoint "recognizes" the deletion of all targets with
+    an image matching the given image.
+
+    That is, wait until querying the given image returns a result with no
+    targets.
+    """
     _wait_for_deletion_recognized(
         image=image,
         vuforia_database=vuforia_database,
