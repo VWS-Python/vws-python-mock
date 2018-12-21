@@ -1517,22 +1517,28 @@ class TestDeleted:
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        while True:
+            response = query(
+                vuforia_database=vuforia_database,
+                body=body,
+            )
+            # Sometimes the first response(s) include the old target.
+            try:
+                assert_query_success(response=response)
+            except AssertionError:
+                # The response text for a 500 response is not consistent.
+                # Therefore we only test for consistent features.
+                assert 'Error 500 Server Error' in response.text
+                assert 'HTTP ERROR 500' in response.text
+                assert 'Problem accessing /v1/query' in response.text
 
-        # The response text for a 500 response is not consistent.
-        # Therefore we only test for consistent features.
-        assert 'Error 500 Server Error' in response.text
-        assert 'HTTP ERROR 500' in response.text
-        assert 'Problem accessing /v1/query' in response.text
+                assert_vwq_failure(
+                    response=response,
+                    content_type='text/html; charset=ISO-8859-1',
+                    status_code=codes.INTERNAL_SERVER_ERROR,
+                )
 
-        assert_vwq_failure(
-            response=response,
-            content_type='text/html; charset=ISO-8859-1',
-            status_code=codes.INTERNAL_SERVER_ERROR,
-        )
+                return
 
     def test_deleted_and_wait(
         self,
@@ -1570,10 +1576,20 @@ class TestDeleted:
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
         # In practice, we have seen a delay of up to 30 seconds between
-        # deleting a target and having no 500 errors.
-        #
-        # We wait up to 60 seconds to be safe.
+        # deleting a target and getting a valid response which has a result
+        # array without the deleted item.
         total_waited = 0
+
+        # We wait up to 60 seconds to be safe to avoid indefinite waits and
+        # using up our quota.
+        max_wait_seconds = 60
+
+        # We do not want to retry immediately else we risk using our request
+        # quota.
+        sleep_seconds = 2
+
+        server_error_seen = False
+
         while True:
             response = query(
                 vuforia_database=vuforia_database,
@@ -1583,18 +1599,31 @@ class TestDeleted:
             try:
                 assert_query_success(response=response)
             except AssertionError:
+                server_error_seen = True
                 # The response text for a 500 response is not consistent.
                 # Therefore we only test for consistent features.
                 assert 'Error 500 Server Error' in response.text
                 assert 'HTTP ERROR 500' in response.text
                 assert 'Problem accessing /v1/query' in response.text
-                time.sleep(2)
-                total_waited += 2
+                time.sleep(sleep_seconds)
+                total_waited += sleep_seconds
             else:
-                assert response.json()['results'] == []
-                break
+                if response.json()['results']:
+                    [result] = response.json()['results']
+                    assert result['target_id'] == target_id
+                    # We never see the target ID after having seen the server
+                    # error.
+                    assert not server_error_seen
+                    time.sleep(sleep_seconds)
+                    total_waited += sleep_seconds
+                else:
+                    assert response.json()['results'] == []
+                    break
 
-            assert total_waited < 60
+            assert total_waited < max_wait_seconds
+
+        # The deletion never takes effect immediately.
+        assert total_waited
 
     def test_deleted_inactive(
         self,
