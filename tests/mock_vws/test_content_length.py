@@ -29,7 +29,6 @@ class TestIncorrect:
         if not content_type:
             return
         assert isinstance(content_type, str)
-        endpoint_headers = dict(endpoint.prepared_request.headers)
 
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
