@@ -1,4 +1,9 @@
+"""
+XXX
+"""
+
 from datetime import datetime, timedelta
+from urllib.parse import urlparse
 
 import pytest
 import requests
@@ -7,7 +12,10 @@ from requests.structures import CaseInsensitiveDict
 
 from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import Endpoint
-from tests.mock_vws.utils.assertions import assert_vws_failure
+from tests.mock_vws.utils.assertions import (
+    assert_vws_failure,
+    assert_vwq_failure,
+)
 from tests.mock_vws.utils.authorization import (
     authorization_header,
     rfc_1123_date,
@@ -62,9 +70,18 @@ class TestIncorrect:
             request=endpoint.prepared_request,
         )
 
-        assert response.text == ''
-        assert response.headers == {
-            'Content-Length': '0',
-            'Connection': 'keep-alive',
-        }
-        assert response.status_code == codes.GATEWAY_TIMEOUT
+        url = str(endpoint.prepared_request.url)
+        netloc = urlparse(url).netloc
+        if netloc == 'cloudreco.vuforia.com':
+            assert_vwq_failure(
+                response=response,
+                status_code=codes.UNAUTHORIZED,
+                content_type='application/json',
+            )
+            return
+
+        assert_vws_failure(
+            response=response,
+            status_code=codes.UNAUTHORIZED,
+            result_code=ResultCodes.AUTHENTICATION_FAILURE,
+        )
