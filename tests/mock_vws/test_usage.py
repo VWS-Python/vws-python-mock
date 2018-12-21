@@ -313,6 +313,7 @@ def _wait_for_deletion_recognized(
         assert not response.json()['results']
         return
 
+
 def _wait_for_deletion_processed(
     image: io.BytesIO,
     vuforia_database: VuforiaDatabase,
