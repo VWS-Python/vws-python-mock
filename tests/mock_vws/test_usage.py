@@ -255,6 +255,34 @@ class TestCustomBaseURLs:
         assert str(exc.value) == expected
 
 
+def _add_and_delete_target(
+    image: io.BytesIO,
+    vuforia_database: VuforiaDatabase,
+) -> None:
+    image_content = high_quality_image.getvalue()
+    image_data_encoded = base64.b64encode(image_content).decode('ascii')
+    add_target_data = {
+        'name': 'example_name',
+        'width': 1,
+        'image': image_data_encoded,
+    }
+    response = add_target_to_vws(
+        vuforia_database=vuforia_database,
+        data=add_target_data,
+    )
+
+    target_id = response.json()['target_id']
+
+    wait_for_target_processed(
+        target_id=target_id,
+        vuforia_database=vuforia_database,
+    )
+
+    delete_target(
+        vuforia_database=vuforia_database,
+        target_id=target_id,
+    )
+
 class TestCustomQueryRecognizesDeletionSeconds:
     pass
 
@@ -273,32 +301,14 @@ class TestCustomQueryProcessDeletionSeconds:
         The number of seconds it takes for the query endpoint to recognize a
         deletion.
         """
-        image_content = high_quality_image.getvalue()
-        image_data_encoded = base64.b64encode(image_content).decode('ascii')
-        add_target_data = {
-            'name': 'example_name',
-            'width': 1,
-            'image': image_data_encoded,
-        }
-        response = add_target_to_vws(
+        _add_and_delete_target(
+            image=high_quality_image,
             vuforia_database=vuforia_database,
-            data=add_target_data,
-        )
-
-        target_id = response.json()['target_id']
-
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
-
-        response = delete_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
         )
 
         time_after_delete = datetime.datetime.now()
 
+        image_content = high_quality_image.getvalue()
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
         while True:
