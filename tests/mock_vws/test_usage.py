@@ -317,8 +317,8 @@ def _wait_for_deletion_recognized(
             assert 'Problem accessing /v1/query' in response.text
             return
 
-        assert not response.json()['results']
-        return
+        if not response.json()['results']:
+            return
 
 
 def _wait_for_deletion_processed(
@@ -412,6 +412,29 @@ class TestCustomQueryRecognizesDeletionSeconds:
         expected = 0
         assert abs(expected - recognize_deletion_seconds) < 0.1
 
+    def test_custom(
+        self,
+        high_quality_image: io.BytesIO,
+    ) -> None:
+        """
+        It is possible to use set a custom amount of time that it takes for the
+        Query API on the mock to recognize that a target has been deleted.
+        """
+        # We choose a low time for a quick test.
+        query_recognizes_deletion = 0.7
+        database = VuforiaDatabase()
+        with MockVWS(
+            query_recognizes_deletion_seconds=query_recognizes_deletion,
+        ) as mock:
+            mock.add_database(database=database)
+            recognize_deletion_seconds = self._recognize_deletion_seconds(
+                high_quality_image=high_quality_image,
+                vuforia_database=database,
+            )
+
+        expected = query_recognizes_deletion
+        assert abs(expected - recognize_deletion_seconds) < 0.1
+
 
 class TestCustomQueryProcessDeletionSeconds:
     """
@@ -468,7 +491,7 @@ class TestCustomQueryProcessDeletionSeconds:
             )
 
         expected = 3
-        assert abs(expected - process_deletion_seconds) < 0.2
+        assert abs(expected - process_deletion_seconds) < 0.1
 
     def test_custom(
         self,
@@ -491,7 +514,7 @@ class TestCustomQueryProcessDeletionSeconds:
             )
 
         expected = query_processes_deletion
-        assert abs(expected - process_deletion_seconds) < 0.2
+        assert abs(expected - process_deletion_seconds) < 0.1
 
 
 class TestStates:
