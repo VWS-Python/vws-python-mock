@@ -360,6 +360,10 @@ def _wait_for_deletion_processed(
         return
 
 
+class TestCustomQueryRecognizesDeletionSeconds:
+    pass
+
+
 class TestCustomQueryProcessDeletionSeconds:
     """
     Tests for setting the amount of time after a target has been deleted
