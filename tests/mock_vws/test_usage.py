@@ -3,10 +3,10 @@ Tests for the usage of the mock.
 """
 
 import base64
-import datetime
 import io
 import socket
 import time
+from datetime import datetime, timedelta
 
 import pytest
 import requests
@@ -121,7 +121,7 @@ class TestProcessingTime:
 
             target_id = response.json()['target_id']
 
-            start_time = datetime.datetime.now()
+            start_time = datetime.now()
 
             while True:
                 response = get_vws_target(
@@ -131,11 +131,11 @@ class TestProcessingTime:
 
                 status = response.json()['status']
                 if status != TargetStatuses.PROCESSING.value:
-                    elapsed_time = datetime.datetime.now() - start_time
+                    elapsed_time = datetime.now() - start_time
                     # There is a race condition in this test - if it starts to
                     # fail, maybe extend the acceptable range.
-                    assert elapsed_time < datetime.timedelta(seconds=0.55)
-                    assert elapsed_time > datetime.timedelta(seconds=0.49)
+                    assert elapsed_time < timedelta(seconds=0.55)
+                    assert elapsed_time > timedelta(seconds=0.49)
                     return
 
     def test_custom(self, image_file_failed_state: io.BytesIO) -> None:
@@ -161,7 +161,7 @@ class TestProcessingTime:
 
             target_id = response.json()['target_id']
 
-            start_time = datetime.datetime.now()
+            start_time = datetime.now()
 
             while True:
                 response = get_vws_target(
@@ -171,9 +171,9 @@ class TestProcessingTime:
 
                 status = response.json()['status']
                 if status != TargetStatuses.PROCESSING.value:
-                    elapsed_time = datetime.datetime.now() - start_time
-                    assert elapsed_time < datetime.timedelta(seconds=0.15)
-                    assert elapsed_time > datetime.timedelta(seconds=0.09)
+                    elapsed_time = datetime.now() - start_time
+                    assert elapsed_time < timedelta(seconds=0.15)
+                    assert elapsed_time > timedelta(seconds=0.09)
                     return
 
 
@@ -259,7 +259,10 @@ def _add_and_delete_target(
     image: io.BytesIO,
     vuforia_database: VuforiaDatabase,
 ) -> None:
-    image_content = high_quality_image.getvalue()
+    """
+    Add and delete a target with the given image.
+    """
+    image_content = image.getvalue()
     image_data_encoded = base64.b64encode(image_content).decode('ascii')
     add_target_data = {
         'name': 'example_name',
@@ -285,13 +288,17 @@ def _add_and_delete_target(
 
 
 def _wait_for_deletion_recognized(
-    high_quality_image: io.BytesIO,
+    image: io.BytesIO,
     vuforia_database: VuforiaDatabase,
 ) -> None:
     """
-    XXX
+    Wait until the query endpoint "recognizes" the deletion of all targets with
+    an image matching the given image.
+
+    That is, wait until querying the given image does not return a result with
+    targets.
     """
-    image_content = high_quality_image.getvalue()
+    image_content = image.getvalue()
     body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
     while True:
@@ -310,21 +317,27 @@ def _wait_for_deletion_recognized(
             assert 'Problem accessing /v1/query' in response.text
             return
 
-        if not response.json()['results']:
-            return
+        assert not response.json()['results']
+        return
 
-        time.sleep(0.05)
 
 def _wait_for_deletion_processed(
-    high_quality_image: io.BytesIO,
+    image: io.BytesIO,
     vuforia_database: VuforiaDatabase,
 ) -> None:
+    """
+    Wait until the query endpoint "recognizes" the deletion of all targets with
+    an image matching the given image.
+
+    That is, wait until querying the given image returns a result with no
+    targets.
+    """
     _wait_for_deletion_recognized(
-        image=high_quality_image,
+        image=image,
         vuforia_database=vuforia_database,
     )
 
-    image_content = high_quality_image.getvalue()
+    image_content = image.getvalue()
     body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
     while True:
@@ -346,8 +359,10 @@ def _wait_for_deletion_processed(
 
         return
 
+
 class TestCustomQueryRecognizesDeletionSeconds:
     pass
+
 
 class TestCustomQueryProcessDeletionSeconds:
     """
@@ -374,14 +389,14 @@ class TestCustomQueryProcessDeletionSeconds:
             vuforia_database=vuforia_database,
         )
 
-        time_after_deletion_recognized = datetime.datetime.now()
+        time_after_deletion_recognized = datetime.now()
 
         _wait_for_deletion_processed(
             image=high_quality_image,
             vuforia_database=vuforia_database,
         )
 
-        time_difference = datetime.datetime.now() - time_after_delete
+        time_difference = datetime.now() - time_after_deletion_recognized
         return time_difference.total_seconds()
 
     def test_default(
