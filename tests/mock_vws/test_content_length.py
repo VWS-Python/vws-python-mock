@@ -50,11 +50,6 @@ class TestIncorrect:
             'Content-Length': str(len(content) + 1),
         }
 
-        endpoint.prepared_request.prepare_body(  # type: ignore
-            data=content,
-            files=None,
-        )
-
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
         response = session.send(  # type: ignore
