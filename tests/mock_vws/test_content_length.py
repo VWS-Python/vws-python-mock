@@ -19,22 +19,19 @@ class TestIncorrect:
 
     def test_too_large(self, endpoint: Endpoint) -> None:
         """
-        XXX
+        A ``GATEWAY_TIMEOUT`` is given if the given content length is too
+        large.
         """
-        content = endpoint.prepared_request.body
-        date = rfc_1123_date()
-
         endpoint_headers = dict(endpoint.prepared_request.headers)
-        content_type = endpoint_headers.get('Content-Type', '')
-        if not content_type:
+        if not endpoint_headers.get('Content-Type'):
             return
-        assert isinstance(content_type, str)
 
+        content_length = str(len(endpoint.prepared_request.body) + 1000000)
         headers = {
             **endpoint_headers,
             # This is the root cause - the content length.
             # TODO error if too big or too small
-            'Content-Length': str(len(content) + 1),
+            'Content-Length': content_length,
         }
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
@@ -44,5 +41,8 @@ class TestIncorrect:
         )
 
         assert response.text == ''
-        assert response.headers == {'Content-Length': '0', 'Connection': 'keep-alive'}
+        assert response.headers == {
+            'Content-Length': '0',
+            'Connection': 'keep-alive',
+        }
         assert response.status_code == codes.GATEWAY_TIMEOUT
