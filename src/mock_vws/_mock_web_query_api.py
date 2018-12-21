@@ -146,6 +146,7 @@ class MockVuforiaWebQueryAPI:
         self._query_processes_deletion_seconds = (
             query_processes_deletion_seconds
         )
+        self._query_recognizes_deletion_seconds = 0
 
     @route(path_pattern='/v1/query', http_methods=[POST])
     def query(
@@ -179,7 +180,9 @@ class MockVuforiaWebQueryAPI:
             seconds=self._query_processes_deletion_seconds,
         )
 
-        recognition_timedelta = datetime.timedelta(seconds=0)
+        recognition_timedelta = datetime.timedelta(
+            seconds=self._query_recognizes_deletion_seconds,
+        )
 
         database = get_database_matching_client_keys(
             request=request,
