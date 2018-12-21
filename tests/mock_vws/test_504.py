@@ -20,9 +20,7 @@ class Test504:
         """
         XXX
         """
-        content = b'a'
-        # Uncommenting this makes everything work fine
-        # content = endpoint.prepared_request.body
+        content = endpoint.prepared_request.body
         date = rfc_1123_date()
 
         endpoint_headers = dict(endpoint.prepared_request.headers)
@@ -47,6 +45,8 @@ class Test504:
             'Authorization': authorization_string,
             'Date': date,
             'Content-Type': content_type,
+            # This is the root cause - the content length.
+            'Content-Length': str(len(content) + 1),
         }
 
         endpoint.prepared_request.prepare_body(  # type: ignore
