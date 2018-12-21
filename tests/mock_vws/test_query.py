@@ -1517,22 +1517,28 @@ class TestDeleted:
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        while True:
+            response = query(
+                vuforia_database=vuforia_database,
+                body=body,
+            )
+            # Sometimes the first response(s) include the old target.
+            try:
+                assert_query_success(response=response)
+            except AssertionError:
+                # The response text for a 500 response is not consistent.
+                # Therefore we only test for consistent features.
+                assert 'Error 500 Server Error' in response.text
+                assert 'HTTP ERROR 500' in response.text
+                assert 'Problem accessing /v1/query' in response.text
 
-        # The response text for a 500 response is not consistent.
-        # Therefore we only test for consistent features.
-        assert 'Error 500 Server Error' in response.text
-        assert 'HTTP ERROR 500' in response.text
-        assert 'Problem accessing /v1/query' in response.text
+                assert_vwq_failure(
+                    response=response,
+                    content_type='text/html; charset=ISO-8859-1',
+                    status_code=codes.INTERNAL_SERVER_ERROR,
+                )
 
-        assert_vwq_failure(
-            response=response,
-            content_type='text/html; charset=ISO-8859-1',
-            status_code=codes.INTERNAL_SERVER_ERROR,
-        )
+                return
 
     def test_deleted_and_wait(
         self,

@@ -28,7 +28,7 @@ class MockVWS(ContextDecorator):
         base_vwq_url: str = 'https://cloudreco.vuforia.com',
         real_http: bool = False,
         processing_time_seconds: Union[int, float] = 0.5,
-        query_recognizes_deletion_seconds: Union[int, float] = 0,
+        query_recognizes_deletion_seconds: Union[int, float] = 0.5,
         query_processes_deletion_seconds: Union[int, float] = 3,
     ) -> None:
         """
