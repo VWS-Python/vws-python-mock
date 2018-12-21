@@ -409,7 +409,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
                 vuforia_database=database,
             )
 
-        expected = 0
+        expected = 0.2
         assert abs(expected - recognize_deletion_seconds) < 0.1
 
     def test_custom(
@@ -421,7 +421,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
         Query API on the mock to recognize that a target has been deleted.
         """
         # We choose a low time for a quick test.
-        query_recognizes_deletion = 0.7
+        query_recognizes_deletion = 0.5
         database = VuforiaDatabase()
         with MockVWS(
             query_recognizes_deletion_seconds=query_recognizes_deletion,
