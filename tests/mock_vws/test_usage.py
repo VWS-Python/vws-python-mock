@@ -3,10 +3,10 @@ Tests for the usage of the mock.
 """
 
 import base64
-import datetime
 import io
 import socket
 import time
+from datetime import datetime, timedelta
 
 import pytest
 import requests
@@ -121,7 +121,7 @@ class TestProcessingTime:
 
             target_id = response.json()['target_id']
 
-            start_time = datetime.datetime.now()
+            start_time = datetime.now()
 
             while True:
                 response = get_vws_target(
@@ -131,11 +131,11 @@ class TestProcessingTime:
 
                 status = response.json()['status']
                 if status != TargetStatuses.PROCESSING.value:
-                    elapsed_time = datetime.datetime.now() - start_time
+                    elapsed_time = datetime.now() - start_time
                     # There is a race condition in this test - if it starts to
                     # fail, maybe extend the acceptable range.
-                    assert elapsed_time < datetime.timedelta(seconds=0.55)
-                    assert elapsed_time > datetime.timedelta(seconds=0.49)
+                    assert elapsed_time < timedelta(seconds=0.55)
+                    assert elapsed_time > timedelta(seconds=0.49)
                     return
 
     def test_custom(self, image_file_failed_state: io.BytesIO) -> None:
@@ -161,7 +161,7 @@ class TestProcessingTime:
 
             target_id = response.json()['target_id']
 
-            start_time = datetime.datetime.now()
+            start_time = datetime.now()
 
             while True:
                 response = get_vws_target(
@@ -171,9 +171,9 @@ class TestProcessingTime:
 
                 status = response.json()['status']
                 if status != TargetStatuses.PROCESSING.value:
-                    elapsed_time = datetime.datetime.now() - start_time
-                    assert elapsed_time < datetime.timedelta(seconds=0.15)
-                    assert elapsed_time > datetime.timedelta(seconds=0.09)
+                    elapsed_time = datetime.now() - start_time
+                    assert elapsed_time < timedelta(seconds=0.15)
+                    assert elapsed_time > timedelta(seconds=0.09)
                     return
 
 
@@ -255,6 +255,96 @@ class TestCustomBaseURLs:
         assert str(exc.value) == expected
 
 
+def _add_and_delete_target(
+    image: io.BytesIO,
+    vuforia_database: VuforiaDatabase,
+) -> None:
+    image_content = image.getvalue()
+    image_data_encoded = base64.b64encode(image_content).decode('ascii')
+    add_target_data = {
+        'name': 'example_name',
+        'width': 1,
+        'image': image_data_encoded,
+    }
+    response = add_target_to_vws(
+        vuforia_database=vuforia_database,
+        data=add_target_data,
+    )
+
+    target_id = response.json()['target_id']
+
+    wait_for_target_processed(
+        target_id=target_id,
+        vuforia_database=vuforia_database,
+    )
+
+    delete_target(
+        vuforia_database=vuforia_database,
+        target_id=target_id,
+    )
+
+
+def _wait_for_deletion_recognized(
+    image: io.BytesIO,
+    vuforia_database: VuforiaDatabase,
+) -> None:
+    """
+    XXX
+    """
+    image_content = image.getvalue()
+    body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
+
+    while True:
+        response = query(
+            vuforia_database=vuforia_database,
+            body=body,
+        )
+
+        try:
+            assert_query_success(response=response)
+        except AssertionError:
+            # The response text for a 500 response is not consistent.
+            # Therefore we only test for consistent features.
+            assert 'Error 500 Server Error' in response.text
+            assert 'HTTP ERROR 500' in response.text
+            assert 'Problem accessing /v1/query' in response.text
+            return
+
+        assert not response.json()['results']
+        return
+
+def _wait_for_deletion_processed(
+    image: io.BytesIO,
+    vuforia_database: VuforiaDatabase,
+) -> None:
+    _wait_for_deletion_recognized(
+        image=image,
+        vuforia_database=vuforia_database,
+    )
+
+    image_content = image.getvalue()
+    body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
+
+    while True:
+        response = query(
+            vuforia_database=vuforia_database,
+            body=body,
+        )
+
+        try:
+            assert_query_success(response=response)
+        except AssertionError:
+            # The response text for a 500 response is not consistent.
+            # Therefore we only test for consistent features.
+            assert 'Error 500 Server Error' in response.text
+            assert 'HTTP ERROR 500' in response.text
+            assert 'Problem accessing /v1/query' in response.text
+            time.sleep(0.05)
+            continue
+
+        return
+
+
 class TestCustomQueryProcessDeletionSeconds:
     """
     Tests for setting the amount of time after a target has been deleted
@@ -267,57 +357,28 @@ class TestCustomQueryProcessDeletionSeconds:
         vuforia_database: VuforiaDatabase,
     ) -> float:
         """
-        The number of seconds it takes for the query endpoint to recognize a
+        The number of seconds it takes for the query endpoint to process a
         deletion.
         """
-        image_content = high_quality_image.getvalue()
-        image_data_encoded = base64.b64encode(image_content).decode('ascii')
-        add_target_data = {
-            'name': 'example_name',
-            'width': 1,
-            'image': image_data_encoded,
-        }
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=add_target_data,
-        )
-
-        target_id = response.json()['target_id']
-
-        wait_for_target_processed(
-            target_id=target_id,
+        _add_and_delete_target(
+            image=high_quality_image,
             vuforia_database=vuforia_database,
         )
 
-        response = delete_target(
+        _wait_for_deletion_recognized(
+            image=high_quality_image,
             vuforia_database=vuforia_database,
-            target_id=target_id,
         )
 
-        time_after_delete = datetime.datetime.now()
+        time_after_deletion_recognized = datetime.now()
 
-        body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
+        _wait_for_deletion_processed(
+            image=high_quality_image,
+            vuforia_database=vuforia_database,
+        )
 
-        while True:
-            response = query(
-                vuforia_database=vuforia_database,
-                body=body,
-            )
-
-            try:
-                assert_query_success(response=response)
-            except AssertionError:
-                # The response text for a 500 response is not consistent.
-                # Therefore we only test for consistent features.
-                assert 'Error 500 Server Error' in response.text
-                assert 'HTTP ERROR 500' in response.text
-                assert 'Problem accessing /v1/query' in response.text
-                time.sleep(0.05)
-                continue
-
-            assert response.json()['results'] == []
-            time_difference = datetime.datetime.now() - time_after_delete
-            return time_difference.total_seconds()
+        time_difference = datetime.now() - time_after_deletion_recognized
+        return time_difference.total_seconds()
 
     def test_default(
         self,
