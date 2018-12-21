@@ -1623,7 +1623,6 @@ class TestDeleted:
             assert total_waited < max_wait_seconds
 
         # The deletion never takes effect immediately.
-        import pdb; pdb.set_trace()
         assert total_waited
 
     def test_deleted_inactive(
