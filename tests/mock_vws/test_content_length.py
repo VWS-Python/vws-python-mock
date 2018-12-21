@@ -1,5 +1,5 @@
 """
-XXX
+Tests for the ``Content-Length`` header.
 """
 
 from datetime import datetime, timedelta
@@ -55,7 +55,8 @@ class TestIncorrect:
 
     def test_too_small(self, endpoint: Endpoint) -> None:
         """
-        XXX
+        An ``UNAUTHORIZED`` response is given if the given content length is
+        too small.
         """
         endpoint_headers = dict(endpoint.prepared_request.headers)
         if not endpoint_headers.get('Content-Type'):
