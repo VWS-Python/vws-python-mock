@@ -283,6 +283,69 @@ def _add_and_delete_target(
         target_id=target_id,
     )
 
+
+def _wait_for_deletion_recognized(
+    high_quality_image: io.BytesIO,
+    vuforia_database: VuforiaDatabase,
+) -> None:
+    """
+    XXX
+    """
+    image_content = high_quality_image.getvalue()
+    body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
+
+    while True:
+        response = query(
+            vuforia_database=vuforia_database,
+            body=body,
+        )
+
+        try:
+            assert_query_success(response=response)
+        except AssertionError:
+            # The response text for a 500 response is not consistent.
+            # Therefore we only test for consistent features.
+            assert 'Error 500 Server Error' in response.text
+            assert 'HTTP ERROR 500' in response.text
+            assert 'Problem accessing /v1/query' in response.text
+            return
+
+        if not response.json()['results']:
+            return
+
+        time.sleep(0.05)
+
+def _wait_for_deletion_processed(
+    high_quality_image: io.BytesIO,
+    vuforia_database: VuforiaDatabase,
+) -> None:
+    _wait_for_deletion_recognized(
+        image=high_quality_image,
+        vuforia_database=vuforia_database,
+    )
+
+    image_content = high_quality_image.getvalue()
+    body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
+
+    while True:
+        response = query(
+            vuforia_database=vuforia_database,
+            body=body,
+        )
+
+        try:
+            assert_query_success(response=response)
+        except AssertionError:
+            # The response text for a 500 response is not consistent.
+            # Therefore we only test for consistent features.
+            assert 'Error 500 Server Error' in response.text
+            assert 'HTTP ERROR 500' in response.text
+            assert 'Problem accessing /v1/query' in response.text
+            time.sleep(0.05)
+            continue
+
+        return
+
 class TestCustomQueryRecognizesDeletionSeconds:
     pass
 
@@ -298,7 +361,7 @@ class TestCustomQueryProcessDeletionSeconds:
         vuforia_database: VuforiaDatabase,
     ) -> float:
         """
-        The number of seconds it takes for the query endpoint to recognize a
+        The number of seconds it takes for the query endpoint to process a
         deletion.
         """
         _add_and_delete_target(
@@ -306,31 +369,20 @@ class TestCustomQueryProcessDeletionSeconds:
             vuforia_database=vuforia_database,
         )
 
-        time_after_delete = datetime.datetime.now()
+        _wait_for_deletion_recognized(
+            image=high_quality_image,
+            vuforia_database=vuforia_database,
+        )
 
-        image_content = high_quality_image.getvalue()
-        body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
+        time_after_deletion_recognized = datetime.datetime.now()
 
-        while True:
-            response = query(
-                vuforia_database=vuforia_database,
-                body=body,
-            )
+        _wait_for_deletion_processed(
+            image=high_quality_image,
+            vuforia_database=vuforia_database,
+        )
 
-            try:
-                assert_query_success(response=response)
-            except AssertionError:
-                # The response text for a 500 response is not consistent.
-                # Therefore we only test for consistent features.
-                assert 'Error 500 Server Error' in response.text
-                assert 'HTTP ERROR 500' in response.text
-                assert 'Problem accessing /v1/query' in response.text
-                time.sleep(0.05)
-                continue
-
-            assert response.json()['results'] == []
-            time_difference = datetime.datetime.now() - time_after_delete
-            return time_difference.total_seconds()
+        time_difference = datetime.datetime.now() - time_after_delete
+        return time_difference.total_seconds()
 
     def test_default(
         self,
