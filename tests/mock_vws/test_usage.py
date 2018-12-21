@@ -360,6 +360,59 @@ def _wait_for_deletion_processed(
         return
 
 
+class TestCustomQueryRecognizesDeletionSeconds:
+    """
+    Tests for setting the amount of time after a target has been deleted
+    until it is not recognized by the query endpoint.
+    """
+
+    def _recognize_deletion_seconds(
+        self,
+        high_quality_image: io.BytesIO,
+        vuforia_database: VuforiaDatabase,
+    ) -> float:
+        """
+        The number of seconds it takes for the query endpoint to recognize a
+        deletion.
+        """
+        _add_and_delete_target(
+            image=high_quality_image,
+            vuforia_database=vuforia_database,
+        )
+
+        time_after_deletion = datetime.now()
+
+        _wait_for_deletion_recognized(
+            image=high_quality_image,
+            vuforia_database=vuforia_database,
+        )
+
+        time_difference = datetime.now() - time_after_deletion
+        return time_difference.total_seconds()
+
+    def test_default(
+        self,
+        high_quality_image: io.BytesIO,
+    ) -> None:
+        """
+        By default it takes zero seconds for the Query API on the mock to
+        recognize that a target has been deleted.
+
+        The real Query API takes between zero and two seconds.
+        See ``test_query`` for more information.
+        """
+        database = VuforiaDatabase()
+        with MockVWS() as mock:
+            mock.add_database(database=database)
+            recognize_deletion_seconds = self._recognize_deletion_seconds(
+                high_quality_image=high_quality_image,
+                vuforia_database=database,
+            )
+
+        expected = 0
+        assert abs(expected - recognize_deletion_seconds) < 0.1
+
+
 class TestCustomQueryProcessDeletionSeconds:
     """
     Tests for setting the amount of time after a target has been deleted
