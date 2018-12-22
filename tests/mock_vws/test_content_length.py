@@ -37,7 +37,7 @@ class TestIncorrect:
         if not endpoint_headers.get('Content-Type'):
             return
 
-        content_length = str(len(endpoint.prepared_request.body) + 1)
+        content_length = str(int(endpoint_headers['Content-Length']) + 1)
         headers = {**endpoint_headers, 'Content-Length': content_length}
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
@@ -62,7 +62,7 @@ class TestIncorrect:
         if not endpoint_headers.get('Content-Type'):
             return
 
-        content_length = str(len(endpoint.prepared_request.body) - 1)
+        content_length = str(int(endpoint_headers['Content-Length']) + 1)
         headers = {**endpoint_headers, 'Content-Length': content_length}
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
