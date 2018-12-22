@@ -25,7 +25,7 @@ from tests.mock_vws.utils.authorization import (
 @pytest.mark.usefixtures('verify_mock_vuforia')
 class TestIncorrect:
     """
-    XXX
+    Tests for the ``Content-Length`` header set incorrectly.
     """
 
     def test_too_large(self, endpoint: Endpoint) -> None:
