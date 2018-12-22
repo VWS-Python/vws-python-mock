@@ -74,7 +74,7 @@ def _add_target(
         data=content,
     )
 
-    prepared_request = request.prepare()  # type: ignore  # type: ignore
+    prepared_request = request.prepare()  # type: ignore
 
     return Endpoint(
         successful_headers_status_code=codes.CREATED,
