@@ -412,6 +412,24 @@ class TestCustomQueryRecognizesDeletionSeconds:
         expected = 0.2
         assert abs(expected - recognize_deletion_seconds) < 0.1
 
+    def test_with_no_processing_time(
+        self,
+        high_quality_image: io.BytesIO,
+    ) -> None:
+        """
+        This exercises some otherwised untouched code.
+        """
+        database = VuforiaDatabase()
+        with MockVWS(query_processes_deletion_seconds=0) as mock:
+            mock.add_database(database=database)
+            recognize_deletion_seconds = self._recognize_deletion_seconds(
+                high_quality_image=high_quality_image,
+                vuforia_database=database,
+            )
+
+        expected = 0.2
+        assert abs(expected - recognize_deletion_seconds) < 0.1
+
     def test_custom(
         self,
         high_quality_image: io.BytesIO,
