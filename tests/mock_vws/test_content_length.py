@@ -13,7 +13,9 @@ from requests.structures import CaseInsensitiveDict
 from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import (
+    assert_query_success,
     assert_vws_failure,
+    assert_vws_response,
     assert_vwq_failure,
 )
 from tests.mock_vws.utils.authorization import (
@@ -32,6 +34,7 @@ class TestIncorrect:
     ``requests`` - https://github.com/jamielennox/requests-mock/issues/80.
     """
 
+    @pytest.mark.parametrize('content_length': ['not an integer', '0.4'])
     def test_not_integer(self, endpoint: Endpoint) -> None:
         """
         XXX
@@ -40,9 +43,7 @@ class TestIncorrect:
         if not endpoint_headers.get('Content-Type'):
             return
 
-        content_length = 'not an integer'
         headers = {**endpoint_headers, 'Content-Length': content_length}
-
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
         response = session.send(  # type: ignore
