@@ -43,6 +43,9 @@ from ._query_validators.auth_validators import (
     validate_authorization,
     validate_client_key_exists,
 )
+from ._services_validators.content_length_validators import (
+    validate_content_length_header,
+)
 from ._query_validators.date_validators import (
     validate_date_format,
     validate_date_header_given,
@@ -110,6 +113,7 @@ def route(
             validate_auth_header_number_of_parts,
             validate_auth_header_exists,
             set_content_length_header,
+            validate_content_length_header,
         ]
 
         for decorator in decorators:
