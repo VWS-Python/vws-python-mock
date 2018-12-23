@@ -40,7 +40,7 @@ def update_changelog(version: str) -> None:
     changelog_contents = changelog.read_text()
     new_changelog_contents = changelog_contents.replace(
         'Next\n----',
-        f'Next\n----\n\n{version}\n------------'
+        f'Next\n----\n\n{version}\n------------',
     )
     changelog.write_text(new_changelog_contents)
 
