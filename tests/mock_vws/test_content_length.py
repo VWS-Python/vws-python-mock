@@ -27,7 +27,8 @@ class TestIncorrect:
         content_length: str,
     ) -> None:
         """
-        XXX
+        A ``BAD_REQUEST`` error is given when the given ``Content-Length`` is
+        not an integer.
         """
         endpoint_headers = dict(endpoint.prepared_request.headers)
         if not endpoint_headers.get('Content-Type'):
