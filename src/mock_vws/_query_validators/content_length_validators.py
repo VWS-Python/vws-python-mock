@@ -45,13 +45,14 @@ def validate_content_length_header(
         context.headers = {'Connection': 'Close'}
         return ''
 
+    body_length = len(request.body if request.body else '')
     given_content_length_value = int(given_content_length)
-    if given_content_length_value > len(request.body):
+    if given_content_length_value > body_length:
         context.status_code = codes.GATEWAY_TIMEOUT
         context.headers = {'Connection': 'keep-alive'}
         return ''
 
-    if given_content_length_value < len(request.body):
+    if given_content_length_value < body_length:
         context.status_code = codes.UNAUTHORIZED
         context.headers['WWW-Authenticate'] = 'VWS'
         body = {
