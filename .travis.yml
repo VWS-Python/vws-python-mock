@@ -11,6 +11,7 @@ env:
   - CI_PATTERN=test_query.py
   - CI_PATTERN=test_add_target.py
   - CI_PATTERN=test_authorization_header.py
+  - CI_PATTERN=test_content_length.py
   - CI_PATTERN=test_database_summary.py
   - CI_PATTERN=test_date_header.py::TestFormat
   - CI_PATTERN=test_date_header.py::TestMissing

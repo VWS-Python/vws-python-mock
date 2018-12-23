@@ -230,8 +230,8 @@ def route(
             validate_access_key_exists,
             validate_auth_header_has_signature,
             validate_auth_header_exists,
-            set_content_length_header,
             validate_content_length_header,
+            set_content_length_header,
             update_request_count,
         ]
 
