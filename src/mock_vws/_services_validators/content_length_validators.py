@@ -29,4 +29,7 @@ def validate_content_length_header(
         The result of calling the endpoint.
     """
     request, context = args
+    given_content_length = request.headers.get('Content-Length')
+    if not given_content_length:
+        return wrapped(*args, **kwargs)
     return wrapped(*args, **kwargs)

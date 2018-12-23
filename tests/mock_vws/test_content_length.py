@@ -32,6 +32,30 @@ class TestIncorrect:
     ``requests`` - https://github.com/jamielennox/requests-mock/issues/80.
     """
 
+    def test_not_integer(self, endpoint: Endpoint) -> None:
+        """
+        XXX
+        """
+        endpoint_headers = dict(endpoint.prepared_request.headers)
+        if not endpoint_headers.get('Content-Type'):
+            return
+
+        content_length = 'not an integer'
+        headers = {**endpoint_headers, 'Content-Length': content_length}
+
+        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        session = requests.Session()
+        response = session.send(  # type: ignore
+            request=endpoint.prepared_request,
+        )
+
+        assert response.text == ''
+        assert response.headers == {
+            'Content-Length': '0',
+            'Connection': 'Close',
+        }
+        assert response.status_code == codes.BAD_REQUEST
+
     def test_too_large(self, endpoint: Endpoint) -> None:
         """
         A ``GATEWAY_TIMEOUT`` is given if the given content length is too
