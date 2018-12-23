@@ -49,9 +49,16 @@ lint:
 		--exclude src/mock_vws/_version.py \
 		.
 
+# Fix some linting errors.
 .PHONY: fix-lint
-fix-lint: fix-yapf autoflake
+fix-lint:
+	# Move imports to a single line so that autoflake can handle them.
+	# See https://github.com/myint/autoflake/issues/8.
+	# Then later we put them back.
+	isort --force-single-line --recursive --apply
+	$(MAKE) autoflake
 	isort --recursive --apply
+	$(MAKE) fix-yapf
 
 .PHONY: update-secrets
 update-secrets:
