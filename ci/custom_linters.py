@@ -57,9 +57,7 @@ def test_ci_patterns_valid() -> None:
         pattern = 'tests/mock_vws/' + ci_pattern
         collect_only_result = pytest.main(['--collect-only', pattern])
 
-        message = '"{ci_pattern}" does not match any tests.'.format(
-            ci_pattern=ci_pattern,
-        )
+        message = f'"{ci_pattern}" does not match any tests.'
         assert collect_only_result == 0, message
 
 
@@ -82,12 +80,9 @@ def test_tests_collected_once() -> None:
 
     for test_name, patterns in tests_to_patterns.items():
         message = (
-            'Test "{test_name}" will be run once for each pattern in '
-            '{patterns}. '
+            f'Test "{test_name}" will be run once for each pattern in '
+            f'{patterns}. '
             'Each test should be run only once.'
-        ).format(
-            test_name=test_name,
-            patterns=patterns,
         )
         assert len(patterns) == 1, message
 
