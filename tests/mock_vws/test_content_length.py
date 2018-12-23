@@ -20,12 +20,7 @@ class TestIncorrect:
     ``requests`` - https://github.com/jamielennox/requests-mock/issues/80.
     """
 
-    @pytest.mark.parametrize('content_length', ['not an integer', '0.4'])
-    def test_not_integer(
-        self,
-        endpoint: Endpoint,
-        content_length: str,
-    ) -> None:
+    def test_not_integer(self, endpoint: Endpoint) -> None:
         """
         A ``BAD_REQUEST`` error is given when the given ``Content-Length`` is
         not an integer.
@@ -34,6 +29,7 @@ class TestIncorrect:
         if not endpoint_headers.get('Content-Type'):
             return
 
+        content_length = '0.4'
         headers = {**endpoint_headers, 'Content-Length': content_length}
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
