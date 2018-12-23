@@ -5,6 +5,7 @@ Content-Length header validators to use in the mock.
 from typing import Any, Callable, Dict, Tuple
 
 import wrapt
+from requests import codes
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
@@ -32,4 +33,12 @@ def validate_content_length_header(
     given_content_length = request.headers.get('Content-Length')
     if not given_content_length:
         return wrapped(*args, **kwargs)
+
+    try:
+        int(given_content_length)
+    except (TypeError, ValueError):
+        context.status_code = codes.BAD_REQUEST
+        context.headers = {'Connection': 'Close'}
+        return ''
+
     return wrapped(*args, **kwargs)
