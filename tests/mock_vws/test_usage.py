@@ -417,7 +417,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
         high_quality_image: io.BytesIO,
     ) -> None:
         """
-        This exercises some otherwised untouched code.
+        This exercises some otherwise untouched code.
         """
         database = VuforiaDatabase()
         with MockVWS(query_processes_deletion_seconds=0) as mock:
