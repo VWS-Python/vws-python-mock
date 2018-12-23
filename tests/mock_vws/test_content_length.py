@@ -34,8 +34,12 @@ class TestIncorrect:
     ``requests`` - https://github.com/jamielennox/requests-mock/issues/80.
     """
 
-    @pytest.mark.parametrize('content_length': ['not an integer', '0.4'])
-    def test_not_integer(self, endpoint: Endpoint) -> None:
+    @pytest.mark.parametrize('content_length', ['not an integer', '0.4'])
+    def test_not_integer(
+        self,
+        endpoint: Endpoint,
+        content_length: str,
+    ) -> None:
         """
         XXX
         """
