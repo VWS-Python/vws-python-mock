@@ -43,9 +43,6 @@ from ._query_validators.auth_validators import (
     validate_authorization,
     validate_client_key_exists,
 )
-from ._services_validators.content_length_validators import (
-    validate_content_length_header,
-)
 from ._query_validators.date_validators import (
     validate_date_format,
     validate_date_header_given,
@@ -56,6 +53,9 @@ from ._query_validators.image_validators import (
     validate_image_file_contents,
     validate_image_file_size,
     validate_image_format,
+)
+from ._services_validators.content_length_validators import (
+    validate_content_length_header,
 )
 
 ROUTES = set([])
