@@ -28,7 +28,7 @@ setup(
     license='MIT',
     packages=find_packages(where='src'),
     zip_safe=False,
-    url='http://vws-python-mock.readthedocs.io',
+    url='https://vws-python-mock.readthedocs.io',
     keywords='vuforia mock fake client',
     package_dir={'': 'src'},
     install_requires=INSTALL_REQUIRES,
