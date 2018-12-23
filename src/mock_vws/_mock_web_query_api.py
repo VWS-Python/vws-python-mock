@@ -112,8 +112,8 @@ def route(
             validate_auth_header_has_signature,
             validate_auth_header_number_of_parts,
             validate_auth_header_exists,
-            set_content_length_header,
             validate_content_length_header,
+            set_content_length_header,
         ]
 
         for decorator in decorators:
