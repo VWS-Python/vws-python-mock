@@ -2,6 +2,7 @@
 Tests for the ``Content-Length`` header.
 """
 
+<<<<<<< HEAD
 from datetime import datetime, timedelta
 from urllib.parse import urlparse
 
@@ -22,6 +23,7 @@ from tests.mock_vws.utils.authorization import (
     authorization_header,
     rfc_1123_date,
 )
+from tests.mock_vws.utils import Endpoint
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -34,19 +36,16 @@ class TestIncorrect:
     ``requests`` - https://github.com/jamielennox/requests-mock/issues/80.
     """
 
-    @pytest.mark.parametrize('content_length', ['not an integer', '0.4'])
-    def test_not_integer(
-        self,
-        endpoint: Endpoint,
-        content_length: str,
-    ) -> None:
+    def test_not_integer(self, endpoint: Endpoint) -> None:
         """
-        XXX
+        A ``BAD_REQUEST`` error is given when the given ``Content-Length`` is
+        not an integer.
         """
         endpoint_headers = dict(endpoint.prepared_request.headers)
         if not endpoint_headers.get('Content-Type'):
             return
 
+        content_length = '0.4'
         headers = {**endpoint_headers, 'Content-Length': content_length}
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()

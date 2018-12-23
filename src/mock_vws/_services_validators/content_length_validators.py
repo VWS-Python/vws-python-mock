@@ -36,7 +36,7 @@ def validate_content_length_header(
 
     try:
         int(given_content_length)
-    except (TypeError, ValueError):
+    except ValueError:
         context.status_code = codes.BAD_REQUEST
         context.headers = {'Connection': 'Close'}
         return ''
