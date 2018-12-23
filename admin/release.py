@@ -29,7 +29,7 @@ def get_version() -> str:
         item for item in tag_labels if item.startswith(date_str)
     ]
     micro = int(len(today_tag_labels))
-    return '{date}.{micro}'.format(date=date_str, micro=micro)
+    return f'{date_str}.{micro}'
 
 
 def update_changelog(version: str) -> None:
@@ -40,7 +40,7 @@ def update_changelog(version: str) -> None:
     changelog_contents = changelog.read_text()
     new_changelog_contents = changelog_contents.replace(
         'Next\n----',
-        'Next\n----\n\n{version}\n------------'.format(version=version),
+        f'Next\n----\n\n{version}\n------------',
     )
     changelog.write_text(new_changelog_contents)
 
