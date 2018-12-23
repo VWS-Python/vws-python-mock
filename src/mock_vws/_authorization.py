@@ -13,7 +13,7 @@ def _compute_hmac_base64(key: bytes, data: bytes) -> bytes:
     return base64.b64encode(s=hashed.digest())
 
 
-def _authorization_header(  # pylint: disable=too-many-arguments
+def authorization_header(  # pylint: disable=too-many-arguments
     access_key: str,
     secret_key: str,
     method: str,

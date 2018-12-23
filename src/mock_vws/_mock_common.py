@@ -21,6 +21,7 @@ import wrapt
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
+from mock_vws._authorization import authorization_header
 from mock_vws.database import VuforiaDatabase
 
 
@@ -132,7 +133,7 @@ def get_database_matching_client_keys(
     auth_header = request.headers.get('Authorization')
 
     for database in databases:
-        expected_authorization_header = _authorization_header(
+        expected_authorization_header = authorization_header(
             access_key=database.client_access_key,
             secret_key=database.client_secret_key,
             method=request.method,
@@ -163,7 +164,7 @@ def get_database_matching_server_keys(
     auth_header = request.headers.get('Authorization')
 
     for database in databases:
-        expected_authorization_header = _authorization_header(
+        expected_authorization_header = authorization_header(
             access_key=database.server_access_key,
             secret_key=database.server_secret_key,
             method=request.method,
