@@ -129,7 +129,7 @@ def _compute_hmac_base64(key: bytes, data: bytes) -> bytes:
     return base64.b64encode(s=hashed.digest())
 
 
-def authorization_header(  # pylint: disable=too-many-arguments
+def _authorization_header(  # pylint: disable=too-many-arguments
     access_key: str,
     secret_key: str,
     method: str,
@@ -193,7 +193,7 @@ def get_database_matching_client_keys(
     auth_header = request.headers.get('Authorization')
 
     for database in databases:
-        expected_authorization_header = authorization_header(
+        expected_authorization_header = _authorization_header(
             access_key=database.client_access_key,
             secret_key=database.client_secret_key,
             method=request.method,
@@ -224,7 +224,7 @@ def get_database_matching_server_keys(
     auth_header = request.headers.get('Authorization')
 
     for database in databases:
-        expected_authorization_header = authorization_header(
+        expected_authorization_header = _authorization_header(
             access_key=database.server_access_key,
             secret_key=database.server_secret_key,
             method=request.method,
