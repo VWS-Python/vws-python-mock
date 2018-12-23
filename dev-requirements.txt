@@ -23,7 +23,7 @@ pyroma==2.4  # Packaging best practices checker
 pytest-cov==2.6.0  # Measure code coverage
 pytest-envfiles==0.1.0  # Use files for environment variables for tests
 pytest==4.0.2  # Test runners
-sphinx-autodoc-typehints==1.5.2
+sphinx-autodoc-typehints==1.6.0
 sphinxcontrib-spelling==4.2.0
 timeout-decorator==0.4.1  # Decorate functions to time out.
 twine==1.12.1
