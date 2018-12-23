@@ -2,12 +2,16 @@
 Content-Length header validators to use in the mock.
 """
 
+import uuid
 from typing import Any, Callable, Dict, Tuple
 
 import wrapt
 from requests import codes
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
+
+from .._constants import ResultCodes
+from .._mock_common import json_dump
 
 
 @wrapt.decorator
@@ -40,5 +44,19 @@ def validate_content_length_header(
         context.status_code = codes.BAD_REQUEST
         context.headers = {'Connection': 'Close'}
         return ''
+
+    given_content_length_value = int(given_content_length)
+    if given_content_length_value > len(request.body):
+        context.status_code = codes.GATEWAY_TIMEOUT
+        context.headers = {'Connection': 'keep-alive'}
+        return ''
+
+    if given_content_length_value < len(request.body):
+        context.status_code = codes.UNAUTHORIZED
+        body = {
+            'transaction_id': uuid.uuid4().hex,
+            'result_code': ResultCodes.AUTHENTICATION_FAILURE.value,
+        }
+        return json_dump(body)
 
     return wrapped(*args, **kwargs)
