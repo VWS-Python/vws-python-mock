@@ -44,6 +44,9 @@ from ._services_validators.auth_validators import (
     validate_auth_header_has_signature,
     validate_authorization,
 )
+from ._services_validators.content_length_validators import (
+    validate_content_length_header,
+)
 from ._services_validators.content_type_validators import (
     validate_content_type_header_given,
 )
@@ -228,7 +231,7 @@ def route(
             validate_auth_header_has_signature,
             validate_auth_header_exists,
             set_content_length_header,
-            # validate_content_length_header,
+            validate_content_length_header,
             update_request_count,
         ]
 
