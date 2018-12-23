@@ -12,7 +12,7 @@ from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
 from .._constants import ResultCodes
-from .._mock_common import get_database_matching_client_keys
+from .._database_matchers import get_database_matching_client_keys
 
 
 @wrapt.decorator

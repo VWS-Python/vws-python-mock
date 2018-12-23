@@ -19,9 +19,9 @@ from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
 from mock_vws._constants import ResultCodes, TargetStatuses
+from mock_vws._database_matchers import get_database_matching_client_keys
 from mock_vws._mock_common import (
     Route,
-    get_database_matching_client_keys,
     json_dump,
     parse_multipart,
     set_content_length_header,

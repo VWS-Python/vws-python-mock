@@ -5,24 +5,11 @@ Common utilities for creating mock routes.
 import cgi
 import io
 import json
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Mapping,
-    Optional,
-    Tuple,
-    Union,
-)
+from typing import Any, Callable, Dict, List, Mapping, Tuple, Union
 
 import wrapt
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
-
-from mock_vws._authorization import authorization_header
-from mock_vws.database import VuforiaDatabase
 
 
 class Route:
@@ -115,65 +102,3 @@ def parse_multipart(  # pylint: disable=invalid-name
     }
 
     return cgi.parse_multipart(fp=fp, pdict=pdict)
-
-
-def get_database_matching_client_keys(
-    request: _RequestObjectProxy,
-    databases: Iterable[VuforiaDatabase],
-) -> Optional[VuforiaDatabase]:
-    """
-    Return which, if any, of the given databases is being accessed by the given
-    client request.
-
-    Args:
-        request: A request made to the query API.
-        databases: A request made to the query API.
-    """
-    content_type = request.headers.get('Content-Type', '').split(';')[0]
-    auth_header = request.headers.get('Authorization')
-
-    for database in databases:
-        expected_authorization_header = authorization_header(
-            access_key=database.client_access_key,
-            secret_key=database.client_secret_key,
-            method=request.method,
-            content=request.body or b'',
-            content_type=content_type,
-            date=request.headers.get('Date', ''),
-            request_path=request.path,
-        )
-
-        if auth_header == expected_authorization_header:
-            return database
-    return None
-
-
-def get_database_matching_server_keys(
-    request: _RequestObjectProxy,
-    databases: Iterable[VuforiaDatabase],
-) -> Optional[VuforiaDatabase]:
-    """
-    Return which, if any, of the given databases is being accessed by the given
-    server request.
-
-    Args:
-        request: A request made to the services API.
-        databases: A request made to the services API.
-    """
-    content_type = request.headers.get('Content-Type', '').split(';')[0]
-    auth_header = request.headers.get('Authorization')
-
-    for database in databases:
-        expected_authorization_header = authorization_header(
-            access_key=database.server_access_key,
-            secret_key=database.server_secret_key,
-            method=request.method,
-            content=request.body or b'',
-            content_type=content_type,
-            date=request.headers.get('Date', ''),
-            request_path=request.path,
-        )
-
-        if auth_header == expected_authorization_header:
-            return database
-    return None

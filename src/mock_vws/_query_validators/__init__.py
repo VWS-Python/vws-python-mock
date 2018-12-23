@@ -16,7 +16,8 @@ from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
 
 from .._constants import ResultCodes
-from .._mock_common import get_database_matching_client_keys, parse_multipart
+from .._database_matchers import get_database_matching_client_keys
+from .._mock_common import parse_multipart
 
 
 @wrapt.decorator
