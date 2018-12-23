@@ -43,7 +43,7 @@ def request_unmocked_address() -> None:
     sock.bind(('', 0))
     port = sock.getsockname()[1]
     sock.close()
-    address = 'http://localhost:{free_port}'.format(free_port=port)
+    address = f'http://localhost:{port}'
     requests.get(address)
 
 
@@ -417,7 +417,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
         high_quality_image: io.BytesIO,
     ) -> None:
         """
-        This exercises some otherwised untouched code.
+        This exercises some otherwise untouched code.
         """
         database = VuforiaDatabase()
         with MockVWS(query_processes_deletion_seconds=0) as mock:
