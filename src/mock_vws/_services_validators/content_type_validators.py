@@ -1,5 +1,5 @@
 """
-Authorization header validators to use in the mock.
+Content-Type header validators to use in the mock.
 """
 
 import uuid
