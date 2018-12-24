@@ -11,7 +11,7 @@ Speed and summary accuracy
 The mock responds much more quickly than the real Vuforia Web Services.
 
 Targets in the mock are set to 'processing' for half a second by default.
-This is customizable, with the ``processing_time_seconds`` parameter.
+This is customizable, with the :paramref:`~mock_vws.MockVWS.processing_time_seconds` parameter.
 In the real Vuforia Web Services, the processing stage takes varying lengths of time.
 
 The database summary in the real Vuforia Web Services takes some time to account for images.
@@ -45,7 +45,7 @@ Matching deleted targets
 Matching a target which has been deleted returns a 500 (``INTERNAL SERVER ERROR``) response within the first few seconds.
 This time frame is not consistent on the real Vuforia Web Services.
 On the mock, this time frame is three seconds by default.
-``MockVWS`` takes a parameter ``query_recognizes_deletion_seconds`` to change this.
+:py:class:`~mock_vws.MockVWS` takes a parameter :paramref:`~mock_vws.MockVWS.query_processes_deletion_seconds` to change this.
 
 Accepted date formats for the Query API
 ---------------------------------------
