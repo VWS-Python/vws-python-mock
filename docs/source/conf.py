@@ -18,6 +18,7 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.napoleon',
     'sphinx_autodoc_typehints',
+    'sphinx_paramlinks',
     'sphinxcontrib.spelling',
 ]
 
