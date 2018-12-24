@@ -9,6 +9,7 @@ import uuid
 
 import pytest
 import pytz
+from _pytest.fixtures import SubRequest
 from requests import codes
 
 from mock_vws._constants import ResultCodes, TargetStatuses
@@ -107,16 +108,36 @@ class TestTargetSummary:
         assert response.json()['current_month_recos'] == 0
         assert response.json()['previous_month_recos'] == 0
 
+    @pytest.mark.parametrize(
+        ['image_fixture_name', 'expected_status'],
+        [
+            ('high_quality_image', TargetStatuses.SUCCESS),
+            ('image_file_failed_state', TargetStatuses.FAILED),
+        ],
+    )
     def test_after_processing(
         self,
         vuforia_database: VuforiaDatabase,
-        image_file_failed_state: io.BytesIO,
+        request: SubRequest,
+        image_fixture_name: str,
+        expected_status: TargetStatuses,
     ) -> None:
         """
         After processing is completed, the tracking rating is in the range of
         0 to 5.
+
+        The documentation says:
+
+        > Note: tracking_rating and reco_rating are provided only when
+        > status = success.
+
+        However, this shows that ``tracking_rating`` is given when the status
+        is not success.
+        It also shows that ``reco_rating`` is not provided even when the status
+        is success.
         """
-        image_data = image_file_failed_state.read()
+        image_file = request.getfixturevalue(image_fixture_name)
+        image_data = image_file.read()
         image_data_encoded = base64.b64encode(image_data).decode('ascii')
 
         target_response = add_target_to_vws(
@@ -147,11 +168,27 @@ class TestTargetSummary:
             target_id=target_id,
         )
 
+        expected_keys = {
+            'status',
+            'result_code',
+            'transaction_id',
+            'database_name',
+            'target_name',
+            'upload_date',
+            'active_flag',
+            'tracking_rating',
+            'total_recos',
+            'current_month_recos',
+            'previous_month_recos',
+        }
+
+        assert response.json().keys() == expected_keys
+
         target_record = get_target_response.json()['target_record']
         tracking_rating = target_record['tracking_rating']
         assert response.json()['tracking_rating'] == tracking_rating
         assert response.json()['tracking_rating'] in range(6)
-        assert response.json()['status'] == TargetStatuses.FAILED.value
+        assert response.json()['status'] == expected_status.value
         assert response.json()['total_recos'] == 0
         assert response.json()['current_month_recos'] == 0
         assert response.json()['previous_month_recos'] == 0
