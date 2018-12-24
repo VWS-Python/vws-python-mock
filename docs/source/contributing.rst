@@ -161,7 +161,7 @@ However, JPEG images up to 2MiB are accepted.
 
 The ``request_count`` in a database summary is always ``0``.
 
-The documentation for the target summary report says "Note: tracking_rating and reco_rating are provided only when status = success.".
+The documentation for the target summary report says "Note: tracking_rating and ``reco_rating`` are provided only when status = success.".
 However, ``reco_rating`` is never provided and ``tracking_rating`` is provided even when the status is "failed".
 
 .. _How To Perform an Image Recognition Query: https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query
