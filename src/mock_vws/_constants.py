@@ -24,6 +24,9 @@ class ResultCodes(Enum):
     BAD_IMAGE = 'BadImage'
     IMAGE_TOO_LARGE = 'ImageTooLarge'
     METADATA_TOO_LARGE = 'MetadataTooLarge'
+    # The documentation says "Start date is after the end date" but, at the
+    # time of writing, I do not know how to trigger that, therefore this is not
+    # tested.
     DATE_RANGE_ERROR = 'DateRangeError'
     FAIL = 'Fail'
     TARGET_STATUS_PROCESSING = 'TargetStatusProcessing'
