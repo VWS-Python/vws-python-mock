@@ -23,27 +23,38 @@ class TestIncorrect:
     XXX
     """
 
-    def test_not_integer(self, endpoint: Endpoint) -> None:
+    _MAX_HEADER_LENGTH = 8332
+
+    def _response_for_request_with_given_header_length(
+        header_length: int,
+    ) -> Response:
         """
         XXX
         """
         endpoint_headers = dict(endpoint.prepared_request.headers)
-        max_header_length = 8333
         headers = {**endpoint_headers, 'extra_key': ''}
-        header_length = len(str(headers))
-        header_length_to_add = max_header_length - header_length
-        extra_key_value = header_length_to_add * '0'
-        headers['extra_key'] = 'a' * header_length_to_add
-        # 8183 not too large
-        # 8184 too large
-
-        # Max header length = 8333
-        # headers = {**endpoint_headers, 'extra': 'a' * 8184}
-        print(len(str(headers)))
+        assert header_length >= len(str(headers))
+        header_length_to_add = max_header_length - len(str(headers))
+        headers['extra_key'] = '0' * header_length_to_add
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
         response = session.send(  # type: ignore
             request=endpoint.prepared_request,
+        )
+        return response
+
+    def test_maximum(self, endpoint: Endpoint) -> None:
+        response = _response_for_request_with_given_header_length(
+            header_length=self._MAX_HEADER_LENGTH,
+        )
+        assert response.status_code == endpoint.successful_headers_status_code
+
+    def test_too_large(self, endpoint: Endpoint) -> None:
+        """
+        XXX
+        """
+        response = _response_for_request_with_given_header_length(
+            header_length=_MAX_HEADER_LENGTH + 1,
         )
 
         assert response.status_code == endpoint.successful_headers_status_code
