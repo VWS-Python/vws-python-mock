@@ -72,4 +72,4 @@ NGINX Error cases
 
 Vuforia uses NGINX.
 This has error handling which is not duplicated in the mock.
-For example, Vuforia returns a 400 (``BAD REQUEST``) response if a header or cookie is given which is larger than 8 kibibytes.
+For example, Vuforia returns a 400 (``BAD REQUEST``) response if a header or cookie is given which is larger than 8 KiB.
