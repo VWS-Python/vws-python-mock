@@ -66,3 +66,10 @@ Database summary quotas
 -----------------------
 
 The database summary endpoint returns quotas which match the quotas given for a free license.
+
+NGINX Error cases
+-----------------
+
+Vuforia uses NGINX.
+This has error handling which is not duplicated in the mock.
+For example, Vuforia returns a 400 (``BAD REQUEST``) response if a header or cookie is given which is larger than 8 KiB.
