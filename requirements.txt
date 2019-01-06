@@ -1,4 +1,4 @@
-pillow==5.4.0  # Image library.
+pillow==5.4.1  # Image library.
 pytz==2018.7
 requests-mock==1.5.2  # Mock `requests`.
 requests==2.21.0
