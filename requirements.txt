@@ -1,5 +1,5 @@
 pillow==5.4.1  # Image library.
-pytz==2018.7
+pytz==2018.9
 requests-mock==1.5.2  # Mock `requests`.
 requests==2.21.0
 wrapt==1.10.11  # Make better decorators.
