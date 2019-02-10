@@ -97,10 +97,8 @@ class TestMalformed:
 
         headers: Dict[str, Union[str, bytes]] = {
             **endpoint.prepared_request.headers,
-            'Authorization':
-            authorization_string,
-            'Date':
-            date,
+            'Authorization': authorization_string,
+            'Date': date,
         }
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
@@ -146,10 +144,8 @@ class TestMalformed:
 
         headers: Dict[str, Union[str, bytes]] = {
             **endpoint.prepared_request.headers,
-            'Authorization':
-            authorization_string,
-            'Date':
-            date,
+            'Authorization': authorization_string,
+            'Date': date,
         }
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
