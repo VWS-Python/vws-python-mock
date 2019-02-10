@@ -30,4 +30,4 @@ sphinx_paramlinks==0.3.5
 timeout-decorator==0.4.1  # Decorate functions to time out.
 twine==1.12.1
 vulture==1.0
-yapf==0.25.0  # Automatic formatting for Python
+yapf==0.26.0  # Automatic formatting for Python
