@@ -70,6 +70,7 @@ nitpick_ignore = [
     ('py:class', 'typing.Optional'),
     ('py:class', '_io.BytesIO'),
     ('py:class', 'docker.types.services.Mount'),
+    ('py:exc', 'requests.exceptions.MissingSchema'),
 ]
 
 html_show_copyright = False
