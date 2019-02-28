@@ -52,8 +52,8 @@ class MockVWS(ContextDecorator):
                 return a 500 response on a match.
 
         Raises:
-            requests.exceptions.MissingSchema: There is no schema in a
-                given URL.
+            requests.exceptions.MissingSchema: There is no schema in a given
+                URL.
         """
         super().__init__()
         self._real_http = real_http
