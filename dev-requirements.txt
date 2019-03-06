@@ -26,7 +26,7 @@ pytest-envfiles==0.1.0  # Use files for environment variables for tests
 pytest==4.3.0  # Test runners
 sphinx-autodoc-typehints==1.6.0
 sphinxcontrib-spelling==4.2.0
-sphinx_paramlinks==0.3.6
+sphinx_paramlinks==0.3.7
 timeout-decorator==0.4.1  # Decorate functions to time out.
 twine==1.13.0
 vulture==1.0
