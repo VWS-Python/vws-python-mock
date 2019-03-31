@@ -25,7 +25,7 @@ pytest-cov==2.6.1  # Measure code coverage
 pytest-envfiles==0.1.0  # Use files for environment variables for tests
 pytest==4.3.1  # Test runners
 sphinx-autodoc-typehints==1.6.0
-sphinxcontrib-spelling==4.2.0
+sphinxcontrib-spelling==4.2.1
 sphinx_paramlinks==0.3.7
 timeout-decorator==0.4.1  # Decorate functions to time out.
 twine==1.13.0
