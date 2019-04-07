@@ -11,7 +11,7 @@ flake8-commas==2.0.0  # Require silicon valley commas
 flake8-quotes==1.0.0  # Require single quotes
 flake8==3.7.7  # Lint
 freezegun==0.3.11  # Freeze time in tests
-isort==4.3.15  # Lint imports
+isort==4.3.17  # Lint imports
 keyring==18.0.0
 mypy==0.700 # Type checking
 pip_check_reqs==2.0.3
