@@ -2,4 +2,4 @@ pillow==5.4.1  # Image library.
 pytz==2018.9
 requests-mock==1.5.2  # Mock `requests`.
 requests==2.21.0
-wrapt==1.11.1  # Make better decorators.
+wrapt==1.11.2  # Make better decorators.
