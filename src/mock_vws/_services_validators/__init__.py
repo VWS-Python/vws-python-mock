@@ -353,6 +353,13 @@ def validate_keys(
             all allowed and that the mandatory keys are given.
     """
 
+    # Args here to work around https://github.com/PyCQA/pydocstyle/issues/370.
+    #
+    # Args:
+    #     wrapped: An endpoint function for `requests_mock`.
+    #     instance: The class that the endpoint function is in.
+    #     args: The arguments given to the endpoint function.
+    #     kwargs: The keyword arguments given to the endpoint function.
     @wrapt.decorator
     def wrapper(
         wrapped: Callable[..., str],
@@ -362,12 +369,6 @@ def validate_keys(
     ) -> str:
         """
         Validate the request keys given to a VWS endpoint.
-
-        Args:
-            wrapped: An endpoint function for `requests_mock`.
-            instance: The class that the endpoint function is in.
-            args: The arguments given to the endpoint function.
-            kwargs: The keyword arguments given to the endpoint function.
 
         Returns:
             The result of calling the endpoint.

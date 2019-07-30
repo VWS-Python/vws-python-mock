@@ -168,9 +168,6 @@ def route(
         """
         Register a decorated method so that it can be recognized as a route.
 
-        Args:
-            method: Method to register.
-
         Returns:
             The given `method` with multiple changes, including added
             validators.
