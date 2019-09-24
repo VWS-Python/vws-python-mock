@@ -27,6 +27,6 @@ sphinx-autodoc-typehints==1.7.0
 sphinxcontrib-spelling==4.3.0
 sphinx_paramlinks==0.3.7
 timeout-decorator==0.4.1  # Decorate functions to time out.
-twine==1.13.0
+twine==2.0.0
 vulture==1.0
 yapf==0.28.0  # Automatic formatting for Python
