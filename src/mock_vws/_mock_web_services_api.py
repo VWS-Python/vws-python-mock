@@ -162,6 +162,9 @@ def route(
         mandatory_keys: Keys required by the endpoint.
         optional_keys: Keys which are not required by the endpoint but which
             are allowed.
+
+    Returns:
+        A decorator which takes methods and makes them recognizable as routes.
     """
 
     def decorator(method: Callable[..., str]) -> Callable[..., str]:

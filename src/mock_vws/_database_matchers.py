@@ -46,6 +46,10 @@ def _authorization_header(  # pylint: disable=too-many-arguments
             `Date` header.
         request_path: The path to the endpoint which will be used in the
             request.
+
+    Returns:
+        An `Authorization` header which can be used for a request made to the
+            VWS API with the given attributes.
     """
     hashed = hashlib.md5()
     hashed.update(content)
@@ -81,6 +85,9 @@ def get_database_matching_client_keys(
     Args:
         request: A request made to the query API.
         databases: A request made to the query API.
+
+    Returns:
+        The database which is being accessed by the given client request.
     """
     content_type = request.headers.get('Content-Type', '').split(';')[0]
     auth_header = request.headers.get('Authorization')
@@ -112,6 +119,9 @@ def get_database_matching_server_keys(
     Args:
         request: A request made to the services API.
         databases: A request made to the services API.
+
+    Returns:
+        The database being accessed by the given server request.
     """
     content_type = request.headers.get('Content-Type', '').split(';')[0]
     auth_header = request.headers.get('Authorization')

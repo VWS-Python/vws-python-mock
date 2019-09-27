@@ -16,10 +16,10 @@ def _travis_ci_patterns() -> Set[str]:
     """
     travis_file = Path(__file__).parent.parent / '.travis.yml'
     travis_contents = travis_file.read_text()
-    travis_dict = yaml.load(travis_contents)
+    travis_dict = yaml.load(travis_contents, Loader=yaml.FullLoader)
     travis_matrix = travis_dict['env']['matrix']
 
-    ci_patterns = set()  # type: Set[str]
+    ci_patterns: Set[str] = set()
     for matrix_item in travis_matrix:
         key, value = matrix_item.split('=')
         assert key == 'CI_PATTERN'
@@ -35,9 +35,9 @@ def _tests_from_pattern(ci_pattern: str) -> Set[str]:
     """
     From a CI pattern, get all tests ``pytest`` would collect.
     """
-    tests = set([])  # type: Set[str]
+    tests: Set[str] = set([])
     args = ['pytest', '--collect-only', ci_pattern, '-q']
-    result = subprocess.run(args=args, stdout=subprocess.PIPE)
+    result = subprocess.run(args=args, stdout=subprocess.PIPE, check=True)
     output = result.stdout
     for line in output.splitlines():
         if line and not line.startswith(b'no tests ran in'):
