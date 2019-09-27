@@ -314,8 +314,8 @@ def validate_name_characters_in_range(
 
     Returns:
         The result of calling the endpoint.
-        An ``INTERNAL_SERVER_ERROR`` response if the name is given includes
-        characters outside of the accepted range.
+        A ``FORBIDDEN`` response if the name is given includes characters
+        outside of the accepted range.
     """
     request, context = args
 
@@ -330,10 +330,10 @@ def validate_name_characters_in_range(
     if all(ord(character) <= 65535 for character in name):
         return wrapped(*args, **kwargs)
 
-    context.status_code = codes.INTERNAL_SERVER_ERROR
+    context.status_code = codes.FORBIDDEN
     body = {
         'transaction_id': uuid.uuid4().hex,
-        'result_code': ResultCodes.FAIL.value,
+        'result_code': ResultCodes.TARGET_NAME_EXIST.value,
     }
     return json_dump(body)
 
