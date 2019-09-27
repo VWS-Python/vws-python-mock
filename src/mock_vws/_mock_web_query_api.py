@@ -72,6 +72,9 @@ def route(
         path_pattern: The end part of a URL pattern. E.g. `/targets` or
             `/targets/.+`.
         http_methods: HTTP methods that map to the route function.
+
+    Returns:
+        A decorator which takes methods and makes them recognizable as routes.
     """
 
     def decorator(method: Callable[..., str]) -> Callable[..., str]:
