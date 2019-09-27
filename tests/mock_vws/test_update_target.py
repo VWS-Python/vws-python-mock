@@ -572,7 +572,7 @@ class TestTargetName:
             ('', codes.BAD_REQUEST),
             ('a' * (_MAX_NAME_LENGTH + 1), codes.BAD_REQUEST),
             (None, codes.BAD_REQUEST),
-            (chr(_MAX_CHAR_VALUE + 1), codes.INTERNAL_SERVER_ERROR),
+            (chr(_MAX_CHAR_VALUE + 1), codes.FORBIDDEN),
             (
                 chr(_MAX_CHAR_VALUE + 1) * (_MAX_NAME_LENGTH + 1),
                 codes.BAD_REQUEST,
