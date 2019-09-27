@@ -566,16 +566,25 @@ class TestTargetName:
         assert response.json()['target_record']['name'] == name
 
     @pytest.mark.parametrize(
-        'name,status_code',
+        'name,status_code,result_code',
         [
-            (1, codes.BAD_REQUEST),
-            ('', codes.BAD_REQUEST),
-            ('a' * (_MAX_NAME_LENGTH + 1), codes.BAD_REQUEST),
-            (None, codes.BAD_REQUEST),
-            (chr(_MAX_CHAR_VALUE + 1), codes.FORBIDDEN),
+            (1, codes.BAD_REQUEST, ResultCodes.FAIL),
+            ('', codes.BAD_REQUEST, ResultCodes.FAIL),
+            (
+                'a' * (_MAX_NAME_LENGTH + 1),
+                codes.BAD_REQUEST,
+                ResultCodes.FAIL,
+            ),
+            (None, codes.BAD_REQUEST, ResultCodes.FAIL),
+            (
+                chr(_MAX_CHAR_VALUE + 1),
+                codes.FORBIDDEN,
+                ResultCodes.TARGET_NAME_EXIST,
+            ),
             (
                 chr(_MAX_CHAR_VALUE + 1) * (_MAX_NAME_LENGTH + 1),
                 codes.BAD_REQUEST,
+                ResultCodes.FAIL,
             ),
         ],
         ids=[
@@ -593,6 +602,7 @@ class TestTargetName:
         target_id: str,
         vuforia_database: VuforiaDatabase,
         status_code: int,
+        result_code: ResultCodes,
     ) -> None:
         """
         A target's name must be a string of length 0 < N < 65.
@@ -611,7 +621,7 @@ class TestTargetName:
         assert_vws_failure(
             response=response,
             status_code=status_code,
-            result_code=ResultCodes.FAIL,
+            result_code=result_code,
         )
 
     def test_existing_target_name(
