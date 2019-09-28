@@ -188,43 +188,31 @@ def route(
             mandatory_keys=mandatory_keys or set([]),
         )
 
-        # There is an undocumented difference in behavior between `/summary`
-        # and other endpoints.
-        if path_pattern == '/summary':
-            decorators = [
-                validate_authorization,
-                key_validator,
-                validate_not_invalid_json,
-                validate_date_in_range,
-                validate_date_format,
-                validate_date_header_given,
-            ]
-        else:
-            decorators = [
-                parse_target_id,
-                validate_project_state,
-                validate_authorization,
-                validate_metadata_size,
-                validate_metadata_encoding,
-                validate_metadata_type,
-                validate_active_flag,
-                validate_image_size,
-                validate_image_color_space,
-                validate_image_format,
-                validate_image_is_image,
-                validate_image_encoding,
-                validate_image_data_type,
-                validate_name_characters_in_range,
-                validate_name_length,
-                validate_name_type,
-                validate_width,
-                key_validator,
-                validate_content_type_header_given,
-                validate_date_in_range,
-                validate_date_format,
-                validate_date_header_given,
-                validate_not_invalid_json,
-            ]
+        decorators = [
+            parse_target_id,
+            validate_project_state,
+            validate_authorization,
+            validate_metadata_size,
+            validate_metadata_encoding,
+            validate_metadata_type,
+            validate_active_flag,
+            validate_image_size,
+            validate_image_color_space,
+            validate_image_format,
+            validate_image_is_image,
+            validate_image_encoding,
+            validate_image_data_type,
+            validate_name_characters_in_range,
+            validate_name_length,
+            validate_name_type,
+            validate_width,
+            key_validator,
+            validate_content_type_header_given,
+            validate_date_in_range,
+            validate_date_format,
+            validate_date_header_given,
+            validate_not_invalid_json,
+        ]
 
         common_decorators = [
             validate_access_key_exists,
