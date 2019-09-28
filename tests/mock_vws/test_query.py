@@ -1126,15 +1126,16 @@ class TestMaximumImageSize:
         assert_query_success(response=response)
         assert response.json()['results'] == []
 
-        width = height = 836
-        png_not_too_large = make_image_file(
+        width += 1
+        height += 1
+        png_too_large = make_image_file(
             file_format='PNG',
             color_space='RGB',
             width=width,
             height=height,
         )
 
-        image_content = png_not_too_large.getvalue()
+        image_content = png_too_large.getvalue()
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
         image_content_size = len(image_content)
         # We check that the image we created is just slightly larger than the
