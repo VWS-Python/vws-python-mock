@@ -28,6 +28,11 @@ from tests.mock_vws.utils.assertions import (
 
 def _assert_oops_response(response: Response) -> None:
     """
+    Assert that the response is in the format of Vuforia's "Oops, an error
+    occurred" HTML response.
+
+    Raises:
+        AssertionError: The given response is not in the expected format.
     """
     assert_valid_date_header(response=response)
     assert 'Oops, an error occurred' in response.text
