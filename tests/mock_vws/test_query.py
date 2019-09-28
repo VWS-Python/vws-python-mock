@@ -1041,6 +1041,26 @@ class TestBadImage:
         assert_query_success(response=response)
         assert response.json()['results'] == []
 
+    def test_not_image(
+        self,
+        vuforia_database: VuforiaDatabase,
+        corrupted_image_file: io.BytesIO,
+    ) -> None:
+        """
+        No error is returned when a corrupted image is given.
+        """
+        corrupted_data = corrupted_image_file.getvalue()
+
+        body = {'image': ('image.jpeg', corrupted_data, 'image/jpeg')}
+
+        response = query(
+            vuforia_database=vuforia_database,
+            body=body,
+        )
+
+        assert_query_success(response=response)
+        assert response.json()['results'] == []
+
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
 class TestMaximumImageSize:
