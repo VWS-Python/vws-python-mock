@@ -3,6 +3,7 @@ Tests for the usage of the mock.
 """
 
 import base64
+import email.utils
 import io
 import socket
 import time
@@ -10,6 +11,7 @@ from datetime import datetime, timedelta
 
 import pytest
 import requests
+from freezegun import freeze_time
 from requests.exceptions import MissingSchema
 from requests_mock.exceptions import NoMockAddress
 
@@ -545,6 +547,28 @@ class TestStates:
         Test for the representation of a ``State``.
         """
         assert repr(States.WORKING) == '<States.WORKING>'
+
+
+class TestDateHeader:
+    """
+    Tests for the date header in responses from mock routes.
+    """
+
+    def test_date_changes(self) -> None:
+        """
+        The date that the response is sent is in the response Date header.
+        """
+        new_year = 2012
+        new_time = datetime(new_year, 1, 1)
+        with MockVWS():
+            with freeze_time(new_time):
+                response = requests.get('https://vws.vuforia.com/summary')
+
+        date_response = response.headers['Date']
+        date_from_response = email.utils.parsedate(date_response)
+        assert date_from_response is not None
+        year = date_from_response[0]
+        assert year == new_year
 
 
 class TestAddDatabase:

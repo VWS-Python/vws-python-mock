@@ -2,7 +2,6 @@
 Decorators for using the mock.
 """
 
-import email.utils
 import re
 from contextlib import ContextDecorator
 from typing import Tuple, Union
@@ -136,13 +135,10 @@ class MockVWS(ContextDecorator):
         Returns:
             ``self``.
         """
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
-
         headers = {
             'Connection': 'keep-alive',
             'Content-Type': 'application/json',
             'Server': 'nginx',
-            'Date': date,
         }
 
         with Mocker(real_http=self._real_http) as mock:

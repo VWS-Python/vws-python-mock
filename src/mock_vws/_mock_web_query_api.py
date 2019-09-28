@@ -25,6 +25,7 @@ from mock_vws._mock_common import (
     json_dump,
     parse_multipart,
     set_content_length_header,
+    set_date_header,
 )
 from mock_vws.database import VuforiaDatabase
 
@@ -114,6 +115,7 @@ def route(
             validate_auth_header_exists,
             validate_content_length_header,
             set_content_length_header,
+            set_date_header,
         ]
 
         for decorator in decorators:
