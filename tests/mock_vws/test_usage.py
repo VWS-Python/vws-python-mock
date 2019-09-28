@@ -551,12 +551,12 @@ class TestStates:
 
 class TestDateHeader:
     """
-    XXX
+    Tests for the date header in responses from mock routes.
     """
 
     def test_date_changes(self) -> None:
         """
-        XXX
+        The date that the response is sent is in the response Date header.
         """
         new_year = 2012
         new_time = datetime(new_year, 1, 1)
