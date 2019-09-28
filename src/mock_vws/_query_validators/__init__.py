@@ -208,7 +208,7 @@ def validate_content_type_header(
 
     if 'boundary' not in pdict:
         context.status_code = codes.BAD_REQUEST
-        context.headers['Content-Type'] = 'text/html'
+        context.headers['Content-Type'] = 'text/html;charset=UTF-8'
         return (
             'java.io.IOException: RESTEASY007550: '
             'Unable to get boundary for multipart'
