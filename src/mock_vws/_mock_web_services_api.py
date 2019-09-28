@@ -212,9 +212,6 @@ def route(
             validate_date_format,
             validate_date_header_given,
             validate_not_invalid_json,
-        ]
-
-        common_decorators = [
             validate_access_key_exists,
             validate_auth_header_has_signature,
             validate_auth_header_exists,
@@ -223,7 +220,7 @@ def route(
             update_request_count,
         ]
 
-        for decorator in decorators + common_decorators:
+        for decorator in decorators:
             method = decorator(method)
 
         return method
