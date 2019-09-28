@@ -216,7 +216,7 @@ def validate_content_type_header(
 
     if pdict['boundary'].encode() not in request.body:
         context.status_code = codes.BAD_REQUEST
-        context.headers['Content-Type'] = 'text/html'
+        context.headers['Content-Type'] = 'text/html;charset=UTF-8'
         return (
             'java.lang.RuntimeException: RESTEASY007500: '
             'Could find no Content-Disposition header within part'
