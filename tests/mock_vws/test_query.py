@@ -1027,7 +1027,7 @@ class TestBadImage:
         corrupted_image_file: io.BytesIO,
     ) -> None:
         """
-        A "BadImage" result is returned when a corrupted image is given.
+        No error is returned when a corrupted image is given.
         """
         corrupted_data = corrupted_image_file.getvalue()
 
