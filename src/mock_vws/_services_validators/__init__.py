@@ -7,6 +7,7 @@ import binascii
 import numbers
 import uuid
 from json.decoder import JSONDecodeError
+from pathlib import Path
 from typing import Any, Callable, Dict, Set, Tuple
 
 import wrapt
@@ -329,6 +330,16 @@ def validate_name_characters_in_range(
 
     if all(ord(character) <= 65535 for character in name):
         return wrapped(*args, **kwargs)
+
+    if (request.method, request.path) == ('POST', '/targets'):
+        context.status_code = codes.INTERNAL_SERVER_ERROR
+        resources_dir = Path(__file__).parent.parent / 'resources'
+        filename = 'oops_error_occurred_response.html'
+        oops_resp_file = resources_dir / filename
+        content_type = 'text/html; charset=UTF-8'
+        context.headers['Content-Type'] = content_type
+        text = oops_resp_file.read_text()
+        return text
 
     context.status_code = codes.FORBIDDEN
     body = {

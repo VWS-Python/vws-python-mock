@@ -20,9 +20,32 @@ from tests.mock_vws.utils import (
     wait_for_target_processed,
 )
 from tests.mock_vws.utils.assertions import (
+    assert_valid_date_header,
     assert_vws_failure,
     assert_vws_response,
 )
+
+
+def _assert_oops_response(response: Response) -> None:
+    """
+    Assert that the response is in the format of Vuforia's "Oops, an error
+    occurred" HTML response.
+
+    Raises:
+        AssertionError: The given response is not in the expected format.
+    """
+    assert_valid_date_header(response=response)
+    assert 'Oops, an error occurred' in response.text
+    assert 'This exception has been logged with id' in response.text
+
+    expected_headers = {
+        'Content-Type': 'text/html; charset=UTF-8',
+        'Date': response.headers['Date'],
+        'Server': 'nginx',
+        'Content-Length': '1172',
+        'Connection': 'keep-alive',
+    }
+    assert response.headers == expected_headers
 
 
 def assert_success(response: Response) -> None:
@@ -319,6 +342,12 @@ class TestTargetName:
             vuforia_database=vuforia_database,
             data=data,
         )
+
+        assert response.status_code == status_code
+
+        if status_code == codes.INTERNAL_SERVER_ERROR:
+            _assert_oops_response(response=response)
+            return
 
         assert_vws_failure(
             response=response,
