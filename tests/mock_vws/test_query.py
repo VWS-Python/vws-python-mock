@@ -1027,7 +1027,7 @@ class TestBadImage:
         corrupted_image_file: io.BytesIO,
     ) -> None:
         """
-        A "BadImage" result is returned when a corrupted image is given.
+        No error is returned when a corrupted image is given.
         """
         corrupted_data = corrupted_image_file.getvalue()
 
@@ -1038,25 +1038,8 @@ class TestBadImage:
             body=body,
         )
 
-        assert_vwq_failure(
-            response=response,
-            status_code=codes.UNPROCESSABLE_ENTITY,
-            content_type='application/json',
-        )
-        assert response.json().keys() == {'transaction_id', 'result_code'}
-        assert_valid_transaction_id(response=response)
-        assert_valid_date_header(response=response)
-        result_code = response.json()['result_code']
-        transaction_id = response.json()['transaction_id']
-        assert result_code == ResultCodes.BAD_IMAGE.value
-        # The separators are inconsistent and we test this.
-        expected_text = (
-            '{"transaction_id": '
-            f'"{transaction_id}",'
-            f'"result_code":"{result_code}"'
-            '}'
-        )
-        assert response.text == expected_text
+        assert_query_success(response=response)
+        assert response.json()['results'] == []
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
