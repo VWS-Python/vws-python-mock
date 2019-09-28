@@ -2,6 +2,7 @@
 Input validators for the image field use in the mock query API.
 """
 
+import base64
 import cgi
 import io
 import uuid
@@ -154,3 +155,59 @@ def validate_image_format(
         f'"result_code":"{result_code}"'
         '}'
     )
+
+
+@wrapt.decorator
+def validate_image_is_image(
+    wrapped: Callable[..., str],
+    instance: Any,  # pylint: disable=unused-argument
+    args: Tuple[_RequestObjectProxy, _Context],
+    kwargs: Dict,
+) -> str:
+    """
+    Validate that the given image data is actually an image file.
+
+    Args:
+        wrapped: An endpoint function for `requests_mock`.
+        instance: The class that the endpoint function is in.
+        args: The arguments given to the endpoint function.
+        kwargs: The keyword arguments given to the endpoint function.
+
+    Returns:
+        The result of calling the endpoint.
+        An `UNPROCESSABLE_ENTITY` response if image data is given and it is not
+        an image file.
+    """
+    request, context = args
+    body_file = io.BytesIO(request.body)
+
+    _, pdict = cgi.parse_header(request.headers['Content-Type'])
+    parsed = parse_multipart(
+        fp=body_file,
+        pdict={
+            'boundary': pdict['boundary'].encode(),
+        },
+    )
+
+    [image] = parsed['image']
+
+    assert isinstance(image, bytes)
+    image_file = io.BytesIO(image)
+
+    try:
+        Image.open(image_file)
+    except OSError:
+        context.status_code = codes.UNPROCESSABLE_ENTITY
+        transaction_id = uuid.uuid4().hex
+        result_code = ResultCodes.BAD_IMAGE.value
+
+        # The response has an unusual format of separators, so we construct it
+        # manually.
+        return (
+            '{"transaction_id": '
+            f'"{transaction_id}",'
+            f'"result_code":"{result_code}"'
+            '}'
+        )
+
+    return wrapped(*args, **kwargs)
