@@ -219,7 +219,7 @@ class TestContentType:
         assert_vwq_failure(
             response=response,
             status_code=codes.BAD_REQUEST,
-            content_type='text/html',
+            content_type='text/html;charset=UTF-8',
         )
 
     def test_bogus_boundary(
