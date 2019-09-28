@@ -2,7 +2,6 @@
 Input validators for the image field use in the mock query API.
 """
 
-import base64
 import cgi
 import io
 import uuid

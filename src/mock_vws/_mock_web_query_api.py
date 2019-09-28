@@ -54,8 +54,8 @@ from ._query_validators.date_validators import (
 from ._query_validators.image_validators import (
     validate_image_field_given,
     validate_image_file_size,
-    validate_image_is_image,
     validate_image_format,
+    validate_image_is_image,
 )
 
 ROUTES = set([])
