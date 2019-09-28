@@ -547,6 +547,19 @@ class TestStates:
         assert repr(States.WORKING) == '<States.WORKING>'
 
 
+class TestDates:
+
+    def test_date_changes(self):
+        from freezegun import freeze_time
+        database = VuforiaDatabase()
+        with MockVWS() as mock:
+            new_time = datetime(2012, 1, 14, 3, 21, 34)
+            with freeze_time(new_time):
+                response = requests.get('https://vws.vuforia.com/summary')
+            import pdb; pdb.set_trace()
+            pass
+
+
 class TestAddDatabase:
     """
     Tests for adding databases to the mock.
