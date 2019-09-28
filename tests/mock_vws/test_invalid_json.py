@@ -15,6 +15,7 @@ from requests.structures import CaseInsensitiveDict
 from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import (
+    assert_valid_date_header,
     assert_vwq_failure,
     assert_vws_failure,
 )
@@ -40,9 +41,6 @@ class TestInvalidJSON:
         Giving invalid JSON to endpoints returns error responses.
         """
         date_is_skewed = not date_skew_minutes == 0
-        # This is an undocumented difference between `/summary` and other
-        # endpoints.
-        is_summary_endpoint = endpoint.prepared_request.path_url == '/summary'
         content = b'a'
         gmt = pytz.timezone('GMT')
         now = datetime.now(tz=gmt)
@@ -81,6 +79,8 @@ class TestInvalidJSON:
             endpoint.auth_header_content_type == 'application/json'
         )
 
+        assert_valid_date_header(response=response)
+
         if date_is_skewed and takes_json_data:
             # On the real implementation, we get `codes.FORBIDDEN` and
             # `REQUEST_TIME_TOO_SKEWED`.
@@ -93,22 +93,6 @@ class TestInvalidJSON:
                 response=response,
                 status_code=codes.BAD_REQUEST,
                 result_code=ResultCodes.FAIL,
-            )
-            return
-
-        if date_is_skewed and is_summary_endpoint:
-            assert_vws_failure(
-                response=response,
-                status_code=codes.FORBIDDEN,
-                result_code=ResultCodes.REQUEST_TIME_TOO_SKEWED,
-            )
-            return
-
-        if not date_is_skewed and is_summary_endpoint:
-            assert_vws_failure(
-                response=response,
-                status_code=codes.UNAUTHORIZED,
-                result_code=ResultCodes.AUTHENTICATION_FAILURE,
             )
             return
 

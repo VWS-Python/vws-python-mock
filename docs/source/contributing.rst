@@ -132,7 +132,7 @@ The ``tracking_rating`` returned by ``GET /targets/<target_id>`` can be -1.
 
 The database summary from ``GET /summary`` has multiple undocumented return fields.
 
-The database summary from ``GET /summary`` has is not immediately accurate.
+The database summary from ``GET /summary`` is not immediately accurate.
 
 Some of the `Vuforia Web Services documentation <https://library.vuforia.com/articles/Training/Image-Target-Guide>`__ states that "The size of the input images must 2 MB or less".
 However, the documentation page `How To Perform an Image Recognition Query`_ is more accurate:

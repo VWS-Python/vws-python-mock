@@ -86,16 +86,6 @@ class TestUnexpectedJSON:
             )
             return
 
-        # This is an undocumented difference between `/summary` and other
-        # endpoints.
-        if endpoint.prepared_request.path_url == '/summary':
-            assert_vws_failure(
-                response=response,
-                status_code=codes.UNAUTHORIZED,
-                result_code=ResultCodes.AUTHENTICATION_FAILURE,
-            )
-            return
-
         assert response.status_code == codes.BAD_REQUEST
         assert response.text == ''
         assert 'Content-Type' not in response.headers

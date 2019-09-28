@@ -128,9 +128,6 @@ def validate_not_invalid_json(
 
     Returns:
         The result of calling the endpoint.
-        An `UNAUTHORIZED` response if there is data given to the database
-        summary endpoint.
-        endpoint.
         A `BAD_REQUEST` response with a FAIL result code if there is invalid
         JSON given to a POST or PUT request.
         A `BAD_REQUEST` with empty text if there is data given to another
@@ -140,14 +137,6 @@ def validate_not_invalid_json(
 
     if not request.body:
         return wrapped(*args, **kwargs)
-
-    if request.path == '/summary':
-        context.status_code = codes.UNAUTHORIZED
-        body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.AUTHENTICATION_FAILURE.value,
-        }
-        return json_dump(body)
 
     if request.method not in (POST, PUT):
         context.status_code = codes.BAD_REQUEST
