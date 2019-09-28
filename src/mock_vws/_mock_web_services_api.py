@@ -22,7 +22,12 @@ from requests_mock.response import _Context
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
-from mock_vws._mock_common import Route, json_dump, set_content_length_header
+from mock_vws._mock_common import (
+    Route,
+    json_dump,
+    set_content_length_header,
+    set_date_header,
+)
 from mock_vws.database import VuforiaDatabase
 
 from ._services_validators import (
@@ -217,6 +222,7 @@ def route(
             validate_auth_header_exists,
             validate_content_length_header,
             set_content_length_header,
+            set_date_header,
             update_request_count,
         ]
 
