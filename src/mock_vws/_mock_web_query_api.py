@@ -45,7 +45,9 @@ from ._query_validators.auth_validators import (
     validate_client_key_exists,
 )
 from ._query_validators.content_length_validators import (
-    validate_content_length_header,
+    validate_content_length_header_is_int,
+    validate_content_length_header_not_too_large,
+    validate_content_length_header_not_too_small,
 )
 from ._query_validators.date_validators import (
     validate_date_format,
@@ -113,9 +115,11 @@ def route(
             validate_auth_header_has_signature,
             validate_auth_header_number_of_parts,
             validate_auth_header_exists,
-            validate_content_length_header,
-            set_content_length_header,
+            validate_content_length_header_not_too_small,
             set_date_header,
+            validate_content_length_header_not_too_large,
+            validate_content_length_header_is_int,
+            set_content_length_header,
         ]
 
         for decorator in decorators:
