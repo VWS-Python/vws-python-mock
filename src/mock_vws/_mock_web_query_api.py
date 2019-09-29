@@ -115,11 +115,11 @@ def route(
             validate_auth_header_has_signature,
             validate_auth_header_number_of_parts,
             validate_auth_header_exists,
-            validate_content_length_header_not_too_large,
             validate_content_length_header_not_too_small,
+            set_date_header,
+            validate_content_length_header_not_too_large,
             validate_content_length_header_is_int,
             set_content_length_header,
-            set_date_header,
         ]
 
         for decorator in decorators:
