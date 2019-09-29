@@ -50,7 +50,9 @@ from ._services_validators.auth_validators import (
     validate_authorization,
 )
 from ._services_validators.content_length_validators import (
-    validate_content_length_header,
+    validate_content_length_header_not_too_large,
+    validate_content_length_header_not_too_small,
+    validate_content_length_header_is_int,
 )
 from ._services_validators.content_type_validators import (
     validate_content_type_header_given,
@@ -220,7 +222,9 @@ def route(
             validate_access_key_exists,
             validate_auth_header_has_signature,
             validate_auth_header_exists,
-            validate_content_length_header,
+            validate_content_length_header_not_too_large,
+            validate_content_length_header_not_too_small,
+            validate_content_length_header_is_int,
             set_content_length_header,
             set_date_header,
             update_request_count,
