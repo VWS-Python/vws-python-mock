@@ -67,6 +67,12 @@ Database summary quotas
 
 The database summary endpoint returns quotas which match the quotas given for a free license.
 
+``transfer-encoding`` headers
+-----------------------------
+
+Sometimes the real Query API sends responses with ``transfer-encoding: chunked`` and no ``Content-Length`` header.
+The mock does not do this.
+
 NGINX Error cases
 -----------------
 

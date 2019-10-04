@@ -2,6 +2,7 @@
 Assertion helpers.
 """
 
+import copy
 import datetime
 import email.utils
 import json
@@ -162,25 +163,31 @@ def assert_query_success(response: Response) -> None:
     assert all(char in hexdigits for char in query_id)
 
     assert response.json()['result_code'] == 'Success'
-    # Figure out when this header is applied.
-    # See https://github.com/adamtheturtle/vws-python-mock/issues/1.
-    content_encoding = response.headers.pop('Content-Encoding', 'gzip')
-    assert content_encoding == 'gzip'
+    assert_valid_date_header(response=response)
+    copied_response_headers = copy.deepcopy(response.headers)
+    copied_response_headers.pop('Date')
 
-    response_header_keys = {
-        'Connection',
-        'Content-Length',
-        'Content-Type',
-        'Date',
-        'Server',
+    expected_response_header_not_chunked = {
+        'Connection': 'keep-alive',
+        'Content-Encoding': 'gzip',
+        'Content-Length': str(response.raw.tell()),
+        'Content-Type': 'application/json',
+        'Server': 'nginx',
     }
 
-    assert response.headers.keys() == response_header_keys
-    assert response.headers['Content-Length'] == str(response.raw.tell())
-    assert response.headers['Connection'] == 'keep-alive'
-    assert response.headers['Content-Type'] == 'application/json'
-    assert_valid_date_header(response=response)
-    assert response.headers['Server'] == 'nginx'
+    # The mock does not send chunked responses.
+    expected_response_header_chunked = {
+        'Connection': 'keep-alive',
+        'Content-Encoding': 'gzip',
+        'Content-Type': 'application/json',
+        'Server': 'nginx',
+        'transfer-encoding': 'chunked',
+    }
+
+    assert copied_response_headers in (
+        expected_response_header_chunked,
+        expected_response_header_not_chunked,
+    )
 
 
 def assert_vwq_failure(
