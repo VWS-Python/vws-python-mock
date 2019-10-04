@@ -732,16 +732,15 @@ class TestIncludeTargetData:
             'max_num_results': (None, 2, 'text/plain'),
         }
 
-        for i in range(1000):
-            response = query(
-                vuforia_database=vuforia_database,
-                body=body,
-            )
+        response = query(
+            vuforia_database=vuforia_database,
+            body=body,
+        )
 
-            assert_query_success(response=response)
-            result_1, result_2 = response.json()['results']
-            assert 'target_data' in result_1
-            assert 'target_data' not in result_2
+        assert_query_success(response=response)
+        result_1, result_2 = response.json()['results']
+        assert 'target_data' in result_1
+        assert 'target_data' not in result_2
 
     @pytest.mark.parametrize('include_target_data', ['top', 'TOP'])
     def test_top(
