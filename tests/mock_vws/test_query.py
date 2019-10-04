@@ -717,6 +717,7 @@ class TestIncludeTargetData:
     """
     Tests for the ``include_target_data`` parameter.
     """
+
     def test_default(
         self,
         high_quality_image: io.BytesIO,
