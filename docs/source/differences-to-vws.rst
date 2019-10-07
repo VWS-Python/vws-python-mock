@@ -73,6 +73,12 @@ The database summary endpoint returns quotas which match the quotas given for a 
 Sometimes the real Query API sends responses with ``transfer-encoding: chunked`` and no ``Content-Length`` header.
 The mock does not do this.
 
+``Content-Encoding`` headers
+----------------------------
+
+The real Query API sends some responses with ``Content-Encoding: gzip``.
+The mock Query API sends all responses with ``Content-Encoding: gzip``.
+
 NGINX Error cases
 -----------------
 

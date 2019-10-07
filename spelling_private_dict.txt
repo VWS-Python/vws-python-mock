@@ -25,6 +25,7 @@ foo
 formdata
 github
 greyscale
+gzip
 hexdigits
 hmac
 html
