@@ -167,9 +167,14 @@ def assert_query_success(response: Response) -> None:
     copied_response_headers = copy.deepcopy(response.headers)
     copied_response_headers.pop('Date')
 
+    # In the mock, all responses have the ``Content-Encoding`` ``gzip``.
+    # In the real Vuforia, some do and some do not.
+    # We are not sure why.
+    content_encoding = copied_response_headers.pop('Content-Encoding')
+    assert content_encoding in (None, 'gzip')
+
     expected_response_header_not_chunked = {
         'Connection': 'keep-alive',
-        'Content-Encoding': 'gzip',
         'Content-Length': str(response.raw.tell()),
         'Content-Type': 'application/json',
         'Server': 'nginx',
@@ -178,7 +183,6 @@ def assert_query_success(response: Response) -> None:
     # The mock does not send chunked responses.
     expected_response_header_chunked = {
         'Connection': 'keep-alive',
-        'Content-Encoding': 'gzip',
         'Content-Type': 'application/json',
         'Server': 'nginx',
         'transfer-encoding': 'chunked',
