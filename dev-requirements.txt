@@ -20,7 +20,7 @@ pyenchant==2.0.0  # Bindings for a spellchecking sytem
 pygithub==1.43.8
 pylint==2.4.2  # Lint
 pyroma==2.5  # Packaging best practices checker
-pytest-cov==2.7.1  # Measure code coverage
+pytest-cov==2.8.1  # Measure code coverage
 pytest-envfiles==0.1.0  # Use files for environment variables for tests
 pytest==5.2.1  # Test runners
 sphinx-autodoc-typehints==1.8.0
