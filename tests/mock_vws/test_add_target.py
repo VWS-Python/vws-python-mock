@@ -519,13 +519,13 @@ class TestImage:
 
         assert_success(response=response)
 
-    def test_image_too_large(
+    def test_image_file_size_too_large(
         self,
         vuforia_database: VuforiaDatabase,
     ) -> None:
         """
-        An ``ImageTooLarge`` result is returned if the image is above a certain
-        threshold.
+        An ``ImageTooLarge`` result is returned if the image file size is above
+        a certain threshold.
         """
         max_bytes = 2.3 * 1024 * 1024
         width = height = 886
