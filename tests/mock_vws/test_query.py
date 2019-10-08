@@ -1079,9 +1079,9 @@ class TestBadImage:
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
-class TestMaximumImageSize:
+class TestMaximumImageFileSize:
     """
-    Tests for maximum image sizes.
+    Tests for maximum image file sizes.
     """
 
     def test_png(
