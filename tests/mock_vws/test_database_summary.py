@@ -43,8 +43,7 @@ def _wait_for_image_numbers(
     no images, and the endpoint adds images with a delay, we will not know.
 
     Args:
-        vuforia_database: The credentials to use to connect to
-            Vuforia.
+        vuforia_database: The credentials to use to connect to Vuforia.
         active_images: The expected number of active images.
         inactive_images: The expected number of inactive images.
         failed_images: The expected number of failed images.
