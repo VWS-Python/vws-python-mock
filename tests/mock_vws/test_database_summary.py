@@ -23,8 +23,8 @@ from tests.mock_vws.utils import (
 from tests.mock_vws.utils.assertions import assert_vws_response
 
 
-@timeout_decorator.timeout(seconds=300)
-def wait_for_image_numbers(
+@timeout_decorator.timeout(seconds=500)
+def _wait_for_image_numbers(
     vuforia_database: VuforiaDatabase,
     active_images: int,
     inactive_images: int,
@@ -32,8 +32,9 @@ def wait_for_image_numbers(
     processing_images: int,
 ) -> None:
     """
-    Wait up to 300 seconds (arbitrary) for the number of images in various
-    categories to match the expected number.
+    Wait up to 500 seconds (arbitrary, though we saw timeouts with 300 seconds)
+    for the number of images in various categories to match the expected
+    number.
 
     This is necessary because the database summary endpoint lags behind the
     real data.
@@ -119,7 +120,7 @@ class TestDatabaseSummary:
         response_name = response.json()['name']
         assert response_name == vuforia_database.database_name
 
-        wait_for_image_numbers(
+        _wait_for_image_numbers(
             vuforia_database=vuforia_database,
             active_images=0,
             inactive_images=0,
@@ -140,7 +141,7 @@ class TestDatabaseSummary:
             vuforia_database=vuforia_database,
         )
 
-        wait_for_image_numbers(
+        _wait_for_image_numbers(
             vuforia_database=vuforia_database,
             active_images=1,
             inactive_images=0,
@@ -177,7 +178,7 @@ class TestDatabaseSummary:
             vuforia_database=vuforia_database,
         )
 
-        wait_for_image_numbers(
+        _wait_for_image_numbers(
             vuforia_database=vuforia_database,
             active_images=0,
             inactive_images=0,
@@ -216,7 +217,7 @@ class TestDatabaseSummary:
             vuforia_database=vuforia_database,
         )
 
-        wait_for_image_numbers(
+        _wait_for_image_numbers(
             vuforia_database=vuforia_database,
             active_images=0,
             inactive_images=1,
@@ -254,7 +255,7 @@ class TestDatabaseSummary:
             vuforia_database=vuforia_database,
         )
 
-        wait_for_image_numbers(
+        _wait_for_image_numbers(
             vuforia_database=vuforia_database,
             active_images=0,
             inactive_images=0,
@@ -296,7 +297,7 @@ class TestDatabaseSummary:
             target_id=target_id,
         )
 
-        wait_for_image_numbers(
+        _wait_for_image_numbers(
             vuforia_database=vuforia_database,
             active_images=0,
             inactive_images=0,
@@ -341,7 +342,7 @@ class TestProcessingImages:
                 data=data,
             )
 
-            wait_for_image_numbers(
+            _wait_for_image_numbers(
                 vuforia_database=database,
                 active_images=0,
                 inactive_images=0,
