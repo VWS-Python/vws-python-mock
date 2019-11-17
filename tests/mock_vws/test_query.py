@@ -607,7 +607,7 @@ class TestMaxNumResults:
         self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
-        num_results: Union[int, bytes],
+        num_results: int,
     ) -> None:
         """
         An error is returned if ``max_num_results`` is given as an integer out
