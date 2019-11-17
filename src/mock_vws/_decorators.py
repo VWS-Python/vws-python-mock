@@ -5,6 +5,7 @@ Decorators for using the mock.
 import re
 from contextlib import ContextDecorator
 from typing import Tuple, Union
+from typing_extensions import Literal
 from urllib.parse import urljoin, urlparse
 
 import requests
@@ -175,7 +176,7 @@ class MockVWS(ContextDecorator):
 
         return self
 
-    def __exit__(self, *exc: Tuple[None, None, None]) -> bool:
+    def __exit__(self, *exc: Tuple[None, None, None]) -> Literal[False]:
         """
         Stop the Vuforia mock.
 

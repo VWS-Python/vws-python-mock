@@ -4,7 +4,7 @@ Tests for the `Authorization` header.
 
 import io
 import uuid
-from typing import Dict, Union
+from typing import Dict
 from urllib.parse import urlparse
 
 import pytest
@@ -38,7 +38,7 @@ class TestAuthorizationHeader:
         date = rfc_1123_date()
         endpoint_headers = dict(endpoint.prepared_request.headers)
 
-        headers: Dict[str, Union[str, bytes]] = {
+        headers: Dict[str, str] = {
             **endpoint_headers,
             'Date': date,
         }
@@ -77,16 +77,12 @@ class TestMalformed:
 
     @pytest.mark.parametrize(
         'authorization_string',
-        [
-            b'gibberish',
-            b'VWS',
-            b'VWS ',
-        ],
+        ['gibberish', 'VWS', 'VWS '],
     )
     def test_one_part(
         self,
         endpoint: Endpoint,
-        authorization_string: bytes,
+        authorization_string: str,
     ) -> None:
         """
         A valid authorization string is two "parts" when split on a space. When
@@ -95,7 +91,7 @@ class TestMalformed:
         """
         date = rfc_1123_date()
 
-        headers: Dict[str, Union[str, bytes]] = {
+        headers: Dict[str, str] = {
             **endpoint.prepared_request.headers,
             'Authorization': authorization_string,
             'Date': date,
@@ -127,8 +123,8 @@ class TestMalformed:
     @pytest.mark.parametrize(
         'authorization_string',
         [
-            b'VWS foobar:',
-            b'VWS foobar',
+            'VWS foobar:',
+            'VWS foobar',
         ],
     )
     def test_missing_signature(
@@ -142,7 +138,7 @@ class TestMalformed:
         """
         date = rfc_1123_date()
 
-        headers: Dict[str, Union[str, bytes]] = {
+        headers: Dict[str, str] = {
             **endpoint.prepared_request.headers,
             'Authorization': authorization_string,
             'Date': date,

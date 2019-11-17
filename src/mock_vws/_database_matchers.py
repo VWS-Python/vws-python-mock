@@ -30,7 +30,7 @@ def _authorization_header(  # pylint: disable=too-many-arguments
     content_type: str,
     date: str,
     request_path: str,
-) -> bytes:
+) -> str:
     """
     Return an `Authorization` header which can be used for a request made to
     the VWS API with the given attributes.
@@ -70,7 +70,7 @@ def _authorization_header(  # pylint: disable=too-many-arguments
             encoding='utf-8',
         ),
     )
-    auth_header = b'VWS %s:%s' % (access_key.encode(), signature)
+    auth_header = f'VWS {access_key}:{signature.decode()}'
     return auth_header
 
 

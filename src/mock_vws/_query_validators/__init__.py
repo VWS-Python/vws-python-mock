@@ -99,6 +99,7 @@ def validate_max_num_results(
         },
     )
     [max_num_results] = parsed.get('max_num_results', ['1'])
+    assert isinstance(max_num_results, str)
     invalid_type_error = (
         f"Invalid value '{max_num_results}' in form data part "
         "'max_result'. "
@@ -166,6 +167,7 @@ def validate_include_target_data(
     if include_target_data in allowed_included_target_data:
         return wrapped(*args, **kwargs)
 
+    assert isinstance(include_target_data, str)
     unexpected_target_data_message = (
         f"Invalid value '{include_target_data}' in form data part "
         "'include_target_data'. "
