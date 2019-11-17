@@ -630,7 +630,7 @@ class TestMaxNumResults:
         )
 
         expected_text = (
-            f'Integer out of range ({num_results}) in form data part '
+            f'Integer out of range ({repr(num_results)}) in form data part '
             "'max_result'. Accepted range is from 1 to 50 (inclusive)."
         )
         assert response.text == expected_text

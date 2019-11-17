@@ -71,7 +71,7 @@ def validate_auth_header_number_of_parts(
     request, context = args
 
     header = request.headers['Authorization']
-    parts = header.split(b' ')
+    parts = header.split(' ')
     if len(parts) == 2 and parts[1]:
         return wrapped(*args, **kwargs)
 
@@ -106,10 +106,10 @@ def validate_client_key_exists(
     request, context = args
 
     header = request.headers['Authorization']
-    first_part, _ = header.split(b':')
-    _, access_key = first_part.split(b' ')
+    first_part, _ = header.split(':')
+    _, access_key = first_part.split(' ')
     for database in instance.databases:
-        if access_key == database.client_access_key.encode():
+        if access_key == database.client_access_key:
             return wrapped(*args, **kwargs)
 
     context.status_code = codes.UNAUTHORIZED
@@ -149,7 +149,7 @@ def validate_auth_header_has_signature(
     request, context = args
 
     header = request.headers['Authorization']
-    if header.count(b':') == 1 and header.split(b':')[1]:
+    if header.count(':') == 1 and header.split(':')[1]:
         return wrapped(*args, **kwargs)
 
     context.status_code = codes.INTERNAL_SERVER_ERROR

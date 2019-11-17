@@ -3,7 +3,7 @@ Tests for the `Date` header.
 """
 
 from datetime import datetime, timedelta
-from typing import Dict, Union
+from typing import Dict
 from urllib.parse import urlparse
 
 import pytest
@@ -58,7 +58,7 @@ class TestMissing:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers: Dict[str, Union[str, bytes]] = {
+        headers: Dict[str, str] = {
             **endpoint_headers,
             'Authorization': authorization_string,
         }

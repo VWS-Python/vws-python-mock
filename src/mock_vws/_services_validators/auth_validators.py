@@ -71,10 +71,10 @@ def validate_access_key_exists(
     request, context = args
 
     header = request.headers['Authorization']
-    first_part, _ = header.split(b':')
-    _, access_key = first_part.split(b' ')
+    first_part, _ = header.split(':')
+    _, access_key = first_part.split(' ')
     for database in instance.databases:
-        if access_key == database.server_access_key.encode():
+        if access_key == database.server_access_key:
             return wrapped(*args, **kwargs)
 
     context.status_code = codes.BAD_REQUEST
@@ -110,7 +110,7 @@ def validate_auth_header_has_signature(
     request, context = args
 
     header = request.headers['Authorization']
-    if header.count(b':') == 1 and header.split(b':')[1]:
+    if header.count(':') == 1 and header.split(':')[1]:
         return wrapped(*args, **kwargs)
 
     context.status_code = codes.BAD_REQUEST
