@@ -122,7 +122,7 @@ def parse_multipart(  # pylint: disable=invalid-name
     Wrapper for ``_parse_multipart`` to work around
     https://bugs.python.org/issue34226.
 
-    See https://docs.python.org/3.7/library/cgi.html#_parse_multipart.
+    See https://docs.python.org/3.8/library/cgi.html#_parse_multipart.
     """
     pdict = {
         'CONTENT-LENGTH': str(len(fp.getvalue())).encode(),
