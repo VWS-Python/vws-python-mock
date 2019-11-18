@@ -26,7 +26,7 @@ Using the mock redirects requests to Vuforia made with `requests <https://pypi.o
     import requests
     from mock_vws import MockVWS, VuforiaDatabase
 
-    with MockVWS(database=database) as mock:
+    with MockVWS() as mock:
         database = VuforiaDatabase()
         mock.add_database(database=database)
         # This will use the Vuforia mock.
