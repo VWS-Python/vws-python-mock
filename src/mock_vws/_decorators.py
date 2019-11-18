@@ -5,11 +5,11 @@ Decorators for using the mock.
 import re
 from contextlib import ContextDecorator
 from typing import Tuple, Union
-from typing_extensions import Literal
 from urllib.parse import urljoin, urlparse
 
 import requests
 from requests_mock.mocker import Mocker
+from typing_extensions import Literal
 
 from mock_vws.database import VuforiaDatabase
 
