@@ -58,7 +58,7 @@ html_sidebars = {
 htmlhelp_basename = 'VWSPYTHONMOCKdoc'
 autoclass_content = 'init'
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3.7', None),
+    'python': ('https://docs.python.org/3.8', None),
     'docker': ('https://docker-py.readthedocs.io/en/stable', None),
 }
 nitpicky = True
