@@ -4,6 +4,7 @@ Configuration, plugins and fixtures for `pytest`.
 
 import base64
 import io
+import json
 import logging
 import os
 from typing import Generator
@@ -105,7 +106,16 @@ def target_id(
         content_type='application/json',
     )
 
-    return str(response.json()['target_id'])
+    try:
+        response_json = response.json()
+    except json.decoder.JSONDecodeError:  # pragma: no cover
+        # This has been seen to happen in CI and this is here to help us debug
+        # it.
+        LOGGER.debug(response.text)
+        raise
+
+    new_target_id: str = response_json['target_id']
+    return new_target_id
 
 
 @pytest.fixture(params=[True, False], ids=['Real Vuforia', 'Mock Vuforia'])
