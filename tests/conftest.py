@@ -111,6 +111,7 @@ def target_id(
     except json.decoder.JSONDecodeError:  # pragma: no cover
         # This has been seen to happen in CI and this is here to help us debug
         # it.
+        LOGGER.debug('Response text was:')
         LOGGER.debug(response.text)
         raise
 
