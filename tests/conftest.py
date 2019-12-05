@@ -113,6 +113,8 @@ def target_id(
         # it.
         LOGGER.debug('Response text was:')
         LOGGER.debug(response.text)
+        LOGGER.debug('Response status code was:')
+        LOGGER.debug(response.status_code)
         raise
 
     new_target_id: str = response_json['target_id']
