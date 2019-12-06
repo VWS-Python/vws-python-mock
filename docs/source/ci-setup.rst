@@ -19,7 +19,7 @@ How to Set Travis CI Secrets
 
 Create environment variable files for secrets:
 
-.. code:: sh
+.. substitution-prompt:: bash
 
     mkdir -p ci_secrets
     cp vuforia_secrets.env.example ci_secrets/vuforia_secrets_1.env
@@ -32,13 +32,13 @@ All credentials files can share the same credentials for an inactive database.
 
 Install the Travis CLI:
 
-.. code:: sh
+.. substitution-prompt:: bash
 
     gem install travis --no-rdoc --no-ri
 
 Add the encrypted secrets files to the repository and Travis CI:
 
-.. code:: sh
+.. substitution-prompt:: bash
 
     make update-secrets
 

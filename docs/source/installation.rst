@@ -1,7 +1,7 @@
 Installation
 ------------
 
-.. code:: sh
+.. substitution-prompt:: bash
 
     pip3 install vws-python-mock
 
