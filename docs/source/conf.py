@@ -51,6 +51,12 @@ copyright = f'{year}, {author}'  # pylint: disable=redefined-builtin
 version = distribution.version
 release = version.split('+')[0]
 
+substitutions = [
+    ('|github-owner|', 'adamtheturtle'),
+    ('|github-repository|', 'vws-python-mock'),
+]
+
+
 language = None
 
 # The name of the syntax highlighting style to use.
@@ -117,3 +123,7 @@ linkcheck_ignore = [
 spelling_word_list_filename = '../../spelling_private_dict.txt'
 
 autodoc_member_order = 'bysource'
+
+rst_prolog = f"""
+.. |project| replace:: {project}
+"""
