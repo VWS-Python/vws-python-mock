@@ -1,5 +1,7 @@
 SHELL := /bin/bash -euxo pipefail
 
+include lint.mk
+
 # Treat Sphinx warnings as errors
 SPHINXOPTS := -W
 
