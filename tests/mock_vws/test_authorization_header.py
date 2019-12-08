@@ -11,6 +11,7 @@ import pytest
 import requests
 from requests import codes
 from requests.structures import CaseInsensitiveDict
+from vws_auth_tools import rfc_1123_date
 
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
@@ -21,7 +22,6 @@ from tests.mock_vws.utils.assertions import (
     assert_vwq_failure,
     assert_vws_failure,
 )
-from tests.mock_vws.utils.authorization import rfc_1123_date
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')

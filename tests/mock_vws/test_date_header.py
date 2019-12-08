@@ -12,6 +12,7 @@ import requests
 from freezegun import freeze_time
 from requests import codes
 from requests.structures import CaseInsensitiveDict
+from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import Endpoint
@@ -20,10 +21,6 @@ from tests.mock_vws.utils.assertions import (
     assert_vwq_failure,
     assert_vws_failure,
     assert_vws_response,
-)
-from tests.mock_vws.utils.authorization import (
-    authorization_header,
-    rfc_1123_date,
 )
 
 _VWS_MAX_TIME_SKEW = timedelta(minutes=5)
