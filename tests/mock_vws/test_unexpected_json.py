@@ -9,13 +9,10 @@ import pytest
 import requests
 from requests import codes
 from requests.structures import CaseInsensitiveDict
+from vws_auth_tools import authorization_header, rfc_1123_date
 
 from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import assert_vwq_failure
-from tests.mock_vws.utils.authorization import (
-    authorization_header,
-    rfc_1123_date,
-)
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
