@@ -29,7 +29,6 @@ from tests.mock_vws.utils.assertions import assert_vws_response
 
 pytest_plugins = [  # pylint: disable=invalid-name
     'tests.mock_vws.fixtures.prepared_requests',
-    'tests.mock_vws.fixtures.images',
     'tests.mock_vws.fixtures.credentials',
 ]
 
