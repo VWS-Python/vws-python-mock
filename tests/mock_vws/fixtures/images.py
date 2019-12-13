@@ -40,24 +40,6 @@ def corrupted_image_file() -> io.BytesIO:
     return io.BytesIO(corrupted_data)
 
 
-@pytest.fixture
-def image_file_failed_state() -> io.BytesIO:
-    """
-    Return an image file which is expected to be accepted by the add and
-    update target endpoints, but get a "failed" status.
-
-    This returns only one image, unlike ``image_files_failed_state`` in the
-    interest of fast tests.
-    """
-    # This image gets a "failed" status because it is so small.
-    return make_image_file(
-        file_format='PNG',
-        color_space='RGB',
-        width=1,
-        height=1,
-    )
-
-
 @pytest.fixture(params=[('PNG', 'RGB'), ('JPEG', 'RGB'), ('PNG', 'L')])
 def image_files_failed_state(request: SubRequest) -> io.BytesIO:
     """
@@ -90,19 +72,6 @@ def bad_image_file(request: SubRequest) -> io.BytesIO:
         width=1,
         height=1,
     )
-
-
-@pytest.fixture()
-def high_quality_image() -> io.BytesIO:
-    """
-    Return an image file which is expected to have a 'success' status when
-    added to a target and a high tracking rating.
-
-    At the time of writing, this image gains a tracking rating of 5.
-    """
-    path = 'tests/mock_vws/data/high_quality_image.jpg'
-    with open(path, 'rb') as high_quality_image_file:
-        return io.BytesIO(high_quality_image_file.read())
 
 
 @pytest.fixture()
