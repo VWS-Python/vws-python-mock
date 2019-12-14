@@ -456,7 +456,7 @@ class TestApplicationMetadata:
         """
         A string which is not base64 encoded is not valid application metadata.
         """
-        not_base64_encoded = b'a'
+        not_base64_encoded = '"a"'
 
         with pytest.raises(binascii.Error):
             base64.b64decode(not_base64_encoded)
@@ -468,7 +468,7 @@ class TestApplicationMetadata:
 
         response = update_target(
             vuforia_database=vuforia_database,
-            data={'application_metadata': str(not_base64_encoded)},
+            data={'application_metadata': not_base64_encoded},
             target_id=target_id,
         )
 
@@ -928,7 +928,7 @@ class TestImage:
         If the given image is not decodable as base64 data then a `Fail`
         result is returned.
         """
-        not_base64_encoded = b'a'
+        not_base64_encoded = '"a"'
 
         with pytest.raises(binascii.Error):
             base64.b64decode(not_base64_encoded)
@@ -940,7 +940,7 @@ class TestImage:
 
         response = update_target(
             vuforia_database=vuforia_database,
-            data={'image': str(not_base64_encoded)},
+            data={'image': not_base64_encoded},
             target_id=target_id,
         )
 

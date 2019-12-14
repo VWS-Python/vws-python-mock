@@ -235,7 +235,6 @@ def validate_image_encoding(
     try:
         base64.b64decode(image)
     except binascii.Error:
-        # import pdb; pdb.set_trace()
         context.status_code = codes.UNPROCESSABLE_ENTITY
         body = {
             'transaction_id': uuid.uuid4().hex,
