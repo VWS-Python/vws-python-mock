@@ -3,7 +3,6 @@ Tests for the mock of the update target endpoint.
 """
 
 import base64
-import binascii
 import io
 import uuid
 from typing import Any, Union
@@ -452,15 +451,11 @@ class TestApplicationMetadata:
         self,
         vuforia_database: VuforiaDatabase,
         target_id: str,
+        not_base64_encoded: str,
     ) -> None:
         """
         A string which is not base64 encoded is not valid application metadata.
         """
-        not_base64_encoded = '"a"'
-
-        with pytest.raises(binascii.Error):
-            base64.b64decode(not_base64_encoded)
-
         wait_for_target_processed(
             vuforia_database=vuforia_database,
             target_id=target_id,
@@ -923,16 +918,12 @@ class TestImage:
         self,
         vuforia_database: VuforiaDatabase,
         target_id: str,
+        not_base64_encoded: str,
     ) -> None:
         """
         If the given image is not decodable as base64 data then a `Fail`
         result is returned.
         """
-        not_base64_encoded = '"a"'
-
-        with pytest.raises(binascii.Error):
-            base64.b64decode(not_base64_encoded)
-
         wait_for_target_processed(
             vuforia_database=vuforia_database,
             target_id=target_id,

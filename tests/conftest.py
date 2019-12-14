@@ -3,6 +3,7 @@ Configuration, plugins and fixtures for `pytest`.
 """
 
 import base64
+import binascii
 import io
 import json
 import logging
@@ -188,3 +189,16 @@ def endpoint(request: SubRequest) -> Endpoint:
     """
     endpoint_fixture: Endpoint = request.getfixturevalue(request.param)
     return endpoint_fixture
+
+
+@pytest.fixture()
+def not_base64_encoded() -> str:
+    """
+    Return a string which is not decodeable as base64 data.
+    """
+    not_base64_encoded_string = '"a"'
+
+    with pytest.raises(binascii.Error):
+        base64.b64decode(not_base64_encoded_string)
+
+    return not_base64_encoded_string

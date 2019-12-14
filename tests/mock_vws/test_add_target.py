@@ -3,7 +3,6 @@ Tests for the mock of the add target endpoint.
 """
 
 import base64
-import binascii
 import io
 from string import hexdigits
 from typing import Any, Union
@@ -600,16 +599,12 @@ class TestImage:
     def test_not_base64_encoded(
         self,
         vuforia_database: VuforiaDatabase,
+        not_base64_encoded: str,
     ) -> None:
         """
         If the given image is not decodable as base64 data then a `Fail`
         result is returned.
         """
-        not_base64_encoded = '"a"'
-
-        with pytest.raises(binascii.Error):
-            base64.b64decode(not_base64_encoded)
-
         data = {
             'name': 'example_name',
             'width': 1,
@@ -894,17 +889,13 @@ class TestApplicationMetadata:
         self,
         vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
+        not_base64_encoded: str,
     ) -> None:
         """
         A string which is not base64 encoded is not valid application metadata.
         """
         image_data = image_file_failed_state.read()
         image_data_encoded = base64.b64encode(image_data).decode('ascii')
-
-        not_base64_encoded = '"a"'
-
-        with pytest.raises(binascii.Error):
-            base64.b64decode(not_base64_encoded)
 
         data = {
             'name': 'example_name',
