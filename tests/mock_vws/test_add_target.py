@@ -605,7 +605,7 @@ class TestImage:
         If the given image is not decodable as base64 data then a `Fail`
         result is returned.
         """
-        not_base64_encoded = b'a'
+        not_base64_encoded = '"a"'
 
         with pytest.raises(binascii.Error):
             base64.b64decode(not_base64_encoded)
@@ -613,7 +613,7 @@ class TestImage:
         data = {
             'name': 'example_name',
             'width': 1,
-            'image': str(not_base64_encoded),
+            'image': not_base64_encoded,
         }
 
         response = add_target_to_vws(
