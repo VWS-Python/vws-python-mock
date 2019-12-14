@@ -901,7 +901,7 @@ class TestApplicationMetadata:
         image_data = image_file_failed_state.read()
         image_data_encoded = base64.b64encode(image_data).decode('ascii')
 
-        not_base64_encoded = b'a'
+        not_base64_encoded = '"a"'
 
         with pytest.raises(binascii.Error):
             base64.b64decode(not_base64_encoded)
@@ -910,7 +910,7 @@ class TestApplicationMetadata:
             'name': 'example_name',
             'width': 1,
             'image': image_data_encoded,
-            'application_metadata': str(not_base64_encoded),
+            'application_metadata': not_base64_encoded,
         }
 
         response = add_target_to_vws(
