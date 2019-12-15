@@ -194,7 +194,7 @@ def endpoint(request: SubRequest) -> Endpoint:
 @pytest.fixture()
 def not_base64_encoded() -> str:
     """
-    Return a string which is not decodeable as base64 data.
+    Return a string which is not decodable as base64 data.
     """
     not_base64_encoded_string = '"a"'
 
