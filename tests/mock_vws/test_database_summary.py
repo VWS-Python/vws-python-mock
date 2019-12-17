@@ -4,6 +4,7 @@ Tests for the mock of the database summary endpoint.
 
 import base64
 import io
+import logging
 from time import sleep
 
 import pytest
@@ -21,6 +22,9 @@ from tests.mock_vws.utils import (
     wait_for_target_processed,
 )
 from tests.mock_vws.utils.assertions import assert_vws_response
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 @timeout_decorator.timeout(seconds=500)
@@ -63,14 +67,20 @@ def _wait_for_image_numbers(
     while True:
         response = database_summary(vuforia_database=vuforia_database)
 
-        requirements = {
+        not_matching_requirements = {
             requirement: value
             for requirement, value in requirements.items()
             if response.json()[requirement] != value
         }
 
-        if not requirements:  # pragma: no cover
+        if not not_matching_requirements:  # pragma: no cover
             return
+
+        LOGGER.debug('Waiting for database summary.')
+        LOGGER.debug('Waiting for summary to equal: ')
+        LOGGER.debug(requirements)
+        LOGGER.debug('Not matching are:')
+        LOGGER.debug(not_matching_requirements)
 
         # We wait 0.2 seconds rather than less than that to decrease the number
         # of calls made to the API, to decrease the likelihood of hitting the
