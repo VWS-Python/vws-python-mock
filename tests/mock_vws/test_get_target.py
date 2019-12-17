@@ -107,10 +107,10 @@ class TestGetRecord:
         """
         Details of a target are returned.
         """
-        response = get_vws_target(
-            target_id='x/1',
-            vuforia_database=vuforia_database,
-        )
+        # response = get_vws_target(
+        #     target_id='x/1',
+        #     vuforia_database=vuforia_database,
+        # )
         # import pdb; pdb.set_trace()
         #
     def test_active_flag_not_set(

@@ -98,7 +98,7 @@ class TestInactiveProject:
         """
         If the project is inactive, a FORBIDDEN response is returned.
         """
-        target_id = 'does_not_exist'
+        target_id = 'abc12345a'
         response = delete_target(
             vuforia_database=inactive_database,
             target_id=target_id,

@@ -72,7 +72,7 @@ from ._services_validators.image_validators import (
 )
 from .target import Target
 
-_TARGET_ID_PATTERN = '.+'
+_TARGET_ID_PATTERN = '[A-Za-z0-9]+'
 
 @wrapt.decorator
 def update_request_count(

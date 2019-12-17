@@ -412,7 +412,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
             )
 
         expected = 0.2
-        assert abs(expected - recognize_deletion_seconds) < 0.1
+        assert abs(expected - recognize_deletion_seconds) < 0.15
 
     def test_with_no_processing_time(
         self,
@@ -430,7 +430,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
             )
 
         expected = 0.2
-        assert abs(expected - recognize_deletion_seconds) < 0.1
+        assert abs(expected - recognize_deletion_seconds) < 0.15
 
     def test_custom(
         self,
@@ -453,7 +453,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
             )
 
         expected = query_recognizes_deletion
-        assert abs(expected - recognize_deletion_seconds) < 0.1
+        assert abs(expected - recognize_deletion_seconds) < 0.15
 
 
 class TestCustomQueryProcessDeletionSeconds:
