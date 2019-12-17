@@ -72,6 +72,7 @@ from ._services_validators.image_validators import (
 )
 from .target import Target
 
+_TARGET_ID_PATTERN = '[A-Za-z0-9]+'
 
 @wrapt.decorator
 def update_request_count(
@@ -327,7 +328,10 @@ class MockVuforiaWebServicesAPI:
         }
         return json_dump(body)
 
-    @route(path_pattern='/targets/.+', http_methods=[DELETE])
+    @route(
+        path_pattern=f'/targets/{_TARGET_ID_PATTERN}',
+        http_methods=[DELETE],
+    )
     def delete_target(
         self,
         request: _RequestObjectProxy,  # pylint: disable=unused-argument
@@ -462,7 +466,7 @@ class MockVuforiaWebServicesAPI:
         }
         return json_dump(body)
 
-    @route(path_pattern='/targets/.+', http_methods=[GET])
+    @route(path_pattern=f'/targets/{_TARGET_ID_PATTERN}', http_methods=[GET])
     def get_target(
         self,
         request: _RequestObjectProxy,  # pylint: disable=unused-argument
@@ -492,7 +496,10 @@ class MockVuforiaWebServicesAPI:
         }
         return json_dump(body)
 
-    @route(path_pattern='/duplicates/.+', http_methods=[GET])
+    @route(
+        path_pattern=f'/duplicates/{_TARGET_ID_PATTERN}',
+        http_methods=[GET],
+    )
     def get_duplicates(
         self,
         request: _RequestObjectProxy,
@@ -530,7 +537,7 @@ class MockVuforiaWebServicesAPI:
         return json_dump(body)
 
     @route(
-        path_pattern='/targets/.+',
+        path_pattern=f'/targets/{_TARGET_ID_PATTERN}',
         http_methods=[PUT],
         optional_keys={
             'active_flag',
@@ -630,7 +637,7 @@ class MockVuforiaWebServicesAPI:
         }
         return json_dump(body)
 
-    @route(path_pattern='/summary/.+', http_methods=[GET])
+    @route(path_pattern=f'/summary/{_TARGET_ID_PATTERN}', http_methods=[GET])
     def target_summary(
         self,
         request: _RequestObjectProxy,

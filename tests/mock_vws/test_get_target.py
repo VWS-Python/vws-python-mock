@@ -99,6 +99,20 @@ class TestGetRecord:
         assert target_record['tracking_rating'] in range(-1, 6)
         assert target_record['reco_rating'] == ''
 
+    def test_get_vws_target_with_slash(
+        self,
+        vuforia_database: VuforiaDatabase,
+        image_file_failed_state: io.BytesIO,
+    ) -> None:
+        """
+        Details of a target are returned.
+        """
+        # response = get_vws_target(
+        #     target_id='x/1',
+        #     vuforia_database=vuforia_database,
+        # )
+        # import pdb; pdb.set_trace()
+        #
     def test_active_flag_not_set(
         self,
         vuforia_database: VuforiaDatabase,
