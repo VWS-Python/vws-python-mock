@@ -32,7 +32,7 @@ Using the mock redirects requests to Vuforia made with `requests <https://pypi.o
         # This will use the Vuforia mock.
         requests.get('https://vws.vuforia.com/summary')
 
-However, by default, an exception will be raised if any requests to unmocked addresses are made.
+By default, an exception will be raised if any requests to unmocked addresses are made.
 
 Full Documentation
 ------------------
