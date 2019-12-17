@@ -162,9 +162,9 @@ def validate_include_target_data(
     )
 
     [include_target_data] = parsed.get('include_target_data', ['top'])
-    include_target_data = include_target_data.lower()
+    lower_include_target_data = include_target_data.lower()
     allowed_included_target_data = {'top', 'all', 'none'}
-    if include_target_data in allowed_included_target_data:
+    if lower_include_target_data in allowed_included_target_data:
         return wrapped(*args, **kwargs)
 
     assert isinstance(include_target_data, str)

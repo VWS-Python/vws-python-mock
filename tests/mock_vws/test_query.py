@@ -9,7 +9,7 @@ import calendar
 import datetime
 import io
 import time
-from typing import Dict, Union
+from typing import Any, Dict, Union
 from urllib.parse import urljoin
 
 import pytest
@@ -823,17 +823,18 @@ class TestIncludeTargetData:
         assert 'target_data' in result_1
         assert 'target_data' in result_2
 
+    @pytest.mark.parametrize('include_target_data', ['a', True, 0])
     def test_invalid_value(
         self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
+        include_target_data: Any,
     ) -> None:
         """
         A ``BAD_REQUEST`` error is given when a string that is not one of
         'none', 'top' or 'all' (case insensitive).
         """
         image_content = high_quality_image.getvalue()
-        include_target_data = 'a'
         body = {
             'image': ('image.jpeg', image_content, 'image/jpeg'),
             'include_target_data': (None, include_target_data, 'text/plain'),
@@ -844,8 +845,8 @@ class TestIncludeTargetData:
         )
 
         expected_text = (
-            f"Invalid value '{include_target_data}' in form data part "
-            "'include_target_data'. "
+            f"Invalid value '{include_target_data}' in form data "
+            "part 'include_target_data'. "
             "Expecting one of the (unquoted) string values 'all', 'none' or "
             "'top'."
         )
