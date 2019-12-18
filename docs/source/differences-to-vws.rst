@@ -85,3 +85,18 @@ NGINX Error cases
 Vuforia uses NGINX.
 This has error handling which is not duplicated in the mock.
 For example, Vuforia returns a 400 (``BAD REQUEST``) response if a header or cookie is given which is larger than 8 KiB.
+
+Result codes
+------------
+
+Result codes are returned by requests to Vuforia to help with debugging.
+See `How To Interpret VWS API Result Codes <https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API#How-To-Interperete-VWS-API-Result-Codes>`_ for details of the available result codes.
+There are some result codes which the mock cannot return.
+
+These are:
+
+* ``RequestQuotaReached``
+* ``DateRangeError``
+* ``TargetQuotaReached``
+* ``ProjectSuspended``
+* ``ProjectHasNoAPIAccess``
