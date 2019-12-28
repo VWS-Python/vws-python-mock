@@ -10,7 +10,7 @@ Outcomes
 Prerequisites
 ~~~~~~~~~~~~~
 
-* ``python3`` on your ``PATH`` set to Python 3.6+.
+* ``python3`` on your ``PATH`` set to Python 3.8+.
 * ``virtualenv``.
 * Push access to this repository.
 * Trust that ``master`` is ready and high enough quality for release.
@@ -53,20 +53,20 @@ Store your PyPI password:
 
 #. Get a GitHub access token:
 
-   Follow the `GitHub instructions <https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line/>`__ for getting an access token.
+   Follow the `GitHub access token instructions`_ for getting an access token.
 
 #. Set environment variables to GitHub credentials, e.g.:
 
-   .. substitution-prompt:: bash
+    .. substitution-prompt:: bash
 
-      export GITHUB_TOKEN=75c72ad718d9c346c13d30ce762f121647b502414
+       export GITHUB_TOKEN=75c72ad718d9c346c13d30ce762f121647b502414
 
 #. Perform a release:
 
     .. substitution-prompt:: bash
 
        export GITHUB_OWNER=|github-owner|
-       curl https://raw.githubusercontent.com/"$GITHUB_OWNER"/|github-repository|/master/admin/release.sh | bash
+       export GITHUB_REPOSITORY_NAME=|github-repository|
+       curl https://raw.githubusercontent.com/"$GITHUB_OWNER"/"$GITHUB_REPOSITORY_NAME"/master/admin/release.sh | bash
 
 .. _GitHub access token instructions: https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line/
-
