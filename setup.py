@@ -2,8 +2,6 @@
 
 from setuptools import setup
 
-import versioneer
-
 # We use requirements.txt instead of just declaring the requirements here
 # because this helps with Docker package caching.
 with open('requirements.txt') as requirements:
@@ -15,8 +13,10 @@ with open('dev-requirements.txt') as dev_requirements:
     DEV_REQUIRES = dev_requirements.readlines()
 
 setup(
-    version=versioneer.get_version(),  # type: ignore
-    cmdclass=versioneer.get_cmdclass(),  # type: ignore
+    use_scm_version={
+        'write_to': 'src/mock_vws/_setuptools_scm_version.txt',
+    },
+    setup_requires=['setuptools_scm', 'setuptools_scm_git_archive'],
     install_requires=INSTALL_REQUIRES,
     extras_require={'dev': DEV_REQUIRES},
 )
