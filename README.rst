@@ -1,4 +1,4 @@
-|Build Status| |codecov| |Updates| |PyPI| |Documentation Status|
+|Build Status| |codecov| |PyPI| |Documentation Status|
 
 VWS Python Mock
 ===============
@@ -45,8 +45,6 @@ This includes details on how to use the mock, options, and details of the differ
    :target: https://travis-ci.com/adamtheturtle/vws-python-mock
 .. |codecov| image:: https://codecov.io/gh/adamtheturtle/vws-python-mock/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/adamtheturtle/vws-python-mock
-.. |Updates| image:: https://pyup.io/repos/github/adamtheturtle/vws-python-mock/shield.svg
-   :target: https://pyup.io/repos/github/adamtheturtle/vws-python-mock/
 .. |PyPI| image:: https://badge.fury.io/py/VWS-Python-Mock.svg
     :target: https://badge.fury.io/py/VWS-Python-Mock
 .. |Documentation Status| image:: https://readthedocs.org/projects/vws-python-mock/badge/?version=latest
