@@ -1227,15 +1227,34 @@ class TestMaximumImageDimensions:
 
     def test_max_height(self, vuforia_database: VuforiaDatabase) -> None:
         width = 1
-        height = 348613
-        png_not_too_large = make_image_file(
+        max_height = 30000
+        png_not_too_tall = make_image_file(
             file_format='PNG',
             color_space='RGB',
             width=width,
-            height=height,
+            height=max_height,
         )
 
-        image_content = png_not_too_large.getvalue()
+        image_content = png_not_too_tall.getvalue()
+
+        body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
+
+        response = query(
+            vuforia_database=vuforia_database,
+            body=body,
+        )
+
+        assert_query_success(response=response)
+        assert response.json()['results'] == []
+
+        png_too_tall = make_image_file(
+            file_format='PNG',
+            color_space='RGB',
+            width=width,
+            height=max_height + 1,
+        )
+
+        image_content = png_too_tall.getvalue()
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
