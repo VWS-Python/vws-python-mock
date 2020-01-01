@@ -1225,8 +1225,26 @@ class TestMaximumImageDimensions:
     Tests for maximum image dimensions.
     """
 
-    def test_max_width(self):
-        pass
+    def test_max_height(self, vuforia_database: VuforiaDatabase) -> None:
+        width = 1
+        height = 835 ** 2
+        png_not_too_large = make_image_file(
+            file_format='PNG',
+            color_space='RGB',
+            width=width,
+            height=int(height / 2),
+        )
+
+        image_content = png_not_too_large.getvalue()
+        body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
+
+        response = query(
+            vuforia_database=vuforia_database,
+            body=body,
+        )
+
+        assert_query_success(response=response)
+        assert response.json()['results'] == []
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
 class TestImageFormats:
