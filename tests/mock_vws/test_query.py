@@ -1166,14 +1166,14 @@ class TestMaximumImageFileSize:
         """
         max_bytes = 2 * 1024 * 1024
         width = height = 1865
-        png_not_too_large = make_image_file(
+        jpeg_not_too_large = make_image_file(
             file_format='JPEG',
             color_space='RGB',
             width=width,
             height=height,
         )
 
-        image_content = png_not_too_large.getvalue()
+        image_content = jpeg_not_too_large.getvalue()
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
         image_content_size = len(image_content)
@@ -1194,14 +1194,14 @@ class TestMaximumImageFileSize:
         assert response.json()['results'] == []
 
         width = height = 1866
-        png_not_too_large = make_image_file(
+        jpeg_too_large = make_image_file(
             file_format='JPEG',
             color_space='RGB',
             width=width,
             height=height,
         )
 
-        image_content = png_not_too_large.getvalue()
+        image_content = jpeg_too_large.getvalue()
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
         image_content_size = len(image_content)
         # We check that the image we created is just slightly larger than the
@@ -1218,6 +1218,15 @@ class TestMaximumImageFileSize:
                 body=body,
             )
 
+
+@pytest.mark.usefixtures('verify_mock_vuforia')
+class TestMaximumImageDimensions:
+    """
+    Tests for maximum image dimensions.
+    """
+
+    def test_max_width(self):
+        pass
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
 class TestImageFormats:
