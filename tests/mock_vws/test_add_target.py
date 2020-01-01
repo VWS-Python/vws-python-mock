@@ -616,10 +616,15 @@ class TestImage:
             data=data,
         )
 
+        if len(not_base64_encoded) >= 3:
+            expected_result_code = ResultCodes.FAIL
+        else:
+            expected_result_code = ResultCodes.BAD_IMAGE
+
         assert_vws_failure(
             response=response,
             status_code=codes.UNPROCESSABLE_ENTITY,
-            result_code=ResultCodes.FAIL,
+            result_code=expected_result_code,
         )
 
     def test_not_image(
@@ -909,10 +914,15 @@ class TestApplicationMetadata:
             data=data,
         )
 
+        if len(not_base64_encoded) >= 3:
+            expected_result_code = ResultCodes.FAIL
+        else:
+            expected_result_code = ResultCodes.BAD_IMAGE
+
         assert_vws_failure(
             response=response,
             status_code=codes.UNPROCESSABLE_ENTITY,
-            result_code=ResultCodes.FAIL,
+            result_code=expected_result_code,
         )
 
     def test_metadata_too_large(
