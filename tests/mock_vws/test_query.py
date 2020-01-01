@@ -1227,12 +1227,12 @@ class TestMaximumImageDimensions:
 
     def test_max_height(self, vuforia_database: VuforiaDatabase) -> None:
         width = 1
-        height = 835 ** 2
+        height = 348613
         png_not_too_large = make_image_file(
             file_format='PNG',
             color_space='RGB',
             width=width,
-            height=int(height / 2),
+            height=height,
         )
 
         image_content = png_not_too_large.getvalue()
