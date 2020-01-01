@@ -158,6 +158,7 @@ def validate_image_dimensions(
         '}'
     )
 
+
 @wrapt.decorator
 def validate_image_format(
     wrapped: Callable[..., str],
