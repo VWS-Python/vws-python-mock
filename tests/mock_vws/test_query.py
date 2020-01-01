@@ -1226,6 +1226,10 @@ class TestMaximumImageDimensions:
     """
 
     def test_max_height(self, vuforia_database: VuforiaDatabase) -> None:
+        """
+        An error is returned when an image with a height greater than 30000 is
+        given.
+        """
         width = 1
         max_height = 30000
         png_not_too_tall = make_image_file(
@@ -1284,6 +1288,10 @@ class TestMaximumImageDimensions:
         assert response.text == expected_text
 
     def test_max_width(self, vuforia_database: VuforiaDatabase) -> None:
+        """
+        An error is returned when an image with a width greater than 30000 is
+        given.
+        """
         height = 1
         max_width = 30000
         png_not_too_wide = make_image_file(
