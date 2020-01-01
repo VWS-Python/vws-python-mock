@@ -1166,14 +1166,14 @@ class TestMaximumImageFileSize:
         """
         max_bytes = 2 * 1024 * 1024
         width = height = 1865
-        png_not_too_large = make_image_file(
+        jpeg_not_too_large = make_image_file(
             file_format='JPEG',
             color_space='RGB',
             width=width,
             height=height,
         )
 
-        image_content = png_not_too_large.getvalue()
+        image_content = jpeg_not_too_large.getvalue()
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
         image_content_size = len(image_content)
@@ -1194,14 +1194,14 @@ class TestMaximumImageFileSize:
         assert response.json()['results'] == []
 
         width = height = 1866
-        png_not_too_large = make_image_file(
+        jpeg_too_large = make_image_file(
             file_format='JPEG',
             color_space='RGB',
             width=width,
             height=height,
         )
 
-        image_content = png_not_too_large.getvalue()
+        image_content = jpeg_too_large.getvalue()
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
         image_content_size = len(image_content)
         # We check that the image we created is just slightly larger than the
@@ -1217,6 +1217,137 @@ class TestMaximumImageFileSize:
                 vuforia_database=vuforia_database,
                 body=body,
             )
+
+
+@pytest.mark.usefixtures('verify_mock_vuforia')
+class TestMaximumImageDimensions:
+    """
+    Tests for maximum image dimensions.
+    """
+
+    def test_max_height(self, vuforia_database: VuforiaDatabase) -> None:
+        """
+        An error is returned when an image with a height greater than 30000 is
+        given.
+        """
+        width = 1
+        max_height = 30000
+        png_not_too_tall = make_image_file(
+            file_format='PNG',
+            color_space='RGB',
+            width=width,
+            height=max_height,
+        )
+
+        image_content = png_not_too_tall.getvalue()
+
+        body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
+
+        response = query(
+            vuforia_database=vuforia_database,
+            body=body,
+        )
+
+        assert_query_success(response=response)
+        assert response.json()['results'] == []
+
+        png_too_tall = make_image_file(
+            file_format='PNG',
+            color_space='RGB',
+            width=width,
+            height=max_height + 1,
+        )
+
+        image_content = png_too_tall.getvalue()
+
+        body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
+
+        response = query(
+            vuforia_database=vuforia_database,
+            body=body,
+        )
+
+        assert_vwq_failure(
+            response=response,
+            status_code=codes.UNPROCESSABLE_ENTITY,
+            content_type='application/json',
+        )
+        assert response.json().keys() == {'transaction_id', 'result_code'}
+        assert_valid_transaction_id(response=response)
+        assert_valid_date_header(response=response)
+        result_code = response.json()['result_code']
+        transaction_id = response.json()['transaction_id']
+        assert result_code == ResultCodes.BAD_IMAGE.value
+        # The separators are inconsistent and we test this.
+        expected_text = (
+            '{"transaction_id": '
+            f'"{transaction_id}",'
+            f'"result_code":"{result_code}"'
+            '}'
+        )
+        assert response.text == expected_text
+
+    def test_max_width(self, vuforia_database: VuforiaDatabase) -> None:
+        """
+        An error is returned when an image with a width greater than 30000 is
+        given.
+        """
+        height = 1
+        max_width = 30000
+        png_not_too_wide = make_image_file(
+            file_format='PNG',
+            color_space='RGB',
+            width=max_width,
+            height=height,
+        )
+
+        image_content = png_not_too_wide.getvalue()
+
+        body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
+
+        response = query(
+            vuforia_database=vuforia_database,
+            body=body,
+        )
+
+        assert_query_success(response=response)
+        assert response.json()['results'] == []
+
+        png_too_wide = make_image_file(
+            file_format='PNG',
+            color_space='RGB',
+            width=max_width + 1,
+            height=height,
+        )
+
+        image_content = png_too_wide.getvalue()
+
+        body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
+
+        response = query(
+            vuforia_database=vuforia_database,
+            body=body,
+        )
+
+        assert_vwq_failure(
+            response=response,
+            status_code=codes.UNPROCESSABLE_ENTITY,
+            content_type='application/json',
+        )
+        assert response.json().keys() == {'transaction_id', 'result_code'}
+        assert_valid_transaction_id(response=response)
+        assert_valid_date_header(response=response)
+        result_code = response.json()['result_code']
+        transaction_id = response.json()['transaction_id']
+        assert result_code == ResultCodes.BAD_IMAGE.value
+        # The separators are inconsistent and we test this.
+        expected_text = (
+            '{"transaction_id": '
+            f'"{transaction_id}",'
+            f'"result_code":"{result_code}"'
+            '}'
+        )
+        assert response.text == expected_text
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')

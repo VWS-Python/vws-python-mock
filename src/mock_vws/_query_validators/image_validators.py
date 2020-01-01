@@ -102,6 +102,64 @@ def validate_image_file_size(
 
 
 @wrapt.decorator
+def validate_image_dimensions(
+    wrapped: Callable[..., str],
+    instance: Any,  # pylint: disable=unused-argument
+    args: Tuple[_RequestObjectProxy, _Context],
+    kwargs: Dict,
+) -> str:
+    """
+    Validate the dimensions the image given to the query endpoint.
+
+    Args:
+        wrapped: An endpoint function for `requests_mock`.
+        instance: The class that the endpoint function is in.
+        args: The arguments given to the endpoint function.
+        kwargs: The keyword arguments given to the endpoint function.
+
+    Returns:
+        The result of calling the endpoint.
+
+    Raises:
+        The result of calling the endpoint.
+        An ``UNPROCESSABLE_ENTITY`` response if the image is given and is not
+        within the maximum width and height limits.
+    """
+    request, context = args
+    body_file = io.BytesIO(request.body)
+
+    _, pdict = cgi.parse_header(request.headers['Content-Type'])
+    parsed = parse_multipart(
+        fp=body_file,
+        pdict={
+            'boundary': pdict['boundary'].encode(),
+        },
+    )
+
+    [image] = parsed['image']
+    assert isinstance(image, bytes)
+    image_file = io.BytesIO(image)
+    pil_image = Image.open(image_file)
+    max_width = 30000
+    max_height = 30000
+    if pil_image.height <= max_height and pil_image.width <= max_width:
+        return wrapped(*args, **kwargs)
+
+    context.status_code = codes.UNPROCESSABLE_ENTITY
+    transaction_id = uuid.uuid4().hex
+    result_code = ResultCodes.BAD_IMAGE.value
+
+    # The response has an unusual format of separators, so we construct it
+    # manually.
+    return (
+        '{"transaction_id": '
+        f'"{transaction_id}",'
+        f'"result_code":"{result_code}"'
+        '}'
+    )
+
+
+@wrapt.decorator
 def validate_image_format(
     wrapped: Callable[..., str],
     instance: Any,  # pylint: disable=unused-argument
