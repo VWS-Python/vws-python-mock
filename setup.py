@@ -13,10 +13,8 @@ with open('dev-requirements.txt') as dev_requirements:
     DEV_REQUIRES = dev_requirements.readlines()
 
 setup(
-    use_scm_version={
-        'write_to': 'src/mock_vws/_setuptools_scm_version.txt',
-    },
-    setup_requires=['setuptools_scm', 'setuptools_scm_git_archive'],
+    use_scm_version=True,
+    setup_requires=['setuptools_scm'],
     install_requires=INSTALL_REQUIRES,
     extras_require={'dev': DEV_REQUIRES},
 )

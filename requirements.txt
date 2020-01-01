@@ -4,4 +4,3 @@ requests-mock==1.7.0  # Mock `requests`.
 requests==2.22.0
 wrapt==1.11.2  # Make better decorators.
 typing-extensions==3.7.4.1
-setuptools-scm==3.3.3
