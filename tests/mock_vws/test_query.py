@@ -1341,6 +1341,7 @@ class TestMaximumImageDimensions:
         )
         assert response.text == expected_text
 
+
 @pytest.mark.usefixtures('verify_mock_vuforia')
 class TestImageFormats:
     """
