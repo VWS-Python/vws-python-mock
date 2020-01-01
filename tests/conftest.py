@@ -191,6 +191,11 @@ def endpoint(request: SubRequest) -> Endpoint:
     return endpoint_fixture
 
 
+@pytest.mark.parametrize(
+    'not_base64_encoded_string',
+    ['aaaa', 'aaaaa'],
+    ids=['Length multiple of 4', 'Length not multiple of 4'],
+)
 @pytest.fixture()
 def not_base64_encoded() -> str:
     """
