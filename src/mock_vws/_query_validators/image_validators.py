@@ -102,7 +102,7 @@ def validate_image_file_size(
 
 
 @wrapt.decorator
-def validate_image_file_size(
+def validate_image_dimensions(
     wrapped: Callable[..., str],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
@@ -137,6 +137,7 @@ def validate_image_file_size(
     )
 
     [image] = parsed['image']
+    import pdb; pdb.set_trace()
 
 
 @wrapt.decorator
