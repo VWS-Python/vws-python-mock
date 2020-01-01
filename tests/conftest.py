@@ -191,17 +191,15 @@ def endpoint(request: SubRequest) -> Endpoint:
     return endpoint_fixture
 
 
-@pytest.mark.parametrize(
-    'not_base64_encoded_string',
-    ['aaaa', 'aaaaa'],
+@pytest.fixture(
+    params=['aaaa', 'aaaaa'],
     ids=['Length multiple of 4', 'Length not multiple of 4'],
 )
-@pytest.fixture()
-def not_base64_encoded() -> str:
+def not_base64_encoded(request: SubRequest) -> str:
     """
     Return a string which is not decodable as base64 data.
     """
-    not_base64_encoded_string = '"a"'
+    not_base64_encoded_string = request.param
 
     with pytest.raises(binascii.Error):
         base64.b64decode(not_base64_encoded_string)
