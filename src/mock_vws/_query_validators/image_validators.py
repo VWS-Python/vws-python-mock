@@ -125,7 +125,7 @@ def validate_image_dimensions(
         An ``UNPROCESSABLE_ENTITY`` response if the image is given and is not
         within the maximum width and height limits.
     """
-    request, _ = args
+    request, context = args
     body_file = io.BytesIO(request.body)
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
@@ -137,8 +137,26 @@ def validate_image_dimensions(
     )
 
     [image] = parsed['image']
-    import pdb; pdb.set_trace()
+    assert isinstance(image, bytes)
+    image_file = io.BytesIO(image)
+    pil_image = Image.open(image_file)
+    max_width = 30000
+    max_height = 30000
+    if pil_image.height <= max_height and pil_image.width <= max_width:
+        return wrapped(*args, **kwargs)
 
+    context.status_code = codes.UNPROCESSABLE_ENTITY
+    transaction_id = uuid.uuid4().hex
+    result_code = ResultCodes.BAD_IMAGE.value
+
+    # The response has an unusual format of separators, so we construct it
+    # manually.
+    return (
+        '{"transaction_id": '
+        f'"{transaction_id}",'
+        f'"result_code":"{result_code}"'
+        '}'
+    )
 
 @wrapt.decorator
 def validate_image_format(
