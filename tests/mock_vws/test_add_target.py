@@ -941,6 +941,8 @@ class TestApplicationMetadata:
         # base64.b64encode(base64.b64decode(s))
         # where s is the string but with '=' added until it is a multiple of 4
         # length
+        # And it is different when we use validate=True on decode, and we get
+        # Non-base64 digit found
 
         assert_query_success(response=response)
         [result] = response.json()['results']
