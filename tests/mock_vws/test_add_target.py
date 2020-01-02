@@ -897,7 +897,7 @@ class TestApplicationMetadata:
         """
         # with pytest.raises(binascii.Error):
         #     base64.b64decode(not_base64_encoded_string)
-        not_base64_encoded_string = 'XN'#base64.b64encode(b'hello').decode('ascii')
+        not_base64_encoded_string = 'abcde'#base64.b64encode(b'hello').decode('ascii')
         image_content = high_quality_image.getvalue()
         image_data_encoded = base64.b64encode(image_content).decode('ascii')
 
@@ -935,7 +935,7 @@ class TestApplicationMetadata:
 
         # It could be that
         # when we see binascii.Error: Invalid base64-encoded string: number of data characters (1) cannot be 1 more than a multiple of 4
-        # then the application metadata becomes empty (e.g. "a" as input)
+        # then the application metadata becomes decreased by one (e.g. "a" as input goes to 'a', 'abcde' goes to 'abcd')
         #
         # but when we see "binascii.Error: Incorrect padding" then we get back
         # base64.b64encode(base64.b64decode(s))
