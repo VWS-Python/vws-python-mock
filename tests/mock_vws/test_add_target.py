@@ -27,8 +27,6 @@ from tests.mock_vws.utils.assertions import (
     assert_query_success,
 )
 
-def is_base64_characters():
-    pass
 
 def _assert_oops_response(response: Response) -> None:
     """
@@ -621,11 +619,6 @@ class TestImage:
             data=data,
         )
 
-        if len(not_base64_encoded) >= 3:
-            expected_result_code = ResultCodes.FAIL
-        else:
-            expected_result_code = ResultCodes.BAD_IMAGE
-
         assert_vws_failure(
             response=response,
             status_code=codes.UNPROCESSABLE_ENTITY,
@@ -913,10 +906,15 @@ class TestApplicationMetadata:
             data=data,
         )
 
-        if not_base64_encoded % 4 == 1:
-            if 
-            assert_success(response=response)
+        with pytest.raises(binascii.Error) as exc:
+            base64.b64decode(not_base64_encoded)
 
+        exception_message = str(exc.value)
+        if 'cannot be 1 more than a multiple of 4' in exception_message:
+            assert_success(response=response)
+            return
+
+        import pdb; pdb.set_trace()
         assert_vws_failure(
             response=response,
             status_code=codes.BAD_REQUEST,
