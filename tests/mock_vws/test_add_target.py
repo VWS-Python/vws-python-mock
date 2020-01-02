@@ -904,27 +904,24 @@ class TestApplicationMetadata:
             result_code=ResultCodes.FAIL,
         )
 
-    def test_not_base64_encoded(
+    def test_not_base64_encoded_processable(
         self,
         vuforia_database: VuforiaDatabase,
         high_quality_image: io.BytesIO,
-        not_base64_encoded_is_processable_pair: Tuple[str, bool],
+        not_base64_encoded_processable: str,
     ) -> None:
         """
-        A string which is not base64 encoded is not valid application metadata.
+        Some strings which are not valid base64 encoded strings are allowed as
+        application metadata.
         """
         image_content = high_quality_image.getvalue()
-        (
-            not_base64_encoded,
-            is_processable,
-        ) = not_base64_encoded_is_processable_pair
         image_data_encoded = base64.b64encode(image_content).decode('ascii')
 
         data = {
             'name': 'example_name',
             'width': 1,
             'image': image_data_encoded,
-            'application_metadata': not_base64_encoded,
+            'application_metadata': not_base64_encoded_processable,
         }
 
         response = add_target_to_vws(
@@ -932,16 +929,39 @@ class TestApplicationMetadata:
             data=data,
         )
 
-        if is_processable:
-            assert_success(response=response)
-            return
-        else:
-            assert_vws_failure(
-                response=response,
-                status_code=codes.UNPROCESSABLE_ENTITY,
-                result_code=ResultCodes.FAIL,
-            )
-            return
+        assert_success(response=response)
+
+
+    def test_not_base64_encoded_not_processable(
+        self,
+        vuforia_database: VuforiaDatabase,
+        high_quality_image: io.BytesIO,
+        not_base64_encoded_not_processable: str,
+    ) -> None:
+        """
+        Some strings which are not valid base64 encoded strings are not allowed
+        as application metadata.
+        """
+        image_content = high_quality_image.getvalue()
+        image_data_encoded = base64.b64encode(image_content).decode('ascii')
+
+        data = {
+            'name': 'example_name',
+            'width': 1,
+            'image': image_data_encoded,
+            'application_metadata': not_base64_encoded_not_processable,
+        }
+
+        response = add_target_to_vws(
+            vuforia_database=vuforia_database,
+            data=data,
+        )
+
+        assert_vws_failure(
+            response=response,
+            status_code=codes.UNPROCESSABLE_ENTITY,
+            result_code=ResultCodes.FAIL,
+        )
 
 
     def test_metadata_too_large(
