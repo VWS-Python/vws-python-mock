@@ -3,6 +3,7 @@ Tests for the mock of the add target endpoint.
 """
 
 import base64
+import binascii
 import io
 from string import hexdigits
 from typing import Any, Union
@@ -16,12 +17,14 @@ from tests.mock_vws.utils import (
     add_target_to_vws,
     delete_target,
     make_image_file,
+    query,
     wait_for_target_processed,
 )
 from tests.mock_vws.utils.assertions import (
     assert_valid_date_header,
     assert_vws_failure,
     assert_vws_response,
+    assert_query_success,
 )
 
 
@@ -893,20 +896,22 @@ class TestApplicationMetadata:
     def test_not_base64_encoded(
         self,
         vuforia_database: VuforiaDatabase,
-        image_file_failed_state: io.BytesIO,
-        not_base64_encoded: str,
+        high_quality_image: io.BytesIO,
     ) -> None:
         """
         A string which is not base64 encoded is not valid application metadata.
         """
-        image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
+        # with pytest.raises(binascii.Error):
+        #     base64.b64decode(not_base64_encoded_string)
+        not_base64_encoded_string = 'XN'#base64.b64encode(b'hello').decode('ascii')
+        image_content = high_quality_image.getvalue()
+        image_data_encoded = base64.b64encode(image_content).decode('ascii')
 
         data = {
             'name': 'example_name',
             'width': 1,
             'image': image_data_encoded,
-            'application_metadata': not_base64_encoded,
+            'application_metadata': not_base64_encoded_string,
         }
 
         response = add_target_to_vws(
@@ -914,16 +919,37 @@ class TestApplicationMetadata:
             data=data,
         )
 
-        if len(not_base64_encoded) >= 3:
-            expected_result_code = ResultCodes.FAIL
-        else:
-            expected_result_code = ResultCodes.BAD_IMAGE
+        assert response.status_code == 201
+        target_id = response.json()['target_id']
 
-        assert_vws_failure(
-            response=response,
-            status_code=codes.UNPROCESSABLE_ENTITY,
-            result_code=expected_result_code,
+        wait_for_target_processed(
+            target_id=target_id,
+            vuforia_database=vuforia_database,
         )
+
+        body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
+
+        response = query(
+            vuforia_database=vuforia_database,
+            body=body,
+        )
+
+        # TODO learning
+        # If one letter - metadata is empty
+        # if two letters - metadata is the first letter + Q==
+        # or A==...
+
+        # It could be that
+        # when we see binascii.Error: Invalid base64-encoded string: number of data characters (1) cannot be 1 more than a multiple of 4
+        # then the application metadata becomes empty (e.g. "a" as input)
+        #
+        # but when we see "binascii.Error: Incorrect padding"
+
+        assert_query_success(response=response)
+        [result] = response.json()['results']
+        target_data = result['target_data']
+        import pdb; pdb.set_trace()
+
 
     def test_metadata_too_large(
         self,
