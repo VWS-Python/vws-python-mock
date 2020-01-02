@@ -216,6 +216,7 @@ def not_base64_encoded_processable(request: SubRequest) -> str:
 
     return not_base64_encoded_string
 
+# TODO test both these fixtures with query to see what is stored
 
 @pytest.fixture(
     params=[
