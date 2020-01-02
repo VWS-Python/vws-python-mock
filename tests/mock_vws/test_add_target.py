@@ -597,19 +597,21 @@ class TestImage:
             result_code=ResultCodes.IMAGE_TOO_LARGE,
         )
 
-    def test_not_base64_encoded(
+    def test_not_base64_encoded_processable(
         self,
         vuforia_database: VuforiaDatabase,
-        not_base64_encoded: str,
+        not_base64_encoded_processable: str,
     ) -> None:
         """
-        If the given image is not decodable as base64 data then a `Fail`
-        result is returned.
+        Some strings which are not valid base64 encoded strings are allowed as
+        an image without getting a "Fail" response.
+        This is because Vuforia treats them as valid base64, but then not a
+        valid image.
         """
         data = {
             'name': 'example_name',
             'width': 1,
-            'image': not_base64_encoded,
+            'image': not_base64_encoded_processable,
         }
 
         response = add_target_to_vws(
@@ -617,33 +619,39 @@ class TestImage:
             data=data,
         )
 
-        with pytest.raises(binascii.Error) as exc:
-            base64.b64decode(not_base64_encoded, validate=True)
+        assert_vws_failure(
+            response=response,
+            status_code=codes.UNPROCESSABLE_ENTITY,
+            result_code=ResultCodes.BAD_IMAGE,
+        )
 
-        exception_message = str(exc.value)
-        if 'cannot be 1 more than a multiple of 4' in exception_message:
-            assert_success(response=response)
-            return
+    def test_not_base64_encoded_not_processable(
+        self,
+        vuforia_database: VuforiaDatabase,
+        not_base64_encoded_not_processable: str,
+    ) -> None:
+        """
+        Some strings which are not valid base64 encoded strings are not
+        processable by Vuforia, and then when given as an image Vuforia returns
+        a "Fail" response.
+        """
+        data = {
+            'name': 'example_name',
+            'width': 1,
+            'image': not_base64_encoded_not_processable,
+        }
 
-        if exception_message == 'Incorrect padding':
-            if len(not_base64_encoded) % 4 == 0:
-                assert_vws_failure(
-                    response=response,
-                    status_code=codes.UNPROCESSABLE_ENTITY,
-                    result_code=ResultCodes.FAIL,
-                )
-                return
-            else:
-                assert_success(response=response)
-                return
-        else:
-            assert 'Non-base64 digit found' in exception_message
-            assert_vws_failure(
-                response=response,
-                status_code=codes.UNPROCESSABLE_ENTITY,
-                result_code=ResultCodes.FAIL,
-            )
-            return
+        response = add_target_to_vws(
+            vuforia_database=vuforia_database,
+            data=data,
+        )
+
+        assert_vws_failure(
+            response=response,
+            status_code=codes.UNPROCESSABLE_ENTITY,
+            result_code=ResultCodes.FAIL,
+        )
+
 
     def test_not_image(
         self,
