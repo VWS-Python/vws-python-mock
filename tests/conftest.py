@@ -205,6 +205,10 @@ def endpoint(request: SubRequest) -> Endpoint:
             'aaa"',
             id='Includes a character which is not a base64 digit.',
         ),
+        pytest.param(
+            '"',
+            id='Not a base64 character.',
+        ),
     ],
 )
 def not_base64_encoded(request: SubRequest) -> str:
@@ -214,6 +218,6 @@ def not_base64_encoded(request: SubRequest) -> str:
     not_base64_encoded_string: str = request.param
 
     with pytest.raises(binascii.Error):
-        base64.b64decode(not_base64_encoded_string)
+        base64.b64decode(not_base64_encoded_string, validate=True)
 
     return not_base64_encoded_string
