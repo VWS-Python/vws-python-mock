@@ -940,7 +940,7 @@ class TestImage:
         assert_vws_failure(
             response=response,
             status_code=codes.UNPROCESSABLE_ENTITY,
-            result_code=ResultCodes.FAIL,
+            result_code=ResultCodes.BAD_IMAGE,
         )
 
     def test_not_base64_encoded_not_processable(
