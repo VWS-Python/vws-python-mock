@@ -916,10 +916,9 @@ class TestApplicationMetadata:
 
         if exception_message == 'Incorrect padding':
             if len(not_base64_encoded) % 4 == 0:
-                expected_status_code = codes.UNPROCESSABLE_ENTITY
                 assert_vws_failure(
                     response=response,
-                    status_code=expected_status_code,
+                    status_code=codes.UNPROCESSABLE_ENTITY,
                     result_code=ResultCodes.FAIL,
                 )
                 return
