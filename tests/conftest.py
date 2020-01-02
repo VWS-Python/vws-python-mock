@@ -8,7 +8,7 @@ import io
 import json
 import logging
 import os
-from typing import Generator, Tuple
+from typing import Generator
 
 import pytest
 from _pytest.fixtures import SubRequest

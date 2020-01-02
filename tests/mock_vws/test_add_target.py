@@ -6,7 +6,7 @@ import base64
 import binascii
 import io
 from string import hexdigits
-from typing import Any, Union, Tuple
+from typing import Any, Union
 
 import pytest
 from requests import Response, codes
@@ -17,14 +17,12 @@ from tests.mock_vws.utils import (
     add_target_to_vws,
     delete_target,
     make_image_file,
-    query,
     wait_for_target_processed,
 )
 from tests.mock_vws.utils.assertions import (
     assert_valid_date_header,
     assert_vws_failure,
     assert_vws_response,
-    assert_query_success,
 )
 
 
@@ -931,7 +929,6 @@ class TestApplicationMetadata:
 
         assert_success(response=response)
 
-
     def test_not_base64_encoded_not_processable(
         self,
         vuforia_database: VuforiaDatabase,
@@ -962,7 +959,6 @@ class TestApplicationMetadata:
             status_code=codes.UNPROCESSABLE_ENTITY,
             result_code=ResultCodes.FAIL,
         )
-
 
     def test_metadata_too_large(
         self,
