@@ -209,6 +209,10 @@ def endpoint(request: SubRequest) -> Endpoint:
             '"',
             id='Only a character which is not a base64 digit.',
         ),
+        pytest.param(
+            '====',
+            id='Only equals signs.',
+        ),
     ],
 )
 def not_base64_encoded(request: SubRequest) -> str:

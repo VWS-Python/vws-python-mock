@@ -27,6 +27,8 @@ from tests.mock_vws.utils.assertions import (
     assert_query_success,
 )
 
+def is_base64_characters():
+    pass
 
 def _assert_oops_response(response: Response) -> None:
     """
@@ -911,25 +913,15 @@ class TestApplicationMetadata:
             data=data,
         )
 
-        assert response.status_code == 201
-        target_id = response.json()['target_id']
+        if not_base64_encoded % 4 == 1:
+            if 
+            assert_success(response=response)
 
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
+        assert_vws_failure(
+            response=response,
+            status_code=codes.BAD_REQUEST,
+            result_code=ResultCodes.FAIL,
         )
-
-        body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
-
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
-
-        assert_query_success(response=response)
-        [result] = response.json()['results']
-        target_data = result['target_data']
-        import pdb; pdb.set_trace()
 
 
     def test_metadata_too_large(
