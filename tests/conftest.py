@@ -194,36 +194,46 @@ def endpoint(request: SubRequest) -> Endpoint:
 @pytest.fixture(
     params=[
         pytest.param(
-            ('abcde', True),
+            'abcde',
             id='Length is one more than a multiple of four.',
         ),
         pytest.param(
-            ('abcdef', True),
+            'abcdef',
             id='Length is two more than a multiple of four.',
-        ),
-        pytest.param(
-            ('aaa"', False),
-            id='Includes a character which is not a base64 digit.',
-        ),
-        pytest.param(
-            ('"', False),
-            id='Not a base64 character.',
         ),
     ],
 )
-def not_base64_encoded_is_processable_pair(
-    request: SubRequest,
-) -> Tuple[str, bool]:
+def not_base64_encoded_processable(request: SubRequest) -> str:
     """
-    Return a string which is not decodable as base64 data, and whether Vuforia
-    will respond as if this is valid base64 data.
-
-    If the second item in the tuple is ``False``, Vuforia responds with
+    Return a string which is not decodable as base64 data, but Vuforia will
+    respond as if this is valid base64 data.
     ``UNPROCESSABLE_ENTITY`` when this is given.
     """
-    not_base64_encoded_string, processable = request.param
+    not_base64_encoded_string: str = request.param
 
     with pytest.raises(binascii.Error):
         base64.b64decode(not_base64_encoded_string, validate=True)
 
-    return (not_base64_encoded_string, processable)
+    return not_base64_encoded_string
+
+
+@pytest.fixture(
+    params=[
+        pytest.param(
+            'aaa"',
+            id='Includes a character which is not a base64 digit.',
+        ),
+        pytest.param('"', id='Not a base64 character.'),
+    ],
+)
+def not_base64_not_processable(request: SubRequest) -> str:
+    """
+    Return a string which is not decodable as base64 data, and Vuforia will
+    return an ``UNPROCESSABLE_ENTITY`` response when this is given.
+    """
+    not_base64_encoded_string: str = request.param
+
+    with pytest.raises(binascii.Error):
+        base64.b64decode(not_base64_encoded_string, validate=True)
+
+    return not_base64_encoded_string
