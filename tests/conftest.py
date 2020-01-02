@@ -226,7 +226,7 @@ def not_base64_encoded_processable(request: SubRequest) -> str:
         pytest.param('"', id='Not a base64 character.'),
     ],
 )
-def not_base64_not_processable(request: SubRequest) -> str:
+def not_base64_encoded_not_processable(request: SubRequest) -> str:
     """
     Return a string which is not decodable as base64 data, and Vuforia will
     return an ``UNPROCESSABLE_ENTITY`` response when this is given.
