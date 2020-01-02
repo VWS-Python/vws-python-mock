@@ -914,15 +914,17 @@ class TestImage:
             result_code=ResultCodes.IMAGE_TOO_LARGE,
         )
 
-    def test_not_base64_encoded(
+    def test_not_base64_encoded_processable(
         self,
         vuforia_database: VuforiaDatabase,
         target_id: str,
-        not_base64_encoded: str,
+        not_base64_encoded_processable: str,
     ) -> None:
         """
-        If the given image is not decodable as base64 data then a `Fail`
-        result is returned.
+        Some strings which are not valid base64 encoded strings are allowed as
+        an image without getting a "Fail" response.
+        This is because Vuforia treats them as valid base64, but then not a
+        valid image.
         """
         wait_for_target_processed(
             vuforia_database=vuforia_database,
@@ -931,7 +933,35 @@ class TestImage:
 
         response = update_target(
             vuforia_database=vuforia_database,
-            data={'image': not_base64_encoded},
+            data={'image': not_base64_encoded_processable},
+            target_id=target_id,
+        )
+
+        assert_vws_failure(
+            response=response,
+            status_code=codes.UNPROCESSABLE_ENTITY,
+            result_code=ResultCodes.FAIL,
+        )
+
+    def test_not_base64_encoded_not_processable(
+        self,
+        vuforia_database: VuforiaDatabase,
+        target_id: str,
+        not_base64_encoded_not_processable: str,
+    ) -> None:
+        """
+        Some strings which are not valid base64 encoded strings are not
+        processable by Vuforia, and then when given as an image Vuforia returns
+        a "Fail" response.
+        """
+        wait_for_target_processed(
+            vuforia_database=vuforia_database,
+            target_id=target_id,
+        )
+
+        response = update_target(
+            vuforia_database=vuforia_database,
+            data={'image': not_base64_encoded_not_processable},
             target_id=target_id,
         )
 
