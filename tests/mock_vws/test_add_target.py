@@ -914,12 +914,18 @@ class TestApplicationMetadata:
             assert_success(response=response)
             return
 
-        import pdb; pdb.set_trace()
-        assert_vws_failure(
-            response=response,
-            status_code=codes.BAD_REQUEST,
-            result_code=ResultCodes.FAIL,
-        )
+        if exception_message == 'Incorrect padding':
+            if len(not_base64_encoded) % 4 == 0:
+                expected_status_code = codes.UNPROCESSABLE_ENTITY
+                assert_vws_failure(
+                    response=response,
+                    status_code=expected_status_code,
+                    result_code=ResultCodes.FAIL,
+                )
+                return
+            else:
+                assert_success(response=response)
+                return
 
 
     def test_metadata_too_large(
