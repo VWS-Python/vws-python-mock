@@ -891,13 +891,11 @@ class TestApplicationMetadata:
         self,
         vuforia_database: VuforiaDatabase,
         high_quality_image: io.BytesIO,
+        not_base64_encoded: str,
     ) -> None:
         """
         A string which is not base64 encoded is not valid application metadata.
         """
-        # with pytest.raises(binascii.Error):
-        #     base64.b64decode(not_base64_encoded_string)
-        not_base64_encoded_string = 'abcdef'#base64.b64encode(b'hello').decode('ascii')
         image_content = high_quality_image.getvalue()
         image_data_encoded = base64.b64encode(image_content).decode('ascii')
 
@@ -905,7 +903,7 @@ class TestApplicationMetadata:
             'name': 'example_name',
             'width': 1,
             'image': image_data_encoded,
-            'application_metadata': not_base64_encoded_string,
+            'application_metadata': not_base64_encoded,
         }
 
         response = add_target_to_vws(
@@ -927,22 +925,6 @@ class TestApplicationMetadata:
             vuforia_database=vuforia_database,
             body=body,
         )
-
-        # TODO learning
-        # If one letter - metadata is empty
-        # if two letters - metadata is the first letter + Q==
-        # or A==...
-
-        # It could be that
-        # when we see binascii.Error: Invalid base64-encoded string: number of data characters (1) cannot be 1 more than a multiple of 4
-        # then the application metadata becomes decreased by one (e.g. "a" as input goes to 'a', 'abcde' goes to 'abcd')
-        #
-        # but when we see "binascii.Error: Incorrect padding" then we get back
-        # base64.b64encode(base64.b64decode(s))
-        # where s is the string but with '=' added until it is a multiple of 4
-        # length
-        # And it is different when we use validate=True on decode, and we get
-        # Non-base64 digit found
 
         assert_query_success(response=response)
         [result] = response.json()['results']
