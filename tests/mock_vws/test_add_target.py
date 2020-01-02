@@ -943,7 +943,8 @@ class TestApplicationMetadata:
         # when we see binascii.Error: Invalid base64-encoded string: number of data characters (1) cannot be 1 more than a multiple of 4
         # then the application metadata becomes empty (e.g. "a" as input)
         #
-        # but when we see "binascii.Error: Incorrect padding"
+        # but when we see "binascii.Error: Incorrect padding" then we get back
+        # base64.b64encode(base64.b64decode(s))
 
         assert_query_success(response=response)
         [result] = response.json()['results']
