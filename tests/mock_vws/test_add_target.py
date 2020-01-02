@@ -887,12 +887,6 @@ class TestApplicationMetadata:
             result_code=ResultCodes.FAIL,
         )
 
-        assert_vws_failure(
-            response=response,
-            status_code=codes.BAD_REQUEST,
-            result_code=ResultCodes.FAIL,
-        )
-
     def test_not_base64_encoded(
         self,
         vuforia_database: VuforiaDatabase,
