@@ -897,7 +897,7 @@ class TestApplicationMetadata:
         """
         # with pytest.raises(binascii.Error):
         #     base64.b64decode(not_base64_encoded_string)
-        not_base64_encoded_string = 'abcde'#base64.b64encode(b'hello').decode('ascii')
+        not_base64_encoded_string = 'abcdef'#base64.b64encode(b'hello').decode('ascii')
         image_content = high_quality_image.getvalue()
         image_data_encoded = base64.b64encode(image_content).decode('ascii')
 
@@ -939,6 +939,8 @@ class TestApplicationMetadata:
         #
         # but when we see "binascii.Error: Incorrect padding" then we get back
         # base64.b64encode(base64.b64decode(s))
+        # where s is the string but with '=' added until it is a multiple of 4
+        # length
 
         assert_query_success(response=response)
         [result] = response.json()['results']
