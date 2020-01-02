@@ -6,7 +6,7 @@ import base64
 import binascii
 import io
 from string import hexdigits
-from typing import Any, Union
+from typing import Any, Union, Tuple
 
 import pytest
 from requests import Response, codes
@@ -619,11 +619,33 @@ class TestImage:
             data=data,
         )
 
-        assert_vws_failure(
-            response=response,
-            status_code=codes.UNPROCESSABLE_ENTITY,
-            result_code=expected_result_code,
-        )
+        with pytest.raises(binascii.Error) as exc:
+            base64.b64decode(not_base64_encoded, validate=True)
+
+        exception_message = str(exc.value)
+        if 'cannot be 1 more than a multiple of 4' in exception_message:
+            assert_success(response=response)
+            return
+
+        if exception_message == 'Incorrect padding':
+            if len(not_base64_encoded) % 4 == 0:
+                assert_vws_failure(
+                    response=response,
+                    status_code=codes.UNPROCESSABLE_ENTITY,
+                    result_code=ResultCodes.FAIL,
+                )
+                return
+            else:
+                assert_success(response=response)
+                return
+        else:
+            assert 'Non-base64 digit found' in exception_message
+            assert_vws_failure(
+                response=response,
+                status_code=codes.UNPROCESSABLE_ENTITY,
+                result_code=ResultCodes.FAIL,
+            )
+            return
 
     def test_not_image(
         self,
@@ -886,12 +908,16 @@ class TestApplicationMetadata:
         self,
         vuforia_database: VuforiaDatabase,
         high_quality_image: io.BytesIO,
-        not_base64_encoded: str,
+        not_base64_encoded_is_processable_pair: Tuple[str, bool],
     ) -> None:
         """
         A string which is not base64 encoded is not valid application metadata.
         """
         image_content = high_quality_image.getvalue()
+        (
+            not_base64_encoded,
+            is_processable,
+        ) = not_base64_encoded_is_processable_pair
         image_data_encoded = base64.b64encode(image_content).decode('ascii')
 
         data = {
@@ -906,27 +932,10 @@ class TestApplicationMetadata:
             data=data,
         )
 
-        with pytest.raises(binascii.Error) as exc:
-            base64.b64decode(not_base64_encoded, validate=True)
-
-        exception_message = str(exc.value)
-        if 'cannot be 1 more than a multiple of 4' in exception_message:
+        if is_processable:
             assert_success(response=response)
             return
-
-        if exception_message == 'Incorrect padding':
-            if len(not_base64_encoded) % 4 == 0:
-                assert_vws_failure(
-                    response=response,
-                    status_code=codes.UNPROCESSABLE_ENTITY,
-                    result_code=ResultCodes.FAIL,
-                )
-                return
-            else:
-                assert_success(response=response)
-                return
         else:
-            assert 'Non-base64 digit found' in exception_message
             assert_vws_failure(
                 response=response,
                 status_code=codes.UNPROCESSABLE_ENTITY,

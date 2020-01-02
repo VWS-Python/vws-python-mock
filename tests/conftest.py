@@ -8,7 +8,7 @@ import io
 import json
 import logging
 import os
-from typing import Generator
+from typing import Generator, Tuple
 
 import pytest
 from _pytest.fixtures import SubRequest
@@ -194,30 +194,36 @@ def endpoint(request: SubRequest) -> Endpoint:
 @pytest.fixture(
     params=[
         pytest.param(
-            'abcde',
+            ('abcde', True),
             id='Length is one more than a multiple of four.',
         ),
         pytest.param(
-            'abcdef',
+            ('abcdef', True),
             id='Length is two more than a multiple of four.',
         ),
         pytest.param(
-            'aaa"',
+            ('aaa"', False),
             id='Includes a character which is not a base64 digit.',
         ),
         pytest.param(
-            '"',
+            ('"', False),
             id='Not a base64 character.',
         ),
     ],
 )
-def not_base64_encoded(request: SubRequest) -> str:
+def not_base64_encoded_is_processable_pair(
+    request: SubRequest,
+) -> Tuple[str, bool]:
     """
-    Return a string which is not decodable as base64 data.
+    Return a string which is not decodable as base64 data, and whether Vuforia
+    will respond as if this is valid base64 data.
+
+    If the second item in the tuple is ``False``, Vuforia responds with
+    ``UNPROCESSABLE_ENTITY`` when this is given.
     """
-    not_base64_encoded_string: str = request.param
+    not_base64_encoded_string, processable = request.param
 
     with pytest.raises(binascii.Error):
         base64.b64decode(not_base64_encoded_string, validate=True)
 
-    return not_base64_encoded_string
+    return (not_base64_encoded_string, processable)
