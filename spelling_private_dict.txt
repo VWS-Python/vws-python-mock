@@ -7,6 +7,7 @@ admin
 api
 args
 ascii
+binascii
 bool
 boolean
 bytesio
@@ -77,5 +78,7 @@ vuforia
 vuforia's
 vwq
 vws
+xa
+xn
 xxx
 yml

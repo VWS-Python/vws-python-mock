@@ -14,6 +14,9 @@ def decode_base64(encoded_data: str) -> bytes:
     Raises:
         binascii.Error: Vuforia would consider this encoded data as an
         "UNPROCESSABLE_ENTITY".
+
+    Returns:
+        The given data, decoded as base64.
     """
     acceptable_characters = string.ascii_letters + string.digits + '+/='
     for character in encoded_data:
