@@ -55,6 +55,7 @@ pdict
 plugins
 png
 pragma
+processable
 pytest
 readme
 readthedocs
