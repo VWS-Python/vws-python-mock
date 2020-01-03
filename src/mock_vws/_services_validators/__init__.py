@@ -433,15 +433,16 @@ def validate_metadata_encoding(
     if application_metadata is None:
         return wrapped(*args, **kwargs)
 
-    try:
-        base64.b64decode(application_metadata)
-    except binascii.Error:
-        context.status_code = codes.UNPROCESSABLE_ENTITY
-        body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.FAIL.value,
-        }
-        return json_dump(body)
+    for character in application_metadata:
+        try:
+            base64.b64decode(character * 4, validate=True)
+        except binascii.Error:
+            context.status_code = codes.UNPROCESSABLE_ENTITY
+            body = {
+                'transaction_id': uuid.uuid4().hex,
+                'result_code': ResultCodes.FAIL.value,
+            }
+            return json_dump(body)
 
     return wrapped(*args, **kwargs)
 
@@ -518,7 +519,15 @@ def validate_metadata_size(
     application_metadata = request.json().get('application_metadata')
     if application_metadata is None:
         return wrapped(*args, **kwargs)
-    decoded = base64.b64decode(application_metadata)
+
+    if len(application_metadata) % 4 == 0:
+        decoded = base64.b64decode(application_metadata)
+    if len(application_metadata) % 4 == 1:
+        decoded = base64.b64decode(application_metadata[:-1])
+    if len(application_metadata) % 4 == 2:
+        decoded = base64.b64decode(application_metadata + '==')
+    if len(application_metadata) % 4 == 3:
+        decoded = base64.b64decode(application_metadata + '=')
 
     max_metadata_bytes = 1024 * 1024 - 1
     if len(decoded) <= max_metadata_bytes:
