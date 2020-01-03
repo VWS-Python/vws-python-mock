@@ -270,7 +270,7 @@ class MockVuforiaWebQueryAPI:
                 application_metadata = None
             else:
                 application_metadata = base64.b64encode(
-                    decode_base64(encoded_data=target.application_metadata)
+                    decode_base64(encoded_data=target.application_metadata),
                 ).decode('ascii')
             target_data = {
                 'target_timestamp': int(target_timestamp),
