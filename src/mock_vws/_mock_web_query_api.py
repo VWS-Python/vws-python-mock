@@ -5,6 +5,7 @@ See
 https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query
 """
 
+import base64
 import cgi
 import datetime
 import io
@@ -28,6 +29,7 @@ from mock_vws._mock_common import (
     set_date_header,
 )
 from mock_vws.database import VuforiaDatabase
+from mock_vws._base64_decoding import decode_base64
 
 from ._query_validators import (
     validate_accept_header,
@@ -264,10 +266,14 @@ class MockVuforiaWebQueryAPI:
         results: List[Dict[str, Any]] = []
         for target in matches:
             target_timestamp = target.last_modified_date.timestamp()
+            if target.application_metadata is None:
+                application_metadata = None
+            else:
+                application_metadata = base64.b64encode(decode_base64(encoded_data=target.application_metadata)).decode('ascii')
             target_data = {
                 'target_timestamp': int(target_timestamp),
                 'name': target.name,
-                'application_metadata': target.application_metadata,
+                'application_metadata': application_metadata,
             }
 
             if include_target_data == 'all':
