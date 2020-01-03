@@ -120,8 +120,16 @@ def target_id(
     new_target_id: str = response_json['target_id']
     return new_target_id
 
+class VuforiaBackend(Enum):
 
-@pytest.fixture(params=[True, False], ids=['Real Vuforia', 'Mock Vuforia'])
+    REAL_VUFORIA = 'Real Vuforia'
+    MOCK_IN_MEMORY = 'Mock in memory'
+
+@pytest.fixture(
+    params=[
+        pytest.param(item, item.value) for item in list(VuforiaBackend),
+    ],
+)
 def verify_mock_vuforia(
     request: SubRequest,
     vuforia_database: VuforiaDatabase,
