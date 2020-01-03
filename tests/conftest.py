@@ -198,7 +198,7 @@ def endpoint(request: SubRequest) -> Endpoint:
             id='Length is one more than a multiple of four.',
         ),
         pytest.param(
-            # We choose ``XN`` because it is different when decoded then encoded:
+            # We choose XN because it is different when decoded then encoded:
             #
             #   print(base64.b64encode(base64.b64decode('XN==')))
             #
