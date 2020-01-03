@@ -14,6 +14,7 @@ from requests import codes
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
+from mock_vws._base64_decoding import decode_base64
 from mock_vws._constants import ResultCodes
 from mock_vws._mock_common import json_dump
 
@@ -49,7 +50,7 @@ def validate_image_format(
     if image is None:
         return wrapped(*args, **kwargs)
 
-    decoded = base64.b64decode(image)
+    decoded = decode_base64(encoded_data=image)
     image_file = io.BytesIO(decoded)
     pil_image = Image.open(image_file)
 
@@ -95,7 +96,7 @@ def validate_image_color_space(
     if image is None:
         return wrapped(*args, **kwargs)
 
-    decoded = base64.b64decode(image)
+    decoded = decode_base64(encoded_data=image)
     image_file = io.BytesIO(decoded)
     pil_image = Image.open(image_file)
 
@@ -141,7 +142,7 @@ def validate_image_size(
     if image is None:
         return wrapped(*args, **kwargs)
 
-    decoded = base64.b64decode(image)
+    decoded = decode_base64(encoded_data=image)
 
     if len(decoded) <= 2359293:
         return wrapped(*args, **kwargs)
@@ -185,7 +186,7 @@ def validate_image_is_image(
     if image is None:
         return wrapped(*args, **kwargs)
 
-    decoded = base64.b64decode(image)
+    decoded = decode_base64(encoded_data=image)
     image_file = io.BytesIO(decoded)
 
     try:
@@ -233,7 +234,7 @@ def validate_image_encoding(
     image = request.json().get('image')
 
     try:
-        base64.b64decode(image)
+        decode_base64(encoded_data=image)
     except binascii.Error:
         context.status_code = codes.UNPROCESSABLE_ENTITY
         body = {

@@ -1,10 +1,12 @@
 import base64
+import binascii
+import string
 
 def decode_base64(encoded_data):
+    acceptable_characters = string.ascii_letters + string.digits + '+/='
     for character in encoded_data:
-        # Raise a binascii.Error if any character is not in the base64
-        # alphabet.
-        base64.b64decode(character * 4, validate=True)
+        if character not in acceptable_characters:
+            raise binascii.Error()
 
     if len(encoded_data) % 4 == 0:
         decoded = base64.b64decode(encoded_data)
