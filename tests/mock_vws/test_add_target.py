@@ -3,7 +3,6 @@ Tests for the mock of the add target endpoint.
 """
 
 import base64
-import binascii
 import io
 from string import hexdigits
 from typing import Any, Union
@@ -651,7 +650,6 @@ class TestImage:
             status_code=codes.UNPROCESSABLE_ENTITY,
             result_code=ResultCodes.FAIL,
         )
-
 
     def test_not_image(
         self,
