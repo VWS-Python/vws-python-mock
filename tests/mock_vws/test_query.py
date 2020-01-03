@@ -451,7 +451,8 @@ class TestSuccess:
             expected_metadata_original = not_base64_encoded_processable[:-1]
         elif len(not_base64_encoded_processable) % 4 == 2:
             expected_metadata_original = not_base64_encoded_processable + '=='
-        elif len(not_base64_encoded_processable) % 4 == 3:
+        else:
+            assert len(not_base64_encoded_processable) % 4 == 3
             expected_metadata_original = not_base64_encoded_processable + '='
 
         expected_metadata = base64.b64encode(

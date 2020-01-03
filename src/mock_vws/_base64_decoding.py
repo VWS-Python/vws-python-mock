@@ -25,11 +25,12 @@ def decode_base64(encoded_data: str) -> bytes:
 
     if len(encoded_data) % 4 == 0:
         decoded = base64.b64decode(encoded_data)
-    if len(encoded_data) % 4 == 1:
+    elif len(encoded_data) % 4 == 1:
         decoded = base64.b64decode(encoded_data[:-1])
-    if len(encoded_data) % 4 == 2:
+    elif len(encoded_data) % 4 == 2:
         decoded = base64.b64decode(encoded_data + '==')
-    if len(encoded_data) % 4 == 3:
+    else:
+        assert len(encoded_data) % 4 == 3
         decoded = base64.b64decode(encoded_data + '=')
 
     return decoded
