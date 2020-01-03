@@ -447,11 +447,11 @@ class TestApplicationMetadata:
             result_code=ResultCodes.FAIL,
         )
 
-    def test_not_base64_encoded(
+    def test_not_base64_encoded_processable(
         self,
         vuforia_database: VuforiaDatabase,
         target_id: str,
-        not_base64_encoded: str,
+        not_base64_encoded_processable: str,
     ) -> None:
         """
         A string which is not base64 encoded is not valid application metadata.
@@ -463,7 +463,33 @@ class TestApplicationMetadata:
 
         response = update_target(
             vuforia_database=vuforia_database,
-            data={'application_metadata': not_base64_encoded},
+            data={'application_metadata': not_base64_encoded_processable},
+            target_id=target_id,
+        )
+
+        assert_vws_response(
+            response=response,
+            status_code=codes.OK,
+            result_code=ResultCodes.SUCCESS,
+        )
+
+    def test_not_base64_encoded_not_processable(
+        self,
+        vuforia_database: VuforiaDatabase,
+        target_id: str,
+        not_base64_encoded_not_processable: str,
+    ) -> None:
+        """
+        A string which is not base64 encoded is not valid application metadata.
+        """
+        wait_for_target_processed(
+            vuforia_database=vuforia_database,
+            target_id=target_id,
+        )
+
+        response = update_target(
+            vuforia_database=vuforia_database,
+            data={'application_metadata': not_base64_encoded_not_processable},
             target_id=target_id,
         )
 
