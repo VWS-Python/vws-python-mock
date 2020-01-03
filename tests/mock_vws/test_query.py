@@ -398,6 +398,67 @@ class TestSuccess:
         time_difference = abs(approximate_target_created - target_timestamp)
         assert time_difference < 5
 
+    def test_not_base64_encoded_processable(
+        self,
+        high_quality_image: io.BytesIO,
+        vuforia_database: VuforiaDatabase,
+        not_base64_encoded_processable: str,
+    ) -> None:
+        """
+        Vuforia accepts some metadata strings which are not valid base64.
+        When a target with such a string is matched by a query, Vuforia returns
+        an interesting result:
+
+        * If the metadata string is a length one greater than a multiple of 4,
+          the last character is ignored.
+        * If the metadata is two greater than a multiple of 4, the result is
+          padded, then decoded, then encoded.
+        * If the metadata is three greater than a multiple of 4, the result is
+          padded, then decoded, then encoded.
+        """
+        image_content = high_quality_image.getvalue()
+        image_data_encoded = base64.b64encode(image_content).decode('ascii')
+        name = 'example_name'
+        add_target_data = {
+            'name': name,
+            'width': 1,
+            'image': image_data_encoded,
+            'application_metadata': not_base64_encoded_processable,
+        }
+        response = add_target_to_vws(
+            vuforia_database=vuforia_database,
+            data=add_target_data,
+        )
+
+        target_id = response.json()['target_id']
+
+        wait_for_target_processed(
+            target_id=target_id,
+            vuforia_database=vuforia_database,
+        )
+
+        body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
+
+        response = query(
+            vuforia_database=vuforia_database,
+            body=body,
+        )
+
+        assert_query_success(response=response)
+        [result] = response.json()['results']
+        query_metadata = result['target_data']['application_metadata']
+        if len(not_base64_encoded_processable) % 4 == 1:
+            expected_metadata_original = not_base64_encoded_processable[:-1]
+        elif len(not_base64_encoded_processable) % 4 == 2:
+            expected_metadata_original = not_base64_encoded_processable + '=='
+        elif len(not_base64_encoded_processable) % 4 == 3:
+            expected_metadata_original = not_base64_encoded_processable + '='
+
+        expected_metadata = base64.b64encode(
+            base64.b64decode(expected_metadata_original),
+        )
+        assert query_metadata == expected_metadata.decode()
+
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
 class TestIncorrectFields:

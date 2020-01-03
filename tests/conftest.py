@@ -191,14 +191,58 @@ def endpoint(request: SubRequest) -> Endpoint:
     return endpoint_fixture
 
 
-@pytest.fixture()
-def not_base64_encoded() -> str:
+@pytest.fixture(
+    params=[
+        pytest.param(
+            'abcde',
+            id='Length is one more than a multiple of four.',
+        ),
+        pytest.param(
+            # We choose XN because it is different when decoded then encoded:
+            #
+            #   print(base64.b64encode(base64.b64decode('XN==')))
+            #
+            # prints ``XA==``.
+            'XN',
+            id='Length is two more than a multiple of four.',
+        ),
+        pytest.param(
+            'XNA',
+            id='Length is three more than a multiple of four.',
+        ),
+    ],
+)
+def not_base64_encoded_processable(request: SubRequest) -> str:
     """
-    Return a string which is not decodable as base64 data.
+    Return a string which is not decodable as base64 data, but Vuforia will
+    respond as if this is valid base64 data.
+    ``UNPROCESSABLE_ENTITY`` when this is given.
     """
-    not_base64_encoded_string = '"a"'
+    not_base64_encoded_string: str = request.param
 
     with pytest.raises(binascii.Error):
-        base64.b64decode(not_base64_encoded_string)
+        base64.b64decode(not_base64_encoded_string, validate=True)
+
+    return not_base64_encoded_string
+
+
+@pytest.fixture(
+    params=[
+        pytest.param(
+            'aaa"',
+            id='Includes a character which is not a base64 digit.',
+        ),
+        pytest.param('"', id='Not a base64 character.'),
+    ],
+)
+def not_base64_encoded_not_processable(request: SubRequest) -> str:
+    """
+    Return a string which is not decodable as base64 data, and Vuforia will
+    return an ``UNPROCESSABLE_ENTITY`` response when this is given.
+    """
+    not_base64_encoded_string: str = request.param
+
+    with pytest.raises(binascii.Error):
+        base64.b64decode(not_base64_encoded_string, validate=True)
 
     return not_base64_encoded_string

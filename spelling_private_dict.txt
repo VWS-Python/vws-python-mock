@@ -7,6 +7,7 @@ admin
 api
 args
 ascii
+binascii
 bool
 boolean
 bytesio
@@ -54,6 +55,7 @@ pdict
 plugins
 png
 pragma
+processable
 pytest
 readme
 readthedocs
@@ -77,5 +79,7 @@ vuforia
 vuforia's
 vwq
 vws
+xa
+xn
 xxx
 yml

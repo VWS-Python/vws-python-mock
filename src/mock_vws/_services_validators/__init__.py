@@ -2,7 +2,6 @@
 Input validators to use in the mock.
 """
 
-import base64
 import binascii
 import numbers
 import uuid
@@ -16,6 +15,7 @@ from requests_mock import POST, PUT
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
+from mock_vws._base64_decoding import decode_base64
 from mock_vws._constants import ResultCodes
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._mock_common import json_dump
@@ -434,7 +434,7 @@ def validate_metadata_encoding(
         return wrapped(*args, **kwargs)
 
     try:
-        base64.b64decode(application_metadata)
+        decode_base64(encoded_data=application_metadata)
     except binascii.Error:
         context.status_code = codes.UNPROCESSABLE_ENTITY
         body = {
@@ -518,7 +518,7 @@ def validate_metadata_size(
     application_metadata = request.json().get('application_metadata')
     if application_metadata is None:
         return wrapped(*args, **kwargs)
-    decoded = base64.b64decode(application_metadata)
+    decoded = decode_base64(encoded_data=application_metadata)
 
     max_metadata_bytes = 1024 * 1024 - 1
     if len(decoded) <= max_metadata_bytes:

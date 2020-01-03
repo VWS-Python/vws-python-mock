@@ -596,19 +596,48 @@ class TestImage:
             result_code=ResultCodes.IMAGE_TOO_LARGE,
         )
 
-    def test_not_base64_encoded(
+    def test_not_base64_encoded_processable(
         self,
         vuforia_database: VuforiaDatabase,
-        not_base64_encoded: str,
+        not_base64_encoded_processable: str,
     ) -> None:
         """
-        If the given image is not decodable as base64 data then a `Fail`
-        result is returned.
+        Some strings which are not valid base64 encoded strings are allowed as
+        an image without getting a "Fail" response.
+        This is because Vuforia treats them as valid base64, but then not a
+        valid image.
         """
         data = {
             'name': 'example_name',
             'width': 1,
-            'image': not_base64_encoded,
+            'image': not_base64_encoded_processable,
+        }
+
+        response = add_target_to_vws(
+            vuforia_database=vuforia_database,
+            data=data,
+        )
+
+        assert_vws_failure(
+            response=response,
+            status_code=codes.UNPROCESSABLE_ENTITY,
+            result_code=ResultCodes.BAD_IMAGE,
+        )
+
+    def test_not_base64_encoded_not_processable(
+        self,
+        vuforia_database: VuforiaDatabase,
+        not_base64_encoded_not_processable: str,
+    ) -> None:
+        """
+        Some strings which are not valid base64 encoded strings are not
+        processable by Vuforia, and then when given as an image Vuforia returns
+        a "Fail" response.
+        """
+        data = {
+            'name': 'example_name',
+            'width': 1,
+            'image': not_base64_encoded_not_processable,
         }
 
         response = add_target_to_vws(
@@ -879,23 +908,51 @@ class TestApplicationMetadata:
             result_code=ResultCodes.FAIL,
         )
 
-    def test_not_base64_encoded(
+    def test_not_base64_encoded_processable(
         self,
         vuforia_database: VuforiaDatabase,
-        image_file_failed_state: io.BytesIO,
-        not_base64_encoded: str,
+        high_quality_image: io.BytesIO,
+        not_base64_encoded_processable: str,
     ) -> None:
         """
-        A string which is not base64 encoded is not valid application metadata.
+        Some strings which are not valid base64 encoded strings are allowed as
+        application metadata.
         """
-        image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
+        image_content = high_quality_image.getvalue()
+        image_data_encoded = base64.b64encode(image_content).decode('ascii')
 
         data = {
             'name': 'example_name',
             'width': 1,
             'image': image_data_encoded,
-            'application_metadata': not_base64_encoded,
+            'application_metadata': not_base64_encoded_processable,
+        }
+
+        response = add_target_to_vws(
+            vuforia_database=vuforia_database,
+            data=data,
+        )
+
+        assert_success(response=response)
+
+    def test_not_base64_encoded_not_processable(
+        self,
+        vuforia_database: VuforiaDatabase,
+        high_quality_image: io.BytesIO,
+        not_base64_encoded_not_processable: str,
+    ) -> None:
+        """
+        Some strings which are not valid base64 encoded strings are not allowed
+        as application metadata.
+        """
+        image_content = high_quality_image.getvalue()
+        image_data_encoded = base64.b64encode(image_content).decode('ascii')
+
+        data = {
+            'name': 'example_name',
+            'width': 1,
+            'image': image_data_encoded,
+            'application_metadata': not_base64_encoded_not_processable,
         }
 
         response = add_target_to_vws(
