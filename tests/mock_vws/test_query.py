@@ -413,6 +413,8 @@ class TestSuccess:
           the last character is ignored.
         * If the metadata is two greater than a multiple of 4, the result is
           padded, then decoded, then encoded.
+        * If the metadata is three greater than a multiple of 4, the result is
+          padded, then decoded, then encoded.
         """
         image_content = high_quality_image.getvalue()
         image_data_encoded = base64.b64encode(image_content).decode('ascii')
@@ -453,7 +455,7 @@ class TestSuccess:
             expected_metadata_original = not_base64_encoded_processable + '='
 
         expected_metadata = base64.b64encode(base64.b64decode(expected_metadata_original))
-        assert query_metadata == expected_metadata
+        assert query_metadata == expected_metadata.decode()
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
