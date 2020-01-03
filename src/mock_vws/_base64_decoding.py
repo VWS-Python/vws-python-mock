@@ -2,6 +2,7 @@ import base64
 import binascii
 import string
 
+
 def decode_base64(encoded_data):
     acceptable_characters = string.ascii_letters + string.digits + '+/='
     for character in encoded_data:

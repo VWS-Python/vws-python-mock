@@ -2,7 +2,6 @@
 Input validators to use in the mock.
 """
 
-import base64
 import binascii
 import numbers
 import uuid
@@ -435,7 +434,7 @@ def validate_metadata_encoding(
         return wrapped(*args, **kwargs)
 
     try:
-       decode_base64(encoded_data=application_metadata)
+        decode_base64(encoded_data=application_metadata)
     except binascii.Error:
         context.status_code = codes.UNPROCESSABLE_ENTITY
         body = {

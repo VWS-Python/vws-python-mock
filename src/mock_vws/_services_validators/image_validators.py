@@ -2,7 +2,6 @@
 Image validators to use in the mock.
 """
 
-import base64
 import binascii
 import io
 import uuid

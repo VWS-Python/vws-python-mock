@@ -19,6 +19,7 @@ from requests_mock import POST
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
+from mock_vws._base64_decoding import decode_base64
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_client_keys
 from mock_vws._mock_common import (
@@ -29,7 +30,6 @@ from mock_vws._mock_common import (
     set_date_header,
 )
 from mock_vws.database import VuforiaDatabase
-from mock_vws._base64_decoding import decode_base64
 
 from ._query_validators import (
     validate_accept_header,
@@ -269,7 +269,9 @@ class MockVuforiaWebQueryAPI:
             if target.application_metadata is None:
                 application_metadata = None
             else:
-                application_metadata = base64.b64encode(decode_base64(encoded_data=target.application_metadata)).decode('ascii')
+                application_metadata = base64.b64encode(
+                    decode_base64(encoded_data=target.application_metadata)
+                ).decode('ascii')
             target_data = {
                 'target_timestamp': int(target_timestamp),
                 'name': target.name,

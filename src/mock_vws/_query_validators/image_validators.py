@@ -14,7 +14,6 @@ from requests import codes
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
-from .._base64_decoding import decode_base64
 from .._constants import ResultCodes
 from .._mock_common import parse_multipart
 
