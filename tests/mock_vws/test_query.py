@@ -398,6 +398,16 @@ class TestSuccess:
         time_difference = abs(approximate_target_created - target_timestamp)
         assert time_difference < 5
 
+    def test_not_base64_encoded_processable(
+        self,
+        high_quality_image: io.BytesIO,
+        vuforia_database: VuforiaDatabase,
+    ) -> None:
+        """
+        XXX
+        """
+        pass
+
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
 class TestIncorrectFields:
