@@ -454,7 +454,8 @@ class TestApplicationMetadata:
         not_base64_encoded_processable: str,
     ) -> None:
         """
-        A string which is not base64 encoded is not valid application metadata.
+        Some strings which are not valid base64 encoded strings are allowed as
+        application metadata.
         """
         wait_for_target_processed(
             vuforia_database=vuforia_database,
@@ -480,7 +481,8 @@ class TestApplicationMetadata:
         not_base64_encoded_not_processable: str,
     ) -> None:
         """
-        A string which is not base64 encoded is not valid application metadata.
+        Some strings which are not valid base64 encoded strings are not allowed
+        as application metadata.
         """
         wait_for_target_processed(
             vuforia_database=vuforia_database,
