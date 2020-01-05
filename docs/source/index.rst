@@ -26,6 +26,7 @@ Reference
 
    api-reference
    installation
+   docker
    differences-to-vws
    versioning-and-api-stability
    contributing
