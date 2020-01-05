@@ -8,5 +8,11 @@ Running the mock
 
    docker run adamtheturtle/mock-vws
 
-Customising the ports
----------------------
+Configuration
+-------------
+
+Ports
+~~~~~
+
+Using ``docker-compose``
+------------------------
