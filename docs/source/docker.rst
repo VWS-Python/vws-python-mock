@@ -6,10 +6,31 @@ Running the mock
 
 .. code:: sh
 
-   docker run adamtheturtle/mock-vws
+   docker run adamtheturtle/mock-vws -e VWS_MOCK_DATABASES=$(cat vws-mock-config.json)
 
 Configuration
 -------------
+
+The ``VWS_MOCK_DATABASES`` environment variable must be set to a JSON configuration which looks like:
+
+.. code-block:: json
+
+   [
+     {
+         "state": "working",
+         "server_access_key": "my_server_access_key",
+         "server_secret_key": "my_server_secret_key",
+         "client_access_key": "my_client_access_key",
+         "client_secret_key": "my_client_secret_key"
+     },
+     {
+         "state": "inactive",
+         "server_access_key": "my_server_access_key2",
+         "server_secret_key": "my_server_secret_key2",
+         "client_access_key": "my_client_access_key2",
+         "client_secret_key": "my_client_secret_key2"
+     }
+   ]
 
 Ports
 ~~~~~
