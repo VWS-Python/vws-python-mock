@@ -32,6 +32,8 @@ The ``VWS_MOCK_DATABASES`` environment variable must be set to a JSON configurat
      }
    ]
 
+TODO: Also processing time etc.
+
 Ports
 ~~~~~
 
