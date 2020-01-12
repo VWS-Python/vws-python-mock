@@ -4,6 +4,7 @@ Choose which backends to use for the tests.
 
 import logging
 import os
+from enum import Enum
 from typing import Generator
 
 import pytest
@@ -70,29 +71,12 @@ def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
         )
 
 
-@pytest.fixture(params=[True, False], ids=['Real Vuforia', 'Mock Vuforia'])
-def verify_mock_vuforia(
-    request: SubRequest,
-    vuforia_database: VuforiaDatabase,
-    inactive_database: VuforiaDatabase,
-) -> Generator:
-    """
-    Test functions which use this fixture are run twice. Once with the real
-    Vuforia, and once with the mock.
+def _enable_use_real_vuforia(vuforia_database: VuforiaDatabase) -> Generator:
+    _delete_all_targets(database_keys=vuforia_database)
+    yield
 
-    This is useful for verifying the mock.
-    """
-    skip_real = os.getenv('SKIP_REAL') == '1'
-    skip_mock = os.getenv('SKIP_MOCK') == '1'
 
-    use_real_vuforia = request.param
-
-    if use_real_vuforia and skip_real:  # pragma: no cover
-        pytest.skip()
-
-    if not use_real_vuforia and skip_mock:  # pragma: no cover
-        pytest.skip()
-
+def _enable_use_mock_vuforia(vuforia_database: VuforiaDatabase) -> Generator:
     working_database = VuforiaDatabase(
         database_name=vuforia_database.database_name,
         server_access_key=vuforia_database.server_access_key,
@@ -109,11 +93,42 @@ def verify_mock_vuforia(
         client_access_key=inactive_database.client_access_key,
         client_secret_key=inactive_database.client_secret_key,
     )
-    if use_real_vuforia:
-        _delete_all_targets(database_keys=vuforia_database)
+
+    with MockVWS(processing_time_seconds=0.2) as mock:
+        mock.add_database(database=working_database)
+        mock.add_database(database=inactive_database)
         yield
-    else:
-        with MockVWS(processing_time_seconds=0.2) as mock:
-            mock.add_database(database=working_database)
-            mock.add_database(database=inactive_database)
-            yield
+
+
+class VuforiaBackend(Enum):
+
+    REAL = 'Real Vuforia'
+    MOCK = 'In Memory Mock Vuforia'
+
+
+@pytest.fixture(
+    params=list(VuforiaBackend),
+    ids=[backend.value for backend in list(VuforiaBackend)],
+)
+def verify_mock_vuforia(
+    request: SubRequest,
+    vuforia_database: VuforiaDatabase,
+    inactive_database: VuforiaDatabase,
+) -> Generator:
+    """
+    Test functions which use this fixture are run twice. Once with the real
+    Vuforia, and once with the mock.
+
+    This is useful for verifying the mock.
+    """
+    backend = request.param
+    should_skip = bool(os.getenv(f'SKIP_{backend.name}') == '1')
+    if should_skip:  # pragma: no cover
+        pytest.skip()
+
+    enable_function = {
+        VuforiaBackend.REAL: _enable_use_real_vuforia,
+        VuforiaBackend.MOCK: _enable_use_mock_vuforia,
+    }[backend]
+
+    yield enable_function(vuforia_database=vuforia_database)
