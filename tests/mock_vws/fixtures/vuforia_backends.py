@@ -71,18 +71,25 @@ def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
         )
 
 
-def _enable_use_real_vuforia(vuforia_database: VuforiaDatabase) -> Generator:
-    _delete_all_targets(database_keys=vuforia_database)
+def _enable_use_real_vuforia(
+    working_database: VuforiaDatabase,
+    inactive_database: VuforiaDatabase,
+) -> Generator:
+    assert inactive_database
+    _delete_all_targets(database_keys=working_database)
     yield
 
 
-def _enable_use_mock_vuforia(vuforia_database: VuforiaDatabase) -> Generator:
+def _enable_use_mock_vuforia(
+    working_database: VuforiaDatabase,
+    inactive_database: VuforiaDatabase,
+) -> Generator:
     working_database = VuforiaDatabase(
-        database_name=vuforia_database.database_name,
-        server_access_key=vuforia_database.server_access_key,
-        server_secret_key=vuforia_database.server_secret_key,
-        client_access_key=vuforia_database.client_access_key,
-        client_secret_key=vuforia_database.client_secret_key,
+        database_name=working_database.database_name,
+        server_access_key=working_database.server_access_key,
+        server_secret_key=working_database.server_secret_key,
+        client_access_key=working_database.client_access_key,
+        client_secret_key=working_database.client_secret_key,
     )
 
     inactive_database = VuforiaDatabase(
@@ -101,6 +108,9 @@ def _enable_use_mock_vuforia(vuforia_database: VuforiaDatabase) -> Generator:
 
 
 class VuforiaBackend(Enum):
+    """
+    Backends for tests.
+    """
 
     REAL = 'Real Vuforia'
     MOCK = 'In Memory Mock Vuforia'
@@ -131,4 +141,7 @@ def verify_mock_vuforia(
         VuforiaBackend.MOCK: _enable_use_mock_vuforia,
     }[backend]
 
-    yield enable_function(vuforia_database=vuforia_database)
+    yield from enable_function(
+        working_database=vuforia_database,
+        inactive_database=inactive_database,
+    )
