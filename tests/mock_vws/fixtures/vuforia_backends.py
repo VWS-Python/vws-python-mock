@@ -17,6 +17,8 @@ from mock_vws import MockVWS
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
+from _mock_vws_server.vws import VWS_FLASK_APP
+from _mock_vws_server.vwq import CLOUDRECO_FLASK_APP
 from tests.mock_vws.utils import (
     delete_target,
     list_targets,
@@ -125,6 +127,8 @@ def _enable_use_docker_in_memory(
             flask_app=CLOUDRECO_FLASK_APP,
             base_url='https://cloudreco.vuforia.com',
         )
+
+        yield
 
 
 
