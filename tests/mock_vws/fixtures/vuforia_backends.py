@@ -8,8 +8,10 @@ from enum import Enum
 from typing import Generator
 
 import pytest
+import requests_mock
 from _pytest.fixtures import SubRequest
 from requests import codes
+from requests_mock_flask import add_flask_app_to_mock
 
 from mock_vws import MockVWS
 from mock_vws._constants import ResultCodes
@@ -111,7 +113,19 @@ def _enable_use_docker_in_memory(
     working_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
 ) -> Generator:
-    pass
+    with requests_mock.Mocker(real_http=False) as mock:
+        add_flask_app_to_mock(
+            mock_obj=mock,
+            flask_app=VWS_FLASK_APP,
+            base_url='https://vws.vuforia.com',
+        )
+
+        add_flask_app_to_mock(
+            mock_obj=mock,
+            flask_app=CLOUDRECO_FLASK_APP,
+            base_url='https://cloudreco.vuforia.com',
+        )
+
 
 
 class VuforiaBackend(Enum):
