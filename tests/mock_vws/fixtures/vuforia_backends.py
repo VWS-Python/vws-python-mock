@@ -107,6 +107,13 @@ def _enable_use_mock_vuforia(
         yield
 
 
+def _enable_use_docker_in_memory(
+    working_database: VuforiaDatabase,
+    inactive_database: VuforiaDatabase,
+) -> Generator:
+    pass
+
+
 class VuforiaBackend(Enum):
     """
     Backends for tests.
@@ -114,6 +121,7 @@ class VuforiaBackend(Enum):
 
     REAL = 'Real Vuforia'
     MOCK = 'In Memory Mock Vuforia'
+    DOCKER_IN_MEMORY = 'In Memory version of Docker application'
 
 
 @pytest.fixture(
@@ -139,6 +147,7 @@ def verify_mock_vuforia(
     enable_function = {
         VuforiaBackend.REAL: _enable_use_real_vuforia,
         VuforiaBackend.MOCK: _enable_use_mock_vuforia,
+        VuforiaBackend.DOCKER_IN_MEMORY: _enable_use_docker_in_memory,
     }[backend]
 
     yield from enable_function(
