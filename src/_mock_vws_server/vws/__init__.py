@@ -11,6 +11,17 @@ from mock_vws.target import Target
 
 VWS_FLASK_APP = Flask(__name__)
 
+# TODO Instead of decorator, use
+# @app.before_request
+#
+# @app.before_request
+
+@VWS_FLASK_APP.after_request
+def set_headers(response):
+    response.headers['Connection'] = 'keep-alive'
+    response.headers['Content-Type'] = 'application/json'
+    response.headers['Server'] = 'nginx'
+    return response
 
 @VWS_FLASK_APP.route('/targets', methods=['POST'])
 def _():
