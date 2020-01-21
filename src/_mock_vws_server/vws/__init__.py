@@ -1,4 +1,5 @@
 import base64
+import json
 import email.utils
 import io
 import uuid
@@ -12,9 +13,9 @@ from mock_vws.target import Target
 
 VWS_FLASK_APP = Flask(__name__)
 
-# @VWS_FLASK_APP.before_request
-# def validate_request():
-#     pass
+@VWS_FLASK_APP.before_request
+def validate_request():
+    pass
 
 
 @VWS_FLASK_APP.after_request
@@ -36,7 +37,10 @@ def add_target():
     Fake implementation of
     https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Add-a-Target
     """
-    name = request.json['name']
+    # We do not use ``request.json`` because this only works when the content
+    # type is given as ``application/json``.
+    request_json = json.loads(request.data)
+    name = request_json['name']
     # database = get_database_matching_server_keys(
     #     request=request,
     #     databases=self.databases,
@@ -53,22 +57,22 @@ def add_target():
     #     }
     #     return json_dump(body)
 
-    active_flag = request.json.get('active_flag')
+    active_flag = request_json.get('active_flag')
     if active_flag is None:
         active_flag = True
 
-    image = request.json['image']
+    image = request_json['image']
     decoded = base64.b64decode(image)
     image_file = io.BytesIO(decoded)
 
     new_target = Target(
-        name=request.json['name'],
-        width=request.json['width'],
+        name=request_json['name'],
+        width=request_json['width'],
         image=image_file,
         active_flag=active_flag,
         processing_time_seconds=0.2,
         # processing_time_seconds=self._processing_time_seconds,
-        application_metadata=request.json.get('application_metadata'),
+        application_metadata=request_json.get('application_metadata'),
     )
     # database.targets.append(new_target)
 
