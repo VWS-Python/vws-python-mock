@@ -1,4 +1,5 @@
 import base64
+import email.utils
 import io
 import uuid
 
@@ -11,27 +12,31 @@ from mock_vws.target import Target
 
 VWS_FLASK_APP = Flask(__name__)
 
-# TODO Instead of decorator, use
-# @app.before_request
-#
-# @app.before_request
+# @VWS_FLASK_APP.before_request
+# def validate_request():
+#     pass
+
 
 @VWS_FLASK_APP.after_request
 def set_headers(response):
     response.headers['Connection'] = 'keep-alive'
     response.headers['Content-Type'] = 'application/json'
     response.headers['Server'] = 'nginx'
+    content_length = len(response.data)
+    response.headers['Content-Length'] = str(content_length)
+    date = email.utils.formatdate(None, localtime=False, usegmt=True)
+    response.headers['Date'] = date
     return response
 
 @VWS_FLASK_APP.route('/targets', methods=['POST'])
-def _():
+def add_target():
     """
     Add a target.
 
     Fake implementation of
     https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Add-a-Target
     """
-    request.json['name']
+    name = request.json['name']
     # database = get_database_matching_server_keys(
     #     request=request,
     #     databases=self.databases,
