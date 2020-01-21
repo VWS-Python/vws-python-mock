@@ -76,7 +76,6 @@ def add_target():
     )
     # database.targets.append(new_target)
 
-    # context.status_code = codes.CREATED
     body = {
         'transaction_id': uuid.uuid4().hex,
         'result_code': ResultCodes.TARGET_CREATED.value,
