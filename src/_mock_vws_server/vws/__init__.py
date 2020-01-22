@@ -4,7 +4,7 @@ import io
 import json
 import uuid
 
-from flask import Flask, request
+from flask import Flask, request, session
 from requests import codes
 from flask_json_schema import JsonSchema, JsonValidationError
 
@@ -169,6 +169,7 @@ def add_target():
         image=image_file,
         active_flag=active_flag,
         processing_time_seconds=0.2,
+        # TODO add this back:
         # processing_time_seconds=self._processing_time_seconds,
         application_metadata=request_json.get('application_metadata'),
     )

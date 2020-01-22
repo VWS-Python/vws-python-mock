@@ -4,9 +4,12 @@ Running a server with Docker
 Running the mock
 ----------------
 
+# TODO this won't work - we need some kind of storage backend thing
+
 .. code:: sh
 
    docker run adamtheturtle/mock-vws -e VWS_MOCK_DATABASES=$(cat vws-mock-config.json)
+   docker run adamtheturtle/mock-vwq -e VWS_MOCK_DATABASES=$(cat vws-mock-config.json)
 
 Configuration
 -------------
