@@ -96,6 +96,7 @@ ADD_TARGET_SCHEMA = {
 # @validate_authorization
 # @validate_project_state
 def validate_request():
+    pass
     # decorators = [
     #     # parse_target_id,
     #     # update_request_count,
