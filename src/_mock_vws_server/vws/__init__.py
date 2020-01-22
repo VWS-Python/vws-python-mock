@@ -6,6 +6,7 @@ import uuid
 
 from flask import Flask, request
 from requests import codes
+from flask_json_schema import JsonSchema, JsonValidationError
 
 from mock_vws._constants import ResultCodes
 from mock_vws._mock_common import json_dump
@@ -50,6 +51,11 @@ from ._services_validators.image_validators import (
 )
 
 VWS_FLASK_APP = Flask(__name__)
+JSON_SCHEMA = JsonSchema(VWS_FLASK_APP)
+
+ADD_TARGET_SCHEMA = {
+    'required': ['name', 'image', 'width'],
+}
 
 
 @VWS_FLASK_APP.before_request
@@ -82,11 +88,10 @@ VWS_FLASK_APP = Flask(__name__)
 @validate_content_length_header_is_int
 def validate_request():
     pass
-    # # TODO put this back somehow
-    # # key_validator = validate_keys(
-    # #     optional_keys=optional_keys or set([]),
-    # #     mandatory_keys=mandatory_keys or set([]),
-    # # )
+    # key_validator = validate_keys(
+    #     optional_keys=optional_keys or set([]),
+    #     mandatory_keys=mandatory_keys or set([]),
+    # )
     #
     # decorators = [
     #     # parse_target_id,
@@ -95,6 +100,15 @@ def validate_request():
     #     # set_content_length_header,
     #     # update_request_count,
     # ]
+
+@VWS_FLASK_APP.errorhandler(JsonValidationError)
+def validation_error(e):
+    body = {
+        'transaction_id': uuid.uuid4().hex,
+        'result_code': ResultCodes.FAIL.value,
+    }
+    return json_dump(body), codes.BAD_REQUEST
+
 
 
 @VWS_FLASK_APP.after_request
@@ -109,7 +123,9 @@ def set_headers(response):
     return response
 
 
+
 @VWS_FLASK_APP.route('/targets', methods=['POST'])
+@JSON_SCHEMA.validate(ADD_TARGET_SCHEMA)
 def add_target():
     """
     Add a target.

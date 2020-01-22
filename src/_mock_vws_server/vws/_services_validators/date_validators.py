@@ -37,7 +37,6 @@ def validate_date_header_given(
         The result of calling the endpoint.
         A `BAD_REQUEST` response if the date is not given.
     """
-
     if 'Date' in request.headers:
         return wrapped(*args, **kwargs)
 
