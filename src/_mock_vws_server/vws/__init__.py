@@ -58,7 +58,12 @@ ADD_TARGET_SCHEMA = {
     # TODO are the properties useful for fixing tests?
     'properties': {
         'name': { 'type': 'string' },
-    }
+        'image': {},
+        'width': {},
+        'active_flag': {},
+        'application_metadata': {},
+    },
+    'additionalProperties': False,
 }
 
 

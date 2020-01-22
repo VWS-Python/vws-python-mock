@@ -310,8 +310,6 @@ def validate_name_characters_in_range(
         resources_dir = Path(__file__).parent.parent / 'resources'
         filename = 'oops_error_occurred_response.html'
         oops_resp_file = resources_dir / filename
-        # TODO construct a Response
-        # context.headers['Content-Type'] = 'text/html; charset=UTF-8'
         text = oops_resp_file.read_text()
         oops_response = make_response(text)
         oops_response.headers['Content-Type'] = 'text/html; charset=UTF-8'
