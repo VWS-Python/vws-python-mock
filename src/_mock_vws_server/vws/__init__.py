@@ -96,17 +96,8 @@ ADD_TARGET_SCHEMA = {
 # @validate_authorization
 # @validate_project_state
 def validate_request():
-    pass
-    # key_validator = validate_keys(
-    #     optional_keys=optional_keys or set([]),
-    #     mandatory_keys=mandatory_keys or set([]),
-    # )
-    #
     # decorators = [
     #     # parse_target_id,
-    #     # key_validator,
-    #     # set_date_header,
-    #     # set_content_length_header,
     #     # update_request_count,
     # ]
 
