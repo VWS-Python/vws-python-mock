@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, Set, Tuple
 
 import wrapt
-from flask import request
+from flask import request, make_response
 from requests import codes
 from requests_mock import POST, PUT
 from requests_mock.request import _RequestObjectProxy
@@ -313,7 +313,9 @@ def validate_name_characters_in_range(
         # TODO construct a Response
         # context.headers['Content-Type'] = 'text/html; charset=UTF-8'
         text = oops_resp_file.read_text()
-        return text, codes.INTERNAL_SERVER_ERROR
+        oops_response = make_response(text)
+        oops_response.headers['Content-Type'] = 'text/html; charset=UTF-8'
+        return oops_response, codes.INTERNAL_SERVER_ERROR
 
     body = {
         'transaction_id': uuid.uuid4().hex,

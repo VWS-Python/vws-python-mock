@@ -63,33 +63,33 @@ ADD_TARGET_SCHEMA = {
 
 
 @VWS_FLASK_APP.before_request
-# @validate_project_state
-# @validate_authorization
-@validate_metadata_size
-@validate_metadata_encoding
-@validate_metadata_type
-@validate_active_flag
-@validate_image_size
-@validate_image_color_space
-@validate_image_format
-@validate_image_is_image
-@validate_image_encoding
-@validate_image_data_type
-@validate_name_characters_in_range
-@validate_name_length
-@validate_name_type
-@validate_width
-@validate_content_type_header_given
-@validate_date_in_range
-@validate_date_format
-@validate_date_header_given
-@validate_not_invalid_json
-# @validate_access_key_exists
-@validate_auth_header_has_signature
-@validate_auth_header_exists
-@validate_content_length_header_not_too_small
-@validate_content_length_header_not_too_large
 @validate_content_length_header_is_int
+@validate_content_length_header_not_too_large
+@validate_content_length_header_not_too_small
+@validate_auth_header_exists
+@validate_auth_header_has_signature
+# @validate_access_key_exists
+@validate_not_invalid_json
+@validate_date_header_given
+@validate_date_format
+@validate_date_in_range
+@validate_content_type_header_given
+@validate_width
+@validate_name_type
+@validate_name_length
+@validate_name_characters_in_range
+@validate_image_data_type
+@validate_image_encoding
+@validate_image_is_image
+@validate_image_format
+@validate_image_color_space
+@validate_image_size
+@validate_active_flag
+@validate_metadata_type
+@validate_metadata_encoding
+@validate_metadata_size
+# @validate_authorization
+# @validate_project_state
 def validate_request():
     pass
     # key_validator = validate_keys(
@@ -118,7 +118,8 @@ def validation_error(e):
 @VWS_FLASK_APP.after_request
 def set_headers(response):
     response.headers['Connection'] = 'keep-alive'
-    response.headers['Content-Type'] = 'application/json'
+    if response.status_code != codes.INTERNAL_SERVER_ERROR:
+        response.headers['Content-Type'] = 'application/json'
     response.headers['Server'] = 'nginx'
     content_length = len(response.data)
     response.headers['Content-Length'] = str(content_length)
