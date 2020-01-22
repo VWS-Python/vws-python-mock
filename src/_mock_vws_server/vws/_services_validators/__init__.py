@@ -262,7 +262,7 @@ def validate_name_length(
 
     name = request.get_json(force=True)['name']
 
-    if name and len(name) < 65:
+    if name and len(str(name)) < 65:
         return wrapped(*args, **kwargs)
 
     body = {
@@ -302,7 +302,8 @@ def validate_name_characters_in_range(
 
     name = request.get_json(force=True)['name']
 
-    if all(ord(character) <= 65535 for character in name):
+    # import pdb; pdb.set_trace()
+    if all(ord(character) <= 65535 for character in str(name)):
         return wrapped(*args, **kwargs)
 
     if (request.method, request.path) == ('POST', '/targets'):

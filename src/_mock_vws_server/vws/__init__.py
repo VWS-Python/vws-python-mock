@@ -55,6 +55,10 @@ JSON_SCHEMA = JsonSchema(VWS_FLASK_APP)
 
 ADD_TARGET_SCHEMA = {
     'required': ['name', 'image', 'width'],
+    # TODO are the properties useful for fixing tests?
+    'properties': {
+        'name': { 'type': 'string' },
+    }
 }
 
 
