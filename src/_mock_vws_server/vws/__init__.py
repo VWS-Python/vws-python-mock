@@ -1,7 +1,7 @@
 import base64
-import json
 import email.utils
 import io
+import json
 import uuid
 
 from flask import Flask, request
@@ -10,58 +10,91 @@ from requests import codes
 from mock_vws._constants import ResultCodes
 from mock_vws._mock_common import json_dump
 from mock_vws.target import Target
-import wrapt
-import uuid
-from typing import Any, Callable, Dict, Tuple
 
-import wrapt
-from requests import codes
-from requests_mock import POST, PUT
-from requests_mock.request import _RequestObjectProxy
-from requests_mock.response import _Context
-
-from mock_vws._constants import ResultCodes
-from mock_vws._mock_common import json_dump
+from ._services_validators import (
+    validate_active_flag,
+    validate_metadata_encoding,
+    validate_metadata_size,
+    validate_metadata_type,
+    validate_name_characters_in_range,
+    validate_name_length,
+    validate_name_type,
+    validate_not_invalid_json,
+    validate_width,
+)
+from ._services_validators.auth_validators import (
+    validate_access_key_exists,
+    validate_auth_header_exists,
+    validate_auth_header_has_signature,
+)
+from ._services_validators.content_length_validators import (
+    validate_content_length_header_is_int,
+    validate_content_length_header_not_too_large,
+    validate_content_length_header_not_too_small,
+)
+from ._services_validators.content_type_validators import (
+    validate_content_type_header_given,
+)
+from ._services_validators.date_validators import (
+    validate_date_format,
+    validate_date_header_given,
+    validate_date_in_range,
+)
+from ._services_validators.image_validators import (
+    validate_image_color_space,
+    validate_image_data_type,
+    validate_image_encoding,
+    validate_image_format,
+    validate_image_is_image,
+    validate_image_size,
+)
 
 VWS_FLASK_APP = Flask(__name__)
 
-@wrapt.decorator
-def validate_content_type_header_given(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
-    """
-    Validate that there is a non-empty content type header given if required.
-
-    Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
-
-    Returns:
-        The result of calling the endpoint.
-        An `UNAUTHORIZED` response if there is no "Content-Type" header or the
-        given header is empty.
-    """
-    request_needs_content_type = bool(request.method in (POST, PUT))
-    if request.headers.get('Content-Type') or not request_needs_content_type:
-        return wrapped(*args, **kwargs)
-
-    # context.status_code = codes.UNAUTHORIZED
-
-    body = {
-        'transaction_id': uuid.uuid4().hex,
-        'result_code': ResultCodes.AUTHENTICATION_FAILURE.value,
-    }
-    return json_dump(body), codes.UNAUTHORIZED
 
 @VWS_FLASK_APP.before_request
+# @validate_project_state
+# @validate_authorization
+@validate_metadata_size
+@validate_metadata_encoding
+@validate_metadata_type
+@validate_active_flag
+@validate_image_size
+@validate_image_color_space
+@validate_image_format
+@validate_image_is_image
+@validate_image_encoding
+@validate_image_data_type
+@validate_name_characters_in_range
+@validate_name_length
+@validate_name_type
+@validate_width
 @validate_content_type_header_given
+@validate_date_in_range
+@validate_date_format
+@validate_date_header_given
+@validate_not_invalid_json
+# @validate_access_key_exists
+@validate_auth_header_has_signature
+@validate_auth_header_exists
+@validate_content_length_header_not_too_small
+@validate_content_length_header_not_too_large
+@validate_content_length_header_is_int
 def validate_request():
     pass
+    # # TODO put this back somehow
+    # # key_validator = validate_keys(
+    # #     optional_keys=optional_keys or set([]),
+    # #     mandatory_keys=mandatory_keys or set([]),
+    # # )
+    #
+    # decorators = [
+    #     # parse_target_id,
+    #     # key_validator,
+    #     # set_date_header,
+    #     # set_content_length_header,
+    #     # update_request_count,
+    # ]
 
 
 @VWS_FLASK_APP.after_request
@@ -75,6 +108,7 @@ def set_headers(response):
     response.headers['Date'] = date
     return response
 
+
 @VWS_FLASK_APP.route('/targets', methods=['POST'])
 def add_target():
     """
@@ -83,10 +117,10 @@ def add_target():
     Fake implementation of
     https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Add-a-Target
     """
-    # We do not use ``request.json`` because this only works when the content
+    # We do not use ``request.get_json(force=True)`` because this only works when the content
     # type is given as ``application/json``.
     request_json = json.loads(request.data)
-    name = request_json['name']
+    request_json['name']
     # database = get_database_matching_server_keys(
     #     request=request,
     #     databases=self.databases,
