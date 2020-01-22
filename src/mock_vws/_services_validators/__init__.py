@@ -353,13 +353,6 @@ def validate_keys(
             all allowed and that the mandatory keys are given.
     """
 
-    # Args here to work around https://github.com/PyCQA/pydocstyle/issues/370.
-    #
-    # Args:
-    #     wrapped: An endpoint function for `requests_mock`.
-    #     instance: The class that the endpoint function is in.
-    #     args: The arguments given to the endpoint function.
-    #     kwargs: The keyword arguments given to the endpoint function.
     @wrapt.decorator
     def wrapper(
         wrapped: Callable[..., str],
@@ -374,6 +367,12 @@ def validate_keys(
             The result of calling the endpoint.
             A `BAD_REQUEST` error if any keys are not allowed, or if any
             required keys are missing.
+
+        Args:
+            wrapped: An endpoint function for `requests_mock`.
+            instance: The class that the endpoint function is in.
+            args: The arguments given to the endpoint function.
+            kwargs: The keyword arguments given to the endpoint function.
         """
         request, context = args
         allowed_keys = mandatory_keys.union(optional_keys)
