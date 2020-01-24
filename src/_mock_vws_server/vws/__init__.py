@@ -58,6 +58,7 @@ ADD_TARGET_SCHEMA = {
     # TODO are the properties useful for fixing tests?
     'properties': {
         # TODO maybe use more limits on types here and use a max length for string?
+        # TODO though actually - if authentication is wrong, surely that's the first issue and then maybe we need to re-think this and not have schema checks - or maybe not until later?
         'name': { 'type': 'string' },
         'image': {},
         'width': {},
