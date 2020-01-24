@@ -57,6 +57,7 @@ ADD_TARGET_SCHEMA = {
     'required': ['name', 'image', 'width'],
     # TODO are the properties useful for fixing tests?
     'properties': {
+        # TODO maybe use more limits on types here and use a max length for string?
         'name': { 'type': 'string' },
         'image': {},
         'width': {},
