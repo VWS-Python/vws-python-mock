@@ -80,6 +80,7 @@ ADD_TARGET_SCHEMA = {
 @validate_date_in_range
 @validate_content_type_header_given
 @validate_width
+# TODO is validating the name type needed given JSON schema?
 @validate_name_type
 @validate_name_length
 @validate_name_characters_in_range
