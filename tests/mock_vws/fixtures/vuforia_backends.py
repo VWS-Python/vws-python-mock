@@ -14,7 +14,8 @@ from requests import codes
 from requests_mock_flask import add_flask_app_to_mock
 
 from _mock_vws_server.vwq import CLOUDRECO_FLASK_APP
-from _mock_vws_server.vws import VWS_FLASK_APP
+from _mock_vws_server.vws import VWS_FLASK_APP, STORAGE_BASE_URL
+from _mock_vws_server.storage import STORAGE_FLASK_APP
 from mock_vws import MockVWS
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
@@ -126,6 +127,12 @@ def _enable_use_docker_in_memory(
             mock_obj=mock,
             flask_app=CLOUDRECO_FLASK_APP,
             base_url='https://cloudreco.vuforia.com',
+        )
+
+        add_flask_app_to_mock(
+            mock_obj=mock,
+            flask_app=STORAGE_FLASK_APP,
+            base_url=STORAGE_BASE_URL,
         )
 
         yield

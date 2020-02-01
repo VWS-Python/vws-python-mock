@@ -8,6 +8,7 @@ Running the mock
 
 .. code:: sh
 
+   docker run adamtheturtle/mock-vuforia-storage-backend -e VWS_MOCK_DATABASES=$(cat vws-mock-config.json)
    docker run adamtheturtle/mock-vws -e VWS_MOCK_DATABASES=$(cat vws-mock-config.json)
    docker run adamtheturtle/mock-vwq -e VWS_MOCK_DATABASES=$(cat vws-mock-config.json)
 
