@@ -52,6 +52,8 @@ from ._services_validators.image_validators import (
 
 VWS_FLASK_APP = Flask(__name__)
 JSON_SCHEMA = JsonSchema(VWS_FLASK_APP)
+# TODO this
+STORAGE_BASE_URL = 'TODO'
 
 ADD_TARGET_SCHEMA = {
     'required': ['name', 'image', 'width'],
