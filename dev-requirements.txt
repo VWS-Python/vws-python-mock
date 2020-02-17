@@ -1,6 +1,6 @@
 PyYAML==5.3
 Sphinx-Substitution-Extensions==2019.12.28.0
-Sphinx==2.3.1
+Sphinx==2.4.1
 VWS-Auth-Tools==2019.12.28.3
 VWS-Test-Fixtures==2019.12.13.1
 attrs==19.3.0  # Modern attrs is required for pytest
@@ -12,14 +12,14 @@ dodgy==0.2.1  # Look for uploaded secrets
 flake8-commas==2.0.0  # Require silicon valley commas
 flake8-quotes==2.1.1  # Require single quotes
 flake8==3.7.9  # Lint
-freezegun==0.3.13  # Freeze time in tests
+freezegun==0.3.14  # Freeze time in tests
 isort==4.3.21  # Lint imports
 keyring==21.1.0
 mypy==0.761 # Type checking
 pip-check-reqs-pip-gte-20==2.0.3.1
 pydocstyle==5.0.2  # Lint docstrings
 pyenchant==2.0.0  # Bindings for a spellchecking sytem
-pygithub==1.45
+pygithub==1.46
 pylint==2.4.4  # Lint
 pyroma==2.6  # Packaging best practices checker
 pytest-cov==2.8.1  # Measure code coverage
@@ -31,5 +31,5 @@ sphinx_paramlinks==0.3.7
 sphinxcontrib-spelling==4.3.0
 timeout-decorator==0.4.1  # Decorate functions to time out.
 twine==3.1.1
-vulture==1.2
+vulture==1.3
 yapf==0.29.0  # Automatic formatting for Python
