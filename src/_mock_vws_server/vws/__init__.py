@@ -11,6 +11,7 @@ from flask_json_schema import JsonSchema, JsonValidationError
 from mock_vws._constants import ResultCodes
 from mock_vws._mock_common import json_dump
 from mock_vws.target import Target
+from mock_vws._database_matchers import get_database_matching_server_keys
 
 from ._services_validators import (
     validate_active_flag,
@@ -130,6 +131,9 @@ def set_headers(response):
     return response
 
 
+def get_all_databases() -> Set[VuforiaDatabase]:
+    # TODO use the storage URL to get details then cast to VuforiaDatabase
+    pass
 
 @VWS_FLASK_APP.route('/targets', methods=['POST'])
 @JSON_SCHEMA.validate(ADD_TARGET_SCHEMA)
@@ -144,10 +148,11 @@ def add_target():
     # type is given as ``application/json``.
     request_json = json.loads(request.data)
     request_json['name']
-    # database = get_database_matching_server_keys(
-    #     request=request,
-    #     databases=self.databases,
-    # )
+    databases = get_all_databases()
+    database = get_database_matching_server_keys(
+        request=request,
+        databases=databases,
+    )
     #
     # assert isinstance(database, VuforiaDatabase)
     #
