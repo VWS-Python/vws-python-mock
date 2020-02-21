@@ -6,13 +6,13 @@ import uuid
 from typing import Any, Callable, Dict, Tuple
 
 import wrapt
+from flask import request
 from requests import codes
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
 from .._constants import ResultCodes
 from .._mock_common import json_dump
-from flask import request
 
 
 @wrapt.decorator

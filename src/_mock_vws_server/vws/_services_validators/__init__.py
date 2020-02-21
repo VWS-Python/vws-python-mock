@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, Set, Tuple
 
 import wrapt
-from flask import request, make_response
+from flask import make_response, request
 from requests import codes
 from requests_mock import POST, PUT
 from requests_mock.request import _RequestObjectProxy
@@ -409,7 +409,8 @@ def validate_metadata_encoding(
     if 'application_metadata' not in request.get_json(force=True):
         return wrapped(*args, **kwargs)
 
-    application_metadata = request.get_json(force=True).get('application_metadata')
+    application_metadata = request.get_json(force=True
+                                            ).get('application_metadata')
 
     if application_metadata is None:
         return wrapped(*args, **kwargs)
@@ -454,7 +455,8 @@ def validate_metadata_type(
     if 'application_metadata' not in request.get_json(force=True):
         return wrapped(*args, **kwargs)
 
-    application_metadata = request.get_json(force=True).get('application_metadata')
+    application_metadata = request.get_json(force=True
+                                            ).get('application_metadata')
 
     if application_metadata is None or isinstance(application_metadata, str):
         return wrapped(*args, **kwargs)
@@ -491,7 +493,8 @@ def validate_metadata_size(
     if not request.data:
         return wrapped(*args, **kwargs)
 
-    application_metadata = request.get_json(force=True).get('application_metadata')
+    application_metadata = request.get_json(force=True
+                                            ).get('application_metadata')
     if application_metadata is None:
         return wrapped(*args, **kwargs)
     decoded = decode_base64(encoded_data=application_metadata)

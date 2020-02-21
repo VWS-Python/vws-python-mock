@@ -3,18 +3,18 @@ import email.utils
 import io
 import json
 import uuid
-from typing import Tuple, Dict, Set
+from typing import Set, Tuple
 
-from flask import Flask, request, session, Response
-from requests import codes
-from flask_json_schema import JsonSchema, JsonValidationError
 import requests
+from flask import Flask, Response, request
+from flask_json_schema import JsonSchema, JsonValidationError
+from requests import codes
 
 from mock_vws._constants import ResultCodes
-from mock_vws._mock_common import json_dump
-from mock_vws.target import Target
-from mock_vws.database import VuforiaDatabase
 from mock_vws._database_matchers import get_database_matching_server_keys
+from mock_vws._mock_common import json_dump
+from mock_vws.database import VuforiaDatabase
+from mock_vws.target import Target
 
 from ._services_validators import (
     validate_active_flag,
@@ -28,7 +28,6 @@ from ._services_validators import (
     validate_width,
 )
 from ._services_validators.auth_validators import (
-    validate_access_key_exists,
     validate_auth_header_exists,
     validate_auth_header_has_signature,
 )
@@ -65,7 +64,9 @@ ADD_TARGET_SCHEMA = {
     'properties': {
         # TODO maybe use more limits on types here and use a max length for string?
         # TODO though actually - if authentication is wrong, surely that's the first issue and then maybe we need to re-think this and not have schema checks - or maybe not until later?
-        'name': { 'type': 'string' },
+        'name': {
+            'type': 'string'
+        },
         'image': {},
         'width': {},
         'active_flag': {},
@@ -111,6 +112,7 @@ def validate_request() -> None:
     #     # update_request_count,
     # ]
 
+
 @VWS_FLASK_APP.errorhandler(JsonValidationError)
 def validation_error(e: JsonValidationError) -> Tuple[str, int]:
     body = {
@@ -118,7 +120,6 @@ def validation_error(e: JsonValidationError) -> Tuple[str, int]:
         'result_code': ResultCodes.FAIL.value,
     }
     return json_dump(body), codes.BAD_REQUEST
-
 
 
 @VWS_FLASK_APP.after_request
@@ -171,6 +172,7 @@ def get_all_databases() -> Set[VuforiaDatabase]:
         databases.add(new_database)
 
     return databases
+
 
 @VWS_FLASK_APP.route('/targets', methods=['POST'])
 @JSON_SCHEMA.validate(ADD_TARGET_SCHEMA)
