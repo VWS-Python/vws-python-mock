@@ -122,7 +122,7 @@ def validation_error(e: JsonValidationError) -> Tuple[str, int]:
 
 
 @VWS_FLASK_APP.after_request
-def set_headers(response: Response):
+def set_headers(response: Response) -> Response:
     response.headers['Connection'] = 'keep-alive'
     if response.status_code != codes.INTERNAL_SERVER_ERROR:
         response.headers['Content-Type'] = 'application/json'
@@ -174,7 +174,7 @@ def get_all_databases() -> Set[VuforiaDatabase]:
 
 @VWS_FLASK_APP.route('/targets', methods=['POST'])
 @JSON_SCHEMA.validate(ADD_TARGET_SCHEMA)
-def add_target():
+def add_target() -> Tuple[str, int]:
     """
     Add a target.
 
