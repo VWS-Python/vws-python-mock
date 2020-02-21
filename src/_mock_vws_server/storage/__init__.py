@@ -4,10 +4,11 @@ from typing import Tuple
 
 STORAGE_FLASK_APP = Flask(__name__)
 
+VUFORIA_DATABASES = []
 
 @STORAGE_FLASK_APP.route('/databases', methods=['GET'])
 def get_databases() -> Tuple[str, int]:
-    databases = []
+    databases = [database.to_dict() for database in VUFORIA_DATABASES]
     return jsonify(databases), codes.OK
 
 
