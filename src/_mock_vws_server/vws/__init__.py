@@ -185,11 +185,11 @@ def add_target() -> Tuple[str, int]:
     # type is given as ``application/json``.
     request_json = json.loads(request.data)
     request_json['name']
-    databases = get_all_databases()
-    database = get_database_matching_server_keys(
-        request=request,
-        databases=databases,
-    )
+    # databases = get_all_databases()
+    # database = get_database_matching_server_keys(
+    #     request=request,
+    #     databases=databases,
+    # )
     #
     # assert isinstance(database, VuforiaDatabase)
     #

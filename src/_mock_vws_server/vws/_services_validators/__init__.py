@@ -302,7 +302,6 @@ def validate_name_characters_in_range(
 
     name = request.get_json(force=True)['name']
 
-    # import pdb; pdb.set_trace()
     if all(ord(character) <= 65535 for character in str(name)):
         return wrapped(*args, **kwargs)
 
