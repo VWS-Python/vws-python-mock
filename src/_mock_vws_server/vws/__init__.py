@@ -3,14 +3,17 @@ import email.utils
 import io
 import json
 import uuid
+from typing import Tuple, Dict, Set
 
 from flask import Flask, request, session
 from requests import codes
 from flask_json_schema import JsonSchema, JsonValidationError
+import requests
 
 from mock_vws._constants import ResultCodes
 from mock_vws._mock_common import json_dump
 from mock_vws.target import Target
+from mock_vws.database import VuforiaDatabase
 from mock_vws._database_matchers import get_database_matching_server_keys
 
 from ._services_validators import (
@@ -101,7 +104,7 @@ ADD_TARGET_SCHEMA = {
 @validate_metadata_size
 # @validate_authorization
 # @validate_project_state
-def validate_request():
+def validate_request() -> None:
     pass
     # decorators = [
     #     # parse_target_id,
@@ -109,7 +112,7 @@ def validate_request():
     # ]
 
 @VWS_FLASK_APP.errorhandler(JsonValidationError)
-def validation_error(e):
+def validation_error(e) -> Tuple[Dict, int]:
     body = {
         'transaction_id': uuid.uuid4().hex,
         'result_code': ResultCodes.FAIL.value,
@@ -133,7 +136,41 @@ def set_headers(response):
 
 def get_all_databases() -> Set[VuforiaDatabase]:
     # TODO use the storage URL to get details then cast to VuforiaDatabase
-    pass
+    response = requests.get(url=STORAGE_BASE_URL + '/databases')
+    response_json = response.json()
+    databases = set()
+    for database_dict in response_json:
+        database_name = database_dict['database_name']
+        server_access_key = database_dict['server_access_key']
+        server_secret_key = database_dict['server_secret_key']
+        client_access_key = database_dict['client_access_key']
+        client_secret_key = database_dict['client_secret_key']
+        # TODO state
+
+        new_database = VuforiaDatabase(
+            database_name=database_name,
+            server_access_key=server_access_key,
+            server_secret_key=server_secret_key,
+            client_access_key=client_access_key,
+            client_secret_key=client_secret_key,
+            state=state,
+        )
+
+        for target_dict in database_dict['targets']:
+            # TODO fill this in
+            target = Target(
+                name=name,
+                active_flag=active_flag,
+                width=width,
+                image=image,
+                processing_time_seconds=processing_time_seconds,
+                application_metadata=application_metadata,
+            )
+            new_database.targets.append(target)
+
+        databases.add(new_database)
+
+    return databases
 
 @VWS_FLASK_APP.route('/targets', methods=['POST'])
 @JSON_SCHEMA.validate(ADD_TARGET_SCHEMA)
