@@ -5,7 +5,7 @@ import json
 import uuid
 from typing import Tuple, Dict, Set
 
-from flask import Flask, request, session
+from flask import Flask, request, session, Response
 from requests import codes
 from flask_json_schema import JsonSchema, JsonValidationError
 import requests
@@ -112,7 +112,7 @@ def validate_request() -> None:
     # ]
 
 @VWS_FLASK_APP.errorhandler(JsonValidationError)
-def validation_error(e) -> Tuple[str, int]:
+def validation_error(e: JsonValidationError) -> Tuple[str, int]:
     body = {
         'transaction_id': uuid.uuid4().hex,
         'result_code': ResultCodes.FAIL.value,
@@ -122,7 +122,7 @@ def validation_error(e) -> Tuple[str, int]:
 
 
 @VWS_FLASK_APP.after_request
-def set_headers(response):
+def set_headers(response: Response):
     response.headers['Connection'] = 'keep-alive'
     if response.status_code != codes.INTERNAL_SERVER_ERROR:
         response.headers['Content-Type'] = 'application/json'
