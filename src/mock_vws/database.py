@@ -23,6 +23,10 @@ class VuforiaDatabase:
     Credentials for VWS APIs.
     """
 
+    # Dataclasses cannot be shown with type hints in Sphinx
+    # See
+    # https://github.com/agronholm/sphinx-autodoc-typehints/issues/123
+
     database_name: str = field(default_factory=_random_hex)
     server_access_key: str = field(default_factory=_random_hex)
     server_secret_key: str = field(default_factory=_random_hex)
