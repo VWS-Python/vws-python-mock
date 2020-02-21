@@ -134,7 +134,7 @@ def validate_not_invalid_json(
         # TODO this is commented out but not but should maybe be moved to an
         # after_request decorator
         # context.headers.pop('Content-Type')
-        return ''
+        return '', codes.OK
 
     try:
         request.get_json(force=True)
