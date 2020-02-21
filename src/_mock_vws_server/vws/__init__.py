@@ -57,7 +57,7 @@ from ._services_validators.image_validators import (
 VWS_FLASK_APP = Flask(__name__)
 JSON_SCHEMA = JsonSchema(VWS_FLASK_APP)
 # TODO this
-STORAGE_BASE_URL = 'TODO'
+STORAGE_BASE_URL = 'http://todo.com'
 
 ADD_TARGET_SCHEMA = {
     'required': ['name', 'image', 'width'],
@@ -185,11 +185,11 @@ def add_target() -> Tuple[str, int]:
     # type is given as ``application/json``.
     request_json = json.loads(request.data)
     request_json['name']
-    # databases = get_all_databases()
-    # database = get_database_matching_server_keys(
-    #     request=request,
-    #     databases=databases,
-    # )
+    databases = get_all_databases()
+    database = get_database_matching_server_keys(
+        request=request,
+        databases=databases,
+    )
     #
     # assert isinstance(database, VuforiaDatabase)
     #
