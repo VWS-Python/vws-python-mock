@@ -19,11 +19,11 @@ from mock_vws._mock_common import json_dump
 
 @wrapt.decorator
 def validate_date_header_given(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the date header is given to a VWS endpoint.
 
@@ -49,11 +49,11 @@ def validate_date_header_given(
 
 @wrapt.decorator
 def validate_date_format(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the format of the date header given to a VWS endpoint.
 
@@ -85,11 +85,11 @@ def validate_date_format(
 
 @wrapt.decorator
 def validate_date_in_range(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the date header given to a VWS endpoint is in range.
 

@@ -21,11 +21,11 @@ from mock_vws._mock_common import json_dump
 
 @wrapt.decorator
 def validate_image_format(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the format of the image given to a VWS endpoint.
 
@@ -65,11 +65,11 @@ def validate_image_format(
 
 @wrapt.decorator
 def validate_image_color_space(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the color space of the image given to a VWS endpoint.
 
@@ -109,11 +109,11 @@ def validate_image_color_space(
 
 @wrapt.decorator
 def validate_image_size(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the file size of the image given to a VWS endpoint.
 
@@ -151,11 +151,11 @@ def validate_image_size(
 
 @wrapt.decorator
 def validate_image_is_image(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate that the given image data is actually an image file.
 
@@ -196,11 +196,11 @@ def validate_image_is_image(
 
 @wrapt.decorator
 def validate_image_encoding(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate that the given image data can be base64 decoded.
 
@@ -238,11 +238,11 @@ def validate_image_encoding(
 
 @wrapt.decorator
 def validate_image_data_type(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate that the given image data is a string.
 

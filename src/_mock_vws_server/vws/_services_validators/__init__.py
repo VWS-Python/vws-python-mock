@@ -26,11 +26,11 @@ from mock_vws.states import States
 
 @wrapt.decorator
 def validate_active_flag(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the active flag data given to the endpoint.
 
@@ -66,11 +66,11 @@ def validate_active_flag(
 
 @wrapt.decorator
 def validate_project_state(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the state of the project.
 
@@ -106,11 +106,11 @@ def validate_project_state(
 
 @wrapt.decorator
 def validate_not_invalid_json(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate that there is either no JSON given or the JSON given is valid.
 
@@ -150,11 +150,11 @@ def validate_not_invalid_json(
 
 @wrapt.decorator
 def validate_width(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the width argument given to a VWS endpoint.
 
@@ -193,11 +193,11 @@ def validate_width(
 
 @wrapt.decorator
 def validate_name_type(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the type of the name argument given to a VWS endpoint.
 
@@ -234,11 +234,11 @@ def validate_name_type(
 
 @wrapt.decorator
 def validate_name_length(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the length of the name argument given to a VWS endpoint.
 
@@ -274,11 +274,11 @@ def validate_name_length(
 
 @wrapt.decorator
 def validate_name_characters_in_range(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the characters in the name argument given to a VWS endpoint.
 
@@ -346,11 +346,11 @@ def validate_keys(
     #     kwargs: The keyword arguments given to the endpoint function.
     @wrapt.decorator
     def wrapper(
-        wrapped: Callable[..., str],
+        wrapped: Callable[..., Tuple[str, int]],
         instance: Any,  # pylint: disable=unused-argument
         args: Tuple[_RequestObjectProxy, _Context],
         kwargs: Dict,
-    ) -> str:
+    ) -> Tuple[str, int]:
         """
         Validate the request keys given to a VWS endpoint.
 
@@ -384,11 +384,11 @@ def validate_keys(
 
 @wrapt.decorator
 def validate_metadata_encoding(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate that the given application metadata can be base64 decoded.
 
@@ -429,11 +429,11 @@ def validate_metadata_encoding(
 
 @wrapt.decorator
 def validate_metadata_type(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate that the given application metadata is a string or NULL.
 
@@ -469,11 +469,11 @@ def validate_metadata_type(
 
 @wrapt.decorator
 def validate_metadata_size(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate that the given application metadata is a string or 1024 * 1024
     bytes or fewer.

@@ -18,11 +18,11 @@ from mock_vws._mock_common import json_dump
 
 @wrapt.decorator
 def validate_content_type_header_given(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate that there is a non-empty content type header given if required.
 

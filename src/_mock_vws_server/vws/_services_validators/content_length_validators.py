@@ -17,11 +17,11 @@ from flask import request
 
 @wrapt.decorator
 def validate_content_length_header_is_int(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the ``Content-Length`` header is an integer.
 
@@ -52,11 +52,11 @@ def validate_content_length_header_is_int(
 
 @wrapt.decorator
 def validate_content_length_header_not_too_large(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the ``Content-Length`` header is not too large.
 
@@ -85,11 +85,11 @@ def validate_content_length_header_not_too_large(
 
 @wrapt.decorator
 def validate_content_length_header_not_too_small(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the ``Content-Length`` header is not too small.
 

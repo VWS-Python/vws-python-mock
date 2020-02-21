@@ -112,7 +112,7 @@ def validate_request() -> None:
     # ]
 
 @VWS_FLASK_APP.errorhandler(JsonValidationError)
-def validation_error(e) -> Tuple[Dict, int]:
+def validation_error(e) -> Tuple[str, int]:
     body = {
         'transaction_id': uuid.uuid4().hex,
         'result_code': ResultCodes.FAIL.value,

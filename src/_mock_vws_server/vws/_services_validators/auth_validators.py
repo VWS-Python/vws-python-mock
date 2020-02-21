@@ -18,11 +18,11 @@ from mock_vws._mock_common import json_dump
 
 @wrapt.decorator
 def validate_auth_header_exists(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate that there is an authorization header given to a VWS endpoint.
 
@@ -49,11 +49,11 @@ def validate_auth_header_exists(
 
 @wrapt.decorator
 def validate_access_key_exists(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the authorization header includes an access key for a database.
 
@@ -84,11 +84,11 @@ def validate_access_key_exists(
 
 @wrapt.decorator
 def validate_auth_header_has_signature(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the authorization header includes a signature.
 
@@ -117,11 +117,11 @@ def validate_auth_header_has_signature(
 
 @wrapt.decorator
 def validate_authorization(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the authorization header given to a VWS endpoint.
 
