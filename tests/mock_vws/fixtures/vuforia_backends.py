@@ -8,6 +8,7 @@ from enum import Enum
 from typing import Generator
 
 import pytest
+import requests
 import requests_mock
 from _pytest.fixtures import SubRequest
 from requests import codes
@@ -135,7 +136,18 @@ def _enable_use_docker_in_memory(
             base_url=STORAGE_BASE_URL,
         )
 
-        # TODO add database to storage
+        working_database_dict = {}
+        inactive_database_dict = {}
+
+        requests.post(
+            url=STORAGE_BASE_URL + '/databases',
+            data=working_database_dict,
+        )
+
+        requests.post(
+            url=STORAGE_BASE_URL + '/databases',
+            data=inactive_database_dict,
+        )
 
         yield
 
