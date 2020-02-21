@@ -9,6 +9,9 @@ from .states import States
 from .target import Target
 
 
+# This would be simpler as a dataclass, but
+# https://github.com/agronholm/sphinx-autodoc-typehints/issues/123 blocks us
+# doing that.
 class VuforiaDatabase:
     """
     Credentials for VWS APIs.
