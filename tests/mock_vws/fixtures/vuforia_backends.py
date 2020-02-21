@@ -136,8 +136,8 @@ def _enable_use_docker_in_memory(
             base_url=STORAGE_BASE_URL,
         )
 
-        working_database_dict = {}
-        inactive_database_dict = {}
+        working_database_dict = working_database.to_dict()
+        inactive_database_dict = inactive_database.to_dict()
 
         requests.post(
             url=STORAGE_BASE_URL + '/databases',
