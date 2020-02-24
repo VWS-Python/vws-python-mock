@@ -160,6 +160,13 @@ def get_all_databases() -> Set[VuforiaDatabase]:
 
         for target_dict in database_dict['targets']:
             # TODO fill this in
+            name = target_dict['name']
+            active_flag = target_dict['active_flag']
+            width= target_dict['width']
+            image = target_dict['image']
+            processing_time_seconds = target_dict['processing_time_seconds']
+            application_metadata = target_dict['application_metadata']
+
             target = Target(
                 name=name,
                 active_flag=active_flag,
@@ -187,23 +194,26 @@ def add_target() -> Tuple[str, int]:
     # We do not use ``request.get_json(force=True)`` because this only works when the content
     # type is given as ``application/json``.
     request_json = json.loads(request.data)
-    request_json['name']
+    name = request_json['name']
     databases = get_all_databases()
+    # import pdb; pdb.set_trace()
     database = get_database_matching_server_keys(
-        request=request,
+        request_headers=dict(request.headers),
+        request_body=request.data,
+        request_method=request.method,
+        request_path=request.path,
         databases=databases,
     )
-    #
-    # assert isinstance(database, VuforiaDatabase)
-    #
-    # (target for target in database.targets if not target.delete_date)
-    # if any(target.name == name for target in targets):
-    #     context.status_code = codes.FORBIDDEN
-    #     body = {
-    #         'transaction_id': uuid.uuid4().hex,
-    #         'result_code': ResultCodes.TARGET_NAME_EXIST.value,
-    #     }
-    #     return json_dump(body)
+
+    assert isinstance(database, VuforiaDatabase)
+
+    targets = (target for target in database.targets if not target.delete_date)
+    if any(target.name == name for target in targets):
+        body = {
+            'transaction_id': uuid.uuid4().hex,
+            'result_code': ResultCodes.TARGET_NAME_EXIST.value,
+        }
+        return json_dump(body), codes.FORBIDDEN
 
     active_flag = request_json.get('active_flag')
     if active_flag is None:
