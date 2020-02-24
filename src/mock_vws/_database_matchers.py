@@ -5,9 +5,7 @@ Helpers for getting databases which match keys given in requests.
 import base64
 import hashlib
 import hmac
-from typing import Iterable, Optional
-
-from requests_mock.request import _RequestObjectProxy
+from typing import Dict, Iterable, Optional
 
 from mock_vws.database import VuforiaDatabase
 
@@ -75,7 +73,10 @@ def _authorization_header(  # pylint: disable=too-many-arguments
 
 
 def get_database_matching_client_keys(
-    request: _RequestObjectProxy,
+    request_headers: Dict[str, str],
+    request_body: Optional[bytes],
+    request_method: str,
+    request_path: str,
     databases: Iterable[VuforiaDatabase],
 ) -> Optional[VuforiaDatabase]:
     """
@@ -83,24 +84,29 @@ def get_database_matching_client_keys(
     client request.
 
     Args:
-        request: A request made to the query API.
-        databases: A request made to the query API.
+        request_headers: The headers sent with the request.
+        request_body: The request body.
+        request_method: The HTTP method of the request.
+        request_path: The path of the request.
+        databases: The databases to check for matches.
 
     Returns:
         The database which is being accessed by the given client request.
     """
-    content_type = request.headers.get('Content-Type', '').split(';')[0]
-    auth_header = request.headers.get('Authorization')
+    content_type = request_headers.get('Content-Type', '').split(';')[0]
+    auth_header = request_headers.get('Authorization')
+    content = request_body or b''
+    date = request_headers.get('Date', '')
 
     for database in databases:
         expected_authorization_header = _authorization_header(
             access_key=database.client_access_key,
             secret_key=database.client_secret_key,
-            method=request.method,
-            content=request.body or b'',
+            method=request_method,
+            content=content,
             content_type=content_type,
-            date=request.headers.get('Date', ''),
-            request_path=request.path,
+            date=date,
+            request_path=request_path,
         )
 
         if auth_header == expected_authorization_header:
@@ -109,7 +115,10 @@ def get_database_matching_client_keys(
 
 
 def get_database_matching_server_keys(
-    request: _RequestObjectProxy,
+    request_headers: Dict[str, str],
+    request_body: Optional[bytes],
+    request_method: str,
+    request_path: str,
     databases: Iterable[VuforiaDatabase],
 ) -> Optional[VuforiaDatabase]:
     """
@@ -117,25 +126,29 @@ def get_database_matching_server_keys(
     server request.
 
     Args:
-        request: A request made to the services API.
-        databases: A request made to the services API.
+        request_headers: The headers sent with the request.
+        request_body: The request body.
+        request_method: The HTTP method of the request.
+        request_path: The path of the request.
+        databases: The databases to check for matches.
 
     Returns:
         The database being accessed by the given server request.
     """
-    content_type = request.headers.get('Content-Type', '').split(';')[0]
-    auth_header = request.headers.get('Authorization')
+    content_type = request_headers.get('Content-Type', '').split(';')[0]
+    auth_header = request_headers.get('Authorization')
+    content = request_body or b''
+    date = request_headers.get('Date', '')
 
-    import pdb; pdb.set_trace()
     for database in databases:
         expected_authorization_header = _authorization_header(
             access_key=database.server_access_key,
             secret_key=database.server_secret_key,
-            method=request.method,
-            content=str(request.json()) or b'',
+            method=request_method,
+            content=content,
             content_type=content_type,
-            date=request.headers.get('Date', ''),
-            request_path=request.path,
+            date=date,
+            request_path=request_path,
         )
 
         if auth_header == expected_authorization_header:
