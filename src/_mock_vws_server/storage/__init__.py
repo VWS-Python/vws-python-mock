@@ -25,7 +25,9 @@ def create_database() -> Tuple[str, int]:
 
     database = VuforiaDatabase(
         server_access_key=server_access_key,
+        server_secret_key=server_secret_key,
         client_access_key=client_access_key,
+        client_secret_key=client_secret_key,
         database_name=database_name,
         state=state,
     )

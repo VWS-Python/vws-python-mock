@@ -196,7 +196,6 @@ def add_target() -> Tuple[str, int]:
     request_json = json.loads(request.data)
     name = request_json['name']
     databases = get_all_databases()
-    # import pdb; pdb.set_trace()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
         request_body=request.data,
