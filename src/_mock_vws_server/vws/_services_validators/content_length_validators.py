@@ -37,7 +37,7 @@ def validate_content_length_header_is_int(
         integer.
     """
 
-    body_length = len(bytearray(request.data) if request.data else '')
+    body_length = len(request.data.decode() if request.data else '')
     given_content_length = request.headers.get('Content-Length', body_length)
 
     try:
@@ -72,7 +72,7 @@ def validate_content_length_header_not_too_large(
         that the content length is greater than the body length.
     """
 
-    body_length = len(bytearray(request.data) if request.data else '')
+    body_length = len(request.data.decode() if request.data else '')
     given_content_length = request.headers.get('Content-Length', body_length)
     given_content_length_value = int(given_content_length)
     if given_content_length_value > body_length:
@@ -105,7 +105,7 @@ def validate_content_length_header_not_too_small(
         that the content length is smaller than the body length.
     """
 
-    body_length = len(bytearray(request.data) if request.data else '')
+    body_length = len((request.data) if request.data else '')
     given_content_length = request.headers.get('Content-Length', body_length)
     given_content_length_value = int(given_content_length)
 

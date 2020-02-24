@@ -146,6 +146,7 @@ def get_all_databases() -> Set[VuforiaDatabase]:
         server_secret_key = database_dict['server_secret_key']
         client_access_key = database_dict['client_access_key']
         client_secret_key = database_dict['client_secret_key']
+        state = database_dict['state']
         # TODO state
 
         new_database = VuforiaDatabase(

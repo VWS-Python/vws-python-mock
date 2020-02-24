@@ -141,12 +141,12 @@ def _enable_use_docker_in_memory(
 
         requests.post(
             url=STORAGE_BASE_URL + '/databases',
-            data=working_database_dict,
+            json=working_database_dict,
         )
 
         requests.post(
             url=STORAGE_BASE_URL + '/databases',
-            data=inactive_database_dict,
+            json=inactive_database_dict,
         )
 
         yield

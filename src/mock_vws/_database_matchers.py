@@ -126,12 +126,13 @@ def get_database_matching_server_keys(
     content_type = request.headers.get('Content-Type', '').split(';')[0]
     auth_header = request.headers.get('Authorization')
 
+    import pdb; pdb.set_trace()
     for database in databases:
         expected_authorization_header = _authorization_header(
             access_key=database.server_access_key,
             secret_key=database.server_secret_key,
             method=request.method,
-            content=request.body or b'',
+            content=str(request.json()) or b'',
             content_type=content_type,
             date=request.headers.get('Date', ''),
             request_path=request.path,
