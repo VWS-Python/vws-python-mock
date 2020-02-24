@@ -90,7 +90,10 @@ def validate_project_state(
     request, context = args
 
     database = get_database_matching_server_keys(
-        request=request,
+        request_headers=request.headers,
+        request_body=request.body,
+        request_method=request.method,
+        request_path=request.path,
         databases=instance.databases,
     )
 
