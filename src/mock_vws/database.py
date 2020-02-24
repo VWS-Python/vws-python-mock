@@ -3,7 +3,7 @@ Utilities for managing mock Vuforia databases.
 """
 
 import uuid
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from .states import States
 from .target import Target
@@ -77,8 +77,8 @@ class VuforiaDatabase:
         self.targets: List[Target] = []
         self.state = state
 
-    def to_dict(self) -> Dict[str, str]:
-        targets = []
+    def to_dict(self) -> Dict[str, Union[str, Dict[str, Dict[str, str]]]]:
+        target_dict = {target.name: target.to_dict() for target in self.targets}
         return {
             'database_name': self.database_name,
             'server_access_key': self.server_access_key,
@@ -86,5 +86,5 @@ class VuforiaDatabase:
             'client_access_key': self.client_access_key,
             'client_secret_key': self.client_secret_key,
             'state': str(self.state),
-            'targets': targets,
+            'targets': target_dict,
         }

@@ -7,7 +7,7 @@ import io
 import random
 import statistics
 import uuid
-from typing import Optional, Union
+from typing import Dict, Optional, Union
 
 import pytz
 from PIL import Image, ImageStat
@@ -162,3 +162,7 @@ class Target:  # pylint: disable=too-many-instance-attributes
             return self.processed_tracking_rating
 
         return 0
+
+    def to_dict(self) -> Dict[str, str]:
+        # TODO
+        return {}
