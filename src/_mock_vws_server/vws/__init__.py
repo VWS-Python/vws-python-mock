@@ -232,7 +232,13 @@ def add_target() -> Tuple[str, int]:
         # processing_time_seconds=self._processing_time_seconds,
         application_metadata=request_json.get('application_metadata'),
     )
+    # TODO make this work
     # database.targets.append(new_target)
+    # --->
+    requests.post(
+        url=STORAGE_BASE_URL + f'/databases/{database_name}/targets',
+        json=new_target.to_dict(),
+    )
 
     body = {
         'transaction_id': uuid.uuid4().hex,
