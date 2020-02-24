@@ -129,7 +129,10 @@ def parse_target_id(
 
     target_id = split_path[-1]
     database = get_database_matching_server_keys(
-        request=request,
+        request_headers=request.headers,
+        request_body=request.body,
+        request_method=request.method,
+        request_path=request.path,
         databases=instance.databases,
     )
 
@@ -286,7 +289,10 @@ class MockVuforiaWebServicesAPI:
         """
         name = request.json()['name']
         database = get_database_matching_server_keys(
-            request=request,
+            request_headers=request.headers,
+            request_body=request.body,
+            request_method=request.method,
+            request_path=request.path,
             databases=self.databases,
         )
 
@@ -380,7 +386,10 @@ class MockVuforiaWebServicesAPI:
         body: Dict[str, Union[str, int]] = {}
 
         database = get_database_matching_server_keys(
-            request=request,
+            request_headers=request.headers,
+            request_body=request.body,
+            request_method=request.method,
+            request_path=request.path,
             databases=self.databases,
         )
 
@@ -450,7 +459,10 @@ class MockVuforiaWebServicesAPI:
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Get-a-Target-List-for-a-Cloud-Database
         """
         database = get_database_matching_server_keys(
-            request=request,
+            request_headers=request.headers,
+            request_body=request.body,
+            request_method=request.method,
+            request_path=request.path,
             databases=self.databases,
         )
 
@@ -514,7 +526,10 @@ class MockVuforiaWebServicesAPI:
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Check-for-Duplicate-Targets
         """
         database = get_database_matching_server_keys(
-            request=request,
+            request_headers=request.headers,
+            request_body=request.body,
+            request_method=request.method,
+            request_path=request.path,
             databases=self.databases,
         )
 
@@ -562,7 +577,10 @@ class MockVuforiaWebServicesAPI:
         """
         body: Dict[str, str] = {}
         database = get_database_matching_server_keys(
-            request=request,
+            request_headers=request.headers,
+            request_body=request.body,
+            request_method=request.method,
+            request_path=request.path,
             databases=self.databases,
         )
 
@@ -652,7 +670,10 @@ class MockVuforiaWebServicesAPI:
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Retrieve-a-Target-Summary-Report
         """
         database = get_database_matching_server_keys(
-            request=request,
+            request_headers=request.headers,
+            request_body=request.body,
+            request_method=request.method,
+            request_path=request.path,
             databases=self.databases,
         )
 
