@@ -249,3 +249,57 @@ def add_target() -> Tuple[str, int]:
         'target_id': new_target.target_id,
     }
     return json_dump(body), codes.CREATED
+
+@VWS_FLASK_APP.route('/targets/<string:target_id>', methods=['GET'])
+# @JSON_SCHEMA.validate(ADD_TARGET_SCHEMA)
+def get_target(target_id: str) -> Tuple[str, int]:
+    """
+    Get details of a target.
+
+    Fake implementation of
+    https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Retrieve-a-Target-Record
+    """
+    databases = get_all_databases()
+    database = get_database_matching_server_keys(
+        request_headers=dict(request.headers),
+        request_body=request.data,
+        request_method=request.method,
+        request_path=request.path,
+        databases=databases,
+    )
+
+    name = target_dict['name']
+    active_flag = target_dict['active_flag']
+    width= target_dict['width']
+    image_base64 = target_dict['image_base64']
+    image_bytes = base64.b64decode(image_base64)
+    image = io.BytesIO(image_bytes)
+    processing_time_seconds = target_dict['processing_time_seconds']
+    application_metadata = target_dict['application_metadata']
+
+    target = Target(
+        name=name,
+        active_flag=active_flag,
+        width=width,
+        image=image,
+        processing_time_seconds=processing_time_seconds,
+        application_metadata=application_metadata,
+    )
+
+    target_record = {
+        'target_id': target.target_id,
+        'active_flag': target.active_flag,
+        'name': target.name,
+        'width': target.width,
+        'tracking_rating': target.tracking_rating,
+        'reco_rating': target.reco_rating,
+    }
+
+    body = {
+        'result_code': ResultCodes.SUCCESS.value,
+        'transaction_id': uuid.uuid4().hex,
+        'target_record': target_record,
+        'status': target.status,
+    }
+
+    return json_dump(body), codes.OK
