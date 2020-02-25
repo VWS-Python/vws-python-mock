@@ -55,7 +55,8 @@ from ._services_validators.image_validators import (
 
 VWS_FLASK_APP = Flask(__name__)
 JSON_SCHEMA = JsonSchema(VWS_FLASK_APP)
-# TODO this
+# TODO choose something for this - it should actually work in a docker-compose
+# scenario.
 STORAGE_BASE_URL = 'http://todo.com'
 
 ADD_TARGET_SCHEMA = {
@@ -236,7 +237,7 @@ def add_target() -> Tuple[str, int]:
     # database.targets.append(new_target)
     # --->
     requests.post(
-        url=STORAGE_BASE_URL + f'/databases/{database_name}/targets',
+        url=f'{STORAGE_BASE_URL}/databases/{database.database_name}/targets',
         json=new_target.to_dict(),
     )
 
