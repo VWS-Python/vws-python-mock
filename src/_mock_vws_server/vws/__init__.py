@@ -164,7 +164,9 @@ def get_all_databases() -> Set[VuforiaDatabase]:
             name = target_dict['name']
             active_flag = target_dict['active_flag']
             width= target_dict['width']
-            image = target_dict['image']
+            image_base64 = target_dict['image_base64']
+            image_bytes = base64.b64decode(image_base64)
+            image = io.BytesIO(image_bytes)
             processing_time_seconds = target_dict['processing_time_seconds']
             application_metadata = target_dict['application_metadata']
 
