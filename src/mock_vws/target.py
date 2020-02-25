@@ -21,6 +21,9 @@ class Target:  # pylint: disable=too-many-instance-attributes
     https://developer.vuforia.com/target-manager.
     """
 
+    # TODO remove
+    NUM = 1
+
     name: str
     target_id: str
     active_flag: bool
@@ -74,6 +77,7 @@ class Target:  # pylint: disable=too-many-instance-attributes
                 target was deleted.
         """
         self.name = name
+        # TODO UNDO
         self.target_id = uuid.uuid4().hex
         self.active_flag = active_flag
         self.width = width
@@ -87,6 +91,13 @@ class Target:  # pylint: disable=too-many-instance-attributes
         self._processing_time_seconds = processing_time_seconds
         self.application_metadata = application_metadata
         self.delete_date: Optional[datetime.datetime] = None
+
+    def __repr__(self) -> str:
+        """
+        XXX
+        """
+        class_name = self.__class__.__name__
+        return f'<{class_name}: {self.target_id}>'
 
     @property
     def _post_processing_status(self) -> TargetStatuses:
@@ -112,7 +123,6 @@ class Target:  # pylint: disable=too-many-instance-attributes
     def status(self) -> str:
         """
         Return the status of the target.
-
         For now this waits half a second (arbitrary) before changing the
         status from 'processing' to 'failed' or 'success'.
 
@@ -164,7 +174,11 @@ class Target:  # pylint: disable=too-many-instance-attributes
         return 0
 
     def to_dict(self) -> Dict[str, Optional[Union[str, int, bool, float]]]:
-        # TODO
+        # TODO e.g. processed tracking rating can surely change if
+        # target is dumped then recreated.
+        #
+        # as can e.g. processing time... maybe use dataclass but then
+        # https://github.com/agronholm/sphinx-autodoc-typehints/issues/123
         import base64
         # import pdb; pdb.set_trace()
         return {
@@ -174,6 +188,7 @@ class Target:  # pylint: disable=too-many-instance-attributes
             'active_flag': self.active_flag,
             'processing_time_seconds': self._processing_time_seconds,
             'application_metadata': self.application_metadata,
+            'target_id': self.target_id,
 
 
         }

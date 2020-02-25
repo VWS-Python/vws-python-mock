@@ -178,6 +178,7 @@ def get_all_databases() -> Set[VuforiaDatabase]:
                 processing_time_seconds=processing_time_seconds,
                 application_metadata=application_metadata,
             )
+            target.target_id = target_dict['target_id']
             new_database.targets.append(target)
 
         databases.add(new_database)
@@ -235,6 +236,7 @@ def add_target() -> Tuple[str, int]:
         # processing_time_seconds=self._processing_time_seconds,
         application_metadata=request_json.get('application_metadata'),
     )
+
     # TODO make this work
     # database.targets.append(new_target)
     # --->
@@ -243,6 +245,7 @@ def add_target() -> Tuple[str, int]:
         json=new_target.to_dict(),
     )
 
+    # import pdb; pdb.set_trace()
     body = {
         'transaction_id': uuid.uuid4().hex,
         'result_code': ResultCodes.TARGET_CREATED.value,
@@ -268,11 +271,7 @@ def get_target(target_id: str) -> Tuple[str, int]:
         databases=databases,
     )
 
-    try:
-        [target] = [target for target in database.targets if target.target_id == target_id]
-    except:
-        import pdb; pdb.set_trace()
-        pass
+    [target] = [target for target in database.targets if target.target_id == target_id]
 
     target_record = {
         'target_id': target.target_id,

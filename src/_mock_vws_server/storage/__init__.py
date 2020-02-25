@@ -63,7 +63,10 @@ def create_target(database_name: str) -> Tuple[str, int]:
         processing_time_seconds=request.json['processing_time_seconds'],
         application_metadata=request.json['application_metadata'],
     )
+    # import pdb; pdb.set_trace()
+    target.target_id = request.json['target_id']
     database.targets.append(target)
+    # import pdb; pdb.set_trace(
 
     return jsonify(target.to_dict()), codes.CREATED
 
