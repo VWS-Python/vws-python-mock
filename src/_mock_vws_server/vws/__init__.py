@@ -268,23 +268,11 @@ def get_target(target_id: str) -> Tuple[str, int]:
         databases=databases,
     )
 
-    name = target_dict['name']
-    active_flag = target_dict['active_flag']
-    width= target_dict['width']
-    image_base64 = target_dict['image_base64']
-    image_bytes = base64.b64decode(image_base64)
-    image = io.BytesIO(image_bytes)
-    processing_time_seconds = target_dict['processing_time_seconds']
-    application_metadata = target_dict['application_metadata']
-
-    target = Target(
-        name=name,
-        active_flag=active_flag,
-        width=width,
-        image=image,
-        processing_time_seconds=processing_time_seconds,
-        application_metadata=application_metadata,
-    )
+    try:
+        [target] = [target for target in database.targets if target.target_id == target_id]
+    except:
+        import pdb; pdb.set_trace()
+        pass
 
     target_record = {
         'target_id': target.target_id,
