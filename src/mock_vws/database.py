@@ -77,7 +77,7 @@ class VuforiaDatabase:
         self.targets: List[Target] = []
         self.state = state
 
-    def to_dict(self) -> Dict[str, Union[str, Dict[str, Dict[str, str]]]]:
+    def to_dict(self) -> Dict[str, Union[str, List[Dict[str, Optional[Union[str, int, bool, float]]]]]]:
         targets = [target.to_dict() for target in self.targets]
         return {
             'database_name': self.database_name,

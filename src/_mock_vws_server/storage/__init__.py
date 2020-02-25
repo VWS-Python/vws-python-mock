@@ -1,8 +1,12 @@
 from flask import Flask, jsonify, request
+import datetime
 from requests import codes
+import pytz
 from typing import Tuple, List
 from mock_vws.database import VuforiaDatabase
 from mock_vws.target import Target
+import io
+import base64
 
 STORAGE_FLASK_APP = Flask(__name__)
 
@@ -49,8 +53,6 @@ def create_database() -> Tuple[str, int]:
 )
 def create_target(database_name: str) -> Tuple[str, int]:
     [database] = [database for database in VUFORIA_DATABASES if database.database_name == database_name]
-    import io
-    import base64
     image_base64 = request.json['image_base64']
     # import pdb; pdb.set_trace()
     image_bytes = base64.b64decode(image_base64)
@@ -69,5 +71,18 @@ def create_target(database_name: str) -> Tuple[str, int]:
     # import pdb; pdb.set_trace(
 
     return jsonify(target.to_dict()), codes.CREATED
+
+
+@STORAGE_FLASK_APP.route(
+    '/databases/<string:database_name>/targets/<string:target_id>',
+    methods=['DELETE'],
+)
+def delete_target(database_name: str, target_id: str) -> Tuple[str, int]:
+    [database] = [database for database in VUFORIA_DATABASES if database.database_name == database_name]
+    [target] = [target for target in database.targets if target.target_id == target_id]
+    gmt = pytz.timezone('GMT')
+    now = datetime.datetime.now(tz=gmt)
+    target.delete_date = now
+    return jsonify(target.to_dict()), codes.OK
 
 

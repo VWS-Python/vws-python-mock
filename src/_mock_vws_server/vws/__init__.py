@@ -5,14 +5,14 @@ import io
 import json
 import uuid
 import pytz
-from typing import Set, Tuple
+from typing import Set, Tuple, Dict
 
 import requests
 from flask import Flask, Response, request
 from flask_json_schema import JsonSchema, JsonValidationError
 from requests import codes
 
-from mock_vws._constants import ResultCodes
+from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._mock_common import json_dump
 from mock_vws.database import VuforiaDatabase
@@ -277,6 +277,7 @@ def get_target(target_id: str) -> Tuple[str, int]:
         databases=databases,
     )
 
+    assert isinstance(database, VuforiaDatabase)
     [target] = [target for target in database.targets if target.target_id == target_id]
 
     target_record = {
@@ -295,4 +296,45 @@ def get_target(target_id: str) -> Tuple[str, int]:
         'status': target.status,
     }
 
+    return json_dump(body), codes.OK
+
+@VWS_FLASK_APP.route('/targets/<string:target_id>', methods=['DELETE'])
+def delete_target(target_id: str) -> Tuple[str, int]:
+    """
+    Delete a target.
+
+    Fake implementation of
+    https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Delete-a-Target
+    """
+    body: Dict[str, str] = {}
+    databases = get_all_databases()
+    database = get_database_matching_server_keys(
+        request_headers=dict(request.headers),
+        request_body=request.data,
+        request_method=request.method,
+        request_path=request.path,
+        databases=databases,
+    )
+
+    assert isinstance(database, VuforiaDatabase)
+    [target] = [target for target in database.targets if target.target_id == target_id]
+
+    if target.status == TargetStatuses.PROCESSING.value:
+        body = {
+            'transaction_id': uuid.uuid4().hex,
+            'result_code': ResultCodes.TARGET_STATUS_PROCESSING.value,
+        }
+        return json_dump(body), codes.FORBIDDEN
+
+    # gmt = pytz.timezone('GMT')
+    # now = datetime.datetime.now(tz=gmt)
+    # target.delete_date = now
+    requests.delete(
+        url=f'{STORAGE_BASE_URL}/databases/{database.database_name}/targets/{target_id}',
+    )
+
+    body = {
+        'transaction_id': uuid.uuid4().hex,
+        'result_code': ResultCodes.SUCCESS.value,
+    }
     return json_dump(body), codes.OK
