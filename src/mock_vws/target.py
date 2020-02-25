@@ -189,6 +189,5 @@ class Target:  # pylint: disable=too-many-instance-attributes
             'processing_time_seconds': self._processing_time_seconds,
             'application_metadata': self.application_metadata,
             'target_id': self.target_id,
-
-
+            'last_modified_date_ordinal': self.last_modified_date.toordinal(),
         }

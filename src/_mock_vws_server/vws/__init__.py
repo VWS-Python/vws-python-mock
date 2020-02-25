@@ -1,8 +1,10 @@
 import base64
+import datetime
 import email.utils
 import io
 import json
 import uuid
+import pytz
 from typing import Set, Tuple
 
 import requests
@@ -179,6 +181,10 @@ def get_all_databases() -> Set[VuforiaDatabase]:
                 application_metadata=application_metadata,
             )
             target.target_id = target_dict['target_id']
+            gmt = pytz.timezone('GMT')
+            # import pdb; pdb.set_trace()
+            target.last_modified_date = datetime.datetime.fromordinal(target_dict['last_modified_date_ordinal'])
+            target.last_modified_date = target.last_modified_date.replace(tzinfo=gmt)
             new_database.targets.append(target)
 
         databases.add(new_database)
