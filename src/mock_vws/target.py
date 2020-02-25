@@ -163,6 +163,17 @@ class Target:  # pylint: disable=too-many-instance-attributes
 
         return 0
 
-    def to_dict(self) -> Dict[str, str]:
+    def to_dict(self) -> Dict[str, Optional[Union[str, int, bool, float]]]:
         # TODO
-        return {}
+        import base64
+        # import pdb; pdb.set_trace()
+        return {
+            'name': self.name,
+            'width': self.width,
+            'image_base64': base64.encodestring(self.image.getvalue()).decode(),
+            'active_flag': self.active_flag,
+            'processing_time_seconds': self._processing_time_seconds,
+            'application_metadata': self.application_metadata,
+
+
+        }

@@ -2,17 +2,18 @@ from flask import Flask, jsonify, request
 from requests import codes
 from typing import Tuple, List
 from mock_vws.database import VuforiaDatabase
+from mock_vws.target import Target
 
 STORAGE_FLASK_APP = Flask(__name__)
 
 VUFORIA_DATABASES: List[VuforiaDatabase] = []
 
 @STORAGE_FLASK_APP.route('/reset', methods=['POST'])
-def reset():
+def reset() -> Tuple[str, int]:
     # import pdb; pdb.set_trace()
 
     VUFORIA_DATABASES.clear()
-    return ''
+    return '', codes.OK
 
 @STORAGE_FLASK_APP.route('/databases', methods=['GET'])
 def get_databases() -> Tuple[str, int]:
@@ -48,26 +49,22 @@ def create_database() -> Tuple[str, int]:
 )
 def create_target(database_name: str) -> Tuple[str, int]:
     [database] = [database for database in VUFORIA_DATABASES if database.database_name == database_name]
-    state = request.json['state']
+    import io
+    import base64
+    image_base64 = request.json['image_base64']
+    # import pdb; pdb.set_trace()
+    image_bytes = base64.b64decode(image_base64)
+    image = io.BytesIO(image_bytes)
     target = Target(
         name=request.json['name'],
         width=request.json['width'],
-        image=request.json['image'],
+        image=image,
         active_flag=request.json['active_flag'],
         processing_time_seconds=request.json['processing_time_seconds'],
         application_metadata=request.json['application_metadata'],
     )
     database.targets.append(target)
 
-    database = VuforiaDatabase(
-        server_access_key=server_access_key,
-        server_secret_key=server_secret_key,
-        client_access_key=client_access_key,
-        client_secret_key=client_secret_key,
-        database_name=database_name,
-        state=state,
-    )
-    VUFORIA_DATABASES.append(database)
-    return jsonify(database.to_dict()), codes.CREATED
+    return jsonify(target.to_dict()), codes.CREATED
 
 
