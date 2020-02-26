@@ -289,3 +289,142 @@ def delete_target(target_id: str) -> Tuple[str, int]:
         'result_code': ResultCodes.SUCCESS.value,
     }
     return json_dump(body), codes.OK
+
+
+@VWS_FLASK_APP.route('/summary', methods=['GET'])
+def database_summary() -> Tuple[str, int]:
+    """
+    Get a database summary report.
+
+    Fake implementation of
+    https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Get-a-Database-Summary-Report
+    """
+    body: Dict[str, Union[str, int]] = {}
+
+    databases = get_all_databases()
+    database = get_database_matching_server_keys(
+        request_headers=dict(request.headers),
+        request_body=request.data,
+        request_method=request.method,
+        request_path=request.path,
+        databases=databases,
+    )
+
+    assert isinstance(database, VuforiaDatabase)
+    active_images = len(
+        [
+            target for target in database.targets
+            if target.status == TargetStatuses.SUCCESS.value
+            and target.active_flag and not target.delete_date
+        ],
+    )
+
+    failed_images = len(
+        [
+            target for target in database.targets
+            if target.status == TargetStatuses.FAILED.value
+            and not target.delete_date
+        ],
+    )
+
+    inactive_images = len(
+        [
+            target for target in database.targets
+            if target.status == TargetStatuses.SUCCESS.value
+            and not target.active_flag and not target.delete_date
+        ],
+    )
+
+    processing_images = len(
+        [
+            target for target in database.targets
+            if target.status == TargetStatuses.PROCESSING.value
+            and not target.delete_date
+        ],
+    )
+
+    body = {
+        'result_code': ResultCodes.SUCCESS.value,
+        'transaction_id': uuid.uuid4().hex,
+        'name': database.database_name,
+        'active_images': active_images,
+        'inactive_images': inactive_images,
+        'failed_images': failed_images,
+        'target_quota': 1000,
+        'total_recos': 0,
+        'current_month_recos': 0,
+        'previous_month_recos': 0,
+        'processing_images': processing_images,
+        'reco_threshold': 1000,
+        'request_quota': 100000,
+        # We have ``self.request_count`` but Vuforia always shows 0.
+        # This was not always the case.
+        'request_usage': 0,
+    }
+    return json_dump(body), codes.OK
+
+@VWS_FLASK_APP.route('/duplicates/<string:target_id>', methods=['GET'])
+def get_duplicates(target_id: str) -> Tuple[str, int]:
+    """
+    Get targets which may be considered duplicates of a given target.
+
+    Fake implementation of
+    https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Check-for-Duplicate-Targets
+    """
+    databases = get_all_databases()
+    database = get_database_matching_server_keys(
+        request_headers=dict(request.headers),
+        request_body=request.data,
+        request_method=request.method,
+        request_path=request.path,
+        databases=databases,
+    )
+
+    assert isinstance(database, VuforiaDatabase)
+    other_targets = set(database.targets) - set([target])
+
+    similar_targets: List[str] = [
+        other.target_id for other in other_targets
+        if Image.open(other.image) == Image.open(target.image) and
+        TargetStatuses.FAILED.value not in (target.status, other.status)
+        and TargetStatuses.PROCESSING.value != other.status
+        and other.active_flag
+    ]
+
+    body = {
+        'transaction_id': uuid.uuid4().hex,
+        'result_code': ResultCodes.SUCCESS.value,
+        'similar_targets': similar_targets,
+    }
+
+    return json_dump(body), codes.OK
+
+@VWS_FLASK_APP.route('/targets', methods=['GET'])
+def target_list(
+) -> str:
+    """
+    Get a list of all targets.
+
+    Fake implementation of
+    https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Get-a-Target-List-for-a-Cloud-Database
+    """
+    databases = get_all_databases()
+    database = get_database_matching_server_keys(
+        request_headers=dict(request.headers),
+        request_body=request.data,
+        request_method=request.method,
+        request_path=request.path,
+        databases=databases,
+    )
+    assert isinstance(database, VuforiaDatabase)
+    results = [
+        target.target_id for target in database.targets
+        if not target.delete_date
+    ]
+
+    body: Dict[str, Union[str, List[str]]] = {
+        'transaction_id': uuid.uuid4().hex,
+        'result_code': ResultCodes.SUCCESS.value,
+        'results': results,
+    }
+    return json_dump(body)
