@@ -78,7 +78,6 @@ class Target:  # pylint: disable=too-many-instance-attributes
                 target was deleted.
         """
         self.name = name
-        # TODO UNDO
         self.target_id = uuid.uuid4().hex
         self.active_flag = active_flag
         self.width = width
