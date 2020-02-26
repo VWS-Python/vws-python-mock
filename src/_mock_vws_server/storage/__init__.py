@@ -1,17 +1,20 @@
-from flask import Flask, jsonify, request
-import datetime
-from requests import codes
-import pytz
-from typing import Tuple, List
-from mock_vws.database import VuforiaDatabase
-from mock_vws.target import Target
-import io
 import base64
+import datetime
+import io
+from typing import List, Tuple
+
+import pytz
+from flask import Flask, jsonify, request
+from requests import codes
+
+from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
+from mock_vws.target import Target
 
 STORAGE_FLASK_APP = Flask(__name__)
 
 VUFORIA_DATABASES: List[VuforiaDatabase] = []
+
 
 @STORAGE_FLASK_APP.route('/reset', methods=['POST'])
 def reset() -> Tuple[str, int]:
@@ -19,6 +22,7 @@ def reset() -> Tuple[str, int]:
 
     VUFORIA_DATABASES.clear()
     return '', codes.OK
+
 
 @STORAGE_FLASK_APP.route('/databases', methods=['GET'])
 def get_databases() -> Tuple[str, int]:
@@ -52,7 +56,10 @@ def create_database() -> Tuple[str, int]:
     methods=['POST'],
 )
 def create_target(database_name: str) -> Tuple[str, int]:
-    [database] = [database for database in VUFORIA_DATABASES if database.database_name == database_name]
+    [database] = [
+        database for database in VUFORIA_DATABASES
+        if database.database_name == database_name
+    ]
     image_base64 = request.json['image_base64']
     # import pdb; pdb.set_trace()
     image_bytes = base64.b64decode(image_base64)
@@ -78,11 +85,14 @@ def create_target(database_name: str) -> Tuple[str, int]:
     methods=['DELETE'],
 )
 def delete_target(database_name: str, target_id: str) -> Tuple[str, int]:
-    [database] = [database for database in VUFORIA_DATABASES if database.database_name == database_name]
-    [target] = [target for target in database.targets if target.target_id == target_id]
+    [database] = [
+        database for database in VUFORIA_DATABASES
+        if database.database_name == database_name
+    ]
+    [target] = [
+        target for target in database.targets if target.target_id == target_id
+    ]
     gmt = pytz.timezone('GMT')
     now = datetime.datetime.now(tz=gmt)
     target.delete_date = now
     return jsonify(target.to_dict()), codes.OK
-
-

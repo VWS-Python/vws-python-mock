@@ -1,11 +1,9 @@
 import base64
-import datetime
 import email.utils
 import io
 import json
 import uuid
-import pytz
-from typing import Set, Tuple, Dict
+from typing import Dict, Tuple
 
 import requests
 from flask import Flask, Response, request
@@ -18,6 +16,8 @@ from mock_vws._mock_common import json_dump
 from mock_vws.database import VuforiaDatabase
 from mock_vws.target import Target
 
+from ._constants import STORAGE_BASE_URL
+from ._databases import get_all_databases
 from ._services_validators import (
     validate_active_flag,
     validate_metadata_encoding,
@@ -27,8 +27,8 @@ from ._services_validators import (
     validate_name_length,
     validate_name_type,
     validate_not_invalid_json,
-    validate_width,
     validate_project_state,
+    validate_width,
 )
 from ._services_validators.auth_validators import (
     validate_auth_header_exists,
@@ -55,9 +55,6 @@ from ._services_validators.image_validators import (
     validate_image_is_image,
     validate_image_size,
 )
-
-from ._databases import get_all_databases
-from ._constants import STORAGE_BASE_URL
 
 VWS_FLASK_APP = Flask(__name__)
 JSON_SCHEMA = JsonSchema(VWS_FLASK_APP)
@@ -139,8 +136,6 @@ def set_headers(response: Response) -> Response:
     return response
 
 
-
-
 @VWS_FLASK_APP.route('/targets', methods=['POST'])
 @JSON_SCHEMA.validate(ADD_TARGET_SCHEMA)
 def add_target() -> Tuple[str, int]:
@@ -208,6 +203,7 @@ def add_target() -> Tuple[str, int]:
     }
     return json_dump(body), codes.CREATED
 
+
 @VWS_FLASK_APP.route('/targets/<string:target_id>', methods=['GET'])
 # @JSON_SCHEMA.validate(ADD_TARGET_SCHEMA)
 def get_target(target_id: str) -> Tuple[str, int]:
@@ -227,7 +223,9 @@ def get_target(target_id: str) -> Tuple[str, int]:
     )
 
     assert isinstance(database, VuforiaDatabase)
-    [target] = [target for target in database.targets if target.target_id == target_id]
+    [target] = [
+        target for target in database.targets if target.target_id == target_id
+    ]
 
     target_record = {
         'target_id': target.target_id,
@@ -246,6 +244,7 @@ def get_target(target_id: str) -> Tuple[str, int]:
     }
 
     return json_dump(body), codes.OK
+
 
 @VWS_FLASK_APP.route('/targets/<string:target_id>', methods=['DELETE'])
 def delete_target(target_id: str) -> Tuple[str, int]:
@@ -266,7 +265,9 @@ def delete_target(target_id: str) -> Tuple[str, int]:
     )
 
     assert isinstance(database, VuforiaDatabase)
-    [target] = [target for target in database.targets if target.target_id == target_id]
+    [target] = [
+        target for target in database.targets if target.target_id == target_id
+    ]
 
     if target.status == TargetStatuses.PROCESSING.value:
         body = {
@@ -279,7 +280,8 @@ def delete_target(target_id: str) -> Tuple[str, int]:
     # now = datetime.datetime.now(tz=gmt)
     # target.delete_date = now
     requests.delete(
-        url=f'{STORAGE_BASE_URL}/databases/{database.database_name}/targets/{target_id}',
+        url=
+        f'{STORAGE_BASE_URL}/databases/{database.database_name}/targets/{target_id}',
     )
 
     body = {
