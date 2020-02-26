@@ -28,6 +28,7 @@ from ._services_validators import (
     validate_name_type,
     validate_not_invalid_json,
     validate_width,
+    validate_project_state,
 )
 from ._services_validators.auth_validators import (
     validate_auth_header_exists,
@@ -55,11 +56,11 @@ from ._services_validators.image_validators import (
     validate_image_size,
 )
 
+from ._databases import get_all_databases
+from ._constants import STORAGE_BASE_URL
+
 VWS_FLASK_APP = Flask(__name__)
 JSON_SCHEMA = JsonSchema(VWS_FLASK_APP)
-# TODO choose something for this - it should actually work in a docker-compose
-# scenario.
-STORAGE_BASE_URL = 'http://todo.com'
 
 ADD_TARGET_SCHEMA = {
     'required': ['name', 'image', 'width'],
@@ -107,7 +108,7 @@ ADD_TARGET_SCHEMA = {
 @validate_metadata_encoding
 @validate_metadata_size
 # @validate_authorization
-# @validate_project_state
+@validate_project_state
 def validate_request() -> None:
     pass
     # decorators = [
@@ -138,62 +139,6 @@ def set_headers(response: Response) -> Response:
     return response
 
 
-def get_all_databases() -> Set[VuforiaDatabase]:
-    # TODO use the storage URL to get details then cast to VuforiaDatabase
-    response = requests.get(url=STORAGE_BASE_URL + '/databases')
-    response_json = response.json()
-    databases = set()
-    for database_dict in response_json:
-        database_name = database_dict['database_name']
-        server_access_key = database_dict['server_access_key']
-        server_secret_key = database_dict['server_secret_key']
-        client_access_key = database_dict['client_access_key']
-        client_secret_key = database_dict['client_secret_key']
-        state = database_dict['state']
-        # TODO state
-
-        new_database = VuforiaDatabase(
-            database_name=database_name,
-            server_access_key=server_access_key,
-            server_secret_key=server_secret_key,
-            client_access_key=client_access_key,
-            client_secret_key=client_secret_key,
-            state=state,
-        )
-
-        for target_dict in database_dict['targets']:
-            # TODO fill this in
-            name = target_dict['name']
-            active_flag = target_dict['active_flag']
-            width= target_dict['width']
-            image_base64 = target_dict['image_base64']
-            image_bytes = base64.b64decode(image_base64)
-            image = io.BytesIO(image_bytes)
-            processing_time_seconds = target_dict['processing_time_seconds']
-            application_metadata = target_dict['application_metadata']
-
-            target = Target(
-                name=name,
-                active_flag=active_flag,
-                width=width,
-                image=image,
-                processing_time_seconds=processing_time_seconds,
-                application_metadata=application_metadata,
-            )
-            target.target_id = target_dict['target_id']
-            gmt = pytz.timezone('GMT')
-            # import pdb; pdb.set_trace()
-            target.last_modified_date = datetime.datetime.fromordinal(target_dict['last_modified_date_ordinal'])
-            target.last_modified_date = target.last_modified_date.replace(tzinfo=gmt)
-            delete_date_optional_ordinal = target_dict['delete_date_optional_ordinal']
-            if delete_date_optional_ordinal:
-                target.delete_date = datetime.datetime.fromordinal(delete_date_optional_ordinal)
-                target.delete_date = target.delete_date.replace(tzinfo=gmt)
-            new_database.targets.append(target)
-
-        databases.add(new_database)
-
-    return databases
 
 
 @VWS_FLASK_APP.route('/targets', methods=['POST'])

@@ -85,6 +85,6 @@ class VuforiaDatabase:
             'server_secret_key': self.server_secret_key,
             'client_access_key': self.client_access_key,
             'client_secret_key': self.client_secret_key,
-            'state': str(self.state),
+            'state_value': self.state.value,
             'targets': targets,
         }

@@ -182,7 +182,7 @@ class Target:  # pylint: disable=too-many-instance-attributes
         import base64
         # import pdb; pdb.set_trace()
         if self.delete_date:
-            delete_date = datetime.datetime.toordinal(self.delete_date)
+            delete_date: Optional[int] = datetime.datetime.toordinal(self.delete_date)
         else:
             delete_date = None
         return {

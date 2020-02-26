@@ -47,3 +47,7 @@ class TargetStatuses(Enum):
     PROCESSING = 'processing'
     SUCCESS = 'success'
     FAILED = 'failed'
+
+# TODO choose something for this - it should actually work in a docker-compose
+# scenario.
+STORAGE_BASE_URL = 'http://todo.com'

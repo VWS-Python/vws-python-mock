@@ -7,6 +7,7 @@ from mock_vws.database import VuforiaDatabase
 from mock_vws.target import Target
 import io
 import base64
+from mock_vws.states import States
 
 STORAGE_FLASK_APP = Flask(__name__)
 
@@ -32,8 +33,7 @@ def create_database() -> Tuple[str, int]:
     client_access_key = request.json['client_access_key']
     client_secret_key = request.json['client_secret_key']
     database_name = request.json['database_name']
-    # TODO this will have to be converted by enum
-    state = request.json['state']
+    state = States(request.json['state_value'])
 
     database = VuforiaDatabase(
         server_access_key=server_access_key,
