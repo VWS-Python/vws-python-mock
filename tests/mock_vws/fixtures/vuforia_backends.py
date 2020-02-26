@@ -117,7 +117,6 @@ def _enable_use_docker_in_memory(
     working_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
 ) -> Generator:
-    # import pdb; pdb.set_trace()
     with requests_mock.Mocker(real_http=False) as mock:
         add_flask_app_to_mock(
             mock_obj=mock,

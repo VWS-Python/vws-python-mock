@@ -19,8 +19,6 @@ VUFORIA_DATABASES: List[VuforiaDatabase] = []
 
 @STORAGE_FLASK_APP.route('/reset', methods=['POST'])
 def reset() -> Tuple[str, int]:
-    # import pdb; pdb.set_trace()
-
     VUFORIA_DATABASES.clear()
     return '', codes.OK
 
@@ -62,7 +60,6 @@ def create_target(database_name: str) -> Tuple[str, int]:
         if database.database_name == database_name
     ]
     image_base64 = request.json['image_base64']
-    # import pdb; pdb.set_trace()
     image_bytes = base64.b64decode(image_base64)
     image = io.BytesIO(image_bytes)
     target = Target(
@@ -73,10 +70,8 @@ def create_target(database_name: str) -> Tuple[str, int]:
         processing_time_seconds=request.json['processing_time_seconds'],
         application_metadata=request.json['application_metadata'],
     )
-    # import pdb; pdb.set_trace()
     target.target_id = request.json['target_id']
     database.targets.append(target)
-    # import pdb; pdb.set_trace(
 
     return jsonify(target.to_dict()), codes.CREATED
 
