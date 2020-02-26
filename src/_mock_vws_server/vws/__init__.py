@@ -3,7 +3,8 @@ import email.utils
 import io
 import json
 import uuid
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Union, List
+from PIL import Image
 
 import requests
 from flask import Flask, Response, request
@@ -381,6 +382,9 @@ def get_duplicates(target_id: str) -> Tuple[str, int]:
     )
 
     assert isinstance(database, VuforiaDatabase)
+    [target] = [
+        target for target in database.targets if target.target_id == target_id
+    ]
     other_targets = set(database.targets) - set([target])
 
     similar_targets: List[str] = [
@@ -401,7 +405,7 @@ def get_duplicates(target_id: str) -> Tuple[str, int]:
 
 @VWS_FLASK_APP.route('/targets', methods=['GET'])
 def target_list(
-) -> str:
+) -> Tuple[str, int]:
     """
     Get a list of all targets.
 
@@ -427,4 +431,4 @@ def target_list(
         'result_code': ResultCodes.SUCCESS.value,
         'results': results,
     }
-    return json_dump(body)
+    return json_dump(body), codes.OK
