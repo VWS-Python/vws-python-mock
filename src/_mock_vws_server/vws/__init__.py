@@ -185,6 +185,10 @@ def get_all_databases() -> Set[VuforiaDatabase]:
             # import pdb; pdb.set_trace()
             target.last_modified_date = datetime.datetime.fromordinal(target_dict['last_modified_date_ordinal'])
             target.last_modified_date = target.last_modified_date.replace(tzinfo=gmt)
+            delete_date_optional_ordinal = target_dict['delete_date_optional_ordinal']
+            if delete_date_optional_ordinal:
+                target.delete_date = datetime.datetime.fromordinal(delete_date_optional_ordinal)
+                target.delete_date = target.delete_date.replace(tzinfo=gmt)
             new_database.targets.append(target)
 
         databases.add(new_database)

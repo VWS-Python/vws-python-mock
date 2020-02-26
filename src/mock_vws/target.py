@@ -181,6 +181,10 @@ class Target:  # pylint: disable=too-many-instance-attributes
         # https://github.com/agronholm/sphinx-autodoc-typehints/issues/123
         import base64
         # import pdb; pdb.set_trace()
+        if self.delete_date:
+            delete_date = datetime.datetime.toordinal(self.delete_date)
+        else:
+            delete_date = None
         return {
             'name': self.name,
             'width': self.width,
@@ -190,4 +194,5 @@ class Target:  # pylint: disable=too-many-instance-attributes
             'application_metadata': self.application_metadata,
             'target_id': self.target_id,
             'last_modified_date_ordinal': self.last_modified_date.toordinal(),
+            'delete_date_optional_ordinal': delete_date,
         }
