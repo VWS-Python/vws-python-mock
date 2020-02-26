@@ -11,6 +11,7 @@ from typing import Dict, Optional, Union
 
 import pytz
 from PIL import Image, ImageStat
+import base64
 
 from mock_vws._constants import TargetStatuses
 
@@ -179,8 +180,6 @@ class Target:  # pylint: disable=too-many-instance-attributes
         #
         # as can e.g. processing time... maybe use dataclass but then
         # https://github.com/agronholm/sphinx-autodoc-typehints/issues/123
-        import base64
-        # import pdb; pdb.set_trace()
         if self.delete_date:
             delete_date: Optional[int] = datetime.datetime.toordinal(
                 self.delete_date

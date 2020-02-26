@@ -199,7 +199,6 @@ def add_target() -> Tuple[str, int]:
         json=new_target.to_dict(),
     )
 
-    # import pdb; pdb.set_trace()
     body = {
         'transaction_id': uuid.uuid4().hex,
         'result_code': ResultCodes.TARGET_CREATED.value,

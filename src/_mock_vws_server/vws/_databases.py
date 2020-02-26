@@ -57,7 +57,6 @@ def get_all_databases() -> Set[VuforiaDatabase]:
             )
             target.target_id = target_dict['target_id']
             gmt = pytz.timezone('GMT')
-            # import pdb; pdb.set_trace()
             target.last_modified_date = datetime.datetime.fromordinal(
                 target_dict['last_modified_date_ordinal']
             )
