@@ -96,3 +96,46 @@ def delete_target(database_name: str, target_id: str) -> Tuple[str, int]:
     now = datetime.datetime.now(tz=gmt)
     target.delete_date = now
     return jsonify(target.to_dict()), codes.OK
+
+
+@STORAGE_FLASK_APP.route(
+    '/databases/<string:database_name>/targets/<string:target_id>/',
+    methods=['PUT'],
+)
+def update_target(database_name: str, target_id: str) -> Tuple[str, int]:
+    [database] = [
+        database for database in VUFORIA_DATABASES
+        if database.database_name == database_name
+    ]
+    [target] = [
+        target for target in database.targets if target.target_id == target_id
+    ]
+
+    if 'name' in request.json():
+        target.name = request.json()['name']
+
+    if 'active_flag' in request.json():
+        target.active_flag = bool(request.json()['active_flag'])
+
+    if 'width' in request.json():
+        target.width = float(request.json()['width'])
+
+    if 'application_metadata' in request.json():
+        target.application_metadata = request.json()['application_metadata']
+
+    if 'image' in request.json():
+        decoded = base64.b64decode(request.json()['image'])
+        image_file = io.BytesIO(decoded)
+        target.image = image_file
+
+    # In the real implementation, the tracking rating can stay the same.
+    # However, for demonstration purposes, the tracking rating changes but
+    # when the target is updated.
+    available_values = list(set(range(6)) - set([target.tracking_rating]))
+    target.processed_tracking_rating = random.choice(available_values)
+
+    gmt = pytz.timezone('GMT')
+    now = datetime.datetime.now(tz=gmt)
+    target.last_modified_date = now
+
+    return jsonify(target.to_dict()), codes.OK

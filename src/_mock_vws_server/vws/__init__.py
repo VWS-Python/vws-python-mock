@@ -5,16 +5,23 @@ import io
 import json
 import random
 import uuid
-from typing import Dict, List, Tuple, Union
+from typing import Dict
+from typing import List
+from typing import Tuple
+from typing import Union
 
 import pytz
 import requests
-from flask import Flask, Response, request
-from flask_json_schema import JsonSchema, JsonValidationError
+from flask import Flask
+from flask import Response
+from flask import request
+from flask_json_schema import JsonSchema
+from flask_json_schema import JsonValidationError
 from PIL import Image
 from requests import codes
 
-from mock_vws._constants import ResultCodes, TargetStatuses
+from mock_vws._constants import ResultCodes
+from mock_vws._constants import TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._mock_common import json_dump
 from mock_vws.database import VuforiaDatabase
@@ -22,43 +29,36 @@ from mock_vws.target import Target
 
 from ._constants import STORAGE_BASE_URL
 from ._databases import get_all_databases
-from ._services_validators import (
-    validate_active_flag,
-    validate_metadata_encoding,
-    validate_metadata_size,
-    validate_metadata_type,
-    validate_name_characters_in_range,
-    validate_name_length,
-    validate_name_type,
-    validate_not_invalid_json,
-    validate_project_state,
-    validate_width,
-)
-from ._services_validators.auth_validators import (
-    validate_auth_header_exists,
-    validate_auth_header_has_signature,
-)
-from ._services_validators.content_length_validators import (
-    validate_content_length_header_is_int,
-    validate_content_length_header_not_too_large,
-    validate_content_length_header_not_too_small,
-)
-from ._services_validators.content_type_validators import (
-    validate_content_type_header_given,
-)
-from ._services_validators.date_validators import (
-    validate_date_format,
-    validate_date_header_given,
-    validate_date_in_range,
-)
-from ._services_validators.image_validators import (
-    validate_image_color_space,
-    validate_image_data_type,
-    validate_image_encoding,
-    validate_image_format,
-    validate_image_is_image,
-    validate_image_size,
-)
+from ._services_validators import validate_active_flag
+from ._services_validators import validate_metadata_encoding
+from ._services_validators import validate_metadata_size
+from ._services_validators import validate_metadata_type
+from ._services_validators import validate_name_characters_in_range
+from ._services_validators import validate_name_length
+from ._services_validators import validate_name_type
+from ._services_validators import validate_not_invalid_json
+from ._services_validators import validate_project_state
+from ._services_validators import validate_width
+from ._services_validators.auth_validators import validate_auth_header_exists
+from ._services_validators.auth_validators import \
+    validate_auth_header_has_signature
+from ._services_validators.content_length_validators import \
+    validate_content_length_header_is_int
+from ._services_validators.content_length_validators import \
+    validate_content_length_header_not_too_large
+from ._services_validators.content_length_validators import \
+    validate_content_length_header_not_too_small
+from ._services_validators.content_type_validators import \
+    validate_content_type_header_given
+from ._services_validators.date_validators import validate_date_format
+from ._services_validators.date_validators import validate_date_header_given
+from ._services_validators.date_validators import validate_date_in_range
+from ._services_validators.image_validators import validate_image_color_space
+from ._services_validators.image_validators import validate_image_data_type
+from ._services_validators.image_validators import validate_image_encoding
+from ._services_validators.image_validators import validate_image_format
+from ._services_validators.image_validators import validate_image_is_image
+from ._services_validators.image_validators import validate_image_size
 
 VWS_FLASK_APP = Flask(__name__)
 JSON_SCHEMA = JsonSchema(VWS_FLASK_APP)
@@ -191,9 +191,6 @@ def add_target() -> Tuple[str, int]:
         application_metadata=request_json.get('application_metadata'),
     )
 
-    # TODO make this work
-    # database.targets.append(new_target)
-    # --->
     requests.post(
         url=f'{STORAGE_BASE_URL}/databases/{database.database_name}/targets',
         json=new_target.to_dict(),
@@ -366,7 +363,6 @@ def database_summary() -> Tuple[str, int]:
     }
     return json_dump(body), codes.OK
 
-
 @VWS_FLASK_APP.route('/duplicates/<string:target_id>', methods=['GET'])
 def get_duplicates(target_id: str) -> Tuple[str, int]:
     """
@@ -393,8 +389,9 @@ def get_duplicates(target_id: str) -> Tuple[str, int]:
     similar_targets: List[str] = [
         other.target_id for other in other_targets
         if Image.open(other.image) == Image.open(target.image) and
-        TargetStatuses.FAILED.value not in (target.status, other.status) and
-        TargetStatuses.PROCESSING.value != other.status and other.active_flag
+        TargetStatuses.FAILED.value not in (target.status, other.status)
+        and TargetStatuses.PROCESSING.value != other.status
+        and other.active_flag
     ]
 
     body = {
@@ -405,9 +402,9 @@ def get_duplicates(target_id: str) -> Tuple[str, int]:
 
     return json_dump(body), codes.OK
 
-
 @VWS_FLASK_APP.route('/targets', methods=['GET'])
-def target_list() -> Tuple[str, int]:
+def target_list(
+) -> Tuple[str, int]:
     """
     Get a list of all targets.
 
@@ -482,8 +479,9 @@ def update_target(target_id: str) -> Tuple[str, int]:
         }
         return json_dump(body), codes.FORBIDDEN
 
+    update_values = {}
     if 'width' in request_json:
-        target.width = request_json['width']
+        update_values['width'] = request_json['width']
 
     if 'active_flag' in request_json:
         active_flag = request_json['active_flag']
@@ -493,7 +491,7 @@ def update_target(target_id: str) -> Tuple[str, int]:
                 'result_code': ResultCodes.FAIL.value,
             }
             return json_dump(body), codes.BAD_REQUEST
-        target.active_flag = active_flag
+        update_values['active_flag'] = active_flag
 
     if 'application_metadata' in request_json:
         if request_json['application_metadata'] is None:
@@ -503,7 +501,7 @@ def update_target(target_id: str) -> Tuple[str, int]:
             }
             return json_dump(body), codes.BAD_REQUEST
         application_metadata = request_json['application_metadata']
-        target.application_metadata = application_metadata
+        update_values['application_metadata'] = application_metadata
 
     if 'name' in request_json:
         name = request_json['name']
@@ -517,23 +515,12 @@ def update_target(target_id: str) -> Tuple[str, int]:
                 'result_code': ResultCodes.TARGET_NAME_EXIST.value,
             }
             return json_dump(body), codes.FORBIDDEN
-        target.name = name
+        update_values['name'] = name
 
     if 'image' in request_json:
         image = request_json['image']
-        decoded = base64.b64decode(image)
-        image_file = io.BytesIO(decoded)
-        target.image = image_file
+        update_values['image'] = image
 
-    # In the real implementation, the tracking rating can stay the same.
-    # However, for demonstration purposes, the tracking rating changes but
-    # when the target is updated.
-    available_values = list(set(range(6)) - set([target.tracking_rating]))
-    target.processed_tracking_rating = random.choice(available_values)
-
-    gmt = pytz.timezone('GMT')
-    now = datetime.datetime.now(tz=gmt)
-    target.last_modified_date = now
 
     body = {
         'result_code': ResultCodes.SUCCESS.value,
