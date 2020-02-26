@@ -521,6 +521,11 @@ def update_target(target_id: str) -> Tuple[str, int]:
         image = request_json['image']
         update_values['image'] = image
 
+    requests.put(
+        url=f'{STORAGE_BASE_URL}/databases/{database.database_name}/targets/{target_id}',
+        json=update_values,
+    )
+
 
     body = {
         'result_code': ResultCodes.SUCCESS.value,

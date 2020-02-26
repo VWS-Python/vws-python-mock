@@ -2,6 +2,7 @@ import base64
 import datetime
 import io
 from typing import List, Tuple
+import random
 
 import pytz
 from flask import Flask, jsonify, request
@@ -99,7 +100,7 @@ def delete_target(database_name: str, target_id: str) -> Tuple[str, int]:
 
 
 @STORAGE_FLASK_APP.route(
-    '/databases/<string:database_name>/targets/<string:target_id>/',
+    '/databases/<string:database_name>/targets/<string:target_id>',
     methods=['PUT'],
 )
 def update_target(database_name: str, target_id: str) -> Tuple[str, int]:
@@ -111,20 +112,20 @@ def update_target(database_name: str, target_id: str) -> Tuple[str, int]:
         target for target in database.targets if target.target_id == target_id
     ]
 
-    if 'name' in request.json():
-        target.name = request.json()['name']
+    if 'name' in request.json:
+        target.name = request.json['name']
 
-    if 'active_flag' in request.json():
-        target.active_flag = bool(request.json()['active_flag'])
+    if 'active_flag' in request.json:
+        target.active_flag = bool(request.json['active_flag'])
 
-    if 'width' in request.json():
-        target.width = float(request.json()['width'])
+    if 'width' in request.json:
+        target.width = float(request.json['width'])
 
-    if 'application_metadata' in request.json():
-        target.application_metadata = request.json()['application_metadata']
+    if 'application_metadata' in request.json:
+        target.application_metadata = request.json['application_metadata']
 
-    if 'image' in request.json():
-        decoded = base64.b64decode(request.json()['image'])
+    if 'image' in request.json:
+        decoded = base64.b64decode(request.json['image'])
         image_file = io.BytesIO(decoded)
         target.image = image_file
 
