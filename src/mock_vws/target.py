@@ -198,4 +198,5 @@ class Target:  # pylint: disable=too-many-instance-attributes
             'target_id': self.target_id,
             'last_modified_date_ordinal': self.last_modified_date.toordinal(),
             'delete_date_optional_ordinal': delete_date,
+            'upload_date_ordinal': self.upload_date.toordinal(),
         }

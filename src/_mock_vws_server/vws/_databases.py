@@ -64,6 +64,12 @@ def get_all_databases() -> Set[VuforiaDatabase]:
             target.last_modified_date = target.last_modified_date.replace(
                 tzinfo=gmt
             )
+            target.upload_date = datetime.datetime.fromordinal(
+                target_dict['upload_date_ordinal']
+            )
+            target.upload_date = target.upload_date.replace(
+                tzinfo=gmt
+            )
             delete_date_optional_ordinal = target_dict[
                 'delete_date_optional_ordinal']
             if delete_date_optional_ordinal:

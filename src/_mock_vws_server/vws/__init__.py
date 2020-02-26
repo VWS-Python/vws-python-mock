@@ -1,3 +1,6 @@
+import random
+import datetime
+import pytz
 import base64
 import email.utils
 import io
@@ -430,5 +433,111 @@ def target_list(
         'transaction_id': uuid.uuid4().hex,
         'result_code': ResultCodes.SUCCESS.value,
         'results': results,
+    }
+    return json_dump(body), codes.OK
+
+
+# @route(
+#     path_pattern=f'/targets/{_TARGET_ID_PATTERN}',
+#     http_methods=[PUT],
+#     optional_keys={
+#         'active_flag',
+#         'application_metadata',
+#         'image',
+#         'name',
+#         'width',
+#     },
+# )
+@VWS_FLASK_APP.route('/targets/<string:target_id>', methods=['PUT'])
+# TODO
+# @JSON_SCHEMA.validate(UPDATE_TARGET_SCHEMA)
+def update_target(target_id: str) -> Tuple[str, int]:
+    """
+    Update a target.
+
+    Fake implementation of
+    https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Update-a-Target
+    """
+    # We do not use ``request.get_json(force=True)`` because this only works when the content
+    # type is given as ``application/json``.
+    request_json = json.loads(request.data)
+    body: Dict[str, str] = {}
+    databases = get_all_databases()
+    database = get_database_matching_server_keys(
+        request_headers=dict(request.headers),
+        request_body=request.data,
+        request_method=request.method,
+        request_path=request.path,
+        databases=databases,
+    )
+
+    assert isinstance(database, VuforiaDatabase)
+    [target] = [
+        target for target in database.targets if target.target_id == target_id
+    ]
+
+    if target.status != TargetStatuses.SUCCESS.value:
+        body = {
+            'transaction_id': uuid.uuid4().hex,
+            'result_code': ResultCodes.TARGET_STATUS_NOT_SUCCESS.value,
+        }
+        return json_dump(body), codes.FORBIDDEN
+
+    if 'width' in request_json:
+        target.width = request_json['width']
+
+    if 'active_flag' in request_json:
+        active_flag = request_json['active_flag']
+        if active_flag is None:
+            body = {
+                'transaction_id': uuid.uuid4().hex,
+                'result_code': ResultCodes.FAIL.value,
+            }
+            return json_dump(body), codes.BAD_REQUEST
+        target.active_flag = active_flag
+
+    if 'application_metadata' in request_json:
+        if request_json['application_metadata'] is None:
+            body = {
+                'transaction_id': uuid.uuid4().hex,
+                'result_code': ResultCodes.FAIL.value,
+            }
+            return json_dump(body), codes.BAD_REQUEST
+        application_metadata = request_json['application_metadata']
+        target.application_metadata = application_metadata
+
+    if 'name' in request_json:
+        name = request_json['name']
+        other_targets = set(database.targets) - set([target])
+        if any(
+            other.name == name for other in other_targets
+            if not other.delete_date
+        ):
+            body = {
+                'transaction_id': uuid.uuid4().hex,
+                'result_code': ResultCodes.TARGET_NAME_EXIST.value,
+            }
+            return json_dump(body), codes.FORBIDDEN
+        target.name = name
+
+    if 'image' in request_json:
+        image = request_json['image']
+        decoded = base64.b64decode(image)
+        image_file = io.BytesIO(decoded)
+        target.image = image_file
+
+    # In the real implementation, the tracking rating can stay the same.
+    # However, for demonstration purposes, the tracking rating changes but
+    # when the target is updated.
+    available_values = list(set(range(6)) - set([target.tracking_rating]))
+    target.processed_tracking_rating = random.choice(available_values)
+
+    gmt = pytz.timezone('GMT')
+    now = datetime.datetime.now(tz=gmt)
+    target.last_modified_date = now
+
+    body = {
+        'result_code': ResultCodes.SUCCESS.value,
+        'transaction_id': uuid.uuid4().hex,
     }
     return json_dump(body), codes.OK
