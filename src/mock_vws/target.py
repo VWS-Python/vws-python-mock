@@ -2,6 +2,7 @@
 A fake implementation of a target for the Vuforia Web Services API.
 """
 
+import base64
 import datetime
 import io
 import random
@@ -11,7 +12,6 @@ from typing import Dict, Optional, Union
 
 import pytz
 from PIL import Image, ImageStat
-import base64
 
 from mock_vws._constants import TargetStatuses
 

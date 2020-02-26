@@ -96,5 +96,3 @@ def delete_target(database_name: str, target_id: str) -> Tuple[str, int]:
     now = datetime.datetime.now(tz=gmt)
     target.delete_date = now
     return jsonify(target.to_dict()), codes.OK
-
-

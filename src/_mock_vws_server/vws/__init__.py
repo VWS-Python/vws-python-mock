@@ -1,17 +1,17 @@
-import random
-import datetime
-import pytz
 import base64
+import datetime
 import email.utils
 import io
 import json
+import random
 import uuid
-from typing import Dict, Tuple, Union, List
-from PIL import Image
+from typing import Dict, List, Tuple, Union
 
+import pytz
 import requests
 from flask import Flask, Response, request
 from flask_json_schema import JsonSchema, JsonValidationError
+from PIL import Image
 from requests import codes
 
 from mock_vws._constants import ResultCodes, TargetStatuses
@@ -366,6 +366,7 @@ def database_summary() -> Tuple[str, int]:
     }
     return json_dump(body), codes.OK
 
+
 @VWS_FLASK_APP.route('/duplicates/<string:target_id>', methods=['GET'])
 def get_duplicates(target_id: str) -> Tuple[str, int]:
     """
@@ -392,9 +393,8 @@ def get_duplicates(target_id: str) -> Tuple[str, int]:
     similar_targets: List[str] = [
         other.target_id for other in other_targets
         if Image.open(other.image) == Image.open(target.image) and
-        TargetStatuses.FAILED.value not in (target.status, other.status)
-        and TargetStatuses.PROCESSING.value != other.status
-        and other.active_flag
+        TargetStatuses.FAILED.value not in (target.status, other.status) and
+        TargetStatuses.PROCESSING.value != other.status and other.active_flag
     ]
 
     body = {
@@ -405,9 +405,9 @@ def get_duplicates(target_id: str) -> Tuple[str, int]:
 
     return json_dump(body), codes.OK
 
+
 @VWS_FLASK_APP.route('/targets', methods=['GET'])
-def target_list(
-) -> Tuple[str, int]:
+def target_list() -> Tuple[str, int]:
     """
     Get a list of all targets.
 
