@@ -1,8 +1,8 @@
 import base64
 import datetime
 import io
-from typing import List, Tuple
 import random
+from typing import List, Tuple
 
 import pytz
 from flask import Flask, jsonify, request
