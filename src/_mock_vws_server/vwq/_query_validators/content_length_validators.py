@@ -42,9 +42,10 @@ def validate_content_length_header_is_int(
     try:
         int(given_content_length)
     except ValueError:
-        context.status_code = codes.BAD_REQUEST
-        context.headers = {'Connection': 'Close'}
-        return ''
+        # TODO remove legacy
+        # context.status_code = codes.BAD_REQUEST
+        # context.headers = {'Connection': 'Close'}
+        return '', codes.BAD_REQUEST, {'Connection': 'Close'}
 
     return wrapped(*args, **kwargs)
 
@@ -76,9 +77,10 @@ def validate_content_length_header_not_too_large(
     body_length = len(request.data if request.data else '')
     given_content_length_value = int(given_content_length)
     if given_content_length_value > body_length:
-        context.status_code = codes.GATEWAY_TIMEOUT
-        context.headers = {'Connection': 'keep-alive'}
-        return ''
+        # TODO Remove legacy
+        # context.status_code = codes.GATEWAY_TIMEOUT
+        # context.headers = {'Connection': 'keep-alive'}
+        return '', codes.GATEWAY_TIMEOUT, {'Connection': 'keep-alive'}
 
     return wrapped(*args, **kwargs)
 

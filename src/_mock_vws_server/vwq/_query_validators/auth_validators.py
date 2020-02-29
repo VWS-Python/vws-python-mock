@@ -10,6 +10,8 @@ import wrapt
 from requests import codes
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
+from flask import request
+from ...vws._databases import get_all_databases
 
 from .._constants import ResultCodes
 from .._database_matchers import get_database_matching_client_keys
@@ -17,11 +19,11 @@ from .._database_matchers import get_database_matching_client_keys
 
 @wrapt.decorator
 def validate_auth_header_exists(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate that there is an authorization header given to the query endpoint.
 
@@ -35,7 +37,7 @@ def validate_auth_header_exists(
         The result of calling the endpoint.
         An `UNAUTHORIZED` response if there is no "Authorization" header.
     """
-    request, context = args
+    
     if 'Authorization' in request.headers:
         return wrapped(*args, **kwargs)
 
@@ -49,11 +51,11 @@ def validate_auth_header_exists(
 
 @wrapt.decorator
 def validate_auth_header_number_of_parts(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the authorization header includes text either side of a space.
 
@@ -68,7 +70,7 @@ def validate_auth_header_number_of_parts(
         An ``UNAUTHORIZED`` response if the "Authorization" header is not as
         expected.
     """
-    request, context = args
+    
 
     header = request.headers['Authorization']
     parts = header.split(' ')
@@ -85,11 +87,11 @@ def validate_auth_header_number_of_parts(
 
 @wrapt.decorator
 def validate_client_key_exists(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the authorization header includes a client key for a database.
 
@@ -103,12 +105,13 @@ def validate_client_key_exists(
         The result of calling the endpoint.
         An ``UNAUTHORIZED`` response if the client key is unknown.
     """
-    request, context = args
+    
 
     header = request.headers['Authorization']
     first_part, _ = header.split(':')
     _, access_key = first_part.split(' ')
-    for database in instance.databases:
+    databases = get_all_databases()
+    for database in databases:
         if access_key == database.client_access_key:
             return wrapped(*args, **kwargs)
 
@@ -127,11 +130,11 @@ def validate_client_key_exists(
 
 @wrapt.decorator
 def validate_auth_header_has_signature(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the authorization header includes a signature.
 
@@ -146,30 +149,34 @@ def validate_auth_header_has_signature(
         An ``UNAUTHORIZED`` response if the "Authorization" header is not as
         expected.
     """
-    request, context = args
+    
 
     header = request.headers['Authorization']
     if header.count(':') == 1 and header.split(':')[1]:
         return wrapped(*args, **kwargs)
 
-    context.status_code = codes.INTERNAL_SERVER_ERROR
+    # context.status_code = codes.INTERNAL_SERVER_ERROR
     current_parent = Path(__file__).parent
     resources = current_parent / 'resources'
     known_response = resources / 'query_out_of_bounds_response'
     content_type = 'text/html; charset=ISO-8859-1'
-    context.headers['Content-Type'] = content_type
+    # TODO
+    # context.headers['Content-Type'] = content_type
     cache_control = 'must-revalidate,no-cache,no-store'
-    context.headers['Cache-Control'] = cache_control
-    return known_response.read_text()
+    # context.headers['Cache-Control'] = cache_control
+    return known_response.read_text(), codes.INTERNAL_SERVER_ERROR, {
+        'Content-Type': content_type,
+        'Cache-Control': cache_control,
+    }
 
 
 @wrapt.decorator
 def validate_authorization(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the authorization header given to the query endpoint.
 
@@ -184,21 +191,24 @@ def validate_authorization(
         A `BAD_REQUEST` response if the "Authorization" header is not as
         expected.
     """
-    request, context = args
+    
 
+    databases = get_all_databases()
     database = get_database_matching_client_keys(
         request_headers=request.headers,
-        request_body=request.body,
+        request_body=request.data,
         request_method=request.method,
         request_path=request.path,
-        databases=instance.databases,
+        databases=databases,
     )
 
     if database is not None:
         return wrapped(*args, **kwargs)
 
-    context.status_code = codes.UNAUTHORIZED
-    context.headers['WWW-Authenticate'] = 'VWS'
+    # TODO
+    # context.status_code = codes.UNAUTHORIZED
+    # TODO
+    # context.headers['WWW-Authenticate'] = 'VWS'
     transaction_id = uuid.uuid4().hex
     result_code = ResultCodes.AUTHENTICATION_FAILURE.value
     text = (
@@ -207,4 +217,4 @@ def validate_authorization(
         f'"result_code":"{result_code}"'
         '}'
     )
-    return text
+    return text, codes.UNAUTHORIZED, {'WWW-Authenticate': 'VWS'}

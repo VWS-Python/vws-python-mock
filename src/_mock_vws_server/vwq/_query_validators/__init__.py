@@ -19,6 +19,7 @@ from mock_vws.states import States
 from .._constants import ResultCodes
 from .._database_matchers import get_database_matching_client_keys
 from .._mock_common import parse_multipart
+from ...vws._databases import get_all_databases
 
 
 @wrapt.decorator
@@ -43,12 +44,13 @@ def validate_project_state(
         project is inactive.
     """
 
+    databases = get_all_databases()
     database = get_database_matching_client_keys(
         request_headers=request.headers,
         request_body=request.data,
         request_method=request.method,
         request_path=request.path,
-        databases=instance.databases,
+        databases=databases,
     )
 
     assert isinstance(database, VuforiaDatabase)
@@ -176,8 +178,7 @@ def validate_include_target_data(
         "'include_target_data'. "
         "Expecting one of the (unquoted) string values 'all', 'none' or 'top'."
     )
-    context.status_code = codes.BAD_REQUEST
-    return unexpected_target_data_message
+    return unexpected_target_data_message, codes.BAD_REQUEST
 
 
 @wrapt.decorator
@@ -206,25 +207,29 @@ def validate_content_type_header(
 
     main_value, pdict = cgi.parse_header(request.headers['Content-Type'])
     if main_value != 'multipart/form-data':
-        context.status_code = codes.UNSUPPORTED_MEDIA_TYPE
-        context.headers.pop('Content-Type')
-        return ''
+        # context.status_code = codes.UNSUPPORTED_MEDIA_TYPE
+        # TODO Do this somehow
+        # context.headers.pop('Content-Type')
+        return '', codes.UNSUPPORTED_MEDIA_TYPE
 
     if 'boundary' not in pdict:
-        context.status_code = codes.BAD_REQUEST
-        context.headers['Content-Type'] = 'text/html;charset=UTF-8'
+        # context.status_code = codes.BAD_REQUEST
+        # context.headers['Content-Type'] = 'text/html;charset=UTF-8'
+        content_type = 'text/html; charset=UTF-8'
         return (
             'java.io.IOException: RESTEASY007550: '
             'Unable to get boundary for multipart'
-        )
+        ), codes.BAD_REQUEST, {'Content-Type': content_type}
 
     if pdict['boundary'].encode() not in request.data:
-        context.status_code = codes.BAD_REQUEST
-        context.headers['Content-Type'] = 'text/html;charset=UTF-8'
+        # TODO
+        # context.status_code = codes.BAD_REQUEST
+        content_type = 'text/html; charset=UTF-8'
+        # context.headers['Content-Type'] = content_type
         return (
             'java.lang.RuntimeException: RESTEASY007500: '
             'Could find no Content-Disposition header within part'
-        )
+        ), codes.BAD_REQUEST, {'Content-Type': content_type}
 
     return wrapped(*args, **kwargs)
 

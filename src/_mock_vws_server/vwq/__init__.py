@@ -58,7 +58,6 @@ CLOUDRECO_FLASK_APP = Flask(__name__)
 @CLOUDRECO_FLASK_APP.before_request
 @validate_content_length_header_is_int
 @validate_content_length_header_not_too_large
-@set_date_header
 @validate_content_length_header_not_too_small
 @validate_auth_header_exists
 @validate_auth_header_number_of_parts
@@ -88,6 +87,10 @@ def set_headers(response: Response) -> Response:
     response.headers['Connection'] = 'keep-alive'
     if response.status_code != codes.INTERNAL_SERVER_ERROR:
         response.headers['Content-Type'] = 'application/json'
+    if response.status_code == codes.UNSUPPORTED_MEDIA_TYPE:
+        # response.headers.pop('Content-Type')
+        # TODO we need to remove this somehow but I don't know how
+        response.headers['Content-Type'] = ''
     response.headers['Server'] = 'nginx'
     content_length = len(response.data)
     response.headers['Content-Length'] = str(content_length)
