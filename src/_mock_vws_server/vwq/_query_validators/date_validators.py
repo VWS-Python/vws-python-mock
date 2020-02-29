@@ -14,15 +14,16 @@ from requests_mock.response import _Context
 
 from .._constants import ResultCodes
 from .._mock_common import json_dump
+from flask import request
 
 
 @wrapt.decorator
 def validate_date_header_given(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the date header is given to the query endpoint.
 
@@ -36,15 +37,15 @@ def validate_date_header_given(
         The result of calling the endpoint.
         A `BAD_REQUEST` response if the date is not given.
     """
-    request, context = args
+    
 
     if 'Date' in request.headers:
         return wrapped(*args, **kwargs)
 
-    context.status_code = codes.BAD_REQUEST
     content_type = 'text/plain; charset=ISO-8859-1'
-    context.headers['Content-Type'] = content_type
-    return 'Date header required.'
+    # TODO remove legacy
+    # context.headers['Content-Type'] = content_type
+    return 'Date header required.', codes.BAD_REQUEST, {'Content-Type': content_type}
 
 
 def _accepted_date_formats() -> Set[str]:
@@ -70,11 +71,11 @@ def _accepted_date_formats() -> Set[str]:
 
 @wrapt.decorator
 def validate_date_format(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the format of the date header given to the query endpoint.
 
@@ -88,7 +89,7 @@ def validate_date_format(
         The result of calling the endpoint.
         An `UNAUTHORIZED` response if the date is in the wrong format.
     """
-    request, context = args
+    
     date_header = request.headers['Date']
 
     for date_format in _accepted_date_formats():
@@ -99,21 +100,23 @@ def validate_date_format(
         else:
             return wrapped(*args, **kwargs)
 
-    context.status_code = codes.UNAUTHORIZED
-    context.headers['WWW-Authenticate'] = 'VWS'
+    # context.status_code = codes.UNAUTHORIZED
+    # TODO remove this legacy
+    # context.headers['WWW-Authenticate'] = 'VWS'
     text = 'Malformed date header.'
     content_type = 'text/plain; charset=ISO-8859-1'
-    context.headers['Content-Type'] = content_type
-    return text
+    # TODO remove this legacy
+    # context.headers['Content-Type'] = content_type
+    return text, codes.UNAUTHORIZED, {'Content-Type': content_type, 'WWW-Authenticate': 'VWS'}
 
 
 @wrapt.decorator
 def validate_date_in_range(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate date in the date header given to the query endpoint.
 
@@ -127,7 +130,7 @@ def validate_date_in_range(
         The result of calling the endpoint.
         A `FORBIDDEN` response if the date is out of range.
     """
-    request, context = args
+    
     date_header = request.headers['Date']
 
     for date_format in _accepted_date_formats():
@@ -148,10 +151,8 @@ def validate_date_in_range(
     if abs(time_difference) < maximum_time_difference:
         return wrapped(*args, **kwargs)
 
-    context.status_code = codes.FORBIDDEN
-
     body = {
         'transaction_id': uuid.uuid4().hex,
         'result_code': ResultCodes.REQUEST_TIME_TOO_SKEWED.value,
     }
-    return json_dump(body)
+    return json_dump(body), codes.FORBIDDEN

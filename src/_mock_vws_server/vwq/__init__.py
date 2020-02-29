@@ -1,5 +1,6 @@
 from typing import Tuple
 import base64
+import email.utils
 import cgi
 import datetime
 import io
@@ -63,12 +64,52 @@ from ._query_validators.image_validators import (
 
 CLOUDRECO_FLASK_APP = Flask(__name__)
 
+@CLOUDRECO_FLASK_APP.before_request
+@validate_date_in_range
+@validate_date_format
+@validate_date_header_given
+@validate_include_target_data
+@validate_max_num_results
+@validate_image_file_size
+@validate_image_dimensions
+@validate_image_format
+@validate_image_is_image
+@validate_image_field_given
+@validate_extra_fields
+@validate_content_type_header
+@validate_accept_header
+@validate_project_state
+@validate_authorization
+@validate_client_key_exists
+@validate_auth_header_has_signature
+@validate_auth_header_number_of_parts
+@validate_auth_header_exists
+@validate_content_length_header_not_too_small
+@set_date_header
+@validate_content_length_header_not_too_large
+@validate_content_length_header_is_int
+def validate_request() -> None:
+    pass
+
+
+@CLOUDRECO_FLASK_APP.after_request
+def set_headers(response: Response) -> Response:
+    response.headers['Connection'] = 'keep-alive'
+    if response.status_code != codes.INTERNAL_SERVER_ERROR:
+        response.headers['Content-Type'] = 'application/json'
+    response.headers['Server'] = 'nginx'
+    content_length = len(response.data)
+    response.headers['Content-Length'] = str(content_length)
+    date = email.utils.formatdate(None, localtime=False, usegmt=True)
+    response.headers['Date'] = date
+    return response
 
 @CLOUDRECO_FLASK_APP.route('/v1/query', methods=['POST'])
 def query() -> Tuple[str, int]:
     body_file = io.BytesIO(request.data)
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
+    import pdb; pdb.set_trace()
     parsed = parse_multipart(
         fp=body_file,
         pdict={

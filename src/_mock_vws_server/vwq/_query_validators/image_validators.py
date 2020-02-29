@@ -6,6 +6,7 @@ import cgi
 import io
 import uuid
 from typing import Any, Callable, Dict, Tuple
+from flask import request
 
 import requests
 import wrapt
@@ -20,11 +21,11 @@ from .._mock_common import parse_multipart
 
 @wrapt.decorator
 def validate_image_field_given(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate that the image field is given.
 
@@ -38,7 +39,7 @@ def validate_image_field_given(
         The result of calling the endpoint.
         A ``BAD_REQUEST`` response if the image field is not given.
     """
-    request, context = args
+    
     body_file = io.BytesIO(request.body)
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
@@ -52,17 +53,16 @@ def validate_image_field_given(
     if 'image' in parsed.keys():
         return wrapped(*args, **kwargs)
 
-    context.status_code = codes.BAD_REQUEST
-    return 'No image.'
+    return 'No image.', codes.BAD_REQUEST
 
 
 @wrapt.decorator
 def validate_image_file_size(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the file size of the image given to the query endpoint.
 
@@ -103,11 +103,11 @@ def validate_image_file_size(
 
 @wrapt.decorator
 def validate_image_dimensions(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the dimensions the image given to the query endpoint.
 
@@ -125,7 +125,7 @@ def validate_image_dimensions(
         An ``UNPROCESSABLE_ENTITY`` response if the image is given and is not
         within the maximum width and height limits.
     """
-    request, context = args
+    
     body_file = io.BytesIO(request.body)
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
@@ -145,7 +145,6 @@ def validate_image_dimensions(
     if pil_image.height <= max_height and pil_image.width <= max_width:
         return wrapped(*args, **kwargs)
 
-    context.status_code = codes.UNPROCESSABLE_ENTITY
     transaction_id = uuid.uuid4().hex
     result_code = ResultCodes.BAD_IMAGE.value
 
@@ -156,16 +155,16 @@ def validate_image_dimensions(
         f'"{transaction_id}",'
         f'"result_code":"{result_code}"'
         '}'
-    )
+    ), codes.UNPROCESSABLE_ENTITY
 
 
 @wrapt.decorator
 def validate_image_format(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the format of the image given to the query endpoint.
 
@@ -180,7 +179,7 @@ def validate_image_format(
         An `UNPROCESSABLE_ENTITY` response if the image is given and is not
         either a PNG or a JPEG.
     """
-    request, context = args
+    
     body_file = io.BytesIO(request.body)
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
@@ -200,7 +199,6 @@ def validate_image_format(
     if pil_image.format in ('PNG', 'JPEG'):
         return wrapped(*args, **kwargs)
 
-    context.status_code = codes.UNPROCESSABLE_ENTITY
     transaction_id = uuid.uuid4().hex
     result_code = ResultCodes.BAD_IMAGE.value
 
@@ -211,16 +209,16 @@ def validate_image_format(
         f'"{transaction_id}",'
         f'"result_code":"{result_code}"'
         '}'
-    )
+    ), codes.UNPROCESSABLE_ENTITY
 
 
 @wrapt.decorator
 def validate_image_is_image(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate that the given image data is actually an image file.
 
@@ -235,7 +233,7 @@ def validate_image_is_image(
         An `UNPROCESSABLE_ENTITY` response if image data is given and it is not
         an image file.
     """
-    request, context = args
+    
     body_file = io.BytesIO(request.body)
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
@@ -254,7 +252,6 @@ def validate_image_is_image(
     try:
         Image.open(image_file)
     except OSError:
-        context.status_code = codes.UNPROCESSABLE_ENTITY
         transaction_id = uuid.uuid4().hex
         result_code = ResultCodes.BAD_IMAGE.value
 
@@ -265,6 +262,6 @@ def validate_image_is_image(
             f'"{transaction_id}",'
             f'"result_code":"{result_code}"'
             '}'
-        )
+        ), codes.UNPROCESSABLE_ENTITY
 
     return wrapped(*args, **kwargs)

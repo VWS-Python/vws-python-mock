@@ -11,6 +11,7 @@ import wrapt
 from requests import codes
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
+from flask import request
 
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
@@ -22,11 +23,11 @@ from .._mock_common import parse_multipart
 
 @wrapt.decorator
 def validate_project_state(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the state of the project.
 
@@ -41,11 +42,11 @@ def validate_project_state(
         A `FORBIDDEN` response with an InactiveProject result code if the
         project is inactive.
     """
-    request, context = args
+    
 
     database = get_database_matching_client_keys(
         request_headers=request.headers,
-        request_body=request.body,
+        request_body=request.data,
         request_method=request.method,
         request_path=request.path,
         databases=instance.databases,
@@ -71,11 +72,11 @@ def validate_project_state(
 
 @wrapt.decorator
 def validate_max_num_results(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the ``max_num_results`` field is either an integer within range or
     not given.
@@ -91,8 +92,8 @@ def validate_max_num_results(
         A `BAD_REQUEST` response if the ``max_num_results`` field is either not
         an integer, or an integer out of range.
     """
-    request, context = args
-    body_file = io.BytesIO(request.body)
+    
+    body_file = io.BytesIO(request.data)
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
     parsed = parse_multipart(
@@ -133,11 +134,11 @@ def validate_max_num_results(
 
 @wrapt.decorator
 def validate_include_target_data(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the ``include_target_data`` field is either an accepted value or
     not given.
@@ -153,8 +154,8 @@ def validate_include_target_data(
         A `BAD_REQUEST` response if the ``include_target_data`` field is not an
         accepted value.
     """
-    request, context = args
-    body_file = io.BytesIO(request.body)
+    
+    body_file = io.BytesIO(request.data)
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
     parsed = parse_multipart(
@@ -182,11 +183,11 @@ def validate_include_target_data(
 
 @wrapt.decorator
 def validate_content_type_header(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the ``Content-Type`` header.
 
@@ -203,7 +204,7 @@ def validate_content_type_header(
         A ``BAD_REQUEST`` response if the ``Content-Type`` header does not
         contain a boundary which is in the request body.
     """
-    request, context = args
+    
 
     main_value, pdict = cgi.parse_header(request.headers['Content-Type'])
     if main_value != 'multipart/form-data':
@@ -219,7 +220,7 @@ def validate_content_type_header(
             'Unable to get boundary for multipart'
         )
 
-    if pdict['boundary'].encode() not in request.body:
+    if pdict['boundary'].encode() not in request.data:
         context.status_code = codes.BAD_REQUEST
         context.headers['Content-Type'] = 'text/html;charset=UTF-8'
         return (
@@ -232,11 +233,11 @@ def validate_content_type_header(
 
 @wrapt.decorator
 def validate_accept_header(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the accept header.
 
@@ -251,7 +252,7 @@ def validate_accept_header(
         A `NOT_ACCEPTABLE` response if the Accept header is given and is not
         'application/json' or '*/*'.
     """
-    request, context = args
+    
 
     accept = request.headers.get('Accept')
     if accept in ('application/json', '*/*', None):
@@ -264,11 +265,11 @@ def validate_accept_header(
 
 @wrapt.decorator
 def validate_extra_fields(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate that the no unknown fields are given.
 
@@ -282,8 +283,8 @@ def validate_extra_fields(
         The result of calling the endpoint.
         A ``BAD_REQUEST`` response if extra fields are given.
     """
-    request, context = args
-    body_file = io.BytesIO(request.body)
+    
+    body_file = io.BytesIO(request.data)
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
     parsed = parse_multipart(
