@@ -7,6 +7,7 @@ from typing import Any, Callable, Dict, Tuple
 
 import wrapt
 from requests import codes
+from flask import request
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
@@ -16,11 +17,11 @@ from .._mock_common import json_dump
 
 @wrapt.decorator
 def validate_content_length_header_is_int(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the ``Content-Length`` header is an integer.
 
@@ -35,7 +36,7 @@ def validate_content_length_header_is_int(
         A ``BAD_REQUEST`` response if the content length header is not an
         integer.
     """
-    request, context = args
+    
     given_content_length = request.headers['Content-Length']
 
     try:
@@ -50,11 +51,11 @@ def validate_content_length_header_is_int(
 
 @wrapt.decorator
 def validate_content_length_header_not_too_large(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the ``Content-Length`` header is not too large.
 
@@ -69,10 +70,10 @@ def validate_content_length_header_not_too_large(
         A ``GATEWAY_TIMEOUT`` response if the given content length header says
         that the content length is greater than the body length.
     """
-    request, context = args
+    
     given_content_length = request.headers['Content-Length']
 
-    body_length = len(request.body if request.body else '')
+    body_length = len(request.data if request.data else '')
     given_content_length_value = int(given_content_length)
     if given_content_length_value > body_length:
         context.status_code = codes.GATEWAY_TIMEOUT
@@ -84,11 +85,11 @@ def validate_content_length_header_not_too_large(
 
 @wrapt.decorator
 def validate_content_length_header_not_too_small(
-    wrapped: Callable[..., str],
+    wrapped: Callable[..., Tuple[str, int]],
     instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-) -> str:
+) -> Tuple[str, int]:
     """
     Validate the ``Content-Length`` header is not too small.
 
@@ -103,10 +104,10 @@ def validate_content_length_header_not_too_small(
         An ``UNAUTHORIZED`` response if the given content length header says
         that the content length is smaller than the body length.
     """
-    request, context = args
+    
     given_content_length = request.headers['Content-Length']
 
-    body_length = len(request.body if request.body else '')
+    body_length = len(request.data if request.data else '')
     given_content_length_value = int(given_content_length)
 
     if given_content_length_value < body_length:
