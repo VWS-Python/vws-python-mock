@@ -1,34 +1,24 @@
-from typing import Tuple
 import base64
-import email.utils
 import cgi
 import datetime
+import email.utils
 import io
 import uuid
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Set, Union
-from flask import request
-# TODO move this
-from ..vws._databases import get_all_databases
+from typing import Any, Dict, List, Tuple
 
 import pytz
+from flask import Flask, Response, request
 from requests import codes
-from requests_mock import POST
 
-from flask import Flask, Response
-from requests import codes
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_client_keys
-from mock_vws._mock_common import (
-    Route,
-    json_dump,
-    parse_multipart,
-    set_content_length_header,
-    set_date_header,
-)
+from mock_vws._mock_common import json_dump, parse_multipart, set_date_header
 from mock_vws.database import VuforiaDatabase
 
+# TODO move this
+from ..vws._databases import get_all_databases
 from ._query_validators import (
     validate_accept_header,
     validate_content_type_header,
@@ -63,6 +53,7 @@ from ._query_validators.image_validators import (
 )
 
 CLOUDRECO_FLASK_APP = Flask(__name__)
+
 
 @CLOUDRECO_FLASK_APP.before_request
 @validate_date_in_range
@@ -104,12 +95,14 @@ def set_headers(response: Response) -> Response:
     response.headers['Date'] = date
     return response
 
+
 @CLOUDRECO_FLASK_APP.route('/v1/query', methods=['POST'])
 def query() -> Tuple[str, int]:
     body_file = io.BytesIO(request.data)
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
-    import pdb; pdb.set_trace()
+    import pdb
+    pdb.set_trace()
     parsed = parse_multipart(
         fp=body_file,
         pdict={
@@ -173,9 +166,10 @@ def query() -> Tuple[str, int]:
     ]
 
     active_matching_targets_delete_processing = [
-        target for target in matching_targets if target.active_flag
-        and target.delete_date and (now - target.delete_date) <
-        (recognition_timedelta + processing_timedelta)
+        target for target in matching_targets
+        if target.active_flag and target.delete_date and
+        (now -
+         target.delete_date) < (recognition_timedelta + processing_timedelta)
         and target not in deletion_not_recognized_matches
     ]
 
@@ -202,7 +196,10 @@ def query() -> Tuple[str, int]:
         return (
             Path(match_processing_resp_file).read_text(),
             codes.INTERNAL_SERVER_ERROR,
-            {'Cache-Control': cache_control, 'Content-Type': content_type},
+            {
+                'Cache-Control': cache_control,
+                'Content-Type': content_type
+            },
         )
 
     matches = not_deleted_matches + deletion_not_recognized_matches

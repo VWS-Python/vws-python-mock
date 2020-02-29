@@ -8,13 +8,13 @@ from typing import Any, Callable, Dict, Set, Tuple
 
 import pytz
 import wrapt
+from flask import request
 from requests import codes
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
 from .._constants import ResultCodes
 from .._mock_common import json_dump
-from flask import request
 
 
 @wrapt.decorator
@@ -37,7 +37,6 @@ def validate_date_header_given(
         The result of calling the endpoint.
         A `BAD_REQUEST` response if the date is not given.
     """
-    
 
     if 'Date' in request.headers:
         return wrapped(*args, **kwargs)
@@ -45,7 +44,9 @@ def validate_date_header_given(
     content_type = 'text/plain; charset=ISO-8859-1'
     # TODO remove legacy
     # context.headers['Content-Type'] = content_type
-    return 'Date header required.', codes.BAD_REQUEST, {'Content-Type': content_type}
+    return 'Date header required.', codes.BAD_REQUEST, {
+        'Content-Type': content_type
+    }
 
 
 def _accepted_date_formats() -> Set[str]:
@@ -89,7 +90,7 @@ def validate_date_format(
         The result of calling the endpoint.
         An `UNAUTHORIZED` response if the date is in the wrong format.
     """
-    
+
     date_header = request.headers['Date']
 
     for date_format in _accepted_date_formats():
@@ -107,7 +108,10 @@ def validate_date_format(
     content_type = 'text/plain; charset=ISO-8859-1'
     # TODO remove this legacy
     # context.headers['Content-Type'] = content_type
-    return text, codes.UNAUTHORIZED, {'Content-Type': content_type, 'WWW-Authenticate': 'VWS'}
+    return text, codes.UNAUTHORIZED, {
+        'Content-Type': content_type,
+        'WWW-Authenticate': 'VWS'
+    }
 
 
 @wrapt.decorator
@@ -130,7 +134,7 @@ def validate_date_in_range(
         The result of calling the endpoint.
         A `FORBIDDEN` response if the date is out of range.
     """
-    
+
     date_header = request.headers['Date']
 
     for date_format in _accepted_date_formats():

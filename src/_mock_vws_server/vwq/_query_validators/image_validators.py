@@ -6,10 +6,10 @@ import cgi
 import io
 import uuid
 from typing import Any, Callable, Dict, Tuple
-from flask import request
 
 import requests
 import wrapt
+from flask import request
 from PIL import Image
 from requests import codes
 from requests_mock.request import _RequestObjectProxy
@@ -39,7 +39,7 @@ def validate_image_field_given(
         The result of calling the endpoint.
         A ``BAD_REQUEST`` response if the image field is not given.
     """
-    
+
     body_file = io.BytesIO(request.body)
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
@@ -125,7 +125,7 @@ def validate_image_dimensions(
         An ``UNPROCESSABLE_ENTITY`` response if the image is given and is not
         within the maximum width and height limits.
     """
-    
+
     body_file = io.BytesIO(request.body)
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
@@ -179,7 +179,7 @@ def validate_image_format(
         An `UNPROCESSABLE_ENTITY` response if the image is given and is not
         either a PNG or a JPEG.
     """
-    
+
     body_file = io.BytesIO(request.body)
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
@@ -233,7 +233,7 @@ def validate_image_is_image(
         An `UNPROCESSABLE_ENTITY` response if image data is given and it is not
         an image file.
     """
-    
+
     body_file = io.BytesIO(request.body)
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])

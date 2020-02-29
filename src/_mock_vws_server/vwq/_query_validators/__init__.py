@@ -8,10 +8,10 @@ import uuid
 from typing import Any, Callable, Dict, Tuple
 
 import wrapt
+from flask import request
 from requests import codes
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
-from flask import request
 
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
@@ -42,7 +42,6 @@ def validate_project_state(
         A `FORBIDDEN` response with an InactiveProject result code if the
         project is inactive.
     """
-    
 
     database = get_database_matching_client_keys(
         request_headers=request.headers,
@@ -92,7 +91,7 @@ def validate_max_num_results(
         A `BAD_REQUEST` response if the ``max_num_results`` field is either not
         an integer, or an integer out of range.
     """
-    
+
     body_file = io.BytesIO(request.data)
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
@@ -154,7 +153,7 @@ def validate_include_target_data(
         A `BAD_REQUEST` response if the ``include_target_data`` field is not an
         accepted value.
     """
-    
+
     body_file = io.BytesIO(request.data)
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
@@ -204,7 +203,6 @@ def validate_content_type_header(
         A ``BAD_REQUEST`` response if the ``Content-Type`` header does not
         contain a boundary which is in the request body.
     """
-    
 
     main_value, pdict = cgi.parse_header(request.headers['Content-Type'])
     if main_value != 'multipart/form-data':
@@ -252,7 +250,6 @@ def validate_accept_header(
         A `NOT_ACCEPTABLE` response if the Accept header is given and is not
         'application/json' or '*/*'.
     """
-    
 
     accept = request.headers.get('Accept')
     if accept in ('application/json', '*/*', None):
@@ -283,7 +280,7 @@ def validate_extra_fields(
         The result of calling the endpoint.
         A ``BAD_REQUEST`` response if extra fields are given.
     """
-    
+
     body_file = io.BytesIO(request.data)
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
