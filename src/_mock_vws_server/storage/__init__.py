@@ -73,6 +73,7 @@ def create_target(database_name: str) -> Tuple[str, int]:
     target.target_id = request.json['target_id']
     database.targets.append(target)
 
+    import pdb; pdb.set_trace()
     return jsonify(target.to_dict()), codes.CREATED
 
 

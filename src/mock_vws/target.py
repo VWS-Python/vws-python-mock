@@ -180,7 +180,7 @@ class Target:  # pylint: disable=too-many-instance-attributes
         # as can e.g. processing time... maybe use dataclass but then
         # https://github.com/agronholm/sphinx-autodoc-typehints/issues/123
         if self.delete_date:
-            delete_date: Optional[int] = datetime.datetime.toordinal(
+            delete_date: Optional[int] = datetime.datetime.isoformat(
                 self.delete_date
             )
         else:
@@ -194,7 +194,7 @@ class Target:  # pylint: disable=too-many-instance-attributes
             'processing_time_seconds': self._processing_time_seconds,
             'application_metadata': self.application_metadata,
             'target_id': self.target_id,
-            'last_modified_date_ordinal': self.last_modified_date.toordinal(),
-            'delete_date_optional_ordinal': delete_date,
-            'upload_date_ordinal': self.upload_date.toordinal(),
+            'last_modified_date': self.last_modified_date.isoformat(),
+            'delete_date_optional': delete_date,
+            'upload_date': self.upload_date.isoformat(),
         }
