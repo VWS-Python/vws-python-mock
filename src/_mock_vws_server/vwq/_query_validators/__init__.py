@@ -114,18 +114,15 @@ def validate_max_num_results(
     try:
         max_num_results_int = int(max_num_results)
     except ValueError:
-        import pdb; pdb.set_trace()
         context.status_code = codes.BAD_REQUEST
         return invalid_type_error
 
     java_max_int = 2147483647
     if max_num_results_int > java_max_int:
-        import pdb; pdb.set_trace()
         context.status_code = codes.BAD_REQUEST
         return invalid_type_error
 
     if max_num_results_int < 1 or max_num_results_int > 50:
-        import pdb; pdb.set_trace()
         context.status_code = codes.BAD_REQUEST
         out_of_range_error = (
             f'Integer out of range ({max_num_results_int}) in form data part '

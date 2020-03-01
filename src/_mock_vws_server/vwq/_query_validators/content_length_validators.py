@@ -80,7 +80,6 @@ def validate_content_length_header_not_too_large(
         # TODO Remove legacy
         # context.status_code = codes.GATEWAY_TIMEOUT
         # context.headers = {'Connection': 'keep-alive'}
-        import pdb; pdb.set_trace()
         return '', codes.GATEWAY_TIMEOUT, {'Connection': 'keep-alive'}
 
     return wrapped(*args, **kwargs)

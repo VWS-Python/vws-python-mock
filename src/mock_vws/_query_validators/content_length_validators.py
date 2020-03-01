@@ -74,7 +74,6 @@ def validate_content_length_header_not_too_large(
 
     body_length = len(request.body if request.body else '')
     given_content_length_value = int(given_content_length)
-    import pdb; pdb.set_trace()
     if given_content_length_value > body_length:
         context.status_code = codes.GATEWAY_TIMEOUT
         context.headers = {'Connection': 'keep-alive'}
