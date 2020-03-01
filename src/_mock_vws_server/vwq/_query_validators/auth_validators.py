@@ -196,7 +196,7 @@ def validate_authorization(
     databases = get_all_databases()
     database = get_database_matching_client_keys(
         request_headers=request.headers,
-        request_body=request.data,
+        request_body=request.input_stream.getvalue(),
         request_method=request.method,
         request_path=request.path,
         databases=databases,

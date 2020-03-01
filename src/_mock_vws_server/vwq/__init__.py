@@ -101,11 +101,9 @@ def set_headers(response: Response) -> Response:
 
 @CLOUDRECO_FLASK_APP.route('/v1/query', methods=['POST'])
 def query() -> Tuple[str, int]:
-    body_file = io.BytesIO(request.data)
+    body_file = io.BytesIO(request.input_stream.getvalue())
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
-    import pdb
-    pdb.set_trace()
     parsed = parse_multipart(
         fp=body_file,
         pdict={
@@ -138,7 +136,7 @@ def query() -> Tuple[str, int]:
 
     database = get_database_matching_client_keys(
         request_headers=dict(request.headers),
-        request_body=request.data,
+        request_body=request.input_stream.getvalue(),
         request_method=request.method,
         request_path=request.path,
         databases=databases,

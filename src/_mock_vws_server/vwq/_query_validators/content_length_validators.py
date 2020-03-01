@@ -74,12 +74,13 @@ def validate_content_length_header_not_too_large(
     
     given_content_length = request.headers['Content-Length']
 
-    body_length = len(request.data if request.data else '')
+    body_length = len(request.input_stream.getvalue())
     given_content_length_value = int(given_content_length)
     if given_content_length_value > body_length:
         # TODO Remove legacy
         # context.status_code = codes.GATEWAY_TIMEOUT
         # context.headers = {'Connection': 'keep-alive'}
+        import pdb; pdb.set_trace()
         return '', codes.GATEWAY_TIMEOUT, {'Connection': 'keep-alive'}
 
     return wrapped(*args, **kwargs)
@@ -109,7 +110,7 @@ def validate_content_length_header_not_too_small(
     
     given_content_length = request.headers['Content-Length']
 
-    body_length = len(request.data if request.data else '')
+    body_length = len(request.input_stream.getvalue())
     given_content_length_value = int(given_content_length)
 
     if given_content_length_value < body_length:

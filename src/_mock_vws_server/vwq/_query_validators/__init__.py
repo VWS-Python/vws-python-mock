@@ -47,7 +47,7 @@ def validate_project_state(
     databases = get_all_databases()
     database = get_database_matching_client_keys(
         request_headers=request.headers,
-        request_body=request.data,
+        request_body=request.input_stream.getvalue(),
         request_method=request.method,
         request_path=request.path,
         databases=databases,
@@ -114,15 +114,18 @@ def validate_max_num_results(
     try:
         max_num_results_int = int(max_num_results)
     except ValueError:
+        import pdb; pdb.set_trace()
         context.status_code = codes.BAD_REQUEST
         return invalid_type_error
 
     java_max_int = 2147483647
     if max_num_results_int > java_max_int:
+        import pdb; pdb.set_trace()
         context.status_code = codes.BAD_REQUEST
         return invalid_type_error
 
     if max_num_results_int < 1 or max_num_results_int > 50:
+        import pdb; pdb.set_trace()
         context.status_code = codes.BAD_REQUEST
         out_of_range_error = (
             f'Integer out of range ({max_num_results_int}) in form data part '
@@ -221,7 +224,7 @@ def validate_content_type_header(
             'Unable to get boundary for multipart'
         ), codes.BAD_REQUEST, {'Content-Type': content_type}
 
-    if pdict['boundary'].encode() not in request.data:
+    if pdict['boundary'].encode() not in request.input_stream.getvalue():
         # TODO
         # context.status_code = codes.BAD_REQUEST
         content_type = 'text/html; charset=UTF-8'

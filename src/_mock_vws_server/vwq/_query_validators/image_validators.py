@@ -40,7 +40,7 @@ def validate_image_field_given(
         A ``BAD_REQUEST`` response if the image field is not given.
     """
 
-    body_file = io.BytesIO(request.body)
+    body_file = io.BytesIO(request.input_stream.getvalue())
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
     parsed = parse_multipart(
@@ -78,8 +78,8 @@ def validate_image_file_size(
     Raises:
         requests.exceptions.ConnectionError: The image file size is too large.
     """
-    request, _ = args
-    body_file = io.BytesIO(request.body)
+    
+    body_file = io.BytesIO(request.input_stream.getvalue())
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
     parsed = parse_multipart(
@@ -126,7 +126,7 @@ def validate_image_dimensions(
         within the maximum width and height limits.
     """
 
-    body_file = io.BytesIO(request.body)
+    body_file = io.BytesIO(request.input_stream.getvalue())
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
     parsed = parse_multipart(
@@ -180,7 +180,7 @@ def validate_image_format(
         either a PNG or a JPEG.
     """
 
-    body_file = io.BytesIO(request.body)
+    body_file = io.BytesIO(request.input_stream.getvalue())
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
     parsed = parse_multipart(
@@ -234,7 +234,7 @@ def validate_image_is_image(
         an image file.
     """
 
-    body_file = io.BytesIO(request.body)
+    body_file = io.BytesIO(request.input_stream.getvalue())
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
     parsed = parse_multipart(
