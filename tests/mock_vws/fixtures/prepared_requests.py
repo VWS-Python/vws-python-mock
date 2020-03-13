@@ -74,7 +74,7 @@ def _add_target(
         data=content,
     )
 
-    prepared_request = request.prepare()  # type: ignore
+    prepared_request = request.prepare()
 
     return Endpoint(
         successful_headers_status_code=codes.CREATED,
@@ -126,7 +126,7 @@ def _delete_target(
         data=content,
     )
 
-    prepared_request = request.prepare()  # type: ignore
+    prepared_request = request.prepare()
     return Endpoint(
         successful_headers_status_code=codes.OK,
         successful_headers_result_code=ResultCodes.SUCCESS,
@@ -171,7 +171,7 @@ def _database_summary(vuforia_database: VuforiaDatabase) -> Endpoint:
         data=content,
     )
 
-    prepared_request = request.prepare()  # type: ignore
+    prepared_request = request.prepare()
 
     return Endpoint(
         successful_headers_status_code=codes.OK,
@@ -225,7 +225,7 @@ def _get_duplicates(
         data=content,
     )
 
-    prepared_request = request.prepare()  # type: ignore
+    prepared_request = request.prepare()
 
     return Endpoint(
         successful_headers_status_code=codes.OK,
@@ -278,7 +278,7 @@ def _get_target(
         data=content,
     )
 
-    prepared_request = request.prepare()  # type: ignore
+    prepared_request = request.prepare()
 
     return Endpoint(
         successful_headers_status_code=codes.OK,
@@ -324,7 +324,7 @@ def _target_list(vuforia_database: VuforiaDatabase) -> Endpoint:
         data=content,
     )
 
-    prepared_request = request.prepare()  # type: ignore
+    prepared_request = request.prepare()
 
     return Endpoint(
         successful_headers_status_code=codes.OK,
@@ -377,7 +377,7 @@ def _target_summary(
         data=content,
     )
 
-    prepared_request = request.prepare()  # type: ignore
+    prepared_request = request.prepare()
 
     return Endpoint(
         successful_headers_status_code=codes.OK,
@@ -433,7 +433,7 @@ def _update_target(
         data=content,
     )
 
-    prepared_request = request.prepare()  # type: ignore
+    prepared_request = request.prepare()
 
     return Endpoint(
         successful_headers_status_code=codes.OK,
@@ -486,7 +486,7 @@ def _query(
         data=content,
     )
 
-    prepared_request = request.prepare()  # type: ignore
+    prepared_request = request.prepare()
 
     return Endpoint(
         successful_headers_status_code=codes.OK,

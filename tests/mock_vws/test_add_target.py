@@ -44,7 +44,7 @@ def _assert_oops_response(response: Response) -> None:
         'Content-Length': '1172',
         'Connection': 'keep-alive',
     }
-    assert response.headers == expected_headers
+    assert dict(response.headers) == expected_headers
 
 
 def assert_success(response: Response) -> None:
