@@ -391,12 +391,11 @@ class TestRecos:
         high_quality_image: io.BytesIO,
     ) -> None:
         """
-        The ``current_month_recos`` and ``previous_month_recos`` counts are
-        always 0.
+        The ``recos`` counts seem to be delayed by a significant amount of
+        time.
 
-        The ``total_recos`` is not always 0 but has been observed to not change
-        over significant amounts of time. This part of the test may prove to
-        be flaky and therefore need changing.
+        We therefore test that they exist, are integers and do not change
+        between quick requests.
         """
         image_content = high_quality_image.getvalue()
         image_data_encoded = base64.b64encode(image_content).decode('ascii')
@@ -433,11 +432,16 @@ class TestRecos:
         response_after_query = database_summary(
             vuforia_database=vuforia_database,
         )
-        assert response_after_query.json()['total_recos'] >= 0
-        assert response_before_query.json(
-        )['total_recos'] == (response_after_query.json()['total_recos'])
-        assert response_after_query.json()['current_month_recos'] == 0
-        assert response_after_query.json()['previous_month_recos'] == 0
+        json_before_query = response_before_query.json()
+        json_after_query = response_after_query.json()
+
+        recos = ('total_recos', 'current_month_recos', 'previous_month_recos')
+        for key in recos:
+            before = json_before_query[key]
+            after = json_after_query[key]
+            assert isinstance(before, int)
+            assert isinstance(after, int)
+            assert before == after
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
