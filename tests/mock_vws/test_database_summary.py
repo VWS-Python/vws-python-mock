@@ -64,28 +64,29 @@ def _wait_for_image_numbers(
         'processing_images': processing_images,
     }
 
-    while True:
-        response = database_summary(vuforia_database=vuforia_database)
+    # If we wait for all requirements to match at the same time,
+    # we will often not reach that.
+    # We therefore wait for each requirement to match at least once.
 
-        not_matching_requirements = {
-            requirement: value
-            for requirement, value in requirements.items()
-            if response.json()[requirement] != value
-        }
+    # We wait 0.2 seconds rather than less than that to decrease the number
+    # of calls made to the API, to decrease the likelihood of hitting the
+    # request quota.
+    sleep_seconds = 0.2
 
-        if not not_matching_requirements:  # pragma: no cover
-            return
+    for key, value in requirements.items():
+        while True:
+            response = database_summary(vuforia_database=vuforia_database)
+            relevant_images_in_summary = response.json()[key]
+            if value == relevant_images_in_summary:
+                break
+            else:  # pragma: no cover
+                message = (
+                    f'Expected {value} `{key}`s. '
+                    f'Found {relevant_images_in_summary} `{key}`s.'
+                )
+                LOGGER.debug(message)
 
-        LOGGER.debug('Waiting for database summary.')
-        LOGGER.debug('Waiting for summary to equal: ')
-        LOGGER.debug(requirements)
-        LOGGER.debug('Not matching are:')
-        LOGGER.debug(not_matching_requirements)
-
-        # We wait 0.2 seconds rather than less than that to decrease the number
-        # of calls made to the API, to decrease the likelihood of hitting the
-        # request quota.
-        sleep(0.2)  # pragma: no cover
+                sleep(sleep_seconds)  # pragma: no cover
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
