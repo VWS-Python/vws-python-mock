@@ -340,6 +340,7 @@ class TestTargetName:
         response = add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
+            raise_on_non_json_response=False,
         )
 
         assert response.status_code == status_code

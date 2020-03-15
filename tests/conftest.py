@@ -20,8 +20,6 @@ pytest_plugins = [  # pylint: disable=invalid-name
     'tests.mock_vws.fixtures.vuforia_backends',
 ]
 
-LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
 
 
 @pytest.fixture()
@@ -49,18 +47,7 @@ def target_id(
         content_type='application/json',
     )
 
-    try:
-        response_json = response.json()
-    except json.decoder.JSONDecodeError:  # pragma: no cover
-        # This has been seen to happen in CI and this is here to help us debug
-        # it.
-        LOGGER.debug('Response text was:')
-        LOGGER.debug(response.text)
-        LOGGER.debug('Response status code was:')
-        LOGGER.debug(response.status_code)
-        raise
-
-    new_target_id: str = response_json['target_id']
+    new_target_id: str = response.json()['target_id']
     return new_target_id
 
 

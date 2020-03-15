@@ -8,6 +8,7 @@ import random
 from time import sleep
 from typing import Any, Dict
 from urllib.parse import urljoin
+import logging
 
 import requests
 import timeout_decorator
@@ -20,6 +21,8 @@ from vws_auth_tools import authorization_header, rfc_1123_date
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws.database import VuforiaDatabase
 
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 class Endpoint:
     """
@@ -78,6 +81,7 @@ def add_target_to_vws(
     vuforia_database: VuforiaDatabase,
     data: Dict[str, Any],
     content_type: str = 'application/json',
+    raise_on_non_json_response: bool = True,
 ) -> Response:
     """
     Return a response from a request to the endpoint to add a target.
@@ -86,9 +90,15 @@ def add_target_to_vws(
         vuforia_database: The credentials to use to connect to Vuforia.
         data: The data to send, in JSON format, to the endpoint.
         content_type: The `Content-Type` header to use.
+        raise_on_non_json_response: Whether to raise an exception if the
+            response text is not valid JSON.
 
     Returns:
         The response returned by the API.
+
+    Raises:
+        json.decoder.JSONDecodeError: ``raise_on_non_json_response`` is
+            ``True`` and the response text is not valid JSON.
     """
     date = rfc_1123_date()
     request_path = '/targets'
@@ -117,6 +127,18 @@ def add_target_to_vws(
         headers=headers,
         data=content,
     )
+
+    try:
+        response.json()
+    except json.decoder.JSONDecodeError:  # pragma: no cover
+        # 500 errors have been seen to happen in CI and this is here to help us
+        # debug them.
+        if raise_on_non_json_response:
+            LOGGER.debug('Response text was:')
+            LOGGER.debug(response.text)
+            LOGGER.debug('Response status code was:')
+            LOGGER.debug(response.status_code)
+            raise
 
     return response
 
