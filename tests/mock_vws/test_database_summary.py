@@ -434,9 +434,8 @@ class TestRecos:
             vuforia_database=vuforia_database,
         )
         assert response_after_query.json()['total_recos'] >= 0
-        assert response_before_query.json()['total_recos'] == (
-            response_after_query.json()['total_recos']
-        )
+        assert response_before_query.json(
+        )['total_recos'] == (response_after_query.json()['total_recos'])
         assert response_after_query.json()['current_month_recos'] == 0
         assert response_after_query.json()['previous_month_recos'] == 0
 
