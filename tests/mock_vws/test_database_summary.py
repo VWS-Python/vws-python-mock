@@ -391,7 +391,7 @@ class TestRecos:
         high_quality_image: io.BytesIO,
     ) -> None:
         """
-        The ``recos`` counts seem to be delayed by a significant amount of
+        The ``*_recos`` counts seem to be delayed by a significant amount of
         time.
 
         We therefore test that they exist, are integers and do not change
