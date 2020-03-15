@@ -391,10 +391,38 @@ class TestRecos:
         high_quality_image: io.BytesIO,
     ) -> None:
         """
-        The ``*_recos`` counts are always 0.
+        The ``current_month_recos`` and ``previous_month_recos`` counts are
+        always 0.
+
+        The ``total_recos`` is not always 0 but has been observed to not change
+        over significant amounts of time. This part of the test may prove to
+        be flaky and therefore need changing.
         """
         image_content = high_quality_image.getvalue()
+        image_data_encoded = base64.b64encode(image_content).decode('ascii')
+        data = {
+            'name': 'example',
+            'width': 1,
+            'image': image_data_encoded,
+            'active_flag': True,
+        }
+
+        response = add_target_to_vws(
+            vuforia_database=vuforia_database,
+            data=data,
+        )
+
+        target_id = response.json()['target_id']
+
+        wait_for_target_processed(
+            target_id=target_id,
+            vuforia_database=vuforia_database,
+        )
+
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
+        response_before_query = database_summary(
+            vuforia_database=vuforia_database,
+        )
         query_resp = query(
             vuforia_database=vuforia_database,
             body=body,
@@ -402,10 +430,15 @@ class TestRecos:
 
         assert query_resp.status_code == codes.OK
 
-        response = database_summary(vuforia_database=vuforia_database)
-        assert response.json()['total_recos'] == 0
-        assert response.json()['current_month_recos'] == 0
-        assert response.json()['previous_month_recos'] == 0
+        response_after_query = database_summary(
+            vuforia_database=vuforia_database,
+        )
+        assert response_after_query.json()['total_recos'] >= 0
+        assert response_before_query.json()['total_recos'] == (
+            response_after_query.json()['total_recos']
+        )
+        assert response_after_query.json()['current_month_recos'] == 0
+        assert response_after_query.json()['previous_month_recos'] == 0
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
