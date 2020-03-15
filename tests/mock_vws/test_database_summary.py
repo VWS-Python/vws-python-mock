@@ -77,9 +77,7 @@ def _wait_for_image_numbers(
         while True:
             response = database_summary(vuforia_database=vuforia_database)
             relevant_images_in_summary = response.json()[key]
-            if value == relevant_images_in_summary:
-                break
-            else:  # pragma: no cover
+            if value != relevant_images_in_summary:  # pragma: no cover
                 message = (
                     f'Expected {value} `{key}`s. '
                     f'Found {relevant_images_in_summary} `{key}`s.'
@@ -87,6 +85,8 @@ def _wait_for_image_numbers(
                 LOGGER.debug(message)
 
                 sleep(sleep_seconds)  # pragma: no cover
+            else:
+                break
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
