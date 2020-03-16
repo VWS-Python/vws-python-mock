@@ -75,7 +75,12 @@ class Endpoint:
 
 
 class UnexpectedEmptyInternalServerError(Exception):  # pragma: no cover
-    pass
+    """
+    Sometimes Vuforia gives an empty internal server error response.
+
+    We want to retry tests in these cases so we raise this exception in order
+    to do so.
+    """
 
 
 def add_target_to_vws(
@@ -131,7 +136,7 @@ def add_target_to_vws(
     ) and response.text == '':  # pragma: no cover
         # 500 errors have been seen to happen in CI and this is here to help us
         # debug them.
-        raise UnexpectedInternalServerError
+        raise UnexpectedEmptyInternalServerError
 
     return response
 

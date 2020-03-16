@@ -5,12 +5,17 @@ Configuration, plugins and fixtures for `pytest`.
 import base64
 import binascii
 import io
+from typing import List, Tuple
 
 import pytest
 from _pytest.fixtures import SubRequest
 
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import Endpoint, add_target_to_vws
+from tests.mock_vws.utils import (
+    Endpoint,
+    UnexpectedEmptyInternalServerError,
+    add_target_to_vws,
+)
 
 pytest_plugins = [  # pylint: disable=invalid-name
     'tests.mock_vws.fixtures.prepared_requests',
@@ -19,11 +24,22 @@ pytest_plugins = [  # pylint: disable=invalid-name
 ]
 
 
-def is_internal_server_error(err, *args):
-    return True
+def is_internal_server_error(
+    err: Tuple,
+    *args: Tuple,  # pylint: disable=unused-argument
+) -> bool:  # pragma: no cover
+    """
+    Return whether the error is an ``UnexpectedEmptyInternalServerError``, so
+    that we can retry a test if it is.
+    """
+    return bool(err[0] == UnexpectedEmptyInternalServerError)
 
 
-def pytest_collection_modifyitems(config, items):
+def pytest_collection_modifyitems(items: List[pytest.Function]) -> None:
+    """
+    Add a marker to each test which will retry the test if an
+    ``UnexpectedEmptyInternalServerError`` is raised.
+    """
     retry_marker = pytest.mark.flaky(
         max_runs=3,
         rerun_filter=is_internal_server_error,
