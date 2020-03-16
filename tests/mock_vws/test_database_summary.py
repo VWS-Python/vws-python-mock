@@ -27,7 +27,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-@timeout_decorator.timeout(seconds=500)
+@timeout_decorator.timeout(seconds=1000)
 def _wait_for_image_numbers(
     vuforia_database: VuforiaDatabase,
     active_images: int,
