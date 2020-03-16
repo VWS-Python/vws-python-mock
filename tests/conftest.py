@@ -26,12 +26,13 @@ pytest_plugins = [  # pylint: disable=invalid-name
 
 def is_internal_server_error(
     err: Tuple,
-    *args: Tuple,  # pylint: disable=unused-argument
+    *args: Tuple,
 ) -> bool:  # pragma: no cover
     """
     Return whether the error is an ``UnexpectedEmptyInternalServerError``, so
     that we can retry a test if it is.
     """
+    assert args
     return bool(err[0] == UnexpectedEmptyInternalServerError)
 
 
