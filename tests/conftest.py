@@ -5,8 +5,6 @@ Configuration, plugins and fixtures for `pytest`.
 import base64
 import binascii
 import io
-import json
-import logging
 
 import pytest
 from _pytest.fixtures import SubRequest
@@ -20,6 +18,18 @@ pytest_plugins = [  # pylint: disable=invalid-name
     'tests.mock_vws.fixtures.vuforia_backends',
 ]
 
+
+def is_internal_server_error(err, *args):
+    return True
+
+
+def pytest_collection_modifyitems(config, items):
+    retry_marker = pytest.mark.flaky(
+        max_runs=3,
+        rerun_filter=is_internal_server_error,
+    )
+    for item in items:
+        item.add_marker(retry_marker)
 
 
 @pytest.fixture()
