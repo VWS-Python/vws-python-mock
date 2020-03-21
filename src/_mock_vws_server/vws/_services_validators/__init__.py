@@ -415,7 +415,7 @@ def validate_metadata_encoding(
     if 'application_metadata' not in request.get_json(force=True):
         return wrapped(*args, **kwargs)
 
-    application_metadata = request.get_json(force=True
+    application_metadata = request.get_json(force=True,
                                             ).get('application_metadata')
 
     if application_metadata is None:
@@ -461,7 +461,7 @@ def validate_metadata_type(
     if 'application_metadata' not in request.get_json(force=True):
         return wrapped(*args, **kwargs)
 
-    application_metadata = request.get_json(force=True
+    application_metadata = request.get_json(force=True,
                                             ).get('application_metadata')
 
     if application_metadata is None or isinstance(application_metadata, str):
@@ -499,7 +499,7 @@ def validate_metadata_size(
     if not request.data:
         return wrapped(*args, **kwargs)
 
-    application_metadata = request.get_json(force=True
+    application_metadata = request.get_json(force=True,
                                             ).get('application_metadata')
     if application_metadata is None:
         return wrapped(*args, **kwargs)

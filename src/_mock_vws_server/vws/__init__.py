@@ -64,10 +64,13 @@ ADD_TARGET_SCHEMA = {
     'required': ['name', 'image', 'width'],
     # TODO are the properties useful for fixing tests?
     'properties': {
-        # TODO maybe use more limits on types here and use a max length for string?
-        # TODO though actually - if authentication is wrong, surely that's the first issue and then maybe we need to re-think this and not have schema checks - or maybe not until later?
+        # TODO maybe use more limits on types here and use a max length for
+        # string?
+        # TODO though actually - if authentication is wrong, surely that's the
+        # first issue and then maybe we need to re-think this and not have
+        # schema checks - or maybe not until later?
         'name': {
-            'type': 'string'
+            'type': 'string',
         },
         'image': {},
         'width': {},
@@ -146,8 +149,8 @@ def add_target() -> Tuple[str, int]:
     Fake implementation of
     https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Add-a-Target
     """
-    # We do not use ``request.get_json(force=True)`` because this only works when the content
-    # type is given as ``application/json``.
+    # We do not use ``request.get_json(force=True)`` because this only works
+    # when the content type is given as ``application/json``.
     request_json = json.loads(request.data)
     name = request_json['name']
     databases = get_all_databases()
@@ -276,10 +279,11 @@ def delete_target(target_id: str) -> Tuple[str, int]:
     # gmt = pytz.timezone('GMT')
     # now = datetime.datetime.now(tz=gmt)
     # target.delete_date = now
-    requests.delete(
-        url=
-        f'{STORAGE_BASE_URL}/databases/{database.database_name}/targets/{target_id}',
+    delete_url = (
+        f'{STORAGE_BASE_URL}/databases/{database.database_name}/targets/'
+        f'{target_id}'
     )
+    requests.delete(url=delete_url)
 
     body = {
         'transaction_id': uuid.uuid4().hex,
@@ -451,8 +455,8 @@ def update_target(target_id: str) -> Tuple[str, int]:
     Fake implementation of
     https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Update-a-Target
     """
-    # We do not use ``request.get_json(force=True)`` because this only works when the content
-    # type is given as ``application/json``.
+    # We do not use ``request.get_json(force=True)`` because this only works
+    # when the content type is given as ``application/json``.
     request_json = json.loads(request.data)
     body: Dict[str, str] = {}
     databases = get_all_databases()
@@ -518,11 +522,11 @@ def update_target(target_id: str) -> Tuple[str, int]:
         image = request_json['image']
         update_values['image'] = image
 
-    requests.put(
-        url=
-        f'{STORAGE_BASE_URL}/databases/{database.database_name}/targets/{target_id}',
-        json=update_values,
+    put_url = (
+        f'{STORAGE_BASE_URL}/databases/{database.database_name}/targets/'
+        f'{target_id}'
     )
+    requests.put(url=put_url, json=update_values)
 
     body = {
         'result_code': ResultCodes.SUCCESS.value,

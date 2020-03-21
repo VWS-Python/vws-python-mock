@@ -16,10 +16,10 @@ from requests_mock.response import _Context
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
 
+from ...vws._databases import get_all_databases
 from .._constants import ResultCodes
 from .._database_matchers import get_database_matching_client_keys
 from .._mock_common import parse_multipart
-from ...vws._databases import get_all_databases
 
 
 @wrapt.decorator
@@ -219,7 +219,9 @@ def validate_content_type_header(
         return (
             'java.io.IOException: RESTEASY007550: '
             'Unable to get boundary for multipart'
-        ), codes.BAD_REQUEST, {'Content-Type': content_type}
+        ), codes.BAD_REQUEST, {
+            'Content-Type': content_type,
+        }
 
     if pdict['boundary'].encode() not in request.input_stream.getvalue():
         # TODO
@@ -229,7 +231,9 @@ def validate_content_type_header(
         return (
             'java.lang.RuntimeException: RESTEASY007500: '
             'Could find no Content-Disposition header within part'
-        ), codes.BAD_REQUEST, {'Content-Type': content_type}
+        ), codes.BAD_REQUEST, {
+            'Content-Type': content_type,
+        }
 
     return wrapped(*args, **kwargs)
 

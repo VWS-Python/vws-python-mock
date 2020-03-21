@@ -6,8 +6,8 @@ import uuid
 from typing import Any, Callable, Dict, Tuple
 
 import wrapt
-from requests import codes
 from flask import request
+from requests import codes
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
@@ -36,7 +36,7 @@ def validate_content_length_header_is_int(
         A ``BAD_REQUEST`` response if the content length header is not an
         integer.
     """
-    
+
     given_content_length = request.headers['Content-Length']
 
     try:
@@ -71,7 +71,7 @@ def validate_content_length_header_not_too_large(
         A ``GATEWAY_TIMEOUT`` response if the given content length header says
         that the content length is greater than the body length.
     """
-    
+
     given_content_length = request.headers['Content-Length']
 
     body_length = len(request.input_stream.getvalue())
@@ -106,7 +106,7 @@ def validate_content_length_header_not_too_small(
         An ``UNAUTHORIZED`` response if the given content length header says
         that the content length is smaller than the body length.
     """
-    
+
     given_content_length = request.headers['Content-Length']
 
     body_length = len(request.input_stream.getvalue())

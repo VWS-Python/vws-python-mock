@@ -45,7 +45,7 @@ def validate_date_header_given(
     # TODO remove legacy
     # context.headers['Content-Type'] = content_type
     return 'Date header required.', codes.BAD_REQUEST, {
-        'Content-Type': content_type
+        'Content-Type': content_type,
     }
 
 
@@ -110,7 +110,7 @@ def validate_date_format(
     # context.headers['Content-Type'] = content_type
     return text, codes.UNAUTHORIZED, {
         'Content-Type': content_type,
-        'WWW-Authenticate': 'VWS'
+        'WWW-Authenticate': 'VWS',
     }
 
 

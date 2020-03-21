@@ -181,7 +181,7 @@ class Target:  # pylint: disable=too-many-instance-attributes
         # https://github.com/agronholm/sphinx-autodoc-typehints/issues/123
         if self.delete_date:
             delete_date: Optional[int] = datetime.datetime.isoformat(
-                self.delete_date
+                self.delete_date,
             )
         else:
             delete_date = None

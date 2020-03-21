@@ -78,7 +78,7 @@ def validate_image_file_size(
     Raises:
         requests.exceptions.ConnectionError: The image file size is too large.
     """
-    
+
     body_file = io.BytesIO(request.input_stream.getvalue())
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])

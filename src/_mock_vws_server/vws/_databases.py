@@ -58,20 +58,19 @@ def get_all_databases() -> Set[VuforiaDatabase]:
             target.target_id = target_dict['target_id']
             gmt = pytz.timezone('GMT')
             target.last_modified_date = datetime.datetime.fromisoformat(
-                target_dict['last_modified_date']
+                target_dict['last_modified_date'],
             )
             target.last_modified_date = target.last_modified_date.replace(
-                tzinfo=gmt
+                tzinfo=gmt,
             )
             target.upload_date = datetime.datetime.fromisoformat(
-                target_dict['upload_date']
+                target_dict['upload_date'],
             )
             target.upload_date = target.upload_date.replace(tzinfo=gmt)
-            delete_date_optional = target_dict[
-                'delete_date_optional']
+            delete_date_optional = target_dict['delete_date_optional']
             if delete_date_optional:
                 target.delete_date = datetime.datetime.fromisoformat(
-                    delete_date_optional
+                    delete_date_optional,
                 )
                 target.delete_date = target.delete_date.replace(tzinfo=gmt)
             new_database.targets.append(target)

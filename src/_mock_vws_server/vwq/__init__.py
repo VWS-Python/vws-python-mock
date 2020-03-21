@@ -14,7 +14,7 @@ from requests import codes
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_client_keys
-from mock_vws._mock_common import json_dump, parse_multipart, set_date_header
+from mock_vws._mock_common import json_dump, parse_multipart
 from mock_vws.database import VuforiaDatabase
 
 # TODO move this
@@ -199,7 +199,7 @@ def query() -> Tuple[str, int]:
             codes.INTERNAL_SERVER_ERROR,
             {
                 'Cache-Control': cache_control,
-                'Content-Type': content_type
+                'Content-Type': content_type,
             },
         )
 
