@@ -14,9 +14,10 @@ Targets in the mock are set to 'processing' for half a second by default.
 This is customizable, with the :paramref:`~mock_vws.MockVWS.processing_time_seconds` parameter.
 In the real Vuforia Web Services, the processing stage takes varying lengths of time.
 
-The database summary in the real Vuforia Web Services takes some time to account for images.
+The database summary in the real Vuforia Web Services takes some time to account for images and recognitions.
 Sometimes the real summary skips image states such as the processing state.
-The mock is accurate immediately.
+The mock is accurate immediately with regards to images.
+The mock does not count recognitions.
 
 Image quality and ratings
 -------------------------

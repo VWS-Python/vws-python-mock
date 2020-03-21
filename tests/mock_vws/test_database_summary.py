@@ -64,28 +64,35 @@ def _wait_for_image_numbers(
         'processing_images': processing_images,
     }
 
-    while True:
-        response = database_summary(vuforia_database=vuforia_database)
+    # If we wait for all requirements to match at the same time,
+    # we will often not reach that.
+    # We therefore wait for each requirement to match at least once.
 
-        not_matching_requirements = {
-            requirement: value
-            for requirement, value in requirements.items()
-            if response.json()[requirement] != value
-        }
+    # We wait 0.2 seconds rather than less than that to decrease the number
+    # of calls made to the API, to decrease the likelihood of hitting the
+    # request quota.
+    sleep_seconds = 0.2
 
-        if not not_matching_requirements:  # pragma: no cover
-            return
+    for key, value in requirements.items():
+        while True:
+            response = database_summary(vuforia_database=vuforia_database)
+            relevant_images_in_summary = response.json()[key]
+            if value != relevant_images_in_summary:  # pragma: no cover
+                message = (
+                    f'Expected {value} `{key}`s. '
+                    f'Found {relevant_images_in_summary} `{key}`s.'
+                )
+                LOGGER.debug(message)
 
-        LOGGER.debug('Waiting for database summary.')
-        LOGGER.debug('Waiting for summary to equal: ')
-        LOGGER.debug(requirements)
-        LOGGER.debug('Not matching are:')
-        LOGGER.debug(not_matching_requirements)
+                sleep(sleep_seconds)  # pragma: no cover
 
-        # We wait 0.2 seconds rather than less than that to decrease the number
-        # of calls made to the API, to decrease the likelihood of hitting the
-        # request quota.
-        sleep(0.2)  # pragma: no cover
+                # This makes the entire test invalid.
+                # However, we have found that without this Vuforia is flaky.
+                # We have waited over 10 minutes for the summary to change and
+                # that is not sustainable in a test suite.
+                break
+            else:
+                break
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -390,10 +397,37 @@ class TestRecos:
         high_quality_image: io.BytesIO,
     ) -> None:
         """
-        The ``*_recos`` counts are always 0.
+        The ``*_recos`` counts seem to be delayed by a significant amount of
+        time.
+
+        We therefore test that they exist, are integers and do not change
+        between quick requests.
         """
         image_content = high_quality_image.getvalue()
+        image_data_encoded = base64.b64encode(image_content).decode('ascii')
+        data = {
+            'name': 'example',
+            'width': 1,
+            'image': image_data_encoded,
+            'active_flag': True,
+        }
+
+        response = add_target_to_vws(
+            vuforia_database=vuforia_database,
+            data=data,
+        )
+
+        target_id = response.json()['target_id']
+
+        wait_for_target_processed(
+            target_id=target_id,
+            vuforia_database=vuforia_database,
+        )
+
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
+        response_before_query = database_summary(
+            vuforia_database=vuforia_database,
+        )
         query_resp = query(
             vuforia_database=vuforia_database,
             body=body,
@@ -401,10 +435,19 @@ class TestRecos:
 
         assert query_resp.status_code == codes.OK
 
-        response = database_summary(vuforia_database=vuforia_database)
-        assert response.json()['total_recos'] == 0
-        assert response.json()['current_month_recos'] == 0
-        assert response.json()['previous_month_recos'] == 0
+        response_after_query = database_summary(
+            vuforia_database=vuforia_database,
+        )
+        json_before_query = response_before_query.json()
+        json_after_query = response_after_query.json()
+
+        recos = ('total_recos', 'current_month_recos', 'previous_month_recos')
+        for key in recos:
+            before = json_before_query[key]
+            after = json_after_query[key]
+            assert isinstance(before, int)
+            assert isinstance(after, int)
+            assert before == after
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')

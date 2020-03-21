@@ -58,9 +58,7 @@ class TestUnexpectedJSON:
 
         endpoint.prepared_request.body = content
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
-        endpoint.prepared_request.prepare_content_length(  # type: ignore
-            body=content,
-        )
+        endpoint.prepared_request.prepare_content_length(body=content)
         session = requests.Session()
         response = session.send(  # type: ignore
             request=endpoint.prepared_request,
