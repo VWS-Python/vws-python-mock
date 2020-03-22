@@ -7,8 +7,8 @@ https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Service
 
 import base64
 import datetime
-import itertools
 import io
+import itertools
 import random
 import uuid
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
@@ -202,8 +202,8 @@ def _get_target_from_request(
         [database.targets for database in databases],
     )
     [target] = [
-        target for target in all_database_targets if
-        target.target_id == target_id
+        target for target in all_database_targets
+        if target.target_id == target_id
     ]
     return target
 
