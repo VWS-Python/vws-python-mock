@@ -55,7 +55,7 @@ def validate_target_id_exists(
     assert isinstance(database, VuforiaDatabase)
 
     try:
-        [matching_target] = [
+        [_] = [
             target for target in database.targets
             if target.target_id == target_id and not target.delete_date
         ]
