@@ -86,13 +86,11 @@ def _wait_for_image_numbers(
 
                 sleep(sleep_seconds)  # pragma: no cover
 
-                # This makes the entire test invalid.
-                # However, we have found that without this Vuforia is flaky.
-                # We have waited over 10 minutes for the summary to change and
-                # that is not sustainable in a test suite.
-                break
-            else:
-                break
+            # This makes the entire test invalid.
+            # However, we have found that without this Vuforia is flaky.
+            # We have waited over 10 minutes for the summary to change and
+            # that is not sustainable in a test suite.
+            break
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
