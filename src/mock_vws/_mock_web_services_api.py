@@ -7,6 +7,7 @@ https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Service
 
 import base64
 import datetime
+import itertools
 import io
 import random
 import uuid
@@ -70,6 +71,7 @@ from ._services_validators.image_validators import (
     validate_image_is_image,
     validate_image_size,
 )
+from ._services_validators.target_validators import validate_target_id_exists
 from .target import Target
 
 _TARGET_ID_PATTERN = '[A-Za-z0-9]+'
@@ -95,62 +97,6 @@ def update_request_count(
         The result of calling the endpoint.
     """
     instance.request_count += 1
-    return wrapped(*args, **kwargs)
-
-
-@wrapt.decorator
-def parse_target_id(
-    wrapped: Callable[..., str],
-    instance: 'MockVuforiaWebServicesAPI',
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
-    """
-    Parse a target ID in a URL path and give the method a target argument.
-
-    Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
-
-    Returns:
-        The result of calling the endpoint.
-        If a target ID is given in the path then the wrapped function is given
-        an extra argument - the matching target.
-        A `NOT_FOUND` response if there is no matching target.
-    """
-    request, context = args
-
-    split_path = request.path.split('/')
-
-    if len(split_path) == 2:
-        return wrapped(*args, **kwargs)
-
-    target_id = split_path[-1]
-    database = get_database_matching_server_keys(
-        request_headers=request.headers,
-        request_body=request.body,
-        request_method=request.method,
-        request_path=request.path,
-        databases=instance.databases,
-    )
-
-    assert isinstance(database, VuforiaDatabase)
-
-    try:
-        [matching_target] = [
-            target for target in database.targets
-            if target.target_id == target_id and not target.delete_date
-        ]
-    except ValueError:
-        body: Dict[str, str] = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.UNKNOWN_TARGET.value,
-        }
-        context.status_code = codes.NOT_FOUND
-        return json_dump(body)
-
     return wrapped(*args, **kwargs)
 
 
@@ -200,7 +146,7 @@ def route(
         )
 
         decorators = [
-            parse_target_id,
+            validate_target_id_exists,
             validate_project_state,
             validate_authorization,
             validate_metadata_size,
@@ -240,6 +186,26 @@ def route(
         return method
 
     return decorator
+
+
+def _get_target_from_request(
+    request_path: str,
+    databases: List[VuforiaDatabase],
+) -> Target:
+    """
+    Given a request path with a target ID in the path, and a list of databases,
+    return the target with that ID from those databases.
+    """
+    split_path = request_path.split('/')
+    target_id = split_path[-1]
+    all_database_targets = itertools.chain.from_iterable(
+        [database.targets for database in databases],
+    )
+    [target] = [
+        target for target in all_database_targets if
+        target.target_id == target_id
+    ]
+    return target
 
 
 class MockVuforiaWebServicesAPI:
@@ -350,8 +316,10 @@ class MockVuforiaWebServicesAPI:
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Delete-a-Target
         """
         body: Dict[str, str] = {}
-        split_path = request.path.split('/')
-        target_id = split_path[-1]
+        target = _get_target_from_request(
+            request_path=request.path,
+            databases=self.databases,
+        )
 
         if target.status == TargetStatuses.PROCESSING.value:
             context.status_code = codes.FORBIDDEN
@@ -484,7 +452,6 @@ class MockVuforiaWebServicesAPI:
         self,
         request: _RequestObjectProxy,  # pylint: disable=unused-argument
         context: _Context,  # pylint: disable=unused-argument
-        target: Target,
     ) -> str:
         """
         Get details of a target.
@@ -492,6 +459,11 @@ class MockVuforiaWebServicesAPI:
         Fake implementation of
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Retrieve-a-Target-Record
         """
+        target = _get_target_from_request(
+            request_path=request.path,
+            databases=self.databases,
+        )
+
         target_record = {
             'target_id': target.target_id,
             'active_flag': target.active_flag,
@@ -517,7 +489,6 @@ class MockVuforiaWebServicesAPI:
         self,
         request: _RequestObjectProxy,
         context: _Context,  # pylint: disable=unused-argument
-        target: Target,
     ) -> str:
         """
         Get targets which may be considered duplicates of a given target.
@@ -525,6 +496,10 @@ class MockVuforiaWebServicesAPI:
         Fake implementation of
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Check-for-Duplicate-Targets
         """
+        target = _get_target_from_request(
+            request_path=request.path,
+            databases=self.databases,
+        )
         database = get_database_matching_server_keys(
             request_headers=request.headers,
             request_body=request.body,
@@ -567,7 +542,6 @@ class MockVuforiaWebServicesAPI:
         self,
         request: _RequestObjectProxy,
         context: _Context,
-        target: Target,
     ) -> str:
         """
         Update a target.
@@ -575,6 +549,10 @@ class MockVuforiaWebServicesAPI:
         Fake implementation of
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Update-a-Target
         """
+        target = _get_target_from_request(
+            request_path=request.path,
+            databases=self.databases,
+        )
         body: Dict[str, str] = {}
         database = get_database_matching_server_keys(
             request_headers=request.headers,
@@ -661,7 +639,6 @@ class MockVuforiaWebServicesAPI:
         self,
         request: _RequestObjectProxy,
         context: _Context,  # pylint: disable=unused-argument
-        target: Target,
     ) -> str:
         """
         Get a summary report for a target.
@@ -669,6 +646,10 @@ class MockVuforiaWebServicesAPI:
         Fake implementation of
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Retrieve-a-Target-Summary-Report
         """
+        target = _get_target_from_request(
+            request_path=request.path,
+            databases=self.databases,
+        )
         database = get_database_matching_server_keys(
             request_headers=request.headers,
             request_body=request.body,
