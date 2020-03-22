@@ -151,8 +151,7 @@ def parse_target_id(
         context.status_code = codes.NOT_FOUND
         return json_dump(body)
 
-    new_args = args + (matching_target, )
-    return wrapped(*new_args, **kwargs)
+    return wrapped(*args, **kwargs)
 
 
 ROUTES = set([])
@@ -343,7 +342,6 @@ class MockVuforiaWebServicesAPI:
         self,
         request: _RequestObjectProxy,  # pylint: disable=unused-argument
         context: _Context,
-        target: Target,
     ) -> str:
         """
         Delete a target.
@@ -352,6 +350,8 @@ class MockVuforiaWebServicesAPI:
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Delete-a-Target
         """
         body: Dict[str, str] = {}
+        split_path = request.path.split('/')
+        target_id = split_path[-1]
 
         if target.status == TargetStatuses.PROCESSING.value:
             context.status_code = codes.FORBIDDEN
