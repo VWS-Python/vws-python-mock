@@ -37,7 +37,6 @@ def validate_target_id_exists(
         The result of calling the endpoint.
         A `NOT_FOUND` response if there is no matching target.
     """
-    # import pdb; pdb.set_trace()
     split_path = request_path.split('/')
 
     if len(split_path) == 2:
