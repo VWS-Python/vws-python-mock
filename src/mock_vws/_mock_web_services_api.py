@@ -20,6 +20,7 @@ from requests import codes
 from requests_mock import DELETE, GET, POST, PUT
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
+from mock_vws._services_validators.exceptions import UnknownTarget
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
@@ -99,6 +100,65 @@ def update_request_count(
     instance.request_count += 1
     return wrapped(*args, **kwargs)
 
+@wrapt.decorator
+def handle_validators(
+    wrapped: Callable[..., str],
+    instance: Any,
+    args: Tuple[_RequestObjectProxy, _Context],
+    kwargs: Dict,
+) -> str:
+    """
+    Add to the request count.
+
+    Args:
+        wrapped: An endpoint function for `requests_mock`.
+        instance: The class that the endpoint function is in.
+        args: The arguments given to the endpoint function.
+        kwargs: The keyword arguments given to the endpoint function.
+
+    Returns:
+        The result of calling the endpoint.
+    """
+    request, context = args
+    try:
+        return wrapped(*args, **kwargs)
+    except UnknownTarget:
+        body: Dict[str, str] = {
+            'transaction_id': uuid.uuid4().hex,
+            'result_code': ResultCodes.UNKNOWN_TARGET.value,
+        }
+        context.status_code = codes.NOT_FOUND
+        return json_dump(body)
+
+@wrapt.decorator
+def run_validators(
+    wrapped: Callable[..., str],
+    instance: Any,
+    args: Tuple[_RequestObjectProxy, _Context],
+    kwargs: Dict,
+) -> str:
+    """
+    Add to the request count.
+
+    Args:
+        wrapped: An endpoint function for `requests_mock`.
+        instance: The class that the endpoint function is in.
+        args: The arguments given to the endpoint function.
+        kwargs: The keyword arguments given to the endpoint function.
+
+    Returns:
+        The result of calling the endpoint.
+    """
+    request, context = args
+    _run_validators(
+        request_headers=request.headers,
+        request_body=request.body,
+        request_method=request.method,
+        request_path=request.path,
+        databases=instance.databases,
+    )
+    return wrapped(*args, **kwargs)
+
 
 ROUTES = set([])
 
@@ -146,7 +206,8 @@ def route(
         )
 
         decorators = [
-            validate_target_id_exists,
+            run_validators,
+            handle_validators,
             validate_project_state,
             validate_authorization,
             validate_metadata_size,
@@ -206,6 +267,15 @@ def _get_target_from_request(
         if target.target_id == target_id
     ]
     return target
+
+def _run_validators(request_path: str, request_headers: Dict[str, str], request_body: bytes, request_method: str, databases: List[VuforiaDatabase]) -> None:
+    validate_target_id_exists(
+        request_headers=request_headers,
+        request_body=request_body,
+        request_method=request_method,
+        request_path=request_path,
+        databases=databases,
+    )
 
 
 class MockVuforiaWebServicesAPI:
