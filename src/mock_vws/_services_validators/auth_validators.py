@@ -3,25 +3,28 @@ Authorization header validators to use in the mock.
 """
 
 import uuid
-from typing import Any, Callable, Dict, Tuple
+from typing import Any, Callable, Dict, Tuple, List
 
 import wrapt
 from requests import codes
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
+from mock_vws.database import VuforiaDatabase
 
 from mock_vws._constants import ResultCodes
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._mock_common import json_dump
+from mock_vws._services_validators.exceptions import AuthenticationFailure, Fail
 
 
-@wrapt.decorator
+
 def validate_auth_header_exists(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: List[VuforiaDatabase],
+) -> None:
     """
     Validate that there is an authorization header given to a VWS endpoint.
 
@@ -35,26 +38,17 @@ def validate_auth_header_exists(
         The result of calling the endpoint.
         An `UNAUTHORIZED` response if there is no "Authorization" header.
     """
-    request, context = args
-    if 'Authorization' in request.headers:
-        return wrapped(*args, **kwargs)
-
-    context.status_code = codes.UNAUTHORIZED
-
-    body = {
-        'transaction_id': uuid.uuid4().hex,
-        'result_code': ResultCodes.AUTHENTICATION_FAILURE.value,
-    }
-    return json_dump(body)
+    if 'Authorization' not in request_headers:
+        raise AuthenticationFailure
 
 
-@wrapt.decorator
 def validate_access_key_exists(
-    wrapped: Callable[..., str],
-    instance: Any,
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: List[VuforiaDatabase],
+) -> None:
     """
     Validate the authorization header includes an access key for a database.
 
@@ -68,31 +62,23 @@ def validate_access_key_exists(
         The result of calling the endpoint.
         An ``UNAUTHORIZED`` response if the access key is unknown.
     """
-    request, context = args
-
-    header = request.headers['Authorization']
+    header = request_headers['Authorization']
     first_part, _ = header.split(':')
     _, access_key = first_part.split(' ')
-    for database in instance.databases:
+    for database in databases:
         if access_key == database.server_access_key:
-            return wrapped(*args, **kwargs)
+            return
 
-    context.status_code = codes.BAD_REQUEST
-
-    body = {
-        'transaction_id': uuid.uuid4().hex,
-        'result_code': ResultCodes.FAIL.value,
-    }
-    return json_dump(body)
+    raise Fail
 
 
-@wrapt.decorator
 def validate_auth_header_has_signature(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: List[VuforiaDatabase],
+) -> None:
     """
     Validate the authorization header includes a signature.
 
@@ -107,27 +93,20 @@ def validate_auth_header_has_signature(
         An ``UNAUTHORIZED`` response if the "Authorization" header is not as
         expected.
     """
-    request, context = args
-
-    header = request.headers['Authorization']
+    header = request_headers['Authorization']
     if header.count(':') == 1 and header.split(':')[1]:
-        return wrapped(*args, **kwargs)
+        return
 
-    context.status_code = codes.BAD_REQUEST
-    body = {
-        'transaction_id': uuid.uuid4().hex,
-        'result_code': ResultCodes.FAIL.value,
-    }
-    return json_dump(body)
+    raise Fail
 
 
-@wrapt.decorator
 def validate_authorization(
-    wrapped: Callable[..., str],
-    instance: Any,
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: List[VuforiaDatabase],
+) -> None:
     """
     Validate the authorization header given to a VWS endpoint.
 
@@ -142,22 +121,13 @@ def validate_authorization(
         A `BAD_REQUEST` response if the "Authorization" header is not as
         expected.
     """
-    request, context = args
-
     database = get_database_matching_server_keys(
-        request_headers=request.headers,
-        request_body=request.body,
-        request_method=request.method,
-        request_path=request.path,
-        databases=instance.databases,
+        request_headers=request_headers,
+        request_body=request_body,
+        request_method=request_method,
+        request_path=request_path,
+        databases=databases,
     )
 
-    if database is not None:
-        return wrapped(*args, **kwargs)
-
-    context.status_code = codes.UNAUTHORIZED
-    body = {
-        'transaction_id': uuid.uuid4().hex,
-        'result_code': ResultCodes.AUTHENTICATION_FAILURE.value,
-    }
-    return json_dump(body)
+    if database is None:
+        raise AuthenticationFailure

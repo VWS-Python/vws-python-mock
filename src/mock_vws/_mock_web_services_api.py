@@ -20,7 +20,7 @@ from requests import codes
 from requests_mock import DELETE, GET, POST, PUT
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
-from mock_vws._services_validators.exceptions import ProjectInactive, UnknownTarget
+from mock_vws._services_validators.exceptions import AuthenticationFailure, Fail, ProjectInactive, UnknownTarget
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
@@ -142,6 +142,23 @@ def handle_validators(
             'result_code': ResultCodes.PROJECT_INACTIVE.value,
         }
         return json_dump(body)
+    except AuthenticationFailure:
+        context.status_code = codes.UNAUTHORIZED
+
+        body = {
+            'transaction_id': uuid.uuid4().hex,
+            'result_code': ResultCodes.AUTHENTICATION_FAILURE.value,
+        }
+        return json_dump(body)
+    except Fail:
+        context.status_code = codes.BAD_REQUEST
+
+        body = {
+            'transaction_id': uuid.uuid4().hex,
+            'result_code': ResultCodes.FAIL.value,
+        }
+        return json_dump(body)
+
 
 @wrapt.decorator
 def run_validators(
@@ -230,7 +247,6 @@ def route(
         decorators = [
             run_validators,
             handle_validators,
-            validate_authorization,
             validate_metadata_size,
             validate_metadata_encoding,
             validate_metadata_type,
@@ -251,9 +267,6 @@ def route(
             validate_date_format,
             validate_date_header_given,
             validate_not_invalid_json,
-            validate_access_key_exists,
-            validate_auth_header_has_signature,
-            validate_auth_header_exists,
             validate_content_length_header_not_too_small,
             set_date_header,
             validate_content_length_header_not_too_large,
@@ -296,6 +309,34 @@ def _run_validators(
     request_method: str,
     databases: List[VuforiaDatabase],
 ) -> None:
+    validate_auth_header_exists(
+        request_headers=request_headers,
+        request_body=request_body,
+        request_method=request_method,
+        request_path=request_path,
+        databases=databases,
+    )
+    validate_auth_header_has_signature(
+        request_headers=request_headers,
+        request_body=request_body,
+        request_method=request_method,
+        request_path=request_path,
+        databases=databases,
+    )
+    validate_access_key_exists(
+        request_headers=request_headers,
+        request_body=request_body,
+        request_method=request_method,
+        request_path=request_path,
+        databases=databases,
+    )
+    validate_authorization(
+        request_headers=request_headers,
+        request_body=request_body,
+        request_method=request_method,
+        request_path=request_path,
+        databases=databases,
+    )
     validate_project_state(
         request_headers=request_headers,
         request_body=request_body,

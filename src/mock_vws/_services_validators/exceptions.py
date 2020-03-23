@@ -3,3 +3,9 @@ class UnknownTarget(Exception):
 
 class ProjectInactive(Exception):
     pass
+
+class AuthenticationFailure(Exception):
+    pass
+
+class Fail(Exception):
+    pass
