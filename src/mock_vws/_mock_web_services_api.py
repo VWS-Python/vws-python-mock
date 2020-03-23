@@ -35,12 +35,6 @@ from mock_vws.database import VuforiaDatabase
 from ._services_validators import (
     validate_active_flag,
     validate_keys,
-    validate_metadata_encoding,
-    validate_metadata_size,
-    validate_metadata_type,
-    validate_name_characters_in_range,
-    validate_name_length,
-    validate_name_type,
     validate_not_invalid_json,
     validate_project_state,
     validate_width,
@@ -71,6 +65,16 @@ from ._services_validators.image_validators import (
     validate_image_format,
     validate_image_is_image,
     validate_image_size,
+)
+from ._services_validators.metadata_validators import (
+    validate_metadata_encoding,
+    validate_metadata_size,
+    validate_metadata_type,
+)
+from ._services_validators.name_validators import (
+    validate_name_characters_in_range,
+    validate_name_length,
+    validate_name_type,
 )
 from ._services_validators.target_validators import validate_target_id_exists
 from .target import Target
