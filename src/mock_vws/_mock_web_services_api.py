@@ -209,10 +209,18 @@ def route(
             mandatory_keys=mandatory_keys or set([]),
         )
 
+        # TODO:
+        # * Switch all of these decorators to non-decorating functions
+        # * Fix all their docstrings
+        # * Move them (and their mock_vws dependencies) out of the mock_vws
+        # directory
+        # * Move the helper which runs them out of the mock_vws directory
+        # * Use the new helper in the Flask mock
+
+
         decorators = [
             run_validators,
             handle_validators,
-            validate_project_state,
             validate_authorization,
             validate_metadata_size,
             validate_metadata_encoding,
@@ -272,8 +280,21 @@ def _get_target_from_request(
     ]
     return target
 
-def _run_validators(request_path: str, request_headers: Dict[str, str], request_body: bytes, request_method: str, databases: List[VuforiaDatabase]) -> None:
+def _run_validators(
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: List[VuforiaDatabase],
+) -> None:
     validate_target_id_exists(
+        request_headers=request_headers,
+        request_body=request_body,
+        request_method=request_method,
+        request_path=request_path,
+        databases=databases,
+    )
+    validate_project_state(
         request_headers=request_headers,
         request_body=request_body,
         request_method=request_method,
