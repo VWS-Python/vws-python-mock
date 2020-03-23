@@ -5,13 +5,15 @@ Input validators to use in the mock.
 import numbers
 import uuid
 from json.decoder import JSONDecodeError
-from typing import Any, Callable, Dict, Set, Tuple
+from typing import Any, Callable, Dict, Set, Tuple, List
 
 import wrapt
 from requests import codes
 from requests_mock import POST, PUT
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
+
+from mock_vws._services_validators.exceptions import ProjectInactive
 
 from mock_vws._constants import ResultCodes
 from mock_vws._database_matchers import get_database_matching_server_keys
@@ -63,7 +65,6 @@ def validate_active_flag(
     return json_dump(body)
 
 
-@wrapt.decorator
 def validate_project_state(
     request_path: str,
     request_headers: Dict[str, str],
@@ -85,30 +86,23 @@ def validate_project_state(
         A `FORBIDDEN` response with a PROJECT_INACTIVE result code if the
         project is inactive.
     """
-    request, context = args
-
     database = get_database_matching_server_keys(
-        request_headers=request.headers,
-        request_body=request.body,
-        request_method=request.method,
-        request_path=request.path,
-        databases=instance.databases,
+        request_headers=request_headers,
+        request_body=request_body,
+        request_method=request_method,
+        request_path=request_path,
+        databases=databases,
     )
 
     assert isinstance(database, VuforiaDatabase)
     if database.state != States.PROJECT_INACTIVE:
-        return wrapped(*args, **kwargs)
+        return
 
-    if request.method == 'GET' and 'duplicates' not in request.path:
-        return wrapped(*args, **kwargs)
+    if request_method == 'GET' and 'duplicates' not in request_path:
+        return
 
-    context.status_code = codes.FORBIDDEN
+    raise ProjectInactive
 
-    body: Dict[str, str] = {
-        'transaction_id': uuid.uuid4().hex,
-        'result_code': ResultCodes.PROJECT_INACTIVE.value,
-    }
-    return json_dump(body)
 
 
 @wrapt.decorator

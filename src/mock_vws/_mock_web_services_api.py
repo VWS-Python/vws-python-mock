@@ -20,7 +20,7 @@ from requests import codes
 from requests_mock import DELETE, GET, POST, PUT
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
-from mock_vws._services_validators.exceptions import UnknownTarget
+from mock_vws._services_validators.exceptions import ProjectInactive, UnknownTarget
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
@@ -124,14 +124,23 @@ def handle_validators(
         The result of calling the endpoint.
     """
     request, context = args
+    body: Dict[str, str] = {}
     try:
         return wrapped(*args, **kwargs)
     except UnknownTarget:
-        body: Dict[str, str] = {
+        body = {
             'transaction_id': uuid.uuid4().hex,
             'result_code': ResultCodes.UNKNOWN_TARGET.value,
         }
         context.status_code = codes.NOT_FOUND
+        return json_dump(body)
+    except ProjectInactive:
+        context.status_code = codes.FORBIDDEN
+
+        body = {
+            'transaction_id': uuid.uuid4().hex,
+            'result_code': ResultCodes.PROJECT_INACTIVE.value,
+        }
         return json_dump(body)
 
 @wrapt.decorator
@@ -287,14 +296,14 @@ def _run_validators(
     request_method: str,
     databases: List[VuforiaDatabase],
 ) -> None:
-    validate_target_id_exists(
+    validate_project_state(
         request_headers=request_headers,
         request_body=request_body,
         request_method=request_method,
         request_path=request_path,
         databases=databases,
     )
-    validate_project_state(
+    validate_target_id_exists(
         request_headers=request_headers,
         request_body=request_body,
         request_method=request_method,
