@@ -20,7 +20,7 @@ from requests import codes
 from requests_mock import DELETE, GET, POST, PUT
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
-from mock_vws._services_validators.exceptions import AuthenticationFailure, Fail, ProjectInactive, UnknownTarget
+from mock_vws._services_validators.exceptions import AuthenticationFailure, Fail, ProjectInactive, UnknownTarget, MetadataTooLarge
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
@@ -150,12 +150,19 @@ def handle_validators(
             'result_code': ResultCodes.AUTHENTICATION_FAILURE.value,
         }
         return json_dump(body)
-    except Fail:
-        context.status_code = codes.BAD_REQUEST
+    except Fail as exc:
+        context.status_code = exc.status_code
 
         body = {
             'transaction_id': uuid.uuid4().hex,
             'result_code': ResultCodes.FAIL.value,
+        }
+        return json_dump(body)
+    except MetadataTooLarge:
+        context.status_code = codes.UNPROCESSABLE_ENTITY
+        body = {
+            'transaction_id': uuid.uuid4().hex,
+            'result_code': ResultCodes.METADATA_TOO_LARGE.value,
         }
         return json_dump(body)
 
@@ -181,6 +188,7 @@ def run_validators(
     """
     request, context = args
     _run_validators(
+        request_text=request.text,
         request_headers=request.headers,
         request_body=request.body,
         request_method=request.method,
@@ -247,9 +255,6 @@ def route(
         decorators = [
             run_validators,
             handle_validators,
-            validate_metadata_size,
-            validate_metadata_encoding,
-            validate_metadata_type,
             validate_active_flag,
             validate_image_size,
             validate_image_color_space,
@@ -303,6 +308,7 @@ def _get_target_from_request(
     return target
 
 def _run_validators(
+    request_text: str,
     request_path: str,
     request_headers: Dict[str, str],
     request_body: bytes,
@@ -345,6 +351,30 @@ def _run_validators(
         databases=databases,
     )
     validate_target_id_exists(
+        request_headers=request_headers,
+        request_body=request_body,
+        request_method=request_method,
+        request_path=request_path,
+        databases=databases,
+    )
+    validate_metadata_type(
+        request_text=request_text,
+        request_headers=request_headers,
+        request_body=request_body,
+        request_method=request_method,
+        request_path=request_path,
+        databases=databases,
+    )
+    validate_metadata_encoding(
+        request_text=request_text,
+        request_headers=request_headers,
+        request_body=request_body,
+        request_method=request_method,
+        request_path=request_path,
+        databases=databases,
+    )
+    validate_metadata_size(
+        request_text=request_text,
         request_headers=request_headers,
         request_body=request_body,
         request_method=request_method,

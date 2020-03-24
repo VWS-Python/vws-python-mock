@@ -69,7 +69,7 @@ def validate_access_key_exists(
         if access_key == database.server_access_key:
             return
 
-    raise Fail
+    raise Fail(status_code=codes.BAD_REQUEST)
 
 
 def validate_auth_header_has_signature(
@@ -97,7 +97,7 @@ def validate_auth_header_has_signature(
     if header.count(':') == 1 and header.split(':')[1]:
         return
 
-    raise Fail
+    raise Fail(status_code=codes.BAD_REQUEST)
 
 
 def validate_authorization(

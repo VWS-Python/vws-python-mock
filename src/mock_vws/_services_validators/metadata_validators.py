@@ -1,9 +1,11 @@
 """
 Validators for application metadata.
 """
+
+import json
 import binascii
 import uuid
-from typing import Any, Callable, Dict, Tuple
+from typing import Any, Callable, Dict, Tuple, List
 
 import wrapt
 from requests import codes
@@ -13,15 +15,19 @@ from requests_mock.response import _Context
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._constants import ResultCodes
 from mock_vws._mock_common import json_dump
+from mock_vws.database import VuforiaDatabase
+from mock_vws._services_validators.exceptions import MetadataTooLarge, Fail
 
 
-@wrapt.decorator
+
 def validate_metadata_size(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_text: str,
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: List[VuforiaDatabase],
+) -> None:
     """
     Validate that the given application metadata is a string or 1024 * 1024
     bytes or fewer.
@@ -37,35 +43,30 @@ def validate_metadata_size(
         An `UNPROCESSABLE_ENTITY` response if application metadata is given and
         it is too large.
     """
-    request, context = args
+    if not request_text:
+        return
 
-    if not request.text:
-        return wrapped(*args, **kwargs)
-
-    application_metadata = request.json().get('application_metadata')
+    request_json = json.loads(request_text)
+    application_metadata = request_json.get('application_metadata')
     if application_metadata is None:
-        return wrapped(*args, **kwargs)
+        return
     decoded = decode_base64(encoded_data=application_metadata)
 
     max_metadata_bytes = 1024 * 1024 - 1
     if len(decoded) <= max_metadata_bytes:
-        return wrapped(*args, **kwargs)
+        return
 
-    context.status_code = codes.UNPROCESSABLE_ENTITY
-    body = {
-        'transaction_id': uuid.uuid4().hex,
-        'result_code': ResultCodes.METADATA_TOO_LARGE.value,
-    }
-    return json_dump(body)
+    raise MetadataTooLarge
 
 
-@wrapt.decorator
 def validate_metadata_encoding(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_text: str,
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: List[VuforiaDatabase],
+) -> None:
     """
     Validate that the given application metadata can be base64 decoded.
 
@@ -80,39 +81,33 @@ def validate_metadata_encoding(
         An `UNPROCESSABLE_ENTITY` response if application metadata is given and
         it cannot be base64 decoded.
     """
-    request, context = args
+    if not request_text:
+        return
 
-    if not request.text:
-        return wrapped(*args, **kwargs)
+    request_json = json.loads(request_text)
+    if 'application_metadata' not in request_json:
+        return
 
-    if 'application_metadata' not in request.json():
-        return wrapped(*args, **kwargs)
-
-    application_metadata = request.json().get('application_metadata')
+    application_metadata = request_json.get('application_metadata')
 
     if application_metadata is None:
-        return wrapped(*args, **kwargs)
+        return
 
     try:
         decode_base64(encoded_data=application_metadata)
     except binascii.Error:
-        context.status_code = codes.UNPROCESSABLE_ENTITY
-        body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.FAIL.value,
-        }
-        return json_dump(body)
-
-    return wrapped(*args, **kwargs)
+        raise Fail(status_code=codes.UNPROCESSABLE_ENTITY)
 
 
-@wrapt.decorator
+
 def validate_metadata_type(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_text: str,
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: List[VuforiaDatabase],
+) -> None:
     """
     Validate that the given application metadata is a string or NULL.
 
@@ -127,22 +122,16 @@ def validate_metadata_type(
         An `BAD_REQUEST` response if application metadata is given and it is
         not a string or NULL.
     """
-    request, context = args
+    if not request_text:
+        return
 
-    if not request.text:
-        return wrapped(*args, **kwargs)
+    request_json = json.loads(request_text)
+    if 'application_metadata' not in request_json:
+        return
 
-    if 'application_metadata' not in request.json():
-        return wrapped(*args, **kwargs)
-
-    application_metadata = request.json().get('application_metadata')
+    application_metadata = request_json.get('application_metadata')
 
     if application_metadata is None or isinstance(application_metadata, str):
-        return wrapped(*args, **kwargs)
+        return
 
-    context.status_code = codes.BAD_REQUEST
-    body = {
-        'transaction_id': uuid.uuid4().hex,
-        'result_code': ResultCodes.FAIL.value,
-    }
-    return json_dump(body)
+    raise Fail(status_code=codes.BAD_REQUEST)
