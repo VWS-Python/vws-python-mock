@@ -4,7 +4,7 @@ Validators for given target IDs.
 import uuid
 from typing import Any, Callable, Dict, Tuple, List
 
-import wrapt
+import json
 from requests import codes
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
