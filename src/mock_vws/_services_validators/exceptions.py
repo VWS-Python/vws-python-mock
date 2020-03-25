@@ -1,3 +1,7 @@
+"""
+Exceptions to raise from validators.
+"""
+
 import uuid
 
 from requests import codes
@@ -7,6 +11,10 @@ from mock_vws._mock_common import json_dump
 
 
 class UnknownTarget(Exception):
+    """
+    Exception raised when Vuforia returns a response with a result code
+    'UnknownTarget'.
+    """
 
     def __init__(self):
         super().__init__()
@@ -19,6 +27,10 @@ class UnknownTarget(Exception):
 
 
 class ProjectInactive(Exception):
+    """
+    Exception raised when Vuforia returns a response with a result code
+    'ProjectInactive'.
+    """
 
     def __init__(self):
         super().__init__()
@@ -31,6 +43,10 @@ class ProjectInactive(Exception):
 
 
 class AuthenticationFailure(Exception):
+    """
+    Exception raised when Vuforia returns a response with a result code
+    'AuthenticationFailure'.
+    """
 
     def __init__(self):
         super().__init__()
@@ -43,6 +59,9 @@ class AuthenticationFailure(Exception):
 
 
 class Fail(Exception):
+    """
+    Exception raised when Vuforia returns a response with a result code 'Fail'.
+    """
 
     def __init__(self, status_code: int) -> None:
         super().__init__()
@@ -55,6 +74,10 @@ class Fail(Exception):
 
 
 class MetadataTooLarge(Exception):
+    """
+    Exception raised when Vuforia returns a response with a result code
+    'MetadataTooLarge'.
+    """
 
     def __init__(self):
         super().__init__()
@@ -67,6 +90,10 @@ class MetadataTooLarge(Exception):
 
 
 class TargetNameExist(Exception):
+    """
+    Exception raised when Vuforia returns a response with a result code
+    'TargetNameExist'.
+    """
 
     def __init__(self):
         super().__init__()
@@ -79,6 +106,12 @@ class TargetNameExist(Exception):
 
 
 class OopsErrorOccurredResponse(Exception):
+    """
+    Exception raised when VWS returns an HTML page which says "Oops, an error
+    occurred".
+
+    This has been seen to happen when the given name includes a bad character.
+    """
 
     def __init__(self):
         super().__init__()
@@ -86,6 +119,10 @@ class OopsErrorOccurredResponse(Exception):
 
 
 class BadImage(Exception):
+    """
+    Exception raised when Vuforia returns a response with a result code
+    'BadImage'.
+    """
 
     def __init__(self):
         super().__init__()
@@ -98,6 +135,10 @@ class BadImage(Exception):
 
 
 class ImageTooLarge(Exception):
+    """
+    Exception raised when Vuforia returns a response with a result code
+    'ImageTooLarge'.
+    """
 
     def __init__(self):
         super().__init__()
@@ -110,6 +151,10 @@ class ImageTooLarge(Exception):
 
 
 class RequestTimeTooSkewed(Exception):
+    """
+    Exception raised when Vuforia returns a response with a result code
+    'RequestTimeTooSkewed'.
+    """
 
     def __init__(self):
         super().__init__()
@@ -122,12 +167,18 @@ class RequestTimeTooSkewed(Exception):
 
 
 class ContentLengthHeaderTooLarge(Exception):
-    pass
+    """
+    Exception raised when the given content length header is too large.
+    """
 
 
 class ContentLengthHeaderNotInt(Exception):
-    pass
+    """
+    Exception raised when the given content length header is not an integer.
+    """
 
 
 class UnnecessaryRequestBody(Exception):
-    pass
+    """
+    Exception raised when a request body is given but not necessary.
+    """

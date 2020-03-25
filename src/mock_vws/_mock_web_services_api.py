@@ -140,7 +140,6 @@ def handle_validators(
         The result of calling the endpoint.
     """
     _, context = args
-    body: Dict[str, str] = {}
     try:
         return wrapped(*args, **kwargs)
     except (
@@ -250,9 +249,7 @@ def route(
             ),
         )
 
-        # TODO:
-        # * Switch all of these decorators to non-decorating functions
-        # * Fix all their docstrings
+        # Plan
         # * Move them (and their mock_vws dependencies) out of the mock_vws
         # directory
         # * Move the helper which runs them out of the mock_vws directory
