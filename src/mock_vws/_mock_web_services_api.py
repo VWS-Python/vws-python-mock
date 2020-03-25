@@ -6,13 +6,12 @@ https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Service
 """
 
 import base64
-from functools import partial
-import email.utils
 import datetime
 import io
 import itertools
 import random
 import uuid
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
 
 import pytz
@@ -22,9 +21,6 @@ from requests import codes
 from requests_mock import DELETE, GET, POST, PUT
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
-from mock_vws._services_validators.exceptions import AuthenticationFailure, Fail, ProjectInactive, UnknownTarget, MetadataTooLarge, TargetNameExist, OopsErrorOccurredResponse, BadImage, ImageTooLarge, RequestTimeTooSkewed, ContentLengthHeaderTooLarge, ContentLengthHeaderNotInt, UnnecessaryRequestBody
-
-from pathlib import Path
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
@@ -33,6 +29,21 @@ from mock_vws._mock_common import (
     json_dump,
     set_content_length_header,
     set_date_header,
+)
+from mock_vws._services_validators.exceptions import (
+    AuthenticationFailure,
+    BadImage,
+    ContentLengthHeaderNotInt,
+    ContentLengthHeaderTooLarge,
+    Fail,
+    ImageTooLarge,
+    MetadataTooLarge,
+    OopsErrorOccurredResponse,
+    ProjectInactive,
+    RequestTimeTooSkewed,
+    TargetNameExist,
+    UnknownTarget,
+    UnnecessaryRequestBody,
 )
 from mock_vws.database import VuforiaDatabase
 
@@ -107,6 +118,7 @@ def update_request_count(
     """
     instance.request_count += 1
     return wrapped(*args, **kwargs)
+
 
 @wrapt.decorator
 def handle_validators(
@@ -221,8 +233,6 @@ def handle_validators(
         return ''
 
 
-
-
 @wrapt.decorator
 def run_validators(
     wrapped: Callable[..., str],
@@ -296,7 +306,6 @@ def route(
             ),
         )
 
-
         # TODO:
         # * Switch all of these decorators to non-decorating functions
         # * Fix all their docstrings
@@ -304,7 +313,6 @@ def route(
         # directory
         # * Move the helper which runs them out of the mock_vws directory
         # * Use the new helper in the Flask mock
-
 
         key_validator = validate_keys(
             optional_keys=optional_keys or set([]),
@@ -345,6 +353,7 @@ def _get_target_from_request(
         if target.target_id == target_id
     ]
     return target
+
 
 def _run_validators(
     request_text: str,
@@ -488,7 +497,6 @@ def _run_validators(
         databases=databases,
     )
 
-
     validate_name_type(
         request_text=request_text,
         request_headers=request_headers,
@@ -557,7 +565,6 @@ def _run_validators(
         databases=databases,
     )
 
-
     # key_validator(
     #     request_text=request_text,
     #     request_headers=request_headers,
@@ -591,10 +598,6 @@ def _run_validators(
         request_path=request_path,
         databases=databases,
     )
-
-
-
-
 
 
 class MockVuforiaWebServicesAPI:

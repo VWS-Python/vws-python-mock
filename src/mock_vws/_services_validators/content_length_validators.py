@@ -2,19 +2,14 @@
 Content-Length header validators to use in the mock.
 """
 
-import uuid
-from typing import Any, Callable, Dict, Tuple, List
+from typing import Dict, List
 
-import json
-from requests import codes
-from requests_mock.request import _RequestObjectProxy
-from requests_mock.response import _Context
-
-from .._constants import ResultCodes
-from .._mock_common import json_dump
+from mock_vws._services_validators.exceptions import (
+    AuthenticationFailure,
+    ContentLengthHeaderNotInt,
+    ContentLengthHeaderTooLarge,
+)
 from mock_vws.database import VuforiaDatabase
-from mock_vws._services_validators.exceptions import AuthenticationFailure, ContentLengthHeaderTooLarge, ContentLengthHeaderNotInt
-
 
 
 def validate_content_length_header_is_int(
@@ -48,7 +43,6 @@ def validate_content_length_header_is_int(
         raise ContentLengthHeaderNotInt
 
 
-
 def validate_content_length_header_not_too_large(
     request_text: str,
     request_path: str,
@@ -76,7 +70,6 @@ def validate_content_length_header_not_too_large(
     given_content_length_value = int(given_content_length)
     if given_content_length_value > body_length:
         raise ContentLengthHeaderTooLarge
-
 
 
 def validate_content_length_header_not_too_small(

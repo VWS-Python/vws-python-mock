@@ -2,20 +2,12 @@
 Content-Type header validators to use in the mock.
 """
 
-import uuid
-from typing import Any, Callable, Dict, Tuple, List
+from typing import Dict, List
 
-import json
-from requests import codes
 from requests_mock import POST, PUT
-from requests_mock.request import _RequestObjectProxy
-from requests_mock.response import _Context
 
-from mock_vws._constants import ResultCodes
-from mock_vws._mock_common import json_dump
 from mock_vws._services_validators.exceptions import AuthenticationFailure
 from mock_vws.database import VuforiaDatabase
-
 
 
 def validate_content_type_header_given(

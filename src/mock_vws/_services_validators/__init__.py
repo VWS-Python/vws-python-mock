@@ -2,26 +2,25 @@
 Input validators to use in the mock.
 """
 
-import numbers
-import uuid
-from json.decoder import JSONDecodeError
-from typing import Any, Callable, Dict, Set, Tuple, List
-import wrapt
-
 import json
+import numbers
+from json.decoder import JSONDecodeError
+from typing import Any, Callable, Dict, List, Set, Tuple
+
+import wrapt
 from requests import codes
 from requests_mock import POST, PUT
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
-from mock_vws._services_validators.exceptions import ProjectInactive, Fail, UnnecessaryRequestBody
-
-from mock_vws._constants import ResultCodes
 from mock_vws._database_matchers import get_database_matching_server_keys
-from mock_vws._mock_common import json_dump
+from mock_vws._services_validators.exceptions import (
+    Fail,
+    ProjectInactive,
+    UnnecessaryRequestBody,
+)
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
-
 
 
 def validate_active_flag(
@@ -47,7 +46,7 @@ def validate_active_flag(
         active flag data given to the endpoint which is not either a Boolean or
         NULL.
     """
-    
+
     if not request_text:
         return
 
@@ -101,8 +100,6 @@ def validate_project_state(
     raise ProjectInactive
 
 
-
-
 def validate_not_invalid_json(
     request_text: str,
     request_path: str,
@@ -127,7 +124,7 @@ def validate_not_invalid_json(
         A `BAD_REQUEST` with empty text if there is data given to another
         request type.
     """
-    
+
     if not request_body:
         return
 
@@ -138,7 +135,6 @@ def validate_not_invalid_json(
         json.loads(request_text)
     except JSONDecodeError:
         raise Fail(status_code=codes.BAD_REQUEST)
-
 
 
 def validate_width(
@@ -163,7 +159,7 @@ def validate_width(
         A `BAD_REQUEST` response if the width is given and is not a positive
         number.
     """
-    
+
     if not request_text:
         return
 

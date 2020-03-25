@@ -4,21 +4,19 @@ Image validators to use in the mock.
 
 import binascii
 import io
-import uuid
-from typing import Any, Callable, Dict, Tuple, List
-
 import json
+from typing import Dict, List
+
 from PIL import Image
 from requests import codes
-from requests_mock.request import _RequestObjectProxy
-from requests_mock.response import _Context
 
 from mock_vws._base64_decoding import decode_base64
-from mock_vws._constants import ResultCodes
-from mock_vws._mock_common import json_dump
+from mock_vws._services_validators.exceptions import (
+    BadImage,
+    Fail,
+    ImageTooLarge,
+)
 from mock_vws.database import VuforiaDatabase
-from mock_vws._services_validators.exceptions import BadImage, Fail, ImageTooLarge
-
 
 
 def validate_image_format(
@@ -61,7 +59,6 @@ def validate_image_format(
     raise BadImage
 
 
-
 def validate_image_color_space(
     request_text: str,
     request_path: str,
@@ -84,7 +81,7 @@ def validate_image_color_space(
         An `UNPROCESSABLE_ENTITY` response if the image is given and is not
         in either the RGB or greyscale color space.
     """
-    
+
     if not request_text:
         return
 
@@ -125,7 +122,7 @@ def validate_image_size(
         An `UNPROCESSABLE_ENTITY` response if the image is given and is not
         under a certain file size threshold.
     """
-    
+
     if not request_text:
         return
 
@@ -140,7 +137,6 @@ def validate_image_size(
         return
 
     raise ImageTooLarge
-
 
 
 def validate_image_is_image(
@@ -165,7 +161,7 @@ def validate_image_is_image(
         An `UNPROCESSABLE_ENTITY` response if image data is given and it is not
         an image file.
     """
-    
+
     if not request_text:
         return
 
@@ -181,7 +177,6 @@ def validate_image_is_image(
         Image.open(image_file)
     except OSError:
         raise BadImage
-
 
 
 def validate_image_encoding(
@@ -206,7 +201,7 @@ def validate_image_encoding(
         An `UNPROCESSABLE_ENTITY` response if image data is given and it cannot
         be base64 decoded.
     """
-    
+
     if not request_text:
         return
 
@@ -219,7 +214,6 @@ def validate_image_encoding(
         decode_base64(encoded_data=image)
     except binascii.Error:
         raise Fail(status_code=codes.UNPROCESSABLE_ENTITY)
-
 
 
 def validate_image_data_type(
@@ -244,7 +238,7 @@ def validate_image_data_type(
         An `BAD_REQUEST` response if image data is given and it is not a
         string.
     """
-    
+
     if not request_text:
         return
 

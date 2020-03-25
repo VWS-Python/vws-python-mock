@@ -3,20 +3,13 @@ Validators of the date header to use in the mock services API.
 """
 
 import datetime
-import uuid
-from typing import Any, Callable, Dict, Tuple, List
+from typing import Dict, List
 
 import pytz
-import json
 from requests import codes
-from requests_mock.request import _RequestObjectProxy
-from requests_mock.response import _Context
 
-from mock_vws._constants import ResultCodes
-from mock_vws._mock_common import json_dump
-from mock_vws.database import VuforiaDatabase
 from mock_vws._services_validators.exceptions import Fail, RequestTimeTooSkewed
-
+from mock_vws.database import VuforiaDatabase
 
 
 def validate_date_header_given(
@@ -40,12 +33,11 @@ def validate_date_header_given(
         The result of calling the endpoint.
         A `BAD_REQUEST` response if the date is not given.
     """
-    
+
     if 'Date' in request_headers:
         return
 
     raise Fail(status_code=codes.BAD_REQUEST)
-
 
 
 def validate_date_format(
@@ -70,7 +62,7 @@ def validate_date_format(
         A `BAD_REQUEST` response if the date is in the wrong format.
         A `FORBIDDEN` response if the date is out of range.
     """
-    
+
     date_header = request_headers['Date']
     date_format = '%a, %d %b %Y %H:%M:%S GMT'
     try:
@@ -100,7 +92,7 @@ def validate_date_in_range(
         The result of calling the endpoint.
         A `FORBIDDEN` response if the date is out of range.
     """
-    
+
     date_from_header = datetime.datetime.strptime(
         request_headers['Date'],
         '%a, %d %b %Y %H:%M:%S GMT',

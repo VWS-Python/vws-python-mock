@@ -2,21 +2,17 @@
 Validators for target names.
 """
 
-import uuid
-from pathlib import Path
-from typing import Any, Callable, Dict, Tuple, List
-
 import json
+from typing import Dict, List
+
 from requests import codes
-from requests_mock.request import _RequestObjectProxy
-from requests_mock.response import _Context
 
-from mock_vws._constants import ResultCodes
-from mock_vws._mock_common import json_dump
-
+from mock_vws._services_validators.exceptions import (
+    Fail,
+    OopsErrorOccurredResponse,
+    TargetNameExist,
+)
 from mock_vws.database import VuforiaDatabase
-from mock_vws._services_validators.exceptions import Fail, OopsErrorOccurredResponse, TargetNameExist
-
 
 
 def validate_name_characters_in_range(
@@ -41,7 +37,7 @@ def validate_name_characters_in_range(
         A ``FORBIDDEN`` response if the name is given includes characters
         outside of the accepted range.
     """
-    
+
     if not request_text:
         return
 
@@ -82,7 +78,7 @@ def validate_name_type(
         is not between 1 and
         64 characters in length.
     """
-    
+
     if not request_text:
         return
 
@@ -95,7 +91,6 @@ def validate_name_type(
         return
 
     raise Fail(status_code=codes.BAD_REQUEST)
-
 
 
 def validate_name_length(

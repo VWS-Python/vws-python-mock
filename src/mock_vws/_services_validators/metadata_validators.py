@@ -2,22 +2,15 @@
 Validators for application metadata.
 """
 
-import json
 import binascii
-import uuid
-from typing import Any, Callable, Dict, Tuple, List
-
 import json
+from typing import Dict, List
+
 from requests import codes
-from requests_mock.request import _RequestObjectProxy
-from requests_mock.response import _Context
 
 from mock_vws._base64_decoding import decode_base64
-from mock_vws._constants import ResultCodes
-from mock_vws._mock_common import json_dump
+from mock_vws._services_validators.exceptions import Fail, MetadataTooLarge
 from mock_vws.database import VuforiaDatabase
-from mock_vws._services_validators.exceptions import MetadataTooLarge, Fail
-
 
 
 def validate_metadata_size(
@@ -97,7 +90,6 @@ def validate_metadata_encoding(
         decode_base64(encoded_data=application_metadata)
     except binascii.Error:
         raise Fail(status_code=codes.UNPROCESSABLE_ENTITY)
-
 
 
 def validate_metadata_type(

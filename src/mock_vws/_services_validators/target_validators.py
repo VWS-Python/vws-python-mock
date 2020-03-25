@@ -1,19 +1,11 @@
 """
 Validators for given target IDs.
 """
-import uuid
-from typing import Any, Callable, Dict, Tuple, List
+from typing import Dict, List
 
-import json
-from requests import codes
-from requests_mock.request import _RequestObjectProxy
-from requests_mock.response import _Context
-
-from mock_vws._constants import ResultCodes
 from mock_vws._database_matchers import get_database_matching_server_keys
-from mock_vws._mock_common import json_dump
-from mock_vws.database import VuforiaDatabase
 from mock_vws._services_validators.exceptions import UnknownTarget
+from mock_vws.database import VuforiaDatabase
 
 
 def validate_target_id_exists(

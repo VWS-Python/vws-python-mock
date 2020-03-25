@@ -9,9 +9,9 @@ import json
 from typing import Any, Callable, Dict, List, Mapping, Tuple, Union
 
 import wrapt
+from requests import codes
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
-from requests import codes
 
 
 class Route:
@@ -109,7 +109,9 @@ def set_date_header(
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
 
     result = wrapped(*args, **kwargs)
-    if context.headers['Connection'] != 'Close' and context.status_code != codes.GATEWAY_TIMEOUT:
+    if context.headers[
+        'Connection'
+    ] != 'Close' and context.status_code != codes.GATEWAY_TIMEOUT:
         context.headers['Date'] = date
     return result
 
