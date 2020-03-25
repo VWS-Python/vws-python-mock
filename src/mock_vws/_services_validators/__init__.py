@@ -23,7 +23,7 @@ from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
 
 
-def validate_active_flag(request_text: str, ) -> None:
+def validate_active_flag(request_text: str) -> None:
     """
     Validate the active flag data given to the endpoint.
 
@@ -119,7 +119,7 @@ def validate_not_invalid_json(
         raise Fail(status_code=codes.BAD_REQUEST)
 
 
-def validate_width(request_text: str, ) -> None:
+def validate_width(request_text: str) -> None:
     """
     Validate the width argument given to a VWS endpoint.
 

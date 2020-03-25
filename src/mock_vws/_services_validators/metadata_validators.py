@@ -11,7 +11,7 @@ from mock_vws._base64_decoding import decode_base64
 from mock_vws._services_validators.exceptions import Fail, MetadataTooLarge
 
 
-def validate_metadata_size(request_text: str, ) -> None:
+def validate_metadata_size(request_text: str) -> None:
     """
     Validate that the given application metadata is a string or 1024 * 1024
     bytes or fewer.
@@ -38,7 +38,7 @@ def validate_metadata_size(request_text: str, ) -> None:
     raise MetadataTooLarge
 
 
-def validate_metadata_encoding(request_text: str, ) -> None:
+def validate_metadata_encoding(request_text: str) -> None:
     """
     Validate that the given application metadata can be base64 decoded.
 
@@ -67,7 +67,7 @@ def validate_metadata_encoding(request_text: str, ) -> None:
         raise Fail(status_code=codes.UNPROCESSABLE_ENTITY)
 
 
-def validate_metadata_type(request_text: str, ) -> None:
+def validate_metadata_type(request_text: str) -> None:
     """
     Validate that the given application metadata is a string or NULL.
 

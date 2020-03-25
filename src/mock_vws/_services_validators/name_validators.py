@@ -50,7 +50,7 @@ def validate_name_characters_in_range(
     raise TargetNameExist
 
 
-def validate_name_type(request_text: str, ) -> None:
+def validate_name_type(request_text: str) -> None:
     """
     Validate the type of the name argument given to a VWS endpoint.
 
@@ -75,7 +75,7 @@ def validate_name_type(request_text: str, ) -> None:
     raise Fail(status_code=codes.BAD_REQUEST)
 
 
-def validate_name_length(request_text: str, ) -> None:
+def validate_name_length(request_text: str) -> None:
     """
     Validate the length of the name argument given to a VWS endpoint.
 

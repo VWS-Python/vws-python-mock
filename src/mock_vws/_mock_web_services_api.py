@@ -315,8 +315,8 @@ def _run_validators(
         request_method: The HTTP method of the request.
         databases: All Vuforia databases.
     """
-    validate_auth_header_exists(request_headers=request_headers, )
-    validate_auth_header_has_signature(request_headers=request_headers, )
+    validate_auth_header_exists(request_headers=request_headers)
+    validate_auth_header_has_signature(request_headers=request_headers)
     validate_access_key_exists(
         request_headers=request_headers,
         databases=databases,
@@ -347,36 +347,36 @@ def _run_validators(
         request_body=request_body,
         request_method=request_method,
     )
-    validate_metadata_type(request_text=request_text, )
-    validate_metadata_encoding(request_text=request_text, )
-    validate_metadata_size(request_text=request_text, )
-    validate_active_flag(request_text=request_text, )
-    validate_image_data_type(request_text=request_text, )
-    validate_image_encoding(request_text=request_text, )
-    validate_image_is_image(request_text=request_text, )
-    validate_image_format(request_text=request_text, )
-    validate_image_color_space(request_text=request_text, )
+    validate_metadata_type(request_text=request_text)
+    validate_metadata_encoding(request_text=request_text)
+    validate_metadata_size(request_text=request_text)
+    validate_active_flag(request_text=request_text)
+    validate_image_data_type(request_text=request_text)
+    validate_image_encoding(request_text=request_text)
+    validate_image_is_image(request_text=request_text)
+    validate_image_format(request_text=request_text)
+    validate_image_color_space(request_text=request_text)
 
-    validate_image_size(request_text=request_text, )
+    validate_image_size(request_text=request_text)
 
-    validate_name_type(request_text=request_text, )
-    validate_name_length(request_text=request_text, )
+    validate_name_type(request_text=request_text)
+    validate_name_length(request_text=request_text)
     validate_name_characters_in_range(
         request_text=request_text,
         request_method=request_method,
         request_path=request_path,
     )
 
-    validate_width(request_text=request_text, )
+    validate_width(request_text=request_text)
     validate_content_type_header_given(
         request_headers=request_headers,
         request_method=request_method,
     )
 
-    validate_date_header_given(request_headers=request_headers, )
+    validate_date_header_given(request_headers=request_headers)
 
-    validate_date_format(request_headers=request_headers, )
-    validate_date_in_range(request_headers=request_headers, )
+    validate_date_format(request_headers=request_headers)
+    validate_date_in_range(request_headers=request_headers)
 
     validate_content_length_header_is_int(
         request_headers=request_headers,

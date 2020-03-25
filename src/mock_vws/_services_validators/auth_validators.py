@@ -14,7 +14,7 @@ from mock_vws._services_validators.exceptions import (
 from mock_vws.database import VuforiaDatabase
 
 
-def validate_auth_header_exists(request_headers: Dict[str, str], ) -> None:
+def validate_auth_header_exists(request_headers: Dict[str, str]) -> None:
     """
     Validate that there is an authorization header given to a VWS endpoint.
 
