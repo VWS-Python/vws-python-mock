@@ -2,151 +2,99 @@
 Validators for target names.
 """
 
-import uuid
-from pathlib import Path
-from typing import Any, Callable, Dict, Tuple
+import json
 
-import wrapt
 from requests import codes
-from requests_mock.request import _RequestObjectProxy
-from requests_mock.response import _Context
 
-from mock_vws._constants import ResultCodes
-from mock_vws._mock_common import json_dump
+from mock_vws._services_validators.exceptions import (
+    Fail,
+    OopsErrorOccurredResponse,
+    TargetNameExist,
+)
 
 
-@wrapt.decorator
 def validate_name_characters_in_range(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_text: str,
+    request_method: str,
+    request_path: str,
+) -> None:
     """
     Validate the characters in the name argument given to a VWS endpoint.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_text: The content of the request.
+        request_method: The HTTP method the request is using.
+        request_path: The path to the endpoint.
 
-    Returns:
-        The result of calling the endpoint.
-        A ``FORBIDDEN`` response if the name is given includes characters
-        outside of the accepted range.
+    Raises:
+        OopsErrorOccurredResponse: Characters are out of range and the request
+            is trying to make a new target.
+        TargetNameExist: Characters are out of range and the request is for
+            another endpoint.
     """
-    request, context = args
 
-    if not request.text:
-        return wrapped(*args, **kwargs)
+    if not request_text:
+        return
 
-    if 'name' not in request.json():
-        return wrapped(*args, **kwargs)
+    if 'name' not in json.loads(request_text):
+        return
 
-    name = request.json()['name']
+    name = json.loads(request_text)['name']
 
     if all(ord(character) <= 65535 for character in name):
-        return wrapped(*args, **kwargs)
+        return
 
-    if (request.method, request.path) == ('POST', '/targets'):
-        context.status_code = codes.INTERNAL_SERVER_ERROR
-        resources_dir = Path(__file__).parent.parent / 'resources'
-        filename = 'oops_error_occurred_response.html'
-        oops_resp_file = resources_dir / filename
-        content_type = 'text/html; charset=UTF-8'
-        context.headers['Content-Type'] = content_type
-        text = oops_resp_file.read_text()
-        return text
+    if (request_method, request_path) == ('POST', '/targets'):
+        raise OopsErrorOccurredResponse
 
-    context.status_code = codes.FORBIDDEN
-    body = {
-        'transaction_id': uuid.uuid4().hex,
-        'result_code': ResultCodes.TARGET_NAME_EXIST.value,
-    }
-    return json_dump(body)
+    raise TargetNameExist
 
 
-@wrapt.decorator
-def validate_name_type(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+def validate_name_type(request_text: str) -> None:
     """
     Validate the type of the name argument given to a VWS endpoint.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_text: The content of the request.
 
-    Returns:
-        The result of calling the endpoint.
-        A `BAD_REQUEST` response if the name is given and not a string.
-        is not between 1 and
-        64 characters in length.
+    Raises:
+        Fail: A name is given and it is not a string.
     """
-    request, context = args
 
-    if not request.text:
-        return wrapped(*args, **kwargs)
+    if not request_text:
+        return
 
-    if 'name' not in request.json():
-        return wrapped(*args, **kwargs)
+    if 'name' not in json.loads(request_text):
+        return
 
-    name = request.json()['name']
+    name = json.loads(request_text)['name']
 
     if isinstance(name, str):
-        return wrapped(*args, **kwargs)
+        return
 
-    context.status_code = codes.BAD_REQUEST
-    body = {
-        'transaction_id': uuid.uuid4().hex,
-        'result_code': ResultCodes.FAIL.value,
-    }
-    return json_dump(body)
+    raise Fail(status_code=codes.BAD_REQUEST)
 
 
-@wrapt.decorator
-def validate_name_length(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+def validate_name_length(request_text: str) -> None:
     """
     Validate the length of the name argument given to a VWS endpoint.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_text: The content of the request.
 
-    Returns:
-        The result of calling the endpoint.
-        A `BAD_REQUEST` response if the name is given is not between 1 and 64
-        characters in length.
+    Raises:
+        Fail: A name is given and it is not a between 1 and 64 characters in
+            length.
     """
-    request, context = args
+    if not request_text:
+        return
 
-    if not request.text:
-        return wrapped(*args, **kwargs)
+    if 'name' not in json.loads(request_text):
+        return
 
-    if 'name' not in request.json():
-        return wrapped(*args, **kwargs)
-
-    name = request.json()['name']
+    name = json.loads(request_text)['name']
 
     if name and len(name) < 65:
-        return wrapped(*args, **kwargs)
+        return
 
-    context.status_code = codes.BAD_REQUEST
-    body = {
-        'transaction_id': uuid.uuid4().hex,
-        'result_code': ResultCodes.FAIL.value,
-    }
-    return json_dump(body)
+    raise Fail(status_code=codes.BAD_REQUEST)
