@@ -13,12 +13,7 @@ from mock_vws.database import VuforiaDatabase
 
 
 def validate_date_header_given(
-    request_text: str,
-    request_path: str,
     request_headers: Dict[str, str],
-    request_body: bytes,
-    request_method: str,
-    databases: List[VuforiaDatabase],
 ) -> None:
     """
     Validate the date header is given to a VWS endpoint.
@@ -41,12 +36,7 @@ def validate_date_header_given(
 
 
 def validate_date_format(
-    request_text: str,
-    request_path: str,
     request_headers: Dict[str, str],
-    request_body: bytes,
-    request_method: str,
-    databases: List[VuforiaDatabase],
 ) -> None:
     """
     Validate the format of the date header given to a VWS endpoint.
@@ -72,12 +62,7 @@ def validate_date_format(
 
 
 def validate_date_in_range(
-    request_text: str,
-    request_path: str,
     request_headers: Dict[str, str],
-    request_body: bytes,
-    request_method: str,
-    databases: List[VuforiaDatabase],
 ) -> None:
     """
     Validate the date header given to a VWS endpoint is in range.

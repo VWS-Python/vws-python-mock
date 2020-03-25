@@ -39,10 +39,7 @@ def validate_auth_header_exists(
 
 
 def validate_access_key_exists(
-    request_path: str,
     request_headers: Dict[str, str],
-    request_body: bytes,
-    request_method: str,
     databases: List[VuforiaDatabase],
 ) -> None:
     """
@@ -69,11 +66,7 @@ def validate_access_key_exists(
 
 
 def validate_auth_header_has_signature(
-    request_path: str,
     request_headers: Dict[str, str],
-    request_body: bytes,
-    request_method: str,
-    databases: List[VuforiaDatabase],
 ) -> None:
     """
     Validate the authorization header includes a signature.

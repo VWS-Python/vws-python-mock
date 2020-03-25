@@ -17,11 +17,6 @@ from mock_vws.database import VuforiaDatabase
 
 def validate_name_characters_in_range(
     request_text: str,
-    request_path: str,
-    request_headers: Dict[str, str],
-    request_body: bytes,
-    request_method: str,
-    databases: List[VuforiaDatabase],
 ) -> None:
     """
     Validate the characters in the name argument given to a VWS endpoint.
@@ -57,11 +52,6 @@ def validate_name_characters_in_range(
 
 def validate_name_type(
     request_text: str,
-    request_path: str,
-    request_headers: Dict[str, str],
-    request_body: bytes,
-    request_method: str,
-    databases: List[VuforiaDatabase],
 ) -> None:
     """
     Validate the type of the name argument given to a VWS endpoint.
@@ -95,11 +85,6 @@ def validate_name_type(
 
 def validate_name_length(
     request_text: str,
-    request_path: str,
-    request_headers: Dict[str, str],
-    request_body: bytes,
-    request_method: str,
-    databases: List[VuforiaDatabase],
 ) -> None:
     """
     Validate the length of the name argument given to a VWS endpoint.

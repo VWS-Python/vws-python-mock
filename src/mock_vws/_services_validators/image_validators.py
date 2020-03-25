@@ -21,11 +21,6 @@ from mock_vws.database import VuforiaDatabase
 
 def validate_image_format(
     request_text: str,
-    request_path: str,
-    request_headers: Dict[str, str],
-    request_body: bytes,
-    request_method: str,
-    databases: List[VuforiaDatabase],
 ) -> None:
     """
     Validate the format of the image given to a VWS endpoint.
@@ -61,11 +56,6 @@ def validate_image_format(
 
 def validate_image_color_space(
     request_text: str,
-    request_path: str,
-    request_headers: Dict[str, str],
-    request_body: bytes,
-    request_method: str,
-    databases: List[VuforiaDatabase],
 ) -> None:
     """
     Validate the color space of the image given to a VWS endpoint.
@@ -102,11 +92,6 @@ def validate_image_color_space(
 
 def validate_image_size(
     request_text: str,
-    request_path: str,
-    request_headers: Dict[str, str],
-    request_body: bytes,
-    request_method: str,
-    databases: List[VuforiaDatabase],
 ) -> None:
     """
     Validate the file size of the image given to a VWS endpoint.
@@ -141,11 +126,6 @@ def validate_image_size(
 
 def validate_image_is_image(
     request_text: str,
-    request_path: str,
-    request_headers: Dict[str, str],
-    request_body: bytes,
-    request_method: str,
-    databases: List[VuforiaDatabase],
 ) -> None:
     """
     Validate that the given image data is actually an image file.
@@ -181,11 +161,6 @@ def validate_image_is_image(
 
 def validate_image_encoding(
     request_text: str,
-    request_path: str,
-    request_headers: Dict[str, str],
-    request_body: bytes,
-    request_method: str,
-    databases: List[VuforiaDatabase],
 ) -> None:
     """
     Validate that the given image data can be base64 decoded.
@@ -218,11 +193,6 @@ def validate_image_encoding(
 
 def validate_image_data_type(
     request_text: str,
-    request_path: str,
-    request_headers: Dict[str, str],
-    request_body: bytes,
-    request_method: str,
-    databases: List[VuforiaDatabase],
 ) -> None:
     """
     Validate that the given image data is a string.
