@@ -15,24 +15,16 @@ from mock_vws.database import VuforiaDatabase
 
 
 def validate_auth_header_exists(
-    request_path: str,
     request_headers: Dict[str, str],
-    request_body: bytes,
-    request_method: str,
-    databases: List[VuforiaDatabase],
 ) -> None:
     """
     Validate that there is an authorization header given to a VWS endpoint.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_headers: The headers sent with the request.
 
-    Returns:
-        The result of calling the endpoint.
-        An `UNAUTHORIZED` response if there is no "Authorization" header.
+    Raises:
+        AuthenticationFailure: There is no "Authorization" header.
     """
     if 'Authorization' not in request_headers:
         raise AuthenticationFailure
@@ -46,14 +38,10 @@ def validate_access_key_exists(
     Validate the authorization header includes an access key for a database.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_headers: The headers sent with the request.
 
-    Returns:
-        The result of calling the endpoint.
-        An ``UNAUTHORIZED`` response if the access key is unknown.
+    Raises:
+        Fail: The access key does not match a given database.
     """
     header = request_headers['Authorization']
     first_part, _ = header.split(':')
@@ -72,15 +60,10 @@ def validate_auth_header_has_signature(
     Validate the authorization header includes a signature.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_headers: The headers sent with the request.
 
-    Returns:
-        The result of calling the endpoint.
-        An ``UNAUTHORIZED`` response if the "Authorization" header is not as
-        expected.
+    Raises:
+        Fail: The "Authorization" header does not include a signature.
     """
     header = request_headers['Authorization']
     if header.count(':') == 1 and header.split(':')[1]:
@@ -100,15 +83,11 @@ def validate_authorization(
     Validate the authorization header given to a VWS endpoint.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_headers: The headers sent with the request.
 
-    Returns:
-        The result of calling the endpoint.
-        A `BAD_REQUEST` response if the "Authorization" header is not as
-        expected.
+    Raises:
+        AuthenticationFailure: No database matches the given authorization
+            header.
     """
     database = get_database_matching_server_keys(
         request_headers=request_headers,

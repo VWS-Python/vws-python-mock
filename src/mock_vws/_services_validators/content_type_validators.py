@@ -11,12 +11,8 @@ from mock_vws.database import VuforiaDatabase
 
 
 def validate_content_type_header_given(
-    request_text: str,
-    request_path: str,
     request_headers: Dict[str, str],
-    request_body: bytes,
     request_method: str,
-    databases: List[VuforiaDatabase],
 ) -> None:
     """
     Validate that there is a non-empty content type header given if required.

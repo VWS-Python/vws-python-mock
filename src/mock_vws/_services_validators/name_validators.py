@@ -17,20 +17,22 @@ from mock_vws.database import VuforiaDatabase
 
 def validate_name_characters_in_range(
     request_text: str,
+    request_method: str,
+    request_path: str,
 ) -> None:
     """
     Validate the characters in the name argument given to a VWS endpoint.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_text: The content of the request.
+        request_method: The HTTP method the request is using.
+        request_path: The path to the endpoint.
 
-    Returns:
-        The result of calling the endpoint.
-        A ``FORBIDDEN`` response if the name is given includes characters
-        outside of the accepted range.
+    Raises:
+        OopsErrorOccurredResponse: Characters are out of range and the request
+            is trying to make a new target.
+        TargetNameExist: Characters are out of range and the request is for
+            another endpoint.
     """
 
     if not request_text:
@@ -57,16 +59,10 @@ def validate_name_type(
     Validate the type of the name argument given to a VWS endpoint.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_text: The content of the request.
 
-    Returns:
-        The result of calling the endpoint.
-        A `BAD_REQUEST` response if the name is given and not a string.
-        is not between 1 and
-        64 characters in length.
+    Raises:
+        Fail: A name is given and it is not a string.
     """
 
     if not request_text:
@@ -90,15 +86,11 @@ def validate_name_length(
     Validate the length of the name argument given to a VWS endpoint.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_text: The content of the request.
 
-    Returns:
-        The result of calling the endpoint.
-        A `BAD_REQUEST` response if the name is given is not between 1 and 64
-        characters in length.
+    Raises:
+        Fail: A name is given and it is not a between 1 and 64 characters in
+            length.
     """
     if not request_text:
         return

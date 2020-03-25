@@ -15,26 +15,17 @@ from mock_vws.database import VuforiaDatabase
 
 def validate_metadata_size(
     request_text: str,
-    request_path: str,
-    request_headers: Dict[str, str],
-    request_body: bytes,
-    request_method: str,
-    databases: List[VuforiaDatabase],
 ) -> None:
     """
     Validate that the given application metadata is a string or 1024 * 1024
     bytes or fewer.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_text: The content of the request.
 
-    Returns:
-        The result of calling the endpoint.
-        An `UNPROCESSABLE_ENTITY` response if application metadata is given and
-        it is too large.
+    Raises:
+        ``MetadataTooLarge``: Application metadata is given and it is too
+            large.
     """
     if not request_text:
         return
@@ -54,25 +45,16 @@ def validate_metadata_size(
 
 def validate_metadata_encoding(
     request_text: str,
-    request_path: str,
-    request_headers: Dict[str, str],
-    request_body: bytes,
-    request_method: str,
-    databases: List[VuforiaDatabase],
 ) -> None:
     """
     Validate that the given application metadata can be base64 decoded.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_text: The content of the request.
 
-    Returns:
-        The result of calling the endpoint.
-        An `UNPROCESSABLE_ENTITY` response if application metadata is given and
-        it cannot be base64 decoded.
+    Raises:
+        Fail: Application metadata is given and it cannot be base64
+            decoded.
     """
     if not request_text:
         return
@@ -94,25 +76,15 @@ def validate_metadata_encoding(
 
 def validate_metadata_type(
     request_text: str,
-    request_path: str,
-    request_headers: Dict[str, str],
-    request_body: bytes,
-    request_method: str,
-    databases: List[VuforiaDatabase],
 ) -> None:
     """
     Validate that the given application metadata is a string or NULL.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_text: The content of the request.
 
-    Returns:
-        The result of calling the endpoint.
-        An `BAD_REQUEST` response if application metadata is given and it is
-        not a string or NULL.
+    Raises:
+        Fail: Application metadata is given and it is not a string or NULL.
     """
     if not request_text:
         return

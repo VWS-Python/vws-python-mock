@@ -19,14 +19,10 @@ def validate_date_header_given(
     Validate the date header is given to a VWS endpoint.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_headers: The headers sent with the request.
 
-    Returns:
-        The result of calling the endpoint.
-        A `BAD_REQUEST` response if the date is not given.
+    Raises:
+        Fail: The date is not given.
     """
 
     if 'Date' in request_headers:
@@ -42,15 +38,10 @@ def validate_date_format(
     Validate the format of the date header given to a VWS endpoint.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_headers: The headers sent with the request.
 
-    Returns:
-        The result of calling the endpoint.
-        A `BAD_REQUEST` response if the date is in the wrong format.
-        A `FORBIDDEN` response if the date is out of range.
+    Raises:
+        Fail: The date is in the wrong format.
     """
 
     date_header = request_headers['Date']
@@ -68,14 +59,10 @@ def validate_date_in_range(
     Validate the date header given to a VWS endpoint is in range.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_headers: The headers sent with the request.
 
-    Returns:
-        The result of calling the endpoint.
-        A `FORBIDDEN` response if the date is out of range.
+    Raises:
+        RequestTimeTooSkewed: The date is out of range.
     """
 
     date_from_header = datetime.datetime.strptime(

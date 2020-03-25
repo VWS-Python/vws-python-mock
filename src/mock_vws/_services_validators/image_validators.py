@@ -26,15 +26,10 @@ def validate_image_format(
     Validate the format of the image given to a VWS endpoint.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_text: The content of the request.
 
-    Returns:
-        The result of calling the endpoint.
-        An `UNPROCESSABLE_ENTITY` response if the image is given and is not
-        either a PNG or a JPEG.
+    Raises:
+        BadImage:  The image is given and is not either a PNG or a JPEG.
     """
     if not request_text:
         return
@@ -61,15 +56,11 @@ def validate_image_color_space(
     Validate the color space of the image given to a VWS endpoint.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_text: The content of the request.
 
-    Returns:
-        The result of calling the endpoint.
-        An `UNPROCESSABLE_ENTITY` response if the image is given and is not
-        in either the RGB or greyscale color space.
+    Raises:
+        BadImage: The image is given and is not in either the RGB or
+            greyscale color space.
     """
 
     if not request_text:
@@ -97,15 +88,11 @@ def validate_image_size(
     Validate the file size of the image given to a VWS endpoint.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_text: The content of the request.
 
-    Returns:
-        The result of calling the endpoint.
-        An `UNPROCESSABLE_ENTITY` response if the image is given and is not
-        under a certain file size threshold.
+    Raises:
+        ImageTooLarge:  The image is given and is not under a certain file
+            size threshold.
     """
 
     if not request_text:
@@ -131,15 +118,10 @@ def validate_image_is_image(
     Validate that the given image data is actually an image file.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_text: The content of the request.
 
-    Returns:
-        The result of calling the endpoint.
-        An `UNPROCESSABLE_ENTITY` response if image data is given and it is not
-        an image file.
+    Raises:
+        BadImage: Image data is given and it is not an image file.
     """
 
     if not request_text:
@@ -166,15 +148,10 @@ def validate_image_encoding(
     Validate that the given image data can be base64 decoded.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_text: The content of the request.
 
-    Returns:
-        The result of calling the endpoint.
-        An `UNPROCESSABLE_ENTITY` response if image data is given and it cannot
-        be base64 decoded.
+    Raises:
+        Fail: Image data is given and it cannot be base64 decoded.
     """
 
     if not request_text:
@@ -198,15 +175,10 @@ def validate_image_data_type(
     Validate that the given image data is a string.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_text: The content of the request.
 
-    Returns:
-        The result of calling the endpoint.
-        An `BAD_REQUEST` response if image data is given and it is not a
-        string.
+    Raises:
+        Fail: Image data is given and it is not a string.
     """
 
     if not request_text:

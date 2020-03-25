@@ -25,11 +25,6 @@ from mock_vws.states import States
 
 def validate_active_flag(
     request_text: str,
-    request_path: str,
-    request_headers: Dict[str, str],
-    request_body: bytes,
-    request_method: str,
-    databases: List[VuforiaDatabase],
 ) -> None:
     """
     Validate the active flag data given to the endpoint.
@@ -102,11 +97,8 @@ def validate_project_state(
 
 def validate_not_invalid_json(
     request_text: str,
-    request_path: str,
-    request_headers: Dict[str, str],
     request_body: bytes,
     request_method: str,
-    databases: List[VuforiaDatabase],
 ) -> None:
     """
     Validate that there is either no JSON given or the JSON given is valid.
@@ -139,11 +131,6 @@ def validate_not_invalid_json(
 
 def validate_width(
     request_text: str,
-    request_path: str,
-    request_headers: Dict[str, str],
-    request_body: bytes,
-    request_method: str,
-    databases: List[VuforiaDatabase],
 ) -> None:
     """
     Validate the width argument given to a VWS endpoint.
@@ -211,7 +198,7 @@ def validate_keys(
             args: The arguments given to the endpoint function.
             kwargs: The keyword arguments given to the endpoint function.
         """
-        request, context = args
+        request, _ = args
         allowed_keys = mandatory_keys.union(optional_keys)
 
         if request.text is None and not allowed_keys:

@@ -123,7 +123,7 @@ def update_request_count(
 @wrapt.decorator
 def handle_validators(
     wrapped: Callable[..., str],
-    instance: Any,
+    instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
 ) -> str:
@@ -139,7 +139,7 @@ def handle_validators(
     Returns:
         The result of calling the endpoint.
     """
-    request, context = args
+    _ , context = args
     body: Dict[str, str] = {}
     try:
         return wrapped(*args, **kwargs)
@@ -254,7 +254,7 @@ def run_validators(
     Returns:
         The result of calling the endpoint.
     """
-    request, context = args
+    request, _ = args
     _run_validators(
         request_text=request.text,
         request_headers=request.headers,
@@ -362,8 +362,6 @@ def _run_validators(
     request_body: bytes,
     request_method: str,
     databases: List[VuforiaDatabase],
-    mandatory_keys: Optional[Set[str]] = None,
-    optional_keys: Optional[Set[str]] = None,
 ) -> None:
     validate_auth_header_exists(
         request_headers=request_headers,
@@ -374,16 +372,9 @@ def _run_validators(
     )
     validate_auth_header_has_signature(
         request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_access_key_exists(
         request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
         databases=databases,
     )
     validate_authorization(
@@ -409,194 +400,84 @@ def _run_validators(
     )
     validate_not_invalid_json(
         request_text=request_text,
-        request_headers=request_headers,
         request_body=request_body,
         request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_metadata_type(
         request_text=request_text,
-        request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_metadata_encoding(
         request_text=request_text,
-        request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_metadata_size(
         request_text=request_text,
-        request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_active_flag(
         request_text=request_text,
-        request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_image_data_type(
         request_text=request_text,
-        request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_image_encoding(
         request_text=request_text,
-        request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_image_is_image(
         request_text=request_text,
-        request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_image_format(
         request_text=request_text,
-        request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_image_color_space(
         request_text=request_text,
-        request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
 
     validate_image_size(
         request_text=request_text,
-        request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
 
     validate_name_type(
         request_text=request_text,
-        request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_name_length(
         request_text=request_text,
-        request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_name_characters_in_range(
         request_text=request_text,
-        request_headers=request_headers,
-        request_body=request_body,
         request_method=request_method,
         request_path=request_path,
-        databases=databases,
     )
 
     validate_width(
         request_text=request_text,
-        request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_content_type_header_given(
-        request_text=request_text,
         request_headers=request_headers,
-        request_body=request_body,
         request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
 
     validate_date_header_given(
-        request_text=request_text,
         request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
 
     validate_date_format(
-        request_text=request_text,
         request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_date_in_range(
-        request_text=request_text,
         request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
 
-    # key_validator(
-    #     request_text=request_text,
-    #     request_headers=request_headers,
-    #     request_body=request_body,
-    #     request_method=request_method,
-    #     request_path=request_path,
-    #     databases=databases,
-    # )
     validate_content_length_header_is_int(
-        request_text=request_text,
         request_headers=request_headers,
         request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_content_length_header_not_too_large(
-        request_text=request_text,
         request_headers=request_headers,
         request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
 
     validate_content_length_header_not_too_small(
-        request_text=request_text,
         request_headers=request_headers,
         request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
 
 
