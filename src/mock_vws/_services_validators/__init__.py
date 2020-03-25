@@ -30,16 +30,11 @@ def validate_active_flag(
     Validate the active flag data given to the endpoint.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_text: The content of the request.
 
-    Returns:
-        The result of calling the endpoint.
-        A `BAD_REQUEST` response with a FAIL result code if there is
-        active flag data given to the endpoint which is not either a Boolean or
-        NULL.
+    Raises:
+        Fail: There is active flag data given to the endpoint which is not
+            either a Boolean or NULL.
     """
 
     if not request_text:
@@ -67,15 +62,15 @@ def validate_project_state(
     Validate the state of the project.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_path: The path of the request.
+        request_headers: The headers sent with the request.
+        request_body: The body of the request.
+        request_method: The HTTP method of the request.
+        databases: All Vuforia databases.
 
-    Returns:
-        The result of calling the endpoint.
-        A `FORBIDDEN` response with a PROJECT_INACTIVE result code if the
-        project is inactive.
+    Raises:
+        ProjectInactive: The project is inactive and this endpoint does not
+            work with inactive projects.
     """
     database = get_database_matching_server_keys(
         request_headers=request_headers,
@@ -104,17 +99,14 @@ def validate_not_invalid_json(
     Validate that there is either no JSON given or the JSON given is valid.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_text: The content of the request.
+        request_body: The body of the request.
+        request_method: The HTTP method of the request.
 
-    Returns:
-        The result of calling the endpoint.
-        A `BAD_REQUEST` response with a FAIL result code if there is invalid
-        JSON given to a POST or PUT request.
-        A `BAD_REQUEST` with empty text if there is data given to another
-        request type.
+    Raises:
+        UnnecessaryRequestBody: A request body was given for an endpoint which
+            does not require one.
+        Fail: The request body includes invalid JSON.
     """
 
     if not request_body:
@@ -136,15 +128,10 @@ def validate_width(
     Validate the width argument given to a VWS endpoint.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_text: The content of the request.
 
-    Returns:
-        The result of calling the endpoint.
-        A `BAD_REQUEST` response if the width is given and is not a positive
-        number.
+    Raises:
+        Fail: Width is given and is not a positive number.
     """
 
     if not request_text:

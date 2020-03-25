@@ -363,12 +363,19 @@ def _run_validators(
     request_method: str,
     databases: List[VuforiaDatabase],
 ) -> None:
+    """
+    Run all validators.
+
+    Args:
+        request_text: The content of the request.
+        request_path: The path of the request.
+        request_headers: The headers sent with the request.
+        request_body: The body of the request.
+        request_method: The HTTP method of the request.
+        databases: All Vuforia databases.
+    """
     validate_auth_header_exists(
         request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_auth_header_has_signature(
         request_headers=request_headers,
