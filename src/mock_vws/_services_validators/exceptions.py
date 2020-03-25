@@ -16,7 +16,14 @@ class UnknownTarget(Exception):
     'UnknownTarget'.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
         super().__init__()
         self.status_code = codes.NOT_FOUND
         body = {
@@ -32,7 +39,14 @@ class ProjectInactive(Exception):
     'ProjectInactive'.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
         super().__init__()
         self.status_code = codes.FORBIDDEN
         body = {
@@ -48,7 +62,14 @@ class AuthenticationFailure(Exception):
     'AuthenticationFailure'.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
         super().__init__()
         self.status_code = codes.UNAUTHORIZED
         body = {
@@ -64,6 +85,13 @@ class Fail(Exception):
     """
 
     def __init__(self, status_code: int) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
         super().__init__()
         self.status_code = status_code
         body = {
@@ -79,7 +107,14 @@ class MetadataTooLarge(Exception):
     'MetadataTooLarge'.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
         super().__init__()
         self.status_code = codes.UNPROCESSABLE_ENTITY
         body = {
@@ -95,7 +130,14 @@ class TargetNameExist(Exception):
     'TargetNameExist'.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
         super().__init__()
         self.status_code = codes.FORBIDDEN
         body = {
@@ -113,7 +155,14 @@ class OopsErrorOccurredResponse(Exception):
     This has been seen to happen when the given name includes a bad character.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
         super().__init__()
         self.status_code = codes.INTERNAL_SERVER_ERROR
 
@@ -124,7 +173,14 @@ class BadImage(Exception):
     'BadImage'.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
         super().__init__()
         self.status_code = codes.UNPROCESSABLE_ENTITY
         body = {
@@ -140,7 +196,14 @@ class ImageTooLarge(Exception):
     'ImageTooLarge'.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
         super().__init__()
         self.status_code = codes.UNPROCESSABLE_ENTITY
         body = {
@@ -156,7 +219,14 @@ class RequestTimeTooSkewed(Exception):
     'RequestTimeTooSkewed'.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
         super().__init__()
         self.status_code = codes.FORBIDDEN
         body = {
