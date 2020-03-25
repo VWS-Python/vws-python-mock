@@ -2,14 +2,13 @@
 Content-Length header validators to use in the mock.
 """
 
-from typing import Dict, List
+from typing import Dict
 
 from mock_vws._services_validators.exceptions import (
     AuthenticationFailure,
     ContentLengthHeaderNotInt,
     ContentLengthHeaderTooLarge,
 )
-from mock_vws.database import VuforiaDatabase
 
 
 def validate_content_length_header_is_int(

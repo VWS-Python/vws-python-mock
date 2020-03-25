@@ -4,18 +4,14 @@ Validators for application metadata.
 
 import binascii
 import json
-from typing import Dict, List
 
 from requests import codes
 
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._services_validators.exceptions import Fail, MetadataTooLarge
-from mock_vws.database import VuforiaDatabase
 
 
-def validate_metadata_size(
-    request_text: str,
-) -> None:
+def validate_metadata_size(request_text: str, ) -> None:
     """
     Validate that the given application metadata is a string or 1024 * 1024
     bytes or fewer.
@@ -24,8 +20,7 @@ def validate_metadata_size(
         request_text: The content of the request.
 
     Raises:
-        ``MetadataTooLarge``: Application metadata is given and it is too
-            large.
+        MetadataTooLarge: Application metadata is given and it is too large.
     """
     if not request_text:
         return
@@ -43,9 +38,7 @@ def validate_metadata_size(
     raise MetadataTooLarge
 
 
-def validate_metadata_encoding(
-    request_text: str,
-) -> None:
+def validate_metadata_encoding(request_text: str, ) -> None:
     """
     Validate that the given application metadata can be base64 decoded.
 
@@ -74,9 +67,7 @@ def validate_metadata_encoding(
         raise Fail(status_code=codes.UNPROCESSABLE_ENTITY)
 
 
-def validate_metadata_type(
-    request_text: str,
-) -> None:
+def validate_metadata_type(request_text: str, ) -> None:
     """
     Validate that the given application metadata is a string or NULL.
 

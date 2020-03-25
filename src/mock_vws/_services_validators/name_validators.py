@@ -3,7 +3,6 @@ Validators for target names.
 """
 
 import json
-from typing import Dict, List
 
 from requests import codes
 
@@ -12,7 +11,6 @@ from mock_vws._services_validators.exceptions import (
     OopsErrorOccurredResponse,
     TargetNameExist,
 )
-from mock_vws.database import VuforiaDatabase
 
 
 def validate_name_characters_in_range(
@@ -52,9 +50,7 @@ def validate_name_characters_in_range(
     raise TargetNameExist
 
 
-def validate_name_type(
-    request_text: str,
-) -> None:
+def validate_name_type(request_text: str, ) -> None:
     """
     Validate the type of the name argument given to a VWS endpoint.
 
@@ -79,9 +75,7 @@ def validate_name_type(
     raise Fail(status_code=codes.BAD_REQUEST)
 
 
-def validate_name_length(
-    request_text: str,
-) -> None:
+def validate_name_length(request_text: str, ) -> None:
     """
     Validate the length of the name argument given to a VWS endpoint.
 

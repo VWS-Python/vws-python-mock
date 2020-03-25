@@ -139,55 +139,23 @@ def handle_validators(
     Returns:
         The result of calling the endpoint.
     """
-    _ , context = args
+    _, context = args
     body: Dict[str, str] = {}
     try:
         return wrapped(*args, **kwargs)
-    except UnknownTarget:
-        body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.UNKNOWN_TARGET.value,
-        }
-        context.status_code = codes.NOT_FOUND
-        return json_dump(body)
-    except ProjectInactive:
-        context.status_code = codes.FORBIDDEN
-
-        body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.PROJECT_INACTIVE.value,
-        }
-        return json_dump(body)
-    except AuthenticationFailure:
-        context.status_code = codes.UNAUTHORIZED
-
-        body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.AUTHENTICATION_FAILURE.value,
-        }
-        return json_dump(body)
-    except Fail as exc:
+    except (
+        UnknownTarget,
+        ProjectInactive,
+        AuthenticationFailure,
+        Fail,
+        MetadataTooLarge,
+        TargetNameExist,
+        BadImage,
+        ImageTooLarge,
+        RequestTimeTooSkewed,
+    ) as exc:
         context.status_code = exc.status_code
-
-        body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.FAIL.value,
-        }
-        return json_dump(body)
-    except MetadataTooLarge:
-        context.status_code = codes.UNPROCESSABLE_ENTITY
-        body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.METADATA_TOO_LARGE.value,
-        }
-        return json_dump(body)
-    except TargetNameExist:
-        context.status_code = codes.FORBIDDEN
-        body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.TARGET_NAME_EXIST.value,
-        }
-        return json_dump(body)
+        return exc.response_text
     except OopsErrorOccurredResponse:
         context.status_code = codes.INTERNAL_SERVER_ERROR
         resources_dir = Path(__file__).parent / 'resources'
@@ -197,28 +165,6 @@ def handle_validators(
         context.headers['Content-Type'] = content_type
         text = str(oops_resp_file.read_text())
         return text
-    except BadImage:
-        context.status_code = codes.UNPROCESSABLE_ENTITY
-        body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.BAD_IMAGE.value,
-        }
-        return json_dump(body)
-    except ImageTooLarge:
-        context.status_code = codes.UNPROCESSABLE_ENTITY
-        body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.IMAGE_TOO_LARGE.value,
-        }
-        return json_dump(body)
-    except RequestTimeTooSkewed:
-        context.status_code = codes.FORBIDDEN
-
-        body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.REQUEST_TIME_TOO_SKEWED.value,
-        }
-        return json_dump(body)
     except ContentLengthHeaderTooLarge:
         context.status_code = codes.GATEWAY_TIMEOUT
         context.headers = {'Connection': 'keep-alive'}
@@ -239,8 +185,6 @@ def run_validators(
     instance: Any,
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
-    # mandatory_keys: Optional[Set[str]] = None,
-    # optional_keys: Optional[Set[str]] = None,
 ) -> str:
     """
     Add to the request count.
@@ -374,12 +318,8 @@ def _run_validators(
         request_method: The HTTP method of the request.
         databases: All Vuforia databases.
     """
-    validate_auth_header_exists(
-        request_headers=request_headers,
-    )
-    validate_auth_header_has_signature(
-        request_headers=request_headers,
-    )
+    validate_auth_header_exists(request_headers=request_headers, )
+    validate_auth_header_has_signature(request_headers=request_headers, )
     validate_access_key_exists(
         request_headers=request_headers,
         databases=databases,
@@ -410,68 +350,36 @@ def _run_validators(
         request_body=request_body,
         request_method=request_method,
     )
-    validate_metadata_type(
-        request_text=request_text,
-    )
-    validate_metadata_encoding(
-        request_text=request_text,
-    )
-    validate_metadata_size(
-        request_text=request_text,
-    )
-    validate_active_flag(
-        request_text=request_text,
-    )
-    validate_image_data_type(
-        request_text=request_text,
-    )
-    validate_image_encoding(
-        request_text=request_text,
-    )
-    validate_image_is_image(
-        request_text=request_text,
-    )
-    validate_image_format(
-        request_text=request_text,
-    )
-    validate_image_color_space(
-        request_text=request_text,
-    )
+    validate_metadata_type(request_text=request_text, )
+    validate_metadata_encoding(request_text=request_text, )
+    validate_metadata_size(request_text=request_text, )
+    validate_active_flag(request_text=request_text, )
+    validate_image_data_type(request_text=request_text, )
+    validate_image_encoding(request_text=request_text, )
+    validate_image_is_image(request_text=request_text, )
+    validate_image_format(request_text=request_text, )
+    validate_image_color_space(request_text=request_text, )
 
-    validate_image_size(
-        request_text=request_text,
-    )
+    validate_image_size(request_text=request_text, )
 
-    validate_name_type(
-        request_text=request_text,
-    )
-    validate_name_length(
-        request_text=request_text,
-    )
+    validate_name_type(request_text=request_text, )
+    validate_name_length(request_text=request_text, )
     validate_name_characters_in_range(
         request_text=request_text,
         request_method=request_method,
         request_path=request_path,
     )
 
-    validate_width(
-        request_text=request_text,
-    )
+    validate_width(request_text=request_text, )
     validate_content_type_header_given(
         request_headers=request_headers,
         request_method=request_method,
     )
 
-    validate_date_header_given(
-        request_headers=request_headers,
-    )
+    validate_date_header_given(request_headers=request_headers, )
 
-    validate_date_format(
-        request_headers=request_headers,
-    )
-    validate_date_in_range(
-        request_headers=request_headers,
-    )
+    validate_date_format(request_headers=request_headers, )
+    validate_date_in_range(request_headers=request_headers, )
 
     validate_content_length_header_is_int(
         request_headers=request_headers,

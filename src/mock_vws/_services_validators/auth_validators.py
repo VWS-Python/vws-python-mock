@@ -14,9 +14,7 @@ from mock_vws._services_validators.exceptions import (
 from mock_vws.database import VuforiaDatabase
 
 
-def validate_auth_header_exists(
-    request_headers: Dict[str, str],
-) -> None:
+def validate_auth_header_exists(request_headers: Dict[str, str], ) -> None:
     """
     Validate that there is an authorization header given to a VWS endpoint.
 
@@ -39,6 +37,7 @@ def validate_access_key_exists(
 
     Args:
         request_headers: The headers sent with the request.
+        databases: All Vuforia databases.
 
     Raises:
         Fail: The access key does not match a given database.
@@ -83,7 +82,11 @@ def validate_authorization(
     Validate the authorization header given to a VWS endpoint.
 
     Args:
+        request_path: The path of the request.
         request_headers: The headers sent with the request.
+        request_body: The body of the request.
+        request_method: The HTTP method of the request.
+        databases: All Vuforia databases.
 
     Raises:
         AuthenticationFailure: No database matches the given authorization

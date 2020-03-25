@@ -5,7 +5,6 @@ Image validators to use in the mock.
 import binascii
 import io
 import json
-from typing import Dict, List
 
 from PIL import Image
 from requests import codes
@@ -16,12 +15,9 @@ from mock_vws._services_validators.exceptions import (
     Fail,
     ImageTooLarge,
 )
-from mock_vws.database import VuforiaDatabase
 
 
-def validate_image_format(
-    request_text: str,
-) -> None:
+def validate_image_format(request_text: str, ) -> None:
     """
     Validate the format of the image given to a VWS endpoint.
 
@@ -49,9 +45,7 @@ def validate_image_format(
     raise BadImage
 
 
-def validate_image_color_space(
-    request_text: str,
-) -> None:
+def validate_image_color_space(request_text: str, ) -> None:
     """
     Validate the color space of the image given to a VWS endpoint.
 
@@ -81,9 +75,7 @@ def validate_image_color_space(
     raise BadImage
 
 
-def validate_image_size(
-    request_text: str,
-) -> None:
+def validate_image_size(request_text: str, ) -> None:
     """
     Validate the file size of the image given to a VWS endpoint.
 
@@ -111,9 +103,7 @@ def validate_image_size(
     raise ImageTooLarge
 
 
-def validate_image_is_image(
-    request_text: str,
-) -> None:
+def validate_image_is_image(request_text: str, ) -> None:
     """
     Validate that the given image data is actually an image file.
 
@@ -141,9 +131,7 @@ def validate_image_is_image(
         raise BadImage
 
 
-def validate_image_encoding(
-    request_text: str,
-) -> None:
+def validate_image_encoding(request_text: str, ) -> None:
     """
     Validate that the given image data can be base64 decoded.
 
@@ -168,9 +156,7 @@ def validate_image_encoding(
         raise Fail(status_code=codes.UNPROCESSABLE_ENTITY)
 
 
-def validate_image_data_type(
-    request_text: str,
-) -> None:
+def validate_image_data_type(request_text: str, ) -> None:
     """
     Validate that the given image data is a string.
 

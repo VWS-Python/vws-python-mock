@@ -23,9 +23,7 @@ from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
 
 
-def validate_active_flag(
-    request_text: str,
-) -> None:
+def validate_active_flag(request_text: str, ) -> None:
     """
     Validate the active flag data given to the endpoint.
 
@@ -121,9 +119,7 @@ def validate_not_invalid_json(
         raise Fail(status_code=codes.BAD_REQUEST)
 
 
-def validate_width(
-    request_text: str,
-) -> None:
+def validate_width(request_text: str, ) -> None:
     """
     Validate the width argument given to a VWS endpoint.
 
@@ -174,16 +170,18 @@ def validate_keys(
         """
         Validate the request keys given to a VWS endpoint.
 
-        Returns:
-            The result of calling the endpoint.
-            A `BAD_REQUEST` error if any keys are not allowed, or if any
-            required keys are missing.
-
         Args:
             wrapped: An endpoint function for `requests_mock`.
             instance: The class that the endpoint function is in.
             args: The arguments given to the endpoint function.
             kwargs: The keyword arguments given to the endpoint function.
+
+        Raises:
+            Fail: Any given keys are not allowed, or if any required keys are
+                missing.
+
+        Returns:
+            The result of the request.
         """
         request, _ = args
         allowed_keys = mandatory_keys.union(optional_keys)
