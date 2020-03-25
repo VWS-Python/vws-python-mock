@@ -8,8 +8,10 @@ https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Service
 import base64
 import datetime
 import io
+import itertools
 import random
 import uuid
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
 
 import pytz
@@ -28,49 +30,24 @@ from mock_vws._mock_common import (
     set_content_length_header,
     set_date_header,
 )
-from mock_vws.database import VuforiaDatabase
-
-from ._services_validators import (
-    validate_active_flag,
-    validate_keys,
-    validate_metadata_encoding,
-    validate_metadata_size,
-    validate_metadata_type,
-    validate_name_characters_in_range,
-    validate_name_length,
-    validate_name_type,
-    validate_not_invalid_json,
-    validate_project_state,
-    validate_width,
-)
-from ._services_validators.auth_validators import (
-    validate_access_key_exists,
-    validate_auth_header_exists,
-    validate_auth_header_has_signature,
-    validate_authorization,
-)
-from ._services_validators.content_length_validators import (
-    validate_content_length_header_is_int,
-    validate_content_length_header_not_too_large,
-    validate_content_length_header_not_too_small,
-)
-from ._services_validators.content_type_validators import (
-    validate_content_type_header_given,
-)
-from ._services_validators.date_validators import (
-    validate_date_format,
-    validate_date_header_given,
-    validate_date_in_range,
-)
-from ._services_validators.image_validators import (
-    validate_image_color_space,
-    validate_image_data_type,
-    validate_image_encoding,
-    validate_image_format,
-    validate_image_is_image,
-    validate_image_size,
-)
 from .target import Target
+from mock_vws.database import VuforiaDatabase
+from mock_vws._services_validators import run_services_validators
+from mock_vws._services_validators.exceptions import (
+    AuthenticationFailure,
+    BadImage,
+    ContentLengthHeaderNotInt,
+    ContentLengthHeaderTooLarge,
+    Fail,
+    ImageTooLarge,
+    MetadataTooLarge,
+    OopsErrorOccurredResponse,
+    ProjectInactive,
+    RequestTimeTooSkewed,
+    TargetNameExist,
+    UnknownTarget,
+    UnnecessaryRequestBody,
+)
 
 _TARGET_ID_PATTERN = '[A-Za-z0-9]+'
 
@@ -98,15 +75,72 @@ def update_request_count(
     return wrapped(*args, **kwargs)
 
 
+def validate_keys(
+    mandatory_keys: Set[str],
+    optional_keys: Set[str],
+) -> Callable:
+    """
+    Args:
+        mandatory_keys: Keys required by the endpoint.
+        optional_keys: Keys which are not required by the endpoint but which
+            are allowed.
+
+    Returns:
+        A wrapper function to validate that the keys given to the endpoint are
+            all allowed and that the mandatory keys are given.
+    """
+
+    @wrapt.decorator
+    def wrapper(
+        wrapped: Callable[..., str],
+        instance: Any,  # pylint: disable=unused-argument
+        args: Tuple[_RequestObjectProxy, _Context],
+        kwargs: Dict,
+    ) -> str:
+        """
+        Validate the request keys given to a VWS endpoint.
+
+        Args:
+            wrapped: An endpoint function for `requests_mock`.
+            instance: The class that the endpoint function is in.
+            args: The arguments given to the endpoint function.
+            kwargs: The keyword arguments given to the endpoint function.
+
+        Raises:
+            Fail: Any given keys are not allowed, or if any required keys are
+                missing.
+
+        Returns:
+            The result of the request.
+        """
+        request, _ = args
+        allowed_keys = mandatory_keys.union(optional_keys)
+
+        if request.text is None and not allowed_keys:
+            return wrapped(*args, **kwargs)
+
+        given_keys = set(request.json().keys())
+        all_given_keys_allowed = given_keys.issubset(allowed_keys)
+        all_mandatory_keys_given = mandatory_keys.issubset(given_keys)
+
+        if all_given_keys_allowed and all_mandatory_keys_given:
+            return wrapped(*args, **kwargs)
+
+        raise Fail(status_code=codes.BAD_REQUEST)
+
+    wrapper_func: Callable[..., Any] = wrapper
+    return wrapper_func
+
+
 @wrapt.decorator
-def parse_target_id(
+def handle_validators(
     wrapped: Callable[..., str],
-    instance: 'MockVuforiaWebServicesAPI',
+    instance: Any,  # pylint: disable=unused-argument
     args: Tuple[_RequestObjectProxy, _Context],
     kwargs: Dict,
 ) -> str:
     """
-    Parse a target ID in a URL path and give the method a target argument.
+    Add to the request count.
 
     Args:
         wrapped: An endpoint function for `requests_mock`.
@@ -116,43 +150,75 @@ def parse_target_id(
 
     Returns:
         The result of calling the endpoint.
-        If a target ID is given in the path then the wrapped function is given
-        an extra argument - the matching target.
-        A `NOT_FOUND` response if there is no matching target.
     """
-    request, context = args
-
-    split_path = request.path.split('/')
-
-    if len(split_path) == 2:
+    _, context = args
+    try:
         return wrapped(*args, **kwargs)
+    except (
+        UnknownTarget,
+        ProjectInactive,
+        AuthenticationFailure,
+        Fail,
+        MetadataTooLarge,
+        TargetNameExist,
+        BadImage,
+        ImageTooLarge,
+        RequestTimeTooSkewed,
+    ) as exc:
+        context.status_code = exc.status_code
+        return exc.response_text
+    except OopsErrorOccurredResponse:
+        context.status_code = codes.INTERNAL_SERVER_ERROR
+        resources_dir = Path(__file__).parent / 'resources'
+        filename = 'oops_error_occurred_response.html'
+        oops_resp_file = resources_dir / filename
+        content_type = 'text/html; charset=UTF-8'
+        context.headers['Content-Type'] = content_type
+        text = str(oops_resp_file.read_text())
+        return text
+    except ContentLengthHeaderTooLarge:
+        context.status_code = codes.GATEWAY_TIMEOUT
+        context.headers = {'Connection': 'keep-alive'}
+        return ''
+    except ContentLengthHeaderNotInt:
+        context.status_code = codes.BAD_REQUEST
+        context.headers = {'Connection': 'Close'}
+        return ''
+    except UnnecessaryRequestBody:
+        context.status_code = codes.BAD_REQUEST
+        context.headers.pop('Content-Type')
+        return ''
 
-    target_id = split_path[-1]
-    database = get_database_matching_server_keys(
+
+@wrapt.decorator
+def run_validators(
+    wrapped: Callable[..., str],
+    instance: Any,
+    args: Tuple[_RequestObjectProxy, _Context],
+    kwargs: Dict,
+) -> str:
+    """
+    Add to the request count.
+
+    Args:
+        wrapped: An endpoint function for `requests_mock`.
+        instance: The class that the endpoint function is in.
+        args: The arguments given to the endpoint function.
+        kwargs: The keyword arguments given to the endpoint function.
+
+    Returns:
+        The result of calling the endpoint.
+    """
+    request, _ = args
+    run_services_validators(
+        request_text=request.text,
         request_headers=request.headers,
         request_body=request.body,
         request_method=request.method,
         request_path=request.path,
         databases=instance.databases,
     )
-
-    assert isinstance(database, VuforiaDatabase)
-
-    try:
-        [matching_target] = [
-            target for target in database.targets
-            if target.target_id == target_id and not target.delete_date
-        ]
-    except ValueError:
-        body: Dict[str, str] = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.UNKNOWN_TARGET.value,
-        }
-        context.status_code = codes.NOT_FOUND
-        return json_dump(body)
-
-    new_args = args + (matching_target, )
-    return wrapped(*new_args, **kwargs)
+    return wrapped(*args, **kwargs)
 
 
 ROUTES = set([])
@@ -199,38 +265,11 @@ def route(
             optional_keys=optional_keys or set([]),
             mandatory_keys=mandatory_keys or set([]),
         )
-
         decorators = [
-            parse_target_id,
-            validate_project_state,
-            validate_authorization,
-            validate_metadata_size,
-            validate_metadata_encoding,
-            validate_metadata_type,
-            validate_active_flag,
-            validate_image_size,
-            validate_image_color_space,
-            validate_image_format,
-            validate_image_is_image,
-            validate_image_encoding,
-            validate_image_data_type,
-            validate_name_characters_in_range,
-            validate_name_length,
-            validate_name_type,
-            validate_width,
             key_validator,
-            validate_content_type_header_given,
-            validate_date_in_range,
-            validate_date_format,
-            validate_date_header_given,
-            validate_not_invalid_json,
-            validate_access_key_exists,
-            validate_auth_header_has_signature,
-            validate_auth_header_exists,
-            validate_content_length_header_not_too_small,
+            run_validators,
+            handle_validators,
             set_date_header,
-            validate_content_length_header_not_too_large,
-            validate_content_length_header_is_int,
             set_content_length_header,
             update_request_count,
         ]
@@ -241,6 +280,26 @@ def route(
         return method
 
     return decorator
+
+
+def _get_target_from_request(
+    request_path: str,
+    databases: List[VuforiaDatabase],
+) -> Target:
+    """
+    Given a request path with a target ID in the path, and a list of databases,
+    return the target with that ID from those databases.
+    """
+    split_path = request_path.split('/')
+    target_id = split_path[-1]
+    all_database_targets = itertools.chain.from_iterable(
+        [database.targets for database in databases],
+    )
+    [target] = [
+        target for target in all_database_targets
+        if target.target_id == target_id
+    ]
+    return target
 
 
 class MockVuforiaWebServicesAPI:
@@ -341,9 +400,8 @@ class MockVuforiaWebServicesAPI:
     )
     def delete_target(
         self,
-        request: _RequestObjectProxy,  # pylint: disable=unused-argument
+        request: _RequestObjectProxy,
         context: _Context,
-        target: Target,
     ) -> str:
         """
         Delete a target.
@@ -352,6 +410,10 @@ class MockVuforiaWebServicesAPI:
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Delete-a-Target
         """
         body: Dict[str, str] = {}
+        target = _get_target_from_request(
+            request_path=request.path,
+            databases=self.databases,
+        )
 
         if target.status == TargetStatuses.PROCESSING.value:
             context.status_code = codes.FORBIDDEN
@@ -482,9 +544,8 @@ class MockVuforiaWebServicesAPI:
     @route(path_pattern=f'/targets/{_TARGET_ID_PATTERN}', http_methods=[GET])
     def get_target(
         self,
-        request: _RequestObjectProxy,  # pylint: disable=unused-argument
+        request: _RequestObjectProxy,
         context: _Context,  # pylint: disable=unused-argument
-        target: Target,
     ) -> str:
         """
         Get details of a target.
@@ -492,6 +553,11 @@ class MockVuforiaWebServicesAPI:
         Fake implementation of
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Retrieve-a-Target-Record
         """
+        target = _get_target_from_request(
+            request_path=request.path,
+            databases=self.databases,
+        )
+
         target_record = {
             'target_id': target.target_id,
             'active_flag': target.active_flag,
@@ -517,7 +583,6 @@ class MockVuforiaWebServicesAPI:
         self,
         request: _RequestObjectProxy,
         context: _Context,  # pylint: disable=unused-argument
-        target: Target,
     ) -> str:
         """
         Get targets which may be considered duplicates of a given target.
@@ -525,6 +590,10 @@ class MockVuforiaWebServicesAPI:
         Fake implementation of
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Check-for-Duplicate-Targets
         """
+        target = _get_target_from_request(
+            request_path=request.path,
+            databases=self.databases,
+        )
         database = get_database_matching_server_keys(
             request_headers=request.headers,
             request_body=request.body,
@@ -567,7 +636,6 @@ class MockVuforiaWebServicesAPI:
         self,
         request: _RequestObjectProxy,
         context: _Context,
-        target: Target,
     ) -> str:
         """
         Update a target.
@@ -575,6 +643,10 @@ class MockVuforiaWebServicesAPI:
         Fake implementation of
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Update-a-Target
         """
+        target = _get_target_from_request(
+            request_path=request.path,
+            databases=self.databases,
+        )
         body: Dict[str, str] = {}
         database = get_database_matching_server_keys(
             request_headers=request.headers,
@@ -661,7 +733,6 @@ class MockVuforiaWebServicesAPI:
         self,
         request: _RequestObjectProxy,
         context: _Context,  # pylint: disable=unused-argument
-        target: Target,
     ) -> str:
         """
         Get a summary report for a target.
@@ -669,6 +740,10 @@ class MockVuforiaWebServicesAPI:
         Fake implementation of
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Retrieve-a-Target-Summary-Report
         """
+        target = _get_target_from_request(
+            request_path=request.path,
+            databases=self.databases,
+        )
         database = get_database_matching_server_keys(
             request_headers=request.headers,
             request_body=request.body,

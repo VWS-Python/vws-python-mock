@@ -23,6 +23,7 @@ decodable
 dev
 dict
 docstring
+docstrings
 filename
 foo
 formdata
