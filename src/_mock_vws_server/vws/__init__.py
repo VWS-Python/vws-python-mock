@@ -6,7 +6,7 @@ import uuid
 from typing import Dict, List, Tuple, Union
 
 import requests
-from flask import Flask, Response, request
+from flask import Flask, Response, request, make_response
 from flask_json_schema import JsonSchema, JsonValidationError
 from PIL import Image
 from requests import codes
@@ -96,8 +96,9 @@ def handle_request_time_too_skewed(e: RequestTimeTooSkewed) -> Tuple[str, int]:
 @VWS_FLASK_APP.errorhandler(OopsErrorOccurredResponse)
 def handle_oops_error_occurred(e: OopsErrorOccurredResponse) -> Tuple[str, int]:
     content_type = 'text/html; charset=UTF-8'
-    context.headers['Content-Type'] = content_type
-    return e.response_text, e.status_code
+    response = make_response(e.response_text, e.status_code)
+    response.headers['Content-Type'] = content_type
+    return response
 
 @VWS_FLASK_APP.after_request
 def set_headers(response: Response) -> Response:

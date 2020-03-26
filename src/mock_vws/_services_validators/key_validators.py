@@ -141,7 +141,7 @@ def validate_keys(
     optional_keys = matching_route.optional_keys
     allowed_keys = mandatory_keys.union(optional_keys)
 
-    if request_text is None and not allowed_keys:
+    if not request_text and not allowed_keys:
         return
 
     request_json = json.loads(request_text)
