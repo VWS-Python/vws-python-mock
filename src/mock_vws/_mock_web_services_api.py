@@ -12,7 +12,7 @@ import itertools
 import random
 import uuid
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Callable, Dict, List, Set, Tuple, Union
 
 import pytz
 import wrapt
@@ -30,8 +30,6 @@ from mock_vws._mock_common import (
     set_content_length_header,
     set_date_header,
 )
-from .target import Target
-from mock_vws.database import VuforiaDatabase
 from mock_vws._services_validators import run_services_validators
 from mock_vws._services_validators.exceptions import (
     AuthenticationFailure,
@@ -48,6 +46,9 @@ from mock_vws._services_validators.exceptions import (
     UnknownTarget,
     UnnecessaryRequestBody,
 )
+from mock_vws.database import VuforiaDatabase
+
+from .target import Target
 
 _TARGET_ID_PATTERN = '[A-Za-z0-9]+'
 
@@ -73,8 +74,6 @@ def update_request_count(
     """
     instance.request_count += 1
     return wrapped(*args, **kwargs)
-
-
 
 
 @wrapt.decorator
@@ -172,8 +171,6 @@ ROUTES = set([])
 def route(
     path_pattern: str,
     http_methods: List[str],
-    mandatory_keys: Optional[Set[str]] = None,
-    optional_keys: Optional[Set[str]] = None,
 ) -> Callable[..., Callable]:
     """
     Register a decorated method so that it can be recognized as a route.
@@ -182,9 +179,6 @@ def route(
         path_pattern: The end part of a URL pattern. E.g. `/targets` or
             `/targets/.+`.
         http_methods: HTTP methods that map to the route function.
-        mandatory_keys: Keys required by the endpoint.
-        optional_keys: Keys which are not required by the endpoint but which
-            are allowed.
 
     Returns:
         A decorator which takes methods and makes them recognizable as routes.
@@ -272,8 +266,6 @@ class MockVuforiaWebServicesAPI:
     @route(
         path_pattern='/targets',
         http_methods=[POST],
-        mandatory_keys={'image', 'width', 'name'},
-        optional_keys={'active_flag', 'application_metadata'},
     )
     def add_target(
         self,
@@ -564,13 +556,6 @@ class MockVuforiaWebServicesAPI:
     @route(
         path_pattern=f'/targets/{_TARGET_ID_PATTERN}',
         http_methods=[PUT],
-        optional_keys={
-            'active_flag',
-            'application_metadata',
-            'image',
-            'name',
-            'width',
-        },
     )
     def update_target(
         self,

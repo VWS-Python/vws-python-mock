@@ -1,13 +1,31 @@
+"""
+Validators for JSON keys.
+"""
+
+import json
+import re
 from dataclasses import dataclass
 from typing import Set
-from requests_mock import DELETE, GET, POST, PUT
-import re
+
 from requests import codes
+from requests_mock import DELETE, GET, POST, PUT
+
 from .exceptions import Fail
-import json
+
 
 @dataclass
 class _Route:
+    """
+    A representation of a VWS route.
+
+    Args:
+        path_pattern: The end part of a URL pattern. E.g. `/targets` or
+            `/targets/.+`.
+        http_methods: HTTP methods that map to the route function.
+        mandatory_keys: Keys required by the endpoint.
+        optional_keys: Keys which are not required by the endpoint but which
+            are allowed.
+    """
     path_pattern: str
     http_methods: Set[str]
     mandatory_keys: Set[str]
@@ -23,17 +41,13 @@ def validate_keys(
     Validate the request keys given to a VWS endpoint.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_text: The content of the request.
+        request_path: The path of the request.
+        request_method: The HTTP method of the request.
 
     Raises:
         Fail: Any given keys are not allowed, or if any required keys are
             missing.
-
-    Returns:
-        The result of the request.
     """
     target_id_pattern = '[A-Za-z0-9]+'
     add_target = _Route(
@@ -117,10 +131,9 @@ def validate_keys(
     )
 
     [matching_route] = [
-        route for route in routes if
-        re.match(re.compile(route.path_pattern + '$'), request_path)
-        and
-        request_method in route.http_methods
+        route for route in routes
+        if re.match(re.compile(route.path_pattern + '$'), request_path)
+        and request_method in route.http_methods
     ]
 
     mandatory_keys = matching_route.mandatory_keys
