@@ -2,7 +2,7 @@
 Input validators to use in the mock.
 """
 
-from typing import Dict, List
+from typing import Dict, List, Set
 
 from mock_vws.database import VuforiaDatabase
 
@@ -55,7 +55,7 @@ def run_services_validators(
     request_headers: Dict[str, str],
     request_body: bytes,
     request_method: str,
-    databases: List[VuforiaDatabase],
+    databases: Set[VuforiaDatabase],
 ) -> None:
     """
     Run all validators.

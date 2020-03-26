@@ -35,30 +35,9 @@ from mock_vws._services_validators.exceptions import (
     UnknownTarget,
     UnnecessaryRequestBody,
 )
+from pathlib import Path
 
 VWS_FLASK_APP = Flask(__name__)
-JSON_SCHEMA = JsonSchema(VWS_FLASK_APP)
-
-ADD_TARGET_SCHEMA = {
-    'required': ['name', 'image', 'width'],
-    # TODO are the properties useful for fixing tests?
-    'properties': {
-        # TODO maybe use more limits on types here and use a max length for
-        # string?
-        # TODO though actually - if authentication is wrong, surely that's the
-        # first issue and then maybe we need to re-think this and not have
-        # schema checks - or maybe not until later?
-        'name': {
-            'type': 'string',
-        },
-        'image': {},
-        'width': {},
-        'active_flag': {},
-        'application_metadata': {},
-    },
-    'additionalProperties': False,
-}
-
 
 @VWS_FLASK_APP.before_request
 def validate_request() -> None:
@@ -114,6 +93,15 @@ def handle_image_too_large(e: ImageTooLarge) -> Tuple[str, int]:
 def handle_request_time_too_skewed(e: RequestTimeTooSkewed) -> Tuple[str, int]:
     return e.response_text, e.status_code
 
+@VWS_FLASK_APP.errorhandler(OopsErrorOccurredResponse)
+def handle_oops_error_occurred(e: OopsErrorOccurredResponse) -> Tuple[str, int]:
+    resources_dir = Path(__file__).parent / 'resources'
+    filename = 'oops_error_occurred_response.html'
+    oops_resp_file = resources_dir / filename
+    content_type = 'text/html; charset=UTF-8'
+    context.headers['Content-Type'] = content_type
+    text = str(oops_resp_file.read_text())
+    return e.response_text, e.status_code
 
 @VWS_FLASK_APP.after_request
 def set_headers(response: Response) -> Response:
@@ -129,7 +117,6 @@ def set_headers(response: Response) -> Response:
 
 
 @VWS_FLASK_APP.route('/targets', methods=['POST'])
-@JSON_SCHEMA.validate(ADD_TARGET_SCHEMA)
 def add_target() -> Tuple[str, int]:
     """
     Add a target.
