@@ -111,27 +111,23 @@ def handle_validators(
     ) as exc:
         context.status_code = exc.status_code
         return exc.response_text
-    except OopsErrorOccurredResponse:
-        context.status_code = codes.INTERNAL_SERVER_ERROR
-        resources_dir = Path(__file__).parent / 'resources'
-        filename = 'oops_error_occurred_response.html'
-        oops_resp_file = resources_dir / filename
+    except OopsErrorOccurredResponse as exc:
         content_type = 'text/html; charset=UTF-8'
         context.headers['Content-Type'] = content_type
-        text = str(oops_resp_file.read_text())
-        return text
-    except ContentLengthHeaderTooLarge:
-        context.status_code = codes.GATEWAY_TIMEOUT
+        context.status_code = exc.status_code
+        return exc.response_text
+    except ContentLengthHeaderTooLarge as exc:
         context.headers = {'Connection': 'keep-alive'}
-        return ''
-    except ContentLengthHeaderNotInt:
-        context.status_code = codes.BAD_REQUEST
+        context.status_code = exc.status_code
+        return exc.response_text
+    except ContentLengthHeaderNotInt as exc:
         context.headers = {'Connection': 'Close'}
-        return ''
-    except UnnecessaryRequestBody:
-        context.status_code = codes.BAD_REQUEST
+        context.status_code = exc.status_code
+        return exc.response_text
+    except UnnecessaryRequestBody as exc:
         context.headers.pop('Content-Type')
-        return ''
+        context.status_code = exc.status_code
+        return exc.response_text
 
 
 @wrapt.decorator

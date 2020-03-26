@@ -3,6 +3,7 @@ Exceptions to raise from validators.
 """
 
 import uuid
+from pathlib import Path
 
 from requests import codes
 
@@ -165,6 +166,11 @@ class OopsErrorOccurredResponse(Exception):
         """
         super().__init__()
         self.status_code = codes.INTERNAL_SERVER_ERROR
+        resources_dir = Path(__file__).parent.parent / 'resources'
+        filename = 'oops_error_occurred_response.html'
+        oops_resp_file = resources_dir / filename
+        text = str(oops_resp_file.read_text())
+        self.response_text = text
 
 
 class BadImage(Exception):
@@ -241,14 +247,50 @@ class ContentLengthHeaderTooLarge(Exception):
     Exception raised when the given content length header is too large.
     """
 
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
+        super().__init__()
+        self.status_code = codes.GATEWAY_TIMEOUT
+        self.response_text = ''
+
 
 class ContentLengthHeaderNotInt(Exception):
     """
     Exception raised when the given content length header is not an integer.
     """
 
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
+        super().__init__()
+        self.status_code = codes.BAD_REQUEST
+        self.response_text = ''
+
 
 class UnnecessaryRequestBody(Exception):
     """
     Exception raised when a request body is given but not necessary.
     """
+
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
+        super().__init__()
+        self.status_code = codes.BAD_REQUEST
+        self.response_text = ''
