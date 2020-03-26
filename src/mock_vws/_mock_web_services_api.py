@@ -75,61 +75,6 @@ def update_request_count(
     return wrapped(*args, **kwargs)
 
 
-def validate_keys(
-    mandatory_keys: Set[str],
-    optional_keys: Set[str],
-) -> Callable:
-    """
-    Args:
-        mandatory_keys: Keys required by the endpoint.
-        optional_keys: Keys which are not required by the endpoint but which
-            are allowed.
-
-    Returns:
-        A wrapper function to validate that the keys given to the endpoint are
-            all allowed and that the mandatory keys are given.
-    """
-
-    @wrapt.decorator
-    def wrapper(
-        wrapped: Callable[..., str],
-        instance: Any,  # pylint: disable=unused-argument
-        args: Tuple[_RequestObjectProxy, _Context],
-        kwargs: Dict,
-    ) -> str:
-        """
-        Validate the request keys given to a VWS endpoint.
-
-        Args:
-            wrapped: An endpoint function for `requests_mock`.
-            instance: The class that the endpoint function is in.
-            args: The arguments given to the endpoint function.
-            kwargs: The keyword arguments given to the endpoint function.
-
-        Raises:
-            Fail: Any given keys are not allowed, or if any required keys are
-                missing.
-
-        Returns:
-            The result of the request.
-        """
-        request, _ = args
-        allowed_keys = mandatory_keys.union(optional_keys)
-
-        if request.text is None and not allowed_keys:
-            return wrapped(*args, **kwargs)
-
-        given_keys = set(request.json().keys())
-        all_given_keys_allowed = given_keys.issubset(allowed_keys)
-        all_mandatory_keys_given = mandatory_keys.issubset(given_keys)
-
-        if all_given_keys_allowed and all_mandatory_keys_given:
-            return wrapped(*args, **kwargs)
-
-        raise Fail(status_code=codes.BAD_REQUEST)
-
-    wrapper_func: Callable[..., Any] = wrapper
-    return wrapper_func
 
 
 @wrapt.decorator
@@ -261,12 +206,7 @@ def route(
             ),
         )
 
-        key_validator = validate_keys(
-            optional_keys=optional_keys or set([]),
-            mandatory_keys=mandatory_keys or set([]),
-        )
         decorators = [
-            key_validator,
             run_validators,
             handle_validators,
             set_date_header,

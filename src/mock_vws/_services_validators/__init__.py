@@ -20,6 +20,7 @@ from .content_length_validators import (
 from .content_type_validators import (
     validate_content_type_header_given,
 )
+from .key_validators import validate_keys
 from .date_validators import (
     validate_date_format,
     validate_date_header_given,
@@ -99,6 +100,11 @@ def run_services_validators(
     validate_json(
         request_text=request_text,
         request_body=request_body,
+        request_method=request_method,
+    )
+    validate_keys(
+        request_text=request_text,
+        request_path=request_path,
         request_method=request_method,
     )
     validate_metadata_type(request_text=request_text)
