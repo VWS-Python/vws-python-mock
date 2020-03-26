@@ -69,7 +69,7 @@ ROUTES = set([])
 
 def route(
     path_pattern: str,
-    http_methods: List[str],
+    http_methods: Set[str],
 ) -> Callable[..., Callable]:
     """
     Register a decorated method so that it can be recognized as a route.
@@ -95,7 +95,7 @@ def route(
             Route(
                 route_name=method.__name__,
                 path_pattern=path_pattern,
-                http_methods=http_methods,
+                http_methods=frozenset(http_methods),
             ),
         )
 
@@ -160,7 +160,7 @@ class MockVuforiaWebQueryAPI:
             databases: Target databases.
         """
         self.routes: Set[Route] = ROUTES
-        self.databases: List[VuforiaDatabase] = []
+        self.databases: Set[VuforiaDatabase] = set([])
         self._query_processes_deletion_seconds = (
             query_processes_deletion_seconds
         )
@@ -168,7 +168,7 @@ class MockVuforiaWebQueryAPI:
             query_recognizes_deletion_seconds
         )
 
-    @route(path_pattern='/v1/query', http_methods=[POST])
+    @route(path_pattern='/v1/query', http_methods={POST})
     def query(
         self,
         request: _RequestObjectProxy,
