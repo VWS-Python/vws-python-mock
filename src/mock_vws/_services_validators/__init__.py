@@ -2,8 +2,9 @@
 Input validators to use in the mock.
 """
 
-from mock_vws.database import VuforiaDatabase
 from typing import Dict, List
+
+from mock_vws.database import VuforiaDatabase
 
 from .active_flag_validators import validate_active_flag
 from .auth_validators import (
@@ -17,9 +18,7 @@ from .content_length_validators import (
     validate_content_length_header_not_too_large,
     validate_content_length_header_not_too_small,
 )
-from .content_type_validators import (
-    validate_content_type_header_given,
-)
+from .content_type_validators import validate_content_type_header_given
 from .date_validators import (
     validate_date_format,
     validate_date_header_given,
@@ -34,6 +33,7 @@ from .image_validators import (
     validate_image_size,
 )
 from .json_validators import validate_json
+from .key_validators import validate_keys
 from .metadata_validators import (
     validate_metadata_encoding,
     validate_metadata_size,
@@ -44,11 +44,10 @@ from .name_validators import (
     validate_name_length,
     validate_name_type,
 )
-from .project_state_validators import (
-    validate_project_state,
-)
+from .project_state_validators import validate_project_state
 from .target_validators import validate_target_id_exists
 from .width_validators import validate_width
+
 
 def run_services_validators(
     request_text: str,
@@ -99,6 +98,11 @@ def run_services_validators(
     validate_json(
         request_text=request_text,
         request_body=request_body,
+        request_method=request_method,
+    )
+    validate_keys(
+        request_text=request_text,
+        request_path=request_path,
         request_method=request_method,
     )
     validate_metadata_type(request_text=request_text)
