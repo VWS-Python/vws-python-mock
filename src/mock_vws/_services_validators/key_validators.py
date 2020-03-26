@@ -26,6 +26,7 @@ class _Route:
         optional_keys: Keys which are not required by the endpoint but which
             are allowed.
     """
+
     path_pattern: str
     http_methods: Set[str]
     mandatory_keys: Set[str]
