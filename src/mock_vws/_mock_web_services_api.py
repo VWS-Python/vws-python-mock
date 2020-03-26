@@ -170,7 +170,7 @@ ROUTES = set([])
 
 def route(
     path_pattern: str,
-    http_methods: List[str],
+    http_methods: Set[str],
 ) -> Callable[..., Callable]:
     """
     Register a decorated method so that it can be recognized as a route.
@@ -196,7 +196,7 @@ def route(
             Route(
                 route_name=method.__name__,
                 path_pattern=path_pattern,
-                http_methods=http_methods,
+                http_methods=frozenset(http_methods),
             ),
         )
 
@@ -218,7 +218,7 @@ def route(
 
 def _get_target_from_request(
     request_path: str,
-    databases: List[VuforiaDatabase],
+    databases: Set[VuforiaDatabase],
 ) -> Target:
     """
     Given a request path with a target ID in the path, and a list of databases,
@@ -258,14 +258,14 @@ class MockVuforiaWebServicesAPI:
             routes: The `Route`s to be used in the mock.
             request_count: The number of requests made to this API.
         """
-        self.databases: List[VuforiaDatabase] = []
+        self.databases: Set[VuforiaDatabase] = set([])
         self.routes: Set[Route] = ROUTES
         self._processing_time_seconds = processing_time_seconds
         self.request_count = 0
 
     @route(
         path_pattern='/targets',
-        http_methods=[POST],
+        http_methods={POST},
     )
     def add_target(
         self,
@@ -328,7 +328,7 @@ class MockVuforiaWebServicesAPI:
 
     @route(
         path_pattern=f'/targets/{_TARGET_ID_PATTERN}',
-        http_methods=[DELETE],
+        http_methods={DELETE},
     )
     def delete_target(
         self,
@@ -365,7 +365,7 @@ class MockVuforiaWebServicesAPI:
         }
         return json_dump(body)
 
-    @route(path_pattern='/summary', http_methods=[GET])
+    @route(path_pattern='/summary', http_methods={GET})
     def database_summary(
         self,
         request: _RequestObjectProxy,
@@ -440,7 +440,7 @@ class MockVuforiaWebServicesAPI:
         }
         return json_dump(body)
 
-    @route(path_pattern='/targets', http_methods=[GET])
+    @route(path_pattern='/targets', http_methods={GET})
     def target_list(
         self,
         request: _RequestObjectProxy,
@@ -473,7 +473,7 @@ class MockVuforiaWebServicesAPI:
         }
         return json_dump(body)
 
-    @route(path_pattern=f'/targets/{_TARGET_ID_PATTERN}', http_methods=[GET])
+    @route(path_pattern=f'/targets/{_TARGET_ID_PATTERN}', http_methods={GET})
     def get_target(
         self,
         request: _RequestObjectProxy,
@@ -509,7 +509,7 @@ class MockVuforiaWebServicesAPI:
 
     @route(
         path_pattern=f'/duplicates/{_TARGET_ID_PATTERN}',
-        http_methods=[GET],
+        http_methods={GET},
     )
     def get_duplicates(
         self,
@@ -555,7 +555,7 @@ class MockVuforiaWebServicesAPI:
 
     @route(
         path_pattern=f'/targets/{_TARGET_ID_PATTERN}',
-        http_methods=[PUT],
+        http_methods={PUT},
     )
     def update_target(
         self,
@@ -653,7 +653,7 @@ class MockVuforiaWebServicesAPI:
         }
         return json_dump(body)
 
-    @route(path_pattern=f'/summary/{_TARGET_ID_PATTERN}', http_methods=[GET])
+    @route(path_pattern=f'/summary/{_TARGET_ID_PATTERN}', http_methods={GET})
     def target_summary(
         self,
         request: _RequestObjectProxy,

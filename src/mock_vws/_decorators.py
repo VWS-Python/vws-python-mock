@@ -126,8 +126,8 @@ class MockVWS(ContextDecorator):
                     message = message_fmt.format(key_name=key_name, value=new)
                     raise ValueError(message)
 
-        self._mock_vws_api.databases.append(database)
-        self._mock_vwq_api.databases.append(database)
+        self._mock_vws_api.databases.add(database)
+        self._mock_vwq_api.databases.add(database)
 
     def __enter__(self) -> 'MockVWS':
         """
