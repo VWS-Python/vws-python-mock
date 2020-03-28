@@ -150,7 +150,6 @@ def run_validators(
     """
     request, _ = args
     run_services_validators(
-        request_text=request.text,
         request_headers=request.headers,
         request_body=request.body,
         request_method=request.method,

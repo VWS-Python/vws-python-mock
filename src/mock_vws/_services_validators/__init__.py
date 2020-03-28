@@ -50,7 +50,6 @@ from .width_validators import validate_width
 
 
 def run_services_validators(
-    request_text: str,
     request_path: str,
     request_headers: Dict[str, str],
     request_body: bytes,
@@ -61,7 +60,6 @@ def run_services_validators(
     Run all validators.
 
     Args:
-        request_text: The content of the request.
         request_path: The path of the request.
         request_headers: The headers sent with the request.
         request_body: The body of the request.
@@ -96,36 +94,35 @@ def run_services_validators(
         databases=databases,
     )
     validate_json(
-        request_text=request_text,
         request_body=request_body,
         request_method=request_method,
     )
     validate_keys(
-        request_text=request_text,
+        request_body=request_body,
         request_path=request_path,
         request_method=request_method,
     )
-    validate_metadata_type(request_text=request_text)
-    validate_metadata_encoding(request_text=request_text)
-    validate_metadata_size(request_text=request_text)
-    validate_active_flag(request_text=request_text)
-    validate_image_data_type(request_text=request_text)
-    validate_image_encoding(request_text=request_text)
-    validate_image_is_image(request_text=request_text)
-    validate_image_format(request_text=request_text)
-    validate_image_color_space(request_text=request_text)
+    validate_metadata_type(request_body=request_body)
+    validate_metadata_encoding(request_body=request_body)
+    validate_metadata_size(request_body=request_body)
+    validate_active_flag(request_body=request_body)
 
-    validate_image_size(request_text=request_text)
+    validate_image_data_type(request_body=request_body)
+    validate_image_encoding(request_body=request_body)
+    validate_image_is_image(request_body=request_body)
+    validate_image_format(request_body=request_body)
+    validate_image_color_space(request_body=request_body)
+    validate_image_size(request_body=request_body)
 
-    validate_name_type(request_text=request_text)
-    validate_name_length(request_text=request_text)
+    validate_name_type(request_body=request_body)
+    validate_name_length(request_body=request_body)
     validate_name_characters_in_range(
-        request_text=request_text,
+        request_body=request_body,
         request_method=request_method,
         request_path=request_path,
     )
 
-    validate_width(request_text=request_text)
+    validate_width(request_body=request_body)
     validate_content_type_header_given(
         request_headers=request_headers,
         request_method=request_method,
