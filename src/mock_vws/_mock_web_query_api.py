@@ -11,9 +11,10 @@ import datetime
 import io
 import uuid
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Set, Union
+from typing import Any, Callable, Dict, List, Set, Tuple, Union
 
 import pytz
+import wrapt
 from requests import codes
 from requests_mock import POST
 from requests_mock.request import _RequestObjectProxy
@@ -29,6 +30,7 @@ from mock_vws._mock_common import (
     set_content_length_header,
     set_date_header,
 )
+from mock_vws._query_validators import run_query_validators
 from mock_vws.database import VuforiaDatabase
 
 from ._query_validators.accept_header_validators import validate_accept_header
@@ -67,6 +69,36 @@ from ._query_validators.num_results_validators import validate_max_num_results
 from ._query_validators.project_state_validators import validate_project_state
 
 ROUTES = set([])
+
+
+@wrapt.decorator
+def run_validators(
+    wrapped: Callable[..., str],
+    instance: Any,
+    args: Tuple[_RequestObjectProxy, _Context],
+    kwargs: Dict,
+) -> str:
+    """
+    Run all validators for the query endpoint.
+
+    Args:
+        wrapped: An endpoint function for `requests_mock`.
+        instance: The class that the endpoint function is in.
+        args: The arguments given to the endpoint function.
+        kwargs: The keyword arguments given to the endpoint function.
+
+    Returns:
+        The result of calling the endpoint.
+    """
+    request, _ = args
+    run_query_validators(
+        request_path=request.path,
+        request_headers=request.headers,
+        request_body=request.body,
+        request_method=request.method,
+        databases=instance.databases,
+    )
+    return wrapped(*args, **kwargs)
 
 
 def route(
@@ -122,9 +154,10 @@ def route(
             validate_auth_header_number_of_parts,
             validate_auth_header_exists,
             validate_content_length_header_not_too_small,
-            set_date_header,
             validate_content_length_header_not_too_large,
             validate_content_length_header_is_int,
+            run_validators,
+            set_date_header,
             set_content_length_header,
         ]
 

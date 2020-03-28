@@ -137,7 +137,7 @@ def run_validators(
     kwargs: Dict,
 ) -> str:
     """
-    Add to the request count.
+    Run all validators for the services endpoints.
 
     Args:
         wrapped: An endpoint function for `requests_mock`.
