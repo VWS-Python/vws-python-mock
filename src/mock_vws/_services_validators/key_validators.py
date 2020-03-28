@@ -34,7 +34,7 @@ class _Route:
 
 
 def validate_keys(
-    request_text: str,
+    request_body: bytes,
     request_path: str,
     request_method: str,
 ) -> None:
@@ -42,7 +42,7 @@ def validate_keys(
     Validate the request keys given to a VWS endpoint.
 
     Args:
-        request_text: The content of the request.
+        request_body: The body of the request.
         request_path: The path of the request.
         request_method: The HTTP method of the request.
 
@@ -141,9 +141,10 @@ def validate_keys(
     optional_keys = matching_route.optional_keys
     allowed_keys = mandatory_keys.union(optional_keys)
 
-    if request_text is None and not allowed_keys:
+    if request_body is None and not allowed_keys:
         return
 
+    request_text = request_body.decode()
     request_json = json.loads(request_text)
     given_keys = set(request_json.keys())
     all_given_keys_allowed = given_keys.issubset(allowed_keys)

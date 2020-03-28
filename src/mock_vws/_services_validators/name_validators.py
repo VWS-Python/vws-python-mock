@@ -14,7 +14,7 @@ from mock_vws._services_validators.exceptions import (
 
 
 def validate_name_characters_in_range(
-    request_text: str,
+    request_body: bytes,
     request_method: str,
     request_path: str,
 ) -> None:
@@ -22,7 +22,7 @@ def validate_name_characters_in_range(
     Validate the characters in the name argument given to a VWS endpoint.
 
     Args:
-        request_text: The content of the request.
+        request_body: The body of the request.
         request_method: The HTTP method the request is using.
         request_path: The path to the endpoint.
 
@@ -33,9 +33,10 @@ def validate_name_characters_in_range(
             another endpoint.
     """
 
-    if not request_text:
+    if not request_body:
         return
 
+    request_text = request_body.decode()
     if 'name' not in json.loads(request_text):
         return
 
@@ -50,20 +51,21 @@ def validate_name_characters_in_range(
     raise TargetNameExist
 
 
-def validate_name_type(request_text: str) -> None:
+def validate_name_type(request_body: bytes) -> None:
     """
     Validate the type of the name argument given to a VWS endpoint.
 
     Args:
-        request_text: The content of the request.
+        request_body: The body of the request.
 
     Raises:
         Fail: A name is given and it is not a string.
     """
 
-    if not request_text:
+    if not request_body:
         return
 
+    request_text = request_body.decode()
     if 'name' not in json.loads(request_text):
         return
 
@@ -75,20 +77,21 @@ def validate_name_type(request_text: str) -> None:
     raise Fail(status_code=codes.BAD_REQUEST)
 
 
-def validate_name_length(request_text: str) -> None:
+def validate_name_length(request_body: bytes) -> None:
     """
     Validate the length of the name argument given to a VWS endpoint.
 
     Args:
-        request_text: The content of the request.
+        request_body: The body of the request.
 
     Raises:
         Fail: A name is given and it is not a between 1 and 64 characters in
             length.
     """
-    if not request_text:
+    if not request_body:
         return
 
+    request_text = request_body.decode()
     if 'name' not in json.loads(request_text):
         return
 
