@@ -111,7 +111,7 @@ def validate_image_is_image(request_body: bytes) -> None:
     Validate that the given image data is actually an image file.
 
     Args:
-        request_text: The content of the request.
+        request_body: The body of the request.
 
     Raises:
         BadImage: Image data is given and it is not an image file.
