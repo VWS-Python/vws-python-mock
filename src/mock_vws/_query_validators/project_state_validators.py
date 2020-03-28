@@ -2,8 +2,6 @@
 Validators for the project state.
 """
 
-import cgi
-import io
 import uuid
 from typing import Any, Callable, Dict, Tuple
 
@@ -12,12 +10,10 @@ from requests import codes
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
-from mock_vws.database import VuforiaDatabase
-from mock_vws.states import States
-
 from mock_vws._constants import ResultCodes
 from mock_vws._database_matchers import get_database_matching_client_keys
-from mock_vws._mock_common import parse_multipart
+from mock_vws.database import VuforiaDatabase
+from mock_vws.states import States
 
 
 @wrapt.decorator
