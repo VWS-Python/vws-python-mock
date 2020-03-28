@@ -17,19 +17,20 @@ from mock_vws._services_validators.exceptions import (
 )
 
 
-def validate_image_format(request_text: str) -> None:
+def validate_image_format(request_body: bytes) -> None:
     """
     Validate the format of the image given to a VWS endpoint.
 
     Args:
-        request_text: The content of the request.
+        request_body: The body of the request.
 
     Raises:
         BadImage:  The image is given and is not either a PNG or a JPEG.
     """
-    if not request_text:
+    if not request_body:
         return
 
+    request_text = request_body.decode()
     image = json.loads(request_text).get('image')
 
     if image is None:
@@ -45,21 +46,22 @@ def validate_image_format(request_text: str) -> None:
     raise BadImage
 
 
-def validate_image_color_space(request_text: str) -> None:
+def validate_image_color_space(request_body: bytes) -> None:
     """
     Validate the color space of the image given to a VWS endpoint.
 
     Args:
-        request_text: The content of the request.
+        request_body: The body of the request.
 
     Raises:
         BadImage: The image is given and is not in either the RGB or
             greyscale color space.
     """
 
-    if not request_text:
+    if not request_body:
         return
 
+    request_text = request_body.decode()
     image = json.loads(request_text).get('image')
 
     if image is None:
@@ -75,21 +77,22 @@ def validate_image_color_space(request_text: str) -> None:
     raise BadImage
 
 
-def validate_image_size(request_text: str) -> None:
+def validate_image_size(request_body: bytes) -> None:
     """
     Validate the file size of the image given to a VWS endpoint.
 
     Args:
-        request_text: The content of the request.
+        request_body: The body of the request.
 
     Raises:
         ImageTooLarge:  The image is given and is not under a certain file
             size threshold.
     """
 
-    if not request_text:
+    if not request_body:
         return
 
+    request_text = request_body.decode()
     image = json.loads(request_text).get('image')
 
     if image is None:
@@ -103,7 +106,7 @@ def validate_image_size(request_text: str) -> None:
     raise ImageTooLarge
 
 
-def validate_image_is_image(request_text: str) -> None:
+def validate_image_is_image(request_body: bytes) -> None:
     """
     Validate that the given image data is actually an image file.
 
@@ -114,9 +117,10 @@ def validate_image_is_image(request_text: str) -> None:
         BadImage: Image data is given and it is not an image file.
     """
 
-    if not request_text:
+    if not request_body:
         return
 
+    request_text = request_body.decode()
     image = json.loads(request_text).get('image')
 
     if image is None:
@@ -131,20 +135,21 @@ def validate_image_is_image(request_text: str) -> None:
         raise BadImage
 
 
-def validate_image_encoding(request_text: str) -> None:
+def validate_image_encoding(request_body: bytes) -> None:
     """
     Validate that the given image data can be base64 decoded.
 
     Args:
-        request_text: The content of the request.
+        request_body: The body of the request.
 
     Raises:
         Fail: Image data is given and it cannot be base64 decoded.
     """
 
-    if not request_text:
+    if not request_body:
         return
 
+    request_text = request_body.decode()
     if 'image' not in json.loads(request_text):
         return
 
@@ -156,20 +161,21 @@ def validate_image_encoding(request_text: str) -> None:
         raise Fail(status_code=codes.UNPROCESSABLE_ENTITY)
 
 
-def validate_image_data_type(request_text: str) -> None:
+def validate_image_data_type(request_body: bytes) -> None:
     """
     Validate that the given image data is a string.
 
     Args:
-        request_text: The content of the request.
+        request_body: The body of the request.
 
     Raises:
         Fail: Image data is given and it is not a string.
     """
 
-    if not request_text:
+    if not request_body:
         return
 
+    request_text = request_body.decode()
     if 'image' not in json.loads(request_text):
         return
 
