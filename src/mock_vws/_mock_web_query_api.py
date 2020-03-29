@@ -32,7 +32,7 @@ from mock_vws._mock_common import (
 )
 from mock_vws._query_validators import run_query_validators
 from mock_vws.database import VuforiaDatabase
-from mock_vws._query_validators.exceptions import DateHeaderNotGiven, DateFormatNotValid, RequestTimeTooSkewed
+from mock_vws._query_validators.exceptions import DateHeaderNotGiven, DateFormatNotValid, RequestTimeTooSkewed, ImageNotGiven
 
 
 ROUTES = set([])
@@ -77,7 +77,10 @@ def run_validators(
         context.headers['WWW-Authenticate'] = 'VWS'
         context.status_code = exc.status_code
         return exc.response_text
-    except RequestTimeTooSkewed as exc:
+    except (
+        RequestTimeTooSkewed,
+        ImageNotGiven
+    ) as exc:
         context.status_code = exc.status_code
         return exc.response_text
 

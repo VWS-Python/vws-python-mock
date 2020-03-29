@@ -94,3 +94,21 @@ class BadImage(Exception):
             f'"result_code":"{result_code}"'
             '}'
         )
+
+
+class ImageNotGiven(Exception):
+    """
+    Exception raised when an image is not given.
+    """
+
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
+        super().__init__()
+        self.status_code = codes.BAD_REQUEST
+        self.response_text = 'No image.'

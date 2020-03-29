@@ -17,7 +17,7 @@ from requests_mock.response import _Context
 
 from mock_vws._constants import ResultCodes
 from .._mock_common import parse_multipart
-from mock_vws._query_validators.exceptions import DateHeaderNotGiven, DateFormatNotValid, RequestTimeTooSkewed, BadImage
+from mock_vws._query_validators.exceptions import DateHeaderNotGiven, DateFormatNotValid, RequestTimeTooSkewed, BadImage, ImageNotGiven
 
 
 @wrapt.decorator
@@ -54,8 +54,7 @@ def validate_image_field_given(
     if 'image' in parsed.keys():
         return
 
-    context.status_code = codes.BAD_REQUEST
-    return 'No image.'
+    raise ImageNotGiven
 
 
 @wrapt.decorator
@@ -81,7 +80,6 @@ def validate_image_file_size(
     Raises:
         requests.exceptions.ConnectionError: The image file size is too large.
     """
-    request, _ = args
     body_file = io.BytesIO(request_body)
 
     _, pdict = cgi.parse_header(request_headers['Content-Type'])
