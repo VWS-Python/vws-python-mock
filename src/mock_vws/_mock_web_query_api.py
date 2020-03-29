@@ -36,6 +36,9 @@ from mock_vws._query_validators.exceptions import (
     DateHeaderNotGiven,
     ImageNotGiven,
     RequestTimeTooSkewed,
+    AuthHeaderMissing,
+    MalformedAuthHeader,
+    AuthenticationFailure,
 )
 from mock_vws.database import VuforiaDatabase
 
@@ -75,9 +78,17 @@ def run_validators(
         context.headers['Content-Type'] = content_type
         context.status_code = exc.status_code
         return exc.response_text
-    except DateFormatNotValid as exc:
+    except (
+        AuthHeaderMissing,
+        DateFormatNotValid,
+        MalformedAuthHeader,
+    ) as exc:
         content_type = 'text/plain; charset=ISO-8859-1'
         context.headers['Content-Type'] = content_type
+        context.headers['WWW-Authenticate'] = 'VWS'
+        context.status_code = exc.status_code
+        return exc.response_text
+    except AuthenticationFailure as exc:
         context.headers['WWW-Authenticate'] = 'VWS'
         context.status_code = exc.status_code
         return exc.response_text

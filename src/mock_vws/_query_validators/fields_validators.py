@@ -11,6 +11,7 @@ from requests import codes
 
 from mock_vws._mock_common import parse_multipart
 from mock_vws.database import VuforiaDatabase
+from mock_vws._query_validators.exceptions import UnknownParameters
 
 
 @wrapt.decorator
@@ -49,5 +50,4 @@ def validate_extra_fields(
     if not parsed.keys() - known_parameters:
         return
 
-    context.status_code = codes.BAD_REQUEST
-    return 'Unknown parameters in the request.'
+    raise UnknownParameters

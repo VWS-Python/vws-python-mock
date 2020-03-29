@@ -86,6 +86,7 @@ class BadImage(Exception):
         super().__init__()
         self.status_code = codes.UNPROCESSABLE_ENTITY
         transaction_id = uuid.uuid4().hex
+        result_code = ResultCodes.BAD_IMAGE.value
 
         # The response has an unusual format of separators, so we construct it
         # manually.
@@ -96,6 +97,33 @@ class BadImage(Exception):
             '}'
         )
 
+class AuthenticationFailure(Exception):
+    """
+    Exception raised when Vuforia returns a response with a result code
+    'AuthenticationFailure'.
+    """
+
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
+        super().__init__()
+        self.status_code = codes.UNAUTHORIZED
+        transaction_id = uuid.uuid4().hex
+        result_code = ResultCodes.AUTHENTICATION_FAILURE.value
+
+        # The response has an unusual format of separators, so we construct it
+        # manually.
+        self.response_text = (
+            '{"transaction_id": '
+            f'"{transaction_id}",'
+            f'"result_code":"{result_code}"'
+            '}'
+        )
 
 class ImageNotGiven(Exception):
     """
@@ -113,3 +141,57 @@ class ImageNotGiven(Exception):
         super().__init__()
         self.status_code = codes.BAD_REQUEST
         self.response_text = 'No image.'
+
+
+class AuthHeaderMissing(Exception):
+    """
+    Exception raised when an auth header is not given.
+    """
+
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
+        super().__init__()
+        self.status_code = codes.BAD_REQUEST
+        self.response_text = 'Authorization header missing.'
+
+
+class MalformedAuthHeader(Exception):
+    """
+    Exception raised when an auth header is not given.
+    """
+
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
+        super().__init__()
+        self.status_code = codes.BAD_REQUEST
+        self.response_text = 'Malformed authorization header.'
+
+
+class UnknownParameters(Exception):
+    """
+    Exception raised when unknown parameters are given.
+    """
+
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
+        super().__init__()
+        self.status_code = codes.BAD_REQUEST
+        self.response_text = 'Unknown parameters in the request.'

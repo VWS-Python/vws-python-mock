@@ -12,6 +12,15 @@ from requests import codes
 from mock_vws._constants import ResultCodes
 from mock_vws._database_matchers import get_database_matching_client_keys
 from mock_vws.database import VuforiaDatabase
+from mock_vws._query_validators.exceptions import (
+    DateFormatNotValid,
+    DateHeaderNotGiven,
+    ImageNotGiven,
+    RequestTimeTooSkewed,
+    AuthHeaderMissing,
+    MalformedAuthHeader,
+    AuthenticationFailure,
+)
 
 
 @wrapt.decorator
@@ -39,12 +48,7 @@ def validate_auth_header_exists(
     if 'Authorization' in request_headers:
         return
 
-    context.status_code = codes.UNAUTHORIZED
-    text = 'Authorization header missing.'
-    content_type = 'text/plain; charset=ISO-8859-1'
-    context.headers['Content-Type'] = content_type
-    context.headers['WWW-Authenticate'] = 'VWS'
-    return text
+    raise AuthHeaderMissing
 
 
 @wrapt.decorator
@@ -75,12 +79,7 @@ def validate_auth_header_number_of_parts(
     if len(parts) == 2 and parts[1]:
         return
 
-    context.status_code = codes.UNAUTHORIZED
-    text = 'Malformed authorization header.'
-    content_type = 'text/plain; charset=ISO-8859-1'
-    context.headers['Content-Type'] = content_type
-    context.headers['WWW-Authenticate'] = 'VWS'
-    return text
+    raise MalformedAuthHeader
 
 
 @wrapt.decorator
@@ -108,21 +107,11 @@ def validate_client_key_exists(
     header = request_headers['Authorization']
     first_part, _ = header.split(':')
     _, access_key = first_part.split(' ')
-    for database in instance.databases:
+    for database in databases:
         if access_key == database.client_access_key:
             return
 
-    context.status_code = codes.UNAUTHORIZED
-    context.headers['WWW-Authenticate'] = 'VWS'
-    transaction_id = uuid.uuid4().hex
-    result_code = ResultCodes.AUTHENTICATION_FAILURE.value
-    text = (
-        '{"transaction_id":'
-        f'"{transaction_id}",'
-        f'"result_code":"{result_code}"'
-        '}'
-    )
-    return text
+    raise AuthenticationFailure
 
 
 @wrapt.decorator
@@ -197,14 +186,4 @@ def validate_authorization(
     if database is not None:
         return
 
-    context.status_code = codes.UNAUTHORIZED
-    context.headers['WWW-Authenticate'] = 'VWS'
-    transaction_id = uuid.uuid4().hex
-    result_code = ResultCodes.AUTHENTICATION_FAILURE.value
-    text = (
-        '{"transaction_id":'
-        f'"{transaction_id}",'
-        f'"result_code":"{result_code}"'
-        '}'
-    )
-    return text
+    raise AuthenticationFailure
