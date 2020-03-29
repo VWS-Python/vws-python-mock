@@ -38,7 +38,7 @@ def validate_auth_header_exists(
         An `UNAUTHORIZED` response if there is no "Authorization" header.
     """
     
-    if 'Authorization' in request.headers:
+    if 'Authorization' in request_headers:
         return
 
     context.status_code = codes.UNAUTHORIZED
@@ -73,7 +73,7 @@ def validate_auth_header_number_of_parts(
     """
     
 
-    header = request.headers['Authorization']
+    header = request_headers['Authorization']
     parts = header.split(' ')
     if len(parts) == 2 and parts[1]:
         return
@@ -108,7 +108,7 @@ def validate_client_key_exists(
         An ``UNAUTHORIZED`` response if the client key is unknown.
     """
 
-    header = request.headers['Authorization']
+    header = request_headers['Authorization']
     first_part, _ = header.split(':')
     _, access_key = first_part.split(' ')
     for database in instance.databases:
@@ -152,7 +152,7 @@ def validate_auth_header_has_signature(
     """
     
 
-    header = request.headers['Authorization']
+    header = request_headers['Authorization']
     if header.count(':') == 1 and header.split(':')[1]:
         return
 

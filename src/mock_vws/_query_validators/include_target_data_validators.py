@@ -38,9 +38,9 @@ def validate_include_target_data(
         A `BAD_REQUEST` response if the ``include_target_data`` field is not an
         accepted value.
     """
-    body_file = io.BytesIO(request.body)
+    body_file = io.BytesIO(request_body)
 
-    _, pdict = cgi.parse_header(request.headers['Content-Type'])
+    _, pdict = cgi.parse_header(request_headers['Content-Type'])
     parsed = parse_multipart(
         fp=body_file,
         pdict={

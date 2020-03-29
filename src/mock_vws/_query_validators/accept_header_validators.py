@@ -33,7 +33,7 @@ def validate_accept_header(
         A `NOT_ACCEPTABLE` response if the Accept header is given and is not
         'application/json' or '*/*'.
     """
-    accept = request.headers.get('Accept')
+    accept = request_headers.get('Accept')
     if accept in ('application/json', '*/*', None):
         return
 

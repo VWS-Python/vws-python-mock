@@ -36,7 +36,7 @@ def validate_content_type_header(
         A ``BAD_REQUEST`` response if the ``Content-Type`` header does not
         contain a boundary which is in the request body.
     """
-    main_value, pdict = cgi.parse_header(request.headers['Content-Type'])
+    main_value, pdict = cgi.parse_header(request_headers['Content-Type'])
     if main_value != 'multipart/form-data':
         context.status_code = codes.UNSUPPORTED_MEDIA_TYPE
         context.headers.pop('Content-Type')
@@ -50,7 +50,7 @@ def validate_content_type_header(
             'Unable to get boundary for multipart'
         )
 
-    if pdict['boundary'].encode() not in request.body:
+    if pdict['boundary'].encode() not in request_body:
         context.status_code = codes.BAD_REQUEST
         context.headers['Content-Type'] = 'text/html;charset=UTF-8'
         return (

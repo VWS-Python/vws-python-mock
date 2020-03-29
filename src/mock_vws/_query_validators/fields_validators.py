@@ -36,9 +36,9 @@ def validate_extra_fields(
         The result of calling the endpoint.
         A ``BAD_REQUEST`` response if extra fields are given.
     """
-    body_file = io.BytesIO(request.body)
+    body_file = io.BytesIO(request_body)
 
-    _, pdict = cgi.parse_header(request.headers['Content-Type'])
+    _, pdict = cgi.parse_header(request_headers['Content-Type'])
     parsed = parse_multipart(
         fp=body_file,
         pdict={

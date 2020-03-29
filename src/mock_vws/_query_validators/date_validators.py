@@ -38,7 +38,7 @@ def validate_date_header_given(
         The result of calling the endpoint.
         A `BAD_REQUEST` response if the date is not given.
     """
-    if 'Date' in request.headers:
+    if 'Date' in request_headers:
         return
 
     context.status_code = codes.BAD_REQUEST
@@ -89,7 +89,7 @@ def validate_date_format(
         The result of calling the endpoint.
         An `UNAUTHORIZED` response if the date is in the wrong format.
     """
-    date_header = request.headers['Date']
+    date_header = request_headers['Date']
 
     for date_format in _accepted_date_formats():
         try:
@@ -128,7 +128,7 @@ def validate_date_in_range(
         The result of calling the endpoint.
         A `FORBIDDEN` response if the date is out of range.
     """
-    date_header = request.headers['Date']
+    date_header = request_headers['Date']
 
     for date_format in _accepted_date_formats():
         try:

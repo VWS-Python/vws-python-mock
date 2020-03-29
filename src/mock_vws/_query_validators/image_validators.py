@@ -40,9 +40,9 @@ def validate_image_field_given(
         The result of calling the endpoint.
         A ``BAD_REQUEST`` response if the image field is not given.
     """
-    body_file = io.BytesIO(request.body)
+    body_file = io.BytesIO(request_body)
 
-    _, pdict = cgi.parse_header(request.headers['Content-Type'])
+    _, pdict = cgi.parse_header(request_headers['Content-Type'])
     parsed = parse_multipart(
         fp=body_file,
         pdict={
@@ -81,9 +81,9 @@ def validate_image_file_size(
         requests.exceptions.ConnectionError: The image file size is too large.
     """
     request, _ = args
-    body_file = io.BytesIO(request.body)
+    body_file = io.BytesIO(request_body)
 
-    _, pdict = cgi.parse_header(request.headers['Content-Type'])
+    _, pdict = cgi.parse_header(request_headers['Content-Type'])
     parsed = parse_multipart(
         fp=body_file,
         pdict={
@@ -128,9 +128,9 @@ def validate_image_dimensions(
         An ``UNPROCESSABLE_ENTITY`` response if the image is given and is not
         within the maximum width and height limits.
     """
-    body_file = io.BytesIO(request.body)
+    body_file = io.BytesIO(request_body)
 
-    _, pdict = cgi.parse_header(request.headers['Content-Type'])
+    _, pdict = cgi.parse_header(request_headers['Content-Type'])
     parsed = parse_multipart(
         fp=body_file,
         pdict={
@@ -183,9 +183,9 @@ def validate_image_format(
         An `UNPROCESSABLE_ENTITY` response if the image is given and is not
         either a PNG or a JPEG.
     """
-    body_file = io.BytesIO(request.body)
+    body_file = io.BytesIO(request_body)
 
-    _, pdict = cgi.parse_header(request.headers['Content-Type'])
+    _, pdict = cgi.parse_header(request_headers['Content-Type'])
     parsed = parse_multipart(
         fp=body_file,
         pdict={
@@ -238,9 +238,9 @@ def validate_image_is_image(
         An `UNPROCESSABLE_ENTITY` response if image data is given and it is not
         an image file.
     """
-    body_file = io.BytesIO(request.body)
+    body_file = io.BytesIO(request_body)
 
-    _, pdict = cgi.parse_header(request.headers['Content-Type'])
+    _, pdict = cgi.parse_header(request_headers['Content-Type'])
     parsed = parse_multipart(
         fp=body_file,
         pdict={

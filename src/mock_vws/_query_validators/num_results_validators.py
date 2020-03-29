@@ -38,9 +38,9 @@ def validate_max_num_results(
         A `BAD_REQUEST` response if the ``max_num_results`` field is either not
         an integer, or an integer out of range.
     """
-    body_file = io.BytesIO(request.body)
+    body_file = io.BytesIO(request_body)
 
-    _, pdict = cgi.parse_header(request.headers['Content-Type'])
+    _, pdict = cgi.parse_header(request_headers['Content-Type'])
     parsed = parse_multipart(
         fp=body_file,
         pdict={

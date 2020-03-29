@@ -37,7 +37,7 @@ def validate_content_length_header_is_int(
         A ``BAD_REQUEST`` response if the content length header is not an
         integer.
     """
-    given_content_length = request.headers['Content-Length']
+    given_content_length = request_headers['Content-Length']
 
     try:
         int(given_content_length)
@@ -71,9 +71,9 @@ def validate_content_length_header_not_too_large(
         A ``GATEWAY_TIMEOUT`` response if the given content length header says
         that the content length is greater than the body length.
     """
-    given_content_length = request.headers['Content-Length']
+    given_content_length = request_headers['Content-Length']
 
-    body_length = len(request.body if request.body else '')
+    body_length = len(request_body if request_body else '')
     given_content_length_value = int(given_content_length)
     if given_content_length_value > body_length:
         context.status_code = codes.GATEWAY_TIMEOUT
@@ -105,9 +105,9 @@ def validate_content_length_header_not_too_small(
         An ``UNAUTHORIZED`` response if the given content length header says
         that the content length is smaller than the body length.
     """
-    given_content_length = request.headers['Content-Length']
+    given_content_length = request_headers['Content-Length']
 
-    body_length = len(request.body if request.body else '')
+    body_length = len(request_body if request_body else '')
     given_content_length_value = int(given_content_length)
 
     if given_content_length_value < body_length:
