@@ -66,3 +66,31 @@ class RequestTimeTooSkewed(Exception):
             'result_code': ResultCodes.REQUEST_TIME_TOO_SKEWED.value,
         }
         self.response_text = json_dump(body)
+
+
+class BadImage(Exception):
+    """
+    Exception raised when Vuforia returns a response with a result code
+    'BadImage'.
+    """
+
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
+        super().__init__()
+        self.status_code = codes.UNPROCESSABLE_ENTITY
+        transaction_id = uuid.uuid4().hex
+
+        # The response has an unusual format of separators, so we construct it
+        # manually.
+        self.response_text = (
+            '{"transaction_id": '
+            f'"{transaction_id}",'
+            f'"result_code":"{result_code}"'
+            '}'
+        )

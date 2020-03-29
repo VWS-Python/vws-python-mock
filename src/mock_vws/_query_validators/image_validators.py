@@ -17,6 +17,7 @@ from requests_mock.response import _Context
 
 from mock_vws._constants import ResultCodes
 from .._mock_common import parse_multipart
+from mock_vws._query_validators.exceptions import DateHeaderNotGiven, DateFormatNotValid, RequestTimeTooSkewed, BadImage
 
 
 @wrapt.decorator
@@ -147,19 +148,7 @@ def validate_image_dimensions(
     if pil_image.height <= max_height and pil_image.width <= max_width:
         return
 
-    context.status_code = codes.UNPROCESSABLE_ENTITY
-    transaction_id = uuid.uuid4().hex
-    result_code = ResultCodes.BAD_IMAGE.value
-
-    # The response has an unusual format of separators, so we construct it
-    # manually.
-    return (
-        '{"transaction_id": '
-        f'"{transaction_id}",'
-        f'"result_code":"{result_code}"'
-        '}'
-    )
-
+    raise BadImage
 
 @wrapt.decorator
 def validate_image_format(
@@ -202,18 +191,7 @@ def validate_image_format(
     if pil_image.format in ('PNG', 'JPEG'):
         return
 
-    context.status_code = codes.UNPROCESSABLE_ENTITY
-    transaction_id = uuid.uuid4().hex
-    result_code = ResultCodes.BAD_IMAGE.value
-
-    # The response has an unusual format of separators, so we construct it
-    # manually.
-    return (
-        '{"transaction_id": '
-        f'"{transaction_id}",'
-        f'"result_code":"{result_code}"'
-        '}'
-    )
+    raise BadImage
 
 
 @wrapt.decorator
@@ -256,17 +234,4 @@ def validate_image_is_image(
     try:
         Image.open(image_file)
     except OSError:
-        context.status_code = codes.UNPROCESSABLE_ENTITY
-        transaction_id = uuid.uuid4().hex
-        result_code = ResultCodes.BAD_IMAGE.value
-
-        # The response has an unusual format of separators, so we construct it
-        # manually.
-        return (
-            '{"transaction_id": '
-            f'"{transaction_id}",'
-            f'"result_code":"{result_code}"'
-            '}'
-        )
-
-    return
+        raise BadImage
