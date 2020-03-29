@@ -15,6 +15,7 @@ from requests_mock.response import _Context
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
 from .._mock_common import json_dump
+from mock_vws._query_validators.exceptions import DateHeaderNotGiven, DateFormatNotValid, RequestTimeTooSkewed
 
 
 @wrapt.decorator
@@ -41,11 +42,7 @@ def validate_date_header_given(
     if 'Date' in request_headers:
         return
 
-    context.status_code = codes.BAD_REQUEST
-    content_type = 'text/plain; charset=ISO-8859-1'
-    context.headers['Content-Type'] = content_type
-    return 'Date header required.'
-
+    raise DateHeaderNotGiven
 
 def _accepted_date_formats() -> Set[str]:
     """
@@ -99,12 +96,7 @@ def validate_date_format(
         else:
             return
 
-    context.status_code = codes.UNAUTHORIZED
-    context.headers['WWW-Authenticate'] = 'VWS'
-    text = 'Malformed date header.'
-    content_type = 'text/plain; charset=ISO-8859-1'
-    context.headers['Content-Type'] = content_type
-    return text
+    raise DateFormatNotValid
 
 
 @wrapt.decorator
@@ -148,10 +140,4 @@ def validate_date_in_range(
     if abs(time_difference) < maximum_time_difference:
         return
 
-    context.status_code = codes.FORBIDDEN
-
-    body = {
-        'transaction_id': uuid.uuid4().hex,
-        'result_code': ResultCodes.REQUEST_TIME_TOO_SKEWED.value,
-    }
-    return json_dump(body)
+    raise RequestTimeTooSkewed

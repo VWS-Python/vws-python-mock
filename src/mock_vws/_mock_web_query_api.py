@@ -32,6 +32,7 @@ from mock_vws._mock_common import (
 )
 from mock_vws._query_validators import run_query_validators
 from mock_vws.database import VuforiaDatabase
+from mock_vws._query_validators.exceptions import DateHeaderNotGiven, DateFormatNotValid, RequestTimeTooSkewed
 
 
 ROUTES = set([])
@@ -56,14 +57,30 @@ def run_validators(
     Returns:
         The result of calling the endpoint.
     """
-    request, _ = args
-    run_query_validators(
-        request_path=request.path,
-        request_headers=request.headers,
-        request_body=request.body,
-        request_method=request.method,
-        databases=instance.databases,
-    )
+    request, context = args
+    try:
+        run_query_validators(
+            request_path=request.path,
+            request_headers=request.headers,
+            request_body=request.body,
+            request_method=request.method,
+            databases=instance.databases,
+        )
+    except DateHeaderNotGiven as exc:
+        content_type = 'text/plain; charset=ISO-8859-1'
+        context.headers['Content-Type'] = content_type
+        context.status_code = exc.status_code
+        return exc.response_text
+    except DateFormatNotValid as exc:
+        content_type = 'text/plain; charset=ISO-8859-1'
+        context.headers['Content-Type'] = content_type
+        context.headers['WWW-Authenticate'] = 'VWS'
+        context.status_code = exc.status_code
+        return exc.response_text
+    except RequestTimeTooSkewed as exc:
+        context.status_code = exc.status_code
+        return exc.response_text
+
     return wrapped(*args, **kwargs)
 
 
