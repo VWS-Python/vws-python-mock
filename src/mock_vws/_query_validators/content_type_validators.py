@@ -3,13 +3,12 @@ Validators for the ``Content-Type`` header.
 """
 
 import cgi
-from typing import Any, Callable, Dict, List, Tuple
-from mock_vws.database import VuforiaDatabase
+from typing import Dict, List
 
 import wrapt
 from requests import codes
-from requests_mock.request import _RequestObjectProxy
-from requests_mock.response import _Context
+
+from mock_vws.database import VuforiaDatabase
 
 
 @wrapt.decorator

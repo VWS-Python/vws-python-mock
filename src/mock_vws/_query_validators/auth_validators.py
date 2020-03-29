@@ -4,16 +4,14 @@ Authorization validators to use in the mock query API.
 
 import uuid
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Tuple
-from mock_vws.database import VuforiaDatabase
+from typing import Dict, List
 
 import wrapt
 from requests import codes
-from requests_mock.request import _RequestObjectProxy
-from requests_mock.response import _Context
 
 from mock_vws._constants import ResultCodes
 from mock_vws._database_matchers import get_database_matching_client_keys
+from mock_vws.database import VuforiaDatabase
 
 
 @wrapt.decorator
@@ -37,7 +35,7 @@ def validate_auth_header_exists(
         The result of calling the endpoint.
         An `UNAUTHORIZED` response if there is no "Authorization" header.
     """
-    
+
     if 'Authorization' in request_headers:
         return
 
@@ -71,7 +69,6 @@ def validate_auth_header_number_of_parts(
         An ``UNAUTHORIZED`` response if the "Authorization" header is not as
         expected.
     """
-    
 
     header = request_headers['Authorization']
     parts = header.split(' ')
@@ -150,7 +147,6 @@ def validate_auth_header_has_signature(
         An ``UNAUTHORIZED`` response if the "Authorization" header is not as
         expected.
     """
-    
 
     header = request_headers['Authorization']
     if header.count(':') == 1 and header.split(':')[1]:
@@ -189,7 +185,6 @@ def validate_authorization(
         A `BAD_REQUEST` response if the "Authorization" header is not as
         expected.
     """
-    
 
     database = get_database_matching_client_keys(
         request_headers=request_headers,

@@ -5,6 +5,7 @@ Input validators to use in the mock query API.
 from typing import Dict, List
 
 from mock_vws.database import VuforiaDatabase
+
 from .accept_header_validators import validate_accept_header
 from .auth_validators import (
     validate_auth_header_exists,
@@ -18,9 +19,7 @@ from .content_length_validators import (
     validate_content_length_header_not_too_large,
     validate_content_length_header_not_too_small,
 )
-from .content_type_validators import (
-    validate_content_type_header,
-)
+from .content_type_validators import validate_content_type_header
 from .date_validators import (
     validate_date_format,
     validate_date_header_given,
@@ -34,9 +33,7 @@ from .image_validators import (
     validate_image_format,
     validate_image_is_image,
 )
-from .include_target_data_validators import (
-    validate_include_target_data,
-)
+from .include_target_data_validators import validate_include_target_data
 from .num_results_validators import validate_max_num_results
 from .project_state_validators import validate_project_state
 

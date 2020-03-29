@@ -3,12 +3,13 @@ Exceptions to raise from validators.
 """
 
 import uuid
-from pathlib import Path
 
 from requests import codes
 
 from mock_vws._constants import ResultCodes
 from mock_vws._mock_common import json_dump
+
+
 class DateHeaderNotGiven(Exception):
     """
     Exception raised when a date header is not given.

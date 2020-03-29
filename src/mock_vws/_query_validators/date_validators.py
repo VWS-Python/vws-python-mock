@@ -3,19 +3,17 @@ Validators of the date header to use in the mock query API.
 """
 
 import datetime
-import uuid
-from typing import Any, Callable, Dict, Set, List, Tuple
+from typing import Dict, List, Set
 
 import pytz
 import wrapt
-from requests import codes
-from requests_mock.request import _RequestObjectProxy
-from requests_mock.response import _Context
 
-from mock_vws._constants import ResultCodes
+from mock_vws._query_validators.exceptions import (
+    DateFormatNotValid,
+    DateHeaderNotGiven,
+    RequestTimeTooSkewed,
+)
 from mock_vws.database import VuforiaDatabase
-from .._mock_common import json_dump
-from mock_vws._query_validators.exceptions import DateHeaderNotGiven, DateFormatNotValid, RequestTimeTooSkewed
 
 
 @wrapt.decorator
@@ -43,6 +41,7 @@ def validate_date_header_given(
         return
 
     raise DateHeaderNotGiven
+
 
 def _accepted_date_formats() -> Set[str]:
     """

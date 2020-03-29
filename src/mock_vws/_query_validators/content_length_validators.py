@@ -3,15 +3,14 @@ Content-Length header validators to use in the mock.
 """
 
 import uuid
-from typing import Any, Callable, Dict, List, Tuple
-from mock_vws.database import VuforiaDatabase
+from typing import Dict, List
 
 import wrapt
 from requests import codes
-from requests_mock.request import _RequestObjectProxy
-from requests_mock.response import _Context
 
 from mock_vws._constants import ResultCodes
+from mock_vws.database import VuforiaDatabase
+
 from .._mock_common import json_dump
 
 

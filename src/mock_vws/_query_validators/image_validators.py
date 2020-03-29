@@ -4,20 +4,16 @@ Input validators for the image field use in the mock query API.
 
 import cgi
 import io
-import uuid
-from typing import Any, Callable, Dict, List, Tuple
-from mock_vws.database import VuforiaDatabase
+from typing import Dict, List
 
 import requests
 import wrapt
 from PIL import Image
-from requests import codes
-from requests_mock.request import _RequestObjectProxy
-from requests_mock.response import _Context
 
-from mock_vws._constants import ResultCodes
+from mock_vws._query_validators.exceptions import BadImage, ImageNotGiven
+from mock_vws.database import VuforiaDatabase
+
 from .._mock_common import parse_multipart
-from mock_vws._query_validators.exceptions import DateHeaderNotGiven, DateFormatNotValid, RequestTimeTooSkewed, BadImage, ImageNotGiven
 
 
 @wrapt.decorator
@@ -147,6 +143,7 @@ def validate_image_dimensions(
         return
 
     raise BadImage
+
 
 @wrapt.decorator
 def validate_image_format(
