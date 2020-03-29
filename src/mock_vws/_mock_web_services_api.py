@@ -83,7 +83,7 @@ def handle_validators(
     kwargs: Dict,
 ) -> str:
     """
-    Add to the request count.
+    Send a relevant response if any validator raises an exception.
 
     Args:
         wrapped: An endpoint function for `requests_mock`.
