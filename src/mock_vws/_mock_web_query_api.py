@@ -39,6 +39,7 @@ from mock_vws._query_validators.exceptions import (
     AuthHeaderMissing,
     MalformedAuthHeader,
     AuthenticationFailure,
+    UnknownParameters,
 )
 from mock_vws.database import VuforiaDatabase
 
@@ -92,7 +93,7 @@ def run_validators(
         context.headers['WWW-Authenticate'] = 'VWS'
         context.status_code = exc.status_code
         return exc.response_text
-    except (RequestTimeTooSkewed, ImageNotGiven) as exc:
+    except (RequestTimeTooSkewed, ImageNotGiven, UnknownParameters) as exc:
         context.status_code = exc.status_code
         return exc.response_text
 
