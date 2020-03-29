@@ -4,24 +4,26 @@ Authorization validators to use in the mock query API.
 
 import uuid
 from pathlib import Path
-from typing import Any, Callable, Dict, Tuple
+from typing import Any, Callable, Dict, List, Tuple
+from mock_vws.database import VuforiaDatabase
 
 import wrapt
 from requests import codes
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
-from .._constants import ResultCodes
-from .._database_matchers import get_database_matching_client_keys
+from mock_vws._constants import ResultCodes
+from mock_vws._database_matchers import get_database_matching_client_keys
 
 
 @wrapt.decorator
 def validate_auth_header_exists(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: List[VuforiaDatabase],
+) -> None:
     """
     Validate that there is an authorization header given to the query endpoint.
 
@@ -35,9 +37,9 @@ def validate_auth_header_exists(
         The result of calling the endpoint.
         An `UNAUTHORIZED` response if there is no "Authorization" header.
     """
-    request, context = args
+    
     if 'Authorization' in request.headers:
-        return wrapped(*args, **kwargs)
+        return
 
     context.status_code = codes.UNAUTHORIZED
     text = 'Authorization header missing.'
@@ -49,11 +51,12 @@ def validate_auth_header_exists(
 
 @wrapt.decorator
 def validate_auth_header_number_of_parts(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: List[VuforiaDatabase],
+) -> None:
     """
     Validate the authorization header includes text either side of a space.
 
@@ -68,12 +71,12 @@ def validate_auth_header_number_of_parts(
         An ``UNAUTHORIZED`` response if the "Authorization" header is not as
         expected.
     """
-    request, context = args
+    
 
     header = request.headers['Authorization']
     parts = header.split(' ')
     if len(parts) == 2 and parts[1]:
-        return wrapped(*args, **kwargs)
+        return
 
     context.status_code = codes.UNAUTHORIZED
     text = 'Malformed authorization header.'
@@ -85,11 +88,12 @@ def validate_auth_header_number_of_parts(
 
 @wrapt.decorator
 def validate_client_key_exists(
-    wrapped: Callable[..., str],
-    instance: Any,
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: List[VuforiaDatabase],
+) -> None:
     """
     Validate the authorization header includes a client key for a database.
 
@@ -103,14 +107,13 @@ def validate_client_key_exists(
         The result of calling the endpoint.
         An ``UNAUTHORIZED`` response if the client key is unknown.
     """
-    request, context = args
 
     header = request.headers['Authorization']
     first_part, _ = header.split(':')
     _, access_key = first_part.split(' ')
     for database in instance.databases:
         if access_key == database.client_access_key:
-            return wrapped(*args, **kwargs)
+            return
 
     context.status_code = codes.UNAUTHORIZED
     context.headers['WWW-Authenticate'] = 'VWS'
@@ -127,11 +130,12 @@ def validate_client_key_exists(
 
 @wrapt.decorator
 def validate_auth_header_has_signature(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: List[VuforiaDatabase],
+) -> None:
     """
     Validate the authorization header includes a signature.
 
@@ -146,11 +150,11 @@ def validate_auth_header_has_signature(
         An ``UNAUTHORIZED`` response if the "Authorization" header is not as
         expected.
     """
-    request, context = args
+    
 
     header = request.headers['Authorization']
     if header.count(':') == 1 and header.split(':')[1]:
-        return wrapped(*args, **kwargs)
+        return
 
     context.status_code = codes.INTERNAL_SERVER_ERROR
     current_parent = Path(__file__).parent
@@ -165,11 +169,12 @@ def validate_auth_header_has_signature(
 
 @wrapt.decorator
 def validate_authorization(
-    wrapped: Callable[..., str],
-    instance: Any,
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: List[VuforiaDatabase],
+) -> None:
     """
     Validate the authorization header given to the query endpoint.
 
@@ -184,18 +189,18 @@ def validate_authorization(
         A `BAD_REQUEST` response if the "Authorization" header is not as
         expected.
     """
-    request, context = args
+    
 
     database = get_database_matching_client_keys(
-        request_headers=request.headers,
-        request_body=request.body,
-        request_method=request.method,
-        request_path=request.path,
-        databases=instance.databases,
+        request_headers=request_headers,
+        request_body=request_body,
+        request_method=request_method,
+        request_path=request_path,
+        databases=databases,
     )
 
     if database is not None:
-        return wrapped(*args, **kwargs)
+        return
 
     context.status_code = codes.UNAUTHORIZED
     context.headers['WWW-Authenticate'] = 'VWS'

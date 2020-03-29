@@ -3,24 +3,26 @@ Content-Length header validators to use in the mock.
 """
 
 import uuid
-from typing import Any, Callable, Dict, Tuple
+from typing import Any, Callable, Dict, List, Tuple
+from mock_vws.database import VuforiaDatabase
 
 import wrapt
 from requests import codes
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
-from .._constants import ResultCodes
+from mock_vws._constants import ResultCodes
 from .._mock_common import json_dump
 
 
 @wrapt.decorator
 def validate_content_length_header_is_int(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: List[VuforiaDatabase],
+) -> None:
     """
     Validate the ``Content-Length`` header is an integer.
 
@@ -35,7 +37,6 @@ def validate_content_length_header_is_int(
         A ``BAD_REQUEST`` response if the content length header is not an
         integer.
     """
-    request, context = args
     given_content_length = request.headers['Content-Length']
 
     try:
@@ -45,16 +46,17 @@ def validate_content_length_header_is_int(
         context.headers = {'Connection': 'Close'}
         return ''
 
-    return wrapped(*args, **kwargs)
+    return
 
 
 @wrapt.decorator
 def validate_content_length_header_not_too_large(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: List[VuforiaDatabase],
+) -> None:
     """
     Validate the ``Content-Length`` header is not too large.
 
@@ -69,7 +71,6 @@ def validate_content_length_header_not_too_large(
         A ``GATEWAY_TIMEOUT`` response if the given content length header says
         that the content length is greater than the body length.
     """
-    request, context = args
     given_content_length = request.headers['Content-Length']
 
     body_length = len(request.body if request.body else '')
@@ -79,16 +80,17 @@ def validate_content_length_header_not_too_large(
         context.headers = {'Connection': 'keep-alive'}
         return ''
 
-    return wrapped(*args, **kwargs)
+    return
 
 
 @wrapt.decorator
 def validate_content_length_header_not_too_small(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: List[VuforiaDatabase],
+) -> None:
     """
     Validate the ``Content-Length`` header is not too small.
 
@@ -103,7 +105,6 @@ def validate_content_length_header_not_too_small(
         An ``UNAUTHORIZED`` response if the given content length header says
         that the content length is smaller than the body length.
     """
-    request, context = args
     given_content_length = request.headers['Content-Length']
 
     body_length = len(request.body if request.body else '')
@@ -118,4 +119,4 @@ def validate_content_length_header_not_too_small(
         }
         return json_dump(body)
 
-    return wrapped(*args, **kwargs)
+    return

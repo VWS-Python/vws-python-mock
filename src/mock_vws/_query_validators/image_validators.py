@@ -5,7 +5,8 @@ Input validators for the image field use in the mock query API.
 import cgi
 import io
 import uuid
-from typing import Any, Callable, Dict, Tuple
+from typing import Any, Callable, Dict, List, Tuple
+from mock_vws.database import VuforiaDatabase
 
 import requests
 import wrapt
@@ -14,17 +15,18 @@ from requests import codes
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
-from .._constants import ResultCodes
+from mock_vws._constants import ResultCodes
 from .._mock_common import parse_multipart
 
 
 @wrapt.decorator
 def validate_image_field_given(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: List[VuforiaDatabase],
+) -> None:
     """
     Validate that the image field is given.
 
@@ -38,7 +40,6 @@ def validate_image_field_given(
         The result of calling the endpoint.
         A ``BAD_REQUEST`` response if the image field is not given.
     """
-    request, context = args
     body_file = io.BytesIO(request.body)
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
@@ -50,7 +51,7 @@ def validate_image_field_given(
     )
 
     if 'image' in parsed.keys():
-        return wrapped(*args, **kwargs)
+        return
 
     context.status_code = codes.BAD_REQUEST
     return 'No image.'
@@ -58,11 +59,12 @@ def validate_image_field_given(
 
 @wrapt.decorator
 def validate_image_file_size(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: List[VuforiaDatabase],
+) -> None:
     """
     Validate the file size of the image given to the query endpoint.
 
@@ -98,16 +100,17 @@ def validate_image_file_size(
     max_bytes = 2 * 1024 * 1024
     if len(image) > max_bytes:
         raise requests.exceptions.ConnectionError
-    return wrapped(*args, **kwargs)
+    return
 
 
 @wrapt.decorator
 def validate_image_dimensions(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: List[VuforiaDatabase],
+) -> None:
     """
     Validate the dimensions the image given to the query endpoint.
 
@@ -125,7 +128,6 @@ def validate_image_dimensions(
         An ``UNPROCESSABLE_ENTITY`` response if the image is given and is not
         within the maximum width and height limits.
     """
-    request, context = args
     body_file = io.BytesIO(request.body)
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
@@ -143,7 +145,7 @@ def validate_image_dimensions(
     max_width = 30000
     max_height = 30000
     if pil_image.height <= max_height and pil_image.width <= max_width:
-        return wrapped(*args, **kwargs)
+        return
 
     context.status_code = codes.UNPROCESSABLE_ENTITY
     transaction_id = uuid.uuid4().hex
@@ -161,11 +163,12 @@ def validate_image_dimensions(
 
 @wrapt.decorator
 def validate_image_format(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: List[VuforiaDatabase],
+) -> None:
     """
     Validate the format of the image given to the query endpoint.
 
@@ -180,7 +183,6 @@ def validate_image_format(
         An `UNPROCESSABLE_ENTITY` response if the image is given and is not
         either a PNG or a JPEG.
     """
-    request, context = args
     body_file = io.BytesIO(request.body)
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
@@ -198,7 +200,7 @@ def validate_image_format(
     pil_image = Image.open(image_file)
 
     if pil_image.format in ('PNG', 'JPEG'):
-        return wrapped(*args, **kwargs)
+        return
 
     context.status_code = codes.UNPROCESSABLE_ENTITY
     transaction_id = uuid.uuid4().hex
@@ -216,11 +218,12 @@ def validate_image_format(
 
 @wrapt.decorator
 def validate_image_is_image(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: List[VuforiaDatabase],
+) -> None:
     """
     Validate that the given image data is actually an image file.
 
@@ -235,7 +238,6 @@ def validate_image_is_image(
         An `UNPROCESSABLE_ENTITY` response if image data is given and it is not
         an image file.
     """
-    request, context = args
     body_file = io.BytesIO(request.body)
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
@@ -267,4 +269,4 @@ def validate_image_is_image(
             '}'
         )
 
-    return wrapped(*args, **kwargs)
+    return

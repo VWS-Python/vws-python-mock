@@ -3,7 +3,8 @@ Validators for the ``Content-Type`` header.
 """
 
 import cgi
-from typing import Any, Callable, Dict, Tuple
+from typing import Any, Callable, Dict, List, Tuple
+from mock_vws.database import VuforiaDatabase
 
 import wrapt
 from requests import codes
@@ -13,11 +14,12 @@ from requests_mock.response import _Context
 
 @wrapt.decorator
 def validate_content_type_header(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: List[VuforiaDatabase],
+) -> None:
     """
     Validate the ``Content-Type`` header.
 
@@ -34,8 +36,6 @@ def validate_content_type_header(
         A ``BAD_REQUEST`` response if the ``Content-Type`` header does not
         contain a boundary which is in the request body.
     """
-    request, context = args
-
     main_value, pdict = cgi.parse_header(request.headers['Content-Type'])
     if main_value != 'multipart/form-data':
         context.status_code = codes.UNSUPPORTED_MEDIA_TYPE
@@ -58,4 +58,4 @@ def validate_content_type_header(
             'Could find no Content-Disposition header within part'
         )
 
-    return wrapped(*args, **kwargs)
+    return

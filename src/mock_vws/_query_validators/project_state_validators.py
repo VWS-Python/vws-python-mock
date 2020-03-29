@@ -3,7 +3,8 @@ Validators for the project state.
 """
 
 import uuid
-from typing import Any, Callable, Dict, Tuple
+from typing import Any, Callable, Dict, List, Tuple
+from mock_vws.database import VuforiaDatabase
 
 import wrapt
 from requests import codes
@@ -18,11 +19,12 @@ from mock_vws.states import States
 
 @wrapt.decorator
 def validate_project_state(
-    wrapped: Callable[..., str],
-    instance: Any,
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: List[VuforiaDatabase],
+) -> None:
     """
     Validate the state of the project.
 
@@ -37,19 +39,17 @@ def validate_project_state(
         A `FORBIDDEN` response with an InactiveProject result code if the
         project is inactive.
     """
-    request, context = args
-
     database = get_database_matching_client_keys(
-        request_headers=request.headers,
-        request_body=request.body,
-        request_method=request.method,
-        request_path=request.path,
-        databases=instance.databases,
+        request_headers=request_headers,
+        request_body=request_body,
+        request_method=request_method,
+        request_path=request_path,
+        databases=databases,
     )
 
     assert isinstance(database, VuforiaDatabase)
     if database.state != States.PROJECT_INACTIVE:
-        return wrapped(*args, **kwargs)
+        return
 
     context.status_code = codes.FORBIDDEN
     transaction_id = uuid.uuid4().hex

@@ -4,7 +4,7 @@ Validators of the date header to use in the mock query API.
 
 import datetime
 import uuid
-from typing import Any, Callable, Dict, Set, Tuple
+from typing import Any, Callable, Dict, Set, List, Tuple
 
 import pytz
 import wrapt
@@ -12,17 +12,19 @@ from requests import codes
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
-from .._constants import ResultCodes
+from mock_vws._constants import ResultCodes
+from mock_vws.database import VuforiaDatabase
 from .._mock_common import json_dump
 
 
 @wrapt.decorator
 def validate_date_header_given(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: List[VuforiaDatabase],
+) -> None:
     """
     Validate the date header is given to the query endpoint.
 
@@ -36,10 +38,8 @@ def validate_date_header_given(
         The result of calling the endpoint.
         A `BAD_REQUEST` response if the date is not given.
     """
-    request, context = args
-
     if 'Date' in request.headers:
-        return wrapped(*args, **kwargs)
+        return
 
     context.status_code = codes.BAD_REQUEST
     content_type = 'text/plain; charset=ISO-8859-1'
@@ -70,11 +70,12 @@ def _accepted_date_formats() -> Set[str]:
 
 @wrapt.decorator
 def validate_date_format(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: List[VuforiaDatabase],
+) -> None:
     """
     Validate the format of the date header given to the query endpoint.
 
@@ -88,7 +89,6 @@ def validate_date_format(
         The result of calling the endpoint.
         An `UNAUTHORIZED` response if the date is in the wrong format.
     """
-    request, context = args
     date_header = request.headers['Date']
 
     for date_format in _accepted_date_formats():
@@ -97,7 +97,7 @@ def validate_date_format(
         except ValueError:
             pass
         else:
-            return wrapped(*args, **kwargs)
+            return
 
     context.status_code = codes.UNAUTHORIZED
     context.headers['WWW-Authenticate'] = 'VWS'
@@ -109,11 +109,12 @@ def validate_date_format(
 
 @wrapt.decorator
 def validate_date_in_range(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: List[VuforiaDatabase],
+) -> None:
     """
     Validate date in the date header given to the query endpoint.
 
@@ -127,7 +128,6 @@ def validate_date_in_range(
         The result of calling the endpoint.
         A `FORBIDDEN` response if the date is out of range.
     """
-    request, context = args
     date_header = request.headers['Date']
 
     for date_format in _accepted_date_formats():
@@ -146,7 +146,7 @@ def validate_date_in_range(
     maximum_time_difference = datetime.timedelta(minutes=65)
 
     if abs(time_difference) < maximum_time_difference:
-        return wrapped(*args, **kwargs)
+        return
 
     context.status_code = codes.FORBIDDEN
 

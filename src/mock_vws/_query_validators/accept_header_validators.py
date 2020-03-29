@@ -2,7 +2,8 @@
 Validators for the ``Accept`` header.
 """
 
-from typing import Any, Callable, Dict, Tuple
+from typing import Any, Callable, Dict, List, Tuple
+from mock_vws.database import VuforiaDatabase
 
 import wrapt
 from requests import codes
@@ -12,11 +13,12 @@ from requests_mock.response import _Context
 
 @wrapt.decorator
 def validate_accept_header(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: List[VuforiaDatabase],
+) -> None:
     """
     Validate the accept header.
 
@@ -31,11 +33,9 @@ def validate_accept_header(
         A `NOT_ACCEPTABLE` response if the Accept header is given and is not
         'application/json' or '*/*'.
     """
-    request, context = args
-
     accept = request.headers.get('Accept')
     if accept in ('application/json', '*/*', None):
-        return wrapped(*args, **kwargs)
+        return
 
     context.headers.pop('Content-Type')
     context.status_code = codes.NOT_ACCEPTABLE

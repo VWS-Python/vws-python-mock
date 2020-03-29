@@ -4,7 +4,8 @@ Validators for the ``include_target_data`` field.
 
 import cgi
 import io
-from typing import Any, Callable, Dict, Tuple
+from typing import Any, Callable, Dict, List, Tuple
+from mock_vws.database import VuforiaDatabase
 
 import wrapt
 from requests import codes
@@ -16,11 +17,12 @@ from mock_vws._mock_common import parse_multipart
 
 @wrapt.decorator
 def validate_include_target_data(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: List[VuforiaDatabase],
+) -> None:
     """
     Validate the ``include_target_data`` field is either an accepted value or
     not given.
@@ -36,7 +38,6 @@ def validate_include_target_data(
         A `BAD_REQUEST` response if the ``include_target_data`` field is not an
         accepted value.
     """
-    request, context = args
     body_file = io.BytesIO(request.body)
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
@@ -51,7 +52,7 @@ def validate_include_target_data(
     lower_include_target_data = include_target_data.lower()
     allowed_included_target_data = {'top', 'all', 'none'}
     if lower_include_target_data in allowed_included_target_data:
-        return wrapped(*args, **kwargs)
+        return
 
     assert isinstance(include_target_data, str)
     unexpected_target_data_message = (

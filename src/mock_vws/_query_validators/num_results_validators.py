@@ -4,7 +4,8 @@ Validators for the ``max_num_results`` fields.
 
 import cgi
 import io
-from typing import Any, Callable, Dict, Tuple
+from typing import Any, Callable, Dict, List, Tuple
+from mock_vws.database import VuforiaDatabase
 
 import wrapt
 from requests import codes
@@ -16,11 +17,12 @@ from mock_vws._mock_common import parse_multipart
 
 @wrapt.decorator
 def validate_max_num_results(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: List[VuforiaDatabase],
+) -> None:
     """
     Validate the ``max_num_results`` field is either an integer within range or
     not given.
@@ -36,7 +38,6 @@ def validate_max_num_results(
         A `BAD_REQUEST` response if the ``max_num_results`` field is either not
         an integer, or an integer out of range.
     """
-    request, context = args
     body_file = io.BytesIO(request.body)
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
@@ -73,4 +74,4 @@ def validate_max_num_results(
         )
         return out_of_range_error
 
-    return wrapped(*args, **kwargs)
+    return

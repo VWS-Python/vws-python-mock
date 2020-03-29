@@ -4,7 +4,8 @@ Validators for the fields given.
 
 import cgi
 import io
-from typing import Any, Callable, Dict, Tuple
+from typing import Any, Callable, Dict, List, Tuple
+from mock_vws.database import VuforiaDatabase
 
 import wrapt
 from requests import codes
@@ -16,11 +17,12 @@ from mock_vws._mock_common import parse_multipart
 
 @wrapt.decorator
 def validate_extra_fields(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: List[VuforiaDatabase],
+) -> None:
     """
     Validate that the no unknown fields are given.
 
@@ -34,7 +36,6 @@ def validate_extra_fields(
         The result of calling the endpoint.
         A ``BAD_REQUEST`` response if extra fields are given.
     """
-    request, context = args
     body_file = io.BytesIO(request.body)
 
     _, pdict = cgi.parse_header(request.headers['Content-Type'])
@@ -48,7 +49,7 @@ def validate_extra_fields(
     known_parameters = {'image', 'max_num_results', 'include_target_data'}
 
     if not parsed.keys() - known_parameters:
-        return wrapped(*args, **kwargs)
+        return
 
     context.status_code = codes.BAD_REQUEST
     return 'Unknown parameters in the request.'
