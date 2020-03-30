@@ -195,3 +195,31 @@ class UnknownParameters(Exception):
         super().__init__()
         self.status_code = codes.BAD_REQUEST
         self.response_text = 'Unknown parameters in the request.'
+
+
+class InactiveProject(Exception):
+    """
+    Exception raised when Vuforia returns a response with a result code
+    'InactiveProject'.
+    """
+
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
+        super().__init__()
+        self.status_code = codes.FORBIDDEN
+        transaction_id = uuid.uuid4().hex
+        result_code = ResultCodes.INACTIVE_PROJECT.value
+        # The response has an unusual format of separators, so we construct it
+        # manually.
+        self.response_text = (
+            '{"transaction_id": '
+            f'"{transaction_id}",'
+            f'"result_code":"{result_code}"'
+            '}'
+        )

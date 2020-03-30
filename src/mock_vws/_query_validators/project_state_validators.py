@@ -12,6 +12,7 @@ from mock_vws._constants import ResultCodes
 from mock_vws._database_matchers import get_database_matching_client_keys
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
+from mock_vws._query_validators.exceptions import InactiveProject
 
 
 @wrapt.decorator
@@ -48,15 +49,4 @@ def validate_project_state(
     if database.state != States.PROJECT_INACTIVE:
         return
 
-    context.status_code = codes.FORBIDDEN
-    transaction_id = uuid.uuid4().hex
-    result_code = ResultCodes.INACTIVE_PROJECT.value
-
-    # The response has an unusual format of separators, so we construct it
-    # manually.
-    return (
-        '{"transaction_id": '
-        f'"{transaction_id}",'
-        f'"result_code":"{result_code}"'
-        '}'
-    )
+    raise InactiveProject
