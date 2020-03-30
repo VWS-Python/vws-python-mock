@@ -56,7 +56,7 @@ def validate_max_num_results(
 
     java_max_int = 2147483647
     if max_num_results_int > java_max_int:
-        raise InvalidMaxNumResults
+        raise InvalidMaxNumResults(given_value=max_num_results)
 
     if max_num_results_int < 1 or max_num_results_int > 50:
         raise MaxNumResultsOutOfRange(given_value=max_num_results)

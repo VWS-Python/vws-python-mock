@@ -26,7 +26,7 @@ class DateHeaderNotGiven(Exception):
         """
         super().__init__()
         self.status_code = codes.BAD_REQUEST
-        self.response_text = 'Date header required'
+        self.response_text = 'Date header required.'
 
 
 class DateFormatNotValid(Exception):
@@ -120,7 +120,7 @@ class AuthenticationFailure(Exception):
         # The response has an unusual format of separators, so we construct it
         # manually.
         self.response_text = (
-            '{"transaction_id": '
+            '{"transaction_id":'
             f'"{transaction_id}",'
             f'"result_code":"{result_code}"'
             '}'
@@ -182,7 +182,7 @@ class AuthHeaderMissing(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.BAD_REQUEST
+        self.status_code = codes.UNAUTHORIZED
         self.response_text = 'Authorization header missing.'
 
 
@@ -200,7 +200,7 @@ class MalformedAuthHeader(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.BAD_REQUEST
+        self.status_code = codes.UNAUTHORIZED
         self.response_text = 'Malformed authorization header.'
 
 
@@ -265,11 +265,11 @@ class InvalidMaxNumResults(Exception):
         """
         super().__init__()
         self.status_code = codes.BAD_REQUEST
-        integer_out_of_range_message = (
-            f'Integer out of range ({given_value}) in form data part '
-            "'max_result'. Accepted range is from 1 to 50 (inclusive)."
+        invalid_value_message = (
+            f"Invalid value '{given_value}' in form data part 'max_result'. "
+            'Expecting integer value in range from 1 to 50 (inclusive).'
         )
-        self.response_text = integer_out_of_range_message
+        self.response_text = invalid_value_message
 
 class MaxNumResultsOutOfRange(Exception):
     """
@@ -287,11 +287,11 @@ class MaxNumResultsOutOfRange(Exception):
         """
         super().__init__()
         self.status_code = codes.BAD_REQUEST
-        invalid_value_message = (
-            f"Invalid value '{given_value}' in form data part 'max_result'. "
-            'Expecting integer value in range from 1 to 50 (inclusive).'
+        integer_out_of_range_message = (
+            f'Integer out of range ({given_value}) in form data part '
+            "'max_result'. Accepted range is from 1 to 50 (inclusive)."
         )
-        self.response_text = invalid_value_message
+        self.response_text = integer_out_of_range_message
 
 class InvalidIncludeTargetData(Exception):
     """
@@ -409,7 +409,7 @@ class QueryOutOfBounds(Exception):
         """
         super().__init__()
         self.status_code = codes.INTERNAL_SERVER_ERROR
-        resources_dir = Path(__file__).parent.parent / 'resources'
+        resources_dir = Path(__file__).parent / 'resources'
         filename = 'query_out_of_bounds_response.html'
         oops_resp_file = resources_dir / filename
         text = str(oops_resp_file.read_text())
