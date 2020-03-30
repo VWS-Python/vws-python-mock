@@ -14,22 +14,12 @@ from mock_vws._query_validators.exceptions import (
 from mock_vws.database import VuforiaDatabase
 
 
-def validate_auth_header_exists(
-    request_path: str,
-    request_headers: Dict[str, str],
-    request_body: bytes,
-    request_method: str,
-    databases: List[VuforiaDatabase],
-) -> None:
+def validate_auth_header_exists(request_headers: Dict[str, str]) -> None:
     """
     Validate that there is an authorization header given to the query endpoint.
 
     Args:
-        request_path: The path of the request.
         request_headers: The headers sent with the request.
-        request_body: The body of the request.
-        request_method: The HTTP method of the request.
-        databases: All Vuforia databases.
 
     Returns:
         The result of calling the endpoint.
@@ -43,21 +33,13 @@ def validate_auth_header_exists(
 
 
 def validate_auth_header_number_of_parts(
-    request_path: str,
     request_headers: Dict[str, str],
-    request_body: bytes,
-    request_method: str,
-    databases: List[VuforiaDatabase],
 ) -> None:
     """
     Validate the authorization header includes text either side of a space.
 
     Args:
-        request_path: The path of the request.
         request_headers: The headers sent with the request.
-        request_body: The body of the request.
-        request_method: The HTTP method of the request.
-        databases: All Vuforia databases.
 
     Returns:
         The result of calling the endpoint.
@@ -74,20 +56,14 @@ def validate_auth_header_number_of_parts(
 
 
 def validate_client_key_exists(
-    request_path: str,
     request_headers: Dict[str, str],
-    request_body: bytes,
-    request_method: str,
     databases: List[VuforiaDatabase],
 ) -> None:
     """
     Validate the authorization header includes a client key for a database.
 
     Args:
-        request_path: The path of the request.
         request_headers: The headers sent with the request.
-        request_body: The body of the request.
-        request_method: The HTTP method of the request.
         databases: All Vuforia databases.
 
     Returns:
@@ -106,21 +82,13 @@ def validate_client_key_exists(
 
 
 def validate_auth_header_has_signature(
-    request_path: str,
     request_headers: Dict[str, str],
-    request_body: bytes,
-    request_method: str,
-    databases: List[VuforiaDatabase],
 ) -> None:
     """
     Validate the authorization header includes a signature.
 
     Args:
-        request_path: The path of the request.
         request_headers: The headers sent with the request.
-        request_body: The body of the request.
-        request_method: The HTTP method of the request.
-        databases: All Vuforia databases.
 
     Returns:
         The result of calling the endpoint.

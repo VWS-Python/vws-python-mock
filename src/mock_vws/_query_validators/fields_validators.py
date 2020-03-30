@@ -12,21 +12,15 @@ from mock_vws.database import VuforiaDatabase
 
 
 def validate_extra_fields(
-    request_path: str,
     request_headers: Dict[str, str],
     request_body: bytes,
-    request_method: str,
-    databases: List[VuforiaDatabase],
 ) -> None:
     """
     Validate that the no unknown fields are given.
 
     Args:
-        request_path: The path of the request.
         request_headers: The headers sent with the request.
         request_body: The body of the request.
-        request_method: The HTTP method of the request.
-        databases: All Vuforia databases.
 
     Returns:
         The result of calling the endpoint.

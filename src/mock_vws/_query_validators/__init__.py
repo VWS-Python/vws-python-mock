@@ -78,30 +78,15 @@ def run_query_validators(
     )
     validate_auth_header_exists(
         request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_auth_header_number_of_parts(
         request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_auth_header_has_signature(
         request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_client_key_exists(
         request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
         databases=databases,
     )
     validate_authorization(
@@ -120,10 +105,6 @@ def run_query_validators(
     )
     validate_accept_header(
         request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_content_type_header(
         request_headers=request_headers,
@@ -135,44 +116,26 @@ def run_query_validators(
     validate_extra_fields(
         request_headers=request_headers,
         request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_image_field_given(
         request_headers=request_headers,
         request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_image_is_image(
         request_headers=request_headers,
         request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_image_format(
         request_headers=request_headers,
         request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_image_dimensions(
         request_headers=request_headers,
         request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_image_file_size(
         request_headers=request_headers,
         request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_max_num_results(
         request_headers=request_headers,
@@ -184,28 +147,13 @@ def run_query_validators(
     validate_include_target_data(
         request_headers=request_headers,
         request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_date_header_given(
         request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_date_format(
         request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_date_in_range(
         request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
