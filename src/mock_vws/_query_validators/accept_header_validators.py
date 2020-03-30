@@ -2,41 +2,24 @@
 Validators for the ``Accept`` header.
 """
 
-from typing import Any, Callable, Dict, Tuple
+from typing import Dict
 
-import wrapt
-from requests import codes
-from requests_mock.request import _RequestObjectProxy
-from requests_mock.response import _Context
+from mock_vws._query_validators.exceptions import InvalidAcceptHeader
 
 
-@wrapt.decorator
-def validate_accept_header(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+def validate_accept_header(request_headers: Dict[str, str]) -> None:
     """
     Validate the accept header.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_headers: The headers sent with the request.
 
-    Returns:
-        The result of calling the endpoint.
-        A `NOT_ACCEPTABLE` response if the Accept header is given and is not
-        'application/json' or '*/*'.
+    Raises:
+        InvalidAcceptHeader: The Accept header is given and is not
+            'application/json' or '*/*'.
     """
-    request, context = args
-
-    accept = request.headers.get('Accept')
+    accept = request_headers.get('Accept')
     if accept in ('application/json', '*/*', None):
-        return wrapped(*args, **kwargs)
+        return
 
-    context.headers.pop('Content-Type')
-    context.status_code = codes.NOT_ACCEPTABLE
-    return ''
+    raise InvalidAcceptHeader

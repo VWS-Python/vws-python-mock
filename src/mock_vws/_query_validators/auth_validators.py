@@ -2,209 +2,131 @@
 Authorization validators to use in the mock query API.
 """
 
-import uuid
-from pathlib import Path
-from typing import Any, Callable, Dict, Tuple
+from typing import Dict, List
 
-import wrapt
-from requests import codes
-from requests_mock.request import _RequestObjectProxy
-from requests_mock.response import _Context
+from mock_vws._database_matchers import get_database_matching_client_keys
+from mock_vws._query_validators.exceptions import (
+    AuthenticationFailure,
+    AuthHeaderMissing,
+    MalformedAuthHeader,
+    QueryOutOfBounds,
+)
+from mock_vws.database import VuforiaDatabase
 
-from .._constants import ResultCodes
-from .._database_matchers import get_database_matching_client_keys
 
-
-@wrapt.decorator
-def validate_auth_header_exists(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+def validate_auth_header_exists(request_headers: Dict[str, str]) -> None:
     """
     Validate that there is an authorization header given to the query endpoint.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_headers: The headers sent with the request.
 
-    Returns:
-        The result of calling the endpoint.
-        An `UNAUTHORIZED` response if there is no "Authorization" header.
+    Raises:
+        AuthHeaderMissing: There is no "Authorization" header.
     """
-    request, context = args
-    if 'Authorization' in request.headers:
-        return wrapped(*args, **kwargs)
 
-    context.status_code = codes.UNAUTHORIZED
-    text = 'Authorization header missing.'
-    content_type = 'text/plain; charset=ISO-8859-1'
-    context.headers['Content-Type'] = content_type
-    context.headers['WWW-Authenticate'] = 'VWS'
-    return text
+    if 'Authorization' in request_headers:
+        return
+
+    raise AuthHeaderMissing
 
 
-@wrapt.decorator
 def validate_auth_header_number_of_parts(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_headers: Dict[str, str],
+) -> None:
     """
     Validate the authorization header includes text either side of a space.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_headers: The headers sent with the request.
 
-    Returns:
-        The result of calling the endpoint.
-        An ``UNAUTHORIZED`` response if the "Authorization" header is not as
-        expected.
+    Raises:
+        MalformedAuthHeader: The "Authorization" header is not as expected.
     """
-    request, context = args
 
-    header = request.headers['Authorization']
+    header = request_headers['Authorization']
     parts = header.split(' ')
     if len(parts) == 2 and parts[1]:
-        return wrapped(*args, **kwargs)
+        return
 
-    context.status_code = codes.UNAUTHORIZED
-    text = 'Malformed authorization header.'
-    content_type = 'text/plain; charset=ISO-8859-1'
-    context.headers['Content-Type'] = content_type
-    context.headers['WWW-Authenticate'] = 'VWS'
-    return text
+    raise MalformedAuthHeader
 
 
-@wrapt.decorator
 def validate_client_key_exists(
-    wrapped: Callable[..., str],
-    instance: Any,
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_headers: Dict[str, str],
+    databases: List[VuforiaDatabase],
+) -> None:
     """
     Validate the authorization header includes a client key for a database.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_headers: The headers sent with the request.
+        databases: All Vuforia databases.
 
-    Returns:
-        The result of calling the endpoint.
-        An ``UNAUTHORIZED`` response if the client key is unknown.
+    Raises:
+        AuthenticationFailure: The client key is unknown.
     """
-    request, context = args
 
-    header = request.headers['Authorization']
+    header = request_headers['Authorization']
     first_part, _ = header.split(':')
     _, access_key = first_part.split(' ')
-    for database in instance.databases:
+    for database in databases:
         if access_key == database.client_access_key:
-            return wrapped(*args, **kwargs)
+            return
 
-    context.status_code = codes.UNAUTHORIZED
-    context.headers['WWW-Authenticate'] = 'VWS'
-    transaction_id = uuid.uuid4().hex
-    result_code = ResultCodes.AUTHENTICATION_FAILURE.value
-    text = (
-        '{"transaction_id":'
-        f'"{transaction_id}",'
-        f'"result_code":"{result_code}"'
-        '}'
-    )
-    return text
+    raise AuthenticationFailure
 
 
-@wrapt.decorator
 def validate_auth_header_has_signature(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_headers: Dict[str, str],
+) -> None:
     """
     Validate the authorization header includes a signature.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_headers: The headers sent with the request.
 
-    Returns:
-        The result of calling the endpoint.
-        An ``UNAUTHORIZED`` response if the "Authorization" header is not as
-        expected.
+    Raises:
+        QueryOutOfBounds: The "Authorization" header has no signature.
     """
-    request, context = args
 
-    header = request.headers['Authorization']
+    header = request_headers['Authorization']
     if header.count(':') == 1 and header.split(':')[1]:
-        return wrapped(*args, **kwargs)
+        return
 
-    context.status_code = codes.INTERNAL_SERVER_ERROR
-    current_parent = Path(__file__).parent
-    resources = current_parent / 'resources'
-    known_response = resources / 'query_out_of_bounds_response.html'
-    content_type = 'text/html; charset=ISO-8859-1'
-    context.headers['Content-Type'] = content_type
-    cache_control = 'must-revalidate,no-cache,no-store'
-    context.headers['Cache-Control'] = cache_control
-    return known_response.read_text()
+    raise QueryOutOfBounds
 
 
-@wrapt.decorator
 def validate_authorization(
-    wrapped: Callable[..., str],
-    instance: Any,
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: List[VuforiaDatabase],
+) -> None:
     """
     Validate the authorization header given to the query endpoint.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_path: The path of the request.
+        request_headers: The headers sent with the request.
+        request_body: The body of the request.
+        request_method: The HTTP method of the request.
+        databases: All Vuforia databases.
 
-    Returns:
-        The result of calling the endpoint.
-        A `BAD_REQUEST` response if the "Authorization" header is not as
-        expected.
+    Raises:
+        AuthenticationFailure: The "Authorization" header is not as expected.
     """
-    request, context = args
 
     database = get_database_matching_client_keys(
-        request_headers=request.headers,
-        request_body=request.body,
-        request_method=request.method,
-        request_path=request.path,
-        databases=instance.databases,
+        request_headers=request_headers,
+        request_body=request_body,
+        request_method=request_method,
+        request_path=request_path,
+        databases=databases,
     )
 
     if database is not None:
-        return wrapped(*args, **kwargs)
+        return
 
-    context.status_code = codes.UNAUTHORIZED
-    context.headers['WWW-Authenticate'] = 'VWS'
-    transaction_id = uuid.uuid4().hex
-    result_code = ResultCodes.AUTHENTICATION_FAILURE.value
-    text = (
-        '{"transaction_id":'
-        f'"{transaction_id}",'
-        f'"result_code":"{result_code}"'
-        '}'
-    )
-    return text
+    raise AuthenticationFailure

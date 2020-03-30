@@ -4,42 +4,31 @@ Validators for the ``include_target_data`` field.
 
 import cgi
 import io
-from typing import Any, Callable, Dict, Tuple
-
-import wrapt
-from requests import codes
-from requests_mock.request import _RequestObjectProxy
-from requests_mock.response import _Context
+from typing import Dict
 
 from mock_vws._mock_common import parse_multipart
+from mock_vws._query_validators.exceptions import InvalidIncludeTargetData
 
 
-@wrapt.decorator
 def validate_include_target_data(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_headers: Dict[str, str],
+    request_body: bytes,
+) -> None:
     """
     Validate the ``include_target_data`` field is either an accepted value or
     not given.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_headers: The headers sent with the request.
+        request_body: The body of the request.
 
-    Returns:
-        The result of calling the endpoint.
-        A `BAD_REQUEST` response if the ``include_target_data`` field is not an
-        accepted value.
+    Raises:
+        InvalidIncludeTargetData: The ``include_target_data`` field is not an
+            accepted value.
     """
-    request, context = args
-    body_file = io.BytesIO(request.body)
+    body_file = io.BytesIO(request_body)
 
-    _, pdict = cgi.parse_header(request.headers['Content-Type'])
+    _, pdict = cgi.parse_header(request_headers['Content-Type'])
     parsed = parse_multipart(
         fp=body_file,
         pdict={
@@ -51,13 +40,7 @@ def validate_include_target_data(
     lower_include_target_data = include_target_data.lower()
     allowed_included_target_data = {'top', 'all', 'none'}
     if lower_include_target_data in allowed_included_target_data:
-        return wrapped(*args, **kwargs)
+        return
 
     assert isinstance(include_target_data, str)
-    unexpected_target_data_message = (
-        f"Invalid value '{include_target_data}' in form data part "
-        "'include_target_data'. "
-        "Expecting one of the (unquoted) string values 'all', 'none' or 'top'."
-    )
-    context.status_code = codes.BAD_REQUEST
-    return unexpected_target_data_message
+    raise InvalidIncludeTargetData(given_value=include_target_data)
