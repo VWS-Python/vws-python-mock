@@ -25,6 +25,7 @@ from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_client_keys
 from mock_vws._mock_common import (
     Route,
+    images_match,
     json_dump,
     parse_multipart,
     set_content_length_header,
@@ -250,7 +251,9 @@ class MockVuforiaWebQueryAPI:
         [include_target_data] = parsed.get('include_target_data', ['top'])
         include_target_data = include_target_data.lower()
 
-        [image] = parsed['image']
+        [image_bytes] = parsed['image']
+        assert isinstance(image_bytes, bytes)
+        image = io.BytesIO(image_bytes)
         gmt = pytz.timezone('GMT')
         now = datetime.datetime.now(tz=gmt)
 
@@ -274,7 +277,7 @@ class MockVuforiaWebQueryAPI:
 
         matching_targets = [
             target for target in database.targets
-            if target.image.getvalue() == image
+            if images_match(image=target.image, another_image=image)
         ]
 
         not_deleted_matches = [
@@ -312,8 +315,8 @@ class MockVuforiaWebQueryAPI:
             # processing status, but we choose to:
             # * Do the most unexpected thing.
             # * Be consistent with every response.
-            resources_dir = Path(__file__).parent / 'resources'
-            filename = 'match_processing_response'
+            resources_dir = Path(__file__).parent.parent / 'resources'
+            filename = 'match_processing_response.html'
             match_processing_resp_file = resources_dir / filename
             context.status_code = codes.INTERNAL_SERVER_ERROR
             cache_control = 'must-revalidate,no-cache,no-store'
