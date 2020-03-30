@@ -48,6 +48,7 @@ from mock_vws._query_validators.exceptions import (
     QueryOutOfBounds,
     InvalidAcceptHeader,
     InvalidMaxNumResults,
+    MaxNumResultsOutOfRange,
 )
 from mock_vws.database import VuforiaDatabase
 
