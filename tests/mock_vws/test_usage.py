@@ -549,6 +549,35 @@ class TestStates:
         assert repr(States.WORKING) == '<States.WORKING>'
 
 
+class TestTargets:
+    """
+    Tests for target representations.
+    """
+
+    def test_repr(self, high_quality_image: io.BytesIO) -> None:
+        """
+        Test for the representation of a ``Target``.
+        """
+        database = VuforiaDatabase()
+        image_data = high_quality_image.read()
+        image_data_encoded = base64.b64encode(image_data).decode('ascii')
+
+        data = {
+            'name': 'example',
+            'width': 1,
+            'image': image_data_encoded,
+        }
+        with MockVWS() as mock:
+            mock.add_database(database=database)
+            response = add_target_to_vws(
+                vuforia_database=database,
+                data=data,
+            )
+        target_id = response.json()['target_id']
+        target = database.targets[0]
+        assert repr(target) == f'<Target: {target_id}>'
+
+
 class TestDateHeader:
     """
     Tests for the date header in responses from mock routes.
