@@ -20,6 +20,7 @@ from mock_vws._query_validators.exceptions import (
     AuthHeaderMissing,
     MalformedAuthHeader,
     AuthenticationFailure,
+    QueryOutOfBounds,
 )
 
 
@@ -141,15 +142,7 @@ def validate_auth_header_has_signature(
     if header.count(':') == 1 and header.split(':')[1]:
         return
 
-    context.status_code = codes.INTERNAL_SERVER_ERROR
-    current_parent = Path(__file__).parent
-    resources = current_parent / 'resources'
-    known_response = resources / 'query_out_of_bounds_response.html'
-    content_type = 'text/html; charset=ISO-8859-1'
-    context.headers['Content-Type'] = content_type
-    cache_control = 'must-revalidate,no-cache,no-store'
-    context.headers['Cache-Control'] = cache_control
-    return known_response.read_text()
+    raise QueryOutOfBounds
 
 
 @wrapt.decorator

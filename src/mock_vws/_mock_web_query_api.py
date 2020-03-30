@@ -45,6 +45,7 @@ from mock_vws._query_validators.exceptions import (
     UnsupportedMediaType,
     BoundaryNotInBody,
     NoBoundaryFound,
+    QueryOutOfBounds,
 )
 from mock_vws.database import VuforiaDatabase
 
@@ -114,6 +115,13 @@ def run_validators(
     except (NoBoundaryFound, BoundaryNotInBody) as exc:
         content_type = 'text/html;charset=UTF-8'
         context.headers['Content-Type'] = content_type
+        context.status_code = exc.status_code
+        return exc.response_text
+    except QueryOutOfBounds as exc:
+        content_type = 'text/html; charset=ISO-8859-1'
+        context.headers['Content-Type'] = content_type
+        cache_control = 'must-revalidate,no-cache,no-store'
+        context.headers['Cache-Control'] = cache_control
         context.status_code = exc.status_code
         return exc.response_text
 

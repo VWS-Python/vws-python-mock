@@ -8,6 +8,7 @@ from requests import codes
 
 from mock_vws._constants import ResultCodes
 from mock_vws._mock_common import json_dump
+from pathlib import Path
 
 
 class DateHeaderNotGiven(Exception):
@@ -306,3 +307,26 @@ class NoBoundaryFound(Exception):
             'java.io.IOException: RESTEASY007550: '
             'Unable to get boundary for multipart'
         )
+
+
+class QueryOutOfBounds(Exception):
+    """
+    Exception raised when VWS returns an HTML page which says that there is a
+    particular out of bounds error.
+    """
+
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
+        super().__init__()
+        self.status_code = codes.INTERNAL_SERVER_ERROR
+        resources_dir = Path(__file__).parent.parent / 'resources'
+        filename = 'query_out_of_bounds_response.html'
+        oops_resp_file = resources_dir / filename
+        text = str(oops_resp_file.read_text())
+        self.response_text = text
