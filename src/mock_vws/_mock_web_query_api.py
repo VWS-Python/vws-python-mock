@@ -42,6 +42,9 @@ from mock_vws._query_validators.exceptions import (
     UnknownParameters,
     InactiveProject,
     InvalidIncludeTargetData,
+    UnsupportedMediaType,
+    BoundaryNotInBody,
+    NoBoundaryFound,
 )
 from mock_vws.database import VuforiaDatabase
 
@@ -104,6 +107,16 @@ def run_validators(
     ) as exc:
         context.status_code = exc.status_code
         return exc.response_text
+    except UnsupportedMediaType as exc:
+        context.headers.pop('Content-Type')
+        context.status_code = exc.status_code
+        return exc.response_text
+    except (NoBoundaryFound, BoundaryNotInBody) as exc:
+        content_type = 'text/html;charset=UTF-8'
+        context.headers['Content-Type'] = content_type
+        context.status_code = exc.status_code
+        return exc.response_text
+
 
     return wrapped(*args, **kwargs)
 

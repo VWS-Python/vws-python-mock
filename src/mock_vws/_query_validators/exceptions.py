@@ -248,3 +248,61 @@ class InvalidIncludeTargetData(Exception):
         )
         self.response_text = unexpected_target_data_message
 
+
+class UnsupportedMediaType(Exception):
+    """
+    Exception raised when no boundary is found for multipart data.
+    """
+
+    def __init__(self, given_value: str) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
+        super().__init__()
+        self.status_code = codes.UNSUPPORTED_MEDIA_TYPE
+        self.response_text = ''
+
+
+class BoundaryNotInBody(Exception):
+    """
+    Exception raised when the form boundary is not in the request body.
+    """
+
+    def __init__(self, given_value: str) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
+        super().__init__()
+        self.status_code = codes.BAD_REQUEST
+        self.response_text = (
+            'java.lang.RuntimeException: RESTEASY007500: '
+            'Could find no Content-Disposition header within part'
+        )
+
+class NoBoundaryFound(Exception):
+    """
+    Exception raised when an invalid media type is given.
+    """
+
+    def __init__(self, given_value: str) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
+        super().__init__()
+        self.status_code = codes.BAD_REQUEST
+        self.response_text = (
+            'java.io.IOException: RESTEASY007550: '
+            'Unable to get boundary for multipart'
+        )

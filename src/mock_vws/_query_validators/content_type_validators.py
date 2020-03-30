@@ -9,6 +9,7 @@ import wrapt
 from requests import codes
 
 from mock_vws.database import VuforiaDatabase
+from mock_vws._query_validators.exceptions import UnsupportedMediaType, BoundaryNotInBody, NoBoundaryFound
 
 
 @wrapt.decorator
@@ -37,24 +38,10 @@ def validate_content_type_header(
     """
     main_value, pdict = cgi.parse_header(request_headers['Content-Type'])
     if main_value != 'multipart/form-data':
-        context.status_code = codes.UNSUPPORTED_MEDIA_TYPE
-        context.headers.pop('Content-Type')
-        return ''
+        raise UnsupportedMediaType
 
     if 'boundary' not in pdict:
-        context.status_code = codes.BAD_REQUEST
-        context.headers['Content-Type'] = 'text/html;charset=UTF-8'
-        return (
-            'java.io.IOException: RESTEASY007550: '
-            'Unable to get boundary for multipart'
-        )
+        raise NoBoundaryFound
 
     if pdict['boundary'].encode() not in request_body:
-        context.status_code = codes.BAD_REQUEST
-        context.headers['Content-Type'] = 'text/html;charset=UTF-8'
-        return (
-            'java.lang.RuntimeException: RESTEASY007500: '
-            'Could find no Content-Disposition header within part'
-        )
-
-    return
+        raise BoundaryNotInBody
