@@ -408,40 +408,8 @@ class ContentLengthHeaderTooLarge(Exception):
         super().__init__()
         self.status_code = codes.GATEWAY_TIMEOUT
         self.response_text = ''
-class ContentLengthHeaderTooLarge(Exception):
-    """
-    Exception raised when the given content length header is too large.
-    """
-
-    def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this is
-                raised.
-        """
-        super().__init__()
-        self.status_code = codes.GATEWAY_TIMEOUT
-        self.response_text = ''
 
 
-class ContentLengthHeaderNotInt(Exception):
-    """
-    Exception raised when the given content length header is not an integer.
-    """
-
-    def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this is
-                raised.
-        """
-        super().__init__()
-        self.status_code = codes.BAD_REQUEST
-        self.response_text = ''
 class ContentLengthHeaderNotInt(Exception):
     """
     Exception raised when the given content length header is not an integer.
