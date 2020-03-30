@@ -4,11 +4,10 @@ Validators for the fields given.
 
 import cgi
 import io
-from typing import Dict, List
+from typing import Dict
 
 from mock_vws._mock_common import parse_multipart
 from mock_vws._query_validators.exceptions import UnknownParameters
-from mock_vws.database import VuforiaDatabase
 
 
 def validate_extra_fields(

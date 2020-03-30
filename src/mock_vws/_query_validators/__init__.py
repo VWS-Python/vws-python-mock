@@ -76,15 +76,9 @@ def run_query_validators(
         request_path=request_path,
         databases=databases,
     )
-    validate_auth_header_exists(
-        request_headers=request_headers,
-    )
-    validate_auth_header_number_of_parts(
-        request_headers=request_headers,
-    )
-    validate_auth_header_has_signature(
-        request_headers=request_headers,
-    )
+    validate_auth_header_exists(request_headers=request_headers)
+    validate_auth_header_number_of_parts(request_headers=request_headers)
+    validate_auth_header_has_signature(request_headers=request_headers)
     validate_client_key_exists(
         request_headers=request_headers,
         databases=databases,
@@ -103,9 +97,7 @@ def run_query_validators(
         request_path=request_path,
         databases=databases,
     )
-    validate_accept_header(
-        request_headers=request_headers,
-    )
+    validate_accept_header(request_headers=request_headers)
     validate_content_type_header(
         request_headers=request_headers,
         request_body=request_body,
@@ -148,12 +140,6 @@ def run_query_validators(
         request_headers=request_headers,
         request_body=request_body,
     )
-    validate_date_header_given(
-        request_headers=request_headers,
-    )
-    validate_date_format(
-        request_headers=request_headers,
-    )
-    validate_date_in_range(
-        request_headers=request_headers,
-    )
+    validate_date_header_given(request_headers=request_headers)
+    validate_date_format(request_headers=request_headers)
+    validate_date_in_range(request_headers=request_headers)

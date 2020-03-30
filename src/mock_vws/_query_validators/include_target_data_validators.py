@@ -4,11 +4,10 @@ Validators for the ``include_target_data`` field.
 
 import cgi
 import io
-from typing import Dict, List
+from typing import Dict
 
 from mock_vws._mock_common import parse_multipart
 from mock_vws._query_validators.exceptions import InvalidIncludeTargetData
-from mock_vws.database import VuforiaDatabase
 
 
 def validate_include_target_data(

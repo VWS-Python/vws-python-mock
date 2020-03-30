@@ -2,15 +2,12 @@
 Validators for the ``Accept`` header.
 """
 
-from typing import Dict, List
+from typing import Dict
 
 from mock_vws._query_validators.exceptions import InvalidAcceptHeader
-from mock_vws.database import VuforiaDatabase
 
 
-def validate_accept_header(
-    request_headers: Dict[str, str],
-) -> None:
+def validate_accept_header(request_headers: Dict[str, str], ) -> None:
     """
     Validate the accept header.
 
