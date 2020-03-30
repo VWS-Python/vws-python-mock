@@ -2,6 +2,8 @@
 Tools for making Vuforia queries.
 """
 
+from typing import List
+
 class MatchingTargetsWithProcessingStatus(Exception):
     pass
 
@@ -21,7 +23,7 @@ def _images_match(image: io.BytesIO, another_image: io.BytesIO) -> bool:
     return bool(image.getvalue() == another_image.getvalue())
 
 
-def _get_query_matches(image: io.BytesIO, database: VuforiaDatabase):
+def _get_query_matches(image: io.BytesIO, database: VuforiaDatabase) -> List[Target]:
     """
     Given an image and a database, return the matches for a query.
     """
