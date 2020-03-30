@@ -325,8 +325,6 @@ class MockVuforiaWebServicesAPI:
             }
             return json_dump(body)
 
-        # TODO make this target.delete()
-        # and have this raise a target status processing exception
         gmt = pytz.timezone('GMT')
         now = datetime.datetime.now(tz=gmt)
         target.delete_date = now
@@ -360,8 +358,6 @@ class MockVuforiaWebServicesAPI:
         )
 
         assert isinstance(database, VuforiaDatabase)
-        # TODO make a helper to get a database summary report from a
-        # VuforiaDatabase
         active_images = len(
             [
                 target for target in database.targets
@@ -652,7 +648,6 @@ class MockVuforiaWebServicesAPI:
         )
 
         assert isinstance(database, VuforiaDatabase)
-        # TODO have this be a helper
         body = {
             'status': target.status,
             'transaction_id': uuid.uuid4().hex,
