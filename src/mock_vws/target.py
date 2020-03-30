@@ -91,7 +91,7 @@ class Target:  # pylint: disable=too-many-instance-attributes
 
     def __repr__(self) -> str:
         """
-        XXX
+        Return a representation which includes the target ID.
         """
         class_name = self.__class__.__name__
         return f'<{class_name}: {self.target_id}>'
