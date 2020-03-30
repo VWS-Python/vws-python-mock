@@ -45,8 +45,6 @@ def validate_content_length_header_is_int(
         context.headers = {'Connection': 'Close'}
         return ''
 
-    return
-
 
 @wrapt.decorator
 def validate_content_length_header_not_too_large(
@@ -78,8 +76,6 @@ def validate_content_length_header_not_too_large(
         context.status_code = codes.GATEWAY_TIMEOUT
         context.headers = {'Connection': 'keep-alive'}
         return ''
-
-    return
 
 
 @wrapt.decorator
@@ -117,5 +113,3 @@ def validate_content_length_header_not_too_small(
             'result_code': ResultCodes.AUTHENTICATION_FAILURE.value,
         }
         return json_dump(body)
-
-    return

@@ -225,6 +225,49 @@ class InactiveProject(Exception):
             '}'
         )
 
+class InvalidMaxNumResults(Exception):
+    """
+    Exception raised when an invalid value is given as the
+    "max_num_results" field.
+    """
+
+    def __init__(self, given_value: str) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
+        super().__init__()
+        self.status_code = codes.BAD_REQUEST
+        integer_out_of_range_message = (
+            f'Integer out of range ({given_value}) in form data part '
+            "'max_result'. Accepted range is from 1 to 50 (inclusive)."
+        )
+        self.response_text = integer_out_of_range_message
+
+class MaxNumResultsOutOfRange(Exception):
+    """
+    Exception raised when an integer value is given as the "max_num_results"
+    field which is out of range.
+    """
+
+    def __init__(self, given_value: str) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
+        super().__init__()
+        self.status_code = codes.BAD_REQUEST
+        invalid_value_message = (
+            f"Invalid value '{given_value}' in form data part 'max_result'. "
+            'Expecting integer value in range from 1 to 50 (inclusive).'
+        )
+        self.response_text = invalid_value_message
 
 class InvalidIncludeTargetData(Exception):
     """
@@ -245,7 +288,8 @@ class InvalidIncludeTargetData(Exception):
         unexpected_target_data_message = (
             f"Invalid value '{given_value}' in form data part "
             "'include_target_data'. "
-            "Expecting one of the (unquoted) string values 'all', 'none' or 'top'."
+            "Expecting one of the (unquoted) string values 'all', 'none' or "
+            "'top'."
         )
         self.response_text = unexpected_target_data_message
 
@@ -255,7 +299,7 @@ class UnsupportedMediaType(Exception):
     Exception raised when no boundary is found for multipart data.
     """
 
-    def __init__(self, given_value: str) -> None:
+    def __init__(self) -> None:
         """
         Attributes:
             status_code: The status code to use in a response if this is
@@ -272,7 +316,7 @@ class InvalidAcceptHeader(Exception):
     Exception raised when there is an invalid accept header given.
     """
 
-    def __init__(self, given_value: str) -> None:
+    def __init__(self) -> None:
         """
         Attributes:
             status_code: The status code to use in a response if this is
@@ -289,7 +333,7 @@ class BoundaryNotInBody(Exception):
     Exception raised when the form boundary is not in the request body.
     """
 
-    def __init__(self, given_value: str) -> None:
+    def __init__(self) -> None:
         """
         Attributes:
             status_code: The status code to use in a response if this is
@@ -309,7 +353,7 @@ class NoBoundaryFound(Exception):
     Exception raised when an invalid media type is given.
     """
 
-    def __init__(self, given_value: str) -> None:
+    def __init__(self) -> None:
         """
         Attributes:
             status_code: The status code to use in a response if this is
@@ -346,3 +390,71 @@ class QueryOutOfBounds(Exception):
         oops_resp_file = resources_dir / filename
         text = str(oops_resp_file.read_text())
         self.response_text = text
+
+
+class ContentLengthHeaderTooLarge(Exception):
+    """
+    Exception raised when the given content length header is too large.
+    """
+
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
+        super().__init__()
+        self.status_code = codes.GATEWAY_TIMEOUT
+        self.response_text = ''
+class ContentLengthHeaderTooLarge(Exception):
+    """
+    Exception raised when the given content length header is too large.
+    """
+
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
+        super().__init__()
+        self.status_code = codes.GATEWAY_TIMEOUT
+        self.response_text = ''
+
+
+class ContentLengthHeaderNotInt(Exception):
+    """
+    Exception raised when the given content length header is not an integer.
+    """
+
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
+        super().__init__()
+        self.status_code = codes.BAD_REQUEST
+        self.response_text = ''
+class ContentLengthHeaderNotInt(Exception):
+    """
+    Exception raised when the given content length header is not an integer.
+    """
+
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
+        super().__init__()
+        self.status_code = codes.BAD_REQUEST
+        self.response_text = ''

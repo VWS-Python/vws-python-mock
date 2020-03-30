@@ -47,6 +47,7 @@ from mock_vws._query_validators.exceptions import (
     NoBoundaryFound,
     QueryOutOfBounds,
     InvalidAcceptHeader,
+    InvalidMaxNumResults,
 )
 from mock_vws.database import VuforiaDatabase
 
@@ -106,6 +107,8 @@ def run_validators(
         UnknownParameters,
         InactiveProject,
         InvalidIncludeTargetData,
+        InvalidMaxNumResults,
+        MaxNumResultsOutOfRange,
     ) as exc:
         context.status_code = exc.status_code
         return exc.response_text
