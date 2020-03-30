@@ -4,7 +4,7 @@ Validators for the ``max_num_results`` fields.
 
 import cgi
 import io
-from typing import Dict, List
+from typing import Dict, Set
 
 from mock_vws._mock_common import parse_multipart
 from mock_vws._query_validators.exceptions import (
@@ -19,7 +19,7 @@ def validate_max_num_results(
     request_headers: Dict[str, str],
     request_body: bytes,
     request_method: str,
-    databases: List[VuforiaDatabase],
+    databases: Set[VuforiaDatabase],
 ) -> None:
     """
     Validate the ``max_num_results`` field is either an integer within range or
