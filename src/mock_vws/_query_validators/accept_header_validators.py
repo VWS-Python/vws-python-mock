@@ -7,7 +7,7 @@ from typing import Dict
 from mock_vws._query_validators.exceptions import InvalidAcceptHeader
 
 
-def validate_accept_header(request_headers: Dict[str, str], ) -> None:
+def validate_accept_header(request_headers: Dict[str, str]) -> None:
     """
     Validate the accept header.
 
