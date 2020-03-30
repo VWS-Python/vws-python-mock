@@ -123,6 +123,7 @@ class Target:  # pylint: disable=too-many-instance-attributes
     def status(self) -> str:
         """
         Return the status of the target.
+
         For now this waits half a second (arbitrary) before changing the
         status from 'processing' to 'failed' or 'success'.
 
