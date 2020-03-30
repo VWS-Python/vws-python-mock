@@ -2,7 +2,7 @@
 Input validators to use in the mock.
 """
 
-from typing import Dict, List, Set
+from typing import Dict, Set
 
 from mock_vws.database import VuforiaDatabase
 

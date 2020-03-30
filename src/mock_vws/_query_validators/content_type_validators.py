@@ -3,7 +3,7 @@ Validators for the ``Content-Type`` header.
 """
 
 import cgi
-from typing import Dict, List
+from typing import Dict, Set
 
 from mock_vws._query_validators.exceptions import (
     BoundaryNotInBody,
@@ -18,7 +18,7 @@ def validate_content_type_header(
     request_headers: Dict[str, str],
     request_body: bytes,
     request_method: str,
-    databases: List[VuforiaDatabase],
+    databases: Set[VuforiaDatabase],
 ) -> None:
     """
     Validate the ``Content-Type`` header.
