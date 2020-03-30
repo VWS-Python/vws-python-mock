@@ -11,9 +11,10 @@ import datetime
 import io
 import uuid
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Set, Union
+from typing import Any, Callable, Dict, List, Set, Tuple, Union
 
 import pytz
+import wrapt
 from requests import codes
 from requests_mock import POST
 from requests_mock.request import _RequestObjectProxy
@@ -29,42 +30,120 @@ from mock_vws._mock_common import (
     set_content_length_header,
     set_date_header,
 )
+from mock_vws._query_validators import run_query_validators
+from mock_vws._query_validators.exceptions import (
+    AuthenticationFailure,
+    AuthenticationFailureGoodFormatting,
+    AuthHeaderMissing,
+    BadImage,
+    BoundaryNotInBody,
+    ContentLengthHeaderNotInt,
+    ContentLengthHeaderTooLarge,
+    DateFormatNotValid,
+    DateHeaderNotGiven,
+    ImageNotGiven,
+    InactiveProject,
+    InvalidAcceptHeader,
+    InvalidIncludeTargetData,
+    InvalidMaxNumResults,
+    MalformedAuthHeader,
+    MaxNumResultsOutOfRange,
+    NoBoundaryFound,
+    QueryOutOfBounds,
+    RequestTimeTooSkewed,
+    UnknownParameters,
+    UnsupportedMediaType,
+)
 from mock_vws.database import VuforiaDatabase
 
-from ._query_validators import (
-    validate_accept_header,
-    validate_content_type_header,
-    validate_extra_fields,
-    validate_include_target_data,
-    validate_max_num_results,
-    validate_project_state,
-)
-from ._query_validators.auth_validators import (
-    validate_auth_header_exists,
-    validate_auth_header_has_signature,
-    validate_auth_header_number_of_parts,
-    validate_authorization,
-    validate_client_key_exists,
-)
-from ._query_validators.content_length_validators import (
-    validate_content_length_header_is_int,
-    validate_content_length_header_not_too_large,
-    validate_content_length_header_not_too_small,
-)
-from ._query_validators.date_validators import (
-    validate_date_format,
-    validate_date_header_given,
-    validate_date_in_range,
-)
-from ._query_validators.image_validators import (
-    validate_image_dimensions,
-    validate_image_field_given,
-    validate_image_file_size,
-    validate_image_format,
-    validate_image_is_image,
-)
-
 ROUTES = set([])
+
+
+@wrapt.decorator
+def run_validators(
+    wrapped: Callable[..., str],
+    instance: Any,
+    args: Tuple[_RequestObjectProxy, _Context],
+    kwargs: Dict,
+) -> str:
+    """
+    Run all validators for the query endpoint.
+
+    Args:
+        wrapped: An endpoint function for `requests_mock`.
+        instance: The class that the endpoint function is in.
+        args: The arguments given to the endpoint function.
+        kwargs: The keyword arguments given to the endpoint function.
+
+    Returns:
+        The result of calling the endpoint.
+    """
+    request, context = args
+    try:
+        run_query_validators(
+            request_path=request.path,
+            request_headers=request.headers,
+            request_body=request.body,
+            request_method=request.method,
+            databases=instance.databases,
+        )
+    except DateHeaderNotGiven as exc:
+        content_type = 'text/plain; charset=ISO-8859-1'
+        context.headers['Content-Type'] = content_type
+        context.status_code = exc.status_code
+        return exc.response_text
+    except (
+        AuthHeaderMissing,
+        DateFormatNotValid,
+        MalformedAuthHeader,
+    ) as exc:
+        content_type = 'text/plain; charset=ISO-8859-1'
+        context.headers['Content-Type'] = content_type
+        context.headers['WWW-Authenticate'] = 'VWS'
+        context.status_code = exc.status_code
+        return exc.response_text
+    except (AuthenticationFailure, AuthenticationFailureGoodFormatting) as exc:
+        context.headers['WWW-Authenticate'] = 'VWS'
+        context.status_code = exc.status_code
+        return exc.response_text
+    except (
+        RequestTimeTooSkewed,
+        ImageNotGiven,
+        UnknownParameters,
+        InactiveProject,
+        InvalidIncludeTargetData,
+        InvalidMaxNumResults,
+        MaxNumResultsOutOfRange,
+        BadImage,
+    ) as exc:
+        context.status_code = exc.status_code
+        return exc.response_text
+    except (UnsupportedMediaType, InvalidAcceptHeader) as exc:
+        context.headers.pop('Content-Type')
+        context.status_code = exc.status_code
+        return exc.response_text
+    except (NoBoundaryFound, BoundaryNotInBody) as exc:
+        content_type = 'text/html;charset=UTF-8'
+        context.headers['Content-Type'] = content_type
+        context.status_code = exc.status_code
+        return exc.response_text
+    except QueryOutOfBounds as exc:
+        content_type = 'text/html; charset=ISO-8859-1'
+        context.headers['Content-Type'] = content_type
+        cache_control = 'must-revalidate,no-cache,no-store'
+        context.headers['Cache-Control'] = cache_control
+        context.status_code = exc.status_code
+        return exc.response_text
+    except ContentLengthHeaderNotInt as exc:
+        context.headers = {'Connection': 'Close'}
+        context.status_code = exc.status_code
+        return exc.response_text
+    except ContentLengthHeaderTooLarge as exc:
+        context.headers = {'Connection': 'keep-alive'}
+        context.status_code = exc.status_code
+        return exc.response_text
+
+    return wrapped(*args, **kwargs)
 
 
 def route(
@@ -100,29 +179,8 @@ def route(
         )
 
         decorators = [
-            validate_date_in_range,
-            validate_date_format,
-            validate_date_header_given,
-            validate_include_target_data,
-            validate_max_num_results,
-            validate_image_file_size,
-            validate_image_dimensions,
-            validate_image_format,
-            validate_image_is_image,
-            validate_image_field_given,
-            validate_extra_fields,
-            validate_content_type_header,
-            validate_accept_header,
-            validate_project_state,
-            validate_authorization,
-            validate_client_key_exists,
-            validate_auth_header_has_signature,
-            validate_auth_header_number_of_parts,
-            validate_auth_header_exists,
-            validate_content_length_header_not_too_small,
+            run_validators,
             set_date_header,
-            validate_content_length_header_not_too_large,
-            validate_content_length_header_is_int,
             set_content_length_header,
         ]
 

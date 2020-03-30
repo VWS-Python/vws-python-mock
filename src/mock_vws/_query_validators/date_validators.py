@@ -3,48 +3,31 @@ Validators of the date header to use in the mock query API.
 """
 
 import datetime
-import uuid
-from typing import Any, Callable, Dict, Set, Tuple
+from typing import Dict, Set
 
 import pytz
-import wrapt
-from requests import codes
-from requests_mock.request import _RequestObjectProxy
-from requests_mock.response import _Context
 
-from .._constants import ResultCodes
-from .._mock_common import json_dump
+from mock_vws._query_validators.exceptions import (
+    DateFormatNotValid,
+    DateHeaderNotGiven,
+    RequestTimeTooSkewed,
+)
 
 
-@wrapt.decorator
-def validate_date_header_given(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+def validate_date_header_given(request_headers: Dict[str, str]) -> None:
     """
     Validate the date header is given to the query endpoint.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_headers: The headers sent with the request.
 
-    Returns:
-        The result of calling the endpoint.
-        A `BAD_REQUEST` response if the date is not given.
+    Raises:
+        DateHeaderNotGiven: The date is not given.
     """
-    request, context = args
+    if 'Date' in request_headers:
+        return
 
-    if 'Date' in request.headers:
-        return wrapped(*args, **kwargs)
-
-    context.status_code = codes.BAD_REQUEST
-    content_type = 'text/plain; charset=ISO-8859-1'
-    context.headers['Content-Type'] = content_type
-    return 'Date header required.'
+    raise DateHeaderNotGiven
 
 
 def _accepted_date_formats() -> Set[str]:
@@ -68,28 +51,17 @@ def _accepted_date_formats() -> Set[str]:
     return known_accepted_formats
 
 
-@wrapt.decorator
-def validate_date_format(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+def validate_date_format(request_headers: Dict[str, str]) -> None:
     """
     Validate the format of the date header given to the query endpoint.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_headers: The headers sent with the request.
 
-    Returns:
-        The result of calling the endpoint.
-        An `UNAUTHORIZED` response if the date is in the wrong format.
+    Raises:
+        DateFormatNotValid: The date is in the wrong format.
     """
-    request, context = args
-    date_header = request.headers['Date']
+    date_header = request_headers['Date']
 
     for date_format in _accepted_date_formats():
         try:
@@ -97,38 +69,22 @@ def validate_date_format(
         except ValueError:
             pass
         else:
-            return wrapped(*args, **kwargs)
+            return
 
-    context.status_code = codes.UNAUTHORIZED
-    context.headers['WWW-Authenticate'] = 'VWS'
-    text = 'Malformed date header.'
-    content_type = 'text/plain; charset=ISO-8859-1'
-    context.headers['Content-Type'] = content_type
-    return text
+    raise DateFormatNotValid
 
 
-@wrapt.decorator
-def validate_date_in_range(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+def validate_date_in_range(request_headers: Dict[str, str]) -> None:
     """
     Validate date in the date header given to the query endpoint.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_headers: The headers sent with the request.
 
-    Returns:
-        The result of calling the endpoint.
-        A `FORBIDDEN` response if the date is out of range.
+    Raises:
+        RequestTimeTooSkewed: The date is out of range.
     """
-    request, context = args
-    date_header = request.headers['Date']
+    date_header = request_headers['Date']
 
     for date_format in _accepted_date_formats():
         try:
@@ -146,12 +102,6 @@ def validate_date_in_range(
     maximum_time_difference = datetime.timedelta(minutes=65)
 
     if abs(time_difference) < maximum_time_difference:
-        return wrapped(*args, **kwargs)
+        return
 
-    context.status_code = codes.FORBIDDEN
-
-    body = {
-        'transaction_id': uuid.uuid4().hex,
-        'result_code': ResultCodes.REQUEST_TIME_TOO_SKEWED.value,
-    }
-    return json_dump(body)
+    raise RequestTimeTooSkewed

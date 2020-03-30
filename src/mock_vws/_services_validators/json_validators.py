@@ -15,7 +15,6 @@ from mock_vws._services_validators.exceptions import (
 
 
 def validate_json(
-    request_text: str,
     request_body: bytes,
     request_method: str,
 ) -> None:
@@ -23,7 +22,6 @@ def validate_json(
     Validate that there is either no JSON given or the JSON given is valid.
 
     Args:
-        request_text: The content of the request.
         request_body: The body of the request.
         request_method: The HTTP method of the request.
 
@@ -40,6 +38,6 @@ def validate_json(
         raise UnnecessaryRequestBody
 
     try:
-        json.loads(request_text)
+        json.loads(request_body.decode())
     except JSONDecodeError:
         raise Fail(status_code=codes.BAD_REQUEST)
