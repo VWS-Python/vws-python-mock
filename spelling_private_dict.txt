@@ -18,6 +18,7 @@ chunked
 cmyk
 connectionerror
 customizable
+dataclass
 datetime
 decodable
 dev
