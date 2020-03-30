@@ -29,6 +29,7 @@ from mock_vws._mock_common import (
     parse_multipart,
     set_content_length_header,
     set_date_header,
+    images_match,
 )
 from mock_vws._query_validators import run_query_validators
 from mock_vws._query_validators.exceptions import (
@@ -250,7 +251,8 @@ class MockVuforiaWebQueryAPI:
         [include_target_data] = parsed.get('include_target_data', ['top'])
         include_target_data = include_target_data.lower()
 
-        [image] = parsed['image']
+        [image_bytes] = parsed['image']
+        image = io.BytesIO(image_bytes)
         gmt = pytz.timezone('GMT')
         now = datetime.datetime.now(tz=gmt)
 
@@ -274,7 +276,7 @@ class MockVuforiaWebQueryAPI:
 
         matching_targets = [
             target for target in database.targets
-            if target.image.getvalue() == image
+            if images_match(image=target.image, another_image=image)
         ]
 
         not_deleted_matches = [
