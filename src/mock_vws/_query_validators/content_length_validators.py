@@ -72,7 +72,7 @@ def validate_content_length_header_not_too_large(
     """
     given_content_length = request_headers['Content-Length']
 
-    body_length = len(request_body if request_body else '')
+    body_length = len(request_body if request_body else b'')
     given_content_length_value = int(given_content_length)
     if given_content_length_value > body_length:
         context.status_code = codes.GATEWAY_TIMEOUT
@@ -106,7 +106,7 @@ def validate_content_length_header_not_too_small(
     """
     given_content_length = request_headers['Content-Length']
 
-    body_length = len(request_body if request_body else '')
+    body_length = len(request_body if request_body else b'')
     given_content_length_value = int(given_content_length)
 
     if given_content_length_value < body_length:
