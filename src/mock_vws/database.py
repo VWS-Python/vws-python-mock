@@ -3,7 +3,7 @@ Utilities for managing mock Vuforia databases.
 """
 
 import uuid
-from typing import List, Optional
+from typing import Optional, Set
 
 from .states import States
 from .target import Target
@@ -19,7 +19,7 @@ class VuforiaDatabase:
     server_secret_key: str
     client_access_key: str
     client_secret_key: str
-    targets: List[Target]
+    targets: Set[Target]
     state: States
 
     def __init__(
@@ -71,5 +71,5 @@ class VuforiaDatabase:
         self.client_access_key = client_access_key
         self.client_secret_key = client_secret_key
         self.database_name = database_name
-        self.targets: List[Target] = []
+        self.targets: Set[Target] = set([])
         self.state = state
