@@ -22,9 +22,6 @@ class Target:  # pylint: disable=too-many-instance-attributes
     https://developer.vuforia.com/target-manager.
     """
 
-    # TODO remove
-    NUM = 1
-
     name: str
     target_id: str
     active_flag: bool
