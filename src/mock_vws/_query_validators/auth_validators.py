@@ -2,27 +2,16 @@
 Authorization validators to use in the mock query API.
 """
 
-import uuid
-from pathlib import Path
 from typing import Dict, List
 
-import wrapt
-from requests import codes
-
-from mock_vws._constants import ResultCodes
 from mock_vws._database_matchers import get_database_matching_client_keys
-from mock_vws.database import VuforiaDatabase
 from mock_vws._query_validators.exceptions import (
-    DateFormatNotValid,
-    DateHeaderNotGiven,
-    ImageNotGiven,
-    RequestTimeTooSkewed,
+    AuthenticationFailure,
     AuthHeaderMissing,
     MalformedAuthHeader,
-    AuthenticationFailure,
     QueryOutOfBounds,
 )
-
+from mock_vws.database import VuforiaDatabase
 
 
 def validate_auth_header_exists(
@@ -50,7 +39,6 @@ def validate_auth_header_exists(
         return
 
     raise AuthHeaderMissing
-
 
 
 def validate_auth_header_number_of_parts(
@@ -81,7 +69,6 @@ def validate_auth_header_number_of_parts(
         return
 
     raise MalformedAuthHeader
-
 
 
 def validate_client_key_exists(
@@ -115,7 +102,6 @@ def validate_client_key_exists(
     raise AuthenticationFailure
 
 
-
 def validate_auth_header_has_signature(
     request_path: str,
     request_headers: Dict[str, str],
@@ -143,7 +129,6 @@ def validate_auth_header_has_signature(
         return
 
     raise QueryOutOfBounds
-
 
 
 def validate_authorization(

@@ -7,14 +7,12 @@ import io
 from typing import Dict, List
 
 import requests
-import wrapt
 from PIL import Image
 
 from mock_vws._query_validators.exceptions import BadImage, ImageNotGiven
 from mock_vws.database import VuforiaDatabase
 
 from .._mock_common import parse_multipart
-
 
 
 def validate_image_field_given(
@@ -51,7 +49,6 @@ def validate_image_field_given(
         return
 
     raise ImageNotGiven
-
 
 
 def validate_image_file_size(
@@ -96,7 +93,6 @@ def validate_image_file_size(
     if len(image) > max_bytes:
         raise requests.exceptions.ConnectionError
     return
-
 
 
 def validate_image_dimensions(
@@ -145,7 +141,6 @@ def validate_image_dimensions(
     raise BadImage
 
 
-
 def validate_image_format(
     request_path: str,
     request_headers: Dict[str, str],
@@ -187,7 +182,6 @@ def validate_image_format(
         return
 
     raise BadImage
-
 
 
 def validate_image_is_image(

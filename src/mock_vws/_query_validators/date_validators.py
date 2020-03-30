@@ -6,7 +6,6 @@ import datetime
 from typing import Dict, List, Set
 
 import pytz
-import wrapt
 
 from mock_vws._query_validators.exceptions import (
     DateFormatNotValid,
@@ -14,7 +13,6 @@ from mock_vws._query_validators.exceptions import (
     RequestTimeTooSkewed,
 )
 from mock_vws.database import VuforiaDatabase
-
 
 
 def validate_date_header_given(
@@ -64,7 +62,6 @@ def _accepted_date_formats() -> Set[str]:
     return known_accepted_formats
 
 
-
 def validate_date_format(
     request_path: str,
     request_headers: Dict[str, str],
@@ -96,7 +93,6 @@ def validate_date_format(
             return
 
     raise DateFormatNotValid
-
 
 
 def validate_date_in_range(

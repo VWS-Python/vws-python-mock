@@ -6,13 +6,12 @@ import cgi
 import io
 from typing import Dict, List
 
-import wrapt
-from requests import codes
-
 from mock_vws._mock_common import parse_multipart
+from mock_vws._query_validators.exceptions import (
+    InvalidMaxNumResults,
+    MaxNumResultsOutOfRange,
+)
 from mock_vws.database import VuforiaDatabase
-from mock_vws._query_validators.exceptions import InvalidMaxNumResults, MaxNumResultsOutOfRange
-
 
 
 def validate_max_num_results(

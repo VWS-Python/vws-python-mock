@@ -209,5 +209,3 @@ def run_query_validators(
         request_path=request_path,
         databases=databases,
     )
-
-

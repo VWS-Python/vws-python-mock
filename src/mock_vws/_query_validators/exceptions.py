@@ -3,12 +3,12 @@ Exceptions to raise from validators.
 """
 
 import uuid
+from pathlib import Path
 
 from requests import codes
 
 from mock_vws._constants import ResultCodes
 from mock_vws._mock_common import json_dump
-from pathlib import Path
 
 
 class DateHeaderNotGiven(Exception):
@@ -98,6 +98,7 @@ class BadImage(Exception):
             '}'
         )
 
+
 class AuthenticationFailure(Exception):
     """
     Exception raised when Vuforia returns a response with a result code
@@ -126,6 +127,7 @@ class AuthenticationFailure(Exception):
             '}'
         )
 
+
 class AuthenticationFailureGoodFormatting(Exception):
     """
     Exception raised when Vuforia returns a response with a result code
@@ -142,13 +144,14 @@ class AuthenticationFailureGoodFormatting(Exception):
         """
         super().__init__()
         self.status_code = codes.UNAUTHORIZED
-        transaction_id = uuid.uuid4().hex
+        uuid.uuid4().hex
 
         body = {
             'transaction_id': uuid.uuid4().hex,
             'result_code': ResultCodes.AUTHENTICATION_FAILURE.value,
         }
         self.response_text = json_dump(body)
+
 
 class ImageNotGiven(Exception):
     """
@@ -249,6 +252,7 @@ class InactiveProject(Exception):
             '}'
         )
 
+
 class InvalidMaxNumResults(Exception):
     """
     Exception raised when an invalid value is given as the
@@ -271,6 +275,7 @@ class InvalidMaxNumResults(Exception):
         )
         self.response_text = invalid_value_message
 
+
 class MaxNumResultsOutOfRange(Exception):
     """
     Exception raised when an integer value is given as the "max_num_results"
@@ -292,6 +297,7 @@ class MaxNumResultsOutOfRange(Exception):
             "'max_result'. Accepted range is from 1 to 50 (inclusive)."
         )
         self.response_text = integer_out_of_range_message
+
 
 class InvalidIncludeTargetData(Exception):
     """
@@ -335,6 +341,7 @@ class UnsupportedMediaType(Exception):
         self.status_code = codes.UNSUPPORTED_MEDIA_TYPE
         self.response_text = ''
 
+
 class InvalidAcceptHeader(Exception):
     """
     Exception raised when there is an invalid accept header given.
@@ -351,6 +358,7 @@ class InvalidAcceptHeader(Exception):
         super().__init__()
         self.status_code = codes.NOT_ACCEPTABLE
         self.response_text = ''
+
 
 class BoundaryNotInBody(Exception):
     """
@@ -371,6 +379,7 @@ class BoundaryNotInBody(Exception):
             'java.lang.RuntimeException: RESTEASY007500: '
             'Could find no Content-Disposition header within part'
         )
+
 
 class NoBoundaryFound(Exception):
     """

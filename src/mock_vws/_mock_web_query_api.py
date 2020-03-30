@@ -32,27 +32,27 @@ from mock_vws._mock_common import (
 )
 from mock_vws._query_validators import run_query_validators
 from mock_vws._query_validators.exceptions import (
+    AuthenticationFailure,
+    AuthenticationFailureGoodFormatting,
+    AuthHeaderMissing,
+    BadImage,
+    BoundaryNotInBody,
+    ContentLengthHeaderNotInt,
+    ContentLengthHeaderTooLarge,
     DateFormatNotValid,
     DateHeaderNotGiven,
     ImageNotGiven,
-    RequestTimeTooSkewed,
-    AuthHeaderMissing,
-    MalformedAuthHeader,
-    AuthenticationFailure,
-    AuthenticationFailureGoodFormatting,
-    UnknownParameters,
     InactiveProject,
+    InvalidAcceptHeader,
     InvalidIncludeTargetData,
-    UnsupportedMediaType,
-    BoundaryNotInBody,
+    InvalidMaxNumResults,
+    MalformedAuthHeader,
+    MaxNumResultsOutOfRange,
     NoBoundaryFound,
     QueryOutOfBounds,
-    InvalidAcceptHeader,
-    InvalidMaxNumResults,
-    MaxNumResultsOutOfRange,
-    ContentLengthHeaderNotInt,
-    ContentLengthHeaderTooLarge,
-    BadImage,
+    RequestTimeTooSkewed,
+    UnknownParameters,
+    UnsupportedMediaType,
 )
 from mock_vws.database import VuforiaDatabase
 
@@ -142,8 +142,6 @@ def run_validators(
         context.headers = {'Connection': 'keep-alive'}
         context.status_code = exc.status_code
         return exc.response_text
-
-
 
     return wrapped(*args, **kwargs)
 
