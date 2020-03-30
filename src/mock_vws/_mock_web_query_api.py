@@ -315,7 +315,7 @@ class MockVuforiaWebQueryAPI:
             # * Do the most unexpected thing.
             # * Be consistent with every response.
             resources_dir = Path(__file__).parent / 'resources'
-            filename = 'match_processing_response'
+            filename = 'match_processing_response.html'
             match_processing_resp_file = resources_dir / filename
             context.status_code = codes.INTERNAL_SERVER_ERROR
             cache_control = 'must-revalidate,no-cache,no-store'
