@@ -2,7 +2,7 @@
 Authorization header validators to use in the mock.
 """
 
-from typing import Dict, List
+from typing import Dict, Set
 
 from requests import codes
 
@@ -30,7 +30,7 @@ def validate_auth_header_exists(request_headers: Dict[str, str]) -> None:
 
 def validate_access_key_exists(
     request_headers: Dict[str, str],
-    databases: List[VuforiaDatabase],
+    databases: Set[VuforiaDatabase],
 ) -> None:
     """
     Validate the authorization header includes an access key for a database.
@@ -76,7 +76,7 @@ def validate_authorization(
     request_headers: Dict[str, str],
     request_body: bytes,
     request_method: str,
-    databases: List[VuforiaDatabase],
+    databases: Set[VuforiaDatabase],
 ) -> None:
     """
     Validate the authorization header given to a VWS endpoint.

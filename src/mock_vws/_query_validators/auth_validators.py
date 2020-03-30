@@ -2,7 +2,7 @@
 Authorization validators to use in the mock query API.
 """
 
-from typing import Dict, List
+from typing import Dict, Set
 
 from mock_vws._database_matchers import get_database_matching_client_keys
 from mock_vws._query_validators.exceptions import (
@@ -54,7 +54,7 @@ def validate_auth_header_number_of_parts(
 
 def validate_client_key_exists(
     request_headers: Dict[str, str],
-    databases: List[VuforiaDatabase],
+    databases: Set[VuforiaDatabase],
 ) -> None:
     """
     Validate the authorization header includes a client key for a database.
@@ -102,7 +102,7 @@ def validate_authorization(
     request_headers: Dict[str, str],
     request_body: bytes,
     request_method: str,
-    databases: List[VuforiaDatabase],
+    databases: Set[VuforiaDatabase],
 ) -> None:
     """
     Validate the authorization header given to the query endpoint.

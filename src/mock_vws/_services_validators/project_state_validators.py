@@ -2,7 +2,7 @@
 Validators for the project state.
 """
 
-from typing import Dict, List
+from typing import Dict, Set
 
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._services_validators.exceptions import ProjectInactive
@@ -15,7 +15,7 @@ def validate_project_state(
     request_headers: Dict[str, str],
     request_body: bytes,
     request_method: str,
-    databases: List[VuforiaDatabase],
+    databases: Set[VuforiaDatabase],
 ) -> None:
     """
     Validate the state of the project.

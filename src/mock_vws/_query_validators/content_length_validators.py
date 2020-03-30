@@ -2,7 +2,7 @@
 Content-Length header validators to use in the mock.
 """
 
-from typing import Dict, List
+from typing import Dict, Set
 
 from mock_vws._query_validators.exceptions import (
     AuthenticationFailureGoodFormatting,
@@ -17,7 +17,7 @@ def validate_content_length_header_is_int(
     request_headers: Dict[str, str],
     request_body: bytes,
     request_method: str,
-    databases: List[VuforiaDatabase],
+    databases: Set[VuforiaDatabase],
 ) -> None:
     """
     Validate the ``Content-Length`` header is an integer.
@@ -45,7 +45,7 @@ def validate_content_length_header_not_too_large(
     request_headers: Dict[str, str],
     request_body: bytes,
     request_method: str,
-    databases: List[VuforiaDatabase],
+    databases: Set[VuforiaDatabase],
 ) -> None:
     """
     Validate the ``Content-Length`` header is not too large.
@@ -74,7 +74,7 @@ def validate_content_length_header_not_too_small(
     request_headers: Dict[str, str],
     request_body: bytes,
     request_method: str,
-    databases: List[VuforiaDatabase],
+    databases: Set[VuforiaDatabase],
 ) -> None:
     """
     Validate the ``Content-Length`` header is not too small.
