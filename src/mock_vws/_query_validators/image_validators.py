@@ -77,7 +77,6 @@ def validate_image_file_size(
     max_bytes = 2 * 1024 * 1024
     if len(image) > max_bytes:
         raise requests.exceptions.ConnectionError
-    return
 
 
 def validate_image_dimensions(

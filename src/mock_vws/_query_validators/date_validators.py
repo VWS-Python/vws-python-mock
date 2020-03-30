@@ -22,8 +22,7 @@ def validate_date_header_given(request_headers: Dict[str, str]) -> None:
         request_headers: The headers sent with the request.
 
     Raises:
-        The result of calling the endpoint.
-        A `BAD_REQUEST` response if the date is not given.
+        DateHeaderNotGiven: The date is not given.
     """
     if 'Date' in request_headers:
         return
@@ -60,8 +59,7 @@ def validate_date_format(request_headers: Dict[str, str]) -> None:
         request_headers: The headers sent with the request.
 
     Raises:
-        The result of calling the endpoint.
-        An `UNAUTHORIZED` response if the date is in the wrong format.
+        DateFormatNotValid: The date is in the wrong format.
     """
     date_header = request_headers['Date']
 
@@ -84,8 +82,7 @@ def validate_date_in_range(request_headers: Dict[str, str]) -> None:
         request_headers: The headers sent with the request.
 
     Raises:
-        The result of calling the endpoint.
-        A `FORBIDDEN` response if the date is out of range.
+        RequestTimeTooSkewed: The date is out of range.
     """
     date_header = request_headers['Date']
 

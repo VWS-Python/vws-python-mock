@@ -30,9 +30,7 @@ def validate_content_length_header_is_int(
         databases: All Vuforia databases.
 
     Raises:
-        The result of calling the endpoint.
-        A ``BAD_REQUEST`` response if the content length header is not an
-        integer.
+        ContentLengthHeaderNotInt: ``Content-Length`` header is not an integer.
     """
     given_content_length = request_headers['Content-Length']
 
@@ -60,9 +58,8 @@ def validate_content_length_header_not_too_large(
         databases: All Vuforia databases.
 
     Raises:
-        The result of calling the endpoint.
-        A ``GATEWAY_TIMEOUT`` response if the given content length header says
-        that the content length is greater than the body length.
+        ContentLengthHeaderTooLarge: The given content length header says that
+            the content length is greater than the body length.
     """
     given_content_length = request_headers['Content-Length']
 
@@ -90,9 +87,8 @@ def validate_content_length_header_not_too_small(
         databases: All Vuforia databases.
 
     Raises:
-        The result of calling the endpoint.
-        An ``UNAUTHORIZED`` response if the given content length header says
-        that the content length is smaller than the body length.
+        AuthenticationFailureGoodFormatting: The given content length header
+            says that the content length is smaller than the body length.
     """
     given_content_length = request_headers['Content-Length']
 

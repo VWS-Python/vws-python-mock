@@ -31,11 +31,11 @@ def validate_content_type_header(
         databases: All Vuforia databases.
 
     Raises:
-        The result of calling the endpoint.
-        An ``UNSUPPORTED_MEDIA_TYPE`` response if the ``Content-Type`` header
-        main part is not 'multipart/form-data'.
-        A ``BAD_REQUEST`` response if the ``Content-Type`` header does not
-        contain a boundary which is in the request body.
+        UnsupportedMediaType: The ``Content-Type`` header main part is not
+            'multipart/form-data'.
+        NoBoundaryFound: The ``Content-Type`` header does not contain a
+            boundary.
+        BoundaryNotInBody: The boundary is not in the request body.
     """
     main_value, pdict = cgi.parse_header(request_headers['Content-Type'])
     if main_value != 'multipart/form-data':

@@ -22,8 +22,7 @@ def validate_auth_header_exists(request_headers: Dict[str, str]) -> None:
         request_headers: The headers sent with the request.
 
     Raises:
-        The result of calling the endpoint.
-        An `UNAUTHORIZED` response if there is no "Authorization" header.
+        AuthHeaderMissing: There is no "Authorization" header.
     """
 
     if 'Authorization' in request_headers:
@@ -42,9 +41,7 @@ def validate_auth_header_number_of_parts(
         request_headers: The headers sent with the request.
 
     Raises:
-        The result of calling the endpoint.
-        An ``UNAUTHORIZED`` response if the "Authorization" header is not as
-        expected.
+        MalformedAuthHeader: The "Authorization" header is not as expected.
     """
 
     header = request_headers['Authorization']
@@ -67,8 +64,7 @@ def validate_client_key_exists(
         databases: All Vuforia databases.
 
     Raises:
-        The result of calling the endpoint.
-        An ``UNAUTHORIZED`` response if the client key is unknown.
+        AuthenticationFailure: The client key is unknown.
     """
 
     header = request_headers['Authorization']
@@ -91,9 +87,7 @@ def validate_auth_header_has_signature(
         request_headers: The headers sent with the request.
 
     Raises:
-        The result of calling the endpoint.
-        An ``UNAUTHORIZED`` response if the "Authorization" header is not as
-        expected.
+        QueryOutOfBounds: The "Authorization" header has no signature.
     """
 
     header = request_headers['Authorization']
@@ -121,9 +115,7 @@ def validate_authorization(
         databases: All Vuforia databases.
 
     Raises:
-        The result of calling the endpoint.
-        A `BAD_REQUEST` response if the "Authorization" header is not as
-        expected.
+        AuthenticationFailure: The "Authorization" header is not as expected.
     """
 
     database = get_database_matching_client_keys(
