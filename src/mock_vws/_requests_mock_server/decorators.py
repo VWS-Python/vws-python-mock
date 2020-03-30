@@ -13,8 +13,8 @@ from typing_extensions import Literal
 
 from mock_vws.database import VuforiaDatabase
 
-from ._mock_web_query_api import MockVuforiaWebQueryAPI
-from ._mock_web_services_api import MockVuforiaWebServicesAPI
+from .mock_web_query_api import MockVuforiaWebQueryAPI
+from .mock_web_services_api import MockVuforiaWebServicesAPI
 
 
 class MockVWS(ContextDecorator):

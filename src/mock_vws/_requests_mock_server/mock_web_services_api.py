@@ -46,8 +46,7 @@ from mock_vws._services_validators.exceptions import (
     UnnecessaryRequestBody,
 )
 from mock_vws.database import VuforiaDatabase
-
-from .target import Target
+from mock_vws.target import Target
 
 _TARGET_ID_PATTERN = '[A-Za-z0-9]+'
 
