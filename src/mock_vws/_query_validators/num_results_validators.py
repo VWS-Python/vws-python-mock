@@ -59,4 +59,4 @@ def validate_max_num_results(
         raise InvalidMaxNumResults
 
     if max_num_results_int < 1 or max_num_results_int > 50:
-        raise MaxNumResultsOutOfRange(given_value=given_value)
+        raise MaxNumResultsOutOfRange(given_value=max_num_results)

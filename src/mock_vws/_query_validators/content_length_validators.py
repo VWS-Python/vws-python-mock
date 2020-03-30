@@ -12,7 +12,7 @@ from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
 
 from .._mock_common import json_dump
-
+from mock_vws._query_validators.exceptions import ContentLengthHeaderNotInt, ContentLengthHeaderTooLarge
 
 @wrapt.decorator
 def validate_content_length_header_is_int(
@@ -41,9 +41,7 @@ def validate_content_length_header_is_int(
     try:
         int(given_content_length)
     except ValueError:
-        context.status_code = codes.BAD_REQUEST
-        context.headers = {'Connection': 'Close'}
-        return ''
+        raise ContentLengthHeaderNotInt
 
 
 @wrapt.decorator
@@ -73,9 +71,7 @@ def validate_content_length_header_not_too_large(
     body_length = len(request_body if request_body else b'')
     given_content_length_value = int(given_content_length)
     if given_content_length_value > body_length:
-        context.status_code = codes.GATEWAY_TIMEOUT
-        context.headers = {'Connection': 'keep-alive'}
-        return ''
+        raise ContentLengthHeaderTooLarge
 
 
 @wrapt.decorator

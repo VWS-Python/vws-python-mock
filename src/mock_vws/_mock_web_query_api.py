@@ -49,6 +49,8 @@ from mock_vws._query_validators.exceptions import (
     InvalidAcceptHeader,
     InvalidMaxNumResults,
     MaxNumResultsOutOfRange,
+    ContentLengthHeaderNotInt,
+    ContentLengthHeaderTooLarge,
 )
 from mock_vws.database import VuforiaDatabase
 
@@ -129,6 +131,15 @@ def run_validators(
         context.headers['Cache-Control'] = cache_control
         context.status_code = exc.status_code
         return exc.response_text
+    except ContentLengthHeaderNotInt as exc:
+        context.headers = {'Connection': 'Close'}
+        context.status_code = exc.status_code
+        return exc.response_text
+    except ContentLengthHeaderTooLarge as exc:
+        context.headers = {'Connection': 'keep-alive'}
+        context.status_code = exc.status_code
+        return exc.response_text
+
 
 
     return wrapped(*args, **kwargs)
