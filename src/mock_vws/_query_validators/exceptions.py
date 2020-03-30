@@ -267,6 +267,22 @@ class UnsupportedMediaType(Exception):
         self.status_code = codes.UNSUPPORTED_MEDIA_TYPE
         self.response_text = ''
 
+class InvalidAcceptHeader(Exception):
+    """
+    Exception raised when there is an invalid accept header given.
+    """
+
+    def __init__(self, given_value: str) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
+        super().__init__()
+        self.status_code = codes.NOT_ACCEPTABLE
+        self.response_text = ''
 
 class BoundaryNotInBody(Exception):
     """

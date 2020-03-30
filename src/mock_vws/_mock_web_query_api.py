@@ -46,6 +46,7 @@ from mock_vws._query_validators.exceptions import (
     BoundaryNotInBody,
     NoBoundaryFound,
     QueryOutOfBounds,
+    InvalidAcceptHeader,
 )
 from mock_vws.database import VuforiaDatabase
 
@@ -108,7 +109,7 @@ def run_validators(
     ) as exc:
         context.status_code = exc.status_code
         return exc.response_text
-    except UnsupportedMediaType as exc:
+    except (UnsupportedMediaType, InvalidAcceptHeader) as exc:
         context.headers.pop('Content-Type')
         context.status_code = exc.status_code
         return exc.response_text
