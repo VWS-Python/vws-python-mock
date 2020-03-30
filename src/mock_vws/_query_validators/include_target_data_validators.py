@@ -11,6 +11,7 @@ from requests import codes
 
 from mock_vws._mock_common import parse_multipart
 from mock_vws.database import VuforiaDatabase
+from mock_vws._query_validators.exceptions import InvalidIncludeTargetData
 
 
 @wrapt.decorator
@@ -53,10 +54,4 @@ def validate_include_target_data(
         return
 
     assert isinstance(include_target_data, str)
-    unexpected_target_data_message = (
-        f"Invalid value '{include_target_data}' in form data part "
-        "'include_target_data'. "
-        "Expecting one of the (unquoted) string values 'all', 'none' or 'top'."
-    )
-    context.status_code = codes.BAD_REQUEST
-    return unexpected_target_data_message
+    raise InvalidIncludeTargetData(given_value=include_target_data)

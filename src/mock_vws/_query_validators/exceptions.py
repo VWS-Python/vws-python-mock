@@ -223,3 +223,28 @@ class InactiveProject(Exception):
             f'"result_code":"{result_code}"'
             '}'
         )
+
+
+class InvalidIncludeTargetData(Exception):
+    """
+    Exception raised when an invalid value is given as the
+    "include_target_data" field.
+    """
+
+    def __init__(self, given_value: str) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
+        super().__init__()
+        self.status_code = codes.BAD_REQUEST
+        unexpected_target_data_message = (
+            f"Invalid value '{given_value}' in form data part "
+            "'include_target_data'. "
+            "Expecting one of the (unquoted) string values 'all', 'none' or 'top'."
+        )
+        self.response_text = unexpected_target_data_message
+

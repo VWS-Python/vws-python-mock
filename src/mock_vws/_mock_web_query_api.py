@@ -41,6 +41,7 @@ from mock_vws._query_validators.exceptions import (
     AuthenticationFailure,
     UnknownParameters,
     InactiveProject,
+    InvalidIncludeTargetData,
 )
 from mock_vws.database import VuforiaDatabase
 
@@ -99,6 +100,7 @@ def run_validators(
         ImageNotGiven,
         UnknownParameters,
         InactiveProject,
+        InvalidIncludeTargetData,
     ) as exc:
         context.status_code = exc.status_code
         return exc.response_text
