@@ -12,9 +12,9 @@ from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
 
 from .._mock_common import json_dump
-from mock_vws._query_validators.exceptions import ContentLengthHeaderNotInt, ContentLengthHeaderTooLarge
+from mock_vws._query_validators.exceptions import ContentLengthHeaderNotInt, ContentLengthHeaderTooLarge, AuthenticationFailureGoodFormatting
 
-@wrapt.decorator
+
 def validate_content_length_header_is_int(
     request_path: str,
     request_headers: Dict[str, str],
@@ -44,7 +44,7 @@ def validate_content_length_header_is_int(
         raise ContentLengthHeaderNotInt
 
 
-@wrapt.decorator
+
 def validate_content_length_header_not_too_large(
     request_path: str,
     request_headers: Dict[str, str],
@@ -74,7 +74,7 @@ def validate_content_length_header_not_too_large(
         raise ContentLengthHeaderTooLarge
 
 
-@wrapt.decorator
+
 def validate_content_length_header_not_too_small(
     request_path: str,
     request_headers: Dict[str, str],
@@ -102,10 +102,4 @@ def validate_content_length_header_not_too_small(
     given_content_length_value = int(given_content_length)
 
     if given_content_length_value < body_length:
-        context.status_code = codes.UNAUTHORIZED
-        context.headers['WWW-Authenticate'] = 'VWS'
-        body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.AUTHENTICATION_FAILURE.value,
-        }
-        return json_dump(body)
+        raise AuthenticationFailureGoodFormatting

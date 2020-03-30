@@ -11,7 +11,7 @@ from mock_vws.database import VuforiaDatabase
 
 from mock_vws._query_validators.exceptions import InvalidAcceptHeader
 
-@wrapt.decorator
+
 def validate_accept_header(
     request_path: str,
     request_headers: Dict[str, str],
@@ -38,6 +38,3 @@ def validate_accept_header(
         return
 
     raise InvalidAcceptHeader
-    context.headers.pop('Content-Type')
-    context.status_code = codes.NOT_ACCEPTABLE
-    return ''

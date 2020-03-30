@@ -14,7 +14,7 @@ from mock_vws.database import VuforiaDatabase
 from mock_vws._query_validators.exceptions import InvalidMaxNumResults, MaxNumResultsOutOfRange
 
 
-@wrapt.decorator
+
 def validate_max_num_results(
     request_path: str,
     request_headers: Dict[str, str],

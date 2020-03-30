@@ -16,7 +16,7 @@ from mock_vws.database import VuforiaDatabase
 from .._mock_common import parse_multipart
 
 
-@wrapt.decorator
+
 def validate_image_field_given(
     request_path: str,
     request_headers: Dict[str, str],
@@ -53,7 +53,7 @@ def validate_image_field_given(
     raise ImageNotGiven
 
 
-@wrapt.decorator
+
 def validate_image_file_size(
     request_path: str,
     request_headers: Dict[str, str],
@@ -98,7 +98,7 @@ def validate_image_file_size(
     return
 
 
-@wrapt.decorator
+
 def validate_image_dimensions(
     request_path: str,
     request_headers: Dict[str, str],
@@ -145,7 +145,7 @@ def validate_image_dimensions(
     raise BadImage
 
 
-@wrapt.decorator
+
 def validate_image_format(
     request_path: str,
     request_headers: Dict[str, str],
@@ -189,7 +189,7 @@ def validate_image_format(
     raise BadImage
 
 
-@wrapt.decorator
+
 def validate_image_is_image(
     request_path: str,
     request_headers: Dict[str, str],

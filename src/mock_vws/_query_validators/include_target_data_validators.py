@@ -14,7 +14,7 @@ from mock_vws.database import VuforiaDatabase
 from mock_vws._query_validators.exceptions import InvalidIncludeTargetData
 
 
-@wrapt.decorator
+
 def validate_include_target_data(
     request_path: str,
     request_headers: Dict[str, str],

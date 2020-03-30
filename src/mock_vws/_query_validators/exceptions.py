@@ -126,6 +126,30 @@ class AuthenticationFailure(Exception):
             '}'
         )
 
+class AuthenticationFailureGoodFormatting(Exception):
+    """
+    Exception raised when Vuforia returns a response with a result code
+    'AuthenticationFailure' with a standard JSON formatting.
+    """
+
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
+        super().__init__()
+        self.status_code = codes.UNAUTHORIZED
+        transaction_id = uuid.uuid4().hex
+
+        body = {
+            'transaction_id': uuid.uuid4().hex,
+            'result_code': ResultCodes.AUTHENTICATION_FAILURE.value,
+        }
+        self.response_text = json_dump(body)
+
 class ImageNotGiven(Exception):
     """
     Exception raised when an image is not given.

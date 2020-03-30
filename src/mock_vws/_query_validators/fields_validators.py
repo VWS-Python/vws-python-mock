@@ -14,7 +14,7 @@ from mock_vws.database import VuforiaDatabase
 from mock_vws._query_validators.exceptions import UnknownParameters
 
 
-@wrapt.decorator
+
 def validate_extra_fields(
     request_path: str,
     request_headers: Dict[str, str],

@@ -16,7 +16,7 @@ from mock_vws._query_validators.exceptions import (
 from mock_vws.database import VuforiaDatabase
 
 
-@wrapt.decorator
+
 def validate_date_header_given(
     request_path: str,
     request_headers: Dict[str, str],
@@ -64,7 +64,7 @@ def _accepted_date_formats() -> Set[str]:
     return known_accepted_formats
 
 
-@wrapt.decorator
+
 def validate_date_format(
     request_path: str,
     request_headers: Dict[str, str],
@@ -98,7 +98,7 @@ def validate_date_format(
     raise DateFormatNotValid
 
 
-@wrapt.decorator
+
 def validate_date_in_range(
     request_path: str,
     request_headers: Dict[str, str],

@@ -15,7 +15,7 @@ from mock_vws.states import States
 from mock_vws._query_validators.exceptions import InactiveProject
 
 
-@wrapt.decorator
+
 def validate_project_state(
     request_path: str,
     request_headers: Dict[str, str],

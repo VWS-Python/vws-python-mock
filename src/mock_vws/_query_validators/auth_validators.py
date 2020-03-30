@@ -24,7 +24,7 @@ from mock_vws._query_validators.exceptions import (
 )
 
 
-@wrapt.decorator
+
 def validate_auth_header_exists(
     request_path: str,
     request_headers: Dict[str, str],
@@ -52,7 +52,7 @@ def validate_auth_header_exists(
     raise AuthHeaderMissing
 
 
-@wrapt.decorator
+
 def validate_auth_header_number_of_parts(
     request_path: str,
     request_headers: Dict[str, str],
@@ -83,7 +83,7 @@ def validate_auth_header_number_of_parts(
     raise MalformedAuthHeader
 
 
-@wrapt.decorator
+
 def validate_client_key_exists(
     request_path: str,
     request_headers: Dict[str, str],
@@ -115,7 +115,7 @@ def validate_client_key_exists(
     raise AuthenticationFailure
 
 
-@wrapt.decorator
+
 def validate_auth_header_has_signature(
     request_path: str,
     request_headers: Dict[str, str],
@@ -145,7 +145,7 @@ def validate_auth_header_has_signature(
     raise QueryOutOfBounds
 
 
-@wrapt.decorator
+
 def validate_authorization(
     request_path: str,
     request_headers: Dict[str, str],

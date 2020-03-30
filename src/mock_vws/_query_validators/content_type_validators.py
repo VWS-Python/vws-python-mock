@@ -12,7 +12,7 @@ from mock_vws.database import VuforiaDatabase
 from mock_vws._query_validators.exceptions import UnsupportedMediaType, BoundaryNotInBody, NoBoundaryFound
 
 
-@wrapt.decorator
+
 def validate_content_type_header(
     request_path: str,
     request_headers: Dict[str, str],
