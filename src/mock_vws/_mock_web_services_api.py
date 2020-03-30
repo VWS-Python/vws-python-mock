@@ -286,7 +286,7 @@ class MockVuforiaWebServicesAPI:
             processing_time_seconds=self._processing_time_seconds,
             application_metadata=request.json().get('application_metadata'),
         )
-        database.targets.append(new_target)
+        database.targets.add(new_target)
 
         context.status_code = codes.CREATED
         body = {
