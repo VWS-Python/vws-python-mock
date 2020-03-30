@@ -29,7 +29,7 @@ def validate_content_length_header_is_int(
         request_method: The HTTP method of the request.
         databases: All Vuforia databases.
 
-    Returns:
+    Raises:
         The result of calling the endpoint.
         A ``BAD_REQUEST`` response if the content length header is not an
         integer.
@@ -59,7 +59,7 @@ def validate_content_length_header_not_too_large(
         request_method: The HTTP method of the request.
         databases: All Vuforia databases.
 
-    Returns:
+    Raises:
         The result of calling the endpoint.
         A ``GATEWAY_TIMEOUT`` response if the given content length header says
         that the content length is greater than the body length.
@@ -89,7 +89,7 @@ def validate_content_length_header_not_too_small(
         request_method: The HTTP method of the request.
         databases: All Vuforia databases.
 
-    Returns:
+    Raises:
         The result of calling the endpoint.
         An ``UNAUTHORIZED`` response if the given content length header says
         that the content length is smaller than the body length.

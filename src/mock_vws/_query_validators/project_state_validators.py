@@ -27,7 +27,7 @@ def validate_project_state(
         request_method: The HTTP method of the request.
         databases: All Vuforia databases.
 
-    Returns:
+    Raises:
         The result of calling the endpoint.
         A `FORBIDDEN` response with an InactiveProject result code if the
         project is inactive.

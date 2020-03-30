@@ -22,7 +22,7 @@ def validate_include_target_data(
         request_headers: The headers sent with the request.
         request_body: The body of the request.
 
-    Returns:
+    Raises:
         The result of calling the endpoint.
         A `BAD_REQUEST` response if the ``include_target_data`` field is not an
         accepted value.

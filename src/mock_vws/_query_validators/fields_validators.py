@@ -21,9 +21,8 @@ def validate_extra_fields(
         request_headers: The headers sent with the request.
         request_body: The body of the request.
 
-    Returns:
-        The result of calling the endpoint.
-        A ``BAD_REQUEST`` response if extra fields are given.
+    Raises:
+        UnknownParameters: Extra fields are given.
     """
     body_file = io.BytesIO(request_body)
 

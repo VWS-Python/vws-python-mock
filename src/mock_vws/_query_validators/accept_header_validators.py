@@ -14,7 +14,7 @@ def validate_accept_header(request_headers: Dict[str, str], ) -> None:
     Args:
         request_headers: The headers sent with the request.
 
-    Returns:
+    Raises:
         The result of calling the endpoint.
         A `NOT_ACCEPTABLE` response if the Accept header is given and is not
         'application/json' or '*/*'.

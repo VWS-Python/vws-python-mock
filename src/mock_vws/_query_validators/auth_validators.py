@@ -21,7 +21,7 @@ def validate_auth_header_exists(request_headers: Dict[str, str]) -> None:
     Args:
         request_headers: The headers sent with the request.
 
-    Returns:
+    Raises:
         The result of calling the endpoint.
         An `UNAUTHORIZED` response if there is no "Authorization" header.
     """
@@ -41,7 +41,7 @@ def validate_auth_header_number_of_parts(
     Args:
         request_headers: The headers sent with the request.
 
-    Returns:
+    Raises:
         The result of calling the endpoint.
         An ``UNAUTHORIZED`` response if the "Authorization" header is not as
         expected.
@@ -66,7 +66,7 @@ def validate_client_key_exists(
         request_headers: The headers sent with the request.
         databases: All Vuforia databases.
 
-    Returns:
+    Raises:
         The result of calling the endpoint.
         An ``UNAUTHORIZED`` response if the client key is unknown.
     """
@@ -90,7 +90,7 @@ def validate_auth_header_has_signature(
     Args:
         request_headers: The headers sent with the request.
 
-    Returns:
+    Raises:
         The result of calling the endpoint.
         An ``UNAUTHORIZED`` response if the "Authorization" header is not as
         expected.
@@ -120,7 +120,7 @@ def validate_authorization(
         request_method: The HTTP method of the request.
         databases: All Vuforia databases.
 
-    Returns:
+    Raises:
         The result of calling the endpoint.
         A `BAD_REQUEST` response if the "Authorization" header is not as
         expected.

@@ -32,10 +32,10 @@ def validate_max_num_results(
         request_method: The HTTP method of the request.
         databases: All Vuforia databases.
 
-    Returns:
-        The result of calling the endpoint.
-        A `BAD_REQUEST` response if the ``max_num_results`` field is either not
-        an integer, or an integer out of range.
+    Raises:
+        InvalidMaxNumResults: The ``max_num_results`` given is not an integer
+            less than or equal to the max integer in Java.
+        MaxNumResultsOutOfRange: The ``max_num_results`` given is not in range.
     """
     body_file = io.BytesIO(request_body)
 

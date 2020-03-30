@@ -30,7 +30,7 @@ def validate_content_type_header(
         request_method: The HTTP method of the request.
         databases: All Vuforia databases.
 
-    Returns:
+    Raises:
         The result of calling the endpoint.
         An ``UNSUPPORTED_MEDIA_TYPE`` response if the ``Content-Type`` header
         main part is not 'multipart/form-data'.

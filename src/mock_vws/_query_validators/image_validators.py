@@ -25,7 +25,7 @@ def validate_image_field_given(
         request_headers: The headers sent with the request.
         request_body: The body of the request.
 
-    Returns:
+    Raises:
         The result of calling the endpoint.
         A ``BAD_REQUEST`` response if the image field is not given.
     """
@@ -56,7 +56,7 @@ def validate_image_file_size(
         request_headers: The headers sent with the request.
         request_body: The body of the request.
 
-    Returns:
+    Raises:
         The result of calling the endpoint.
 
     Raises:
@@ -95,7 +95,7 @@ def validate_image_dimensions(
         request_headers: The headers sent with the request.
         request_body: The body of the request.
 
-    Returns:
+    Raises:
         The result of calling the endpoint.
 
     Raises:
@@ -136,7 +136,7 @@ def validate_image_format(
         request_headers: The headers sent with the request.
         request_body: The body of the request.
 
-    Returns:
+    Raises:
         The result of calling the endpoint.
         An `UNPROCESSABLE_ENTITY` response if the image is given and is not
         either a PNG or a JPEG.
@@ -174,7 +174,7 @@ def validate_image_is_image(
         request_headers: The headers sent with the request.
         request_body: The body of the request.
 
-    Returns:
+    Raises:
         The result of calling the endpoint.
         An `UNPROCESSABLE_ENTITY` response if image data is given and it is not
         an image file.
