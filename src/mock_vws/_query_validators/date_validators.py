@@ -3,7 +3,7 @@ Validators of the date header to use in the mock query API.
 """
 
 import datetime
-from typing import Dict, List, Set
+from typing import Dict, Set
 
 import pytz
 
@@ -12,25 +12,14 @@ from mock_vws._query_validators.exceptions import (
     DateHeaderNotGiven,
     RequestTimeTooSkewed,
 )
-from mock_vws.database import VuforiaDatabase
 
 
-def validate_date_header_given(
-    request_path: str,
-    request_headers: Dict[str, str],
-    request_body: bytes,
-    request_method: str,
-    databases: List[VuforiaDatabase],
-) -> None:
+def validate_date_header_given(request_headers: Dict[str, str]) -> None:
     """
     Validate the date header is given to the query endpoint.
 
     Args:
-        request_path: The path of the request.
         request_headers: The headers sent with the request.
-        request_body: The body of the request.
-        request_method: The HTTP method of the request.
-        databases: All Vuforia databases.
 
     Returns:
         The result of calling the endpoint.
@@ -63,22 +52,12 @@ def _accepted_date_formats() -> Set[str]:
     return known_accepted_formats
 
 
-def validate_date_format(
-    request_path: str,
-    request_headers: Dict[str, str],
-    request_body: bytes,
-    request_method: str,
-    databases: List[VuforiaDatabase],
-) -> None:
+def validate_date_format(request_headers: Dict[str, str]) -> None:
     """
     Validate the format of the date header given to the query endpoint.
 
     Args:
-        request_path: The path of the request.
         request_headers: The headers sent with the request.
-        request_body: The body of the request.
-        request_method: The HTTP method of the request.
-        databases: All Vuforia databases.
 
     Returns:
         The result of calling the endpoint.
@@ -97,22 +76,12 @@ def validate_date_format(
     raise DateFormatNotValid
 
 
-def validate_date_in_range(
-    request_path: str,
-    request_headers: Dict[str, str],
-    request_body: bytes,
-    request_method: str,
-    databases: List[VuforiaDatabase],
-) -> None:
+def validate_date_in_range(request_headers: Dict[str, str]) -> None:
     """
     Validate date in the date header given to the query endpoint.
 
     Args:
-        request_path: The path of the request.
         request_headers: The headers sent with the request.
-        request_body: The body of the request.
-        request_method: The HTTP method of the request.
-        databases: All Vuforia databases.
 
     Returns:
         The result of calling the endpoint.

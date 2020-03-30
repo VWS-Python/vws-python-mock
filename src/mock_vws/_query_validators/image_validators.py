@@ -4,33 +4,26 @@ Input validators for the image field use in the mock query API.
 
 import cgi
 import io
-from typing import Dict, List
+from typing import Dict
 
 import requests
 from PIL import Image
 
 from mock_vws._query_validators.exceptions import BadImage, ImageNotGiven
-from mock_vws.database import VuforiaDatabase
 
 from .._mock_common import parse_multipart
 
 
 def validate_image_field_given(
-    request_path: str,
     request_headers: Dict[str, str],
     request_body: bytes,
-    request_method: str,
-    databases: List[VuforiaDatabase],
 ) -> None:
     """
     Validate that the image field is given.
 
     Args:
-        request_path: The path of the request.
         request_headers: The headers sent with the request.
         request_body: The body of the request.
-        request_method: The HTTP method of the request.
-        databases: All Vuforia databases.
 
     Returns:
         The result of calling the endpoint.
@@ -53,21 +46,15 @@ def validate_image_field_given(
 
 
 def validate_image_file_size(
-    request_path: str,
     request_headers: Dict[str, str],
     request_body: bytes,
-    request_method: str,
-    databases: List[VuforiaDatabase],
 ) -> None:
     """
     Validate the file size of the image given to the query endpoint.
 
     Args:
-        request_path: The path of the request.
         request_headers: The headers sent with the request.
         request_body: The body of the request.
-        request_method: The HTTP method of the request.
-        databases: All Vuforia databases.
 
     Returns:
         The result of calling the endpoint.
@@ -98,21 +85,15 @@ def validate_image_file_size(
 
 
 def validate_image_dimensions(
-    request_path: str,
     request_headers: Dict[str, str],
     request_body: bytes,
-    request_method: str,
-    databases: List[VuforiaDatabase],
 ) -> None:
     """
     Validate the dimensions the image given to the query endpoint.
 
     Args:
-        request_path: The path of the request.
         request_headers: The headers sent with the request.
         request_body: The body of the request.
-        request_method: The HTTP method of the request.
-        databases: All Vuforia databases.
 
     Returns:
         The result of calling the endpoint.
@@ -145,21 +126,15 @@ def validate_image_dimensions(
 
 
 def validate_image_format(
-    request_path: str,
     request_headers: Dict[str, str],
     request_body: bytes,
-    request_method: str,
-    databases: List[VuforiaDatabase],
 ) -> None:
     """
     Validate the format of the image given to the query endpoint.
 
     Args:
-        request_path: The path of the request.
         request_headers: The headers sent with the request.
         request_body: The body of the request.
-        request_method: The HTTP method of the request.
-        databases: All Vuforia databases.
 
     Returns:
         The result of calling the endpoint.
@@ -189,21 +164,15 @@ def validate_image_format(
 
 
 def validate_image_is_image(
-    request_path: str,
     request_headers: Dict[str, str],
     request_body: bytes,
-    request_method: str,
-    databases: List[VuforiaDatabase],
 ) -> None:
     """
     Validate that the given image data is actually an image file.
 
     Args:
-        request_path: The path of the request.
         request_headers: The headers sent with the request.
         request_body: The body of the request.
-        request_method: The HTTP method of the request.
-        databases: All Vuforia databases.
 
     Returns:
         The result of calling the endpoint.
