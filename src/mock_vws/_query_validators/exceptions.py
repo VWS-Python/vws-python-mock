@@ -144,7 +144,6 @@ class AuthenticationFailureGoodFormatting(Exception):
         """
         super().__init__()
         self.status_code = codes.UNAUTHORIZED
-        uuid.uuid4().hex
 
         body = {
             'transaction_id': uuid.uuid4().hex,

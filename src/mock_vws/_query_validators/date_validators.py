@@ -26,10 +26,11 @@ def validate_date_header_given(
     Validate the date header is given to the query endpoint.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_path: The path of the request.
+        request_headers: The headers sent with the request.
+        request_body: The body of the request.
+        request_method: The HTTP method of the request.
+        databases: All Vuforia databases.
 
     Returns:
         The result of calling the endpoint.
@@ -73,10 +74,11 @@ def validate_date_format(
     Validate the format of the date header given to the query endpoint.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_path: The path of the request.
+        request_headers: The headers sent with the request.
+        request_body: The body of the request.
+        request_method: The HTTP method of the request.
+        databases: All Vuforia databases.
 
     Returns:
         The result of calling the endpoint.
@@ -106,10 +108,11 @@ def validate_date_in_range(
     Validate date in the date header given to the query endpoint.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_path: The path of the request.
+        request_headers: The headers sent with the request.
+        request_body: The body of the request.
+        request_method: The HTTP method of the request.
+        databases: All Vuforia databases.
 
     Returns:
         The result of calling the endpoint.

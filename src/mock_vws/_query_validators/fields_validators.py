@@ -22,10 +22,11 @@ def validate_extra_fields(
     Validate that the no unknown fields are given.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_path: The path of the request.
+        request_headers: The headers sent with the request.
+        request_body: The body of the request.
+        request_method: The HTTP method of the request.
+        databases: All Vuforia databases.
 
     Returns:
         The result of calling the endpoint.
