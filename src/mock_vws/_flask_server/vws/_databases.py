@@ -73,7 +73,7 @@ def get_all_databases() -> Set[VuforiaDatabase]:
                     delete_date_optional,
                 )
                 target.delete_date = target.delete_date.replace(tzinfo=gmt)
-            new_database.targets.append(target)
+            new_database.targets.add(target)
 
         databases.add(new_database)
 

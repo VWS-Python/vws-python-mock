@@ -17,69 +17,23 @@ from mock_vws._database_matchers import get_database_matching_client_keys
 from mock_vws._mock_common import json_dump, parse_multipart
 from mock_vws.database import VuforiaDatabase
 
-# TODO move this
 from ..vws._databases import get_all_databases
-from ._query_validators import (
-    validate_accept_header,
-    validate_content_type_header,
-    validate_extra_fields,
-    validate_include_target_data,
-    validate_max_num_results,
-    validate_project_state,
-)
-from ._query_validators.auth_validators import (
-    validate_auth_header_exists,
-    validate_auth_header_has_signature,
-    validate_auth_header_number_of_parts,
-    validate_authorization,
-    validate_client_key_exists,
-)
-from ._query_validators.content_length_validators import (
-    validate_content_length_header_is_int,
-    validate_content_length_header_not_too_large,
-    validate_content_length_header_not_too_small,
-)
-from ._query_validators.date_validators import (
-    validate_date_format,
-    validate_date_header_given,
-    validate_date_in_range,
-)
-from ._query_validators.image_validators import (
-    validate_image_dimensions,
-    validate_image_field_given,
-    validate_image_file_size,
-    validate_image_format,
-    validate_image_is_image,
-)
+from mock_vws._query_validators import run_query_validators
 
 CLOUDRECO_FLASK_APP = Flask(__name__)
 
 
 @CLOUDRECO_FLASK_APP.before_request
-@validate_content_length_header_is_int
-@validate_content_length_header_not_too_large
-@validate_content_length_header_not_too_small
-@validate_auth_header_exists
-@validate_auth_header_number_of_parts
-@validate_auth_header_has_signature
-@validate_client_key_exists
-@validate_authorization
-@validate_project_state
-@validate_accept_header
-@validate_content_type_header
-@validate_extra_fields
-@validate_image_field_given
-@validate_image_is_image
-@validate_image_format
-@validate_image_dimensions
-@validate_image_file_size
-@validate_max_num_results
-@validate_include_target_data
-@validate_date_header_given
-@validate_date_format
-@validate_date_in_range
 def validate_request() -> None:
-    pass
+    databases = get_all_databases()
+    run_query_validators(
+        request_headers=dict(request.headers),
+        # TODO not sure about this one
+        request_body=request.data,
+        request_method=request.method,
+        request_path=request.path,
+        databases=databases,
+    )
 
 
 @CLOUDRECO_FLASK_APP.after_request

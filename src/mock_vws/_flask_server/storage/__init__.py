@@ -71,7 +71,7 @@ def create_target(database_name: str) -> Tuple[str, int]:
         application_metadata=request.json['application_metadata'],
     )
     target.target_id = request.json['target_id']
-    database.targets.append(target)
+    database.targets.add(target)
 
     return jsonify(target.to_dict()), codes.CREATED
 

@@ -14,9 +14,9 @@ from _pytest.fixtures import SubRequest
 from requests import codes
 from requests_mock_flask import add_flask_app_to_mock
 
-from _mock_vws_server.storage import STORAGE_FLASK_APP
-from _mock_vws_server.vwq import CLOUDRECO_FLASK_APP
-from _mock_vws_server.vws import STORAGE_BASE_URL, VWS_FLASK_APP
+from mock_vws._flask_server.storage import STORAGE_FLASK_APP
+from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
+from mock_vws._flask_server.vws import STORAGE_BASE_URL, VWS_FLASK_APP
 from mock_vws import MockVWS
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
