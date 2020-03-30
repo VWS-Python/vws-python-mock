@@ -574,7 +574,7 @@ class TestTargets:
                 data=data,
             )
         target_id = response.json()['target_id']
-        target = database.targets[0]
+        (target, ) = database.targets
         assert repr(target) == f'<Target: {target_id}>'
 
 
