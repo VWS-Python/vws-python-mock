@@ -28,9 +28,7 @@ def validate_project_state(
         databases: All Vuforia databases.
 
     Raises:
-        The result of calling the endpoint.
-        A `FORBIDDEN` response with an InactiveProject result code if the
-        project is inactive.
+        InactiveProject: The project is inactive.
     """
     database = get_database_matching_client_keys(
         request_headers=request_headers,

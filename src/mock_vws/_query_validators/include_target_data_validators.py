@@ -23,9 +23,8 @@ def validate_include_target_data(
         request_body: The body of the request.
 
     Raises:
-        The result of calling the endpoint.
-        A `BAD_REQUEST` response if the ``include_target_data`` field is not an
-        accepted value.
+        InvalidIncludeTargetData: The ``include_target_data`` field is not an
+            accepted value.
     """
     body_file = io.BytesIO(request_body)
 

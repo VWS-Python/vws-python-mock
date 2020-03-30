@@ -26,8 +26,7 @@ def validate_image_field_given(
         request_body: The body of the request.
 
     Raises:
-        The result of calling the endpoint.
-        A ``BAD_REQUEST`` response if the image field is not given.
+        ImageNotGiven: The image field is not given.
     """
     body_file = io.BytesIO(request_body)
 
@@ -55,9 +54,6 @@ def validate_image_file_size(
     Args:
         request_headers: The headers sent with the request.
         request_body: The body of the request.
-
-    Raises:
-        The result of calling the endpoint.
 
     Raises:
         requests.exceptions.ConnectionError: The image file size is too large.
@@ -96,12 +92,8 @@ def validate_image_dimensions(
         request_body: The body of the request.
 
     Raises:
-        The result of calling the endpoint.
-
-    Raises:
-        The result of calling the endpoint.
-        An ``UNPROCESSABLE_ENTITY`` response if the image is given and is not
-        within the maximum width and height limits.
+        BadImage: The image is given and is not within the maximum width and
+            height limits.
     """
     body_file = io.BytesIO(request_body)
 
@@ -137,9 +129,7 @@ def validate_image_format(
         request_body: The body of the request.
 
     Raises:
-        The result of calling the endpoint.
-        An `UNPROCESSABLE_ENTITY` response if the image is given and is not
-        either a PNG or a JPEG.
+        BadImage: The image is given and is not either a PNG or a JPEG.
     """
     body_file = io.BytesIO(request_body)
 
@@ -175,9 +165,7 @@ def validate_image_is_image(
         request_body: The body of the request.
 
     Raises:
-        The result of calling the endpoint.
-        An `UNPROCESSABLE_ENTITY` response if image data is given and it is not
-        an image file.
+        BadImage: Image data is given and it is not an image file.
     """
     body_file = io.BytesIO(request_body)
 
