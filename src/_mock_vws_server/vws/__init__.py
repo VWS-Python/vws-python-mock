@@ -93,10 +93,11 @@ def handle_request_time_too_skewed(e: RequestTimeTooSkewed) -> Tuple[str, int]:
     return e.response_text, e.status_code
 
 @VWS_FLASK_APP.errorhandler(OopsErrorOccurredResponse)
-def handle_oops_error_occurred(e: OopsErrorOccurredResponse) -> Tuple[str, int]:
+def handle_oops_error_occurred(e: OopsErrorOccurredResponse) -> Response:
     content_type = 'text/html; charset=UTF-8'
     response = make_response(e.response_text, e.status_code)
     response.headers['Content-Type'] = content_type
+    assert isinstance(response, Response)
     return response
 
 @VWS_FLASK_APP.after_request
