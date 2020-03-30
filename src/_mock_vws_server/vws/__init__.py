@@ -43,7 +43,6 @@ VWS_FLASK_APP = Flask(__name__)
 def validate_request() -> None:
     databases = get_all_databases()
     run_services_validators(
-        request_text=request.data.decode(),
         request_headers=dict(request.headers),
         # TODO not sure about this one
         request_body=request.data,
