@@ -19,6 +19,29 @@ from mock_vws.database import VuforiaDatabase
 
 from ..vws._databases import get_all_databases
 from mock_vws._query_validators import run_query_validators
+from mock_vws._query_validators.exceptions import (
+    DateHeaderNotGiven,
+    DateFormatNotValid,
+    RequestTimeTooSkewed,
+    BadImage,
+    AuthenticationFailure,
+    AuthenticationFailureGoodFormatting,
+    ImageNotGiven,
+    AuthHeaderMissing,
+    MalformedAuthHeader,
+    UnknownParameters,
+    InactiveProject,
+    InvalidMaxNumResults,
+    MaxNumResultsOutOfRange,
+    InvalidIncludeTargetData,
+    UnsupportedMediaType,
+    InvalidAcceptHeader,
+    BoundaryNotInBody,
+    NoBoundaryFound,
+    QueryOutOfBounds,
+    ContentLengthHeaderTooLarge,
+    ContentLengthHeaderNotInt
+)
 
 CLOUDRECO_FLASK_APP = Flask(__name__)
 
@@ -34,6 +57,11 @@ def validate_request() -> None:
         request_path=request.path,
         databases=databases,
     )
+
+
+@CLOUDRECO_FLASK_APP.errorhandler(UnknownTarget)
+def handle_unknown_target(e: UnknownTarget) -> Tuple[str, int]:
+    return e.response_text, e.status_code
 
 
 @CLOUDRECO_FLASK_APP.after_request
