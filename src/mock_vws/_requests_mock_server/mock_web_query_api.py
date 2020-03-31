@@ -25,11 +25,11 @@ from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_client_keys
 from mock_vws._mock_common import (
     Route,
+    images_match,
     json_dump,
     parse_multipart,
     set_content_length_header,
     set_date_header,
-    images_match,
 )
 from mock_vws._query_validators import run_query_validators
 from mock_vws._query_validators.exceptions import (
@@ -252,6 +252,7 @@ class MockVuforiaWebQueryAPI:
         include_target_data = include_target_data.lower()
 
         [image_bytes] = parsed['image']
+        assert isinstance(image_bytes, bytes)
         image = io.BytesIO(image_bytes)
         gmt = pytz.timezone('GMT')
         now = datetime.datetime.now(tz=gmt)
@@ -314,7 +315,7 @@ class MockVuforiaWebQueryAPI:
             # processing status, but we choose to:
             # * Do the most unexpected thing.
             # * Be consistent with every response.
-            resources_dir = Path(__file__).parent / 'resources'
+            resources_dir = Path(__file__).parent.parent / 'resources'
             filename = 'match_processing_response.html'
             match_processing_resp_file = resources_dir / filename
             context.status_code = codes.INTERNAL_SERVER_ERROR
