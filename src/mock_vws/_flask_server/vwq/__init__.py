@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Tuple
 import pytz
 from flask import Flask, Response, make_response, request
 from requests import codes
+import requests
 
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._constants import ResultCodes, TargetStatuses
@@ -44,6 +45,7 @@ from mock_vws._query_validators.exceptions import (
 )
 
 CLOUDRECO_FLASK_APP = Flask(__name__)
+CLOUDRECO_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
 
 
 @CLOUDRECO_FLASK_APP.before_request
@@ -69,6 +71,18 @@ CLOUDRECO_FLASK_APP.response_class = MyResponse
 def handle_content_length_header_too_large(
     e: ContentLengthHeaderTooLarge,
 ) -> Response:
+    response = make_response(e.response_text, e.status_code)
+    response.headers = {'Connection': 'keep-alive'}
+    assert isinstance(response, Response)
+    return response
+
+@CLOUDRECO_FLASK_APP.errorhandler(requests.exceptions.ConnectionError)
+def handle_connection_error(
+    e: requests.exceptions.ConnectionError,
+) -> Response:
+    raise e
+    # from flask import abort
+    # import pdb; pdb.set_trace()
     response = make_response(e.response_text, e.status_code)
     response.headers = {'Connection': 'keep-alive'}
     assert isinstance(response, Response)
@@ -182,6 +196,7 @@ def handle_boundary_not_in_body(
 
 @CLOUDRECO_FLASK_APP.after_request
 def set_headers(response: Response) -> Response:
+    # raise requests.exceptions.ConnectionError
     response.headers['Connection'] = 'keep-alive'
     response.headers['Server'] = 'nginx'
     content_length = len(response.data)
