@@ -82,6 +82,14 @@ def handle_unsupported_media_type(
     assert isinstance(response, Response)
     return response
 
+@CLOUDRECO_FLASK_APP.errorhandler(InvalidAcceptHeader)
+def handle_invalid_accept_header(
+    e: InvalidAcceptHeader,
+) -> Response:
+    response = make_response(e.response_text, e.status_code)
+    assert isinstance(response, Response)
+    return response
+
 @CLOUDRECO_FLASK_APP.errorhandler(BadImage)
 def handle_bad_image(
     e: BadImage,
