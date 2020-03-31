@@ -194,6 +194,25 @@ def handle_boundary_not_in_body(
     return response
 
 
+@CLOUDRECO_FLASK_APP.errorhandler(AuthenticationFailure)
+def handle_authentication_failure(
+    e: AuthenticationFailure,
+) -> Response:
+    response = make_response(e.response_text, e.status_code)
+    response.headers['WWW-Authenticate'] = 'VWS'
+    assert isinstance(response, Response)
+    return response
+
+@CLOUDRECO_FLASK_APP.errorhandler(AuthenticationFailureGoodFormatting)
+def handle_authentication_failure_good_formatting(
+    e: AuthenticationFailureGoodFormatting,
+) -> Response:
+    response = make_response(e.response_text, e.status_code)
+    response.headers['WWW-Authenticate'] = 'VWS'
+    assert isinstance(response, Response)
+    return response
+
+
 @CLOUDRECO_FLASK_APP.after_request
 def set_headers(response: Response) -> Response:
     # raise requests.exceptions.ConnectionError
@@ -208,6 +227,7 @@ def set_headers(response: Response) -> Response:
         codes.UNPROCESSABLE_ENTITY,
         codes.BAD_REQUEST,
         codes.FORBIDDEN,
+        codes.UNAUTHORIZED,
     ) and 'Content-Type' not in response.headers:
         response.headers['Content-Type'] = 'application/json'
     return response
