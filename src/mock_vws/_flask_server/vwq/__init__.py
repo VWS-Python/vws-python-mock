@@ -184,6 +184,7 @@ def set_headers(response: Response) -> Response:
         codes.OK,
         codes.UNPROCESSABLE_ENTITY,
         codes.BAD_REQUEST,
+        codes.FORBIDDEN,
     ) and 'Content-Type' not in response.headers:
         response.headers['Content-Type'] = 'application/json'
     return response
