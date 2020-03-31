@@ -141,7 +141,7 @@ def validate_keys(
     optional_keys = matching_route.optional_keys
     allowed_keys = mandatory_keys.union(optional_keys)
 
-    if request_body is None and not allowed_keys:
+    if not request_body and not allowed_keys:
         return
 
     request_text = request_body.decode()

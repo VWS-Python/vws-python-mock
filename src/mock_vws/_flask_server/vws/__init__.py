@@ -7,7 +7,6 @@ from typing import Dict, List, Tuple, Union
 
 import requests
 from flask import Flask, Response, request, make_response
-from flask_json_schema import JsonSchema, JsonValidationError
 from PIL import Image
 from requests import codes
 

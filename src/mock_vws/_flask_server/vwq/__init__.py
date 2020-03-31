@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 import pytz
-from flask import Flask, Response, request
+from flask import Flask, Response, make_response, request
 from requests import codes
 
 from mock_vws._base64_decoding import decode_base64
@@ -59,9 +59,14 @@ def validate_request() -> None:
     )
 
 
-@CLOUDRECO_FLASK_APP.errorhandler(UnknownTarget)
-def handle_unknown_target(e: UnknownTarget) -> Tuple[str, int]:
-    return e.response_text, e.status_code
+# @CLOUDRECO_FLASK_APP.errorhandler(DateHeaderNotGiven)
+# def handle_date_header_not_given(e: DateHeaderNotGiven) -> Response:
+#     content_type = 'text/plain; charset=ISO-8859-1'
+#     response = make_response(e.response_text, e.status_code)
+#     response.headers['Content-Type'] = content_type
+#     response.headers['WWW-Authenticate'] = 'VWS'
+#     assert isinstance(response, Response)
+#     return response
 
 
 @CLOUDRECO_FLASK_APP.after_request
