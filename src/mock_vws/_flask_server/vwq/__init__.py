@@ -79,7 +79,14 @@ def handle_unsupported_media_type(
     e: UnsupportedMediaType,
 ) -> Response:
     response = make_response(e.response_text, e.status_code)
-    # del response.headers['Content-Type'] #= 'FOO'
+    assert isinstance(response, Response)
+    return response
+
+@CLOUDRECO_FLASK_APP.errorhandler(BadImage)
+def handle_bad_image(
+    e: BadImage,
+) -> Response:
+    response = make_response(e.response_text, e.status_code)
     assert isinstance(response, Response)
     return response
 
@@ -92,7 +99,10 @@ def set_headers(response: Response) -> Response:
     response.headers['Content-Length'] = str(content_length)
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     response.headers['Date'] = date
-    if response.status_code == codes.OK:
+    if response.status_code in (
+        codes.OK,
+        codes.UNPROCESSABLE_ENTITY,
+    ):
         response.headers['Content-Type'] = 'application/json'
     return response
 
