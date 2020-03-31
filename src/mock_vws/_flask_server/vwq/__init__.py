@@ -212,6 +212,18 @@ def handle_authentication_failure_good_formatting(
     assert isinstance(response, Response)
     return response
 
+@CLOUDRECO_FLASK_APP.errorhandler(QueryOutOfBounds)
+def handle_query_out_of_bounds(
+    e: QueryOutOfBounds,
+) -> Response:
+    response = make_response(e.response_text, e.status_code)
+    content_type = 'text/html; charset=ISO-8859-1'
+    response.headers['Content-Type'] = content_type
+    cache_control = 'must-revalidate,no-cache,no-store'
+    response.headers['Cache-Control'] = cache_control
+    assert isinstance(response, Response)
+    return response
+
 
 @CLOUDRECO_FLASK_APP.after_request
 def set_headers(response: Response) -> Response:
