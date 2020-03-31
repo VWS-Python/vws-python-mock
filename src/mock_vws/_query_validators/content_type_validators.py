@@ -37,7 +37,8 @@ def validate_content_type_header(
             boundary.
         BoundaryNotInBody: The boundary is not in the request body.
     """
-    main_value, pdict = cgi.parse_header(request_headers.get('Content-Type', ''))
+    content_type_header = request_headers.get('Content-Type', '')
+    main_value, pdict = cgi.parse_header(content_type_header)
     if main_value != 'multipart/form-data':
         raise UnsupportedMediaType
 
