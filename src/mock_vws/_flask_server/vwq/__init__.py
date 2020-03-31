@@ -52,7 +52,7 @@ def validate_request() -> None:
     run_query_validators(
         request_headers=dict(request.headers),
         # TODO not sure about this one
-        request_body=request.data,
+        request_body=request.input_stream.getvalue(),
         request_method=request.method,
         request_path=request.path,
         databases=databases,
@@ -67,6 +67,16 @@ def validate_request() -> None:
 #     response.headers['WWW-Authenticate'] = 'VWS'
 #     assert isinstance(response, Response)
 #     return response
+
+@CLOUDRECO_FLASK_APP.errorhandler(ContentLengthHeaderTooLarge)
+def handle_content_length_header_too_large(
+    e: ContentLengthHeaderTooLarge,
+) -> Response:
+    # import pdb; pdb.set_trace()
+    response = make_response(e.response_text, e.status_code)
+    response.headers = {'Connection': 'keep-alive'}
+    assert isinstance(response, Response)
+    return response
 
 
 @CLOUDRECO_FLASK_APP.after_request
