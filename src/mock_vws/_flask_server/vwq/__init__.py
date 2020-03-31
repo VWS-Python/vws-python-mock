@@ -151,6 +151,27 @@ def handle_max_num_results_out_of_range(
     return response
 
 
+@CLOUDRECO_FLASK_APP.errorhandler(NoBoundaryFound)
+def handle_no_boundary_found(
+    e: NoBoundaryFound,
+) -> Response:
+    content_type = 'text/html;charset=UTF-8'
+    response = make_response(e.response_text, e.status_code)
+    response.headers['Content-Type'] = content_type
+    assert isinstance(response, Response)
+    return response
+
+@CLOUDRECO_FLASK_APP.errorhandler(BoundaryNotInBody)
+def handle_boundary_not_in_body(
+    e: BoundaryNotInBody,
+) -> Response:
+    content_type = 'text/html;charset=UTF-8'
+    response = make_response(e.response_text, e.status_code)
+    response.headers['Content-Type'] = content_type
+    assert isinstance(response, Response)
+    return response
+
+
 @CLOUDRECO_FLASK_APP.after_request
 def set_headers(response: Response) -> Response:
     response.headers['Connection'] = 'keep-alive'
@@ -163,7 +184,7 @@ def set_headers(response: Response) -> Response:
         codes.OK,
         codes.UNPROCESSABLE_ENTITY,
         codes.BAD_REQUEST,
-    ):
+    ) and 'Content-Type' not in response.headers:
         response.headers['Content-Type'] = 'application/json'
     return response
 
