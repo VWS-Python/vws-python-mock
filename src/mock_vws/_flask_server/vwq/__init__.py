@@ -224,6 +224,39 @@ def handle_query_out_of_bounds(
     assert isinstance(response, Response)
     return response
 
+@CLOUDRECO_FLASK_APP.errorhandler(AuthHeaderMissing)
+def handle_auth_header_missing(
+    e: AuthHeaderMissing,
+) -> Response:
+    response = make_response(e.response_text, e.status_code)
+    content_type = 'text/plain; charset=ISO-8859-1'
+    response.headers['Content-Type'] = content_type
+    response.headers['WWW-Authenticate'] = 'VWS'
+    assert isinstance(response, Response)
+    return response
+
+@CLOUDRECO_FLASK_APP.errorhandler(DateFormatNotValid)
+def handle_date_format_not_valid(
+    e: DateFormatNotValid,
+) -> Response:
+    response = make_response(e.response_text, e.status_code)
+    content_type = 'text/plain; charset=ISO-8859-1'
+    response.headers['Content-Type'] = content_type
+    response.headers['WWW-Authenticate'] = 'VWS'
+    assert isinstance(response, Response)
+    return response
+
+@CLOUDRECO_FLASK_APP.errorhandler(MalformedAuthHeader)
+def handle_malformed_auth_header(
+    e: MalformedAuthHeader,
+) -> Response:
+    response = make_response(e.response_text, e.status_code)
+    content_type = 'text/plain; charset=ISO-8859-1'
+    response.headers['Content-Type'] = content_type
+    response.headers['WWW-Authenticate'] = 'VWS'
+    assert isinstance(response, Response)
+    return response
+
 
 @CLOUDRECO_FLASK_APP.after_request
 def set_headers(response: Response) -> Response:
