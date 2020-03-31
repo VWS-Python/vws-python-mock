@@ -90,6 +90,14 @@ def handle_bad_image(
     assert isinstance(response, Response)
     return response
 
+@CLOUDRECO_FLASK_APP.errorhandler(UnknownParameters)
+def handle_unknown_parameters(
+    e: UnknownParameters,
+) -> Response:
+    response = make_response(e.response_text, e.status_code)
+    assert isinstance(response, Response)
+    return response
+
 
 @CLOUDRECO_FLASK_APP.after_request
 def set_headers(response: Response) -> Response:
@@ -102,6 +110,7 @@ def set_headers(response: Response) -> Response:
     if response.status_code in (
         codes.OK,
         codes.UNPROCESSABLE_ENTITY,
+        codes.BAD_REQUEST,
     ):
         response.headers['Content-Type'] = 'application/json'
     return response
@@ -202,6 +211,7 @@ def query() -> Tuple[str, int]:
         content_type = 'text/html; charset=ISO-8859-1'
         # TODO remove legacy
         # context.headers['Content-Type'] = content_type
+        # TODO remove file copied to this dir
         return (
             Path(match_processing_resp_file).read_text(),
             codes.INTERNAL_SERVER_ERROR,
