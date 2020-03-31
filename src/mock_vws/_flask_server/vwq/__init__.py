@@ -59,22 +59,27 @@ def validate_request() -> None:
     )
 
 
-# @CLOUDRECO_FLASK_APP.errorhandler(DateHeaderNotGiven)
-# def handle_date_header_not_given(e: DateHeaderNotGiven) -> Response:
-#     content_type = 'text/plain; charset=ISO-8859-1'
-#     response = make_response(e.response_text, e.status_code)
-#     response.headers['Content-Type'] = content_type
-#     response.headers['WWW-Authenticate'] = 'VWS'
-#     assert isinstance(response, Response)
-#     return response
+
+class MyResponse(Response):
+    default_mimetype = None#'FOOBAR'
+
+CLOUDRECO_FLASK_APP.response_class = MyResponse
 
 @CLOUDRECO_FLASK_APP.errorhandler(ContentLengthHeaderTooLarge)
 def handle_content_length_header_too_large(
     e: ContentLengthHeaderTooLarge,
 ) -> Response:
-    # import pdb; pdb.set_trace()
     response = make_response(e.response_text, e.status_code)
     response.headers = {'Connection': 'keep-alive'}
+    assert isinstance(response, Response)
+    return response
+
+@CLOUDRECO_FLASK_APP.errorhandler(UnsupportedMediaType)
+def handle_unsupported_media_type(
+    e: UnsupportedMediaType,
+) -> Response:
+    response = make_response(e.response_text, e.status_code)
+    # del response.headers['Content-Type'] #= 'FOO'
     assert isinstance(response, Response)
     return response
 
@@ -82,17 +87,13 @@ def handle_content_length_header_too_large(
 @CLOUDRECO_FLASK_APP.after_request
 def set_headers(response: Response) -> Response:
     response.headers['Connection'] = 'keep-alive'
-    if response.status_code != codes.INTERNAL_SERVER_ERROR:
-        response.headers['Content-Type'] = 'application/json'
-    if response.status_code == codes.UNSUPPORTED_MEDIA_TYPE:
-        # response.headers.pop('Content-Type')
-        # TODO we need to remove this somehow but I don't know how
-        response.headers['Content-Type'] = ''
     response.headers['Server'] = 'nginx'
     content_length = len(response.data)
     response.headers['Content-Length'] = str(content_length)
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     response.headers['Date'] = date
+    if response.status_code == codes.OK:
+        response.headers['Content-Type'] = 'application/json'
     return response
 
 
