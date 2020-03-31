@@ -364,8 +364,8 @@ def query() -> Tuple[str, int]:
         # processing status, but we choose to:
         # * Do the most unexpected thing.
         # * Be consistent with every response.
-        resources_dir = Path(__file__).parent / 'resources'
-        filename = 'match_processing_response'
+        resources_dir = Path(__file__).parent.parent.parent / 'resources'
+        filename = 'match_processing_response.html'
         match_processing_resp_file = resources_dir / filename
         cache_control = 'must-revalidate,no-cache,no-store'
         # TODO remove legacy
