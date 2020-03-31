@@ -117,6 +117,40 @@ def handle_image_not_given(
     return response
 
 
+@CLOUDRECO_FLASK_APP.errorhandler(InactiveProject)
+def handle_inactive_project(
+    e: InactiveProject,
+) -> Response:
+    response = make_response(e.response_text, e.status_code)
+    assert isinstance(response, Response)
+    return response
+
+
+@CLOUDRECO_FLASK_APP.errorhandler(InvalidIncludeTargetData)
+def handle_invalid_include_target_data(
+    e: InvalidIncludeTargetData,
+) -> Response:
+    response = make_response(e.response_text, e.status_code)
+    assert isinstance(response, Response)
+    return response
+
+@CLOUDRECO_FLASK_APP.errorhandler(InvalidMaxNumResults)
+def handle_invalid_max_num_results(
+    e: InvalidMaxNumResults,
+) -> Response:
+    response = make_response(e.response_text, e.status_code)
+    assert isinstance(response, Response)
+    return response
+
+@CLOUDRECO_FLASK_APP.errorhandler(MaxNumResultsOutOfRange)
+def handle_max_num_results_out_of_range(
+    e: MaxNumResultsOutOfRange,
+) -> Response:
+    response = make_response(e.response_text, e.status_code)
+    assert isinstance(response, Response)
+    return response
+
+
 @CLOUDRECO_FLASK_APP.after_request
 def set_headers(response: Response) -> Response:
     response.headers['Connection'] = 'keep-alive'
