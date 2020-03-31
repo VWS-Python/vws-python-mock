@@ -99,6 +99,24 @@ def handle_unknown_parameters(
     return response
 
 
+@CLOUDRECO_FLASK_APP.errorhandler(RequestTimeTooSkewed)
+def handle_request_time_too_skewed(
+    e: RequestTimeTooSkewed,
+) -> Response:
+    response = make_response(e.response_text, e.status_code)
+    assert isinstance(response, Response)
+    return response
+
+
+@CLOUDRECO_FLASK_APP.errorhandler(ImageNotGiven)
+def handle_image_not_given(
+    e: ImageNotGiven,
+) -> Response:
+    response = make_response(e.response_text, e.status_code)
+    assert isinstance(response, Response)
+    return response
+
+
 @CLOUDRECO_FLASK_APP.after_request
 def set_headers(response: Response) -> Response:
     response.headers['Connection'] = 'keep-alive'
