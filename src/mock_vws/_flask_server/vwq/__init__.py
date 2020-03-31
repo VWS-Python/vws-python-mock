@@ -63,7 +63,7 @@ def validate_request() -> None:
 
 
 class MyResponse(Response):
-    default_mimetype = None#'FOOBAR'
+    default_mimetype = None
 
 CLOUDRECO_FLASK_APP.response_class = MyResponse
 
@@ -81,8 +81,6 @@ def handle_connection_error(
     e: requests.exceptions.ConnectionError,
 ) -> Response:
     raise e
-    # from flask import abort
-    # import pdb; pdb.set_trace()
     response = make_response(e.response_text, e.status_code)
     response.headers = {'Connection': 'keep-alive'}
     assert isinstance(response, Response)
