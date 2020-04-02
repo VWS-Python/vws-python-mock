@@ -245,6 +245,10 @@ class MockVuforiaWebQueryAPI:
             ActiveMatchingTargetsDeleteProcessing,
             MatchingTargetsWithProcessingStatus,
         ) as exc:
+            # TODO put this into the exceptions
+            # TODO put all header stuff into the exceptions
+            # TODO header base class
+            #
             # We return an example 500 response.
             # Each response given by Vuforia is different.
             #
