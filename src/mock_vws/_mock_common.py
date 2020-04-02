@@ -116,5 +116,3 @@ def parse_multipart(  # pylint: disable=invalid-name
     }
 
     return cgi.parse_multipart(fp=fp, pdict=pdict)
-
-
