@@ -510,6 +510,8 @@ class MockVuforiaWebServicesAPI:
         assert isinstance(database, VuforiaDatabase)
         other_targets = set(database.targets) - set([target])
 
+        # TODO use the new image match function here
+        # TODO - add a test - is something a duplicate if it isn't exactly the same?
         similar_targets: List[str] = [
             other.target_id for other in other_targets
             if Image.open(other.image) == Image.open(target.image) and
