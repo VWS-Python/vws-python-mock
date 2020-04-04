@@ -66,6 +66,9 @@ def get_query_match_response_text(
             deletion is recognized that the query endpoint will return a 500
             response on a match.
 
+    Returns:
+        The response text for a query endpoint request.
+
     Raises:
         MatchingTargetsWithProcessingStatus: There is at least one matching
             target which has the status 'processing'.
