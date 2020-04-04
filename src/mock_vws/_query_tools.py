@@ -19,11 +19,15 @@ from mock_vws.database import VuforiaDatabase
 
 
 class MatchingTargetsWithProcessingStatus(Exception):
-    pass
+    """
+    There is at least one matching target which has the status 'processing'.
+    """
 
 
 class ActiveMatchingTargetsDeleteProcessing(Exception):
-    pass
+    """
+    There is at least one active target which matches and was recently deleted.
+    """
 
 
 def _images_match(image: io.BytesIO, another_image: io.BytesIO) -> bool:
@@ -50,11 +54,23 @@ def get_query_match_response_text(
 ) -> str:
     """
     Args:
-        TODO
+        request_path: The path of the request.
+        request_headers: The headers sent with the request.
+        request_body: The body of the request.
+        request_method: The HTTP method of the request.
+        databases: All Vuforia databases.
+        query_recognizes_deletion_seconds: The number of seconds after a target
+            has been deleted that the query endpoint will still recognize the
+            target for.
+        query_processes_deletion_seconds: The number of seconds after a target
+            deletion is recognized that the query endpoint will return a 500
+            response on a match.
 
     Raises:
-        MatchingTargetsWithProcessingStatus: TODO
-        ActiveMatchingTargetsDeleteProcessing: TODO
+        MatchingTargetsWithProcessingStatus: There is at least one matching
+            target which has the status 'processing'.
+        ActiveMatchingTargetsDeleteProcessing: There is at least one active
+            target which matches and was recently deleted.
     """
     body_file = io.BytesIO(request_body)
 
