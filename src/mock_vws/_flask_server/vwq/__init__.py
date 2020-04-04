@@ -11,6 +11,11 @@ import pytz
 from flask import Flask, Response, make_response, request
 from requests import codes
 import requests
+from mock_vws._query_tools import (
+    ActiveMatchingTargetsDeleteProcessing,
+    MatchingTargetsWithProcessingStatus,
+    get_query_match_response_text,
+)
 
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._constants import ResultCodes, TargetStatuses
@@ -53,7 +58,6 @@ def validate_request() -> None:
     databases = get_all_databases()
     run_query_validators(
         request_headers=dict(request.headers),
-        # TODO not sure about this one
         request_body=request.input_stream.getvalue(),
         request_method=request.method,
         request_path=request.path,
@@ -278,82 +282,26 @@ def set_headers(response: Response) -> Response:
 
 @CLOUDRECO_FLASK_APP.route('/v1/query', methods=['POST'])
 def query() -> Tuple[str, int]:
-    body_file = io.BytesIO(request.input_stream.getvalue())
 
-    _, pdict = cgi.parse_header(request.headers['Content-Type'])
-    parsed = parse_multipart(
-        fp=body_file,
-        pdict={
-            'boundary': pdict['boundary'].encode(),
-        },
-    )
 
-    [max_num_results] = parsed.get('max_num_results', ['1'])
-
-    [include_target_data] = parsed.get('include_target_data', ['top'])
-    include_target_data = include_target_data.lower()
-
-    [image] = parsed['image']
-    gmt = pytz.timezone('GMT')
-    now = datetime.datetime.now(tz=gmt)
-
-    processing_timedelta = datetime.timedelta(
-        # TODO add this back
-        # seconds=self._query_processes_deletion_seconds,
-        seconds=0.2,
-    )
-
-    recognition_timedelta = datetime.timedelta(
-        # TODO add this back
-        # seconds=self._query_recognizes_deletion_seconds,
-        seconds=0.2,
-    )
-
+    # TODO these should be configurable
+    query_processes_deletion_seconds = 0.2
+    query_recognizes_deletion_seconds = 0.2
     databases = get_all_databases()
 
-    database = get_database_matching_client_keys(
-        request_headers=dict(request.headers),
-        request_body=request.input_stream.getvalue(),
-        request_method=request.method,
-        request_path=request.path,
-        databases=databases,
-    )
-
-    assert isinstance(database, VuforiaDatabase)
-
-    matching_targets = [
-        target for target in database.targets
-        if target.image.getvalue() == image
-    ]
-
-    not_deleted_matches = [
-        target for target in matching_targets
-        if target.active_flag and not target.delete_date
-        and target.status == TargetStatuses.SUCCESS.value
-    ]
-
-    deletion_not_recognized_matches = [
-        target for target in matching_targets
-        if target.active_flag and target.delete_date and
-        (now - target.delete_date) < recognition_timedelta
-    ]
-
-    matching_targets_with_processing_status = [
-        target for target in matching_targets
-        if target.status == TargetStatuses.PROCESSING.value
-    ]
-
-    active_matching_targets_delete_processing = [
-        target for target in matching_targets
-        if target.active_flag and target.delete_date and
-        (now -
-         target.delete_date) < (recognition_timedelta + processing_timedelta)
-        and target not in deletion_not_recognized_matches
-    ]
-
-    if (
-        matching_targets_with_processing_status
-        or active_matching_targets_delete_processing
+    try:
+        response_text = get_query_match_response_text(
+            request_headers=dict(request.headers),
+            request_body=request.input_stream.getvalue(),
+            request_method=request.method,
+            request_path=request.path,
+            databases=databases,
+            query_processes_deletion_seconds=query_processes_deletion_seconds,
+            query_recognizes_deletion_seconds=query_recognizes_deletion_seconds,
+        )
+    except (
+        ActiveMatchingTargetsDeleteProcessing,
+        MatchingTargetsWithProcessingStatus,
     ):
         # We return an example 500 response.
         # Each response given by Vuforia is different.
@@ -381,45 +329,4 @@ def query() -> Tuple[str, int]:
             },
         )
 
-    matches = not_deleted_matches + deletion_not_recognized_matches
-
-    results: List[Dict[str, Any]] = []
-    for target in matches:
-        target_timestamp = target.last_modified_date.timestamp()
-        if target.application_metadata is None:
-            application_metadata = None
-        else:
-            application_metadata = base64.b64encode(
-                decode_base64(encoded_data=target.application_metadata),
-            ).decode('ascii')
-        target_data = {
-            'target_timestamp': int(target_timestamp),
-            'name': target.name,
-            'application_metadata': application_metadata,
-        }
-
-        if include_target_data == 'all':
-            result = {
-                'target_id': target.target_id,
-                'target_data': target_data,
-            }
-        elif include_target_data == 'top' and not results:
-            result = {
-                'target_id': target.target_id,
-                'target_data': target_data,
-            }
-        else:
-            result = {
-                'target_id': target.target_id,
-            }
-
-        results.append(result)
-
-    body = {
-        'result_code': ResultCodes.SUCCESS.value,
-        'results': results[:int(max_num_results)],
-        'query_id': uuid.uuid4().hex,
-    }
-
-    value = json_dump(body)
-    return value, codes.OK
+    return response_text
