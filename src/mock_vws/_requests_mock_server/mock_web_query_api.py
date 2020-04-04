@@ -244,7 +244,7 @@ class MockVuforiaWebQueryAPI:
         except (
             ActiveMatchingTargetsDeleteProcessing,
             MatchingTargetsWithProcessingStatus,
-        ) as exc:
+        ):
             # We return an example 500 response.
             # Each response given by Vuforia is different.
             #
