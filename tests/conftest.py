@@ -17,7 +17,7 @@ from tests.mock_vws.utils import (
     add_target_to_vws,
 )
 
-pytest_plugins = [  # pylint: disable=invalid-name
+pytest_plugins = [
     'tests.mock_vws.fixtures.prepared_requests',
     'tests.mock_vws.fixtures.credentials',
     'tests.mock_vws.fixtures.vuforia_backends',
