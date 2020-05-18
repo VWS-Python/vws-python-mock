@@ -4,14 +4,13 @@ Validators for the ``max_num_results`` fields.
 
 import cgi
 import io
-from typing import Dict, Set
+from typing import Dict
 
 from mock_vws._mock_common import parse_multipart
 from mock_vws._query_validators.exceptions import (
     InvalidMaxNumResults,
     MaxNumResultsOutOfRange,
 )
-from mock_vws.database import VuforiaDatabase
 
 
 def validate_max_num_results(

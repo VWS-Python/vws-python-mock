@@ -3,14 +3,13 @@ Validators for the ``Content-Type`` header.
 """
 
 import cgi
-from typing import Dict, Set
+from typing import Dict
 
 from mock_vws._query_validators.exceptions import (
     BoundaryNotInBody,
     NoBoundaryFound,
     UnsupportedMediaType,
 )
-from mock_vws.database import VuforiaDatabase
 
 
 def validate_content_type_header(
