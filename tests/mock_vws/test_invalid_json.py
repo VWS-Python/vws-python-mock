@@ -79,7 +79,7 @@ class TestInvalidJSON:
         if date_is_skewed and takes_json_data:
             # On the real implementation, we get `codes.FORBIDDEN` and
             # `REQUEST_TIME_TOO_SKEWED`.
-            # See https://github.com/adamtheturtle/vws-python-mock/issues/4 for
+            # See https://github.com/VWS-Python/vws-python-mock/issues/4 for
             # implementing this on them mock.
             return
 

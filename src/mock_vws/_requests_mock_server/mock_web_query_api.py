@@ -179,7 +179,10 @@ def route(
         ]
 
         for decorator in decorators:
-            method = decorator(method)
+            # See https://github.com/PyCQA/pylint/issues/259
+            method = decorator(  # pylint: disable=no-value-for-parameter
+                method,
+            )
 
         return method
 
