@@ -37,7 +37,7 @@ def _images_match(image: io.BytesIO, another_image: io.BytesIO) -> bool:
     In the real Vuforia, this matching is fuzzy.
     For now, we check exact byte matching.
 
-    See https://github.com/adamtheturtle/vws-python-mock/issues/3 for changing
+    See https://github.com/VWS-Python/vws-python-mock/issues/3 for changing
     that.
     """
     return bool(image.getvalue() == another_image.getvalue())

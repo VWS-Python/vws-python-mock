@@ -41,10 +41,10 @@ See the `full documentation <https://vws-python-mock.readthedocs.io/en/latest>`_
 This includes details on how to use the mock, options, and details of the differences between the mock and the real Vuforia Web Services.
 
 
-.. |Build Status| image:: https://travis-ci.com/adamtheturtle/vws-python-mock.svg?branch=master
-   :target: https://travis-ci.com/adamtheturtle/vws-python-mock
-.. |codecov| image:: https://codecov.io/gh/adamtheturtle/vws-python-mock/branch/master/graph/badge.svg
-   :target: https://codecov.io/gh/adamtheturtle/vws-python-mock
+.. |Build Status| image:: https://travis-ci.com/VWS-Python/vws-python-mock.svg?branch=master
+   :target: https://travis-ci.com/VWS-Python/vws-python-mock
+.. |codecov| image:: https://codecov.io/gh/VWS-Python/vws-python-mock/branch/master/graph/badge.svg
+   :target: https://codecov.io/gh/VWS-Python/vws-python-mock
 .. |PyPI| image:: https://badge.fury.io/py/VWS-Python-Mock.svg
     :target: https://badge.fury.io/py/VWS-Python-Mock
 .. |Documentation Status| image:: https://readthedocs.org/projects/vws-python-mock/badge/?version=latest

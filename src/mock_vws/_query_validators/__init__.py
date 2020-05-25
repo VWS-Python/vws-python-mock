@@ -55,26 +55,14 @@ def run_query_validators(
         request_method: The HTTP method of the request.
         databases: All Vuforia databases.
     """
-    validate_content_length_header_is_int(
-        request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
-    )
+    validate_content_length_header_is_int(request_headers=request_headers)
     validate_content_length_header_not_too_large(
         request_headers=request_headers,
         request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_content_length_header_not_too_small(
         request_headers=request_headers,
         request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_auth_header_exists(request_headers=request_headers)
     validate_auth_header_number_of_parts(request_headers=request_headers)
@@ -101,9 +89,6 @@ def run_query_validators(
     validate_content_type_header(
         request_headers=request_headers,
         request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_extra_fields(
         request_headers=request_headers,
@@ -132,9 +117,6 @@ def run_query_validators(
     validate_max_num_results(
         request_headers=request_headers,
         request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
     )
     validate_include_target_data(
         request_headers=request_headers,
