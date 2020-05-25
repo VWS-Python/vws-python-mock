@@ -4,7 +4,7 @@ Utilities for managing mock Vuforia databases.
 
 import uuid
 from dataclasses import dataclass, field
-from typing import Optional, Set
+from typing import Set
 
 from .states import States
 from .target import Target
@@ -30,4 +30,3 @@ class VuforiaDatabase:
     client_secret_key: str = field(default_factory=_random_hex)
     targets: Set[Target] = field(default_factory=set, hash=False)
     state: States = States.WORKING
-
