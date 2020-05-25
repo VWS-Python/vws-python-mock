@@ -13,7 +13,8 @@ def move_secrets_file() -> None:
     Move the right secrets file to the current directory.
     """
     # TODO change this
-    print(os.environ)
+    from pprint import pprint
+    print(dict(os.environ))
     sys.exit(0)
     travis_job_number = 1  # os.environ['TRAVIS_JOB_NUMBER']
     travis_builder_number = travis_job_number.split('.')[-1]
