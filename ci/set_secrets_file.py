@@ -1,5 +1,5 @@
 """
-Move the right secrets file into place for Travis CI.
+Move the right secrets file into place for CI.
 """
 
 import os
@@ -13,7 +13,6 @@ def move_secrets_file() -> None:
     """
     Move the right secrets file to the current directory.
     """
-    # TODO change this
     repository_root = Path(__file__).parent.parent
     ci_file = repository_root / '.github' / 'workflows' / 'ci.yml'
     github_workflow_config = yaml.safe_load(ci_file.read_text())

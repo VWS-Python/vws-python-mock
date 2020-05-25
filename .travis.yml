@@ -4,7 +4,6 @@ python:
 matrix:
   fast_finish: true
 env:
-  # TODO maybe lint is separate to the matrix?
   # TODO set up tests
   matrix:
   - CI_PATTERN=''
