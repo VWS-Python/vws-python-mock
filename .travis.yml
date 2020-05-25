@@ -4,6 +4,8 @@ python:
 matrix:
   fast_finish: true
 env:
+  # TODO maybe lint is separate to the matrix?
+  # TODO set up tests
   matrix:
   - CI_PATTERN=''
   - CI_PATTERN=test_query.py
@@ -35,6 +37,7 @@ addons:
   apt:
     packages:
     - enchant
+# TODO change this
 before_install:
 - openssl aes-256-cbc -K $encrypted_61e4bc3d8ae5_key -iv $encrypted_61e4bc3d8ae5_iv
   -in secrets.tar.enc -out secrets.tar -d

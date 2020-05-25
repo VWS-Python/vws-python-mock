@@ -10,6 +10,7 @@ import pytest
 import yaml
 
 
+# TODO change this for GitHub
 def _travis_ci_patterns() -> Set[str]:
     """
     Return the CI patterns given in the ``.travis.yml`` file.
