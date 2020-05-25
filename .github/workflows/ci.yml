@@ -38,11 +38,7 @@ jobs:
           export MATRIX=${{ matrix }}
           python ci/set_secrets_file.py
         env:
-            CI_PATTERN: ${{ matrix.indexOf(${{ matrix.ci_pattern }}) }}
-
-      # - name: "Lint"
-      #   run: |
-      #     make lint
+            CI_PATTERN: ${{ matrix.ci_pattern }}
 
       # - name: "Run tests"
       #   run: |
