@@ -289,18 +289,7 @@ class MockVuforiaWebServicesAPI:
             application_metadata=request.json().get('application_metadata'),
         )
 
-        new_database = VuforiaDatabase(
-            database_name=database.database_name,
-            server_access_key=database.server_access_key,
-            server_secret_key=database.server_secret_key,
-            client_access_key=database.client_access_key,
-            client_secret_key=database.client_secret_key,
-            targets=database.targets.union(set([new_target])),
-            state=database.state,
-        )
-        
-        self.databases.remove(database)
-        self.databases.add(new_database)
+        database.targets.add(new_target)
 
         context.status_code = codes.CREATED
         body = {

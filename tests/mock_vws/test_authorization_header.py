@@ -181,18 +181,11 @@ class TestBadKey:
         vuforia_database: VuforiaDatabase,
     ) -> None:
         """
-        If the server access key given does not match any database, a ``Fail``
-        response is returned.
+        If the server access key given does not match any database, a
+        ``Fail`` response is returned.
         """
-        keys = VuforiaDatabase(
-            database_name=vuforia_database.database_name,
-            server_access_key='example',
-            server_secret_key=vuforia_database.server_secret_key,
-            client_access_key=vuforia_database.client_access_key,
-            client_secret_key=vuforia_database.client_secret_key,
-            targets=vuforia_database.targets,
-            state=vuforia_database.state,
-        )
+        keys = vuforia_database
+        keys.server_access_key = 'example'
         response = get_vws_target(
             target_id=uuid.uuid4().hex,
             vuforia_database=keys,
@@ -213,20 +206,12 @@ class TestBadKey:
         If the client access key given is incorrect, an
         ``UNAUTHORIZED`` response is returned.
         """
-        keys = VuforiaDatabase(
-            database_name=vuforia_database.database_name,
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-            client_access_key='example',
-            client_secret_key=vuforia_database.client_secret_key,
-            targets=vuforia_database.targets,
-            state=vuforia_database.state,
-        )
+        vuforia_database.client_access_key = 'example'
         image_content = high_quality_image.getvalue()
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
         response = query(
-            vuforia_database=keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 
@@ -259,15 +244,8 @@ class TestBadKey:
         If the server secret key given is incorrect, an
         ``AuthenticationFailure`` response is returned.
         """
-        keys = VuforiaDatabase(
-            database_name=vuforia_database.database_name,
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key='example',
-            client_access_key=vuforia_database.client_access_key,
-            client_secret_key=vuforia_database.client_secret_key,
-            targets=vuforia_database.targets,
-            state=vuforia_database.state,
-        )
+        keys = vuforia_database
+        keys.server_secret_key = 'example'
         response = get_vws_target(
             target_id=uuid.uuid4().hex,
             vuforia_database=keys,
@@ -288,20 +266,12 @@ class TestBadKey:
         If the client secret key given is incorrect, an
         ``UNAUTHORIZED`` response is returned.
         """
-        keys = VuforiaDatabase(
-            database_name=vuforia_database.database_name,
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-            client_access_key=vuforia_database.client_access_key,
-            client_secret_key='example',
-            targets=vuforia_database.targets,
-            state=vuforia_database.state,
-        )
+        vuforia_database.client_secret_key = 'example'
         image_content = high_quality_image.getvalue()
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
         response = query(
-            vuforia_database=keys,
+            vuforia_database=vuforia_database,
             body=body,
         )
 
