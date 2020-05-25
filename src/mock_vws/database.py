@@ -18,7 +18,7 @@ def _random_hex() -> str:
     return uuid.uuid4().hex
 
 
-@dataclass(eq=True, unsafe_hash=True)
+@dataclass(eq=True, frozen=True)
 class VuforiaDatabase:
     """
     Credentials for VWS APIs.
