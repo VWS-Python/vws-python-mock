@@ -470,7 +470,7 @@ def make_image_file(
     image_buffer = io.BytesIO()
     image = Image.new(color_space, (width, height))
     # If this assertion ever fails, see
-    # https://github.com/adamtheturtle/vws-test-fixtures for what to do.
+    # https://github.com/VWS-Python/vws-test-fixtures for what to do.
     assert color_space != 'L'
     reds = random.choices(population=range(0, 255), k=width * height)
     greens = random.choices(population=range(0, 255), k=width * height)
