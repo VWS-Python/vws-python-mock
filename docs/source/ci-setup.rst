@@ -30,19 +30,19 @@ Add Vuforia credentials for different target databases to the new files in the `
 Add at least as many credentials files as there are builds in the GitHub test matrix.
 All credentials files can share the same credentials for an inactive database.
 
-# TODO act here with changes using gpg from GitHub's docs
+Choose a passphrase for the secrets.
+In the GitHub repository > Settings > Secrets, add a secret with the name ``PASSPHRASE_FOR_VUFORIA_SECRETS`` and the chosen passphrase.
 
-Install the Travis CLI:
+Export that secret locally:
 
-.. substitution-prompt:: bash
-
-    gem install travis --no-rdoc --no-ri
-
-Add the encrypted secrets files to the repository and Travis CI:
+Add the encrypted secrets files to the repository:
 
 .. substitution-prompt:: bash
 
-    make update-secrets
+    PASSPHRASE_FOR_VUFORIA_SECRET=<CHOSEN_SECRET> make update-secrets
+    git add secrets.tar.gpg
+    git commit -m "Update secret archive"
+    git push
 
 Note that the `Travis CI documentation <https://docs.travis-ci.com/user/encrypting-files/#Caveat>`__ warns that this might not work on Windows.
 
