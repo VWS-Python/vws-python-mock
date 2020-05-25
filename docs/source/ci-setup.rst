@@ -1,10 +1,10 @@
 Continuous Integration
 ======================
 
-Tests are run on Travis CI.
-The configuration for this is in :file:`.travis.yml`.
+Tests are run on GitHub Actions.
+The configuration for this is in :file:`.github/workflows`.
 
-Travis CI is set up with secrets for connecting to Vuforia.
+CI is set up with secrets for connecting to Vuforia.
 These variables include those from :file:`vuforia_secrets.env.example`.
 
 To avoid hitting request quotas and to avoid conflicts when running multiple tests in parallel, we use multiple target databases.
@@ -14,8 +14,8 @@ For example, build ``2045.1`` will use a different credentials file to build ``2
 This should avoid conflicts, but in theory the same credentials file may be run across two Pull Request builds.
 This may cause errors.
 
-How to Set Travis CI Secrets
-----------------------------
+How to set GitHub Actions secrets
+---------------------------------
 
 Create environment variable files for secrets:
 
@@ -27,8 +27,10 @@ Create environment variable files for secrets:
     ...
 
 Add Vuforia credentials for different target databases to the new files in the ``ci_secrets/`` directory.
-Add as many credentials files as there are builds in the Travis matrix.
+Add at least as many credentials files as there are builds in the GitHub test matrix.
 All credentials files can share the same credentials for an inactive database.
+
+# TODO act here with changes using gpg from GitHub's docs
 
 Install the Travis CLI:
 

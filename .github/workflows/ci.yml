@@ -43,7 +43,6 @@ jobs:
           - test_update_target.py::TestInactiveProject
           - test_usage.py
 
-
     steps:
       - uses: actions/checkout@v2
       - name: "Set up Python"
@@ -58,7 +57,9 @@ jobs:
 
       - name: "Set secrets file"
         run: |
-          export MATRIX=${{ matrix }}
+          # See the "CI Setup" document for details of how this was set up.
+          openssl aes-256-cbc -K $encrypted_61e4bc3d8ae5_key -iv $encrypted_61e4bc3d8ae5_iv -in secrets.tar.enc -out secrets.tar -d
+          tar xvf secrets.tar
           python ci/set_secrets_file.py
         env:
           CI_PATTERN: ${{ matrix.ci_pattern }}
