@@ -59,7 +59,7 @@ jobs:
         run: |
           # See the "CI Setup" document for details of how this was set up.
           ci/decrypt_secret.sh
-          tar xvf /home/secrets/secrets.tar
+          tar xvf "${HOME}"/secrets/secrets.tar
           python ci/set_secrets_file.py
         env:
           CI_PATTERN: ${{ matrix.ci_pattern }}
