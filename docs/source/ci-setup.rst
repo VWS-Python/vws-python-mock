@@ -33,13 +33,11 @@ All credentials files can share the same credentials for an inactive database.
 Choose a passphrase for the secrets.
 In the GitHub repository > Settings > Secrets, add a secret with the name ``PASSPHRASE_FOR_VUFORIA_SECRETS`` and the chosen passphrase.
 
-Export that secret locally:
-
 Add the encrypted secrets files to the repository:
 
 .. substitution-prompt:: bash
 
-    PASSPHRASE_FOR_VUFORIA_SECRET=<CHOSEN_SECRET> make update-secrets
+    PASSPHRASE_FOR_VUFORIA_SECRETS=<CHOSEN_SECRET> make update-secrets
     git add secrets.tar.gpg
     git commit -m "Update secret archive"
     git push

@@ -7,9 +7,6 @@ SPHINXOPTS := -W
 
 .PHONY: update-secrets
 update-secrets:
-	ifndef PASSPHRASE_FOR_VUFORIA_SECRETS
-	$(error PASSPHRASE_FOR_VUFORIA_SECRETS is not set)
-	endif
 	tar cvf secrets.tar ci_secrets/
 	gpg --yes --batch --passphrase=${PASSPHRASE_FOR_VUFORIA_SECRETS} --symmetric --cipher-algo AES256 secrets.tar
 
