@@ -12,7 +12,7 @@ from urllib.parse import urljoin
 import requests
 import timeout_decorator
 from PIL import Image
-from requests import Response
+from requests import Response, codes
 from requests_mock import DELETE, GET, POST, PUT
 from urllib3.filepost import encode_multipart_formdata
 from vws_auth_tools import authorization_header, rfc_1123_date
@@ -74,6 +74,15 @@ class Endpoint:
         self.secret_key = secret_key
 
 
+class UnexpectedEmptyInternalServerError(Exception):  # pragma: no cover
+    """
+    Sometimes Vuforia gives an empty internal server error response.
+
+    We want to retry tests in these cases so we raise this exception in order
+    to do so.
+    """
+
+
 def add_target_to_vws(
     vuforia_database: VuforiaDatabase,
     data: Dict[str, Any],
@@ -89,6 +98,10 @@ def add_target_to_vws(
 
     Returns:
         The response returned by the API.
+
+    Raises:
+        UnexpectedEmptyInternalServerError: An empty internal server error
+            response is given.
     """
     date = rfc_1123_date()
     request_path = '/targets'
@@ -117,6 +130,13 @@ def add_target_to_vws(
         headers=headers,
         data=content,
     )
+
+    if (
+        response.status_code == codes.INTERNAL_SERVER_ERROR
+    ) and response.text == '':  # pragma: no cover
+        # 500 errors have been seen to happen in CI and this is here to help us
+        # debug them.
+        raise UnexpectedEmptyInternalServerError
 
     return response
 
@@ -450,7 +470,7 @@ def make_image_file(
     image_buffer = io.BytesIO()
     image = Image.new(color_space, (width, height))
     # If this assertion ever fails, see
-    # https://github.com/adamtheturtle/vws-test-fixtures for what to do.
+    # https://github.com/VWS-Python/vws-test-fixtures for what to do.
     assert color_space != 'L'
     reds = random.choices(population=range(0, 255), k=width * height)
     greens = random.choices(population=range(0, 255), k=width * height)

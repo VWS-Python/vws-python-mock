@@ -13,8 +13,8 @@ from typing_extensions import Literal
 
 from mock_vws.database import VuforiaDatabase
 
-from ._mock_web_query_api import MockVuforiaWebQueryAPI
-from ._mock_web_services_api import MockVuforiaWebServicesAPI
+from .mock_web_query_api import MockVuforiaWebQueryAPI
+from .mock_web_services_api import MockVuforiaWebServicesAPI
 
 
 class MockVWS(ContextDecorator):
@@ -126,8 +126,8 @@ class MockVWS(ContextDecorator):
                     message = message_fmt.format(key_name=key_name, value=new)
                     raise ValueError(message)
 
-        self._mock_vws_api.databases.append(database)
-        self._mock_vwq_api.databases.append(database)
+        self._mock_vws_api.databases.add(database)
+        self._mock_vwq_api.databases.add(database)
 
     def __enter__(self) -> 'MockVWS':
         """

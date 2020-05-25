@@ -2,530 +2,147 @@
 Input validators to use in the mock.
 """
 
-import binascii
-import numbers
-import uuid
-from json.decoder import JSONDecodeError
-from pathlib import Path
-from typing import Any, Callable, Dict, Set, Tuple
+from typing import Dict, Set
 
-import wrapt
-from requests import codes
-from requests_mock import POST, PUT
-from requests_mock.request import _RequestObjectProxy
-from requests_mock.response import _Context
-
-from mock_vws._base64_decoding import decode_base64
-from mock_vws._constants import ResultCodes
-from mock_vws._database_matchers import get_database_matching_server_keys
-from mock_vws._mock_common import json_dump
 from mock_vws.database import VuforiaDatabase
-from mock_vws.states import States
+
+from .active_flag_validators import validate_active_flag
+from .auth_validators import (
+    validate_access_key_exists,
+    validate_auth_header_exists,
+    validate_auth_header_has_signature,
+    validate_authorization,
+)
+from .content_length_validators import (
+    validate_content_length_header_is_int,
+    validate_content_length_header_not_too_large,
+    validate_content_length_header_not_too_small,
+)
+from .content_type_validators import validate_content_type_header_given
+from .date_validators import (
+    validate_date_format,
+    validate_date_header_given,
+    validate_date_in_range,
+)
+from .image_validators import (
+    validate_image_color_space,
+    validate_image_data_type,
+    validate_image_encoding,
+    validate_image_format,
+    validate_image_is_image,
+    validate_image_size,
+)
+from .json_validators import validate_json
+from .key_validators import validate_keys
+from .metadata_validators import (
+    validate_metadata_encoding,
+    validate_metadata_size,
+    validate_metadata_type,
+)
+from .name_validators import (
+    validate_name_characters_in_range,
+    validate_name_length,
+    validate_name_type,
+)
+from .project_state_validators import validate_project_state
+from .target_validators import validate_target_id_exists
+from .width_validators import validate_width
 
 
-@wrapt.decorator
-def validate_active_flag(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+def run_services_validators(
+    request_path: str,
+    request_headers: Dict[str, str],
+    request_body: bytes,
+    request_method: str,
+    databases: Set[VuforiaDatabase],
+) -> None:
     """
-    Validate the active flag data given to the endpoint.
+    Run all validators.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
-
-    Returns:
-        The result of calling the endpoint.
-        A `BAD_REQUEST` response with a FAIL result code if there is
-        active flag data given to the endpoint which is not either a Boolean or
-        NULL.
+        request_path: The path of the request.
+        request_headers: The headers sent with the request.
+        request_body: The body of the request.
+        request_method: The HTTP method of the request.
+        databases: All Vuforia databases.
     """
-    request, context = args
+    validate_auth_header_exists(request_headers=request_headers)
+    validate_auth_header_has_signature(request_headers=request_headers)
+    validate_access_key_exists(
+        request_headers=request_headers,
+        databases=databases,
+    )
+    validate_authorization(
+        request_headers=request_headers,
+        request_body=request_body,
+        request_method=request_method,
+        request_path=request_path,
+        databases=databases,
+    )
+    validate_project_state(
+        request_headers=request_headers,
+        request_body=request_body,
+        request_method=request_method,
+        request_path=request_path,
+        databases=databases,
+    )
+    validate_target_id_exists(
+        request_headers=request_headers,
+        request_body=request_body,
+        request_method=request_method,
+        request_path=request_path,
+        databases=databases,
+    )
+    validate_json(
+        request_body=request_body,
+        request_method=request_method,
+    )
+    validate_keys(
+        request_body=request_body,
+        request_path=request_path,
+        request_method=request_method,
+    )
+    validate_metadata_type(request_body=request_body)
+    validate_metadata_encoding(request_body=request_body)
+    validate_metadata_size(request_body=request_body)
+    validate_active_flag(request_body=request_body)
 
-    if not request.text:
-        return wrapped(*args, **kwargs)
+    validate_image_data_type(request_body=request_body)
+    validate_image_encoding(request_body=request_body)
+    validate_image_is_image(request_body=request_body)
+    validate_image_format(request_body=request_body)
+    validate_image_color_space(request_body=request_body)
+    validate_image_size(request_body=request_body)
 
-    if 'active_flag' not in request.json():
-        return wrapped(*args, **kwargs)
-
-    active_flag = request.json().get('active_flag')
-
-    if active_flag is None or isinstance(active_flag, bool):
-        return wrapped(*args, **kwargs)
-
-    context.status_code = codes.BAD_REQUEST
-    body: Dict[str, str] = {
-        'transaction_id': uuid.uuid4().hex,
-        'result_code': ResultCodes.FAIL.value,
-    }
-    return json_dump(body)
-
-
-@wrapt.decorator
-def validate_project_state(
-    wrapped: Callable[..., str],
-    instance: Any,
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
-    """
-    Validate the state of the project.
-
-    Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
-
-    Returns:
-        The result of calling the endpoint.
-        A `FORBIDDEN` response with a PROJECT_INACTIVE result code if the
-        project is inactive.
-    """
-    request, context = args
-
-    database = get_database_matching_server_keys(
-        request=request,
-        databases=instance.databases,
+    validate_name_type(request_body=request_body)
+    validate_name_length(request_body=request_body)
+    validate_name_characters_in_range(
+        request_body=request_body,
+        request_method=request_method,
+        request_path=request_path,
     )
 
-    assert isinstance(database, VuforiaDatabase)
-    if database.state != States.PROJECT_INACTIVE:
-        return wrapped(*args, **kwargs)
-
-    if request.method == 'GET' and 'duplicates' not in request.path:
-        return wrapped(*args, **kwargs)
-
-    context.status_code = codes.FORBIDDEN
-
-    body: Dict[str, str] = {
-        'transaction_id': uuid.uuid4().hex,
-        'result_code': ResultCodes.PROJECT_INACTIVE.value,
-    }
-    return json_dump(body)
-
-
-@wrapt.decorator
-def validate_not_invalid_json(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
-    """
-    Validate that there is either no JSON given or the JSON given is valid.
-
-    Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
-
-    Returns:
-        The result of calling the endpoint.
-        A `BAD_REQUEST` response with a FAIL result code if there is invalid
-        JSON given to a POST or PUT request.
-        A `BAD_REQUEST` with empty text if there is data given to another
-        request type.
-    """
-    request, context = args
-
-    if not request.body:
-        return wrapped(*args, **kwargs)
-
-    if request.method not in (POST, PUT):
-        context.status_code = codes.BAD_REQUEST
-        context.headers.pop('Content-Type')
-        return ''
-
-    try:
-        request.json()
-    except JSONDecodeError:
-        context.status_code = codes.BAD_REQUEST
-        body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.FAIL.value,
-        }
-        return json_dump(body)
-
-    return wrapped(*args, **kwargs)
-
-
-@wrapt.decorator
-def validate_width(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
-    """
-    Validate the width argument given to a VWS endpoint.
-
-    Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
-
-    Returns:
-        The result of calling the endpoint.
-        A `BAD_REQUEST` response if the width is given and is not a positive
-        number.
-    """
-    request, context = args
-
-    if not request.text:
-        return wrapped(*args, **kwargs)
-
-    if 'width' not in request.json():
-        return wrapped(*args, **kwargs)
-
-    width = request.json().get('width')
-
-    width_is_number = isinstance(width, numbers.Number)
-    width_positive = width_is_number and width > 0
-
-    if not width_positive:
-        context.status_code = codes.BAD_REQUEST
-        body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.FAIL.value,
-        }
-        return json_dump(body)
-
-    return wrapped(*args, **kwargs)
-
-
-@wrapt.decorator
-def validate_name_type(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
-    """
-    Validate the type of the name argument given to a VWS endpoint.
-
-    Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
-
-    Returns:
-        The result of calling the endpoint.
-        A `BAD_REQUEST` response if the name is given and not a string.
-        is not between 1 and
-        64 characters in length.
-    """
-    request, context = args
-
-    if not request.text:
-        return wrapped(*args, **kwargs)
-
-    if 'name' not in request.json():
-        return wrapped(*args, **kwargs)
-
-    name = request.json()['name']
-
-    if isinstance(name, str):
-        return wrapped(*args, **kwargs)
-
-    context.status_code = codes.BAD_REQUEST
-    body = {
-        'transaction_id': uuid.uuid4().hex,
-        'result_code': ResultCodes.FAIL.value,
-    }
-    return json_dump(body)
-
-
-@wrapt.decorator
-def validate_name_length(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
-    """
-    Validate the length of the name argument given to a VWS endpoint.
-
-    Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
-
-    Returns:
-        The result of calling the endpoint.
-        A `BAD_REQUEST` response if the name is given is not between 1 and 64
-        characters in length.
-    """
-    request, context = args
-
-    if not request.text:
-        return wrapped(*args, **kwargs)
-
-    if 'name' not in request.json():
-        return wrapped(*args, **kwargs)
-
-    name = request.json()['name']
-
-    if name and len(name) < 65:
-        return wrapped(*args, **kwargs)
-
-    context.status_code = codes.BAD_REQUEST
-    body = {
-        'transaction_id': uuid.uuid4().hex,
-        'result_code': ResultCodes.FAIL.value,
-    }
-    return json_dump(body)
-
-
-@wrapt.decorator
-def validate_name_characters_in_range(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
-    """
-    Validate the characters in the name argument given to a VWS endpoint.
-
-    Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
-
-    Returns:
-        The result of calling the endpoint.
-        A ``FORBIDDEN`` response if the name is given includes characters
-        outside of the accepted range.
-    """
-    request, context = args
-
-    if not request.text:
-        return wrapped(*args, **kwargs)
-
-    if 'name' not in request.json():
-        return wrapped(*args, **kwargs)
-
-    name = request.json()['name']
-
-    if all(ord(character) <= 65535 for character in name):
-        return wrapped(*args, **kwargs)
-
-    if (request.method, request.path) == ('POST', '/targets'):
-        context.status_code = codes.INTERNAL_SERVER_ERROR
-        resources_dir = Path(__file__).parent.parent / 'resources'
-        filename = 'oops_error_occurred_response.html'
-        oops_resp_file = resources_dir / filename
-        content_type = 'text/html; charset=UTF-8'
-        context.headers['Content-Type'] = content_type
-        text = oops_resp_file.read_text()
-        return text
-
-    context.status_code = codes.FORBIDDEN
-    body = {
-        'transaction_id': uuid.uuid4().hex,
-        'result_code': ResultCodes.TARGET_NAME_EXIST.value,
-    }
-    return json_dump(body)
-
-
-def validate_keys(
-    mandatory_keys: Set[str],
-    optional_keys: Set[str],
-) -> Callable:
-    """
-    Args:
-        mandatory_keys: Keys required by the endpoint.
-        optional_keys: Keys which are not required by the endpoint but which
-            are allowed.
-
-    Returns:
-        A wrapper function to validate that the keys given to the endpoint are
-            all allowed and that the mandatory keys are given.
-    """
-
-    @wrapt.decorator
-    def wrapper(
-        wrapped: Callable[..., str],
-        instance: Any,  # pylint: disable=unused-argument
-        args: Tuple[_RequestObjectProxy, _Context],
-        kwargs: Dict,
-    ) -> str:
-        """
-        Validate the request keys given to a VWS endpoint.
-
-        Returns:
-            The result of calling the endpoint.
-            A `BAD_REQUEST` error if any keys are not allowed, or if any
-            required keys are missing.
-
-        Args:
-            wrapped: An endpoint function for `requests_mock`.
-            instance: The class that the endpoint function is in.
-            args: The arguments given to the endpoint function.
-            kwargs: The keyword arguments given to the endpoint function.
-        """
-        request, context = args
-        allowed_keys = mandatory_keys.union(optional_keys)
-
-        if request.text is None and not allowed_keys:
-            return wrapped(*args, **kwargs)
-
-        given_keys = set(request.json().keys())
-        all_given_keys_allowed = given_keys.issubset(allowed_keys)
-        all_mandatory_keys_given = mandatory_keys.issubset(given_keys)
-
-        if all_given_keys_allowed and all_mandatory_keys_given:
-            return wrapped(*args, **kwargs)
-
-        context.status_code = codes.BAD_REQUEST
-        body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.FAIL.value,
-        }
-        return json_dump(body)
-
-    wrapper_func: Callable[..., Any] = wrapper
-    return wrapper_func
-
-
-@wrapt.decorator
-def validate_metadata_encoding(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
-    """
-    Validate that the given application metadata can be base64 decoded.
-
-    Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
-
-    Returns:
-        The result of calling the endpoint.
-        An `UNPROCESSABLE_ENTITY` response if application metadata is given and
-        it cannot be base64 decoded.
-    """
-    request, context = args
-
-    if not request.text:
-        return wrapped(*args, **kwargs)
-
-    if 'application_metadata' not in request.json():
-        return wrapped(*args, **kwargs)
-
-    application_metadata = request.json().get('application_metadata')
-
-    if application_metadata is None:
-        return wrapped(*args, **kwargs)
-
-    try:
-        decode_base64(encoded_data=application_metadata)
-    except binascii.Error:
-        context.status_code = codes.UNPROCESSABLE_ENTITY
-        body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.FAIL.value,
-        }
-        return json_dump(body)
-
-    return wrapped(*args, **kwargs)
-
-
-@wrapt.decorator
-def validate_metadata_type(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
-    """
-    Validate that the given application metadata is a string or NULL.
-
-    Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
-
-    Returns:
-        The result of calling the endpoint.
-        An `BAD_REQUEST` response if application metadata is given and it is
-        not a string or NULL.
-    """
-    request, context = args
-
-    if not request.text:
-        return wrapped(*args, **kwargs)
-
-    if 'application_metadata' not in request.json():
-        return wrapped(*args, **kwargs)
-
-    application_metadata = request.json().get('application_metadata')
-
-    if application_metadata is None or isinstance(application_metadata, str):
-        return wrapped(*args, **kwargs)
-
-    context.status_code = codes.BAD_REQUEST
-    body = {
-        'transaction_id': uuid.uuid4().hex,
-        'result_code': ResultCodes.FAIL.value,
-    }
-    return json_dump(body)
-
-
-@wrapt.decorator
-def validate_metadata_size(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
-    """
-    Validate that the given application metadata is a string or 1024 * 1024
-    bytes or fewer.
-
-    Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
-
-    Returns:
-        The result of calling the endpoint.
-        An `UNPROCESSABLE_ENTITY` response if application metadata is given and
-        it is too large.
-    """
-    request, context = args
-
-    if not request.text:
-        return wrapped(*args, **kwargs)
-
-    application_metadata = request.json().get('application_metadata')
-    if application_metadata is None:
-        return wrapped(*args, **kwargs)
-    decoded = decode_base64(encoded_data=application_metadata)
-
-    max_metadata_bytes = 1024 * 1024 - 1
-    if len(decoded) <= max_metadata_bytes:
-        return wrapped(*args, **kwargs)
-
-    context.status_code = codes.UNPROCESSABLE_ENTITY
-    body = {
-        'transaction_id': uuid.uuid4().hex,
-        'result_code': ResultCodes.METADATA_TOO_LARGE.value,
-    }
-    return json_dump(body)
+    validate_width(request_body=request_body)
+    validate_content_type_header_given(
+        request_headers=request_headers,
+        request_method=request_method,
+    )
+
+    validate_date_header_given(request_headers=request_headers)
+
+    validate_date_format(request_headers=request_headers)
+    validate_date_in_range(request_headers=request_headers)
+
+    validate_content_length_header_is_int(
+        request_headers=request_headers,
+        request_body=request_body,
+    )
+    validate_content_length_header_not_too_large(
+        request_headers=request_headers,
+        request_body=request_body,
+    )
+
+    validate_content_length_header_not_too_small(
+        request_headers=request_headers,
+        request_body=request_body,
+    )

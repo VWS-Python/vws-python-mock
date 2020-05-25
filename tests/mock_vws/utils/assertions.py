@@ -164,7 +164,7 @@ def assert_query_success(response: Response) -> None:
 
     assert response.json()['result_code'] == 'Success'
     assert_valid_date_header(response=response)
-    copied_response_headers = copy.deepcopy(response.headers)
+    copied_response_headers = dict(copy.deepcopy(response.headers))
     copied_response_headers.pop('Date')
 
     # In the mock, all responses have the ``Content-Encoding`` ``gzip``.

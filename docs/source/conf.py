@@ -41,7 +41,7 @@ _month, _day, _year, *_ = version.split('.')
 release = f'{_month}.{_day}.{_year}'
 
 substitutions = [
-    ('|github-owner|', 'adamtheturtle'),
+    ('|github-owner|', 'VWS-Python'),
     ('|github-repository|', 'vws-python-mock'),
 ]
 

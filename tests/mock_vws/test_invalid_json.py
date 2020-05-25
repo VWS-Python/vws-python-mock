@@ -64,9 +64,7 @@ class TestInvalidJSON:
 
         endpoint.prepared_request.body = content
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
-        endpoint.prepared_request.prepare_content_length(  # type: ignore
-            body=content,
-        )
+        endpoint.prepared_request.prepare_content_length(body=content)
         session = requests.Session()
         response = session.send(  # type: ignore
             request=endpoint.prepared_request,
@@ -81,7 +79,7 @@ class TestInvalidJSON:
         if date_is_skewed and takes_json_data:
             # On the real implementation, we get `codes.FORBIDDEN` and
             # `REQUEST_TIME_TOO_SKEWED`.
-            # See https://github.com/adamtheturtle/vws-python-mock/issues/4 for
+            # See https://github.com/VWS-Python/vws-python-mock/issues/4 for
             # implementing this on them mock.
             return
 

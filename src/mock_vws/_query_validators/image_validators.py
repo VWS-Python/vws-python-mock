@@ -4,44 +4,33 @@ Input validators for the image field use in the mock query API.
 
 import cgi
 import io
-import uuid
-from typing import Any, Callable, Dict, Tuple
+from typing import Dict
 
 import requests
-import wrapt
 from PIL import Image
-from requests import codes
-from requests_mock.request import _RequestObjectProxy
-from requests_mock.response import _Context
 
-from .._constants import ResultCodes
+from mock_vws._query_validators.exceptions import BadImage, ImageNotGiven
+
 from .._mock_common import parse_multipart
 
 
-@wrapt.decorator
 def validate_image_field_given(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_headers: Dict[str, str],
+    request_body: bytes,
+) -> None:
     """
     Validate that the image field is given.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_headers: The headers sent with the request.
+        request_body: The body of the request.
 
-    Returns:
-        The result of calling the endpoint.
-        A ``BAD_REQUEST`` response if the image field is not given.
+    Raises:
+        ImageNotGiven: The image field is not given.
     """
-    request, context = args
-    body_file = io.BytesIO(request.body)
+    body_file = io.BytesIO(request_body)
 
-    _, pdict = cgi.parse_header(request.headers['Content-Type'])
+    _, pdict = cgi.parse_header(request_headers['Content-Type'])
     parsed = parse_multipart(
         fp=body_file,
         pdict={
@@ -50,38 +39,28 @@ def validate_image_field_given(
     )
 
     if 'image' in parsed.keys():
-        return wrapped(*args, **kwargs)
+        return
 
-    context.status_code = codes.BAD_REQUEST
-    return 'No image.'
+    raise ImageNotGiven
 
 
-@wrapt.decorator
 def validate_image_file_size(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_headers: Dict[str, str],
+    request_body: bytes,
+) -> None:
     """
     Validate the file size of the image given to the query endpoint.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
-
-    Returns:
-        The result of calling the endpoint.
+        request_headers: The headers sent with the request.
+        request_body: The body of the request.
 
     Raises:
         requests.exceptions.ConnectionError: The image file size is too large.
     """
-    request, _ = args
-    body_file = io.BytesIO(request.body)
+    body_file = io.BytesIO(request_body)
 
-    _, pdict = cgi.parse_header(request.headers['Content-Type'])
+    _, pdict = cgi.parse_header(request_headers['Content-Type'])
     parsed = parse_multipart(
         fp=body_file,
         pdict={
@@ -98,37 +77,26 @@ def validate_image_file_size(
     max_bytes = 2 * 1024 * 1024
     if len(image) > max_bytes:
         raise requests.exceptions.ConnectionError
-    return wrapped(*args, **kwargs)
 
 
-@wrapt.decorator
 def validate_image_dimensions(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_headers: Dict[str, str],
+    request_body: bytes,
+) -> None:
     """
     Validate the dimensions the image given to the query endpoint.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
-
-    Returns:
-        The result of calling the endpoint.
+        request_headers: The headers sent with the request.
+        request_body: The body of the request.
 
     Raises:
-        The result of calling the endpoint.
-        An ``UNPROCESSABLE_ENTITY`` response if the image is given and is not
-        within the maximum width and height limits.
+        BadImage: The image is given and is not within the maximum width and
+            height limits.
     """
-    request, context = args
-    body_file = io.BytesIO(request.body)
+    body_file = io.BytesIO(request_body)
 
-    _, pdict = cgi.parse_header(request.headers['Content-Type'])
+    _, pdict = cgi.parse_header(request_headers['Content-Type'])
     parsed = parse_multipart(
         fp=body_file,
         pdict={
@@ -143,47 +111,28 @@ def validate_image_dimensions(
     max_width = 30000
     max_height = 30000
     if pil_image.height <= max_height and pil_image.width <= max_width:
-        return wrapped(*args, **kwargs)
+        return
 
-    context.status_code = codes.UNPROCESSABLE_ENTITY
-    transaction_id = uuid.uuid4().hex
-    result_code = ResultCodes.BAD_IMAGE.value
-
-    # The response has an unusual format of separators, so we construct it
-    # manually.
-    return (
-        '{"transaction_id": '
-        f'"{transaction_id}",'
-        f'"result_code":"{result_code}"'
-        '}'
-    )
+    raise BadImage
 
 
-@wrapt.decorator
 def validate_image_format(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_headers: Dict[str, str],
+    request_body: bytes,
+) -> None:
     """
     Validate the format of the image given to the query endpoint.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_headers: The headers sent with the request.
+        request_body: The body of the request.
 
-    Returns:
-        The result of calling the endpoint.
-        An `UNPROCESSABLE_ENTITY` response if the image is given and is not
-        either a PNG or a JPEG.
+    Raises:
+        BadImage: The image is given and is not either a PNG or a JPEG.
     """
-    request, context = args
-    body_file = io.BytesIO(request.body)
+    body_file = io.BytesIO(request_body)
 
-    _, pdict = cgi.parse_header(request.headers['Content-Type'])
+    _, pdict = cgi.parse_header(request_headers['Content-Type'])
     parsed = parse_multipart(
         fp=body_file,
         pdict={
@@ -198,47 +147,28 @@ def validate_image_format(
     pil_image = Image.open(image_file)
 
     if pil_image.format in ('PNG', 'JPEG'):
-        return wrapped(*args, **kwargs)
+        return
 
-    context.status_code = codes.UNPROCESSABLE_ENTITY
-    transaction_id = uuid.uuid4().hex
-    result_code = ResultCodes.BAD_IMAGE.value
-
-    # The response has an unusual format of separators, so we construct it
-    # manually.
-    return (
-        '{"transaction_id": '
-        f'"{transaction_id}",'
-        f'"result_code":"{result_code}"'
-        '}'
-    )
+    raise BadImage
 
 
-@wrapt.decorator
 def validate_image_is_image(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
+    request_headers: Dict[str, str],
+    request_body: bytes,
+) -> None:
     """
     Validate that the given image data is actually an image file.
 
     Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
+        request_headers: The headers sent with the request.
+        request_body: The body of the request.
 
-    Returns:
-        The result of calling the endpoint.
-        An `UNPROCESSABLE_ENTITY` response if image data is given and it is not
-        an image file.
+    Raises:
+        BadImage: Image data is given and it is not an image file.
     """
-    request, context = args
-    body_file = io.BytesIO(request.body)
+    body_file = io.BytesIO(request_body)
 
-    _, pdict = cgi.parse_header(request.headers['Content-Type'])
+    _, pdict = cgi.parse_header(request_headers['Content-Type'])
     parsed = parse_multipart(
         fp=body_file,
         pdict={
@@ -254,17 +184,4 @@ def validate_image_is_image(
     try:
         Image.open(image_file)
     except OSError:
-        context.status_code = codes.UNPROCESSABLE_ENTITY
-        transaction_id = uuid.uuid4().hex
-        result_code = ResultCodes.BAD_IMAGE.value
-
-        # The response has an unusual format of separators, so we construct it
-        # manually.
-        return (
-            '{"transaction_id": '
-            f'"{transaction_id}",'
-            f'"result_code":"{result_code}"'
-            '}'
-        )
-
-    return wrapped(*args, **kwargs)
+        raise BadImage
