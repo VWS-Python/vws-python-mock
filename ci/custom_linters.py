@@ -20,7 +20,7 @@ def _ci_patterns() -> Set[str]:
     matrix = github_workflow_config['jobs']['build']['strategy']['matrix']
     ci_pattern_list = matrix['ci_pattern']
     ci_patterns = set(ci_pattern_list)
-    assert len(ci_patterns_list) == len(ci_patterns)
+    assert len(ci_pattern_list) == len(ci_patterns)
     return ci_patterns
 
 

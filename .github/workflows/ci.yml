@@ -17,8 +17,32 @@ jobs:
       matrix:
         python-version: [3.8]
         ci_pattern:
-            - test_query.py
-            - test_add_target.py
+          - test_query.py
+          - test_add_target.py
+          - test_authorization_header.py
+          - test_content_length.py
+          - test_database_summary.py
+          - test_date_header.py::TestFormat
+          - test_date_header.py::TestMissing
+          - test_date_header.py::TestSkewedTime
+          - test_delete_target.py
+          - test_get_duplicates.py
+          - test_get_target.py
+          - test_invalid_given_id.py
+          - test_invalid_json.py
+          - test_target_list.py
+          - test_target_summary.py
+          - test_unexpected_json.py
+          - test_update_target.py::TestActiveFlag
+          - test_update_target.py::TestApplicationMetadata
+          - test_update_target.py::TestImage
+          - test_update_target.py::TestTargetName
+          - test_update_target.py::TestUnexpectedData
+          - test_update_target.py::TestUpdate
+          - test_update_target.py::TestWidth
+          - test_update_target.py::TestInactiveProject
+          - test_usage.py
+
 
     steps:
       - uses: actions/checkout@v2
@@ -37,7 +61,7 @@ jobs:
           export MATRIX=${{ matrix }}
           python ci/set_secrets_file.py
         env:
-            CI_PATTERN: ${{ matrix.ci_pattern }}
+          CI_PATTERN: ${{ matrix.ci_pattern }}
 
       # - name: "Run tests"
       #   run: |
