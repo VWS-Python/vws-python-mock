@@ -59,10 +59,13 @@ jobs:
         run: |
           # See the "CI Setup" document for details of how this was set up.
           openssl aes-256-cbc -K $encrypted_61e4bc3d8ae5_key -iv $encrypted_61e4bc3d8ae5_iv -in secrets.tar.enc -out secrets.tar -d
-          tar xvf secrets.tar
+          ci/decrypt_secret.sh
+          tar xvf /home/secrets/secrets.tar
           python ci/set_secrets_file.py
         env:
           CI_PATTERN: ${{ matrix.ci_pattern }}
+          ENCRYPTED_FILE: secrets.tar.gpg
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.PASSPHRASE_FOR_VUFORIA_SECRETS }}
 
       # - name: "Run tests"
       #   run: |

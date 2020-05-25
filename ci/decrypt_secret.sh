@@ -13,5 +13,5 @@ gpg \
     --yes \
     --decrypt \
     --passphrase="${LARGE_SECRET_PASSPHRASE}" \
-    --output "${HOME}"/secrets/my_secret.json \
-    my_secret.json.gpg
+    --output "${HOME}"/secrets/secrets.tar \
+    "${ENCRYPTED_FILE}"
