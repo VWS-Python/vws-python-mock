@@ -5,7 +5,7 @@ Move the right secrets file into place for CI.
 import os
 import shutil
 from pathlib import Path
-import sys
+
 import yaml
 
 
