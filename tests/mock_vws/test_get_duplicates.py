@@ -26,7 +26,7 @@ from tests.mock_vws.utils.assertions import (
 
 def target_duplicates(
     vuforia_database: VuforiaDatabase,
-    target_id: str,
+    target_id_factory: Any,
 ) -> Response:
     """
     Get duplicates of a target.

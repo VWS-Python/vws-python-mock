@@ -135,6 +135,9 @@ def add_target_to_vws(
         data=content,
     )
 
+    message = 'Hit an unexpected internal server error.'
+    LOGGER.warning(message)
+    raise UnexpectedEmptyInternalServerError
     if (
         response.status_code == codes.INTERNAL_SERVER_ERROR
     ) and response.text == '':  # pragma: no cover

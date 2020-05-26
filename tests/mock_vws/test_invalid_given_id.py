@@ -28,7 +28,7 @@ class TestInvalidGivenID:
         self,
         vuforia_database: VuforiaDatabase,
         endpoint: Endpoint,
-        target_id: str,
+        target_id_factory: Any,
     ) -> None:
         """
         A `NOT_FOUND` error is returned when an endpoint is given a target ID

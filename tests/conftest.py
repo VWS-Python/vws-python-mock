@@ -6,7 +6,8 @@ import base64
 import binascii
 import io
 import logging
-from typing import List, Tuple
+import uuid
+from typing import Any, List, Tuple
 
 import pytest
 from _pytest.fixtures import SubRequest
@@ -45,46 +46,64 @@ def is_internal_server_error(
     return is_specific_error
 
 
+_retry_marker = pytest.mark.flaky(
+    max_runs=3,
+    rerun_filter=is_internal_server_error,
+)
+
 def pytest_collection_modifyitems(items: List[pytest.Function]) -> None:
     """
     Add a marker to each test which will retry the test if an
     ``UnexpectedEmptyInternalServerError`` is raised.
     """
-    retry_marker = pytest.mark.flaky(
-        max_runs=3,
-        rerun_filter=is_internal_server_error,
-    )
     for item in items:
-        item.add_marker(retry_marker)
+        item.add_marker(_retry_marker)
 
 
 @pytest.fixture()
-def target_id(
+def target_id_factory(
     image_file_success_state_low_rating: io.BytesIO,
     vuforia_database: VuforiaDatabase,
-) -> str:
+) -> Any:
     """
-    Return the target ID of a target in the database.
+    Return a callable which the target ID of a target in the database.
+    The callable uses ``add_target_to_vws`` which is flaky.
+    We use ``flaky`` from PyPI to re-run tests which raise
+    ``UnexpectedEmptyInternalServerError`` as that helper does.
+    That does not allow us to retry when an error happens in test setup:
+    https://github.com/box/flaky/issues/135.
+
+    We could use ``pytest-rerunfailures`` instead but that does not allow us to
+    specify which exceptions to retry on:
+    https://github.com/pytest-dev/pytest-rerunfailures/issues/58.
+    https://github.com/pytest-dev/pytest-rerunfailures/issues/101.
 
     The target is one which will have a 'success' status when processed.
     """
-    image_data = image_file_success_state_low_rating.read()
-    image_data_encoded = base64.b64encode(image_data).decode('ascii')
 
-    data = {
-        'name': 'example',
-        'width': 1,
-        'image': image_data_encoded,
-    }
+    class Factory:
 
-    response = add_target_to_vws(
-        vuforia_database=vuforia_database,
-        data=data,
-        content_type='application/json',
-    )
+        def get(self) -> str:
+            image_data = image_file_success_state_low_rating.read()
+            image_data_encoded = base64.b64encode(image_data).decode('ascii')
+            name = uuid.uuid4().hex
 
-    new_target_id: str = response.json()['target_id']
-    return new_target_id
+            data = {
+                'name': name,
+                'width': 1,
+                'image': image_data_encoded,
+            }
+
+            response = add_target_to_vws(
+                vuforia_database=vuforia_database,
+                data=data,
+                content_type='application/json',
+            )
+
+            new_target_id: str = response.json()['target_id']
+            return new_target_id
+
+    return Factory()
 
 
 @pytest.fixture(

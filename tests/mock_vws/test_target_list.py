@@ -4,6 +4,7 @@ Tests for the mock of the target list endpoint.
 
 import pytest
 from requests import codes
+from typing import Any
 
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
@@ -41,7 +42,7 @@ class TestTargetList:
     def test_includes_targets(
         self,
         vuforia_database: VuforiaDatabase,
-        target_id: str,
+        target_id_factory: Any,
     ) -> None:
         """
         Targets in the database are returned in the list.
@@ -52,11 +53,12 @@ class TestTargetList:
     def test_deleted(
         self,
         vuforia_database: VuforiaDatabase,
-        target_id: str,
+        target_id_factory: Any,
     ) -> None:
         """
         Deleted targets are not returned in the list.
         """
+        target_id = target_id_factory.get()
         wait_for_target_processed(
             vuforia_database=vuforia_database,
             target_id=target_id,

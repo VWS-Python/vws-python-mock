@@ -145,7 +145,7 @@ class TestDatabaseSummary:
     def test_active_images(
         self,
         vuforia_database: VuforiaDatabase,
-        target_id: str,
+        target_id_factory: Any,
     ) -> None:
         """
         The number of images in the active state is returned.

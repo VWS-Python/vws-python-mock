@@ -26,7 +26,7 @@ class TestDelete:
 
     def test_no_wait(
         self,
-        target_id: str,
+        target_id_factory: Any,
         vuforia_database: VuforiaDatabase,
     ) -> None:
         """
@@ -51,7 +51,7 @@ class TestDelete:
 
     def test_processed(
         self,
-        target_id: str,
+        target_id_factory: Any,
         vuforia_database: VuforiaDatabase,
     ) -> None:
         """
