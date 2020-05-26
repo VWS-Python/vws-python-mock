@@ -23,10 +23,10 @@ class VuforiaDatabase:
     Credentials for VWS APIs.
     """
 
-    database_name: str = field(default_factory=_random_hex)
-    server_access_key: str = field(default_factory=_random_hex)
-    server_secret_key: str = field(default_factory=_random_hex)
-    client_access_key: str = field(default_factory=_random_hex)
-    client_secret_key: str = field(default_factory=_random_hex)
+    database_name: str = field(default_factory=_random_hex, repr=False)
+    server_access_key: str = field(default_factory=_random_hex, repr=False)
+    server_secret_key: str = field(default_factory=_random_hex, repr=False)
+    client_access_key: str = field(default_factory=_random_hex, repr=False)
+    client_secret_key: str = field(default_factory=_random_hex, repr=False)
     targets: Set[Target] = field(default_factory=set, hash=False)
     state: States = States.WORKING
