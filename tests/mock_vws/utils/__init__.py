@@ -141,7 +141,7 @@ def add_target_to_vws(
         # 500 errors have been seen to happen in CI and this is here to help us
         # debug them.
         message = 'Hit an unexpected internal server error.'
-        LOGGER.warn(message)
+        LOGGER.warning(message)
         raise UnexpectedEmptyInternalServerError
 
     return response
