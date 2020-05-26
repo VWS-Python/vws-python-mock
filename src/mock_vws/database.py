@@ -23,6 +23,8 @@ class VuforiaDatabase:
     Credentials for VWS APIs.
     """
 
+    # We hide a few things in the ``repr`` with ``repr=False`` so that they do
+    # not show up in CI logs.
     database_name: str = field(default_factory=_random_hex, repr=False)
     server_access_key: str = field(default_factory=_random_hex, repr=False)
     server_secret_key: str = field(default_factory=_random_hex, repr=False)
