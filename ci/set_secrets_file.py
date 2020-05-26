@@ -13,8 +13,9 @@ def move_secrets_file() -> None:
     """
     travis_job_number = os.environ['TRAVIS_JOB_NUMBER']
     travis_builder_number = travis_job_number.split('.')[-1]
+    secret_file = f'vuforia_secrets_{travis_builder_number + 1}.env'
     secrets_dir = Path('ci_secrets')
-    secrets_path = secrets_dir / f'vuforia_secrets_{travis_builder_number}.env'
+    secrets_path = secrets_dir / secret_file
     shutil.copy(secrets_path, './vuforia_secrets.env')
 
 

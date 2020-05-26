@@ -5,7 +5,6 @@ matrix:
   fast_finish: true
 env:
   matrix:
-  - CI_PATTERN=''
   - CI_PATTERN=test_query.py
   - CI_PATTERN=test_add_target.py
   - CI_PATTERN=test_authorization_header.py
@@ -46,6 +45,6 @@ cache: pip
 before_script:
 - python ci/set_secrets_file.py
 script:
-- python ci/run_script.py
+- pytest -s -vvv --cov=src/ --cov=tests --cov-report=xml tests/mock_vws/${CI_PATTERN}
 after_success:
 - codecov
