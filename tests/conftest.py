@@ -46,18 +46,17 @@ def is_internal_server_error(
     return is_specific_error
 
 
-_retry_marker = pytest.mark.flaky(
-    max_runs=3,
-    rerun_filter=is_internal_server_error,
-)
-
 def pytest_collection_modifyitems(items: List[pytest.Function]) -> None:
     """
     Add a marker to each test which will retry the test if an
     ``UnexpectedEmptyInternalServerError`` is raised.
     """
+    retry_marker = pytest.mark.flaky(
+        max_runs=3,
+        rerun_filter=is_internal_server_error,
+    )
     for item in items:
-        item.add_marker(_retry_marker)
+        item.add_marker(retry_marker)
 
 
 @pytest.fixture()
