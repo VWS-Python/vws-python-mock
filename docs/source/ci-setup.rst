@@ -10,8 +10,10 @@ These variables include those from :file:`vuforia_secrets.env.example`.
 To avoid hitting request quotas and to avoid conflicts when running multiple tests in parallel, we use multiple target databases.
 
 CI builds use a different credentials file depending on the build configuration.
-This should avoid conflicts, but in theory the same credentials file may be run across two Pull Request builds.
-This may cause errors.
+Within a workflow, this avoids conflicts.
+However, there may be conflicts across workflows, as currently there is no way to prevent workflows from running in parallel.
+See https://github.community/t5/GitHub-Actions/Prevent-parallel-workflows/td-p/32889.
+
 
 How to set GitHub Actions secrets
 ---------------------------------
