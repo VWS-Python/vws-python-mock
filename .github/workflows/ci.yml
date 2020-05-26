@@ -68,7 +68,7 @@ jobs:
 
       - name: "Run tests"
         run: |
-          pytest -s -vvv --cov=src/ --cov=tests --cov-report=xml tests/mock_vws/${{ matrix.ci_pattern }}
+          pytest -s -vvv --exitfirst --cov=src/ --cov=tests --cov-report=xml tests/mock_vws/${{ matrix.ci_pattern }}
 
       - name: "Upload coverage to Codecov"
         uses: "codecov/codecov-action@v1"
