@@ -1,3 +1,5 @@
+.. _mock-api-reference:
+
 API Reference
 =============
 
