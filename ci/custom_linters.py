@@ -10,7 +10,7 @@ import pytest
 import yaml
 
 
-def _travis_ci_patterns() -> Set[str]:
+def _ci_patterns() -> Set[str]:
     """
     Return the CI patterns given in the ``.travis.yml`` file.
     """
@@ -51,7 +51,7 @@ def test_ci_patterns_valid() -> None:
     All of the CI patterns in ``.travis.yml`` match at least one test in the
     test suite.
     """
-    ci_patterns = _travis_ci_patterns()
+    ci_patterns = _ci_patterns()
 
     for ci_pattern in ci_patterns:
         pattern = 'tests/mock_vws/' + ci_pattern
@@ -67,7 +67,7 @@ def test_tests_collected_once() -> None:
 
     This does not necessarily mean that they are run - they may be skipped.
     """
-    ci_patterns = _travis_ci_patterns()
+    ci_patterns = _ci_patterns()
     tests_to_patterns: Dict[str, Set[str]] = {}
     for pattern in ci_patterns:
         pattern = 'tests/mock_vws/' + pattern
