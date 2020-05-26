@@ -8,10 +8,7 @@ SPHINXOPTS := -W
 .PHONY: update-secrets
 update-secrets:
 	tar cvf secrets.tar ci_secrets/
-	travis encrypt-file --com secrets.tar --add --force
-	git add secrets.tar.enc .travis.yml
-	git commit -m 'Update secret archive [skip ci]'
-	git push
+	gpg --yes --batch --passphrase=${PASSPHRASE_FOR_VUFORIA_SECRETS} --symmetric --cipher-algo AES256 secrets.tar
 
 .PHONY: lint
 lint: \

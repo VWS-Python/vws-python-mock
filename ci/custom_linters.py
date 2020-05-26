@@ -14,20 +14,13 @@ def _ci_patterns() -> Set[str]:
     """
     Return the CI patterns given in the CI config file.
     """
-    travis_file = Path(__file__).parent.parent / '.travis.yml'
-    travis_contents = travis_file.read_text()
-    travis_dict = yaml.load(travis_contents, Loader=yaml.FullLoader)
-    travis_matrix = travis_dict['env']['matrix']
-
-    ci_patterns: Set[str] = set()
-    for matrix_item in travis_matrix:
-        key, value = matrix_item.split('=')
-        assert key == 'CI_PATTERN'
-        assert value not in ci_patterns
-        # Special case for running no tests.
-        if value != "''":
-            ci_patterns.add(value)
-
+    repository_root = Path(__file__).parent.parent
+    ci_file = repository_root / '.github' / 'workflows' / 'ci.yml'
+    github_workflow_config = yaml.safe_load(ci_file.read_text())
+    matrix = github_workflow_config['jobs']['build']['strategy']['matrix']
+    ci_pattern_list = matrix['ci_pattern']
+    ci_patterns = set(ci_pattern_list)
+    assert len(ci_pattern_list) == len(ci_patterns)
     return ci_patterns
 
 
