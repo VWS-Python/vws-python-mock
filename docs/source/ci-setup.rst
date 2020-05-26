@@ -9,8 +9,7 @@ These variables include those from :file:`vuforia_secrets.env.example`.
 
 To avoid hitting request quotas and to avoid conflicts when running multiple tests in parallel, we use multiple target databases.
 
-Travis builds use a different credentials file depending on the build number.
-For example, build ``2045.1`` will use a different credentials file to build ``2045.2``.
+CI builds use a different credentials file depending on the build configuration.
 This should avoid conflicts, but in theory the same credentials file may be run across two Pull Request builds.
 This may cause errors.
 
@@ -41,6 +40,3 @@ Add the encrypted secrets files to the repository:
     git add secrets.tar.gpg
     git commit -m "Update secret archive"
     git push
-
-Note that the `Travis CI documentation <https://docs.travis-ci.com/user/encrypting-files/#Caveat>`__ warns that this might not work on Windows.
-
