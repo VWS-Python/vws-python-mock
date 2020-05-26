@@ -1,5 +1,5 @@
 PyYAML==5.3.1
-Sphinx-Substitution-Extensions==2020.4.5.0
+Sphinx-Substitution-Extensions==2020.5.23.0
 Sphinx==3.0.3
 VWS-Auth-Tools==2019.12.28.3
 VWS-Test-Fixtures==2019.12.13.1
@@ -12,7 +12,6 @@ dodgy==0.2.1  # Look for uploaded secrets
 flake8-commas==2.0.0  # Require silicon valley commas
 flake8-quotes==3.2.0  # Require single quotes
 flake8==3.8.2  # Lint
-flaky==3.6.1
 freezegun==0.3.15  # Freeze time in tests
 isort==4.3.21  # Lint imports
 keyring==21.2.1
@@ -34,3 +33,15 @@ timeout-decorator==0.4.1  # Decorate functions to time out.
 twine==3.1.1
 vulture==1.5
 yapf==0.30.0  # Automatic formatting for Python
+
+# Ideally we would use flaky or pytest-rerunfailures.
+# However, we sometimes hit ``UnexpectedEmptyInternalServerError`` in a fixture
+# and we want to retry in that case.
+# ``flaky`` does not allow us to retry when an error happens in test setup:
+#  https://github.com/box/flaky/issues/135.
+#
+# ``pytest-rerunfailures`` does not allow us to specify which exceptions to
+# retry on:
+#  https://github.com/pytest-dev/pytest-rerunfailures/issues/58.
+#  https://github.com/pytest-dev/pytest-rerunfailures/issues/101.
+flaky-with-setup-checks==3.5.3

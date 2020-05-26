@@ -5,7 +5,7 @@ Contributing
 
 Contributions to this repository must pass tests and linting.
 
-Travis CI is the canonical source truth.
+CI is the canonical source of truth.
 
 Install contribution dependencies
 ---------------------------------
