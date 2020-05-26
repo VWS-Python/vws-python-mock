@@ -42,7 +42,7 @@ class TestTargetList:
     def test_includes_targets(
         self,
         vuforia_database: VuforiaDatabase,
-        target_id_factory: Any,
+        target_id: str,
     ) -> None:
         """
         Targets in the database are returned in the list.
@@ -53,7 +53,7 @@ class TestTargetList:
     def test_deleted(
         self,
         vuforia_database: VuforiaDatabase,
-        target_id_factory: Any,
+        target_id: str,
     ) -> None:
         """
         Deleted targets are not returned in the list.

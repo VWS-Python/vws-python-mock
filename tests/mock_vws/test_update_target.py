@@ -122,7 +122,7 @@ class TestUpdate:
     def test_no_fields_given(
         self,
         vuforia_database: VuforiaDatabase,
-        target_id_factory: Any,
+        target_id: str,
     ) -> None:
         """
         No data fields are required.
@@ -176,7 +176,7 @@ class TestUnexpectedData:
     def test_invalid_extra_data(
         self,
         vuforia_database: VuforiaDatabase,
-        target_id_factory: Any,
+        target_id: str,
     ) -> None:
         """
         A `BAD_REQUEST` response is returned when unexpected data is given.
@@ -214,7 +214,7 @@ class TestWidth:
         self,
         vuforia_database: VuforiaDatabase,
         width: Any,
-        target_id_factory: Any,
+        target_id: str,
     ) -> None:
         """
         The width must be a number greater than zero.
@@ -255,7 +255,7 @@ class TestWidth:
     def test_width_valid(
         self,
         vuforia_database: VuforiaDatabase,
-        target_id_factory: Any,
+        target_id: str,
     ) -> None:
         """
         Positive numbers are valid widths.
@@ -352,7 +352,7 @@ class TestActiveFlag:
     def test_invalid(
         self,
         vuforia_database: VuforiaDatabase,
-        target_id_factory: Any,
+        target_id: str,
         desired_active_flag: Union[str, None],
     ) -> None:
         """
@@ -395,7 +395,7 @@ class TestApplicationMetadata:
     def test_base64_encoded(
         self,
         vuforia_database: VuforiaDatabase,
-        target_id_factory: Any,
+        target_id: str,
         metadata: bytes,
     ) -> None:
         """
@@ -424,7 +424,7 @@ class TestApplicationMetadata:
     def test_invalid_type(
         self,
         vuforia_database: VuforiaDatabase,
-        target_id_factory: Any,
+        target_id: str,
         invalid_metadata: Union[int, None],
     ) -> None:
         """
@@ -450,7 +450,7 @@ class TestApplicationMetadata:
     def test_not_base64_encoded_processable(
         self,
         vuforia_database: VuforiaDatabase,
-        target_id_factory: Any,
+        target_id: str,
         not_base64_encoded_processable: str,
     ) -> None:
         """
@@ -477,7 +477,7 @@ class TestApplicationMetadata:
     def test_not_base64_encoded_not_processable(
         self,
         vuforia_database: VuforiaDatabase,
-        target_id_factory: Any,
+        target_id: str,
         not_base64_encoded_not_processable: str,
     ) -> None:
         """
@@ -504,7 +504,7 @@ class TestApplicationMetadata:
     def test_metadata_too_large(
         self,
         vuforia_database: VuforiaDatabase,
-        target_id_factory: Any,
+        target_id: str,
     ) -> None:
         """
         A base64 encoded string of greater than 1024 * 1024 bytes is too large
@@ -556,7 +556,7 @@ class TestTargetName:
         self,
         name: str,
         vuforia_database: VuforiaDatabase,
-        target_id_factory: Any,
+        target_id: str,
     ) -> None:
         """
         A target's name must be a string of length 0 < N < 65.
@@ -622,7 +622,7 @@ class TestTargetName:
     def test_name_invalid(
         self,
         name: str,
-        target_id_factory: Any,
+        target_id: str,
         vuforia_database: VuforiaDatabase,
         status_code: int,
         result_code: ResultCodes,
@@ -773,7 +773,7 @@ class TestImage:
         self,
         vuforia_database: VuforiaDatabase,
         image_files_failed_state: io.BytesIO,
-        target_id_factory: Any,
+        target_id: str,
     ) -> None:
         """
         JPEG and PNG files in the RGB and greyscale color spaces are allowed.
@@ -803,7 +803,7 @@ class TestImage:
         self,
         bad_image_file: io.BytesIO,
         vuforia_database: VuforiaDatabase,
-        target_id_factory: Any,
+        target_id: str,
     ) -> None:
         """
         A `BAD_REQUEST` response is returned if an image which is not a JPEG
@@ -834,7 +834,7 @@ class TestImage:
         self,
         vuforia_database: VuforiaDatabase,
         corrupted_image_file: io.BytesIO,
-        target_id_factory: Any,
+        target_id: str,
     ) -> None:
         """
         No error is returned when the given image is corrupted.
@@ -862,7 +862,7 @@ class TestImage:
     def test_image_too_large(
         self,
         vuforia_database: VuforiaDatabase,
-        target_id_factory: Any,
+        target_id: str,
     ) -> None:
         """
         An `ImageTooLarge` result is returned if the image is above a certain
@@ -945,7 +945,7 @@ class TestImage:
     def test_not_base64_encoded_processable(
         self,
         vuforia_database: VuforiaDatabase,
-        target_id_factory: Any,
+        target_id: str,
         not_base64_encoded_processable: str,
     ) -> None:
         """
@@ -974,7 +974,7 @@ class TestImage:
     def test_not_base64_encoded_not_processable(
         self,
         vuforia_database: VuforiaDatabase,
-        target_id_factory: Any,
+        target_id: str,
         not_base64_encoded_not_processable: str,
     ) -> None:
         """
@@ -1002,7 +1002,7 @@ class TestImage:
     def test_not_image(
         self,
         vuforia_database: VuforiaDatabase,
-        target_id_factory: Any,
+        target_id: str,
     ) -> None:
         """
         If the given image is not an image file then a `BadImage` result is
@@ -1032,7 +1032,7 @@ class TestImage:
     def test_invalid_type(
         self,
         invalid_type_image: Union[int, None],
-        target_id_factory: Any,
+        target_id: str,
         vuforia_database: VuforiaDatabase,
     ) -> None:
         """

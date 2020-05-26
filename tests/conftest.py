@@ -60,13 +60,13 @@ def pytest_collection_modifyitems(items: List[pytest.Function]) -> None:
 
 
 @pytest.fixture()
-def target_id_factory(
+def target_id(
     image_file_success_state_low_rating: io.BytesIO,
     vuforia_database: VuforiaDatabase,
-) -> Any:
+) -> str:
     """
-    Return a callable which the target ID of a target in the database.
-    The callable uses ``add_target_to_vws`` which is flaky.
+    Return the target ID of a target in the database.
+    This uses ``add_target_to_vws`` which is flaky.
     We use ``flaky`` from PyPI to re-run tests which raise
     ``UnexpectedEmptyInternalServerError`` as that helper does.
     That does not allow us to retry when an error happens in test setup:
@@ -79,30 +79,24 @@ def target_id_factory(
 
     The target is one which will have a 'success' status when processed.
     """
+    image_data = image_file_success_state_low_rating.read()
+    image_data_encoded = base64.b64encode(image_data).decode('ascii')
+    name = uuid.uuid4().hex
 
-    class Factory:
+    data = {
+        'name': name,
+        'width': 1,
+        'image': image_data_encoded,
+    }
 
-        def get(self) -> str:
-            image_data = image_file_success_state_low_rating.read()
-            image_data_encoded = base64.b64encode(image_data).decode('ascii')
-            name = uuid.uuid4().hex
+    response = add_target_to_vws(
+        vuforia_database=vuforia_database,
+        data=data,
+        content_type='application/json',
+    )
 
-            data = {
-                'name': name,
-                'width': 1,
-                'image': image_data_encoded,
-            }
-
-            response = add_target_to_vws(
-                vuforia_database=vuforia_database,
-                data=data,
-                content_type='application/json',
-            )
-
-            new_target_id: str = response.json()['target_id']
-            return new_target_id
-
-    return Factory()
+    new_target_id: str = response.json()['target_id']
+    return new_target_id
 
 
 @pytest.fixture(
