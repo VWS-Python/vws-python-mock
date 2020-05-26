@@ -5,6 +5,7 @@ Configuration, plugins and fixtures for `pytest`.
 import base64
 import binascii
 import io
+import logging
 from typing import List, Tuple
 
 import pytest
@@ -23,6 +24,9 @@ pytest_plugins = [
     'tests.mock_vws.fixtures.vuforia_backends',
 ]
 
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
+
 
 def is_internal_server_error(
     err: Tuple,
@@ -33,7 +37,12 @@ def is_internal_server_error(
     that we can retry a test if it is.
     """
     assert args
-    return bool(err[0] == UnexpectedEmptyInternalServerError)
+    message = f'Error hit: {err[0]}'
+    LOGGER.debug(message)
+    is_specific_error = bool(err[0] == UnexpectedEmptyInternalServerError)
+    message = f'Is UnexpectedEmptyInternalServerError: {is_specific_error}'
+    LOGGER.debug(message)
+    return is_specific_error
 
 
 def pytest_collection_modifyitems(items: List[pytest.Function]) -> None:
