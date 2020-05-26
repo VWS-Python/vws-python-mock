@@ -19,6 +19,7 @@ cmyk
 connectionerror
 customizable
 dataclass
+dataclasses
 datetime
 decodable
 dev
