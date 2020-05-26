@@ -5,9 +5,7 @@ Configuration, plugins and fixtures for `pytest`.
 import base64
 import binascii
 import io
-import logging
-import uuid
-from typing import Any, List, Tuple
+from typing import List, Tuple
 
 import pytest
 from _pytest.fixtures import SubRequest
@@ -25,9 +23,6 @@ pytest_plugins = [
     'tests.mock_vws.fixtures.vuforia_backends',
 ]
 
-LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
-
 
 def is_internal_server_error(
     err: Tuple,
@@ -38,12 +33,7 @@ def is_internal_server_error(
     that we can retry a test if it is.
     """
     assert args
-    message = f'Error hit: {err[0]}'
-    LOGGER.debug(message)
-    is_specific_error = bool(err[0] == UnexpectedEmptyInternalServerError)
-    message = f'Is UnexpectedEmptyInternalServerError: {is_specific_error}'
-    LOGGER.debug(message)
-    return is_specific_error
+    return bool(err[0] == UnexpectedEmptyInternalServerError)
 
 
 def pytest_collection_modifyitems(items: List[pytest.Function]) -> None:
@@ -66,25 +56,14 @@ def target_id(
 ) -> str:
     """
     Return the target ID of a target in the database.
-    This uses ``add_target_to_vws`` which is flaky.
-    We use ``flaky`` from PyPI to re-run tests which raise
-    ``UnexpectedEmptyInternalServerError`` as that helper does.
-    That does not allow us to retry when an error happens in test setup:
-    https://github.com/box/flaky/issues/135.
-
-    We could use ``pytest-rerunfailures`` instead but that does not allow us to
-    specify which exceptions to retry on:
-    https://github.com/pytest-dev/pytest-rerunfailures/issues/58.
-    https://github.com/pytest-dev/pytest-rerunfailures/issues/101.
 
     The target is one which will have a 'success' status when processed.
     """
     image_data = image_file_success_state_low_rating.read()
     image_data_encoded = base64.b64encode(image_data).decode('ascii')
-    name = uuid.uuid4().hex
 
     data = {
-        'name': name,
+        'name': 'example',
         'width': 1,
         'image': image_data_encoded,
     }

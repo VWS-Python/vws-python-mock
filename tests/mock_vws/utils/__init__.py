@@ -4,7 +4,6 @@ Utilities for tests.
 
 import io
 import json
-import logging
 import random
 from time import sleep
 from typing import Any, Dict
@@ -20,9 +19,6 @@ from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws.database import VuforiaDatabase
-
-LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
 
 
 class Endpoint:
@@ -135,16 +131,11 @@ def add_target_to_vws(
         data=content,
     )
 
-    message = 'Hit an unexpected internal server error.'
-    LOGGER.warning(message)
-    raise UnexpectedEmptyInternalServerError
     if (
         response.status_code == codes.INTERNAL_SERVER_ERROR
     ) and response.text == '':  # pragma: no cover
         # 500 errors have been seen to happen in CI and this is here to help us
         # debug them.
-        message = 'Hit an unexpected internal server error.'
-        LOGGER.warning(message)
         raise UnexpectedEmptyInternalServerError
 
     return response
