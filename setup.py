@@ -1,16 +1,34 @@
-"""Setup script for VWS Python Mock, a mock of Vuforia's Web Services APIs."""
+"""
+Setup script for VWS Python Mock, a mock of Vuforia's Web Services APIs.
+"""
+
+from pathlib import Path
+from typing import List
 
 from setuptools import setup
 
-# We use requirements.txt instead of just declaring the requirements here
-# because this helps with Docker package caching.
-with open('requirements.txt') as requirements:
-    INSTALL_REQUIRES = requirements.readlines()
 
-# We use dev-requirements.txt instead of just declaring the requirements here
-# because Read The Docs needs a requirements file.
-with open('dev-requirements.txt') as dev_requirements:
-    DEV_REQUIRES = dev_requirements.readlines()
+def _get_dependencies(requirements_file: Path) -> List[str]:
+    """
+    Return requirements from a requirements file.
+
+    This expects a requirements file with no ``--find-links`` lines.
+    """
+    lines = requirements_file.read_text().strip().split('\n')
+    return [line for line in lines if not line.startswith('#')]
+
+
+INSTALL_REQUIRES = _get_dependencies(
+    requirements_file=Path('requirements.txt'),
+)
+
+DEV_REQUIRES = _get_dependencies(
+    requirements_file=Path('dev-requirements.txt'),
+)
+
+SETUP_REQUIRES = _get_dependencies(
+    requirements_file=Path('setup-requirements.txt'),
+)
 
 setup(
     use_scm_version=True,
