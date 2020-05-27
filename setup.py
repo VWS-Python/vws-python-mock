@@ -32,7 +32,7 @@ SETUP_REQUIRES = _get_dependencies(
 
 setup(
     use_scm_version=True,
-    setup_requires=['setuptools_scm'],
+    setup_requires=SETUP_REQUIRES,
     install_requires=INSTALL_REQUIRES,
     extras_require={'dev': DEV_REQUIRES},
 )
