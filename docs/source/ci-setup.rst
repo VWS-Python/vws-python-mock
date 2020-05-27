@@ -20,12 +20,12 @@ How to set GitHub Actions secrets
 
 Create environment variable files for secrets:
 
-.. substitution-prompt:: bash
+.. prompt:: bash
 
-    mkdir -p ci_secrets
-    cp vuforia_secrets.env.example ci_secrets/vuforia_secrets_1.env
-    cp vuforia_secrets.env.example ci_secrets/vuforia_secrets_2.env
-    ...
+   mkdir -p ci_secrets
+   cp vuforia_secrets.env.example ci_secrets/vuforia_secrets_1.env
+   cp vuforia_secrets.env.example ci_secrets/vuforia_secrets_2.env
+   ...
 
 Add Vuforia credentials for different target databases to the new files in the ``ci_secrets/`` directory.
 Add at least as many credentials files as there are builds in the GitHub test matrix.
@@ -36,9 +36,9 @@ In the GitHub repository > Settings > Secrets, add a secret with the name ``PASS
 
 Add the encrypted secrets files to the repository:
 
-.. substitution-prompt:: bash
+.. prompt:: bash
 
-    PASSPHRASE_FOR_VUFORIA_SECRETS=<CHOSEN_SECRET> make update-secrets
-    git add secrets.tar.gpg
-    git commit -m "Update secret archive"
-    git push
+   PASSPHRASE_FOR_VUFORIA_SECRETS=<CHOSEN_SECRET> make update-secrets
+   git add secrets.tar.gpg
+   git commit -m "Update secret archive"
+   git push
