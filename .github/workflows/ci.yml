@@ -21,9 +21,27 @@ jobs:
       matrix:
         python-version: [3.8]
         ci_pattern:
-          - test_query.py
+          - test_query.py::TestContentType
+          - test_query.py::TestSuccess
+          - test_query.py::TestIncorrectFields
+          - test_query.py::TestMaxNumResults
+          - test_query.py::TestIncludeTargetData
+          - test_query.py::TestAcceptHeader
+          - test_query.py::TestActiveFlag
+          - test_query.py::TestBadImage
+          - test_query.py::TestMaximumImageFileSize
+          - test_query.py::TestMaximumImageDimensions
+          - test_query.py::TestImageFormats
+          - test_query.py::TestProcessing
+          - test_query.py::TestUpdate
+          - test_query.py::TestDeleted
+          - test_query.py::TestTargetStatusFailed
+          - test_query.py::TestDateFormats
+          - test_query.py::TestInactiveProject
           - test_add_target.py
-          - test_authorization_header.py
+          - test_authorization_header.py::TestAuthorizationHeader
+          - test_authorization_header.py::TestMalformed
+          - test_authorization_header.py::TestBadKey
           - test_content_length.py
           - test_database_summary.py
           - test_date_header.py::TestFormat
