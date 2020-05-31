@@ -13,8 +13,8 @@ from typing import Any, Dict, Union
 from urllib.parse import urljoin
 
 import pytest
-import pytz
 import requests
+from backports.zoneinfo import ZoneInfo
 from PIL import Image
 from requests import codes
 from requests_mock import POST
@@ -1970,7 +1970,7 @@ class TestDateFormats:
         if include_tz:
             datetime_format += ' GMT'
 
-        gmt = pytz.timezone('GMT')
+        gmt = ZoneInfo('GMT')
         now = datetime.datetime.now(tz=gmt)
         date = now.strftime(datetime_format)
         request_path = '/v1/query'

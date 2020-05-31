@@ -10,7 +10,7 @@ import statistics
 import uuid
 from typing import Dict, Optional, Union
 
-import pytz
+from backports.zoneinfo import ZoneInfo
 from PIL import Image, ImageStat
 
 from mock_vws._constants import TargetStatuses
@@ -78,7 +78,7 @@ class Target:  # pylint: disable=too-many-instance-attributes
         self.target_id = uuid.uuid4().hex
         self.active_flag = active_flag
         self.width = width
-        gmt = pytz.timezone('GMT')
+        gmt = ZoneInfo('GMT')
         now = datetime.datetime.now(tz=gmt)
         self.upload_date: datetime.datetime = now
         self.last_modified_date = self.upload_date
@@ -132,7 +132,7 @@ class Target:  # pylint: disable=too-many-instance-attributes
             seconds=self._processing_time_seconds,
         )
 
-        gmt = pytz.timezone('GMT')
+        gmt = ZoneInfo('GMT')
         now = datetime.datetime.now(tz=gmt)
         time_since_change = now - self.last_modified_date
 
@@ -159,7 +159,7 @@ class Target:  # pylint: disable=too-many-instance-attributes
             seconds=self._processing_time_seconds / 2,
         )
 
-        gmt = pytz.timezone('GMT')
+        gmt = ZoneInfo('GMT')
         now = datetime.datetime.now(tz=gmt)
         time_since_upload = now - self.upload_date
 
