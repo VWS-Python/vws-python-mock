@@ -8,8 +8,8 @@ import io
 import uuid
 
 import pytest
-import pytz
 from _pytest.fixtures import SubRequest
+from backports.zoneinfo import ZoneInfo
 from requests import codes
 
 from mock_vws._constants import ResultCodes, TargetStatuses
@@ -46,7 +46,7 @@ class TestTargetSummary:
         image_data = image_file_failed_state.read()
         image_data_encoded = base64.b64encode(image_data).decode('ascii')
 
-        gmt = pytz.timezone('GMT')
+        gmt = ZoneInfo('GMT')
 
         date_before_add_target = datetime.datetime.now(tz=gmt).date()
 

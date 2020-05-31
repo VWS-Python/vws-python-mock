@@ -5,7 +5,7 @@ Validators of the date header to use in the mock services API.
 import datetime
 from typing import Dict
 
-import pytz
+from backports.zoneinfo import ZoneInfo
 from requests import codes
 
 from mock_vws._services_validators.exceptions import Fail, RequestTimeTooSkewed
@@ -63,7 +63,7 @@ def validate_date_in_range(request_headers: Dict[str, str]) -> None:
         '%a, %d %b %Y %H:%M:%S GMT',
     )
 
-    gmt = pytz.timezone('GMT')
+    gmt = ZoneInfo('GMT')
     now = datetime.datetime.now(tz=gmt)
     date_from_header = date_from_header.replace(tzinfo=gmt)
     time_difference = now - date_from_header

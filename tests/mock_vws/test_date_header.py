@@ -7,8 +7,8 @@ from typing import Dict
 from urllib.parse import urlparse
 
 import pytest
-import pytz
 import requests
+from backports.zoneinfo import ZoneInfo
 from freezegun import freeze_time
 from requests import codes
 from requests.structures import CaseInsensitiveDict
@@ -102,7 +102,7 @@ class TestFormat:
 
         An `UNAUTHORIZED` response is returned to the VWQ API.
         """
-        gmt = pytz.timezone('GMT')
+        gmt = ZoneInfo('GMT')
         with freeze_time(datetime.now(tz=gmt)):
             now = datetime.now()
             date_incorrect_format = now.strftime('%a %b %d %H:%M:%S')
@@ -184,7 +184,7 @@ class TestSkewedTime:
         }[netloc]
         time_difference_from_now = skew + _LEEWAY
         time_difference_from_now *= time_multiplier
-        gmt = pytz.timezone('GMT')
+        gmt = ZoneInfo('GMT')
         with freeze_time(datetime.now(tz=gmt) + time_difference_from_now):
             date = rfc_1123_date()
 
@@ -246,7 +246,7 @@ class TestSkewedTime:
         }[netloc]
         time_difference_from_now = skew - _LEEWAY
         time_difference_from_now *= time_multiplier
-        gmt = pytz.timezone('GMT')
+        gmt = ZoneInfo('GMT')
         with freeze_time(datetime.now(tz=gmt) + time_difference_from_now):
             date = rfc_1123_date()
 

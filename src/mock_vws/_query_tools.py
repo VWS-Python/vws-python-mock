@@ -9,7 +9,7 @@ import io
 import uuid
 from typing import Any, Dict, List, Set, Union
 
-import pytz
+from backports.zoneinfo import ZoneInfo
 
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._constants import ResultCodes, TargetStatuses
@@ -93,7 +93,7 @@ def get_query_match_response_text(
     [image_bytes] = parsed['image']
     assert isinstance(image_bytes, bytes)
     image = io.BytesIO(image_bytes)
-    gmt = pytz.timezone('GMT')
+    gmt = ZoneInfo('GMT')
     now = datetime.datetime.now(tz=gmt)
 
     processing_timedelta = datetime.timedelta(
