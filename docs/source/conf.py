@@ -41,6 +41,7 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx_autodoc_typehints',
     'sphinx_paramlinks',
+    'sphinx-prompt',
     'sphinx_substitution_extensions',
     'sphinxcontrib.spelling',
 ]
@@ -61,11 +62,6 @@ copyright = f'{year}, {author}'  # pylint: disable=redefined-builtin
 version = get_distribution(project).version
 _month, _day, _year, *_ = version.split('.')
 release = f'{_month}.{_day}.{_year}'
-
-substitutions = [
-    ('|github-owner|', 'VWS-Python'),
-    ('|github-repository|', 'vws-python-mock'),
-]
 
 language = None
 
@@ -136,4 +132,7 @@ autodoc_member_order = 'bysource'
 
 rst_prolog = f"""
 .. |project| replace:: {project}
+.. |release| replace:: {release}
+.. |github-owner| replace:: VWS-Python
+.. |github-repository| replace:: vws-python-mock
 """

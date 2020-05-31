@@ -1,46 +1,44 @@
 Continuous Integration
 ======================
 
-Tests are run on Travis CI.
-The configuration for this is in :file:`.travis.yml`.
+Tests are run on GitHub Actions.
+The configuration for this is in :file:`.github/workflows`.
 
-Travis CI is set up with secrets for connecting to Vuforia.
+CI is set up with secrets for connecting to Vuforia.
 These variables include those from :file:`vuforia_secrets.env.example`.
 
 To avoid hitting request quotas and to avoid conflicts when running multiple tests in parallel, we use multiple target databases.
 
-Travis builds use a different credentials file depending on the build number.
-For example, build ``2045.1`` will use a different credentials file to build ``2045.2``.
-This should avoid conflicts, but in theory the same credentials file may be run across two Pull Request builds.
-This may cause errors.
+CI builds use a different credentials file depending on the build configuration.
+Within a workflow, this avoids conflicts.
+However, there may be conflicts across workflows, as currently there is no way to prevent workflows from running in parallel.
+See https://github.community/t5/GitHub-Actions/Prevent-parallel-workflows/td-p/32889.
 
-How to Set Travis CI Secrets
-----------------------------
+
+How to set GitHub Actions secrets
+---------------------------------
 
 Create environment variable files for secrets:
 
-.. substitution-prompt:: bash
+.. prompt:: bash
 
-    mkdir -p ci_secrets
-    cp vuforia_secrets.env.example ci_secrets/vuforia_secrets_1.env
-    cp vuforia_secrets.env.example ci_secrets/vuforia_secrets_2.env
-    ...
+   mkdir -p ci_secrets
+   cp vuforia_secrets.env.example ci_secrets/vuforia_secrets_1.env
+   cp vuforia_secrets.env.example ci_secrets/vuforia_secrets_2.env
+   ...
 
 Add Vuforia credentials for different target databases to the new files in the ``ci_secrets/`` directory.
-Add as many credentials files as there are builds in the Travis matrix.
+Add at least as many credentials files as there are builds in the GitHub test matrix.
 All credentials files can share the same credentials for an inactive database.
 
-Install the Travis CLI:
+Choose a passphrase for the secrets.
+In the GitHub repository > Settings > Secrets, add a secret with the name ``PASSPHRASE_FOR_VUFORIA_SECRETS`` and the chosen passphrase.
 
-.. substitution-prompt:: bash
+Add the encrypted secrets files to the repository:
 
-    gem install travis --no-rdoc --no-ri
+.. prompt:: bash
 
-Add the encrypted secrets files to the repository and Travis CI:
-
-.. substitution-prompt:: bash
-
-    make update-secrets
-
-Note that the `Travis CI documentation <https://docs.travis-ci.com/user/encrypting-files/#Caveat>`__ warns that this might not work on Windows.
-
+   PASSPHRASE_FOR_VUFORIA_SECRETS=<CHOSEN_SECRET> make update-secrets
+   git add secrets.tar.gpg
+   git commit -m "Update secret archive"
+   git push

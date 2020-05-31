@@ -5,7 +5,7 @@ Validators of the date header to use in the mock query API.
 import datetime
 from typing import Dict, Set
 
-import pytz
+from backports.zoneinfo import ZoneInfo
 
 from mock_vws._query_validators.exceptions import (
     DateFormatNotValid,
@@ -94,7 +94,7 @@ def validate_date_in_range(request_headers: Dict[str, str]) -> None:
         except ValueError:
             pass
 
-    gmt = pytz.timezone('GMT')
+    gmt = ZoneInfo('GMT')
     now = datetime.datetime.now(tz=gmt)
     date_from_header = date.replace(tzinfo=gmt)
     time_difference = now - date_from_header

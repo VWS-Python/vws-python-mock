@@ -1,0 +1,101 @@
+---
+
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    # Run at 1:00 every day
+    - cron:  '0 1 * * *'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: [3.8]
+        ci_pattern:
+          - test_query.py::TestContentType
+          - test_query.py::TestSuccess
+          - test_query.py::TestIncorrectFields
+          - test_query.py::TestMaxNumResults
+          - test_query.py::TestIncludeTargetData
+          - test_query.py::TestAcceptHeader
+          - test_query.py::TestActiveFlag
+          - test_query.py::TestBadImage
+          - test_query.py::TestMaximumImageFileSize
+          - test_query.py::TestMaximumImageDimensions
+          - test_query.py::TestImageFormats
+          - test_query.py::TestProcessing
+          - test_query.py::TestUpdate
+          - test_query.py::TestDeleted
+          - test_query.py::TestTargetStatusFailed
+          - test_query.py::TestDateFormats
+          - test_query.py::TestInactiveProject
+          - test_add_target.py
+          - test_authorization_header.py::TestAuthorizationHeader
+          - test_authorization_header.py::TestMalformed
+          - test_authorization_header.py::TestBadKey
+          - test_content_length.py
+          - test_database_summary.py
+          - test_date_header.py::TestFormat
+          - test_date_header.py::TestMissing
+          - test_date_header.py::TestSkewedTime
+          - test_delete_target.py
+          - test_get_duplicates.py
+          - test_get_target.py
+          - test_invalid_given_id.py
+          - test_invalid_json.py
+          - test_target_list.py
+          - test_target_summary.py
+          - test_unexpected_json.py
+          - test_update_target.py::TestActiveFlag
+          - test_update_target.py::TestApplicationMetadata
+          - test_update_target.py::TestImage
+          - test_update_target.py::TestTargetName
+          - test_update_target.py::TestUnexpectedData
+          - test_update_target.py::TestUpdate
+          - test_update_target.py::TestWidth
+          - test_update_target.py::TestInactiveProject
+          - test_usage.py
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: "Set up Python"
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: "Install dependencies"
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade --editable .[dev]
+
+      - name: "Set secrets file"
+        run: |
+          # See the "CI Setup" document for details of how this was set up.
+          ci/decrypt_secret.sh
+          tar xvf "${HOME}"/secrets/secrets.tar
+          python ci/set_secrets_file.py
+        env:
+          CI_PATTERN: ${{ matrix.ci_pattern }}
+          ENCRYPTED_FILE: secrets.tar.gpg
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.PASSPHRASE_FOR_VUFORIA_SECRETS }}
+
+      - name: "Run tests"
+        run: |
+          pytest -s -vvv --exitfirst --cov=src/ --cov=tests --cov-report=xml tests/mock_vws/${{ matrix.ci_pattern }}
+
+      - name: "Upload coverage to Codecov"
+        uses: "codecov/codecov-action@v1"
+        with:
+          # This is flaky so maybe we do not fail if error, meaning our
+          # coverage reports may be incomplete. See:
+          # https://github.com/codecov/codecov-action/issues/37.
+          fail_ci_if_error: false

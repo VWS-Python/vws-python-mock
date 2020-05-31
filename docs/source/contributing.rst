@@ -5,44 +5,44 @@ Contributing
 
 Contributions to this repository must pass tests and linting.
 
-Travis CI is the canonical source truth.
+CI is the canonical source of truth.
 
 Install contribution dependencies
 ---------------------------------
 
 Install Python dependencies in a virtual environment.
 
-.. substitution-prompt:: bash
+.. prompt:: bash
 
-    pip install --editable .[dev]
+   pip install --editable .[dev]
 
 Spell checking requires ``enchant``.
 This can be installed on macOS, for example, with `Homebrew`_:
 
-.. substitution-prompt:: bash
+.. prompt:: bash
 
-    brew install enchant
+   brew install enchant
 
 and on Ubuntu with ``apt``:
 
-.. substitution-prompt:: bash
+.. prompt:: bash
 
-    apt-get install -y enchant
+   apt-get install -y enchant
 
 Linting
 -------
 
 Run lint tools:
 
-.. substitution-prompt:: bash
+.. prompt:: bash
 
-    make lint
+   make lint
 
 To fix some lint errors, run the following:
 
-.. substitution-prompt:: bash
+.. prompt:: bash
 
-    make fix-lint
+   make fix-lint
 
 .. _Homebrew: https://brew.sh
 
@@ -51,9 +51,9 @@ Running Tests
 
 Create an environment variable file for secrets:
 
-.. substitution-prompt:: bash
+.. prompt:: bash
 
-    cp vuforia_secrets.env.example vuforia_secrets.env
+   cp vuforia_secrets.env.example vuforia_secrets.env
 
 Some tests require Vuforia credentials.
 To run these tests, add the Vuforia credentials to the file :file:`vuforia_secrets.env`.
@@ -61,9 +61,9 @@ See :ref:`connecting-to-vuforia`.
 
 Then run ``pytest``:
 
-.. substitution-prompt:: bash
+.. prompt:: bash
 
-    pytest
+   pytest
 
 .. _connecting-to-vuforia:
 
@@ -106,7 +106,7 @@ Documentation is built on Read the Docs.
 
 Run the following commands to build and view documentation locally:
 
-.. substitution-prompt:: bash
+.. prompt:: bash
 
    make docs
    make open-docs

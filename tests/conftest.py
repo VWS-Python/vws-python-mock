@@ -5,6 +5,7 @@ Configuration, plugins and fixtures for `pytest`.
 import base64
 import binascii
 import io
+import time
 from typing import List, Tuple
 
 import pytest
@@ -33,7 +34,17 @@ def is_internal_server_error(
     that we can retry a test if it is.
     """
     assert args
-    return bool(err[0] == UnexpectedEmptyInternalServerError)
+    is_unexpected_server_error = bool(
+        err[0] == UnexpectedEmptyInternalServerError,
+    )
+    if is_unexpected_server_error:
+        # We have seen this error happen multiple times when the server is hit
+        # in quick succession.
+        # We therefore have a delay, to give the server time to recover.
+        #
+        # The delay length is arbitrary.
+        time.sleep(30)
+    return is_unexpected_server_error
 
 
 def pytest_collection_modifyitems(items: List[pytest.Function]) -> None:
@@ -42,7 +53,7 @@ def pytest_collection_modifyitems(items: List[pytest.Function]) -> None:
     ``UnexpectedEmptyInternalServerError`` is raised.
     """
     retry_marker = pytest.mark.flaky(
-        max_runs=3,
+        max_runs=5,
         rerun_filter=is_internal_server_error,
     )
     for item in items:

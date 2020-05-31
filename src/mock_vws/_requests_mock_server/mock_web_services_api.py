@@ -13,8 +13,8 @@ import random
 import uuid
 from typing import Any, Callable, Dict, List, Set, Tuple, Union
 
-import pytz
 import wrapt
+from backports.zoneinfo import ZoneInfo
 from PIL import Image
 from requests import codes
 from requests_mock import DELETE, GET, POST, PUT
@@ -329,7 +329,7 @@ class MockVuforiaWebServicesAPI:
 
         # TODO make this target.delete()
         # and have this raise a target status processing exception
-        gmt = pytz.timezone('GMT')
+        gmt = ZoneInfo('GMT')
         now = datetime.datetime.now(tz=gmt)
         target.delete_date = now
 
@@ -514,7 +514,8 @@ class MockVuforiaWebServicesAPI:
         other_targets = set(database.targets) - set([target])
 
         # TODO use the new image match function here
-        # TODO - add a test - is something a duplicate if it isn't exactly the same?
+        # TODO - add a test - is something a duplicate if it isn't exactly the
+        # same?
         similar_targets: List[str] = [
             other.target_id for other in other_targets
             if Image.open(other.image) == Image.open(target.image) and
@@ -621,7 +622,7 @@ class MockVuforiaWebServicesAPI:
         available_values = list(set(range(6)) - set([target.tracking_rating]))
         target.processed_tracking_rating = random.choice(available_values)
 
-        gmt = pytz.timezone('GMT')
+        gmt = ZoneInfo('GMT')
         now = datetime.datetime.now(tz=gmt)
         target.last_modified_date = now
 

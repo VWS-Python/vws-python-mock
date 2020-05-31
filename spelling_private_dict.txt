@@ -68,6 +68,7 @@ recognitions
 refactoring
 regex
 reimplementation
+repr
 rfc
 rgb
 str
