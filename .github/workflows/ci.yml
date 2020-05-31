@@ -77,7 +77,4 @@ jobs:
       - name: "Upload coverage to Codecov"
         uses: "codecov/codecov-action@v1"
         with:
-          # This is flaky so maybe we do not fail if error, meaning our
-          # coverage reports may be incomplete. See:
-          # https://github.com/codecov/codecov-action/issues/37.
-          fail_ci_if_error: false
+          fail_ci_if_error: true
