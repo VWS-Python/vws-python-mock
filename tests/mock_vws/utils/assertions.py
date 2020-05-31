@@ -9,7 +9,7 @@ import json
 from string import hexdigits
 from typing import Optional
 
-import pytz
+from backports.zoneinfo import ZoneInfo
 from requests import Response, codes
 
 from mock_vws._constants import ResultCodes
@@ -56,7 +56,7 @@ def assert_valid_date_header(response: Response) -> None:
     date_from_response = email.utils.parsedate(date_response)
     assert date_from_response is not None
     year, month, day, hour, minute, second, _, _, _ = date_from_response
-    gmt = pytz.timezone('GMT')
+    gmt = ZoneInfo('GMT')
     datetime_from_response = datetime.datetime(
         year=year,
         month=month,

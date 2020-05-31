@@ -6,8 +6,8 @@ from datetime import datetime, timedelta
 from urllib.parse import urlparse
 
 import pytest
-import pytz
 import requests
+from backports.zoneinfo import ZoneInfo
 from freezegun import freeze_time
 from requests import codes
 from requests.structures import CaseInsensitiveDict
@@ -39,7 +39,7 @@ class TestInvalidJSON:
         """
         date_is_skewed = not date_skew_minutes == 0
         content = b'a'
-        gmt = pytz.timezone('GMT')
+        gmt = ZoneInfo('GMT')
         now = datetime.now(tz=gmt)
         time_to_freeze = now + timedelta(minutes=date_skew_minutes)
         with freeze_time(time_to_freeze):

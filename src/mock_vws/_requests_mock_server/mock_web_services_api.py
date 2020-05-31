@@ -13,8 +13,8 @@ import random
 import uuid
 from typing import Any, Callable, Dict, List, Set, Tuple, Union
 
-import pytz
 import wrapt
+from backports.zoneinfo import ZoneInfo
 from PIL import Image
 from requests import codes
 from requests_mock import DELETE, GET, POST, PUT
@@ -327,7 +327,7 @@ class MockVuforiaWebServicesAPI:
             }
             return json_dump(body)
 
-        gmt = pytz.timezone('GMT')
+        gmt = ZoneInfo('GMT')
         now = datetime.datetime.now(tz=gmt)
         target.delete_date = now
 
@@ -615,7 +615,7 @@ class MockVuforiaWebServicesAPI:
         available_values = list(set(range(6)) - set([target.tracking_rating]))
         target.processed_tracking_rating = random.choice(available_values)
 
-        gmt = pytz.timezone('GMT')
+        gmt = ZoneInfo('GMT')
         now = datetime.datetime.now(tz=gmt)
         target.last_modified_date = now
 
