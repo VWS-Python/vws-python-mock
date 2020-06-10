@@ -4,12 +4,12 @@ Tests for the `Authorization` header.
 
 import io
 import uuid
+from http import HTTPStatus
 from typing import Dict
 from urllib.parse import urlparse
 
 import pytest
 import requests
-from requests import codes
 from requests.structures import CaseInsensitiveDict
 from vws_auth_tools import rfc_1123_date
 
@@ -56,7 +56,7 @@ class TestAuthorizationHeader:
         if netloc == 'cloudreco.vuforia.com':
             assert_vwq_failure(
                 response=response,
-                status_code=codes.UNAUTHORIZED,
+                status_code=HTTPStatus.UNAUTHORIZED,
                 content_type='text/plain; charset=ISO-8859-1',
             )
             assert response.text == 'Authorization header missing.'
@@ -64,7 +64,7 @@ class TestAuthorizationHeader:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.UNAUTHORIZED,
+            status_code=HTTPStatus.UNAUTHORIZED,
             result_code=ResultCodes.AUTHENTICATION_FAILURE,
         )
 
@@ -108,7 +108,7 @@ class TestMalformed:
         if netloc == 'cloudreco.vuforia.com':
             assert_vwq_failure(
                 response=response,
-                status_code=codes.UNAUTHORIZED,
+                status_code=HTTPStatus.UNAUTHORIZED,
                 content_type='text/plain; charset=ISO-8859-1',
             )
             assert response.text == 'Malformed authorization header.'
@@ -116,7 +116,7 @@ class TestMalformed:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.BAD_REQUEST,
+            status_code=HTTPStatus.BAD_REQUEST,
             result_code=ResultCodes.FAIL,
         )
 
@@ -155,7 +155,7 @@ class TestMalformed:
         if netloc == 'cloudreco.vuforia.com':
             assert_vwq_failure(
                 response=response,
-                status_code=codes.INTERNAL_SERVER_ERROR,
+                status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
                 content_type='text/html; charset=ISO-8859-1',
             )
             # We have seen multiple responses given.
@@ -165,7 +165,7 @@ class TestMalformed:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.BAD_REQUEST,
+            status_code=HTTPStatus.BAD_REQUEST,
             result_code=ResultCodes.FAIL,
         )
 
@@ -200,7 +200,7 @@ class TestBadKey:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.BAD_REQUEST,
+            status_code=HTTPStatus.BAD_REQUEST,
             result_code=ResultCodes.FAIL,
         )
 
@@ -232,7 +232,7 @@ class TestBadKey:
 
         assert_vwq_failure(
             response=response,
-            status_code=codes.UNAUTHORIZED,
+            status_code=HTTPStatus.UNAUTHORIZED,
             content_type='application/json',
         )
 
@@ -275,7 +275,7 @@ class TestBadKey:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.UNAUTHORIZED,
+            status_code=HTTPStatus.UNAUTHORIZED,
             result_code=ResultCodes.AUTHENTICATION_FAILURE,
         )
 
@@ -307,7 +307,7 @@ class TestBadKey:
 
         assert_vwq_failure(
             response=response,
-            status_code=codes.UNAUTHORIZED,
+            status_code=HTTPStatus.UNAUTHORIZED,
             content_type='application/json',
         )
 

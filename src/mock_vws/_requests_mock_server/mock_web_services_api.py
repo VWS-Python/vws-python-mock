@@ -11,12 +11,12 @@ import io
 import itertools
 import random
 import uuid
+from http import HTTPStatus
 from typing import Any, Callable, Dict, List, Set, Tuple, Union
 
 import wrapt
 from backports.zoneinfo import ZoneInfo
 from PIL import Image
-from requests import codes
 from requests_mock import DELETE, GET, POST, PUT
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
@@ -265,7 +265,7 @@ class MockVuforiaWebServicesAPI:
             target for target in database.targets if not target.delete_date
         )
         if any(target.name == name for target in targets):
-            context.status_code = codes.FORBIDDEN
+            context.status_code = HTTPStatus.FORBIDDEN
             body = {
                 'transaction_id': uuid.uuid4().hex,
                 'result_code': ResultCodes.TARGET_NAME_EXIST.value,
@@ -290,7 +290,7 @@ class MockVuforiaWebServicesAPI:
         )
         database.targets.add(new_target)
 
-        context.status_code = codes.CREATED
+        context.status_code = HTTPStatus.CREATED
         body = {
             'transaction_id': uuid.uuid4().hex,
             'result_code': ResultCodes.TARGET_CREATED.value,
@@ -320,7 +320,7 @@ class MockVuforiaWebServicesAPI:
         )
 
         if target.status == TargetStatuses.PROCESSING.value:
-            context.status_code = codes.FORBIDDEN
+            context.status_code = HTTPStatus.FORBIDDEN
             body = {
                 'transaction_id': uuid.uuid4().hex,
                 'result_code': ResultCodes.TARGET_STATUS_PROCESSING.value,
@@ -556,7 +556,7 @@ class MockVuforiaWebServicesAPI:
         assert isinstance(database, VuforiaDatabase)
 
         if target.status != TargetStatuses.SUCCESS.value:
-            context.status_code = codes.FORBIDDEN
+            context.status_code = HTTPStatus.FORBIDDEN
             body = {
                 'transaction_id': uuid.uuid4().hex,
                 'result_code': ResultCodes.TARGET_STATUS_NOT_SUCCESS.value,
@@ -573,7 +573,7 @@ class MockVuforiaWebServicesAPI:
                     'transaction_id': uuid.uuid4().hex,
                     'result_code': ResultCodes.FAIL.value,
                 }
-                context.status_code = codes.BAD_REQUEST
+                context.status_code = HTTPStatus.BAD_REQUEST
                 return json_dump(body)
             target.active_flag = active_flag
 
@@ -583,7 +583,7 @@ class MockVuforiaWebServicesAPI:
                     'transaction_id': uuid.uuid4().hex,
                     'result_code': ResultCodes.FAIL.value,
                 }
-                context.status_code = codes.BAD_REQUEST
+                context.status_code = HTTPStatus.BAD_REQUEST
                 return json_dump(body)
             application_metadata = request.json()['application_metadata']
             target.application_metadata = application_metadata
@@ -595,7 +595,7 @@ class MockVuforiaWebServicesAPI:
                 other.name == name for other in other_targets
                 if not other.delete_date
             ):
-                context.status_code = codes.FORBIDDEN
+                context.status_code = HTTPStatus.FORBIDDEN
                 body = {
                     'transaction_id': uuid.uuid4().hex,
                     'result_code': ResultCodes.TARGET_NAME_EXIST.value,

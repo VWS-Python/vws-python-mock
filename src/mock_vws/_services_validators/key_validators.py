@@ -5,9 +5,9 @@ Validators for JSON keys.
 import json
 import re
 from dataclasses import dataclass
+from http import HTTPStatus
 from typing import Set
 
-from requests import codes
 from requests_mock import DELETE, GET, POST, PUT
 
 from .exceptions import Fail
@@ -153,4 +153,4 @@ def validate_keys(
     if all_given_keys_allowed and all_mandatory_keys_given:
         return
 
-    raise Fail(status_code=codes.BAD_REQUEST)
+    raise Fail(status_code=HTTPStatus.BAD_REQUEST)

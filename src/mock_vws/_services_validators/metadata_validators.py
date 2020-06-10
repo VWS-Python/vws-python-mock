@@ -4,8 +4,7 @@ Validators for application metadata.
 
 import binascii
 import json
-
-from requests import codes
+from http import HTTPStatus
 
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._services_validators.exceptions import Fail, MetadataTooLarge
@@ -66,7 +65,7 @@ def validate_metadata_encoding(request_body: bytes) -> None:
     try:
         decode_base64(encoded_data=application_metadata)
     except binascii.Error:
-        raise Fail(status_code=codes.UNPROCESSABLE_ENTITY)
+        raise Fail(status_code=HTTPStatus.UNPROCESSABLE_ENTITY)
 
 
 def validate_metadata_type(request_body: bytes) -> None:
@@ -92,4 +91,4 @@ def validate_metadata_type(request_body: bytes) -> None:
     if application_metadata is None or isinstance(application_metadata, str):
         return
 
-    raise Fail(status_code=codes.BAD_REQUEST)
+    raise Fail(status_code=HTTPStatus.BAD_REQUEST)

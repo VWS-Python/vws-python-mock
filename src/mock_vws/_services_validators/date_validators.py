@@ -3,10 +3,10 @@ Validators of the date header to use in the mock services API.
 """
 
 import datetime
+from http import HTTPStatus
 from typing import Dict
 
 from backports.zoneinfo import ZoneInfo
-from requests import codes
 
 from mock_vws._services_validators.exceptions import Fail, RequestTimeTooSkewed
 
@@ -25,7 +25,7 @@ def validate_date_header_given(request_headers: Dict[str, str]) -> None:
     if 'Date' in request_headers:
         return
 
-    raise Fail(status_code=codes.BAD_REQUEST)
+    raise Fail(status_code=HTTPStatus.BAD_REQUEST)
 
 
 def validate_date_format(request_headers: Dict[str, str]) -> None:
@@ -44,7 +44,7 @@ def validate_date_format(request_headers: Dict[str, str]) -> None:
     try:
         datetime.datetime.strptime(date_header, date_format)
     except ValueError:
-        raise Fail(status_code=codes.BAD_REQUEST)
+        raise Fail(status_code=HTTPStatus.BAD_REQUEST)
 
 
 def validate_date_in_range(request_headers: Dict[str, str]) -> None:

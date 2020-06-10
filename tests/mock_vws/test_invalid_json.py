@@ -3,13 +3,13 @@ Tests for giving invalid JSON to endpoints.
 """
 
 from datetime import datetime, timedelta
+from http import HTTPStatus
 from urllib.parse import urlparse
 
 import pytest
 import requests
 from backports.zoneinfo import ZoneInfo
 from freezegun import freeze_time
-from requests import codes
 from requests.structures import CaseInsensitiveDict
 from vws_auth_tools import authorization_header, rfc_1123_date
 
@@ -77,7 +77,7 @@ class TestInvalidJSON:
         assert_valid_date_header(response=response)
 
         if date_is_skewed and takes_json_data:
-            # On the real implementation, we get `codes.FORBIDDEN` and
+            # On the real implementation, we get `HTTPStatus.FORBIDDEN` and
             # `REQUEST_TIME_TOO_SKEWED`.
             # See https://github.com/VWS-Python/vws-python-mock/issues/4 for
             # implementing this on them mock.
@@ -86,18 +86,18 @@ class TestInvalidJSON:
         if not date_is_skewed and takes_json_data:
             assert_vws_failure(
                 response=response,
-                status_code=codes.BAD_REQUEST,
+                status_code=HTTPStatus.BAD_REQUEST,
                 result_code=ResultCodes.FAIL,
             )
             return
 
-        assert response.status_code == codes.BAD_REQUEST
+        assert response.status_code == HTTPStatus.BAD_REQUEST
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
         if netloc == 'cloudreco.vuforia.com':
             assert_vwq_failure(
                 response=response,
-                status_code=codes.BAD_REQUEST,
+                status_code=HTTPStatus.BAD_REQUEST,
                 content_type='text/html;charset=UTF-8',
             )
             expected_text = (

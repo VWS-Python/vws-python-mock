@@ -5,11 +5,11 @@ Choose which backends to use for the tests.
 import logging
 import os
 from enum import Enum
+from http import HTTPStatus
 from typing import Generator
 
 import pytest
 from _pytest.fixtures import SubRequest
-from requests import codes
 
 from mock_vws import MockVWS
 from mock_vws._constants import ResultCodes
@@ -66,7 +66,7 @@ def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
         )
         assert_vws_response(
             response=response,
-            status_code=codes.OK,
+            status_code=HTTPStatus.OK,
             result_code=ResultCodes.SUCCESS,
         )
 
