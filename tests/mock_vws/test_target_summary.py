@@ -6,11 +6,11 @@ import base64
 import datetime
 import io
 import uuid
+from http import HTTPStatus
 
 import pytest
 from _pytest.fixtures import SubRequest
 from backports.zoneinfo import ZoneInfo
-from requests import codes
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws.database import VuforiaDatabase
@@ -70,7 +70,7 @@ class TestTargetSummary:
 
         assert_vws_response(
             response=response,
-            status_code=codes.OK,
+            status_code=HTTPStatus.OK,
             result_code=ResultCodes.SUCCESS,
         )
 
@@ -305,6 +305,6 @@ class TestInactiveProject:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.NOT_FOUND,
+            status_code=HTTPStatus.NOT_FOUND,
             result_code=ResultCodes.UNKNOWN_TARGET,
         )

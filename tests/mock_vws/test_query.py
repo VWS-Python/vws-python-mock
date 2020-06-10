@@ -9,6 +9,7 @@ import calendar
 import datetime
 import io
 import time
+from http import HTTPStatus
 from typing import Any, Dict, Union
 from urllib.parse import urljoin
 
@@ -16,7 +17,6 @@ import pytest
 import requests
 from backports.zoneinfo import ZoneInfo
 from PIL import Image
-from requests import codes
 from requests_mock import POST
 from urllib3.filepost import encode_multipart_formdata
 from vws_auth_tools import authorization_header, rfc_1123_date
@@ -100,7 +100,7 @@ class TestContentType:
         assert response.text == ''
         assert_vwq_failure(
             response=response,
-            status_code=codes.UNSUPPORTED_MEDIA_TYPE,
+            status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
             content_type=None,
         )
 
@@ -154,7 +154,7 @@ class TestContentType:
         assert response.text == ''
         assert_vwq_failure(
             response=response,
-            status_code=codes.UNSUPPORTED_MEDIA_TYPE,
+            status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
             content_type=None,
         )
 
@@ -215,7 +215,7 @@ class TestContentType:
         assert response.text == expected_text
         assert_vwq_failure(
             response=response,
-            status_code=codes.BAD_REQUEST,
+            status_code=HTTPStatus.BAD_REQUEST,
             content_type='text/html;charset=UTF-8',
         )
 
@@ -267,7 +267,7 @@ class TestContentType:
         assert response.text == expected_text
         assert_vwq_failure(
             response=response,
-            status_code=codes.BAD_REQUEST,
+            status_code=HTTPStatus.BAD_REQUEST,
             content_type='text/html;charset=UTF-8',
         )
 
@@ -482,7 +482,7 @@ class TestIncorrectFields:
         assert response.text == 'No image.'
         assert_vwq_failure(
             response=response,
-            status_code=codes.BAD_REQUEST,
+            status_code=HTTPStatus.BAD_REQUEST,
             content_type='application/json',
         )
 
@@ -509,7 +509,7 @@ class TestIncorrectFields:
         assert_vwq_failure(
             response=response,
             content_type='application/json',
-            status_code=codes.BAD_REQUEST,
+            status_code=HTTPStatus.BAD_REQUEST,
         )
 
     def test_missing_image_and_extra_fields(
@@ -535,7 +535,7 @@ class TestIncorrectFields:
         assert_vwq_failure(
             response=response,
             content_type='application/json',
-            status_code=codes.BAD_REQUEST,
+            status_code=HTTPStatus.BAD_REQUEST,
         )
 
 
@@ -696,7 +696,7 @@ class TestMaxNumResults:
         assert_vwq_failure(
             response=response,
             content_type='application/json',
-            status_code=codes.BAD_REQUEST,
+            status_code=HTTPStatus.BAD_REQUEST,
         )
 
     @pytest.mark.parametrize(
@@ -735,7 +735,7 @@ class TestMaxNumResults:
         assert_vwq_failure(
             response=response,
             content_type='application/json',
-            status_code=codes.BAD_REQUEST,
+            status_code=HTTPStatus.BAD_REQUEST,
         )
 
 
@@ -915,7 +915,7 @@ class TestIncludeTargetData:
         assert response.text == expected_text
         assert_vwq_failure(
             response=response,
-            status_code=codes.BAD_REQUEST,
+            status_code=HTTPStatus.BAD_REQUEST,
             content_type='application/json',
         )
 
@@ -1025,7 +1025,7 @@ class TestAcceptHeader:
 
         assert_vwq_failure(
             response=response,
-            status_code=codes.NOT_ACCEPTABLE,
+            status_code=HTTPStatus.NOT_ACCEPTABLE,
             content_type=None,
         )
 
@@ -1119,7 +1119,7 @@ class TestBadImage:
 
         assert_vwq_failure(
             response=response,
-            status_code=codes.UNPROCESSABLE_ENTITY,
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             content_type='application/json',
         )
         assert response.json().keys() == {'transaction_id', 'result_code'}
@@ -1331,7 +1331,7 @@ class TestMaximumImageDimensions:
 
         assert_vwq_failure(
             response=response,
-            status_code=codes.UNPROCESSABLE_ENTITY,
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             content_type='application/json',
         )
         assert response.json().keys() == {'transaction_id', 'result_code'}
@@ -1393,7 +1393,7 @@ class TestMaximumImageDimensions:
 
         assert_vwq_failure(
             response=response,
-            status_code=codes.UNPROCESSABLE_ENTITY,
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             content_type='application/json',
         )
         assert response.json().keys() == {'transaction_id', 'result_code'}
@@ -1466,7 +1466,7 @@ class TestImageFormats:
 
         assert_vwq_failure(
             response=response,
-            status_code=codes.UNPROCESSABLE_ENTITY,
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             content_type='application/json',
         )
         assert response.json().keys() == {'transaction_id', 'result_code'}
@@ -1553,7 +1553,7 @@ class TestProcessing:
 
         # Sometimes we get a 500 error, sometimes we do not.
 
-        if response.status_code == codes.OK:  # pragma: no cover
+        if response.status_code == HTTPStatus.OK:  # pragma: no cover
             assert response.json()['results'] == []
             assert_query_success(response=response)
             return
@@ -1569,7 +1569,7 @@ class TestProcessing:
         assert_vwq_failure(
             response=response,
             content_type='text/html; charset=ISO-8859-1',
-            status_code=codes.INTERNAL_SERVER_ERROR,
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
         )
 
 
@@ -1746,7 +1746,7 @@ class TestDeleted:
                 assert_vwq_failure(
                     response=response,
                     content_type='text/html; charset=ISO-8859-1',
-                    status_code=codes.INTERNAL_SERVER_ERROR,
+                    status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
                 )
 
                 return
@@ -2030,7 +2030,7 @@ class TestInactiveProject:
 
         assert_vwq_failure(
             response=response,
-            status_code=codes.FORBIDDEN,
+            status_code=HTTPStatus.FORBIDDEN,
             content_type='application/json',
         )
         assert response.json().keys() == {'transaction_id', 'result_code'}

@@ -7,10 +7,10 @@ import email.utils
 import io
 import json
 from dataclasses import dataclass
+from http import HTTPStatus
 from typing import Any, Callable, Dict, FrozenSet, List, Mapping, Tuple, Union
 
 import wrapt
-from requests import codes
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
@@ -91,7 +91,7 @@ def set_date_header(
     result = wrapped(*args, **kwargs)
     if context.headers[
         'Connection'
-    ] != 'Close' and context.status_code != codes.GATEWAY_TIMEOUT:
+    ] != 'Close' and context.status_code != HTTPStatus.GATEWAY_TIMEOUT:
         context.headers['Date'] = date
     return result
 

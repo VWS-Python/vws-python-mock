@@ -5,6 +5,7 @@ Utilities for tests.
 import io
 import json
 import random
+from http import HTTPStatus
 from time import sleep
 from typing import Any, Dict
 from urllib.parse import urljoin
@@ -12,7 +13,7 @@ from urllib.parse import urljoin
 import requests
 import timeout_decorator
 from PIL import Image
-from requests import Response, codes
+from requests import Response
 from requests_mock import DELETE, GET, POST, PUT
 from urllib3.filepost import encode_multipart_formdata
 from vws_auth_tools import authorization_header, rfc_1123_date
@@ -132,7 +133,7 @@ def add_target_to_vws(
     )
 
     if (
-        response.status_code == codes.INTERNAL_SERVER_ERROR
+        response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
     ) and response.text == '':  # pragma: no cover
         # 500 errors have been seen to happen in CI and this is here to help us
         # debug them.

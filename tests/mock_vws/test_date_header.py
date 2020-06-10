@@ -3,6 +3,7 @@ Tests for the `Date` header.
 """
 
 from datetime import datetime, timedelta
+from http import HTTPStatus
 from typing import Dict
 from urllib.parse import urlparse
 
@@ -10,7 +11,6 @@ import pytest
 import requests
 from backports.zoneinfo import ZoneInfo
 from freezegun import freeze_time
-from requests import codes
 from requests.structures import CaseInsensitiveDict
 from vws_auth_tools import authorization_header, rfc_1123_date
 
@@ -73,14 +73,14 @@ class TestMissing:
             assert response.text == 'Date header required.'
             assert_vwq_failure(
                 response=response,
-                status_code=codes.BAD_REQUEST,
+                status_code=HTTPStatus.BAD_REQUEST,
                 content_type=expected_content_type,
             )
             return
 
         assert_vws_failure(
             response=response,
-            status_code=codes.BAD_REQUEST,
+            status_code=HTTPStatus.BAD_REQUEST,
             result_code=ResultCodes.FAIL,
         )
 
@@ -139,14 +139,14 @@ class TestFormat:
             assert response.text == 'Malformed date header.'
             assert_vwq_failure(
                 response=response,
-                status_code=codes.UNAUTHORIZED,
+                status_code=HTTPStatus.UNAUTHORIZED,
                 content_type='text/plain; charset=ISO-8859-1',
             )
             return
 
         assert_vws_failure(
             response=response,
-            status_code=codes.BAD_REQUEST,
+            status_code=HTTPStatus.BAD_REQUEST,
             result_code=ResultCodes.FAIL,
         )
 
@@ -217,7 +217,7 @@ class TestSkewedTime:
         # Even with the query endpoint, we get a JSON response.
         assert_vws_failure(
             response=response,
-            status_code=codes.FORBIDDEN,
+            status_code=HTTPStatus.FORBIDDEN,
             result_code=ResultCodes.REQUEST_TIME_TOO_SKEWED,
         )
 

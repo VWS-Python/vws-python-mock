@@ -3,9 +3,10 @@ Tests for passing invalid target IDs to endpoints which
 require a target ID to be given.
 """
 
+from http import HTTPStatus
+
 import pytest
 import requests
-from requests import codes
 
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
@@ -53,6 +54,6 @@ class TestInvalidGivenID:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.NOT_FOUND,
+            status_code=HTTPStatus.NOT_FOUND,
             result_code=ResultCodes.UNKNOWN_TARGET,
         )

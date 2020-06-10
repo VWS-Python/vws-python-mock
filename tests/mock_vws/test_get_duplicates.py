@@ -5,9 +5,10 @@ Tests for the mock of the get duplicates endpoint.
 import base64
 import io
 import uuid
+from http import HTTPStatus
 
 import pytest
-from requests import Response, codes
+from requests import Response
 from requests_mock import GET
 
 from mock_vws._constants import ResultCodes
@@ -127,7 +128,7 @@ class TestDuplicates:
 
         assert_vws_response(
             response=response,
-            status_code=codes.OK,
+            status_code=HTTPStatus.OK,
             result_code=ResultCodes.SUCCESS,
         )
 
@@ -404,6 +405,6 @@ class TestInactiveProject:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.FORBIDDEN,
+            status_code=HTTPStatus.FORBIDDEN,
             result_code=ResultCodes.PROJECT_INACTIVE,
         )

@@ -3,8 +3,7 @@ Validators for the active flag.
 """
 
 import json
-
-from requests import codes
+from http import HTTPStatus
 
 from mock_vws._services_validators.exceptions import Fail
 
@@ -33,4 +32,4 @@ def validate_active_flag(request_body: bytes) -> None:
     if active_flag is None or isinstance(active_flag, bool):
         return
 
-    raise Fail(status_code=codes.BAD_REQUEST)
+    raise Fail(status_code=HTTPStatus.BAD_REQUEST)

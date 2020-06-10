@@ -2,8 +2,9 @@
 Tests for deleting targets.
 """
 
+from http import HTTPStatus
+
 import pytest
-from requests import codes
 
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
@@ -45,7 +46,7 @@ class TestDelete:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.FORBIDDEN,
+            status_code=HTTPStatus.FORBIDDEN,
             result_code=ResultCodes.TARGET_STATUS_PROCESSING,
         )
 
@@ -69,7 +70,7 @@ class TestDelete:
 
         assert_vws_response(
             response=response,
-            status_code=codes.OK,
+            status_code=HTTPStatus.OK,
             result_code=ResultCodes.SUCCESS,
         )
 
@@ -80,7 +81,7 @@ class TestDelete:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.NOT_FOUND,
+            status_code=HTTPStatus.NOT_FOUND,
             result_code=ResultCodes.UNKNOWN_TARGET,
         )
 
@@ -106,6 +107,6 @@ class TestInactiveProject:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.FORBIDDEN,
+            status_code=HTTPStatus.FORBIDDEN,
             result_code=ResultCodes.PROJECT_INACTIVE,
         )
