@@ -5,12 +5,12 @@ Fixtures which prepare requests.
 import base64
 import io
 import json
+from http import HTTPStatus
 from typing import Any, Dict
 from urllib.parse import urljoin
 
 import pytest
 import requests
-from requests import codes
 from requests_mock import DELETE, GET, POST, PUT
 from urllib3.filepost import encode_multipart_formdata
 
@@ -77,7 +77,7 @@ def _add_target(
     prepared_request = request.prepare()
 
     return Endpoint(
-        successful_headers_status_code=codes.CREATED,
+        successful_headers_status_code=HTTPStatus.CREATED,
         successful_headers_result_code=ResultCodes.TARGET_CREATED,
         prepared_request=prepared_request,
         access_key=access_key,
@@ -128,7 +128,7 @@ def _delete_target(
 
     prepared_request = request.prepare()
     return Endpoint(
-        successful_headers_status_code=codes.OK,
+        successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=ResultCodes.SUCCESS,
         prepared_request=prepared_request,
         access_key=access_key,
@@ -174,7 +174,7 @@ def _database_summary(vuforia_database: VuforiaDatabase) -> Endpoint:
     prepared_request = request.prepare()
 
     return Endpoint(
-        successful_headers_status_code=codes.OK,
+        successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=ResultCodes.SUCCESS,
         prepared_request=prepared_request,
         access_key=access_key,
@@ -228,7 +228,7 @@ def _get_duplicates(
     prepared_request = request.prepare()
 
     return Endpoint(
-        successful_headers_status_code=codes.OK,
+        successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=ResultCodes.SUCCESS,
         prepared_request=prepared_request,
         access_key=access_key,
@@ -281,7 +281,7 @@ def _get_target(
     prepared_request = request.prepare()
 
     return Endpoint(
-        successful_headers_status_code=codes.OK,
+        successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=ResultCodes.SUCCESS,
         prepared_request=prepared_request,
         access_key=access_key,
@@ -327,7 +327,7 @@ def _target_list(vuforia_database: VuforiaDatabase) -> Endpoint:
     prepared_request = request.prepare()
 
     return Endpoint(
-        successful_headers_status_code=codes.OK,
+        successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=ResultCodes.SUCCESS,
         prepared_request=prepared_request,
         access_key=access_key,
@@ -380,7 +380,7 @@ def _target_summary(
     prepared_request = request.prepare()
 
     return Endpoint(
-        successful_headers_status_code=codes.OK,
+        successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=ResultCodes.SUCCESS,
         prepared_request=prepared_request,
         access_key=access_key,
@@ -436,7 +436,7 @@ def _update_target(
     prepared_request = request.prepare()
 
     return Endpoint(
-        successful_headers_status_code=codes.OK,
+        successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=ResultCodes.SUCCESS,
         prepared_request=prepared_request,
         access_key=access_key,
@@ -489,7 +489,7 @@ def _query(
     prepared_request = request.prepare()
 
     return Endpoint(
-        successful_headers_status_code=codes.OK,
+        successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=ResultCodes.SUCCESS,
         prepared_request=prepared_request,
         access_key=access_key,

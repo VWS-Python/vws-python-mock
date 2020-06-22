@@ -2,8 +2,9 @@
 Tests for the mock of the target list endpoint.
 """
 
+from http import HTTPStatus
+
 import pytest
-from requests import codes
 
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
@@ -31,7 +32,7 @@ class TestTargetList:
         response = list_targets(vuforia_database=vuforia_database)
         assert_vws_response(
             response=response,
-            status_code=codes.OK,
+            status_code=HTTPStatus.OK,
             result_code=ResultCodes.SUCCESS,
         )
         expected_keys = {'result_code', 'transaction_id', 'results'}
@@ -86,6 +87,6 @@ class TestInactiveProject:
         response = list_targets(vuforia_database=inactive_database)
         assert_vws_response(
             response=response,
-            status_code=codes.OK,
+            status_code=HTTPStatus.OK,
             result_code=ResultCodes.SUCCESS,
         )

@@ -5,11 +5,11 @@ See
 https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query
 """
 
+from http import HTTPStatus
 from pathlib import Path
 from typing import Any, Callable, Dict, Set, Tuple, Union
 
 import wrapt
-from requests import codes
 from requests_mock import POST
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
@@ -258,7 +258,7 @@ class MockVuforiaWebQueryAPI:
             resources_dir = Path(__file__).parent.parent / 'resources'
             filename = 'match_processing_response.html'
             match_processing_resp_file = resources_dir / filename
-            context.status_code = codes.INTERNAL_SERVER_ERROR
+            context.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
             cache_control = 'must-revalidate,no-cache,no-store'
             context.headers['Cache-Control'] = cache_control
             content_type = 'text/html; charset=ISO-8859-1'

@@ -5,11 +5,11 @@ Tests for the mock of the database summary endpoint.
 import base64
 import io
 import logging
+from http import HTTPStatus
 from time import sleep
 
 import pytest
 import timeout_decorator
-from requests import codes
 
 from mock_vws import MockVWS
 from mock_vws._constants import ResultCodes
@@ -110,7 +110,7 @@ class TestDatabaseSummary:
 
         assert_vws_response(
             response=response,
-            status_code=codes.OK,
+            status_code=HTTPStatus.OK,
             result_code=ResultCodes.SUCCESS,
         )
 
@@ -431,7 +431,7 @@ class TestRecos:
             body=body,
         )
 
-        assert query_resp.status_code == codes.OK
+        assert query_resp.status_code == HTTPStatus.OK
 
         response_after_query = database_summary(
             vuforia_database=vuforia_database,
@@ -489,7 +489,7 @@ class TestRequestUsage:
             data={},
         )
 
-        assert response.status_code == codes.BAD_REQUEST
+        assert response.status_code == HTTPStatus.BAD_REQUEST
 
         response = database_summary(vuforia_database=vuforia_database)
         new_request_usage = response.json()['request_usage']
@@ -514,7 +514,7 @@ class TestRequestUsage:
             body=body,
         )
 
-        assert query_resp.status_code == codes.OK
+        assert query_resp.status_code == HTTPStatus.OK
 
         response = database_summary(vuforia_database=vuforia_database)
         new_request_usage = response.json()['request_usage']
@@ -540,6 +540,6 @@ class TestInactiveProject:
 
         assert_vws_response(
             response=response,
-            status_code=codes.OK,
+            status_code=HTTPStatus.OK,
             result_code=ResultCodes.SUCCESS,
         )

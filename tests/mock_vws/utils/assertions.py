@@ -6,11 +6,12 @@ import copy
 import datetime
 import email.utils
 import json
+from http import HTTPStatus
 from string import hexdigits
 from typing import Optional
 
 from backports.zoneinfo import ZoneInfo
-from requests import Response, codes
+from requests import Response
 
 from mock_vws._constants import ResultCodes
 
@@ -155,7 +156,7 @@ def assert_query_success(response: Response) -> None:
         AssertionError: The given response is not a valid success response
             for performing an image recognition query.
     """
-    assert response.status_code == codes.OK
+    assert response.status_code == HTTPStatus.OK
     assert response.json().keys() == {'result_code', 'results', 'query_id'}
 
     query_id = response.json()['query_id']
@@ -219,7 +220,7 @@ def assert_vwq_failure(
         'Server',
     }
 
-    if status_code == codes.INTERNAL_SERVER_ERROR:
+    if status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
         response_header_keys.add('Cache-Control')
         cache_control = 'must-revalidate,no-cache,no-store'
         assert response.headers['Cache-Control'] == cache_control
@@ -228,7 +229,7 @@ def assert_vwq_failure(
         response_header_keys.add('Content-Type')
         assert response.headers['Content-Type'] == content_type
 
-    if status_code == codes.UNAUTHORIZED:
+    if status_code == HTTPStatus.UNAUTHORIZED:
         response_header_keys.add('WWW-Authenticate')
         assert response.headers['WWW-Authenticate'] == 'VWS'
 

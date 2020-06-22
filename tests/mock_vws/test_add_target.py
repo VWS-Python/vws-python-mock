@@ -4,11 +4,12 @@ Tests for the mock of the add target endpoint.
 
 import base64
 import io
+from http import HTTPStatus
 from string import hexdigits
 from typing import Any, Union
 
 import pytest
-from requests import Response, codes
+from requests import Response
 
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
@@ -58,7 +59,7 @@ def assert_success(response: Response) -> None:
     """
     assert_vws_response(
         response=response,
-        status_code=codes.CREATED,
+        status_code=HTTPStatus.CREATED,
         result_code=ResultCodes.TARGET_CREATED,
     )
     expected_keys = {'result_code', 'transaction_id', 'target_id'}
@@ -139,7 +140,7 @@ class TestContentTypes:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.UNAUTHORIZED,
+            status_code=HTTPStatus.UNAUTHORIZED,
             result_code=ResultCodes.AUTHENTICATION_FAILURE,
         )
 
@@ -177,7 +178,7 @@ class TestMissingData:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.BAD_REQUEST,
+            status_code=HTTPStatus.BAD_REQUEST,
             result_code=ResultCodes.FAIL,
         )
 
@@ -218,7 +219,7 @@ class TestWidth:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.BAD_REQUEST,
+            status_code=HTTPStatus.BAD_REQUEST,
             result_code=ResultCodes.FAIL,
         )
 
@@ -298,14 +299,14 @@ class TestTargetName:
     @pytest.mark.parametrize(
         'name,status_code',
         [
-            (1, codes.BAD_REQUEST),
-            ('', codes.BAD_REQUEST),
-            ('a' * (_MAX_NAME_LENGTH + 1), codes.BAD_REQUEST),
-            (None, codes.BAD_REQUEST),
-            (chr(_MAX_CHAR_VALUE + 1), codes.INTERNAL_SERVER_ERROR),
+            (1, HTTPStatus.BAD_REQUEST),
+            ('', HTTPStatus.BAD_REQUEST),
+            ('a' * (_MAX_NAME_LENGTH + 1), HTTPStatus.BAD_REQUEST),
+            (None, HTTPStatus.BAD_REQUEST),
+            (chr(_MAX_CHAR_VALUE + 1), HTTPStatus.INTERNAL_SERVER_ERROR),
             (
                 chr(_MAX_CHAR_VALUE + 1) * (_MAX_NAME_LENGTH + 1),
-                codes.BAD_REQUEST,
+                HTTPStatus.BAD_REQUEST,
             ),
         ],
         ids=[
@@ -344,7 +345,7 @@ class TestTargetName:
 
         assert response.status_code == status_code
 
-        if status_code == codes.INTERNAL_SERVER_ERROR:
+        if status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             _assert_oops_response(response=response)
             return
 
@@ -383,7 +384,7 @@ class TestTargetName:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.FORBIDDEN,
+            status_code=HTTPStatus.FORBIDDEN,
             result_code=ResultCodes.TARGET_NAME_EXIST,
         )
 
@@ -490,7 +491,7 @@ class TestImage:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.UNPROCESSABLE_ENTITY,
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             result_code=ResultCodes.BAD_IMAGE,
         )
 
@@ -592,7 +593,7 @@ class TestImage:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.UNPROCESSABLE_ENTITY,
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             result_code=ResultCodes.IMAGE_TOO_LARGE,
         )
 
@@ -620,7 +621,7 @@ class TestImage:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.UNPROCESSABLE_ENTITY,
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             result_code=ResultCodes.BAD_IMAGE,
         )
 
@@ -647,7 +648,7 @@ class TestImage:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.UNPROCESSABLE_ENTITY,
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             result_code=ResultCodes.FAIL,
         )
 
@@ -675,7 +676,7 @@ class TestImage:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.UNPROCESSABLE_ENTITY,
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             result_code=ResultCodes.BAD_IMAGE,
         )
 
@@ -701,7 +702,7 @@ class TestImage:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.BAD_REQUEST,
+            status_code=HTTPStatus.BAD_REQUEST,
             result_code=ResultCodes.FAIL,
         )
 
@@ -769,7 +770,7 @@ class TestActiveFlag:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.BAD_REQUEST,
+            status_code=HTTPStatus.BAD_REQUEST,
             result_code=ResultCodes.FAIL,
         )
 
@@ -805,7 +806,7 @@ class TestUnexpectedData:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.BAD_REQUEST,
+            status_code=HTTPStatus.BAD_REQUEST,
             result_code=ResultCodes.FAIL,
         )
 
@@ -904,7 +905,7 @@ class TestApplicationMetadata:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.BAD_REQUEST,
+            status_code=HTTPStatus.BAD_REQUEST,
             result_code=ResultCodes.FAIL,
         )
 
@@ -962,7 +963,7 @@ class TestApplicationMetadata:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.UNPROCESSABLE_ENTITY,
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             result_code=ResultCodes.FAIL,
         )
 
@@ -994,7 +995,7 @@ class TestApplicationMetadata:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.UNPROCESSABLE_ENTITY,
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             result_code=ResultCodes.METADATA_TOO_LARGE,
         )
 
@@ -1030,6 +1031,6 @@ class TestInactiveProject:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.FORBIDDEN,
+            status_code=HTTPStatus.FORBIDDEN,
             result_code=ResultCodes.PROJECT_INACTIVE,
         )

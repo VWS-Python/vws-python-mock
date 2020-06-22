@@ -5,10 +5,10 @@ Tests for the mock of the update target endpoint.
 import base64
 import io
 import uuid
+from http import HTTPStatus
 from typing import Any, Union
 
 import pytest
-from requests import codes
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws.database import VuforiaDatabase
@@ -77,7 +77,7 @@ class TestUpdate:
         # Code is FORBIDDEN because the target is processing.
         assert_vws_failure(
             response=response,
-            status_code=codes.FORBIDDEN,
+            status_code=HTTPStatus.FORBIDDEN,
             result_code=ResultCodes.TARGET_STATUS_NOT_SUCCESS,
         )
 
@@ -115,7 +115,7 @@ class TestUpdate:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.UNAUTHORIZED,
+            status_code=HTTPStatus.UNAUTHORIZED,
             result_code=ResultCodes.AUTHENTICATION_FAILURE,
         )
 
@@ -140,7 +140,7 @@ class TestUpdate:
 
         assert_vws_response(
             response=response,
-            status_code=codes.OK,
+            status_code=HTTPStatus.OK,
             result_code=ResultCodes.SUCCESS,
         )
 
@@ -194,7 +194,7 @@ class TestUnexpectedData:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.BAD_REQUEST,
+            status_code=HTTPStatus.BAD_REQUEST,
             result_code=ResultCodes.FAIL,
         )
 
@@ -239,7 +239,7 @@ class TestWidth:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.BAD_REQUEST,
+            status_code=HTTPStatus.BAD_REQUEST,
             result_code=ResultCodes.FAIL,
         )
 
@@ -275,7 +275,7 @@ class TestWidth:
 
         assert_vws_response(
             response=response,
-            status_code=codes.OK,
+            status_code=HTTPStatus.OK,
             result_code=ResultCodes.SUCCESS,
         )
 
@@ -336,7 +336,7 @@ class TestActiveFlag:
 
         assert_vws_response(
             response=response,
-            status_code=codes.OK,
+            status_code=HTTPStatus.OK,
             result_code=ResultCodes.SUCCESS,
         )
 
@@ -371,7 +371,7 @@ class TestActiveFlag:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.BAD_REQUEST,
+            status_code=HTTPStatus.BAD_REQUEST,
             result_code=ResultCodes.FAIL,
         )
 
@@ -416,7 +416,7 @@ class TestApplicationMetadata:
 
         assert_vws_response(
             response=response,
-            status_code=codes.OK,
+            status_code=HTTPStatus.OK,
             result_code=ResultCodes.SUCCESS,
         )
 
@@ -443,7 +443,7 @@ class TestApplicationMetadata:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.BAD_REQUEST,
+            status_code=HTTPStatus.BAD_REQUEST,
             result_code=ResultCodes.FAIL,
         )
 
@@ -470,7 +470,7 @@ class TestApplicationMetadata:
 
         assert_vws_response(
             response=response,
-            status_code=codes.OK,
+            status_code=HTTPStatus.OK,
             result_code=ResultCodes.SUCCESS,
         )
 
@@ -497,7 +497,7 @@ class TestApplicationMetadata:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.UNPROCESSABLE_ENTITY,
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             result_code=ResultCodes.FAIL,
         )
 
@@ -526,7 +526,7 @@ class TestApplicationMetadata:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.UNPROCESSABLE_ENTITY,
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             result_code=ResultCodes.METADATA_TOO_LARGE,
         )
 
@@ -577,7 +577,7 @@ class TestTargetName:
 
         assert_vws_response(
             response=response,
-            status_code=codes.OK,
+            status_code=HTTPStatus.OK,
             result_code=ResultCodes.SUCCESS,
         )
 
@@ -591,22 +591,22 @@ class TestTargetName:
     @pytest.mark.parametrize(
         'name,status_code,result_code',
         [
-            (1, codes.BAD_REQUEST, ResultCodes.FAIL),
-            ('', codes.BAD_REQUEST, ResultCodes.FAIL),
+            (1, HTTPStatus.BAD_REQUEST, ResultCodes.FAIL),
+            ('', HTTPStatus.BAD_REQUEST, ResultCodes.FAIL),
             (
                 'a' * (_MAX_NAME_LENGTH + 1),
-                codes.BAD_REQUEST,
+                HTTPStatus.BAD_REQUEST,
                 ResultCodes.FAIL,
             ),
-            (None, codes.BAD_REQUEST, ResultCodes.FAIL),
+            (None, HTTPStatus.BAD_REQUEST, ResultCodes.FAIL),
             (
                 chr(_MAX_CHAR_VALUE + 1),
-                codes.FORBIDDEN,
+                HTTPStatus.FORBIDDEN,
                 ResultCodes.TARGET_NAME_EXIST,
             ),
             (
                 chr(_MAX_CHAR_VALUE + 1) * (_MAX_NAME_LENGTH + 1),
-                codes.BAD_REQUEST,
+                HTTPStatus.BAD_REQUEST,
                 ResultCodes.FAIL,
             ),
         ],
@@ -705,7 +705,7 @@ class TestTargetName:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.FORBIDDEN,
+            status_code=HTTPStatus.FORBIDDEN,
             result_code=ResultCodes.TARGET_NAME_EXIST,
         )
 
@@ -748,7 +748,7 @@ class TestTargetName:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.OK,
+            status_code=HTTPStatus.OK,
             result_code=ResultCodes.SUCCESS,
         )
 
@@ -795,7 +795,7 @@ class TestImage:
 
         assert_vws_response(
             response=response,
-            status_code=codes.OK,
+            status_code=HTTPStatus.OK,
             result_code=ResultCodes.SUCCESS,
         )
 
@@ -826,7 +826,7 @@ class TestImage:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.UNPROCESSABLE_ENTITY,
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             result_code=ResultCodes.BAD_IMAGE,
         )
 
@@ -855,7 +855,7 @@ class TestImage:
 
         assert_vws_response(
             response=response,
-            status_code=codes.OK,
+            status_code=HTTPStatus.OK,
             result_code=ResultCodes.SUCCESS,
         )
 
@@ -901,7 +901,7 @@ class TestImage:
 
         assert_vws_response(
             response=response,
-            status_code=codes.OK,
+            status_code=HTTPStatus.OK,
             result_code=ResultCodes.SUCCESS,
         )
 
@@ -938,7 +938,7 @@ class TestImage:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.UNPROCESSABLE_ENTITY,
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             result_code=ResultCodes.IMAGE_TOO_LARGE,
         )
 
@@ -967,7 +967,7 @@ class TestImage:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.UNPROCESSABLE_ENTITY,
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             result_code=ResultCodes.BAD_IMAGE,
         )
 
@@ -995,7 +995,7 @@ class TestImage:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.UNPROCESSABLE_ENTITY,
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             result_code=ResultCodes.FAIL,
         )
 
@@ -1024,7 +1024,7 @@ class TestImage:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.UNPROCESSABLE_ENTITY,
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             result_code=ResultCodes.BAD_IMAGE,
         )
 
@@ -1051,7 +1051,7 @@ class TestImage:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.BAD_REQUEST,
+            status_code=HTTPStatus.BAD_REQUEST,
             result_code=ResultCodes.FAIL,
         )
 
@@ -1154,6 +1154,6 @@ class TestInactiveProject:
 
         assert_vws_failure(
             response=response,
-            status_code=codes.FORBIDDEN,
+            status_code=HTTPStatus.FORBIDDEN,
             result_code=ResultCodes.PROJECT_INACTIVE,
         )
