@@ -1,6 +1,6 @@
 PyYAML==5.3.1
 Sphinx-Substitution-Extensions==2020.7.4.1
-Sphinx==3.1.1
+Sphinx==3.1.2
 VWS-Auth-Tools==2020.5.31.0
 VWS-Test-Fixtures==2019.12.13.1
 attrs==19.3.0  # Modern attrs is required for pytest
