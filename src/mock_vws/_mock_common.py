@@ -2,7 +2,6 @@
 Common utilities for creating mock routes.
 """
 
-import cgi
 import email.utils
 import io
 import json
@@ -94,23 +93,3 @@ def set_date_header(
     ] != 'Close' and context.status_code != HTTPStatus.GATEWAY_TIMEOUT:
         context.headers['Date'] = date
     return result
-
-
-def parse_multipart(  # pylint: disable=invalid-name
-    fp: io.BytesIO,
-    pdict: Mapping[str, bytes],
-) -> Dict[str, List[Union[str, bytes]]]:
-    """
-    Return parsed ``pdict``.
-
-    Wrapper for ``_parse_multipart`` to work around
-    https://bugs.python.org/issue34226.
-
-    See https://docs.python.org/3.8/library/cgi.html#_parse_multipart.
-    """
-    pdict = {
-        'CONTENT-LENGTH': str(len(fp.getvalue())).encode(),
-        **pdict,
-    }
-
-    return cgi.parse_multipart(fp=fp, pdict=pdict)
