@@ -3,11 +3,10 @@ Common utilities for creating mock routes.
 """
 
 import email.utils
-import io
 import json
 from dataclasses import dataclass
 from http import HTTPStatus
-from typing import Any, Callable, Dict, FrozenSet, List, Mapping, Tuple, Union
+from typing import Any, Callable, Dict, FrozenSet, Tuple
 
 import wrapt
 from requests_mock.request import _RequestObjectProxy
