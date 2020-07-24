@@ -11,8 +11,6 @@ from PIL import Image
 
 from mock_vws._query_validators.exceptions import BadImage, ImageNotGiven
 
-from .._mock_common import parse_multipart
-
 
 def validate_image_field_given(
     request_headers: Dict[str, str],
@@ -31,7 +29,7 @@ def validate_image_field_given(
     body_file = io.BytesIO(request_body)
 
     _, pdict = cgi.parse_header(request_headers['Content-Type'])
-    parsed = parse_multipart(
+    parsed = cgi.parse_multipart(
         fp=body_file,
         pdict={
             'boundary': pdict['boundary'].encode(),
@@ -61,7 +59,7 @@ def validate_image_file_size(
     body_file = io.BytesIO(request_body)
 
     _, pdict = cgi.parse_header(request_headers['Content-Type'])
-    parsed = parse_multipart(
+    parsed = cgi.parse_multipart(
         fp=body_file,
         pdict={
             'boundary': pdict['boundary'].encode(),
@@ -97,7 +95,7 @@ def validate_image_dimensions(
     body_file = io.BytesIO(request_body)
 
     _, pdict = cgi.parse_header(request_headers['Content-Type'])
-    parsed = parse_multipart(
+    parsed = cgi.parse_multipart(
         fp=body_file,
         pdict={
             'boundary': pdict['boundary'].encode(),
@@ -133,7 +131,7 @@ def validate_image_format(
     body_file = io.BytesIO(request_body)
 
     _, pdict = cgi.parse_header(request_headers['Content-Type'])
-    parsed = parse_multipart(
+    parsed = cgi.parse_multipart(
         fp=body_file,
         pdict={
             'boundary': pdict['boundary'].encode(),
@@ -169,7 +167,7 @@ def validate_image_is_image(
     body_file = io.BytesIO(request_body)
 
     _, pdict = cgi.parse_header(request_headers['Content-Type'])
-    parsed = parse_multipart(
+    parsed = cgi.parse_multipart(
         fp=body_file,
         pdict={
             'boundary': pdict['boundary'].encode(),
