@@ -74,7 +74,7 @@ jobs:
         with:
           same-branch-only: false
           # By default this is 60.
-          # We have a lot of jobs so this is set higher.
+          # We have a lot of jobs so this is set higher - we hit API timeouts.
           poll-interval-seconds: 300
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
