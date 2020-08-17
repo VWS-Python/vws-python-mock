@@ -66,6 +66,13 @@ jobs:
           - test_usage.py
 
     steps:
+      - name: Turnstyle
+        uses: softprops/turnstyle@v1
+        with:
+          same-branch-only: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - uses: actions/checkout@v2
       - name: "Set up Python"
         uses: actions/setup-python@v2
