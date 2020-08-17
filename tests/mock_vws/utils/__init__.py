@@ -4,6 +4,7 @@ Utilities for tests.
 
 import io
 import json
+import logging
 import random
 from http import HTTPStatus
 from time import sleep
@@ -20,6 +21,9 @@ from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws.database import VuforiaDatabase
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 class Endpoint:
