@@ -10,13 +10,13 @@ from typing import Generator
 
 import pytest
 from _pytest.fixtures import SubRequest
+from vws import VWS
 
 from mock_vws import MockVWS
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
 from tests.mock_vws.utils import (
-    delete_target,
     list_targets,
     update_target,
     wait_for_target_processed,
@@ -43,6 +43,11 @@ def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
 
     targets = response.json()['results']
 
+    vws_client = VWS(
+        server_access_key=database_keys.server_access_key,
+        server_secret_key=database_keys.server_secret_key,
+    )
+
     for target in targets:
         wait_for_target_processed(
             vuforia_database=database_keys,
@@ -60,10 +65,7 @@ def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
             vuforia_database=database_keys,
             target_id=target,
         )
-        response = delete_target(
-            vuforia_database=database_keys,
-            target_id=target,
-        )
+        vws_client.delete_target(target_id=target)
         assert_vws_response(
             response=response,
             status_code=HTTPStatus.OK,

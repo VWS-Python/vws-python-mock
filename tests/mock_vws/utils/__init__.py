@@ -17,6 +17,7 @@ from PIL import Image
 from requests import Response
 from requests_mock import DELETE, GET, POST, PUT
 from urllib3.filepost import encode_multipart_formdata
+from vws import VWS
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes, TargetStatuses
@@ -277,32 +278,6 @@ def target_api_request(
         url=url,
         headers=headers,
         data=content,
-    )
-
-    return response
-
-
-def delete_target(
-    vuforia_database: VuforiaDatabase,
-    target_id: str,
-) -> Response:
-    """
-    Delete a given target.
-
-    Args:
-        vuforia_database: The credentials to the Vuforia target database
-            to delete the target in.
-        target_id: The ID of the target to delete.
-
-    Returns:
-        The response returned by the API.
-    """
-    response = target_api_request(
-        server_access_key=vuforia_database.server_access_key,
-        server_secret_key=vuforia_database.server_secret_key,
-        method=DELETE,
-        content=b'',
-        request_path=f'/targets/{target_id}',
     )
 
     return response

@@ -19,13 +19,13 @@ from backports.zoneinfo import ZoneInfo
 from PIL import Image
 from requests_mock import POST
 from urllib3.filepost import encode_multipart_formdata
+from vws import VWS
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import (
     add_target_to_vws,
-    delete_target,
     get_vws_target,
     make_image_file,
     query,
@@ -1721,10 +1721,11 @@ class TestDeleted:
             vuforia_database=vuforia_database,
         )
 
-        delete_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.delete_target(target_id=target_id)
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
@@ -1779,10 +1780,11 @@ class TestDeleted:
             vuforia_database=vuforia_database,
         )
 
-        response = delete_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.delete_target(target_id=target_id)
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
@@ -1865,10 +1867,11 @@ class TestDeleted:
             vuforia_database=vuforia_database,
         )
 
-        delete_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.delete_target(target_id=target_id)
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 

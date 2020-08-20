@@ -5,11 +5,12 @@ Tests for deleting targets.
 from http import HTTPStatus
 
 import pytest
+from vws import VWS
+from vws.exceptions import TargetStatusProcessing, ProjectInactive
 
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import (
-    delete_target,
     get_vws_target,
     wait_for_target_processed,
 )
@@ -39,13 +40,15 @@ class TestDelete:
         There is a race condition here - if the target goes into a success or
         fail state before the deletion attempt.
         """
-        response = delete_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        with pytest.raises(TargetStatusProcessing) as exc:
+            vws_client.delete_target(target_id=target_id)
 
         assert_vws_failure(
-            response=response,
+            response=exc.value.response,
             status_code=HTTPStatus.FORBIDDEN,
             result_code=ResultCodes.TARGET_STATUS_PROCESSING,
         )
@@ -63,16 +66,11 @@ class TestDelete:
             target_id=target_id,
         )
 
-        response = delete_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
-
-        assert_vws_response(
-            response=response,
-            status_code=HTTPStatus.OK,
-            result_code=ResultCodes.SUCCESS,
-        )
+        vws_client.delete_target(target_id=target_id)
 
         response = get_vws_target(
             vuforia_database=vuforia_database,
@@ -100,13 +98,15 @@ class TestInactiveProject:
         If the project is inactive, a FORBIDDEN response is returned.
         """
         target_id = 'abc12345a'
-        response = delete_target(
-            vuforia_database=inactive_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=inactive_database.server_access_key,
+            server_secret_key=inactive_database.server_secret_key,
         )
+        with pytest.raises(ProjectInactive) as exc:
+            vws_client.delete_target(target_id=target_id)
 
         assert_vws_failure(
-            response=response,
+            response=exc.value.response,
             status_code=HTTPStatus.FORBIDDEN,
             result_code=ResultCodes.PROJECT_INACTIVE,
         )

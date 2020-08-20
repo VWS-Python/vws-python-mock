@@ -5,11 +5,11 @@ Tests for the mock of the target list endpoint.
 from http import HTTPStatus
 
 import pytest
+from vws import VWS
 
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import (
-    delete_target,
     list_targets,
     wait_for_target_processed,
 )
@@ -63,10 +63,11 @@ class TestTargetList:
             target_id=target_id,
         )
 
-        delete_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.delete_target(target_id=target_id)
         response = list_targets(vuforia_database=vuforia_database)
         assert response.json()['results'] == []
 

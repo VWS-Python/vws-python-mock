@@ -10,6 +10,7 @@ from time import sleep
 
 import pytest
 import timeout_decorator
+from vws import VWS
 
 from mock_vws import MockVWS
 from mock_vws._constants import ResultCodes
@@ -17,7 +18,6 @@ from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import (
     add_target_to_vws,
     database_summary,
-    delete_target,
     query,
     wait_for_target_processed,
 )
@@ -306,10 +306,11 @@ class TestDatabaseSummary:
             target_id=target_id,
         )
 
-        delete_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.delete_target(target_id=target_id)
 
         _wait_for_image_numbers(
             vuforia_database=vuforia_database,

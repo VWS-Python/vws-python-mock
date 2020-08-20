@@ -7,12 +7,12 @@ from http import HTTPStatus
 
 import pytest
 import requests
+from vws import VWS
 
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import (
     Endpoint,
-    delete_target,
     wait_for_target_processed,
 )
 from tests.mock_vws.utils.assertions import assert_vws_failure
@@ -43,10 +43,12 @@ class TestInvalidGivenID:
             target_id=target_id,
         )
 
-        delete_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.delete_target(target_id=target_id)
+
         session = requests.Session()
         response = session.send(  # type: ignore
             request=endpoint.prepared_request,

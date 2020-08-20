@@ -14,6 +14,7 @@ import requests
 from freezegun import freeze_time
 from requests.exceptions import MissingSchema
 from requests_mock.exceptions import NoMockAddress
+from vws import VWS
 
 from mock_vws import MockVWS
 from mock_vws._constants import TargetStatuses
@@ -21,7 +22,6 @@ from mock_vws.states import States
 from tests.mock_vws.utils import (
     VuforiaDatabase,
     add_target_to_vws,
-    delete_target,
     get_vws_target,
     query,
     rfc_1123_date,
@@ -283,10 +283,11 @@ def _add_and_delete_target(
         vuforia_database=vuforia_database,
     )
 
-    delete_target(
-        vuforia_database=vuforia_database,
-        target_id=target_id,
+    vws_client = VWS(
+        server_access_key=vuforia_database.server_access_key,
+        server_secret_key=vuforia_database.server_secret_key,
     )
+    vws_client.delete_target(target_id=target_id)
 
 
 def _wait_for_deletion_recognized(
