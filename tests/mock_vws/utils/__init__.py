@@ -171,26 +171,6 @@ def get_vws_target(
     return response
 
 
-def database_summary(vuforia_database: VuforiaDatabase) -> Response:
-    """
-    Return the response of a request to the database summary endpoint.
-
-    Args:
-        vuforia_database: The credentials to use to connect to Vuforia.
-
-    Returns:
-        The response of a request to the database summary endpoint.
-    """
-    response = target_api_request(
-        server_access_key=vuforia_database.server_access_key,
-        server_secret_key=vuforia_database.server_secret_key,
-        method=GET,
-        content=b'',
-        request_path='/summary',
-    )
-    return response
-
-
 def target_api_request(
     server_access_key: str,
     server_secret_key: str,

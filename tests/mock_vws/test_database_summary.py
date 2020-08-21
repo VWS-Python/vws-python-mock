@@ -17,7 +17,6 @@ from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import (
     add_target_to_vws,
-    database_summary,
     query,
 )
 from tests.mock_vws.utils.assertions import assert_vws_response
@@ -71,11 +70,15 @@ def _wait_for_image_numbers(
     # of calls made to the API, to decrease the likelihood of hitting the
     # request quota.
     sleep_seconds = 0.2
+    vws_client = VWS(
+        server_access_key=vuforia_database.server_access_key,
+        server_secret_key=vuforia_database.server_secret_key,
+    )
 
     for key, value in requirements.items():
         while True:
-            response = database_summary(vuforia_database=vuforia_database)
-            relevant_images_in_summary = response.json()[key]
+            report = vws_client.get_database_summary_report()
+            relevant_images_in_summary = getattr(report, key)
             if value != relevant_images_in_summary:  # pragma: no cover
                 message = (
                     f'Expected {value} `{key}`s. '
@@ -105,33 +108,12 @@ class TestDatabaseSummary:
         """
         It is possible to get a success response.
         """
-        response = database_summary(vuforia_database=vuforia_database)
-
-        assert_vws_response(
-            response=response,
-            status_code=HTTPStatus.OK,
-            result_code=ResultCodes.SUCCESS,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
-
-        assert response.json().keys() == {
-            'active_images',
-            'current_month_recos',
-            'failed_images',
-            'inactive_images',
-            'name',
-            'previous_month_recos',
-            'processing_images',
-            'reco_threshold',
-            'request_quota',
-            'request_usage',
-            'result_code',
-            'target_quota',
-            'total_recos',
-            'transaction_id',
-        }
-
-        response_name = response.json()['name']
-        assert response_name == vuforia_database.database_name
+        report = vws_client.get_database_summary_report()
+        assert report.name == vuforia_database.database_name
 
         _wait_for_image_numbers(
             vuforia_database=vuforia_database,
@@ -376,11 +358,15 @@ class TestQuotas:
         Quotas are included in the database summary.
         These match the quotas given for a free license.
         """
-        response = database_summary(vuforia_database=vuforia_database)
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
+        )
 
-        assert response.json()['target_quota'] == 1000
-        assert response.json()['request_quota'] == 100000
-        assert response.json()['reco_threshold'] == 1000
+        report = vws_client.get_database_summary_report()
+        assert report.target_quota == 1000
+        assert report.request_quota == 100000
+        assert report.reco_threshold == 1000
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -401,6 +387,10 @@ class TestRecos:
         We therefore test that they exist, are integers and do not change
         between quick requests.
         """
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
+        )
         image_content = high_quality_image.getvalue()
         image_data_encoded = base64.b64encode(image_content).decode('ascii')
         data = {
@@ -416,17 +406,10 @@ class TestRecos:
         )
 
         target_id = response.json()['target_id']
-
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
-        response_before_query = database_summary(
-            vuforia_database=vuforia_database,
-        )
+        report_before = vws_client.get_database_summary_report()
         query_resp = query(
             vuforia_database=vuforia_database,
             body=body,
@@ -434,19 +417,16 @@ class TestRecos:
 
         assert query_resp.status_code == HTTPStatus.OK
 
-        response_after_query = database_summary(
-            vuforia_database=vuforia_database,
+        report_after = vws_client.get_database_summary_report()
+        assert report_before.total_recos == report_after.total_recos
+        assert (
+            report_before.current_month_recos ==
+            report_after.current_month_recos
         )
-        json_before_query = response_before_query.json()
-        json_after_query = response_after_query.json()
-
-        recos = ('total_recos', 'current_month_recos', 'previous_month_recos')
-        for key in recos:
-            before = json_before_query[key]
-            after = json_after_query[key]
-            assert isinstance(before, int)
-            assert isinstance(after, int)
-            assert before == after
+        assert (
+            report_before.previous_month_recos ==
+            report_after.previous_month_recos
+        )
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -463,13 +443,15 @@ class TestRequestUsage:
         The ``request_usage`` count does not increase with each request to the
         target API.
         """
-        response = database_summary(vuforia_database=vuforia_database)
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
+        )
+        report = vws_client.get_database_summary_report()
+        original_request_usage = report.request_usage
 
-        original_request_usage = response.json()['request_usage']
-
-        response = database_summary(vuforia_database=vuforia_database)
-
-        new_request_usage = response.json()['request_usage']
+        report = vws_client.get_database_summary_report()
+        new_request_usage = report.request_usage
         assert new_request_usage == original_request_usage
 
     def test_bad_target_request(
@@ -480,9 +462,12 @@ class TestRequestUsage:
         The ``request_usage`` count does not increase with each request to the
         target API, even if it is a bad request.
         """
-        response = database_summary(vuforia_database=vuforia_database)
-
-        original_request_usage = response.json()['request_usage']
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
+        )
+        report = vws_client.get_database_summary_report()
+        original_request_usage = report.request_usage
 
         response = add_target_to_vws(
             vuforia_database=vuforia_database,
@@ -492,8 +477,8 @@ class TestRequestUsage:
 
         assert response.status_code == HTTPStatus.BAD_REQUEST
 
-        response = database_summary(vuforia_database=vuforia_database)
-        new_request_usage = response.json()['request_usage']
+        report = vws_client.get_database_summary_report()
+        new_request_usage = report.request_usage
         assert new_request_usage == original_request_usage
 
     def test_query_request(
@@ -504,9 +489,12 @@ class TestRequestUsage:
         """
         The ``request_usage`` count does not increase with each query.
         """
-        response = database_summary(vuforia_database=vuforia_database)
-
-        original_request_usage = response.json()['request_usage']
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
+        )
+        report = vws_client.get_database_summary_report()
+        original_request_usage = report.request_usage
 
         image_content = high_quality_image.getvalue()
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
@@ -517,8 +505,8 @@ class TestRequestUsage:
 
         assert query_resp.status_code == HTTPStatus.OK
 
-        response = database_summary(vuforia_database=vuforia_database)
-        new_request_usage = response.json()['request_usage']
+        report = vws_client.get_database_summary_report()
+        new_request_usage = report.request_usage
         # The request usage goes up for the database summary request, not the
         # query.
         assert new_request_usage == original_request_usage
@@ -537,10 +525,8 @@ class TestInactiveProject:
         """
         The project's active state does not affect the database summary.
         """
-        response = database_summary(vuforia_database=inactive_database)
-
-        assert_vws_response(
-            response=response,
-            status_code=HTTPStatus.OK,
-            result_code=ResultCodes.SUCCESS,
+        vws_client = VWS(
+            server_access_key=inactive_database.server_access_key,
+            server_secret_key=inactive_database.server_secret_key,
         )
+        vws_client.get_database_summary_report()
