@@ -10,6 +10,7 @@ from http import HTTPStatus
 import pytest
 from requests import Response
 from requests_mock import GET
+from vws import VWS
 
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
@@ -17,7 +18,6 @@ from tests.mock_vws.utils import (
     add_target_to_vws,
     get_vws_target,
     target_api_request,
-    wait_for_target_processed,
 )
 from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
@@ -110,16 +110,14 @@ class TestDuplicates:
         original_target_id = original_add_resp.json()['target_id']
         similar_target_id = similar_add_resp.json()['target_id']
         different_target_id = different_add_resp.json()['target_id']
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
+        )
 
-        for target_id in {
-            original_target_id,
-            similar_target_id,
-            different_target_id,
-        }:
-            wait_for_target_processed(
-                vuforia_database=vuforia_database,
-                target_id=target_id,
-            )
+        vws_client.wait_for_target_processed(target_id=original_target_id)
+        vws_client.wait_for_target_processed(target_id=similar_target_id)
+        vws_client.wait_for_target_processed(target_id=different_target_id)
 
         response = target_duplicates(
             vuforia_database=vuforia_database,
@@ -178,11 +176,13 @@ class TestDuplicates:
         original_target_id = original_add_resp.json()['target_id']
         similar_target_id = similar_add_resp.json()['target_id']
 
-        for target_id in {original_target_id, similar_target_id}:
-            wait_for_target_processed(
-                vuforia_database=vuforia_database,
-                target_id=target_id,
-            )
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
+        )
+
+        vws_client.wait_for_target_processed(target_id=original_target_id)
+        vws_client.wait_for_target_processed(target_id=similar_target_id)
 
         response = get_vws_target(
             vuforia_database=vuforia_database,
@@ -250,11 +250,13 @@ class TestActiveFlag:
         original_target_id = original_add_resp.json()['target_id']
         similar_target_id = similar_add_resp.json()['target_id']
 
-        for target_id in {original_target_id, similar_target_id}:
-            wait_for_target_processed(
-                vuforia_database=vuforia_database,
-                target_id=target_id,
-            )
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
+        )
+
+        vws_client.wait_for_target_processed(target_id=original_target_id)
+        vws_client.wait_for_target_processed(target_id=similar_target_id)
 
         response = target_duplicates(
             vuforia_database=vuforia_database,
@@ -300,12 +302,13 @@ class TestActiveFlag:
 
         original_target_id = original_add_resp.json()['target_id']
         similar_target_id = similar_add_resp.json()['target_id']
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
+        )
 
-        for target_id in {original_target_id, similar_target_id}:
-            wait_for_target_processed(
-                vuforia_database=vuforia_database,
-                target_id=target_id,
-            )
+        vws_client.wait_for_target_processed(target_id=original_target_id)
+        vws_client.wait_for_target_processed(target_id=similar_target_id)
 
         response = target_duplicates(
             vuforia_database=vuforia_database,
@@ -352,10 +355,11 @@ class TestProcessing:
 
         processed_target_id = resp_1.json()['target_id']
 
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=processed_target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=processed_target_id)
 
         resp_2 = add_target_to_vws(
             vuforia_database=vuforia_database,

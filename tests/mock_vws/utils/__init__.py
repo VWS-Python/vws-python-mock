@@ -191,43 +191,6 @@ def database_summary(vuforia_database: VuforiaDatabase) -> Response:
     return response
 
 
-@timeout_decorator.timeout(seconds=60 * 5)
-def wait_for_target_processed(
-    vuforia_database: VuforiaDatabase,
-    target_id: str,
-) -> None:
-    """
-    Wait up to five minutes (arbitrary) for a target to get past the processing
-    stage.
-
-    Args:
-        vuforia_database: The credentials to use to connect to Vuforia.
-        target_id: The ID of the target to wait for.
-
-    Raises:
-        TimeoutError: The target remained in the processing stage for more
-            than five minutes.
-    """
-    while True:
-        response = get_vws_target(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
-
-        status = response.json().get('status')
-
-        if status is None:  # pragma: no cover
-            message = f'status not found.\nResponse is: {response.json()}'
-            LOGGER.debug(message)
-        elif status != TargetStatuses.PROCESSING.value:
-            return
-
-        # We wait 0.2 seconds rather than less than that to decrease the number
-        # of calls made to the API, to decrease the likelihood of hitting the
-        # request quota.
-        sleep(0.2)
-
-
 def target_api_request(
     server_access_key: str,
     server_secret_key: str,

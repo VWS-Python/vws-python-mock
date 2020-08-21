@@ -19,7 +19,6 @@ from mock_vws.states import States
 from tests.mock_vws.utils import (
     list_targets,
     update_target,
-    wait_for_target_processed,
 )
 from tests.mock_vws.utils.assertions import assert_vws_response
 
@@ -49,10 +48,7 @@ def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
     )
 
     for target in targets:
-        wait_for_target_processed(
-            vuforia_database=database_keys,
-            target_id=target,
-        )
+        vws_client.wait_for_target_processed(target_id=target)
 
         # Even deleted targets can be matched by a query for a few seconds so
         # we change the target to inactive before deleting it.
@@ -61,16 +57,8 @@ def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
             data={'active_flag': False},
             target_id=target,
         )
-        wait_for_target_processed(
-            vuforia_database=database_keys,
-            target_id=target,
-        )
+        vws_client.wait_for_target_processed(target_id=target)
         vws_client.delete_target(target_id=target)
-        assert_vws_response(
-            response=response,
-            status_code=HTTPStatus.OK,
-            result_code=ResultCodes.SUCCESS,
-        )
 
 
 def _enable_use_real_vuforia(

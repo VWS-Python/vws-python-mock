@@ -11,6 +11,7 @@ from http import HTTPStatus
 import pytest
 from _pytest.fixtures import SubRequest
 from backports.zoneinfo import ZoneInfo
+from vws import VWS
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws.database import VuforiaDatabase
@@ -19,7 +20,6 @@ from tests.mock_vws.utils import (
     get_vws_target,
     query,
     target_summary,
-    wait_for_target_processed,
 )
 from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
@@ -151,12 +151,14 @@ class TestTargetSummary:
 
         target_id = target_response.json()['target_id']
 
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
+        )
+
         # The tracking rating may change during processing.
         # Therefore we wait until processing ends.
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = target_summary(
             vuforia_database=vuforia_database,
@@ -259,10 +261,12 @@ class TestRecognitionCounts:
 
         target_id = target_response.json()['target_id']
 
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 

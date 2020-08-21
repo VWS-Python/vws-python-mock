@@ -10,13 +10,13 @@ import uuid
 from http import HTTPStatus
 
 import pytest
+from vws import VWS
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import (
     add_target_to_vws,
     get_vws_target,
-    wait_for_target_processed,
 )
 from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
@@ -187,10 +187,11 @@ class TestGetRecord:
 
         target_id = response.json()['target_id']
 
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = get_vws_target(
             target_id=target_id,
@@ -230,10 +231,11 @@ class TestGetRecord:
 
         target_id = response.json()['target_id']
 
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = get_vws_target(
             target_id=target_id,

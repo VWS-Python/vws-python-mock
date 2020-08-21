@@ -11,7 +11,6 @@ from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import (
     list_targets,
-    wait_for_target_processed,
 )
 from tests.mock_vws.utils.assertions import assert_vws_response
 
@@ -58,15 +57,11 @@ class TestTargetList:
         """
         Deleted targets are not returned in the list.
         """
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
-
         vws_client = VWS(
             server_access_key=vuforia_database.server_access_key,
             server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
         vws_client.delete_target(target_id=target_id)
         response = list_targets(vuforia_database=vuforia_database)
         assert response.json()['results'] == []

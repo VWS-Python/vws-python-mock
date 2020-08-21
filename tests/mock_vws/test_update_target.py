@@ -9,6 +9,7 @@ from http import HTTPStatus
 from typing import Any, Union
 
 import pytest
+from vws import VWS
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws.database import VuforiaDatabase
@@ -17,7 +18,6 @@ from tests.mock_vws.utils import (
     get_vws_target,
     make_image_file,
     update_target,
-    wait_for_target_processed,
 )
 from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
@@ -127,10 +127,12 @@ class TestUpdate:
         """
         No data fields are required.
         """
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -154,10 +156,7 @@ class TestUpdate:
         # Targets go back to processing after being updated.
         assert response.json()['status'] == TargetStatuses.PROCESSING.value
 
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = get_vws_target(
             vuforia_database=vuforia_database,
@@ -181,10 +180,11 @@ class TestUnexpectedData:
         """
         A `BAD_REQUEST` response is returned when unexpected data is given.
         """
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -219,10 +219,11 @@ class TestWidth:
         """
         The width must be a number greater than zero.
         """
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = get_vws_target(
             vuforia_database=vuforia_database,
@@ -260,10 +261,11 @@ class TestWidth:
         """
         Positive numbers are valid widths.
         """
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         width = 0.01
 
@@ -323,10 +325,11 @@ class TestActiveFlag:
 
         target_id = response.json()['target_id']
 
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -358,10 +361,11 @@ class TestActiveFlag:
         """
         Values which are not Boolean values are not valid active flags.
         """
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -403,10 +407,11 @@ class TestApplicationMetadata:
         """
         metadata_encoded = base64.b64encode(metadata).decode('ascii')
 
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -430,10 +435,11 @@ class TestApplicationMetadata:
         """
         Non-string values cannot be given as valid application metadata.
         """
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -457,10 +463,11 @@ class TestApplicationMetadata:
         Some strings which are not valid base64 encoded strings are allowed as
         application metadata.
         """
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -484,10 +491,11 @@ class TestApplicationMetadata:
         Some strings which are not valid base64 encoded strings are not allowed
         as application metadata.
         """
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -513,10 +521,11 @@ class TestApplicationMetadata:
         metadata = b'a' * (self._MAX_METADATA_BYTES + 1)
         metadata_encoded = base64.b64encode(metadata).decode('ascii')
 
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -564,10 +573,11 @@ class TestTargetName:
         We test characters out of range in another test as that gives a
         different error.
         """
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -630,10 +640,11 @@ class TestTargetName:
         """
         A target's name must be a string of length 0 < N < 65.
         """
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -674,9 +685,9 @@ class TestTargetName:
 
         first_target_id = response.json()['target_id']
 
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=first_target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
 
         other_data = {
@@ -692,10 +703,8 @@ class TestTargetName:
 
         second_target_id = response.json()['target_id']
 
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=second_target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=first_target_id)
+        vws_client.wait_for_target_processed(target_id=second_target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -735,10 +744,11 @@ class TestTargetName:
 
         target_id = response.json()['target_id']
 
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -782,10 +792,11 @@ class TestImage:
         image_data = image_file.read()
         image_data_encoded = base64.b64encode(image_data).decode('ascii')
 
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -813,10 +824,11 @@ class TestImage:
         image_data = bad_image_file.read()
         image_data_encoded = base64.b64encode(image_data).decode('ascii')
 
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -842,10 +854,11 @@ class TestImage:
         image_data = corrupted_image_file.getvalue()
         image_data_encoded = base64.b64encode(image_data).decode('ascii')
 
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -877,10 +890,11 @@ class TestImage:
             height=height,
         )
 
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         image_data = png_not_too_large.read()
         image_data_encoded = base64.b64encode(image_data).decode('ascii')
@@ -905,10 +919,7 @@ class TestImage:
             result_code=ResultCodes.SUCCESS,
         )
 
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         width = width + 1
         height = height + 1
@@ -954,10 +965,11 @@ class TestImage:
         This is because Vuforia treats them as valid base64, but then not a
         valid image.
         """
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -982,10 +994,11 @@ class TestImage:
         processable by Vuforia, and then when given as an image Vuforia returns
         a "Fail" response.
         """
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -1011,10 +1024,11 @@ class TestImage:
         not_image_data = b'not_image_data'
         image_data_encoded = base64.b64encode(not_image_data).decode('ascii')
 
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -1038,10 +1052,11 @@ class TestImage:
         """
         If the given image is not a string, a `Fail` result is returned.
         """
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -1088,10 +1103,11 @@ class TestImage:
 
         target_id = add_response.json()['target_id']
 
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         get_response = get_vws_target(
             target_id=target_id,
@@ -1110,11 +1126,7 @@ class TestImage:
             target_id=target_id,
         )
 
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
-
+        vws_client.wait_for_target_processed(target_id=target_id)
         get_response = get_vws_target(
             target_id=target_id,
             vuforia_database=vuforia_database,

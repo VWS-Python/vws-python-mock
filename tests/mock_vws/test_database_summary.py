@@ -19,7 +19,6 @@ from tests.mock_vws.utils import (
     add_target_to_vws,
     database_summary,
     query,
-    wait_for_target_processed,
 )
 from tests.mock_vws.utils.assertions import assert_vws_response
 
@@ -150,10 +149,11 @@ class TestDatabaseSummary:
         """
         The number of images in the active state is returned.
         """
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         _wait_for_image_numbers(
             vuforia_database=vuforia_database,
@@ -187,10 +187,11 @@ class TestDatabaseSummary:
 
         target_id = response.json()['target_id']
 
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         _wait_for_image_numbers(
             vuforia_database=vuforia_database,
@@ -226,10 +227,11 @@ class TestDatabaseSummary:
 
         target_id = response.json()['target_id']
 
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         _wait_for_image_numbers(
             vuforia_database=vuforia_database,
@@ -264,10 +266,11 @@ class TestDatabaseSummary:
 
         target_id = response.json()['target_id']
 
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         _wait_for_image_numbers(
             vuforia_database=vuforia_database,
@@ -301,15 +304,11 @@ class TestDatabaseSummary:
 
         target_id = response.json()['target_id']
 
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
-
         vws_client = VWS(
             server_access_key=vuforia_database.server_access_key,
             server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
         vws_client.delete_target(target_id=target_id)
 
         _wait_for_image_numbers(
@@ -418,10 +417,11 @@ class TestRecos:
 
         target_id = response.json()['target_id']
 
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
         response_before_query = database_summary(

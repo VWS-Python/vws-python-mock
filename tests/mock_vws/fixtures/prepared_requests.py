@@ -13,6 +13,7 @@ import pytest
 import requests
 from requests_mock import DELETE, GET, POST, PUT
 from urllib3.filepost import encode_multipart_formdata
+from vws import VWS
 
 from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import (
@@ -20,7 +21,6 @@ from tests.mock_vws.utils import (
     VuforiaDatabase,
     authorization_header,
     rfc_1123_date,
-    wait_for_target_processed,
 )
 
 VWS_HOST = 'https://vws.vuforia.com'
@@ -93,10 +93,11 @@ def _delete_target(
     """
     Return details of the endpoint for deleting a target.
     """
-    wait_for_target_processed(
-        vuforia_database=vuforia_database,
-        target_id=target_id,
+    vws_client = VWS(
+        server_access_key=vuforia_database.server_access_key,
+        server_secret_key=vuforia_database.server_secret_key,
     )
+    vws_client.wait_for_target_processed(target_id=target_id)
     date = rfc_1123_date()
     request_path = f'/targets/{target_id}'
     method = DELETE
@@ -191,10 +192,11 @@ def _get_duplicates(
     Return details of the endpoint for getting potential duplicates of a
     target.
     """
-    wait_for_target_processed(
-        vuforia_database=vuforia_database,
-        target_id=target_id,
+    vws_client = VWS(
+        server_access_key=vuforia_database.server_access_key,
+        server_secret_key=vuforia_database.server_secret_key,
     )
+    vws_client.wait_for_target_processed(target_id=target_id)
     date = rfc_1123_date()
     request_path = f'/duplicates/{target_id}'
     method = GET
@@ -244,10 +246,11 @@ def _get_target(
     """
     Return details of the endpoint for getting details of a target.
     """
-    wait_for_target_processed(
-        vuforia_database=vuforia_database,
-        target_id=target_id,
+    vws_client = VWS(
+        server_access_key=vuforia_database.server_access_key,
+        server_secret_key=vuforia_database.server_secret_key,
     )
+    vws_client.wait_for_target_processed(target_id=target_id)
     date = rfc_1123_date()
     request_path = f'/targets/{target_id}'
     method = GET
@@ -343,10 +346,11 @@ def _target_summary(
     """
     Return details of the endpoint for getting a summary report of a target.
     """
-    wait_for_target_processed(
-        vuforia_database=vuforia_database,
-        target_id=target_id,
+    vws_client = VWS(
+        server_access_key=vuforia_database.server_access_key,
+        server_secret_key=vuforia_database.server_secret_key,
     )
+    vws_client.wait_for_target_processed(target_id=target_id)
     date = rfc_1123_date()
     request_path = f'/summary/{target_id}'
     method = GET
@@ -396,10 +400,11 @@ def _update_target(
     """
     Return details of the endpoint for updating a target.
     """
-    wait_for_target_processed(
-        vuforia_database=vuforia_database,
-        target_id=target_id,
+    vws_client = VWS(
+        server_access_key=vuforia_database.server_access_key,
+        server_secret_key=vuforia_database.server_secret_key,
     )
+    vws_client.wait_for_target_processed(target_id=target_id)
     data: Dict[str, Any] = {}
     request_path = f'/targets/{target_id}'
     content = bytes(json.dumps(data), encoding='utf-8')

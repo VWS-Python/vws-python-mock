@@ -30,7 +30,6 @@ from tests.mock_vws.utils import (
     make_image_file,
     query,
     update_target,
-    wait_for_target_processed,
 )
 from tests.mock_vws.utils.assertions import (
     assert_query_success,
@@ -369,10 +368,11 @@ class TestSuccess:
         target_id = response.json()['target_id']
         approximate_target_created = calendar.timegm(time.gmtime())
 
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
@@ -432,10 +432,11 @@ class TestSuccess:
 
         target_id = response.json()['target_id']
 
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
@@ -555,6 +556,10 @@ class TestMaxNumResults:
         """
         image_content = high_quality_image.getvalue()
         image_data_encoded = base64.b64encode(image_content).decode('ascii')
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
+        )
         for name in ('example_1', 'example_2'):
             add_target_data = {
                 'name': name,
@@ -569,10 +574,7 @@ class TestMaxNumResults:
 
             target_id = response.json()['target_id']
 
-            wait_for_target_processed(
-                target_id=target_id,
-                vuforia_database=vuforia_database,
-            )
+            vws_client.wait_for_target_processed(target_id=target_id)
 
         body = {
             'image': ('image.jpeg', image_content, 'image/jpeg'),
@@ -630,6 +632,10 @@ class TestMaxNumResults:
         """
         image_content = high_quality_image.getvalue()
         image_data_encoded = base64.b64encode(image_content).decode('ascii')
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
+        )
         for name in ('example_1', 'example_2', 'example_3'):
             add_target_data = {
                 'name': name,
@@ -644,10 +650,8 @@ class TestMaxNumResults:
 
             target_id = response.json()['target_id']
 
-            wait_for_target_processed(
-                target_id=target_id,
-                vuforia_database=vuforia_database,
-            )
+            vws_client.wait_for_target_processed(target_id=target_id)
+
         body = {
             'image': ('image.jpeg', image_content, 'image/jpeg'),
             'max_num_results': (None, 2, 'text/plain'),
@@ -750,6 +754,10 @@ def add_targets(
     image_content = high_quality_image.getvalue()
     image_data_encoded = base64.b64encode(image_content).decode('ascii')
     target_ids = set([])
+    vws_client = VWS(
+        server_access_key=vuforia_database.server_access_key,
+        server_secret_key=vuforia_database.server_secret_key,
+    )
     for name in ('example_1', 'example_2'):
         add_target_data = {
             'name': name,
@@ -765,10 +773,7 @@ def add_targets(
         target_ids.add(response.json()['target_id'])
 
     for target_id in target_ids:
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia', 'add_targets')
@@ -1060,10 +1065,11 @@ class TestActiveFlag:
 
         target_id = response.json()['target_id']
 
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
         response = query(
@@ -1609,10 +1615,11 @@ class TestUpdate:
         target_id = response.json()['target_id']
         calendar.timegm(time.gmtime())
 
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         new_image_content = different_high_quality_image.getvalue()
 
@@ -1645,10 +1652,7 @@ class TestUpdate:
 
         approximate_target_updated = calendar.timegm(time.gmtime())
 
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         body = {'image': ('image.jpeg', new_image_content, 'image/jpeg')}
         response = query(
@@ -1716,15 +1720,11 @@ class TestDeleted:
 
         target_id = response.json()['target_id']
 
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
-
         vws_client = VWS(
             server_access_key=vuforia_database.server_access_key,
             server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
         vws_client.delete_target(target_id=target_id)
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
@@ -1775,15 +1775,11 @@ class TestDeleted:
 
         target_id = response.json()['target_id']
 
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
-
         vws_client = VWS(
             server_access_key=vuforia_database.server_access_key,
             server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
         vws_client.delete_target(target_id=target_id)
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
@@ -1862,15 +1858,11 @@ class TestDeleted:
 
         target_id = response.json()['target_id']
 
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
-
         vws_client = VWS(
             server_access_key=vuforia_database.server_access_key,
             server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
         vws_client.delete_target(target_id=target_id)
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
@@ -1912,10 +1904,11 @@ class TestTargetStatusFailed:
 
         target_id = response.json()['target_id']
 
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
