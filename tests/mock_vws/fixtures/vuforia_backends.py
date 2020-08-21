@@ -17,7 +17,6 @@ from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
 from tests.mock_vws.utils import (
-    list_targets,
     update_target,
 )
 from tests.mock_vws.utils.assertions import assert_vws_response
@@ -34,18 +33,12 @@ def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
         database_keys: The credentials to the Vuforia target database to delete
             all targets in.
     """
-    response = list_targets(vuforia_database=database_keys)
-
-    if 'results' not in response.json():  # pragma: no cover
-        message = f'Results not found.\nResponse is: {response.json()}'
-        LOGGER.debug(message)
-
-    targets = response.json()['results']
-
     vws_client = VWS(
         server_access_key=database_keys.server_access_key,
         server_secret_key=database_keys.server_secret_key,
     )
+
+    targets = vws_client.list_targets()
 
     for target in targets:
         vws_client.wait_for_target_processed(target_id=target)

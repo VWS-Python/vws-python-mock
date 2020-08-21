@@ -276,28 +276,6 @@ def update_target(
     return response
 
 
-def list_targets(vuforia_database: VuforiaDatabase) -> Response:
-    """
-    Get a list of targets.
-
-    Args:
-        vuforia_database: The credentials to use to connect to
-            Vuforia.
-
-    Returns:
-        The response returned by the API.
-    """
-    response = target_api_request(
-        server_access_key=vuforia_database.server_access_key,
-        server_secret_key=vuforia_database.server_secret_key,
-        method=GET,
-        content=b'',
-        request_path='/targets',
-    )
-
-    return response
-
-
 def target_summary(
     vuforia_database: VuforiaDatabase,
     target_id: str,
