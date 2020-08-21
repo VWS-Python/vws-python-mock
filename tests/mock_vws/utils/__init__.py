@@ -161,7 +161,7 @@ def get_vws_target(
     Returns:
         The response returned by the API.
     """
-    response = target_api_request(
+    response = _target_api_request(
         server_access_key=vuforia_database.server_access_key,
         server_secret_key=vuforia_database.server_secret_key,
         method=GET,
@@ -171,7 +171,7 @@ def get_vws_target(
     return response
 
 
-def target_api_request(
+def _target_api_request(
     server_access_key: str,
     server_secret_key: str,
     method: str,
@@ -291,7 +291,7 @@ def target_summary(
     Returns:
         The response returned by the API.
     """
-    response = target_api_request(
+    response = _target_api_request(
         server_access_key=vuforia_database.server_access_key,
         server_secret_key=vuforia_database.server_secret_key,
         method=GET,

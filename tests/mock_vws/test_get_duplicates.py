@@ -11,44 +11,19 @@ import pytest
 from requests import Response
 from requests_mock import GET
 from vws import VWS
+from vws.exceptions import ProjectInactive
 
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import (
     add_target_to_vws,
     get_vws_target,
-    target_api_request,
 )
 from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
     assert_vws_response,
 )
 
-
-def target_duplicates(
-    vuforia_database: VuforiaDatabase,
-    target_id: str,
-) -> Response:
-    """
-    Get duplicates of a target.
-
-    Args:
-        vuforia_database: The credentials to use to connect to
-            Vuforia.
-        target_id: The ID of the target to get duplicates for.
-
-    Returns:
-        The response returned by the API.
-    """
-    response = target_api_request(
-        server_access_key=vuforia_database.server_access_key,
-        server_secret_key=vuforia_database.server_secret_key,
-        method=GET,
-        content=b'',
-        request_path='/duplicates/' + target_id,
-    )
-
-    return response
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -119,26 +94,12 @@ class TestDuplicates:
         vws_client.wait_for_target_processed(target_id=similar_target_id)
         vws_client.wait_for_target_processed(target_id=different_target_id)
 
-        response = target_duplicates(
-            vuforia_database=vuforia_database,
+        duplicates = vws_client.get_duplicate_targets(
             target_id=original_target_id,
         )
 
-        assert_vws_response(
-            response=response,
-            status_code=HTTPStatus.OK,
-            result_code=ResultCodes.SUCCESS,
-        )
+        assert duplicates == [similar_target_id]
 
-        expected_keys = {
-            'result_code',
-            'transaction_id',
-            'similar_targets',
-        }
-
-        assert response.json().keys() == expected_keys
-
-        assert response.json()['similar_targets'] == [similar_target_id]
 
     def test_status(
         self,
@@ -191,12 +152,11 @@ class TestDuplicates:
 
         assert response.json()['status'] == 'failed'
 
-        response = target_duplicates(
-            vuforia_database=vuforia_database,
+        duplicates = vws_client.get_duplicate_targets(
             target_id=original_target_id,
         )
 
-        assert response.json()['similar_targets'] == []
+        assert duplicates == []
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -258,12 +218,11 @@ class TestActiveFlag:
         vws_client.wait_for_target_processed(target_id=original_target_id)
         vws_client.wait_for_target_processed(target_id=similar_target_id)
 
-        response = target_duplicates(
-            vuforia_database=vuforia_database,
+        duplicates = vws_client.get_duplicate_targets(
             target_id=original_target_id,
         )
 
-        assert response.json()['similar_targets'] == []
+        assert duplicates == []
 
     def test_active_flag_original(
         self,
@@ -310,12 +269,11 @@ class TestActiveFlag:
         vws_client.wait_for_target_processed(target_id=original_target_id)
         vws_client.wait_for_target_processed(target_id=similar_target_id)
 
-        response = target_duplicates(
-            vuforia_database=vuforia_database,
+        duplicates = vws_client.get_duplicate_targets(
             target_id=original_target_id,
         )
 
-        assert response.json()['similar_targets'] == [similar_target_id]
+        assert duplicates == [similar_target_id]
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -368,16 +326,14 @@ class TestProcessing:
 
         processing_target_id = resp_2.json()['target_id']
 
-        response = target_duplicates(
-            vuforia_database=vuforia_database,
+        duplicates = vws_client.get_duplicate_targets(
             target_id=processed_target_id,
         )
 
-        assert response.json()['similar_targets'] == []
+        assert duplicates == []
 
-        response = target_duplicates(
-            vuforia_database=vuforia_database,
-            target_id=processing_target_id,
+        duplicates = vws_client.get_duplicate_targets(
+            target_id=processed_target_id,
         )
 
         status_response = get_vws_target(
@@ -386,7 +342,7 @@ class TestProcessing:
         )
 
         assert status_response.json()['status'] == 'processing'
-        assert response.json()['similar_targets'] == [processed_target_id]
+        assert duplicates == []
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -402,13 +358,9 @@ class TestInactiveProject:
         """
         If the project is inactive, a FORBIDDEN response is returned.
         """
-        response = target_duplicates(
-            target_id=uuid.uuid4().hex,
-            vuforia_database=inactive_database,
+        vws_client = VWS(
+            server_access_key=inactive_database.server_access_key,
+            server_secret_key=inactive_database.server_secret_key,
         )
-
-        assert_vws_failure(
-            response=response,
-            status_code=HTTPStatus.FORBIDDEN,
-            result_code=ResultCodes.PROJECT_INACTIVE,
-        )
+        with pytest.raises(ProjectInactive):
+            vws_client.get_duplicate_targets(target_id=uuid.uuid4().hex)
