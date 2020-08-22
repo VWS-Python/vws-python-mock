@@ -26,7 +26,6 @@ from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import (
     add_target_to_vws,
-    get_vws_target,
     make_image_file,
     query,
     update_target,
@@ -1513,6 +1512,10 @@ class TestProcessing:
 
         Sometimes an `INTERNAL_SERVER_ERROR` response is returned.
         """
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
+        )
         image_content = high_quality_image.getvalue()
         image_data_encoded = base64.b64encode(image_content).decode('ascii')
         name = 'example_name'
@@ -1548,17 +1551,10 @@ class TestProcessing:
         #
         # If the target is no longer in the processing state here, that is a
         # flaky test that is the test's fault and this must be rethought.
-        get_target_response = get_vws_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
-
-        # Targets go back to processing after being updated.
-        target_status = get_target_response.json()['status']
-        assert target_status == TargetStatuses.PROCESSING.value
+        target_details = vws_client.get_target_record(target_id=target_id)
+        assert target_details.status.value == TargetStatuses.PROCESSING.value
 
         # Sometimes we get a 500 error, sometimes we do not.
-
         if response.status_code == HTTPStatus.OK:  # pragma: no cover
             assert response.json()['results'] == []
             assert_query_success(response=response)

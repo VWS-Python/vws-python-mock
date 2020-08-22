@@ -17,7 +17,6 @@ from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import (
     add_target_to_vws,
-    get_vws_target,
     query,
     target_summary,
 )
@@ -165,10 +164,7 @@ class TestTargetSummary:
             target_id=target_id,
         )
 
-        get_target_response = get_vws_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        target_details = vws_client.get_target_record(target_id=target_id)
 
         expected_keys = {
             'status',
@@ -186,8 +182,7 @@ class TestTargetSummary:
 
         assert response.json().keys() == expected_keys
 
-        target_record = get_target_response.json()['target_record']
-        tracking_rating = target_record['tracking_rating']
+        tracking_rating = target_details.target_record.tracking_rating
         assert response.json()['tracking_rating'] == tracking_rating
         assert response.json()['tracking_rating'] in range(6)
         assert response.json()['status'] == expected_status.value

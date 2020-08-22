@@ -147,30 +147,6 @@ def add_target_to_vws(
     return response
 
 
-def get_vws_target(
-    target_id: str,
-    vuforia_database: VuforiaDatabase,
-) -> Response:
-    """
-    Return a response from a request to the endpoint to get a target record.
-
-    Args:
-        vuforia_database: The credentials to use to connect to Vuforia.
-        target_id: The ID of the target to return a record for.
-
-    Returns:
-        The response returned by the API.
-    """
-    response = _target_api_request(
-        server_access_key=vuforia_database.server_access_key,
-        server_secret_key=vuforia_database.server_secret_key,
-        method=GET,
-        content=b'',
-        request_path='/targets/' + target_id,
-    )
-    return response
-
-
 def _target_api_request(
     server_access_key: str,
     server_secret_key: str,

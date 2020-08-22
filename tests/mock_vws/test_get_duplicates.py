@@ -13,11 +13,10 @@ from requests_mock import GET
 from vws import VWS
 from vws.exceptions import ProjectInactive
 
-from mock_vws._constants import ResultCodes
+from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import (
     add_target_to_vws,
-    get_vws_target,
 )
 from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
@@ -145,12 +144,10 @@ class TestDuplicates:
         vws_client.wait_for_target_processed(target_id=original_target_id)
         vws_client.wait_for_target_processed(target_id=similar_target_id)
 
-        response = get_vws_target(
-            vuforia_database=vuforia_database,
+        target_details = vws_client.get_target_record(
             target_id=original_target_id,
         )
-
-        assert response.json()['status'] == 'failed'
+        assert target_details.status.value == TargetStatuses.FAILED.value
 
         duplicates = vws_client.get_duplicate_targets(
             target_id=original_target_id,
@@ -336,12 +333,11 @@ class TestProcessing:
             target_id=processed_target_id,
         )
 
-        status_response = get_vws_target(
-            vuforia_database=vuforia_database,
+        target_details = vws_client.get_target_record(
             target_id=processing_target_id,
         )
 
-        assert status_response.json()['status'] == 'processing'
+        assert target_details.status.value == TargetStatuses.PROCESSING.value
         assert duplicates == []
 
 

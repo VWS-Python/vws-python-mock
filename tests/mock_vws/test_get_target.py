@@ -11,13 +11,12 @@ from http import HTTPStatus
 
 import pytest
 from vws import VWS
+from vws.reports import TargetRecord
+from vws.exceptions import UnknownTarget
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import (
-    add_target_to_vws,
-    get_vws_target,
-)
+from tests.mock_vws.utils import add_target_to_vws
 from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
     assert_vws_response,
@@ -38,6 +37,10 @@ class TestGetRecord:
         """
         Details of a target are returned.
         """
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
+        )
         image_data = image_file_failed_state.read()
         image_data_encoded = base64.b64encode(image_data).decode('ascii')
 
@@ -58,46 +61,24 @@ class TestGetRecord:
         )
 
         target_id = response.json()['target_id']
-        response = get_vws_target(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
+        target_details = vws_client.get_target_record(target_id=target_id)
+        target_record = target_details.target_record
+        tracking_rating = target_record.tracking_rating
 
-        assert_vws_response(
-            response=response,
-            status_code=HTTPStatus.OK,
-            result_code=ResultCodes.SUCCESS,
-        )
-
-        expected_keys = {
-            'result_code',
-            'transaction_id',
-            'target_record',
-            'status',
-        }
-
-        assert set(response.json().keys()) == expected_keys
-
-        target_record = response.json()['target_record']
-
-        expected_target_record_keys = {
-            'target_id',
-            'active_flag',
-            'name',
-            'width',
-            'tracking_rating',
-            'reco_rating',
-        }
-
-        assert set(target_record.keys()) == expected_target_record_keys
-        assert target_id == target_record['target_id']
-        assert response.json()['status'] == TargetStatuses.PROCESSING.value
-        assert target_record['active_flag'] is False
-        assert target_record['name'] == name
-        assert target_record['width'] == width
         # Tracking rating may be -1 while processing.
-        assert target_record['tracking_rating'] in range(-1, 6)
-        assert target_record['reco_rating'] == ''
+        assert tracking_rating in range(-1, 6)
+        target_id = target_record.target_id
+
+        expected_target_record = TargetRecord(
+            target_id=target_id,
+            active_flag=False,
+            name=name,
+            width=width,
+            tracking_rating=tracking_rating,
+            reco_rating='',
+        )
+
+        assert target_record == expected_target_record
 
     def test_active_flag_not_set(
         self,
@@ -107,6 +88,10 @@ class TestGetRecord:
         """
         The active flag defaults to True if it is not set.
         """
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
+        )
         image_data = image_file_failed_state.read()
         image_data_encoded = base64.b64encode(image_data).decode('ascii')
 
@@ -122,13 +107,8 @@ class TestGetRecord:
         )
 
         target_id = response.json()['target_id']
-        response = get_vws_target(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
-
-        target_record = response.json()['target_record']
-        assert target_record['active_flag'] is True
+        target_details = vws_client.get_target_record(target_id=target_id)
+        assert target_details.target_record.active_flag is True
 
     def test_active_flag_set_to_none(
         self,
@@ -138,6 +118,10 @@ class TestGetRecord:
         """
         The active flag defaults to True if it is set to NULL.
         """
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
+        )
         image_data = image_file_failed_state.read()
         image_data_encoded = base64.b64encode(image_data).decode('ascii')
 
@@ -154,13 +138,8 @@ class TestGetRecord:
         )
 
         target_id = response.json()['target_id']
-        response = get_vws_target(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
-
-        target_record = response.json()['target_record']
-        assert target_record['active_flag'] is True
+        target_details = vws_client.get_target_record(target_id=target_id)
+        assert target_details.target_record.active_flag is True
 
     def test_fail_status(
         self,
@@ -193,14 +172,10 @@ class TestGetRecord:
         )
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        response = get_vws_target(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
-
-        assert response.json()['status'] == TargetStatuses.FAILED.value
+        target_details = vws_client.get_target_record(target_id=target_id)
+        assert target_details.status.value == TargetStatuses.FAILED.value
         # Tracking rating is 0 when status is 'failed'
-        assert response.json()['target_record']['tracking_rating'] == 0
+        assert target_details.target_record.tracking_rating == 0
 
     def test_success_status(
         self,
@@ -237,23 +212,15 @@ class TestGetRecord:
         )
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        response = get_vws_target(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
-
-        assert response.json()['status'] == TargetStatuses.SUCCESS.value
+        target_details = vws_client.get_target_record(target_id=target_id)
+        assert target_details.status.value == TargetStatuses.SUCCESS.value
         # Tracking rating is between 0 and 5 when status is 'success'
-        tracking_rating = response.json()['target_record']['tracking_rating']
+        tracking_rating = target_details.target_record.tracking_rating
         assert tracking_rating in range(6)
 
         # The tracking rating stays stable across requests
-        response = get_vws_target(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
-        new_target_record = response.json()['target_record']
-        new_tracking_rating = new_target_record['tracking_rating']
+        target_details = vws_client.get_target_record(target_id=target_id)
+        new_tracking_rating = target_details.target_record.tracking_rating
         assert new_tracking_rating == tracking_rating
 
 
@@ -270,13 +237,10 @@ class TestInactiveProject:
         """
         The project's active state does not affect getting a target.
         """
-        response = get_vws_target(
-            target_id=uuid.uuid4().hex,
-            vuforia_database=inactive_database,
+        vws_client = VWS(
+            server_access_key=inactive_database.server_access_key,
+            server_secret_key=inactive_database.server_secret_key,
         )
 
-        assert_vws_failure(
-            response=response,
-            status_code=HTTPStatus.NOT_FOUND,
-            result_code=ResultCodes.UNKNOWN_TARGET,
-        )
+        with pytest.raises(UnknownTarget):
+            vws_client.get_target_record(target_id=uuid.uuid4().hex)

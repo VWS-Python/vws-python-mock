@@ -6,13 +6,10 @@ from http import HTTPStatus
 
 import pytest
 from vws import VWS
-from vws.exceptions import TargetStatusProcessing, ProjectInactive
+from vws.exceptions import TargetStatusProcessing, ProjectInactive, UnknownTarget
 
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import (
-    get_vws_target,
-)
 from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
     assert_vws_response,
@@ -67,16 +64,8 @@ class TestDelete:
         vws_client.wait_for_target_processed(target_id=target_id)
         vws_client.delete_target(target_id=target_id)
 
-        response = get_vws_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
-
-        assert_vws_failure(
-            response=response,
-            status_code=HTTPStatus.NOT_FOUND,
-            result_code=ResultCodes.UNKNOWN_TARGET,
-        )
+        with pytest.raises(UnknownTarget):
+            vws_client.get_target_record(target_id=target_id)
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')

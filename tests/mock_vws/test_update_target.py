@@ -15,7 +15,6 @@ from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import (
     add_target_to_vws,
-    get_vws_target,
     make_image_file,
     update_target,
 )
@@ -148,22 +147,14 @@ class TestUpdate:
 
         assert response.json().keys() == {'result_code', 'transaction_id'}
 
-        response = get_vws_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
-
+        target_details = vws_client.get_target_record(target_id=target_id)
         # Targets go back to processing after being updated.
-        assert response.json()['status'] == TargetStatuses.PROCESSING.value
+        assert target_details.status.value == TargetStatuses.PROCESSING.value
 
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        response = get_vws_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
-
-        assert response.json()['status'] == TargetStatuses.SUCCESS.value
+        target_details = vws_client.get_target_record(target_id=target_id)
+        assert target_details.status.value == TargetStatuses.SUCCESS.value
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -225,12 +216,8 @@ class TestWidth:
         )
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        response = get_vws_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
-
-        original_width = response.json()['target_record']['width']
+        target_details = vws_client.get_target_record(target_id=target_id)
+        original_width = target_details.target_record.width
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -244,14 +231,8 @@ class TestWidth:
             result_code=ResultCodes.FAIL,
         )
 
-        response = get_vws_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
-
-        new_width = response.json()['target_record']['width']
-
-        assert new_width == original_width
+        target_details = vws_client.get_target_record(target_id=target_id)
+        assert target_details.target_record.width == original_width
 
     def test_width_valid(
         self,
@@ -281,13 +262,8 @@ class TestWidth:
             result_code=ResultCodes.SUCCESS,
         )
 
-        response = get_vws_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
-
-        new_width = response.json()['target_record']['width']
-        assert new_width == width
+        target_details = vws_client.get_target_record(target_id=target_id)
+        assert target_details.target_record.width == width
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -343,13 +319,8 @@ class TestActiveFlag:
             result_code=ResultCodes.SUCCESS,
         )
 
-        response = get_vws_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
-
-        new_flag = response.json()['target_record']['active_flag']
-        assert new_flag == desired_active_flag
+        target_details = vws_client.get_target_record(target_id=target_id)
+        assert target_details.target_record.active_flag == desired_active_flag
 
     @pytest.mark.parametrize('desired_active_flag', ['string', None])
     def test_invalid(
@@ -591,12 +562,8 @@ class TestTargetName:
             result_code=ResultCodes.SUCCESS,
         )
 
-        response = get_vws_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
-
-        assert response.json()['target_record']['name'] == name
+        target_details = vws_client.get_target_record(target_id=target_id)
+        assert target_details.target_record.name == name
 
     @pytest.mark.parametrize(
         'name,status_code,result_code',
@@ -762,12 +729,8 @@ class TestTargetName:
             result_code=ResultCodes.SUCCESS,
         )
 
-        response = get_vws_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
-
-        assert response.json()['target_record']['name'] == name
+        target_details = vws_client.get_target_record(target_id=target_id)
+        assert target_details.target_record.name == name
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -1109,15 +1072,10 @@ class TestImage:
         )
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        get_response = get_vws_target(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
-
-        assert get_response.json()['status'] == TargetStatuses.SUCCESS.value
+        target_details = vws_client.get_target_record(target_id=target_id)
+        assert target_details.status.value == TargetStatuses.SUCCESS.value
         # Tracking rating is between 0 and 5 when status is 'success'
-        original_target_record = get_response.json()['target_record']
-        original_tracking_rating = original_target_record['tracking_rating']
+        original_tracking_rating = target_details.target_record.tracking_rating
         assert original_tracking_rating in range(6)
 
         update_target(
@@ -1127,15 +1085,10 @@ class TestImage:
         )
 
         vws_client.wait_for_target_processed(target_id=target_id)
-        get_response = get_vws_target(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
-
-        assert get_response.json()['status'] == TargetStatuses.SUCCESS.value
+        target_details = vws_client.get_target_record(target_id=target_id)
+        assert target_details.status.value == TargetStatuses.SUCCESS.value
         # Tracking rating is between 0 and 5 when status is 'success'
-        new_target_record = get_response.json()['target_record']
-        new_tracking_rating = new_target_record['tracking_rating']
+        new_tracking_rating = target_details.target_record.tracking_rating
         assert new_tracking_rating in range(6)
 
         assert original_tracking_rating != new_tracking_rating

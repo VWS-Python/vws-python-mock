@@ -14,13 +14,13 @@ import requests
 from requests_mock import DELETE, GET, POST, PUT
 from urllib3.filepost import encode_multipart_formdata
 from vws import VWS
+from vws_auth_tools import rfc_1123_date
 
 from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import (
     Endpoint,
     VuforiaDatabase,
     authorization_header,
-    rfc_1123_date,
 )
 
 VWS_HOST = 'https://vws.vuforia.com'

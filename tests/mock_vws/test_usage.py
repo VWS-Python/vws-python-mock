@@ -22,7 +22,6 @@ from mock_vws.states import States
 from tests.mock_vws.utils import (
     VuforiaDatabase,
     add_target_to_vws,
-    get_vws_target,
     query,
     rfc_1123_date,
 )
@@ -113,6 +112,10 @@ class TestProcessingTime:
         }
 
         database = VuforiaDatabase()
+        vws_client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
         with MockVWS() as mock:
             mock.add_database(database=database)
             response = add_target_to_vws(
@@ -125,13 +128,12 @@ class TestProcessingTime:
             start_time = datetime.now()
 
             while True:
-                response = get_vws_target(
-                    vuforia_database=database,
+                target_details = vws_client.get_target_record(
                     target_id=target_id,
                 )
 
-                status = response.json()['status']
-                if status != TargetStatuses.PROCESSING.value:
+                status = target_details.status
+                if status.value != TargetStatuses.PROCESSING.value:
                     elapsed_time = datetime.now() - start_time
                     # There is a race condition in this test - if it starts to
                     # fail, maybe extend the acceptable range.
@@ -153,6 +155,10 @@ class TestProcessingTime:
         }
 
         database = VuforiaDatabase()
+        vws_client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
         with MockVWS(processing_time_seconds=0.1) as mock:
             mock.add_database(database=database)
             response = add_target_to_vws(
@@ -165,13 +171,12 @@ class TestProcessingTime:
             start_time = datetime.now()
 
             while True:
-                response = get_vws_target(
-                    vuforia_database=database,
+                target_details = vws_client.get_target_record(
                     target_id=target_id,
                 )
 
-                status = response.json()['status']
-                if status != TargetStatuses.PROCESSING.value:
+                status = target_details.status
+                if status.value != TargetStatuses.PROCESSING.value:
                     elapsed_time = datetime.now() - start_time
                     assert elapsed_time < timedelta(seconds=0.15)
                     assert elapsed_time > timedelta(seconds=0.09)
