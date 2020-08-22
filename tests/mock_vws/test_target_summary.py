@@ -15,7 +15,7 @@ from vws.exceptions import UnknownTarget
 
 from mock_vws._constants import TargetStatuses
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import add_target_to_vws, query
+from tests.mock_vws.utils import query
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -45,16 +45,13 @@ class TestTargetSummary:
 
         date_before_add_target = datetime.datetime.now(tz=gmt).date()
 
-        target_response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data={
-                'name': name,
-                'width': 1,
-                'image': image_data_encoded,
-            },
+        target_id = vws_client.add_target(
+            name=name,
+            width=1,
+            image=image_file_failed_state,
+            active_flag=True,
+            application_metadata=None,
         )
-
-        target_id = target_response.json()['target_id']
 
         date_after_add_target = datetime.datetime.now(tz=gmt).date()
 
@@ -106,23 +103,18 @@ class TestTargetSummary:
         is success.
         """
         image_file = request.getfixturevalue(image_fixture_name)
-        image_data = image_file.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
-
-        target_response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data={
-                'name': 'example',
-                'width': 1,
-                'image': image_data_encoded,
-            },
-        )
-
-        target_id = target_response.json()['target_id']
 
         vws_client = VWS(
             server_access_key=vuforia_database.server_access_key,
             server_secret_key=vuforia_database.server_secret_key,
+        )
+
+        target_id = vws_client.add_target(
+            name='example',
+            width=1,
+            image=image_file,
+            active_flag=True,
+            application_metadata=None,
         )
 
         # The tracking rating may change during processing.
@@ -161,20 +153,13 @@ class TestActiveFlag:
             server_access_key=vuforia_database.server_access_key,
             server_secret_key=vuforia_database.server_secret_key,
         )
-        image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
-
-        target_response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data={
-                'name': 'example',
-                'width': 1,
-                'image': image_data_encoded,
-                'active_flag': active_flag,
-            },
+        target_id = vws_client.add_target(
+            name='example',
+            width=1,
+            image=image_file_failed_state,
+            active_flag=active_flag,
+            application_metadata=None,
         )
-
-        target_id = target_response.json()['target_id']
         report = vws_client.get_target_summary_report(target_id=target_id)
         assert report.active_flag == active_flag
 
@@ -193,27 +178,21 @@ class TestRecognitionCounts:
         """
         The recognition counts stay at 0 even after recognitions.
         """
-        image_content = high_quality_image.getvalue()
-        image_data_encoded = base64.b64encode(image_content).decode('ascii')
-
-        target_response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data={
-                'name': 'example',
-                'width': 1,
-                'image': image_data_encoded,
-            },
-        )
-
-        target_id = target_response.json()['target_id']
-
         vws_client = VWS(
             server_access_key=vuforia_database.server_access_key,
             server_secret_key=vuforia_database.server_secret_key,
         )
+        target_id = vws_client.add_target(
+            name='example',
+            width=1,
+            image=high_quality_image,
+            active_flag=True,
+            application_metadata=None,
+        )
 
         vws_client.wait_for_target_processed(target_id=target_id)
 
+        image_content = high_quality_image.getvalue()
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
         query_response = query(
