@@ -7,20 +7,15 @@ https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Service
 import base64
 import io
 import uuid
-from http import HTTPStatus
 
 import pytest
 from vws import VWS
-from vws.reports import TargetRecord
 from vws.exceptions import UnknownTarget
+from vws.reports import TargetRecord
 
-from mock_vws._constants import ResultCodes, TargetStatuses
+from mock_vws._constants import TargetStatuses
 from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import add_target_to_vws
-from tests.mock_vws.utils.assertions import (
-    assert_vws_failure,
-    assert_vws_response,
-)
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')

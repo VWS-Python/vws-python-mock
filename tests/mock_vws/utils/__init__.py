@@ -7,20 +7,17 @@ import json
 import logging
 import random
 from http import HTTPStatus
-from time import sleep
 from typing import Any, Dict
 from urllib.parse import urljoin
 
 import requests
-import timeout_decorator
 from PIL import Image
 from requests import Response
-from requests_mock import DELETE, GET, POST, PUT
+from requests_mock import GET, POST, PUT
 from urllib3.filepost import encode_multipart_formdata
-from vws import VWS
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from mock_vws._constants import ResultCodes, TargetStatuses
+from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
 
 LOGGER = logging.getLogger(__name__)

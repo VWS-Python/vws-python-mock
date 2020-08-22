@@ -14,10 +14,7 @@ from vws import VWS
 
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import (
-    add_target_to_vws,
-    make_image_file,
-)
+from tests.mock_vws.utils import add_target_to_vws, make_image_file
 from tests.mock_vws.utils.assertions import (
     assert_valid_date_header,
     assert_vws_failure,

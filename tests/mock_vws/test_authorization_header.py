@@ -257,7 +257,6 @@ class TestBadKey:
         with pytest.raises(AuthenticationFailure):
             vws_client.get_target_record(target_id=uuid.uuid4().hex)
 
-
     def test_bad_secret_key_query(
         self,
         vuforia_database: VuforiaDatabase,

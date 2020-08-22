@@ -5,7 +5,6 @@ Choose which backends to use for the tests.
 import logging
 import os
 from enum import Enum
-from http import HTTPStatus
 from typing import Generator
 
 import pytest
@@ -13,13 +12,9 @@ from _pytest.fixtures import SubRequest
 from vws import VWS
 
 from mock_vws import MockVWS
-from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
-from tests.mock_vws.utils import (
-    update_target,
-)
-from tests.mock_vws.utils.assertions import assert_vws_response
+from tests.mock_vws.utils import update_target
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)

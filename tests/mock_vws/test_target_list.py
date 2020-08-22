@@ -2,14 +2,10 @@
 Tests for the mock of the target list endpoint.
 """
 
-from http import HTTPStatus
-
 import pytest
 from vws import VWS
 
-from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils.assertions import assert_vws_response
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')

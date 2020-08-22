@@ -15,11 +15,7 @@ from vws import VWS
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import (
-    add_target_to_vws,
-    query,
-    target_summary,
-)
+from tests.mock_vws.utils import add_target_to_vws, query, target_summary
 from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
     assert_vws_response,

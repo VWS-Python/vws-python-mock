@@ -5,24 +5,14 @@ Tests for the mock of the get duplicates endpoint.
 import base64
 import io
 import uuid
-from http import HTTPStatus
 
 import pytest
-from requests import Response
-from requests_mock import GET
 from vws import VWS
 from vws.exceptions import ProjectInactive
 
-from mock_vws._constants import ResultCodes, TargetStatuses
+from mock_vws._constants import TargetStatuses
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import (
-    add_target_to_vws,
-)
-from tests.mock_vws.utils.assertions import (
-    assert_vws_failure,
-    assert_vws_response,
-)
-
+from tests.mock_vws.utils import add_target_to_vws
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -98,7 +88,6 @@ class TestDuplicates:
         )
 
         assert duplicates == [similar_target_id]
-
 
     def test_status(
         self,

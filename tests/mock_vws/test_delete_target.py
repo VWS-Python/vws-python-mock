@@ -6,14 +6,15 @@ from http import HTTPStatus
 
 import pytest
 from vws import VWS
-from vws.exceptions import TargetStatusProcessing, ProjectInactive, UnknownTarget
+from vws.exceptions import (
+    ProjectInactive,
+    TargetStatusProcessing,
+    UnknownTarget,
+)
 
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils.assertions import (
-    assert_vws_failure,
-    assert_vws_response,
-)
+from tests.mock_vws.utils.assertions import assert_vws_failure
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')

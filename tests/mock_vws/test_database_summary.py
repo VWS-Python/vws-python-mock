@@ -13,13 +13,8 @@ import timeout_decorator
 from vws import VWS
 
 from mock_vws import MockVWS
-from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import (
-    add_target_to_vws,
-    query,
-)
-from tests.mock_vws.utils.assertions import assert_vws_response
+from tests.mock_vws.utils import add_target_to_vws, query
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
