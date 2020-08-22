@@ -2,7 +2,6 @@
 Tests for the mock of the target summary endpoint.
 """
 
-import base64
 import datetime
 import io
 import uuid
@@ -24,10 +23,12 @@ class TestTargetSummary:
     Tests for the target summary endpoint.
     """
 
+    @pytest.mark.parametrize('active_flag', [True, False])
     def test_target_summary(
         self,
         vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
+        active_flag: bool,
     ) -> None:
         """
         A target summary is returned.
@@ -36,20 +37,16 @@ class TestTargetSummary:
             server_access_key=vuforia_database.server_access_key,
             server_secret_key=vuforia_database.server_secret_key,
         )
-        name = 'example target name 1234'
 
-        image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
-
+        name = uuid.uuid4().hex
         gmt = ZoneInfo('GMT')
-
         date_before_add_target = datetime.datetime.now(tz=gmt).date()
 
         target_id = vws_client.add_target(
             name=name,
             width=1,
             image=image_file_failed_state,
-            active_flag=True,
+            active_flag=active_flag,
             application_metadata=None,
         )
 
@@ -59,6 +56,7 @@ class TestTargetSummary:
         assert report.status.value == TargetStatuses.PROCESSING.value
         assert report.database_name == vuforia_database.database_name
         assert report.target_name == name
+        assert report.active_flag == active_flag
 
         # In case the date changes while adding a target
         # we allow the date before and after adding the target.
@@ -131,37 +129,6 @@ class TestTargetSummary:
         assert report.total_recos == 0
         assert report.current_month_recos == 0
         assert report.previous_month_recos == 0
-
-
-@pytest.mark.usefixtures('verify_mock_vuforia')
-class TestActiveFlag:
-    """
-    Tests for the active flag related parts of the summary.
-    """
-
-    @pytest.mark.parametrize('active_flag', [True, False])
-    def test_active_flag(
-        self,
-        vuforia_database: VuforiaDatabase,
-        image_file_failed_state: io.BytesIO,
-        active_flag: bool,
-    ) -> None:
-        """
-        The active flag of the target is returned.
-        """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
-        target_id = vws_client.add_target(
-            name='example',
-            width=1,
-            image=image_file_failed_state,
-            active_flag=active_flag,
-            application_metadata=None,
-        )
-        report = vws_client.get_target_summary_report(target_id=target_id)
-        assert report.active_flag == active_flag
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')

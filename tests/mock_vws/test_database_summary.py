@@ -168,6 +168,7 @@ class TestDatabaseSummary:
             server_access_key=vuforia_database.server_access_key,
             server_secret_key=vuforia_database.server_secret_key,
         )
+
         vws_client.wait_for_target_processed(target_id=target_id)
 
         _wait_for_image_numbers(
