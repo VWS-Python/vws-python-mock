@@ -14,7 +14,6 @@ from vws import VWS
 from mock_vws import MockVWS
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
-from tests.mock_vws.utils import update_target
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -37,14 +36,9 @@ def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
 
     for target in targets:
         vws_client.wait_for_target_processed(target_id=target)
-
         # Even deleted targets can be matched by a query for a few seconds so
         # we change the target to inactive before deleting it.
-        update_target(
-            vuforia_database=database_keys,
-            data={'active_flag': False},
-            target_id=target,
-        )
+        vws_client.update_target(target_id=target, active_flag=False)
         vws_client.wait_for_target_processed(target_id=target)
         vws_client.delete_target(target_id=target)
 
