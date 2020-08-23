@@ -124,12 +124,13 @@ class TestActiveFlag:
     Tests for the effects of the active flag on duplicate matching.
     """
 
-    def test_active_flag_duplicate(
+    def test_active_flag(
         self,
         vuforia_database: VuforiaDatabase,
         high_quality_image: io.BytesIO,
     ) -> None:
         """
+        Targets with `active_flag` set to `False` can have duplicates.
         Targets with `active_flag` set to `False` are not found as duplicates.
 
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API#How-To-Check-for-Duplicate-Targets
@@ -139,90 +140,23 @@ class TestActiveFlag:
         > the Target Manager), then this target is no longer taken into account
         > for the duplicate target check.
         """
-        image_data = high_quality_image.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
-
-        original_data = {
-            'name': str(uuid.uuid4()),
-            'width': 1,
-            'image': image_data_encoded,
-            'active_flag': True,
-        }
-
-        similar_data = {
-            'name': str(uuid.uuid4()),
-            'width': 1,
-            'image': image_data_encoded,
-            'active_flag': False,
-        }
-
-        original_add_resp = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=original_data,
-        )
-
-        similar_add_resp = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=similar_data,
-        )
-
-        original_target_id = original_add_resp.json()['target_id']
-        similar_target_id = similar_add_resp.json()['target_id']
-
         vws_client = VWS(
             server_access_key=vuforia_database.server_access_key,
             server_secret_key=vuforia_database.server_secret_key,
         )
-
-        vws_client.wait_for_target_processed(target_id=original_target_id)
-        vws_client.wait_for_target_processed(target_id=similar_target_id)
-
-        duplicates = vws_client.get_duplicate_targets(
-            target_id=original_target_id,
+        original_target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=high_quality_image,
+            active_flag=False,
+            application_metadata=None,
         )
-
-        assert duplicates == []
-
-    def test_active_flag_original(
-        self,
-        vuforia_database: VuforiaDatabase,
-        high_quality_image: io.BytesIO,
-    ) -> None:
-        """
-        Targets with `active_flag` set to `False` can have duplicates.
-        """
-        image_data = high_quality_image.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
-
-        original_data = {
-            'name': str(uuid.uuid4()),
-            'width': 1,
-            'image': image_data_encoded,
-            'active_flag': False,
-        }
-
-        similar_data = {
-            'name': str(uuid.uuid4()),
-            'width': 1,
-            'image': image_data_encoded,
-            'active_flag': True,
-        }
-
-        original_add_resp = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=original_data,
-        )
-
-        similar_add_resp = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=similar_data,
-        )
-
-        original_target_id = original_add_resp.json()['target_id']
-        similar_target_id = similar_add_resp.json()['target_id']
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
+        similar_target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=high_quality_image,
+            active_flag=True,
+            application_metadata=None,
         )
 
         vws_client.wait_for_target_processed(target_id=original_target_id)
@@ -233,6 +167,12 @@ class TestActiveFlag:
         )
 
         assert duplicates == [similar_target_id]
+
+        duplicates = vws_client.get_duplicate_targets(
+            target_id=similar_target_id,
+        )
+
+        assert duplicates == []
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
