@@ -62,4 +62,6 @@ class TestInactiveProject:
             server_access_key=inactive_database.server_access_key,
             server_secret_key=inactive_database.server_secret_key,
         )
-        assert vws_client.list_targets() == []
+
+        # No exception is raised.
+        vws_client.list_targets()
