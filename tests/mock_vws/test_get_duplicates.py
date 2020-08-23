@@ -2,7 +2,6 @@
 Tests for the mock of the get duplicates endpoint.
 """
 
-import base64
 import io
 import uuid
 
@@ -12,7 +11,6 @@ from vws.exceptions import ProjectInactive
 
 from mock_vws._constants import TargetStatuses
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import add_target_to_vws
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')

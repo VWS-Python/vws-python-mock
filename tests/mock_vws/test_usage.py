@@ -2,7 +2,6 @@
 Tests for the usage of the mock.
 """
 
-import base64
 import email.utils
 import io
 import socket
@@ -20,10 +19,7 @@ from vws_auth_tools import rfc_1123_date
 from mock_vws import MockVWS
 from mock_vws._constants import TargetStatuses
 from mock_vws.states import States
-from tests.mock_vws.utils import (
-    VuforiaDatabase,
-    query,
-)
+from tests.mock_vws.utils import VuforiaDatabase, query
 from tests.mock_vws.utils.assertions import assert_query_success
 
 
