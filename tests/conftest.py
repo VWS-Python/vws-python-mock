@@ -6,16 +6,17 @@ import base64
 import binascii
 import io
 import time
+import uuid
 from typing import List, Tuple
 
 import pytest
 from _pytest.fixtures import SubRequest
+from vws import VWS
 
 from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import (
     Endpoint,
     UnexpectedEmptyInternalServerError,
-    add_target_to_vws,
 )
 
 pytest_plugins = [
@@ -70,23 +71,17 @@ def target_id(
 
     The target is one which will have a 'success' status when processed.
     """
-    image_data = image_file_success_state_low_rating.read()
-    image_data_encoded = base64.b64encode(image_data).decode('ascii')
-
-    data = {
-        'name': 'example',
-        'width': 1,
-        'image': image_data_encoded,
-    }
-
-    response = add_target_to_vws(
-        vuforia_database=vuforia_database,
-        data=data,
-        content_type='application/json',
+    vws_client = VWS(
+        server_access_key=vuforia_database.server_access_key,
+        server_secret_key=vuforia_database.server_secret_key,
     )
-
-    new_target_id: str = response.json()['target_id']
-    return new_target_id
+    return vws_client.add_target(
+        name=uuid.uuid4().hex,
+        width=1,
+        image=image_file_success_state_low_rating,
+        active_flag=True,
+        application_metadata=None,
+    )
 
 
 @pytest.fixture(
