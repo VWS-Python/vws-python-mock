@@ -14,10 +14,7 @@ from _pytest.fixtures import SubRequest
 from vws import VWS
 
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import (
-    Endpoint,
-    UnexpectedEmptyInternalServerError,
-)
+from tests.mock_vws.utils import Endpoint, UnexpectedEmptyInternalServerError
 
 pytest_plugins = [
     'tests.mock_vws.fixtures.prepared_requests',
