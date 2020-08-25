@@ -388,6 +388,7 @@ class TestTargetName:
         self,
         image_file_failed_state: io.BytesIO,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         A target can be added with the name of a deleted target.
@@ -408,10 +409,6 @@ class TestTargetName:
 
         target_id = response.json()['target_id']
 
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
         vws_client.delete_target(target_id=target_id)
 

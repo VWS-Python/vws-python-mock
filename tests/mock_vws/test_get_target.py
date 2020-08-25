@@ -26,17 +26,12 @@ class TestGetRecord:
 
     def test_get_vws_target(
         self,
-        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
         Details of a target are returned.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
-
         name = 'my_example_name'
         width = 1234
 
@@ -69,15 +64,12 @@ class TestGetRecord:
     def test_active_flag_not_set(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
         The active flag defaults to True if it is not set.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         image_data = image_file_failed_state.read()
         image_data_encoded = base64.b64encode(image_data).decode('ascii')
 
@@ -99,15 +91,12 @@ class TestGetRecord:
     def test_active_flag_set_to_none(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
         The active flag defaults to True if it is set to NULL.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         image_data = image_file_failed_state.read()
         image_data_encoded = base64.b64encode(image_data).decode('ascii')
 
@@ -130,6 +119,7 @@ class TestGetRecord:
     def test_fail_status(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -152,10 +142,6 @@ class TestGetRecord:
 
         target_id = response.json()['target_id']
 
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
 
         target_details = vws_client.get_target_record(target_id=target_id)
@@ -167,6 +153,7 @@ class TestGetRecord:
         self,
         vuforia_database: VuforiaDatabase,
         image_file_success_state_low_rating: io.BytesIO,
+        vws_client: VWS,
     ) -> None:
         """
         When a random, large enough image is given, the status changes from
@@ -192,10 +179,6 @@ class TestGetRecord:
 
         target_id = response.json()['target_id']
 
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
 
         target_details = vws_client.get_target_record(target_id=target_id)
@@ -218,15 +201,10 @@ class TestInactiveProject:
 
     def test_inactive_project(
         self,
-        inactive_database: VuforiaDatabase,
+        inactive_vws_client: VWS,
     ) -> None:
         """
         The project's active state does not affect getting a target.
         """
-        vws_client = VWS(
-            server_access_key=inactive_database.server_access_key,
-            server_secret_key=inactive_database.server_secret_key,
-        )
-
         with pytest.raises(UnknownTarget):
-            vws_client.get_target_record(target_id=uuid.uuid4().hex)
+            inactive_vws_client.get_target_record(target_id=uuid.uuid4().hex)

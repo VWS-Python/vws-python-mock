@@ -13,7 +13,6 @@ from vws.exceptions import (
 )
 
 from mock_vws._constants import ResultCodes
-from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils.assertions import assert_vws_failure
 
 
@@ -26,7 +25,7 @@ class TestDelete:
     def test_no_wait(
         self,
         target_id: str,
-        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         When attempting to delete a target immediately after creating it, a
@@ -37,10 +36,6 @@ class TestDelete:
         There is a race condition here - if the target goes into a success or
         fail state before the deletion attempt.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         with pytest.raises(TargetStatusProcessing) as exc:
             vws_client.delete_target(target_id=target_id)
 
@@ -53,15 +48,11 @@ class TestDelete:
     def test_processed(
         self,
         target_id: str,
-        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         When a target has finished processing, it can be deleted.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
         vws_client.delete_target(target_id=target_id)
 
@@ -77,18 +68,14 @@ class TestInactiveProject:
 
     def test_inactive_project(
         self,
-        inactive_database: VuforiaDatabase,
+        inactive_vws_client: VWS,
     ) -> None:
         """
         If the project is inactive, a FORBIDDEN response is returned.
         """
         target_id = 'abc12345a'
-        vws_client = VWS(
-            server_access_key=inactive_database.server_access_key,
-            server_secret_key=inactive_database.server_secret_key,
-        )
         with pytest.raises(ProjectInactive) as exc:
-            vws_client.delete_target(target_id=target_id)
+            inactive_vws_client.delete_target(target_id=target_id)
 
         assert_vws_failure(
             response=exc.value.response,

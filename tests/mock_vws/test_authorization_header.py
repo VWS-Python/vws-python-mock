@@ -191,8 +191,10 @@ class TestBadKey:
             server_secret_key=vuforia_database.server_secret_key,
         )
 
-        with pytest.raises(Fail):
+        with pytest.raises(Fail) as exc:
             vws_client.get_target_record(target_id=uuid.uuid4().hex)
+
+        assert exc.value.response.status_code == HTTPStatus.BAD_REQUEST
 
     def test_bad_access_key_query(
         self,

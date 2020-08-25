@@ -5,6 +5,7 @@ Tests for the mock of the database summary endpoint.
 import base64
 import io
 import logging
+import uuid
 from http import HTTPStatus
 from time import sleep
 
@@ -22,7 +23,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 @timeout_decorator.timeout(seconds=500)
 def _wait_for_image_numbers(
-    vuforia_database: VuforiaDatabase,
+    vws_client: VWS,
     active_images: int,
     inactive_images: int,
     failed_images: int,
@@ -40,7 +41,7 @@ def _wait_for_image_numbers(
     no images, and the endpoint adds images with a delay, we will not know.
 
     Args:
-        vuforia_database: The credentials to use to connect to Vuforia.
+        vws_client: The client to use to connect to Vuforia.
         active_images: The expected number of active images.
         inactive_images: The expected number of inactive images.
         failed_images: The expected number of failed images.
@@ -65,10 +66,6 @@ def _wait_for_image_numbers(
     # of calls made to the API, to decrease the likelihood of hitting the
     # request quota.
     sleep_seconds = 0.2
-    vws_client = VWS(
-        server_access_key=vuforia_database.server_access_key,
-        server_secret_key=vuforia_database.server_secret_key,
-    )
 
     for key, value in requirements.items():
         while True:
@@ -99,19 +96,16 @@ class TestDatabaseSummary:
     def test_success(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         It is possible to get a success response.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         report = vws_client.get_database_summary_report()
         assert report.name == vuforia_database.database_name
 
         _wait_for_image_numbers(
-            vuforia_database=vuforia_database,
+            vws_client=vws_client,
             active_images=0,
             inactive_images=0,
             failed_images=0,
@@ -120,20 +114,16 @@ class TestDatabaseSummary:
 
     def test_active_images(
         self,
-        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         target_id: str,
     ) -> None:
         """
         The number of images in the active state is returned.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
 
         _wait_for_image_numbers(
-            vuforia_database=vuforia_database,
+            vws_client=vws_client,
             active_images=1,
             inactive_images=0,
             failed_images=0,
@@ -144,6 +134,7 @@ class TestDatabaseSummary:
         self,
         vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
+        vws_client: VWS,
     ) -> None:
         """
         The number of images with a 'failed' status is returned.
@@ -164,15 +155,10 @@ class TestDatabaseSummary:
 
         target_id = response.json()['target_id']
 
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
-
         vws_client.wait_for_target_processed(target_id=target_id)
 
         _wait_for_image_numbers(
-            vuforia_database=vuforia_database,
+            vws_client=vws_client,
             active_images=0,
             inactive_images=0,
             failed_images=1,
@@ -182,6 +168,7 @@ class TestDatabaseSummary:
     def test_inactive_images(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         image_file_success_state_low_rating: io.BytesIO,
     ) -> None:
         """
@@ -205,14 +192,10 @@ class TestDatabaseSummary:
 
         target_id = response.json()['target_id']
 
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
 
         _wait_for_image_numbers(
-            vuforia_database=vuforia_database,
+            vws_client=vws_client,
             active_images=0,
             inactive_images=1,
             failed_images=0,
@@ -221,37 +204,24 @@ class TestDatabaseSummary:
 
     def test_inactive_failed(
         self,
-        vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
+        vws_client: VWS,
     ) -> None:
         """
         An image with a 'failed' status does not show as inactive.
         """
-        image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
-
-        data = {
-            'name': 'example',
-            'width': 1,
-            'image': image_data_encoded,
-            'active_flag': False,
-        }
-
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
+        target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=image_file_failed_state,
+            active_flag=False,
+            application_metadata=None,
         )
 
-        target_id = response.json()['target_id']
-
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
 
         _wait_for_image_numbers(
-            vuforia_database=vuforia_database,
+            vws_client=vws_client,
             active_images=0,
             inactive_images=0,
             failed_images=1,
@@ -260,37 +230,25 @@ class TestDatabaseSummary:
 
     def test_deleted(
         self,
-        vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
+        vws_client: VWS,
     ) -> None:
         """
         Deleted targets are not shown in the summary.
         """
-        image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
-
-        data = {
-            'name': 'example',
-            'width': 1,
-            'image': image_data_encoded,
-        }
-
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
+        target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=image_file_failed_state,
+            active_flag=True,
+            application_metadata=None,
         )
 
-        target_id = response.json()['target_id']
-
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
         vws_client.delete_target(target_id=target_id)
 
         _wait_for_image_numbers(
-            vuforia_database=vuforia_database,
+            vws_client=vws_client,
             active_images=0,
             inactive_images=0,
             failed_images=0,
@@ -334,8 +292,13 @@ class TestProcessingImages:
                 data=data,
             )
 
+            vws_client = VWS(
+                server_access_key=database.server_access_key,
+                server_secret_key=database.server_secret_key,
+            )
+
             _wait_for_image_numbers(
-                vuforia_database=database,
+                vws_client=vws_client,
                 active_images=0,
                 inactive_images=0,
                 failed_images=0,
@@ -349,16 +312,11 @@ class TestQuotas:
     Tests for quotas and thresholds.
     """
 
-    def test_quotas(self, vuforia_database: VuforiaDatabase) -> None:
+    def test_quotas(self, vws_client: VWS) -> None:
         """
         Quotas are included in the database summary.
         These match the quotas given for a free license.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
-
         report = vws_client.get_database_summary_report()
         assert report.target_quota == 1000
         assert report.request_quota == 100000
@@ -375,6 +333,7 @@ class TestRecos:
         self,
         vuforia_database: VuforiaDatabase,
         high_quality_image: io.BytesIO,
+        vws_client: VWS,
     ) -> None:
         """
         The ``*_recos`` counts seem to be delayed by a significant amount of
@@ -383,10 +342,6 @@ class TestRecos:
         We therefore test that they exist, are integers and do not change
         between quick requests.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         image_content = high_quality_image.getvalue()
         image_data_encoded = base64.b64encode(image_content).decode('ascii')
         data = {
@@ -433,16 +388,12 @@ class TestRequestUsage:
 
     def test_target_request(
         self,
-        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         The ``request_usage`` count does not increase with each request to the
         target API.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         report = vws_client.get_database_summary_report()
         original_request_usage = report.request_usage
 
@@ -453,15 +404,12 @@ class TestRequestUsage:
     def test_bad_target_request(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         The ``request_usage`` count does not increase with each request to the
         target API, even if it is a bad request.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         report = vws_client.get_database_summary_report()
         original_request_usage = report.request_usage
 
@@ -481,14 +429,11 @@ class TestRequestUsage:
         self,
         vuforia_database: VuforiaDatabase,
         high_quality_image: io.BytesIO,
+        vws_client: VWS,
     ) -> None:
         """
         The ``request_usage`` count does not increase with each query.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         report = vws_client.get_database_summary_report()
         original_request_usage = report.request_usage
 
@@ -516,13 +461,9 @@ class TestInactiveProject:
 
     def test_inactive_project(
         self,
-        inactive_database: VuforiaDatabase,
+        inactive_vws_client: VWS,
     ) -> None:
         """
         The project's active state does not affect the database summary.
         """
-        vws_client = VWS(
-            server_access_key=inactive_database.server_access_key,
-            server_secret_key=inactive_database.server_secret_key,
-        )
-        vws_client.get_database_summary_report()
+        inactive_vws_client.get_database_summary_report()

@@ -10,7 +10,6 @@ from vws import VWS
 from vws.exceptions import ProjectInactive
 
 from mock_vws._constants import TargetStatuses
-from mock_vws.database import VuforiaDatabase
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -21,9 +20,9 @@ class TestDuplicates:
 
     def test_duplicates(
         self,
-        vuforia_database: VuforiaDatabase,
         high_quality_image: io.BytesIO,
         image_file_success_state_low_rating: io.BytesIO,
+        vws_client: VWS,
     ) -> None:
         """
         Target IDs of similar targets are returned.
@@ -32,11 +31,6 @@ class TestDuplicates:
         """
         image_data = high_quality_image
         different_image_data = image_file_success_state_low_rating
-
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
 
         original_target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
@@ -74,17 +68,12 @@ class TestDuplicates:
 
     def test_status(
         self,
-        vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
+        vws_client: VWS,
     ) -> None:
         """
         Targets are not duplicates if the status is not 'success'.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
-
         original_target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
             width=1,
@@ -124,8 +113,8 @@ class TestActiveFlag:
 
     def test_active_flag(
         self,
-        vuforia_database: VuforiaDatabase,
         high_quality_image: io.BytesIO,
+        vws_client: VWS,
     ) -> None:
         """
         Targets with `active_flag` set to `False` can have duplicates.
@@ -138,10 +127,6 @@ class TestActiveFlag:
         > the Target Manager), then this target is no longer taken into account
         > for the duplicate target check.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         original_target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
             width=1,
@@ -181,18 +166,13 @@ class TestProcessing:
 
     def test_processing(
         self,
-        vuforia_database: VuforiaDatabase,
         high_quality_image: io.BytesIO,
+        vws_client: VWS,
     ) -> None:
         """
         If a target is in the processing state, it can have duplicates.
         Targets can have duplicates in the processing state.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
-
         processed_target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
             width=1,
@@ -236,14 +216,12 @@ class TestInactiveProject:
 
     def test_inactive_project(
         self,
-        inactive_database: VuforiaDatabase,
+        inactive_vws_client: VWS,
     ) -> None:
         """
         If the project is inactive, a FORBIDDEN response is returned.
         """
-        vws_client = VWS(
-            server_access_key=inactive_database.server_access_key,
-            server_secret_key=inactive_database.server_secret_key,
-        )
         with pytest.raises(ProjectInactive):
-            vws_client.get_duplicate_targets(target_id=uuid.uuid4().hex)
+            inactive_vws_client.get_duplicate_targets(
+                target_id=uuid.uuid4().hex,
+            )

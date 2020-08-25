@@ -89,14 +89,11 @@ def _add_target(
 def _delete_target(
     vuforia_database: VuforiaDatabase,
     target_id: str,
+    vws_client: VWS,
 ) -> Endpoint:
     """
     Return details of the endpoint for deleting a target.
     """
-    vws_client = VWS(
-        server_access_key=vuforia_database.server_access_key,
-        server_secret_key=vuforia_database.server_secret_key,
-    )
     vws_client.wait_for_target_processed(target_id=target_id)
     date = rfc_1123_date()
     request_path = f'/targets/{target_id}'
@@ -187,15 +184,12 @@ def _database_summary(vuforia_database: VuforiaDatabase) -> Endpoint:
 def _get_duplicates(
     vuforia_database: VuforiaDatabase,
     target_id: str,
+    vws_client: VWS,
 ) -> Endpoint:
     """
     Return details of the endpoint for getting potential duplicates of a
     target.
     """
-    vws_client = VWS(
-        server_access_key=vuforia_database.server_access_key,
-        server_secret_key=vuforia_database.server_secret_key,
-    )
     vws_client.wait_for_target_processed(target_id=target_id)
     date = rfc_1123_date()
     request_path = f'/duplicates/{target_id}'
@@ -242,14 +236,11 @@ def _get_duplicates(
 def _get_target(
     vuforia_database: VuforiaDatabase,
     target_id: str,
+    vws_client: VWS,
 ) -> Endpoint:
     """
     Return details of the endpoint for getting details of a target.
     """
-    vws_client = VWS(
-        server_access_key=vuforia_database.server_access_key,
-        server_secret_key=vuforia_database.server_secret_key,
-    )
     vws_client.wait_for_target_processed(target_id=target_id)
     date = rfc_1123_date()
     request_path = f'/targets/{target_id}'
@@ -342,14 +333,11 @@ def _target_list(vuforia_database: VuforiaDatabase) -> Endpoint:
 def _target_summary(
     vuforia_database: VuforiaDatabase,
     target_id: str,
+    vws_client: VWS,
 ) -> Endpoint:
     """
     Return details of the endpoint for getting a summary report of a target.
     """
-    vws_client = VWS(
-        server_access_key=vuforia_database.server_access_key,
-        server_secret_key=vuforia_database.server_secret_key,
-    )
     vws_client.wait_for_target_processed(target_id=target_id)
     date = rfc_1123_date()
     request_path = f'/summary/{target_id}'
@@ -396,14 +384,11 @@ def _target_summary(
 def _update_target(
     vuforia_database: VuforiaDatabase,
     target_id: str,
+    vws_client: VWS,
 ) -> Endpoint:
     """
     Return details of the endpoint for updating a target.
     """
-    vws_client = VWS(
-        server_access_key=vuforia_database.server_access_key,
-        server_secret_key=vuforia_database.server_secret_key,
-    )
     vws_client.wait_for_target_processed(target_id=target_id)
     data: Dict[str, Any] = {}
     request_path = f'/targets/{target_id}'
