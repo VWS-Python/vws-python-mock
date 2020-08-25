@@ -447,8 +447,7 @@ class TestIncorrectFields:
         """
         If an image is not given, a ``BAD_REQUEST`` response is returned.
         """
-        body = {}
-        response = query(vuforia_database=vuforia_database, body=body)
+        response = query(vuforia_database=vuforia_database, body={})
 
         assert response.text == 'No image.'
         assert_vwq_failure(
