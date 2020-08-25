@@ -36,26 +36,17 @@ class TestGetRecord:
             server_access_key=vuforia_database.server_access_key,
             server_secret_key=vuforia_database.server_secret_key,
         )
-        image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
 
         name = 'my_example_name'
         width = 1234
 
-        data = {
-            'name': name,
-            'width': width,
-            'image': image_data_encoded,
-            'active_flag': False,
-        }
-
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
-            content_type='application/json',
+        target_id = vws_client.add_target(
+            name=name,
+            width=width,
+            image=image_file_failed_state,
+            active_flag=False,
+            application_metadata=None,
         )
-
-        target_id = response.json()['target_id']
         target_details = vws_client.get_target_record(target_id=target_id)
         target_record = target_details.target_record
         tracking_rating = target_record.tracking_rating
