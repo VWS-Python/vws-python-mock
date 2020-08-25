@@ -9,6 +9,7 @@ import calendar
 import datetime
 import io
 import time
+import uuid
 from http import HTTPStatus
 from typing import Any, Dict, Union
 from urllib.parse import urljoin
@@ -347,21 +348,17 @@ class TestSuccess:
         If the exact image that was added is queried for, target data is shown.
         """
         image_content = high_quality_image.getvalue()
-        image_data_encoded = base64.b64encode(image_content).decode('ascii')
         metadata_encoded = base64.b64encode(b'example').decode('ascii')
         name = 'example_name'
-        add_target_data = {
-            'name': name,
-            'width': 1,
-            'image': image_data_encoded,
-            'application_metadata': metadata_encoded,
-        }
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=add_target_data,
+
+        target_id = vws_client.add_target(
+            name=name,
+            width=1,
+            image=high_quality_image,
+            active_flag=True,
+            application_metadata=metadata_encoded,
         )
 
-        target_id = response.json()['target_id']
         approximate_target_created = calendar.timegm(time.gmtime())
 
         vws_client.wait_for_target_processed(target_id=target_id)
@@ -410,20 +407,15 @@ class TestSuccess:
           padded, then decoded, then encoded.
         """
         image_content = high_quality_image.getvalue()
-        image_data_encoded = base64.b64encode(image_content).decode('ascii')
         name = 'example_name'
-        add_target_data = {
-            'name': name,
-            'width': 1,
-            'image': image_data_encoded,
-            'application_metadata': not_base64_encoded_processable,
-        }
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=add_target_data,
-        )
 
-        target_id = response.json()['target_id']
+        target_id = vws_client.add_target(
+            name=name,
+            width=1,
+            image=high_quality_image,
+            active_flag=True,
+            application_metadata=not_base64_encoded_processable,
+        )
 
         vws_client.wait_for_target_processed(target_id=target_id)
 
@@ -545,22 +537,23 @@ class TestMaxNumResults:
         The default ``max_num_results`` is 1.
         """
         image_content = high_quality_image.getvalue()
-        image_data_encoded = base64.b64encode(image_content).decode('ascii')
-        for name in ('example_1', 'example_2'):
-            add_target_data = {
-                'name': name,
-                'width': 1,
-                'image': image_data_encoded,
-            }
 
-            response = add_target_to_vws(
-                vuforia_database=vuforia_database,
-                data=add_target_data,
-            )
-
-            target_id = response.json()['target_id']
-
-            vws_client.wait_for_target_processed(target_id=target_id)
+        target_id_1 = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=high_quality_image,
+            active_flag=True,
+            application_metadata=None,
+        )
+        target_id_2 = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=high_quality_image,
+            active_flag=True,
+            application_metadata=None,
+        )
+        vws_client.wait_for_target_processed(target_id=target_id_1)
+        vws_client.wait_for_target_processed(target_id=target_id_2)
 
         body = {
             'image': ('image.jpeg', image_content, 'image/jpeg'),
@@ -590,7 +583,7 @@ class TestMaxNumResults:
         This is because uploading 50 images would be very slow.
 
         The documentation at
-        https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query.  # noqa: E501
+        https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query  # noqa: E501
         states that this must be between 1 and 10, but in practice, 50 is the
         maximum.
         """
@@ -618,22 +611,30 @@ class TestMaxNumResults:
         A maximum of ``max_num_results`` results are returned.
         """
         image_content = high_quality_image.getvalue()
-        image_data_encoded = base64.b64encode(image_content).decode('ascii')
-        for name in ('example_1', 'example_2', 'example_3'):
-            add_target_data = {
-                'name': name,
-                'width': 1,
-                'image': image_data_encoded,
-            }
-
-            response = add_target_to_vws(
-                vuforia_database=vuforia_database,
-                data=add_target_data,
-            )
-
-            target_id = response.json()['target_id']
-
-            vws_client.wait_for_target_processed(target_id=target_id)
+        target_id_1 = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=high_quality_image,
+            active_flag=True,
+            application_metadata=None,
+        )
+        target_id_2 = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=high_quality_image,
+            active_flag=True,
+            application_metadata=None,
+        )
+        target_id_3 = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=high_quality_image,
+            active_flag=True,
+            application_metadata=None,
+        )
+        vws_client.wait_for_target_processed(target_id=target_id_1)
+        vws_client.wait_for_target_processed(target_id=target_id_2)
+        vws_client.wait_for_target_processed(target_id=target_id_3)
 
         body = {
             'image': ('image.jpeg', image_content, 'image/jpeg'),
@@ -729,31 +730,28 @@ class TestMaxNumResults:
 @pytest.fixture()
 def add_targets(
     high_quality_image: io.BytesIO,
-    vuforia_database: VuforiaDatabase,
     vws_client: VWS,
 ) -> None:
     """
     Add two targets with the "high_quality_image" fixture contents.
     """
-    image_content = high_quality_image.getvalue()
-    image_data_encoded = base64.b64encode(image_content).decode('ascii')
-    target_ids = set([])
-    for name in ('example_1', 'example_2'):
-        add_target_data = {
-            'name': name,
-            'width': 1,
-            'image': image_data_encoded,
-        }
+    target_id_1 = vws_client.add_target(
+        name=uuid.uuid4().hex,
+        width=1,
+        image=high_quality_image,
+        active_flag=True,
+        application_metadata=None,
+    )
+    target_id_2 = vws_client.add_target(
+        name=uuid.uuid4().hex,
+        width=1,
+        image=high_quality_image,
+        active_flag=True,
+        application_metadata=None,
+    )
 
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=add_target_data,
-        )
-
-        target_ids.add(response.json()['target_id'])
-
-    for target_id in target_ids:
-        vws_client.wait_for_target_processed(target_id=target_id)
+    vws_client.wait_for_target_processed(target_id=target_id_1)
+    vws_client.wait_for_target_processed(target_id=target_id_2)
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia', 'add_targets')
