@@ -10,6 +10,7 @@ from typing import Generator
 import pytest
 from _pytest.fixtures import SubRequest
 from vws import VWS
+from vws.exceptions import TargetStatusNotSuccess
 
 from mock_vws import MockVWS
 from mock_vws.database import VuforiaDatabase
@@ -38,7 +39,10 @@ def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
         vws_client.wait_for_target_processed(target_id=target)
         # Even deleted targets can be matched by a query for a few seconds so
         # we change the target to inactive before deleting it.
-        vws_client.update_target(target_id=target, active_flag=False)
+        try:
+            vws_client.update_target(target_id=target, active_flag=False)
+        except TargetStatusNotSuccess:
+            pass
         vws_client.wait_for_target_processed(target_id=target)
         vws_client.delete_target(target_id=target)
 
