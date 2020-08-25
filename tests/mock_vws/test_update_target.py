@@ -550,19 +550,7 @@ class TestTargetName:
             server_secret_key=vuforia_database.server_secret_key,
         )
         vws_client.wait_for_target_processed(target_id=target_id)
-
-        response = update_target(
-            vuforia_database=vuforia_database,
-            data={'name': name},
-            target_id=target_id,
-        )
-
-        assert_vws_response(
-            response=response,
-            status_code=HTTPStatus.OK,
-            result_code=ResultCodes.SUCCESS,
-        )
-
+        vws_client.update_target(target_id=target_id, name=name)
         target_details = vws_client.get_target_record(target_id=target_id)
         assert target_details.target_record.name == name
 
