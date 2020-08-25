@@ -43,8 +43,8 @@ def validate_date_format(request_headers: Dict[str, str]) -> None:
     date_format = '%a, %d %b %Y %H:%M:%S GMT'
     try:
         datetime.datetime.strptime(date_header, date_format)
-    except ValueError:
-        raise Fail(status_code=HTTPStatus.BAD_REQUEST)
+    except ValueError as exc:
+        raise Fail(status_code=HTTPStatus.BAD_REQUEST) from exc
 
 
 def validate_date_in_range(request_headers: Dict[str, str]) -> None:

@@ -39,5 +39,5 @@ def validate_json(
 
     try:
         json.loads(request_body.decode())
-    except JSONDecodeError:
-        raise Fail(status_code=HTTPStatus.BAD_REQUEST)
+    except JSONDecodeError as exc:
+        raise Fail(status_code=HTTPStatus.BAD_REQUEST) from exc

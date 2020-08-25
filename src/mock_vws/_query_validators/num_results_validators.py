@@ -43,8 +43,8 @@ def validate_max_num_results(
 
     try:
         max_num_results_int = int(max_num_results)
-    except ValueError:
-        raise InvalidMaxNumResults(given_value=max_num_results)
+    except ValueError as exc:
+        raise InvalidMaxNumResults(given_value=max_num_results) from exc
 
     java_max_int = 2147483647
     if max_num_results_int > java_max_int:
