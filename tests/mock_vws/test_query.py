@@ -1030,20 +1030,13 @@ class TestActiveFlag:
         Images which are not active are not matched.
         """
         image_content = high_quality_image.getvalue()
-        image_data_encoded = base64.b64encode(image_content).decode('ascii')
-        name = 'example_name'
-        add_target_data = {
-            'name': name,
-            'width': 1,
-            'image': image_data_encoded,
-            'active_flag': False,
-        }
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=add_target_data,
+        target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=high_quality_image,
+            active_flag=False,
+            application_metadata=None,
         )
-
-        target_id = response.json()['target_id']
 
         vws_client.wait_for_target_processed(target_id=target_id)
 
@@ -1491,20 +1484,14 @@ class TestProcessing:
         Sometimes an `INTERNAL_SERVER_ERROR` response is returned.
         """
         image_content = high_quality_image.getvalue()
-        image_data_encoded = base64.b64encode(image_content).decode('ascii')
-        name = 'example_name'
-        add_target_data = {
-            'name': name,
-            'width': 1,
-            'image': image_data_encoded,
-            'active_flag': active_flag,
-        }
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=add_target_data,
-        )
 
-        target_id = response.json()['target_id']
+        target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=high_quality_image,
+            active_flag=active_flag,
+            application_metadata=None,
+        )
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
         response = query(
@@ -1568,22 +1555,17 @@ class TestUpdate:
         metadata.
         """
         image_content = high_quality_image.getvalue()
-        image_data_encoded = base64.b64encode(image_content).decode('ascii')
         metadata = b'example_metadata'
         metadata_encoded = base64.b64encode(metadata).decode('ascii')
         name = 'example_name'
-        add_target_data = {
-            'name': name,
-            'width': 1,
-            'image': image_data_encoded,
-            'application_metadata': metadata_encoded,
-        }
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=add_target_data,
+        target_id = vws_client.add_target(
+            name=name,
+            width=1,
+            image=high_quality_image,
+            active_flag=True,
+            application_metadata=metadata_encoded,
         )
 
-        target_id = response.json()['target_id']
         calendar.timegm(time.gmtime())
 
         vws_client.wait_for_target_processed(target_id=target_id)
