@@ -24,11 +24,7 @@ from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import (
-    add_target_to_vws,
-    make_image_file,
-    query,
-)
+from tests.mock_vws.utils import add_target_to_vws, make_image_file, query
 from tests.mock_vws.utils.assertions import (
     assert_query_success,
     assert_valid_date_header,
