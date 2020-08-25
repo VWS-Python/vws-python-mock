@@ -1820,7 +1820,7 @@ class TestInactiveProject:
         image_content = high_quality_image.getvalue()
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
-        response = query(vuforia_database=vuforia_database, body=body)
+        response = query(vuforia_database=inactive_database, body=body)
 
         assert_vwq_failure(
             response=response,
