@@ -1092,7 +1092,6 @@ class TestInactiveProject:
     def test_inactive_project(
         self,
         inactive_database: VuforiaDatabase,
-        high_quality_image: io.BytesIO,
     ) -> None:
         """
         If the project is inactive, a FORBIDDEN response is returned.
