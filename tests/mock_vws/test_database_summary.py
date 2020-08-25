@@ -81,7 +81,7 @@ def _wait_for_image_numbers(
                 )
                 LOGGER.debug(message)
 
-                sleep(sleep_seconds)  # pragma: no cover
+                sleep(sleep_seconds)
 
             # This makes the entire test invalid.
             # However, we have found that without this Vuforia is flaky.
