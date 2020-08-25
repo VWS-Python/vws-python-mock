@@ -26,6 +26,7 @@ class TestTargetSummary:
     @pytest.mark.parametrize('active_flag', [True, False])
     def test_target_summary(
         self,
+        vws_client: VWS,
         vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
         active_flag: bool,
@@ -33,11 +34,6 @@ class TestTargetSummary:
         """
         A target summary is returned.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
-
         name = uuid.uuid4().hex
         gmt = ZoneInfo('GMT')
         date_before_add_target = datetime.datetime.now(tz=gmt).date()
@@ -81,7 +77,7 @@ class TestTargetSummary:
     )
     def test_after_processing(
         self,
-        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         request: SubRequest,
         image_fixture_name: str,
         expected_status: TargetStatuses,
@@ -101,11 +97,6 @@ class TestTargetSummary:
         is success.
         """
         image_file = request.getfixturevalue(image_fixture_name)
-
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
 
         target_id = vws_client.add_target(
             name='example',
@@ -139,16 +130,13 @@ class TestRecognitionCounts:
 
     def test_recognition(
         self,
+        vws_client: VWS,
         vuforia_database: VuforiaDatabase,
         high_quality_image: io.BytesIO,
     ) -> None:
         """
         The recognition counts stay at 0 even after recognitions.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         target_id = vws_client.add_target(
             name='example',
             width=1,
@@ -185,15 +173,12 @@ class TestInactiveProject:
 
     def test_inactive_project(
         self,
-        inactive_database: VuforiaDatabase,
+        inactive_vws_client: VWS,
     ) -> None:
         """
         The project's active state does not affect getting a target.
         """
-        vws_client = VWS(
-            server_access_key=inactive_database.server_access_key,
-            server_secret_key=inactive_database.server_secret_key,
-        )
-
         with pytest.raises(UnknownTarget):
-            vws_client.get_target_summary_report(target_id=uuid.uuid4().hex)
+            inactive_vws_client.get_target_summary_report(
+                target_id=uuid.uuid4().hex,
+            )

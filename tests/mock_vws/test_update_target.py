@@ -44,6 +44,7 @@ class TestUpdate:
     def test_content_types(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         image_file_failed_state: io.BytesIO,
         content_type: str,
     ) -> None:
@@ -51,21 +52,13 @@ class TestUpdate:
         The ``Content-Type`` header does not change the response as long as it
         is not empty.
         """
-        image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
-
-        data = {
-            'name': 'example',
-            'width': 1,
-            'image': image_data_encoded,
-        }
-
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
+        target_id = vws_client.add_target(
+            name='example',
+            width=1,
+            image=image_file_failed_state,
+            active_flag=True,
+            application_metadata=None,
         )
-
-        target_id = response.json()['target_id']
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -84,27 +77,20 @@ class TestUpdate:
     def test_empty_content_type(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
         An ``UNAUTHORIZED`` response is given if an empty ``Content-Type``
         header is given.
         """
-        image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
-
-        data = {
-            'name': 'example',
-            'width': 1,
-            'image': image_data_encoded,
-        }
-
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
+        target_id = vws_client.add_target(
+            name='example',
+            width=1,
+            image=image_file_failed_state,
+            active_flag=True,
+            application_metadata=None,
         )
-
-        target_id = response.json()['target_id']
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -122,16 +108,12 @@ class TestUpdate:
     def test_no_fields_given(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         target_id: str,
     ) -> None:
         """
         No data fields are required.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
-
         vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
@@ -167,15 +149,12 @@ class TestUnexpectedData:
     def test_invalid_extra_data(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         target_id: str,
     ) -> None:
         """
         A `BAD_REQUEST` response is returned when unexpected data is given.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
@@ -205,16 +184,13 @@ class TestWidth:
     def test_width_invalid(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         width: Any,
         target_id: str,
     ) -> None:
         """
         The width must be a number greater than zero.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
 
         target_details = vws_client.get_target_record(target_id=target_id)
@@ -238,15 +214,12 @@ class TestWidth:
     def test_width_valid(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         target_id: str,
     ) -> None:
         """
         Positive numbers are valid widths.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
 
         width = 0.01
@@ -278,6 +251,7 @@ class TestActiveFlag:
     def test_active_flag(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         image_file_success_state_low_rating: io.BytesIO,
         initial_active_flag: bool,
         desired_active_flag: bool,
@@ -302,10 +276,6 @@ class TestActiveFlag:
 
         target_id = response.json()['target_id']
 
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
@@ -590,16 +560,13 @@ class TestTargetName:
         name: str,
         target_id: str,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         status_code: int,
         result_code: ResultCodes,
     ) -> None:
         """
         A target's name must be a string of length 0 < N < 65.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
@@ -618,6 +585,7 @@ class TestTargetName:
         self,
         image_file_success_state_low_rating: io.BytesIO,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         Only one target can have a given name.
@@ -640,11 +608,6 @@ class TestTargetName:
         )
 
         first_target_id = response.json()['target_id']
-
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
 
         other_data = {
             'name': second_target_name,
@@ -678,6 +641,7 @@ class TestTargetName:
         self,
         image_file_success_state_low_rating: io.BytesIO,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         Updating a target with its own name does not give an error.
@@ -700,10 +664,6 @@ class TestTargetName:
 
         target_id = response.json()['target_id']
 
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
@@ -736,6 +696,7 @@ class TestImage:
         vuforia_database: VuforiaDatabase,
         image_files_failed_state: io.BytesIO,
         target_id: str,
+        vws_client: VWS,
     ) -> None:
         """
         JPEG and PNG files in the RGB and greyscale color spaces are allowed.
@@ -744,10 +705,6 @@ class TestImage:
         image_data = image_file.read()
         image_data_encoded = base64.b64encode(image_data).decode('ascii')
 
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
@@ -767,6 +724,7 @@ class TestImage:
         bad_image_file: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         target_id: str,
+        vws_client: VWS,
     ) -> None:
         """
         A `BAD_REQUEST` response is returned if an image which is not a JPEG
@@ -776,10 +734,6 @@ class TestImage:
         image_data = bad_image_file.read()
         image_data_encoded = base64.b64encode(image_data).decode('ascii')
 
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
@@ -796,32 +750,17 @@ class TestImage:
 
     def test_corrupted(
         self,
-        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         corrupted_image_file: io.BytesIO,
         target_id: str,
     ) -> None:
         """
         No error is returned when the given image is corrupted.
         """
-        image_data = corrupted_image_file.getvalue()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
-
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
-
-        response = update_target(
-            vuforia_database=vuforia_database,
-            data={'image': image_data_encoded},
+        vws_client.update_target(
             target_id=target_id,
-        )
-
-        assert_vws_response(
-            response=response,
-            status_code=HTTPStatus.OK,
-            result_code=ResultCodes.SUCCESS,
+            image=corrupted_image_file,
         )
 
     def test_image_too_large(
