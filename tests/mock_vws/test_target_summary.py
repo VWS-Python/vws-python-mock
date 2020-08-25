@@ -11,8 +11,8 @@ from _pytest.fixtures import SubRequest
 from backports.zoneinfo import ZoneInfo
 from vws import VWS
 from vws.exceptions import UnknownTarget
+from vws.reports import TargetStatuses
 
-from mock_vws._constants import TargetStatuses
 from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import query
 
@@ -49,7 +49,7 @@ class TestTargetSummary:
         date_after_add_target = datetime.datetime.now(tz=gmt).date()
 
         report = vws_client.get_target_summary_report(target_id=target_id)
-        assert report.status.value == TargetStatuses.PROCESSING.value
+        assert report.status == TargetStatuses.PROCESSING
         assert report.database_name == vuforia_database.database_name
         assert report.target_name == name
         assert report.active_flag == active_flag
@@ -116,7 +116,7 @@ class TestTargetSummary:
         tracking_rating = target_details.target_record.tracking_rating
         assert report.tracking_rating == tracking_rating
         assert report.tracking_rating in range(6)
-        assert report.status.value == expected_status.value
+        assert report.status == expected_status
         assert report.total_recos == 0
         assert report.current_month_recos == 0
         assert report.previous_month_recos == 0
@@ -159,7 +159,7 @@ class TestRecognitionCounts:
         assert result['target_id'] == target_id
 
         report = vws_client.get_target_summary_report(target_id=target_id)
-        assert report.status.value == TargetStatuses.SUCCESS.value
+        assert report.status == TargetStatuses.SUCCESS
         assert report.total_recos == 0
         assert report.current_month_recos == 0
         assert report.previous_month_recos == 0

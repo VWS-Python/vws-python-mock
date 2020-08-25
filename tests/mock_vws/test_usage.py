@@ -14,10 +14,10 @@ from freezegun import freeze_time
 from requests.exceptions import MissingSchema
 from requests_mock.exceptions import NoMockAddress
 from vws import VWS
+from vws.reports import TargetStatuses
 from vws_auth_tools import rfc_1123_date
 
 from mock_vws import MockVWS
-from mock_vws._constants import TargetStatuses
 from mock_vws.states import States
 from tests.mock_vws.utils import VuforiaDatabase, query
 from tests.mock_vws.utils.assertions import assert_query_success
@@ -120,7 +120,7 @@ class TestProcessingTime:
                 )
 
                 status = target_details.status
-                if status.value != TargetStatuses.PROCESSING.value:
+                if status != TargetStatuses.PROCESSING:
                     elapsed_time = datetime.now() - start_time
                     # There is a race condition in this test - if it starts to
                     # fail, maybe extend the acceptable range.
@@ -155,7 +155,7 @@ class TestProcessingTime:
                 )
 
                 status = target_details.status
-                if status.value != TargetStatuses.PROCESSING.value:
+                if status != TargetStatuses.PROCESSING:
                     elapsed_time = datetime.now() - start_time
                     assert elapsed_time < timedelta(seconds=0.15)
                     assert elapsed_time > timedelta(seconds=0.09)

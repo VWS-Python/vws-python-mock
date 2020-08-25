@@ -8,8 +8,7 @@ import uuid
 import pytest
 from vws import VWS
 from vws.exceptions import ProjectInactive
-
-from mock_vws._constants import TargetStatuses
+from vws.reports import TargetStatuses
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -96,7 +95,7 @@ class TestDuplicates:
         target_details = vws_client.get_target_record(
             target_id=original_target_id,
         )
-        assert target_details.status.value == TargetStatuses.FAILED.value
+        assert target_details.status == TargetStatuses.FAILED
 
         duplicates = vws_client.get_duplicate_targets(
             target_id=original_target_id,
@@ -204,7 +203,7 @@ class TestProcessing:
             target_id=processing_target_id,
         )
 
-        assert target_details.status.value == TargetStatuses.PROCESSING.value
+        assert target_details.status == TargetStatuses.PROCESSING
         assert duplicates == [processed_target_id]
 
 
