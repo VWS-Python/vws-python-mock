@@ -58,16 +58,22 @@ def pytest_collection_modifyitems(items: List[pytest.Function]) -> None:
         item.add_marker(retry_marker)
 
 
-@pytest.fixture()
-def vws_client(vuforia_database: VuforiaDatabase) -> VWS:
+@pytest.fixture(name='vws_client')
+def fixture_vws_client(vuforia_database: VuforiaDatabase) -> VWS:
+    """
+    A client for an active VWS database.
+    """
     return VWS(
         server_access_key=vuforia_database.server_access_key,
         server_secret_key=vuforia_database.server_secret_key,
     )
 
 
-@pytest.fixture()
-def inactive_vws_client(inactive_database: VuforiaDatabase) -> VWS:
+@pytest.fixture(name='inactive_vws_client')
+def fixture_inactive_vws_client(inactive_database: VuforiaDatabase) -> VWS:
+    """
+    A client for an inactive VWS database.
+    """
     return VWS(
         server_access_key=inactive_database.server_access_key,
         server_secret_key=inactive_database.server_secret_key,

@@ -297,16 +297,13 @@ class TestActiveFlag:
     def test_invalid(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         target_id: str,
         desired_active_flag: Union[str, None],
     ) -> None:
         """
         Values which are not Boolean values are not valid active flags.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
@@ -340,47 +337,31 @@ class TestApplicationMetadata:
     )
     def test_base64_encoded(
         self,
-        vuforia_database: VuforiaDatabase,
         target_id: str,
         metadata: bytes,
+        vws_client: VWS,
     ) -> None:
         """
         A base64 encoded string is valid application metadata.
         """
         metadata_encoded = base64.b64encode(metadata).decode('ascii')
-
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
-
-        response = update_target(
-            vuforia_database=vuforia_database,
-            data={'application_metadata': metadata_encoded},
+        vws_client.update_target(
             target_id=target_id,
-        )
-
-        assert_vws_response(
-            response=response,
-            status_code=HTTPStatus.OK,
-            result_code=ResultCodes.SUCCESS,
+            application_metadata=metadata_encoded,
         )
 
     @pytest.mark.parametrize('invalid_metadata', [1, None])
     def test_invalid_type(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         target_id: str,
         invalid_metadata: Union[int, None],
     ) -> None:
         """
         Non-string values cannot be given as valid application metadata.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
@@ -398,6 +379,7 @@ class TestApplicationMetadata:
     def test_not_base64_encoded_processable(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         target_id: str,
         not_base64_encoded_processable: str,
     ) -> None:
@@ -405,10 +387,6 @@ class TestApplicationMetadata:
         Some strings which are not valid base64 encoded strings are allowed as
         application metadata.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
@@ -426,6 +404,7 @@ class TestApplicationMetadata:
     def test_not_base64_encoded_not_processable(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         target_id: str,
         not_base64_encoded_not_processable: str,
     ) -> None:
@@ -433,10 +412,6 @@ class TestApplicationMetadata:
         Some strings which are not valid base64 encoded strings are not allowed
         as application metadata.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
@@ -454,6 +429,7 @@ class TestApplicationMetadata:
     def test_metadata_too_large(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         target_id: str,
     ) -> None:
         """
@@ -462,11 +438,6 @@ class TestApplicationMetadata:
         """
         metadata = b'a' * (self._MAX_METADATA_BYTES + 1)
         metadata_encoded = base64.b64encode(metadata).decode('ascii')
-
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
@@ -506,8 +477,8 @@ class TestTargetName:
     def test_name_valid(
         self,
         name: str,
-        vuforia_database: VuforiaDatabase,
         target_id: str,
+        vws_client: VWS,
     ) -> None:
         """
         A target's name must be a string of length 0 < N < 65.
@@ -515,10 +486,6 @@ class TestTargetName:
         We test characters out of range in another test as that gives a
         different error.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
         vws_client.update_target(target_id=target_id, name=name)
         target_details = vws_client.get_target_record(target_id=target_id)
@@ -722,7 +689,6 @@ class TestImage:
     def test_bad_image_format_or_color_space(
         self,
         bad_image_file: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
         target_id: str,
         vws_client: VWS,
     ) -> None:
@@ -731,9 +697,6 @@ class TestImage:
         or PNG file is given, or if the given image is not in the greyscale or
         RGB color space.
         """
-        image_data = bad_image_file.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
-
         vws_client.wait_for_target_processed(target_id=target_id)
         with pytest.raises(BadImage) as exc:
             vws_client.update_target(target_id=target_id, image=bad_image_file)
@@ -760,6 +723,7 @@ class TestImage:
         self,
         vuforia_database: VuforiaDatabase,
         target_id: str,
+        vws_client: VWS,
     ) -> None:
         """
         An `ImageTooLarge` result is returned if the image is above a certain
@@ -774,10 +738,6 @@ class TestImage:
             height=height,
         )
 
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
 
         image_data = png_not_too_large.read()
@@ -842,6 +802,7 @@ class TestImage:
         vuforia_database: VuforiaDatabase,
         target_id: str,
         not_base64_encoded_processable: str,
+        vws_client: VWS,
     ) -> None:
         """
         Some strings which are not valid base64 encoded strings are allowed as
@@ -849,10 +810,6 @@ class TestImage:
         This is because Vuforia treats them as valid base64, but then not a
         valid image.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
@@ -870,6 +827,7 @@ class TestImage:
     def test_not_base64_encoded_not_processable(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         target_id: str,
         not_base64_encoded_not_processable: str,
     ) -> None:
@@ -878,10 +836,6 @@ class TestImage:
         processable by Vuforia, and then when given as an image Vuforia returns
         a "Fail" response.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
@@ -900,6 +854,7 @@ class TestImage:
         self,
         vuforia_database: VuforiaDatabase,
         target_id: str,
+        vws_client: VWS,
     ) -> None:
         """
         If the given image is not an image file then a `BadImage` result is
@@ -908,10 +863,6 @@ class TestImage:
         not_image_data = b'not_image_data'
         image_data_encoded = base64.b64encode(not_image_data).decode('ascii')
 
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
@@ -932,14 +883,11 @@ class TestImage:
         invalid_type_image: Union[int, None],
         target_id: str,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         If the given image is not a string, a `Fail` result is returned.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
@@ -959,6 +907,7 @@ class TestImage:
         image_file_success_state_low_rating: io.BytesIO,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         If the target is updated with an image of different quality, the
@@ -987,10 +936,6 @@ class TestImage:
 
         target_id = add_response.json()['target_id']
 
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
 
         target_details = vws_client.get_target_record(target_id=target_id)
@@ -1023,14 +968,10 @@ class TestInactiveProject:
 
     def test_inactive_project(
         self,
-        inactive_database: VuforiaDatabase,
+        inactive_vws_client: VWS,
     ) -> None:
         """
         If the project is inactive, a FORBIDDEN response is returned.
         """
-        vws_client = VWS(
-            server_access_key=inactive_database.server_access_key,
-            server_secret_key=inactive_database.server_secret_key,
-        )
         with pytest.raises(ProjectInactive):
-            vws_client.update_target(target_id=uuid.uuid4().hex)
+            inactive_vws_client.update_target(target_id=uuid.uuid4().hex)
