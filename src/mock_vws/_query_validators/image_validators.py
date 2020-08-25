@@ -181,5 +181,5 @@ def validate_image_is_image(
 
     try:
         Image.open(image_file)
-    except OSError:
-        raise BadImage
+    except OSError as exc:
+        raise BadImage from exc

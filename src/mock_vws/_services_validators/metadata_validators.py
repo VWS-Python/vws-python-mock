@@ -64,8 +64,8 @@ def validate_metadata_encoding(request_body: bytes) -> None:
 
     try:
         decode_base64(encoded_data=application_metadata)
-    except binascii.Error:
-        raise Fail(status_code=HTTPStatus.UNPROCESSABLE_ENTITY)
+    except binascii.Error as exc:
+        raise Fail(status_code=HTTPStatus.UNPROCESSABLE_ENTITY) from exc
 
 
 def validate_metadata_type(request_body: bytes) -> None:
