@@ -32,7 +32,7 @@ lint: \
 fix-lint:
 	$(MAKE) autoflake
 	$(MAKE) fix-yapf
-	isort --apply .
+	isort .
 
 .PHONY: docs
 docs:
