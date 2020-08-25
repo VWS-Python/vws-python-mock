@@ -5,23 +5,16 @@ Choose which backends to use for the tests.
 import logging
 import os
 from enum import Enum
-from http import HTTPStatus
 from typing import Generator
 
 import pytest
 from _pytest.fixtures import SubRequest
+from vws import VWS
+from vws.exceptions import TargetStatusNotSuccess
 
 from mock_vws import MockVWS
-from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
-from tests.mock_vws.utils import (
-    delete_target,
-    list_targets,
-    update_target,
-    wait_for_target_processed,
-)
-from tests.mock_vws.utils.assertions import assert_vws_response
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -35,40 +28,23 @@ def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
         database_keys: The credentials to the Vuforia target database to delete
             all targets in.
     """
-    response = list_targets(vuforia_database=database_keys)
+    vws_client = VWS(
+        server_access_key=database_keys.server_access_key,
+        server_secret_key=database_keys.server_secret_key,
+    )
 
-    if 'results' not in response.json():  # pragma: no cover
-        message = f'Results not found.\nResponse is: {response.json()}'
-        LOGGER.debug(message)
-
-    targets = response.json()['results']
+    targets = vws_client.list_targets()
 
     for target in targets:
-        wait_for_target_processed(
-            vuforia_database=database_keys,
-            target_id=target,
-        )
-
+        vws_client.wait_for_target_processed(target_id=target)
         # Even deleted targets can be matched by a query for a few seconds so
         # we change the target to inactive before deleting it.
-        update_target(
-            vuforia_database=database_keys,
-            data={'active_flag': False},
-            target_id=target,
-        )
-        wait_for_target_processed(
-            vuforia_database=database_keys,
-            target_id=target,
-        )
-        response = delete_target(
-            vuforia_database=database_keys,
-            target_id=target,
-        )
-        assert_vws_response(
-            response=response,
-            status_code=HTTPStatus.OK,
-            result_code=ResultCodes.SUCCESS,
-        )
+        try:
+            vws_client.update_target(target_id=target, active_flag=False)
+        except TargetStatusNotSuccess:
+            pass
+        vws_client.wait_for_target_processed(target_id=target)
+        vws_client.delete_target(target_id=target)
 
 
 def _enable_use_real_vuforia(

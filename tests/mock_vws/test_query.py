@@ -19,19 +19,12 @@ from backports.zoneinfo import ZoneInfo
 from PIL import Image
 from requests_mock import POST
 from urllib3.filepost import encode_multipart_formdata
+from vws import VWS
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import (
-    add_target_to_vws,
-    delete_target,
-    get_vws_target,
-    make_image_file,
-    query,
-    update_target,
-    wait_for_target_processed,
-)
+from tests.mock_vws.utils import add_target_to_vws, make_image_file, query
 from tests.mock_vws.utils.assertions import (
     assert_query_success,
     assert_valid_date_header,
@@ -347,6 +340,7 @@ class TestSuccess:
         self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         If the exact image that was added is queried for, target data is shown.
@@ -369,10 +363,7 @@ class TestSuccess:
         target_id = response.json()['target_id']
         approximate_target_created = calendar.timegm(time.gmtime())
 
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
@@ -402,6 +393,7 @@ class TestSuccess:
         self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         not_base64_encoded_processable: str,
     ) -> None:
         """
@@ -432,10 +424,7 @@ class TestSuccess:
 
         target_id = response.json()['target_id']
 
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
@@ -549,6 +538,7 @@ class TestMaxNumResults:
         self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         The default ``max_num_results`` is 1.
@@ -569,10 +559,7 @@ class TestMaxNumResults:
 
             target_id = response.json()['target_id']
 
-            wait_for_target_processed(
-                target_id=target_id,
-                vuforia_database=vuforia_database,
-            )
+            vws_client.wait_for_target_processed(target_id=target_id)
 
         body = {
             'image': ('image.jpeg', image_content, 'image/jpeg'),
@@ -624,6 +611,7 @@ class TestMaxNumResults:
         self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         A maximum of ``max_num_results`` results are returned.
@@ -644,10 +632,8 @@ class TestMaxNumResults:
 
             target_id = response.json()['target_id']
 
-            wait_for_target_processed(
-                target_id=target_id,
-                vuforia_database=vuforia_database,
-            )
+            vws_client.wait_for_target_processed(target_id=target_id)
+
         body = {
             'image': ('image.jpeg', image_content, 'image/jpeg'),
             'max_num_results': (None, 2, 'text/plain'),
@@ -743,6 +729,7 @@ class TestMaxNumResults:
 def add_targets(
     high_quality_image: io.BytesIO,
     vuforia_database: VuforiaDatabase,
+    vws_client: VWS,
 ) -> None:
     """
     Add two targets with the "high_quality_image" fixture contents.
@@ -765,10 +752,7 @@ def add_targets(
         target_ids.add(response.json()['target_id'])
 
     for target_id in target_ids:
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia', 'add_targets')
@@ -1040,6 +1024,7 @@ class TestActiveFlag:
         self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         Images which are not active are not matched.
@@ -1060,10 +1045,7 @@ class TestActiveFlag:
 
         target_id = response.json()['target_id']
 
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
         response = query(
@@ -1500,6 +1482,7 @@ class TestProcessing:
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         active_flag: bool,
+        vws_client: VWS,
     ) -> None:
         """
         When a target with a matching image is in the processing state it is
@@ -1542,17 +1525,10 @@ class TestProcessing:
         #
         # If the target is no longer in the processing state here, that is a
         # flaky test that is the test's fault and this must be rethought.
-        get_target_response = get_vws_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
-
-        # Targets go back to processing after being updated.
-        target_status = get_target_response.json()['status']
-        assert target_status == TargetStatuses.PROCESSING.value
+        target_details = vws_client.get_target_record(target_id=target_id)
+        assert target_details.status.value == TargetStatuses.PROCESSING.value
 
         # Sometimes we get a 500 error, sometimes we do not.
-
         if response.status_code == HTTPStatus.OK:  # pragma: no cover
             assert response.json()['results'] == []
             assert_query_success(response=response)
@@ -1584,6 +1560,7 @@ class TestUpdate:
         high_quality_image: io.BytesIO,
         different_high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         After a target is updated, only the new image can be matched.
@@ -1609,23 +1586,13 @@ class TestUpdate:
         target_id = response.json()['target_id']
         calendar.timegm(time.gmtime())
 
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         new_image_content = different_high_quality_image.getvalue()
 
         new_name = name + '2'
         new_metadata = metadata + b'2'
-        new_image_data_encoded = base64.b64encode(new_image_content,
-                                                  ).decode('ascii')
         new_metadata_encoded = base64.b64encode(new_metadata).decode('ascii')
-        update_data = {
-            'name': new_name,
-            'image': new_image_data_encoded,
-            'application_metadata': new_metadata_encoded,
-        }
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
         response = query(
@@ -1637,18 +1604,16 @@ class TestUpdate:
         target_timestamp = target_data['target_timestamp']
         original_target_timestamp = int(target_timestamp)
 
-        update_target(
-            vuforia_database=vuforia_database,
-            data=update_data,
+        vws_client.update_target(
             target_id=target_id,
+            name=new_name,
+            image=different_high_quality_image,
+            application_metadata=new_metadata_encoded,
         )
 
         approximate_target_updated = calendar.timegm(time.gmtime())
 
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         body = {'image': ('image.jpeg', new_image_content, 'image/jpeg')}
         response = query(
@@ -1697,6 +1662,7 @@ class TestDeleted:
         self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         Within approximately 7 seconds of deleting a target, querying for its
@@ -1716,15 +1682,8 @@ class TestDeleted:
 
         target_id = response.json()['target_id']
 
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
-
-        delete_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.delete_target(target_id=target_id)
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
@@ -1755,6 +1714,7 @@ class TestDeleted:
         self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         After waiting approximately 7 seconds (we wait more to be safer), a
@@ -1774,15 +1734,8 @@ class TestDeleted:
 
         target_id = response.json()['target_id']
 
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
-
-        response = delete_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.delete_target(target_id=target_id)
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
@@ -1840,6 +1793,7 @@ class TestDeleted:
         self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         No error is returned when querying for an image of recently deleted,
@@ -1860,15 +1814,8 @@ class TestDeleted:
 
         target_id = response.json()['target_id']
 
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
-
-        delete_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.delete_target(target_id=target_id)
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
@@ -1891,6 +1838,7 @@ class TestTargetStatusFailed:
         self,
         image_file_failed_state: io.BytesIO,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         Targets with the status "failed" are not found in query results.
@@ -1909,10 +1857,7 @@ class TestTargetStatusFailed:
 
         target_id = response.json()['target_id']
 
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 

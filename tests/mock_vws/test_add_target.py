@@ -10,15 +10,11 @@ from typing import Any, Union
 
 import pytest
 from requests import Response
+from vws import VWS
 
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import (
-    add_target_to_vws,
-    delete_target,
-    make_image_file,
-    wait_for_target_processed,
-)
+from tests.mock_vws.utils import add_target_to_vws, make_image_file
 from tests.mock_vws.utils.assertions import (
     assert_valid_date_header,
     assert_vws_failure,
@@ -392,6 +388,7 @@ class TestTargetName:
         self,
         image_file_failed_state: io.BytesIO,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         A target can be added with the name of a deleted target.
@@ -412,15 +409,8 @@ class TestTargetName:
 
         target_id = response.json()['target_id']
 
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
-
-        delete_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.delete_target(target_id=target_id)
 
         response = add_target_to_vws(
             vuforia_database=vuforia_database,

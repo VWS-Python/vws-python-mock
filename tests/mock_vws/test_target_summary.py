@@ -2,29 +2,19 @@
 Tests for the mock of the target summary endpoint.
 """
 
-import base64
 import datetime
 import io
 import uuid
-from http import HTTPStatus
 
 import pytest
 from _pytest.fixtures import SubRequest
 from backports.zoneinfo import ZoneInfo
+from vws import VWS
+from vws.exceptions import UnknownTarget
 
-from mock_vws._constants import ResultCodes, TargetStatuses
+from mock_vws._constants import TargetStatuses
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import (
-    add_target_to_vws,
-    get_vws_target,
-    query,
-    target_summary,
-    wait_for_target_processed,
-)
-from tests.mock_vws.utils.assertions import (
-    assert_vws_failure,
-    assert_vws_response,
-)
+from tests.mock_vws.utils import query
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -33,80 +23,50 @@ class TestTargetSummary:
     Tests for the target summary endpoint.
     """
 
+    @pytest.mark.parametrize('active_flag', [True, False])
     def test_target_summary(
         self,
+        vws_client: VWS,
         vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
+        active_flag: bool,
     ) -> None:
         """
         A target summary is returned.
         """
-        name = 'example target name 1234'
-
-        image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
-
+        name = uuid.uuid4().hex
         gmt = ZoneInfo('GMT')
-
         date_before_add_target = datetime.datetime.now(tz=gmt).date()
 
-        target_response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data={
-                'name': name,
-                'width': 1,
-                'image': image_data_encoded,
-            },
+        target_id = vws_client.add_target(
+            name=name,
+            width=1,
+            image=image_file_failed_state,
+            active_flag=active_flag,
+            application_metadata=None,
         )
-
-        target_id = target_response.json()['target_id']
 
         date_after_add_target = datetime.datetime.now(tz=gmt).date()
 
-        response = target_summary(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
-
-        assert_vws_response(
-            response=response,
-            status_code=HTTPStatus.OK,
-            result_code=ResultCodes.SUCCESS,
-        )
-
-        expected_keys = {
-            'status',
-            'result_code',
-            'transaction_id',
-            'database_name',
-            'target_name',
-            'upload_date',
-            'active_flag',
-            'tracking_rating',
-            'total_recos',
-            'current_month_recos',
-            'previous_month_recos',
-        }
-
-        assert response.json().keys() == expected_keys
-        assert response.json()['status'] == TargetStatuses.PROCESSING.value
-        response_database_name = response.json()['database_name']
-        assert response_database_name == vuforia_database.database_name
-        assert response.json()['target_name'] == name
+        report = vws_client.get_target_summary_report(target_id=target_id)
+        assert report.status.value == TargetStatuses.PROCESSING.value
+        assert report.database_name == vuforia_database.database_name
+        assert report.target_name == name
+        assert report.active_flag == active_flag
 
         # In case the date changes while adding a target
         # we allow the date before and after adding the target.
-        assert response.json()['upload_date'] in (
-            date_before_add_target.strftime('%Y-%m-%d'),
-            date_after_add_target.strftime('%Y-%m-%d'),
+
+        assert report.upload_date in (
+            date_before_add_target,
+            date_after_add_target,
         )
 
         # While processing the tracking rating is -1.
-        assert response.json()['tracking_rating'] == -1
-
-        assert response.json()['total_recos'] == 0
-        assert response.json()['current_month_recos'] == 0
-        assert response.json()['previous_month_recos'] == 0
+        assert report.tracking_rating == -1
+        assert report.total_recos == 0
+        assert report.current_month_recos == 0
+        assert report.previous_month_recos == 0
 
     @pytest.mark.parametrize(
         ['image_fixture_name', 'expected_status'],
@@ -117,7 +77,7 @@ class TestTargetSummary:
     )
     def test_after_processing(
         self,
-        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         request: SubRequest,
         image_fixture_name: str,
         expected_status: TargetStatuses,
@@ -137,98 +97,29 @@ class TestTargetSummary:
         is success.
         """
         image_file = request.getfixturevalue(image_fixture_name)
-        image_data = image_file.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
 
-        target_response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data={
-                'name': 'example',
-                'width': 1,
-                'image': image_data_encoded,
-            },
+        target_id = vws_client.add_target(
+            name='example',
+            width=1,
+            image=image_file,
+            active_flag=True,
+            application_metadata=None,
         )
-
-        target_id = target_response.json()['target_id']
 
         # The tracking rating may change during processing.
         # Therefore we wait until processing ends.
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
-        response = target_summary(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        report = vws_client.get_target_summary_report(target_id=target_id)
+        target_details = vws_client.get_target_record(target_id=target_id)
 
-        get_target_response = get_vws_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
-
-        expected_keys = {
-            'status',
-            'result_code',
-            'transaction_id',
-            'database_name',
-            'target_name',
-            'upload_date',
-            'active_flag',
-            'tracking_rating',
-            'total_recos',
-            'current_month_recos',
-            'previous_month_recos',
-        }
-
-        assert response.json().keys() == expected_keys
-
-        target_record = get_target_response.json()['target_record']
-        tracking_rating = target_record['tracking_rating']
-        assert response.json()['tracking_rating'] == tracking_rating
-        assert response.json()['tracking_rating'] in range(6)
-        assert response.json()['status'] == expected_status.value
-        assert response.json()['total_recos'] == 0
-        assert response.json()['current_month_recos'] == 0
-        assert response.json()['previous_month_recos'] == 0
-
-
-@pytest.mark.usefixtures('verify_mock_vuforia')
-class TestActiveFlag:
-    """
-    Tests for the active flag related parts of the summary.
-    """
-
-    @pytest.mark.parametrize('active_flag', [True, False])
-    def test_active_flag(
-        self,
-        vuforia_database: VuforiaDatabase,
-        image_file_failed_state: io.BytesIO,
-        active_flag: bool,
-    ) -> None:
-        """
-        The active flag of the target is returned.
-        """
-        image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
-
-        target_response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data={
-                'name': 'example',
-                'width': 1,
-                'image': image_data_encoded,
-                'active_flag': active_flag,
-            },
-        )
-
-        target_id = target_response.json()['target_id']
-        response = target_summary(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
-        assert response.json()['active_flag'] == active_flag
+        tracking_rating = target_details.target_record.tracking_rating
+        assert report.tracking_rating == tracking_rating
+        assert report.tracking_rating in range(6)
+        assert report.status.value == expected_status.value
+        assert report.total_recos == 0
+        assert report.current_month_recos == 0
+        assert report.previous_month_recos == 0
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -239,31 +130,24 @@ class TestRecognitionCounts:
 
     def test_recognition(
         self,
+        vws_client: VWS,
         vuforia_database: VuforiaDatabase,
         high_quality_image: io.BytesIO,
     ) -> None:
         """
         The recognition counts stay at 0 even after recognitions.
         """
+        target_id = vws_client.add_target(
+            name='example',
+            width=1,
+            image=high_quality_image,
+            active_flag=True,
+            application_metadata=None,
+        )
+
+        vws_client.wait_for_target_processed(target_id=target_id)
+
         image_content = high_quality_image.getvalue()
-        image_data_encoded = base64.b64encode(image_content).decode('ascii')
-
-        target_response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data={
-                'name': 'example',
-                'width': 1,
-                'image': image_data_encoded,
-            },
-        )
-
-        target_id = target_response.json()['target_id']
-
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
-
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
         query_response = query(
@@ -274,15 +158,11 @@ class TestRecognitionCounts:
         [result] = query_response.json()['results']
         assert result['target_id'] == target_id
 
-        response = target_summary(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
-
-        assert response.json()['status'] == TargetStatuses.SUCCESS.value
-        assert response.json()['total_recos'] == 0
-        assert response.json()['current_month_recos'] == 0
-        assert response.json()['previous_month_recos'] == 0
+        report = vws_client.get_target_summary_report(target_id=target_id)
+        assert report.status.value == TargetStatuses.SUCCESS.value
+        assert report.total_recos == 0
+        assert report.current_month_recos == 0
+        assert report.previous_month_recos == 0
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -293,18 +173,12 @@ class TestInactiveProject:
 
     def test_inactive_project(
         self,
-        inactive_database: VuforiaDatabase,
+        inactive_vws_client: VWS,
     ) -> None:
         """
         The project's active state does not affect getting a target.
         """
-        response = target_summary(
-            target_id=uuid.uuid4().hex,
-            vuforia_database=inactive_database,
-        )
-
-        assert_vws_failure(
-            response=response,
-            status_code=HTTPStatus.NOT_FOUND,
-            result_code=ResultCodes.UNKNOWN_TARGET,
-        )
+        with pytest.raises(UnknownTarget):
+            inactive_vws_client.get_target_summary_report(
+                target_id=uuid.uuid4().hex,
+            )
