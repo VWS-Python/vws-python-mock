@@ -611,30 +611,11 @@ class TestMaxNumResults:
         A maximum of ``max_num_results`` results are returned.
         """
         image_content = high_quality_image.getvalue()
-        target_id_1 = vws_client.add_target(
-            name=uuid.uuid4().hex,
-            width=1,
+        add_and_wait_for_targets(
             image=high_quality_image,
-            active_flag=True,
-            application_metadata=None,
+            vws_client=vws_client,
+            num_targets=3,
         )
-        target_id_2 = vws_client.add_target(
-            name=uuid.uuid4().hex,
-            width=1,
-            image=high_quality_image,
-            active_flag=True,
-            application_metadata=None,
-        )
-        target_id_3 = vws_client.add_target(
-            name=uuid.uuid4().hex,
-            width=1,
-            image=high_quality_image,
-            active_flag=True,
-            application_metadata=None,
-        )
-        vws_client.wait_for_target_processed(target_id=target_id_1)
-        vws_client.wait_for_target_processed(target_id=target_id_2)
-        vws_client.wait_for_target_processed(target_id=target_id_3)
 
         body = {
             'image': ('image.jpeg', image_content, 'image/jpeg'),
@@ -727,34 +708,30 @@ class TestMaxNumResults:
         )
 
 
-@pytest.fixture()
-def add_targets(
-    high_quality_image: io.BytesIO,
+def add_and_wait_for_targets(
+    image: io.BytesIO,
     vws_client: VWS,
+    num_targets: int,
 ) -> None:
     """
-    Add two targets with the "high_quality_image" fixture contents.
+    Add targets with the given image.
     """
-    target_id_1 = vws_client.add_target(
-        name=uuid.uuid4().hex,
-        width=1,
-        image=high_quality_image,
-        active_flag=True,
-        application_metadata=None,
-    )
-    target_id_2 = vws_client.add_target(
-        name=uuid.uuid4().hex,
-        width=1,
-        image=high_quality_image,
-        active_flag=True,
-        application_metadata=None,
-    )
+    target_ids = set([])
+    for _ in range(num_targets):
+        target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=image,
+            active_flag=True,
+            application_metadata=None,
+        )
+        target_ids.add(target_id)
 
-    vws_client.wait_for_target_processed(target_id=target_id_1)
-    vws_client.wait_for_target_processed(target_id=target_id_2)
+    for target_id in target_ids:
+        vws_client.wait_for_target_processed(target_id=target_id)
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia', 'add_targets')
+@pytest.mark.usefixtures('verify_mock_vuforia')
 class TestIncludeTargetData:
     """
     Tests for the ``include_target_data`` parameter.
@@ -763,11 +740,17 @@ class TestIncludeTargetData:
     def test_default(
         self,
         high_quality_image: io.BytesIO,
+        vws_client: VWS,
         vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         The default ``include_target_data`` is 'top'.
         """
+        add_and_wait_for_targets(
+            image=high_quality_image,
+            vws_client=vws_client,
+            num_targets=2,
+        )
         image_content = high_quality_image.getvalue()
         body = {
             'image': ('image.jpeg', image_content, 'image/jpeg'),
@@ -790,11 +773,17 @@ class TestIncludeTargetData:
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         include_target_data: str,
+        vws_client: VWS,
     ) -> None:
         """
         When ``include_target_data`` is set to "top" (case insensitive), only
         the first result includes target data.
         """
+        add_and_wait_for_targets(
+            image=high_quality_image,
+            vws_client=vws_client,
+            num_targets=2,
+        )
         image_content = high_quality_image.getvalue()
         body = {
             'image': ('image.jpeg', image_content, 'image/jpeg'),
@@ -818,11 +807,17 @@ class TestIncludeTargetData:
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         include_target_data: str,
+        vws_client: VWS,
     ) -> None:
         """
         When ``include_target_data`` is set to "none" (case insensitive), no
         results include target data.
         """
+        add_and_wait_for_targets(
+            image=high_quality_image,
+            vws_client=vws_client,
+            num_targets=2,
+        )
         image_content = high_quality_image.getvalue()
         body = {
             'image': ('image.jpeg', image_content, 'image/jpeg'),
@@ -846,11 +841,17 @@ class TestIncludeTargetData:
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         include_target_data: str,
+        vws_client: VWS,
     ) -> None:
         """
         When ``include_target_data`` is set to "all" (case insensitive), all
         results include target data.
         """
+        add_and_wait_for_targets(
+            image=high_quality_image,
+            vws_client=vws_client,
+            num_targets=2,
+        )
         image_content = high_quality_image.getvalue()
         body = {
             'image': ('image.jpeg', image_content, 'image/jpeg'),
