@@ -5,8 +5,6 @@ Tests for the mock of the target list endpoint.
 import pytest
 from vws import VWS
 
-from mock_vws.database import VuforiaDatabase
-
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
 class TestTargetList:
