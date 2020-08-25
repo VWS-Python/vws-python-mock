@@ -14,6 +14,7 @@ from freezegun import freeze_time
 from requests.exceptions import MissingSchema
 from requests_mock.exceptions import NoMockAddress
 from vws import VWS
+from vws.reports import TargetStatuses
 from vws_auth_tools import rfc_1123_date
 
 from mock_vws import MockVWS
