@@ -28,7 +28,6 @@ from tests.mock_vws.utils import (
     add_target_to_vws,
     make_image_file,
     query,
-    update_target,
 )
 from tests.mock_vws.utils.assertions import (
     assert_query_success,
@@ -1621,14 +1620,7 @@ class TestUpdate:
 
         new_name = name + '2'
         new_metadata = metadata + b'2'
-        new_image_data_encoded = base64.b64encode(new_image_content,
-                                                  ).decode('ascii')
         new_metadata_encoded = base64.b64encode(new_metadata).decode('ascii')
-        update_data = {
-            'name': new_name,
-            'image': new_image_data_encoded,
-            'application_metadata': new_metadata_encoded,
-        }
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
         response = query(
@@ -1640,10 +1632,11 @@ class TestUpdate:
         target_timestamp = target_data['target_timestamp']
         original_target_timestamp = int(target_timestamp)
 
-        update_target(
-            vuforia_database=vuforia_database,
-            data=update_data,
+        vws_client.update_target(
             target_id=target_id,
+            name=new_name,
+            image=different_high_quality_image,
+            application_metadata=new_metadata_encoded,
         )
 
         approximate_target_updated = calendar.timegm(time.gmtime())
