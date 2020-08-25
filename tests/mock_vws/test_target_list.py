@@ -11,7 +11,7 @@ from mock_vws.database import VuforiaDatabase
 @pytest.mark.usefixtures('verify_mock_vuforia')
 class TestTargetList:
     """
-    Tests for the mock of the database summary endpoint at `/summary`.
+    Tests for the mock of the target list endpoint at `/targets`.
     """
 
     def test_includes_targets(
