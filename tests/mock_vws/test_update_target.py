@@ -10,7 +10,7 @@ from typing import Any, Union
 
 import pytest
 from vws import VWS
-from vws.exceptions import ProjectInactive
+from vws.exceptions import BadImage, ProjectInactive
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws.database import VuforiaDatabase
@@ -727,7 +727,7 @@ class TestImage:
         vws_client: VWS,
     ) -> None:
         """
-        A `BAD_REQUEST` response is returned if an image which is not a JPEG
+        A `BAD_IMAGE` response is returned if an image which is not a JPEG
         or PNG file is given, or if the given image is not in the greyscale or
         RGB color space.
         """
@@ -735,18 +735,11 @@ class TestImage:
         image_data_encoded = base64.b64encode(image_data).decode('ascii')
 
         vws_client.wait_for_target_processed(target_id=target_id)
+        with pytest.raises(BadImage) as exc:
+            vws_client.update_target(target_id=target_id, image=bad_image_file)
 
-        response = update_target(
-            vuforia_database=vuforia_database,
-            data={'image': image_data_encoded},
-            target_id=target_id,
-        )
-
-        assert_vws_failure(
-            response=response,
-            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
-            result_code=ResultCodes.BAD_IMAGE,
-        )
+        status_code = exc.value.response.status_code
+        assert status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
     def test_corrupted(
         self,
