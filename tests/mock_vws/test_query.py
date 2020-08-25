@@ -1782,20 +1782,13 @@ class TestDeleted:
         inactive target.
         """
         image_content = high_quality_image.getvalue()
-        image_data_encoded = base64.b64encode(image_content).decode('ascii')
-        add_target_data = {
-            'name': 'example_name',
-            'width': 1,
-            'image': image_data_encoded,
-            'active_flag': False,
-        }
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=add_target_data,
+        target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=high_quality_image,
+            active_flag=False,
+            application_metadata=None,
         )
-
-        target_id = response.json()['target_id']
-
         vws_client.wait_for_target_processed(target_id=target_id)
         vws_client.delete_target(target_id=target_id)
 
