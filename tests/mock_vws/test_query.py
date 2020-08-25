@@ -20,9 +20,10 @@ from PIL import Image
 from requests_mock import POST
 from urllib3.filepost import encode_multipart_formdata
 from vws import VWS
+from vws.reports import TargetStatuses
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from mock_vws._constants import ResultCodes, TargetStatuses
+from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import add_target_to_vws, make_image_file, query
 from tests.mock_vws.utils.assertions import (
@@ -1526,7 +1527,7 @@ class TestProcessing:
         # If the target is no longer in the processing state here, that is a
         # flaky test that is the test's fault and this must be rethought.
         target_details = vws_client.get_target_record(target_id=target_id)
-        assert target_details.status.value == TargetStatuses.PROCESSING.value
+        assert target_details.status == TargetStatuses.PROCESSING
 
         # Sometimes we get a 500 error, sometimes we do not.
         if response.status_code == HTTPStatus.OK:  # pragma: no cover

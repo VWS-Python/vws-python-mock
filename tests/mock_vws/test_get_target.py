@@ -11,9 +11,8 @@ import uuid
 import pytest
 from vws import VWS
 from vws.exceptions import UnknownTarget
-from vws.reports import TargetRecord
+from vws.reports import TargetRecord, TargetStatuses
 
-from mock_vws._constants import TargetStatuses
 from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import add_target_to_vws
 
@@ -145,7 +144,7 @@ class TestGetRecord:
         vws_client.wait_for_target_processed(target_id=target_id)
 
         target_details = vws_client.get_target_record(target_id=target_id)
-        assert target_details.status.value == TargetStatuses.FAILED.value
+        assert target_details.status == TargetStatuses.FAILED
         # Tracking rating is 0 when status is 'failed'
         assert target_details.target_record.tracking_rating == 0
 
@@ -182,7 +181,7 @@ class TestGetRecord:
         vws_client.wait_for_target_processed(target_id=target_id)
 
         target_details = vws_client.get_target_record(target_id=target_id)
-        assert target_details.status.value == TargetStatuses.SUCCESS.value
+        assert target_details.status == TargetStatuses.SUCCESS
         # Tracking rating is between 0 and 5 when status is 'success'
         tracking_rating = target_details.target_record.tracking_rating
         assert tracking_rating in range(6)

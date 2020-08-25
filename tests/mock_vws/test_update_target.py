@@ -11,8 +11,9 @@ from typing import Any, Union
 import pytest
 from vws import VWS
 from vws.exceptions import BadImage, ProjectInactive
+from vws.reports import TargetStatuses
 
-from mock_vws._constants import ResultCodes, TargetStatuses
+from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import (
     add_target_to_vws,
@@ -132,12 +133,12 @@ class TestUpdate:
 
         target_details = vws_client.get_target_record(target_id=target_id)
         # Targets go back to processing after being updated.
-        assert target_details.status.value == TargetStatuses.PROCESSING.value
+        assert target_details.status == TargetStatuses.PROCESSING
 
         vws_client.wait_for_target_processed(target_id=target_id)
 
         target_details = vws_client.get_target_record(target_id=target_id)
-        assert target_details.status.value == TargetStatuses.SUCCESS.value
+        assert target_details.status == TargetStatuses.SUCCESS
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -939,7 +940,7 @@ class TestImage:
         vws_client.wait_for_target_processed(target_id=target_id)
 
         target_details = vws_client.get_target_record(target_id=target_id)
-        assert target_details.status.value == TargetStatuses.SUCCESS.value
+        assert target_details.status == TargetStatuses.SUCCESS
         # Tracking rating is between 0 and 5 when status is 'success'
         original_tracking_rating = target_details.target_record.tracking_rating
         assert original_tracking_rating in range(6)
@@ -952,7 +953,7 @@ class TestImage:
 
         vws_client.wait_for_target_processed(target_id=target_id)
         target_details = vws_client.get_target_record(target_id=target_id)
-        assert target_details.status.value == TargetStatuses.SUCCESS.value
+        assert target_details.status == TargetStatuses.SUCCESS
         # Tracking rating is between 0 and 5 when status is 'success'
         new_tracking_rating = target_details.target_record.tracking_rating
         assert new_tracking_rating in range(6)
