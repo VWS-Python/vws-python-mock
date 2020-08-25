@@ -16,30 +16,22 @@ class TestTargetList:
 
     def test_includes_targets(
         self,
-        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         target_id: str,
     ) -> None:
         """
         Targets in the database are returned in the list.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         assert vws_client.list_targets() == [target_id]
 
     def test_deleted(
         self,
-        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         target_id: str,
     ) -> None:
         """
         Deleted targets are not returned in the list.
         """
-        vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-        )
         vws_client.wait_for_target_processed(target_id=target_id)
         vws_client.delete_target(target_id=target_id)
         assert vws_client.list_targets() == []
@@ -53,15 +45,10 @@ class TestInactiveProject:
 
     def test_inactive_project(
         self,
-        inactive_database: VuforiaDatabase,
+        inactive_vws_client: VWS,
     ) -> None:
         """
         The project's active state does not affect the target list.
         """
-        vws_client = VWS(
-            server_access_key=inactive_database.server_access_key,
-            server_secret_key=inactive_database.server_secret_key,
-        )
-
         # No exception is raised.
-        vws_client.list_targets()
+        inactive_vws_client.list_targets()

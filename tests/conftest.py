@@ -59,19 +59,31 @@ def pytest_collection_modifyitems(items: List[pytest.Function]) -> None:
 
 
 @pytest.fixture()
+def vws_client(vuforia_database: VuforiaDatabase) -> VWS:
+    return VWS(
+        server_access_key=vuforia_database.server_access_key,
+        server_secret_key=vuforia_database.server_secret_key,
+    )
+
+
+@pytest.fixture()
+def inactive_vws_client(inactive_database: VuforiaDatabase) -> VWS:
+    return VWS(
+        server_access_key=inactive_database.server_access_key,
+        server_secret_key=inactive_database.server_secret_key,
+    )
+
+
+@pytest.fixture()
 def target_id(
     image_file_success_state_low_rating: io.BytesIO,
-    vuforia_database: VuforiaDatabase,
+    vws_client: VWS,
 ) -> str:
     """
     Return the target ID of a target in the database.
 
     The target is one which will have a 'success' status when processed.
     """
-    vws_client = VWS(
-        server_access_key=vuforia_database.server_access_key,
-        server_secret_key=vuforia_database.server_secret_key,
-    )
     return vws_client.add_target(
         name=uuid.uuid4().hex,
         width=1,
