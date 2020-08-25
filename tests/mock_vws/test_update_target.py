@@ -10,6 +10,7 @@ from typing import Any, Union
 
 import pytest
 from vws import VWS
+from vws.exceptions import ProjectInactive
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws.database import VuforiaDatabase
@@ -1108,17 +1109,9 @@ class TestInactiveProject:
         """
         If the project is inactive, a FORBIDDEN response is returned.
         """
-        image = high_quality_image.read()
-        image_data_encoded = base64.b64encode(image).decode('ascii')
-
-        response = update_target(
-            vuforia_database=inactive_database,
-            data={'image': image_data_encoded},
-            target_id=uuid.uuid4().hex,
+        vws_client = VWS(
+            server_access_key=inactive_database.server_access_key,
+            server_secret_key=inactive_database.server_secret_key,
         )
-
-        assert_vws_failure(
-            response=response,
-            status_code=HTTPStatus.FORBIDDEN,
-            result_code=ResultCodes.PROJECT_INACTIVE,
-        )
+        with pytest.raises(ProjectInactive):
+            vws_client.update_target(target_id=uuid.uuid4().hex)
