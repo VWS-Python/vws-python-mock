@@ -15,11 +15,7 @@ from vws.reports import TargetStatuses
 
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import (
-    add_target_to_vws,
-    make_image_file,
-    update_target,
-)
+from tests.mock_vws.utils import make_image_file, update_target
 from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
     assert_vws_response,
@@ -549,8 +545,6 @@ class TestTargetName:
         """
         Only one target can have a given name.
         """
-        image_data = image_file_success_state_low_rating.read()
-
         first_target_name = 'example_name'
         second_target_name = 'another_example_name'
 

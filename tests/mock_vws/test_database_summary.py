@@ -2,7 +2,6 @@
 Tests for the mock of the database summary endpoint.
 """
 
-import base64
 import io
 import logging
 import uuid
