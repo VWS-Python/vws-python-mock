@@ -139,21 +139,13 @@ class TestDatabaseSummary:
         """
         The number of images with a 'failed' status is returned.
         """
-        image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
-
-        data = {
-            'name': 'example',
-            'width': 1,
-            'image': image_data_encoded,
-        }
-
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
+        target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=image_file_failed_state,
+            active_flag=True,
+            application_metadata=None,
         )
-
-        target_id = response.json()['target_id']
 
         vws_client.wait_for_target_processed(target_id=target_id)
 
@@ -175,22 +167,13 @@ class TestDatabaseSummary:
         The number of images with a False active_flag and a 'success' status is
         returned.
         """
-        image_data = image_file_success_state_low_rating.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
-
-        data = {
-            'name': 'example',
-            'width': 1,
-            'image': image_data_encoded,
-            'active_flag': False,
-        }
-
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
+        target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=image_file_success_state_low_rating,
+            active_flag=False,
+            application_metadata=None,
         )
-
-        target_id = response.json()['target_id']
 
         vws_client.wait_for_target_processed(target_id=target_id)
 
@@ -274,27 +257,20 @@ class TestProcessingImages:
         """
         The number of images in the processing state is returned.
         """
-        image_data = image_file_success_state_low_rating.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
-
-        data = {
-            'name': 'example',
-            'width': 1,
-            'image': image_data_encoded,
-        }
-
         database = VuforiaDatabase()
+        vws_client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
 
         with MockVWS() as mock:
             mock.add_database(database=database)
-            add_target_to_vws(
-                vuforia_database=database,
-                data=data,
-            )
-
-            vws_client = VWS(
-                server_access_key=database.server_access_key,
-                server_secret_key=database.server_secret_key,
+            vws_client.add_target(
+                name=uuid.uuid4().hex,
+                width=1,
+                image=image_file_success_state_low_rating,
+                active_flag=True,
+                application_metadata=None,
             )
 
             _wait_for_image_numbers(
@@ -343,20 +319,13 @@ class TestRecos:
         between quick requests.
         """
         image_content = high_quality_image.getvalue()
-        image_data_encoded = base64.b64encode(image_content).decode('ascii')
-        data = {
-            'name': 'example',
-            'width': 1,
-            'image': image_data_encoded,
-            'active_flag': True,
-        }
-
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
+        target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=high_quality_image,
+            active_flag=True,
+            application_metadata=None,
         )
-
-        target_id = response.json()['target_id']
         vws_client.wait_for_target_processed(target_id=target_id)
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
