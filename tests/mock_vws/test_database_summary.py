@@ -131,7 +131,6 @@ class TestDatabaseSummary:
 
     def test_failed_images(
         self,
-        vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -158,7 +157,6 @@ class TestDatabaseSummary:
 
     def test_inactive_images(
         self,
-        vuforia_database: VuforiaDatabase,
         vws_client: VWS,
         image_file_success_state_low_rating: io.BytesIO,
     ) -> None:
