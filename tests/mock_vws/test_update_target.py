@@ -260,22 +260,13 @@ class TestActiveFlag:
         """
         Setting the active flag to a Boolean value changes it.
         """
-        image_data = image_file_success_state_low_rating.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
-
-        data = {
-            'name': 'example',
-            'width': 1,
-            'image': image_data_encoded,
-            'active_flag': initial_active_flag,
-        }
-
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
+        target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=image_file_success_state_low_rating,
+            active_flag=initial_active_flag,
+            application_metadata=None,
         )
-
-        target_id = response.json()['target_id']
 
         vws_client.wait_for_target_processed(target_id=target_id)
 
@@ -559,36 +550,25 @@ class TestTargetName:
         Only one target can have a given name.
         """
         image_data = image_file_success_state_low_rating.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
 
         first_target_name = 'example_name'
         second_target_name = 'another_example_name'
 
-        data = {
-            'name': first_target_name,
-            'width': 1,
-            'image': image_data_encoded,
-        }
-
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
+        first_target_id = vws_client.add_target(
+            name=first_target_name,
+            width=1,
+            image=image_file_success_state_low_rating,
+            active_flag=True,
+            application_metadata=None,
         )
 
-        first_target_id = response.json()['target_id']
-
-        other_data = {
-            'name': second_target_name,
-            'width': 1,
-            'image': image_data_encoded,
-        }
-
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=other_data,
+        second_target_id = vws_client.add_target(
+            name=second_target_name,
+            width=1,
+            image=image_file_success_state_low_rating,
+            active_flag=True,
+            application_metadata=None,
         )
-
-        second_target_id = response.json()['target_id']
 
         vws_client.wait_for_target_processed(target_id=first_target_id)
         vws_client.wait_for_target_processed(target_id=second_target_id)
@@ -614,23 +594,15 @@ class TestTargetName:
         """
         Updating a target with its own name does not give an error.
         """
-        image_data = image_file_success_state_low_rating.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
-
         name = 'example'
 
-        data = {
-            'name': name,
-            'width': 1,
-            'image': image_data_encoded,
-        }
-
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
+        target_id = vws_client.add_target(
+            name=name,
+            width=1,
+            image=image_file_success_state_low_rating,
+            active_flag=True,
+            application_metadata=None,
         )
-
-        target_id = response.json()['target_id']
 
         vws_client.wait_for_target_processed(target_id=target_id)
 
@@ -918,24 +890,16 @@ class TestImage:
         The mock randomly assigns a quality and makes sure that the new quality
         is different to the old quality.
         """
-        poor_image = image_file_success_state_low_rating.read()
-        poor_image_data_encoded = base64.b64encode(poor_image).decode('ascii')
-
         good_image = high_quality_image.read()
         good_image_data_encoded = base64.b64encode(good_image).decode('ascii')
 
-        data = {
-            'name': 'example',
-            'width': 1,
-            'image': poor_image_data_encoded,
-        }
-
-        add_response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
+        target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=image_file_success_state_low_rating,
+            active_flag=True,
+            application_metadata=None,
         )
-
-        target_id = add_response.json()['target_id']
 
         vws_client.wait_for_target_processed(target_id=target_id)
 
