@@ -5,9 +5,9 @@ Image validators to use in the mock.
 import binascii
 import io
 import json
+from http import HTTPStatus
 
 from PIL import Image
-from requests import codes
 
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._services_validators.exceptions import (
@@ -131,8 +131,8 @@ def validate_image_is_image(request_body: bytes) -> None:
 
     try:
         Image.open(image_file)
-    except OSError:
-        raise BadImage
+    except OSError as exc:
+        raise BadImage from exc
 
 
 def validate_image_encoding(request_body: bytes) -> None:
@@ -157,8 +157,8 @@ def validate_image_encoding(request_body: bytes) -> None:
 
     try:
         decode_base64(encoded_data=image)
-    except binascii.Error:
-        raise Fail(status_code=codes.UNPROCESSABLE_ENTITY)
+    except binascii.Error as exc:
+        raise Fail(status_code=HTTPStatus.UNPROCESSABLE_ENTITY) from exc
 
 
 def validate_image_data_type(request_body: bytes) -> None:
@@ -184,4 +184,4 @@ def validate_image_data_type(request_body: bytes) -> None:
     if isinstance(image, str):
         return
 
-    raise Fail(status_code=codes.BAD_REQUEST)
+    raise Fail(status_code=HTTPStatus.BAD_REQUEST)

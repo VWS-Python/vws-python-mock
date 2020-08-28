@@ -3,9 +3,8 @@ Exceptions to raise from validators.
 """
 
 import uuid
+from http import HTTPStatus
 from pathlib import Path
-
-from requests import codes
 
 from mock_vws._constants import ResultCodes
 from mock_vws._mock_common import json_dump
@@ -25,7 +24,7 @@ class DateHeaderNotGiven(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.BAD_REQUEST
+        self.status_code = HTTPStatus.BAD_REQUEST
         self.response_text = 'Date header required.'
 
 
@@ -43,7 +42,7 @@ class DateFormatNotValid(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.UNAUTHORIZED
+        self.status_code = HTTPStatus.UNAUTHORIZED
         self.response_text = 'Malformed date header.'
 
 
@@ -62,7 +61,7 @@ class RequestTimeTooSkewed(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.FORBIDDEN
+        self.status_code = HTTPStatus.FORBIDDEN
         body = {
             'transaction_id': uuid.uuid4().hex,
             'result_code': ResultCodes.REQUEST_TIME_TOO_SKEWED.value,
@@ -85,7 +84,7 @@ class BadImage(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.UNPROCESSABLE_ENTITY
+        self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
         transaction_id = uuid.uuid4().hex
         result_code = ResultCodes.BAD_IMAGE.value
 
@@ -114,7 +113,7 @@ class AuthenticationFailure(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.UNAUTHORIZED
+        self.status_code = HTTPStatus.UNAUTHORIZED
         transaction_id = uuid.uuid4().hex
         result_code = ResultCodes.AUTHENTICATION_FAILURE.value
 
@@ -143,7 +142,7 @@ class AuthenticationFailureGoodFormatting(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.UNAUTHORIZED
+        self.status_code = HTTPStatus.UNAUTHORIZED
 
         body = {
             'transaction_id': uuid.uuid4().hex,
@@ -166,7 +165,7 @@ class ImageNotGiven(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.BAD_REQUEST
+        self.status_code = HTTPStatus.BAD_REQUEST
         self.response_text = 'No image.'
 
 
@@ -184,7 +183,7 @@ class AuthHeaderMissing(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.UNAUTHORIZED
+        self.status_code = HTTPStatus.UNAUTHORIZED
         self.response_text = 'Authorization header missing.'
 
 
@@ -202,7 +201,7 @@ class MalformedAuthHeader(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.UNAUTHORIZED
+        self.status_code = HTTPStatus.UNAUTHORIZED
         self.response_text = 'Malformed authorization header.'
 
 
@@ -220,7 +219,7 @@ class UnknownParameters(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.BAD_REQUEST
+        self.status_code = HTTPStatus.BAD_REQUEST
         self.response_text = 'Unknown parameters in the request.'
 
 
@@ -239,7 +238,7 @@ class InactiveProject(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.FORBIDDEN
+        self.status_code = HTTPStatus.FORBIDDEN
         transaction_id = uuid.uuid4().hex
         result_code = ResultCodes.INACTIVE_PROJECT.value
         # The response has an unusual format of separators, so we construct it
@@ -267,7 +266,7 @@ class InvalidMaxNumResults(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.BAD_REQUEST
+        self.status_code = HTTPStatus.BAD_REQUEST
         invalid_value_message = (
             f"Invalid value '{given_value}' in form data part 'max_result'. "
             'Expecting integer value in range from 1 to 50 (inclusive).'
@@ -290,7 +289,7 @@ class MaxNumResultsOutOfRange(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.BAD_REQUEST
+        self.status_code = HTTPStatus.BAD_REQUEST
         integer_out_of_range_message = (
             f'Integer out of range ({given_value}) in form data part '
             "'max_result'. Accepted range is from 1 to 50 (inclusive)."
@@ -313,7 +312,7 @@ class InvalidIncludeTargetData(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.BAD_REQUEST
+        self.status_code = HTTPStatus.BAD_REQUEST
         unexpected_target_data_message = (
             f"Invalid value '{given_value}' in form data part "
             "'include_target_data'. "
@@ -337,7 +336,7 @@ class UnsupportedMediaType(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.UNSUPPORTED_MEDIA_TYPE
+        self.status_code = HTTPStatus.UNSUPPORTED_MEDIA_TYPE
         self.response_text = ''
 
 
@@ -355,7 +354,7 @@ class InvalidAcceptHeader(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.NOT_ACCEPTABLE
+        self.status_code = HTTPStatus.NOT_ACCEPTABLE
         self.response_text = ''
 
 
@@ -373,7 +372,7 @@ class BoundaryNotInBody(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.BAD_REQUEST
+        self.status_code = HTTPStatus.BAD_REQUEST
         self.response_text = (
             'java.lang.RuntimeException: RESTEASY007500: '
             'Could find no Content-Disposition header within part'
@@ -394,7 +393,7 @@ class NoBoundaryFound(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.BAD_REQUEST
+        self.status_code = HTTPStatus.BAD_REQUEST
         self.response_text = (
             'java.io.IOException: RESTEASY007550: '
             'Unable to get boundary for multipart'
@@ -416,7 +415,7 @@ class QueryOutOfBounds(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.INTERNAL_SERVER_ERROR
+        self.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
         resources_dir = Path(__file__).parent / 'resources'
         filename = 'query_out_of_bounds_response.html'
         oops_resp_file = resources_dir / filename
@@ -438,7 +437,7 @@ class ContentLengthHeaderTooLarge(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.GATEWAY_TIMEOUT
+        self.status_code = HTTPStatus.GATEWAY_TIMEOUT
         self.response_text = ''
 
 
@@ -456,5 +455,5 @@ class ContentLengthHeaderNotInt(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.BAD_REQUEST
+        self.status_code = HTTPStatus.BAD_REQUEST
         self.response_text = ''

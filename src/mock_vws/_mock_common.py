@@ -4,15 +4,13 @@ Common utilities for creating mock routes.
 
 # TODO split this up
 
-import cgi
 import email.utils
-import io
 import json
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, FrozenSet, List, Mapping, Tuple, Union
+from http import HTTPStatus
+from typing import Any, Callable, Dict, FrozenSet, Tuple
 
 import wrapt
-from requests import codes
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
@@ -93,26 +91,6 @@ def set_date_header(
     result = wrapped(*args, **kwargs)
     if context.headers[
         'Connection'
-    ] != 'Close' and context.status_code != codes.GATEWAY_TIMEOUT:
+    ] != 'Close' and context.status_code != HTTPStatus.GATEWAY_TIMEOUT:
         context.headers['Date'] = date
     return result
-
-
-def parse_multipart(  # pylint: disable=invalid-name
-    fp: io.BytesIO,
-    pdict: Mapping[str, bytes],
-) -> Dict[str, List[Union[str, bytes]]]:
-    """
-    Return parsed ``pdict``.
-
-    Wrapper for ``_parse_multipart`` to work around
-    https://bugs.python.org/issue34226.
-
-    See https://docs.python.org/3.8/library/cgi.html#_parse_multipart.
-    """
-    pdict = {
-        'CONTENT-LENGTH': str(len(fp.getvalue())).encode(),
-        **pdict,
-    }
-
-    return cgi.parse_multipart(fp=fp, pdict=pdict)

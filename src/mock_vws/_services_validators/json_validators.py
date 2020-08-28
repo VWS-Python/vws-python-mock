@@ -3,9 +3,9 @@ Validators for given JSON.
 """
 
 import json
+from http import HTTPStatus
 from json.decoder import JSONDecodeError
 
-from requests import codes
 from requests_mock import POST, PUT
 
 from mock_vws._services_validators.exceptions import (
@@ -39,5 +39,5 @@ def validate_json(
 
     try:
         json.loads(request_body.decode())
-    except JSONDecodeError:
-        raise Fail(status_code=codes.BAD_REQUEST)
+    except JSONDecodeError as exc:
+        raise Fail(status_code=HTTPStatus.BAD_REQUEST) from exc

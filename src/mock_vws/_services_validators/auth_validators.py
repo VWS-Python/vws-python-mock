@@ -2,9 +2,8 @@
 Authorization header validators to use in the mock.
 """
 
+from http import HTTPStatus
 from typing import Dict, Set
-
-from requests import codes
 
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._services_validators.exceptions import (
@@ -49,7 +48,7 @@ def validate_access_key_exists(
         if access_key == database.server_access_key:
             return
 
-    raise Fail(status_code=codes.BAD_REQUEST)
+    raise Fail(status_code=HTTPStatus.BAD_REQUEST)
 
 
 def validate_auth_header_has_signature(
@@ -68,7 +67,7 @@ def validate_auth_header_has_signature(
     if header.count(':') == 1 and header.split(':')[1]:
         return
 
-    raise Fail(status_code=codes.BAD_REQUEST)
+    raise Fail(status_code=HTTPStatus.BAD_REQUEST)
 
 
 def validate_authorization(

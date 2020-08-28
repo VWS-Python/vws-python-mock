@@ -3,8 +3,7 @@ Validators for target names.
 """
 
 import json
-
-from requests import codes
+from http import HTTPStatus
 
 from mock_vws._services_validators.exceptions import (
     Fail,
@@ -74,7 +73,7 @@ def validate_name_type(request_body: bytes) -> None:
     if isinstance(name, str):
         return
 
-    raise Fail(status_code=codes.BAD_REQUEST)
+    raise Fail(status_code=HTTPStatus.BAD_REQUEST)
 
 
 def validate_name_length(request_body: bytes) -> None:
@@ -100,4 +99,4 @@ def validate_name_length(request_body: bytes) -> None:
     if name and len(name) < 65:
         return
 
-    raise Fail(status_code=codes.BAD_REQUEST)
+    raise Fail(status_code=HTTPStatus.BAD_REQUEST)

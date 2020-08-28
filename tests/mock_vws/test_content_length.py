@@ -2,11 +2,11 @@
 Tests for the ``Content-Length`` header.
 """
 
+from http import HTTPStatus
 from urllib.parse import urlparse
 
 import pytest
 import requests
-from requests import codes
 from requests.structures import CaseInsensitiveDict
 
 from mock_vws._constants import ResultCodes
@@ -49,7 +49,7 @@ class TestIncorrect:
             'Content-Length': '0',
             'Connection': 'Close',
         }
-        assert response.status_code == codes.BAD_REQUEST
+        assert response.status_code == HTTPStatus.BAD_REQUEST
 
     def test_too_large(self, endpoint: Endpoint) -> None:
         """
@@ -74,7 +74,7 @@ class TestIncorrect:
             'Content-Length': '0',
             'Connection': 'keep-alive',
         }
-        assert response.status_code == codes.GATEWAY_TIMEOUT
+        assert response.status_code == HTTPStatus.GATEWAY_TIMEOUT
 
     def test_too_small(self, endpoint: Endpoint) -> None:
         """
@@ -99,13 +99,13 @@ class TestIncorrect:
         if netloc == 'cloudreco.vuforia.com':
             assert_vwq_failure(
                 response=response,
-                status_code=codes.UNAUTHORIZED,
+                status_code=HTTPStatus.UNAUTHORIZED,
                 content_type='application/json',
             )
             return
 
         assert_vws_failure(
             response=response,
-            status_code=codes.UNAUTHORIZED,
+            status_code=HTTPStatus.UNAUTHORIZED,
             result_code=ResultCodes.AUTHENTICATION_FAILURE,
         )

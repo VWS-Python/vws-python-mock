@@ -3,11 +3,11 @@ Tests for giving JSON data to endpoints which do not expect it.
 """
 
 import json
+from http import HTTPStatus
 from urllib.parse import urlparse
 
 import pytest
 import requests
-from requests import codes
 from requests.structures import CaseInsensitiveDict
 from vws_auth_tools import authorization_header, rfc_1123_date
 
@@ -72,11 +72,11 @@ class TestUnexpectedJSON:
             assert response.text == ''
             assert_vwq_failure(
                 response=response,
-                status_code=codes.UNSUPPORTED_MEDIA_TYPE,
+                status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
                 content_type=None,
             )
             return
 
-        assert response.status_code == codes.BAD_REQUEST
+        assert response.status_code == HTTPStatus.BAD_REQUEST
         assert response.text == ''
         assert 'Content-Type' not in response.headers

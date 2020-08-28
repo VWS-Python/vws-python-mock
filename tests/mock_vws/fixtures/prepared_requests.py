@@ -5,22 +5,22 @@ Fixtures which prepare requests.
 import base64
 import io
 import json
+from http import HTTPStatus
 from typing import Any, Dict
 from urllib.parse import urljoin
 
 import pytest
 import requests
-from requests import codes
 from requests_mock import DELETE, GET, POST, PUT
 from urllib3.filepost import encode_multipart_formdata
+from vws import VWS
+from vws_auth_tools import rfc_1123_date
 
 from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import (
     Endpoint,
     VuforiaDatabase,
     authorization_header,
-    rfc_1123_date,
-    wait_for_target_processed,
 )
 
 VWS_HOST = 'https://vws.vuforia.com'
@@ -77,7 +77,7 @@ def _add_target(
     prepared_request = request.prepare()
 
     return Endpoint(
-        successful_headers_status_code=codes.CREATED,
+        successful_headers_status_code=HTTPStatus.CREATED,
         successful_headers_result_code=ResultCodes.TARGET_CREATED,
         prepared_request=prepared_request,
         access_key=access_key,
@@ -89,14 +89,12 @@ def _add_target(
 def _delete_target(
     vuforia_database: VuforiaDatabase,
     target_id: str,
+    vws_client: VWS,
 ) -> Endpoint:
     """
     Return details of the endpoint for deleting a target.
     """
-    wait_for_target_processed(
-        vuforia_database=vuforia_database,
-        target_id=target_id,
-    )
+    vws_client.wait_for_target_processed(target_id=target_id)
     date = rfc_1123_date()
     request_path = f'/targets/{target_id}'
     method = DELETE
@@ -128,7 +126,7 @@ def _delete_target(
 
     prepared_request = request.prepare()
     return Endpoint(
-        successful_headers_status_code=codes.OK,
+        successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=ResultCodes.SUCCESS,
         prepared_request=prepared_request,
         access_key=access_key,
@@ -174,7 +172,7 @@ def _database_summary(vuforia_database: VuforiaDatabase) -> Endpoint:
     prepared_request = request.prepare()
 
     return Endpoint(
-        successful_headers_status_code=codes.OK,
+        successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=ResultCodes.SUCCESS,
         prepared_request=prepared_request,
         access_key=access_key,
@@ -186,15 +184,13 @@ def _database_summary(vuforia_database: VuforiaDatabase) -> Endpoint:
 def _get_duplicates(
     vuforia_database: VuforiaDatabase,
     target_id: str,
+    vws_client: VWS,
 ) -> Endpoint:
     """
     Return details of the endpoint for getting potential duplicates of a
     target.
     """
-    wait_for_target_processed(
-        vuforia_database=vuforia_database,
-        target_id=target_id,
-    )
+    vws_client.wait_for_target_processed(target_id=target_id)
     date = rfc_1123_date()
     request_path = f'/duplicates/{target_id}'
     method = GET
@@ -228,7 +224,7 @@ def _get_duplicates(
     prepared_request = request.prepare()
 
     return Endpoint(
-        successful_headers_status_code=codes.OK,
+        successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=ResultCodes.SUCCESS,
         prepared_request=prepared_request,
         access_key=access_key,
@@ -240,14 +236,12 @@ def _get_duplicates(
 def _get_target(
     vuforia_database: VuforiaDatabase,
     target_id: str,
+    vws_client: VWS,
 ) -> Endpoint:
     """
     Return details of the endpoint for getting details of a target.
     """
-    wait_for_target_processed(
-        vuforia_database=vuforia_database,
-        target_id=target_id,
-    )
+    vws_client.wait_for_target_processed(target_id=target_id)
     date = rfc_1123_date()
     request_path = f'/targets/{target_id}'
     method = GET
@@ -281,7 +275,7 @@ def _get_target(
     prepared_request = request.prepare()
 
     return Endpoint(
-        successful_headers_status_code=codes.OK,
+        successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=ResultCodes.SUCCESS,
         prepared_request=prepared_request,
         access_key=access_key,
@@ -327,7 +321,7 @@ def _target_list(vuforia_database: VuforiaDatabase) -> Endpoint:
     prepared_request = request.prepare()
 
     return Endpoint(
-        successful_headers_status_code=codes.OK,
+        successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=ResultCodes.SUCCESS,
         prepared_request=prepared_request,
         access_key=access_key,
@@ -339,14 +333,12 @@ def _target_list(vuforia_database: VuforiaDatabase) -> Endpoint:
 def _target_summary(
     vuforia_database: VuforiaDatabase,
     target_id: str,
+    vws_client: VWS,
 ) -> Endpoint:
     """
     Return details of the endpoint for getting a summary report of a target.
     """
-    wait_for_target_processed(
-        vuforia_database=vuforia_database,
-        target_id=target_id,
-    )
+    vws_client.wait_for_target_processed(target_id=target_id)
     date = rfc_1123_date()
     request_path = f'/summary/{target_id}'
     method = GET
@@ -380,7 +372,7 @@ def _target_summary(
     prepared_request = request.prepare()
 
     return Endpoint(
-        successful_headers_status_code=codes.OK,
+        successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=ResultCodes.SUCCESS,
         prepared_request=prepared_request,
         access_key=access_key,
@@ -392,14 +384,12 @@ def _target_summary(
 def _update_target(
     vuforia_database: VuforiaDatabase,
     target_id: str,
+    vws_client: VWS,
 ) -> Endpoint:
     """
     Return details of the endpoint for updating a target.
     """
-    wait_for_target_processed(
-        vuforia_database=vuforia_database,
-        target_id=target_id,
-    )
+    vws_client.wait_for_target_processed(target_id=target_id)
     data: Dict[str, Any] = {}
     request_path = f'/targets/{target_id}'
     content = bytes(json.dumps(data), encoding='utf-8')
@@ -436,7 +426,7 @@ def _update_target(
     prepared_request = request.prepare()
 
     return Endpoint(
-        successful_headers_status_code=codes.OK,
+        successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=ResultCodes.SUCCESS,
         prepared_request=prepared_request,
         access_key=access_key,
@@ -489,7 +479,7 @@ def _query(
     prepared_request = request.prepare()
 
     return Endpoint(
-        successful_headers_status_code=codes.OK,
+        successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=ResultCodes.SUCCESS,
         prepared_request=prepared_request,
         access_key=access_key,

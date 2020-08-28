@@ -3,9 +3,8 @@ Exceptions to raise from validators.
 """
 
 import uuid
+from http import HTTPStatus
 from pathlib import Path
-
-from requests import codes
 
 from mock_vws._constants import ResultCodes
 from mock_vws._mock_common import json_dump
@@ -26,7 +25,7 @@ class UnknownTarget(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.NOT_FOUND
+        self.status_code = HTTPStatus.NOT_FOUND
         body = {
             'transaction_id': uuid.uuid4().hex,
             'result_code': ResultCodes.UNKNOWN_TARGET.value,
@@ -49,7 +48,7 @@ class ProjectInactive(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.FORBIDDEN
+        self.status_code = HTTPStatus.FORBIDDEN
         body = {
             'transaction_id': uuid.uuid4().hex,
             'result_code': ResultCodes.PROJECT_INACTIVE.value,
@@ -72,7 +71,7 @@ class AuthenticationFailure(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.UNAUTHORIZED
+        self.status_code = HTTPStatus.UNAUTHORIZED
         body = {
             'transaction_id': uuid.uuid4().hex,
             'result_code': ResultCodes.AUTHENTICATION_FAILURE.value,
@@ -117,7 +116,7 @@ class MetadataTooLarge(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.UNPROCESSABLE_ENTITY
+        self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
         body = {
             'transaction_id': uuid.uuid4().hex,
             'result_code': ResultCodes.METADATA_TOO_LARGE.value,
@@ -140,7 +139,7 @@ class TargetNameExist(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.FORBIDDEN
+        self.status_code = HTTPStatus.FORBIDDEN
         body = {
             'transaction_id': uuid.uuid4().hex,
             'result_code': ResultCodes.TARGET_NAME_EXIST.value,
@@ -165,7 +164,7 @@ class OopsErrorOccurredResponse(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.INTERNAL_SERVER_ERROR
+        self.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
         resources_dir = Path(__file__).parent.parent / 'resources'
         filename = 'oops_error_occurred_response.html'
         oops_resp_file = resources_dir / filename
@@ -188,7 +187,7 @@ class BadImage(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.UNPROCESSABLE_ENTITY
+        self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
         body = {
             'transaction_id': uuid.uuid4().hex,
             'result_code': ResultCodes.BAD_IMAGE.value,
@@ -211,7 +210,7 @@ class ImageTooLarge(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.UNPROCESSABLE_ENTITY
+        self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
         body = {
             'transaction_id': uuid.uuid4().hex,
             'result_code': ResultCodes.IMAGE_TOO_LARGE.value,
@@ -234,7 +233,7 @@ class RequestTimeTooSkewed(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.FORBIDDEN
+        self.status_code = HTTPStatus.FORBIDDEN
         body = {
             'transaction_id': uuid.uuid4().hex,
             'result_code': ResultCodes.REQUEST_TIME_TOO_SKEWED.value,
@@ -256,7 +255,7 @@ class ContentLengthHeaderTooLarge(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.GATEWAY_TIMEOUT
+        self.status_code = HTTPStatus.GATEWAY_TIMEOUT
         self.response_text = ''
 
 
@@ -274,7 +273,7 @@ class ContentLengthHeaderNotInt(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.BAD_REQUEST
+        self.status_code = HTTPStatus.BAD_REQUEST
         self.response_text = ''
 
 
@@ -292,5 +291,5 @@ class UnnecessaryRequestBody(Exception):
                 raised.
         """
         super().__init__()
-        self.status_code = codes.BAD_REQUEST
+        self.status_code = HTTPStatus.BAD_REQUEST
         self.response_text = ''

@@ -4,8 +4,7 @@ Validators for the width field.
 
 import json
 import numbers
-
-from requests import codes
+from http import HTTPStatus
 
 from mock_vws._services_validators.exceptions import Fail
 
@@ -34,4 +33,4 @@ def validate_width(request_body: bytes) -> None:
     width_positive = width_is_number and width > 0
 
     if not width_positive:
-        raise Fail(status_code=codes.BAD_REQUEST)
+        raise Fail(status_code=HTTPStatus.BAD_REQUEST)
