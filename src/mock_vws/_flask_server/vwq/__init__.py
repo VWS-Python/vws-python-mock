@@ -291,11 +291,13 @@ def query() -> Union[Tuple[str, int], Tuple[str, int, Dict[str, Any]]]:
     query_processes_deletion_seconds = 0.2
     query_recognizes_deletion_seconds = 0.2
     databases = get_all_databases()
+    input_stream_copy = copy.copy(request.input_stream)
+    request_body = input_stream_copy.read()
 
     try:
         response_text = get_query_match_response_text(
             request_headers=dict(request.headers),
-            request_body=request.input_stream.getvalue(),
+            request_body=request_body,
             request_method=request.method,
             request_path=request.path,
             databases=databases,
