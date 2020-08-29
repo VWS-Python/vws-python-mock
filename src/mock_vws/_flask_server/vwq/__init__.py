@@ -1,11 +1,12 @@
 import base64
+import copy
 import cgi
 import datetime
 import email.utils
 import io
 import uuid
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Union
 
 import pytz
 from flask import Flask, Response, make_response, request
@@ -20,7 +21,7 @@ from mock_vws._query_tools import (
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_client_keys
-from mock_vws._mock_common import json_dump, parse_multipart
+from mock_vws._mock_common import json_dump
 from mock_vws.database import VuforiaDatabase
 
 from ..vws._databases import get_all_databases
@@ -55,10 +56,12 @@ CLOUDRECO_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
 
 @CLOUDRECO_FLASK_APP.before_request
 def validate_request() -> None:
+    input_stream_copy = copy.copy(request.input_stream)
+    request_body = input_stream_copy.read()
     databases = get_all_databases()
     run_query_validators(
         request_headers=dict(request.headers),
-        request_body=request.input_stream.getvalue(),
+        request_body=request_body,
         request_method=request.method,
         request_path=request.path,
         databases=databases,
@@ -281,7 +284,7 @@ def set_headers(response: Response) -> Response:
 
 
 @CLOUDRECO_FLASK_APP.route('/v1/query', methods=['POST'])
-def query() -> Tuple[str, int]:
+def query() -> Union[Tuple[str, int], Tuple[str, int, Dict[str, Any]]]:
 
 
     # TODO these should be configurable
@@ -329,4 +332,4 @@ def query() -> Tuple[str, int]:
             },
         )
 
-    return response_text
+    return (response_text, codes.OK)
