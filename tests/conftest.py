@@ -6,17 +6,15 @@ import base64
 import binascii
 import io
 import time
+import uuid
 from typing import List, Tuple
 
 import pytest
 from _pytest.fixtures import SubRequest
+from vws import VWS
 
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import (
-    Endpoint,
-    UnexpectedEmptyInternalServerError,
-    add_target_to_vws,
-)
+from tests.mock_vws.utils import Endpoint, UnexpectedEmptyInternalServerError
 
 pytest_plugins = [
     'tests.mock_vws.fixtures.prepared_requests',
@@ -60,33 +58,45 @@ def pytest_collection_modifyitems(items: List[pytest.Function]) -> None:
         item.add_marker(retry_marker)
 
 
+@pytest.fixture(name='vws_client')
+def fixture_vws_client(vuforia_database: VuforiaDatabase) -> VWS:
+    """
+    A client for an active VWS database.
+    """
+    return VWS(
+        server_access_key=vuforia_database.server_access_key,
+        server_secret_key=vuforia_database.server_secret_key,
+    )
+
+
+@pytest.fixture(name='inactive_vws_client')
+def fixture_inactive_vws_client(inactive_database: VuforiaDatabase) -> VWS:
+    """
+    A client for an inactive VWS database.
+    """
+    return VWS(
+        server_access_key=inactive_database.server_access_key,
+        server_secret_key=inactive_database.server_secret_key,
+    )
+
+
 @pytest.fixture()
 def target_id(
     image_file_success_state_low_rating: io.BytesIO,
-    vuforia_database: VuforiaDatabase,
+    vws_client: VWS,
 ) -> str:
     """
     Return the target ID of a target in the database.
 
     The target is one which will have a 'success' status when processed.
     """
-    image_data = image_file_success_state_low_rating.read()
-    image_data_encoded = base64.b64encode(image_data).decode('ascii')
-
-    data = {
-        'name': 'example',
-        'width': 1,
-        'image': image_data_encoded,
-    }
-
-    response = add_target_to_vws(
-        vuforia_database=vuforia_database,
-        data=data,
-        content_type='application/json',
+    return vws_client.add_target(
+        name=uuid.uuid4().hex,
+        width=1,
+        image=image_file_success_state_low_rating,
+        active_flag=True,
+        application_metadata=None,
     )
-
-    new_target_id: str = response.json()['target_id']
-    return new_target_id
 
 
 @pytest.fixture(

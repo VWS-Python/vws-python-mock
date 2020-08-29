@@ -14,7 +14,7 @@ from backports.zoneinfo import ZoneInfo
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_client_keys
-from mock_vws._mock_common import json_dump, parse_multipart
+from mock_vws._mock_common import json_dump
 from mock_vws.database import VuforiaDatabase
 
 
@@ -78,7 +78,7 @@ def get_query_match_response_text(
     body_file = io.BytesIO(request_body)
 
     _, pdict = cgi.parse_header(request_headers['Content-Type'])
-    parsed = parse_multipart(
+    parsed = cgi.parse_multipart(
         fp=body_file,
         pdict={
             'boundary': pdict['boundary'].encode(),

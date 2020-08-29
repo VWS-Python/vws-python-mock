@@ -6,7 +6,6 @@ import cgi
 import io
 from typing import Dict
 
-from mock_vws._mock_common import parse_multipart
 from mock_vws._query_validators.exceptions import UnknownParameters
 
 
@@ -27,7 +26,7 @@ def validate_extra_fields(
     body_file = io.BytesIO(request_body)
 
     _, pdict = cgi.parse_header(request_headers['Content-Type'])
-    parsed = parse_multipart(
+    parsed = cgi.parse_multipart(
         fp=body_file,
         pdict={
             'boundary': pdict['boundary'].encode(),

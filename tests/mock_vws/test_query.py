@@ -9,6 +9,7 @@ import calendar
 import datetime
 import io
 import time
+import uuid
 from http import HTTPStatus
 from typing import Any, Dict, Union
 from urllib.parse import urljoin
@@ -19,19 +20,13 @@ from backports.zoneinfo import ZoneInfo
 from PIL import Image
 from requests_mock import POST
 from urllib3.filepost import encode_multipart_formdata
+from vws import VWS
+from vws.reports import TargetStatuses
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from mock_vws._constants import ResultCodes, TargetStatuses
+from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import (
-    add_target_to_vws,
-    delete_target,
-    get_vws_target,
-    make_image_file,
-    query,
-    update_target,
-    wait_for_target_processed,
-)
+from tests.mock_vws.utils import make_image_file, query
 from tests.mock_vws.utils.assertions import (
     assert_query_success,
     assert_valid_date_header,
@@ -335,10 +330,7 @@ class TestSuccess:
         image_content = high_quality_image.getvalue()
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        response = query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
         assert response.json()['results'] == []
@@ -347,39 +339,30 @@ class TestSuccess:
         self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         If the exact image that was added is queried for, target data is shown.
         """
         image_content = high_quality_image.getvalue()
-        image_data_encoded = base64.b64encode(image_content).decode('ascii')
         metadata_encoded = base64.b64encode(b'example').decode('ascii')
         name = 'example_name'
-        add_target_data = {
-            'name': name,
-            'width': 1,
-            'image': image_data_encoded,
-            'application_metadata': metadata_encoded,
-        }
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=add_target_data,
+
+        target_id = vws_client.add_target(
+            name=name,
+            width=1,
+            image=high_quality_image,
+            active_flag=True,
+            application_metadata=metadata_encoded,
         )
 
-        target_id = response.json()['target_id']
         approximate_target_created = calendar.timegm(time.gmtime())
 
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        response = query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
         [result] = response.json()['results']
@@ -402,6 +385,7 @@ class TestSuccess:
         self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         not_base64_encoded_processable: str,
     ) -> None:
         """
@@ -417,32 +401,21 @@ class TestSuccess:
           padded, then decoded, then encoded.
         """
         image_content = high_quality_image.getvalue()
-        image_data_encoded = base64.b64encode(image_content).decode('ascii')
         name = 'example_name'
-        add_target_data = {
-            'name': name,
-            'width': 1,
-            'image': image_data_encoded,
-            'application_metadata': not_base64_encoded_processable,
-        }
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=add_target_data,
+
+        target_id = vws_client.add_target(
+            name=name,
+            width=1,
+            image=high_quality_image,
+            active_flag=True,
+            application_metadata=not_base64_encoded_processable,
         )
 
-        target_id = response.json()['target_id']
-
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        response = query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
         [result] = response.json()['results']
@@ -474,10 +447,7 @@ class TestIncorrectFields:
         """
         If an image is not given, a ``BAD_REQUEST`` response is returned.
         """
-        response = query(
-            vuforia_database=vuforia_database,
-            body={},
-        )
+        response = query(vuforia_database=vuforia_database, body={})
 
         assert response.text == 'No image.'
         assert_vwq_failure(
@@ -500,10 +470,7 @@ class TestIncorrectFields:
             'extra_field': (None, 1, 'text/plain'),
         }
 
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        response = query(vuforia_database=vuforia_database, body=body)
 
         assert response.text == 'Unknown parameters in the request.'
         assert_vwq_failure(
@@ -526,10 +493,7 @@ class TestIncorrectFields:
             'extra_field': (None, 1, 'text/plain'),
         }
 
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        response = query(vuforia_database=vuforia_database, body=body)
 
         assert response.text == 'Unknown parameters in the request.'
         assert_vwq_failure(
@@ -549,39 +513,35 @@ class TestMaxNumResults:
         self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         The default ``max_num_results`` is 1.
         """
         image_content = high_quality_image.getvalue()
-        image_data_encoded = base64.b64encode(image_content).decode('ascii')
-        for name in ('example_1', 'example_2'):
-            add_target_data = {
-                'name': name,
-                'width': 1,
-                'image': image_data_encoded,
-            }
 
-            response = add_target_to_vws(
-                vuforia_database=vuforia_database,
-                data=add_target_data,
-            )
-
-            target_id = response.json()['target_id']
-
-            wait_for_target_processed(
-                target_id=target_id,
-                vuforia_database=vuforia_database,
-            )
+        target_id_1 = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=high_quality_image,
+            active_flag=True,
+            application_metadata=None,
+        )
+        target_id_2 = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=high_quality_image,
+            active_flag=True,
+            application_metadata=None,
+        )
+        vws_client.wait_for_target_processed(target_id=target_id_1)
+        vws_client.wait_for_target_processed(target_id=target_id_2)
 
         body = {
             'image': ('image.jpeg', image_content, 'image/jpeg'),
         }
 
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        response = query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
         assert len(response.json()['results']) == 1
@@ -602,7 +562,7 @@ class TestMaxNumResults:
         This is because uploading 50 images would be very slow.
 
         The documentation at
-        https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query.  # noqa: E501
+        https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query  # noqa: E501
         states that this must be between 1 and 10, but in practice, 50 is the
         maximum.
         """
@@ -612,10 +572,7 @@ class TestMaxNumResults:
             'max_num_results': (None, num_results, 'text/plain'),
         }
 
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        response = query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
         assert response.json()['results'] == []
@@ -624,39 +581,24 @@ class TestMaxNumResults:
         self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         A maximum of ``max_num_results`` results are returned.
         """
         image_content = high_quality_image.getvalue()
-        image_data_encoded = base64.b64encode(image_content).decode('ascii')
-        for name in ('example_1', 'example_2', 'example_3'):
-            add_target_data = {
-                'name': name,
-                'width': 1,
-                'image': image_data_encoded,
-            }
+        add_and_wait_for_targets(
+            image=high_quality_image,
+            vws_client=vws_client,
+            num_targets=3,
+        )
 
-            response = add_target_to_vws(
-                vuforia_database=vuforia_database,
-                data=add_target_data,
-            )
-
-            target_id = response.json()['target_id']
-
-            wait_for_target_processed(
-                target_id=target_id,
-                vuforia_database=vuforia_database,
-            )
         body = {
             'image': ('image.jpeg', image_content, 'image/jpeg'),
             'max_num_results': (None, 2, 'text/plain'),
         }
 
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        response = query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
         assert len(response.json()['results']) == 2
@@ -683,10 +625,7 @@ class TestMaxNumResults:
             'max_num_results': (None, num_results, 'text/plain'),
         }
 
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        response = query(vuforia_database=vuforia_database, body=body)
 
         expected_text = (
             f'Integer out of range ({repr(num_results)}) in form data part '
@@ -721,10 +660,7 @@ class TestMaxNumResults:
             'image': ('image.jpeg', image_content, 'image/jpeg'),
             'max_num_results': (None, num_results, 'text/plain'),
         }
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        response = query(vuforia_database=vuforia_database, body=body)
 
         expected_text = (
             f"Invalid value '{num_results.decode()}' in form data part "
@@ -739,39 +675,30 @@ class TestMaxNumResults:
         )
 
 
-@pytest.fixture()
-def add_targets(
-    high_quality_image: io.BytesIO,
-    vuforia_database: VuforiaDatabase,
+def add_and_wait_for_targets(
+    image: io.BytesIO,
+    vws_client: VWS,
+    num_targets: int,
 ) -> None:
     """
-    Add two targets with the "high_quality_image" fixture contents.
+    Add targets with the given image.
     """
-    image_content = high_quality_image.getvalue()
-    image_data_encoded = base64.b64encode(image_content).decode('ascii')
     target_ids = set([])
-    for name in ('example_1', 'example_2'):
-        add_target_data = {
-            'name': name,
-            'width': 1,
-            'image': image_data_encoded,
-        }
-
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=add_target_data,
+    for _ in range(num_targets):
+        target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=image,
+            active_flag=True,
+            application_metadata=None,
         )
-
-        target_ids.add(response.json()['target_id'])
+        target_ids.add(target_id)
 
     for target_id in target_ids:
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia', 'add_targets')
+@pytest.mark.usefixtures('verify_mock_vuforia')
 class TestIncludeTargetData:
     """
     Tests for the ``include_target_data`` parameter.
@@ -780,21 +707,24 @@ class TestIncludeTargetData:
     def test_default(
         self,
         high_quality_image: io.BytesIO,
+        vws_client: VWS,
         vuforia_database: VuforiaDatabase,
     ) -> None:
         """
         The default ``include_target_data`` is 'top'.
         """
+        add_and_wait_for_targets(
+            image=high_quality_image,
+            vws_client=vws_client,
+            num_targets=2,
+        )
         image_content = high_quality_image.getvalue()
         body = {
             'image': ('image.jpeg', image_content, 'image/jpeg'),
             'max_num_results': (None, 2, 'text/plain'),
         }
 
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        response = query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
         result_1, result_2 = response.json()['results']
@@ -807,11 +737,17 @@ class TestIncludeTargetData:
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         include_target_data: str,
+        vws_client: VWS,
     ) -> None:
         """
         When ``include_target_data`` is set to "top" (case insensitive), only
         the first result includes target data.
         """
+        add_and_wait_for_targets(
+            image=high_quality_image,
+            vws_client=vws_client,
+            num_targets=2,
+        )
         image_content = high_quality_image.getvalue()
         body = {
             'image': ('image.jpeg', image_content, 'image/jpeg'),
@@ -819,10 +755,7 @@ class TestIncludeTargetData:
             'max_num_results': (None, 2, 'text/plain'),
         }
 
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        response = query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
         result_1, result_2 = response.json()['results']
@@ -835,11 +768,17 @@ class TestIncludeTargetData:
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         include_target_data: str,
+        vws_client: VWS,
     ) -> None:
         """
         When ``include_target_data`` is set to "none" (case insensitive), no
         results include target data.
         """
+        add_and_wait_for_targets(
+            image=high_quality_image,
+            vws_client=vws_client,
+            num_targets=2,
+        )
         image_content = high_quality_image.getvalue()
         body = {
             'image': ('image.jpeg', image_content, 'image/jpeg'),
@@ -847,10 +786,7 @@ class TestIncludeTargetData:
             'max_num_results': (None, 2, 'text/plain'),
         }
 
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        response = query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
         result_1, result_2 = response.json()['results']
@@ -863,11 +799,17 @@ class TestIncludeTargetData:
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         include_target_data: str,
+        vws_client: VWS,
     ) -> None:
         """
         When ``include_target_data`` is set to "all" (case insensitive), all
         results include target data.
         """
+        add_and_wait_for_targets(
+            image=high_quality_image,
+            vws_client=vws_client,
+            num_targets=2,
+        )
         image_content = high_quality_image.getvalue()
         body = {
             'image': ('image.jpeg', image_content, 'image/jpeg'),
@@ -875,10 +817,7 @@ class TestIncludeTargetData:
             'max_num_results': (None, 2, 'text/plain'),
         }
 
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        response = query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
         result_1, result_2 = response.json()['results']
@@ -901,10 +840,7 @@ class TestIncludeTargetData:
             'image': ('image.jpeg', image_content, 'image/jpeg'),
             'include_target_data': (None, include_target_data, 'text/plain'),
         }
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        response = query(vuforia_database=vuforia_database, body=body)
 
         expected_text = (
             f"Invalid value '{include_target_data}' in form data "
@@ -1040,36 +976,24 @@ class TestActiveFlag:
         self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         Images which are not active are not matched.
         """
         image_content = high_quality_image.getvalue()
-        image_data_encoded = base64.b64encode(image_content).decode('ascii')
-        name = 'example_name'
-        add_target_data = {
-            'name': name,
-            'width': 1,
-            'image': image_data_encoded,
-            'active_flag': False,
-        }
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=add_target_data,
+        target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=high_quality_image,
+            active_flag=False,
+            application_metadata=None,
         )
 
-        target_id = response.json()['target_id']
-
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        response = query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
         assert response.json()['results'] == []
@@ -1093,10 +1017,7 @@ class TestBadImage:
 
         body = {'image': ('image.jpeg', corrupted_data, 'image/jpeg')}
 
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        response = query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
         assert response.json()['results'] == []
@@ -1112,10 +1033,7 @@ class TestBadImage:
 
         body = {'image': ('image.jpeg', not_image_data, 'image/jpeg')}
 
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        response = query(vuforia_database=vuforia_database, body=body)
 
         assert_vwq_failure(
             response=response,
@@ -1178,10 +1096,7 @@ class TestMaximumImageFileSize:
         assert image_content_size < max_bytes
         assert (image_content_size * 1.05) > max_bytes
 
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        response = query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
         assert response.json()['results'] == []
@@ -1247,10 +1162,7 @@ class TestMaximumImageFileSize:
         assert image_content_size < max_bytes
         assert (image_content_size * 1.05) > max_bytes
 
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        response = query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
         assert response.json()['results'] == []
@@ -1305,10 +1217,7 @@ class TestMaximumImageDimensions:
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        response = query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
         assert response.json()['results'] == []
@@ -1324,10 +1233,7 @@ class TestMaximumImageDimensions:
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        response = query(vuforia_database=vuforia_database, body=body)
 
         assert_vwq_failure(
             response=response,
@@ -1367,10 +1273,7 @@ class TestMaximumImageDimensions:
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        response = query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
         assert response.json()['results'] == []
@@ -1386,10 +1289,7 @@ class TestMaximumImageDimensions:
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        response = query(vuforia_database=vuforia_database, body=body)
 
         assert_vwq_failure(
             response=response,
@@ -1435,10 +1335,7 @@ class TestImageFormats:
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        response = query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
         assert response.json()['results'] == []
@@ -1459,10 +1356,7 @@ class TestImageFormats:
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        response = query(vuforia_database=vuforia_database, body=body)
 
         assert_vwq_failure(
             response=response,
@@ -1500,6 +1394,7 @@ class TestProcessing:
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         active_flag: bool,
+        vws_client: VWS,
     ) -> None:
         """
         When a target with a matching image is in the processing state it is
@@ -1508,26 +1403,17 @@ class TestProcessing:
         Sometimes an `INTERNAL_SERVER_ERROR` response is returned.
         """
         image_content = high_quality_image.getvalue()
-        image_data_encoded = base64.b64encode(image_content).decode('ascii')
-        name = 'example_name'
-        add_target_data = {
-            'name': name,
-            'width': 1,
-            'image': image_data_encoded,
-            'active_flag': active_flag,
-        }
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=add_target_data,
-        )
 
-        target_id = response.json()['target_id']
+        target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=high_quality_image,
+            active_flag=active_flag,
+            application_metadata=None,
+        )
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        response = query(vuforia_database=vuforia_database, body=body)
 
         # We assert that after making a query, the target is in the processing
         # state.
@@ -1542,17 +1428,10 @@ class TestProcessing:
         #
         # If the target is no longer in the processing state here, that is a
         # flaky test that is the test's fault and this must be rethought.
-        get_target_response = get_vws_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
-
-        # Targets go back to processing after being updated.
-        target_status = get_target_response.json()['status']
-        assert target_status == TargetStatuses.PROCESSING.value
+        target_details = vws_client.get_target_record(target_id=target_id)
+        assert target_details.status == TargetStatuses.PROCESSING
 
         # Sometimes we get a 500 error, sometimes we do not.
-
         if response.status_code == HTTPStatus.OK:  # pragma: no cover
             assert response.json()['results'] == []
             assert_query_success(response=response)
@@ -1584,6 +1463,7 @@ class TestUpdate:
         high_quality_image: io.BytesIO,
         different_high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         After a target is updated, only the new image can be matched.
@@ -1591,70 +1471,47 @@ class TestUpdate:
         metadata.
         """
         image_content = high_quality_image.getvalue()
-        image_data_encoded = base64.b64encode(image_content).decode('ascii')
         metadata = b'example_metadata'
         metadata_encoded = base64.b64encode(metadata).decode('ascii')
         name = 'example_name'
-        add_target_data = {
-            'name': name,
-            'width': 1,
-            'image': image_data_encoded,
-            'application_metadata': metadata_encoded,
-        }
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=add_target_data,
+        target_id = vws_client.add_target(
+            name=name,
+            width=1,
+            image=high_quality_image,
+            active_flag=True,
+            application_metadata=metadata_encoded,
         )
 
-        target_id = response.json()['target_id']
         calendar.timegm(time.gmtime())
 
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         new_image_content = different_high_quality_image.getvalue()
 
         new_name = name + '2'
         new_metadata = metadata + b'2'
-        new_image_data_encoded = base64.b64encode(new_image_content,
-                                                  ).decode('ascii')
         new_metadata_encoded = base64.b64encode(new_metadata).decode('ascii')
-        update_data = {
-            'name': new_name,
-            'image': new_image_data_encoded,
-            'application_metadata': new_metadata_encoded,
-        }
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        response = query(vuforia_database=vuforia_database, body=body)
         [result] = response.json()['results']
         target_data = result['target_data']
         target_timestamp = target_data['target_timestamp']
         original_target_timestamp = int(target_timestamp)
 
-        update_target(
-            vuforia_database=vuforia_database,
-            data=update_data,
+        vws_client.update_target(
             target_id=target_id,
+            name=new_name,
+            image=different_high_quality_image,
+            application_metadata=new_metadata_encoded,
         )
 
         approximate_target_updated = calendar.timegm(time.gmtime())
 
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         body = {'image': ('image.jpeg', new_image_content, 'image/jpeg')}
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        response = query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
         [result] = response.json()['results']
@@ -1679,10 +1536,7 @@ class TestUpdate:
         assert time_difference < 5
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        response = query(vuforia_database=vuforia_database, body=body)
         assert_query_success(response=response)
         assert response.json()['results'] == []
 
@@ -1697,42 +1551,27 @@ class TestDeleted:
         self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         Within approximately 7 seconds of deleting a target, querying for its
         image results in an ``INTERNAL_SERVER_ERROR``.
         """
         image_content = high_quality_image.getvalue()
-        image_data_encoded = base64.b64encode(image_content).decode('ascii')
-        add_target_data = {
-            'name': 'example_name',
-            'width': 1,
-            'image': image_data_encoded,
-        }
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=add_target_data,
+        target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=high_quality_image,
+            active_flag=True,
+            application_metadata=None,
         )
-
-        target_id = response.json()['target_id']
-
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
-
-        delete_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.delete_target(target_id=target_id)
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
         while True:
-            response = query(
-                vuforia_database=vuforia_database,
-                body=body,
-            )
+            response = query(vuforia_database=vuforia_database, body=body)
             # Sometimes the first response(s) include the old target.
             try:
                 assert_query_success(response=response)
@@ -1755,34 +1594,22 @@ class TestDeleted:
         self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         After waiting approximately 7 seconds (we wait more to be safer), a
         deleted target is not found when its image is queried for.
         """
         image_content = high_quality_image.getvalue()
-        image_data_encoded = base64.b64encode(image_content).decode('ascii')
-        add_target_data = {
-            'name': 'example_name',
-            'width': 1,
-            'image': image_data_encoded,
-        }
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=add_target_data,
+        target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=high_quality_image,
+            active_flag=True,
+            application_metadata=None,
         )
-
-        target_id = response.json()['target_id']
-
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
-
-        response = delete_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.delete_target(target_id=target_id)
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
@@ -1802,10 +1629,7 @@ class TestDeleted:
         server_error_seen = False
 
         while True:
-            response = query(
-                vuforia_database=vuforia_database,
-                body=body,
-            )
+            response = query(vuforia_database=vuforia_database, body=body)
 
             try:
                 assert_query_success(response=response)
@@ -1840,42 +1664,26 @@ class TestDeleted:
         self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         No error is returned when querying for an image of recently deleted,
         inactive target.
         """
         image_content = high_quality_image.getvalue()
-        image_data_encoded = base64.b64encode(image_content).decode('ascii')
-        add_target_data = {
-            'name': 'example_name',
-            'width': 1,
-            'image': image_data_encoded,
-            'active_flag': False,
-        }
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=add_target_data,
+        target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=high_quality_image,
+            active_flag=False,
+            application_metadata=None,
         )
-
-        target_id = response.json()['target_id']
-
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
-
-        delete_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.delete_target(target_id=target_id)
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        response = query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
         assert response.json()['results'] == []
@@ -1891,36 +1699,24 @@ class TestTargetStatusFailed:
         self,
         image_file_failed_state: io.BytesIO,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         Targets with the status "failed" are not found in query results.
         """
         image_content = image_file_failed_state.getvalue()
-        image_data_encoded = base64.b64encode(image_content).decode('ascii')
-        add_target_data = {
-            'name': 'example_name',
-            'width': 1,
-            'image': image_data_encoded,
-        }
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=add_target_data,
+        target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=image_file_failed_state,
+            active_flag=True,
+            application_metadata=None,
         )
-
-        target_id = response.json()['target_id']
-
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
-
+        response = query(vuforia_database=vuforia_database, body=body)
         assert_query_success(response=response)
         assert response.json()['results'] == []
 
@@ -2023,10 +1819,7 @@ class TestInactiveProject:
         image_content = high_quality_image.getvalue()
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
-        response = query(
-            vuforia_database=inactive_database,
-            body=body,
-        )
+        response = query(vuforia_database=inactive_database, body=body)
 
         assert_vwq_failure(
             response=response,

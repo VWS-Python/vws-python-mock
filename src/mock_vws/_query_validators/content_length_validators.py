@@ -27,8 +27,8 @@ def validate_content_length_header_is_int(
 
     try:
         int(given_content_length)
-    except ValueError:
-        raise ContentLengthHeaderNotInt
+    except ValueError as exc:
+        raise ContentLengthHeaderNotInt from exc
 
 
 def validate_content_length_header_not_too_large(

@@ -6,7 +6,6 @@ import cgi
 import io
 from typing import Dict
 
-from mock_vws._mock_common import parse_multipart
 from mock_vws._query_validators.exceptions import (
     InvalidMaxNumResults,
     MaxNumResultsOutOfRange,
@@ -33,7 +32,7 @@ def validate_max_num_results(
     body_file = io.BytesIO(request_body)
 
     _, pdict = cgi.parse_header(request_headers['Content-Type'])
-    parsed = parse_multipart(
+    parsed = cgi.parse_multipart(
         fp=body_file,
         pdict={
             'boundary': pdict['boundary'].encode(),
@@ -44,8 +43,8 @@ def validate_max_num_results(
 
     try:
         max_num_results_int = int(max_num_results)
-    except ValueError:
-        raise InvalidMaxNumResults(given_value=max_num_results)
+    except ValueError as exc:
+        raise InvalidMaxNumResults(given_value=max_num_results) from exc
 
     java_max_int = 2147483647
     if max_num_results_int > java_max_int:

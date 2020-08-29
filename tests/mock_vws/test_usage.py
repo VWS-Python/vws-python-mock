@@ -2,7 +2,6 @@
 Tests for the usage of the mock.
 """
 
-import base64
 import email.utils
 import io
 import socket
@@ -14,19 +13,13 @@ import requests
 from freezegun import freeze_time
 from requests.exceptions import MissingSchema
 from requests_mock.exceptions import NoMockAddress
+from vws import VWS
+from vws.reports import TargetStatuses
+from vws_auth_tools import rfc_1123_date
 
 from mock_vws import MockVWS
-from mock_vws._constants import TargetStatuses
 from mock_vws.states import States
-from tests.mock_vws.utils import (
-    VuforiaDatabase,
-    add_target_to_vws,
-    delete_target,
-    get_vws_target,
-    query,
-    rfc_1123_date,
-    wait_for_target_processed,
-)
+from tests.mock_vws.utils import VuforiaDatabase, query
 from tests.mock_vws.utils.assertions import assert_query_success
 
 
@@ -104,35 +97,30 @@ class TestProcessingTime:
         """
         By default, targets in the mock take 0.5 seconds to be processed.
         """
-        image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
-
-        data = {
-            'name': 'example',
-            'width': 1,
-            'image': image_data_encoded,
-        }
-
         database = VuforiaDatabase()
+        vws_client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
         with MockVWS() as mock:
             mock.add_database(database=database)
-            response = add_target_to_vws(
-                vuforia_database=database,
-                data=data,
+
+            target_id = vws_client.add_target(
+                name='example',
+                width=1,
+                image=image_file_failed_state,
+                active_flag=True,
+                application_metadata=None,
             )
-
-            target_id = response.json()['target_id']
-
             start_time = datetime.now()
 
             while True:
-                response = get_vws_target(
-                    vuforia_database=database,
+                target_details = vws_client.get_target_record(
                     target_id=target_id,
                 )
 
-                status = response.json()['status']
-                if status != TargetStatuses.PROCESSING.value:
+                status = target_details.status
+                if status != TargetStatuses.PROCESSING:
                     elapsed_time = datetime.now() - start_time
                     # There is a race condition in this test - if it starts to
                     # fail, maybe extend the acceptable range.
@@ -144,35 +132,30 @@ class TestProcessingTime:
         """
         It is possible to set a custom processing time.
         """
-        image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
-
-        data = {
-            'name': 'example',
-            'width': 1,
-            'image': image_data_encoded,
-        }
-
         database = VuforiaDatabase()
+        vws_client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
         with MockVWS(processing_time_seconds=0.1) as mock:
             mock.add_database(database=database)
-            response = add_target_to_vws(
-                vuforia_database=database,
-                data=data,
+            target_id = vws_client.add_target(
+                name='example',
+                width=1,
+                image=image_file_failed_state,
+                active_flag=True,
+                application_metadata=None,
             )
-
-            target_id = response.json()['target_id']
 
             start_time = datetime.now()
 
             while True:
-                response = get_vws_target(
-                    vuforia_database=database,
+                target_details = vws_client.get_target_record(
                     target_id=target_id,
                 )
 
-                status = response.json()['status']
-                if status != TargetStatuses.PROCESSING.value:
+                status = target_details.status
+                if status != TargetStatuses.PROCESSING:
                     elapsed_time = datetime.now() - start_time
                     assert elapsed_time < timedelta(seconds=0.15)
                     assert elapsed_time > timedelta(seconds=0.09)
@@ -264,29 +247,20 @@ def _add_and_delete_target(
     """
     Add and delete a target with the given image.
     """
-    image_content = image.getvalue()
-    image_data_encoded = base64.b64encode(image_content).decode('ascii')
-    add_target_data = {
-        'name': 'example_name',
-        'width': 1,
-        'image': image_data_encoded,
-    }
-    response = add_target_to_vws(
-        vuforia_database=vuforia_database,
-        data=add_target_data,
+    vws_client = VWS(
+        server_access_key=vuforia_database.server_access_key,
+        server_secret_key=vuforia_database.server_secret_key,
     )
 
-    target_id = response.json()['target_id']
-
-    wait_for_target_processed(
-        target_id=target_id,
-        vuforia_database=vuforia_database,
+    target_id = vws_client.add_target(
+        name='example_name',
+        width=1,
+        image=image,
+        active_flag=True,
+        application_metadata=None,
     )
-
-    delete_target(
-        vuforia_database=vuforia_database,
-        target_id=target_id,
-    )
+    vws_client.wait_for_target_processed(target_id=target_id)
+    vws_client.delete_target(target_id=target_id)
 
 
 def _wait_for_deletion_recognized(
@@ -559,21 +533,22 @@ class TestTargets:
         Test for the representation of a ``Target``.
         """
         database = VuforiaDatabase()
-        image_data = high_quality_image.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
 
-        data = {
-            'name': 'example',
-            'width': 1,
-            'image': image_data_encoded,
-        }
+        vws_client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+
         with MockVWS() as mock:
             mock.add_database(database=database)
-            response = add_target_to_vws(
-                vuforia_database=database,
-                data=data,
+            target_id = vws_client.add_target(
+                name='example',
+                width=1,
+                image=high_quality_image,
+                active_flag=True,
+                application_metadata=None,
             )
-        target_id = response.json()['target_id']
+
         (target, ) = database.targets
         assert repr(target) == f'<Target: {target_id}>'
 

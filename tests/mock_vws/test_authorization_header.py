@@ -11,11 +11,13 @@ from urllib.parse import urlparse
 import pytest
 import requests
 from requests.structures import CaseInsensitiveDict
+from vws import VWS
+from vws.exceptions import AuthenticationFailure, Fail
 from vws_auth_tools import rfc_1123_date
 
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import Endpoint, get_vws_target, query
+from tests.mock_vws.utils import Endpoint, query
 from tests.mock_vws.utils.assertions import (
     assert_valid_date_header,
     assert_valid_transaction_id,
@@ -184,25 +186,15 @@ class TestBadKey:
         If the server access key given does not match any database, a ``Fail``
         response is returned.
         """
-        keys = VuforiaDatabase(
-            database_name=vuforia_database.database_name,
+        vws_client = VWS(
             server_access_key='example',
             server_secret_key=vuforia_database.server_secret_key,
-            client_access_key=vuforia_database.client_access_key,
-            client_secret_key=vuforia_database.client_secret_key,
-            targets=vuforia_database.targets,
-            state=vuforia_database.state,
-        )
-        response = get_vws_target(
-            target_id=uuid.uuid4().hex,
-            vuforia_database=keys,
         )
 
-        assert_vws_failure(
-            response=response,
-            status_code=HTTPStatus.BAD_REQUEST,
-            result_code=ResultCodes.FAIL,
-        )
+        with pytest.raises(Fail) as exc:
+            vws_client.get_target_record(target_id=uuid.uuid4().hex)
+
+        assert exc.value.response.status_code == HTTPStatus.BAD_REQUEST
 
     def test_bad_access_key_query(
         self,
@@ -259,25 +251,13 @@ class TestBadKey:
         If the server secret key given is incorrect, an
         ``AuthenticationFailure`` response is returned.
         """
-        keys = VuforiaDatabase(
-            database_name=vuforia_database.database_name,
+        vws_client = VWS(
             server_access_key=vuforia_database.server_access_key,
             server_secret_key='example',
-            client_access_key=vuforia_database.client_access_key,
-            client_secret_key=vuforia_database.client_secret_key,
-            targets=vuforia_database.targets,
-            state=vuforia_database.state,
-        )
-        response = get_vws_target(
-            target_id=uuid.uuid4().hex,
-            vuforia_database=keys,
         )
 
-        assert_vws_failure(
-            response=response,
-            status_code=HTTPStatus.UNAUTHORIZED,
-            result_code=ResultCodes.AUTHENTICATION_FAILURE,
-        )
+        with pytest.raises(AuthenticationFailure):
+            vws_client.get_target_record(target_id=uuid.uuid4().hex)
 
     def test_bad_secret_key_query(
         self,

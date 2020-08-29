@@ -50,5 +50,5 @@ def validate_target_id_exists(
             target for target in database.targets
             if target.target_id == target_id and not target.delete_date
         ]
-    except ValueError:
-        raise UnknownTarget
+    except ValueError as exc:
+        raise UnknownTarget from exc

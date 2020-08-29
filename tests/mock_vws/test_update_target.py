@@ -9,16 +9,13 @@ from http import HTTPStatus
 from typing import Any, Union
 
 import pytest
+from vws import VWS
+from vws.exceptions import BadImage, ProjectInactive
+from vws.reports import TargetStatuses
 
-from mock_vws._constants import ResultCodes, TargetStatuses
+from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import (
-    add_target_to_vws,
-    get_vws_target,
-    make_image_file,
-    update_target,
-    wait_for_target_processed,
-)
+from tests.mock_vws.utils import make_image_file, update_target
 from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
     assert_vws_response,
@@ -44,6 +41,7 @@ class TestUpdate:
     def test_content_types(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         image_file_failed_state: io.BytesIO,
         content_type: str,
     ) -> None:
@@ -51,21 +49,13 @@ class TestUpdate:
         The ``Content-Type`` header does not change the response as long as it
         is not empty.
         """
-        image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
-
-        data = {
-            'name': 'example',
-            'width': 1,
-            'image': image_data_encoded,
-        }
-
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
+        target_id = vws_client.add_target(
+            name='example',
+            width=1,
+            image=image_file_failed_state,
+            active_flag=True,
+            application_metadata=None,
         )
-
-        target_id = response.json()['target_id']
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -84,27 +74,20 @@ class TestUpdate:
     def test_empty_content_type(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
         An ``UNAUTHORIZED`` response is given if an empty ``Content-Type``
         header is given.
         """
-        image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
-
-        data = {
-            'name': 'example',
-            'width': 1,
-            'image': image_data_encoded,
-        }
-
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
+        target_id = vws_client.add_target(
+            name='example',
+            width=1,
+            image=image_file_failed_state,
+            active_flag=True,
+            application_metadata=None,
         )
-
-        target_id = response.json()['target_id']
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -122,15 +105,13 @@ class TestUpdate:
     def test_no_fields_given(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         target_id: str,
     ) -> None:
         """
         No data fields are required.
         """
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -146,25 +127,14 @@ class TestUpdate:
 
         assert response.json().keys() == {'result_code', 'transaction_id'}
 
-        response = get_vws_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
-
+        target_details = vws_client.get_target_record(target_id=target_id)
         # Targets go back to processing after being updated.
-        assert response.json()['status'] == TargetStatuses.PROCESSING.value
+        assert target_details.status == TargetStatuses.PROCESSING
 
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
-        response = get_vws_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
-
-        assert response.json()['status'] == TargetStatuses.SUCCESS.value
+        target_details = vws_client.get_target_record(target_id=target_id)
+        assert target_details.status == TargetStatuses.SUCCESS
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -176,15 +146,13 @@ class TestUnexpectedData:
     def test_invalid_extra_data(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         target_id: str,
     ) -> None:
         """
         A `BAD_REQUEST` response is returned when unexpected data is given.
         """
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -213,23 +181,17 @@ class TestWidth:
     def test_width_invalid(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         width: Any,
         target_id: str,
     ) -> None:
         """
         The width must be a number greater than zero.
         """
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
-        response = get_vws_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
-
-        original_width = response.json()['target_record']['width']
+        target_details = vws_client.get_target_record(target_id=target_id)
+        original_width = target_details.target_record.width
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -243,27 +205,19 @@ class TestWidth:
             result_code=ResultCodes.FAIL,
         )
 
-        response = get_vws_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
-
-        new_width = response.json()['target_record']['width']
-
-        assert new_width == original_width
+        target_details = vws_client.get_target_record(target_id=target_id)
+        assert target_details.target_record.width == original_width
 
     def test_width_valid(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         target_id: str,
     ) -> None:
         """
         Positive numbers are valid widths.
         """
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         width = 0.01
 
@@ -279,13 +233,8 @@ class TestWidth:
             result_code=ResultCodes.SUCCESS,
         )
 
-        response = get_vws_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
-
-        new_width = response.json()['target_record']['width']
-        assert new_width == width
+        target_details = vws_client.get_target_record(target_id=target_id)
+        assert target_details.target_record.width == width
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -299,6 +248,7 @@ class TestActiveFlag:
     def test_active_flag(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         image_file_success_state_low_rating: io.BytesIO,
         initial_active_flag: bool,
         desired_active_flag: bool,
@@ -306,27 +256,15 @@ class TestActiveFlag:
         """
         Setting the active flag to a Boolean value changes it.
         """
-        image_data = image_file_success_state_low_rating.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
-
-        data = {
-            'name': 'example',
-            'width': 1,
-            'image': image_data_encoded,
-            'active_flag': initial_active_flag,
-        }
-
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
+        target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=image_file_success_state_low_rating,
+            active_flag=initial_active_flag,
+            application_metadata=None,
         )
 
-        target_id = response.json()['target_id']
-
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -340,28 +278,21 @@ class TestActiveFlag:
             result_code=ResultCodes.SUCCESS,
         )
 
-        response = get_vws_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
-
-        new_flag = response.json()['target_record']['active_flag']
-        assert new_flag == desired_active_flag
+        target_details = vws_client.get_target_record(target_id=target_id)
+        assert target_details.target_record.active_flag == desired_active_flag
 
     @pytest.mark.parametrize('desired_active_flag', ['string', None])
     def test_invalid(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         target_id: str,
         desired_active_flag: Union[str, None],
     ) -> None:
         """
         Values which are not Boolean values are not valid active flags.
         """
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -394,46 +325,32 @@ class TestApplicationMetadata:
     )
     def test_base64_encoded(
         self,
-        vuforia_database: VuforiaDatabase,
         target_id: str,
         metadata: bytes,
+        vws_client: VWS,
     ) -> None:
         """
         A base64 encoded string is valid application metadata.
         """
         metadata_encoded = base64.b64encode(metadata).decode('ascii')
-
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
+        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.update_target(
             target_id=target_id,
-        )
-
-        response = update_target(
-            vuforia_database=vuforia_database,
-            data={'application_metadata': metadata_encoded},
-            target_id=target_id,
-        )
-
-        assert_vws_response(
-            response=response,
-            status_code=HTTPStatus.OK,
-            result_code=ResultCodes.SUCCESS,
+            application_metadata=metadata_encoded,
         )
 
     @pytest.mark.parametrize('invalid_metadata', [1, None])
     def test_invalid_type(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         target_id: str,
         invalid_metadata: Union[int, None],
     ) -> None:
         """
         Non-string values cannot be given as valid application metadata.
         """
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -450,6 +367,7 @@ class TestApplicationMetadata:
     def test_not_base64_encoded_processable(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         target_id: str,
         not_base64_encoded_processable: str,
     ) -> None:
@@ -457,10 +375,7 @@ class TestApplicationMetadata:
         Some strings which are not valid base64 encoded strings are allowed as
         application metadata.
         """
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -477,6 +392,7 @@ class TestApplicationMetadata:
     def test_not_base64_encoded_not_processable(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         target_id: str,
         not_base64_encoded_not_processable: str,
     ) -> None:
@@ -484,10 +400,7 @@ class TestApplicationMetadata:
         Some strings which are not valid base64 encoded strings are not allowed
         as application metadata.
         """
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -504,6 +417,7 @@ class TestApplicationMetadata:
     def test_metadata_too_large(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         target_id: str,
     ) -> None:
         """
@@ -512,11 +426,7 @@ class TestApplicationMetadata:
         """
         metadata = b'a' * (self._MAX_METADATA_BYTES + 1)
         metadata_encoded = base64.b64encode(metadata).decode('ascii')
-
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -555,8 +465,8 @@ class TestTargetName:
     def test_name_valid(
         self,
         name: str,
-        vuforia_database: VuforiaDatabase,
         target_id: str,
+        vws_client: VWS,
     ) -> None:
         """
         A target's name must be a string of length 0 < N < 65.
@@ -564,29 +474,10 @@ class TestTargetName:
         We test characters out of range in another test as that gives a
         different error.
         """
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
-
-        response = update_target(
-            vuforia_database=vuforia_database,
-            data={'name': name},
-            target_id=target_id,
-        )
-
-        assert_vws_response(
-            response=response,
-            status_code=HTTPStatus.OK,
-            result_code=ResultCodes.SUCCESS,
-        )
-
-        response = get_vws_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
-
-        assert response.json()['target_record']['name'] == name
+        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.update_target(target_id=target_id, name=name)
+        target_details = vws_client.get_target_record(target_id=target_id)
+        assert target_details.target_record.name == name
 
     @pytest.mark.parametrize(
         'name,status_code,result_code',
@@ -624,16 +515,14 @@ class TestTargetName:
         name: str,
         target_id: str,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         status_code: int,
         result_code: ResultCodes,
     ) -> None:
         """
         A target's name must be a string of length 0 < N < 65.
         """
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -651,51 +540,32 @@ class TestTargetName:
         self,
         image_file_success_state_low_rating: io.BytesIO,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         Only one target can have a given name.
         """
-        image_data = image_file_success_state_low_rating.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
-
         first_target_name = 'example_name'
         second_target_name = 'another_example_name'
 
-        data = {
-            'name': first_target_name,
-            'width': 1,
-            'image': image_data_encoded,
-        }
-
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
+        first_target_id = vws_client.add_target(
+            name=first_target_name,
+            width=1,
+            image=image_file_success_state_low_rating,
+            active_flag=True,
+            application_metadata=None,
         )
 
-        first_target_id = response.json()['target_id']
-
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=first_target_id,
+        second_target_id = vws_client.add_target(
+            name=second_target_name,
+            width=1,
+            image=image_file_success_state_low_rating,
+            active_flag=True,
+            application_metadata=None,
         )
 
-        other_data = {
-            'name': second_target_name,
-            'width': 1,
-            'image': image_data_encoded,
-        }
-
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=other_data,
-        )
-
-        second_target_id = response.json()['target_id']
-
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=second_target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=first_target_id)
+        vws_client.wait_for_target_processed(target_id=second_target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -713,32 +583,22 @@ class TestTargetName:
         self,
         image_file_success_state_low_rating: io.BytesIO,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         Updating a target with its own name does not give an error.
         """
-        image_data = image_file_success_state_low_rating.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
-
         name = 'example'
 
-        data = {
-            'name': name,
-            'width': 1,
-            'image': image_data_encoded,
-        }
-
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
+        target_id = vws_client.add_target(
+            name=name,
+            width=1,
+            image=image_file_success_state_low_rating,
+            active_flag=True,
+            application_metadata=None,
         )
 
-        target_id = response.json()['target_id']
-
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -752,12 +612,8 @@ class TestTargetName:
             result_code=ResultCodes.SUCCESS,
         )
 
-        response = get_vws_target(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
-
-        assert response.json()['target_record']['name'] == name
+        target_details = vws_client.get_target_record(target_id=target_id)
+        assert target_details.target_record.name == name
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -774,6 +630,7 @@ class TestImage:
         vuforia_database: VuforiaDatabase,
         image_files_failed_state: io.BytesIO,
         target_id: str,
+        vws_client: VWS,
     ) -> None:
         """
         JPEG and PNG files in the RGB and greyscale color spaces are allowed.
@@ -782,10 +639,7 @@ class TestImage:
         image_data = image_file.read()
         image_data_encoded = base64.b64encode(image_data).decode('ascii')
 
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -802,67 +656,41 @@ class TestImage:
     def test_bad_image_format_or_color_space(
         self,
         bad_image_file: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
         target_id: str,
+        vws_client: VWS,
     ) -> None:
         """
-        A `BAD_REQUEST` response is returned if an image which is not a JPEG
+        A `BAD_IMAGE` response is returned if an image which is not a JPEG
         or PNG file is given, or if the given image is not in the greyscale or
         RGB color space.
         """
-        image_data = bad_image_file.read()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
+        vws_client.wait_for_target_processed(target_id=target_id)
+        with pytest.raises(BadImage) as exc:
+            vws_client.update_target(target_id=target_id, image=bad_image_file)
 
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
-
-        response = update_target(
-            vuforia_database=vuforia_database,
-            data={'image': image_data_encoded},
-            target_id=target_id,
-        )
-
-        assert_vws_failure(
-            response=response,
-            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
-            result_code=ResultCodes.BAD_IMAGE,
-        )
+        status_code = exc.value.response.status_code
+        assert status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
     def test_corrupted(
         self,
-        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         corrupted_image_file: io.BytesIO,
         target_id: str,
     ) -> None:
         """
         No error is returned when the given image is corrupted.
         """
-        image_data = corrupted_image_file.getvalue()
-        image_data_encoded = base64.b64encode(image_data).decode('ascii')
-
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
+        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.update_target(
             target_id=target_id,
-        )
-
-        response = update_target(
-            vuforia_database=vuforia_database,
-            data={'image': image_data_encoded},
-            target_id=target_id,
-        )
-
-        assert_vws_response(
-            response=response,
-            status_code=HTTPStatus.OK,
-            result_code=ResultCodes.SUCCESS,
+            image=corrupted_image_file,
         )
 
     def test_image_too_large(
         self,
         vuforia_database: VuforiaDatabase,
         target_id: str,
+        vws_client: VWS,
     ) -> None:
         """
         An `ImageTooLarge` result is returned if the image is above a certain
@@ -877,10 +705,7 @@ class TestImage:
             height=height,
         )
 
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         image_data = png_not_too_large.read()
         image_data_encoded = base64.b64encode(image_data).decode('ascii')
@@ -905,10 +730,7 @@ class TestImage:
             result_code=ResultCodes.SUCCESS,
         )
 
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         width = width + 1
         height = height + 1
@@ -947,6 +769,7 @@ class TestImage:
         vuforia_database: VuforiaDatabase,
         target_id: str,
         not_base64_encoded_processable: str,
+        vws_client: VWS,
     ) -> None:
         """
         Some strings which are not valid base64 encoded strings are allowed as
@@ -954,10 +777,7 @@ class TestImage:
         This is because Vuforia treats them as valid base64, but then not a
         valid image.
         """
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -974,6 +794,7 @@ class TestImage:
     def test_not_base64_encoded_not_processable(
         self,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         target_id: str,
         not_base64_encoded_not_processable: str,
     ) -> None:
@@ -982,10 +803,7 @@ class TestImage:
         processable by Vuforia, and then when given as an image Vuforia returns
         a "Fail" response.
         """
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -1003,6 +821,7 @@ class TestImage:
         self,
         vuforia_database: VuforiaDatabase,
         target_id: str,
+        vws_client: VWS,
     ) -> None:
         """
         If the given image is not an image file then a `BadImage` result is
@@ -1011,10 +830,7 @@ class TestImage:
         not_image_data = b'not_image_data'
         image_data_encoded = base64.b64encode(not_image_data).decode('ascii')
 
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -1034,14 +850,12 @@ class TestImage:
         invalid_type_image: Union[int, None],
         target_id: str,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         If the given image is not a string, a `Fail` result is returned.
         """
-        wait_for_target_processed(
-            vuforia_database=vuforia_database,
-            target_id=target_id,
-        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -1060,6 +874,7 @@ class TestImage:
         image_file_success_state_low_rating: io.BytesIO,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         If the target is updated with an image of different quality, the
@@ -1069,39 +884,23 @@ class TestImage:
         The mock randomly assigns a quality and makes sure that the new quality
         is different to the old quality.
         """
-        poor_image = image_file_success_state_low_rating.read()
-        poor_image_data_encoded = base64.b64encode(poor_image).decode('ascii')
-
         good_image = high_quality_image.read()
         good_image_data_encoded = base64.b64encode(good_image).decode('ascii')
 
-        data = {
-            'name': 'example',
-            'width': 1,
-            'image': poor_image_data_encoded,
-        }
-
-        add_response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
+        target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=image_file_success_state_low_rating,
+            active_flag=True,
+            application_metadata=None,
         )
 
-        target_id = add_response.json()['target_id']
+        vws_client.wait_for_target_processed(target_id=target_id)
 
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
-
-        get_response = get_vws_target(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
-
-        assert get_response.json()['status'] == TargetStatuses.SUCCESS.value
+        target_details = vws_client.get_target_record(target_id=target_id)
+        assert target_details.status == TargetStatuses.SUCCESS
         # Tracking rating is between 0 and 5 when status is 'success'
-        original_target_record = get_response.json()['target_record']
-        original_tracking_rating = original_target_record['tracking_rating']
+        original_tracking_rating = target_details.target_record.tracking_rating
         assert original_tracking_rating in range(6)
 
         update_target(
@@ -1110,20 +909,11 @@ class TestImage:
             target_id=target_id,
         )
 
-        wait_for_target_processed(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
-
-        get_response = get_vws_target(
-            target_id=target_id,
-            vuforia_database=vuforia_database,
-        )
-
-        assert get_response.json()['status'] == TargetStatuses.SUCCESS.value
+        vws_client.wait_for_target_processed(target_id=target_id)
+        target_details = vws_client.get_target_record(target_id=target_id)
+        assert target_details.status == TargetStatuses.SUCCESS
         # Tracking rating is between 0 and 5 when status is 'success'
-        new_target_record = get_response.json()['target_record']
-        new_tracking_rating = new_target_record['tracking_rating']
+        new_tracking_rating = target_details.target_record.tracking_rating
         assert new_tracking_rating in range(6)
 
         assert original_tracking_rating != new_tracking_rating
@@ -1137,23 +927,10 @@ class TestInactiveProject:
 
     def test_inactive_project(
         self,
-        inactive_database: VuforiaDatabase,
-        high_quality_image: io.BytesIO,
+        inactive_vws_client: VWS,
     ) -> None:
         """
         If the project is inactive, a FORBIDDEN response is returned.
         """
-        image = high_quality_image.read()
-        image_data_encoded = base64.b64encode(image).decode('ascii')
-
-        response = update_target(
-            vuforia_database=inactive_database,
-            data={'image': image_data_encoded},
-            target_id=uuid.uuid4().hex,
-        )
-
-        assert_vws_failure(
-            response=response,
-            status_code=HTTPStatus.FORBIDDEN,
-            result_code=ResultCodes.PROJECT_INACTIVE,
-        )
+        with pytest.raises(ProjectInactive):
+            inactive_vws_client.update_target(target_id=uuid.uuid4().hex)
