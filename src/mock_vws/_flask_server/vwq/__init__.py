@@ -12,6 +12,8 @@ import pytz
 from flask import Flask, Response, make_response, request
 from requests import codes
 import requests
+
+from werkzeug.datastructures import Headers
 from mock_vws._query_tools import (
     ActiveMatchingTargetsDeleteProcessing,
     MatchingTargetsWithProcessingStatus,
@@ -79,7 +81,7 @@ def handle_content_length_header_too_large(
     e: ContentLengthHeaderTooLarge,
 ) -> Response:
     response = make_response(e.response_text, e.status_code)
-    response.headers = {'Connection': 'keep-alive'}
+    response.headers = Headers({'Connection': 'keep-alive'})
     assert isinstance(response, Response)
     return response
 
@@ -88,10 +90,6 @@ def handle_connection_error(
     e: requests.exceptions.ConnectionError,
 ) -> Response:
     raise e
-    response = make_response(e.response_text, e.status_code)
-    response.headers = {'Connection': 'keep-alive'}
-    assert isinstance(response, Response)
-    return response
 
 @CLOUDRECO_FLASK_APP.errorhandler(UnsupportedMediaType)
 def handle_unsupported_media_type(
