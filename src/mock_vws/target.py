@@ -180,17 +180,10 @@ class Target:  # pylint: disable=too-many-instance-attributes
         return 0
 
     def to_dict(self) -> Dict[str, Optional[Union[str, int, bool, float]]]:
-        # TODO e.g. processed tracking rating can surely change if
-        # target is dumped then recreated.
-        #
-        # as can e.g. processing time... maybe use dataclass but then
-        # https://github.com/agronholm/sphinx-autodoc-typehints/issues/123
+        delete_date: Optional[str] = None
         if self.delete_date:
-            delete_date: Optional[str] = datetime.datetime.isoformat(
-                self.delete_date,
-            )
-        else:
-            delete_date = None
+            delete_date = datetime.datetime.isoformat(self.delete_date)
+
         return {
             'name': self.name,
             'width': self.width,
