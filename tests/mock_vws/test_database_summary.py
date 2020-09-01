@@ -11,10 +11,11 @@ from time import sleep
 import pytest
 import timeout_decorator
 from vws import VWS
+from vws.exceptions import Fail
 
 from mock_vws import MockVWS
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import add_target_to_vws, query
+from tests.mock_vws.utils import query
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -370,6 +371,7 @@ class TestRequestUsage:
     def test_bad_target_request(
         self,
         vuforia_database: VuforiaDatabase,
+        high_quality_image: io.BytesIO,
         vws_client: VWS,
     ) -> None:
         """
@@ -379,13 +381,16 @@ class TestRequestUsage:
         report = vws_client.get_database_summary_report()
         original_request_usage = report.request_usage
 
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            # Missing data.
-            data={},
-        )
+        with pytest.raises(Fail) as exc:
+            response = vws_client.add_target(
+                name='example',
+                width=-1,
+                image=high_quality_image,
+                active_flag=True,
+                application_metadata=None,
+            )
 
-        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert exc.value.response.status_code == HTTPStatus.BAD_REQUEST
 
         report = vws_client.get_database_summary_report()
         new_request_usage = report.request_usage
