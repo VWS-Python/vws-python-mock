@@ -327,11 +327,7 @@ class MockVuforiaWebServicesAPI:
             }
             return json_dump(body)
 
-        # TODO make this target.delete()
-        # and have this raise a target status processing exception
-        gmt = ZoneInfo('GMT')
-        now = datetime.datetime.now(tz=gmt)
-        target.delete_date = now
+        target.delete()
 
         body = {
             'transaction_id': uuid.uuid4().hex,
