@@ -15,11 +15,10 @@ from requests_mock_flask import add_flask_app_to_mock
 from vws import VWS
 from vws.exceptions import TargetStatusNotSuccess
 
-
+from mock_vws import MockVWS
 from mock_vws._flask_server.storage import STORAGE_FLASK_APP
 from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
 from mock_vws._flask_server.vws import STORAGE_BASE_URL, VWS_FLASK_APP
-from mock_vws import MockVWS
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
 

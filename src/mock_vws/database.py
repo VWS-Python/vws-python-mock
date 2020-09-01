@@ -3,9 +3,8 @@ Utilities for managing mock Vuforia databases.
 """
 
 import uuid
-from typing import Dict, List, Optional, Set, Union
 from dataclasses import dataclass, field
-from typing import Set
+from typing import Dict, List, Optional, Set, Union
 
 from .states import States
 from .target import Target
@@ -37,13 +36,8 @@ class VuforiaDatabase:
     # TODO use built in dataclass to dict feature?
     def to_dict(
         self,
-    ) -> Dict[
-        str,
-        Union[
-            str,
-            List[Dict[str, Optional[Union[str, int, bool, float]]]],
-        ],
-    ]:
+    ) -> Dict[str, Union[str, List[Dict[str, Optional[Union[str, int, bool,
+                                                            float]]]], ], ]:
         targets = [target.to_dict() for target in self.targets]
         return {
             'database_name': self.database_name,

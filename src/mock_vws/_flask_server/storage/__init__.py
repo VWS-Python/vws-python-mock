@@ -4,8 +4,7 @@ import io
 import random
 from typing import List, Tuple
 
-# TODO use ZoneInfo
-import pytz
+from backports.zoneinfo import ZoneInfo
 from flask import Flask, jsonify, request
 from requests import codes
 
@@ -129,7 +128,7 @@ def update_target(database_name: str, target_id: str) -> Tuple[str, int]:
     available_values = list(set(range(6)) - set([target.tracking_rating]))
     target.processed_tracking_rating = random.choice(available_values)
 
-    gmt = pytz.timezone('GMT')
+    gmt = ZoneInfo('GMT')
     now = datetime.datetime.now(tz=gmt)
     target.last_modified_date = now
 

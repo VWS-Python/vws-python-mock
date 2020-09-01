@@ -6,24 +6,17 @@ import uuid
 from typing import Dict, List, Tuple, Union
 
 import requests
-from flask import Flask, Response, request, make_response
+from flask import Flask, Response, make_response, request
 from PIL import Image
 from requests import codes
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._mock_common import json_dump
-from mock_vws.database import VuforiaDatabase
-from mock_vws.target import Target
-
-from ._constants import STORAGE_BASE_URL
-from ._databases import get_all_databases
 from mock_vws._services_validators import run_services_validators
 from mock_vws._services_validators.exceptions import (
     AuthenticationFailure,
     BadImage,
-    ContentLengthHeaderNotInt,
-    ContentLengthHeaderTooLarge,
     Fail,
     ImageTooLarge,
     MetadataTooLarge,
@@ -32,11 +25,15 @@ from mock_vws._services_validators.exceptions import (
     RequestTimeTooSkewed,
     TargetNameExist,
     UnknownTarget,
-    UnnecessaryRequestBody,
 )
-from pathlib import Path
+from mock_vws.database import VuforiaDatabase
+from mock_vws.target import Target
+
+from ._constants import STORAGE_BASE_URL
+from ._databases import get_all_databases
 
 VWS_FLASK_APP = Flask(__name__)
+
 
 @VWS_FLASK_APP.before_request
 def validate_request() -> None:
@@ -59,37 +56,46 @@ def validate_request() -> None:
 def handle_unknown_target(e: UnknownTarget) -> Tuple[str, int]:
     return e.response_text, e.status_code
 
+
 @VWS_FLASK_APP.errorhandler(ProjectInactive)
 def handle_project_inactive(e: ProjectInactive) -> Tuple[str, int]:
     return e.response_text, e.status_code
+
 
 @VWS_FLASK_APP.errorhandler(AuthenticationFailure)
 def handle_authentication_failure(e: AuthenticationFailure) -> Tuple[str, int]:
     return e.response_text, e.status_code
 
+
 @VWS_FLASK_APP.errorhandler(Fail)
 def handle_fail(e: Fail) -> Tuple[str, int]:
     return e.response_text, e.status_code
+
 
 @VWS_FLASK_APP.errorhandler(MetadataTooLarge)
 def handle_metadata_too_large(e: MetadataTooLarge) -> Tuple[str, int]:
     return e.response_text, e.status_code
 
+
 @VWS_FLASK_APP.errorhandler(TargetNameExist)
 def handle_target_name_exist(e: TargetNameExist) -> Tuple[str, int]:
     return e.response_text, e.status_code
+
 
 @VWS_FLASK_APP.errorhandler(BadImage)
 def handle_bad_image(e: BadImage) -> Tuple[str, int]:
     return e.response_text, e.status_code
 
+
 @VWS_FLASK_APP.errorhandler(ImageTooLarge)
 def handle_image_too_large(e: ImageTooLarge) -> Tuple[str, int]:
     return e.response_text, e.status_code
 
+
 @VWS_FLASK_APP.errorhandler(RequestTimeTooSkewed)
 def handle_request_time_too_skewed(e: RequestTimeTooSkewed) -> Tuple[str, int]:
     return e.response_text, e.status_code
+
 
 @VWS_FLASK_APP.errorhandler(OopsErrorOccurredResponse)
 def handle_oops_error_occurred(e: OopsErrorOccurredResponse) -> Response:
@@ -98,6 +104,7 @@ def handle_oops_error_occurred(e: OopsErrorOccurredResponse) -> Response:
     response.headers['Content-Type'] = content_type
     assert isinstance(response, Response)
     return response
+
 
 @VWS_FLASK_APP.after_request
 def set_headers(response: Response) -> Response:

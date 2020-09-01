@@ -3,8 +3,8 @@ import datetime
 import io
 from typing import Set
 
-import pytz
 import requests
+from backports.zoneinfo import ZoneInfo
 
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
@@ -56,7 +56,7 @@ def get_all_databases() -> Set[VuforiaDatabase]:
                 application_metadata=application_metadata,
             )
             target.target_id = target_dict['target_id']
-            gmt = pytz.timezone('GMT')
+            gmt = ZoneInfo('GMT')
             target.last_modified_date = datetime.datetime.fromisoformat(
                 target_dict['last_modified_date'],
             )

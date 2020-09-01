@@ -1,56 +1,42 @@
-import base64
 import copy
-import cgi
-import datetime
 import email.utils
-import io
-import uuid
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, Tuple, Union
 
-import pytz
+import requests
 from flask import Flask, Response, make_response, request
 from requests import codes
-import requests
-
 from werkzeug.datastructures import Headers
+
 from mock_vws._query_tools import (
     ActiveMatchingTargetsDeleteProcessing,
     MatchingTargetsWithProcessingStatus,
     get_query_match_response_text,
 )
-
-from mock_vws._base64_decoding import decode_base64
-from mock_vws._constants import ResultCodes, TargetStatuses
-from mock_vws._database_matchers import get_database_matching_client_keys
-from mock_vws._mock_common import json_dump
-from mock_vws.database import VuforiaDatabase
-
-from ..vws._databases import get_all_databases
 from mock_vws._query_validators import run_query_validators
 from mock_vws._query_validators.exceptions import (
-    DateHeaderNotGiven,
-    DateFormatNotValid,
-    RequestTimeTooSkewed,
-    BadImage,
     AuthenticationFailure,
     AuthenticationFailureGoodFormatting,
-    ImageNotGiven,
     AuthHeaderMissing,
-    MalformedAuthHeader,
-    UnknownParameters,
-    InactiveProject,
-    InvalidMaxNumResults,
-    MaxNumResultsOutOfRange,
-    InvalidIncludeTargetData,
-    UnsupportedMediaType,
-    InvalidAcceptHeader,
+    BadImage,
     BoundaryNotInBody,
+    ContentLengthHeaderTooLarge,
+    DateFormatNotValid,
+    ImageNotGiven,
+    InactiveProject,
+    InvalidAcceptHeader,
+    InvalidIncludeTargetData,
+    InvalidMaxNumResults,
+    MalformedAuthHeader,
+    MaxNumResultsOutOfRange,
     NoBoundaryFound,
     QueryOutOfBounds,
-    ContentLengthHeaderTooLarge,
-    ContentLengthHeaderNotInt
+    RequestTimeTooSkewed,
+    UnknownParameters,
+    UnsupportedMediaType,
 )
+
+from ..vws._databases import get_all_databases
 
 CLOUDRECO_FLASK_APP = Flask(__name__)
 CLOUDRECO_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
@@ -70,11 +56,12 @@ def validate_request() -> None:
     )
 
 
-
 class MyResponse(Response):
     default_mimetype = None
 
+
 CLOUDRECO_FLASK_APP.response_class = MyResponse
+
 
 @CLOUDRECO_FLASK_APP.errorhandler(ContentLengthHeaderTooLarge)
 def handle_content_length_header_too_large(
@@ -85,67 +72,58 @@ def handle_content_length_header_too_large(
     assert isinstance(response, Response)
     return response
 
+
 @CLOUDRECO_FLASK_APP.errorhandler(requests.exceptions.ConnectionError)
 def handle_connection_error(
     e: requests.exceptions.ConnectionError,
 ) -> Response:
     raise e
 
+
 @CLOUDRECO_FLASK_APP.errorhandler(UnsupportedMediaType)
-def handle_unsupported_media_type(
-    e: UnsupportedMediaType,
-) -> Response:
+def handle_unsupported_media_type(e: UnsupportedMediaType, ) -> Response:
     response = make_response(e.response_text, e.status_code)
     assert isinstance(response, Response)
     return response
+
 
 @CLOUDRECO_FLASK_APP.errorhandler(InvalidAcceptHeader)
-def handle_invalid_accept_header(
-    e: InvalidAcceptHeader,
-) -> Response:
+def handle_invalid_accept_header(e: InvalidAcceptHeader, ) -> Response:
     response = make_response(e.response_text, e.status_code)
     assert isinstance(response, Response)
     return response
+
 
 @CLOUDRECO_FLASK_APP.errorhandler(BadImage)
-def handle_bad_image(
-    e: BadImage,
-) -> Response:
+def handle_bad_image(e: BadImage, ) -> Response:
     response = make_response(e.response_text, e.status_code)
     assert isinstance(response, Response)
     return response
 
+
 @CLOUDRECO_FLASK_APP.errorhandler(UnknownParameters)
-def handle_unknown_parameters(
-    e: UnknownParameters,
-) -> Response:
+def handle_unknown_parameters(e: UnknownParameters, ) -> Response:
     response = make_response(e.response_text, e.status_code)
     assert isinstance(response, Response)
     return response
 
 
 @CLOUDRECO_FLASK_APP.errorhandler(RequestTimeTooSkewed)
-def handle_request_time_too_skewed(
-    e: RequestTimeTooSkewed,
-) -> Response:
+def handle_request_time_too_skewed(e: RequestTimeTooSkewed, ) -> Response:
     response = make_response(e.response_text, e.status_code)
     assert isinstance(response, Response)
     return response
 
 
 @CLOUDRECO_FLASK_APP.errorhandler(ImageNotGiven)
-def handle_image_not_given(
-    e: ImageNotGiven,
-) -> Response:
+def handle_image_not_given(e: ImageNotGiven, ) -> Response:
     response = make_response(e.response_text, e.status_code)
     assert isinstance(response, Response)
     return response
 
 
 @CLOUDRECO_FLASK_APP.errorhandler(InactiveProject)
-def handle_inactive_project(
-    e: InactiveProject,
-) -> Response:
+def handle_inactive_project(e: InactiveProject, ) -> Response:
     response = make_response(e.response_text, e.status_code)
     assert isinstance(response, Response)
     return response
@@ -159,13 +137,13 @@ def handle_invalid_include_target_data(
     assert isinstance(response, Response)
     return response
 
+
 @CLOUDRECO_FLASK_APP.errorhandler(InvalidMaxNumResults)
-def handle_invalid_max_num_results(
-    e: InvalidMaxNumResults,
-) -> Response:
+def handle_invalid_max_num_results(e: InvalidMaxNumResults, ) -> Response:
     response = make_response(e.response_text, e.status_code)
     assert isinstance(response, Response)
     return response
+
 
 @CLOUDRECO_FLASK_APP.errorhandler(MaxNumResultsOutOfRange)
 def handle_max_num_results_out_of_range(
@@ -177,19 +155,16 @@ def handle_max_num_results_out_of_range(
 
 
 @CLOUDRECO_FLASK_APP.errorhandler(NoBoundaryFound)
-def handle_no_boundary_found(
-    e: NoBoundaryFound,
-) -> Response:
+def handle_no_boundary_found(e: NoBoundaryFound, ) -> Response:
     content_type = 'text/html;charset=UTF-8'
     response = make_response(e.response_text, e.status_code)
     response.headers['Content-Type'] = content_type
     assert isinstance(response, Response)
     return response
 
+
 @CLOUDRECO_FLASK_APP.errorhandler(BoundaryNotInBody)
-def handle_boundary_not_in_body(
-    e: BoundaryNotInBody,
-) -> Response:
+def handle_boundary_not_in_body(e: BoundaryNotInBody, ) -> Response:
     content_type = 'text/html;charset=UTF-8'
     response = make_response(e.response_text, e.status_code)
     response.headers['Content-Type'] = content_type
@@ -198,13 +173,12 @@ def handle_boundary_not_in_body(
 
 
 @CLOUDRECO_FLASK_APP.errorhandler(AuthenticationFailure)
-def handle_authentication_failure(
-    e: AuthenticationFailure,
-) -> Response:
+def handle_authentication_failure(e: AuthenticationFailure, ) -> Response:
     response = make_response(e.response_text, e.status_code)
     response.headers['WWW-Authenticate'] = 'VWS'
     assert isinstance(response, Response)
     return response
+
 
 @CLOUDRECO_FLASK_APP.errorhandler(AuthenticationFailureGoodFormatting)
 def handle_authentication_failure_good_formatting(
@@ -215,10 +189,9 @@ def handle_authentication_failure_good_formatting(
     assert isinstance(response, Response)
     return response
 
+
 @CLOUDRECO_FLASK_APP.errorhandler(QueryOutOfBounds)
-def handle_query_out_of_bounds(
-    e: QueryOutOfBounds,
-) -> Response:
+def handle_query_out_of_bounds(e: QueryOutOfBounds, ) -> Response:
     response = make_response(e.response_text, e.status_code)
     content_type = 'text/html; charset=ISO-8859-1'
     response.headers['Content-Type'] = content_type
@@ -227,21 +200,19 @@ def handle_query_out_of_bounds(
     assert isinstance(response, Response)
     return response
 
+
 @CLOUDRECO_FLASK_APP.errorhandler(AuthHeaderMissing)
-def handle_auth_header_missing(
-    e: AuthHeaderMissing,
-) -> Response:
+def handle_auth_header_missing(e: AuthHeaderMissing, ) -> Response:
     response = make_response(e.response_text, e.status_code)
     content_type = 'text/plain; charset=ISO-8859-1'
     response.headers['Content-Type'] = content_type
     response.headers['WWW-Authenticate'] = 'VWS'
     assert isinstance(response, Response)
     return response
+
 
 @CLOUDRECO_FLASK_APP.errorhandler(DateFormatNotValid)
-def handle_date_format_not_valid(
-    e: DateFormatNotValid,
-) -> Response:
+def handle_date_format_not_valid(e: DateFormatNotValid, ) -> Response:
     response = make_response(e.response_text, e.status_code)
     content_type = 'text/plain; charset=ISO-8859-1'
     response.headers['Content-Type'] = content_type
@@ -249,10 +220,9 @@ def handle_date_format_not_valid(
     assert isinstance(response, Response)
     return response
 
+
 @CLOUDRECO_FLASK_APP.errorhandler(MalformedAuthHeader)
-def handle_malformed_auth_header(
-    e: MalformedAuthHeader,
-) -> Response:
+def handle_malformed_auth_header(e: MalformedAuthHeader, ) -> Response:
     response = make_response(e.response_text, e.status_code)
     content_type = 'text/plain; charset=ISO-8859-1'
     response.headers['Content-Type'] = content_type
@@ -283,7 +253,6 @@ def set_headers(response: Response) -> Response:
 
 @CLOUDRECO_FLASK_APP.route('/v1/query', methods=['POST'])
 def query() -> Union[Tuple[str, int], Tuple[str, int, Dict[str, Any]]]:
-
 
     # TODO these should be configurable
     query_processes_deletion_seconds = 0.2
