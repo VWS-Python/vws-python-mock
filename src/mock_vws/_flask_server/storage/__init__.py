@@ -4,6 +4,7 @@ import io
 import random
 from typing import List, Tuple
 
+# TODO use ZoneInfo
 import pytz
 from flask import Flask, jsonify, request
 from requests import codes
@@ -88,9 +89,7 @@ def delete_target(database_name: str, target_id: str) -> Tuple[str, int]:
     [target] = [
         target for target in database.targets if target.target_id == target_id
     ]
-    gmt = pytz.timezone('GMT')
-    now = datetime.datetime.now(tz=gmt)
-    target.delete_date = now
+    target.delete()
     return jsonify(target.to_dict()), codes.OK
 
 

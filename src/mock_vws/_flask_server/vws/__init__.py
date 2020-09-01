@@ -247,9 +247,6 @@ def delete_target(target_id: str) -> Tuple[str, int]:
         }
         return json_dump(body), codes.FORBIDDEN
 
-    # gmt = pytz.timezone('GMT')
-    # now = datetime.datetime.now(tz=gmt)
-    # target.delete_date = now
     delete_url = (
         f'{STORAGE_BASE_URL}/databases/{database.database_name}/targets/'
         f'{target_id}'
