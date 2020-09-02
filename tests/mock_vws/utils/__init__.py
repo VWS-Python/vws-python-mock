@@ -6,7 +6,6 @@ import io
 import json
 import logging
 import random
-from http import HTTPStatus
 from typing import Any, Dict
 from urllib.parse import urljoin
 
@@ -84,64 +83,6 @@ class UnexpectedEmptyInternalServerError(Exception):  # pragma: no cover
     We want to retry tests in these cases so we raise this exception in order
     to do so.
     """
-
-
-def add_target_to_vws(
-    vuforia_database: VuforiaDatabase,
-    data: Dict[str, Any],
-    content_type: str = 'application/json',
-) -> Response:
-    """
-    Return a response from a request to the endpoint to add a target.
-
-    Args:
-        vuforia_database: The credentials to use to connect to Vuforia.
-        data: The data to send, in JSON format, to the endpoint.
-        content_type: The `Content-Type` header to use.
-
-    Returns:
-        The response returned by the API.
-
-    Raises:
-        UnexpectedEmptyInternalServerError: An empty internal server error
-            response is given.
-    """
-    date = rfc_1123_date()
-    request_path = '/targets'
-
-    content = bytes(json.dumps(data), encoding='utf-8')
-
-    authorization_string = authorization_header(
-        access_key=vuforia_database.server_access_key,
-        secret_key=vuforia_database.server_secret_key,
-        method=POST,
-        content=content,
-        content_type=content_type,
-        date=date,
-        request_path=request_path,
-    )
-
-    headers = {
-        'Authorization': authorization_string,
-        'Date': date,
-        'Content-Type': content_type,
-    }
-
-    response = requests.request(
-        method=POST,
-        url=urljoin(base='https://vws.vuforia.com/', url=request_path),
-        headers=headers,
-        data=content,
-    )
-
-    if (
-        response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
-    ) and response.text == '':  # pragma: no cover
-        # 500 errors have been seen to happen in CI and this is here to help us
-        # debug them.
-        raise UnexpectedEmptyInternalServerError
-
-    return response
 
 
 def update_target(
