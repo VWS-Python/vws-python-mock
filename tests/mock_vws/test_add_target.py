@@ -764,6 +764,61 @@ class TestActiveFlag:
             result_code=ResultCodes.FAIL,
         )
 
+    def test_not_set(
+        self,
+        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
+        image_file_failed_state: io.BytesIO,
+    ) -> None:
+        """
+        The active flag defaults to True if it is not set.
+        """
+        image_data = image_file_failed_state.read()
+        image_data_encoded = base64.b64encode(image_data).decode('ascii')
+
+        data = {
+            'name': 'my_example_name',
+            'width': 1234,
+            'image': image_data_encoded,
+        }
+
+        response = add_target_to_vws(
+            vuforia_database=vuforia_database,
+            data=data,
+        )
+
+        target_id = response.json()['target_id']
+        target_details = vws_client.get_target_record(target_id=target_id)
+        assert target_details.target_record.active_flag is True
+
+    def test_set_to_none(
+        self,
+        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
+        image_file_failed_state: io.BytesIO,
+    ) -> None:
+        """
+        The active flag defaults to True if it is set to NULL.
+        """
+        image_data = image_file_failed_state.read()
+        image_data_encoded = base64.b64encode(image_data).decode('ascii')
+
+        data = {
+            'name': 'my_example_name',
+            'width': 1234,
+            'image': image_data_encoded,
+            'active_flag': None,
+        }
+
+        response = add_target_to_vws(
+            vuforia_database=vuforia_database,
+            data=data,
+        )
+
+        target_id = response.json()['target_id']
+        target_details = vws_client.get_target_record(target_id=target_id)
+        assert target_details.target_record.active_flag is True
+
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
 class TestUnexpectedData:
