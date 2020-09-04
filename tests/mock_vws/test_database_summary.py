@@ -10,12 +10,11 @@ from time import sleep
 
 import pytest
 import timeout_decorator
-from vws import VWS
+from vws import VWS, CloudRecoService
 from vws.exceptions import Fail
 
 from mock_vws import MockVWS
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import query
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -305,7 +304,7 @@ class TestRecos:
 
     def test_query_request(
         self,
-        vuforia_database: VuforiaDatabase,
+        cloud_reco_client: CloudRecoService,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -316,7 +315,6 @@ class TestRecos:
         We therefore test that they exist, are integers and do not change
         between quick requests.
         """
-        image_content = high_quality_image.getvalue()
         target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
             width=1,
@@ -326,14 +324,8 @@ class TestRecos:
         )
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
         report_before = vws_client.get_database_summary_report()
-        query_resp = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
-
-        assert query_resp.status_code == HTTPStatus.OK
+        cloud_reco_client.query(image=high_quality_image)
 
         report_after = vws_client.get_database_summary_report()
         assert report_before.total_recos == report_after.total_recos
@@ -398,7 +390,7 @@ class TestRequestUsage:
 
     def test_query_request(
         self,
-        vuforia_database: VuforiaDatabase,
+        cloud_reco_client: CloudRecoService,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -407,16 +399,7 @@ class TestRequestUsage:
         """
         report = vws_client.get_database_summary_report()
         original_request_usage = report.request_usage
-
-        image_content = high_quality_image.getvalue()
-        body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
-        query_resp = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
-
-        assert query_resp.status_code == HTTPStatus.OK
-
+        cloud_reco_client.query(image=high_quality_image)
         report = vws_client.get_database_summary_report()
         new_request_usage = report.request_usage
         # The request usage goes up for the database summary request, not the

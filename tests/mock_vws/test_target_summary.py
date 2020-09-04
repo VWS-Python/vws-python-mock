@@ -9,7 +9,7 @@ import uuid
 import pytest
 from _pytest.fixtures import SubRequest
 from backports.zoneinfo import ZoneInfo
-from vws import CloudRecoService, VWS
+from vws import VWS, CloudRecoService
 from vws.exceptions import UnknownTarget
 from vws.reports import TargetStatuses
 
@@ -130,7 +130,7 @@ class TestRecognitionCounts:
     def test_recognition(
         self,
         vws_client: VWS,
-        vuforia_database: VuforiaDatabase,
+        cloud_reco_client: CloudRecoService,
         high_quality_image: io.BytesIO,
     ) -> None:
         """
@@ -145,11 +145,6 @@ class TestRecognitionCounts:
         )
 
         vws_client.wait_for_target_processed(target_id=target_id)
-
-        cloud_reco_client = CloudRecoService(
-            client_access_key=vuforia_database.client_access_key,
-            client_secret_key=vuforia_database.client_secret_key,
-        )
 
         results = cloud_reco_client.query(image=high_quality_image)
         [result] = results
