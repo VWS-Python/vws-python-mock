@@ -362,7 +362,6 @@ class TestRequestUsage:
 
     def test_bad_target_request(
         self,
-        vuforia_database: VuforiaDatabase,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
     ) -> None:
