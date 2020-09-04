@@ -239,8 +239,12 @@ class MockVuforiaWebQueryAPI:
                 request_method=request.method,
                 request_path=request.path,
                 databases=self.databases,
-                query_processes_deletion_seconds=self._query_processes_deletion_seconds,
-                query_recognizes_deletion_seconds=self._query_recognizes_deletion_seconds,
+                query_processes_deletion_seconds=(
+                    self._query_processes_deletion_seconds
+                ),
+                query_recognizes_deletion_seconds=(
+                    self._query_recognizes_deletion_seconds
+                ),
             )
         except (
             ActiveMatchingTargetsDeleteProcessing,
