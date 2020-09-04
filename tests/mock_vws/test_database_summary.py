@@ -374,7 +374,7 @@ class TestRequestUsage:
         original_request_usage = report.request_usage
 
         with pytest.raises(Fail) as exc:
-            response = vws_client.add_target(
+            vws_client.add_target(
                 name='example',
                 width=-1,
                 image=high_quality_image,
