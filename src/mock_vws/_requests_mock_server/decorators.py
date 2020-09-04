@@ -75,9 +75,7 @@ class MockVWS(ContextDecorator):
         )
 
         self._mock_vwq_api = MockVuforiaWebQueryAPI(
-            query_processes_deletion_seconds=(
-                query_processes_deletion_seconds
-            ),
+            query_processes_deletion_seconds=(query_processes_deletion_seconds),
             query_recognizes_deletion_seconds=(
                 query_recognizes_deletion_seconds
             ),
@@ -184,7 +182,7 @@ class MockVWS(ContextDecorator):
         """
         # __exit__ needs this to be passed in but vulture thinks that it is
         # unused, so we "use" it here.
-        for _ in (exc, ):
+        for _ in (exc,):
             pass
 
         self._mock.stop()

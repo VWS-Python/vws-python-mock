@@ -115,32 +115,40 @@ def get_query_match_response_text(
     assert isinstance(database, VuforiaDatabase)
 
     matching_targets = [
-        target for target in database.targets
+        target
+        for target in database.targets
         if _images_match(image=target.image, another_image=image)
     ]
 
     not_deleted_matches = [
-        target for target in matching_targets
-        if target.active_flag and not target.delete_date
+        target
+        for target in matching_targets
+        if target.active_flag
+        and not target.delete_date
         and target.status == TargetStatuses.SUCCESS.value
     ]
 
     deletion_not_recognized_matches = [
-        target for target in matching_targets
-        if target.active_flag and target.delete_date and
-        (now - target.delete_date) < recognition_timedelta
+        target
+        for target in matching_targets
+        if target.active_flag
+        and target.delete_date
+        and (now - target.delete_date) < recognition_timedelta
     ]
 
     matching_targets_with_processing_status = [
-        target for target in matching_targets
+        target
+        for target in matching_targets
         if target.status == TargetStatuses.PROCESSING.value
     ]
 
     active_matching_targets_delete_processing = [
-        target for target in matching_targets
-        if target.active_flag and target.delete_date and
-        (now -
-         target.delete_date) < (recognition_timedelta + processing_timedelta)
+        target
+        for target in matching_targets
+        if target.active_flag
+        and target.delete_date
+        and (now - target.delete_date)
+        < (recognition_timedelta + processing_timedelta)
         and target not in deletion_not_recognized_matches
     ]
 
@@ -184,7 +192,7 @@ def get_query_match_response_text(
 
         results.append(result)
 
-    results = results[:int(max_num_results)]
+    results = results[: int(max_num_results)]
     body = {
         'result_code': ResultCodes.SUCCESS.value,
         'results': results,

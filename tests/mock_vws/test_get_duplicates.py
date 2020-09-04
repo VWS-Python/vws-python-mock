@@ -116,15 +116,15 @@ class TestActiveFlag:
         vws_client: VWS,
     ) -> None:
         """
-        Targets with `active_flag` set to `False` can have duplicates.
-        Targets with `active_flag` set to `False` are not found as duplicates.
+            Targets with `active_flag` set to `False` can have duplicates.
+            Targets with `active_flag` set to `False` are not found as duplicates.
 
-        https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API#How-To-Check-for-Duplicate-Targets
-    says:
+            https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API#How-To-Check-for-Duplicate-Targets
+        says:
 
-        > If a target is explicitly inactivated through the VWS API (or through
-        > the Target Manager), then this target is no longer taken into account
-        > for the duplicate target check.
+            > If a target is explicitly inactivated through the VWS API (or through
+            > the Target Manager), then this target is no longer taken into account
+            > for the duplicate target check.
         """
         original_target_id = vws_client.add_target(
             name=uuid.uuid4().hex,

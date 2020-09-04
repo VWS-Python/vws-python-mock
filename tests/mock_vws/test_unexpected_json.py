@@ -29,9 +29,12 @@ class TestUnexpectedJSON:
         Giving JSON to endpoints which do not take any JSON data returns error
         responses.
         """
-        if endpoint.prepared_request.headers.get(
-            'Content-Type',
-        ) == 'application/json':
+        if (
+            endpoint.prepared_request.headers.get(
+                'Content-Type',
+            )
+            == 'application/json'
+        ):
             return
         content = bytes(json.dumps({'key': 'value'}), encoding='utf-8')
         content_type = 'application/json'

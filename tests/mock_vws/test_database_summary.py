@@ -330,12 +330,12 @@ class TestRecos:
         report_after = vws_client.get_database_summary_report()
         assert report_before.total_recos == report_after.total_recos
         assert (
-            report_before.current_month_recos ==
-            report_after.current_month_recos
+            report_before.current_month_recos
+            == report_after.current_month_recos
         )
         assert (
-            report_before.previous_month_recos ==
-            report_after.previous_month_recos
+            report_before.previous_month_recos
+            == report_after.previous_month_recos
         )
 
 
