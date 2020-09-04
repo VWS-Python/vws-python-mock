@@ -4,7 +4,6 @@ Utilities for tests.
 
 import io
 import json
-import logging
 import random
 from typing import Any, Dict
 from urllib.parse import urljoin
@@ -18,9 +17,6 @@ from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
-
-LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
 
 
 class Endpoint:
