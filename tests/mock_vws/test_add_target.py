@@ -4,13 +4,18 @@ Tests for the mock of the add target endpoint.
 
 import base64
 import io
+import json
 from http import HTTPStatus
 from string import hexdigits
 from typing import Any, Dict, Union
+from urllib.parse import urljoin
 
 import pytest
+import requests
 from requests import Response
+from requests_mock import POST
 from vws import VWS
+from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
