@@ -19,10 +19,7 @@ from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import (
-    UnexpectedEmptyInternalServerError,
-    make_image_file,
-)
+from tests.mock_vws.utils import make_image_file
 from tests.mock_vws.utils.assertions import (
     assert_valid_date_header,
     assert_vws_failure,
@@ -45,10 +42,6 @@ def add_target_to_vws(
 
     Returns:
         The response returned by the API.
-
-    Raises:
-        UnexpectedEmptyInternalServerError: An empty internal server error
-            response is given.
     """
     date = rfc_1123_date()
     request_path = '/targets'
@@ -77,13 +70,6 @@ def add_target_to_vws(
         headers=headers,
         data=content,
     )
-
-    if (
-        response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
-    ) and response.text == '':  # pragma: no cover
-        # 500 errors have been seen to happen in CI and this is here to help us
-        # debug them.
-        raise UnexpectedEmptyInternalServerError
 
     return response
 

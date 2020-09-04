@@ -64,15 +64,6 @@ class Endpoint:
         self.secret_key = secret_key
 
 
-class UnexpectedEmptyInternalServerError(Exception):  # pragma: no cover
-    """
-    Sometimes Vuforia gives an empty internal server error response.
-
-    We want to retry tests in these cases so we raise this exception in order
-    to do so.
-    """
-
-
 def make_image_file(
     file_format: str,
     color_space: str,
