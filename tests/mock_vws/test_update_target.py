@@ -264,31 +264,14 @@ class TestWidth:
         target_details = vws_client.get_target_record(target_id=target_id)
         assert target_details.target_record.width == original_width
 
-    def test_width_valid(
-        self,
-        vuforia_database: VuforiaDatabase,
-        vws_client: VWS,
-        target_id: str,
-    ) -> None:
+    def test_width_valid(self, vws_client: VWS, target_id: str) -> None:
         """
         Positive numbers are valid widths.
         """
         vws_client.wait_for_target_processed(target_id=target_id)
 
         width = 0.01
-
-        response = update_target(
-            vuforia_database=vuforia_database,
-            data={'width': width},
-            target_id=target_id,
-        )
-
-        assert_vws_response(
-            response=response,
-            status_code=HTTPStatus.OK,
-            result_code=ResultCodes.SUCCESS,
-        )
-
+        vws_client.update_target(target_id=target_id, width=width)
         target_details = vws_client.get_target_record(target_id=target_id)
         assert target_details.target_record.width == width
 
@@ -303,7 +286,6 @@ class TestActiveFlag:
     @pytest.mark.parametrize('desired_active_flag', [True, False])
     def test_active_flag(
         self,
-        vuforia_database: VuforiaDatabase,
         vws_client: VWS,
         image_file_success_state_low_rating: io.BytesIO,
         initial_active_flag: bool,
@@ -321,17 +303,9 @@ class TestActiveFlag:
         )
 
         vws_client.wait_for_target_processed(target_id=target_id)
-
-        response = update_target(
-            vuforia_database=vuforia_database,
-            data={'active_flag': desired_active_flag},
+        vws_client.update_target(
             target_id=target_id,
-        )
-
-        assert_vws_response(
-            response=response,
-            status_code=HTTPStatus.OK,
-            result_code=ResultCodes.SUCCESS,
+            active_flag=desired_active_flag,
         )
 
         target_details = vws_client.get_target_record(target_id=target_id)

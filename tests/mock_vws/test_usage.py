@@ -18,8 +18,8 @@ from vws.reports import TargetStatuses
 from vws_auth_tools import rfc_1123_date
 
 from mock_vws import MockVWS
+from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
-from tests.mock_vws.utils import VuforiaDatabase
 
 
 def request_unmocked_address() -> None:
