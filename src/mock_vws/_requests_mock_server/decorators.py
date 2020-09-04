@@ -75,7 +75,9 @@ class MockVWS(ContextDecorator):
         )
 
         self._mock_vwq_api = MockVuforiaWebQueryAPI(
-            query_processes_deletion_seconds=(query_processes_deletion_seconds),
+            query_processes_deletion_seconds=(
+                query_processes_deletion_seconds
+            ),
             query_recognizes_deletion_seconds=(
                 query_recognizes_deletion_seconds
             ),

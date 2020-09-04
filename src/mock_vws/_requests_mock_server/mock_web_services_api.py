@@ -519,7 +519,8 @@ class MockVuforiaWebServicesAPI:
             other.target_id
             for other in other_targets
             if Image.open(other.image) == Image.open(target.image)
-            and TargetStatuses.FAILED.value not in (target.status, other.status)
+            and TargetStatuses.FAILED.value
+            not in (target.status, other.status)
             and TargetStatuses.PROCESSING.value != other.status
             and other.active_flag
         ]
