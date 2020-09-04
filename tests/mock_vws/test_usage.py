@@ -173,8 +173,8 @@ class TestDatabaseName:
         database_details = VuforiaDatabase()
         other_database_details = VuforiaDatabase()
         assert (
-            database_details.database_name !=
-            other_database_details.database_name
+            database_details.database_name
+            != other_database_details.database_name
         )
 
     def test_custom_name(self) -> None:
@@ -530,7 +530,7 @@ class TestTargets:
                 application_metadata=None,
             )
 
-        (target, ) = database.targets
+        (target,) = database.targets
         assert repr(target) == f'<Target: {target_id}>'
 
 

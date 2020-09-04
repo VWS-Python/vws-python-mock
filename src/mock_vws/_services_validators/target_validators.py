@@ -47,7 +47,8 @@ def validate_target_id_exists(
 
     try:
         [_] = [
-            target for target in database.targets
+            target
+            for target in database.targets
             if target.target_id == target_id and not target.delete_date
         ]
     except ValueError as exc:
