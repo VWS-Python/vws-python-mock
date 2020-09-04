@@ -4,22 +4,88 @@ Tests for the mock of the add target endpoint.
 
 import base64
 import io
+import json
 from http import HTTPStatus
 from string import hexdigits
-from typing import Any, Union
+from typing import Any, Dict, Union
+from urllib.parse import urljoin
 
 import pytest
+import requests
 from requests import Response
+from requests_mock import POST
 from vws import VWS
+from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import add_target_to_vws, make_image_file
+from tests.mock_vws.utils import (
+    UnexpectedEmptyInternalServerError,
+    make_image_file,
+)
 from tests.mock_vws.utils.assertions import (
     assert_valid_date_header,
     assert_vws_failure,
     assert_vws_response,
 )
+
+
+def add_target_to_vws(
+    vuforia_database: VuforiaDatabase,
+    data: Dict[str, Any],
+    content_type: str = 'application/json',
+) -> Response:
+    """
+    Return a response from a request to the endpoint to add a target.
+
+    Args:
+        vuforia_database: The credentials to use to connect to Vuforia.
+        data: The data to send, in JSON format, to the endpoint.
+        content_type: The `Content-Type` header to use.
+
+    Returns:
+        The response returned by the API.
+
+    Raises:
+        UnexpectedEmptyInternalServerError: An empty internal server error
+            response is given.
+    """
+    date = rfc_1123_date()
+    request_path = '/targets'
+
+    content = bytes(json.dumps(data), encoding='utf-8')
+
+    authorization_string = authorization_header(
+        access_key=vuforia_database.server_access_key,
+        secret_key=vuforia_database.server_secret_key,
+        method=POST,
+        content=content,
+        content_type=content_type,
+        date=date,
+        request_path=request_path,
+    )
+
+    headers = {
+        'Authorization': authorization_string,
+        'Date': date,
+        'Content-Type': content_type,
+    }
+
+    response = requests.request(
+        method=POST,
+        url=urljoin(base='https://vws.vuforia.com/', url=request_path),
+        headers=headers,
+        data=content,
+    )
+
+    if (
+        response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
+    ) and response.text == '':  # pragma: no cover
+        # 500 errors have been seen to happen in CI and this is here to help us
+        # debug them.
+        raise UnexpectedEmptyInternalServerError
+
+    return response
 
 
 def _assert_oops_response(response: Response) -> None:
@@ -763,6 +829,61 @@ class TestActiveFlag:
             status_code=HTTPStatus.BAD_REQUEST,
             result_code=ResultCodes.FAIL,
         )
+
+    def test_not_set(
+        self,
+        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
+        image_file_failed_state: io.BytesIO,
+    ) -> None:
+        """
+        The active flag defaults to True if it is not set.
+        """
+        image_data = image_file_failed_state.read()
+        image_data_encoded = base64.b64encode(image_data).decode('ascii')
+
+        data = {
+            'name': 'my_example_name',
+            'width': 1234,
+            'image': image_data_encoded,
+        }
+
+        response = add_target_to_vws(
+            vuforia_database=vuforia_database,
+            data=data,
+        )
+
+        target_id = response.json()['target_id']
+        target_details = vws_client.get_target_record(target_id=target_id)
+        assert target_details.target_record.active_flag is True
+
+    def test_set_to_none(
+        self,
+        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
+        image_file_failed_state: io.BytesIO,
+    ) -> None:
+        """
+        The active flag defaults to True if it is set to NULL.
+        """
+        image_data = image_file_failed_state.read()
+        image_data_encoded = base64.b64encode(image_data).decode('ascii')
+
+        data = {
+            'name': 'my_example_name',
+            'width': 1234,
+            'image': image_data_encoded,
+            'active_flag': None,
+        }
+
+        response = add_target_to_vws(
+            vuforia_database=vuforia_database,
+            data=data,
+        )
+
+        target_id = response.json()['target_id']
+        target_details = vws_client.get_target_record(target_id=target_id)
+        assert target_details.target_record.active_flag is True
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')

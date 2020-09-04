@@ -5,7 +5,6 @@ Tests for the usage of the mock.
 import email.utils
 import io
 import socket
-import time
 from datetime import datetime, timedelta
 
 import pytest
@@ -13,14 +12,14 @@ import requests
 from freezegun import freeze_time
 from requests.exceptions import MissingSchema
 from requests_mock.exceptions import NoMockAddress
-from vws import VWS
+from vws import VWS, CloudRecoService
+from vws.exceptions import MatchProcessing
 from vws.reports import TargetStatuses
 from vws_auth_tools import rfc_1123_date
 
 from mock_vws import MockVWS
+from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
-from tests.mock_vws.utils import VuforiaDatabase, query
-from tests.mock_vws.utils.assertions import assert_query_success
 
 
 def request_unmocked_address() -> None:
@@ -274,26 +273,18 @@ def _wait_for_deletion_recognized(
     That is, wait until querying the given image does not return a result with
     targets.
     """
-    image_content = image.getvalue()
-    body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
+    cloud_reco_client = CloudRecoService(
+        client_access_key=vuforia_database.client_access_key,
+        client_secret_key=vuforia_database.client_secret_key,
+    )
 
     while True:
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
-
         try:
-            assert_query_success(response=response)
-        except AssertionError:
-            # The response text for a 500 response is not consistent.
-            # Therefore we only test for consistent features.
-            assert 'Error 500 Server Error' in response.text
-            assert 'HTTP ERROR 500' in response.text
-            assert 'Problem accessing /v1/query' in response.text
+            results = cloud_reco_client.query(image=image)
+        except MatchProcessing:
             return
 
-        if not response.json()['results']:
+        if not results:
             return
 
 
@@ -313,26 +304,16 @@ def _wait_for_deletion_processed(
         vuforia_database=vuforia_database,
     )
 
-    image_content = image.getvalue()
-    body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
+    cloud_reco_client = CloudRecoService(
+        client_access_key=vuforia_database.client_access_key,
+        client_secret_key=vuforia_database.client_secret_key,
+    )
 
     while True:
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
-
         try:
-            assert_query_success(response=response)
-        except AssertionError:
-            # The response text for a 500 response is not consistent.
-            # Therefore we only test for consistent features.
-            assert 'Error 500 Server Error' in response.text
-            assert 'HTTP ERROR 500' in response.text
-            assert 'Problem accessing /v1/query' in response.text
-            time.sleep(0.05)
+            cloud_reco_client.query(image=image)
+        except MatchProcessing:
             continue
-
         return
 
 

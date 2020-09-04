@@ -11,7 +11,7 @@ from typing import List, Tuple
 
 import pytest
 from _pytest.fixtures import SubRequest
-from vws import VWS
+from vws import VWS, CloudRecoService
 
 from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import Endpoint, UnexpectedEmptyInternalServerError
@@ -61,11 +61,22 @@ def pytest_collection_modifyitems(items: List[pytest.Function]) -> None:
 @pytest.fixture(name='vws_client')
 def fixture_vws_client(vuforia_database: VuforiaDatabase) -> VWS:
     """
-    A client for an active VWS database.
+    A VWS client for an active VWS database.
     """
     return VWS(
         server_access_key=vuforia_database.server_access_key,
         server_secret_key=vuforia_database.server_secret_key,
+    )
+
+
+@pytest.fixture()
+def cloud_reco_client(vuforia_database: VuforiaDatabase) -> CloudRecoService:
+    """
+    A query client for an active VWS database.
+    """
+    return CloudRecoService(
+        client_access_key=vuforia_database.client_access_key,
+        client_secret_key=vuforia_database.client_secret_key,
     )
 
 

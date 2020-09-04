@@ -9,12 +9,11 @@ import uuid
 import pytest
 from _pytest.fixtures import SubRequest
 from backports.zoneinfo import ZoneInfo
-from vws import VWS
+from vws import VWS, CloudRecoService
 from vws.exceptions import UnknownTarget
 from vws.reports import TargetStatuses
 
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import query
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -131,7 +130,7 @@ class TestRecognitionCounts:
     def test_recognition(
         self,
         vws_client: VWS,
-        vuforia_database: VuforiaDatabase,
+        cloud_reco_client: CloudRecoService,
         high_quality_image: io.BytesIO,
     ) -> None:
         """
@@ -147,16 +146,9 @@ class TestRecognitionCounts:
 
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        image_content = high_quality_image.getvalue()
-        body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
-
-        query_response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
-
-        [result] = query_response.json()['results']
-        assert result['target_id'] == target_id
+        results = cloud_reco_client.query(image=high_quality_image)
+        [result] = results
+        assert result.target_id == target_id
 
         report = vws_client.get_target_summary_report(target_id=target_id)
         assert report.status == TargetStatuses.SUCCESS

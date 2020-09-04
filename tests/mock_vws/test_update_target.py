@@ -4,22 +4,78 @@ Tests for the mock of the update target endpoint.
 
 import base64
 import io
+import json
 import uuid
 from http import HTTPStatus
-from typing import Any, Union
+from typing import Any, Dict, Union
+from urllib.parse import urljoin
 
 import pytest
+import requests
+from requests import Response
+from requests_mock import PUT
 from vws import VWS
 from vws.exceptions import BadImage, ProjectInactive
 from vws.reports import TargetStatuses
+from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import make_image_file, update_target
+from tests.mock_vws.utils import make_image_file
 from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
     assert_vws_response,
 )
+
+
+def update_target(
+    vuforia_database: VuforiaDatabase,
+    data: Dict[str, Any],
+    target_id: str,
+    content_type: str = 'application/json',
+) -> Response:
+    """
+    Make a request to the endpoint to update a target.
+
+    Args:
+        vuforia_database: The credentials to use to connect to
+            Vuforia.
+        data: The data to send, in JSON format, to the endpoint.
+        target_id: The ID of the target to update.
+        content_type: The `Content-Type` header to use.
+
+    Returns:
+        The response returned by the API.
+    """
+    date = rfc_1123_date()
+    request_path = '/targets/' + target_id
+
+    content = bytes(json.dumps(data), encoding='utf-8')
+
+    authorization_string = authorization_header(
+        access_key=vuforia_database.server_access_key,
+        secret_key=vuforia_database.server_secret_key,
+        method=PUT,
+        content=content,
+        content_type=content_type,
+        date=date,
+        request_path=request_path,
+    )
+
+    headers = {
+        'Authorization': authorization_string,
+        'Date': date,
+        'Content-Type': content_type,
+    }
+
+    response = requests.request(
+        method=PUT,
+        url=urljoin('https://vws.vuforia.com/', request_path),
+        headers=headers,
+        data=content,
+    )
+
+    return response
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -208,31 +264,14 @@ class TestWidth:
         target_details = vws_client.get_target_record(target_id=target_id)
         assert target_details.target_record.width == original_width
 
-    def test_width_valid(
-        self,
-        vuforia_database: VuforiaDatabase,
-        vws_client: VWS,
-        target_id: str,
-    ) -> None:
+    def test_width_valid(self, vws_client: VWS, target_id: str) -> None:
         """
         Positive numbers are valid widths.
         """
         vws_client.wait_for_target_processed(target_id=target_id)
 
         width = 0.01
-
-        response = update_target(
-            vuforia_database=vuforia_database,
-            data={'width': width},
-            target_id=target_id,
-        )
-
-        assert_vws_response(
-            response=response,
-            status_code=HTTPStatus.OK,
-            result_code=ResultCodes.SUCCESS,
-        )
-
+        vws_client.update_target(target_id=target_id, width=width)
         target_details = vws_client.get_target_record(target_id=target_id)
         assert target_details.target_record.width == width
 
@@ -247,7 +286,6 @@ class TestActiveFlag:
     @pytest.mark.parametrize('desired_active_flag', [True, False])
     def test_active_flag(
         self,
-        vuforia_database: VuforiaDatabase,
         vws_client: VWS,
         image_file_success_state_low_rating: io.BytesIO,
         initial_active_flag: bool,
@@ -265,17 +303,9 @@ class TestActiveFlag:
         )
 
         vws_client.wait_for_target_processed(target_id=target_id)
-
-        response = update_target(
-            vuforia_database=vuforia_database,
-            data={'active_flag': desired_active_flag},
+        vws_client.update_target(
             target_id=target_id,
-        )
-
-        assert_vws_response(
-            response=response,
-            status_code=HTTPStatus.OK,
-            result_code=ResultCodes.SUCCESS,
+            active_flag=desired_active_flag,
         )
 
         target_details = vws_client.get_target_record(target_id=target_id)
