@@ -5,7 +5,6 @@ Tests for the usage of the mock.
 import email.utils
 import io
 import socket
-import time
 from datetime import datetime, timedelta
 
 import pytest
@@ -314,7 +313,6 @@ def _wait_for_deletion_processed(
         try:
             cloud_reco_client.query(image=image)
         except MatchProcessing:
-            time.sleep(0.05)
             continue
         return
 
