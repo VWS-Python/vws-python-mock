@@ -3,19 +3,12 @@ Utilities for tests.
 """
 
 import io
-import json
 import random
-from typing import Any, Dict
-from urllib.parse import urljoin
 
 import requests
 from PIL import Image
-from requests import Response
-from requests_mock import PUT
-from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes
-from mock_vws.database import VuforiaDatabase
 
 
 class Endpoint:
@@ -78,56 +71,6 @@ class UnexpectedEmptyInternalServerError(Exception):  # pragma: no cover
     We want to retry tests in these cases so we raise this exception in order
     to do so.
     """
-
-
-def update_target(
-    vuforia_database: VuforiaDatabase,
-    data: Dict[str, Any],
-    target_id: str,
-    content_type: str = 'application/json',
-) -> Response:
-    """
-    Make a request to the endpoint to update a target.
-
-    Args:
-        vuforia_database: The credentials to use to connect to
-            Vuforia.
-        data: The data to send, in JSON format, to the endpoint.
-        target_id: The ID of the target to update.
-        content_type: The `Content-Type` header to use.
-
-    Returns:
-        The response returned by the API.
-    """
-    date = rfc_1123_date()
-    request_path = '/targets/' + target_id
-
-    content = bytes(json.dumps(data), encoding='utf-8')
-
-    authorization_string = authorization_header(
-        access_key=vuforia_database.server_access_key,
-        secret_key=vuforia_database.server_secret_key,
-        method=PUT,
-        content=content,
-        content_type=content_type,
-        date=date,
-        request_path=request_path,
-    )
-
-    headers = {
-        'Authorization': authorization_string,
-        'Date': date,
-        'Content-Type': content_type,
-    }
-
-    response = requests.request(
-        method=PUT,
-        url=urljoin('https://vws.vuforia.com/', request_path),
-        headers=headers,
-        data=content,
-    )
-
-    return response
 
 
 def make_image_file(
