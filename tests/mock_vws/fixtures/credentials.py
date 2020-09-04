@@ -6,8 +6,8 @@ import os
 
 import pytest
 
+from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
-from tests.mock_vws.utils import VuforiaDatabase
 
 
 @pytest.fixture()
