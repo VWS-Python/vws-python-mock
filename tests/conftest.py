@@ -70,7 +70,7 @@ def fixture_vws_client(vuforia_database: VuforiaDatabase) -> VWS:
 
 
 @pytest.fixture()
-def cloud_reco_client(vuforia_database: VuforiaDatabase) -> VWS:
+def cloud_reco_client(vuforia_database: VuforiaDatabase) -> CloudRecoService:
     """
     A query client for an active VWS database.
     """
