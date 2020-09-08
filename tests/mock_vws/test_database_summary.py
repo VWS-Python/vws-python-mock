@@ -11,7 +11,7 @@ from time import sleep
 import pytest
 import timeout_decorator
 from vws import VWS, CloudRecoService
-from vws.exceptions import Fail
+from vws.exceptions.vws_exceptions import Fail
 
 from mock_vws import MockVWS
 from mock_vws.database import VuforiaDatabase

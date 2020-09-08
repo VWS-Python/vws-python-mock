@@ -10,7 +10,7 @@ from typing import Generator
 import pytest
 from _pytest.fixtures import SubRequest
 from vws import VWS
-from vws.exceptions import TargetStatusNotSuccess
+from vws.exceptions.vws_exceptions import TargetStatusNotSuccess
 
 from mock_vws import MockVWS
 from mock_vws.database import VuforiaDatabase

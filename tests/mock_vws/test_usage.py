@@ -13,7 +13,7 @@ from freezegun import freeze_time
 from requests.exceptions import MissingSchema
 from requests_mock.exceptions import NoMockAddress
 from vws import VWS, CloudRecoService
-from vws.exceptions import MatchProcessing
+from vws.exceptions.cloud_reco_exceptions import MatchProcessing
 from vws.reports import TargetStatuses
 from vws_auth_tools import rfc_1123_date
 

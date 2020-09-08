@@ -12,7 +12,7 @@ import pytest
 import requests
 from requests.structures import CaseInsensitiveDict
 from vws import VWS, CloudRecoService
-from vws.exceptions import AuthenticationFailure, Fail
+from vws.exceptions.vws_exceptions import AuthenticationFailure, Fail
 from vws_auth_tools import rfc_1123_date
 
 from mock_vws._constants import ResultCodes
