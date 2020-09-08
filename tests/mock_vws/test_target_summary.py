@@ -10,7 +10,7 @@ import pytest
 from _pytest.fixtures import SubRequest
 from backports.zoneinfo import ZoneInfo
 from vws import VWS, CloudRecoService
-from vws.exceptions import UnknownTarget
+from vws.exceptions.vws_exceptions import UnknownTarget
 from vws.reports import TargetStatuses
 
 from mock_vws.database import VuforiaDatabase

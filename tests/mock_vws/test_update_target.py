@@ -15,7 +15,7 @@ import requests
 from requests import Response
 from requests_mock import PUT
 from vws import VWS
-from vws.exceptions import BadImage, ProjectInactive
+from vws.exceptions.vws_exceptions import BadImage, ProjectInactive
 from vws.reports import TargetStatuses
 from vws_auth_tools import authorization_header, rfc_1123_date
 

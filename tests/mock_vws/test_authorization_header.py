@@ -12,7 +12,8 @@ import pytest
 import requests
 from requests.structures import CaseInsensitiveDict
 from vws import VWS, CloudRecoService
-from vws.exceptions import AuthenticationFailure, Fail
+from vws.exceptions import cloud_reco_exceptions
+from vws.exceptions.vws_exceptions import AuthenticationFailure, Fail
 from vws_auth_tools import rfc_1123_date
 
 from mock_vws._constants import ResultCodes
@@ -210,7 +211,7 @@ class TestBadKey:
             client_secret_key=vuforia_database.client_secret_key,
         )
 
-        with pytest.raises(AuthenticationFailure) as exc:
+        with pytest.raises(cloud_reco_exceptions.AuthenticationFailure) as exc:
             cloud_reco_client.query(image=high_quality_image)
 
         response = exc.value.response
@@ -266,7 +267,7 @@ class TestBadKey:
             client_secret_key='example',
         )
 
-        with pytest.raises(AuthenticationFailure) as exc:
+        with pytest.raises(cloud_reco_exceptions.AuthenticationFailure) as exc:
             cloud_reco_client.query(image=high_quality_image)
 
         response = exc.value.response

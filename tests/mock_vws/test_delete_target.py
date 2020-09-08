@@ -6,7 +6,7 @@ from http import HTTPStatus
 
 import pytest
 from vws import VWS
-from vws.exceptions import (
+from vws.exceptions.vws_exceptions import (
     ProjectInactive,
     TargetStatusProcessing,
     UnknownTarget,

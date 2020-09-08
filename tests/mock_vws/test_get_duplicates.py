@@ -7,7 +7,7 @@ import uuid
 
 import pytest
 from vws import VWS
-from vws.exceptions import ProjectInactive
+from vws.exceptions.vws_exceptions import ProjectInactive
 from vws.reports import TargetStatuses
 
 

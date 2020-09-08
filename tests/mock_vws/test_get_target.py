@@ -9,7 +9,7 @@ import uuid
 
 import pytest
 from vws import VWS
-from vws.exceptions import UnknownTarget
+from vws.exceptions.vws_exceptions import UnknownTarget
 from vws.reports import TargetRecord, TargetStatuses
 
 
