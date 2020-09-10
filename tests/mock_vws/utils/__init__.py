@@ -3,25 +3,12 @@ Utilities for tests.
 """
 
 import io
-import json
-import logging
 import random
-from http import HTTPStatus
-from typing import Any, Dict
-from urllib.parse import urljoin
 
 import requests
 from PIL import Image
-from requests import Response
-from requests_mock import POST, PUT
-from urllib3.filepost import encode_multipart_formdata
-from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes
-from mock_vws.database import VuforiaDatabase
-
-LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
 
 
 class Endpoint:
@@ -75,173 +62,6 @@ class Endpoint:
         self.auth_header_content_type: str = content_type
         self.access_key = access_key
         self.secret_key = secret_key
-
-
-class UnexpectedEmptyInternalServerError(Exception):  # pragma: no cover
-    """
-    Sometimes Vuforia gives an empty internal server error response.
-
-    We want to retry tests in these cases so we raise this exception in order
-    to do so.
-    """
-
-
-def add_target_to_vws(
-    vuforia_database: VuforiaDatabase,
-    data: Dict[str, Any],
-    content_type: str = 'application/json',
-) -> Response:
-    """
-    Return a response from a request to the endpoint to add a target.
-
-    Args:
-        vuforia_database: The credentials to use to connect to Vuforia.
-        data: The data to send, in JSON format, to the endpoint.
-        content_type: The `Content-Type` header to use.
-
-    Returns:
-        The response returned by the API.
-
-    Raises:
-        UnexpectedEmptyInternalServerError: An empty internal server error
-            response is given.
-    """
-    date = rfc_1123_date()
-    request_path = '/targets'
-
-    content = bytes(json.dumps(data), encoding='utf-8')
-
-    authorization_string = authorization_header(
-        access_key=vuforia_database.server_access_key,
-        secret_key=vuforia_database.server_secret_key,
-        method=POST,
-        content=content,
-        content_type=content_type,
-        date=date,
-        request_path=request_path,
-    )
-
-    headers = {
-        'Authorization': authorization_string,
-        'Date': date,
-        'Content-Type': content_type,
-    }
-
-    response = requests.request(
-        method=POST,
-        url=urljoin(base='https://vws.vuforia.com/', url=request_path),
-        headers=headers,
-        data=content,
-    )
-
-    if (
-        response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
-    ) and response.text == '':  # pragma: no cover
-        # 500 errors have been seen to happen in CI and this is here to help us
-        # debug them.
-        raise UnexpectedEmptyInternalServerError
-
-    return response
-
-
-def update_target(
-    vuforia_database: VuforiaDatabase,
-    data: Dict[str, Any],
-    target_id: str,
-    content_type: str = 'application/json',
-) -> Response:
-    """
-    Make a request to the endpoint to update a target.
-
-    Args:
-        vuforia_database: The credentials to use to connect to
-            Vuforia.
-        data: The data to send, in JSON format, to the endpoint.
-        target_id: The ID of the target to update.
-        content_type: The `Content-Type` header to use.
-
-    Returns:
-        The response returned by the API.
-    """
-    date = rfc_1123_date()
-    request_path = '/targets/' + target_id
-
-    content = bytes(json.dumps(data), encoding='utf-8')
-
-    authorization_string = authorization_header(
-        access_key=vuforia_database.server_access_key,
-        secret_key=vuforia_database.server_secret_key,
-        method=PUT,
-        content=content,
-        content_type=content_type,
-        date=date,
-        request_path=request_path,
-    )
-
-    headers = {
-        'Authorization': authorization_string,
-        'Date': date,
-        'Content-Type': content_type,
-    }
-
-    response = requests.request(
-        method=PUT,
-        url=urljoin('https://vws.vuforia.com/', request_path),
-        headers=headers,
-        data=content,
-    )
-
-    return response
-
-
-def query(
-    vuforia_database: VuforiaDatabase,
-    body: Dict[str, Any],
-) -> Response:
-    """
-    Make a request to the endpoint to make an image recognition query.
-
-    Args:
-        vuforia_database: The credentials to use to connect to
-            Vuforia.
-        body: The request body to send in ``multipart/formdata`` format.
-
-    Returns:
-        The response returned by the API.
-    """
-    date = rfc_1123_date()
-    request_path = '/v1/query'
-    content, content_type_header = encode_multipart_formdata(body)
-    method = POST
-
-    access_key = vuforia_database.client_access_key
-    secret_key = vuforia_database.client_secret_key
-    authorization_string = authorization_header(
-        access_key=access_key,
-        secret_key=secret_key,
-        method=method,
-        content=content,
-        # Note that this is not the actual Content-Type header value sent.
-        content_type='multipart/form-data',
-        date=date,
-        request_path=request_path,
-    )
-
-    headers = {
-        'Authorization': authorization_string,
-        'Date': date,
-        'Content-Type': content_type_header,
-    }
-
-    vwq_host = 'https://cloudreco.vuforia.com'
-    response = requests.request(
-        method=method,
-        url=urljoin(base=vwq_host, url=request_path),
-        headers=headers,
-        data=content,
-    )
-
-    return response
 
 
 def make_image_file(

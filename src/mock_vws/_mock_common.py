@@ -89,8 +89,9 @@ def set_date_header(
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
 
     result = wrapped(*args, **kwargs)
-    if context.headers[
-        'Connection'
-    ] != 'Close' and context.status_code != HTTPStatus.GATEWAY_TIMEOUT:
+    if (
+        context.headers['Connection'] != 'Close'
+        and context.status_code != HTTPStatus.GATEWAY_TIMEOUT
+    ):
         context.headers['Date'] = date
     return result

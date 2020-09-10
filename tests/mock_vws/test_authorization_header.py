@@ -11,13 +11,14 @@ from urllib.parse import urlparse
 import pytest
 import requests
 from requests.structures import CaseInsensitiveDict
-from vws import VWS
-from vws.exceptions import AuthenticationFailure, Fail
+from vws import VWS, CloudRecoService
+from vws.exceptions import cloud_reco_exceptions
+from vws.exceptions.vws_exceptions import AuthenticationFailure, Fail
 from vws_auth_tools import rfc_1123_date
 
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import Endpoint, query
+from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import (
     assert_valid_date_header,
     assert_valid_transaction_id,
@@ -202,25 +203,18 @@ class TestBadKey:
         high_quality_image: io.BytesIO,
     ) -> None:
         """
-        If the client access key given is incorrect, an
-        ``UNAUTHORIZED`` response is returned.
+        If the client access key given is incorrect, an ``UNAUTHORIZED``
+        response is returned.
         """
-        keys = VuforiaDatabase(
-            database_name=vuforia_database.database_name,
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
+        cloud_reco_client = CloudRecoService(
             client_access_key='example',
             client_secret_key=vuforia_database.client_secret_key,
-            targets=vuforia_database.targets,
-            state=vuforia_database.state,
         )
-        image_content = high_quality_image.getvalue()
-        body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
-        response = query(
-            vuforia_database=keys,
-            body=body,
-        )
+        with pytest.raises(cloud_reco_exceptions.AuthenticationFailure) as exc:
+            cloud_reco_client.query(image=high_quality_image)
+
+        response = exc.value.response
 
         assert_vwq_failure(
             response=response,
@@ -265,25 +259,18 @@ class TestBadKey:
         high_quality_image: io.BytesIO,
     ) -> None:
         """
-        If the client secret key given is incorrect, an
-        ``UNAUTHORIZED`` response is returned.
+        If the client secret key given is incorrect, an ``UNAUTHORIZED``
+        response is returned.
         """
-        keys = VuforiaDatabase(
-            database_name=vuforia_database.database_name,
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
+        cloud_reco_client = CloudRecoService(
             client_access_key=vuforia_database.client_access_key,
             client_secret_key='example',
-            targets=vuforia_database.targets,
-            state=vuforia_database.state,
         )
-        image_content = high_quality_image.getvalue()
-        body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
 
-        response = query(
-            vuforia_database=keys,
-            body=body,
-        )
+        with pytest.raises(cloud_reco_exceptions.AuthenticationFailure) as exc:
+            cloud_reco_client.query(image=high_quality_image)
+
+        response = exc.value.response
 
         assert_vwq_failure(
             response=response,

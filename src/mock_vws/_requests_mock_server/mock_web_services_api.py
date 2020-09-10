@@ -202,7 +202,8 @@ def _get_target_from_request(
         [database.targets for database in databases],
     )
     [target] = [
-        target for target in all_database_targets
+        target
+        for target in all_database_targets
         if target.target_id == target_id
     ]
     return target
@@ -362,15 +363,18 @@ class MockVuforiaWebServicesAPI:
         # VuforiaDatabase
         active_images = len(
             [
-                target for target in database.targets
+                target
+                for target in database.targets
                 if target.status == TargetStatuses.SUCCESS.value
-                and target.active_flag and not target.delete_date
+                and target.active_flag
+                and not target.delete_date
             ],
         )
 
         failed_images = len(
             [
-                target for target in database.targets
+                target
+                for target in database.targets
                 if target.status == TargetStatuses.FAILED.value
                 and not target.delete_date
             ],
@@ -378,15 +382,18 @@ class MockVuforiaWebServicesAPI:
 
         inactive_images = len(
             [
-                target for target in database.targets
+                target
+                for target in database.targets
                 if target.status == TargetStatuses.SUCCESS.value
-                and not target.active_flag and not target.delete_date
+                and not target.active_flag
+                and not target.delete_date
             ],
         )
 
         processing_images = len(
             [
-                target for target in database.targets
+                target
+                for target in database.targets
                 if target.status == TargetStatuses.PROCESSING.value
                 and not target.delete_date
             ],
@@ -434,7 +441,8 @@ class MockVuforiaWebServicesAPI:
 
         assert isinstance(database, VuforiaDatabase)
         results = [
-            target.target_id for target in database.targets
+            target.target_id
+            for target in database.targets
             if not target.delete_date
         ]
 
@@ -513,9 +521,11 @@ class MockVuforiaWebServicesAPI:
         # TODO - add a test - is something a duplicate if it isn't exactly the
         # same?
         similar_targets: List[str] = [
-            other.target_id for other in other_targets
-            if Image.open(other.image) == Image.open(target.image) and
-            TargetStatuses.FAILED.value not in (target.status, other.status)
+            other.target_id
+            for other in other_targets
+            if Image.open(other.image) == Image.open(target.image)
+            and TargetStatuses.FAILED.value
+            not in (target.status, other.status)
             and TargetStatuses.PROCESSING.value != other.status
             and other.active_flag
         ]
@@ -595,7 +605,8 @@ class MockVuforiaWebServicesAPI:
             name = request.json()['name']
             other_targets = set(database.targets) - set([target])
             if any(
-                other.name == name for other in other_targets
+                other.name == name
+                for other in other_targets
                 if not other.delete_date
             ):
                 context.status_code = HTTPStatus.FORBIDDEN

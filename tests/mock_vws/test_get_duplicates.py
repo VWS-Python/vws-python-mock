@@ -7,7 +7,7 @@ import uuid
 
 import pytest
 from vws import VWS
-from vws.exceptions import ProjectInactive
+from vws.exceptions.vws_exceptions import ProjectInactive
 from vws.reports import TargetStatuses
 
 
@@ -120,11 +120,13 @@ class TestActiveFlag:
         Targets with `active_flag` set to `False` are not found as duplicates.
 
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API#How-To-Check-for-Duplicate-Targets
-    says:
+        says:
 
-        > If a target is explicitly inactivated through the VWS API (or through
-        > the Target Manager), then this target is no longer taken into account
-        > for the duplicate target check.
+        '''
+        If a target is explicitly inactivated through the VWS API (or through
+        the Target Manager), then this target is no longer taken into account
+        for the duplicate target check.
+        '''
         """
         original_target_id = vws_client.add_target(
             name=uuid.uuid4().hex,

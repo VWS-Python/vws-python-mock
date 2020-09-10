@@ -5,16 +5,14 @@ Configuration, plugins and fixtures for `pytest`.
 import base64
 import binascii
 import io
-import time
 import uuid
-from typing import List, Tuple
 
 import pytest
 from _pytest.fixtures import SubRequest
-from vws import VWS
+from vws import VWS, CloudRecoService
 
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import Endpoint, UnexpectedEmptyInternalServerError
+from tests.mock_vws.utils import Endpoint
 
 pytest_plugins = [
     'tests.mock_vws.fixtures.prepared_requests',
@@ -23,49 +21,25 @@ pytest_plugins = [
 ]
 
 
-def is_internal_server_error(
-    err: Tuple,
-    *args: Tuple,
-) -> bool:  # pragma: no cover
-    """
-    Return whether the error is an ``UnexpectedEmptyInternalServerError``, so
-    that we can retry a test if it is.
-    """
-    assert args
-    is_unexpected_server_error = bool(
-        err[0] == UnexpectedEmptyInternalServerError,
-    )
-    if is_unexpected_server_error:
-        # We have seen this error happen multiple times when the server is hit
-        # in quick succession.
-        # We therefore have a delay, to give the server time to recover.
-        #
-        # The delay length is arbitrary.
-        time.sleep(30)
-    return is_unexpected_server_error
-
-
-def pytest_collection_modifyitems(items: List[pytest.Function]) -> None:
-    """
-    Add a marker to each test which will retry the test if an
-    ``UnexpectedEmptyInternalServerError`` is raised.
-    """
-    retry_marker = pytest.mark.flaky(
-        max_runs=5,
-        rerun_filter=is_internal_server_error,
-    )
-    for item in items:
-        item.add_marker(retry_marker)
-
-
 @pytest.fixture(name='vws_client')
 def fixture_vws_client(vuforia_database: VuforiaDatabase) -> VWS:
     """
-    A client for an active VWS database.
+    A VWS client for an active VWS database.
     """
     return VWS(
         server_access_key=vuforia_database.server_access_key,
         server_secret_key=vuforia_database.server_secret_key,
+    )
+
+
+@pytest.fixture()
+def cloud_reco_client(vuforia_database: VuforiaDatabase) -> CloudRecoService:
+    """
+    A query client for an active VWS database.
+    """
+    return CloudRecoService(
+        client_access_key=vuforia_database.client_access_key,
+        client_secret_key=vuforia_database.client_secret_key,
     )
 
 
