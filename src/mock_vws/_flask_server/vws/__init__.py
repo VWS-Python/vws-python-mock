@@ -332,7 +332,7 @@ def target_summary(target_id: str) -> Tuple[str, int]:
         'current_month_recos': 0,
         'previous_month_recos': 0,
     }
-    return json_dump(body)
+    return json_dump(body), codes.OK
 
 
 @VWS_FLASK_APP.route('/duplicates/<string:target_id>', methods=['GET'])
