@@ -184,7 +184,7 @@ class MockVWS(ContextDecorator):
         """
         # __exit__ needs this to be passed in but vulture thinks that it is
         # unused, so we "use" it here.
-        for _ in (exc, ):
+        for _ in (exc,):
             pass
 
         self._mock.stop()

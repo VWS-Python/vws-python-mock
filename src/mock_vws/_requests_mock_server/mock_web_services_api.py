@@ -202,7 +202,8 @@ def _get_target_from_request(
         [database.targets for database in databases],
     )
     [target] = [
-        target for target in all_database_targets
+        target
+        for target in all_database_targets
         if target.target_id == target_id
     ]
     return target
@@ -261,10 +262,7 @@ class MockVuforiaWebServicesAPI:
 
         assert isinstance(database, VuforiaDatabase)
 
-        targets = (
-            target for target in database.targets if not target.delete_date
-        )
-        if any(target.name == name for target in targets):
+        if any(target.name == name for target in database.not_deleted_targets):
             context.status_code = HTTPStatus.FORBIDDEN
             body = {
                 'transaction_id': uuid.uuid4().hex,
@@ -358,52 +356,20 @@ class MockVuforiaWebServicesAPI:
         )
 
         assert isinstance(database, VuforiaDatabase)
-        active_images = len(
-            [
-                target for target in database.targets
-                if target.status == TargetStatuses.SUCCESS.value
-                and target.active_flag and not target.delete_date
-            ],
-        )
-
-        failed_images = len(
-            [
-                target for target in database.targets
-                if target.status == TargetStatuses.FAILED.value
-                and not target.delete_date
-            ],
-        )
-
-        inactive_images = len(
-            [
-                target for target in database.targets
-                if target.status == TargetStatuses.SUCCESS.value
-                and not target.active_flag and not target.delete_date
-            ],
-        )
-
-        processing_images = len(
-            [
-                target for target in database.targets
-                if target.status == TargetStatuses.PROCESSING.value
-                and not target.delete_date
-            ],
-        )
-
         body = {
             'result_code': ResultCodes.SUCCESS.value,
             'transaction_id': uuid.uuid4().hex,
             'name': database.database_name,
-            'active_images': active_images,
-            'inactive_images': inactive_images,
-            'failed_images': failed_images,
-            'target_quota': 1000,
-            'total_recos': 0,
-            'current_month_recos': 0,
-            'previous_month_recos': 0,
-            'processing_images': processing_images,
-            'reco_threshold': 1000,
-            'request_quota': 100000,
+            'active_images': len(database.active_targets),
+            'inactive_images': len(database.inactive_targets),
+            'failed_images': len(database.failed_targets),
+            'target_quota': database.target_quota,
+            'total_recos': database.total_recos,
+            'current_month_recos': database.current_month_recos,
+            'previous_month_recos': database.previous_month_recos,
+            'processing_images': len(database.processing_targets),
+            'reco_threshold': database.reco_threshold,
+            'request_quota': database.request_quota,
             # We have ``self.request_count`` but Vuforia always shows 0.
             # This was not always the case.
             'request_usage': 0,
@@ -431,11 +397,8 @@ class MockVuforiaWebServicesAPI:
         )
 
         assert isinstance(database, VuforiaDatabase)
-        results = [
-            target.target_id for target in database.targets
-            if not target.delete_date
-        ]
 
+        results = [target.target_id for target in database.not_deleted_targets]
         body: Dict[str, Union[str, List[str]]] = {
             'transaction_id': uuid.uuid4().hex,
             'result_code': ResultCodes.SUCCESS.value,
@@ -508,9 +471,11 @@ class MockVuforiaWebServicesAPI:
         other_targets = set(database.targets) - set([target])
 
         similar_targets: List[str] = [
-            other.target_id for other in other_targets
-            if Image.open(other.image) == Image.open(target.image) and
-            TargetStatuses.FAILED.value not in (target.status, other.status)
+            other.target_id
+            for other in other_targets
+            if Image.open(other.image) == Image.open(target.image)
+            and TargetStatuses.FAILED.value
+            not in (target.status, other.status)
             and TargetStatuses.PROCESSING.value != other.status
             and other.active_flag
         ]
@@ -590,7 +555,8 @@ class MockVuforiaWebServicesAPI:
             name = request.json()['name']
             other_targets = set(database.targets) - set([target])
             if any(
-                other.name == name for other in other_targets
+                other.name == name
+                for other in other_targets
                 if not other.delete_date
             ):
                 context.status_code = HTTPStatus.FORBIDDEN

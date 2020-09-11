@@ -10,11 +10,11 @@ from time import sleep
 
 import pytest
 import timeout_decorator
-from vws import VWS
+from vws import VWS, CloudRecoService
+from vws.exceptions.vws_exceptions import Fail
 
 from mock_vws import MockVWS
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import add_target_to_vws, query
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -304,7 +304,7 @@ class TestRecos:
 
     def test_query_request(
         self,
-        vuforia_database: VuforiaDatabase,
+        cloud_reco_client: CloudRecoService,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -315,7 +315,6 @@ class TestRecos:
         We therefore test that they exist, are integers and do not change
         between quick requests.
         """
-        image_content = high_quality_image.getvalue()
         target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
             width=1,
@@ -325,24 +324,18 @@ class TestRecos:
         )
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
         report_before = vws_client.get_database_summary_report()
-        query_resp = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
-
-        assert query_resp.status_code == HTTPStatus.OK
+        cloud_reco_client.query(image=high_quality_image)
 
         report_after = vws_client.get_database_summary_report()
         assert report_before.total_recos == report_after.total_recos
         assert (
-            report_before.current_month_recos ==
-            report_after.current_month_recos
+            report_before.current_month_recos
+            == report_after.current_month_recos
         )
         assert (
-            report_before.previous_month_recos ==
-            report_after.previous_month_recos
+            report_before.previous_month_recos
+            == report_after.previous_month_recos
         )
 
 
@@ -369,7 +362,7 @@ class TestRequestUsage:
 
     def test_bad_target_request(
         self,
-        vuforia_database: VuforiaDatabase,
+        high_quality_image: io.BytesIO,
         vws_client: VWS,
     ) -> None:
         """
@@ -379,13 +372,16 @@ class TestRequestUsage:
         report = vws_client.get_database_summary_report()
         original_request_usage = report.request_usage
 
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            # Missing data.
-            data={},
-        )
+        with pytest.raises(Fail) as exc:
+            vws_client.add_target(
+                name='example',
+                width=-1,
+                image=high_quality_image,
+                active_flag=True,
+                application_metadata=None,
+            )
 
-        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert exc.value.response.status_code == HTTPStatus.BAD_REQUEST
 
         report = vws_client.get_database_summary_report()
         new_request_usage = report.request_usage
@@ -393,7 +389,7 @@ class TestRequestUsage:
 
     def test_query_request(
         self,
-        vuforia_database: VuforiaDatabase,
+        cloud_reco_client: CloudRecoService,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -402,16 +398,7 @@ class TestRequestUsage:
         """
         report = vws_client.get_database_summary_report()
         original_request_usage = report.request_usage
-
-        image_content = high_quality_image.getvalue()
-        body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
-        query_resp = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
-
-        assert query_resp.status_code == HTTPStatus.OK
-
+        cloud_reco_client.query(image=high_quality_image)
         report = vws_client.get_database_summary_report()
         new_request_usage = report.request_usage
         # The request usage goes up for the database summary request, not the

@@ -18,6 +18,7 @@ import pytest
 import requests
 from backports.zoneinfo import ZoneInfo
 from PIL import Image
+from requests import Response
 from requests_mock import POST
 from urllib3.filepost import encode_multipart_formdata
 from vws import VWS
@@ -26,7 +27,7 @@ from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import make_image_file, query
+from tests.mock_vws.utils import make_image_file
 from tests.mock_vws.utils.assertions import (
     assert_query_success,
     assert_valid_date_header,
@@ -35,6 +36,56 @@ from tests.mock_vws.utils.assertions import (
 )
 
 VWQ_HOST = 'https://cloudreco.vuforia.com'
+
+
+def query(
+    vuforia_database: VuforiaDatabase,
+    body: Dict[str, Any],
+) -> Response:
+    """
+    Make a request to the endpoint to make an image recognition query.
+
+    Args:
+        vuforia_database: The credentials to use to connect to
+            Vuforia.
+        body: The request body to send in ``multipart/formdata`` format.
+
+    Returns:
+        The response returned by the API.
+    """
+    date = rfc_1123_date()
+    request_path = '/v1/query'
+    content, content_type_header = encode_multipart_formdata(body)
+    method = POST
+
+    access_key = vuforia_database.client_access_key
+    secret_key = vuforia_database.client_secret_key
+    authorization_string = authorization_header(
+        access_key=access_key,
+        secret_key=secret_key,
+        method=method,
+        content=content,
+        # Note that this is not the actual Content-Type header value sent.
+        content_type='multipart/form-data',
+        date=date,
+        request_path=request_path,
+    )
+
+    headers = {
+        'Authorization': authorization_string,
+        'Date': date,
+        'Content-Type': content_type_header,
+    }
+
+    vwq_host = 'https://cloudreco.vuforia.com'
+    response = requests.request(
+        method=method,
+        url=urljoin(base=vwq_host, url=request_path),
+        headers=headers,
+        data=content,
+    )
+
+    return response
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
