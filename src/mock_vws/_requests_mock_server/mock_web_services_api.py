@@ -359,58 +359,19 @@ class MockVuforiaWebServicesAPI:
         )
 
         assert isinstance(database, VuforiaDatabase)
-        # TODO make a helper to get a database summary report from a
-        # VuforiaDatabase
-        active_images = len(
-            [
-                target
-                for target in database.targets
-                if target.status == TargetStatuses.SUCCESS.value
-                and target.active_flag
-                and not target.delete_date
-            ],
-        )
-
-        failed_images = len(
-            [
-                target
-                for target in database.targets
-                if target.status == TargetStatuses.FAILED.value
-                and not target.delete_date
-            ],
-        )
-
-        inactive_images = len(
-            [
-                target
-                for target in database.targets
-                if target.status == TargetStatuses.SUCCESS.value
-                and not target.active_flag
-                and not target.delete_date
-            ],
-        )
-
-        processing_images = len(
-            [
-                target
-                for target in database.targets
-                if target.status == TargetStatuses.PROCESSING.value
-                and not target.delete_date
-            ],
-        )
 
         body = {
             'result_code': ResultCodes.SUCCESS.value,
             'transaction_id': uuid.uuid4().hex,
             'name': database.database_name,
-            'active_images': active_images,
-            'inactive_images': inactive_images,
-            'failed_images': failed_images,
+            'active_images': len(database.active_targets),
+            'inactive_images': len(database.inactive_targets),
+            'failed_images': len(database.failed_targets),
             'target_quota': 1000,
             'total_recos': 0,
             'current_month_recos': 0,
             'previous_month_recos': 0,
-            'processing_images': processing_images,
+            'processing_images': len(database.processing_targets),
             'reco_threshold': 1000,
             'request_quota': 100000,
             # We have ``self.request_count`` but Vuforia always shows 0.
