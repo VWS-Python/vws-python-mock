@@ -225,7 +225,6 @@ class MockVuforiaWebServicesAPI:
         Fake implementation of
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Add-a-Target
         """
-        name = request.json()['name']
         database = get_database_matching_server_keys(
             request_headers=request.headers,
             request_body=request.body,
@@ -236,29 +235,28 @@ class MockVuforiaWebServicesAPI:
 
         assert isinstance(database, VuforiaDatabase)
 
-        if any(target.name == name for target in database.not_deleted_targets):
-            context.status_code = HTTPStatus.FORBIDDEN
-            body = {
-                'transaction_id': uuid.uuid4().hex,
-                'result_code': ResultCodes.TARGET_NAME_EXIST.value,
-            }
-            return json_dump(body)
-
-        active_flag = request.json().get('active_flag')
-        if active_flag is None:
-            active_flag = True
+        given_active_flag = request.json().get('active_flag')
+        active_flag = {
+            None: True,
+            True: True,
+            False: False,
+        }[given_active_flag]
 
         image = request.json()['image']
         decoded = base64.b64decode(image)
         image_file = io.BytesIO(decoded)
 
+        name = request.json()['name']
+        width = request.json()['width']
+        application_metadata=request.json().get('application_metadata')
+
         new_target = Target(
-            name=request.json()['name'],
-            width=request.json()['width'],
+            name=name,
+            width=width,
             image=image_file,
             active_flag=active_flag,
             processing_time_seconds=self._processing_time_seconds,
-            application_metadata=request.json().get('application_metadata'),
+            application_metadata=application_metadata,
         )
         database.targets.add(new_target)
 
@@ -525,14 +523,6 @@ class MockVuforiaWebServicesAPI:
 
         if 'name' in request.json():
             name = request.json()['name']
-            other_targets = set(database.not_deleted_targets) - set([target])
-            if any(other.name == name for other in other_targets):
-                context.status_code = HTTPStatus.FORBIDDEN
-                body = {
-                    'transaction_id': uuid.uuid4().hex,
-                    'result_code': ResultCodes.TARGET_NAME_EXIST.value,
-                }
-                return json_dump(body)
             target.name = name
 
         if 'image' in request.json():
