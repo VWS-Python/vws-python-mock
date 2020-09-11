@@ -2,17 +2,17 @@
 Validators for target names.
 """
 
-from typing import Dict, Set
 import json
 from http import HTTPStatus
-from mock_vws._database_matchers import get_database_matching_server_keys
-from mock_vws.database import VuforiaDatabase
+from typing import Dict, Set
 
+from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._services_validators.exceptions import (
     Fail,
     OopsErrorOccurredResponse,
     TargetNameExist,
 )
+from mock_vws.database import VuforiaDatabase
 
 
 def validate_name_characters_in_range(
@@ -147,8 +147,9 @@ def validate_name_does_not_exist_new_target(
     assert isinstance(database, VuforiaDatabase)
 
     matching_name_targets = [
-        target for target in database.not_deleted_targets if
-        target.name == name
+        target
+        for target in database.not_deleted_targets
+        if target.name == name
     ]
 
     if not matching_name_targets:
@@ -204,8 +205,9 @@ def validate_name_does_not_exist_existing_target(
     assert isinstance(database, VuforiaDatabase)
 
     matching_name_targets = [
-        target for target in database.not_deleted_targets if
-        target.name == name
+        target
+        for target in database.not_deleted_targets
+        if target.name == name
     ]
 
     if not matching_name_targets:

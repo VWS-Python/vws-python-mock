@@ -41,10 +41,10 @@ from .metadata_validators import (
 )
 from .name_validators import (
     validate_name_characters_in_range,
+    validate_name_does_not_exist_existing_target,
+    validate_name_does_not_exist_new_target,
     validate_name_length,
     validate_name_type,
-    validate_name_does_not_exist_new_target,
-    validate_name_does_not_exist_existing_target,
 )
 from .project_state_validators import validate_project_state
 from .target_validators import validate_target_id_exists

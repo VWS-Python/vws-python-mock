@@ -248,7 +248,7 @@ class MockVuforiaWebServicesAPI:
 
         name = request.json()['name']
         width = request.json()['width']
-        application_metadata=request.json().get('application_metadata')
+        application_metadata = request.json().get('application_metadata')
 
         new_target = Target(
             name=name,
