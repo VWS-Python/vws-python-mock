@@ -77,8 +77,8 @@ class Target:  # pylint: disable=too-many-instance-attributes
         self.target_id = uuid.uuid4().hex
         self.active_flag = active_flag
         self.width = width
-        self.timezone = ZoneInfo('GMT')
-        now = datetime.datetime.now(tz=gmt)
+        self._timezone = ZoneInfo('GMT')
+        now = datetime.datetime.now(tz=self._timezone)
         self.upload_date: datetime.datetime = now
         self.last_modified_date = self.upload_date
         self.processed_tracking_rating = random.randint(0, 5)
