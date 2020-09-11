@@ -142,8 +142,7 @@ def add_target() -> Tuple[str, int]:
 
     assert isinstance(database, VuforiaDatabase)
 
-    targets = (target for target in database.targets if not target.delete_date)
-    if any(target.name == name for target in targets):
+    if any(target.name == name for target in database.not_deleted_targets):
         body = {
             'transaction_id': uuid.uuid4().hex,
             'result_code': ResultCodes.TARGET_NAME_EXIST.value,
