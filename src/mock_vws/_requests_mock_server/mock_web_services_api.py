@@ -52,29 +52,6 @@ _TARGET_ID_PATTERN = '[A-Za-z0-9]+'
 
 
 @wrapt.decorator
-def update_request_count(
-    wrapped: Callable[..., str],
-    instance: Any,
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
-    """
-    Add to the request count.
-
-    Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
-
-    Returns:
-        The result of calling the endpoint.
-    """
-    instance.request_count += 1
-    return wrapped(*args, **kwargs)
-
-
-@wrapt.decorator
 def run_validators(
     wrapped: Callable[..., str],
     instance: Any,
@@ -174,7 +151,6 @@ def route(
             run_validators,
             set_date_header,
             set_content_length_header,
-            update_request_count,
         ]
 
         for decorator in decorators:
@@ -229,12 +205,10 @@ class MockVuforiaWebServicesAPI:
         Attributes:
             databases: Target databases.
             routes: The `Route`s to be used in the mock.
-            request_count: The number of requests made to this API.
         """
         self.databases: Set[VuforiaDatabase] = set([])
         self.routes: Set[Route] = ROUTES
         self._processing_time_seconds = processing_time_seconds
-        self.request_count = 0
 
     @route(
         path_pattern='/targets',
@@ -370,8 +344,6 @@ class MockVuforiaWebServicesAPI:
             'processing_images': len(database.processing_targets),
             'reco_threshold': database.reco_threshold,
             'request_quota': database.request_quota,
-            # We have ``self.request_count`` but Vuforia always shows 0.
-            # This was not always the case.
             'request_usage': 0,
         }
         return json_dump(body)
@@ -553,12 +525,8 @@ class MockVuforiaWebServicesAPI:
 
         if 'name' in request.json():
             name = request.json()['name']
-            other_targets = set(database.targets) - set([target])
-            if any(
-                other.name == name
-                for other in other_targets
-                if not other.delete_date
-            ):
+            other_targets = set(database.not_deleted_targets) - set([target])
+            if any(other.name == name for other in other_targets):
                 context.status_code = HTTPStatus.FORBIDDEN
                 body = {
                     'transaction_id': uuid.uuid4().hex,
