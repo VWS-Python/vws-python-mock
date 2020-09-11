@@ -525,12 +525,8 @@ class MockVuforiaWebServicesAPI:
 
         if 'name' in request.json():
             name = request.json()['name']
-            other_targets = set(database.targets) - set([target])
-            if any(
-                other.name == name
-                for other in other_targets
-                if not other.delete_date
-            ):
+            other_targets = set(database.not_deleted_targets) - set([target])
+            if any(other.name == name for other in other_targets):
                 context.status_code = HTTPStatus.FORBIDDEN
                 body = {
                     'transaction_id': uuid.uuid4().hex,
