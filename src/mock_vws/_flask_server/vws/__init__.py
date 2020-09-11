@@ -48,7 +48,6 @@ def validate_request() -> None:
     )
     # decorators = [
     #     # parse_target_id,
-    #     # update_request_count,
     # ]
 
 
@@ -141,13 +140,6 @@ def add_target() -> Tuple[str, int]:
     )
 
     assert isinstance(database, VuforiaDatabase)
-
-    if any(target.name == name for target in database.not_deleted_targets):
-        body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.TARGET_NAME_EXIST.value,
-        }
-        return json_dump(body), codes.FORBIDDEN
 
     active_flag = request_json.get('active_flag')
     if active_flag is None:
@@ -306,6 +298,42 @@ def database_summary() -> Tuple[str, int]:
     }
     return json_dump(body), codes.OK
 
+@VWS_FLASK_APP.route('/summary/<string:target_id>', methods=['GET'])
+def target_summary(target_id: str) -> Tuple[str, int]:
+    """
+    Get a summary report for a target.
+
+    Fake implementation of
+    https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Retrieve-a-Target-Summary-Report
+    """
+    databases = get_all_databases()
+    database = get_database_matching_server_keys(
+        request_headers=dict(request.headers),
+        request_body=request.data,
+        request_method=request.method,
+        request_path=request.path,
+        databases=databases,
+    )
+
+    assert isinstance(database, VuforiaDatabase)
+    [target] = [
+        target for target in database.targets if target.target_id == target_id
+    ]
+    body = {
+        'status': target.status,
+        'transaction_id': uuid.uuid4().hex,
+        'result_code': ResultCodes.SUCCESS.value,
+        'database_name': database.database_name,
+        'target_name': target.name,
+        'upload_date': target.upload_date.strftime('%Y-%m-%d'),
+        'active_flag': target.active_flag,
+        'tracking_rating': target.tracking_rating,
+        'total_recos': 0,
+        'current_month_recos': 0,
+        'previous_month_recos': 0,
+    }
+    return json_dump(body)
+
 
 @VWS_FLASK_APP.route('/duplicates/<string:target_id>', methods=['GET'])
 def get_duplicates(target_id: str) -> Tuple[str, int]:
@@ -448,16 +476,6 @@ def update_target(target_id: str) -> Tuple[str, int]:
 
     if 'name' in request_json:
         name = request_json['name']
-        other_targets = set(database.targets) - set([target])
-        if any(
-            other.name == name for other in other_targets
-            if not other.delete_date
-        ):
-            body = {
-                'transaction_id': uuid.uuid4().hex,
-                'result_code': ResultCodes.TARGET_NAME_EXIST.value,
-            }
-            return json_dump(body), codes.FORBIDDEN
         update_values['name'] = name
 
     if 'image' in request_json:
