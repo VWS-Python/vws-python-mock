@@ -398,10 +398,11 @@ class MockVuforiaWebServicesAPI:
 
         assert isinstance(database, VuforiaDatabase)
 
+        results = [target.target_id for target in database.not_deleted_targets]
         body: Dict[str, Union[str, List[str]]] = {
             'transaction_id': uuid.uuid4().hex,
             'result_code': ResultCodes.SUCCESS.value,
-            'results': database.not_deleted_targets,
+            'results': results,
         }
         return json_dump(body)
 
