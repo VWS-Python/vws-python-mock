@@ -5,10 +5,10 @@ Utilities for managing mock Vuforia databases.
 import uuid
 from dataclasses import dataclass, field
 from typing import Set
-from mock_vws._constants import ResultCodes, TargetStatuses
 
-from .states import States
-from .target import Target
+from mock_vws._constants import TargetStatuses
+from mock_vws.states import States
+from mock_vws.target import Target
 
 
 def _random_hex() -> str:
@@ -21,7 +21,7 @@ def _random_hex() -> str:
 @dataclass(eq=True, frozen=True)
 class VuforiaDatabase:
     """
-    A representation of a Vuforia target database.
+    Credentials for VWS APIs.
     """
 
     # We hide a few things in the ``repr`` with ``repr=False`` so that they do
@@ -33,6 +33,7 @@ class VuforiaDatabase:
     client_secret_key: str = field(default_factory=_random_hex, repr=False)
     targets: Set[Target] = field(default_factory=set, hash=False)
     state: States = States.WORKING
+
     request_quota = 100000
     reco_threshold = 1000
     current_month_recos = 0
@@ -41,56 +42,54 @@ class VuforiaDatabase:
     target_quota = 1000
 
     @property
+    def not_deleted_targets(self) -> Set[Target]:
+        """
+        All targets which have not been deleted.
+        """
+        return set(target for target in self.targets if not target.delete_date)
+
+    @property
     def active_targets(self) -> Set[Target]:
         """
+        All active targets.
         """
-
         return set(
-            [
-                target
-                for target in self.targets
-                if target.status == TargetStatuses.SUCCESS.value
-                and target.active_flag
-                and not target.delete_date
-            ],
+            target
+            for target in self.not_deleted_targets
+            if target.status == TargetStatuses.SUCCESS.value
+            and target.active_flag
         )
 
     @property
     def inactive_targets(self) -> Set[Target]:
         """
+        All inactive targets.
         """
-
         return set(
-            [
-                target
-                for target in self.targets
-                if target.status == TargetStatuses.SUCCESS.value
-                and not target.active_flag
-                and not target.delete_date
-            ],
+            target
+            for target in self.not_deleted_targets
+            if target.status == TargetStatuses.SUCCESS.value
+            and not target.active_flag
         )
 
     @property
     def failed_targets(self) -> Set[Target]:
-
+        """
+        All failed targets.
+        """
         return set(
-            [
-                target
-                for target in self.targets
-                if target.status == TargetStatuses.FAILED.value
-                and not target.delete_date
-            ],
+            target
+            for target in self.not_deleted_targets
+            if target.status == TargetStatuses.FAILED.value
         )
-
 
     @property
     def processing_targets(self) -> Set[Target]:
+        """
+        All processing targets.
+        """
         return set(
-            [
-                target
-                for target in self.targets
-                if target.status == TargetStatuses.PROCESSING.value
-                and not target.delete_date
-            ],
+            target
+            for target in self.not_deleted_targets
+            if target.status == TargetStatuses.PROCESSING.value
         )
-

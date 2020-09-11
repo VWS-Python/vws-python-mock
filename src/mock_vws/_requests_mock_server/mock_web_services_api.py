@@ -262,10 +262,7 @@ class MockVuforiaWebServicesAPI:
 
         assert isinstance(database, VuforiaDatabase)
 
-        targets = (
-            target for target in database.targets if not target.delete_date
-        )
-        if any(target.name == name for target in targets):
+        if any(target.name == name for target in database.not_deleted_targets):
             context.status_code = HTTPStatus.FORBIDDEN
             body = {
                 'transaction_id': uuid.uuid4().hex,
@@ -359,7 +356,6 @@ class MockVuforiaWebServicesAPI:
         )
 
         assert isinstance(database, VuforiaDatabase)
-
         body = {
             'result_code': ResultCodes.SUCCESS.value,
             'transaction_id': uuid.uuid4().hex,
@@ -401,12 +397,8 @@ class MockVuforiaWebServicesAPI:
         )
 
         assert isinstance(database, VuforiaDatabase)
-        results = [
-            target.target_id
-            for target in database.targets
-            if not target.delete_date
-        ]
 
+        results = [target.target_id for target in database.not_deleted_targets]
         body: Dict[str, Union[str, List[str]]] = {
             'transaction_id': uuid.uuid4().hex,
             'result_code': ResultCodes.SUCCESS.value,
