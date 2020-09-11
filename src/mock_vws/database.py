@@ -33,6 +33,12 @@ class VuforiaDatabase:
     client_secret_key: str = field(default_factory=_random_hex, repr=False)
     targets: Set[Target] = field(default_factory=set, hash=False)
     state: States = States.WORKING
+    request_quota = 100000
+    reco_threshold = 1000
+    current_month_recos = 0
+    previous_month_recos = 0
+    total_recos = 0
+    target_quota = 1000
 
     @property
     def active_targets(self) -> Set[Target]:
