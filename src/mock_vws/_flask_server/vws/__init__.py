@@ -113,14 +113,10 @@ def handle_request_time_too_skewed(e: RequestTimeTooSkewed) -> Tuple[str, int]:
 def handle_unnecessary_request_body(
     e: UnnecessaryRequestBody,
 ) -> Tuple[str, int]:
-    # TODO not sure how to drop a header
-    # e.response_text == 'HELLOADAM'
     new_response = Response()
     new_response.status_code = e.status_code
     new_response.set_data(e.response_text)
     new_response.headers.pop('Content-Type')
-    # new_response.content_type = None
-    # import pdb; pdb.set_trace()
     return new_response
 
 
