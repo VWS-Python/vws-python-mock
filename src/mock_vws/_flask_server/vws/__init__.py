@@ -61,48 +61,18 @@ VWS_FLASK_APP.response_class = MyResponse
 
 
 @VWS_FLASK_APP.errorhandler(UnknownTarget)
+@VWS_FLASK_APP.errorhandler(ProjectInactive)
+@VWS_FLASK_APP.errorhandler(AuthenticationFailure)
+@VWS_FLASK_APP.errorhandler(Fail)
+@VWS_FLASK_APP.errorhandler(MetadataTooLarge)
+@VWS_FLASK_APP.errorhandler(TargetNameExist)
+@VWS_FLASK_APP.errorhandler(BadImage)
+@VWS_FLASK_APP.errorhandler(ImageTooLarge)
+@VWS_FLASK_APP.errorhandler(RequestTimeTooSkewed)
+# TODO update name and type hint here
 def handle_unknown_target(e: UnknownTarget) -> Tuple[str, int]:
     return e.response_text, e.status_code
 
-
-@VWS_FLASK_APP.errorhandler(ProjectInactive)
-def handle_project_inactive(e: ProjectInactive) -> Tuple[str, int]:
-    return e.response_text, e.status_code
-
-
-@VWS_FLASK_APP.errorhandler(AuthenticationFailure)
-def handle_authentication_failure(e: AuthenticationFailure) -> Tuple[str, int]:
-    return e.response_text, e.status_code
-
-
-@VWS_FLASK_APP.errorhandler(Fail)
-def handle_fail(e: Fail) -> Tuple[str, int]:
-    return e.response_text, e.status_code
-
-
-@VWS_FLASK_APP.errorhandler(MetadataTooLarge)
-def handle_metadata_too_large(e: MetadataTooLarge) -> Tuple[str, int]:
-    return e.response_text, e.status_code
-
-
-@VWS_FLASK_APP.errorhandler(TargetNameExist)
-def handle_target_name_exist(e: TargetNameExist) -> Tuple[str, int]:
-    return e.response_text, e.status_code
-
-
-@VWS_FLASK_APP.errorhandler(BadImage)
-def handle_bad_image(e: BadImage) -> Tuple[str, int]:
-    return e.response_text, e.status_code
-
-
-@VWS_FLASK_APP.errorhandler(ImageTooLarge)
-def handle_image_too_large(e: ImageTooLarge) -> Tuple[str, int]:
-    return e.response_text, e.status_code
-
-
-@VWS_FLASK_APP.errorhandler(RequestTimeTooSkewed)
-def handle_request_time_too_skewed(e: RequestTimeTooSkewed) -> Tuple[str, int]:
-    return e.response_text, e.status_code
 
 
 @VWS_FLASK_APP.errorhandler(UnnecessaryRequestBody)
