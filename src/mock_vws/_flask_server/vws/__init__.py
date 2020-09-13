@@ -106,8 +106,6 @@ def set_headers(response: Response) -> Response:
     ):
         response.headers['Content-Type'] = 'application/json'
     response.headers['Server'] = 'nginx'
-    content_length = len(response.data)
-    response.headers['Content-Length'] = str(content_length)
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     response.headers['Date'] = date
     return response
