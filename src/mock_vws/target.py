@@ -182,12 +182,13 @@ class Target:  # pylint: disable=too-many-instance-attributes
         if self.delete_date:
             delete_date = datetime.datetime.isoformat(self.delete_date)
 
+        image_value = self.image.getvalue()
+        image_base64 = base64.encodebytes(image_value).decode()
+
         return {
             'name': self.name,
             'width': self.width,
-            'image_base64': base64.encodestring(
-                self.image.getvalue()
-            ).decode(),
+            'image_base64': image_base64,
             'active_flag': self.active_flag,
             'processing_time_seconds': self._processing_time_seconds,
             'application_metadata': self.application_metadata,
