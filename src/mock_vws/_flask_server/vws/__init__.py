@@ -1,4 +1,9 @@
+"""
+TODO
+"""
+
 import base64
+from http import HTTPStatus
 import email.utils
 import io
 import json
@@ -25,6 +30,7 @@ from mock_vws._services_validators.exceptions import (
     RequestTimeTooSkewed,
     TargetNameExist,
     UnknownTarget,
+    UnnecessaryRequestBody,
 )
 from mock_vws.database import VuforiaDatabase
 from mock_vws.target import Target
@@ -50,6 +56,10 @@ def validate_request() -> None:
     #     # parse_target_id,
     # ]
 
+class MyResponse(Response):
+    default_mimetype = None
+
+VWS_FLASK_APP.response_class = MyResponse
 
 @VWS_FLASK_APP.errorhandler(UnknownTarget)
 def handle_unknown_target(e: UnknownTarget) -> Tuple[str, int]:
@@ -95,6 +105,18 @@ def handle_image_too_large(e: ImageTooLarge) -> Tuple[str, int]:
 def handle_request_time_too_skewed(e: RequestTimeTooSkewed) -> Tuple[str, int]:
     return e.response_text, e.status_code
 
+@VWS_FLASK_APP.errorhandler(UnnecessaryRequestBody)
+def handle_unnecessary_request_body(e: UnnecessaryRequestBody) -> Tuple[str, int]:
+    # TODO not sure how to drop a header
+    # e.response_text == 'HELLOADAM'
+    new_response = Response()
+    new_response.status_code = e.status_code
+    new_response.set_data(e.response_text)
+    new_response.headers.pop('Content-Type')
+    # new_response.content_type = None
+    # import pdb; pdb.set_trace()
+    return new_response
+
 
 @VWS_FLASK_APP.errorhandler(OopsErrorOccurredResponse)
 def handle_oops_error_occurred(e: OopsErrorOccurredResponse) -> Response:
@@ -107,8 +129,12 @@ def handle_oops_error_occurred(e: OopsErrorOccurredResponse) -> Response:
 
 @VWS_FLASK_APP.after_request
 def set_headers(response: Response) -> Response:
+    """
+    TODO
+    """
     response.headers['Connection'] = 'keep-alive'
-    if response.status_code != codes.INTERNAL_SERVER_ERROR:
+    # import pdb; pdb.set_trace()
+    if response.status_code != HTTPStatus.INTERNAL_SERVER_ERROR and len(response.data):
         response.headers['Content-Type'] = 'application/json'
     response.headers['Server'] = 'nginx'
     content_length = len(response.data)
@@ -150,7 +176,7 @@ def add_target() -> Tuple[str, int]:
     image_file = io.BytesIO(decoded)
 
     new_target = Target(
-        name=request_json['name'],
+        name=name,
         width=request_json['width'],
         image=image_file,
         active_flag=active_flag,
