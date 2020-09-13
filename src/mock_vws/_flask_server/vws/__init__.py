@@ -139,7 +139,6 @@ def set_headers(response: Response) -> Response:
     TODO
     """
     response.headers['Connection'] = 'keep-alive'
-    # import pdb; pdb.set_trace()
     if response.status_code != HTTPStatus.INTERNAL_SERVER_ERROR and len(
         response.data
     ):
@@ -442,20 +441,7 @@ def target_list() -> Tuple[str, int]:
     return json_dump(body), codes.OK
 
 
-# @route(
-#     path_pattern=f'/targets/{_TARGET_ID_PATTERN}',
-#     http_methods=[PUT],
-#     optional_keys={
-#         'active_flag',
-#         'application_metadata',
-#         'image',
-#         'name',
-#         'width',
-#     },
-# )
 @VWS_FLASK_APP.route('/targets/<string:target_id>', methods=['PUT'])
-# TODO
-# @JSON_SCHEMA.validate(UPDATE_TARGET_SCHEMA)
 def update_target(target_id: str) -> Tuple[str, int]:
     """
     Update a target.
