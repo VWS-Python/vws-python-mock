@@ -46,15 +46,11 @@ def validate_request() -> None:
     databases = get_all_databases()
     run_services_validators(
         request_headers=dict(request.headers),
-        # TODO not sure about this one
         request_body=request.data,
         request_method=request.method,
         request_path=request.path,
         databases=databases,
     )
-    # decorators = [
-    #     # parse_target_id,
-    # ]
 
 
 class MyResponse(Response):
@@ -203,7 +199,6 @@ def add_target() -> Tuple[str, int]:
 
 
 @VWS_FLASK_APP.route('/targets/<string:target_id>', methods=['GET'])
-# @JSON_SCHEMA.validate(ADD_TARGET_SCHEMA)
 def get_target(target_id: str) -> Tuple[str, int]:
     """
     Get details of a target.
