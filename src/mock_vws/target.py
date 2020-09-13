@@ -191,6 +191,7 @@ class Target:  # pylint: disable=too-many-instance-attributes
             'image_base64': image_base64,
             'active_flag': self.active_flag,
             'processing_time_seconds': self._processing_time_seconds,
+            'processed_tracking_rating': self.processed_tracking_rating,
             'application_metadata': self.application_metadata,
             'target_id': self.target_id,
             'last_modified_date': self.last_modified_date.isoformat(),

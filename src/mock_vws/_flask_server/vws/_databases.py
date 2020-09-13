@@ -66,6 +66,8 @@ def get_all_databases() -> Set[VuforiaDatabase]:
             target.upload_date = datetime.datetime.fromisoformat(
                 target_dict['upload_date'],
             )
+            target.processed_tracking_rating = target_dict['processed_tracking_rating']
+            # import pdb; pdb.set_trace()
             target.upload_date = target.upload_date.replace(tzinfo=gmt)
             delete_date_optional = target_dict['delete_date_optional']
             if delete_date_optional:
