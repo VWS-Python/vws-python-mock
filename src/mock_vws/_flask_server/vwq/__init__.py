@@ -22,6 +22,7 @@ from mock_vws._query_validators.exceptions import (
     BoundaryNotInBody,
     ContentLengthHeaderTooLarge,
     DateFormatNotValid,
+    DateHeaderNotGiven,
     ImageNotGiven,
     InactiveProject,
     InvalidAcceptHeader,
@@ -217,6 +218,14 @@ def handle_date_format_not_valid(e: DateFormatNotValid, ) -> Response:
     content_type = 'text/plain; charset=ISO-8859-1'
     response.headers['Content-Type'] = content_type
     response.headers['WWW-Authenticate'] = 'VWS'
+    assert isinstance(response, Response)
+    return response
+
+@CLOUDRECO_FLASK_APP.errorhandler(DateHeaderNotGiven)
+def handle_date_header_not_given(e: DateFormatNotValid, ) -> Response:
+    response = make_response(e.response_text, e.status_code)
+    content_type = 'text/plain; charset=ISO-8859-1'
+    response.headers['Content-Type'] = content_type
     assert isinstance(response, Response)
     return response
 
