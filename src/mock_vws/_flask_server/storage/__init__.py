@@ -56,7 +56,8 @@ def create_database() -> Tuple[str, int]:
 )
 def create_target(database_name: str) -> Tuple[str, int]:
     [database] = [
-        database for database in VUFORIA_DATABASES
+        database
+        for database in VUFORIA_DATABASES
         if database.database_name == database_name
     ]
     image_base64 = request.json['image_base64']
@@ -82,7 +83,8 @@ def create_target(database_name: str) -> Tuple[str, int]:
 )
 def delete_target(database_name: str, target_id: str) -> Tuple[str, int]:
     [database] = [
-        database for database in VUFORIA_DATABASES
+        database
+        for database in VUFORIA_DATABASES
         if database.database_name == database_name
     ]
     [target] = [
@@ -98,7 +100,8 @@ def delete_target(database_name: str, target_id: str) -> Tuple[str, int]:
 )
 def update_target(database_name: str, target_id: str) -> Tuple[str, int]:
     [database] = [
-        database for database in VUFORIA_DATABASES
+        database
+        for database in VUFORIA_DATABASES
         if database.database_name == database_name
     ]
     [target] = [

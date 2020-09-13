@@ -3,11 +3,11 @@ TODO
 """
 
 import base64
-from http import HTTPStatus
 import email.utils
 import io
 import json
 import uuid
+from http import HTTPStatus
 from typing import Dict, List, Tuple, Union
 
 import requests
@@ -56,10 +56,13 @@ def validate_request() -> None:
     #     # parse_target_id,
     # ]
 
+
 class MyResponse(Response):
     default_mimetype = None
 
+
 VWS_FLASK_APP.response_class = MyResponse
+
 
 @VWS_FLASK_APP.errorhandler(UnknownTarget)
 def handle_unknown_target(e: UnknownTarget) -> Tuple[str, int]:
@@ -105,8 +108,11 @@ def handle_image_too_large(e: ImageTooLarge) -> Tuple[str, int]:
 def handle_request_time_too_skewed(e: RequestTimeTooSkewed) -> Tuple[str, int]:
     return e.response_text, e.status_code
 
+
 @VWS_FLASK_APP.errorhandler(UnnecessaryRequestBody)
-def handle_unnecessary_request_body(e: UnnecessaryRequestBody) -> Tuple[str, int]:
+def handle_unnecessary_request_body(
+    e: UnnecessaryRequestBody,
+) -> Tuple[str, int]:
     # TODO not sure how to drop a header
     # e.response_text == 'HELLOADAM'
     new_response = Response()
@@ -134,7 +140,9 @@ def set_headers(response: Response) -> Response:
     """
     response.headers['Connection'] = 'keep-alive'
     # import pdb; pdb.set_trace()
-    if response.status_code != HTTPStatus.INTERNAL_SERVER_ERROR and len(response.data):
+    if response.status_code != HTTPStatus.INTERNAL_SERVER_ERROR and len(
+        response.data
+    ):
         response.headers['Content-Type'] = 'application/json'
     response.headers['Server'] = 'nginx'
     content_length = len(response.data)
@@ -324,6 +332,7 @@ def database_summary() -> Tuple[str, int]:
     }
     return json_dump(body), codes.OK
 
+
 @VWS_FLASK_APP.route('/summary/<string:target_id>', methods=['GET'])
 def target_summary(target_id: str) -> Tuple[str, int]:
     """
@@ -385,10 +394,12 @@ def get_duplicates(target_id: str) -> Tuple[str, int]:
     other_targets = set(database.targets) - set([target])
 
     similar_targets: List[str] = [
-        other.target_id for other in other_targets
-        if Image.open(other.image) == Image.open(target.image) and
-        TargetStatuses.FAILED.value not in (target.status, other.status) and
-        TargetStatuses.PROCESSING.value != other.status and other.active_flag
+        other.target_id
+        for other in other_targets
+        if Image.open(other.image) == Image.open(target.image)
+        and TargetStatuses.FAILED.value not in (target.status, other.status)
+        and TargetStatuses.PROCESSING.value != other.status
+        and other.active_flag
     ]
 
     body = {
@@ -418,7 +429,8 @@ def target_list() -> Tuple[str, int]:
     )
     assert isinstance(database, VuforiaDatabase)
     results = [
-        target.target_id for target in database.targets
+        target.target_id
+        for target in database.targets
         if not target.delete_date
     ]
 

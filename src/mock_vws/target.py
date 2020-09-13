@@ -185,8 +185,9 @@ class Target:  # pylint: disable=too-many-instance-attributes
         return {
             'name': self.name,
             'width': self.width,
-            'image_base64':
-            base64.encodestring(self.image.getvalue()).decode(),
+            'image_base64': base64.encodestring(
+                self.image.getvalue()
+            ).decode(),
             'active_flag': self.active_flag,
             'processing_time_seconds': self._processing_time_seconds,
             'application_metadata': self.application_metadata,
