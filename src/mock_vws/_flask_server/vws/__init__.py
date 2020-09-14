@@ -388,8 +388,7 @@ def target_list() -> Tuple[str, int]:
     assert isinstance(database, VuforiaDatabase)
     results = [
         target.target_id
-        for target in database.targets
-        if not target.delete_date
+        for target in database.not_deleted_targets
     ]
 
     body: Dict[str, Union[str, List[str]]] = {
