@@ -6,6 +6,7 @@ import email.utils
 import uuid
 from http import HTTPStatus
 from pathlib import Path
+from typing import Dict
 
 from mock_vws._constants import ResultCodes
 from mock_vws._mock_common import json_dump
@@ -29,7 +30,7 @@ class DateHeaderNotGiven(Exception):
         self.response_text = 'Date header required.'
 
     @property
-    def headers(self):
+    def headers(self) -> Dict[str, str]:
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         return {
             'Content-Type': 'text/plain; charset=ISO-8859-1',
@@ -57,7 +58,7 @@ class DateFormatNotValid(Exception):
         self.response_text = 'Malformed date header.'
 
     @property
-    def headers(self):
+    def headers(self) -> Dict[str, str]:
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         return {
             'Content-Type': 'text/plain; charset=ISO-8859-1',
@@ -91,7 +92,7 @@ class RequestTimeTooSkewed(Exception):
         self.response_text = json_dump(body)
 
     @property
-    def headers(self):
+    def headers(self) -> Dict[str, str]:
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         return {
             'Content-Type': 'application/json',
@@ -130,7 +131,7 @@ class BadImage(Exception):
         )
 
     @property
-    def headers(self):
+    def headers(self) -> Dict[str, str]:
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         return {
             'Content-Type': 'application/json',
@@ -169,7 +170,7 @@ class AuthenticationFailure(Exception):
         )
 
     @property
-    def headers(self):
+    def headers(self) -> Dict[str, str]:
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         return {
             'Content-Type': 'application/json',
@@ -204,7 +205,7 @@ class AuthenticationFailureGoodFormatting(Exception):
         self.response_text = json_dump(body)
 
     @property
-    def headers(self):
+    def headers(self) -> Dict[str, str]:
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         return {
             'Content-Type': 'application/json',
@@ -261,7 +262,7 @@ class AuthHeaderMissing(Exception):
         self.response_text = 'Authorization header missing.'
 
     @property
-    def headers(self):
+    def headers(self) -> Dict[str, str]:
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         return {
             'Content-Type': 'text/plain; charset=ISO-8859-1',
@@ -290,7 +291,7 @@ class MalformedAuthHeader(Exception):
         self.response_text = 'Malformed authorization header.'
 
     @property
-    def headers(self):
+    def headers(self) -> Dict[str, str]:
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         return {
             'Content-Type': 'text/plain; charset=ISO-8859-1',
@@ -319,7 +320,7 @@ class UnknownParameters(Exception):
         self.response_text = 'Unknown parameters in the request.'
 
     @property
-    def headers(self):
+    def headers(self) -> Dict[str, str]:
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         return {
             'Content-Type': 'application/json',
@@ -357,7 +358,7 @@ class InactiveProject(Exception):
         )
 
     @property
-    def headers(self):
+    def headers(self) -> Dict[str, str]:
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         return {
             'Content-Type': 'application/json',
@@ -390,7 +391,7 @@ class InvalidMaxNumResults(Exception):
         self.response_text = invalid_value_message
 
     @property
-    def headers(self):
+    def headers(self) -> Dict[str, str]:
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         return {
             'Content-Type': 'application/json',
@@ -423,7 +424,7 @@ class MaxNumResultsOutOfRange(Exception):
         self.response_text = integer_out_of_range_message
 
     @property
-    def headers(self):
+    def headers(self) -> Dict[str, str]:
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         return {
             'Content-Type': 'application/json',
@@ -458,7 +459,7 @@ class InvalidIncludeTargetData(Exception):
         self.response_text = unexpected_target_data_message
 
     @property
-    def headers(self):
+    def headers(self) -> Dict[str, str]:
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         return {
             'Content-Type': 'application/json',
@@ -486,7 +487,7 @@ class UnsupportedMediaType(Exception):
         self.response_text = ''
 
     @property
-    def headers(self):
+    def headers(self) -> Dict[str, str]:
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         return {
             'Connection': 'keep-alive',
@@ -513,7 +514,7 @@ class InvalidAcceptHeader(Exception):
         self.response_text = ''
 
     @property
-    def headers(self):
+    def headers(self) -> Dict[str, str]:
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         return {
             'Connection': 'keep-alive',
@@ -543,7 +544,7 @@ class BoundaryNotInBody(Exception):
         )
 
     @property
-    def headers(self):
+    def headers(self) -> Dict[str, str]:
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         return {
             'Content-Type': 'text/html;charset=UTF-8',
@@ -574,7 +575,7 @@ class NoBoundaryFound(Exception):
         )
 
     @property
-    def headers(self):
+    def headers(self) -> Dict[str, str]:
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         return {
             'Content-Type': 'text/html;charset=UTF-8',
@@ -607,7 +608,7 @@ class QueryOutOfBounds(Exception):
         self.response_text = text
 
     @property
-    def headers(self):
+    def headers(self) -> Dict[str, str]:
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         return {
             'Content-Type': 'text/html; charset=ISO-8859-1',
@@ -636,7 +637,7 @@ class ContentLengthHeaderTooLarge(Exception):
         self.response_text = ''
 
     @property
-    def headers(self):
+    def headers(self) -> Dict[str, str]:
         return {
             'Connection': 'keep-alive',
         }
@@ -660,7 +661,7 @@ class ContentLengthHeaderNotInt(Exception):
         self.response_text = ''
 
     @property
-    def headers(self):
+    def headers(self) -> Dict[str, str]:
         return {
             'Connection': 'Close',
         }

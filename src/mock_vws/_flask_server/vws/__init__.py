@@ -75,7 +75,7 @@ class MyResponse(Response):
             self.headers = Headers(headers_dict)
 
 
-CLOUDRECO_FLASK_APP.response_class = MyResponse
+VWS_FLASK_APP.response_class = MyResponse
 
 
 @VWS_FLASK_APP.before_request
@@ -89,12 +89,6 @@ def validate_request() -> None:
         databases=databases,
     )
 
-
-class MyResponse(Response):
-    default_mimetype = None
-
-
-VWS_FLASK_APP.response_class = MyResponse
 
 
 @VWS_FLASK_APP.errorhandler(UnknownTarget)
