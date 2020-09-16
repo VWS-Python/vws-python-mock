@@ -13,6 +13,7 @@ import requests
 from flask import Flask, Response, request
 from PIL import Image
 from werkzeug.datastructures import Headers
+from werkzeug.wsgi import ClosingIterator
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
