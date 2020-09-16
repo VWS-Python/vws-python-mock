@@ -96,15 +96,6 @@ def handle_request_time_too_skewed(
     return response
 
 
-@CLOUDRECO_FLASK_APP.errorhandler(ContentLengthHeaderTooLarge)
-def handle_content_length_header_too_large(
-    e: ContentLengthHeaderTooLarge,
-) -> Response:
-    response = make_response(e.response_text, e.status_code)
-    response.headers = Headers({'Connection': 'keep-alive'})
-    assert isinstance(response, Response)
-    return response
-
 @CLOUDRECO_FLASK_APP.errorhandler(NoBoundaryFound)
 def handle_no_boundary_found(
     e: NoBoundaryFound,
