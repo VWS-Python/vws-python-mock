@@ -1,12 +1,13 @@
 import copy
 import email.utils
 from pathlib import Path
-from typing import Any, Dict, Tuple, Union
+from typing import Any, Dict, Tuple, Union, Optional
 from http import HTTPStatus
 
 import requests
 from flask import Flask, Response, make_response, request
 from werkzeug.datastructures import Headers
+from werkzeug.wsgi import ClosingIterator
 
 from mock_vws._query_tools import (
     ActiveMatchingTargetsDeleteProcessing,
@@ -58,8 +59,37 @@ def validate_request() -> None:
     )
 
 
+# We use a custom response type.
+# Without this, a content type is added to all responses.
+# Some of our responses need to not have a "Content-Type" header.
 class MyResponse(Response):
-    default_mimetype = None
+    def __init__(
+        self,
+        response: Optional[ClosingIterator] = None,
+        status: Optional[str] = None,
+        headers: Optional[Headers] =None,
+        mimetype: Optional[str] =None,
+        content_type: Optional[str] =None,
+        direct_passthrough: bool=False,
+    ) -> None:
+        if headers:
+            content_type_from_headers = headers.get('Content-Type')
+        else:
+            content_type_from_headers = None
+
+        super().__init__(
+            response=response,
+            status=status,
+            headers=headers,
+            mimetype=mimetype,
+            content_type=content_type,
+            direct_passthrough=direct_passthrough,
+        )
+
+        if content_type is None and headers and not content_type_from_headers:
+            headers_dict = dict(headers)
+            headers_dict.pop('Content-Type')
+            self.headers = Headers(headers_dict)
 
 
 CLOUDRECO_FLASK_APP.response_class = MyResponse
@@ -152,18 +182,6 @@ def set_headers(response: Response) -> Response:
     response.headers['Server'] = 'nginx'
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     response.headers['Date'] = date
-    if (
-        response.status_code
-        in (
-            HTTPStatus.OK,
-            HTTPStatus.UNPROCESSABLE_ENTITY,
-            HTTPStatus.BAD_REQUEST,
-            HTTPStatus.FORBIDDEN,
-            HTTPStatus.UNAUTHORIZED,
-        )
-        and 'Content-Type' not in response.headers
-    ):
-        response.headers['Content-Type'] = 'application/json'
     return response
 
 
@@ -211,4 +229,4 @@ def query() -> Union[Tuple[str, int], Tuple[str, int, Dict[str, Any]]]:
         return (response_text, HTTPStatus.INTERNAL_SERVER_ERROR, headers)
 
 
-    return (response_text, HTTPStatus.OK)
+    return (response_text, HTTPStatus.OK, {'Content-Type': 'application/json'})
