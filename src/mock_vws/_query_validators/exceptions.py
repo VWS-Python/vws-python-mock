@@ -15,6 +15,9 @@ class DateHeaderNotGiven(Exception):
     Exception raised when a date header is not given.
     """
 
+    content_type = 'text/plain; charset=ISO-8859-1'
+    www_authenticate = None
+
     def __init__(self) -> None:
         """
         Attributes:
@@ -32,6 +35,9 @@ class DateFormatNotValid(Exception):
     """
     Exception raised when the date format is not valid.
     """
+
+    www_authenticate = 'VWS'
+    content_type = 'text/plain; charset=ISO-8859-1'
 
     def __init__(self) -> None:
         """
@@ -53,6 +59,7 @@ class RequestTimeTooSkewed(Exception):
     """
 
     content_type = 'application/json'
+    www_authenticate = None
 
     def __init__(self) -> None:
         """
@@ -78,6 +85,7 @@ class BadImage(Exception):
     """
 
     content_type = 'application/json'
+    www_authenticate = None
 
     def __init__(self) -> None:
         """
@@ -109,6 +117,7 @@ class AuthenticationFailure(Exception):
     """
 
     content_type = 'application/json'
+    www_authenticate = None
 
     def __init__(self) -> None:
         """
@@ -140,6 +149,7 @@ class AuthenticationFailureGoodFormatting(Exception):
     """
 
     content_type = 'application/json'
+    www_authenticate = None
 
     def __init__(self) -> None:
         """
@@ -165,6 +175,7 @@ class ImageNotGiven(Exception):
     """
 
     content_type = 'application/json'
+    www_authenticate = None
 
     def __init__(self) -> None:
         """
@@ -184,6 +195,9 @@ class AuthHeaderMissing(Exception):
     Exception raised when an auth header is not given.
     """
 
+    content_type = 'text/plain; charset=ISO-8859-1'
+    www_authenticate = 'VWS'
+
     def __init__(self) -> None:
         """
         Attributes:
@@ -201,6 +215,9 @@ class MalformedAuthHeader(Exception):
     """
     Exception raised when an auth header is not given.
     """
+
+    content_type = 'text/plain; charset=ISO-8859-1'
+    www_authenticate = 'VWS'
 
     def __init__(self) -> None:
         """
@@ -221,6 +238,7 @@ class UnknownParameters(Exception):
     """
 
     content_type = 'application/json'
+    www_authenticate = None
 
     def __init__(self) -> None:
         """
@@ -242,6 +260,7 @@ class InactiveProject(Exception):
     """
 
     content_type = 'application/json'
+    www_authenticate = None
 
     def __init__(self) -> None:
         """
@@ -272,6 +291,7 @@ class InvalidMaxNumResults(Exception):
     """
 
     content_type = 'application/json'
+    www_authenticate = None
 
     def __init__(self, given_value: str) -> None:
         """
@@ -297,6 +317,7 @@ class MaxNumResultsOutOfRange(Exception):
     """
 
     content_type = 'application/json'
+    www_authenticate = None
 
     def __init__(self, given_value: str) -> None:
         """
@@ -322,6 +343,7 @@ class InvalidIncludeTargetData(Exception):
     """
 
     content_type = 'application/json'
+    www_authenticate = None
 
     def __init__(self, given_value: str) -> None:
         """
@@ -348,6 +370,7 @@ class UnsupportedMediaType(Exception):
     """
 
     content_type = None
+    www_authenticate = None
 
     def __init__(self) -> None:
         """
@@ -368,6 +391,7 @@ class InvalidAcceptHeader(Exception):
     """
 
     content_type = None
+    www_authenticate = None
 
     def __init__(self) -> None:
         """
@@ -388,6 +412,7 @@ class BoundaryNotInBody(Exception):
     """
 
     content_type = 'text/html;charset=UTF-8'
+    www_authenticate = None
 
     def __init__(self) -> None:
         """
@@ -411,6 +436,7 @@ class NoBoundaryFound(Exception):
     """
 
     content_type = 'text/html;charset=UTF-8'
+    www_authenticate = None
 
     def __init__(self) -> None:
         """
@@ -435,6 +461,7 @@ class QueryOutOfBounds(Exception):
     """
 
     content_type = 'text/html; charset=ISO-8859-1'
+    www_authenticate = None
 
     def __init__(self) -> None:
         """

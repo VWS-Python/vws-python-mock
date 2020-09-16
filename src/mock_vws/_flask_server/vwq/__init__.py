@@ -88,17 +88,23 @@ def handle_connection_error(
 @CLOUDRECO_FLASK_APP.errorhandler(MaxNumResultsOutOfRange)
 @CLOUDRECO_FLASK_APP.errorhandler(NoBoundaryFound)
 @CLOUDRECO_FLASK_APP.errorhandler(BoundaryNotInBody)
+@CLOUDRECO_FLASK_APP.errorhandler(DateFormatNotValid)
+@CLOUDRECO_FLASK_APP.errorhandler(AuthHeaderMissing)
+@CLOUDRECO_FLASK_APP.errorhandler(DateHeaderNotGiven)
+@CLOUDRECO_FLASK_APP.errorhandler(MalformedAuthHeader)
 def handle_request_time_too_skewed(
     e: RequestTimeTooSkewed,
 ) -> Response:
     response = Response()
     response.status_code = e.status_code
     response.set_data(e.response_text)
-    print(type(e))
     if e.content_type is None:
         response.headers.pop('Content-Type')
     else:
         response.content_type = e.content_type
+
+    if e.www_authenticate:
+        response.headers['WWW-Authenticate'] = e.www_authenticate
     return response
 
 
@@ -145,57 +151,6 @@ def handle_content_length_header_not_int(e: ContentLengthHeaderNotInt) -> Respon
     response.status_code = e.status_code
     response.set_data(e.response_text)
     response.headers = Headers({'Connection': 'Close'})
-    return response
-
-
-@CLOUDRECO_FLASK_APP.errorhandler(AuthHeaderMissing)
-def handle_auth_header_missing(
-    e: AuthHeaderMissing,
-) -> Response:
-    response = Response()
-    response.status_code = e.status_code
-    response.set_data(e.response_text)
-    content_type = 'text/plain; charset=ISO-8859-1'
-    response.headers['Content-Type'] = content_type
-    response.headers['WWW-Authenticate'] = 'VWS'
-    return response
-
-
-@CLOUDRECO_FLASK_APP.errorhandler(DateFormatNotValid)
-def handle_date_format_not_valid(
-    e: DateFormatNotValid,
-) -> Response:
-    response = Response()
-    response.status_code = e.status_code
-    response.set_data(e.response_text)
-    content_type = 'text/plain; charset=ISO-8859-1'
-    response.headers['Content-Type'] = content_type
-    response.headers['WWW-Authenticate'] = 'VWS'
-    return response
-
-
-@CLOUDRECO_FLASK_APP.errorhandler(DateHeaderNotGiven)
-def handle_date_header_not_given(
-    e: DateFormatNotValid,
-) -> Response:
-    response = Response()
-    response.status_code = e.status_code
-    response.set_data(e.response_text)
-    content_type = 'text/plain; charset=ISO-8859-1'
-    response.headers['Content-Type'] = content_type
-    return response
-
-
-@CLOUDRECO_FLASK_APP.errorhandler(MalformedAuthHeader)
-def handle_malformed_auth_header(
-    e: MalformedAuthHeader,
-) -> Response:
-    response = Response()
-    response.status_code = e.status_code
-    response.set_data(e.response_text)
-    content_type = 'text/plain; charset=ISO-8859-1'
-    response.headers['Content-Type'] = content_type
-    response.headers['WWW-Authenticate'] = 'VWS'
     return response
 
 
