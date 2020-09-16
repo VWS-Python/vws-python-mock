@@ -387,6 +387,8 @@ class BoundaryNotInBody(Exception):
     Exception raised when the form boundary is not in the request body.
     """
 
+    content_type = 'text/html;charset=UTF-8'
+
     def __init__(self) -> None:
         """
         Attributes:
@@ -407,6 +409,8 @@ class NoBoundaryFound(Exception):
     """
     Exception raised when an invalid media type is given.
     """
+
+    content_type = 'text/html;charset=UTF-8'
 
     def __init__(self) -> None:
         """

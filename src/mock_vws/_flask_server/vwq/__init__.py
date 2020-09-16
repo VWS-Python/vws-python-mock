@@ -65,8 +65,6 @@ class MyResponse(Response):
 CLOUDRECO_FLASK_APP.response_class = MyResponse
 
 
-
-
 @CLOUDRECO_FLASK_APP.errorhandler(requests.exceptions.ConnectionError)
 def handle_connection_error(
     e: requests.exceptions.ConnectionError,
@@ -88,6 +86,8 @@ def handle_connection_error(
 @CLOUDRECO_FLASK_APP.errorhandler(InvalidMaxNumResults)
 @CLOUDRECO_FLASK_APP.errorhandler(UnknownParameters)
 @CLOUDRECO_FLASK_APP.errorhandler(MaxNumResultsOutOfRange)
+@CLOUDRECO_FLASK_APP.errorhandler(NoBoundaryFound)
+@CLOUDRECO_FLASK_APP.errorhandler(BoundaryNotInBody)
 def handle_request_time_too_skewed(
     e: RequestTimeTooSkewed,
 ) -> Response:
@@ -102,29 +102,6 @@ def handle_request_time_too_skewed(
     return response
 
 
-@CLOUDRECO_FLASK_APP.errorhandler(NoBoundaryFound)
-def handle_no_boundary_found(
-    e: NoBoundaryFound,
-) -> Response:
-    content_type = 'text/html;charset=UTF-8'
-    response = Response()
-    response.status_code = e.status_code
-    response.set_data(e.response_text)
-    response.headers['Content-Type'] = content_type
-    return response
-
-
-# TODO merge with main handler?
-@CLOUDRECO_FLASK_APP.errorhandler(BoundaryNotInBody)
-def handle_boundary_not_in_body(
-    e: BoundaryNotInBody,
-) -> Response:
-    content_type = 'text/html;charset=UTF-8'
-    response = Response()
-    response.status_code = e.status_code
-    response.set_data(e.response_text)
-    response.headers['Content-Type'] = content_type
-    return response
 
 
 @CLOUDRECO_FLASK_APP.errorhandler(AuthenticationFailure)
