@@ -12,6 +12,7 @@ from typing import Dict, List, Tuple, Union
 
 import requests
 from flask import Flask, Response, make_response, request
+import flask
 from PIL import Image
 from requests import codes
 
@@ -31,6 +32,8 @@ from mock_vws._services_validators.exceptions import (
     TargetNameExist,
     UnknownTarget,
     UnnecessaryRequestBody,
+    ContentLengthHeaderNotInt,
+    ContentLengthHeaderTooLarge,
 )
 from mock_vws.database import VuforiaDatabase
 from mock_vws.target import Target
@@ -38,7 +41,7 @@ from mock_vws.target import Target
 from ._constants import STORAGE_BASE_URL
 from ._databases import get_all_databases
 
-VWS_FLASK_APP = Flask(__name__)
+VWS_FLASK_APP = Flask(import_name=__name__)
 
 
 @VWS_FLASK_APP.before_request
@@ -55,7 +58,6 @@ def validate_request() -> None:
 
 class MyResponse(Response):
     default_mimetype = None
-
 
 VWS_FLASK_APP.response_class = MyResponse
 
@@ -74,6 +76,21 @@ def handle_unknown_target(e: UnknownTarget) -> Tuple[str, int]:
     return e.response_text, e.status_code
 
 
+@VWS_FLASK_APP.errorhandler(ContentLengthHeaderTooLarge)
+def handle_content_length_header_too_large(e: ContentLengthHeaderTooLarge):
+    new_response = Response()
+    new_response.status_code = e.status_code
+    new_response.set_data(e.response_text)
+    new_response.headers = {'Connection': 'keep-alive'}
+    return new_response
+
+@VWS_FLASK_APP.errorhandler(ContentLengthHeaderNotInt)
+def handle_content_length_header_not_int(e: ContentLengthHeaderNotInt):
+    new_response = Response()
+    new_response.status_code = e.status_code
+    new_response.set_data(e.response_text)
+    new_response.headers = {'Connection': 'close'}
+    return new_response
 
 @VWS_FLASK_APP.errorhandler(UnnecessaryRequestBody)
 def handle_unnecessary_request_body(
@@ -100,6 +117,8 @@ def set_headers(response: Response) -> Response:
     """
     TODO
     """
+    if response.headers == {'Connection': 'keep-alive'}:
+        return response
     response.headers['Connection'] = 'keep-alive'
     if response.status_code != HTTPStatus.INTERNAL_SERVER_ERROR and len(
         response.data
