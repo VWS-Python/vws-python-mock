@@ -11,7 +11,7 @@ from http import HTTPStatus
 from typing import Dict, List, Tuple, Union
 
 import requests
-from flask import Flask, Response, make_response, request
+from flask import Flask, Response, request
 import flask
 from PIL import Image
 from mock_vws._constants import ResultCodes, TargetStatuses
