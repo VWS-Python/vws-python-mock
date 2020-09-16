@@ -101,9 +101,10 @@ def handle_no_boundary_found(
     e: NoBoundaryFound,
 ) -> Response:
     content_type = 'text/html;charset=UTF-8'
-    response = make_response(e.response_text, e.status_code)
+    response = Response()
+    response.status_code = e.status_code
+    response.set_data(e.response_text)
     response.headers['Content-Type'] = content_type
-    assert isinstance(response, Response)
     return response
 
 
@@ -112,9 +113,10 @@ def handle_boundary_not_in_body(
     e: BoundaryNotInBody,
 ) -> Response:
     content_type = 'text/html;charset=UTF-8'
-    response = make_response(e.response_text, e.status_code)
+    response = Response()
+    response.status_code = e.status_code
+    response.set_data(e.response_text)
     response.headers['Content-Type'] = content_type
-    assert isinstance(response, Response)
     return response
 
 
