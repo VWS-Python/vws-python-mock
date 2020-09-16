@@ -65,14 +65,6 @@ class MyResponse(Response):
 CLOUDRECO_FLASK_APP.response_class = MyResponse
 
 
-@CLOUDRECO_FLASK_APP.errorhandler(ContentLengthHeaderTooLarge)
-def handle_content_length_header_too_large(
-    e: ContentLengthHeaderTooLarge,
-) -> Response:
-    response = make_response(e.response_text, e.status_code)
-    response.headers = Headers({'Connection': 'keep-alive'})
-    assert isinstance(response, Response)
-    return response
 
 
 @CLOUDRECO_FLASK_APP.errorhandler(requests.exceptions.ConnectionError)
@@ -87,42 +79,15 @@ def handle_connection_error(
 
 
 @CLOUDRECO_FLASK_APP.errorhandler(UnsupportedMediaType)
-def handle_unsupported_media_type(
-    e: UnsupportedMediaType,
-) -> Response:
-    response = make_response(e.response_text, e.status_code)
-    assert isinstance(response, Response)
-    return response
-
-
 @CLOUDRECO_FLASK_APP.errorhandler(InvalidAcceptHeader)
-def handle_invalid_accept_header(
-    e: InvalidAcceptHeader,
-) -> Response:
-    response = make_response(e.response_text, e.status_code)
-    assert isinstance(response, Response)
-    return response
-
-
 @CLOUDRECO_FLASK_APP.errorhandler(BadImage)
-def handle_bad_image(
-    e: BadImage,
-) -> Response:
-    response = make_response(e.response_text, e.status_code)
-    assert isinstance(response, Response)
-    return response
-
-
-@CLOUDRECO_FLASK_APP.errorhandler(UnknownParameters)
-def handle_unknown_parameters(
-    e: UnknownParameters,
-) -> Response:
-    response = make_response(e.response_text, e.status_code)
-    assert isinstance(response, Response)
-    return response
-
-
 @CLOUDRECO_FLASK_APP.errorhandler(RequestTimeTooSkewed)
+@CLOUDRECO_FLASK_APP.errorhandler(ImageNotGiven)
+@CLOUDRECO_FLASK_APP.errorhandler(InactiveProject)
+@CLOUDRECO_FLASK_APP.errorhandler(InvalidIncludeTargetData)
+@CLOUDRECO_FLASK_APP.errorhandler(InvalidMaxNumResults)
+@CLOUDRECO_FLASK_APP.errorhandler(UnknownParameters)
+@CLOUDRECO_FLASK_APP.errorhandler(MaxNumResultsOutOfRange)
 def handle_request_time_too_skewed(
     e: RequestTimeTooSkewed,
 ) -> Response:
@@ -131,50 +96,14 @@ def handle_request_time_too_skewed(
     return response
 
 
-@CLOUDRECO_FLASK_APP.errorhandler(ImageNotGiven)
-def handle_image_not_given(
-    e: ImageNotGiven,
+@CLOUDRECO_FLASK_APP.errorhandler(ContentLengthHeaderTooLarge)
+def handle_content_length_header_too_large(
+    e: ContentLengthHeaderTooLarge,
 ) -> Response:
     response = make_response(e.response_text, e.status_code)
+    response.headers = Headers({'Connection': 'keep-alive'})
     assert isinstance(response, Response)
     return response
-
-
-@CLOUDRECO_FLASK_APP.errorhandler(InactiveProject)
-def handle_inactive_project(
-    e: InactiveProject,
-) -> Response:
-    response = make_response(e.response_text, e.status_code)
-    assert isinstance(response, Response)
-    return response
-
-
-@CLOUDRECO_FLASK_APP.errorhandler(InvalidIncludeTargetData)
-def handle_invalid_include_target_data(
-    e: InvalidIncludeTargetData,
-) -> Response:
-    response = make_response(e.response_text, e.status_code)
-    assert isinstance(response, Response)
-    return response
-
-
-@CLOUDRECO_FLASK_APP.errorhandler(InvalidMaxNumResults)
-def handle_invalid_max_num_results(
-    e: InvalidMaxNumResults,
-) -> Response:
-    response = make_response(e.response_text, e.status_code)
-    assert isinstance(response, Response)
-    return response
-
-
-@CLOUDRECO_FLASK_APP.errorhandler(MaxNumResultsOutOfRange)
-def handle_max_num_results_out_of_range(
-    e: MaxNumResultsOutOfRange,
-) -> Response:
-    response = make_response(e.response_text, e.status_code)
-    assert isinstance(response, Response)
-    return response
-
 
 @CLOUDRECO_FLASK_APP.errorhandler(NoBoundaryFound)
 def handle_no_boundary_found(
@@ -305,8 +234,8 @@ def set_headers(response: Response) -> Response:
 
     response.headers['Connection'] = 'keep-alive'
     response.headers['Server'] = 'nginx'
-    content_length = len(response.data)
-    response.headers['Content-Length'] = str(content_length)
+    # content_length = len(response.data)
+    # response.headers['Content-Length'] = str(content_length)
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     response.headers['Date'] = date
     if (
