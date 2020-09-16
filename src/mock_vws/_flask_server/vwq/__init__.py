@@ -211,11 +211,12 @@ def handle_date_header_not_given(
 def handle_malformed_auth_header(
     e: MalformedAuthHeader,
 ) -> Response:
-    response = make_response(e.response_text, e.status_code)
+    response = Response()
+    response.status_code = e.status_code
+    response.set_data(e.response_text)
     content_type = 'text/plain; charset=ISO-8859-1'
     response.headers['Content-Type'] = content_type
     response.headers['WWW-Authenticate'] = 'VWS'
-    assert isinstance(response, Response)
     return response
 
 
