@@ -94,7 +94,7 @@ def handle_content_length_header_not_int(e: ContentLengthHeaderNotInt) -> Respon
 @VWS_FLASK_APP.errorhandler(UnnecessaryRequestBody)
 def handle_unnecessary_request_body(
     e: UnnecessaryRequestBody,
-) -> Tuple[str, int]:
+) -> Response:
     response = Response()
     response.status_code = e.status_code
     response.set_data(e.response_text)
