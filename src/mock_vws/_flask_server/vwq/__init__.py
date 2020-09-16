@@ -78,6 +78,10 @@ def handle_content_length_header_too_large(
 def handle_connection_error(
     e: requests.exceptions.ConnectionError,
 ) -> Response:
+    # TODO: Issue
+    # This is incorrect - it raises on the server but should raise on the
+    # client
+    # Look into how ``requests`` handles it
     raise e
 
 
@@ -225,6 +229,14 @@ def handle_query_out_of_bounds(
     assert isinstance(response, Response)
     return response
 
+@CLOUDRECO_FLASK_APP.errorhandler(ContentLengthHeaderTooLarge)
+def handle_content_length_header_too_large(e: ContentLengthHeaderTooLarge):
+    new_response = Response()
+    new_response.status_code = e.status_code
+    new_response.set_data(e.response_text)
+    new_response.headers = {'Connection': 'keep-alive'}
+    return new_response
+
 
 @CLOUDRECO_FLASK_APP.errorhandler(AuthHeaderMissing)
 def handle_auth_header_missing(
@@ -276,6 +288,8 @@ def handle_malformed_auth_header(
 @CLOUDRECO_FLASK_APP.after_request
 def set_headers(response: Response) -> Response:
     # raise requests.exceptions.ConnectionError
+    if response.headers == {'Connection': 'keep-alive'}:
+        return response
     response.headers['Connection'] = 'keep-alive'
     response.headers['Server'] = 'nginx'
     content_length = len(response.data)
