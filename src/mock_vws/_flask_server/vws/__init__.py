@@ -7,7 +7,7 @@ import io
 import json
 import uuid
 from http import HTTPStatus
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Tuple, Union, Optional
 
 import requests
 from flask import Flask, Response, request
