@@ -25,7 +25,6 @@ def get_all_databases() -> Set[VuforiaDatabase]:
         client_access_key = database_dict['client_access_key']
         client_secret_key = database_dict['client_secret_key']
         state = States(database_dict['state_value'])
-        # TODO state
 
         new_database = VuforiaDatabase(
             database_name=database_name,
@@ -37,7 +36,6 @@ def get_all_databases() -> Set[VuforiaDatabase]:
         )
 
         for target_dict in database_dict['targets']:
-            # TODO fill this in
             name = target_dict['name']
             active_flag = target_dict['active_flag']
             width = target_dict['width']
@@ -67,7 +65,6 @@ def get_all_databases() -> Set[VuforiaDatabase]:
                 target_dict['upload_date'],
             )
             target.processed_tracking_rating = target_dict['processed_tracking_rating']
-            # import pdb; pdb.set_trace()
             target.upload_date = target.upload_date.replace(tzinfo=gmt)
             delete_date_optional = target_dict['delete_date_optional']
             if delete_date_optional:

@@ -124,6 +124,9 @@ def handle_connection_error(
 @CLOUDRECO_FLASK_APP.errorhandler(RequestTimeTooSkewed)
 @CLOUDRECO_FLASK_APP.errorhandler(UnknownParameters)
 @CLOUDRECO_FLASK_APP.errorhandler(UnsupportedMediaType)
+@CLOUDRECO_FLASK_APP.errorhandler(ContentLengthHeaderNotInt)
+@CLOUDRECO_FLASK_APP.errorhandler(ContentLengthHeaderTooLarge)
+@CLOUDRECO_FLASK_APP.errorhandler(QueryOutOfBounds)
 def handle_request_time_too_skewed(
     e: RequestTimeTooSkewed,
 ) -> Response:
@@ -135,50 +138,6 @@ def handle_request_time_too_skewed(
 
 
 
-@CLOUDRECO_FLASK_APP.errorhandler(QueryOutOfBounds)
-def handle_query_out_of_bounds(
-    e: QueryOutOfBounds,
-) -> Response:
-    response = Response()
-    response.status_code = e.status_code
-    response.set_data(e.response_text)
-    response.content_type = e.content_type
-    cache_control = 'must-revalidate,no-cache,no-store'
-    response.headers['Cache-Control'] = cache_control
-    return response
-
-@CLOUDRECO_FLASK_APP.errorhandler(ContentLengthHeaderTooLarge)
-def handle_content_length_header_too_large(e: ContentLengthHeaderTooLarge) -> Response:
-    response = Response()
-    response.status_code = e.status_code
-    response.set_data(e.response_text)
-    response.headers = Headers({'Connection': 'keep-alive'})
-    return response
-
-@CLOUDRECO_FLASK_APP.errorhandler(ContentLengthHeaderNotInt)
-def handle_content_length_header_not_int(e: ContentLengthHeaderNotInt) -> Response:
-    response = Response()
-    response.status_code = e.status_code
-    response.set_data(e.response_text)
-    response.headers = Headers({'Connection': 'Close'})
-    return response
-
-
-@CLOUDRECO_FLASK_APP.after_request
-def set_headers(response: Response) -> Response:
-    if dict(response.headers) == {'Connection': 'keep-alive'}:
-        return response
-
-    if dict(response.headers) == {'Connection': 'Close'}:
-        return response
-
-    response.headers['Connection'] = 'keep-alive'
-    response.headers['Server'] = 'nginx'
-    date = email.utils.formatdate(None, localtime=False, usegmt=True)
-    response.headers['Date'] = date
-    return response
-
-
 @CLOUDRECO_FLASK_APP.route('/v1/query', methods=['POST'])
 def query() -> Union[Tuple[str, int], Tuple[str, int, Dict[str, Any]]]:
 
@@ -188,6 +147,7 @@ def query() -> Union[Tuple[str, int], Tuple[str, int, Dict[str, Any]]]:
     databases = get_all_databases()
     input_stream_copy = copy.copy(request.input_stream)
     request_body = input_stream_copy.read()
+    date = email.utils.formatdate(None, localtime=False, usegmt=True)
 
     try:
         response_text = get_query_match_response_text(
@@ -216,11 +176,20 @@ def query() -> Union[Tuple[str, int], Tuple[str, int, Dict[str, Any]]]:
         cache_control = 'must-revalidate,no-cache,no-store'
         content_type = 'text/html; charset=ISO-8859-1'
         headers = {
-            'Cache-Control': cache_control,
-            'Content-Type': content_type,
+            'Content-Type': 'text/html; charset=ISO-8859-1',
+            'Connection': 'keep-alive',
+            'Server': 'nginx',
+            'Date': date,
+            'Cache-Control': 'must-revalidate,no-cache,no-store',
         }
         response_text = match_processing_resp_file.read_text()
         return (response_text, HTTPStatus.INTERNAL_SERVER_ERROR, headers)
 
 
-    return (response_text, HTTPStatus.OK, {'Content-Type': 'application/json'})
+    headers = {
+        'Content-Type': 'application/json',
+        'Date': date,
+        'Connection': 'keep-alive',
+        'Server': 'nginx',
+    }
+    return (response_text, HTTPStatus.OK, headers)

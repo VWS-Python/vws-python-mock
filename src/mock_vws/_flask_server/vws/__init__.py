@@ -116,6 +116,9 @@ def handle_oops_error_occurred(e: OopsErrorOccurredResponse) -> Response:
 def set_headers(response: Response) -> Response:
     """
     TODO
+
+    GET RID!
+    At least of a lot of this?
     """
     if dict(response.headers) == {'Connection': 'keep-alive'}:
         return response
