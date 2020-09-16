@@ -171,7 +171,9 @@ def handle_content_length_header_not_int(e: ContentLengthHeaderNotInt) -> Respon
 def handle_auth_header_missing(
     e: AuthHeaderMissing,
 ) -> Response:
-    response = make_response(e.response_text, e.status_code)
+    response = Response()
+    response.status_code = e.status_code
+    response.set_data(e.response_text)
     content_type = 'text/plain; charset=ISO-8859-1'
     response.headers['Content-Type'] = content_type
     response.headers['WWW-Authenticate'] = 'VWS'
