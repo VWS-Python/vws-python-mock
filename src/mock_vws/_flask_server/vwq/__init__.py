@@ -5,7 +5,7 @@ from typing import Any, Dict, Tuple, Union
 from http import HTTPStatus
 
 import requests
-from flask import Flask, Response, make_response, request
+from flask import Flask, Response, request
 from werkzeug.datastructures import Headers
 
 from mock_vws._query_tools import (
@@ -91,8 +91,9 @@ def handle_connection_error(
 def handle_request_time_too_skewed(
     e: RequestTimeTooSkewed,
 ) -> Response:
-    response = make_response(e.response_text, e.status_code)
-    assert isinstance(response, Response)
+    response = Response()
+    response.status_code = e.status_code
+    response.set_data(e.response_text)
     return response
 
 
@@ -101,9 +102,10 @@ def handle_no_boundary_found(
     e: NoBoundaryFound,
 ) -> Response:
     content_type = 'text/html;charset=UTF-8'
-    response = make_response(e.response_text, e.status_code)
+    response = Response()
+    response.status_code = e.status_code
+    response.set_data(e.response_text)
     response.headers['Content-Type'] = content_type
-    assert isinstance(response, Response)
     return response
 
 
@@ -112,9 +114,10 @@ def handle_boundary_not_in_body(
     e: BoundaryNotInBody,
 ) -> Response:
     content_type = 'text/html;charset=UTF-8'
-    response = make_response(e.response_text, e.status_code)
+    response = Response()
+    response.status_code = e.status_code
+    response.set_data(e.response_text)
     response.headers['Content-Type'] = content_type
-    assert isinstance(response, Response)
     return response
 
 
@@ -122,9 +125,10 @@ def handle_boundary_not_in_body(
 def handle_authentication_failure(
     e: AuthenticationFailure,
 ) -> Response:
-    response = make_response(e.response_text, e.status_code)
+    response = Response()
+    response.status_code = e.status_code
+    response.set_data(e.response_text)
     response.headers['WWW-Authenticate'] = 'VWS'
-    assert isinstance(response, Response)
     return response
 
 
@@ -132,9 +136,10 @@ def handle_authentication_failure(
 def handle_authentication_failure_good_formatting(
     e: AuthenticationFailureGoodFormatting,
 ) -> Response:
-    response = make_response(e.response_text, e.status_code)
+    response = Response()
+    response.status_code = e.status_code
+    response.set_data(e.response_text)
     response.headers['WWW-Authenticate'] = 'VWS'
-    assert isinstance(response, Response)
     return response
 
 
@@ -142,12 +147,13 @@ def handle_authentication_failure_good_formatting(
 def handle_query_out_of_bounds(
     e: QueryOutOfBounds,
 ) -> Response:
-    response = make_response(e.response_text, e.status_code)
+    response = Response()
+    response.status_code = e.status_code
+    response.set_data(e.response_text)
     content_type = 'text/html; charset=ISO-8859-1'
     response.headers['Content-Type'] = content_type
     cache_control = 'must-revalidate,no-cache,no-store'
     response.headers['Cache-Control'] = cache_control
-    assert isinstance(response, Response)
     return response
 
 @CLOUDRECO_FLASK_APP.errorhandler(ContentLengthHeaderTooLarge)
@@ -171,11 +177,12 @@ def handle_content_length_header_not_int(e: ContentLengthHeaderNotInt) -> Respon
 def handle_auth_header_missing(
     e: AuthHeaderMissing,
 ) -> Response:
-    response = make_response(e.response_text, e.status_code)
+    response = Response()
+    response.status_code = e.status_code
+    response.set_data(e.response_text)
     content_type = 'text/plain; charset=ISO-8859-1'
     response.headers['Content-Type'] = content_type
     response.headers['WWW-Authenticate'] = 'VWS'
-    assert isinstance(response, Response)
     return response
 
 
@@ -183,11 +190,12 @@ def handle_auth_header_missing(
 def handle_date_format_not_valid(
     e: DateFormatNotValid,
 ) -> Response:
-    response = make_response(e.response_text, e.status_code)
+    response = Response()
+    response.status_code = e.status_code
+    response.set_data(e.response_text)
     content_type = 'text/plain; charset=ISO-8859-1'
     response.headers['Content-Type'] = content_type
     response.headers['WWW-Authenticate'] = 'VWS'
-    assert isinstance(response, Response)
     return response
 
 
@@ -195,10 +203,11 @@ def handle_date_format_not_valid(
 def handle_date_header_not_given(
     e: DateFormatNotValid,
 ) -> Response:
-    response = make_response(e.response_text, e.status_code)
+    response = Response()
+    response.status_code = e.status_code
+    response.set_data(e.response_text)
     content_type = 'text/plain; charset=ISO-8859-1'
     response.headers['Content-Type'] = content_type
-    assert isinstance(response, Response)
     return response
 
 
@@ -206,11 +215,12 @@ def handle_date_header_not_given(
 def handle_malformed_auth_header(
     e: MalformedAuthHeader,
 ) -> Response:
-    response = make_response(e.response_text, e.status_code)
+    response = Response()
+    response.status_code = e.status_code
+    response.set_data(e.response_text)
     content_type = 'text/plain; charset=ISO-8859-1'
     response.headers['Content-Type'] = content_type
     response.headers['WWW-Authenticate'] = 'VWS'
-    assert isinstance(response, Response)
     return response
 
 
