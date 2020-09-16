@@ -117,7 +117,7 @@ class AuthenticationFailure(Exception):
     """
 
     content_type = 'application/json'
-    www_authenticate = None
+    www_authenticate = 'VWS'
 
     def __init__(self) -> None:
         """
@@ -149,7 +149,7 @@ class AuthenticationFailureGoodFormatting(Exception):
     """
 
     content_type = 'application/json'
-    www_authenticate = None
+    www_authenticate = 'VWS'
 
     def __init__(self) -> None:
         """

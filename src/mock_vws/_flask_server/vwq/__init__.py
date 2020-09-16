@@ -76,22 +76,24 @@ def handle_connection_error(
     raise e
 
 
-@CLOUDRECO_FLASK_APP.errorhandler(UnsupportedMediaType)
-@CLOUDRECO_FLASK_APP.errorhandler(InvalidAcceptHeader)
+@CLOUDRECO_FLASK_APP.errorhandler(AuthHeaderMissing)
+@CLOUDRECO_FLASK_APP.errorhandler(AuthenticationFailure)
+@CLOUDRECO_FLASK_APP.errorhandler(AuthenticationFailureGoodFormatting)
 @CLOUDRECO_FLASK_APP.errorhandler(BadImage)
-@CLOUDRECO_FLASK_APP.errorhandler(RequestTimeTooSkewed)
-@CLOUDRECO_FLASK_APP.errorhandler(ImageNotGiven)
-@CLOUDRECO_FLASK_APP.errorhandler(InactiveProject)
-@CLOUDRECO_FLASK_APP.errorhandler(InvalidIncludeTargetData)
-@CLOUDRECO_FLASK_APP.errorhandler(InvalidMaxNumResults)
-@CLOUDRECO_FLASK_APP.errorhandler(UnknownParameters)
-@CLOUDRECO_FLASK_APP.errorhandler(MaxNumResultsOutOfRange)
-@CLOUDRECO_FLASK_APP.errorhandler(NoBoundaryFound)
 @CLOUDRECO_FLASK_APP.errorhandler(BoundaryNotInBody)
 @CLOUDRECO_FLASK_APP.errorhandler(DateFormatNotValid)
-@CLOUDRECO_FLASK_APP.errorhandler(AuthHeaderMissing)
 @CLOUDRECO_FLASK_APP.errorhandler(DateHeaderNotGiven)
+@CLOUDRECO_FLASK_APP.errorhandler(ImageNotGiven)
+@CLOUDRECO_FLASK_APP.errorhandler(InactiveProject)
+@CLOUDRECO_FLASK_APP.errorhandler(InvalidAcceptHeader)
+@CLOUDRECO_FLASK_APP.errorhandler(InvalidIncludeTargetData)
+@CLOUDRECO_FLASK_APP.errorhandler(InvalidMaxNumResults)
 @CLOUDRECO_FLASK_APP.errorhandler(MalformedAuthHeader)
+@CLOUDRECO_FLASK_APP.errorhandler(MaxNumResultsOutOfRange)
+@CLOUDRECO_FLASK_APP.errorhandler(NoBoundaryFound)
+@CLOUDRECO_FLASK_APP.errorhandler(RequestTimeTooSkewed)
+@CLOUDRECO_FLASK_APP.errorhandler(UnknownParameters)
+@CLOUDRECO_FLASK_APP.errorhandler(UnsupportedMediaType)
 def handle_request_time_too_skewed(
     e: RequestTimeTooSkewed,
 ) -> Response:
@@ -105,22 +107,6 @@ def handle_request_time_too_skewed(
 
     if e.www_authenticate:
         response.headers['WWW-Authenticate'] = e.www_authenticate
-    return response
-
-
-
-
-@CLOUDRECO_FLASK_APP.errorhandler(AuthenticationFailure)
-@CLOUDRECO_FLASK_APP.errorhandler(AuthenticationFailureGoodFormatting)
-def handle_authentication_failure(
-    # TODO Update type hint but maybe merge with main handler?
-    e: AuthenticationFailure,
-) -> Response:
-    response = Response()
-    response.status_code = e.status_code
-    response.set_data(e.response_text)
-    response.content_type = e.content_type
-    response.headers['WWW-Authenticate'] = 'VWS'
     return response
 
 
