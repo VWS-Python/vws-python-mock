@@ -164,7 +164,7 @@ def handle_content_length_header_too_large(e: ContentLengthHeaderTooLarge) -> Re
     new_response = Response()
     new_response.status_code = e.status_code
     new_response.set_data(e.response_text)
-    new_response.headers = {'Connection': 'keep-alive'}
+    new_response.headers = Headers({'Connection': 'keep-alive'})
     return new_response
 
 @CLOUDRECO_FLASK_APP.errorhandler(ContentLengthHeaderNotInt)
@@ -172,7 +172,7 @@ def handle_content_length_header_not_int(e: ContentLengthHeaderNotInt) -> Respon
     new_response = Response()
     new_response.status_code = e.status_code
     new_response.set_data(e.response_text)
-    new_response.headers = {'Connection': 'Close'}
+    new_response.headers = Headers({'Connection': 'Close'})
     return new_response
 
 
@@ -225,10 +225,10 @@ def handle_malformed_auth_header(
 
 @CLOUDRECO_FLASK_APP.after_request
 def set_headers(response: Response) -> Response:
-    if response.headers == {'Connection': 'keep-alive'}:
+    if dict(response.headers) == {'Connection': 'keep-alive'}:
         return response
 
-    if response.headers == {'Connection': 'Close'}:
+    if dict(response.headers) == {'Connection': 'Close'}:
         return response
 
     response.headers['Connection'] = 'keep-alive'
