@@ -2,6 +2,7 @@
 Exceptions to raise from validators.
 """
 
+import email.utils
 import uuid
 from http import HTTPStatus
 from pathlib import Path
@@ -29,6 +30,16 @@ class DateHeaderNotGiven(Exception):
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
         self.response_text = 'Date header required.'
+
+    @property
+    def headers(self):
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        return {
+            'Content-Type': 'text/plain; charset=ISO-8859-1',
+            'Connection': 'keep-alive',
+            'Server': 'nginx',
+            'Date': date,
+        }
 
 
 class DateFormatNotValid(Exception):

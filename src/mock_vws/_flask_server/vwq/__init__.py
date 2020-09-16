@@ -130,13 +130,7 @@ def handle_request_time_too_skewed(
     response = Response()
     response.status_code = e.status_code
     response.set_data(e.response_text)
-    if e.content_type is None:
-        response.headers.pop('Content-Type')
-    else:
-        response.content_type = e.content_type
-
-    if e.www_authenticate:
-        response.headers['WWW-Authenticate'] = e.www_authenticate
+    response.headers = Headers(e.headers)
     return response
 
 

@@ -89,25 +89,13 @@ def run_validators(
         BadImage,
         ImageTooLarge,
         RequestTimeTooSkewed,
+        OopsErrorOccurredResponse,
+        ContentLengthHeaderTooLarge,
+        ContentLengthHeaderNotInt,
+        UnnecessaryRequestBody,
     ) as exc:
         context.status_code = exc.status_code
-        return exc.response_text
-    except OopsErrorOccurredResponse as exc:
-        content_type = 'text/html; charset=UTF-8'
-        context.headers['Content-Type'] = content_type
-        context.status_code = exc.status_code
-        return exc.response_text
-    except ContentLengthHeaderTooLarge as exc:
-        context.headers = {'Connection': 'keep-alive'}
-        context.status_code = exc.status_code
-        return exc.response_text
-    except ContentLengthHeaderNotInt as exc:
-        context.headers = {'Connection': 'Close'}
-        context.status_code = exc.status_code
-        return exc.response_text
-    except UnnecessaryRequestBody as exc:
-        context.headers.pop('Content-Type')
-        context.status_code = exc.status_code
+        context.headers = exc.headers
         return exc.response_text
     return wrapped(*args, **kwargs)
 
