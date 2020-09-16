@@ -5,6 +5,7 @@ Exceptions to raise from validators.
 import uuid
 from http import HTTPStatus
 from pathlib import Path
+from typing import Dict
 
 from mock_vws._constants import ResultCodes
 from mock_vws._mock_common import json_dump
@@ -32,6 +33,10 @@ class UnknownTarget(Exception):
         }
         self.response_text = json_dump(body)
 
+    @property
+    def headers(self) -> Dict[str, str]:
+        return {}
+
 
 class ProjectInactive(Exception):
     """
@@ -54,6 +59,10 @@ class ProjectInactive(Exception):
             'result_code': ResultCodes.PROJECT_INACTIVE.value,
         }
         self.response_text = json_dump(body)
+
+    @property
+    def headers(self) -> Dict[str, str]:
+        return {}
 
 
 class AuthenticationFailure(Exception):
@@ -78,6 +87,10 @@ class AuthenticationFailure(Exception):
         }
         self.response_text = json_dump(body)
 
+    @property
+    def headers(self) -> Dict[str, str]:
+        return {}
+
 
 class Fail(Exception):
     """
@@ -99,6 +112,10 @@ class Fail(Exception):
             'result_code': ResultCodes.FAIL.value,
         }
         self.response_text = json_dump(body)
+
+    @property
+    def headers(self) -> Dict[str, str]:
+        return {}
 
 
 class MetadataTooLarge(Exception):
@@ -123,6 +140,10 @@ class MetadataTooLarge(Exception):
         }
         self.response_text = json_dump(body)
 
+    @property
+    def headers(self) -> Dict[str, str]:
+        return {}
+
 
 class TargetNameExist(Exception):
     """
@@ -145,6 +166,10 @@ class TargetNameExist(Exception):
             'result_code': ResultCodes.TARGET_NAME_EXIST.value,
         }
         self.response_text = json_dump(body)
+
+    @property
+    def headers(self) -> Dict[str, str]:
+        return {}
 
 
 class OopsErrorOccurredResponse(Exception):
@@ -171,6 +196,10 @@ class OopsErrorOccurredResponse(Exception):
         text = str(oops_resp_file.read_text())
         self.response_text = text
 
+    @property
+    def headers(self) -> Dict[str, str]:
+        return {}
+
 
 class BadImage(Exception):
     """
@@ -193,6 +222,10 @@ class BadImage(Exception):
             'result_code': ResultCodes.BAD_IMAGE.value,
         }
         self.response_text = json_dump(body)
+
+    @property
+    def headers(self) -> Dict[str, str]:
+        return {}
 
 
 class ImageTooLarge(Exception):
@@ -217,6 +250,10 @@ class ImageTooLarge(Exception):
         }
         self.response_text = json_dump(body)
 
+    @property
+    def headers(self) -> Dict[str, str]:
+        return {}
+
 
 class RequestTimeTooSkewed(Exception):
     """
@@ -240,6 +277,10 @@ class RequestTimeTooSkewed(Exception):
         }
         self.response_text = json_dump(body)
 
+    @property
+    def headers(self) -> Dict[str, str]:
+        return {}
+
 
 class ContentLengthHeaderTooLarge(Exception):
     """
@@ -257,6 +298,10 @@ class ContentLengthHeaderTooLarge(Exception):
         super().__init__()
         self.status_code = HTTPStatus.GATEWAY_TIMEOUT
         self.response_text = ''
+
+    @property
+    def headers(self) -> Dict[str, str]:
+        return {}
 
 
 class ContentLengthHeaderNotInt(Exception):
@@ -276,6 +321,10 @@ class ContentLengthHeaderNotInt(Exception):
         self.status_code = HTTPStatus.BAD_REQUEST
         self.response_text = ''
 
+    @property
+    def headers(self) -> Dict[str, str]:
+        return {}
+
 
 class UnnecessaryRequestBody(Exception):
     """
@@ -293,3 +342,7 @@ class UnnecessaryRequestBody(Exception):
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
         self.response_text = ''
+
+    @property
+    def headers(self) -> Dict[str, str]:
+        return {}

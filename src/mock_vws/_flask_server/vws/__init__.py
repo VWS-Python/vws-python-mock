@@ -110,7 +110,7 @@ def handle_unknown_target(e: UnknownTarget) -> Response:
     response = Response()
     response.status_code = e.status_code
     response.set_data(e.response_text)
-    response.headers = e.headers
+    response.headers = Headers(e.headers)
     return response
 
 

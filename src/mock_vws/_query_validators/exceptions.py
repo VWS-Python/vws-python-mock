@@ -234,7 +234,7 @@ class ImageNotGiven(Exception):
         self.response_text = 'No image.'
 
     @property
-    def headers(self):
+    def headers(self) -> Dict[str, str]:
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         return {
             'Content-Type': 'application/json',
