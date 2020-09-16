@@ -21,6 +21,7 @@ from mock_vws._query_validators.exceptions import (
     BadImage,
     BoundaryNotInBody,
     ContentLengthHeaderTooLarge,
+    ContentLengthHeaderNotInt,
     DateFormatNotValid,
     DateHeaderNotGiven,
     ImageNotGiven,
@@ -237,6 +238,14 @@ def handle_content_length_header_too_large(e: ContentLengthHeaderTooLarge):
     new_response.headers = {'Connection': 'keep-alive'}
     return new_response
 
+@CLOUDRECO_FLASK_APP.errorhandler(ContentLengthHeaderNotInt)
+def handle_content_length_header_not_int(e: ContentLengthHeaderNotInt):
+    new_response = Response()
+    new_response.status_code = e.status_code
+    new_response.set_data(e.response_text)
+    new_response.headers = {'Connection': 'Close'}
+    return new_response
+
 
 @CLOUDRECO_FLASK_APP.errorhandler(AuthHeaderMissing)
 def handle_auth_header_missing(
@@ -290,6 +299,10 @@ def set_headers(response: Response) -> Response:
     # raise requests.exceptions.ConnectionError
     if response.headers == {'Connection': 'keep-alive'}:
         return response
+
+    if response.headers == {'Connection': 'Close'}:
+        return response
+
     response.headers['Connection'] = 'keep-alive'
     response.headers['Server'] = 'nginx'
     content_length = len(response.data)

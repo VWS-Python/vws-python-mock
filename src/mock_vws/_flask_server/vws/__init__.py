@@ -89,7 +89,7 @@ def handle_content_length_header_not_int(e: ContentLengthHeaderNotInt):
     new_response = Response()
     new_response.status_code = e.status_code
     new_response.set_data(e.response_text)
-    new_response.headers = {'Connection': 'close'}
+    new_response.headers = {'Connection': 'Close'}
     return new_response
 
 @VWS_FLASK_APP.errorhandler(UnnecessaryRequestBody)
@@ -119,6 +119,10 @@ def set_headers(response: Response) -> Response:
     """
     if response.headers == {'Connection': 'keep-alive'}:
         return response
+
+    if response.headers == {'Connection': 'Close'}:
+        return response
+
     response.headers['Connection'] = 'keep-alive'
     if response.status_code != HTTPStatus.INTERNAL_SERVER_ERROR and len(
         response.data
