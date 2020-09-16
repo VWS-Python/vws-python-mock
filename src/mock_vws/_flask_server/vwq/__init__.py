@@ -160,7 +160,7 @@ def handle_query_out_of_bounds(
     return response
 
 @CLOUDRECO_FLASK_APP.errorhandler(ContentLengthHeaderTooLarge)
-def handle_content_length_header_too_large(e: ContentLengthHeaderTooLarge):
+def handle_content_length_header_too_large(e: ContentLengthHeaderTooLarge) -> Response:
     new_response = Response()
     new_response.status_code = e.status_code
     new_response.set_data(e.response_text)
@@ -168,7 +168,7 @@ def handle_content_length_header_too_large(e: ContentLengthHeaderTooLarge):
     return new_response
 
 @CLOUDRECO_FLASK_APP.errorhandler(ContentLengthHeaderNotInt)
-def handle_content_length_header_not_int(e: ContentLengthHeaderNotInt):
+def handle_content_length_header_not_int(e: ContentLengthHeaderNotInt) -> Response:
     new_response = Response()
     new_response.status_code = e.status_code
     new_response.set_data(e.response_text)
