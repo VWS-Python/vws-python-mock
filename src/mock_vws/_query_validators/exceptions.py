@@ -430,6 +430,8 @@ class QueryOutOfBounds(Exception):
     particular out of bounds error.
     """
 
+    content_type = 'text/html; charset=ISO-8859-1'
+
     def __init__(self) -> None:
         """
         Attributes:
