@@ -52,6 +52,8 @@ class RequestTimeTooSkewed(Exception):
     'RequestTimeTooSkewed'.
     """
 
+    content_type = 'application/json'
+
     def __init__(self) -> None:
         """
         Attributes:
@@ -74,6 +76,8 @@ class BadImage(Exception):
     Exception raised when Vuforia returns a response with a result code
     'BadImage'.
     """
+
+    content_type = 'application/json'
 
     def __init__(self) -> None:
         """
@@ -103,6 +107,8 @@ class AuthenticationFailure(Exception):
     Exception raised when Vuforia returns a response with a result code
     'AuthenticationFailure'.
     """
+
+    content_type = 'application/json'
 
     def __init__(self) -> None:
         """
@@ -155,6 +161,8 @@ class ImageNotGiven(Exception):
     """
     Exception raised when an image is not given.
     """
+
+    content_type = 'application/json'
 
     def __init__(self) -> None:
         """
@@ -210,6 +218,8 @@ class UnknownParameters(Exception):
     Exception raised when unknown parameters are given.
     """
 
+    content_type = 'application/json'
+
     def __init__(self) -> None:
         """
         Attributes:
@@ -228,6 +238,8 @@ class InactiveProject(Exception):
     Exception raised when Vuforia returns a response with a result code
     'InactiveProject'.
     """
+
+    content_type = 'application/json'
 
     def __init__(self) -> None:
         """
@@ -257,6 +269,8 @@ class InvalidMaxNumResults(Exception):
     "max_num_results" field.
     """
 
+    content_type = 'application/json'
+
     def __init__(self, given_value: str) -> None:
         """
         Attributes:
@@ -280,6 +294,8 @@ class MaxNumResultsOutOfRange(Exception):
     field which is out of range.
     """
 
+    content_type = 'application/json'
+
     def __init__(self, given_value: str) -> None:
         """
         Attributes:
@@ -302,6 +318,8 @@ class InvalidIncludeTargetData(Exception):
     Exception raised when an invalid value is given as the
     "include_target_data" field.
     """
+
+    content_type = 'application/json'
 
     def __init__(self, given_value: str) -> None:
         """
@@ -327,6 +345,8 @@ class UnsupportedMediaType(Exception):
     Exception raised when no boundary is found for multipart data.
     """
 
+    content_type = None
+
     def __init__(self) -> None:
         """
         Attributes:
@@ -344,6 +364,8 @@ class InvalidAcceptHeader(Exception):
     """
     Exception raised when there is an invalid accept header given.
     """
+
+    content_type = None
 
     def __init__(self) -> None:
         """

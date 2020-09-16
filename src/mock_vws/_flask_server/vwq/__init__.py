@@ -91,8 +91,14 @@ def handle_connection_error(
 def handle_request_time_too_skewed(
     e: RequestTimeTooSkewed,
 ) -> Response:
-    response = make_response(e.response_text, e.status_code)
-    assert isinstance(response, Response)
+    response = Response()
+    response.status_code = e.status_code
+    response.set_data(e.response_text)
+    print(type(e))
+    if e.content_type is None:
+        response.headers.pop('Content-Type')
+    else:
+        response.content_type = e.content_type
     return response
 
 
@@ -124,7 +130,10 @@ def handle_boundary_not_in_body(
 def handle_authentication_failure(
     e: AuthenticationFailure,
 ) -> Response:
-    response = make_response(e.response_text, e.status_code)
+    response = Response()
+    response.status_code = e.status_code
+    response.set_data(e.response_text)
+    response.content_type = e.content_type
     response.headers['WWW-Authenticate'] = 'VWS'
     assert isinstance(response, Response)
     return response
