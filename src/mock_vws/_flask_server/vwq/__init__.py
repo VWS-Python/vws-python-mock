@@ -225,7 +225,6 @@ def handle_malformed_auth_header(
 
 @CLOUDRECO_FLASK_APP.after_request
 def set_headers(response: Response) -> Response:
-    # raise requests.exceptions.ConnectionError
     if response.headers == {'Connection': 'keep-alive'}:
         return response
 
@@ -234,8 +233,6 @@ def set_headers(response: Response) -> Response:
 
     response.headers['Connection'] = 'keep-alive'
     response.headers['Server'] = 'nginx'
-    # content_length = len(response.data)
-    # response.headers['Content-Length'] = str(content_length)
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     response.headers['Date'] = date
     if (
@@ -288,19 +285,13 @@ def query() -> Union[Tuple[str, int], Tuple[str, int, Dict[str, Any]]]:
         filename = 'match_processing_response.html'
         match_processing_resp_file = resources_dir / filename
         cache_control = 'must-revalidate,no-cache,no-store'
-        # TODO remove legacy
-        # context.headers['Cache-Control'] = cache_control
         content_type = 'text/html; charset=ISO-8859-1'
-        # TODO remove legacy
-        # context.headers['Content-Type'] = content_type
-        # TODO remove file copied to this dir
-        return (
-            Path(match_processing_resp_file).read_text(),
-            HTTPStatus.INTERNAL_SERVER_ERROR,
-            {
-                'Cache-Control': cache_control,
-                'Content-Type': content_type,
-            },
-        )
+        headers = {
+            'Cache-Control': cache_control,
+            'Content-Type': content_type,
+        }
+        response_text = match_processing_resp_file.read_text()
+        return (response_text, HTTPStatus.INTERNAL_SERVER_ERROR, headers)
+
 
     return (response_text, HTTPStatus.OK)
