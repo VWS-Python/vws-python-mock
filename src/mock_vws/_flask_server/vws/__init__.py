@@ -35,6 +35,7 @@ from mock_vws._services_validators.exceptions import (
 )
 from mock_vws.database import VuforiaDatabase
 from mock_vws.target import Target
+from werkzeug.datastructures import Headers
 
 from ._constants import STORAGE_BASE_URL
 from ._databases import get_all_databases
@@ -79,7 +80,7 @@ def handle_content_length_header_too_large(e: ContentLengthHeaderTooLarge):
     new_response = Response()
     new_response.status_code = e.status_code
     new_response.set_data(e.response_text)
-    new_response.headers = {'Connection': 'keep-alive'}
+    new_response.headers = Headers({'Connection': 'keep-alive'})
     return new_response
 
 @VWS_FLASK_APP.errorhandler(ContentLengthHeaderNotInt)
@@ -87,7 +88,7 @@ def handle_content_length_header_not_int(e: ContentLengthHeaderNotInt):
     new_response = Response()
     new_response.status_code = e.status_code
     new_response.set_data(e.response_text)
-    new_response.headers = {'Connection': 'Close'}
+    new_response.headers = Headers({'Connection': 'Close'})
     return new_response
 
 @VWS_FLASK_APP.errorhandler(UnnecessaryRequestBody)
@@ -115,10 +116,10 @@ def set_headers(response: Response) -> Response:
     """
     TODO
     """
-    if response.headers == {'Connection': 'keep-alive'}:
+    if dict(response.headers) == {'Connection': 'keep-alive'}:
         return response
 
-    if response.headers == {'Connection': 'Close'}:
+    if dict(response.headers) == {'Connection': 'Close'}:
         return response
 
     response.headers['Connection'] = 'keep-alive'
