@@ -2,10 +2,8 @@
 Helpers for getting databases which match keys given in requests.
 """
 
-import base64
-import hashlib
-import hmac
 from typing import Dict, Iterable, Optional
+
 from vws_auth_tools import authorization_header
 
 from mock_vws.database import VuforiaDatabase

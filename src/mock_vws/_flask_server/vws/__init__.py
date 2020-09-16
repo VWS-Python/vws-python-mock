@@ -3,7 +3,6 @@ TODO
 """
 
 import base64
-import email.utils
 import io
 import json
 import uuid
@@ -12,8 +11,9 @@ from typing import Dict, List, Tuple, Union
 
 import requests
 from flask import Flask, Response, request
-import flask
 from PIL import Image
+from werkzeug.datastructures import Headers
+
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._mock_common import json_dump
@@ -21,6 +21,8 @@ from mock_vws._services_validators import run_services_validators
 from mock_vws._services_validators.exceptions import (
     AuthenticationFailure,
     BadImage,
+    ContentLengthHeaderNotInt,
+    ContentLengthHeaderTooLarge,
     Fail,
     ImageTooLarge,
     MetadataTooLarge,
@@ -30,17 +32,50 @@ from mock_vws._services_validators.exceptions import (
     TargetNameExist,
     UnknownTarget,
     UnnecessaryRequestBody,
-    ContentLengthHeaderNotInt,
-    ContentLengthHeaderTooLarge,
 )
 from mock_vws.database import VuforiaDatabase
 from mock_vws.target import Target
-from werkzeug.datastructures import Headers
 
 from ._constants import STORAGE_BASE_URL
 from ._databases import get_all_databases
 
 VWS_FLASK_APP = Flask(import_name=__name__)
+VWS_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
+
+# We use a custom response type.
+# Without this, a content type is added to all responses.
+# Some of our responses need to not have a "Content-Type" header.
+class MyResponse(Response):
+    def __init__(
+        self,
+        response: Optional[ClosingIterator] = None,
+        status: Optional[str] = None,
+        headers: Optional[Headers] = None,
+        mimetype: Optional[str] = None,
+        content_type: Optional[str] = None,
+        direct_passthrough: bool = False,
+    ) -> None:
+        if headers:
+            content_type_from_headers = headers.get('Content-Type')
+        else:
+            content_type_from_headers = None
+
+        super().__init__(
+            response=response,
+            status=status,
+            headers=headers,
+            mimetype=mimetype,
+            content_type=content_type,
+            direct_passthrough=direct_passthrough,
+        )
+
+        if content_type is None and headers and not content_type_from_headers:
+            headers_dict = dict(headers)
+            headers_dict.pop('Content-Type')
+            self.headers = Headers(headers_dict)
+
+
+CLOUDRECO_FLASK_APP.response_class = MyResponse
 
 
 @VWS_FLASK_APP.before_request
@@ -58,6 +93,7 @@ def validate_request() -> None:
 class MyResponse(Response):
     default_mimetype = None
 
+
 VWS_FLASK_APP.response_class = MyResponse
 
 
@@ -70,70 +106,16 @@ VWS_FLASK_APP.response_class = MyResponse
 @VWS_FLASK_APP.errorhandler(BadImage)
 @VWS_FLASK_APP.errorhandler(ImageTooLarge)
 @VWS_FLASK_APP.errorhandler(RequestTimeTooSkewed)
-# TODO update name and type hint here
-def handle_unknown_target(e: UnknownTarget) -> Tuple[str, int]:
-    return e.response_text, e.status_code
-
-
 @VWS_FLASK_APP.errorhandler(ContentLengthHeaderTooLarge)
-def handle_content_length_header_too_large(e: ContentLengthHeaderTooLarge) -> Response:
-    response = Response()
-    response.status_code = e.status_code
-    response.set_data(e.response_text)
-    response.headers = Headers({'Connection': 'keep-alive'})
-    return response
-
 @VWS_FLASK_APP.errorhandler(ContentLengthHeaderNotInt)
-def handle_content_length_header_not_int(e: ContentLengthHeaderNotInt) -> Response:
-    response = Response()
-    response.status_code = e.status_code
-    response.set_data(e.response_text)
-    response.headers = Headers({'Connection': 'Close'})
-    return response
-
 @VWS_FLASK_APP.errorhandler(UnnecessaryRequestBody)
-def handle_unnecessary_request_body(
-    e: UnnecessaryRequestBody,
-) -> Response:
-    response = Response()
-    response.status_code = e.status_code
-    response.set_data(e.response_text)
-    response.headers.pop('Content-Type')
-    return response
-
-
 @VWS_FLASK_APP.errorhandler(OopsErrorOccurredResponse)
-def handle_oops_error_occurred(e: OopsErrorOccurredResponse) -> Response:
+# TODO update name and type hint here
+def handle_unknown_target(e: UnknownTarget) -> Response:
     response = Response()
     response.status_code = e.status_code
     response.set_data(e.response_text)
-    content_type = 'text/html; charset=UTF-8'
-    response.headers['Content-Type'] = content_type
-    return response
-
-
-@VWS_FLASK_APP.after_request
-def set_headers(response: Response) -> Response:
-    """
-    TODO
-
-    GET RID!
-    At least of a lot of this?
-    """
-    if dict(response.headers) == {'Connection': 'keep-alive'}:
-        return response
-
-    if dict(response.headers) == {'Connection': 'Close'}:
-        return response
-
-    response.headers['Connection'] = 'keep-alive'
-    if response.status_code != HTTPStatus.INTERNAL_SERVER_ERROR and len(
-        response.data
-    ):
-        response.headers['Content-Type'] = 'application/json'
-    response.headers['Server'] = 'nginx'
-    date = email.utils.formatdate(None, localtime=False, usegmt=True)
-    response.headers['Date'] = date
+    response.headers = e.headers
     return response
 
 
@@ -412,10 +394,7 @@ def target_list() -> Tuple[str, int]:
         databases=databases,
     )
     assert isinstance(database, VuforiaDatabase)
-    results = [
-        target.target_id
-        for target in database.not_deleted_targets
-    ]
+    results = [target.target_id for target in database.not_deleted_targets]
 
     body: Dict[str, Union[str, List[str]]] = {
         'transaction_id': uuid.uuid4().hex,

@@ -1,11 +1,11 @@
 import copy
 import email.utils
-from pathlib import Path
-from typing import Any, Dict, Tuple, Union, Optional
 from http import HTTPStatus
+from pathlib import Path
+from typing import Any, Dict, Optional, Tuple, Union
 
 import requests
-from flask import Flask, Response, make_response, request
+from flask import Flask, Response, request
 from werkzeug.datastructures import Headers
 from werkzeug.wsgi import ClosingIterator
 
@@ -21,8 +21,8 @@ from mock_vws._query_validators.exceptions import (
     AuthHeaderMissing,
     BadImage,
     BoundaryNotInBody,
-    ContentLengthHeaderTooLarge,
     ContentLengthHeaderNotInt,
+    ContentLengthHeaderTooLarge,
     DateFormatNotValid,
     DateHeaderNotGiven,
     ImageNotGiven,
@@ -41,7 +41,7 @@ from mock_vws._query_validators.exceptions import (
 
 from ..vws._databases import get_all_databases
 
-CLOUDRECO_FLASK_APP = Flask(__name__)
+CLOUDRECO_FLASK_APP = Flask(import_name=__name__)
 CLOUDRECO_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
 
 
@@ -67,10 +67,10 @@ class MyResponse(Response):
         self,
         response: Optional[ClosingIterator] = None,
         status: Optional[str] = None,
-        headers: Optional[Headers] =None,
-        mimetype: Optional[str] =None,
-        content_type: Optional[str] =None,
-        direct_passthrough: bool=False,
+        headers: Optional[Headers] = None,
+        mimetype: Optional[str] = None,
+        content_type: Optional[str] = None,
+        direct_passthrough: bool = False,
     ) -> None:
         if headers:
             content_type_from_headers = headers.get('Content-Type')
@@ -137,7 +137,6 @@ def handle_request_time_too_skewed(
     return response
 
 
-
 @CLOUDRECO_FLASK_APP.route('/v1/query', methods=['POST'])
 def query() -> Union[Tuple[str, int], Tuple[str, int, Dict[str, Any]]]:
 
@@ -173,7 +172,6 @@ def query() -> Union[Tuple[str, int], Tuple[str, int, Dict[str, Any]]]:
         resources_dir = Path(__file__).parent.parent.parent / 'resources'
         filename = 'match_processing_response.html'
         match_processing_resp_file = resources_dir / filename
-        cache_control = 'must-revalidate,no-cache,no-store'
         content_type = 'text/html; charset=ISO-8859-1'
         headers = {
             'Content-Type': 'text/html; charset=ISO-8859-1',
@@ -184,7 +182,6 @@ def query() -> Union[Tuple[str, int], Tuple[str, int, Dict[str, Any]]]:
         }
         response_text = match_processing_resp_file.read_text()
         return (response_text, HTTPStatus.INTERNAL_SERVER_ERROR, headers)
-
 
     headers = {
         'Content-Type': 'application/json',

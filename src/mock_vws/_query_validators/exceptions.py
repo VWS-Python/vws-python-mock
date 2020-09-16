@@ -432,6 +432,7 @@ class MaxNumResultsOutOfRange(Exception):
             'Date': date,
         }
 
+
 class InvalidIncludeTargetData(Exception):
     """
     Exception raised when an invalid value is given as the
