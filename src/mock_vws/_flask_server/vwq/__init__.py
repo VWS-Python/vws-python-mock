@@ -152,19 +152,19 @@ def handle_query_out_of_bounds(
 
 @CLOUDRECO_FLASK_APP.errorhandler(ContentLengthHeaderTooLarge)
 def handle_content_length_header_too_large(e: ContentLengthHeaderTooLarge) -> Response:
-    new_response = Response()
-    new_response.status_code = e.status_code
-    new_response.set_data(e.response_text)
-    new_response.headers = Headers({'Connection': 'keep-alive'})
-    return new_response
+    response = Response()
+    response.status_code = e.status_code
+    response.set_data(e.response_text)
+    response.headers = Headers({'Connection': 'keep-alive'})
+    return response
 
 @CLOUDRECO_FLASK_APP.errorhandler(ContentLengthHeaderNotInt)
 def handle_content_length_header_not_int(e: ContentLengthHeaderNotInt) -> Response:
-    new_response = Response()
-    new_response.status_code = e.status_code
-    new_response.set_data(e.response_text)
-    new_response.headers = Headers({'Connection': 'Close'})
-    return new_response
+    response = Response()
+    response.status_code = e.status_code
+    response.set_data(e.response_text)
+    response.headers = Headers({'Connection': 'Close'})
+    return response
 
 
 @CLOUDRECO_FLASK_APP.errorhandler(AuthHeaderMissing)

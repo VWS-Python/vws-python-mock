@@ -104,10 +104,11 @@ def handle_unnecessary_request_body(
 
 @VWS_FLASK_APP.errorhandler(OopsErrorOccurredResponse)
 def handle_oops_error_occurred(e: OopsErrorOccurredResponse) -> Response:
+    response = Response()
+    response.status_code = e.status_code
+    response.set_data(e.response_text)
     content_type = 'text/html; charset=UTF-8'
-    response = make_response(e.response_text, e.status_code)
     response.headers['Content-Type'] = content_type
-    assert isinstance(response, Response)
     return response
 
 
