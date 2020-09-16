@@ -14,7 +14,6 @@ from ._constants import STORAGE_BASE_URL
 
 
 def get_all_databases() -> Set[VuforiaDatabase]:
-    # TODO use the storage URL to get details then cast to VuforiaDatabase
     response = requests.get(url=STORAGE_BASE_URL + '/databases')
     response_json = response.json()
     databases = set()
