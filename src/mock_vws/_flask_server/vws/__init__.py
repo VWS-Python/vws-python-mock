@@ -14,8 +14,6 @@ import requests
 from flask import Flask, Response, make_response, request
 import flask
 from PIL import Image
-from requests import codes
-
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._mock_common import json_dump
@@ -186,7 +184,7 @@ def add_target() -> Tuple[str, int]:
         'result_code': ResultCodes.TARGET_CREATED.value,
         'target_id': new_target.target_id,
     }
-    return json_dump(body), codes.CREATED
+    return json_dump(body), HTTPStatus.CREATED
 
 
 @VWS_FLASK_APP.route('/targets/<string:target_id>', methods=['GET'])
@@ -227,7 +225,7 @@ def get_target(target_id: str) -> Tuple[str, int]:
         'status': target.status,
     }
 
-    return json_dump(body), codes.OK
+    return json_dump(body), HTTPStatus.OK
 
 
 @VWS_FLASK_APP.route('/targets/<string:target_id>', methods=['DELETE'])
@@ -258,7 +256,7 @@ def delete_target(target_id: str) -> Tuple[str, int]:
             'transaction_id': uuid.uuid4().hex,
             'result_code': ResultCodes.TARGET_STATUS_PROCESSING.value,
         }
-        return json_dump(body), codes.FORBIDDEN
+        return json_dump(body), HTTPStatus.FORBIDDEN
 
     delete_url = (
         f'{STORAGE_BASE_URL}/databases/{database.database_name}/targets/'
@@ -270,7 +268,7 @@ def delete_target(target_id: str) -> Tuple[str, int]:
         'transaction_id': uuid.uuid4().hex,
         'result_code': ResultCodes.SUCCESS.value,
     }
-    return json_dump(body), codes.OK
+    return json_dump(body), HTTPStatus.OK
 
 
 @VWS_FLASK_APP.route('/summary', methods=['GET'])
@@ -311,7 +309,7 @@ def database_summary() -> Tuple[str, int]:
         # This was not always the case.
         'request_usage': 0,
     }
-    return json_dump(body), codes.OK
+    return json_dump(body), HTTPStatus.OK
 
 
 @VWS_FLASK_APP.route('/summary/<string:target_id>', methods=['GET'])
@@ -348,7 +346,7 @@ def target_summary(target_id: str) -> Tuple[str, int]:
         'current_month_recos': 0,
         'previous_month_recos': 0,
     }
-    return json_dump(body), codes.OK
+    return json_dump(body), HTTPStatus.OK
 
 
 @VWS_FLASK_APP.route('/duplicates/<string:target_id>', methods=['GET'])
@@ -389,7 +387,7 @@ def get_duplicates(target_id: str) -> Tuple[str, int]:
         'similar_targets': similar_targets,
     }
 
-    return json_dump(body), codes.OK
+    return json_dump(body), HTTPStatus.OK
 
 
 @VWS_FLASK_APP.route('/targets', methods=['GET'])
@@ -419,7 +417,7 @@ def target_list() -> Tuple[str, int]:
         'result_code': ResultCodes.SUCCESS.value,
         'results': results,
     }
-    return json_dump(body), codes.OK
+    return json_dump(body), HTTPStatus.OK
 
 
 @VWS_FLASK_APP.route('/targets/<string:target_id>', methods=['PUT'])
@@ -453,7 +451,7 @@ def update_target(target_id: str) -> Tuple[str, int]:
             'transaction_id': uuid.uuid4().hex,
             'result_code': ResultCodes.TARGET_STATUS_NOT_SUCCESS.value,
         }
-        return json_dump(body), codes.FORBIDDEN
+        return json_dump(body), HTTPStatus.FORBIDDEN
 
     update_values = {}
     if 'width' in request_json:
@@ -466,7 +464,7 @@ def update_target(target_id: str) -> Tuple[str, int]:
                 'transaction_id': uuid.uuid4().hex,
                 'result_code': ResultCodes.FAIL.value,
             }
-            return json_dump(body), codes.BAD_REQUEST
+            return json_dump(body), HTTPStatus.BAD_REQUEST
         update_values['active_flag'] = active_flag
 
     if 'application_metadata' in request_json:
@@ -475,7 +473,7 @@ def update_target(target_id: str) -> Tuple[str, int]:
                 'transaction_id': uuid.uuid4().hex,
                 'result_code': ResultCodes.FAIL.value,
             }
-            return json_dump(body), codes.BAD_REQUEST
+            return json_dump(body), HTTPStatus.BAD_REQUEST
         application_metadata = request_json['application_metadata']
         update_values['application_metadata'] = application_metadata
 
@@ -497,4 +495,4 @@ def update_target(target_id: str) -> Tuple[str, int]:
         'result_code': ResultCodes.SUCCESS.value,
         'transaction_id': uuid.uuid4().hex,
     }
-    return json_dump(body), codes.OK
+    return json_dump(body), HTTPStatus.OK

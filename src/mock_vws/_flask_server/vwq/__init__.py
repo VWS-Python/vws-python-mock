@@ -2,10 +2,10 @@ import copy
 import email.utils
 from pathlib import Path
 from typing import Any, Dict, Tuple, Union
+from http import HTTPStatus
 
 import requests
 from flask import Flask, Response, make_response, request
-from requests import codes
 from werkzeug.datastructures import Headers
 
 from mock_vws._query_tools import (
@@ -241,11 +241,11 @@ def set_headers(response: Response) -> Response:
     if (
         response.status_code
         in (
-            codes.OK,
-            codes.UNPROCESSABLE_ENTITY,
-            codes.BAD_REQUEST,
-            codes.FORBIDDEN,
-            codes.UNAUTHORIZED,
+            HTTPStatus.OK,
+            HTTPStatus.UNPROCESSABLE_ENTITY,
+            HTTPStatus.BAD_REQUEST,
+            HTTPStatus.FORBIDDEN,
+            HTTPStatus.UNAUTHORIZED,
         )
         and 'Content-Type' not in response.headers
     ):
@@ -296,11 +296,11 @@ def query() -> Union[Tuple[str, int], Tuple[str, int, Dict[str, Any]]]:
         # TODO remove file copied to this dir
         return (
             Path(match_processing_resp_file).read_text(),
-            codes.INTERNAL_SERVER_ERROR,
+            HTTPStatus.INTERNAL_SERVER_ERROR,
             {
                 'Cache-Control': cache_control,
                 'Content-Type': content_type,
             },
         )
 
-    return (response_text, codes.OK)
+    return (response_text, HTTPStatus.OK)
