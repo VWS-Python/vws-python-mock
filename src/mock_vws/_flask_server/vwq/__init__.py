@@ -152,7 +152,6 @@ def handle_query_out_of_bounds(
     response.content_type = e.content_type
     cache_control = 'must-revalidate,no-cache,no-store'
     response.headers['Cache-Control'] = cache_control
-    assert isinstance(response, Response)
     return response
 
 @CLOUDRECO_FLASK_APP.errorhandler(ContentLengthHeaderTooLarge)
