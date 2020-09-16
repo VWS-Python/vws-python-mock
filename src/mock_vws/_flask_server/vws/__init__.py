@@ -77,29 +77,29 @@ def handle_unknown_target(e: UnknownTarget) -> Tuple[str, int]:
 
 @VWS_FLASK_APP.errorhandler(ContentLengthHeaderTooLarge)
 def handle_content_length_header_too_large(e: ContentLengthHeaderTooLarge) -> Response:
-    new_response = Response()
-    new_response.status_code = e.status_code
-    new_response.set_data(e.response_text)
-    new_response.headers = Headers({'Connection': 'keep-alive'})
-    return new_response
+    response = Response()
+    response.status_code = e.status_code
+    response.set_data(e.response_text)
+    response.headers = Headers({'Connection': 'keep-alive'})
+    return response
 
 @VWS_FLASK_APP.errorhandler(ContentLengthHeaderNotInt)
 def handle_content_length_header_not_int(e: ContentLengthHeaderNotInt) -> Response:
-    new_response = Response()
-    new_response.status_code = e.status_code
-    new_response.set_data(e.response_text)
-    new_response.headers = Headers({'Connection': 'Close'})
-    return new_response
+    response = Response()
+    response.status_code = e.status_code
+    response.set_data(e.response_text)
+    response.headers = Headers({'Connection': 'Close'})
+    return response
 
 @VWS_FLASK_APP.errorhandler(UnnecessaryRequestBody)
 def handle_unnecessary_request_body(
     e: UnnecessaryRequestBody,
 ) -> Tuple[str, int]:
-    new_response = Response()
-    new_response.status_code = e.status_code
-    new_response.set_data(e.response_text)
-    new_response.headers.pop('Content-Type')
-    return new_response
+    response = Response()
+    response.status_code = e.status_code
+    response.set_data(e.response_text)
+    response.headers.pop('Content-Type')
+    return response
 
 
 @VWS_FLASK_APP.errorhandler(OopsErrorOccurredResponse)
