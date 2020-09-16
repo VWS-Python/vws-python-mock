@@ -114,6 +114,7 @@ def handle_no_boundary_found(
     return response
 
 
+# TODO merge with main handler?
 @CLOUDRECO_FLASK_APP.errorhandler(BoundaryNotInBody)
 def handle_boundary_not_in_body(
     e: BoundaryNotInBody,
@@ -127,7 +128,9 @@ def handle_boundary_not_in_body(
 
 
 @CLOUDRECO_FLASK_APP.errorhandler(AuthenticationFailure)
+@CLOUDRECO_FLASK_APP.errorhandler(AuthenticationFailureGoodFormatting)
 def handle_authentication_failure(
+    # TODO Update type hint but maybe merge with main handler?
     e: AuthenticationFailure,
 ) -> Response:
     response = Response()
@@ -135,18 +138,8 @@ def handle_authentication_failure(
     response.set_data(e.response_text)
     response.content_type = e.content_type
     response.headers['WWW-Authenticate'] = 'VWS'
-    assert isinstance(response, Response)
     return response
 
-
-@CLOUDRECO_FLASK_APP.errorhandler(AuthenticationFailureGoodFormatting)
-def handle_authentication_failure_good_formatting(
-    e: AuthenticationFailureGoodFormatting,
-) -> Response:
-    response = make_response(e.response_text, e.status_code)
-    response.headers['WWW-Authenticate'] = 'VWS'
-    assert isinstance(response, Response)
-    return response
 
 
 @CLOUDRECO_FLASK_APP.errorhandler(QueryOutOfBounds)

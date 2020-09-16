@@ -139,6 +139,8 @@ class AuthenticationFailureGoodFormatting(Exception):
     'AuthenticationFailure' with a standard JSON formatting.
     """
 
+    content_type = 'application/json'
+
     def __init__(self) -> None:
         """
         Attributes:
