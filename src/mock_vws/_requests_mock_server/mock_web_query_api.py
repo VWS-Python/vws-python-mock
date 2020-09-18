@@ -81,59 +81,30 @@ def run_validators(
             request_method=request.method,
             databases=instance.databases,
         )
-    except DateHeaderNotGiven as exc:
-        content_type = 'text/plain; charset=ISO-8859-1'
-        context.headers['Content-Type'] = content_type
-        context.status_code = exc.status_code
-        return exc.response_text
     except (
         AuthHeaderMissing,
+        AuthenticationFailure,
+        AuthenticationFailureGoodFormatting,
+        BadImage,
+        BoundaryNotInBody,
         DateFormatNotValid,
-        MalformedAuthHeader,
-    ) as exc:
-        content_type = 'text/plain; charset=ISO-8859-1'
-        context.headers['Content-Type'] = content_type
-        context.headers['WWW-Authenticate'] = 'VWS'
-        context.status_code = exc.status_code
-        return exc.response_text
-    except (AuthenticationFailure, AuthenticationFailureGoodFormatting) as exc:
-        context.headers['WWW-Authenticate'] = 'VWS'
-        context.status_code = exc.status_code
-        return exc.response_text
-    except (
-        RequestTimeTooSkewed,
+        DateHeaderNotGiven,
         ImageNotGiven,
-        UnknownParameters,
         InactiveProject,
+        InvalidAcceptHeader,
         InvalidIncludeTargetData,
         InvalidMaxNumResults,
+        MalformedAuthHeader,
         MaxNumResultsOutOfRange,
-        BadImage,
+        NoBoundaryFound,
+        RequestTimeTooSkewed,
+        UnknownParameters,
+        UnsupportedMediaType,
+        ContentLengthHeaderNotInt,
+        ContentLengthHeaderTooLarge,
+        QueryOutOfBounds,
     ) as exc:
-        context.status_code = exc.status_code
-        return exc.response_text
-    except (UnsupportedMediaType, InvalidAcceptHeader) as exc:
-        context.headers.pop('Content-Type')
-        context.status_code = exc.status_code
-        return exc.response_text
-    except (NoBoundaryFound, BoundaryNotInBody) as exc:
-        content_type = 'text/html;charset=UTF-8'
-        context.headers['Content-Type'] = content_type
-        context.status_code = exc.status_code
-        return exc.response_text
-    except QueryOutOfBounds as exc:
-        content_type = 'text/html; charset=ISO-8859-1'
-        context.headers['Content-Type'] = content_type
-        cache_control = 'must-revalidate,no-cache,no-store'
-        context.headers['Cache-Control'] = cache_control
-        context.status_code = exc.status_code
-        return exc.response_text
-    except ContentLengthHeaderNotInt as exc:
-        context.headers = {'Connection': 'Close'}
-        context.status_code = exc.status_code
-        return exc.response_text
-    except ContentLengthHeaderTooLarge as exc:
-        context.headers = {'Connection': 'keep-alive'}
+        context.headers = exc.headers
         context.status_code = exc.status_code
         return exc.response_text
 
