@@ -615,3 +615,37 @@ class ContentLengthHeaderNotInt(Exception):
         self.headers = {
             'Connection': 'Close',
         }
+
+
+class MatchProcessing(Exception):
+    """
+    Exception raised a target is matched which is processing or recently
+    deleted.
+    """
+
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
+        self.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+        self.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'text/html; charset=ISO-8859-1',
+            'Server': 'nginx',
+            'Cache-Control': 'must-revalidate,no-cache,no-store',
+        }
+        # We return an example 500 response.
+        # Each response given by Vuforia is different.
+        #
+        # Sometimes Vuforia will ignore matching targets with the
+        # processing status, but we choose to:
+        # * Do the most unexpected thing.
+        # * Be consistent with every response.
+        resources_dir = Path(__file__).parent.parent / 'resources'
+        filename = 'match_processing_response.html'
+        match_processing_resp_file = resources_dir / filename
+        self.response_text = Path(match_processing_resp_file).read_text()

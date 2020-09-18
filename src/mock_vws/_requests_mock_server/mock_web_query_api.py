@@ -5,8 +5,6 @@ See
 https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query
 """
 
-from http import HTTPStatus
-from pathlib import Path
 from typing import Any, Callable, Dict, Set, Tuple, Union
 
 import wrapt
@@ -41,6 +39,7 @@ from mock_vws._query_validators.exceptions import (
     InvalidIncludeTargetData,
     InvalidMaxNumResults,
     MalformedAuthHeader,
+    MatchProcessing,
     MaxNumResultsOutOfRange,
     NoBoundaryFound,
     QueryOutOfBounds,
@@ -108,7 +107,12 @@ def run_validators(
         context.status_code = exc.status_code
         return exc.response_text
 
-    return wrapped(*args, **kwargs)
+    try:
+        return wrapped(*args, **kwargs)
+    except MatchProcessing as exc:
+        context.headers = exc.headers
+        context.status_code = exc.status_code
+        return exc.response_text
 
 
 def route(
@@ -221,24 +225,7 @@ class MockVuforiaWebQueryAPI:
             ActiveMatchingTargetsDeleteProcessing,
             MatchingTargetsWithProcessingStatus,
         ):
-            # We return an example 500 response.
-            # Each response given by Vuforia is different.
-            #
-            # Sometimes Vuforia will ignore matching targets with the
-            # processing status, but we choose to:
-            # * Do the most unexpected thing.
-            # * Be consistent with every response.
-            resources_dir = Path(__file__).parent.parent / 'resources'
-            filename = 'match_processing_response.html'
-            match_processing_resp_file = resources_dir / filename
-            context.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-            context.headers = {
-                'Connection': 'keep-alive',
-                'Content-Type': 'text/html; charset=ISO-8859-1',
-                'Server': 'nginx',
-                'Cache-Control': 'must-revalidate,no-cache,no-store',
-            }
-            return Path(match_processing_resp_file).read_text()
+            raise MatchProcessing
 
         context.headers = {
             'Connection': 'keep-alive',
