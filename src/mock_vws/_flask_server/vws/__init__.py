@@ -3,6 +3,7 @@ TODO
 """
 
 import base64
+import email.utils
 import io
 import json
 import uuid
@@ -34,6 +35,8 @@ from mock_vws._services_validators.exceptions import (
     TargetNameExist,
     UnknownTarget,
     UnnecessaryRequestBody,
+    TargetStatusNotSuccess,
+    TargetStatusProcessing,
 )
 from mock_vws.database import VuforiaDatabase
 from mock_vws.target import Target
@@ -47,12 +50,12 @@ VWS_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
 # We use a custom response type.
 # Without this, a content type is added to all responses.
 # Some of our responses need to not have a "Content-Type" header.
-class MyResponse(Response):
+class ResponseNoContentTypeAdded(Response):
     def __init__(
         self,
-        response: Optional[ClosingIterator] = None,
-        status: Optional[str] = None,
-        headers: Optional[Headers] = None,
+        response: Optional[str] = None,
+        status: Optional[int] = None,
+        headers: Optional[Dict[str, str]] = None,
         mimetype: Optional[str] = None,
         content_type: Optional[str] = None,
         direct_passthrough: bool = False,
@@ -71,17 +74,23 @@ class MyResponse(Response):
             direct_passthrough=direct_passthrough,
         )
 
-        if content_type is None and headers and not content_type_from_headers:
-            headers_dict = dict(headers)
+        if (
+            content_type is None and
+            self.headers and
+            'Content-Type' in self.headers and
+            not content_type_from_headers
+        ):
+            headers_dict = dict(self.headers)
             headers_dict.pop('Content-Type')
             self.headers = Headers(headers_dict)
 
 
-VWS_FLASK_APP.response_class = MyResponse
+VWS_FLASK_APP.response_class = ResponseNoContentTypeAdded
 
 
 @VWS_FLASK_APP.before_request
 def validate_request() -> None:
+    request.environ['wsgi.input_terminated'] = True
     databases = get_all_databases()
     run_services_validators(
         request_headers=dict(request.headers),
@@ -106,17 +115,19 @@ def validate_request() -> None:
 @VWS_FLASK_APP.errorhandler(ContentLengthHeaderNotInt)
 @VWS_FLASK_APP.errorhandler(UnnecessaryRequestBody)
 @VWS_FLASK_APP.errorhandler(OopsErrorOccurredResponse)
+@VWS_FLASK_APP.errorhandler(TargetStatusProcessing)
+@VWS_FLASK_APP.errorhandler(TargetStatusNotSuccess)
 # TODO update name and type hint here
 def handle_unknown_target(e: UnknownTarget) -> Response:
-    return Response(
-        status=e.status_code,
+    return ResponseNoContentTypeAdded(
+        status=e.status_code.value,
         response=e.response_text,
         headers=e.headers,
     )
 
 
 @VWS_FLASK_APP.route('/targets', methods=['POST'])
-def add_target() -> Tuple[str, int]:
+def add_target() -> Response:
     """
     Add a target.
 
@@ -162,16 +173,28 @@ def add_target() -> Tuple[str, int]:
         json=new_target.to_dict(),
     )
 
+    date = email.utils.formatdate(None, localtime=False, usegmt=True)
+    headers = {
+        'Connection': 'keep-alive',
+        'Content-Type': 'application/json',
+        'Server': 'nginx',
+        'Date': date,
+    }
     body = {
         'transaction_id': uuid.uuid4().hex,
         'result_code': ResultCodes.TARGET_CREATED.value,
         'target_id': new_target.target_id,
     }
-    return json_dump(body), HTTPStatus.CREATED
+
+    return Response(
+        status=HTTPStatus.CREATED,
+        response=json_dump(body),
+        headers=headers,
+    )
 
 
 @VWS_FLASK_APP.route('/targets/<string:target_id>', methods=['GET'])
-def get_target(target_id: str) -> Tuple[str, int]:
+def get_target(target_id: str) -> Response:
     """
     Get details of a target.
 
@@ -201,18 +224,28 @@ def get_target(target_id: str) -> Tuple[str, int]:
         'reco_rating': target.reco_rating,
     }
 
+    date = email.utils.formatdate(None, localtime=False, usegmt=True)
+    headers = {
+        'Connection': 'keep-alive',
+        'Content-Type': 'application/json',
+        'Server': 'nginx',
+        'Date': date,
+    }
     body = {
         'result_code': ResultCodes.SUCCESS.value,
         'transaction_id': uuid.uuid4().hex,
         'target_record': target_record,
         'status': target.status,
     }
-
-    return json_dump(body), HTTPStatus.OK
+    return Response(
+        status=HTTPStatus.OK,
+        response=json_dump(body),
+        headers=headers,
+    )
 
 
 @VWS_FLASK_APP.route('/targets/<string:target_id>', methods=['DELETE'])
-def delete_target(target_id: str) -> Tuple[str, int]:
+def delete_target(target_id: str) -> Response:
     """
     Delete a target.
 
@@ -235,11 +268,7 @@ def delete_target(target_id: str) -> Tuple[str, int]:
     ]
 
     if target.status == TargetStatuses.PROCESSING.value:
-        body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.TARGET_STATUS_PROCESSING.value,
-        }
-        return json_dump(body), HTTPStatus.FORBIDDEN
+        raise TargetStatusProcessing
 
     delete_url = (
         f'{STORAGE_BASE_URL}/databases/{database.database_name}/targets/'
@@ -251,11 +280,22 @@ def delete_target(target_id: str) -> Tuple[str, int]:
         'transaction_id': uuid.uuid4().hex,
         'result_code': ResultCodes.SUCCESS.value,
     }
-    return json_dump(body), HTTPStatus.OK
+    date = email.utils.formatdate(None, localtime=False, usegmt=True)
+    headers = {
+        'Connection': 'keep-alive',
+        'Content-Type': 'application/json',
+        'Server': 'nginx',
+        'Date': date,
+    }
+    return Response(
+        status=HTTPStatus.OK,
+        response=json_dump(body),
+        headers=headers,
+    )
 
 
 @VWS_FLASK_APP.route('/summary', methods=['GET'])
-def database_summary() -> Tuple[str, int]:
+def database_summary() -> Response:
     """
     Get a database summary report.
 
@@ -292,11 +332,22 @@ def database_summary() -> Tuple[str, int]:
         # This was not always the case.
         'request_usage': 0,
     }
-    return json_dump(body), HTTPStatus.OK
+    date = email.utils.formatdate(None, localtime=False, usegmt=True)
+    headers = {
+        'Connection': 'keep-alive',
+        'Content-Type': 'application/json',
+        'Server': 'nginx',
+        'Date': date,
+    }
+    return Response(
+        status=HTTPStatus.OK,
+        response=json_dump(body),
+        headers=headers,
+    )
 
 
 @VWS_FLASK_APP.route('/summary/<string:target_id>', methods=['GET'])
-def target_summary(target_id: str) -> Tuple[str, int]:
+def target_summary(target_id: str) -> Response:
     """
     Get a summary report for a target.
 
@@ -329,11 +380,22 @@ def target_summary(target_id: str) -> Tuple[str, int]:
         'current_month_recos': 0,
         'previous_month_recos': 0,
     }
-    return json_dump(body), HTTPStatus.OK
+    date = email.utils.formatdate(None, localtime=False, usegmt=True)
+    headers = {
+        'Connection': 'keep-alive',
+        'Content-Type': 'application/json',
+        'Server': 'nginx',
+        'Date': date,
+    }
+    return Response(
+        status=HTTPStatus.OK,
+        response=json_dump(body),
+        headers=headers,
+    )
 
 
 @VWS_FLASK_APP.route('/duplicates/<string:target_id>', methods=['GET'])
-def get_duplicates(target_id: str) -> Tuple[str, int]:
+def get_duplicates(target_id: str) -> Response:
     """
     Get targets which may be considered duplicates of a given target.
 
@@ -370,11 +432,22 @@ def get_duplicates(target_id: str) -> Tuple[str, int]:
         'similar_targets': similar_targets,
     }
 
-    return json_dump(body), HTTPStatus.OK
+    date = email.utils.formatdate(None, localtime=False, usegmt=True)
+    headers = {
+        'Connection': 'keep-alive',
+        'Content-Type': 'application/json',
+        'Server': 'nginx',
+        'Date': date,
+    }
+    return Response(
+        status=HTTPStatus.OK,
+        response=json_dump(body),
+        headers=headers,
+    )
 
 
 @VWS_FLASK_APP.route('/targets', methods=['GET'])
-def target_list() -> Tuple[str, int]:
+def target_list() -> Response:
     """
     Get a list of all targets.
 
@@ -397,11 +470,22 @@ def target_list() -> Tuple[str, int]:
         'result_code': ResultCodes.SUCCESS.value,
         'results': results,
     }
-    return json_dump(body), HTTPStatus.OK
+    date = email.utils.formatdate(None, localtime=False, usegmt=True)
+    headers = {
+        'Connection': 'keep-alive',
+        'Content-Type': 'application/json',
+        'Server': 'nginx',
+        'Date': date,
+    }
+    return Response(
+        status=HTTPStatus.OK,
+        response=json_dump(body),
+        headers=headers,
+    )
 
 
 @VWS_FLASK_APP.route('/targets/<string:target_id>', methods=['PUT'])
-def update_target(target_id: str) -> Tuple[str, int]:
+def update_target(target_id: str) -> Response:
     """
     Update a target.
 
@@ -427,11 +511,7 @@ def update_target(target_id: str) -> Tuple[str, int]:
     ]
 
     if target.status != TargetStatuses.SUCCESS.value:
-        body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.TARGET_STATUS_NOT_SUCCESS.value,
-        }
-        return json_dump(body), HTTPStatus.FORBIDDEN
+        raise TargetStatusNotSuccess
 
     update_values = {}
     if 'width' in request_json:
@@ -440,21 +520,13 @@ def update_target(target_id: str) -> Tuple[str, int]:
     if 'active_flag' in request_json:
         active_flag = request_json['active_flag']
         if active_flag is None:
-            body = {
-                'transaction_id': uuid.uuid4().hex,
-                'result_code': ResultCodes.FAIL.value,
-            }
-            return json_dump(body), HTTPStatus.BAD_REQUEST
+            raise Fail(status_code=HTTPStatus.BAD_REQUEST)
         update_values['active_flag'] = active_flag
 
     if 'application_metadata' in request_json:
-        if request_json['application_metadata'] is None:
-            body = {
-                'transaction_id': uuid.uuid4().hex,
-                'result_code': ResultCodes.FAIL.value,
-            }
-            return json_dump(body), HTTPStatus.BAD_REQUEST
         application_metadata = request_json['application_metadata']
+        if application_metadata is None:
+            raise Fail(status_code=HTTPStatus.BAD_REQUEST)
         update_values['application_metadata'] = application_metadata
 
     if 'name' in request_json:
@@ -471,8 +543,19 @@ def update_target(target_id: str) -> Tuple[str, int]:
     )
     requests.put(url=put_url, json=update_values)
 
+    date = email.utils.formatdate(None, localtime=False, usegmt=True)
+    headers = {
+        'Connection': 'keep-alive',
+        'Content-Type': 'application/json',
+        'Server': 'nginx',
+        'Date': date,
+    }
     body = {
         'result_code': ResultCodes.SUCCESS.value,
         'transaction_id': uuid.uuid4().hex,
     }
-    return json_dump(body), HTTPStatus.OK
+    return Response(
+        status=HTTPStatus.OK,
+        response=json_dump(body),
+        headers=headers,
+    )

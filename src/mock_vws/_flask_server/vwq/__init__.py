@@ -10,6 +10,7 @@ from werkzeug.datastructures import Headers
 from werkzeug.wsgi import ClosingIterator
 
 from mock_vws._query_tools import (
+    # TODO remove each of these and just raise the validator exception
     ActiveMatchingTargetsDeleteProcessing,
     MatchingTargetsWithProcessingStatus,
     get_query_match_response_text,
@@ -37,6 +38,7 @@ from mock_vws._query_validators.exceptions import (
     RequestTimeTooSkewed,
     UnknownParameters,
     UnsupportedMediaType,
+    MatchProcessing,
 )
 
 from ..vws._databases import get_all_databases
@@ -47,6 +49,7 @@ CLOUDRECO_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
 
 @CLOUDRECO_FLASK_APP.before_request
 def validate_request() -> None:
+    request.environ['wsgi.input_terminated'] = True
     input_stream_copy = copy.copy(request.input_stream)
     request_body = input_stream_copy.read()
     databases = get_all_databases()
@@ -127,7 +130,9 @@ def handle_connection_error(
 @CLOUDRECO_FLASK_APP.errorhandler(ContentLengthHeaderNotInt)
 @CLOUDRECO_FLASK_APP.errorhandler(ContentLengthHeaderTooLarge)
 @CLOUDRECO_FLASK_APP.errorhandler(QueryOutOfBounds)
+@CLOUDRECO_FLASK_APP.errorhandler(MatchProcessing)
 # TODO use a base type for these requests
+# TODO change the name and type hint of this function
 def handle_request_time_too_skewed(
     e: RequestTimeTooSkewed,
 ) -> Response:
@@ -163,30 +168,7 @@ def query() -> Response:
         ActiveMatchingTargetsDeleteProcessing,
         MatchingTargetsWithProcessingStatus,
     ):
-        # We return an example 500 response.
-        # Each response given by Vuforia is different.
-        #
-        # Sometimes Vuforia will ignore matching targets with the
-        # processing status, but we choose to:
-        # * Do the most unexpected thing.
-        # * Be consistent with every response.
-        resources_dir = Path(__file__).parent.parent.parent / 'resources'
-        filename = 'match_processing_response.html'
-        match_processing_resp_file = resources_dir / filename
-        content_type = 'text/html; charset=ISO-8859-1'
-        headers = {
-            'Content-Type': 'text/html; charset=ISO-8859-1',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'Cache-Control': 'must-revalidate,no-cache,no-store',
-        }
-        response_text = match_processing_resp_file.read_text()
-        return Response(
-            status=HTTPStatus.INTERNAL_SERVER_ERROR,
-            response=response_text,
-            headers=headers,
-        )
+        raise MatchProcessing
 
     headers = {
         'Content-Type': 'application/json',
