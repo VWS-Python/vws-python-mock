@@ -372,3 +372,62 @@ class UnnecessaryRequestBody(Exception):
             'Server': 'nginx',
             'Date': date,
         }
+
+
+class TargetStatusNotSuccess(Exception):
+    """
+    Exception raised when trying to update a target that does not have a
+    success status.
+    """
+
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
+        super().__init__()
+        self.status_code = HTTPStatus.FORBIDDEN
+        body = {
+            'transaction_id': uuid.uuid4().hex,
+            'result_code': ResultCodes.TARGET_STATUS_NOT_SUCCESS.value,
+        }
+        self.response_text = json_dump(body)
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        self.headers = {
+            'Content-Type': 'application/json',
+            'Connection': 'keep-alive',
+            'Server': 'nginx',
+            'Date': date,
+        }
+
+
+class TargetStatusProcessing(Exception):
+    """
+    Exception raised when trying to delete a target which is processing.
+    """
+
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
+        super().__init__()
+        self.status_code = HTTPStatus.FORBIDDEN
+        body = {
+            'transaction_id': uuid.uuid4().hex,
+            'result_code': ResultCodes.TARGET_STATUS_PROCESSING.value,
+        }
+        self.response_text = json_dump(body)
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        self.headers = {
+            'Content-Type': 'application/json',
+            'Connection': 'keep-alive',
+            'Server': 'nginx',
+            'Date': date,
+        }

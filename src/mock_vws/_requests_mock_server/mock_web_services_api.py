@@ -44,6 +44,7 @@ from mock_vws._services_validators.exceptions import (
     TargetNameExist,
     UnknownTarget,
     UnnecessaryRequestBody,
+    TargetStatusNotSuccess,
 )
 from mock_vws.database import VuforiaDatabase
 from mock_vws.target import Target
@@ -100,7 +101,7 @@ def run_validators(
 
     try:
         return wrapped(*args, **kwargs)
-    except Fail as exc:
+    except (Fail, TargetStatusNotSuccess) as exc:
         context.headers = exc.headers
         context.status_code = exc.status_code
         return exc.response_text
@@ -287,21 +288,16 @@ class MockVuforiaWebServicesAPI:
             request_path=request.path,
             databases=self.databases,
         )
+
+        if target.status == TargetStatuses.PROCESSING.value:
+            raise TargetStatusProcessing
+
+        target.delete()
         context.headers = {
             'Connection': 'keep-alive',
             'Content-Type': 'application/json',
             'Server': 'nginx',
         }
-
-        if target.status == TargetStatuses.PROCESSING.value:
-            context.status_code = HTTPStatus.FORBIDDEN
-            body = {
-                'transaction_id': uuid.uuid4().hex,
-                'result_code': ResultCodes.TARGET_STATUS_PROCESSING.value,
-            }
-            return json_dump(body)
-
-        target.delete()
 
         body = {
             'transaction_id': uuid.uuid4().hex,
@@ -518,12 +514,7 @@ class MockVuforiaWebServicesAPI:
         }
 
         if target.status != TargetStatuses.SUCCESS.value:
-            context.status_code = HTTPStatus.FORBIDDEN
-            body = {
-                'transaction_id': uuid.uuid4().hex,
-                'result_code': ResultCodes.TARGET_STATUS_NOT_SUCCESS.value,
-            }
-            return json_dump(body)
+            raise TargetStatusNotSuccess
 
         if 'width' in request.json():
             target.width = request.json()['width']
