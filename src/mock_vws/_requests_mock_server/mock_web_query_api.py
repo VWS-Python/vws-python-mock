@@ -232,10 +232,17 @@ class MockVuforiaWebQueryAPI:
             filename = 'match_processing_response.html'
             match_processing_resp_file = resources_dir / filename
             context.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-            cache_control = 'must-revalidate,no-cache,no-store'
-            context.headers['Cache-Control'] = cache_control
-            content_type = 'text/html; charset=ISO-8859-1'
-            context.headers['Content-Type'] = content_type
+            context.headers = {
+                'Connection': 'keep-alive',
+                'Content-Type': 'text/html; charset=ISO-8859-1',
+                'Server': 'nginx',
+                'Cache-Control': 'must-revalidate,no-cache,no-store',
+            }
             return Path(match_processing_resp_file).read_text()
 
+        context.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'application/json',
+            'Server': 'nginx',
+        }
         return response_text

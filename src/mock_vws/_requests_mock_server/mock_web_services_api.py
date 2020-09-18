@@ -249,6 +249,11 @@ class MockVuforiaWebServicesAPI:
         )
         database.targets.add(new_target)
 
+        context.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'application/json',
+            'Server': 'nginx',
+        }
         context.status_code = HTTPStatus.CREATED
         body = {
             'transaction_id': uuid.uuid4().hex,
@@ -277,6 +282,11 @@ class MockVuforiaWebServicesAPI:
             request_path=request.path,
             databases=self.databases,
         )
+        context.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'application/json',
+            'Server': 'nginx',
+        }
 
         if target.status == TargetStatuses.PROCESSING.value:
             context.status_code = HTTPStatus.FORBIDDEN
@@ -317,6 +327,11 @@ class MockVuforiaWebServicesAPI:
         )
 
         assert isinstance(database, VuforiaDatabase)
+        context.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'application/json',
+            'Server': 'nginx',
+        }
         body = {
             'result_code': ResultCodes.SUCCESS.value,
             'transaction_id': uuid.uuid4().hex,
@@ -356,6 +371,11 @@ class MockVuforiaWebServicesAPI:
         )
 
         assert isinstance(database, VuforiaDatabase)
+        context.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'application/json',
+            'Server': 'nginx',
+        }
 
         results = [target.target_id for target in database.not_deleted_targets]
         body: Dict[str, Union[str, List[str]]] = {
@@ -389,6 +409,11 @@ class MockVuforiaWebServicesAPI:
             'width': target.width,
             'tracking_rating': target.tracking_rating,
             'reco_rating': target.reco_rating,
+        }
+        context.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'application/json',
+            'Server': 'nginx',
         }
 
         body = {
@@ -439,6 +464,11 @@ class MockVuforiaWebServicesAPI:
             and other.active_flag
         ]
 
+        context.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'application/json',
+            'Server': 'nginx',
+        }
         body = {
             'transaction_id': uuid.uuid4().hex,
             'result_code': ResultCodes.SUCCESS.value,
@@ -476,6 +506,11 @@ class MockVuforiaWebServicesAPI:
         )
 
         assert isinstance(database, VuforiaDatabase)
+        context.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'application/json',
+            'Server': 'nginx',
+        }
 
         if target.status != TargetStatuses.SUCCESS.value:
             context.status_code = HTTPStatus.FORBIDDEN
@@ -561,6 +596,12 @@ class MockVuforiaWebServicesAPI:
         )
 
         assert isinstance(database, VuforiaDatabase)
+        context.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'application/json',
+            'Server': 'nginx',
+        }
+
         body = {
             'status': target.status,
             'transaction_id': uuid.uuid4().hex,
