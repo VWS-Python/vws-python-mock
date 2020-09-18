@@ -135,11 +135,6 @@ class MockVWS(ContextDecorator):
         Returns:
             ``self``.
         """
-        headers = {
-            'Connection': 'keep-alive',
-            'Content-Type': 'application/json',
-            'Server': 'nginx',
-        }
 
         with Mocker(real_http=self._real_http) as mock:
             for route in self._mock_vws_api.routes:
@@ -153,7 +148,6 @@ class MockVWS(ContextDecorator):
                         method=http_method,
                         url=re.compile(url_pattern),
                         text=getattr(self._mock_vws_api, route.route_name),
-                        headers=headers,
                     )
 
             for route in self._mock_vwq_api.routes:
@@ -167,7 +161,6 @@ class MockVWS(ContextDecorator):
                         method=http_method,
                         url=re.compile(url_pattern),
                         text=getattr(self._mock_vwq_api, route.route_name),
-                        headers=headers,
                     )
 
         self._mock = mock
