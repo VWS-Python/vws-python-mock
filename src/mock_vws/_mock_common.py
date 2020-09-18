@@ -62,34 +62,3 @@ def set_content_length_header(
     result = wrapped(*args, **kwargs)
     context.headers['Content-Length'] = str(len(result))
     return result
-
-
-@wrapt.decorator
-def set_date_header(
-    wrapped: Callable[..., str],
-    instance: Any,  # pylint: disable=unused-argument
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
-    """
-    Set the `Date` header.
-
-    Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
-
-    Returns:
-        The result of calling the endpoint.
-    """
-    _, context = args
-    date = email.utils.formatdate(None, localtime=False, usegmt=True)
-
-    result = wrapped(*args, **kwargs)
-    if (
-        context.headers['Connection'] != 'Close'
-        and context.status_code != HTTPStatus.GATEWAY_TIMEOUT
-    ):
-        context.headers['Date'] = date
-    return result

@@ -28,7 +28,6 @@ from mock_vws._mock_common import (
     Route,
     json_dump,
     set_content_length_header,
-    set_date_header,
 )
 from mock_vws._services_validators import run_services_validators
 from mock_vws._services_validators.exceptions import (
@@ -146,7 +145,6 @@ def route(
 
         decorators = [
             run_validators,
-            # set_date_header,
             set_content_length_header,
         ]
 

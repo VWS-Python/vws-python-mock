@@ -632,11 +632,13 @@ class MatchProcessing(Exception):
                 raised.
         """
         self.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
             'Connection': 'keep-alive',
             'Content-Type': 'text/html; charset=ISO-8859-1',
             'Server': 'nginx',
             'Cache-Control': 'must-revalidate,no-cache,no-store',
+            'Date': date,
         }
         # We return an example 500 response.
         # Each response given by Vuforia is different.
