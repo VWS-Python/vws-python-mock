@@ -301,7 +301,9 @@ class ContentLengthHeaderTooLarge(Exception):
 
     @property
     def headers(self) -> Dict[str, str]:
-        return {}
+        return {
+            'Connection': 'keep-alive',
+        }
 
 
 class ContentLengthHeaderNotInt(Exception):
@@ -323,7 +325,9 @@ class ContentLengthHeaderNotInt(Exception):
 
     @property
     def headers(self) -> Dict[str, str]:
-        return {}
+        return {
+            'Connection': 'Close',
+        }
 
 
 class UnnecessaryRequestBody(Exception):
