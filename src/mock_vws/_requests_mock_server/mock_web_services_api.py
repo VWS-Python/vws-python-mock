@@ -7,6 +7,7 @@ https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Service
 
 import base64
 import datetime
+import email.utils
 import io
 import itertools
 import random
@@ -45,6 +46,7 @@ from mock_vws._services_validators.exceptions import (
     UnknownTarget,
     UnnecessaryRequestBody,
     TargetStatusNotSuccess,
+    TargetStatusProcessing,
 )
 from mock_vws.database import VuforiaDatabase
 from mock_vws.target import Target
@@ -101,7 +103,7 @@ def run_validators(
 
     try:
         return wrapped(*args, **kwargs)
-    except (Fail, TargetStatusNotSuccess) as exc:
+    except (Fail, TargetStatusNotSuccess,TargetStatusProcessing) as exc:
         context.headers = exc.headers
         context.status_code = exc.status_code
         return exc.response_text
@@ -144,7 +146,7 @@ def route(
 
         decorators = [
             run_validators,
-            set_date_header,
+            # set_date_header,
             set_content_length_header,
         ]
 
@@ -255,10 +257,12 @@ class MockVuforiaWebServicesAPI:
         )
         database.targets.add(new_target)
 
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {
             'Connection': 'keep-alive',
             'Content-Type': 'application/json',
             'Server': 'nginx',
+            'Date': date,
         }
         context.status_code = HTTPStatus.CREATED
         body = {
@@ -293,10 +297,12 @@ class MockVuforiaWebServicesAPI:
             raise TargetStatusProcessing
 
         target.delete()
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {
             'Connection': 'keep-alive',
             'Content-Type': 'application/json',
             'Server': 'nginx',
+            'Date': date,
         }
 
         body = {
@@ -328,10 +334,12 @@ class MockVuforiaWebServicesAPI:
         )
 
         assert isinstance(database, VuforiaDatabase)
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {
             'Connection': 'keep-alive',
             'Content-Type': 'application/json',
             'Server': 'nginx',
+            'Date': date,
         }
         body = {
             'result_code': ResultCodes.SUCCESS.value,
@@ -372,10 +380,12 @@ class MockVuforiaWebServicesAPI:
         )
 
         assert isinstance(database, VuforiaDatabase)
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {
             'Connection': 'keep-alive',
             'Content-Type': 'application/json',
             'Server': 'nginx',
+            'Date': date,
         }
 
         results = [target.target_id for target in database.not_deleted_targets]
@@ -411,10 +421,12 @@ class MockVuforiaWebServicesAPI:
             'tracking_rating': target.tracking_rating,
             'reco_rating': target.reco_rating,
         }
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {
             'Connection': 'keep-alive',
             'Content-Type': 'application/json',
             'Server': 'nginx',
+            'Date': date,
         }
 
         body = {
@@ -465,10 +477,12 @@ class MockVuforiaWebServicesAPI:
             and other.active_flag
         ]
 
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {
             'Connection': 'keep-alive',
             'Content-Type': 'application/json',
             'Server': 'nginx',
+            'Date': date,
         }
         body = {
             'transaction_id': uuid.uuid4().hex,
@@ -507,10 +521,12 @@ class MockVuforiaWebServicesAPI:
         )
 
         assert isinstance(database, VuforiaDatabase)
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {
             'Connection': 'keep-alive',
             'Content-Type': 'application/json',
             'Server': 'nginx',
+            'Date': date,
         }
 
         if target.status != TargetStatuses.SUCCESS.value:
@@ -583,10 +599,12 @@ class MockVuforiaWebServicesAPI:
         )
 
         assert isinstance(database, VuforiaDatabase)
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {
             'Connection': 'keep-alive',
             'Content-Type': 'application/json',
             'Server': 'nginx',
+            'Date': date,
         }
 
         body = {
