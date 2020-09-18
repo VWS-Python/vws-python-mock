@@ -13,6 +13,7 @@ import requests
 from flask import Flask, Response, request
 from PIL import Image
 from werkzeug.datastructures import Headers
+# TODO see if we can go without any werkzeug imports and then no direct requirement
 from werkzeug.wsgi import ClosingIterator
 
 from mock_vws._constants import ResultCodes, TargetStatuses
@@ -107,11 +108,11 @@ def validate_request() -> None:
 @VWS_FLASK_APP.errorhandler(OopsErrorOccurredResponse)
 # TODO update name and type hint here
 def handle_unknown_target(e: UnknownTarget) -> Response:
-    response = Response()
-    response.status_code = e.status_code
-    response.set_data(e.response_text)
-    response.headers = Headers(e.headers)
-    return response
+    return Response(
+        status=e.status_code,
+        response=e.response_text,
+        headers=e.headers,
+    )
 
 
 @VWS_FLASK_APP.route('/targets', methods=['POST'])

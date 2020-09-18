@@ -127,6 +127,7 @@ def handle_connection_error(
 @CLOUDRECO_FLASK_APP.errorhandler(ContentLengthHeaderNotInt)
 @CLOUDRECO_FLASK_APP.errorhandler(ContentLengthHeaderTooLarge)
 @CLOUDRECO_FLASK_APP.errorhandler(QueryOutOfBounds)
+# TODO use a base type for these requests
 def handle_request_time_too_skewed(
     e: RequestTimeTooSkewed,
 ) -> Response:
@@ -138,7 +139,7 @@ def handle_request_time_too_skewed(
 
 
 @CLOUDRECO_FLASK_APP.route('/v1/query', methods=['POST'])
-def query() -> Union[Tuple[str, int], Tuple[str, int, Dict[str, Any]]]:
+def query() -> Response:
 
     # TODO these should be configurable
     query_processes_deletion_seconds = 0.2
@@ -181,7 +182,11 @@ def query() -> Union[Tuple[str, int], Tuple[str, int, Dict[str, Any]]]:
             'Cache-Control': 'must-revalidate,no-cache,no-store',
         }
         response_text = match_processing_resp_file.read_text()
-        return (response_text, HTTPStatus.INTERNAL_SERVER_ERROR, headers)
+        return Response(
+            status=HTTPStatus.INTERNAL_SERVER_ERROR,
+            response=response_text,
+            headers=headers,
+        )
 
     headers = {
         'Content-Type': 'application/json',
@@ -189,4 +194,8 @@ def query() -> Union[Tuple[str, int], Tuple[str, int, Dict[str, Any]]]:
         'Connection': 'keep-alive',
         'Server': 'nginx',
     }
-    return (response_text, HTTPStatus.OK, headers)
+    return Response(
+        status=HTTPStatus.OK,
+        response=response_text,
+        headers=headers,
+    )
