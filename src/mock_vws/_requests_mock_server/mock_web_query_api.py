@@ -13,10 +13,7 @@ from requests_mock import POST
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
-from mock_vws._mock_common import (
-    Route,
-    set_content_length_header,
-)
+from mock_vws._mock_common import Route, set_content_length_header
 from mock_vws._query_tools import (
     ActiveMatchingTargetsDeleteProcessing,
     MatchingTargetsWithProcessingStatus,

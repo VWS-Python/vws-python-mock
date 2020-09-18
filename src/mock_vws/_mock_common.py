@@ -2,10 +2,8 @@
 Common utilities for creating mock routes.
 """
 
-import email.utils
 import json
 from dataclasses import dataclass
-from http import HTTPStatus
 from typing import Any, Callable, Dict, FrozenSet, Tuple
 
 import wrapt

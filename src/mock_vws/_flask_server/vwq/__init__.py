@@ -1,16 +1,14 @@
 import copy
 import email.utils
 from http import HTTPStatus
-from pathlib import Path
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Optional
 
 import requests
 from flask import Flask, Response, request
 from werkzeug.datastructures import Headers
 from werkzeug.wsgi import ClosingIterator
 
-from mock_vws._query_tools import (
-    # TODO remove each of these and just raise the validator exception
+from mock_vws._query_tools import (  # TODO remove each of these and just raise the validator exception
     ActiveMatchingTargetsDeleteProcessing,
     MatchingTargetsWithProcessingStatus,
     get_query_match_response_text,
@@ -32,13 +30,13 @@ from mock_vws._query_validators.exceptions import (
     InvalidIncludeTargetData,
     InvalidMaxNumResults,
     MalformedAuthHeader,
+    MatchProcessing,
     MaxNumResultsOutOfRange,
     NoBoundaryFound,
     QueryOutOfBounds,
     RequestTimeTooSkewed,
     UnknownParameters,
     UnsupportedMediaType,
-    MatchProcessing,
 )
 
 from ..vws._databases import get_all_databases

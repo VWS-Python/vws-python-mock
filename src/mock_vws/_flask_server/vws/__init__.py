@@ -8,14 +8,12 @@ import io
 import json
 import uuid
 from http import HTTPStatus
-from typing import Dict, List, Tuple, Union, Optional
+from typing import Dict, List, Optional
 
 import requests
 from flask import Flask, Response, request
 from PIL import Image
 from werkzeug.datastructures import Headers
-# TODO see if we can go without any werkzeug imports and then no direct requirement
-from werkzeug.wsgi import ClosingIterator
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
@@ -33,16 +31,20 @@ from mock_vws._services_validators.exceptions import (
     ProjectInactive,
     RequestTimeTooSkewed,
     TargetNameExist,
-    UnknownTarget,
-    UnnecessaryRequestBody,
     TargetStatusNotSuccess,
     TargetStatusProcessing,
+    UnknownTarget,
+    UnnecessaryRequestBody,
 )
 from mock_vws.database import VuforiaDatabase
 from mock_vws.target import Target
 
 from ._constants import STORAGE_BASE_URL
 from ._databases import get_all_databases
+
+# TODO see if we can go without any werkzeug imports and then no direct requirement
+
+
 
 VWS_FLASK_APP = Flask(import_name=__name__)
 VWS_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
@@ -75,10 +77,10 @@ class ResponseNoContentTypeAdded(Response):
         )
 
         if (
-            content_type is None and
-            self.headers and
-            'Content-Type' in self.headers and
-            not content_type_from_headers
+            content_type is None
+            and self.headers
+            and 'Content-Type' in self.headers
+            and not content_type_from_headers
         ):
             headers_dict = dict(self.headers)
             headers_dict.pop('Content-Type')
@@ -99,7 +101,6 @@ def validate_request() -> None:
         request_path=request.path,
         databases=databases,
     )
-
 
 
 @VWS_FLASK_APP.errorhandler(UnknownTarget)
@@ -252,7 +253,6 @@ def delete_target(target_id: str) -> Response:
     Fake implementation of
     https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Delete-a-Target
     """
-    body: Dict[str, str] = {}
     databases = get_all_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
@@ -302,8 +302,6 @@ def database_summary() -> Response:
     Fake implementation of
     https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Get-a-Database-Summary-Report
     """
-    body: Dict[str, Union[str, int]] = {}
-
     databases = get_all_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
@@ -465,7 +463,7 @@ def target_list() -> Response:
     assert isinstance(database, VuforiaDatabase)
     results = [target.target_id for target in database.not_deleted_targets]
 
-    body: Dict[str, Union[str, List[str]]] = {
+    body = {
         'transaction_id': uuid.uuid4().hex,
         'result_code': ResultCodes.SUCCESS.value,
         'results': results,
@@ -495,7 +493,6 @@ def update_target(target_id: str) -> Response:
     # We do not use ``request.get_json(force=True)`` because this only works
     # when the content type is given as ``application/json``.
     request_json = json.loads(request.data)
-    body: Dict[str, str] = {}
     databases = get_all_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
