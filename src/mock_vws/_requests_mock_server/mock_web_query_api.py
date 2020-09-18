@@ -5,6 +5,7 @@ See
 https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query
 """
 
+import email.utils
 from typing import Any, Callable, Dict, Set, Tuple, Union
 
 import wrapt
@@ -15,7 +16,6 @@ from requests_mock.response import _Context
 from mock_vws._mock_common import (
     Route,
     set_content_length_header,
-    set_date_header,
 )
 from mock_vws._query_tools import (
     ActiveMatchingTargetsDeleteProcessing,
@@ -149,7 +149,6 @@ def route(
 
         decorators = [
             run_validators,
-            set_date_header,
             set_content_length_header,
         ]
 
@@ -227,9 +226,11 @@ class MockVuforiaWebQueryAPI:
         ):
             raise MatchProcessing
 
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {
             'Connection': 'keep-alive',
             'Content-Type': 'application/json',
             'Server': 'nginx',
+            'Date': date,
         }
         return response_text

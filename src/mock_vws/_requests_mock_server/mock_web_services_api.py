@@ -7,6 +7,7 @@ https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Service
 
 import base64
 import datetime
+import email.utils
 import io
 import itertools
 import random
@@ -27,7 +28,6 @@ from mock_vws._mock_common import (
     Route,
     json_dump,
     set_content_length_header,
-    set_date_header,
 )
 from mock_vws._services_validators import run_services_validators
 from mock_vws._services_validators.exceptions import (
@@ -44,6 +44,8 @@ from mock_vws._services_validators.exceptions import (
     TargetNameExist,
     UnknownTarget,
     UnnecessaryRequestBody,
+    TargetStatusNotSuccess,
+    TargetStatusProcessing,
 )
 from mock_vws.database import VuforiaDatabase
 from mock_vws.target import Target
@@ -98,7 +100,12 @@ def run_validators(
         context.status_code = exc.status_code
         return exc.response_text
 
-    return wrapped(*args, **kwargs)
+    try:
+        return wrapped(*args, **kwargs)
+    except (Fail, TargetStatusNotSuccess,TargetStatusProcessing) as exc:
+        context.headers = exc.headers
+        context.status_code = exc.status_code
+        return exc.response_text
 
 
 ROUTES = set([])
@@ -138,7 +145,6 @@ def route(
 
         decorators = [
             run_validators,
-            set_date_header,
             set_content_length_header,
         ]
 
@@ -249,10 +255,12 @@ class MockVuforiaWebServicesAPI:
         )
         database.targets.add(new_target)
 
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {
             'Connection': 'keep-alive',
             'Content-Type': 'application/json',
             'Server': 'nginx',
+            'Date': date,
         }
         context.status_code = HTTPStatus.CREATED
         body = {
@@ -282,21 +290,18 @@ class MockVuforiaWebServicesAPI:
             request_path=request.path,
             databases=self.databases,
         )
+
+        if target.status == TargetStatuses.PROCESSING.value:
+            raise TargetStatusProcessing
+
+        target.delete()
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {
             'Connection': 'keep-alive',
             'Content-Type': 'application/json',
             'Server': 'nginx',
+            'Date': date,
         }
-
-        if target.status == TargetStatuses.PROCESSING.value:
-            context.status_code = HTTPStatus.FORBIDDEN
-            body = {
-                'transaction_id': uuid.uuid4().hex,
-                'result_code': ResultCodes.TARGET_STATUS_PROCESSING.value,
-            }
-            return json_dump(body)
-
-        target.delete()
 
         body = {
             'transaction_id': uuid.uuid4().hex,
@@ -327,10 +332,12 @@ class MockVuforiaWebServicesAPI:
         )
 
         assert isinstance(database, VuforiaDatabase)
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {
             'Connection': 'keep-alive',
             'Content-Type': 'application/json',
             'Server': 'nginx',
+            'Date': date,
         }
         body = {
             'result_code': ResultCodes.SUCCESS.value,
@@ -371,10 +378,12 @@ class MockVuforiaWebServicesAPI:
         )
 
         assert isinstance(database, VuforiaDatabase)
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {
             'Connection': 'keep-alive',
             'Content-Type': 'application/json',
             'Server': 'nginx',
+            'Date': date,
         }
 
         results = [target.target_id for target in database.not_deleted_targets]
@@ -410,10 +419,12 @@ class MockVuforiaWebServicesAPI:
             'tracking_rating': target.tracking_rating,
             'reco_rating': target.reco_rating,
         }
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {
             'Connection': 'keep-alive',
             'Content-Type': 'application/json',
             'Server': 'nginx',
+            'Date': date,
         }
 
         body = {
@@ -464,10 +475,12 @@ class MockVuforiaWebServicesAPI:
             and other.active_flag
         ]
 
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {
             'Connection': 'keep-alive',
             'Content-Type': 'application/json',
             'Server': 'nginx',
+            'Date': date,
         }
         body = {
             'transaction_id': uuid.uuid4().hex,
@@ -506,19 +519,16 @@ class MockVuforiaWebServicesAPI:
         )
 
         assert isinstance(database, VuforiaDatabase)
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {
             'Connection': 'keep-alive',
             'Content-Type': 'application/json',
             'Server': 'nginx',
+            'Date': date,
         }
 
         if target.status != TargetStatuses.SUCCESS.value:
-            context.status_code = HTTPStatus.FORBIDDEN
-            body = {
-                'transaction_id': uuid.uuid4().hex,
-                'result_code': ResultCodes.TARGET_STATUS_NOT_SUCCESS.value,
-            }
-            return json_dump(body)
+            raise TargetStatusNotSuccess
 
         if 'width' in request.json():
             target.width = request.json()['width']
@@ -526,23 +536,14 @@ class MockVuforiaWebServicesAPI:
         if 'active_flag' in request.json():
             active_flag = request.json()['active_flag']
             if active_flag is None:
-                body = {
-                    'transaction_id': uuid.uuid4().hex,
-                    'result_code': ResultCodes.FAIL.value,
-                }
-                context.status_code = HTTPStatus.BAD_REQUEST
-                return json_dump(body)
+                raise Fail(status_code=HTTPStatus.BAD_REQUEST)
+
             target.active_flag = active_flag
 
         if 'application_metadata' in request.json():
-            if request.json()['application_metadata'] is None:
-                body = {
-                    'transaction_id': uuid.uuid4().hex,
-                    'result_code': ResultCodes.FAIL.value,
-                }
-                context.status_code = HTTPStatus.BAD_REQUEST
-                return json_dump(body)
             application_metadata = request.json()['application_metadata']
+            if application_metadata is None:
+                raise Fail(status_code=HTTPStatus.BAD_REQUEST)
             target.application_metadata = application_metadata
 
         if 'name' in request.json():
@@ -596,10 +597,12 @@ class MockVuforiaWebServicesAPI:
         )
 
         assert isinstance(database, VuforiaDatabase)
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {
             'Connection': 'keep-alive',
             'Content-Type': 'application/json',
             'Server': 'nginx',
+            'Date': date,
         }
 
         body = {
