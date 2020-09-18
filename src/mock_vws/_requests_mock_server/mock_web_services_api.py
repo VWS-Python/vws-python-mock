@@ -98,7 +98,12 @@ def run_validators(
         context.status_code = exc.status_code
         return exc.response_text
 
-    return wrapped(*args, **kwargs)
+    try:
+        return wrapped(*args, **kwargs)
+    except Fail as exc:
+        context.headers = exc.headers
+        context.status_code = exc.status_code
+        return exc.response_text
 
 
 ROUTES = set([])
@@ -526,23 +531,14 @@ class MockVuforiaWebServicesAPI:
         if 'active_flag' in request.json():
             active_flag = request.json()['active_flag']
             if active_flag is None:
-                body = {
-                    'transaction_id': uuid.uuid4().hex,
-                    'result_code': ResultCodes.FAIL.value,
-                }
-                context.status_code = HTTPStatus.BAD_REQUEST
-                return json_dump(body)
+                raise Fail(status_code=HTTPStatus.BAD_REQUEST)
+
             target.active_flag = active_flag
 
         if 'application_metadata' in request.json():
-            if request.json()['application_metadata'] is None:
-                body = {
-                    'transaction_id': uuid.uuid4().hex,
-                    'result_code': ResultCodes.FAIL.value,
-                }
-                context.status_code = HTTPStatus.BAD_REQUEST
-                return json_dump(body)
             application_metadata = request.json()['application_metadata']
+            if application_metadata is None:
+                raise Fail(status_code=HTTPStatus.BAD_REQUEST)
             target.application_metadata = application_metadata
 
         if 'name' in request.json():
