@@ -1,12 +1,11 @@
 import copy
 import email.utils
 from http import HTTPStatus
-from typing import Optional
+from typing import Dict, Optional
 
 import requests
 from flask import Flask, Response, request
 from werkzeug.datastructures import Headers
-from werkzeug.wsgi import ClosingIterator
 
 from mock_vws._query_tools import (  # TODO remove each of these and just raise the validator exception
     ActiveMatchingTargetsDeleteProcessing,
@@ -15,28 +14,8 @@ from mock_vws._query_tools import (  # TODO remove each of these and just raise 
 )
 from mock_vws._query_validators import run_query_validators
 from mock_vws._query_validators.exceptions import (
-    AuthenticationFailure,
-    AuthenticationFailureGoodFormatting,
-    AuthHeaderMissing,
-    BadImage,
-    BoundaryNotInBody,
-    ContentLengthHeaderNotInt,
-    ContentLengthHeaderTooLarge,
-    DateFormatNotValid,
-    DateHeaderNotGiven,
-    ImageNotGiven,
-    InactiveProject,
-    InvalidAcceptHeader,
-    InvalidIncludeTargetData,
-    InvalidMaxNumResults,
-    MalformedAuthHeader,
     MatchProcessing,
-    MaxNumResultsOutOfRange,
-    NoBoundaryFound,
-    QueryOutOfBounds,
-    RequestTimeTooSkewed,
-    UnknownParameters,
-    UnsupportedMediaType,
+    ValidatorException,
 )
 
 from ..vws._databases import get_all_databases
@@ -63,12 +42,12 @@ def validate_request() -> None:
 # We use a custom response type.
 # Without this, a content type is added to all responses.
 # Some of our responses need to not have a "Content-Type" header.
-class MyResponse(Response):
+class ResponseNoContentTypeAdded(Response):
     def __init__(
         self,
-        response: Optional[ClosingIterator] = None,
-        status: Optional[str] = None,
-        headers: Optional[Headers] = None,
+        response: Optional[str] = None,
+        status: Optional[int] = None,
+        headers: Optional[Dict[str, str]] = None,
         mimetype: Optional[str] = None,
         content_type: Optional[str] = None,
         direct_passthrough: bool = False,
@@ -87,13 +66,18 @@ class MyResponse(Response):
             direct_passthrough=direct_passthrough,
         )
 
-        if content_type is None and headers and not content_type_from_headers:
-            headers_dict = dict(headers)
+        if (
+            content_type is None
+            and self.headers
+            and 'Content-Type' in self.headers
+            and not content_type_from_headers
+        ):
+            headers_dict = dict(self.headers)
             headers_dict.pop('Content-Type')
             self.headers = Headers(headers_dict)
 
 
-CLOUDRECO_FLASK_APP.response_class = MyResponse
+CLOUDRECO_FLASK_APP.response_class = ResponseNoContentTypeAdded
 
 
 @CLOUDRECO_FLASK_APP.errorhandler(requests.exceptions.ConnectionError)
@@ -107,38 +91,13 @@ def handle_connection_error(
     raise e
 
 
-@CLOUDRECO_FLASK_APP.errorhandler(AuthHeaderMissing)
-@CLOUDRECO_FLASK_APP.errorhandler(AuthenticationFailure)
-@CLOUDRECO_FLASK_APP.errorhandler(AuthenticationFailureGoodFormatting)
-@CLOUDRECO_FLASK_APP.errorhandler(BadImage)
-@CLOUDRECO_FLASK_APP.errorhandler(BoundaryNotInBody)
-@CLOUDRECO_FLASK_APP.errorhandler(DateFormatNotValid)
-@CLOUDRECO_FLASK_APP.errorhandler(DateHeaderNotGiven)
-@CLOUDRECO_FLASK_APP.errorhandler(ImageNotGiven)
-@CLOUDRECO_FLASK_APP.errorhandler(InactiveProject)
-@CLOUDRECO_FLASK_APP.errorhandler(InvalidAcceptHeader)
-@CLOUDRECO_FLASK_APP.errorhandler(InvalidIncludeTargetData)
-@CLOUDRECO_FLASK_APP.errorhandler(InvalidMaxNumResults)
-@CLOUDRECO_FLASK_APP.errorhandler(MalformedAuthHeader)
-@CLOUDRECO_FLASK_APP.errorhandler(MaxNumResultsOutOfRange)
-@CLOUDRECO_FLASK_APP.errorhandler(NoBoundaryFound)
-@CLOUDRECO_FLASK_APP.errorhandler(RequestTimeTooSkewed)
-@CLOUDRECO_FLASK_APP.errorhandler(UnknownParameters)
-@CLOUDRECO_FLASK_APP.errorhandler(UnsupportedMediaType)
-@CLOUDRECO_FLASK_APP.errorhandler(ContentLengthHeaderNotInt)
-@CLOUDRECO_FLASK_APP.errorhandler(ContentLengthHeaderTooLarge)
-@CLOUDRECO_FLASK_APP.errorhandler(QueryOutOfBounds)
-@CLOUDRECO_FLASK_APP.errorhandler(MatchProcessing)
-# TODO use a base type for these requests
-# TODO change the name and type hint of this function
-def handle_request_time_too_skewed(
-    e: RequestTimeTooSkewed,
-) -> Response:
-    response = Response()
-    response.status_code = e.status_code
-    response.set_data(e.response_text)
-    response.headers = Headers(e.headers)
-    return response
+@CLOUDRECO_FLASK_APP.errorhandler(ValidatorException)
+def handle_exceptions(exc: ValidatorException) -> Response:
+    return ResponseNoContentTypeAdded(
+        status=exc.status_code.value,
+        response=exc.response_text,
+        headers=exc.headers,
+    )
 
 
 @CLOUDRECO_FLASK_APP.route('/v1/query', methods=['POST'])

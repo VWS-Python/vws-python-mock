@@ -20,31 +20,16 @@ from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._mock_common import json_dump
 from mock_vws._services_validators import run_services_validators
 from mock_vws._services_validators.exceptions import (
-    AuthenticationFailure,
-    BadImage,
-    ContentLengthHeaderNotInt,
-    ContentLengthHeaderTooLarge,
     Fail,
-    ImageTooLarge,
-    MetadataTooLarge,
-    OopsErrorOccurredResponse,
-    ProjectInactive,
-    RequestTimeTooSkewed,
-    TargetNameExist,
     TargetStatusNotSuccess,
     TargetStatusProcessing,
-    UnknownTarget,
-    UnnecessaryRequestBody,
+    ValidatorException,
 )
 from mock_vws.database import VuforiaDatabase
 from mock_vws.target import Target
 
 from ._constants import STORAGE_BASE_URL
 from ._databases import get_all_databases
-
-# TODO see if we can go without any werkzeug imports and then no direct requirement
-
-
 
 VWS_FLASK_APP = Flask(import_name=__name__)
 VWS_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
@@ -103,27 +88,12 @@ def validate_request() -> None:
     )
 
 
-@VWS_FLASK_APP.errorhandler(UnknownTarget)
-@VWS_FLASK_APP.errorhandler(ProjectInactive)
-@VWS_FLASK_APP.errorhandler(AuthenticationFailure)
-@VWS_FLASK_APP.errorhandler(Fail)
-@VWS_FLASK_APP.errorhandler(MetadataTooLarge)
-@VWS_FLASK_APP.errorhandler(TargetNameExist)
-@VWS_FLASK_APP.errorhandler(BadImage)
-@VWS_FLASK_APP.errorhandler(ImageTooLarge)
-@VWS_FLASK_APP.errorhandler(RequestTimeTooSkewed)
-@VWS_FLASK_APP.errorhandler(ContentLengthHeaderTooLarge)
-@VWS_FLASK_APP.errorhandler(ContentLengthHeaderNotInt)
-@VWS_FLASK_APP.errorhandler(UnnecessaryRequestBody)
-@VWS_FLASK_APP.errorhandler(OopsErrorOccurredResponse)
-@VWS_FLASK_APP.errorhandler(TargetStatusProcessing)
-@VWS_FLASK_APP.errorhandler(TargetStatusNotSuccess)
-# TODO update name and type hint here
-def handle_unknown_target(e: UnknownTarget) -> Response:
+@VWS_FLASK_APP.errorhandler(ValidatorException)
+def handle_exceptions(exc: ValidatorException) -> Response:
     return ResponseNoContentTypeAdded(
-        status=e.status_code.value,
-        response=e.response_text,
-        headers=e.headers,
+        status=exc.status_code.value,
+        response=exc.response_text,
+        headers=exc.headers,
     )
 
 
@@ -137,8 +107,6 @@ def add_target() -> Response:
     """
     # We do not use ``request.get_json(force=True)`` because this only works
     # when the content type is given as ``application/json``.
-    request_json = json.loads(request.data)
-    name = request_json['name']
     databases = get_all_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
@@ -150,6 +118,8 @@ def add_target() -> Response:
 
     assert isinstance(database, VuforiaDatabase)
 
+    request_json = json.loads(request.data)
+    name = request_json['name']
     active_flag = request_json.get('active_flag')
     if active_flag is None:
         active_flag = True

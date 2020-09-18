@@ -1,6 +1,7 @@
 """
 A fake implementation of a target for the Vuforia Web Services API.
 """
+from __future__ import annotations
 
 import base64
 import datetime
@@ -176,6 +177,14 @@ class Target:  # pylint: disable=too-many-instance-attributes
             return self.processed_tracking_rating
 
         return 0
+
+    @classmethod
+    def from_dict(
+        cls, data: Dict[str, Optional[Union[str, int, bool, float]]]
+    ) -> Target:
+        """
+        TODO
+        """
 
     def to_dict(self) -> Dict[str, Optional[Union[str, int, bool, float]]]:
         delete_date: Optional[str] = None

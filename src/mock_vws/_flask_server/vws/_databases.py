@@ -35,6 +35,7 @@ def get_all_databases() -> Set[VuforiaDatabase]:
         )
 
         for target_dict in database_dict['targets']:
+            # TODO target.from_dict()
             name = target_dict['name']
             active_flag = target_dict['active_flag']
             width = target_dict['width']
