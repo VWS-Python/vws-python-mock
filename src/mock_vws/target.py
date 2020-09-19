@@ -198,7 +198,7 @@ class Target:  # pylint: disable=too-many-instance-attributes
     @classmethod
     def from_dict(cls, target_dict: TargetDict) -> Target:
         """
-        TODO
+        Load a target from a dictionary.
         """
         name = target_dict['name']
         active_flag = target_dict['active_flag']
