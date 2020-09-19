@@ -13,10 +13,7 @@ from requests_mock import POST
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
-from mock_vws._mock_common import (
-    Route,
-    set_content_length_header,
-)
+from mock_vws._mock_common import Route, set_content_length_header
 from mock_vws._query_tools import (
     ActiveMatchingTargetsDeleteProcessing,
     MatchingTargetsWithProcessingStatus,
@@ -24,28 +21,8 @@ from mock_vws._query_tools import (
 )
 from mock_vws._query_validators import run_query_validators
 from mock_vws._query_validators.exceptions import (
-    AuthenticationFailure,
-    AuthenticationFailureGoodFormatting,
-    AuthHeaderMissing,
-    BadImage,
-    BoundaryNotInBody,
-    ContentLengthHeaderNotInt,
-    ContentLengthHeaderTooLarge,
-    DateFormatNotValid,
-    DateHeaderNotGiven,
-    ImageNotGiven,
-    InactiveProject,
-    InvalidAcceptHeader,
-    InvalidIncludeTargetData,
-    InvalidMaxNumResults,
-    MalformedAuthHeader,
     MatchProcessing,
-    MaxNumResultsOutOfRange,
-    NoBoundaryFound,
-    QueryOutOfBounds,
-    RequestTimeTooSkewed,
-    UnknownParameters,
-    UnsupportedMediaType,
+    ValidatorException,
 )
 from mock_vws.database import VuforiaDatabase
 
@@ -80,36 +57,8 @@ def run_validators(
             request_method=request.method,
             databases=instance.databases,
         )
-    except (
-        AuthHeaderMissing,
-        AuthenticationFailure,
-        AuthenticationFailureGoodFormatting,
-        BadImage,
-        BoundaryNotInBody,
-        DateFormatNotValid,
-        DateHeaderNotGiven,
-        ImageNotGiven,
-        InactiveProject,
-        InvalidAcceptHeader,
-        InvalidIncludeTargetData,
-        InvalidMaxNumResults,
-        MalformedAuthHeader,
-        MaxNumResultsOutOfRange,
-        NoBoundaryFound,
-        RequestTimeTooSkewed,
-        UnknownParameters,
-        UnsupportedMediaType,
-        ContentLengthHeaderNotInt,
-        ContentLengthHeaderTooLarge,
-        QueryOutOfBounds,
-    ) as exc:
-        context.headers = exc.headers
-        context.status_code = exc.status_code
-        return exc.response_text
-
-    try:
         return wrapped(*args, **kwargs)
-    except MatchProcessing as exc:
+    except ValidatorException as exc:
         context.headers = exc.headers
         context.status_code = exc.status_code
         return exc.response_text
@@ -223,8 +172,8 @@ class MockVuforiaWebQueryAPI:
         except (
             ActiveMatchingTargetsDeleteProcessing,
             MatchingTargetsWithProcessingStatus,
-        ):
-            raise MatchProcessing
+        ) as exc:
+            raise MatchProcessing from exc
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {

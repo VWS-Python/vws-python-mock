@@ -6,12 +6,24 @@ import email.utils
 import uuid
 from http import HTTPStatus
 from pathlib import Path
+from typing import Dict
 
 from mock_vws._constants import ResultCodes
 from mock_vws._mock_common import json_dump
 
 
-class DateHeaderNotGiven(Exception):
+class ValidatorException(Exception):
+    """
+    A base class for exceptions thrown from mock Vuforia cloud recognition
+    client endpoints.
+    """
+
+    status_code: HTTPStatus
+    response_text: str
+    headers: Dict[str, str]
+
+
+class DateHeaderNotGiven(ValidatorException):
     """
     Exception raised when a date header is not given.
     """
@@ -36,7 +48,7 @@ class DateHeaderNotGiven(Exception):
         }
 
 
-class DateFormatNotValid(Exception):
+class DateFormatNotValid(ValidatorException):
     """
     Exception raised when the date format is not valid.
     """
@@ -62,7 +74,7 @@ class DateFormatNotValid(Exception):
         }
 
 
-class RequestTimeTooSkewed(Exception):
+class RequestTimeTooSkewed(ValidatorException):
     """
     Exception raised when Vuforia returns a response with a result code
     'RequestTimeTooSkewed'.
@@ -92,7 +104,7 @@ class RequestTimeTooSkewed(Exception):
         }
 
 
-class BadImage(Exception):
+class BadImage(ValidatorException):
     """
     Exception raised when Vuforia returns a response with a result code
     'BadImage'.
@@ -129,7 +141,7 @@ class BadImage(Exception):
         }
 
 
-class AuthenticationFailure(Exception):
+class AuthenticationFailure(ValidatorException):
     """
     Exception raised when Vuforia returns a response with a result code
     'AuthenticationFailure'.
@@ -166,7 +178,7 @@ class AuthenticationFailure(Exception):
         }
 
 
-class AuthenticationFailureGoodFormatting(Exception):
+class AuthenticationFailureGoodFormatting(ValidatorException):
     """
     Exception raised when Vuforia returns a response with a result code
     'AuthenticationFailure' with a standard JSON formatting.
@@ -198,7 +210,7 @@ class AuthenticationFailureGoodFormatting(Exception):
         }
 
 
-class ImageNotGiven(Exception):
+class ImageNotGiven(ValidatorException):
     """
     Exception raised when an image is not given.
     """
@@ -224,7 +236,7 @@ class ImageNotGiven(Exception):
         }
 
 
-class AuthHeaderMissing(Exception):
+class AuthHeaderMissing(ValidatorException):
     """
     Exception raised when an auth header is not given.
     """
@@ -251,7 +263,7 @@ class AuthHeaderMissing(Exception):
         }
 
 
-class MalformedAuthHeader(Exception):
+class MalformedAuthHeader(ValidatorException):
     """
     Exception raised when an auth header is not given.
     """
@@ -278,7 +290,7 @@ class MalformedAuthHeader(Exception):
         }
 
 
-class UnknownParameters(Exception):
+class UnknownParameters(ValidatorException):
     """
     Exception raised when unknown parameters are given.
     """
@@ -304,7 +316,7 @@ class UnknownParameters(Exception):
         }
 
 
-class InactiveProject(Exception):
+class InactiveProject(ValidatorException):
     """
     Exception raised when Vuforia returns a response with a result code
     'InactiveProject'.
@@ -340,7 +352,7 @@ class InactiveProject(Exception):
         }
 
 
-class InvalidMaxNumResults(Exception):
+class InvalidMaxNumResults(ValidatorException):
     """
     Exception raised when an invalid value is given as the
     "max_num_results" field.
@@ -371,7 +383,7 @@ class InvalidMaxNumResults(Exception):
         }
 
 
-class MaxNumResultsOutOfRange(Exception):
+class MaxNumResultsOutOfRange(ValidatorException):
     """
     Exception raised when an integer value is given as the "max_num_results"
     field which is out of range.
@@ -402,7 +414,7 @@ class MaxNumResultsOutOfRange(Exception):
         }
 
 
-class InvalidIncludeTargetData(Exception):
+class InvalidIncludeTargetData(ValidatorException):
     """
     Exception raised when an invalid value is given as the
     "include_target_data" field.
@@ -435,7 +447,7 @@ class InvalidIncludeTargetData(Exception):
         }
 
 
-class UnsupportedMediaType(Exception):
+class UnsupportedMediaType(ValidatorException):
     """
     Exception raised when no boundary is found for multipart data.
     """
@@ -460,7 +472,7 @@ class UnsupportedMediaType(Exception):
         }
 
 
-class InvalidAcceptHeader(Exception):
+class InvalidAcceptHeader(ValidatorException):
     """
     Exception raised when there is an invalid accept header given.
     """
@@ -485,7 +497,7 @@ class InvalidAcceptHeader(Exception):
         }
 
 
-class BoundaryNotInBody(Exception):
+class BoundaryNotInBody(ValidatorException):
     """
     Exception raised when the form boundary is not in the request body.
     """
@@ -514,7 +526,7 @@ class BoundaryNotInBody(Exception):
         }
 
 
-class NoBoundaryFound(Exception):
+class NoBoundaryFound(ValidatorException):
     """
     Exception raised when an invalid media type is given.
     """
@@ -543,7 +555,7 @@ class NoBoundaryFound(Exception):
         }
 
 
-class QueryOutOfBounds(Exception):
+class QueryOutOfBounds(ValidatorException):
     """
     Exception raised when VWS returns an HTML page which says that there is a
     particular out of bounds error.
@@ -575,7 +587,7 @@ class QueryOutOfBounds(Exception):
         }
 
 
-class ContentLengthHeaderTooLarge(Exception):
+class ContentLengthHeaderTooLarge(ValidatorException):
     """
     Exception raised when the given content length header is too large.
     """
@@ -596,7 +608,7 @@ class ContentLengthHeaderTooLarge(Exception):
         }
 
 
-class ContentLengthHeaderNotInt(Exception):
+class ContentLengthHeaderNotInt(ValidatorException):
     """
     Exception raised when the given content length header is not an integer.
     """
@@ -617,7 +629,7 @@ class ContentLengthHeaderNotInt(Exception):
         }
 
 
-class MatchProcessing(Exception):
+class MatchProcessing(ValidatorException):
     """
     Exception raised a target is matched which is processing or recently
     deleted.
@@ -631,6 +643,7 @@ class MatchProcessing(Exception):
             response_text: The response text to use in a response if this is
                 raised.
         """
+        super().__init__()
         self.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {

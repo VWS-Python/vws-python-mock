@@ -12,7 +12,7 @@ import yaml
 
 def _ci_patterns() -> Set[str]:
     """
-    Return the CI patterns given in the CI config file.
+    Return the CI patterns given in the CI configuration file.
     """
     repository_root = Path(__file__).parent.parent
     ci_file = repository_root / '.github' / 'workflows' / 'ci.yml'
@@ -41,8 +41,8 @@ def _tests_from_pattern(ci_pattern: str) -> Set[str]:
 
 def test_ci_patterns_valid() -> None:
     """
-    All of the CI patterns in the CI config match at least one test in the test
-    suite.
+    All of the CI patterns in the CI configuration match at least one test in
+    the test suite.
     """
     ci_patterns = _ci_patterns()
 
