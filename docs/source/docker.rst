@@ -4,7 +4,11 @@ Running a server with Docker
 Running the mock
 ----------------
 
-# TODO this won't work - we need some kind of storage backend thing
+# TODO Get a mock running with instructions here.
+# - Maybe mount a config file?
+# - Config must include:
+#    - Initial databases
+#    - Things like "query processing time"
 
 .. code:: sh
 
@@ -35,8 +39,6 @@ The ``VWS_MOCK_DATABASES`` environment variable must be set to a JSON configurat
          "client_secret_key": "my_client_secret_key2"
      }
    ]
-
-TODO: Also processing time etc.
 
 Ports
 ~~~~~
