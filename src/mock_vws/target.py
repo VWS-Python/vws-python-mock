@@ -195,7 +195,6 @@ class Target:  # pylint: disable=too-many-instance-attributes
 
         return 0
 
-    # TODO use TypedDict here and all to_dict and from_dict
     @classmethod
     def from_dict(cls, target_dict: TargetDict) -> Target:
         """
@@ -205,6 +204,8 @@ class Target:  # pylint: disable=too-many-instance-attributes
         active_flag = target_dict['active_flag']
         width = target_dict['width']
         image_base64 = target_dict['image_base64']
+        upload_date = target_dict['upload_date']
+        processed_tracking_rating = target_dict['processed_tracking_rating']
         image_bytes = base64.b64decode(image_base64)
         image = io.BytesIO(image_bytes)
         processing_time_seconds = target_dict['processing_time_seconds']
@@ -222,23 +223,15 @@ class Target:  # pylint: disable=too-many-instance-attributes
         gmt = ZoneInfo('GMT')
         target.last_modified_date = datetime.datetime.fromisoformat(
             target_dict['last_modified_date'],
-        )
-        target.last_modified_date = target.last_modified_date.replace(
-            tzinfo=gmt,
-        )
-        target.upload_date = datetime.datetime.fromisoformat(
-            target_dict['upload_date'],
-        )
-        target.processed_tracking_rating = target_dict[
-            'processed_tracking_rating'
-        ]
+        ).replace(tzinfo=gmt)
+        target.upload_date = datetime.datetime.fromisoformat(upload_date)
+        target.processed_tracking_rating = processed_tracking_rating
         target.upload_date = target.upload_date.replace(tzinfo=gmt)
         delete_date_optional = target_dict['delete_date_optional']
         if delete_date_optional:
             target.delete_date = datetime.datetime.fromisoformat(
                 delete_date_optional,
-            )
-            target.delete_date = target.delete_date.replace(tzinfo=gmt)
+            ).replace(tzinfo=gmt)
         return target
 
     def to_dict(self) -> TargetDict:

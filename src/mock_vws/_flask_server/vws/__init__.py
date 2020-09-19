@@ -33,7 +33,7 @@ from .._constants import STORAGE_BASE_URL
 
 def get_all_databases() -> Set[VuforiaDatabase]:
     """
-    Get all database objects from the storage backend.
+    Get all database objects from the storage back-end.
     """
     response = requests.get(url=STORAGE_BASE_URL + '/databases')
     return set(

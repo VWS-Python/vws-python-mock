@@ -34,7 +34,7 @@ CLOUDRECO_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
 
 def get_all_databases() -> Set[VuforiaDatabase]:
     """
-    Get all database objects from the storage backend.
+    Get all database objects from the storage back-end.
     """
     response = requests.get(url=STORAGE_BASE_URL + '/databases')
     return set(
