@@ -181,13 +181,53 @@ class Target:  # pylint: disable=too-many-instance-attributes
 
         return 0
 
+    # TODO use TypedDict here and all to_dict and from_dict
     @classmethod
     def from_dict(
-        cls, data: Dict[str, Optional[Union[str, int, bool, float]]]
+        cls, target_dict: Dict[str, Optional[Union[str, int, bool, float]]]
     ) -> Target:
         """
         TODO
         """
+        name = target_dict['name']
+        active_flag = target_dict['active_flag']
+        width = target_dict['width']
+        image_base64 = target_dict['image_base64']
+        image_bytes = base64.b64decode(image_base64)
+        image = io.BytesIO(image_bytes)
+        processing_time_seconds = target_dict['processing_time_seconds']
+        application_metadata = target_dict['application_metadata']
+
+        target = Target(
+            name=name,
+            active_flag=active_flag,
+            width=width,
+            image=image,
+            processing_time_seconds=processing_time_seconds,
+            application_metadata=application_metadata,
+        )
+        target.target_id = target_dict['target_id']
+        gmt = ZoneInfo('GMT')
+        target.last_modified_date = datetime.datetime.fromisoformat(
+            target_dict['last_modified_date'],
+        )
+        target.last_modified_date = target.last_modified_date.replace(
+            tzinfo=gmt,
+        )
+        target.upload_date = datetime.datetime.fromisoformat(
+            target_dict['upload_date'],
+        )
+        target.processed_tracking_rating = target_dict[
+            'processed_tracking_rating'
+        ]
+        target.upload_date = target.upload_date.replace(tzinfo=gmt)
+        delete_date_optional = target_dict['delete_date_optional']
+        if delete_date_optional:
+            target.delete_date = datetime.datetime.fromisoformat(
+                delete_date_optional,
+            )
+            target.delete_date = target.delete_date.replace(tzinfo=gmt)
+        return target
 
     def to_dict(self) -> Dict[str, Optional[Union[str, int, bool, float]]]:
         delete_date: Optional[str] = None

@@ -70,64 +70,20 @@ class VuforiaDatabase:
 
     @classmethod
     def from_dict(cls, database_dict) -> VuforiaDatabase:
-        database_name = database_dict['database_name']
-        server_access_key = database_dict['server_access_key']
-        server_secret_key = database_dict['server_secret_key']
-        client_access_key = database_dict['client_access_key']
-        client_secret_key = database_dict['client_secret_key']
-        state = States(database_dict['state_value'])
-
-        new_database = cls(
-            database_name=database_name,
-            server_access_key=server_access_key,
-            server_secret_key=server_secret_key,
-            client_access_key=client_access_key,
-            client_secret_key=client_secret_key,
-            state=state,
+        database = cls(
+            database_name=database_dict['database_name'],
+            server_access_key=database_dict['server_access_key'],
+            server_secret_key=database_dict['server_secret_key'],
+            client_access_key=database_dict['client_access_key'],
+            client_secret_key=database_dict['client_secret_key'],
+            state=States(database_dict['state_value']),
         )
+
         for target_dict in database_dict['targets']:
-            # TODO target.from_dict()
-            name = target_dict['name']
-            active_flag = target_dict['active_flag']
-            width = target_dict['width']
-            image_base64 = target_dict['image_base64']
-            image_bytes = base64.b64decode(image_base64)
-            image = io.BytesIO(image_bytes)
-            processing_time_seconds = target_dict['processing_time_seconds']
-            application_metadata = target_dict['application_metadata']
+            target = Target.from_dict(target_dict=target_dict)
+            database.targets.add(target)
 
-            target = Target(
-                name=name,
-                active_flag=active_flag,
-                width=width,
-                image=image,
-                processing_time_seconds=processing_time_seconds,
-                application_metadata=application_metadata,
-            )
-            target.target_id = target_dict['target_id']
-            gmt = ZoneInfo('GMT')
-            target.last_modified_date = datetime.datetime.fromisoformat(
-                target_dict['last_modified_date'],
-            )
-            target.last_modified_date = target.last_modified_date.replace(
-                tzinfo=gmt,
-            )
-            target.upload_date = datetime.datetime.fromisoformat(
-                target_dict['upload_date'],
-            )
-            target.processed_tracking_rating = target_dict[
-                'processed_tracking_rating'
-            ]
-            target.upload_date = target.upload_date.replace(tzinfo=gmt)
-            delete_date_optional = target_dict['delete_date_optional']
-            if delete_date_optional:
-                target.delete_date = datetime.datetime.fromisoformat(
-                    delete_date_optional,
-                )
-                target.delete_date = target.delete_date.replace(tzinfo=gmt)
-            new_database.targets.add(target)
-
-        return new_database
+        return database
 
     @property
     def not_deleted_targets(self) -> Set[Target]:
