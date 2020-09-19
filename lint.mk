@@ -2,6 +2,10 @@
 
 SHELL := /bin/bash -euxo pipefail
 
+.PHONY: custom-linters
+custom-linters:
+	pytest -s -vvv ci/custom_linters.py
+
 .PHONY: black
 black:
 	black --check .
