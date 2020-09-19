@@ -88,8 +88,8 @@ class Target:  # pylint: disable=too-many-instance-attributes
         self.application_metadata = application_metadata
         self.delete_date: Optional[datetime.datetime] = None
         self.total_recos: int = 0
-        self.current_month_recos : int = 0
-        self.previous_month_recos : int = 0
+        self.current_month_recos: int = 0
+        self.previous_month_recos: int = 0
 
     def __repr__(self) -> str:
         """
