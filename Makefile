@@ -13,7 +13,6 @@ update-secrets:
 .PHONY: lint
 lint: \
     black \
-    custom-linters \
     check-manifest \
     doc8 \
     flake8 \
@@ -28,6 +27,7 @@ lint: \
     vulture \
     pylint \
     pydocstyle \
+    custom-linters \
 
 .PHONY: fix-lint
 fix-lint: \
