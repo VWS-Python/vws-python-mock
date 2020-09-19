@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from typing import Dict, List, Set, TypedDict, Union
+from typing import List, Set, TypedDict
 
 from mock_vws._constants import TargetStatuses
 from mock_vws.states import States
@@ -14,6 +14,10 @@ from mock_vws.target import Target, TargetDict
 
 
 class DatabaseDict(TypedDict):
+    """
+    A dictionary type which represents a database.
+    """
+
     database_name: str
     server_access_key: str
     server_secret_key: str
@@ -53,9 +57,10 @@ class VuforiaDatabase:
     total_recos = 0
     target_quota = 1000
 
-    def to_dict(
-        self,
-    ) -> Dict[str, Union[str, List[TargetDict]]]:
+    def to_dict(self) -> DatabaseDict:
+        """
+        Dump a target to a dictionary which can be loaded as JSON.
+        """
         targets = [target.to_dict() for target in self.targets]
         return {
             'database_name': self.database_name,
@@ -69,6 +74,9 @@ class VuforiaDatabase:
 
     @classmethod
     def from_dict(cls, database_dict: DatabaseDict) -> VuforiaDatabase:
+        """
+        Load a database from a dictionary.
+        """
         database = cls(
             database_name=database_dict['database_name'],
             server_access_key=database_dict['server_access_key'],

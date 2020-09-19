@@ -18,6 +18,10 @@ from mock_vws._constants import TargetStatuses
 
 
 class TargetDict(TypedDict):
+    """
+    A dictionary type which represents a target.
+    """
+
     name: str
     width: float
     image_base64: str
@@ -235,6 +239,9 @@ class Target:  # pylint: disable=too-many-instance-attributes
         return target
 
     def to_dict(self) -> TargetDict:
+        """
+        Dump a target to a dictionary which can be loaded as JSON.
+        """
         delete_date: Optional[str] = None
         if self.delete_date:
             delete_date = datetime.datetime.isoformat(self.delete_date)

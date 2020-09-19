@@ -26,8 +26,6 @@ from mock_vws._query_validators.exceptions import (
 )
 from mock_vws.database import VuforiaDatabase
 
-from .._constants import STORAGE_BASE_URL
-
 CLOUDRECO_FLASK_APP = Flask(import_name=__name__)
 CLOUDRECO_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
 
