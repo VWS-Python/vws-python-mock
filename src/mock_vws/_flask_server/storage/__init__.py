@@ -1,3 +1,7 @@
+"""
+Storage layer for the mock Vuforia Flask application.
+"""
+
 import base64
 import datetime
 import io
