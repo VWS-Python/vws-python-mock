@@ -15,7 +15,7 @@ from flask import Flask, Response, request
 from typing_extensions import Final
 from werkzeug.datastructures import Headers
 
-from mock_vws._query_tools import (  # TODO remove each of these and just raise the validator exception
+from mock_vws._query_tools import (
     ActiveMatchingTargetsDeleteProcessing,
     MatchingTargetsWithProcessingStatus,
     get_query_match_response_text,
