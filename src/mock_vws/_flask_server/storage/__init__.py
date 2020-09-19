@@ -2,11 +2,11 @@ import base64
 import datetime
 import io
 import random
+from http import HTTPStatus
 from typing import List, Tuple
 
 from backports.zoneinfo import ZoneInfo
 from flask import Flask, jsonify, request
-from requests import codes
 
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
@@ -19,18 +19,27 @@ VUFORIA_DATABASES: List[VuforiaDatabase] = []
 
 @STORAGE_FLASK_APP.route('/reset', methods=['POST'])
 def reset() -> Tuple[str, int]:
+    """
+    Reset the backend to a state of no databases.
+    """
     VUFORIA_DATABASES.clear()
-    return '', codes.OK
+    return '', HTTPStatus.OK
 
 
 @STORAGE_FLASK_APP.route('/databases', methods=['GET'])
 def get_databases() -> Tuple[str, int]:
+    """
+    Return a list of all databases.
+    """
     databases = [database.to_dict() for database in VUFORIA_DATABASES]
-    return jsonify(databases), codes.OK
+    return jsonify(databases), HTTPStatus.OK
 
 
 @STORAGE_FLASK_APP.route('/databases', methods=['POST'])
 def create_database() -> Tuple[str, int]:
+    """
+    Create a new database.
+    """
     server_access_key = request.json['server_access_key']
     server_secret_key = request.json['server_secret_key']
     client_access_key = request.json['client_access_key']
@@ -47,7 +56,7 @@ def create_database() -> Tuple[str, int]:
         state=state,
     )
     VUFORIA_DATABASES.append(database)
-    return jsonify(database.to_dict()), codes.CREATED
+    return jsonify(database.to_dict()), HTTPStatus.CREATED
 
 
 @STORAGE_FLASK_APP.route(
@@ -55,6 +64,9 @@ def create_database() -> Tuple[str, int]:
     methods=['POST'],
 )
 def create_target(database_name: str) -> Tuple[str, int]:
+    """
+    Create a new target in a given database.
+    """
     [database] = [
         database
         for database in VUFORIA_DATABASES
@@ -74,7 +86,7 @@ def create_target(database_name: str) -> Tuple[str, int]:
     target.target_id = request.json['target_id']
     database.targets.add(target)
 
-    return jsonify(target.to_dict()), codes.CREATED
+    return jsonify(target.to_dict()), HTTPStatus.CREATED
 
 
 @STORAGE_FLASK_APP.route(
@@ -82,6 +94,9 @@ def create_target(database_name: str) -> Tuple[str, int]:
     methods=['DELETE'],
 )
 def delete_target(database_name: str, target_id: str) -> Tuple[str, int]:
+    """
+    Delete a target.
+    """
     [database] = [
         database
         for database in VUFORIA_DATABASES
@@ -91,7 +106,7 @@ def delete_target(database_name: str, target_id: str) -> Tuple[str, int]:
         target for target in database.targets if target.target_id == target_id
     ]
     target.delete()
-    return jsonify(target.to_dict()), codes.OK
+    return jsonify(target.to_dict()), HTTPStatus.OK
 
 
 @STORAGE_FLASK_APP.route(
@@ -99,6 +114,9 @@ def delete_target(database_name: str, target_id: str) -> Tuple[str, int]:
     methods=['PUT'],
 )
 def update_target(database_name: str, target_id: str) -> Tuple[str, int]:
+    """
+    Update a target.
+    """
     [database] = [
         database
         for database in VUFORIA_DATABASES
@@ -135,4 +153,4 @@ def update_target(database_name: str, target_id: str) -> Tuple[str, int]:
     now = datetime.datetime.now(tz=gmt)
     target.last_modified_date = now
 
-    return jsonify(target.to_dict()), codes.OK
+    return jsonify(target.to_dict()), HTTPStatus.OK
