@@ -172,8 +172,8 @@ class MockVuforiaWebQueryAPI:
         except (
             ActiveMatchingTargetsDeleteProcessing,
             MatchingTargetsWithProcessingStatus,
-        ):
-            raise MatchProcessing
+        ) as exc:
+            raise MatchProcessing from exc
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {

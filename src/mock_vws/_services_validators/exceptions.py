@@ -13,6 +13,10 @@ from mock_vws._mock_common import json_dump
 
 
 class ValidatorException(Exception):
+    """
+    A base class for exceptions thrown from mock Vuforia services endpoints.
+    """
+
     status_code: HTTPStatus
     response_text: str
     headers: Dict[str, str]

@@ -278,7 +278,7 @@ class MockVuforiaWebServicesAPI:
     def database_summary(
         self,
         request: _RequestObjectProxy,
-        context: _Context,  # pylint: disable=unused-argument
+        context: _Context,
     ) -> str:
         """
         Get a database summary report.
@@ -326,7 +326,7 @@ class MockVuforiaWebServicesAPI:
     def target_list(
         self,
         request: _RequestObjectProxy,
-        context: _Context,  # pylint: disable=unused-argument
+        context: _Context,
     ) -> str:
         """
         Get a list of all targets.
@@ -363,7 +363,7 @@ class MockVuforiaWebServicesAPI:
     def get_target(
         self,
         request: _RequestObjectProxy,
-        context: _Context,  # pylint: disable=unused-argument
+        context: _Context,
     ) -> str:
         """
         Get details of a target.
@@ -407,7 +407,7 @@ class MockVuforiaWebServicesAPI:
     def get_duplicates(
         self,
         request: _RequestObjectProxy,
-        context: _Context,  # pylint: disable=unused-argument
+        context: _Context,
     ) -> str:
         """
         Get targets which may be considered duplicates of a given target.
@@ -541,7 +541,7 @@ class MockVuforiaWebServicesAPI:
     def target_summary(
         self,
         request: _RequestObjectProxy,
-        context: _Context,  # pylint: disable=unused-argument
+        context: _Context,
     ) -> str:
         """
         Get a summary report for a target.
