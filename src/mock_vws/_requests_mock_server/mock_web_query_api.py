@@ -5,8 +5,7 @@ See
 https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query
 """
 
-from http import HTTPStatus
-from pathlib import Path
+import email.utils
 from typing import Any, Callable, Dict, Set, Tuple, Union
 
 import wrapt
@@ -14,11 +13,7 @@ from requests_mock import POST
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
-from mock_vws._mock_common import (
-    Route,
-    set_content_length_header,
-    set_date_header,
-)
+from mock_vws._mock_common import Route, set_content_length_header
 from mock_vws._query_tools import (
     ActiveMatchingTargetsDeleteProcessing,
     MatchingTargetsWithProcessingStatus,
@@ -26,27 +21,8 @@ from mock_vws._query_tools import (
 )
 from mock_vws._query_validators import run_query_validators
 from mock_vws._query_validators.exceptions import (
-    AuthenticationFailure,
-    AuthenticationFailureGoodFormatting,
-    AuthHeaderMissing,
-    BadImage,
-    BoundaryNotInBody,
-    ContentLengthHeaderNotInt,
-    ContentLengthHeaderTooLarge,
-    DateFormatNotValid,
-    DateHeaderNotGiven,
-    ImageNotGiven,
-    InactiveProject,
-    InvalidAcceptHeader,
-    InvalidIncludeTargetData,
-    InvalidMaxNumResults,
-    MalformedAuthHeader,
-    MaxNumResultsOutOfRange,
-    NoBoundaryFound,
-    QueryOutOfBounds,
-    RequestTimeTooSkewed,
-    UnknownParameters,
-    UnsupportedMediaType,
+    MatchProcessing,
+    ValidatorException,
 )
 from mock_vws.database import VuforiaDatabase
 
@@ -81,63 +57,11 @@ def run_validators(
             request_method=request.method,
             databases=instance.databases,
         )
-    except DateHeaderNotGiven as exc:
-        content_type = 'text/plain; charset=ISO-8859-1'
-        context.headers['Content-Type'] = content_type
+        return wrapped(*args, **kwargs)
+    except ValidatorException as exc:
+        context.headers = exc.headers
         context.status_code = exc.status_code
         return exc.response_text
-    except (
-        AuthHeaderMissing,
-        DateFormatNotValid,
-        MalformedAuthHeader,
-    ) as exc:
-        content_type = 'text/plain; charset=ISO-8859-1'
-        context.headers['Content-Type'] = content_type
-        context.headers['WWW-Authenticate'] = 'VWS'
-        context.status_code = exc.status_code
-        return exc.response_text
-    except (AuthenticationFailure, AuthenticationFailureGoodFormatting) as exc:
-        context.headers['WWW-Authenticate'] = 'VWS'
-        context.status_code = exc.status_code
-        return exc.response_text
-    except (
-        RequestTimeTooSkewed,
-        ImageNotGiven,
-        UnknownParameters,
-        InactiveProject,
-        InvalidIncludeTargetData,
-        InvalidMaxNumResults,
-        MaxNumResultsOutOfRange,
-        BadImage,
-    ) as exc:
-        context.status_code = exc.status_code
-        return exc.response_text
-    except (UnsupportedMediaType, InvalidAcceptHeader) as exc:
-        context.headers.pop('Content-Type')
-        context.status_code = exc.status_code
-        return exc.response_text
-    except (NoBoundaryFound, BoundaryNotInBody) as exc:
-        content_type = 'text/html;charset=UTF-8'
-        context.headers['Content-Type'] = content_type
-        context.status_code = exc.status_code
-        return exc.response_text
-    except QueryOutOfBounds as exc:
-        content_type = 'text/html; charset=ISO-8859-1'
-        context.headers['Content-Type'] = content_type
-        cache_control = 'must-revalidate,no-cache,no-store'
-        context.headers['Cache-Control'] = cache_control
-        context.status_code = exc.status_code
-        return exc.response_text
-    except ContentLengthHeaderNotInt as exc:
-        context.headers = {'Connection': 'Close'}
-        context.status_code = exc.status_code
-        return exc.response_text
-    except ContentLengthHeaderTooLarge as exc:
-        context.headers = {'Connection': 'keep-alive'}
-        context.status_code = exc.status_code
-        return exc.response_text
-
-    return wrapped(*args, **kwargs)
 
 
 def route(
@@ -174,7 +98,6 @@ def route(
 
         decorators = [
             run_validators,
-            set_date_header,
             set_content_length_header,
         ]
 
@@ -250,25 +173,13 @@ class MockVuforiaWebQueryAPI:
             ActiveMatchingTargetsDeleteProcessing,
             MatchingTargetsWithProcessingStatus,
         ) as exc:
-            # TODO put this into the exceptions
-            # TODO put all header stuff into the exceptions
-            # TODO header base class
-            #
-            # We return an example 500 response.
-            # Each response given by Vuforia is different.
-            #
-            # Sometimes Vuforia will ignore matching targets with the
-            # processing status, but we choose to:
-            # * Do the most unexpected thing.
-            # * Be consistent with every response.
-            resources_dir = Path(__file__).parent.parent / 'resources'
-            filename = 'match_processing_response.html'
-            match_processing_resp_file = resources_dir / filename
-            context.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-            cache_control = 'must-revalidate,no-cache,no-store'
-            context.headers['Cache-Control'] = cache_control
-            content_type = 'text/html; charset=ISO-8859-1'
-            context.headers['Content-Type'] = content_type
-            return Path(match_processing_resp_file).read_text()
+            raise MatchProcessing from exc
 
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        context.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'application/json',
+            'Server': 'nginx',
+            'Date': date,
+        }
         return response_text

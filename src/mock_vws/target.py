@@ -77,8 +77,8 @@ class Target:  # pylint: disable=too-many-instance-attributes
         self.target_id = uuid.uuid4().hex
         self.active_flag = active_flag
         self.width = width
-        gmt = ZoneInfo('GMT')
-        now = datetime.datetime.now(tz=gmt)
+        self._timezone = ZoneInfo('GMT')
+        now = datetime.datetime.now(tz=self._timezone)
         self.upload_date: datetime.datetime = now
         self.last_modified_date = self.upload_date
         self.processed_tracking_rating = random.randint(0, 5)
@@ -102,8 +102,7 @@ class Target:  # pylint: disable=too-many-instance-attributes
         """
         Mark the target as deleted.
         """
-        gmt = ZoneInfo('GMT')
-        now = datetime.datetime.now(tz=gmt)
+        now = datetime.datetime.now(tz=self._timezone)
         self.delete_date = now
 
     @property
@@ -142,8 +141,7 @@ class Target:  # pylint: disable=too-many-instance-attributes
             seconds=self._processing_time_seconds,
         )
 
-        gmt = ZoneInfo('GMT')
-        now = datetime.datetime.now(tz=gmt)
+        now = datetime.datetime.now(tz=self._timezone)
         time_since_change = now - self.last_modified_date
 
         if time_since_change <= processing_time:
@@ -170,8 +168,7 @@ class Target:  # pylint: disable=too-many-instance-attributes
             / 2,
         )
 
-        gmt = ZoneInfo('GMT')
-        now = datetime.datetime.now(tz=gmt)
+        now = datetime.datetime.now(tz=self._timezone)
         time_since_upload = now - self.upload_date
 
         if time_since_upload <= pre_rating_time:

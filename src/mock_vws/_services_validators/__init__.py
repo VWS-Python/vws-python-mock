@@ -41,6 +41,8 @@ from .metadata_validators import (
 )
 from .name_validators import (
     validate_name_characters_in_range,
+    validate_name_does_not_exist_existing_target,
+    validate_name_does_not_exist_new_target,
     validate_name_length,
     validate_name_type,
 )
@@ -120,6 +122,20 @@ def run_services_validators(
         request_body=request_body,
         request_method=request_method,
         request_path=request_path,
+    )
+    validate_name_does_not_exist_new_target(
+        request_headers=request_headers,
+        request_body=request_body,
+        request_method=request_method,
+        request_path=request_path,
+        databases=databases,
+    )
+    validate_name_does_not_exist_existing_target(
+        request_headers=request_headers,
+        request_body=request_body,
+        request_method=request_method,
+        request_path=request_path,
+        databases=databases,
     )
 
     validate_width(request_body=request_body)

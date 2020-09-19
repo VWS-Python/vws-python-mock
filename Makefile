@@ -27,6 +27,7 @@ lint: \
     vulture \
     pylint \
     pydocstyle \
+    custom-linters \
 
 .PHONY: fix-lint
 fix-lint: \

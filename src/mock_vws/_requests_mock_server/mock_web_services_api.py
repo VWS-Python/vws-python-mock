@@ -7,6 +7,7 @@ https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Service
 
 import base64
 import datetime
+import email.utils
 import io
 import itertools
 import random
@@ -23,55 +24,18 @@ from requests_mock.response import _Context
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
-from mock_vws._mock_common import (
-    Route,
-    json_dump,
-    set_content_length_header,
-    set_date_header,
-)
+from mock_vws._mock_common import Route, json_dump, set_content_length_header
 from mock_vws._services_validators import run_services_validators
 from mock_vws._services_validators.exceptions import (
-    AuthenticationFailure,
-    BadImage,
-    ContentLengthHeaderNotInt,
-    ContentLengthHeaderTooLarge,
     Fail,
-    ImageTooLarge,
-    MetadataTooLarge,
-    OopsErrorOccurredResponse,
-    ProjectInactive,
-    RequestTimeTooSkewed,
-    TargetNameExist,
-    UnknownTarget,
-    UnnecessaryRequestBody,
+    TargetStatusNotSuccess,
+    TargetStatusProcessing,
+    ValidatorException,
 )
 from mock_vws.database import VuforiaDatabase
 from mock_vws.target import Target
 
 _TARGET_ID_PATTERN = '[A-Za-z0-9]+'
-
-
-@wrapt.decorator
-def update_request_count(
-    wrapped: Callable[..., str],
-    instance: Any,
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
-    """
-    Add to the request count.
-
-    Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
-
-    Returns:
-        The result of calling the endpoint.
-    """
-    instance.request_count += 1
-    return wrapped(*args, **kwargs)
 
 
 @wrapt.decorator
@@ -102,37 +66,11 @@ def run_validators(
             request_path=request.path,
             databases=instance.databases,
         )
-    except (
-        UnknownTarget,
-        ProjectInactive,
-        AuthenticationFailure,
-        Fail,
-        MetadataTooLarge,
-        TargetNameExist,
-        BadImage,
-        ImageTooLarge,
-        RequestTimeTooSkewed,
-    ) as exc:
+        return wrapped(*args, **kwargs)
+    except ValidatorException as exc:
+        context.headers = exc.headers
         context.status_code = exc.status_code
         return exc.response_text
-    except OopsErrorOccurredResponse as exc:
-        content_type = 'text/html; charset=UTF-8'
-        context.headers['Content-Type'] = content_type
-        context.status_code = exc.status_code
-        return exc.response_text
-    except ContentLengthHeaderTooLarge as exc:
-        context.headers = {'Connection': 'keep-alive'}
-        context.status_code = exc.status_code
-        return exc.response_text
-    except ContentLengthHeaderNotInt as exc:
-        context.headers = {'Connection': 'Close'}
-        context.status_code = exc.status_code
-        return exc.response_text
-    except UnnecessaryRequestBody as exc:
-        context.headers.pop('Content-Type')
-        context.status_code = exc.status_code
-        return exc.response_text
-    return wrapped(*args, **kwargs)
 
 
 ROUTES = set([])
@@ -172,9 +110,7 @@ def route(
 
         decorators = [
             run_validators,
-            set_date_header,
             set_content_length_header,
-            update_request_count,
         ]
 
         for decorator in decorators:
@@ -229,12 +165,10 @@ class MockVuforiaWebServicesAPI:
         Attributes:
             databases: Target databases.
             routes: The `Route`s to be used in the mock.
-            request_count: The number of requests made to this API.
         """
         self.databases: Set[VuforiaDatabase] = set([])
         self.routes: Set[Route] = ROUTES
         self._processing_time_seconds = processing_time_seconds
-        self.request_count = 0
 
     @route(
         path_pattern='/targets',
@@ -251,7 +185,6 @@ class MockVuforiaWebServicesAPI:
         Fake implementation of
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Add-a-Target
         """
-        name = request.json()['name']
         database = get_database_matching_server_keys(
             request_headers=request.headers,
             request_body=request.body,
@@ -262,32 +195,38 @@ class MockVuforiaWebServicesAPI:
 
         assert isinstance(database, VuforiaDatabase)
 
-        if any(target.name == name for target in database.not_deleted_targets):
-            context.status_code = HTTPStatus.FORBIDDEN
-            body = {
-                'transaction_id': uuid.uuid4().hex,
-                'result_code': ResultCodes.TARGET_NAME_EXIST.value,
-            }
-            return json_dump(body)
-
-        active_flag = request.json().get('active_flag')
-        if active_flag is None:
-            active_flag = True
+        given_active_flag = request.json().get('active_flag')
+        active_flag = {
+            None: True,
+            True: True,
+            False: False,
+        }[given_active_flag]
 
         image = request.json()['image']
         decoded = base64.b64decode(image)
         image_file = io.BytesIO(decoded)
 
+        name = request.json()['name']
+        width = request.json()['width']
+        application_metadata = request.json().get('application_metadata')
+
         new_target = Target(
-            name=request.json()['name'],
-            width=request.json()['width'],
+            name=name,
+            width=width,
             image=image_file,
             active_flag=active_flag,
             processing_time_seconds=self._processing_time_seconds,
-            application_metadata=request.json().get('application_metadata'),
+            application_metadata=application_metadata,
         )
         database.targets.add(new_target)
 
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        context.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'application/json',
+            'Server': 'nginx',
+            'Date': date,
+        }
         context.status_code = HTTPStatus.CREATED
         body = {
             'transaction_id': uuid.uuid4().hex,
@@ -318,14 +257,16 @@ class MockVuforiaWebServicesAPI:
         )
 
         if target.status == TargetStatuses.PROCESSING.value:
-            context.status_code = HTTPStatus.FORBIDDEN
-            body = {
-                'transaction_id': uuid.uuid4().hex,
-                'result_code': ResultCodes.TARGET_STATUS_PROCESSING.value,
-            }
-            return json_dump(body)
+            raise TargetStatusProcessing
 
         target.delete()
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        context.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'application/json',
+            'Server': 'nginx',
+            'Date': date,
+        }
 
         body = {
             'transaction_id': uuid.uuid4().hex,
@@ -337,7 +278,7 @@ class MockVuforiaWebServicesAPI:
     def database_summary(
         self,
         request: _RequestObjectProxy,
-        context: _Context,  # pylint: disable=unused-argument
+        context: _Context,
     ) -> str:
         """
         Get a database summary report.
@@ -356,6 +297,13 @@ class MockVuforiaWebServicesAPI:
         )
 
         assert isinstance(database, VuforiaDatabase)
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        context.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'application/json',
+            'Server': 'nginx',
+            'Date': date,
+        }
         body = {
             'result_code': ResultCodes.SUCCESS.value,
             'transaction_id': uuid.uuid4().hex,
@@ -370,8 +318,6 @@ class MockVuforiaWebServicesAPI:
             'processing_images': len(database.processing_targets),
             'reco_threshold': database.reco_threshold,
             'request_quota': database.request_quota,
-            # We have ``self.request_count`` but Vuforia always shows 0.
-            # This was not always the case.
             'request_usage': 0,
         }
         return json_dump(body)
@@ -380,7 +326,7 @@ class MockVuforiaWebServicesAPI:
     def target_list(
         self,
         request: _RequestObjectProxy,
-        context: _Context,  # pylint: disable=unused-argument
+        context: _Context,
     ) -> str:
         """
         Get a list of all targets.
@@ -397,6 +343,13 @@ class MockVuforiaWebServicesAPI:
         )
 
         assert isinstance(database, VuforiaDatabase)
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        context.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'application/json',
+            'Server': 'nginx',
+            'Date': date,
+        }
 
         results = [target.target_id for target in database.not_deleted_targets]
         body: Dict[str, Union[str, List[str]]] = {
@@ -410,7 +363,7 @@ class MockVuforiaWebServicesAPI:
     def get_target(
         self,
         request: _RequestObjectProxy,
-        context: _Context,  # pylint: disable=unused-argument
+        context: _Context,
     ) -> str:
         """
         Get details of a target.
@@ -431,6 +384,13 @@ class MockVuforiaWebServicesAPI:
             'tracking_rating': target.tracking_rating,
             'reco_rating': target.reco_rating,
         }
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        context.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'application/json',
+            'Server': 'nginx',
+            'Date': date,
+        }
 
         body = {
             'result_code': ResultCodes.SUCCESS.value,
@@ -447,7 +407,7 @@ class MockVuforiaWebServicesAPI:
     def get_duplicates(
         self,
         request: _RequestObjectProxy,
-        context: _Context,  # pylint: disable=unused-argument
+        context: _Context,
     ) -> str:
         """
         Get targets which may be considered duplicates of a given target.
@@ -483,6 +443,13 @@ class MockVuforiaWebServicesAPI:
             and other.active_flag
         ]
 
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        context.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'application/json',
+            'Server': 'nginx',
+            'Date': date,
+        }
         body = {
             'transaction_id': uuid.uuid4().hex,
             'result_code': ResultCodes.SUCCESS.value,
@@ -520,14 +487,16 @@ class MockVuforiaWebServicesAPI:
         )
 
         assert isinstance(database, VuforiaDatabase)
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        context.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'application/json',
+            'Server': 'nginx',
+            'Date': date,
+        }
 
         if target.status != TargetStatuses.SUCCESS.value:
-            context.status_code = HTTPStatus.FORBIDDEN
-            body = {
-                'transaction_id': uuid.uuid4().hex,
-                'result_code': ResultCodes.TARGET_STATUS_NOT_SUCCESS.value,
-            }
-            return json_dump(body)
+            raise TargetStatusNotSuccess
 
         if 'width' in request.json():
             target.width = request.json()['width']
@@ -535,39 +504,18 @@ class MockVuforiaWebServicesAPI:
         if 'active_flag' in request.json():
             active_flag = request.json()['active_flag']
             if active_flag is None:
-                body = {
-                    'transaction_id': uuid.uuid4().hex,
-                    'result_code': ResultCodes.FAIL.value,
-                }
-                context.status_code = HTTPStatus.BAD_REQUEST
-                return json_dump(body)
+                raise Fail(status_code=HTTPStatus.BAD_REQUEST)
+
             target.active_flag = active_flag
 
         if 'application_metadata' in request.json():
-            if request.json()['application_metadata'] is None:
-                body = {
-                    'transaction_id': uuid.uuid4().hex,
-                    'result_code': ResultCodes.FAIL.value,
-                }
-                context.status_code = HTTPStatus.BAD_REQUEST
-                return json_dump(body)
             application_metadata = request.json()['application_metadata']
+            if application_metadata is None:
+                raise Fail(status_code=HTTPStatus.BAD_REQUEST)
             target.application_metadata = application_metadata
 
         if 'name' in request.json():
             name = request.json()['name']
-            other_targets = set(database.targets) - set([target])
-            if any(
-                other.name == name
-                for other in other_targets
-                if not other.delete_date
-            ):
-                context.status_code = HTTPStatus.FORBIDDEN
-                body = {
-                    'transaction_id': uuid.uuid4().hex,
-                    'result_code': ResultCodes.TARGET_NAME_EXIST.value,
-                }
-                return json_dump(body)
             target.name = name
 
         if 'image' in request.json():
@@ -596,7 +544,7 @@ class MockVuforiaWebServicesAPI:
     def target_summary(
         self,
         request: _RequestObjectProxy,
-        context: _Context,  # pylint: disable=unused-argument
+        context: _Context,
     ) -> str:
         """
         Get a summary report for a target.
@@ -617,6 +565,14 @@ class MockVuforiaWebServicesAPI:
         )
 
         assert isinstance(database, VuforiaDatabase)
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        context.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'application/json',
+            'Server': 'nginx',
+            'Date': date,
+        }
+
         body = {
             'status': target.status,
             'transaction_id': uuid.uuid4().hex,
