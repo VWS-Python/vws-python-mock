@@ -28,7 +28,13 @@ from mock_vws._services_validators.exceptions import (
 from mock_vws.database import VuforiaDatabase
 from mock_vws.target import Target
 
-from .._constants import STORAGE_BASE_URL
+VWS_FLASK_APP = Flask(import_name=__name__)
+VWS_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
+
+
+# TODO choose something for this - it should actually work in a docker-compose
+# scenario.
+STORAGE_BASE_URL = 'http://todo.com'
 
 
 def get_all_databases() -> Set[VuforiaDatabase]:
@@ -40,10 +46,6 @@ def get_all_databases() -> Set[VuforiaDatabase]:
         VuforiaDatabase.from_dict(database_dict=database_dict)
         for database_dict in response.json()
     )
-
-
-VWS_FLASK_APP = Flask(import_name=__name__)
-VWS_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
 
 
 class ResponseNoContentTypeAdded(Response):

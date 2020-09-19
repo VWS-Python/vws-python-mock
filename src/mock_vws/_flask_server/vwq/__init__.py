@@ -32,6 +32,11 @@ CLOUDRECO_FLASK_APP = Flask(import_name=__name__)
 CLOUDRECO_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
 
 
+# TODO choose something for this - it should actually work in a docker-compose
+# scenario.
+STORAGE_BASE_URL = 'http://todo.com'
+
+
 def get_all_databases() -> Set[VuforiaDatabase]:
     """
     Get all database objects from the storage back-end.
