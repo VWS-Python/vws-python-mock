@@ -13,6 +13,7 @@ from typing import Dict, List, Optional, Set
 import requests
 from flask import Flask, Response, request
 from PIL import Image
+from typing_extensions import Final
 from werkzeug.datastructures import Headers
 
 from mock_vws._constants import ResultCodes, TargetStatuses
@@ -34,7 +35,7 @@ VWS_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
 
 # TODO choose something for this - it should actually work in a docker-compose
 # scenario.
-STORAGE_BASE_URL = 'http://todo.com'
+STORAGE_BASE_URL: Final[str] = 'http://todo.com'
 
 
 def get_all_databases() -> Set[VuforiaDatabase]:
@@ -95,6 +96,9 @@ VWS_FLASK_APP.response_class = ResponseNoContentTypeAdded
 
 @VWS_FLASK_APP.before_request
 def validate_request() -> None:
+    """
+    Run validators on the request.
+    """
     request.environ['wsgi.input_terminated'] = True
     databases = get_all_databases()
     run_services_validators(

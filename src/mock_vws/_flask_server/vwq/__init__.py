@@ -12,6 +12,7 @@ from typing import Dict, Optional, Set
 
 import requests
 from flask import Flask, Response, request
+from typing_extensions import Final
 from werkzeug.datastructures import Headers
 
 from mock_vws._query_tools import (  # TODO remove each of these and just raise the validator exception
@@ -32,7 +33,7 @@ CLOUDRECO_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
 
 # TODO choose something for this - it should actually work in a docker-compose
 # scenario.
-STORAGE_BASE_URL = 'http://todo.com'
+STORAGE_BASE_URL: Final[str] = 'http://todo.com'
 
 
 def get_all_databases() -> Set[VuforiaDatabase]:
@@ -48,6 +49,9 @@ def get_all_databases() -> Set[VuforiaDatabase]:
 
 @CLOUDRECO_FLASK_APP.before_request
 def validate_request() -> None:
+    """
+    Run validators on the request.
+    """
     request.environ['wsgi.input_terminated'] = True
     input_stream_copy = copy.copy(request.input_stream)
     request_body = input_stream_copy.read()
