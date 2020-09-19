@@ -4,7 +4,7 @@ SHELL := /bin/bash -euxo pipefail
 
 .PHONY: custom-linters
 custom-linters:
-	pytest -s -vvv ci/custom_linters.py
+	pytest ci/custom_linters.py
 
 .PHONY: black
 black:
@@ -16,7 +16,7 @@ fix-black:
 
 .PHONY: mypy
 mypy:
-	mypy *.py src/ tests/ docs/source/ admin
+	mypy *.py src/ tests/ docs/source/ admin ci/
 
 .PHONY: check-manifest
 check-manifest:
@@ -48,7 +48,7 @@ pip-missing-reqs:
 
 .PHONY: pylint
 pylint:
-	pylint *.py src/ tests/ admin/ docs/
+	pylint *.py src/ tests/ admin/ docs/ ci/
 
 .PHONY: pyroma
 pyroma:
