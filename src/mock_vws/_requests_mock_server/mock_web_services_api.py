@@ -24,28 +24,13 @@ from requests_mock.response import _Context
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
-from mock_vws._mock_common import (
-    Route,
-    json_dump,
-    set_content_length_header,
-)
+from mock_vws._mock_common import Route, json_dump, set_content_length_header
 from mock_vws._services_validators import run_services_validators
 from mock_vws._services_validators.exceptions import (
-    AuthenticationFailure,
-    BadImage,
-    ContentLengthHeaderNotInt,
-    ContentLengthHeaderTooLarge,
     Fail,
-    ImageTooLarge,
-    MetadataTooLarge,
-    OopsErrorOccurredResponse,
-    ProjectInactive,
-    RequestTimeTooSkewed,
-    TargetNameExist,
-    UnknownTarget,
-    UnnecessaryRequestBody,
     TargetStatusNotSuccess,
     TargetStatusProcessing,
+    ValidatorException,
 )
 from mock_vws.database import VuforiaDatabase
 from mock_vws.target import Target
@@ -81,28 +66,8 @@ def run_validators(
             request_path=request.path,
             databases=instance.databases,
         )
-    except (
-        UnknownTarget,
-        ProjectInactive,
-        AuthenticationFailure,
-        Fail,
-        MetadataTooLarge,
-        TargetNameExist,
-        BadImage,
-        ImageTooLarge,
-        RequestTimeTooSkewed,
-        ContentLengthHeaderTooLarge,
-        ContentLengthHeaderNotInt,
-        OopsErrorOccurredResponse,
-        UnnecessaryRequestBody,
-    ) as exc:
-        context.headers = exc.headers
-        context.status_code = exc.status_code
-        return exc.response_text
-
-    try:
         return wrapped(*args, **kwargs)
-    except (Fail, TargetStatusNotSuccess,TargetStatusProcessing) as exc:
+    except ValidatorException as exc:
         context.headers = exc.headers
         context.status_code = exc.status_code
         return exc.response_text
