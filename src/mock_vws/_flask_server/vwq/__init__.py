@@ -8,8 +8,9 @@ https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognitio
 import copy
 import email.utils
 from http import HTTPStatus
-from typing import Dict, Optional
+from typing import Dict, Optional, Set
 
+import requests
 from flask import Flask, Response, request
 from werkzeug.datastructures import Headers
 
@@ -23,11 +24,23 @@ from mock_vws._query_validators.exceptions import (
     MatchProcessing,
     ValidatorException,
 )
+from mock_vws.database import VuforiaDatabase
 
-from ..vws._databases import get_all_databases
+from .._constants import STORAGE_BASE_URL
 
 CLOUDRECO_FLASK_APP = Flask(import_name=__name__)
 CLOUDRECO_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
+
+
+def get_all_databases() -> Set[VuforiaDatabase]:
+    """
+    Get all database objects from the storage backend.
+    """
+    response = requests.get(url=STORAGE_BASE_URL + '/databases')
+    return set(
+        VuforiaDatabase.from_dict(database_dict=database_dict)
+        for database_dict in response.json()
+    )
 
 
 @CLOUDRECO_FLASK_APP.before_request

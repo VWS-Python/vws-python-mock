@@ -8,7 +8,7 @@ import io
 import json
 import uuid
 from http import HTTPStatus
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set
 
 import requests
 from flask import Flask, Response, request
@@ -28,8 +28,19 @@ from mock_vws._services_validators.exceptions import (
 from mock_vws.database import VuforiaDatabase
 from mock_vws.target import Target
 
-from ._constants import STORAGE_BASE_URL
-from ._databases import get_all_databases
+from .._constants import STORAGE_BASE_URL
+
+
+def get_all_databases() -> Set[VuforiaDatabase]:
+    """
+    Get all database objects from the storage backend.
+    """
+    response = requests.get(url=STORAGE_BASE_URL + '/databases')
+    return set(
+        VuforiaDatabase.from_dict(database_dict=database_dict)
+        for database_dict in response.json()
+    )
+
 
 VWS_FLASK_APP = Flask(import_name=__name__)
 VWS_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
