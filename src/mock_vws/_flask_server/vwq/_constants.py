@@ -4,6 +4,8 @@ Constants used to make the VWS mock.
 
 from enum import Enum
 
+# TODO remove this and repeated duplication
+
 
 class ResultCodes(Enum):
     """

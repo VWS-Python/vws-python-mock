@@ -4,18 +4,23 @@ Utilities for managing mock Vuforia databases.
 
 from __future__ import annotations
 
-import base64
-import datetime
-import io
 import uuid
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set, Union
-
-from backports.zoneinfo import ZoneInfo
+from typing import Dict, List, Set, TypedDict, Union
 
 from mock_vws._constants import TargetStatuses
 from mock_vws.states import States
-from mock_vws.target import Target
+from mock_vws.target import Target, TargetDict
+
+
+class DatabaseDict(TypedDict):
+    database_name: str
+    server_access_key: str
+    server_secret_key: str
+    client_access_key: str
+    client_secret_key: str
+    state_value: str
+    targets: List[TargetDict]
 
 
 def _random_hex() -> str:
@@ -50,13 +55,7 @@ class VuforiaDatabase:
 
     def to_dict(
         self,
-    ) -> Dict[
-        str,
-        Union[
-            str,
-            List[Dict[str, Optional[Union[str, int, bool, float]]]],
-        ],
-    ]:
+    ) -> Dict[str, Union[str, List[TargetDict]]]:
         targets = [target.to_dict() for target in self.targets]
         return {
             'database_name': self.database_name,
@@ -69,7 +68,7 @@ class VuforiaDatabase:
         }
 
     @classmethod
-    def from_dict(cls, database_dict) -> VuforiaDatabase:
+    def from_dict(cls, database_dict: DatabaseDict) -> VuforiaDatabase:
         database = cls(
             database_name=database_dict['database_name'],
             server_access_key=database_dict['server_access_key'],

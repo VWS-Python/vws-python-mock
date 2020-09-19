@@ -9,12 +9,26 @@ import io
 import random
 import statistics
 import uuid
-from typing import Dict, Optional, Union
+from typing import Optional, TypedDict, Union
 
 from backports.zoneinfo import ZoneInfo
 from PIL import Image, ImageStat
 
 from mock_vws._constants import TargetStatuses
+
+
+class TargetDict(TypedDict):
+    name: str
+    width: float
+    image_base64: str
+    active_flag: bool
+    processing_time_seconds: Union[int, float]
+    processed_tracking_rating: int
+    application_metadata: str
+    target_id: str
+    last_modified_date: str
+    delete_date_optional: Optional[str]
+    upload_date: str
 
 
 class Target:  # pylint: disable=too-many-instance-attributes
@@ -183,9 +197,7 @@ class Target:  # pylint: disable=too-many-instance-attributes
 
     # TODO use TypedDict here and all to_dict and from_dict
     @classmethod
-    def from_dict(
-        cls, target_dict: Dict[str, Optional[Union[str, int, bool, float]]]
-    ) -> Target:
+    def from_dict(cls, target_dict: TargetDict) -> Target:
         """
         TODO
         """
@@ -229,7 +241,7 @@ class Target:  # pylint: disable=too-many-instance-attributes
             target.delete_date = target.delete_date.replace(tzinfo=gmt)
         return target
 
-    def to_dict(self) -> Dict[str, Optional[Union[str, int, bool, float]]]:
+    def to_dict(self) -> TargetDict:
         delete_date: Optional[str] = None
         if self.delete_date:
             delete_date = datetime.datetime.isoformat(self.delete_date)
