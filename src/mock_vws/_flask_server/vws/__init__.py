@@ -344,9 +344,9 @@ def target_summary(target_id: str) -> Response:
         'upload_date': target.upload_date.strftime('%Y-%m-%d'),
         'active_flag': target.active_flag,
         'tracking_rating': target.tracking_rating,
-        'total_recos': 0,
-        'current_month_recos': 0,
-        'previous_month_recos': 0,
+        'total_recos': target.total_recos,
+        'current_month_recos': target.current_month_recos,
+        'previous_month_recos': target.previous_month_recos,
     }
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
