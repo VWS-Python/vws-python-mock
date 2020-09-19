@@ -20,7 +20,7 @@ VUFORIA_DATABASES: List[VuforiaDatabase] = []
 @STORAGE_FLASK_APP.route('/reset', methods=['POST'])
 def reset() -> Tuple[str, int]:
     """
-    Reset the backend to a state of no databases.
+    Reset the back-end to a state of no databases.
     """
     VUFORIA_DATABASES.clear()
     return '', HTTPStatus.OK

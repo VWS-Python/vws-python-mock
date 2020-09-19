@@ -39,10 +39,14 @@ def validate_request() -> None:
     )
 
 
-# We use a custom response type.
-# Without this, a content type is added to all responses.
-# Some of our responses need to not have a "Content-Type" header.
 class ResponseNoContentTypeAdded(Response):
+    """
+    A custom response type.
+
+    Without this, a content type is added to all responses.
+    Some of our responses need to not have a "Content-Type" header.
+    """
+
     def __init__(
         self,
         response: Optional[str] = None,
@@ -82,17 +86,20 @@ CLOUDRECO_FLASK_APP.response_class = ResponseNoContentTypeAdded
 
 @CLOUDRECO_FLASK_APP.errorhandler(requests.exceptions.ConnectionError)
 def handle_connection_error(
-    e: requests.exceptions.ConnectionError,
+    exc: requests.exceptions.ConnectionError,
 ) -> Response:
     # TODO: Issue
     # This is incorrect - it raises on the server but should raise on the
     # client
     # Look into how ``requests`` handles it
-    raise e
+    raise exc
 
 
 @CLOUDRECO_FLASK_APP.errorhandler(ValidatorException)
 def handle_exceptions(exc: ValidatorException) -> Response:
+    """
+    Return the error response associated with the given exception.
+    """
     return ResponseNoContentTypeAdded(
         status=exc.status_code.value,
         response=exc.response_text,
@@ -102,7 +109,9 @@ def handle_exceptions(exc: ValidatorException) -> Response:
 
 @CLOUDRECO_FLASK_APP.route('/v1/query', methods=['POST'])
 def query() -> Response:
-
+    """
+    Perform an image recognition query.
+    """
     # TODO these should be configurable
     query_processes_deletion_seconds = 0.2
     query_recognizes_deletion_seconds = 0.2
@@ -124,8 +133,8 @@ def query() -> Response:
     except (
         ActiveMatchingTargetsDeleteProcessing,
         MatchingTargetsWithProcessingStatus,
-    ):
-        raise MatchProcessing
+    ) as exc:
+        raise MatchProcessing from exc
 
     headers = {
         'Content-Type': 'application/json',

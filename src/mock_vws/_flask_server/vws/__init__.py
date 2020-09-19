@@ -34,10 +34,14 @@ from ._databases import get_all_databases
 VWS_FLASK_APP = Flask(import_name=__name__)
 VWS_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
 
-# We use a custom response type.
-# Without this, a content type is added to all responses.
-# Some of our responses need to not have a "Content-Type" header.
 class ResponseNoContentTypeAdded(Response):
+    """
+    A custom response type.
+
+    Without this, a content type is added to all responses.
+    Some of our responses need to not have a "Content-Type" header.
+    """
+
     def __init__(
         self,
         response: Optional[str] = None,
@@ -90,6 +94,9 @@ def validate_request() -> None:
 
 @VWS_FLASK_APP.errorhandler(ValidatorException)
 def handle_exceptions(exc: ValidatorException) -> Response:
+    """
+    Return the error response associated with the given exception.
+    """
     return ResponseNoContentTypeAdded(
         status=exc.status_code.value,
         response=exc.response_text,

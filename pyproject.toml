@@ -6,7 +6,7 @@
     persistent = true
 
     # Use multiple processes to speed up Pylint.
-    jobs = 0
+    jobs = 1
 
     # List of plugins (as comma separated values of python modules names) to load,
     # usually to register additional checkers.
@@ -40,7 +40,9 @@
     disable = [
         # Tests need `self` to be in a class but do not use it.
         'no-self-use',
+        # Style issues that we can deal with ourselves
         'too-few-public-methods',
+        'too-many-ancestors',
         'too-many-locals',
         'too-many-arguments',
         'too-many-instance-attributes',
