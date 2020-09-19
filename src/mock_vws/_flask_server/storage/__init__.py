@@ -49,7 +49,7 @@ def create_database() -> Tuple[str, int]:
     client_access_key = request.json['client_access_key']
     client_secret_key = request.json['client_secret_key']
     database_name = request.json['database_name']
-    state = States(request.json['state_value'])
+    state = States[request.json['state_name']]
 
     database = VuforiaDatabase(
         server_access_key=server_access_key,

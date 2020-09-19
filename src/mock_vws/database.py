@@ -23,7 +23,7 @@ class DatabaseDict(TypedDict):
     server_secret_key: str
     client_access_key: str
     client_secret_key: str
-    state_value: str
+    state_name: str
     targets: List[TargetDict]
 
 
@@ -68,7 +68,7 @@ class VuforiaDatabase:
             'server_secret_key': self.server_secret_key,
             'client_access_key': self.client_access_key,
             'client_secret_key': self.client_secret_key,
-            'state_value': self.state.value,
+            'state_name': self.state.name,
             'targets': targets,
         }
 
@@ -83,7 +83,7 @@ class VuforiaDatabase:
             server_secret_key=database_dict['server_secret_key'],
             client_access_key=database_dict['client_access_key'],
             client_secret_key=database_dict['client_secret_key'],
-            state=States(database_dict['state_value']),
+            state=States[database_dict['state_name']],
         )
 
         for target_dict in database_dict['targets']:

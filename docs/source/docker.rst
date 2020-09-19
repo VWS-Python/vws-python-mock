@@ -5,43 +5,35 @@ Running the mock
 ----------------
 
 # TODO Get a mock running with instructions here.
-# - Maybe mount a config file?
-# - Config must include:
-#    - Initial databases
-#    - Things like "query processing time"
+
+From source
+^^^^^^^^^^^
 
 .. code:: sh
 
-   docker run adamtheturtle/mock-vuforia-storage-backend -e VWS_MOCK_DATABASES=$(cat vws-mock-config.json)
-   docker run adamtheturtle/mock-vws -e VWS_MOCK_DATABASES=$(cat vws-mock-config.json)
-   docker run adamtheturtle/mock-vwq -e VWS_MOCK_DATABASES=$(cat vws-mock-config.json)
+   docker build
 
-Configuration
--------------
+From pre-built containers
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The ``VWS_MOCK_DATABASES`` environment variable must be set to a JSON configuration which looks like:
+.. code:: sh
 
-.. code-block:: json
+   docker run adamtheturtle/mock-vuforia-storage-backend
+   docker run adamtheturtle/mock-vws \
+       -e STORAGE_BACKEND=... \
+       -e QUERY_PROCESSES_DELETION_SECONDS=...
+   docker run adamtheturtle/mock-vwq \
+       -e STORAGE_BACKEND=... \
+       -e QUERY_PROCESSES_DELETION_SECONDS=...
 
-   [
-     {
-         "state": "working",
-         "server_access_key": "my_server_access_key",
-         "server_secret_key": "my_server_secret_key",
-         "client_access_key": "my_client_access_key",
-         "client_secret_key": "my_client_secret_key"
-     },
-     {
-         "state": "inactive",
-         "server_access_key": "my_server_access_key2",
-         "server_secret_key": "my_server_secret_key2",
-         "client_access_key": "my_client_access_key2",
-         "client_secret_key": "my_client_secret_key2"
-     }
-   ]
+Creating a database
+-------------------
 
-Ports
-~~~~~
+Make a POST request to the storage backend ``/databases`` with the keys:
 
-Using ``docker-compose``
-------------------------
+* ``database_name``
+* ``server_access_key``
+* ``server_secret_key``
+* ``client_access_key``
+* ``client_secret_key``
+* ``state`` (this can be ``"WORKING"`` or ``"PROJECT_INACTIVE"``)
