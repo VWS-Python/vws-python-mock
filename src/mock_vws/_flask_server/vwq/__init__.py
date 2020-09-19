@@ -1,9 +1,15 @@
+"""
+A fake implementation of the Vuforia Web Query API using Flask.
+
+See
+https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query
+"""
+
 import copy
 import email.utils
 from http import HTTPStatus
 from typing import Dict, Optional
 
-import requests
 from flask import Flask, Response, request
 from werkzeug.datastructures import Headers
 
@@ -82,17 +88,6 @@ class ResponseNoContentTypeAdded(Response):
 
 
 CLOUDRECO_FLASK_APP.response_class = ResponseNoContentTypeAdded
-
-
-@CLOUDRECO_FLASK_APP.errorhandler(requests.exceptions.ConnectionError)
-def handle_connection_error(
-    exc: requests.exceptions.ConnectionError,
-) -> Response:
-    # TODO: Issue
-    # This is incorrect - it raises on the server but should raise on the
-    # client
-    # Look into how ``requests`` handles it
-    raise exc
 
 
 @CLOUDRECO_FLASK_APP.errorhandler(ValidatorException)

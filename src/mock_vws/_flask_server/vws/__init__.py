@@ -34,6 +34,7 @@ from ._databases import get_all_databases
 VWS_FLASK_APP = Flask(import_name=__name__)
 VWS_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
 
+
 class ResponseNoContentTypeAdded(Response):
     """
     A custom response type.
