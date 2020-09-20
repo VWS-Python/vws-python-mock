@@ -67,7 +67,7 @@ class Target:  # pylint: disable=too-many-instance-attributes
 
     active_flag: bool
     application_metadata: str
-    # Comparison of io.BytesIO compares the object, not the ``getvalue``
+    # Comparison of io.BytesIO compares the object, not the file contents.
     # data we care about, so we leave this.
     image: io.BytesIO = field(compare=False)
     name: str
