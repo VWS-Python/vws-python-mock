@@ -159,5 +159,5 @@ def update_target(database_name: str, target_id: str) -> Tuple[str, int]:
 
     return jsonify(target.to_dict()), HTTPStatus.OK
 
-if __name == '__main__':  # pragma: no cover
+if __name__ == '__main__':  # pragma: no cover
     app.run(debug=True, host='0.0.0.0')

@@ -549,5 +549,5 @@ def update_target(target_id: str) -> Response:
         headers=headers,
     )
 
-if __name == '__main__':  # pragma: no cover
+if __name__ == '__main__':  # pragma: no cover
     app.run(debug=True, host='0.0.0.0')
