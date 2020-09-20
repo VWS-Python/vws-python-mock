@@ -8,12 +8,11 @@ import io
 import json
 import uuid
 from http import HTTPStatus
-from typing import Dict, List, Optional, Set
+from typing import Dict, Final, List, Optional, Set
 
 import requests
 from flask import Flask, Response, request
 from PIL import Image
-from typing_extensions import Final
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
@@ -550,4 +549,4 @@ def update_target(target_id: str) -> Response:
     )
 
 if __name__ == '__main__':  # pragma: no cover
-    app.run(debug=True, host='0.0.0.0')
+    VWS_FLASK_APP.run(debug=True, host='0.0.0.0')

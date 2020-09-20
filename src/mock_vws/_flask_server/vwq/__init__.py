@@ -8,11 +8,10 @@ https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognitio
 import copy
 import email.utils
 from http import HTTPStatus
-from typing import Dict, Optional, Set
+from typing import Dict, Final, Optional, Set
 
 import requests
 from flask import Flask, Response, request
-from typing_extensions import Final
 
 from mock_vws._query_tools import (
     ActiveMatchingTargetsDeleteProcessing,
@@ -159,3 +158,6 @@ def query() -> Response:
         response=response_text,
         headers=headers,
     )
+
+if __name__ == '__main__':  # pragma: no cover
+    CLOUDRECO_FLASK_APP.run(debug=True, host='0.0.0.0')
