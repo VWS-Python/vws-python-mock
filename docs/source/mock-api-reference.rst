@@ -7,6 +7,9 @@ API Reference
    :members:
    :undoc-members:
 
+.. autoclass:: mock_vws.target.TargetDict
+   :members:
+
 .. autoclass:: mock_vws.target.Target
    :members:
 
