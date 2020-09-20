@@ -85,14 +85,6 @@ class Target:  # pylint: disable=too-many-instance-attributes
     total_recos: int = 0
     upload_date: datetime.datetime = field(default_factory=_time_now)
 
-    def delete(self) -> None:
-        """
-        Mark the target as deleted.
-        """
-        timezone = self.upload_date.tzinfo
-        now = datetime.datetime.now(tz=timezone)
-        self.delete_date = now
-
     @property
     def _post_processing_status(self) -> TargetStatuses:
         """
