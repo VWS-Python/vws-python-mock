@@ -13,7 +13,6 @@ from typing import Dict, Optional, Set
 import requests
 from flask import Flask, Response, request
 from typing_extensions import Final
-from werkzeug.datastructures import Headers
 
 from mock_vws._query_tools import (
     ActiveMatchingTargetsDeleteProcessing,
@@ -102,9 +101,7 @@ class ResponseNoContentTypeAdded(Response):
             and 'Content-Type' in self.headers
             and not content_type_from_headers
         ):
-            headers_dict = dict(self.headers)
-            headers_dict.pop('Content-Type')
-            self.headers = Headers(headers_dict)
+            del self.headers['Content-Type']
 
 
 CLOUDRECO_FLASK_APP.response_class = ResponseNoContentTypeAdded

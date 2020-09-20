@@ -14,7 +14,6 @@ import requests
 from flask import Flask, Response, request
 from PIL import Image
 from typing_extensions import Final
-from werkzeug.datastructures import Headers
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
@@ -86,9 +85,7 @@ class ResponseNoContentTypeAdded(Response):
             and 'Content-Type' in self.headers
             and not content_type_from_headers
         ):
-            headers_dict = dict(self.headers)
-            headers_dict.pop('Content-Type')
-            self.headers = Headers(headers_dict)
+            del self.headers['Content-Type']
 
 
 VWS_FLASK_APP.response_class = ResponseNoContentTypeAdded
