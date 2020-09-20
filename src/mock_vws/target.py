@@ -58,7 +58,7 @@ def _random_tracking_rating() -> int:
     return random.randint(0, 5)
 
 
-@dataclass(unsafe_hash=True, eq=True)
+@dataclass(frozen=True, eq=True)
 class Target:  # pylint: disable=too-many-instance-attributes
     """
     A Vuforia Target as managed in
@@ -84,14 +84,6 @@ class Target:  # pylint: disable=too-many-instance-attributes
     target_id: str = field(default_factory=_random_hex)
     total_recos: int = 0
     upload_date: datetime.datetime = field(default_factory=_time_now)
-
-    def delete(self) -> None:
-        """
-        Mark the target as deleted.
-        """
-        timezone = self.upload_date.tzinfo
-        now = datetime.datetime.now(tz=timezone)
-        self.delete_date = now
 
     @property
     def _post_processing_status(self) -> TargetStatuses:
@@ -174,38 +166,44 @@ class Target:  # pylint: disable=too-many-instance-attributes
         """
         Load a target from a dictionary.
         """
+        timezone = ZoneInfo('GMT')
         name = target_dict['name']
         active_flag = target_dict['active_flag']
         width = target_dict['width']
         image_base64 = target_dict['image_base64']
-        upload_date = target_dict['upload_date']
         processed_tracking_rating = target_dict['processed_tracking_rating']
         image_bytes = base64.b64decode(image_base64)
         image = io.BytesIO(image_bytes)
         processing_time_seconds = target_dict['processing_time_seconds']
         application_metadata = target_dict['application_metadata']
+        target_id = target_dict['target_id']
+        delete_date_optional = target_dict['delete_date_optional']
+        if delete_date_optional is None:
+            delete_date = None
+        else:
+            delete_date = datetime.datetime.fromisoformat(delete_date_optional)
+            delete_date = delete_date.replace(tzinfo=timezone)
+
+        last_modified_date = datetime.datetime.fromisoformat(
+            target_dict['last_modified_date'],
+        ).replace(tzinfo=timezone)
+        upload_date = datetime.datetime.fromisoformat(
+            target_dict['upload_date'],
+        ).replace(tzinfo=timezone)
 
         target = Target(
+            target_id=target_id,
             name=name,
             active_flag=active_flag,
             width=width,
             image=image,
             processing_time_seconds=processing_time_seconds,
             application_metadata=application_metadata,
+            delete_date=delete_date,
+            last_modified_date=last_modified_date,
+            upload_date=upload_date,
+            processed_tracking_rating=processed_tracking_rating,
         )
-        target.target_id = target_dict['target_id']
-        timezone = ZoneInfo('GMT')
-        target.last_modified_date = datetime.datetime.fromisoformat(
-            target_dict['last_modified_date'],
-        ).replace(tzinfo=timezone)
-        target.upload_date = datetime.datetime.fromisoformat(upload_date)
-        target.processed_tracking_rating = processed_tracking_rating
-        target.upload_date = target.upload_date.replace(tzinfo=timezone)
-        delete_date_optional = target_dict['delete_date_optional']
-        if delete_date_optional:
-            target.delete_date = datetime.datetime.fromisoformat(
-                delete_date_optional,
-            ).replace(tzinfo=timezone)
         return target
 
     def to_dict(self) -> TargetDict:
