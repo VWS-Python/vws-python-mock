@@ -40,7 +40,9 @@
     disable = [
         # Tests need `self` to be in a class but do not use it.
         'no-self-use',
+        # Style issues that we can deal with ourselves
         'too-few-public-methods',
+        'too-many-ancestors',
         'too-many-locals',
         'too-many-arguments',
         'too-many-instance-attributes',
