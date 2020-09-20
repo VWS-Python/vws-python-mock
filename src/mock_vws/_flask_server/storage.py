@@ -150,24 +150,24 @@ def update_target(database_name: str, target_id: str) -> Tuple[str, int]:
     ]
 
     width = target.width
-    if 'width' in request.json():
-        width = request.json()['width']
+    if 'width' in request.json:
+        width = request.json['width']
 
     active_flag = target.active_flag
-    if 'active_flag' in request.json():
-        active_flag = request.json()['active_flag']
+    if 'active_flag' in request.json:
+        active_flag = request.json['active_flag']
 
     application_metadata = target.application_metadata
-    if 'application_metadata' in request.json():
-        application_metadata = request.json()['application_metadata']
+    if 'application_metadata' in request.json:
+        application_metadata = request.json['application_metadata']
 
     name = target.name
-    if 'name' in request.json():
-        name = request.json()['name']
+    if 'name' in request.json:
+        name = request.json['name']
 
     image_file = target.image
-    if 'image' in request.json():
-        image = request.json()['image']
+    if 'image' in request.json:
+        image = request.json['image']
         decoded = base64.b64decode(image)
         image_file = io.BytesIO(decoded)
 
