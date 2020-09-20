@@ -590,9 +590,10 @@ class TestDatabaseToDict:
             server_secret_key=database.server_secret_key,
         )
 
+        # We test a database with a target added.
         with MockVWS() as mock:
             mock.add_database(database=database)
-            target_id = vws_client.add_target(
+            vws_client.add_target(
                 name='example',
                 width=1,
                 image=high_quality_image,

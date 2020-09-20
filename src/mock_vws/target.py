@@ -44,11 +44,17 @@ def _random_hex() -> str:
 
 
 def _time_now() -> datetime.datetime:
+    """
+    Return the current time in the GMT time zone.
+    """
     gmt = ZoneInfo('GMT')
     return datetime.datetime.now(tz=gmt)
 
 
 def _random_tracking_rating() -> int:
+    """
+    Return a random tracking rating.
+    """
     return random.randint(0, 5)
 
 
@@ -72,7 +78,7 @@ class Target:  # pylint: disable=too-many-instance-attributes
     last_modified_date: datetime.datetime = field(default_factory=_time_now)
     previous_month_recos: int = 0
     processed_tracking_rating: int = field(
-        default_factory=_random_tracking_rating
+        default_factory=_random_tracking_rating,
     )
     reco_rating: str = ''
     target_id: str = field(default_factory=_random_hex)
