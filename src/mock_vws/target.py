@@ -1,18 +1,38 @@
 """
 A fake implementation of a target for the Vuforia Web Services API.
 """
+from __future__ import annotations
 
+import base64
 import datetime
 import io
 import random
 import statistics
 import uuid
-from typing import Optional, Union
+from typing import Optional, TypedDict, Union
 
 from backports.zoneinfo import ZoneInfo
 from PIL import Image, ImageStat
 
 from mock_vws._constants import TargetStatuses
+
+
+class TargetDict(TypedDict):
+    """
+    A dictionary type which represents a target.
+    """
+
+    name: str
+    width: float
+    image_base64: str
+    active_flag: bool
+    processing_time_seconds: Union[int, float]
+    processed_tracking_rating: int
+    application_metadata: str
+    target_id: str
+    last_modified_date: str
+    delete_date_optional: Optional[str]
+    upload_date: str
 
 
 class Target:  # pylint: disable=too-many-instance-attributes
@@ -178,3 +198,67 @@ class Target:  # pylint: disable=too-many-instance-attributes
             return self.processed_tracking_rating
 
         return 0
+
+    @classmethod
+    def from_dict(cls, target_dict: TargetDict) -> Target:
+        """
+        Load a target from a dictionary.
+        """
+        name = target_dict['name']
+        active_flag = target_dict['active_flag']
+        width = target_dict['width']
+        image_base64 = target_dict['image_base64']
+        upload_date = target_dict['upload_date']
+        processed_tracking_rating = target_dict['processed_tracking_rating']
+        image_bytes = base64.b64decode(image_base64)
+        image = io.BytesIO(image_bytes)
+        processing_time_seconds = target_dict['processing_time_seconds']
+        application_metadata = target_dict['application_metadata']
+
+        target = Target(
+            name=name,
+            active_flag=active_flag,
+            width=width,
+            image=image,
+            processing_time_seconds=processing_time_seconds,
+            application_metadata=application_metadata,
+        )
+        target.target_id = target_dict['target_id']
+        gmt = ZoneInfo('GMT')
+        target.last_modified_date = datetime.datetime.fromisoformat(
+            target_dict['last_modified_date'],
+        ).replace(tzinfo=gmt)
+        target.upload_date = datetime.datetime.fromisoformat(upload_date)
+        target.processed_tracking_rating = processed_tracking_rating
+        target.upload_date = target.upload_date.replace(tzinfo=gmt)
+        delete_date_optional = target_dict['delete_date_optional']
+        if delete_date_optional:
+            target.delete_date = datetime.datetime.fromisoformat(
+                delete_date_optional,
+            ).replace(tzinfo=gmt)
+        return target
+
+    def to_dict(self) -> TargetDict:
+        """
+        Dump a target to a dictionary which can be loaded as JSON.
+        """
+        delete_date: Optional[str] = None
+        if self.delete_date:
+            delete_date = datetime.datetime.isoformat(self.delete_date)
+
+        image_value = self.image.getvalue()
+        image_base64 = base64.encodebytes(image_value).decode()
+
+        return {
+            'name': self.name,
+            'width': self.width,
+            'image_base64': image_base64,
+            'active_flag': self.active_flag,
+            'processing_time_seconds': self._processing_time_seconds,
+            'processed_tracking_rating': self.processed_tracking_rating,
+            'application_metadata': self.application_metadata,
+            'target_id': self.target_id,
+            'last_modified_date': self.last_modified_date.isoformat(),
+            'delete_date_optional': delete_date,
+            'upload_date': self.upload_date.isoformat(),
+        }

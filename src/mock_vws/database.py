@@ -2,13 +2,29 @@
 Utilities for managing mock Vuforia databases.
 """
 
+from __future__ import annotations
+
 import uuid
 from dataclasses import dataclass, field
-from typing import Set
+from typing import List, Set, TypedDict
 
 from mock_vws._constants import TargetStatuses
 from mock_vws.states import States
-from mock_vws.target import Target
+from mock_vws.target import Target, TargetDict
+
+
+class DatabaseDict(TypedDict):
+    """
+    A dictionary type which represents a database.
+    """
+
+    database_name: str
+    server_access_key: str
+    server_secret_key: str
+    client_access_key: str
+    client_secret_key: str
+    state_name: str
+    targets: List[TargetDict]
 
 
 def _random_hex() -> str:
@@ -40,6 +56,41 @@ class VuforiaDatabase:
     previous_month_recos = 0
     total_recos = 0
     target_quota = 1000
+
+    def to_dict(self) -> DatabaseDict:
+        """
+        Dump a target to a dictionary which can be loaded as JSON.
+        """
+        targets = [target.to_dict() for target in self.targets]
+        return {
+            'database_name': self.database_name,
+            'server_access_key': self.server_access_key,
+            'server_secret_key': self.server_secret_key,
+            'client_access_key': self.client_access_key,
+            'client_secret_key': self.client_secret_key,
+            'state_name': self.state.name,
+            'targets': targets,
+        }
+
+    @classmethod
+    def from_dict(cls, database_dict: DatabaseDict) -> VuforiaDatabase:
+        """
+        Load a database from a dictionary.
+        """
+        database = cls(
+            database_name=database_dict['database_name'],
+            server_access_key=database_dict['server_access_key'],
+            server_secret_key=database_dict['server_secret_key'],
+            client_access_key=database_dict['client_access_key'],
+            client_secret_key=database_dict['client_secret_key'],
+            state=States[database_dict['state_name']],
+        )
+
+        for target_dict in database_dict['targets']:
+            target = Target.from_dict(target_dict=target_dict)
+            database.targets.add(target)
+
+        return database
 
     @property
     def not_deleted_targets(self) -> Set[Target]:
