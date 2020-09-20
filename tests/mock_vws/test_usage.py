@@ -19,9 +19,9 @@ from vws.reports import TargetStatuses
 from vws_auth_tools import rfc_1123_date
 
 from mock_vws import MockVWS
-from mock_vws.target import Target
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
+from mock_vws.target import Target
 
 
 def request_unmocked_address() -> None:
@@ -511,30 +511,6 @@ class TestTargets:
     Tests for target representations.
     """
 
-    def test_repr(self, high_quality_image: io.BytesIO) -> None:
-        """
-        Test for the representation of a ``Target``.
-        """
-        database = VuforiaDatabase()
-
-        vws_client = VWS(
-            server_access_key=database.server_access_key,
-            server_secret_key=database.server_secret_key,
-        )
-
-        with MockVWS() as mock:
-            mock.add_database(database=database)
-            target_id = vws_client.add_target(
-                name='example',
-                width=1,
-                image=high_quality_image,
-                active_flag=True,
-                application_metadata=None,
-            )
-
-        (target,) = database.targets
-        assert repr(target) == f'<Target: {target_id}>'
-
     def test_to_dict(self, high_quality_image: io.BytesIO) -> None:
         """
         Test for dumping a target to a dictionary and loading it back.
@@ -548,7 +524,7 @@ class TestTargets:
 
         with MockVWS() as mock:
             mock.add_database(database=database)
-            target_id = vws_client.add_target(
+            vws_client.add_target(
                 name='example',
                 width=1,
                 image=high_quality_image,
@@ -563,21 +539,8 @@ class TestTargets:
         assert json.dumps(target_dict)
 
         new_target = Target.from_dict(target_dict=target_dict)
-        assert new_target.target_id == target.target_id
-        assert new_target.name == target.name
-        assert new_target.width == target.width
         assert new_target.image.getvalue() == target.image.getvalue()
-        assert new_target.active_flag == target.active_flag
-        assert new_target.processing_time_seconds == (
-            target.processing_time_seconds
-        )
-        assert new_target.processed_tracking_rating == (
-            target.processed_tracking_rating
-        )
-        assert new_target.application_metadata == target.application_metadata
-        assert new_target.last_modified_date == target.last_modified_date
-        assert new_target.delete_date == target.delete_date
-        assert new_target.upload_date == target.upload_date
+        assert new_target == target
 
     def test_to_dict_deleted(self, high_quality_image: io.BytesIO) -> None:
         """
@@ -622,13 +585,28 @@ class TestDatabaseToDict:
         Test for dumping a database to a dictionary and loading it back.
         """
         database = VuforiaDatabase()
-        database_dict = database.to_dict()
+        vws_client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
 
+        with MockVWS() as mock:
+            mock.add_database(database=database)
+            target_id = vws_client.add_target(
+                name='example',
+                width=1,
+                image=high_quality_image,
+                active_flag=True,
+                application_metadata=None,
+            )
+
+        database_dict = database.to_dict()
         # The dictionary is JSON dump-able
         assert json.dumps(database_dict)
 
-        # TODO test with targets added
+        new_database = VuforiaDatabase.from_dict(database_dict=database_dict)
         assert new_database == database
+
 
 class TestDateHeader:
     """

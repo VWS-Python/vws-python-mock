@@ -4,14 +4,13 @@ A fake implementation of a target for the Vuforia Web Services API.
 from __future__ import annotations
 
 import base64
-from functools import partial
-from dataclasses import dataclass, field
 import datetime
 import io
 import random
 import statistics
 import uuid
-from typing import Optional, TypedDict, Union, Final
+from dataclasses import dataclass, field
+from typing import Optional, TypedDict, Union
 
 from backports.zoneinfo import ZoneInfo
 from PIL import Image, ImageStat
@@ -43,14 +42,17 @@ def _random_hex() -> str:
     """
     return uuid.uuid4().hex
 
+
 def _time_now() -> datetime.datetime:
     gmt = ZoneInfo('GMT')
     return datetime.datetime.now(tz=gmt)
 
+
 def _random_tracking_rating() -> int:
     return random.randint(0, 5)
 
-@dataclass(unsafe_hash=True)
+
+@dataclass(unsafe_hash=True, eq=True)
 class Target:  # pylint: disable=too-many-instance-attributes
     """
     A Vuforia Target as managed in
@@ -59,26 +61,23 @@ class Target:  # pylint: disable=too-many-instance-attributes
 
     active_flag: bool
     application_metadata: str
-    image: io.BytesIO
-    name : str
+    # Comparison of io.BytesIO compares the object, not the ``getvalue``
+    # data we care about, so we leave this.
+    image: io.BytesIO = field(compare=False)
+    name: str
     processing_time_seconds: float
     width: float
     current_month_recos: int = 0
     delete_date: Optional[datetime.datetime] = None
     last_modified_date: datetime.datetime = field(default_factory=_time_now)
     previous_month_recos: int = 0
-    processed_tracking_rating: int = field(default_factory=_random_tracking_rating)
+    processed_tracking_rating: int = field(
+        default_factory=_random_tracking_rating
+    )
     reco_rating: str = ''
     target_id: str = field(default_factory=_random_hex)
     total_recos: int = 0
     upload_date: datetime.datetime = field(default_factory=_time_now)
-
-    def __repr__(self) -> str:
-        """
-        Return a representation which includes the target ID.
-        """
-        class_name = self.__class__.__name__
-        return f'<{class_name}: {self.target_id}>'
 
     def delete(self) -> None:
         """
