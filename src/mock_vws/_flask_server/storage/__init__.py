@@ -158,3 +158,6 @@ def update_target(database_name: str, target_id: str) -> Tuple[str, int]:
     target.last_modified_date = now
 
     return jsonify(target.to_dict()), HTTPStatus.OK
+
+if __name == '__main__':  # pragma: no cover
+    app.run(debug=True, host='0.0.0.0')

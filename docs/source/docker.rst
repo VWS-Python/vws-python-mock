@@ -11,18 +11,34 @@ From source
 
 .. code:: sh
 
-   docker build
+   docker build \
+       --file src/mock_vws/_flask_server/Dockerfile \
+       --tag vws-mock \
+       .
+
+   docker build \
+       --file src/mock_vws/_flask_server/Dockerfile \
+       --tag vws-storage \
+       src/mock_vws/_flask_server/vws
+
+   docker build \
+       --file src/mock_vws/_flask_server/Dockerfile \
+       --tag vws-storage \
+       src/mock_vws/_flask_server/vwq
 
 From pre-built containers
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code:: sh
 
-   docker run adamtheturtle/mock-vuforia-storage-backend
-   docker run adamtheturtle/mock-vws \
+   docker run vws-mock \
+       --entrypoint src/mock_vws/_flask_server/vws/__init__.py
+       -e 
+   docker run vws-mock \
        -e STORAGE_BACKEND=... \
        -e QUERY_PROCESSES_DELETION_SECONDS=...
-   docker run adamtheturtle/mock-vwq \
+   docker run \
+       adamtheturtle/mock-vwq \
        -e STORAGE_BACKEND=... \
        -e QUERY_PROCESSES_DELETION_SECONDS=...
 
