@@ -4,12 +4,14 @@ A fake implementation of a target for the Vuforia Web Services API.
 from __future__ import annotations
 
 import base64
+from functools import partial
+from dataclasses import dataclass, field
 import datetime
 import io
 import random
 import statistics
 import uuid
-from typing import Optional, TypedDict, Union
+from typing import Optional, TypedDict, Union, Final
 
 from backports.zoneinfo import ZoneInfo
 from PIL import Image, ImageStat
@@ -35,81 +37,41 @@ class TargetDict(TypedDict):
     upload_date: str
 
 
+def _random_hex() -> str:
+    """
+    Return a random hex value.
+    """
+    return uuid.uuid4().hex
+
+def _time_now() -> datetime.datetime:
+    gmt = ZoneInfo('GMT')
+    return datetime.datetime.now(tz=gmt)
+
+def _random_tracking_rating() -> int:
+    return random.randint(0, 5)
+
+@dataclass(unsafe_hash=True)
 class Target:  # pylint: disable=too-many-instance-attributes
     """
     A Vuforia Target as managed in
     https://developer.vuforia.com/target-manager.
     """
 
-    name: str
-    target_id: str
     active_flag: bool
-    width: float
-    upload_date: datetime.datetime
-    last_modified_date: datetime.datetime
-    processed_tracking_rating: int
-    image: io.BytesIO
-    reco_rating: str
     application_metadata: str
-    delete_date: Optional[datetime.datetime]
-
-    def __init__(  # pylint: disable=too-many-arguments
-        self,
-        name: str,
-        active_flag: bool,
-        width: float,
-        image: io.BytesIO,
-        processing_time_seconds: Union[int, float],
-        application_metadata: str,
-    ) -> None:
-        """
-        Args:
-            name: The name of the target.
-            active_flag: Whether or not the target is active for query.
-            width: The width of the image in scene unit.
-            image: The image associated with the target.
-            processing_time_seconds: The number of seconds to process each
-                image for. In the real Vuforia Web Services, this is not
-                deterministic.
-            application_metadata: The base64 encoded application metadata
-                associated with the target.
-
-        Attributes:
-            name (str): The name of the target.
-            target_id (str): The unique ID of the target.
-            active_flag (bool): Whether or not the target is active for query.
-            width (float): The width of the image in scene unit.
-            upload_date (datetime.datetime): The time that the target was
-                created.
-            last_modified_date (datetime.datetime): The time that the target
-                was last modified.
-            processed_tracking_rating (int): The tracking rating of the target
-                once it has been processed.
-            image (io.BytesIO): The image data associated with the target.
-            reco_rating (str): An empty string ("for now" according to
-                Vuforia's documentation).
-            application_metadata (str): The base64 encoded application metadata
-                associated with the target.
-            delete_date (typing.Optional[datetime.datetime]): The time that the
-                target was deleted.
-        """
-        self.name = name
-        self.target_id = uuid.uuid4().hex
-        self.active_flag = active_flag
-        self.width = width
-        self._timezone = ZoneInfo('GMT')
-        now = datetime.datetime.now(tz=self._timezone)
-        self.upload_date: datetime.datetime = now
-        self.last_modified_date = self.upload_date
-        self.processed_tracking_rating = random.randint(0, 5)
-        self.image = image
-        self.reco_rating = ''
-        self._processing_time_seconds = processing_time_seconds
-        self.application_metadata = application_metadata
-        self.delete_date: Optional[datetime.datetime] = None
-        self.total_recos: int = 0
-        self.current_month_recos: int = 0
-        self.previous_month_recos: int = 0
+    image: io.BytesIO
+    name : str
+    processing_time_seconds: float
+    width: float
+    current_month_recos: int = 0
+    delete_date: Optional[datetime.datetime] = None
+    last_modified_date: datetime.datetime = field(default_factory=_time_now)
+    previous_month_recos: int = 0
+    processed_tracking_rating: int = field(default_factory=_random_tracking_rating)
+    reco_rating: str = ''
+    target_id: str = field(default_factory=_random_hex)
+    total_recos: int = 0
+    upload_date: datetime.datetime = field(default_factory=_time_now)
 
     def __repr__(self) -> str:
         """
@@ -122,7 +84,8 @@ class Target:  # pylint: disable=too-many-instance-attributes
         """
         Mark the target as deleted.
         """
-        now = datetime.datetime.now(tz=self._timezone)
+        timezone = self.upload_date.tzinfo
+        now = datetime.datetime.now(tz=timezone)
         self.delete_date = now
 
     @property
@@ -158,10 +121,11 @@ class Target:  # pylint: disable=too-many-instance-attributes
         target is for detection.
         """
         processing_time = datetime.timedelta(
-            seconds=self._processing_time_seconds,
+            seconds=self.processing_time_seconds,
         )
 
-        now = datetime.datetime.now(tz=self._timezone)
+        timezone = self.upload_date.tzinfo
+        now = datetime.datetime.now(tz=timezone)
         time_since_change = now - self.last_modified_date
 
         if time_since_change <= processing_time:
@@ -184,11 +148,12 @@ class Target:  # pylint: disable=too-many-instance-attributes
         pre_rating_time = datetime.timedelta(
             # That this is half of the total processing time is unrealistic.
             # In VWS it is not a constant percentage.
-            seconds=self._processing_time_seconds
+            seconds=self.processing_time_seconds
             / 2,
         )
 
-        now = datetime.datetime.now(tz=self._timezone)
+        timezone = self.upload_date.tzinfo
+        now = datetime.datetime.now(tz=timezone)
         time_since_upload = now - self.upload_date
 
         if time_since_upload <= pre_rating_time:
@@ -224,18 +189,18 @@ class Target:  # pylint: disable=too-many-instance-attributes
             application_metadata=application_metadata,
         )
         target.target_id = target_dict['target_id']
-        gmt = ZoneInfo('GMT')
+        timezone = ZoneInfo('GMT')
         target.last_modified_date = datetime.datetime.fromisoformat(
             target_dict['last_modified_date'],
-        ).replace(tzinfo=gmt)
+        ).replace(tzinfo=timezone)
         target.upload_date = datetime.datetime.fromisoformat(upload_date)
         target.processed_tracking_rating = processed_tracking_rating
-        target.upload_date = target.upload_date.replace(tzinfo=gmt)
+        target.upload_date = target.upload_date.replace(tzinfo=timezone)
         delete_date_optional = target_dict['delete_date_optional']
         if delete_date_optional:
             target.delete_date = datetime.datetime.fromisoformat(
                 delete_date_optional,
-            ).replace(tzinfo=gmt)
+            ).replace(tzinfo=timezone)
         return target
 
     def to_dict(self) -> TargetDict:
@@ -254,7 +219,7 @@ class Target:  # pylint: disable=too-many-instance-attributes
             'width': self.width,
             'image_base64': image_base64,
             'active_flag': self.active_flag,
-            'processing_time_seconds': self._processing_time_seconds,
+            'processing_time_seconds': self.processing_time_seconds,
             'processed_tracking_rating': self.processed_tracking_rating,
             'application_metadata': self.application_metadata,
             'target_id': self.target_id,

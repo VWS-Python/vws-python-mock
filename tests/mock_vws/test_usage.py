@@ -568,8 +568,8 @@ class TestTargets:
         assert new_target.width == target.width
         assert new_target.image.getvalue() == target.image.getvalue()
         assert new_target.active_flag == target.active_flag
-        assert new_target._processing_time_seconds == (
-            target._processing_time_seconds
+        assert new_target.processing_time_seconds == (
+            target.processing_time_seconds
         )
         assert new_target.processed_tracking_rating == (
             target.processed_tracking_rating
