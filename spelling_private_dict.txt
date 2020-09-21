@@ -55,6 +55,7 @@ metadata
 mib
 mockvws
 multipart
+mypy
 noqa
 pdict
 plugins

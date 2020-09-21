@@ -8,11 +8,17 @@ from enum import Enum
 from typing import Generator
 
 import pytest
+import requests
+import requests_mock
 from _pytest.fixtures import SubRequest
+from requests_mock_flask import add_flask_app_to_mock
 from vws import VWS
 from vws.exceptions.vws_exceptions import TargetStatusNotSuccess
 
 from mock_vws import MockVWS
+from mock_vws._flask_server.storage import STORAGE_FLASK_APP
+from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
+from mock_vws._flask_server.vws import STORAGE_BASE_URL, VWS_FLASK_APP
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
 
@@ -83,6 +89,47 @@ def _enable_use_mock_vuforia(
         yield
 
 
+def _enable_use_docker_in_memory(
+    working_database: VuforiaDatabase,
+    inactive_database: VuforiaDatabase,
+) -> Generator:
+    with requests_mock.Mocker(real_http=False) as mock:
+        add_flask_app_to_mock(
+            mock_obj=mock,
+            flask_app=VWS_FLASK_APP,
+            base_url='https://vws.vuforia.com',
+        )
+
+        add_flask_app_to_mock(
+            mock_obj=mock,
+            flask_app=CLOUDRECO_FLASK_APP,
+            base_url='https://cloudreco.vuforia.com',
+        )
+
+        add_flask_app_to_mock(
+            mock_obj=mock,
+            flask_app=STORAGE_FLASK_APP,
+            base_url=STORAGE_BASE_URL,
+        )
+
+        requests.post(url=STORAGE_BASE_URL + '/reset')
+
+        working_database_dict = working_database.to_dict()
+        inactive_database_dict = inactive_database.to_dict()
+
+        requests.post(
+            url=STORAGE_BASE_URL + '/databases',
+            json=working_database_dict,
+        )
+
+        requests.post(
+            url=STORAGE_BASE_URL + '/databases',
+            json=inactive_database_dict,
+        )
+
+        yield
+
+
 class VuforiaBackend(Enum):
     """
     Backends for tests.
@@ -90,6 +137,7 @@ class VuforiaBackend(Enum):
 
     REAL = 'Real Vuforia'
     MOCK = 'In Memory Mock Vuforia'
+    DOCKER_IN_MEMORY = 'In Memory version of Docker application'
 
 
 @pytest.fixture(
@@ -115,6 +163,7 @@ def verify_mock_vuforia(
     enable_function = {
         VuforiaBackend.REAL: _enable_use_real_vuforia,
         VuforiaBackend.MOCK: _enable_use_mock_vuforia,
+        VuforiaBackend.DOCKER_IN_MEMORY: _enable_use_docker_in_memory,
     }[backend]
 
     yield from enable_function(
