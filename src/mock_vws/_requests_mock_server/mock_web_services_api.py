@@ -6,6 +6,7 @@ https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Service
 """
 
 import base64
+import dataclasses
 import datetime
 import email.utils
 import io
@@ -269,23 +270,7 @@ class MockVuforiaWebServicesAPI:
             raise TargetStatusProcessing
 
         now = datetime.datetime.now(tz=target.upload_date.tzinfo)
-        new_target = Target(
-            active_flag=target.active_flag,
-            application_metadata=target.application_metadata,
-            image=target.image,
-            name=target.name,
-            processing_time_seconds=target.processing_time_seconds,
-            width=target.width,
-            current_month_recos=target.current_month_recos,
-            delete_date=now,
-            last_modified_date=target.last_modified_date,
-            previous_month_recos=target.previous_month_recos,
-            processed_tracking_rating=target.processed_tracking_rating,
-            reco_rating=target.reco_rating,
-            target_id=target.target_id,
-            total_recos=target.total_recos,
-            upload_date=target.upload_date,
-        )
+        new_target = dataclasses.replace(target, delete_date=now)
         database.targets.remove(target)
         database.targets.add(new_target)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
@@ -523,57 +508,52 @@ class MockVuforiaWebServicesAPI:
         if target.status != TargetStatuses.SUCCESS.value:
             raise TargetStatusNotSuccess
 
-        width = target.width
+        new_target = target
+
         if 'width' in request.json():
             width = request.json()['width']
+            dataclasses.replace(new_target, width=width)
 
-        active_flag = target.active_flag
         if 'active_flag' in request.json():
             active_flag = request.json()['active_flag']
             if active_flag is None:
                 raise Fail(status_code=HTTPStatus.BAD_REQUEST)
+            dataclasses.replace(new_target, active_flag=active_flag)
 
-        application_metadata = target.application_metadata
         if 'application_metadata' in request.json():
             application_metadata = request.json()['application_metadata']
             if application_metadata is None:
                 raise Fail(status_code=HTTPStatus.BAD_REQUEST)
+            dataclasses.replace(
+                new_target,
+                application_metadata=application_metadata,
+            )
 
-        name = target.name
         if 'name' in request.json():
             name = request.json()['name']
+            dataclasses.replace(new_target, name=name)
 
-        image_file = target.image
         if 'image' in request.json():
             image = request.json()['image']
             decoded = base64.b64decode(image)
             image_file = io.BytesIO(decoded)
+            dataclasses.replace(new_target, image=image_file)
 
         # In the real implementation, the tracking rating can stay the same.
         # However, for demonstration purposes, the tracking rating changes but
         # when the target is updated.
         available_values = list(set(range(6)) - set([target.tracking_rating]))
         processed_tracking_rating = random.choice(available_values)
+        dataclasses.replace(
+            new_target,
+            processed_tracking_rating=processed_tracking_rating,
+        )
 
         gmt = ZoneInfo('GMT')
         last_modified_date = datetime.datetime.now(tz=gmt)
-
-        new_target = Target(
-            active_flag=active_flag,
-            application_metadata=application_metadata,
-            image=image_file,
-            name=name,
-            processing_time_seconds=target.processing_time_seconds,
-            width=width,
-            current_month_recos=target.current_month_recos,
-            delete_date=target.delete_date,
+        dataclasses.replace(
+            new_target,
             last_modified_date=last_modified_date,
-            previous_month_recos=target.previous_month_recos,
-            processed_tracking_rating=processed_tracking_rating,
-            reco_rating=target.reco_rating,
-            target_id=target.target_id,
-            total_recos=target.total_recos,
-            upload_date=target.upload_date,
         )
 
         database.targets.remove(target)
