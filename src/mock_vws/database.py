@@ -72,6 +72,15 @@ class VuforiaDatabase:
             'targets': targets,
         }
 
+    def get_target(self, target_id: str) -> Target:
+        """
+        Return a target from the database with the given ID.
+        """
+        [target] = [
+            target for target in self.targets if target.target_id == target_id
+        ]
+        return target
+
     @classmethod
     def from_dict(cls, database_dict: DatabaseDict) -> VuforiaDatabase:
         """

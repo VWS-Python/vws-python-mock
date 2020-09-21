@@ -124,22 +124,6 @@ def route(
     return decorator
 
 
-def _get_target_from_request(
-    request_path: str,
-    database: VuforiaDatabase,
-) -> Target:
-    """
-    Given a request path with a target ID in the path, return the target with
-    that ID from the given database.
-    """
-    split_path = request_path.split('/')
-    target_id = split_path[-1]
-    [target] = [
-        target for target in database.targets if target.target_id == target_id
-    ]
-    return target
-
-
 class MockVuforiaWebServicesAPI:
     """
     A fake implementation of the Vuforia Web Services API.
@@ -255,10 +239,8 @@ class MockVuforiaWebServicesAPI:
         )
 
         assert isinstance(database, VuforiaDatabase)
-        target = _get_target_from_request(
-            request_path=request.path,
-            database=database,
-        )
+        target_id = request.path.split('/')[-1]
+        target = database.get_target(target_id=target_id)
 
         if target.status == TargetStatuses.PROCESSING.value:
             raise TargetStatusProcessing
@@ -386,10 +368,8 @@ class MockVuforiaWebServicesAPI:
             databases=self.databases,
         )
         assert isinstance(database, VuforiaDatabase)
-        target = _get_target_from_request(
-            request_path=request.path,
-            database=database,
-        )
+        target_id = request.path.split('/')[-1]
+        target = database.get_target(target_id=target_id)
 
         target_record = {
             'target_id': target.target_id,
@@ -438,10 +418,8 @@ class MockVuforiaWebServicesAPI:
             databases=self.databases,
         )
         assert isinstance(database, VuforiaDatabase)
-        target = _get_target_from_request(
-            request_path=request.path,
-            database=database,
-        )
+        target_id = request.path.split('/')[-1]
+        target = database.get_target(target_id=target_id)
 
         other_targets = set(database.targets) - set([target])
 
@@ -495,10 +473,8 @@ class MockVuforiaWebServicesAPI:
 
         assert isinstance(database, VuforiaDatabase)
 
-        target = _get_target_from_request(
-            request_path=request.path,
-            database=database,
-        )
+        target_id = request.path.split('/')[-1]
+        target = database.get_target(target_id=target_id)
         body: Dict[str, str] = {}
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
@@ -584,10 +560,8 @@ class MockVuforiaWebServicesAPI:
             databases=self.databases,
         )
         assert isinstance(database, VuforiaDatabase)
-        target = _get_target_from_request(
-            request_path=request.path,
-            database=database,
-        )
+        target_id = request.path.split('/')[-1]
+        target = database.get_target(target_id=target_id)
 
         assert isinstance(database, VuforiaDatabase)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
