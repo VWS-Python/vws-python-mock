@@ -29,7 +29,7 @@ class TargetDict(TypedDict):
     active_flag: bool
     processing_time_seconds: Union[int, float]
     processed_tracking_rating: int
-    application_metadata: str
+    application_metadata: Optional[str]
     target_id: str
     last_modified_date: str
     delete_date_optional: Optional[str]
@@ -66,7 +66,7 @@ class Target:  # pylint: disable=too-many-instance-attributes
     """
 
     active_flag: bool
-    application_metadata: str
+    application_metadata: Optional[str]
     # Comparison of io.BytesIO compares the object, not the file contents.
     # data we care about, so we leave this.
     image: io.BytesIO = field(compare=False)

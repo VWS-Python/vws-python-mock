@@ -508,51 +508,46 @@ class MockVuforiaWebServicesAPI:
         if target.status != TargetStatuses.SUCCESS.value:
             raise TargetStatusNotSuccess
 
-        new_target = target
+        width = request.json().get('width', target.width)
+        name = request.json().get('name', target.name)
+        active_flag = request.json().get('active_flag', target.active_flag)
+        application_metadata = request.json().get(
+            'application_metadata',
+            target.application_metadata,
+        )
 
-        if 'width' in request.json():
-            width = request.json()['width']
-            dataclasses.replace(new_target, width=width)
-
-        if 'active_flag' in request.json():
-            active_flag = request.json()['active_flag']
-            if active_flag is None:
-                raise Fail(status_code=HTTPStatus.BAD_REQUEST)
-            dataclasses.replace(new_target, active_flag=active_flag)
-
-        if 'application_metadata' in request.json():
-            application_metadata = request.json()['application_metadata']
-            if application_metadata is None:
-                raise Fail(status_code=HTTPStatus.BAD_REQUEST)
-            dataclasses.replace(
-                new_target,
-                application_metadata=application_metadata,
-            )
-
-        if 'name' in request.json():
-            name = request.json()['name']
-            dataclasses.replace(new_target, name=name)
-
+        image_file = target.image
         if 'image' in request.json():
             image = request.json()['image']
             decoded = base64.b64decode(image)
             image_file = io.BytesIO(decoded)
-            dataclasses.replace(new_target, image=image_file)
+
+        if 'active_flag' in request.json() and active_flag is None:
+            raise Fail(status_code=HTTPStatus.BAD_REQUEST)
+
+        if (
+            'application_metadata' in request.json()
+            and application_metadata is None
+        ):
+            raise Fail(status_code=HTTPStatus.BAD_REQUEST)
 
         # In the real implementation, the tracking rating can stay the same.
         # However, for demonstration purposes, the tracking rating changes but
         # when the target is updated.
         available_values = list(set(range(6)) - set([target.tracking_rating]))
         processed_tracking_rating = random.choice(available_values)
-        dataclasses.replace(
-            new_target,
-            processed_tracking_rating=processed_tracking_rating,
-        )
 
         gmt = ZoneInfo('GMT')
         last_modified_date = datetime.datetime.now(tz=gmt)
-        dataclasses.replace(
-            new_target,
+
+        new_target = dataclasses.replace(
+            target,
+            name=name,
+            width=width,
+            active_flag=active_flag,
+            application_metadata=application_metadata,
+            image=image_file,
+            processed_tracking_rating=processed_tracking_rating,
             last_modified_date=last_modified_date,
         )
 
