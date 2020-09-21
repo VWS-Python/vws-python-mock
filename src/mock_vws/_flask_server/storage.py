@@ -107,9 +107,7 @@ def delete_target(database_name: str, target_id: str) -> Tuple[str, int]:
         for database in VUFORIA_DATABASES
         if database.database_name == database_name
     ]
-    [target] = [
-        target for target in database.targets if target.target_id == target_id
-    ]
+    target = database.get_target(target_id=target_id)
     now = datetime.datetime.now(tz=target.upload_date.tzinfo)
     new_target = dataclasses.replace(target, delete_date=now)
     database.targets.remove(target)
@@ -130,9 +128,7 @@ def update_target(database_name: str, target_id: str) -> Tuple[str, int]:
         for database in VUFORIA_DATABASES
         if database.database_name == database_name
     ]
-    [target] = [
-        target for target in database.targets if target.target_id == target_id
-    ]
+    target = database.get_target(target_id=target_id)
 
     width = request.json.get('width', target.width)
     name = request.json.get('name', target.name)
