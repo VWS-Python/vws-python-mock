@@ -29,7 +29,7 @@ class TargetDict(TypedDict):
     active_flag: bool
     processing_time_seconds: Union[int, float]
     processed_tracking_rating: int
-    application_metadata: str
+    application_metadata: Optional[str]
     target_id: str
     last_modified_date: str
     delete_date_optional: Optional[str]
