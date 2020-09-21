@@ -7,7 +7,6 @@ https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Service
 
 import base64
 import email.utils
-import io
 import json
 import uuid
 from http import HTTPStatus
@@ -15,7 +14,6 @@ from typing import Final, List, Set
 
 import requests
 from flask import Flask, Response, request
-from PIL import Image
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
@@ -118,14 +116,10 @@ def add_target() -> Response:
     if active_flag is None:
         active_flag = True
 
-    image = request_json['image']
-    decoded = base64.b64decode(image)
-    image_file = io.BytesIO(decoded)
-
     new_target = Target(
         name=name,
         width=request_json['width'],
-        image=image_file,
+        image_value=base64.b64decode(request_json['image']),
         active_flag=active_flag,
         processing_time_seconds=processing_time_seconds,
         application_metadata=request_json.get('application_metadata'),
@@ -380,7 +374,7 @@ def get_duplicates(target_id: str) -> Response:
     similar_targets: List[str] = [
         other.target_id
         for other in other_targets
-        if Image.open(other.image) == Image.open(target.image)
+        if other.image_value == target.image_value
         and TargetStatuses.FAILED.value not in (target.status, other.status)
         and TargetStatuses.PROCESSING.value != other.status
         and other.active_flag

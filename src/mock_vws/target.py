@@ -67,9 +67,7 @@ class Target:  # pylint: disable=too-many-instance-attributes
 
     active_flag: bool
     application_metadata: Optional[str]
-    # Comparison of io.BytesIO compares the object, not the file contents.
-    # data we care about, so we leave this.
-    image: io.BytesIO = field(compare=False)
+    image_value: bytes
     name: str
     processing_time_seconds: float
     width: float
@@ -95,7 +93,8 @@ class Target:  # pylint: disable=too-many-instance-attributes
         How VWS determines this is unknown, but it relates to how suitable the
         target is for detection.
         """
-        image = Image.open(self.image)
+        image_file = io.BytesIO(self.image_value)
+        image = Image.open(image_file)
         image_stat = ImageStat.Stat(image)
 
         average_std_dev = statistics.mean(image_stat.stddev)
@@ -171,9 +170,8 @@ class Target:  # pylint: disable=too-many-instance-attributes
         active_flag = target_dict['active_flag']
         width = target_dict['width']
         image_base64 = target_dict['image_base64']
+        image_value = base64.b64decode(image_base64)
         processed_tracking_rating = target_dict['processed_tracking_rating']
-        image_bytes = base64.b64decode(image_base64)
-        image = io.BytesIO(image_bytes)
         processing_time_seconds = target_dict['processing_time_seconds']
         application_metadata = target_dict['application_metadata']
         target_id = target_dict['target_id']
@@ -196,7 +194,7 @@ class Target:  # pylint: disable=too-many-instance-attributes
             name=name,
             active_flag=active_flag,
             width=width,
-            image=image,
+            image_value=image_value,
             processing_time_seconds=processing_time_seconds,
             application_metadata=application_metadata,
             delete_date=delete_date,
@@ -214,8 +212,7 @@ class Target:  # pylint: disable=too-many-instance-attributes
         if self.delete_date:
             delete_date = datetime.datetime.isoformat(self.delete_date)
 
-        image_value = self.image.getvalue()
-        image_base64 = base64.encodebytes(image_value).decode()
+        image_base64 = base64.encodebytes(self.image_value).decode()
 
         return {
             'name': self.name,

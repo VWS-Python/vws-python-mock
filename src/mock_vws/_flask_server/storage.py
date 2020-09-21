@@ -5,7 +5,6 @@ Storage layer for the mock Vuforia Flask application.
 import base64
 import dataclasses
 import datetime
-import io
 import random
 from http import HTTPStatus
 from typing import List, Tuple
@@ -79,11 +78,10 @@ def create_target(database_name: str) -> Tuple[str, int]:
     ]
     image_base64 = request.json['image_base64']
     image_bytes = base64.b64decode(image_base64)
-    image = io.BytesIO(image_bytes)
     target = Target(
         name=request.json['name'],
         width=request.json['width'],
-        image=image,
+        image_value=image_bytes,
         active_flag=request.json['active_flag'],
         processing_time_seconds=request.json['processing_time_seconds'],
         application_metadata=request.json['application_metadata'],
@@ -138,11 +136,9 @@ def update_target(database_name: str, target_id: str) -> Tuple[str, int]:
         target.application_metadata,
     )
 
-    image_file = target.image
+    image_value = target.image_value
     if 'image' in request.json:
-        image = request.json['image']
-        decoded = base64.b64decode(image)
-        image_file = io.BytesIO(decoded)
+        image_value = base64.b64decode(request.json['image'])
 
     # In the real implementation, the tracking rating can stay the same.
     # However, for demonstration purposes, the tracking rating changes but
@@ -159,7 +155,7 @@ def update_target(database_name: str, target_id: str) -> Tuple[str, int]:
         width=width,
         active_flag=active_flag,
         application_metadata=application_metadata,
-        image=image_file,
+        image_value=image_value,
         processed_tracking_rating=processed_tracking_rating,
         last_modified_date=last_modified_date,
     )
