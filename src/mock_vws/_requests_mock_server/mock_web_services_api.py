@@ -219,7 +219,13 @@ class MockVuforiaWebServicesAPI:
             processing_time_seconds=self._processing_time_seconds,
             application_metadata=application_metadata,
         )
-        database.targets.add(new_target)
+        new_database_targets = database.targets.union({new_target})
+        new_database = dataclasses.replace(
+            database,
+            targets=new_database_targets,
+        )
+        self.databases.remove(database)
+        self.databases.add(new_database)
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {
@@ -271,8 +277,13 @@ class MockVuforiaWebServicesAPI:
 
         now = datetime.datetime.now(tz=target.upload_date.tzinfo)
         new_target = dataclasses.replace(target, delete_date=now)
-        database.targets.remove(target)
-        database.targets.add(new_target)
+        new_database_targets = database.targets.union({new_target}) - {target}
+        new_database = dataclasses.replace(
+            database,
+            targets=new_database_targets,
+        )
+        self.databases.remove(database)
+        self.databases.add(new_database)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {
             'Connection': 'keep-alive',
@@ -551,8 +562,13 @@ class MockVuforiaWebServicesAPI:
             last_modified_date=last_modified_date,
         )
 
-        database.targets.remove(target)
-        database.targets.add(new_target)
+        new_database_targets = database.targets.union({new_target})
+        new_database = dataclasses.replace(
+            database,
+            targets=new_database_targets,
+        )
+        self.databases.remove(database)
+        self.databases.add(new_database)
 
         body = {
             'result_code': ResultCodes.SUCCESS.value,
