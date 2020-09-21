@@ -8,7 +8,7 @@ https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognitio
 import copy
 import email.utils
 from http import HTTPStatus
-from typing import Dict, Final, Optional, Set
+from typing import Final, Set
 
 import requests
 from flask import Flask, Response, request
@@ -27,8 +27,6 @@ from mock_vws.database import VuforiaDatabase
 
 CLOUDRECO_FLASK_APP = Flask(import_name=__name__)
 CLOUDRECO_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
-
-
 # TODO choose something for this - it should actually work in a docker-compose
 # scenario.
 STORAGE_BASE_URL: Final[str] = 'http://todo.com'
@@ -71,36 +69,9 @@ class ResponseNoContentTypeAdded(Response):
     Some of our responses need to not have a "Content-Type" header.
     """
 
-    def __init__(
-        self,
-        response: Optional[str] = None,
-        status: Optional[int] = None,
-        headers: Optional[Dict[str, str]] = None,
-        mimetype: Optional[str] = None,
-        content_type: Optional[str] = None,
-        direct_passthrough: bool = False,
-    ) -> None:
-        if headers:
-            content_type_from_headers = headers.get('Content-Type')
-        else:
-            content_type_from_headers = None
-
-        super().__init__(
-            response=response,
-            status=status,
-            headers=headers,
-            mimetype=mimetype,
-            content_type=content_type,
-            direct_passthrough=direct_passthrough,
-        )
-
-        if (
-            content_type is None
-            and self.headers
-            and 'Content-Type' in self.headers
-            and not content_type_from_headers
-        ):
-            del self.headers['Content-Type']
+    # When https://github.com/python/typeshed/pull/4563 is shipped in a future
+    # release of mypy, we can remove this ignore.
+    default_mimetype = None  # type: ignore
 
 
 CLOUDRECO_FLASK_APP.response_class = ResponseNoContentTypeAdded
@@ -139,7 +110,9 @@ def query() -> Response:
             request_path=request.path,
             databases=databases,
             query_processes_deletion_seconds=query_processes_deletion_seconds,
-            query_recognizes_deletion_seconds=query_recognizes_deletion_seconds,
+            query_recognizes_deletion_seconds=(
+                query_recognizes_deletion_seconds
+            ),
         )
     except (
         ActiveMatchingTargetsDeleteProcessing,
@@ -158,6 +131,7 @@ def query() -> Response:
         response=response_text,
         headers=headers,
     )
+
 
 if __name__ == '__main__':  # pragma: no cover
     CLOUDRECO_FLASK_APP.run(debug=True, host='0.0.0.0')
