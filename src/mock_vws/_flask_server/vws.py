@@ -11,7 +11,7 @@ import io
 import json
 import uuid
 from http import HTTPStatus
-from typing import Dict, Final, List, Optional, Set
+from typing import Final, List, Set
 
 import requests
 from flask import Flask, Response, request
@@ -32,10 +32,6 @@ from mock_vws.target import Target
 
 VWS_FLASK_APP = Flask(import_name=__name__)
 VWS_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
-
-
-# TODO choose something for this - it should actually work in a docker-compose
-# scenario.
 STORAGE_BASE_URL: Final[str] = 'http://todo.com'
 
 
@@ -58,36 +54,9 @@ class ResponseNoContentTypeAdded(Response):
     Some of our responses need to not have a "Content-Type" header.
     """
 
-    def __init__(
-        self,
-        response: Optional[str] = None,
-        status: Optional[int] = None,
-        headers: Optional[Dict[str, str]] = None,
-        mimetype: Optional[str] = None,
-        content_type: Optional[str] = None,
-        direct_passthrough: bool = False,
-    ) -> None:
-        if headers:
-            content_type_from_headers = headers.get('Content-Type')
-        else:
-            content_type_from_headers = None
-
-        super().__init__(
-            response=response,
-            status=status,
-            headers=headers,
-            mimetype=mimetype,
-            content_type=content_type,
-            direct_passthrough=direct_passthrough,
-        )
-
-        if (
-            content_type is None
-            and self.headers
-            and 'Content-Type' in self.headers
-            and not content_type_from_headers
-        ):
-            del self.headers['Content-Type']
+    # When https://github.com/python/typeshed/pull/4563 is shipped in a future
+    # release of mypy, we can remove this ignore.
+    default_mimetype = None  # type: ignore
 
 
 VWS_FLASK_APP.response_class = ResponseNoContentTypeAdded
@@ -129,6 +98,7 @@ def add_target() -> Response:
     Fake implementation of
     https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Add-a-Target
     """
+    processing_time_seconds = 0.2
     # We do not use ``request.get_json(force=True)`` because this only works
     # when the content type is given as ``application/json``.
     databases = get_all_databases()
@@ -157,9 +127,7 @@ def add_target() -> Response:
         width=request_json['width'],
         image=image_file,
         active_flag=active_flag,
-        processing_time_seconds=0.2,
-        # TODO add this back:
-        # processing_time_seconds=self._processing_time_seconds,
+        processing_time_seconds=processing_time_seconds,
         application_metadata=request_json.get('application_metadata'),
     )
 
