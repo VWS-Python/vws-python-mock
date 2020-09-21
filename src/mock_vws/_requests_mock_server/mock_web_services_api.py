@@ -523,25 +523,22 @@ class MockVuforiaWebServicesAPI:
         if target.status != TargetStatuses.SUCCESS.value:
             raise TargetStatusNotSuccess
 
-        width = target.width
-        if 'width' in request.json():
-            width = request.json()['width']
+        if 'active_flag' in request.json() and active_flag is None:
+            raise Fail(status_code=HTTPStatus.BAD_REQUEST)
 
-        active_flag = target.active_flag
-        if 'active_flag' in request.json():
-            active_flag = request.json()['active_flag']
-            if active_flag is None:
-                raise Fail(status_code=HTTPStatus.BAD_REQUEST)
+        if (
+            'application_metadata' in request.json()
+            and application_metadata is None
+        ):
+            raise Fail(status_code=HTTPStatus.BAD_REQUEST)
 
-        application_metadata = target.application_metadata
-        if 'application_metadata' in request.json():
-            application_metadata = request.json()['application_metadata']
-            if application_metadata is None:
-                raise Fail(status_code=HTTPStatus.BAD_REQUEST)
-
-        name = target.name
-        if 'name' in request.json():
-            name = request.json()['name']
+        width = request.json().get('width', target.width)
+        name = request.json().get('name', target.name)
+        active_flag = request.json().get('active_flag', target.active_flag)
+        application_metadata = request.json().get(
+            'application_metadata',
+            target.application_metadata,
+        )
 
         image_file = target.image
         if 'image' in request.json():
