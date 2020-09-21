@@ -539,7 +539,6 @@ class TestTargets:
         assert json.dumps(target_dict)
 
         new_target = Target.from_dict(target_dict=target_dict)
-        assert new_target.image.getvalue() == target.image.getvalue()
         assert new_target == target
 
     def test_to_dict_deleted(self, high_quality_image: io.BytesIO) -> None:

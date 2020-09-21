@@ -9,7 +9,6 @@ import base64
 import dataclasses
 import datetime
 import email.utils
-import io
 import random
 import uuid
 from http import HTTPStatus
@@ -17,7 +16,6 @@ from typing import Any, Callable, Dict, List, Set, Tuple, Union
 
 import wrapt
 from backports.zoneinfo import ZoneInfo
-from PIL import Image
 from requests_mock import DELETE, GET, POST, PUT
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
@@ -181,18 +179,12 @@ class MockVuforiaWebServicesAPI:
             False: False,
         }[given_active_flag]
 
-        image = request.json()['image']
-        decoded = base64.b64decode(image)
-        image_file = io.BytesIO(decoded)
-
-        name = request.json()['name']
-        width = request.json()['width']
         application_metadata = request.json().get('application_metadata')
 
         new_target = Target(
-            name=name,
-            width=width,
-            image=image_file,
+            name=request.json()['name'],
+            width=request.json()['width'],
+            image_value=base64.b64decode(request.json()['image']),
             active_flag=active_flag,
             processing_time_seconds=self._processing_time_seconds,
             application_metadata=application_metadata,
@@ -426,7 +418,7 @@ class MockVuforiaWebServicesAPI:
         similar_targets: List[str] = [
             other.target_id
             for other in other_targets
-            if Image.open(other.image) == Image.open(target.image)
+            if other.image_value == target.image_value
             and TargetStatuses.FAILED.value
             not in (target.status, other.status)
             and TargetStatuses.PROCESSING.value != other.status
@@ -496,11 +488,9 @@ class MockVuforiaWebServicesAPI:
             target.application_metadata,
         )
 
-        image_file = target.image
+        image_value = target.image_value
         if 'image' in request.json():
-            image = request.json()['image']
-            decoded = base64.b64decode(image)
-            image_file = io.BytesIO(decoded)
+            image_value = base64.b64decode(request.json()['image'])
 
         if 'active_flag' in request.json() and active_flag is None:
             raise Fail(status_code=HTTPStatus.BAD_REQUEST)
@@ -526,7 +516,7 @@ class MockVuforiaWebServicesAPI:
             width=width,
             active_flag=active_flag,
             application_metadata=application_metadata,
-            image=image_file,
+            image_value=image_value,
             processed_tracking_rating=processed_tracking_rating,
             last_modified_date=last_modified_date,
         )
