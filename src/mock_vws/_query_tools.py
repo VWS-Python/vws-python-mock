@@ -30,19 +30,6 @@ class ActiveMatchingTargetsDeleteProcessing(Exception):
     """
 
 
-def _images_match(image: io.BytesIO, another_image: io.BytesIO) -> bool:
-    """
-    Given two images, return whether they are matching.
-
-    In the real Vuforia, this matching is fuzzy.
-    For now, we check exact byte matching.
-
-    See https://github.com/VWS-Python/vws-python-mock/issues/3 for changing
-    that.
-    """
-    return bool(image.getvalue() == another_image.getvalue())
-
-
 def get_query_match_response_text(
     request_headers: Dict[str, str],
     request_body: bytes,
@@ -90,9 +77,8 @@ def get_query_match_response_text(
     [include_target_data] = parsed.get('include_target_data', ['top'])
     include_target_data = include_target_data.lower()
 
-    [image_bytes] = parsed['image']
-    assert isinstance(image_bytes, bytes)
-    image = io.BytesIO(image_bytes)
+    [image_value] = parsed['image']
+    assert isinstance(image_value, bytes)
     gmt = ZoneInfo('GMT')
     now = datetime.datetime.now(tz=gmt)
 
@@ -117,7 +103,7 @@ def get_query_match_response_text(
     matching_targets = [
         target
         for target in database.targets
-        if _images_match(image=target.image, another_image=image)
+        if target.image_value == image_value
     ]
 
     not_deleted_matches = [
