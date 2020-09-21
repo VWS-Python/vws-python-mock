@@ -64,6 +64,7 @@ jobs:
           - test_update_target.py::TestWidth
           - test_update_target.py::TestInactiveProject
           - test_usage.py
+          - test_docker.py
 
     steps:
       # We share Vuforia credentials and therefore Vuforia databases across
