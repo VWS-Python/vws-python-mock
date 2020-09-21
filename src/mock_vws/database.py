@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from typing import List, Set, TypedDict
+from typing import List, Set, TypedDict, FrozenSet
 
 from mock_vws._constants import TargetStatuses
 from mock_vws.states import States
@@ -47,7 +47,7 @@ class VuforiaDatabase:
     server_secret_key: str = field(default_factory=_random_hex, repr=False)
     client_access_key: str = field(default_factory=_random_hex, repr=False)
     client_secret_key: str = field(default_factory=_random_hex, repr=False)
-    targets: Set[Target] = field(default_factory=set, hash=False)
+    targets: FrozenSet[Target] = field(default_factory=frozenset)
     state: States = States.WORKING
 
     request_quota = 100000
@@ -77,6 +77,11 @@ class VuforiaDatabase:
         """
         Load a database from a dictionary.
         """
+        targets = set()
+        for target_dict in database_dict['targets']:
+            target = Target.from_dict(target_dict=target_dict)
+            targets.add(target)
+
         database = cls(
             database_name=database_dict['database_name'],
             server_access_key=database_dict['server_access_key'],
@@ -84,11 +89,8 @@ class VuforiaDatabase:
             client_access_key=database_dict['client_access_key'],
             client_secret_key=database_dict['client_secret_key'],
             state=States[database_dict['state_name']],
+            targets=frozenset(targets),
         )
-
-        for target_dict in database_dict['targets']:
-            target = Target.from_dict(target_dict=target_dict)
-            database.targets.add(target)
 
         return database
 

@@ -7,6 +7,7 @@ https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Service
 
 import base64
 import datetime
+import dataclass
 import email.utils
 import io
 import itertools
@@ -218,7 +219,10 @@ class MockVuforiaWebServicesAPI:
             processing_time_seconds=self._processing_time_seconds,
             application_metadata=application_metadata,
         )
-        database.targets.add(new_target)
+        database_targets = frozenset(set(database.targets).union({new_target}))
+        new_database = dataclass.replace(database, targets=database_targets)
+        self.databases.remove(database)
+        self.databases.add(new_database)
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {
@@ -269,25 +273,13 @@ class MockVuforiaWebServicesAPI:
             raise TargetStatusProcessing
 
         now = datetime.datetime.now(tz=target.upload_date.tzinfo)
-        new_target = Target(
-            active_flag=target.active_flag,
-            application_metadata=target.application_metadata,
-            image=target.image,
-            name=target.name,
-            processing_time_seconds=target.processing_time_seconds,
-            width=target.width,
-            current_month_recos=target.current_month_recos,
-            delete_date=now,
-            last_modified_date=target.last_modified_date,
-            previous_month_recos=target.previous_month_recos,
-            processed_tracking_rating=target.processed_tracking_rating,
-            reco_rating=target.reco_rating,
-            target_id=target.target_id,
-            total_recos=target.total_recos,
-            upload_date=target.upload_date,
-        )
-        database.targets.remove(target)
-        database.targets.add(new_target)
+        new_target = dataclass.replace(target, delete_date=now)
+        new_database_targets = set(database.targets)
+        new_database_targets.remove()
+        database_targets = frozenset(set(database.targets).union({new_target}))
+        new_database = dataclass.replace(database, targets=database_targets)
+        self.databases.remove(database)
+        self.databases.add(new_database)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {
             'Connection': 'keep-alive',
