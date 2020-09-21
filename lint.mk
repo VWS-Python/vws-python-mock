@@ -4,6 +4,8 @@ SHELL := /bin/bash -euxo pipefail
 
 .PHONY: custom-linters
 custom-linters:
+	# Running pytest needs this file
+	touch vuforia_secrets.env
 	pytest ci/custom_linters.py
 
 .PHONY: black
