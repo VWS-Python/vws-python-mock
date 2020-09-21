@@ -169,5 +169,6 @@ def update_target(database_name: str, target_id: str) -> Tuple[str, int]:
 
     return jsonify(new_target.to_dict()), HTTPStatus.OK
 
+
 if __name__ == '__main__':  # pragma: no cover
     STORAGE_FLASK_APP.run(debug=True, host='0.0.0.0')

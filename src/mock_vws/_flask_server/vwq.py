@@ -159,5 +159,6 @@ def query() -> Response:
         headers=headers,
     )
 
+
 if __name__ == '__main__':  # pragma: no cover
     CLOUDRECO_FLASK_APP.run(debug=True, host='0.0.0.0')

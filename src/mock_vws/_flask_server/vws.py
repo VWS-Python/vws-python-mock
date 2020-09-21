@@ -551,5 +551,6 @@ def update_target(target_id: str) -> Response:
         headers=headers,
     )
 
+
 if __name__ == '__main__':  # pragma: no cover
     VWS_FLASK_APP.run(debug=True, host='0.0.0.0')
