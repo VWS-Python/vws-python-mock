@@ -10,7 +10,6 @@ import dataclasses
 import datetime
 import email.utils
 import io
-import itertools
 import random
 import uuid
 from http import HTTPStatus
@@ -127,21 +126,16 @@ def route(
 
 def _get_target_from_request(
     request_path: str,
-    databases: Set[VuforiaDatabase],
+    database: VuforiaDatabase,
 ) -> Target:
     """
-    Given a request path with a target ID in the path, and a list of databases,
-    return the target with that ID from those databases.
+    Given a request path with a target ID in the path, return the target with
+    that ID from the given database.
     """
     split_path = request_path.split('/')
     target_id = split_path[-1]
-    all_database_targets = itertools.chain.from_iterable(
-        [database.targets for database in databases],
-    )
     [target] = [
-        target
-        for target in all_database_targets
-        if target.target_id == target_id
+        target for target in database.targets if target.target_id == target_id
     ]
     return target
 
@@ -263,7 +257,7 @@ class MockVuforiaWebServicesAPI:
         assert isinstance(database, VuforiaDatabase)
         target = _get_target_from_request(
             request_path=request.path,
-            databases=self.databases,
+            database=database,
         )
 
         if target.status == TargetStatuses.PROCESSING.value:
@@ -384,9 +378,17 @@ class MockVuforiaWebServicesAPI:
         Fake implementation of
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Retrieve-a-Target-Record
         """
-        target = _get_target_from_request(
+        database = get_database_matching_server_keys(
+            request_headers=request.headers,
+            request_body=request.body,
+            request_method=request.method,
             request_path=request.path,
             databases=self.databases,
+        )
+        assert isinstance(database, VuforiaDatabase)
+        target = _get_target_from_request(
+            request_path=request.path,
+            database=database,
         )
 
         target_record = {
@@ -428,10 +430,6 @@ class MockVuforiaWebServicesAPI:
         Fake implementation of
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Check-for-Duplicate-Targets
         """
-        target = _get_target_from_request(
-            request_path=request.path,
-            databases=self.databases,
-        )
         database = get_database_matching_server_keys(
             request_headers=request.headers,
             request_body=request.body,
@@ -439,8 +437,12 @@ class MockVuforiaWebServicesAPI:
             request_path=request.path,
             databases=self.databases,
         )
-
         assert isinstance(database, VuforiaDatabase)
+        target = _get_target_from_request(
+            request_path=request.path,
+            database=database,
+        )
+
         other_targets = set(database.targets) - set([target])
 
         similar_targets: List[str] = [
@@ -483,11 +485,6 @@ class MockVuforiaWebServicesAPI:
         Fake implementation of
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Update-a-Target
         """
-        target = _get_target_from_request(
-            request_path=request.path,
-            databases=self.databases,
-        )
-        body: Dict[str, str] = {}
         database = get_database_matching_server_keys(
             request_headers=request.headers,
             request_body=request.body,
@@ -497,6 +494,13 @@ class MockVuforiaWebServicesAPI:
         )
 
         assert isinstance(database, VuforiaDatabase)
+
+        target = _get_target_from_request(
+            request_path=request.path,
+            database=database,
+        )
+        body: Dict[str, str] = {}
+
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {
             'Connection': 'keep-alive',
@@ -572,16 +576,17 @@ class MockVuforiaWebServicesAPI:
         Fake implementation of
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Retrieve-a-Target-Summary-Report
         """
-        target = _get_target_from_request(
-            request_path=request.path,
-            databases=self.databases,
-        )
         database = get_database_matching_server_keys(
             request_headers=request.headers,
             request_body=request.body,
             request_method=request.method,
             request_path=request.path,
             databases=self.databases,
+        )
+        assert isinstance(database, VuforiaDatabase)
+        target = _get_target_from_request(
+            request_path=request.path,
+            database=database,
         )
 
         assert isinstance(database, VuforiaDatabase)
