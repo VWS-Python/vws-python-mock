@@ -6,8 +6,8 @@ https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Service
 """
 
 import base64
+import dataclasses
 import datetime
-import dataclass
 import email.utils
 import io
 import itertools
@@ -219,10 +219,7 @@ class MockVuforiaWebServicesAPI:
             processing_time_seconds=self._processing_time_seconds,
             application_metadata=application_metadata,
         )
-        database_targets = frozenset(set(database.targets).union({new_target}))
-        new_database = dataclass.replace(database, targets=database_targets)
-        self.databases.remove(database)
-        self.databases.add(new_database)
+        database.targets.add(new_target)
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {
@@ -273,13 +270,9 @@ class MockVuforiaWebServicesAPI:
             raise TargetStatusProcessing
 
         now = datetime.datetime.now(tz=target.upload_date.tzinfo)
-        new_target = dataclass.replace(target, delete_date=now)
-        new_database_targets = set(database.targets)
-        new_database_targets.remove()
-        database_targets = frozenset(set(database.targets).union({new_target}))
-        new_database = dataclass.replace(database, targets=database_targets)
-        self.databases.remove(database)
-        self.databases.add(new_database)
+        new_target = dataclasses.replace(target, delete_date=now)
+        database.targets.remove(target)
+        database.targets.add(new_target)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {
             'Connection': 'keep-alive',
@@ -515,31 +508,28 @@ class MockVuforiaWebServicesAPI:
         if target.status != TargetStatuses.SUCCESS.value:
             raise TargetStatusNotSuccess
 
-        width = target.width
-        if 'width' in request.json():
-            width = request.json()['width']
-
-        active_flag = target.active_flag
-        if 'active_flag' in request.json():
-            active_flag = request.json()['active_flag']
-            if active_flag is None:
-                raise Fail(status_code=HTTPStatus.BAD_REQUEST)
-
-        application_metadata = target.application_metadata
-        if 'application_metadata' in request.json():
-            application_metadata = request.json()['application_metadata']
-            if application_metadata is None:
-                raise Fail(status_code=HTTPStatus.BAD_REQUEST)
-
-        name = target.name
-        if 'name' in request.json():
-            name = request.json()['name']
+        width = request.json().get('width', target.width)
+        name = request.json().get('name', target.name)
+        active_flag = request.json().get('active_flag', target.active_flag)
+        application_metadata = request.json().get(
+            'application_metadata',
+            target.application_metadata,
+        )
 
         image_file = target.image
         if 'image' in request.json():
             image = request.json()['image']
             decoded = base64.b64decode(image)
             image_file = io.BytesIO(decoded)
+
+        if 'active_flag' in request.json() and active_flag is None:
+            raise Fail(status_code=HTTPStatus.BAD_REQUEST)
+
+        if (
+            'application_metadata' in request.json()
+            and application_metadata is None
+        ):
+            raise Fail(status_code=HTTPStatus.BAD_REQUEST)
 
         # In the real implementation, the tracking rating can stay the same.
         # However, for demonstration purposes, the tracking rating changes but
@@ -550,22 +540,15 @@ class MockVuforiaWebServicesAPI:
         gmt = ZoneInfo('GMT')
         last_modified_date = datetime.datetime.now(tz=gmt)
 
-        new_target = Target(
+        new_target = dataclasses.replace(
+            target,
+            name=name,
+            width=width,
             active_flag=active_flag,
             application_metadata=application_metadata,
             image=image_file,
-            name=name,
-            processing_time_seconds=target.processing_time_seconds,
-            width=width,
-            current_month_recos=target.current_month_recos,
-            delete_date=target.delete_date,
-            last_modified_date=last_modified_date,
-            previous_month_recos=target.previous_month_recos,
             processed_tracking_rating=processed_tracking_rating,
-            reco_rating=target.reco_rating,
-            target_id=target.target_id,
-            total_recos=target.total_recos,
-            upload_date=target.upload_date,
+            last_modified_date=last_modified_date,
         )
 
         database.targets.remove(target)
