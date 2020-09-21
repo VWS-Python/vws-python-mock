@@ -3,6 +3,7 @@ Storage layer for the mock Vuforia Flask application.
 """
 
 import base64
+import dataclasses
 import datetime
 import io
 import random
@@ -110,23 +111,7 @@ def delete_target(database_name: str, target_id: str) -> Tuple[str, int]:
         target for target in database.targets if target.target_id == target_id
     ]
     now = datetime.datetime.now(tz=target.upload_date.tzinfo)
-    new_target = Target(
-        active_flag=target.active_flag,
-        application_metadata=target.application_metadata,
-        image=target.image,
-        name=target.name,
-        processing_time_seconds=target.processing_time_seconds,
-        width=target.width,
-        current_month_recos=target.current_month_recos,
-        delete_date=now,
-        last_modified_date=target.last_modified_date,
-        previous_month_recos=target.previous_month_recos,
-        processed_tracking_rating=target.processed_tracking_rating,
-        reco_rating=target.reco_rating,
-        target_id=target.target_id,
-        total_recos=target.total_recos,
-        upload_date=target.upload_date,
-    )
+    new_target = dataclasses.replace(target, delete_date=now)
     database.targets.remove(target)
     database.targets.add(new_target)
     return jsonify(new_target.to_dict()), HTTPStatus.OK
@@ -149,21 +134,13 @@ def update_target(database_name: str, target_id: str) -> Tuple[str, int]:
         target for target in database.targets if target.target_id == target_id
     ]
 
-    width = target.width
-    if 'width' in request.json:
-        width = request.json['width']
-
-    active_flag = target.active_flag
-    if 'active_flag' in request.json:
-        active_flag = request.json['active_flag']
-
-    application_metadata = target.application_metadata
-    if 'application_metadata' in request.json:
-        application_metadata = request.json['application_metadata']
-
-    name = target.name
-    if 'name' in request.json:
-        name = request.json['name']
+    width = request.json.get('width', target.width)
+    name = request.json.get('name', target.name)
+    active_flag = request.json.get('active_flag', target.active_flag)
+    application_metadata = request.json.get(
+        'application_metadata',
+        target.application_metadata,
+    )
 
     image_file = target.image
     if 'image' in request.json:
@@ -180,22 +157,15 @@ def update_target(database_name: str, target_id: str) -> Tuple[str, int]:
     gmt = ZoneInfo('GMT')
     last_modified_date = datetime.datetime.now(tz=gmt)
 
-    new_target = Target(
+    new_target = dataclasses.replace(
+        target,
+        name=name,
+        width=width,
         active_flag=active_flag,
         application_metadata=application_metadata,
         image=image_file,
-        name=name,
-        processing_time_seconds=target.processing_time_seconds,
-        width=width,
-        current_month_recos=target.current_month_recos,
-        delete_date=target.delete_date,
-        last_modified_date=last_modified_date,
-        previous_month_recos=target.previous_month_recos,
         processed_tracking_rating=processed_tracking_rating,
-        reco_rating=target.reco_rating,
-        target_id=target.target_id,
-        total_recos=target.total_recos,
-        upload_date=target.upload_date,
+        last_modified_date=last_modified_date,
     )
 
     database.targets.remove(target)
