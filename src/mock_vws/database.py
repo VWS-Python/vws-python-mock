@@ -72,25 +72,32 @@ class VuforiaDatabase:
             'targets': targets,
         }
 
+    def get_target(self, target_id: str) -> Target:
+        """
+        Return a target from the database with the given ID.
+        """
+        [target] = [
+            target for target in self.targets if target.target_id == target_id
+        ]
+        return target
+
     @classmethod
     def from_dict(cls, database_dict: DatabaseDict) -> VuforiaDatabase:
         """
         Load a database from a dictionary.
         """
-        database = cls(
+        return cls(
             database_name=database_dict['database_name'],
             server_access_key=database_dict['server_access_key'],
             server_secret_key=database_dict['server_secret_key'],
             client_access_key=database_dict['client_access_key'],
             client_secret_key=database_dict['client_secret_key'],
             state=States[database_dict['state_name']],
+            targets=set(
+                Target.from_dict(target_dict=target_dict)
+                for target_dict in database_dict['targets']
+            ),
         )
-
-        for target_dict in database_dict['targets']:
-            target = Target.from_dict(target_dict=target_dict)
-            database.targets.add(target)
-
-        return database
 
     @property
     def not_deleted_targets(self) -> Set[Target]:
