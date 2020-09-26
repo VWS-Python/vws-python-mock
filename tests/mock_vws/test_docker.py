@@ -35,7 +35,14 @@ def test_build_and_run():
     #     path=str(repository_root),
     #     dockerfile=str(vwq_dockerfile),
     # )
-    storage_container = client.containers.run(image=storage_image, detach=True)
+    storage_container = client.containers.run(
+        image=storage_image,
+        detach=True,
+        publish_all_ports=True,
+        # ports={'5000/tcp': None},
+    )
+    storage_container.reload()
+    import pdb; pdb.set_trace()
     # vws_container = client.containers.run(image=vws_image, detach=True)
     # vwq_container = client.containers.run(image=vwq_image, detach=True)
     # Run containers
