@@ -5,6 +5,8 @@ Tests for running the mock server in Docker.
 import docker
 from pathlib import Path
 import requests
+from vws import VWS, CloudRecoService
+from mock_vws.database import VuforiaDatabase
 
 def test_build_and_run():
     repository_root = Path(__file__).parent.parent.parent
@@ -35,16 +37,41 @@ def test_build_and_run():
         path=str(repository_root),
         dockerfile=str(vwq_dockerfile),
     )
+
+    database = VuforiaDatabase()
+    storage_container_name = 'vws-mock-storage'
+    storage_exposed_port = '5000'
+
     storage_container = client.containers.run(
         image=storage_image,
         detach=True,
         publish_all_ports=True,
+        name=storage_container_name,
     )
     storage_container.reload()
+    vws_container = client.containers.run(
+        image=vws_image,
+        detach=True,
+    )
+    vwq_container = client.containers.run(
+        image=vwq_image,
+        detach=True,
+    )
+
     import pdb; pdb.set_trace()
-    # vws_container = client.containers.run(image=vws_image, detach=True)
-    # vwq_container = client.containers.run(image=vwq_image, detach=True)
-    # Run containers
+    # Add database to storage
 
     # Add target using vws_python
+    vws_client = VWS(
+        server_access_key=database.server_access_key,
+        server_secret_key=database.server_secret_key,
+    )
+
+    # Query for target
+    cloud_reco_client = CloudRecoService(
+        client_access_key=database.client_access_key,
+        client_secret_key=database.client_secret_key,
+    )
+
+    # Clean up containers
     pass
