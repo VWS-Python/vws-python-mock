@@ -45,10 +45,8 @@ def test_build_and_run():
     storage_container = client.containers.run(
         image=storage_image,
         detach=True,
-        publish_all_ports=True,
         name=storage_container_name,
     )
-    storage_container.reload()
     vws_container = client.containers.run(
         image=vws_image,
         detach=True,
@@ -57,6 +55,18 @@ def test_build_and_run():
         image=vwq_image,
         detach=True,
     )
+
+    add_database_cmd = [
+        'curl',
+        '--request',
+        'POST',
+        '--header',
+        '"Content-Type: application/json"',
+        '--data',
+        json.dumps(database.to_dict()),
+        f'127.0.0.1:{storage_exposed_port}',
+    ]
+    exit_code, output = storage_container.exec_run(cmd=add_database_cmd)
 
     import pdb; pdb.set_trace()
     # Add database to storage
