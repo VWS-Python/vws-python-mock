@@ -6,34 +6,12 @@ Running the mock
 
 # TODO Get a mock running with instructions here.
 
-From source
-^^^^^^^^^^^
-
-.. code:: sh
-
-   docker build \
-       --file src/mock_vws/_flask_server/Dockerfile \
-       --tag vws-mock \
-       .
-
-   docker build \
-       --file src/mock_vws/_flask_server/Dockerfile \
-       --tag vws-storage \
-       src/mock_vws/_flask_server/vws
-
-   docker build \
-       --file src/mock_vws/_flask_server/Dockerfile \
-       --tag vws-storage \
-       src/mock_vws/_flask_server/vwq
-
 From pre-built containers
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code:: sh
 
-   docker run vws-mock \
-       --entrypoint src/mock_vws/_flask_server/vws/__init__.py
-       -e 
+   docker run --publish-all vws-mock-storage
    docker run vws-mock \
        -e STORAGE_BACKEND=... \
        -e QUERY_PROCESSES_DELETION_SECONDS=...
