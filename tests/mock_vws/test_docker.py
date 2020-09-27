@@ -42,7 +42,12 @@ def test_build_and_run(
     vws_dockerfile = dockerfile_dir / 'vws' / 'Dockerfile'
     vwq_dockerfile = dockerfile_dir / 'vwq' / 'Dockerfile'
 
+    random = uuid.uuid4().hex
     base_tag = 'vws-mock:base'
+    storage_tag = 'vws-mock-storage:latest-' + random
+    vws_tag = 'vws-mock-vws:latest-' + random
+    vwq_tag = 'vws-mock-vwq:latest-' + random
+
     base_image, build_logs = client.images.build(
         path=str(repository_root),
         dockerfile=str(base_dockerfile),
@@ -52,14 +57,17 @@ def test_build_and_run(
     storage_image, build_logs = client.images.build(
         path=str(repository_root),
         dockerfile=str(storage_dockerfile),
+        tag=storage_tag,
     )
     vws_image, build_logs = client.images.build(
         path=str(repository_root),
         dockerfile=str(vws_dockerfile),
+        tag=vws_tag,
     )
     vwq_image, build_logs = client.images.build(
         path=str(repository_root),
         dockerfile=str(vwq_dockerfile),
+        tag=vwq_tag,
     )
 
     database = VuforiaDatabase()
@@ -79,14 +87,14 @@ def test_build_and_run(
     vws_container = client.containers.run(
         image=vws_image,
         detach=True,
-        name='vws-mock-vws-' + uuid.uuid4().hex,
+        name='vws-mock-vws-' + random,
         publish_all_ports=True,
         network=custom_bridge_network.name,
     )
     vwq_container = client.containers.run(
         image=vwq_image,
         detach=True,
-        name='vws-mock-vwq-' + uuid.uuid4().hex,
+        name='vws-mock-vwq-' + random,
         publish_all_ports=True,
         network=custom_bridge_network.name,
     )
@@ -121,6 +129,7 @@ def test_build_and_run(
     )
 
     assert response.status_code == HTTPStatus.CREATED
+    import pdb; pdb.set_trace()
 
     # Add target using vws_python
     vws_client = VWS(
