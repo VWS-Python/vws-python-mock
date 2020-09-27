@@ -7,6 +7,8 @@ from pathlib import Path
 import requests
 from vws import VWS, CloudRecoService
 from mock_vws.database import VuforiaDatabase
+import json
+import uuid
 
 def test_build_and_run():
     repository_root = Path(__file__).parent.parent.parent
@@ -39,6 +41,10 @@ def test_build_and_run():
     )
 
     database = VuforiaDatabase()
+    # TODO Randomize this once we pass it through to the Flask app, probably
+    # with an environment variable.
+    # storage_container_name = 'vws-mock-storage-' + uuid.uuid4().hex
+
     storage_container_name = 'vws-mock-storage'
     storage_exposed_port = '5000'
 
@@ -46,27 +52,32 @@ def test_build_and_run():
         image=storage_image,
         detach=True,
         name=storage_container_name,
+        publish_all_ports=True,
     )
     vws_container = client.containers.run(
         image=vws_image,
         detach=True,
+        name='vws-mock-vws-' + uuid.uuid4().hex,
     )
     vwq_container = client.containers.run(
         image=vwq_image,
         detach=True,
+        name='vws-mock-vwq-' + uuid.uuid4().hex,
     )
 
-    add_database_cmd = [
-        'curl',
-        '--request',
-        'POST',
-        '--header',
-        '"Content-Type: application/json"',
-        '--data',
-        json.dumps(database.to_dict()),
-        f'127.0.0.1:{storage_exposed_port}',
-    ]
-    exit_code, output = storage_container.exec_run(cmd=add_database_cmd)
+    storage_container.reload()
+
+    response = requests.post(
+        url=f'http://0.0.0.0:{storage_exposed_port}',
+        json=database.to_dict(),
+    )
+
+    # add_database_cmd = [
+    #     'python',
+    #     '-c',
+    #     'import requests; requests.post(data=' + json.dumps(database.to_dict()) + ')',
+    # ]
+    # exit_code, output = storage_container.exec_run(cmd=add_database_cmd)
 
     import pdb; pdb.set_trace()
     # Add database to storage
