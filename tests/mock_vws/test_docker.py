@@ -2,15 +2,37 @@
 Tests for running the mock server in Docker.
 """
 
-import docker
-from pathlib import Path
-import requests
-from vws import VWS, CloudRecoService
-from mock_vws.database import VuforiaDatabase
-import json
+import io
 import uuid
+from http import HTTPStatus
+from pathlib import Path
+from typing import Iterator
 
-def test_build_and_run():
+import docker
+import pytest
+import requests
+from docker.models.networks import Network
+from vws import VWS
+
+from mock_vws.database import VuforiaDatabase
+
+
+@pytest.fixture()
+def custom_bridge_network() -> Iterator[Network]:
+    client = docker.from_env()
+    network = client.networks.create(
+        name='test-vws-bridge-' + uuid.uuid4().hex,
+        driver='bridge',
+    )
+    try:
+        yield network
+    finally:
+        network.remove()
+
+
+def test_build_and_run(
+    high_quality_image: io.BytesIO, custom_bridge_network: Network
+) -> None:
     repository_root = Path(__file__).parent.parent.parent
     client = docker.from_env()
 
@@ -46,53 +68,83 @@ def test_build_and_run():
     # storage_container_name = 'vws-mock-storage-' + uuid.uuid4().hex
 
     storage_container_name = 'vws-mock-storage'
-    storage_exposed_port = '5000'
 
     storage_container = client.containers.run(
         image=storage_image,
         detach=True,
         name=storage_container_name,
         publish_all_ports=True,
+        network=custom_bridge_network.name,
     )
     vws_container = client.containers.run(
         image=vws_image,
         detach=True,
         name='vws-mock-vws-' + uuid.uuid4().hex,
+        publish_all_ports=True,
+        network=custom_bridge_network.name,
     )
     vwq_container = client.containers.run(
         image=vwq_image,
         detach=True,
         name='vws-mock-vwq-' + uuid.uuid4().hex,
+        publish_all_ports=True,
+        network=custom_bridge_network.name,
     )
 
+    # custom_bridge_network.connect(storage_container)
+    # custom_bridge_network.connect(vws_container)
+    # custom_bridge_network.connect(vwq_container)
+
     storage_container.reload()
+    storage_host_ip = storage_container.attrs['NetworkSettings']['Ports'][
+        '5000/tcp'
+    ][0]['HostIp']
+    storage_host_port = storage_container.attrs['NetworkSettings']['Ports'][
+        '5000/tcp'
+    ][0]['HostPort']
+
+    vws_container.reload()
+    vws_host_ip = vws_container.attrs['NetworkSettings']['Ports']['5000/tcp'][
+        0
+    ]['HostIp']
+    vws_host_port = vws_container.attrs['NetworkSettings']['Ports'][
+        '5000/tcp'
+    ][0]['HostPort']
+
+    vwq_container.reload()
+    vwq_container.attrs['NetworkSettings']['Ports']['5000/tcp'][0]['HostIp']
+    vwq_container.attrs['NetworkSettings']['Ports']['5000/tcp'][0]['HostPort']
 
     response = requests.post(
-        url=f'http://0.0.0.0:{storage_exposed_port}',
+        url=f'http://{storage_host_ip}:{storage_host_port}/databases',
         json=database.to_dict(),
     )
 
-    # add_database_cmd = [
-    #     'python',
-    #     '-c',
-    #     'import requests; requests.post(data=' + json.dumps(database.to_dict()) + ')',
-    # ]
-    # exit_code, output = storage_container.exec_run(cmd=add_database_cmd)
-
-    import pdb; pdb.set_trace()
-    # Add database to storage
+    assert response.status_code == HTTPStatus.CREATED
 
     # Add target using vws_python
     vws_client = VWS(
         server_access_key=database.server_access_key,
         server_secret_key=database.server_secret_key,
+        base_vws_url=f'http://{vws_host_ip}:{vws_host_port}',
     )
 
-    # Query for target
-    cloud_reco_client = CloudRecoService(
-        client_access_key=database.client_access_key,
-        client_secret_key=database.client_secret_key,
+    target_id = vws_client.add_target(
+        name='example',
+        width=1,
+        image=high_quality_image,
+        active_flag=True,
+        application_metadata=None,
     )
 
-    # Clean up containers
-    pass
+    vws_client.wait_for_target_processed(target_id=target_id)
+
+    # # Query for target
+    # cloud_reco_client = CloudRecoService(
+    #     client_access_key=database.client_access_key,
+    #     client_secret_key=database.client_secret_key,
+    #     base_vwq_url=f'http://{vwq_host_ip}:{vwq_host_port}',
+    # )
+    #
+    # matching_targets = cloud_reco_client.query(image=high_quality_image)
+    # assert matching_targets[0].target_id == target_id
