@@ -104,20 +104,17 @@ def test_build_and_run(
     )
 
     storage_container.reload()
-    storage_network_attrs = storage_container.attrs['NetworkSettings']
-    storage_port_attrs = storage_container.attrs['Ports']
+    storage_port_attrs = storage_container.attrs['NetworkSettings']['Ports']
     storage_host_ip = storage_port_attrs['5000/tcp'][0]['HostIp']
     storage_host_port = storage_port_attrs['5000/tcp'][0]['HostPort']
 
     vws_container.reload()
-    vws_network_attrs = vws_container.attrs['NetworkSettings']
-    vws_port_attrs = vws_container.attrs['Ports']
+    vws_port_attrs = vws_container.attrs['NetworkSettings']['Ports']
     vws_host_ip = vws_port_attrs['5000/tcp'][0]['HostIp']
     vws_host_port = vws_port_attrs['5000/tcp'][0]['HostPort']
 
     vwq_container.reload()
-    vwq_network_attrs = vwq_container.attrs['NetworkSettings']
-    vwq_port_attrs = vwq_container.attrs['Ports']
+    vwq_port_attrs = vwq_container.attrs['NetworkSettings']['Ports']
     vwq_host_ip = vwq_port_attrs['5000/tcp'][0]['HostIp']
     vwq_host_port = vwq_port_attrs['5000/tcp'][0]['HostPort']
 
