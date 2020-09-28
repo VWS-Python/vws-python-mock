@@ -99,10 +99,6 @@ def test_build_and_run(
         network=custom_bridge_network.name,
     )
 
-    # custom_bridge_network.connect(storage_container)
-    # custom_bridge_network.connect(vws_container)
-    # custom_bridge_network.connect(vwq_container)
-
     storage_container.reload()
     storage_host_ip = storage_container.attrs['NetworkSettings']['Ports'][
         '5000/tcp'
