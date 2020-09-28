@@ -17,8 +17,8 @@ from vws import VWS, CloudRecoService
 from mock_vws.database import VuforiaDatabase
 
 
-@pytest.fixture()
-def custom_bridge_network() -> Iterator[Network]:
+@pytest.fixture(name='custom_bridge_network')
+def fixture_custom_bridge_network() -> Iterator[Network]:
     """
     Yield a custom bridge network which containers can connect to.
     """
@@ -56,23 +56,23 @@ def test_build_and_run(
     vws_tag = 'vws-mock-vws:latest-' + random
     vwq_tag = 'vws-mock-vwq:latest-' + random
 
-    base_image, build_logs = client.images.build(
+    client.images.build(
         path=str(repository_root),
         dockerfile=str(base_dockerfile),
         tag=base_tag,
     )
 
-    storage_image, build_logs = client.images.build(
+    storage_image, _ = client.images.build(
         path=str(repository_root),
         dockerfile=str(storage_dockerfile),
         tag=storage_tag,
     )
-    vws_image, build_logs = client.images.build(
+    vws_image, _ = client.images.build(
         path=str(repository_root),
         dockerfile=str(vws_dockerfile),
         tag=vws_tag,
     )
-    vwq_image, build_logs = client.images.build(
+    vwq_image, _= client.images.build(
         path=str(repository_root),
         dockerfile=str(vwq_dockerfile),
         tag=vwq_tag,

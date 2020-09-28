@@ -102,7 +102,7 @@ def _enable_use_docker_in_memory(
     # This is because when running the Flask application, if this is set,
     # reading ``request.data`` hangs.
     #
-    # Therefore, when running the real Flask application, the behaviour is not
+    # Therefore, when running the real Flask application, the behavior is not
     # the same as the real Vuforia.
     # This is documented as a difference in the documentation for this package.
     VWS_FLASK_APP.config['TERMINATE_WSGI_INPUT'] = True
