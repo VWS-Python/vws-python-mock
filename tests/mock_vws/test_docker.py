@@ -17,8 +17,11 @@ from vws import VWS, CloudRecoService
 from mock_vws.database import VuforiaDatabase
 
 
-@pytest.fixture()
-def custom_bridge_network() -> Iterator[Network]:
+@pytest.fixture(name='custom_bridge_network')
+def fixture_custom_bridge_network() -> Iterator[Network]:
+    """
+    Yield a custom bridge network which containers can connect to.
+    """
     client = docker.from_env()
     network = client.networks.create(
         name='test-vws-bridge-' + uuid.uuid4().hex,
@@ -34,6 +37,10 @@ def test_build_and_run(
     high_quality_image: io.BytesIO,
     custom_bridge_network: Network,
 ) -> None:
+    """
+    It is possible to build Docker images which combine to make a working mock
+    application.
+    """
     repository_root = Path(__file__).parent.parent.parent
     client = docker.from_env()
 
@@ -49,23 +56,23 @@ def test_build_and_run(
     vws_tag = 'vws-mock-vws:latest-' + random
     vwq_tag = 'vws-mock-vwq:latest-' + random
 
-    base_image, build_logs = client.images.build(
+    client.images.build(
         path=str(repository_root),
         dockerfile=str(base_dockerfile),
         tag=base_tag,
     )
 
-    storage_image, build_logs = client.images.build(
+    storage_image, _ = client.images.build(
         path=str(repository_root),
         dockerfile=str(storage_dockerfile),
         tag=storage_tag,
     )
-    vws_image, build_logs = client.images.build(
+    vws_image, _ = client.images.build(
         path=str(repository_root),
         dockerfile=str(vws_dockerfile),
         tag=vws_tag,
     )
-    vwq_image, build_logs = client.images.build(
+    vwq_image, _ = client.images.build(
         path=str(repository_root),
         dockerfile=str(vwq_dockerfile),
         tag=vwq_tag,
@@ -101,28 +108,19 @@ def test_build_and_run(
     )
 
     storage_container.reload()
-    storage_host_ip = storage_container.attrs['NetworkSettings']['Ports'][
-        '5000/tcp'
-    ][0]['HostIp']
-    storage_host_port = storage_container.attrs['NetworkSettings']['Ports'][
-        '5000/tcp'
-    ][0]['HostPort']
+    storage_port_attrs = storage_container.attrs['NetworkSettings']['Ports']
+    storage_host_ip = storage_port_attrs['5000/tcp'][0]['HostIp']
+    storage_host_port = storage_port_attrs['5000/tcp'][0]['HostPort']
 
     vws_container.reload()
-    vws_host_ip = vws_container.attrs['NetworkSettings']['Ports']['5000/tcp'][
-        0
-    ]['HostIp']
-    vws_host_port = vws_container.attrs['NetworkSettings']['Ports'][
-        '5000/tcp'
-    ][0]['HostPort']
+    vws_port_attrs = vws_container.attrs['NetworkSettings']['Ports']
+    vws_host_ip = vws_port_attrs['5000/tcp'][0]['HostIp']
+    vws_host_port = vws_port_attrs['5000/tcp'][0]['HostPort']
 
     vwq_container.reload()
-    vwq_host_ip = vwq_container.attrs['NetworkSettings']['Ports']['5000/tcp'][
-        0
-    ]['HostIp']
-    vwq_host_port = vwq_container.attrs['NetworkSettings']['Ports'][
-        '5000/tcp'
-    ][0]['HostPort']
+    vwq_port_attrs = vwq_container.attrs['NetworkSettings']['Ports']
+    vwq_host_ip = vwq_port_attrs['5000/tcp'][0]['HostIp']
+    vwq_host_port = vwq_port_attrs['5000/tcp'][0]['HostPort']
 
     response = requests.post(
         url=f'http://{storage_host_ip}:{storage_host_port}/databases',
@@ -131,7 +129,6 @@ def test_build_and_run(
 
     assert response.status_code == HTTPStatus.CREATED
 
-    # Add target using vws_python
     vws_client = VWS(
         server_access_key=database.server_access_key,
         server_secret_key=database.server_secret_key,
@@ -148,7 +145,6 @@ def test_build_and_run(
 
     vws_client.wait_for_target_processed(target_id=target_id)
 
-    # Query for target
     cloud_reco_client = CloudRecoService(
         client_access_key=database.client_access_key,
         client_secret_key=database.client_secret_key,
