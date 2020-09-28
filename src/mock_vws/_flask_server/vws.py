@@ -30,7 +30,7 @@ from mock_vws.target import Target
 
 VWS_FLASK_APP = Flask(import_name=__name__)
 VWS_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
-STORAGE_BASE_URL: Final[str] = 'http://todo.com'
+STORAGE_BASE_URL: Final[str] = 'http://vws-mock-storage:5000'
 
 
 def get_all_databases() -> Set[VuforiaDatabase]:
@@ -61,11 +61,32 @@ VWS_FLASK_APP.response_class = ResponseNoContentTypeAdded
 
 
 @VWS_FLASK_APP.before_request
+def set_terminate_wsgi_input() -> None:
+    """
+    We set ``wsgi.input_terminated`` to ``True`` when going through
+    ``requests``, so that requests have the given ``Content-Length`` headers
+    and the given data in ``request.headers`` and ``request.data``.
+
+    We set this to ``False`` when running an appliation as standalone.
+    This is because when running the Flask application, if this is set,
+    reading ``request.data`` hangs.
+
+    Therefore, when running the real Flask application, the behaviour is not
+    the same as the real Vuforia.
+    This is documented as a difference in the documentation for this package.
+    """
+    terminate_wsgi_input = VWS_FLASK_APP.config.get(
+        'TERMINATE_WSGI_INPUT',
+        False,
+    )
+    request.environ['wsgi.input_terminated'] = terminate_wsgi_input
+
+
+@VWS_FLASK_APP.before_request
 def validate_request() -> None:
     """
     Run validators on the request.
     """
-    request.environ['wsgi.input_terminated'] = True
     databases = get_all_databases()
     run_services_validators(
         request_headers=dict(request.headers),
