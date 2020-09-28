@@ -72,7 +72,7 @@ def test_build_and_run(
         dockerfile=str(vws_dockerfile),
         tag=vws_tag,
     )
-    vwq_image, _= client.images.build(
+    vwq_image, _ = client.images.build(
         path=str(repository_root),
         dockerfile=str(vwq_dockerfile),
         tag=vwq_tag,
