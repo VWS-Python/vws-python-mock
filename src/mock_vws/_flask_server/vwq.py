@@ -56,7 +56,6 @@ def set_terminate_wsgi_input() -> None:
     Therefore, when running the real Flask application, the behavior is not the
     same as the real Vuforia.
     This is documented as a difference in the documentation for this package.
->>>>>>> origin/master
     """
     terminate_wsgi_input = CLOUDRECO_FLASK_APP.config.get(
         'TERMINATE_WSGI_INPUT',
