@@ -93,6 +93,21 @@ def _enable_use_docker_in_memory(
     working_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
 ) -> Generator:
+    # We set ``wsgi.input_terminated`` to ``True`` so that when going through
+    # ``requests``, the Flask applications
+    # have the given ``Content-Length`` headers and the given data in
+    # ``request.headers`` and ``request.data``.
+    #
+    # We do not set these in the Flask application itself.
+    # This is because when running the Flask application, if this is set,
+    # reading ``request.data`` hangs.
+    #
+    # Therefore, when running the real Flask application, the behavior is not
+    # the same as the real Vuforia.
+    # This is documented as a difference in the documentation for this package.
+    VWS_FLASK_APP.config['TERMINATE_WSGI_INPUT'] = True
+    CLOUDRECO_FLASK_APP.config['TERMINATE_WSGI_INPUT'] = True
+
     with requests_mock.Mocker(real_http=False) as mock:
         add_flask_app_to_mock(
             mock_obj=mock,

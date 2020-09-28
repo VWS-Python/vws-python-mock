@@ -5,7 +5,6 @@ See
 https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query
 """
 
-import copy
 import email.utils
 from http import HTTPStatus
 from typing import Final, Set
@@ -27,7 +26,7 @@ from mock_vws.database import VuforiaDatabase
 
 CLOUDRECO_FLASK_APP = Flask(import_name=__name__)
 CLOUDRECO_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
-STORAGE_BASE_URL: Final[str] = 'http://todo.com'
+STORAGE_BASE_URL: Final[str] = 'http://vws-mock-storage:5000'
 
 
 def get_all_databases() -> Set[VuforiaDatabase]:
@@ -42,21 +41,25 @@ def get_all_databases() -> Set[VuforiaDatabase]:
 
 
 @CLOUDRECO_FLASK_APP.before_request
-def validate_request() -> None:
+def set_terminate_wsgi_input() -> None:
     """
-    Run validators on the request.
+    We set ``wsgi.input_terminated`` to ``True`` when going through
+    ``requests``, so that requests have the given ``Content-Length`` headers
+    and the given data in ``request.headers`` and ``request.data``.
+
+    We set this to ``False`` when running an application as standalone.
+    This is because when running the Flask application, if this is set,
+    reading ``request.data`` hangs.
+
+    Therefore, when running the real Flask application, the behavior is not the
+    same as the real Vuforia.
+    This is documented as a difference in the documentation for this package.
     """
-    request.environ['wsgi.input_terminated'] = True
-    input_stream_copy = copy.copy(request.input_stream)
-    request_body = input_stream_copy.read()
-    databases = get_all_databases()
-    run_query_validators(
-        request_headers=dict(request.headers),
-        request_body=request_body,
-        request_method=request.method,
-        request_path=request.path,
-        databases=databases,
+    terminate_wsgi_input = CLOUDRECO_FLASK_APP.config.get(
+        'TERMINATE_WSGI_INPUT',
+        False,
     )
+    request.environ['wsgi.input_terminated'] = terminate_wsgi_input
 
 
 class ResponseNoContentTypeAdded(Response):
@@ -94,9 +97,16 @@ def query() -> Response:
     """
     query_processes_deletion_seconds = 0.2
     query_recognizes_deletion_seconds = 0.2
+
     databases = get_all_databases()
-    input_stream_copy = copy.copy(request.input_stream)
-    request_body = input_stream_copy.read()
+    request_body = request.stream.read()
+    run_query_validators(
+        request_headers=dict(request.headers),
+        request_body=request_body,
+        request_method=request.method,
+        request_path=request.path,
+        databases=databases,
+    )
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
 
     try:
