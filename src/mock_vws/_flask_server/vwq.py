@@ -5,7 +5,6 @@ See
 https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query
 """
 
-import copy
 import email.utils
 from http import HTTPStatus
 from typing import Final, Set

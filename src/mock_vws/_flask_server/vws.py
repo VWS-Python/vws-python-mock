@@ -62,6 +62,7 @@ class ResponseNoContentTypeAdded(Response):
 
 VWS_FLASK_APP.response_class = ResponseNoContentTypeAdded
 
+
 @VWS_FLASK_APP.before_request
 def set_terminate_wsgi_input() -> None:
     """
@@ -72,6 +73,7 @@ def set_terminate_wsgi_input() -> None:
         False,
     )
     request.environ['wsgi.input_terminated'] = terminate_wsgi_input
+
 
 @VWS_FLASK_APP.before_request
 def validate_request() -> None:

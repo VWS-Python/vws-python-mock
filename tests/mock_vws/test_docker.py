@@ -12,7 +12,7 @@ import docker
 import pytest
 import requests
 from docker.models.networks import Network
-from vws import VWS
+from vws import VWS, CloudRecoService
 
 from mock_vws.database import VuforiaDatabase
 
@@ -31,7 +31,8 @@ def custom_bridge_network() -> Iterator[Network]:
 
 
 def test_build_and_run(
-    high_quality_image: io.BytesIO, custom_bridge_network: Network
+    high_quality_image: io.BytesIO,
+    custom_bridge_network: Network,
 ) -> None:
     repository_root = Path(__file__).parent.parent.parent
     client = docker.from_env()
@@ -116,8 +117,12 @@ def test_build_and_run(
     ][0]['HostPort']
 
     vwq_container.reload()
-    vwq_container.attrs['NetworkSettings']['Ports']['5000/tcp'][0]['HostIp']
-    vwq_container.attrs['NetworkSettings']['Ports']['5000/tcp'][0]['HostPort']
+    vwq_host_ip = vwq_container.attrs['NetworkSettings']['Ports']['5000/tcp'][
+        0
+    ]['HostIp']
+    vwq_host_port = vwq_container.attrs['NetworkSettings']['Ports'][
+        '5000/tcp'
+    ][0]['HostPort']
 
     response = requests.post(
         url=f'http://{storage_host_ip}:{storage_host_port}/databases',
@@ -125,7 +130,6 @@ def test_build_and_run(
     )
 
     assert response.status_code == HTTPStatus.CREATED
-    import pdb; pdb.set_trace()
 
     # Add target using vws_python
     vws_client = VWS(
@@ -144,12 +148,17 @@ def test_build_and_run(
 
     vws_client.wait_for_target_processed(target_id=target_id)
 
-    # # Query for target
-    # cloud_reco_client = CloudRecoService(
-    #     client_access_key=database.client_access_key,
-    #     client_secret_key=database.client_secret_key,
-    #     base_vwq_url=f'http://{vwq_host_ip}:{vwq_host_port}',
-    # )
-    #
-    # matching_targets = cloud_reco_client.query(image=high_quality_image)
-    # assert matching_targets[0].target_id == target_id
+    # Query for target
+    cloud_reco_client = CloudRecoService(
+        client_access_key=database.client_access_key,
+        client_secret_key=database.client_secret_key,
+        base_vwq_url=f'http://{vwq_host_ip}:{vwq_host_port}',
+    )
+
+    matching_targets = cloud_reco_client.query(image=high_quality_image)
+
+    for container in (storage_container, vws_container, vwq_container):
+        container.stop()
+        container.remove()
+
+    assert matching_targets[0].target_id == target_id
