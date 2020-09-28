@@ -48,7 +48,11 @@ def validate_request() -> None:
     """
     Run validators on the request.
     """
-    request.environ['wsgi.input_terminated'] = True
+    terminate_wsgi_input = CLOUDRECO_FLASK_APP.config.get(
+        'TERMINATE_WSGI_INPUT',
+        False,
+    )
+    request.environ['wsgi.input_terminated'] = terminate_wsgi_input
     input_stream_copy = copy.copy(request.input_stream)
     request_body = input_stream_copy.read()
     databases = get_all_databases()

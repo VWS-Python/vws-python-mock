@@ -68,7 +68,11 @@ def validate_request() -> None:
     """
     Run validators on the request.
     """
-    request.environ['wsgi.input_terminated'] = True
+    terminate_wsgi_input = VWS_FLASK_APP.config.get(
+        'TERMINATE_WSGI_INPUT',
+        False,
+    )
+    request.environ['wsgi.input_terminated'] = terminate_wsgi_input
     databases = get_all_databases()
     run_services_validators(
         request_headers=dict(request.headers),
