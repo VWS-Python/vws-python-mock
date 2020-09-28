@@ -62,17 +62,22 @@ class ResponseNoContentTypeAdded(Response):
 
 VWS_FLASK_APP.response_class = ResponseNoContentTypeAdded
 
-
 @VWS_FLASK_APP.before_request
-def validate_request() -> None:
+def set_terminate_wsgi_input() -> None:
     """
-    Run validators on the request.
+    TODO.
     """
     terminate_wsgi_input = VWS_FLASK_APP.config.get(
         'TERMINATE_WSGI_INPUT',
         False,
     )
     request.environ['wsgi.input_terminated'] = terminate_wsgi_input
+
+@VWS_FLASK_APP.before_request
+def validate_request() -> None:
+    """
+    Run validators on the request.
+    """
     databases = get_all_databases()
     run_services_validators(
         request_headers=dict(request.headers),

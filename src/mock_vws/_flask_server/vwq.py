@@ -44,25 +44,15 @@ def get_all_databases() -> Set[VuforiaDatabase]:
 
 
 @CLOUDRECO_FLASK_APP.before_request
-def validate_request() -> None:
+def set_terminate_wsgi_input() -> None:
     """
-    Run validators on the request.
+    TODO.
     """
     terminate_wsgi_input = CLOUDRECO_FLASK_APP.config.get(
         'TERMINATE_WSGI_INPUT',
         False,
     )
     request.environ['wsgi.input_terminated'] = terminate_wsgi_input
-    input_stream_copy = copy.copy(request.input_stream)
-    request_body = input_stream_copy.read()
-    databases = get_all_databases()
-    run_query_validators(
-        request_headers=dict(request.headers),
-        request_body=request_body,
-        request_method=request.method,
-        request_path=request.path,
-        databases=databases,
-    )
 
 
 class ResponseNoContentTypeAdded(Response):
@@ -101,9 +91,16 @@ def query() -> Response:
     # TODO these should be configurable
     query_processes_deletion_seconds = 0.2
     query_recognizes_deletion_seconds = 0.2
+
     databases = get_all_databases()
-    input_stream_copy = copy.copy(request.input_stream)
-    request_body = input_stream_copy.read()
+    request_body = request.stream.read()
+    run_query_validators(
+        request_headers=dict(request.headers),
+        request_body=request_body,
+        request_method=request.method,
+        request_path=request.path,
+        databases=databases,
+    )
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
 
     try:
