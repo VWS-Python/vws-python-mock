@@ -19,8 +19,6 @@ jobs:
       matrix:
         python-version: [3.8]
         platform: [windows-latest]
-        ci_pattern:
-          - ''
 
     runs-on: ${{ matrix.platform }}
 
