@@ -19,6 +19,8 @@ jobs:
       matrix:
         python-version: [3.8]
         platform: [windows-latest]
+        ci_pattern:
+          - ''
 
     runs-on: ${{ matrix.platform }}
 
@@ -52,4 +54,4 @@ jobs:
         env:
           SKIP_REAL: 1
         run: |
-          pytest -s -vvv tests/mock_vws
+          pytest -s -vvv tests/mock_vws/${{ matrix.ci_pattern }}
