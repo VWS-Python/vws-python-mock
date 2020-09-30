@@ -45,4 +45,9 @@ jobs:
         env:
           SKIP_REAL: 1
         run: |
-          pytest -s -vvv tests/mock_vws/${{ matrix.ci_pattern }}
+          pytest -s -vvv --exitfirst --cov=src/ --cov=tests --cov-report=xml tests/mock_vws/${{ matrix.ci_pattern }}
+
+      - name: "Upload coverage to Codecov"
+        uses: "codecov/codecov-action@v1.0.13"
+        with:
+          fail_ci_if_error: true

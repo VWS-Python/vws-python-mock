@@ -28,12 +28,9 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
             name='test-vws-bridge-' + uuid.uuid4().hex,
             driver='bridge',
         )
-    except docker.errors.NotFound:  # pragma: no cover
+    except docker.errors.NotFound:
         # On Windows the "bridge" network driver is not available and we use
         # the "nat" driver instead.
-        #
-        # We do not track this coverage because the coverage tracked build is
-        # on Linux.
         network = client.networks.create(
             name='test-vws-bridge-' + uuid.uuid4().hex,
             driver='nat',
@@ -73,9 +70,7 @@ def test_build_and_run(
             dockerfile=str(base_dockerfile),
             tag=base_tag,
         )
-    except docker.errors.BuildError as exc:  # pragma: no cover
-        # We do not track this coverage because the coverage tracked build is
-        # on Linux.
+    except docker.errors.BuildError as exc:
         assert 'no matching manifest for windows/amd64' in str(exc)
         reason = 'We do not currently support using Windows containers.'
         pytest.skip(reason)
