@@ -1,6 +1,7 @@
 Pillow
 VWS-Auth-Tools
-backports.zoneinfo
+# We add ``[tzdata]`` for Windows.
+backports.zoneinfo[tzdata]
 flask
 requests-mock
 requests
