@@ -13,7 +13,7 @@ flake8-commas==2.0.0  # Require silicon valley commas
 flake8-quotes==3.2.0  # Require single quotes
 flake8==3.8.3  # Lint
 freezegun==1.0.0  # Freeze time in tests
-func-timeout 4.3.5
+func-timeout==4.3.5
 isort==5.5.4  # Lint imports
 keyring==21.4.0
 mypy==0.782 # Type checking
