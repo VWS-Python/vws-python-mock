@@ -23,10 +23,18 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
     Yield a custom bridge network which containers can connect to.
     """
     client = docker.from_env()
-    network = client.networks.create(
-        name='test-vws-bridge-' + uuid.uuid4().hex,
-        driver='bridge',
-    )
+    try:
+        network = client.networks.create(
+            name='test-vws-bridge-' + uuid.uuid4().hex,
+            driver='bridge',
+        )
+    except docker.errors.NotFound:
+        # On Windows the "bridge" network driver is not available and we use
+        # the "nat" driver instead.
+        network = client.networks.create(
+            name='test-vws-bridge-' + uuid.uuid4().hex,
+            driver='nat',
+        )
     try:
         yield network
     finally:
