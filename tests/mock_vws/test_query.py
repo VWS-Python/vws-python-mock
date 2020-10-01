@@ -8,6 +8,7 @@ import base64
 import calendar
 import datetime
 import io
+import textwrap
 import time
 import uuid
 from http import HTTPStatus
@@ -144,35 +145,34 @@ class TestContentType:
             data=content,
         )
 
-        # TODO move to file
         # TODO make mock return this
-        import textwrap
+        # TODO this is not actually parametrized (see first line)
         expected_response_text = textwrap.dedent(
             """\
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
-<title>Error 400 Bad Request</title>
-</head>
-<body><h2>HTTP ERROR 400 Bad Request</h2>
-<table>
-<tr><th>URI:</th><td>/v1/query</td></tr>
-<tr><th>STATUS:</th><td>400</td></tr>
-<tr><th>MESSAGE:</th><td>Bad Request</td></tr>
-<tr><th>SERVLET:</th><td>Resteasy</td></tr>
-</table>
-<hr><a href="http://eclipse.org/jetty">Powered by Jetty:// 9.4.31.v20200723</a><hr/>
+            <html>
+            <head>
+            <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+            <title>Error 400 Bad Request</title>
+            </head>
+            <body><h2>HTTP ERROR 400 Bad Request</h2>
+            <table>
+            <tr><th>URI:</th><td>/v1/query</td></tr>
+            <tr><th>STATUS:</th><td>400</td></tr>
+            <tr><th>MESSAGE:</th><td>Bad Request</td></tr>
+            <tr><th>SERVLET:</th><td>Resteasy</td></tr>
+            </table>
+            <hr><a href="http://eclipse.org/jetty">Powered by Jetty:// 9.4.31.v20200723</a><hr/>
 
-</body>
-</html>
-"""
+            </body>
+            </html>
+            """
         )
         assert response.text == expected_response_text
         assert_vwq_failure(
             response=response,
             status_code=HTTPStatus.BAD_REQUEST,
             content_type='text/html;charset=iso-8859-1',
-            cache_control=None,
+            cache_control='must-revalidate,no-cache,no-store',
             www_authenticate=None,
         )
 
@@ -290,7 +290,7 @@ class TestContentType:
         assert_vwq_failure(
             response=response,
             status_code=HTTPStatus.BAD_REQUEST,
-            content_type='text/html;charset=UTF-8',
+            content_type='text/html;charset=utf-8',
             cache_control=None,
             www_authenticate=None,
         )
@@ -336,15 +336,12 @@ class TestContentType:
             data=content,
         )
 
-        expected_text = (
-            'java.lang.RuntimeException: RESTEASY007500: '
-            'Could find no Content-Disposition header within part'
-        )
+        expected_text = 'No image.'
         assert response.text == expected_text
         assert_vwq_failure(
             response=response,
             status_code=HTTPStatus.BAD_REQUEST,
-            content_type='text/html;charset=UTF-8',
+            content_type='application/json',
             cache_control=None,
             www_authenticate=None,
         )
