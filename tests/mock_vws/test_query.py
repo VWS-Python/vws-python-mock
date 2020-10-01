@@ -108,9 +108,10 @@ class TestContentType:
         content_type: str,
     ) -> None:
         """
-        If a Content-Type header which is not ``multipart/form-data``, an
-        ``UNSUPPORTED_MEDIA_TYPE`` response is given.
+        If a Content-Type header which is not ``multipart/form-data``, a
+        ``BAD_REQUEST`` response is given.
         """
+        content_type = 'foobar'
         image_content = high_quality_image.getvalue()
         date = rfc_1123_date()
         request_path = '/v1/query'
@@ -143,11 +144,34 @@ class TestContentType:
             data=content,
         )
 
-        assert response.text == ''
+        # TODO move to file
+        # TODO make mock return this
+        import textwrap
+        expected_response_text = textwrap.dedent(
+            """\
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+<title>Error 400 Bad Request</title>
+</head>
+<body><h2>HTTP ERROR 400 Bad Request</h2>
+<table>
+<tr><th>URI:</th><td>/v1/query</td></tr>
+<tr><th>STATUS:</th><td>400</td></tr>
+<tr><th>MESSAGE:</th><td>Bad Request</td></tr>
+<tr><th>SERVLET:</th><td>Resteasy</td></tr>
+</table>
+<hr><a href="http://eclipse.org/jetty">Powered by Jetty:// 9.4.31.v20200723</a><hr/>
+
+</body>
+</html>
+"""
+        )
+        assert response.text == expected_response_text
         assert_vwq_failure(
             response=response,
-            status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
-            content_type=None,
+            status_code=HTTPStatus.BAD_REQUEST,
+            content_type='text/html;charset=iso-8859-1',
         )
 
     def test_incorrect_with_boundary(
