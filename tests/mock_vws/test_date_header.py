@@ -75,6 +75,8 @@ class TestMissing:
                 response=response,
                 status_code=HTTPStatus.BAD_REQUEST,
                 content_type=expected_content_type,
+                cache_control=None,
+                www_authenticate=None,
             )
             return
 
@@ -141,6 +143,8 @@ class TestFormat:
                 response=response,
                 status_code=HTTPStatus.UNAUTHORIZED,
                 content_type='text/plain; charset=ISO-8859-1',
+                cache_control=None,
+                www_authenticate='VWS',
             )
             return
 
