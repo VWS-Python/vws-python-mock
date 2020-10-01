@@ -102,7 +102,7 @@ class TestIncorrect:
                 status_code=HTTPStatus.UNAUTHORIZED,
                 content_type='application/json',
                 cache_control=None,
-                www_authenticate=None,
+                www_authenticate='VWS',
             )
             return
 
