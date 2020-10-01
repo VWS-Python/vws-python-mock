@@ -77,6 +77,8 @@ class TestUnexpectedJSON:
                 response=response,
                 status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
                 content_type=None,
+                cache_control=None,
+                www_authenticate=None,
             )
             return
 

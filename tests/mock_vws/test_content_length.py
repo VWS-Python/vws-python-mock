@@ -101,6 +101,8 @@ class TestIncorrect:
                 response=response,
                 status_code=HTTPStatus.UNAUTHORIZED,
                 content_type='application/json',
+                cache_control=None,
+                www_authenticate=None,
             )
             return
 
