@@ -99,7 +99,8 @@ class TestContentType:
         'content_type',
         [
             'text/html',
-            '',
+            # 'foobar',
+            # '',
         ],
     )
     def test_incorrect_no_boundary(
@@ -112,7 +113,6 @@ class TestContentType:
         If a Content-Type header which is not ``multipart/form-data``, a
         ``BAD_REQUEST`` response is given.
         """
-        content_type = 'foobar'
         image_content = high_quality_image.getvalue()
         date = rfc_1123_date()
         request_path = '/v1/query'
@@ -147,6 +147,8 @@ class TestContentType:
 
         # TODO make mock return this
         # TODO this is not actually parametrized (see first line)
+        # TODO look at generateAcceptableResponse in Jetty to see what causes
+        # this.
         expected_response_text = textwrap.dedent(
             """\
             <html>
