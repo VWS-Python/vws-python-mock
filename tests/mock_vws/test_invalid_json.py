@@ -99,6 +99,8 @@ class TestInvalidJSON:
                 response=response,
                 status_code=HTTPStatus.BAD_REQUEST,
                 content_type='text/html;charset=UTF-8',
+                cache_control=None,
+                www_authenticate=None,
             )
             expected_text = (
                 'java.lang.RuntimeException: RESTEASY007500: '

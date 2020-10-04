@@ -61,6 +61,8 @@ class TestAuthorizationHeader:
                 response=response,
                 status_code=HTTPStatus.UNAUTHORIZED,
                 content_type='text/plain; charset=ISO-8859-1',
+                cache_control=None,
+                www_authenticate='VWS',
             )
             assert response.text == 'Authorization header missing.'
             return
@@ -113,6 +115,8 @@ class TestMalformed:
                 response=response,
                 status_code=HTTPStatus.UNAUTHORIZED,
                 content_type='text/plain; charset=ISO-8859-1',
+                cache_control=None,
+                www_authenticate='VWS',
             )
             assert response.text == 'Malformed authorization header.'
             return
@@ -160,6 +164,8 @@ class TestMalformed:
                 response=response,
                 status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
                 content_type='text/html; charset=ISO-8859-1',
+                cache_control='must-revalidate,no-cache,no-store',
+                www_authenticate=None,
             )
             # We have seen multiple responses given.
             assert 'Powered by Jetty' in response.text
@@ -220,6 +226,8 @@ class TestBadKey:
             response=response,
             status_code=HTTPStatus.UNAUTHORIZED,
             content_type='application/json',
+            cache_control=None,
+            www_authenticate='VWS',
         )
 
         assert response.json().keys() == {'transaction_id', 'result_code'}
@@ -276,6 +284,8 @@ class TestBadKey:
             response=response,
             status_code=HTTPStatus.UNAUTHORIZED,
             content_type='application/json',
+            cache_control=None,
+            www_authenticate='VWS',
         )
 
         assert response.json().keys() == {'transaction_id', 'result_code'}

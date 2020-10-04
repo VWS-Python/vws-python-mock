@@ -199,6 +199,8 @@ def assert_vwq_failure(
     response: Response,
     status_code: int,
     content_type: Optional[str],
+    cache_control: Optional[str],
+    www_authenticate: Optional[str],
 ) -> None:
     """
     Assert that a VWQ failure response is as expected.
@@ -206,7 +208,9 @@ def assert_vwq_failure(
     Args:
         response: The response returned by a request to VWQ.
         content_type: The expected Content-Type header.
-        status_code: The expected status code of the response.
+        status_code: The expected status code.
+        cache_control: The expected Cache-Control header.
+        www_authenticate: The expected WWW-Authenticate header.
 
     Raises:
         AssertionError: The response is not in the expected VWQ error format
@@ -220,18 +224,17 @@ def assert_vwq_failure(
         'Server',
     }
 
-    if status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+    if cache_control is not None:
         response_header_keys.add('Cache-Control')
-        cache_control = 'must-revalidate,no-cache,no-store'
         assert response.headers['Cache-Control'] == cache_control
 
     if content_type is not None:
         response_header_keys.add('Content-Type')
         assert response.headers['Content-Type'] == content_type
 
-    if status_code == HTTPStatus.UNAUTHORIZED:
+    if www_authenticate is not None:
         response_header_keys.add('WWW-Authenticate')
-        assert response.headers['WWW-Authenticate'] == 'VWS'
+        assert response.headers['WWW-Authenticate'] == www_authenticate
 
     assert response.headers.keys() == response_header_keys
     assert response.headers['Connection'] == 'keep-alive'

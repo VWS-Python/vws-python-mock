@@ -148,6 +148,8 @@ class TestContentType:
             response=response,
             status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
             content_type=None,
+            cache_control=None,
+            www_authenticate=None,
         )
 
     def test_incorrect_with_boundary(
@@ -202,6 +204,8 @@ class TestContentType:
             response=response,
             status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
             content_type=None,
+            cache_control=None,
+            www_authenticate=None,
         )
 
     @pytest.mark.parametrize(
@@ -263,6 +267,8 @@ class TestContentType:
             response=response,
             status_code=HTTPStatus.BAD_REQUEST,
             content_type='text/html;charset=UTF-8',
+            cache_control=None,
+            www_authenticate=None,
         )
 
     def test_bogus_boundary(
@@ -315,6 +321,8 @@ class TestContentType:
             response=response,
             status_code=HTTPStatus.BAD_REQUEST,
             content_type='text/html;charset=UTF-8',
+            cache_control=None,
+            www_authenticate=None,
         )
 
     def test_extra_section(
@@ -505,6 +513,8 @@ class TestIncorrectFields:
             response=response,
             status_code=HTTPStatus.BAD_REQUEST,
             content_type='application/json',
+            cache_control=None,
+            www_authenticate=None,
         )
 
     def test_extra_fields(
@@ -528,6 +538,8 @@ class TestIncorrectFields:
             response=response,
             content_type='application/json',
             status_code=HTTPStatus.BAD_REQUEST,
+            cache_control=None,
+            www_authenticate=None,
         )
 
     def test_missing_image_and_extra_fields(
@@ -551,6 +563,8 @@ class TestIncorrectFields:
             response=response,
             content_type='application/json',
             status_code=HTTPStatus.BAD_REQUEST,
+            cache_control=None,
+            www_authenticate=None,
         )
 
 
@@ -687,6 +701,8 @@ class TestMaxNumResults:
             response=response,
             content_type='application/json',
             status_code=HTTPStatus.BAD_REQUEST,
+            cache_control=None,
+            www_authenticate=None,
         )
 
     @pytest.mark.parametrize(
@@ -723,6 +739,8 @@ class TestMaxNumResults:
             response=response,
             content_type='application/json',
             status_code=HTTPStatus.BAD_REQUEST,
+            cache_control=None,
+            www_authenticate=None,
         )
 
 
@@ -904,6 +922,8 @@ class TestIncludeTargetData:
             response=response,
             status_code=HTTPStatus.BAD_REQUEST,
             content_type='application/json',
+            cache_control=None,
+            www_authenticate=None,
         )
 
 
@@ -1014,6 +1034,8 @@ class TestAcceptHeader:
             response=response,
             status_code=HTTPStatus.NOT_ACCEPTABLE,
             content_type=None,
+            cache_control=None,
+            www_authenticate=None,
         )
 
 
@@ -1090,6 +1112,8 @@ class TestBadImage:
             response=response,
             status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             content_type='application/json',
+            cache_control=None,
+            www_authenticate=None,
         )
         assert response.json().keys() == {'transaction_id', 'result_code'}
         assert_valid_transaction_id(response=response)
@@ -1290,6 +1314,8 @@ class TestMaximumImageDimensions:
             response=response,
             status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             content_type='application/json',
+            cache_control=None,
+            www_authenticate=None,
         )
         assert response.json().keys() == {'transaction_id', 'result_code'}
         assert_valid_transaction_id(response=response)
@@ -1346,6 +1372,8 @@ class TestMaximumImageDimensions:
             response=response,
             status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             content_type='application/json',
+            cache_control=None,
+            www_authenticate=None,
         )
         assert response.json().keys() == {'transaction_id', 'result_code'}
         assert_valid_transaction_id(response=response)
@@ -1413,6 +1441,8 @@ class TestImageFormats:
             response=response,
             status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             content_type='application/json',
+            cache_control=None,
+            www_authenticate=None,
         )
         assert response.json().keys() == {'transaction_id', 'result_code'}
         assert_valid_transaction_id(response=response)
@@ -1500,6 +1530,8 @@ class TestProcessing:
             response=response,
             content_type='text/html; charset=ISO-8859-1',
             status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            cache_control='must-revalidate,no-cache,no-store',
+            www_authenticate=None,
         )
 
 
@@ -1637,6 +1669,8 @@ class TestDeleted:
                     response=response,
                     content_type='text/html; charset=ISO-8859-1',
                     status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+                    cache_control='must-revalidate,no-cache,no-store',
+                    www_authenticate=None,
                 )
 
                 return
@@ -1876,6 +1910,8 @@ class TestInactiveProject:
             response=response,
             status_code=HTTPStatus.FORBIDDEN,
             content_type='application/json',
+            cache_control=None,
+            www_authenticate=None,
         )
         assert response.json().keys() == {'transaction_id', 'result_code'}
         assert_valid_transaction_id(response=response)

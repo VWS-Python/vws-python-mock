@@ -9,7 +9,7 @@ from http import HTTPStatus
 from time import sleep
 
 import pytest
-import timeout_decorator
+from func_timeout import func_set_timeout
 from vws import VWS, CloudRecoService
 from vws.exceptions.vws_exceptions import Fail
 
@@ -20,7 +20,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-@timeout_decorator.timeout(seconds=500)
+@func_set_timeout(timeout=500)
 def _wait_for_image_numbers(
     vws_client: VWS,
     active_images: int,
@@ -47,8 +47,8 @@ def _wait_for_image_numbers(
         processing_images: The expected number of processing images.
 
     Raises:
-        TimeoutError: The numbers of images in various categories do not match
-            within the time limit.
+        func_timeout.exceptions.FunctionTimedOut: The numbers of images in
+            various categories do not match within the time limit.
     """
     requirements = {
         'active_images': active_images,
