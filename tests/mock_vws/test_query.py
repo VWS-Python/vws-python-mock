@@ -12,7 +12,7 @@ import textwrap
 import time
 import uuid
 from http import HTTPStatus
-from typing import Any, Dict, Union
+from typing import Any, Dict, Optional, Union
 from urllib.parse import urljoin
 
 import pytest
@@ -38,6 +38,26 @@ from tests.mock_vws.utils.assertions import (
 
 VWQ_HOST = 'https://cloudreco.vuforia.com'
 
+_JETTY_CONTENT_TYPE_ERROR = textwrap.dedent(
+    """\
+    <html>
+    <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+    <title>Error 400 Bad Request</title>
+    </head>
+    <body><h2>HTTP ERROR 400 Bad Request</h2>
+    <table>
+    <tr><th>URI:</th><td>/v1/query</td></tr>
+    <tr><th>STATUS:</th><td>400</td></tr>
+    <tr><th>MESSAGE:</th><td>Bad Request</td></tr>
+    <tr><th>SERVLET:</th><td>Resteasy</td></tr>
+    </table>
+    <hr><a href="http://eclipse.org/jetty">Powered by Jetty:// 9.4.31.v20200723</a><hr/>
+
+    </body>
+    </html>
+    """
+)
 
 def query(
     vuforia_database: VuforiaDatabase,
@@ -96,11 +116,46 @@ class TestContentType:
     """
 
     @pytest.mark.parametrize(
-        'content_type',
+        'content_type,resp_status_code,resp_content_type,resp_cache_control,resp_text',
         [
-            'text/html',
-            # 'foobar',
-            # '',
+            (
+                'text/html',
+                HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
+                None,
+                None,
+                '',
+            ),
+            (
+                '',
+                HTTPStatus.BAD_REQUEST,
+                'text/html;charset=iso-8859-1',
+                'must-revalidate,no-cache,no-store',
+                _JETTY_CONTENT_TYPE_ERROR,
+            ),
+            (
+                '*/*',
+                HTTPStatus.BAD_REQUEST,
+                'text/html;charset=utf-8',
+                None,
+                (
+                 'java.io.IOException: RESTEASY007550: Unable to get boundary '
+                 'for multipart'
+                ),
+            ),
+            (
+                'text/*',
+                HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
+                None,
+                None,
+                '',
+            ),
+            (
+                'text/plain',
+                HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
+                None,
+                None,
+                '',
+            ),
         ],
     )
     def test_incorrect_no_boundary(
@@ -108,10 +163,13 @@ class TestContentType:
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         content_type: str,
+        resp_status_code: int,
+        resp_content_type: Optional[str],
+        resp_cache_control: Optional[str],
+        resp_text: str,
     ) -> None:
         """
-        If a Content-Type header which is not ``multipart/form-data``, a
-        ``BAD_REQUEST`` response is given.
+        With bad Content-Type headers we get a variety of results.
         """
         image_content = high_quality_image.getvalue()
         date = rfc_1123_date()
@@ -149,32 +207,12 @@ class TestContentType:
         # TODO this is not actually parametrized (see first line)
         # TODO look at generateAcceptableResponse in Jetty to see what causes
         # this.
-        expected_response_text = textwrap.dedent(
-            """\
-            <html>
-            <head>
-            <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
-            <title>Error 400 Bad Request</title>
-            </head>
-            <body><h2>HTTP ERROR 400 Bad Request</h2>
-            <table>
-            <tr><th>URI:</th><td>/v1/query</td></tr>
-            <tr><th>STATUS:</th><td>400</td></tr>
-            <tr><th>MESSAGE:</th><td>Bad Request</td></tr>
-            <tr><th>SERVLET:</th><td>Resteasy</td></tr>
-            </table>
-            <hr><a href="http://eclipse.org/jetty">Powered by Jetty:// 9.4.31.v20200723</a><hr/>
-
-            </body>
-            </html>
-            """
-        )
-        assert response.text == expected_response_text
+        assert response.text == resp_text
         assert_vwq_failure(
             response=response,
-            status_code=HTTPStatus.BAD_REQUEST,
-            content_type='text/html;charset=iso-8859-1',
-            cache_control='must-revalidate,no-cache,no-store',
+            status_code=resp_status_code,
+            content_type=resp_content_type,
+            cache_control=resp_cache_control,
             www_authenticate=None,
         )
 
