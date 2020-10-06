@@ -36,7 +36,7 @@ def validate_content_type_header(
     if content_type_header == '':
         raise NoContentType
 
-    if main_value != 'multipart/form-data':
+    if main_value not in ('multipart/form-data', '*/*'):
         raise UnsupportedMediaType
 
     if 'boundary' not in pdict:

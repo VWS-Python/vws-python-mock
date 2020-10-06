@@ -549,7 +549,7 @@ class NoBoundaryFound(ValidatorException):
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'text/html;charset=UTF-8',
+            'Content-Type': 'text/html;charset=utf-8',
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,

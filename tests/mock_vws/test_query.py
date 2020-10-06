@@ -203,10 +203,6 @@ class TestContentType:
             data=content,
         )
 
-        # TODO make mock return this
-        # TODO this is not actually parametrized (see first line)
-        # TODO look at generateAcceptableResponse in Jetty to see what causes
-        # this.
         assert response.text == resp_text
         assert_vwq_failure(
             response=response,
