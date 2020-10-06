@@ -8,6 +8,7 @@ Configuration for Sphinx.
 
 import datetime
 import logging
+import sys
 from typing import Dict, Iterable
 
 import sphinx_autodoc_typehints
@@ -25,10 +26,25 @@ author = 'Adam Dangoor'
 #
 # We want to ignore that error while the bug is open, and therefore we turn
 # that one warning into an info message.
+#
+# also...
+# ReadTheDocs runs Python 3.8.0, which suffers from
+# https://bugs.python.org/issue34776.
+# This means we hit
+# https://github.com/agronholm/sphinx-autodoc-typehints/issues/76.
+# We therefore skip warnings on 3.8.0 for a particular error message.
+# This means that 
 def _custom_warning_handler(msg: str, *args: Iterable, **kwargs: Dict) -> None:
     level = logging.WARNING
     if 'Cannot treat a function defined as a local function' in msg:
         level = logging.INFO
+
+    # if (
+    #     (sys.version_info.major, sys.version_info.minor, sys.version_info.micro)
+    #     == (3, 8, 0)
+    # ):
+    #     if 'Cannot resolve forward reference in type annotations' in msg:
+    #         level = logging.INFO
 
     sphinx_autodoc_typehints.logger.log(level, msg, *args, **kwargs)
 
