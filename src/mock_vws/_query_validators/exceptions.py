@@ -3,6 +3,7 @@ Exceptions to raise from validators.
 """
 
 import email.utils
+import textwrap
 import uuid
 from http import HTTPStatus
 from pathlib import Path
@@ -664,3 +665,50 @@ class MatchProcessing(ValidatorException):
         filename = 'match_processing_response.html'
         match_processing_resp_file = resources_dir / filename
         self.response_text = Path(match_processing_resp_file).read_text()
+
+
+class NoContentType(ValidatorException):
+    """
+    Exception raised a target is matched which is processing or recently
+    deleted.
+    """
+
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
+        super().__init__()
+        self.status_code = HTTPStatus.BAD_REQUEST
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        self.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'text/html;charset=iso-8859-1',
+            'Server': 'nginx',
+            'Cache-Control': 'must-revalidate,no-cache,no-store',
+            'Date': date,
+        }
+        jetty_content_type_error = textwrap.dedent(
+            """\
+            <html>
+            <head>
+            <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+            <title>Error 400 Bad Request</title>
+            </head>
+            <body><h2>HTTP ERROR 400 Bad Request</h2>
+            <table>
+            <tr><th>URI:</th><td>/v1/query</td></tr>
+            <tr><th>STATUS:</th><td>400</td></tr>
+            <tr><th>MESSAGE:</th><td>Bad Request</td></tr>
+            <tr><th>SERVLET:</th><td>Resteasy</td></tr>
+            </table>
+            <hr><a href="http://eclipse.org/jetty">Powered by Jetty:// 9.4.31.v20200723</a><hr/>
+
+            </body>
+            </html>
+            """
+        )
+        self.response_text = jetty_content_type_error

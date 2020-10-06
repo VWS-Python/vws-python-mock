@@ -9,6 +9,7 @@ from mock_vws._query_validators.exceptions import (
     BoundaryNotInBody,
     NoBoundaryFound,
     UnsupportedMediaType,
+    NoContentType,
 )
 
 
@@ -32,6 +33,9 @@ def validate_content_type_header(
     """
     content_type_header = request_headers.get('Content-Type', '')
     main_value, pdict = cgi.parse_header(content_type_header)
+    if content_type_header == '':
+        raise NoContentType
+
     if main_value != 'multipart/form-data':
         raise UnsupportedMediaType
 
