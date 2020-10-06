@@ -8,8 +8,8 @@ from typing import Dict
 from mock_vws._query_validators.exceptions import (
     BoundaryNotInBody,
     NoBoundaryFound,
-    UnsupportedMediaType,
     NoContentType,
+    UnsupportedMediaType,
 )
 
 

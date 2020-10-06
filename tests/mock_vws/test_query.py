@@ -59,6 +59,7 @@ _JETTY_CONTENT_TYPE_ERROR = textwrap.dedent(
     """
 )
 
+
 def query(
     vuforia_database: VuforiaDatabase,
     body: Dict[str, Any],
@@ -138,8 +139,8 @@ class TestContentType:
                 'text/html;charset=utf-8',
                 None,
                 (
-                 'java.io.IOException: RESTEASY007550: Unable to get boundary '
-                 'for multipart'
+                    'java.io.IOException: RESTEASY007550: Unable to get boundary '
+                    'for multipart'
                 ),
             ),
             (
