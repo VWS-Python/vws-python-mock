@@ -1549,8 +1549,6 @@ class TestProcessing:
         """
         When a target with a matching image is in the processing state it is
         not matched.
-
-        Sometimes an `INTERNAL_SERVER_ERROR` response is returned.
         """
         image_content = high_quality_image.getvalue()
 
@@ -1582,26 +1580,8 @@ class TestProcessing:
         assert target_details.status == TargetStatuses.PROCESSING
 
         # Sometimes we get a 500 error, sometimes we do not.
-        if response.status_code == HTTPStatus.OK:  # pragma: no cover
-            assert response.json()['results'] == []
-            assert_query_success(response=response)
-            return
-
-        # We do not mark this with "pragma: no cover" because we choose to
-        # implement the mock to have this behavior.
-        # The response text for a 500 response is not consistent.
-        # Therefore we only test for consistent features.
-        assert 'Error 500 Server Error' in response.text
-        assert 'HTTP ERROR 500' in response.text
-        assert 'Problem accessing /v1/query' in response.text
-
-        assert_vwq_failure(
-            response=response,
-            content_type='text/html; charset=ISO-8859-1',
-            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
-            cache_control='must-revalidate,no-cache,no-store',
-            www_authenticate=None,
-        )
+        assert response.json()['results'] == []
+        assert_query_success(response=response)
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
