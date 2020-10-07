@@ -1785,11 +1785,7 @@ class TestDeleted:
                 assert_query_success(response=response)
             except AssertionError:
                 server_error_seen = True
-                # The response text for a 500 response is not consistent.
-                # Therefore we only test for consistent features.
-                assert 'Error 500 Server Error' in response.text
-                assert 'HTTP ERROR 500' in response.text
-                assert 'Problem accessing /v1/query' in response.text
+                assert response.text == _JETTY_ERROR_DELETION_NOT_COMPLETE
                 time.sleep(sleep_seconds)
                 total_waited += sleep_seconds
             else:
