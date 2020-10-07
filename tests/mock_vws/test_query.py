@@ -11,8 +11,8 @@ import io
 import textwrap
 import time
 import uuid
-from pathlib import Path
 from http import HTTPStatus
+from pathlib import Path
 from typing import Any, Dict, Optional, Union
 from urllib.parse import urljoin
 
@@ -23,7 +23,7 @@ from PIL import Image
 from requests import Response
 from requests_mock import POST
 from urllib3.filepost import encode_multipart_formdata
-from vws import VWS
+from vws import VWS, CloudRecoService
 from vws.reports import TargetStatuses
 from vws_auth_tools import authorization_header, rfc_1123_date
 
@@ -61,8 +61,12 @@ _JETTY_CONTENT_TYPE_ERROR = textwrap.dedent(
 )
 
 
-_JETTY_ERROR_DELETION_NOT_COMPLETE_PATH = Path(__file__).parent / 'jetty_error_deletion_not_complete.html'
-_JETTY_ERROR_DELETION_NOT_COMPLETE = _JETTY_ERROR_DELETION_NOT_COMPLETE_PATH.read_text()
+_JETTY_ERROR_DELETION_NOT_COMPLETE_PATH = (
+    Path(__file__).parent / 'jetty_error_deletion_not_complete.html'
+)
+_JETTY_ERROR_DELETION_NOT_COMPLETE = (
+    _JETTY_ERROR_DELETION_NOT_COMPLETE_PATH.read_text()
+)
 
 
 def query(
@@ -1545,13 +1549,12 @@ class TestProcessing:
         vuforia_database: VuforiaDatabase,
         active_flag: bool,
         vws_client: VWS,
+        cloud_reco_client: CloudRecoService,
     ) -> None:
         """
         When a target with a matching image is in the processing state it is
         not matched.
         """
-        image_content = high_quality_image.getvalue()
-
         target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
             width=1,
@@ -1559,10 +1562,7 @@ class TestProcessing:
             active_flag=active_flag,
             application_metadata=None,
         )
-
-        body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
-        response = query(vuforia_database=vuforia_database, body=body)
-
+        matching_targets = cloud_reco_client.query(image=high_quality_image)
         # We assert that after making a query, the target is in the processing
         # state.
         #
@@ -1579,9 +1579,7 @@ class TestProcessing:
         target_details = vws_client.get_target_record(target_id=target_id)
         assert target_details.status == TargetStatuses.PROCESSING
 
-        # Sometimes we get a 500 error, sometimes we do not.
-        assert response.json()['results'] == []
-        assert_query_success(response=response)
+        assert matching_targets == []
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
