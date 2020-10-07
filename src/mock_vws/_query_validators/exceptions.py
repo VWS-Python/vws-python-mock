@@ -709,6 +709,6 @@ class NoContentType(ValidatorException):
 
             </body>
             </html>
-            """
+            """,  # noqa: E501
         )
         self.response_text = jetty_content_type_error

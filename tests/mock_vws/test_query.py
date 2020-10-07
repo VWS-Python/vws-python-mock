@@ -56,7 +56,7 @@ _JETTY_CONTENT_TYPE_ERROR = textwrap.dedent(
 
     </body>
     </html>
-    """
+    """,  # noqa: E501
 )
 
 
@@ -117,7 +117,13 @@ class TestContentType:
     """
 
     @pytest.mark.parametrize(
-        'content_type,resp_status_code,resp_content_type,resp_cache_control,resp_text',
+        [
+            'content_type',
+            'resp_status_code',
+            'resp_content_type',
+            'resp_cache_control',
+            'resp_text',
+        ],
         [
             (
                 'text/html',
@@ -139,8 +145,8 @@ class TestContentType:
                 'text/html;charset=utf-8',
                 None,
                 (
-                    'java.io.IOException: RESTEASY007550: Unable to get boundary '
-                    'for multipart'
+                    'java.io.IOException: RESTEASY007550: Unable to get '
+                    'boundary for multipart'
                 ),
             ),
             (
