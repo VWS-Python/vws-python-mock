@@ -60,7 +60,7 @@ _JETTY_CONTENT_TYPE_ERROR = textwrap.dedent(
 )
 
 _JETTY_ERROR_DELETION_NOT_COMPLETE = textwrap.dedent(
-    """
+    """\
     <html>
     <head>
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
