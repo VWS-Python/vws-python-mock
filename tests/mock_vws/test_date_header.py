@@ -142,7 +142,7 @@ class TestFormat:
             assert_vwq_failure(
                 response=response,
                 status_code=HTTPStatus.UNAUTHORIZED,
-                content_type='text/plain; charset=ISO-8859-1',
+                content_type='text/plain;charset=iso-8859-1',
                 cache_control=None,
                 www_authenticate='VWS',
             )

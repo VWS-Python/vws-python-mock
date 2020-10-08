@@ -114,7 +114,7 @@ class TestMalformed:
             assert_vwq_failure(
                 response=response,
                 status_code=HTTPStatus.UNAUTHORIZED,
-                content_type='text/plain; charset=ISO-8859-1',
+                content_type='text/plain;charset=iso-8859-1',
                 cache_control=None,
                 www_authenticate='VWS',
             )
@@ -163,7 +163,7 @@ class TestMalformed:
             assert_vwq_failure(
                 response=response,
                 status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
-                content_type='text/html; charset=ISO-8859-1',
+                content_type='text/html;charset=iso-8859-1',
                 cache_control='must-revalidate,no-cache,no-store',
                 www_authenticate=None,
             )
