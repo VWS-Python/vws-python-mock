@@ -61,18 +61,11 @@ _JETTY_CONTENT_TYPE_ERROR = textwrap.dedent(
 )
 
 
-_JETTY_ERROR_DELETION_NOT_COMPLETE_PATH = (
+_JETTY_ERROR_DELETION_NOT_COMPLETE_START_PATH = (
     Path(__file__).parent / 'jetty_error_deletion_not_complete.html'
 )
-_JETTY_ERROR_DELETION_NOT_COMPLETE_PATH_2 = (
-    Path(__file__).parent / 'jetty_error_deletion_not_complete_2.html'
-)
 _JETTY_ERROR_DELETION_NOT_COMPLETE = (
-    _JETTY_ERROR_DELETION_NOT_COMPLETE_PATH.read_text()
-)
-
-_JETTY_ERROR_DELETION_NOT_COMPLETE_2 = (
-    _JETTY_ERROR_DELETION_NOT_COMPLETE_PATH_2.read_text()
+    _JETTY_ERROR_DELETION_NOT_COMPLETE_START_PATH.read_text()
 )
 
 
@@ -1712,11 +1705,9 @@ class TestDeleted:
             try:
                 assert_query_success(response=response)
             except AssertionError:
-                assert response.text in (
+                assert response.text.startswith(
                     _JETTY_ERROR_DELETION_NOT_COMPLETE,
-                    _JETTY_ERROR_DELETION_NOT_COMPLETE_2,
                 )
-
                 assert_vwq_failure(
                     response=response,
                     content_type='text/html;charset=iso-8859-1',
@@ -1772,9 +1763,8 @@ class TestDeleted:
                 assert_query_success(response=response)
             except AssertionError:
                 server_error_seen = True
-                assert response.text in (
+                assert response.text.startswith(
                     _JETTY_ERROR_DELETION_NOT_COMPLETE,
-                    _JETTY_ERROR_DELETION_NOT_COMPLETE_2,
                 )
                 time.sleep(sleep_seconds)
                 total_waited += sleep_seconds
