@@ -102,10 +102,7 @@ class TestInvalidJSON:
                 cache_control=None,
                 www_authenticate=None,
             )
-            expected_text = (
-                'java.lang.RuntimeException: RESTEASY007500: '
-                'Could find no Content-Disposition header within part'
-            )
+            expected_text = 'No image.'
             assert response.text == expected_text
             return
 
