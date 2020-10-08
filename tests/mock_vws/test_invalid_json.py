@@ -98,7 +98,7 @@ class TestInvalidJSON:
             assert_vwq_failure(
                 response=response,
                 status_code=HTTPStatus.BAD_REQUEST,
-                content_type='text/html;charset=UTF-8',
+                content_type='application/json',
                 cache_control=None,
                 www_authenticate=None,
             )
