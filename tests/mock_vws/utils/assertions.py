@@ -239,7 +239,7 @@ def assert_vwq_failure(
     # Sometimes the "transfer-encoding" is given.
     # It is not given by the mock.
     response_header_keys_chunked = copy.copy(response_header_keys)
-    response_header_keys.remove('Content-Length')
+    response_header_keys_chunked.remove('Content-Length')
     response_header_keys_chunked.add('transfer-encoding')
 
     assert response.headers.keys() in (
