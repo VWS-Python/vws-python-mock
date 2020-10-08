@@ -1546,7 +1546,6 @@ class TestProcessing:
     def test_processing(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
         active_flag: bool,
         vws_client: VWS,
         cloud_reco_client: CloudRecoService,
