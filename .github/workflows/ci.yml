@@ -67,18 +67,6 @@ jobs:
           - test_docker.py
 
     steps:
-      # We share Vuforia credentials and therefore Vuforia databases across
-      # workflows.
-      # We therefore want to run only one workflow at a time.
-      - name: Wait for other GitHub Workflows to finish
-        uses: softprops/turnstyle@v1
-        with:
-          same-branch-only: false
-          # By default this is 60.
-          # We have a lot of jobs so this is set higher - we hit API timeouts.
-          poll-interval-seconds: 300
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/checkout@v2
       - name: "Set up Python"
