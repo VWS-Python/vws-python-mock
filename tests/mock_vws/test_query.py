@@ -75,6 +75,7 @@ _JETTY_ERROR_DELETION_NOT_COMPLETE_2 = (
     _JETTY_ERROR_DELETION_NOT_COMPLETE_PATH_2.read_text()
 )
 
+
 def query(
     vuforia_database: VuforiaDatabase,
     body: Dict[str, Any],
