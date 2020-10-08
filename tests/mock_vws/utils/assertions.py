@@ -236,7 +236,16 @@ def assert_vwq_failure(
         response_header_keys.add('WWW-Authenticate')
         assert response.headers['WWW-Authenticate'] == www_authenticate
 
-    assert response.headers.keys() == response_header_keys
+    # Sometimes the "transfer-encoding" is given.
+    # It is not given by the mock.
+    response_header_keys_chunked = copy.copy(response_header_keys)
+    response_header_keys_chunked.add('transfer-encoding')
+
+    assert response.headers.keys() in (
+        response_header_keys,
+        response_header_keys_chunked,
+    )
+    assert response.headers.get('transfer-encoding', 'chunked') == 'chunked'
     assert response.headers['Connection'] == 'keep-alive'
     assert response.headers['Content-Length'] == str(len(response.text))
     assert_valid_date_header(response=response)
