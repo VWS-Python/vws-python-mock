@@ -38,9 +38,7 @@ class TestInvalidGivenID:
         vws_client.delete_target(target_id=target_id)
 
         session = requests.Session()
-        response = session.send(  # type: ignore
-            request=endpoint.prepared_request,
-        )
+        response = session.send(request=endpoint.prepared_request)
 
         assert_vws_failure(
             response=response,

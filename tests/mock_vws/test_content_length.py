@@ -40,12 +40,10 @@ class TestIncorrect:
         headers = {**endpoint_headers, 'Content-Length': content_length}
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
-        response = session.send(  # type: ignore
-            request=endpoint.prepared_request,
-        )
+        response = session.send(request=endpoint.prepared_request)
 
         assert response.text == ''
-        assert response.headers == {
+        assert dict(response.headers) == {
             'Content-Length': '0',
             'Connection': 'Close',
         }
@@ -65,12 +63,10 @@ class TestIncorrect:
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
-        response = session.send(  # type: ignore
-            request=endpoint.prepared_request,
-        )
+        response = session.send(request=endpoint.prepared_request)
 
         assert response.text == ''
-        assert response.headers == {
+        assert dict(response.headers) == {
             'Content-Length': '0',
             'Connection': 'keep-alive',
         }
@@ -90,9 +86,7 @@ class TestIncorrect:
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
-        response = session.send(  # type: ignore
-            request=endpoint.prepared_request,
-        )
+        response = session.send(request=endpoint.prepared_request)
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
