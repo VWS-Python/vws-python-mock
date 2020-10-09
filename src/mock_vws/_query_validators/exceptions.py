@@ -42,7 +42,7 @@ class DateHeaderNotGiven(ValidatorException):
         self.response_text = 'Date header required.'
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'text/plain; charset=ISO-8859-1',
+            'Content-Type': 'text/plain;charset=iso-8859-1',
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
@@ -67,7 +67,7 @@ class DateFormatNotValid(ValidatorException):
         self.response_text = 'Malformed date header.'
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'text/plain; charset=ISO-8859-1',
+            'Content-Type': 'text/plain;charset=iso-8859-1',
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
@@ -256,7 +256,7 @@ class AuthHeaderMissing(ValidatorException):
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'text/plain; charset=ISO-8859-1',
+            'Content-Type': 'text/plain;charset=iso-8859-1',
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
@@ -283,7 +283,7 @@ class MalformedAuthHeader(ValidatorException):
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'text/plain; charset=ISO-8859-1',
+            'Content-Type': 'text/plain;charset=iso-8859-1',
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
@@ -551,7 +551,7 @@ class QueryOutOfBounds(ValidatorException):
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'text/html; charset=ISO-8859-1',
+            'Content-Type': 'text/html;charset=iso-8859-1',
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
@@ -620,7 +620,7 @@ class MatchProcessing(ValidatorException):
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
             'Connection': 'keep-alive',
-            'Content-Type': 'text/html; charset=ISO-8859-1',
+            'Content-Type': 'text/html;charset=iso-8859-1',
             'Server': 'nginx',
             'Cache-Control': 'must-revalidate,no-cache,no-store',
             'Date': date,
