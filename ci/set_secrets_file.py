@@ -23,6 +23,7 @@ def move_secrets_file() -> None:
 
     secrets_dir = Path('ci_secrets')
     secrets_path = secrets_dir / f'vuforia_secrets_{builder_number}.env'
+    print(f'Using {secrets_path}')
     shutil.copy(secrets_path, './vuforia_secrets.env')
 
 
