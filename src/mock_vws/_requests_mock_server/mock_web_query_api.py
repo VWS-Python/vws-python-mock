@@ -16,7 +16,6 @@ from requests_mock.response import _Context
 from mock_vws._mock_common import Route, set_content_length_header
 from mock_vws._query_tools import (
     ActiveMatchingTargetsDeleteProcessing,
-    MatchingTargetsWithProcessingStatus,
     get_query_match_response_text,
 )
 from mock_vws._query_validators import run_query_validators
@@ -169,10 +168,7 @@ class MockVuforiaWebQueryAPI:
                     self._query_recognizes_deletion_seconds
                 ),
             )
-        except (
-            ActiveMatchingTargetsDeleteProcessing,
-            MatchingTargetsWithProcessingStatus,
-        ) as exc:
+        except ActiveMatchingTargetsDeleteProcessing as exc:
             raise MatchProcessing from exc
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
