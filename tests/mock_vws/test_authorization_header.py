@@ -50,9 +50,7 @@ class TestAuthorizationHeader:
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
-        response = session.send(  # type: ignore
-            request=endpoint.prepared_request,
-        )
+        response = session.send(request=endpoint.prepared_request)
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
@@ -104,9 +102,7 @@ class TestMalformed:
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
-        response = session.send(  # type: ignore
-            request=endpoint.prepared_request,
-        )
+        response = session.send(request=endpoint.prepared_request)
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
@@ -153,9 +149,7 @@ class TestMalformed:
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
-        response = session.send(  # type: ignore
-            request=endpoint.prepared_request,
-        )
+        response = session.send(request=endpoint.prepared_request)
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc

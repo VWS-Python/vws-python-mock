@@ -62,9 +62,7 @@ class TestMissing:
         headers.pop('Date', None)
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
-        response = session.send(  # type: ignore
-            request=endpoint.prepared_request,
-        )
+        response = session.send(request=endpoint.prepared_request)
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
@@ -131,9 +129,7 @@ class TestFormat:
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
-        response = session.send(  # type: ignore
-            request=endpoint.prepared_request,
-        )
+        response = session.send(request=endpoint.prepared_request)
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
@@ -214,9 +210,7 @@ class TestSkewedTime:
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
-        response = session.send(  # type: ignore
-            request=endpoint.prepared_request,
-        )
+        response = session.send(request=endpoint.prepared_request)
 
         # Even with the query endpoint, we get a JSON response.
         assert_vws_failure(
@@ -276,9 +270,7 @@ class TestSkewedTime:
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
-        response = session.send(  # type: ignore
-            request=endpoint.prepared_request,
-        )
+        response = session.send(request=endpoint.prepared_request)
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
