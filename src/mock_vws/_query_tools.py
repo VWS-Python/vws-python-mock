@@ -114,12 +114,6 @@ def get_query_match_response_text(
         and (now - target.delete_date) < recognition_timedelta
     ]
 
-    matching_targets_with_processing_status = [
-        target
-        for target in matching_targets
-        if target.status == TargetStatuses.PROCESSING.value
-    ]
-
     active_matching_targets_delete_processing = [
         target
         for target in matching_targets
