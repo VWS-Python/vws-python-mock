@@ -498,35 +498,6 @@ class InvalidAcceptHeader(ValidatorException):
         }
 
 
-class BoundaryNotInBody(ValidatorException):
-    """
-    Exception raised when the form boundary is not in the request body.
-    """
-
-    def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this is
-                raised.
-        """
-        super().__init__()
-        self.status_code = HTTPStatus.BAD_REQUEST
-        self.response_text = (
-            'java.lang.RuntimeException: RESTEASY007500: '
-            'Could find no Content-Disposition header within part'
-        )
-
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
-        self.headers = {
-            'Content-Type': 'text/html;charset=UTF-8',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-        }
-
-
 class NoBoundaryFound(ValidatorException):
     """
     Exception raised when an invalid media type is given.
