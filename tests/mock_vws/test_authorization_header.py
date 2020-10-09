@@ -168,7 +168,6 @@ class TestMalformed:
                 cache_control='must-revalidate,no-cache,no-store',
                 www_authenticate=None,
             )
-            # We have seen multiple responses given.
             content_filename = 'jetty_error_array_out_of_bounds.html'
             content_path = Path(__file__).parent / content_filename
             assert response.text == content_path.read_text()
