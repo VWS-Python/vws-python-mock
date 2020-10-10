@@ -30,7 +30,7 @@ def validate_content_type_header(
         NoBoundaryFound: The ``Content-Type`` header does not contain a
             boundary.
         ImageNotGiven: The boundary is not in the request body.
-        NoContentType: TODO: This must be filled in.
+        NoContentType: The content type header is either empty or not given.
     """
     content_type_header = request_headers.get('Content-Type', '')
     main_value, pdict = cgi.parse_header(content_type_header)
