@@ -3,6 +3,7 @@ Exceptions to raise from validators.
 """
 
 import email.utils
+import textwrap
 import uuid
 from http import HTTPStatus
 from pathlib import Path
@@ -41,7 +42,7 @@ class DateHeaderNotGiven(ValidatorException):
         self.response_text = 'Date header required.'
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'text/plain; charset=ISO-8859-1',
+            'Content-Type': 'text/plain;charset=iso-8859-1',
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
@@ -66,7 +67,7 @@ class DateFormatNotValid(ValidatorException):
         self.response_text = 'Malformed date header.'
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'text/plain; charset=ISO-8859-1',
+            'Content-Type': 'text/plain;charset=iso-8859-1',
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
@@ -255,7 +256,7 @@ class AuthHeaderMissing(ValidatorException):
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'text/plain; charset=ISO-8859-1',
+            'Content-Type': 'text/plain;charset=iso-8859-1',
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
@@ -282,7 +283,7 @@ class MalformedAuthHeader(ValidatorException):
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'text/plain; charset=ISO-8859-1',
+            'Content-Type': 'text/plain;charset=iso-8859-1',
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
@@ -497,35 +498,6 @@ class InvalidAcceptHeader(ValidatorException):
         }
 
 
-class BoundaryNotInBody(ValidatorException):
-    """
-    Exception raised when the form boundary is not in the request body.
-    """
-
-    def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this is
-                raised.
-        """
-        super().__init__()
-        self.status_code = HTTPStatus.BAD_REQUEST
-        self.response_text = (
-            'java.lang.RuntimeException: RESTEASY007500: '
-            'Could find no Content-Disposition header within part'
-        )
-
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
-        self.headers = {
-            'Content-Type': 'text/html;charset=UTF-8',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-        }
-
-
 class NoBoundaryFound(ValidatorException):
     """
     Exception raised when an invalid media type is given.
@@ -548,7 +520,7 @@ class NoBoundaryFound(ValidatorException):
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'text/html;charset=UTF-8',
+            'Content-Type': 'text/html;charset=utf-8',
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
@@ -579,7 +551,7 @@ class QueryOutOfBounds(ValidatorException):
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'text/html; charset=ISO-8859-1',
+            'Content-Type': 'text/html;charset=iso-8859-1',
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
@@ -648,7 +620,7 @@ class MatchProcessing(ValidatorException):
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
             'Connection': 'keep-alive',
-            'Content-Type': 'text/html; charset=ISO-8859-1',
+            'Content-Type': 'text/html;charset=iso-8859-1',
             'Server': 'nginx',
             'Cache-Control': 'must-revalidate,no-cache,no-store',
             'Date': date,
@@ -664,3 +636,49 @@ class MatchProcessing(ValidatorException):
         filename = 'match_processing_response.html'
         match_processing_resp_file = resources_dir / filename
         self.response_text = Path(match_processing_resp_file).read_text()
+
+
+class NoContentType(ValidatorException):
+    """
+    Exception raised when a content type is either not given or is empty.
+    """
+
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
+        super().__init__()
+        self.status_code = HTTPStatus.BAD_REQUEST
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        self.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'text/html;charset=iso-8859-1',
+            'Server': 'nginx',
+            'Cache-Control': 'must-revalidate,no-cache,no-store',
+            'Date': date,
+        }
+        jetty_content_type_error = textwrap.dedent(
+            """\
+            <html>
+            <head>
+            <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+            <title>Error 400 Bad Request</title>
+            </head>
+            <body><h2>HTTP ERROR 400 Bad Request</h2>
+            <table>
+            <tr><th>URI:</th><td>/v1/query</td></tr>
+            <tr><th>STATUS:</th><td>400</td></tr>
+            <tr><th>MESSAGE:</th><td>Bad Request</td></tr>
+            <tr><th>SERVLET:</th><td>Resteasy</td></tr>
+            </table>
+            <hr><a href="http://eclipse.org/jetty">Powered by Jetty:// 9.4.31.v20200723</a><hr/>
+
+            </body>
+            </html>
+            """,  # noqa: E501
+        )
+        self.response_text = jetty_content_type_error

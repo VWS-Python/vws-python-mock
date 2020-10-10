@@ -5,6 +5,7 @@ Tests for the `Authorization` header.
 import io
 import uuid
 from http import HTTPStatus
+from pathlib import Path
 from typing import Dict
 from urllib.parse import urlparse
 
@@ -58,7 +59,7 @@ class TestAuthorizationHeader:
             assert_vwq_failure(
                 response=response,
                 status_code=HTTPStatus.UNAUTHORIZED,
-                content_type='text/plain; charset=ISO-8859-1',
+                content_type='text/plain;charset=iso-8859-1',
                 cache_control=None,
                 www_authenticate='VWS',
             )
@@ -110,7 +111,7 @@ class TestMalformed:
             assert_vwq_failure(
                 response=response,
                 status_code=HTTPStatus.UNAUTHORIZED,
-                content_type='text/plain; charset=ISO-8859-1',
+                content_type='text/plain;charset=iso-8859-1',
                 cache_control=None,
                 www_authenticate='VWS',
             )
@@ -157,13 +158,13 @@ class TestMalformed:
             assert_vwq_failure(
                 response=response,
                 status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
-                content_type='text/html; charset=ISO-8859-1',
+                content_type='text/html;charset=iso-8859-1',
                 cache_control='must-revalidate,no-cache,no-store',
                 www_authenticate=None,
             )
-            # We have seen multiple responses given.
-            assert 'Powered by Jetty' in response.text
-            assert '500 Server Error' in response.text
+            content_filename = 'jetty_error_array_out_of_bounds.html'
+            content_path = Path(__file__).parent / content_filename
+            assert response.text == content_path.read_text()
             return
 
         assert_vws_failure(
