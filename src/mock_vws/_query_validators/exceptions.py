@@ -640,8 +640,7 @@ class MatchProcessing(ValidatorException):
 
 class NoContentType(ValidatorException):
     """
-    Exception raised a target is matched which is processing or recently
-    deleted.
+    Exception raised when a content type is either not given or is empty.
     """
 
     def __init__(self) -> None:
