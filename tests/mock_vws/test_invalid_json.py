@@ -66,9 +66,7 @@ class TestInvalidJSON:
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         endpoint.prepared_request.prepare_content_length(body=content)
         session = requests.Session()
-        response = session.send(  # type: ignore
-            request=endpoint.prepared_request,
-        )
+        response = session.send(request=endpoint.prepared_request)
 
         takes_json_data = (
             endpoint.auth_header_content_type == 'application/json'
