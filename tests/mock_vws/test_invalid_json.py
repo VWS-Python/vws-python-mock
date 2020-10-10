@@ -66,9 +66,7 @@ class TestInvalidJSON:
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         endpoint.prepared_request.prepare_content_length(body=content)
         session = requests.Session()
-        response = session.send(  # type: ignore
-            request=endpoint.prepared_request,
-        )
+        response = session.send(request=endpoint.prepared_request)
 
         takes_json_data = (
             endpoint.auth_header_content_type == 'application/json'
@@ -98,14 +96,11 @@ class TestInvalidJSON:
             assert_vwq_failure(
                 response=response,
                 status_code=HTTPStatus.BAD_REQUEST,
-                content_type='text/html;charset=UTF-8',
+                content_type='application/json',
                 cache_control=None,
                 www_authenticate=None,
             )
-            expected_text = (
-                'java.lang.RuntimeException: RESTEASY007500: '
-                'Could find no Content-Disposition header within part'
-            )
+            expected_text = 'No image.'
             assert response.text == expected_text
             return
 

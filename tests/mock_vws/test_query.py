@@ -8,10 +8,12 @@ import base64
 import calendar
 import datetime
 import io
+import textwrap
 import time
 import uuid
 from http import HTTPStatus
-from typing import Any, Dict, Union
+from pathlib import Path
+from typing import Any, Dict, Optional, Union
 from urllib.parse import urljoin
 
 import pytest
@@ -21,7 +23,7 @@ from PIL import Image
 from requests import Response
 from requests_mock import POST
 from urllib3.filepost import encode_multipart_formdata
-from vws import VWS
+from vws import VWS, CloudRecoService
 from vws.reports import TargetStatuses
 from vws_auth_tools import authorization_header, rfc_1123_date
 
@@ -36,6 +38,35 @@ from tests.mock_vws.utils.assertions import (
 )
 
 VWQ_HOST = 'https://cloudreco.vuforia.com'
+
+_JETTY_CONTENT_TYPE_ERROR = textwrap.dedent(
+    """\
+    <html>
+    <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+    <title>Error 400 Bad Request</title>
+    </head>
+    <body><h2>HTTP ERROR 400 Bad Request</h2>
+    <table>
+    <tr><th>URI:</th><td>/v1/query</td></tr>
+    <tr><th>STATUS:</th><td>400</td></tr>
+    <tr><th>MESSAGE:</th><td>Bad Request</td></tr>
+    <tr><th>SERVLET:</th><td>Resteasy</td></tr>
+    </table>
+    <hr><a href="http://eclipse.org/jetty">Powered by Jetty:// 9.4.31.v20200723</a><hr/>
+
+    </body>
+    </html>
+    """,  # noqa: E501
+)
+
+
+_JETTY_ERROR_DELETION_NOT_COMPLETE_START_PATH = (
+    Path(__file__).parent / 'jetty_error_deletion_not_complete.html'
+)
+_JETTY_ERROR_DELETION_NOT_COMPLETE = (
+    _JETTY_ERROR_DELETION_NOT_COMPLETE_START_PATH.read_text()
+)
 
 
 def query(
@@ -95,10 +126,52 @@ class TestContentType:
     """
 
     @pytest.mark.parametrize(
-        'content_type',
         [
-            'text/html',
-            '',
+            'content_type',
+            'resp_status_code',
+            'resp_content_type',
+            'resp_cache_control',
+            'resp_text',
+        ],
+        [
+            (
+                'text/html',
+                HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
+                None,
+                None,
+                '',
+            ),
+            (
+                '',
+                HTTPStatus.BAD_REQUEST,
+                'text/html;charset=iso-8859-1',
+                'must-revalidate,no-cache,no-store',
+                _JETTY_CONTENT_TYPE_ERROR,
+            ),
+            (
+                '*/*',
+                HTTPStatus.BAD_REQUEST,
+                'text/html;charset=utf-8',
+                None,
+                (
+                    'java.io.IOException: RESTEASY007550: Unable to get '
+                    'boundary for multipart'
+                ),
+            ),
+            (
+                'text/*',
+                HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
+                None,
+                None,
+                '',
+            ),
+            (
+                'text/plain',
+                HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
+                None,
+                None,
+                '',
+            ),
         ],
     )
     def test_incorrect_no_boundary(
@@ -106,10 +179,13 @@ class TestContentType:
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         content_type: str,
+        resp_status_code: int,
+        resp_content_type: Optional[str],
+        resp_cache_control: Optional[str],
+        resp_text: str,
     ) -> None:
         """
-        If a Content-Type header which is not ``multipart/form-data``, an
-        ``UNSUPPORTED_MEDIA_TYPE`` response is given.
+        With bad Content-Type headers we get a variety of results.
         """
         image_content = high_quality_image.getvalue()
         date = rfc_1123_date()
@@ -143,12 +219,12 @@ class TestContentType:
             data=content,
         )
 
-        assert response.text == ''
+        assert response.text == resp_text
         assert_vwq_failure(
             response=response,
-            status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
-            content_type=None,
-            cache_control=None,
+            status_code=resp_status_code,
+            content_type=resp_content_type,
+            cache_control=resp_cache_control,
             www_authenticate=None,
         )
 
@@ -266,7 +342,7 @@ class TestContentType:
         assert_vwq_failure(
             response=response,
             status_code=HTTPStatus.BAD_REQUEST,
-            content_type='text/html;charset=UTF-8',
+            content_type='text/html;charset=utf-8',
             cache_control=None,
             www_authenticate=None,
         )
@@ -312,15 +388,12 @@ class TestContentType:
             data=content,
         )
 
-        expected_text = (
-            'java.lang.RuntimeException: RESTEASY007500: '
-            'Could find no Content-Disposition header within part'
-        )
+        expected_text = 'No image.'
         assert response.text == expected_text
         assert_vwq_failure(
             response=response,
             status_code=HTTPStatus.BAD_REQUEST,
-            content_type='text/html;charset=UTF-8',
+            content_type='application/json',
             cache_control=None,
             www_authenticate=None,
         )
@@ -1473,18 +1546,14 @@ class TestProcessing:
     def test_processing(
         self,
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
         active_flag: bool,
         vws_client: VWS,
+        cloud_reco_client: CloudRecoService,
     ) -> None:
         """
         When a target with a matching image is in the processing state it is
         not matched.
-
-        Sometimes an `INTERNAL_SERVER_ERROR` response is returned.
         """
-        image_content = high_quality_image.getvalue()
-
         target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
             width=1,
@@ -1492,10 +1561,7 @@ class TestProcessing:
             active_flag=active_flag,
             application_metadata=None,
         )
-
-        body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
-        response = query(vuforia_database=vuforia_database, body=body)
-
+        matching_targets = cloud_reco_client.query(image=high_quality_image)
         # We assert that after making a query, the target is in the processing
         # state.
         #
@@ -1512,27 +1578,7 @@ class TestProcessing:
         target_details = vws_client.get_target_record(target_id=target_id)
         assert target_details.status == TargetStatuses.PROCESSING
 
-        # Sometimes we get a 500 error, sometimes we do not.
-        if response.status_code == HTTPStatus.OK:  # pragma: no cover
-            assert response.json()['results'] == []
-            assert_query_success(response=response)
-            return
-
-        # We do not mark this with "pragma: no cover" because we choose to
-        # implement the mock to have this behavior.
-        # The response text for a 500 response is not consistent.
-        # Therefore we only test for consistent features.
-        assert 'Error 500 Server Error' in response.text
-        assert 'HTTP ERROR 500' in response.text
-        assert 'Problem accessing /v1/query' in response.text
-
-        assert_vwq_failure(
-            response=response,
-            content_type='text/html; charset=ISO-8859-1',
-            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
-            cache_control='must-revalidate,no-cache,no-store',
-            www_authenticate=None,
-        )
+        assert matching_targets == []
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -1659,15 +1705,12 @@ class TestDeleted:
             try:
                 assert_query_success(response=response)
             except AssertionError:
-                # The response text for a 500 response is not consistent.
-                # Therefore we only test for consistent features.
-                assert 'Error 500 Server Error' in response.text
-                assert 'HTTP ERROR 500' in response.text
-                assert 'Problem accessing /v1/query' in response.text
-
+                assert response.text.startswith(
+                    _JETTY_ERROR_DELETION_NOT_COMPLETE,
+                )
                 assert_vwq_failure(
                     response=response,
-                    content_type='text/html; charset=ISO-8859-1',
+                    content_type='text/html;charset=iso-8859-1',
                     status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
                     cache_control='must-revalidate,no-cache,no-store',
                     www_authenticate=None,
@@ -1720,11 +1763,9 @@ class TestDeleted:
                 assert_query_success(response=response)
             except AssertionError:
                 server_error_seen = True
-                # The response text for a 500 response is not consistent.
-                # Therefore we only test for consistent features.
-                assert 'Error 500 Server Error' in response.text
-                assert 'HTTP ERROR 500' in response.text
-                assert 'Problem accessing /v1/query' in response.text
+                assert response.text.startswith(
+                    _JETTY_ERROR_DELETION_NOT_COMPLETE,
+                )
                 time.sleep(sleep_seconds)
                 total_waited += sleep_seconds
             else:

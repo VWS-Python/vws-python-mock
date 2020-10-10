@@ -18,12 +18,6 @@ from mock_vws._mock_common import json_dump
 from mock_vws.database import VuforiaDatabase
 
 
-class MatchingTargetsWithProcessingStatus(Exception):
-    """
-    There is at least one matching target which has the status 'processing'.
-    """
-
-
 class ActiveMatchingTargetsDeleteProcessing(Exception):
     """
     There is at least one active target which matches and was recently deleted.
@@ -57,8 +51,6 @@ def get_query_match_response_text(
         The response text for a query endpoint request.
 
     Raises:
-        MatchingTargetsWithProcessingStatus: There is at least one matching
-            target which has the status 'processing'.
         ActiveMatchingTargetsDeleteProcessing: There is at least one active
             target which matches and was recently deleted.
     """
@@ -122,12 +114,6 @@ def get_query_match_response_text(
         and (now - target.delete_date) < recognition_timedelta
     ]
 
-    matching_targets_with_processing_status = [
-        target
-        for target in matching_targets
-        if target.status == TargetStatuses.PROCESSING.value
-    ]
-
     active_matching_targets_delete_processing = [
         target
         for target in matching_targets
@@ -137,9 +123,6 @@ def get_query_match_response_text(
         < (recognition_timedelta + processing_timedelta)
         and target not in deletion_not_recognized_matches
     ]
-
-    if matching_targets_with_processing_status:
-        raise MatchingTargetsWithProcessingStatus
 
     if active_matching_targets_delete_processing:
         raise ActiveMatchingTargetsDeleteProcessing

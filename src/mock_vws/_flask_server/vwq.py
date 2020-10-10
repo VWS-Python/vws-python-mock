@@ -14,7 +14,6 @@ from flask import Flask, Response, request
 
 from mock_vws._query_tools import (
     ActiveMatchingTargetsDeleteProcessing,
-    MatchingTargetsWithProcessingStatus,
     get_query_match_response_text,
 )
 from mock_vws._query_validators import run_query_validators
@@ -124,10 +123,7 @@ def query() -> Response:
                 query_recognizes_deletion_seconds
             ),
         )
-    except (
-        ActiveMatchingTargetsDeleteProcessing,
-        MatchingTargetsWithProcessingStatus,
-    ) as exc:
+    except ActiveMatchingTargetsDeleteProcessing as exc:
         raise MatchProcessing from exc
 
     headers = {

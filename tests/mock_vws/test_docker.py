@@ -3,6 +3,7 @@ Tests for running the mock server in Docker.
 """
 
 import io
+import os
 import uuid
 from http import HTTPStatus
 from pathlib import Path
@@ -41,6 +42,10 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
         network.remove()
 
 
+@pytest.mark.skipif(
+    os.environ.get('SKIP_DOCKER_BUILD_TESTS') == '1',
+    reason='Docker test skipped because environment variable was set.',
+)
 def test_build_and_run(
     high_quality_image: io.BytesIO,
     custom_bridge_network: Network,

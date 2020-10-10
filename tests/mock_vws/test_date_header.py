@@ -62,14 +62,12 @@ class TestMissing:
         headers.pop('Date', None)
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
-        response = session.send(  # type: ignore
-            request=endpoint.prepared_request,
-        )
+        response = session.send(request=endpoint.prepared_request)
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
         if netloc == 'cloudreco.vuforia.com':
-            expected_content_type = 'text/plain; charset=ISO-8859-1'
+            expected_content_type = 'text/plain;charset=iso-8859-1'
             assert response.text == 'Date header required.'
             assert_vwq_failure(
                 response=response,
@@ -131,9 +129,7 @@ class TestFormat:
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
-        response = session.send(  # type: ignore
-            request=endpoint.prepared_request,
-        )
+        response = session.send(request=endpoint.prepared_request)
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
@@ -142,7 +138,7 @@ class TestFormat:
             assert_vwq_failure(
                 response=response,
                 status_code=HTTPStatus.UNAUTHORIZED,
-                content_type='text/plain; charset=ISO-8859-1',
+                content_type='text/plain;charset=iso-8859-1',
                 cache_control=None,
                 www_authenticate='VWS',
             )
@@ -214,9 +210,7 @@ class TestSkewedTime:
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
-        response = session.send(  # type: ignore
-            request=endpoint.prepared_request,
-        )
+        response = session.send(request=endpoint.prepared_request)
 
         # Even with the query endpoint, we get a JSON response.
         assert_vws_failure(
@@ -276,9 +270,7 @@ class TestSkewedTime:
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
-        response = session.send(  # type: ignore
-            request=endpoint.prepared_request,
-        )
+        response = session.send(request=endpoint.prepared_request)
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
