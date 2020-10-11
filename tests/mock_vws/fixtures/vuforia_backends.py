@@ -18,7 +18,7 @@ from vws.exceptions.vws_exceptions import TargetStatusNotSuccess
 from mock_vws import MockVWS
 from mock_vws._flask_server.storage import STORAGE_FLASK_APP
 from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
-from mock_vws._flask_server.vws import STORAGE_BASE_URL, VWS_FLASK_APP
+from mock_vws._flask_server.vws import VWS_FLASK_APP
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
 
@@ -107,6 +107,9 @@ def _enable_use_docker_in_memory(
     # This is documented as a difference in the documentation for this package.
     VWS_FLASK_APP.config['TERMINATE_WSGI_INPUT'] = True
     CLOUDRECO_FLASK_APP.config['TERMINATE_WSGI_INPUT'] = True
+    storage_base_url = 'http://example.com'
+    VWS_FLASK_APP.config['STORAGE_BASE_URL'] = storage_base_url
+    CLOUDRECO_FLASK_APP.config['STORAGE_BASE_URL'] = storage_base_url
 
     with requests_mock.Mocker(real_http=False) as mock:
         add_flask_app_to_mock(
@@ -124,21 +127,21 @@ def _enable_use_docker_in_memory(
         add_flask_app_to_mock(
             mock_obj=mock,
             flask_app=STORAGE_FLASK_APP,
-            base_url=STORAGE_BASE_URL,
+            base_url=storage_base_url,
         )
 
-        requests.post(url=STORAGE_BASE_URL + '/reset')
+        requests.post(url=storage_base_url + '/reset')
 
         working_database_dict = working_database.to_dict()
         inactive_database_dict = inactive_database.to_dict()
 
         requests.post(
-            url=STORAGE_BASE_URL + '/databases',
+            url=storage_base_url + '/databases',
             json=working_database_dict,
         )
 
         requests.post(
-            url=STORAGE_BASE_URL + '/databases',
+            url=storage_base_url + '/databases',
             json=inactive_database_dict,
         )
 

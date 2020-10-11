@@ -97,7 +97,8 @@ def test_build_and_run(
     )
 
     database = VuforiaDatabase()
-    storage_container_name = 'vws-mock-storage'
+    storage_container_name = 'vws-mock-storage-' + random
+    storage_base_url = f'http://{storage_container_name}:5000'
 
     storage_container = client.containers.run(
         image=storage_image,
@@ -112,6 +113,7 @@ def test_build_and_run(
         name='vws-mock-vws-' + random,
         publish_all_ports=True,
         network=custom_bridge_network.name,
+        environment={'STORAGE_BASE_URL': storage_base_url},
     )
     vwq_container = client.containers.run(
         image=vwq_image,
@@ -119,6 +121,7 @@ def test_build_and_run(
         name='vws-mock-vwq-' + random,
         publish_all_ports=True,
         network=custom_bridge_network.name,
+        environment={'STORAGE_BASE_URL': storage_base_url},
     )
 
     storage_container.reload()
