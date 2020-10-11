@@ -8,9 +8,10 @@ https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Service
 import base64
 import email.utils
 import json
+import os
 import uuid
 from http import HTTPStatus
-from typing import Final, List, Set
+from typing import List, Set
 
 import requests
 from flask import Flask, Response, request
@@ -30,17 +31,16 @@ from mock_vws.target import Target
 
 VWS_FLASK_APP = Flask(import_name=__name__)
 VWS_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
-# TODO choose something for this - it should actually work in a docker-compose
-# scenario.
-# TODO maybe set with env var
-STORAGE_BASE_URL: Final[str] = 'http://vws-mock-storage:5000'
+VWS_FLASK_APP.config['STORAGE_BASE_URL'] = os.environ.get('STORAGE_BASE_URL')
 
 
 def get_all_databases() -> Set[VuforiaDatabase]:
     """
     Get all database objects from the storage back-end.
     """
-    response = requests.get(url=STORAGE_BASE_URL + '/databases')
+    response = requests.get(
+        url=VWS_FLASK_APP.config['STORAGE_BASE_URL'] + '/databases',
+    )
     return set(
         VuforiaDatabase.from_dict(database_dict=database_dict)
         for database_dict in response.json()
@@ -150,8 +150,9 @@ def add_target() -> Response:
         application_metadata=request_json.get('application_metadata'),
     )
 
+    storage_base_url = VWS_FLASK_APP.config['STORAGE_BASE_URL']
     requests.post(
-        url=f'{STORAGE_BASE_URL}/databases/{database.database_name}/targets',
+        url=f'{storage_base_url}/databases/{database.database_name}/targets',
         json=new_target.to_dict(),
     )
 
@@ -251,8 +252,9 @@ def delete_target(target_id: str) -> Response:
     if target.status == TargetStatuses.PROCESSING.value:
         raise TargetStatusProcessing
 
+    storage_base_url = VWS_FLASK_APP.config['STORAGE_BASE_URL']
     delete_url = (
-        f'{STORAGE_BASE_URL}/databases/{database.database_name}/targets/'
+        f'{storage_base_url}/databases/{database.database_name}/targets/'
         f'{target_id}'
     )
     requests.delete(url=delete_url)
@@ -515,8 +517,9 @@ def update_target(target_id: str) -> Response:
         image = request_json['image']
         update_values['image'] = image
 
+    storage_base_url = VWS_FLASK_APP.config['STORAGE_BASE_URL']
     put_url = (
-        f'{STORAGE_BASE_URL}/databases/{database.database_name}/targets/'
+        f'{storage_base_url}/databases/{database.database_name}/targets/'
         f'{target_id}'
     )
     requests.put(url=put_url, json=update_values)

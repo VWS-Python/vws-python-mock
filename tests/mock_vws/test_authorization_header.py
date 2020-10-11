@@ -163,8 +163,12 @@ class TestMalformed:
                 www_authenticate=None,
             )
             content_filename = 'jetty_error_array_out_of_bounds.html'
+            content_filename_2 = 'jetty_error_array_out_of_bounds_2.html'
             content_path = Path(__file__).parent / content_filename
-            assert response.text == content_path.read_text()
+            content_path_2 = Path(__file__).parent / content_filename_2
+            content_text = content_path.read_text()
+            content_2_text = content_path_2.read_text()
+            assert response.text in (content_text, content_2_text)
             return
 
         assert_vws_failure(
