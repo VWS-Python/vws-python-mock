@@ -138,7 +138,7 @@ class MockVuforiaWebQueryAPI:
             match_processing_exception = MatchProcessing()
             context.headers = match_processing_exception.headers
             context.status_code = match_processing_exception.status_code
-            return exc.response_text
+            return match_processing_exception.response_text
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {
