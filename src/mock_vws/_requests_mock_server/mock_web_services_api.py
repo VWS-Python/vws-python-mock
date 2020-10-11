@@ -12,9 +12,8 @@ import email.utils
 import random
 import uuid
 from http import HTTPStatus
-from typing import Any, Callable, Dict, List, Set, Tuple, Union
+from typing import Callable, Dict, List, Set, Union
 
-import wrapt
 from backports.zoneinfo import ZoneInfo
 from requests_mock import DELETE, GET, POST, PUT
 from requests_mock.request import _RequestObjectProxy
@@ -34,41 +33,6 @@ from mock_vws.database import VuforiaDatabase
 from mock_vws.target import Target
 
 _TARGET_ID_PATTERN = '[A-Za-z0-9]+'
-
-
-@wrapt.decorator
-def run_validators(
-    wrapped: Callable[..., str],
-    instance: Any,
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
-    """
-    Send a relevant response if any validator raises an exception.
-
-    Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
-
-    Returns:
-        The result of calling the endpoint.
-    """
-    request, context = args
-    try:
-        run_services_validators(
-            request_headers=request.headers,
-            request_body=request.body,
-            request_method=request.method,
-            request_path=request.path,
-            databases=instance.databases,
-        )
-        return wrapped(*args, **kwargs)
-    except ValidatorException as exc:
-        context.headers = exc.headers
-        context.status_code = exc.status_code
-        return exc.response_text
 
 
 ROUTES = set([])
@@ -105,16 +69,6 @@ def route(
                 http_methods=frozenset(http_methods),
             ),
         )
-
-        decorators = [
-            run_validators,
-        ]
-
-        for decorator in decorators:
-            # See https://github.com/PyCQA/pylint/issues/259
-            method = decorator(  # pylint: disable=no-value-for-parameter
-                method,
-            )
 
         return method
 
@@ -161,6 +115,19 @@ class MockVuforiaWebServicesAPI:
         Fake implementation of
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Add-a-Target
         """
+        try:
+            run_services_validators(
+                request_headers=request.headers,
+                request_body=request.body,
+                request_method=request.method,
+                request_path=request.path,
+                databases=self.databases,
+            )
+        except ValidatorException as exc:
+            context.headers = exc.headers
+            context.status_code = exc.status_code
+            return exc.response_text
+
         database = get_database_matching_server_keys(
             request_headers=request.headers,
             request_body=request.body,
@@ -222,6 +189,19 @@ class MockVuforiaWebServicesAPI:
         Fake implementation of
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Delete-a-Target
         """
+        try:
+            run_services_validators(
+                request_headers=request.headers,
+                request_body=request.body,
+                request_method=request.method,
+                request_path=request.path,
+                databases=self.databases,
+            )
+        except ValidatorException as exc:
+            context.headers = exc.headers
+            context.status_code = exc.status_code
+            return exc.response_text
+
         body: Dict[str, str] = {}
         database = get_database_matching_server_keys(
             request_headers=request.headers,
@@ -236,7 +216,10 @@ class MockVuforiaWebServicesAPI:
         target = database.get_target(target_id=target_id)
 
         if target.status == TargetStatuses.PROCESSING.value:
-            raise TargetStatusProcessing
+            target_processing_exception = TargetStatusProcessing()
+            context.headers = target_processing_exception.headers
+            context.status_code = target_processing_exception.status_code
+            return target_processing_exception.response_text
 
         now = datetime.datetime.now(tz=target.upload_date.tzinfo)
         new_target = dataclasses.replace(target, delete_date=now)
@@ -270,6 +253,19 @@ class MockVuforiaWebServicesAPI:
         Fake implementation of
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Get-a-Database-Summary-Report
         """
+        try:
+            run_services_validators(
+                request_headers=request.headers,
+                request_body=request.body,
+                request_method=request.method,
+                request_path=request.path,
+                databases=self.databases,
+            )
+        except ValidatorException as exc:
+            context.headers = exc.headers
+            context.status_code = exc.status_code
+            return exc.response_text
+
         body: Dict[str, Union[str, int]] = {}
 
         database = get_database_matching_server_keys(
@@ -320,6 +316,19 @@ class MockVuforiaWebServicesAPI:
         Fake implementation of
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Get-a-Target-List-for-a-Cloud-Database
         """
+        try:
+            run_services_validators(
+                request_headers=request.headers,
+                request_body=request.body,
+                request_method=request.method,
+                request_path=request.path,
+                databases=self.databases,
+            )
+        except ValidatorException as exc:
+            context.headers = exc.headers
+            context.status_code = exc.status_code
+            return exc.response_text
+
         database = get_database_matching_server_keys(
             request_headers=request.headers,
             request_body=request.body,
@@ -359,6 +368,19 @@ class MockVuforiaWebServicesAPI:
         Fake implementation of
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Retrieve-a-Target-Record
         """
+        try:
+            run_services_validators(
+                request_headers=request.headers,
+                request_body=request.body,
+                request_method=request.method,
+                request_path=request.path,
+                databases=self.databases,
+            )
+        except ValidatorException as exc:
+            context.headers = exc.headers
+            context.status_code = exc.status_code
+            return exc.response_text
+
         database = get_database_matching_server_keys(
             request_headers=request.headers,
             request_body=request.body,
@@ -411,6 +433,19 @@ class MockVuforiaWebServicesAPI:
         Fake implementation of
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Check-for-Duplicate-Targets
         """
+        try:
+            run_services_validators(
+                request_headers=request.headers,
+                request_body=request.body,
+                request_method=request.method,
+                request_path=request.path,
+                databases=self.databases,
+            )
+        except ValidatorException as exc:
+            context.headers = exc.headers
+            context.status_code = exc.status_code
+            return exc.response_text
+
         database = get_database_matching_server_keys(
             request_headers=request.headers,
             request_body=request.body,
@@ -466,6 +501,19 @@ class MockVuforiaWebServicesAPI:
         Fake implementation of
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Update-a-Target
         """
+        try:
+            run_services_validators(
+                request_headers=request.headers,
+                request_body=request.body,
+                request_method=request.method,
+                request_path=request.path,
+                databases=self.databases,
+            )
+        except ValidatorException as exc:
+            context.headers = exc.headers
+            context.status_code = exc.status_code
+            return exc.response_text
+
         database = get_database_matching_server_keys(
             request_headers=request.headers,
             request_body=request.body,
@@ -483,7 +531,10 @@ class MockVuforiaWebServicesAPI:
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
 
         if target.status != TargetStatuses.SUCCESS.value:
-            raise TargetStatusNotSuccess
+            exception = TargetStatusNotSuccess()
+            context.headers = exception.headers
+            context.status_code = exception.status_code
+            return exception.response_text
 
         width = request.json().get('width', target.width)
         name = request.json().get('name', target.name)
@@ -498,13 +549,19 @@ class MockVuforiaWebServicesAPI:
             image_value = base64.b64decode(request.json()['image'])
 
         if 'active_flag' in request.json() and active_flag is None:
-            raise Fail(status_code=HTTPStatus.BAD_REQUEST)
+            fail_exception = Fail(status_code=HTTPStatus.BAD_REQUEST)
+            context.headers = fail_exception.headers
+            context.status_code = fail_exception.status_code
+            return fail_exception.response_text
 
         if (
             'application_metadata' in request.json()
             and application_metadata is None
         ):
-            raise Fail(status_code=HTTPStatus.BAD_REQUEST)
+            fail_exception = Fail(status_code=HTTPStatus.BAD_REQUEST)
+            context.headers = fail_exception.headers
+            context.status_code = fail_exception.status_code
+            return fail_exception.response_text
 
         # In the real implementation, the tracking rating can stay the same.
         # However, for demonstration purposes, the tracking rating changes but
@@ -555,6 +612,19 @@ class MockVuforiaWebServicesAPI:
         Fake implementation of
         https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Retrieve-a-Target-Summary-Report
         """
+        try:
+            run_services_validators(
+                request_headers=request.headers,
+                request_body=request.body,
+                request_method=request.method,
+                request_path=request.path,
+                databases=self.databases,
+            )
+        except ValidatorException as exc:
+            context.headers = exc.headers
+            context.status_code = exc.status_code
+            return exc.response_text
+
         database = get_database_matching_server_keys(
             request_headers=request.headers,
             request_body=request.body,
