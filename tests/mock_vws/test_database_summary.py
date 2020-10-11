@@ -4,12 +4,11 @@ Tests for the mock of the database summary endpoint.
 
 import io
 import logging
+import time
 import uuid
 from http import HTTPStatus
-from time import sleep
 
 import pytest
-from func_timeout import func_set_timeout
 from vws import VWS, CloudRecoService
 from vws.exceptions.vws_exceptions import Fail
 
@@ -20,7 +19,6 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-@func_set_timeout(timeout=500)
 def _wait_for_image_numbers(
     vws_client: VWS,
     active_images: int,
@@ -47,8 +45,8 @@ def _wait_for_image_numbers(
         processing_images: The expected number of processing images.
 
     Raises:
-        func_timeout.exceptions.FunctionTimedOut: The numbers of images in
-            various categories do not match within the time limit.
+        Exception: The numbers of images in various categories do not match
+            within the time limit.
     """
     requirements = {
         'active_images': active_images,
@@ -56,6 +54,9 @@ def _wait_for_image_numbers(
         'failed_images': failed_images,
         'processing_images': processing_images,
     }
+
+    maximum_wait_seconds = 500
+    start_time = time.monotonic()
 
     # If we wait for all requirements to match at the same time,
     # we will often not reach that.
@@ -68,6 +69,10 @@ def _wait_for_image_numbers(
 
     for key, value in requirements.items():
         while True:
+            seconds_waited = time.monotonic() - start_time
+            if seconds_waited > maximum_wait_seconds:  # pragma: no cover
+                raise Exception('Timed out waiting.')
+
             report = vws_client.get_database_summary_report()
             relevant_images_in_summary = getattr(report, key)
             if value != relevant_images_in_summary:  # pragma: no cover
@@ -77,7 +82,7 @@ def _wait_for_image_numbers(
                 )
                 LOGGER.debug(message)
 
-                sleep(sleep_seconds)
+                time.sleep(sleep_seconds)
 
             # This makes the entire test invalid.
             # However, we have found that without this Vuforia is flaky.

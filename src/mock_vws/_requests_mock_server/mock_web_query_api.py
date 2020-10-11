@@ -134,7 +134,7 @@ class MockVuforiaWebQueryAPI:
                     self._query_recognizes_deletion_seconds
                 ),
             )
-        except ActiveMatchingTargetsDeleteProcessing as exc:
+        except ActiveMatchingTargetsDeleteProcessing:
             match_processing_exception = MatchProcessing()
             context.headers = match_processing_exception.headers
             context.status_code = match_processing_exception.status_code
