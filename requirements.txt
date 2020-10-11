@@ -5,4 +5,3 @@ backports.zoneinfo[tzdata]
 flask
 requests-mock
 requests
-wrapt
