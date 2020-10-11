@@ -6,6 +6,7 @@ https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognitio
 """
 
 import email.utils
+import os
 from http import HTTPStatus
 from typing import Final, Set
 
@@ -25,14 +26,15 @@ from mock_vws.database import VuforiaDatabase
 
 CLOUDRECO_FLASK_APP = Flask(import_name=__name__)
 CLOUDRECO_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
-STORAGE_BASE_URL: Final[str] = 'http://vws-mock-storage:5000'
+CLOUDRECO_FLASK_APP.config['STORAGE_BASE_URL'] = os.environ.get('STORAGE_BASE_URL')
 
 
 def get_all_databases() -> Set[VuforiaDatabase]:
     """
     Get all database objects from the storage back-end.
     """
-    response = requests.get(url=STORAGE_BASE_URL + '/databases')
+    storage_base_url = CLOUDRECO_FLASK_APP.config['STORAGE_BASE_URL']
+    response = requests.get(url=storage_base_url + '/databases')
     return set(
         VuforiaDatabase.from_dict(database_dict=database_dict)
         for database_dict in response.json()
