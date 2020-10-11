@@ -49,6 +49,7 @@ class UnknownTarget(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -79,6 +80,7 @@ class ProjectInactive(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -109,6 +111,7 @@ class AuthenticationFailure(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -138,6 +141,7 @@ class Fail(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -168,6 +172,7 @@ class MetadataTooLarge(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -198,6 +203,7 @@ class TargetNameExist(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -230,6 +236,7 @@ class OopsErrorOccurredResponse(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -260,6 +267,7 @@ class BadImage(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -290,6 +298,7 @@ class ImageTooLarge(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -320,6 +329,7 @@ class RequestTimeTooSkewed(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -339,7 +349,10 @@ class ContentLengthHeaderTooLarge(ValidatorException):
         super().__init__()
         self.status_code = HTTPStatus.GATEWAY_TIMEOUT
         self.response_text = ''
-        self.headers = {'Connection': 'keep-alive'}
+        self.headers = {
+            'Connection': 'keep-alive',
+            'Content-Length': str(len(self.response_text)),
+        }
 
 
 class ContentLengthHeaderNotInt(ValidatorException):
@@ -358,7 +371,10 @@ class ContentLengthHeaderNotInt(ValidatorException):
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
         self.response_text = ''
-        self.headers = {'Connection': 'Close'}
+        self.headers = {
+            'Connection': 'Close',
+            'Content-Length': str(len(self.response_text)),
+        }
 
 
 class UnnecessaryRequestBody(ValidatorException):
@@ -382,6 +398,7 @@ class UnnecessaryRequestBody(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -412,6 +429,7 @@ class TargetStatusNotSuccess(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -441,4 +459,5 @@ class TargetStatusProcessing(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }

@@ -22,7 +22,7 @@ from requests_mock.response import _Context
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
-from mock_vws._mock_common import Route, json_dump, set_content_length_header
+from mock_vws._mock_common import Route, json_dump
 from mock_vws._services_validators import run_services_validators
 from mock_vws._services_validators.exceptions import (
     Fail,
@@ -108,7 +108,6 @@ def route(
 
         decorators = [
             run_validators,
-            set_content_length_header,
         ]
 
         for decorator in decorators:
@@ -192,19 +191,21 @@ class MockVuforiaWebServicesAPI:
         database.targets.add(new_target)
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
-        context.headers = {
-            'Connection': 'keep-alive',
-            'Content-Type': 'application/json',
-            'Server': 'nginx',
-            'Date': date,
-        }
         context.status_code = HTTPStatus.CREATED
         body = {
             'transaction_id': uuid.uuid4().hex,
             'result_code': ResultCodes.TARGET_CREATED.value,
             'target_id': new_target.target_id,
         }
-        return json_dump(body)
+        body_json = json_dump(body)
+        context.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'application/json',
+            'Server': 'nginx',
+            'Date': date,
+            'Content-Length': str(len(body_json)),
+        }
+        return body_json
 
     @route(
         path_pattern=f'/targets/{_TARGET_ID_PATTERN}',
@@ -242,18 +243,20 @@ class MockVuforiaWebServicesAPI:
         database.targets.remove(target)
         database.targets.add(new_target)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
-        context.headers = {
-            'Connection': 'keep-alive',
-            'Content-Type': 'application/json',
-            'Server': 'nginx',
-            'Date': date,
-        }
 
         body = {
             'transaction_id': uuid.uuid4().hex,
             'result_code': ResultCodes.SUCCESS.value,
         }
-        return json_dump(body)
+        body_json = json_dump(body)
+        context.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'application/json',
+            'Server': 'nginx',
+            'Date': date,
+            'Content-Length': str(len(body_json)),
+        }
+        return body_json
 
     @route(path_pattern='/summary', http_methods={GET})
     def database_summary(
@@ -279,12 +282,6 @@ class MockVuforiaWebServicesAPI:
 
         assert isinstance(database, VuforiaDatabase)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
-        context.headers = {
-            'Connection': 'keep-alive',
-            'Content-Type': 'application/json',
-            'Server': 'nginx',
-            'Date': date,
-        }
         body = {
             'result_code': ResultCodes.SUCCESS.value,
             'transaction_id': uuid.uuid4().hex,
@@ -301,7 +298,15 @@ class MockVuforiaWebServicesAPI:
             'request_quota': database.request_quota,
             'request_usage': 0,
         }
-        return json_dump(body)
+        body_json = json_dump(body)
+        context.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'application/json',
+            'Server': 'nginx',
+            'Date': date,
+            'Content-Length': str(len(body_json)),
+        }
+        return body_json
 
     @route(path_pattern='/targets', http_methods={GET})
     def target_list(
@@ -325,12 +330,6 @@ class MockVuforiaWebServicesAPI:
 
         assert isinstance(database, VuforiaDatabase)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
-        context.headers = {
-            'Connection': 'keep-alive',
-            'Content-Type': 'application/json',
-            'Server': 'nginx',
-            'Date': date,
-        }
 
         results = [target.target_id for target in database.not_deleted_targets]
         body: Dict[str, Union[str, List[str]]] = {
@@ -338,7 +337,15 @@ class MockVuforiaWebServicesAPI:
             'result_code': ResultCodes.SUCCESS.value,
             'results': results,
         }
-        return json_dump(body)
+        body_json = json_dump(body)
+        context.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'application/json',
+            'Server': 'nginx',
+            'Date': date,
+            'Content-Length': str(len(body_json)),
+        }
+        return body_json
 
     @route(path_pattern=f'/targets/{_TARGET_ID_PATTERN}', http_methods={GET})
     def get_target(
@@ -372,12 +379,6 @@ class MockVuforiaWebServicesAPI:
             'reco_rating': target.reco_rating,
         }
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
-        context.headers = {
-            'Connection': 'keep-alive',
-            'Content-Type': 'application/json',
-            'Server': 'nginx',
-            'Date': date,
-        }
 
         body = {
             'result_code': ResultCodes.SUCCESS.value,
@@ -385,7 +386,15 @@ class MockVuforiaWebServicesAPI:
             'target_record': target_record,
             'status': target.status,
         }
-        return json_dump(body)
+        body_json = json_dump(body)
+        context.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'application/json',
+            'Server': 'nginx',
+            'Date': date,
+            'Content-Length': str(len(body_json)),
+        }
+        return body_json
 
     @route(
         path_pattern=f'/duplicates/{_TARGET_ID_PATTERN}',
@@ -426,19 +435,21 @@ class MockVuforiaWebServicesAPI:
         ]
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
-        context.headers = {
-            'Connection': 'keep-alive',
-            'Content-Type': 'application/json',
-            'Server': 'nginx',
-            'Date': date,
-        }
         body = {
             'transaction_id': uuid.uuid4().hex,
             'result_code': ResultCodes.SUCCESS.value,
             'similar_targets': similar_targets,
         }
+        body_json = json_dump(body)
+        context.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'application/json',
+            'Server': 'nginx',
+            'Date': date,
+            'Content-Length': str(len(body_json)),
+        }
 
-        return json_dump(body)
+        return body_json
 
     @route(
         path_pattern=f'/targets/{_TARGET_ID_PATTERN}',
@@ -470,12 +481,6 @@ class MockVuforiaWebServicesAPI:
         body: Dict[str, str] = {}
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
-        context.headers = {
-            'Connection': 'keep-alive',
-            'Content-Type': 'application/json',
-            'Server': 'nginx',
-            'Date': date,
-        }
 
         if target.status != TargetStatuses.SUCCESS.value:
             raise TargetStatusNotSuccess
@@ -528,7 +533,15 @@ class MockVuforiaWebServicesAPI:
             'result_code': ResultCodes.SUCCESS.value,
             'transaction_id': uuid.uuid4().hex,
         }
-        return json_dump(body)
+        body_json = json_dump(body)
+        context.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'application/json',
+            'Server': 'nginx',
+            'Date': date,
+            'Content-Length': str(len(body_json)),
+        }
+        return body_json
 
     @route(path_pattern=f'/summary/{_TARGET_ID_PATTERN}', http_methods={GET})
     def target_summary(
@@ -555,13 +568,6 @@ class MockVuforiaWebServicesAPI:
 
         assert isinstance(database, VuforiaDatabase)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
-        context.headers = {
-            'Connection': 'keep-alive',
-            'Content-Type': 'application/json',
-            'Server': 'nginx',
-            'Date': date,
-        }
-
         body = {
             'status': target.status,
             'transaction_id': uuid.uuid4().hex,
@@ -575,4 +581,13 @@ class MockVuforiaWebServicesAPI:
             'current_month_recos': target.current_month_recos,
             'previous_month_recos': target.previous_month_recos,
         }
-        return json_dump(body)
+        body_json = json_dump(body)
+        context.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'application/json',
+            'Content-Length': str(len(body_json)),
+            'Server': 'nginx',
+            'Date': date,
+        }
+
+        return body_json

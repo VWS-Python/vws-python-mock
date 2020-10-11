@@ -46,6 +46,7 @@ class DateHeaderNotGiven(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -72,6 +73,7 @@ class DateFormatNotValid(ValidatorException):
             'Server': 'nginx',
             'Date': date,
             'WWW-Authenticate': 'VWS',
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -102,6 +104,7 @@ class RequestTimeTooSkewed(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -139,6 +142,7 @@ class BadImage(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -176,6 +180,7 @@ class AuthenticationFailure(ValidatorException):
             'Server': 'nginx',
             'Date': date,
             'WWW-Authenticate': 'VWS',
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -208,6 +213,7 @@ class AuthenticationFailureGoodFormatting(ValidatorException):
             'Server': 'nginx',
             'Date': date,
             'WWW-Authenticate': 'VWS',
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -234,6 +240,7 @@ class ImageNotGiven(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -261,6 +268,7 @@ class AuthHeaderMissing(ValidatorException):
             'Server': 'nginx',
             'Date': date,
             'WWW-Authenticate': 'VWS',
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -288,6 +296,7 @@ class MalformedAuthHeader(ValidatorException):
             'Server': 'nginx',
             'Date': date,
             'WWW-Authenticate': 'VWS',
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -314,6 +323,7 @@ class UnknownParameters(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -350,6 +360,7 @@ class InactiveProject(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -381,6 +392,7 @@ class InvalidMaxNumResults(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -412,6 +424,7 @@ class MaxNumResultsOutOfRange(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -445,6 +458,7 @@ class InvalidIncludeTargetData(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -470,6 +484,7 @@ class UnsupportedMediaType(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -495,6 +510,7 @@ class InvalidAcceptHeader(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -524,6 +540,7 @@ class NoBoundaryFound(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -556,6 +573,7 @@ class QueryOutOfBounds(ValidatorException):
             'Server': 'nginx',
             'Date': date,
             'Cache-Control': 'must-revalidate,no-cache,no-store',
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -577,6 +595,7 @@ class ContentLengthHeaderTooLarge(ValidatorException):
         self.response_text = ''
         self.headers = {
             'Connection': 'keep-alive',
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -598,6 +617,7 @@ class ContentLengthHeaderNotInt(ValidatorException):
         self.response_text = ''
         self.headers = {
             'Connection': 'Close',
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -618,13 +638,6 @@ class MatchProcessing(ValidatorException):
         super().__init__()
         self.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
-        self.headers = {
-            'Connection': 'keep-alive',
-            'Content-Type': 'text/html;charset=iso-8859-1',
-            'Server': 'nginx',
-            'Cache-Control': 'must-revalidate,no-cache,no-store',
-            'Date': date,
-        }
         # We return an example 500 response.
         # Each response given by Vuforia is different.
         #
@@ -636,6 +649,14 @@ class MatchProcessing(ValidatorException):
         filename = 'match_processing_response.html'
         match_processing_resp_file = resources_dir / filename
         self.response_text = Path(match_processing_resp_file).read_text()
+        self.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'text/html;charset=iso-8859-1',
+            'Server': 'nginx',
+            'Cache-Control': 'must-revalidate,no-cache,no-store',
+            'Date': date,
+            'Content-Length': str(len(self.response_text)),
+        }
 
 
 class NoContentType(ValidatorException):
@@ -654,13 +675,6 @@ class NoContentType(ValidatorException):
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
-        self.headers = {
-            'Connection': 'keep-alive',
-            'Content-Type': 'text/html;charset=iso-8859-1',
-            'Server': 'nginx',
-            'Cache-Control': 'must-revalidate,no-cache,no-store',
-            'Date': date,
-        }
         jetty_content_type_error = textwrap.dedent(
             """\
             <html>
@@ -682,3 +696,11 @@ class NoContentType(ValidatorException):
             """,  # noqa: E501
         )
         self.response_text = jetty_content_type_error
+        self.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'text/html;charset=iso-8859-1',
+            'Server': 'nginx',
+            'Cache-Control': 'must-revalidate,no-cache,no-store',
+            'Date': date,
+            'Content-Length': str(len(self.response_text)),
+        }

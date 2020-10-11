@@ -13,7 +13,7 @@ from requests_mock import POST
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
-from mock_vws._mock_common import Route, set_content_length_header
+from mock_vws._mock_common import Route
 from mock_vws._query_tools import (
     ActiveMatchingTargetsDeleteProcessing,
     get_query_match_response_text,
@@ -97,7 +97,6 @@ def route(
 
         decorators = [
             run_validators,
-            set_content_length_header,
         ]
 
         for decorator in decorators:
@@ -177,5 +176,6 @@ class MockVuforiaWebQueryAPI:
             'Content-Type': 'application/json',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(response_text)),
         }
         return response_text
