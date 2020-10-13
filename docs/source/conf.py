@@ -35,6 +35,7 @@ def _custom_warning_handler(msg: str, *args: Iterable, **kwargs: Dict) -> None:
             level = logging.INFO
             sphinx_autodoc_typehints.logger.log(level, msg, *args, **kwargs)
 
+
 sphinx_autodoc_typehints.logger.warning = _custom_warning_handler
 
 extensions = [
