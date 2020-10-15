@@ -7,7 +7,6 @@ Running the mock
 # TODO Get a mock running with instructions here.
 # TODO: Section for building containers
 # TODO: Env vars for the configuration of the VWS / VWQ
-# TODO: Autodoc the create database endpoint - see how TODO does it
 
 From pre-built containers
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -22,6 +21,17 @@ From pre-built containers
        adamtheturtle/mock-vwq \
        -e STORAGE_BACKEND=... \
        -e QUERY_PROCESSES_DELETION_SECONDS=...
+
+Configuration options
+---------------------
+
+Query container:
+
+TODO
+
+VWS container:
+
+TODO
 
 Creating a database
 -------------------
