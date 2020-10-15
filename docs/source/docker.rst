@@ -7,6 +7,7 @@ Running the mock
 # TODO Get a mock running with instructions here.
 # TODO: Section for building containers
 # TODO: Env vars for the configuration
+# TODO: Autodoc the create database endpoint
 
 From pre-built containers
 ^^^^^^^^^^^^^^^^^^^^^^^^^
