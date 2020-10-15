@@ -6,14 +6,13 @@ https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognitio
 """
 
 import email.utils
-from typing import Any, Callable, Dict, Set, Tuple, Union
+from typing import Callable, Set, Union
 
-import wrapt
 from requests_mock import POST
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
-from mock_vws._mock_common import Route, set_content_length_header
+from mock_vws._mock_common import Route
 from mock_vws._query_tools import (
     ActiveMatchingTargetsDeleteProcessing,
     get_query_match_response_text,
@@ -26,41 +25,6 @@ from mock_vws._query_validators.exceptions import (
 from mock_vws.database import VuforiaDatabase
 
 ROUTES = set([])
-
-
-@wrapt.decorator
-def run_validators(
-    wrapped: Callable[..., str],
-    instance: Any,
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
-    """
-    Run all validators for the query endpoint.
-
-    Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
-
-    Returns:
-        The result of calling the endpoint.
-    """
-    request, context = args
-    try:
-        run_query_validators(
-            request_path=request.path,
-            request_headers=request.headers,
-            request_body=request.body,
-            request_method=request.method,
-            databases=instance.databases,
-        )
-        return wrapped(*args, **kwargs)
-    except ValidatorException as exc:
-        context.headers = exc.headers
-        context.status_code = exc.status_code
-        return exc.response_text
 
 
 def route(
@@ -94,17 +58,6 @@ def route(
                 http_methods=frozenset(http_methods),
             ),
         )
-
-        decorators = [
-            run_validators,
-            set_content_length_header,
-        ]
-
-        for decorator in decorators:
-            # See https://github.com/PyCQA/pylint/issues/259
-            method = decorator(  # pylint: disable=no-value-for-parameter
-                method,
-            )
 
         return method
 
@@ -155,6 +108,19 @@ class MockVuforiaWebQueryAPI:
         Perform an image recognition query.
         """
         try:
+            run_query_validators(
+                request_path=request.path,
+                request_headers=request.headers,
+                request_body=request.body,
+                request_method=request.method,
+                databases=self.databases,
+            )
+        except ValidatorException as exc:
+            context.headers = exc.headers
+            context.status_code = exc.status_code
+            return exc.response_text
+
+        try:
             response_text = get_query_match_response_text(
                 request_headers=request.headers,
                 request_body=request.body,
@@ -168,8 +134,11 @@ class MockVuforiaWebQueryAPI:
                     self._query_recognizes_deletion_seconds
                 ),
             )
-        except ActiveMatchingTargetsDeleteProcessing as exc:
-            raise MatchProcessing from exc
+        except ActiveMatchingTargetsDeleteProcessing:
+            match_processing_exception = MatchProcessing()
+            context.headers = match_processing_exception.headers
+            context.status_code = match_processing_exception.status_code
+            return match_processing_exception.response_text
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {
@@ -177,5 +146,6 @@ class MockVuforiaWebQueryAPI:
             'Content-Type': 'application/json',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(response_text)),
         }
         return response_text

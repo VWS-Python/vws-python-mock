@@ -18,16 +18,6 @@ project = 'VWS-Python-Mock'
 author = 'Adam Dangoor'
 
 
-# sphinx_autodoc_typehints has a problem with dataclasses.
-# See https://github.com/agronholm/sphinx-autodoc-typehints/issues/123.
-#
-# The logger emits a warning, which is shown in Sphinx as an error as we use
-# -W to show warnings as errors.
-#
-# We want to ignore that error while the bug is open, and therefore we turn
-# that one warning into an info message.
-#
-# also...
 # ReadTheDocs runs Python 3.8.0, which suffers from
 # https://bugs.python.org/issue34776.
 # This means we hit
@@ -36,10 +26,6 @@ author = 'Adam Dangoor'
 # Skipping this means that we ignore legitimate warnings, and the issue means
 # that for dataclasses we miss out on some sections of our docs.
 def _custom_warning_handler(msg: str, *args: Iterable, **kwargs: Dict) -> None:
-    level = logging.WARNING
-    if 'Cannot treat a function defined as a local function' in msg:
-        level = logging.INFO
-
     if (
         sys.version_info.major,
         sys.version_info.minor,
@@ -47,8 +33,7 @@ def _custom_warning_handler(msg: str, *args: Iterable, **kwargs: Dict) -> None:
     ) == (3, 8, 0):
         if 'Cannot resolve forward reference in type annotations' in msg:
             level = logging.INFO
-
-    sphinx_autodoc_typehints.logger.log(level, msg, *args, **kwargs)
+            sphinx_autodoc_typehints.logger.log(level, msg, *args, **kwargs)
 
 
 sphinx_autodoc_typehints.logger.warning = _custom_warning_handler
