@@ -5,6 +5,8 @@ Running the mock
 ----------------
 
 # TODO Get a mock running with instructions here.
+# TODO: Section for building containers
+# TODO: Env vars for the configuration
 
 From pre-built containers
 ^^^^^^^^^^^^^^^^^^^^^^^^^
