@@ -30,11 +30,7 @@ The VWS and VWQ containers mock the Vuforia services as closely as possible.
 
 The storage container does not mock any Vuforia service but it provides some functionality which mimics the database creation featurew of the Vuforia target manager.
 
-To add a database use, use the following endpoint against the storage container:
+To add a database, make a request to the following endpoint against the storage container:
 
 .. autoflask:: mock_vws._flask_server.storage:STORAGE_FLASK_APP
    :endpoints: create_database
-
-Make a POST request to the storage backend ``/databases`` with the keys:
-
-* ``state`` (this can be ``"WORKING"`` or ``"PROJECT_INACTIVE"``)
