@@ -47,6 +47,7 @@ extensions = [
     'sphinx-prompt',
     'sphinx_substitution_extensions',
     'sphinxcontrib.spelling',
+    'sphinxcontrib.autohttp.flask',
 ]
 
 templates_path = ['_templates']

@@ -6,8 +6,8 @@ Running the mock
 
 # TODO Get a mock running with instructions here.
 # TODO: Section for building containers
-# TODO: Env vars for the configuration
-# TODO: Autodoc the create database endpoint
+# TODO: Env vars for the configuration of the VWS / VWQ
+# TODO: Autodoc the create database endpoint - see how TODO does it
 
 From pre-built containers
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -26,11 +26,15 @@ From pre-built containers
 Creating a database
 -------------------
 
+The VWS and VWQ containers mock the Vuforia services as closely as possible.
+
+The storage container does not mock any Vuforia service but it provides some functionality which mimics the database creation featurew of the Vuforia target manager.
+
+To add a database use, use the following endpoint against the storage container:
+
+.. autoflask:: mock_vws._flask_server.storage:STORAGE_FLASK_APP
+   :endpoints: create_database
+
 Make a POST request to the storage backend ``/databases`` with the keys:
 
-* ``database_name``
-* ``server_access_key``
-* ``server_secret_key``
-* ``client_access_key``
-* ``client_secret_key``
 * ``state`` (this can be ``"WORKING"`` or ``"PROJECT_INACTIVE"``)

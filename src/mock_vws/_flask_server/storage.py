@@ -43,6 +43,18 @@ def get_databases() -> Tuple[str, int]:
 def create_database() -> Tuple[str, int]:
     """
     Create a new database.
+
+    TODO: Can the json fields be typed as str?
+
+    :reqheader Content-Type: application/json
+    :resheader Content-Type: application/json
+    :json server_access_key: TODO
+    :json server_secret_key: TODO
+    :json client_access_key: TODO
+    :json client_secret_key: TODO
+    :json database_name: TODO
+    :json state_name: TODO can be WORKING or PROJECT_INACTIVE
+    :status 201: TODO
     """
     server_access_key = request.json['server_access_key']
     server_secret_key = request.json['server_secret_key']
