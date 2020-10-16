@@ -5,8 +5,11 @@ Running the mock
 ----------------
 
 # TODO Get a mock running with instructions here.
+# TODO: Custom network
 # TODO: Section for building containers
 # TODO: Env vars for the configuration of the VWS / VWQ
+# - Describe which are required and which are optional
+# TODO respjson for the JSON response of the create database thing
 
 From pre-built containers
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -14,24 +17,35 @@ From pre-built containers
 .. code:: sh
 
    docker run --publish-all vws-mock-storage
-   docker run vws-mock \
-       -e STORAGE_BACKEND=... \
-       -e QUERY_PROCESSES_DELETION_SECONDS=...
-   docker run \
-       adamtheturtle/mock-vwq \
-       -e STORAGE_BACKEND=... \
-       -e QUERY_PROCESSES_DELETION_SECONDS=...
+   docker run vws-mock -e STORAGE_BACKEND=...
+   docker run adamtheturtle/mock-vwq -e STORAGE_BACKEND=...
 
 Configuration options
 ---------------------
 
+.. envvar:: STORAGE_BACKEND
+
+   This environment variable is needed by ...
+
 Query container:
 
-TODO
+
+.. envvar:: DELETION_PROCESSING_SECONDS
+
+   Address
+
+.. envvar:: DELETION_RECOGNITION_SECONDS
+
+   Address
+
+TODO all of these
 
 VWS container:
 
-TODO
+
+.. envvar:: PROCESSING_TIME_SECONDS
+
+   Address
 
 Creating a database
 -------------------
