@@ -4,6 +4,13 @@ Running a server with Docker
 Running the mock
 ----------------
 
+There are three containers required.
+One container mocks the VWS services, one container mocks the VWQ services and one container provides a shared storage backend.
+
+Each of these containers run their services on port 5000.
+
+The VWS and VWQ containers must point to the storage container using the :envvar:`STORAGE_BACKEND` variable.
+
 # TODO Get a mock running with instructions here.
 # TODO: Custom network
 # TODO: Section for building containers
@@ -14,29 +21,49 @@ Running the mock
 From pre-built containers
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
+
 .. code:: sh
 
-   docker run --publish-all vws-mock-storage
-   docker run vws-mock -e STORAGE_BACKEND=...
-   docker run adamtheturtle/mock-vwq -e STORAGE_BACKEND=...
+   docker network create -d bridge vws-bridge-network
+
+   docker run \
+       -p 5000:5000 \
+       --name vws-mock-storage \
+       adamtheturtle/vws-mock-storage
+
+   docker run \
+       -e STORAGE_BACKEND=vws-mock-storage:5000 \
+       adamtheturtle/vuforia-vws-mock
+
+   docker run \
+       -e STORAGE_BACKEND=vws-mock-storage:5000 \
+       adamtheturtle/vuforia-vwq-mock
 
 Configuration options
 ---------------------
 
+Required configuration
+^^^^^^^^^^^^^^^^^^^^^^
+
 .. envvar:: STORAGE_BACKEND
 
-   This environment variable is needed by ...
+   This is required by the VWS mock and the VWQ mock containers.
+   This is the route to the storage container 
+
+
+Optional configuration
+^^^^^^^^^^^^^^^^^^^^^^
 
 Query container:
 
 
 .. envvar:: DELETION_PROCESSING_SECONDS
 
-   Address
+   Default 0.2
 
 .. envvar:: DELETION_RECOGNITION_SECONDS
 
-   Address
+   Default 0.2
 
 TODO all of these
 
@@ -45,12 +72,10 @@ VWS container:
 
 .. envvar:: PROCESSING_TIME_SECONDS
 
-   Address
+   Default 0.2
 
 Creating a database
 -------------------
-
-The VWS and VWQ containers mock the Vuforia services as closely as possible.
 
 The storage container does not mock any Vuforia service but it provides some functionality which mimics the database creation featurew of the Vuforia target manager.
 
