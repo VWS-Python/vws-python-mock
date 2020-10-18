@@ -44,28 +44,31 @@ def create_database() -> Tuple[str, int]:
     """
     Create a new database.
 
-    # TODO can the JSON fields be optional?
-
     :reqheader Content-Type: application/json
     :resheader Content-Type: application/json
 
-    :reqjson string client_access_key: The client access key for the database.
-    :reqjson string client_secret_key: The client secret key for the database.
-    :reqjson string database_name: The name of the database.
-    :reqjson string server_access_key: The server access key for the database.
-    :reqjson string server_secret_key: The server secret key for the database.
-    :reqjson string state_name: The state of the database. This can be WORKING
-      or PROJECT_INACTIVE
+    :reqjson string client_access_key: (Optional) The client access key for the
+      database.
+    :reqjson string client_secret_key: (Optional) The client secret key for the
+      database.
+    :reqjson string database_name: (Optional) The name of the database.
+    :reqjson string server_access_key: (Optional) The server access key for the
+      database.
+    :reqjson string server_secret_key: (Optional) The server secret key for the
+      database.
+    :reqjson string state_name: (Optional) The state of the database. This can
+     be "WORKING" or "PROJECT_INACTIVE". This defaults to "WORKING".
 
-    :resjson string client_access_key: TODO
-    :resjson string client_secret_key: TODO
-    :resjson string database_name: TODO
-    :resjson string server_access_key: TODO
-    :resjson string server_secret_key: TODO
-    :resjson string state_name: TODO can be WORKING or PROJECT_INACTIVE
-    :reqjsonarr targets: TODO (also TODO type)
+    :resjson string client_access_key: The client access key for the database.
+    :resjson string client_secret_key: The client secret key for the database.
+    :resjson string database_name: The database name.
+    :resjson string server_access_key: The server access key for the database.
+    :resjson string server_secret_key: The server secret key for the database.
+    :resjson string state_name: The database state. This will be "WORKING" or
+      "PROJECT_INACTIVE".
+    :reqjsonarr targets: The targets in the database.
 
-    :status 201: TODO
+    :status 201: The database has been successfully created.
     """
     random_database = VuforiaDatabase()
     server_access_key = request.json.get(
@@ -90,7 +93,7 @@ def create_database() -> Tuple[str, int]:
     )
     state_name = request.json.get(
         'state_name',
-        random_database.state.value,
+        random_database.state.name,
     )
 
     state = States[state_name]

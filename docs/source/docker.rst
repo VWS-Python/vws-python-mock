@@ -113,9 +113,22 @@ To add a database, make a request to the following endpoint against the storage 
 
 For example, with the containers set up as in :ref:`creating-containers`, use ``curl``:
 
-.. prompt:: bash
+.. prompt:: bash $ auto
 
-   curl --request POST \
+   $ curl --request POST \
      --header "Content-Type: application/json" \
      --data '{}' \
      '127.0.0.1:5000/databases'
+   {
+       "client_access_key": "2d61c1d17bb94694bee77c1f1f41e5d9",
+       "client_secret_key": "b73f8170cf7d42728fa8ce66221ad147",
+       "database_name": "e515df24ba944f43b8f7969bc98af107",
+       "server_access_key": "cb1759871a504875ab5f96d6db5ff79b",
+       "server_secret_key": "9b8533d912ad4aa79cb61b6ee197ece2",
+       "state_name": "WORKING",
+       "targets": []
+   }
+
+
+# TODO document resetting the db
+# TODO add restrictions to which dbs can be created - e.g. no two with same name, like on the decorator
