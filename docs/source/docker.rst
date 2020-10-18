@@ -14,7 +14,6 @@ The VWS and VWQ containers must point to the storage container using the :envvar
 # TODO Get a mock running with instructions here.
 # TODO: Section for building containers
 # TODO: Env vars for the configuration of the VWS / VWQ
-# - Describe which are required and which are optional
 # TODO respjson for the JSON response of the create database thing
 
 From pre-built containers
