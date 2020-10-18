@@ -67,12 +67,33 @@ def create_database() -> Tuple[str, int]:
 
     :status 201: TODO
     """
-    server_access_key = request.json['server_access_key']
-    server_secret_key = request.json['server_secret_key']
-    client_access_key = request.json['client_access_key']
-    client_secret_key = request.json['client_secret_key']
-    database_name = request.json['database_name']
-    state = States[request.json['state_name']]
+    random_database = VuforiaDatabase()
+    server_access_key = request.json.get(
+        'server_access_key',
+        random_database.server_access_key,
+    )
+    server_secret_key = request.json.get(
+        'server_secret_key',
+        random_database.server_secret_key,
+    )
+    client_access_key = request.json.get(
+        'client_access_key',
+        random_database.client_access_key,
+    )
+    client_secret_key = request.json.get(
+        'client_secret_key',
+        random_database.client_secret_key,
+    )
+    database_name = request.json.get(
+        'database_name',
+        random_database.database_name,
+    )
+    state_name = request.json.get(
+        'state_name',
+        random_database.state.value,
+    )
+
+    state = States[state_name]
 
     database = VuforiaDatabase(
         server_access_key=server_access_key,
