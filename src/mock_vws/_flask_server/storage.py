@@ -49,12 +49,22 @@ def create_database() -> Tuple[str, int]:
 
     :reqheader Content-Type: application/json
     :resheader Content-Type: application/json
+
+    :reqjson string client_access_key: TODO
+    :reqjson string client_secret_key: TODO
+    :reqjson string database_name: TODO
     :reqjson string server_access_key: TODO
-    :reqjson server_secret_key: TODO
-    :reqjson client_access_key: TODO
-    :reqjson client_secret_key: TODO
-    :reqjson database_name: TODO
-    :reqjson state_name: TODO can be WORKING or PROJECT_INACTIVE
+    :reqjson string server_secret_key: TODO
+    :reqjson string state_name: TODO can be WORKING or PROJECT_INACTIVE
+
+    :resjson string client_access_key: TODO
+    :resjson string client_secret_key: TODO
+    :resjson string database_name: TODO
+    :resjson string server_access_key: TODO
+    :resjson string server_secret_key: TODO
+    :resjson string state_name: TODO can be WORKING or PROJECT_INACTIVE
+    :reqjsonarr targets: TODO (also TODO type)
+
     :status 201: TODO
     """
     server_access_key = request.json['server_access_key']
