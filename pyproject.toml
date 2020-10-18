@@ -106,6 +106,7 @@ branch = true
 
 xfail_strict = true
 log_cli = true
+env_files = ["./vuforia_secrets.env"]
 
 [tool.check-manifest]
 
