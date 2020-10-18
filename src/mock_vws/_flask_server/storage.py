@@ -44,18 +44,18 @@ def create_database() -> Tuple[str, int]:
     """
     Create a new database.
 
-    TODO: Can the json fields be typed as str?
     # TODO can the JSON fields be optional?
 
     :reqheader Content-Type: application/json
     :resheader Content-Type: application/json
 
-    :reqjson string client_access_key: TODO
-    :reqjson string client_secret_key: TODO
-    :reqjson string database_name: TODO
-    :reqjson string server_access_key: TODO
-    :reqjson string server_secret_key: TODO
-    :reqjson string state_name: TODO can be WORKING or PROJECT_INACTIVE
+    :reqjson string client_access_key: The client access key for the database.
+    :reqjson string client_secret_key: The client secret key for the database.
+    :reqjson string database_name: The name of the database.
+    :reqjson string server_access_key: The server access key for the database.
+    :reqjson string server_secret_key: The server secret key for the database.
+    :reqjson string state_name: The state of the database. This can be WORKING
+      or PROJECT_INACTIVE
 
     :resjson string client_access_key: TODO
     :resjson string client_secret_key: TODO

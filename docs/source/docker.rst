@@ -1,6 +1,7 @@
 Running a server with Docker
 ============================
 
+
 Running the mock
 ----------------
 
@@ -14,7 +15,7 @@ The VWS and VWQ containers must point to the storage container using the :envvar
 Building images from source
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. code:: sh
+.. prompt:: bash
 
    export REPOSITORY_ROOT=$PWD
    export DOCKERFILE_DIR=$REPOSITORY_ROOT/src/mock_vws/_flask_server/dockerfiles
@@ -33,29 +34,26 @@ Building images from source
    docker build $REPOSITORY_ROOT --file $VWS_DOCKERFILE --tag $VWS_TAG
    docker build $REPOSITORY_ROOT --file $VWQ_DOCKERFILE --tag $VWQ_TAG
 
-.. creating-containers::
+.. _creating-containers:
 
 Creating containers
 ^^^^^^^^^^^^^^^^^^^
 
-.. code:: sh
+.. prompt:: bash
 
    docker network create -d bridge vws-bridge-network
-
    docker run \
        --detach \
        --publish 5000:5000 \
        --name vws-mock-storage \
        --network vws-bridge-network \
        adamtheturtle/vws-mock-storage
-
    docker run \
        --detach \
        --publish 5001:5000 \
        -e STORAGE_BACKEND=vws-mock-storage:5000 \
        --network vws-bridge-network \
        adamtheturtle/vuforia-vws-mock
-
    docker run \
        --detach \
        --publish 5002:5000 \
@@ -115,7 +113,7 @@ To add a database, make a request to the following endpoint against the storage 
 
 For example, with the containers set up as in :ref:`creating-containers`, use ``curl``:
 
-.. code:: sh
+.. prompt:: bash
 
    curl --request POST \
      --header "Content-Type: application/json" \
