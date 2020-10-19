@@ -32,6 +32,9 @@ from mock_vws.target import Target
 VWS_FLASK_APP = Flask(import_name=__name__)
 VWS_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
 VWS_FLASK_APP.config['STORAGE_BASE_URL'] = os.environ.get('STORAGE_BASE_URL')
+VWS_FLASK_APP.config['PROCESSING_TIME_SECONDS'] = float(
+    os.environ.get('PROCESSING_TIME_SECONDS', '0.2')
+)
 
 
 def get_all_databases() -> Set[VuforiaDatabase]:
@@ -120,9 +123,7 @@ def add_target() -> Response:
     Fake implementation of
     https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Add-a-Target
     """
-    processing_time_seconds = 0.2
-    # We do not use ``request.get_json(force=True)`` because this only works
-    # when the content type is given as ``application/json``.
+    processing_time_seconds = VWS_FLASK_APP.config['PROCESSING_TIME_SECONDS']
     databases = get_all_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
@@ -134,6 +135,8 @@ def add_target() -> Response:
 
     assert isinstance(database, VuforiaDatabase)
 
+    # We do not use ``request.get_json(force=True)`` because this only works
+    # when the content type is given as ``application/json``.
     request_json = json.loads(request.data)
     name = request_json['name']
     active_flag = request_json.get('active_flag')
