@@ -825,7 +825,7 @@ def add_and_wait_for_targets(
     """
     Add targets with the given image.
     """
-    target_ids = set([])
+    target_ids = set()
     for _ in range(num_targets):
         target_id = vws_client.add_target(
             name=uuid.uuid4().hex,

@@ -35,7 +35,7 @@ from mock_vws.target import Target
 _TARGET_ID_PATTERN = '[A-Za-z0-9]+'
 
 
-ROUTES = set([])
+ROUTES = set()
 
 
 def route(
@@ -96,7 +96,7 @@ class MockVuforiaWebServicesAPI:
             databases: Target databases.
             routes: The `Route`s to be used in the mock.
         """
-        self.databases: Set[VuforiaDatabase] = set([])
+        self.databases: Set[VuforiaDatabase] = set()
         self.routes: Set[Route] = ROUTES
         self._processing_time_seconds = processing_time_seconds
 
@@ -457,7 +457,7 @@ class MockVuforiaWebServicesAPI:
         target_id = request.path.split('/')[-1]
         target = database.get_target(target_id=target_id)
 
-        other_targets = set(database.targets) - set([target])
+        other_targets = set(database.targets) - {target}
 
         similar_targets: List[str] = [
             other.target_id
@@ -566,7 +566,7 @@ class MockVuforiaWebServicesAPI:
         # In the real implementation, the tracking rating can stay the same.
         # However, for demonstration purposes, the tracking rating changes but
         # when the target is updated.
-        available_values = list(set(range(6)) - set([target.tracking_rating]))
+        available_values = list(set(range(6)) - {target.tracking_rating})
         processed_tracking_rating = random.choice(available_values)
 
         gmt = ZoneInfo('GMT')

@@ -61,49 +61,49 @@ def validate_keys(
     delete_target = _Route(
         path_pattern=f'/targets/{target_id_pattern}',
         http_methods={DELETE},
-        mandatory_keys=set([]),
-        optional_keys=set([]),
+        mandatory_keys=set(),
+        optional_keys=set(),
     )
 
     database_summary = _Route(
         path_pattern='/summary',
         http_methods={GET},
-        mandatory_keys=set([]),
-        optional_keys=set([]),
+        mandatory_keys=set(),
+        optional_keys=set(),
     )
 
     target_list = _Route(
         path_pattern='/targets',
         http_methods={GET},
-        mandatory_keys=set([]),
-        optional_keys=set([]),
+        mandatory_keys=set(),
+        optional_keys=set(),
     )
 
     get_target = _Route(
         path_pattern=f'/targets/{target_id_pattern}',
         http_methods={GET},
-        mandatory_keys=set([]),
-        optional_keys=set([]),
+        mandatory_keys=set(),
+        optional_keys=set(),
     )
 
     target_summary = _Route(
         path_pattern=f'/summary/{target_id_pattern}',
         http_methods={GET},
-        mandatory_keys=set([]),
-        optional_keys=set([]),
+        mandatory_keys=set(),
+        optional_keys=set(),
     )
 
     get_duplicates = _Route(
         path_pattern=f'/duplicates/{target_id_pattern}',
         http_methods={GET},
-        mandatory_keys=set([]),
-        optional_keys=set([]),
+        mandatory_keys=set(),
+        optional_keys=set(),
     )
 
     update_target = _Route(
         path_pattern=f'/targets/{target_id_pattern}',
         http_methods={PUT},
-        mandatory_keys=set([]),
+        mandatory_keys=set(),
         optional_keys={
             'active_flag',
             'application_metadata',
@@ -116,8 +116,8 @@ def validate_keys(
     target_summary = _Route(
         path_pattern=f'/summary/{target_id_pattern}',
         http_methods={GET},
-        mandatory_keys=set([]),
-        optional_keys=set([]),
+        mandatory_keys=set(),
+        optional_keys=set(),
     )
 
     routes = (
