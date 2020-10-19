@@ -24,7 +24,7 @@ from mock_vws._query_validators.exceptions import (
 )
 from mock_vws.database import VuforiaDatabase
 
-ROUTES = set([])
+ROUTES = set()
 
 
 def route(
@@ -90,7 +90,7 @@ class MockVuforiaWebQueryAPI:
             databases: Target databases.
         """
         self.routes: Set[Route] = ROUTES
-        self.databases: Set[VuforiaDatabase] = set([])
+        self.databases: Set[VuforiaDatabase] = set()
         self._query_processes_deletion_seconds = (
             query_processes_deletion_seconds
         )

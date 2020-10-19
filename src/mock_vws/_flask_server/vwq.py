@@ -47,10 +47,10 @@ def get_all_databases() -> Set[VuforiaDatabase]:
     """
     storage_base_url = CLOUDRECO_FLASK_APP.config['STORAGE_BASE_URL']
     response = requests.get(url=storage_base_url + '/databases')
-    return set(
+    return {
         VuforiaDatabase.from_dict(database_dict=database_dict)
         for database_dict in response.json()
-    )
+    }
 
 
 @CLOUDRECO_FLASK_APP.before_request

@@ -44,10 +44,10 @@ def get_all_databases() -> Set[VuforiaDatabase]:
     response = requests.get(
         url=VWS_FLASK_APP.config['STORAGE_BASE_URL'] + '/databases',
     )
-    return set(
+    return {
         VuforiaDatabase.from_dict(database_dict=database_dict)
         for database_dict in response.json()
-    )
+    }
 
 
 class ResponseNoContentTypeAdded(Response):
@@ -398,7 +398,7 @@ def get_duplicates(target_id: str) -> Response:
     [target] = [
         target for target in database.targets if target.target_id == target_id
     ]
-    other_targets = set(database.targets) - set([target])
+    other_targets = set(database.targets) - {target}
 
     similar_targets: List[str] = [
         other.target_id

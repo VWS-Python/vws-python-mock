@@ -190,7 +190,7 @@ def update_target(database_name: str, target_id: str) -> Tuple[str, int]:
     # In the real implementation, the tracking rating can stay the same.
     # However, for demonstration purposes, the tracking rating changes but
     # when the target is updated.
-    available_values = list(set(range(6)) - set([target.tracking_rating]))
+    available_values = list(set(range(6)) - {target.tracking_rating})
     processed_tracking_rating = random.choice(available_values)
 
     gmt = ZoneInfo('GMT')

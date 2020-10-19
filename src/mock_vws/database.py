@@ -93,10 +93,10 @@ class VuforiaDatabase:
             client_access_key=database_dict['client_access_key'],
             client_secret_key=database_dict['client_secret_key'],
             state=States[database_dict['state_name']],
-            targets=set(
+            targets={
                 Target.from_dict(target_dict=target_dict)
                 for target_dict in database_dict['targets']
-            ),
+            },
         )
 
     @property
@@ -104,50 +104,50 @@ class VuforiaDatabase:
         """
         All targets which have not been deleted.
         """
-        return set(target for target in self.targets if not target.delete_date)
+        return {target for target in self.targets if not target.delete_date}
 
     @property
     def active_targets(self) -> Set[Target]:
         """
         All active targets.
         """
-        return set(
+        return {
             target
             for target in self.not_deleted_targets
             if target.status == TargetStatuses.SUCCESS.value
             and target.active_flag
-        )
+        }
 
     @property
     def inactive_targets(self) -> Set[Target]:
         """
         All inactive targets.
         """
-        return set(
+        return {
             target
             for target in self.not_deleted_targets
             if target.status == TargetStatuses.SUCCESS.value
             and not target.active_flag
-        )
+        }
 
     @property
     def failed_targets(self) -> Set[Target]:
         """
         All failed targets.
         """
-        return set(
+        return {
             target
             for target in self.not_deleted_targets
             if target.status == TargetStatuses.FAILED.value
-        )
+        }
 
     @property
     def processing_targets(self) -> Set[Target]:
         """
         All processing targets.
         """
-        return set(
+        return {
             target
             for target in self.not_deleted_targets
             if target.status == TargetStatuses.PROCESSING.value
-        )
+        }
