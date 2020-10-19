@@ -33,11 +33,11 @@ deletion_processing_seconds = os.environ.get(
     'DELETION_PROCESSING_SECONDS',
     '0.2',
 )
-CLOUDRECO_FLASK_APP.config['DELETION_PROCESSING_SECONDS'] = (
-    float(os.environ.get('DELETION_PROCESSING_SECONDS', '0.2'))
+CLOUDRECO_FLASK_APP.config['DELETION_PROCESSING_SECONDS'] = float(
+    os.environ.get('DELETION_PROCESSING_SECONDS', '0.2')
 )
-CLOUDRECO_FLASK_APP.config['DELETION_RECOGNITION_SECONDS'] = (
-    float(os.environ.get('DELETION_RECOGNITION_SECONDS', '0.2'))
+CLOUDRECO_FLASK_APP.config['DELETION_RECOGNITION_SECONDS'] = float(
+    os.environ.get('DELETION_RECOGNITION_SECONDS', '0.2')
 )
 
 
@@ -108,12 +108,12 @@ def query() -> Response:
     """
     Perform an image recognition query.
     """
-    query_processes_deletion_seconds = (
-        CLOUDRECO_FLASK_APP.config['DELETION_PROCESSING_SECONDS']
-    )
-    query_recognizes_deletion_seconds = (
-        CLOUDRECO_FLASK_APP.config['DELETION_RECOGNITION_SECONDS']
-    )
+    query_processes_deletion_seconds = CLOUDRECO_FLASK_APP.config[
+        'DELETION_PROCESSING_SECONDS'
+    ]
+    query_recognizes_deletion_seconds = CLOUDRECO_FLASK_APP.config[
+        'DELETION_RECOGNITION_SECONDS'
+    ]
 
     databases = get_all_databases()
     request_body = request.stream.read()
