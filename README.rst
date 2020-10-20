@@ -34,7 +34,16 @@ By default, an exception will be raised if any requests to unmocked addresses ar
 
 .. _requests: https://pypi.org/project/requests/
 
-Full Documentation
+Using Docker to mock calls to Vuforia from any language
+-------------------------------------------------------
+
+It is possible run a Mock VWS instance using Docker containers.
+
+This allows you to run tests against a mock VWS instance regardless of the language or tooling you are using.
+
+See the `the instructions <https://vws-python-mock.readthedocs.io/en/latest/docker.html>`__ for how to do this.
+
+Full documentation
 ------------------
 
 See the `full documentation <https://vws-python-mock.readthedocs.io/en/latest>`__.

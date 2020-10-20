@@ -47,6 +47,7 @@ extensions = [
     'sphinx-prompt',
     'sphinx_substitution_extensions',
     'sphinxcontrib.spelling',
+    'sphinxcontrib.autohttp.flask',
 ]
 
 templates_path = ['_templates']
@@ -101,6 +102,7 @@ nitpick_ignore = [
     ('py:class', '_io.BytesIO'),
     ('py:class', 'docker.types.services.Mount'),
     ('py:exc', 'requests.exceptions.MissingSchema'),
+    ('http:obj', 'string'),
 ]
 
 html_show_copyright = False
