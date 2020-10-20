@@ -35,7 +35,7 @@ VWS_FLASK_APP.config['TARGET_MANAGER_BASE_URL'] = os.environ.get(
     'TARGET_MANAGER_BASE_URL',
 )
 VWS_FLASK_APP.config['PROCESSING_TIME_SECONDS'] = float(
-    os.environ.get('PROCESSING_TIME_SECONDS', '0.2'),
+    os.environ.get('PROCESSING_TIME_SECONDS', '0.5'),
 )
 
 
