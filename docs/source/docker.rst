@@ -96,8 +96,13 @@ For example, with the containers set up as in :ref:`creating-containers`, use ``
        "targets": []
    }
 
+Deleting a database
+-------------------
 
-# TODO document resetting the db
+# TODO build this
+
+
+# TODO rename storage container to target manager
 # TODO add restrictions to which dbs can be created - e.g. no two with same name, like on the decorator
 
 .. _Target Manager: https://developer.vuforia.com/target-manager

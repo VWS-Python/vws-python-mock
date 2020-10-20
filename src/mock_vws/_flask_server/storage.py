@@ -26,6 +26,9 @@ def reset() -> Tuple[str, int]:
     """
     Reset the back-end to a state of no databases.
     """
+    # TODO instead, have an endpoint to delete a database
+    # and then remove this.
+    # Consumers can then get databases and delete each one.
     VUFORIA_DATABASES.clear()
     return '', HTTPStatus.OK
 
