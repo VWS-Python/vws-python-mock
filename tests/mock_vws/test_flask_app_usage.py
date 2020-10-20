@@ -2,6 +2,12 @@
 Tests for the usage of the mock Flask application.
 """
 
+from mock_vws._flask_server.target_manager import TARGET_MANAGER_FLASK_APP
+from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
+from mock_vws._flask_server.vws import VWS_FLASK_APP
+import requests
+import requests_mock
+
 class TestProcessingTime:
     """
     Tests for the time taken to process targets in the mock.
@@ -11,13 +17,27 @@ class TestProcessingTime:
         """
         By default, targets in the mock take 0.5 seconds to be processed.
         """
+        target_manager_base_url = 'http://example.com'
         database = VuforiaDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
             server_secret_key=database.server_secret_key,
         )
-        with MockVWS() as mock:
-            mock.add_database(database=database)
+        with requests_mock.Mocker(real_http=False) as mock:
+            add_flask_app_to_mock(
+                mock_obj=mock,
+                flask_app=VWS_FLASK_APP,
+                base_url='https://vws.vuforia.com',
+            )
+
+            add_flask_app_to_mock(
+                mock_obj=mock,
+                flask_app=TARGET_MANAGER_FLASK_APP,
+                base_url=target_manager_base_url,
+            )
+
+            databases_url = target_manager_base_url + '/databases'
+            requests.post(url=databases_url, json=database.to_dict())
 
             target_id = vws_client.add_target(
                 name='example',
@@ -76,3 +96,4 @@ class TestDatabaseManagement:
         # Add one
         # Delete
         # Add another one same
+        pass
