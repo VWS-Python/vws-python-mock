@@ -63,7 +63,8 @@ jobs:
           - test_update_target.py::TestUpdate
           - test_update_target.py::TestWidth
           - test_update_target.py::TestInactiveProject
-          - test_usage.py
+          - test_requests_mock_usage.py
+          - test_flask_app_usage.py
           - test_docker.py
 
     steps:
