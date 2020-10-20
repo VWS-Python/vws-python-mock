@@ -1,8 +1,14 @@
 |project|
 =========
 
-Mocking Vuforia
----------------
+Mocking calls made to Vuforia with Python ``requests``
+------------------------------------------------------
+
+.. prompt:: bash
+
+   pip3 install vws-python-mock
+
+This requires Python 3.8+.
 
 .. include:: basic-example.rst
 

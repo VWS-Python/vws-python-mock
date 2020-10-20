@@ -29,15 +29,11 @@ CLOUDRECO_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
 CLOUDRECO_FLASK_APP.config['STORAGE_BASE_URL'] = os.environ.get(
     'STORAGE_BASE_URL',
 )
-deletion_processing_seconds = os.environ.get(
-    'DELETION_PROCESSING_SECONDS',
-    '0.2',
-)
 CLOUDRECO_FLASK_APP.config['DELETION_PROCESSING_SECONDS'] = float(
-    os.environ.get('DELETION_PROCESSING_SECONDS', '0.2')
+    os.environ.get('DELETION_PROCESSING_SECONDS', '0.2'),
 )
 CLOUDRECO_FLASK_APP.config['DELETION_RECOGNITION_SECONDS'] = float(
-    os.environ.get('DELETION_RECOGNITION_SECONDS', '0.2')
+    os.environ.get('DELETION_RECOGNITION_SECONDS', '0.2'),
 )
 
 

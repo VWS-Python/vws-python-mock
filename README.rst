@@ -1,28 +1,23 @@
 |Build Status| |codecov| |PyPI| |Documentation Status|
 
-VWS Python Mock
-===============
+VWS Mock
+========
 
-Python mock for the Vuforia Web Services (VWS) API and the Vuforia Web Query API.
+.. contents::
+   :local:
 
+Mock for the Vuforia Web Services (VWS) API and the Vuforia Web Query API.
 
-Mocking Vuforia for Python requests
----------------
+Mocking calls made to Vuforia with Python ``requests``
+------------------------------------------------------
 
-Installation
-^^^^^^^^^^^^
-
-.. code:: sh
-
-    pip3 install vws-python-mock
+Using the mock redirects requests to Vuforia made with `requests`_ to an in-memory implementation.
 
 This requires Python 3.8.5+.
 
-Running the mock
-^^^^^^^^^^^^^^^^
+.. code:: sh
 
-Requests made to Vuforia can be mocked.
-Using the mock redirects requests to Vuforia made with `requests <https://pypi.org/project/requests/>`_ to an in-memory implementation.
+    pip install vws-python-mock
 
 .. code:: python
 
@@ -36,6 +31,8 @@ Using the mock redirects requests to Vuforia made with `requests <https://pypi.o
         requests.get('https://vws.vuforia.com/summary')
 
 By default, an exception will be raised if any requests to unmocked addresses are made.
+
+.. _requests: https://pypi.org/project/requests/
 
 Mocking Vuforia with Docker
 ------
