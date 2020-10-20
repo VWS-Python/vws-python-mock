@@ -32,6 +32,7 @@ from mock_vws.target import Target
 VWS_FLASK_APP = Flask(import_name=__name__)
 VWS_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
 
+
 def get_all_databases() -> Set[VuforiaDatabase]:
     """
     Get all database objects from the task manager back-end.
