@@ -7,36 +7,11 @@ Configuration for Sphinx.
 # pylint: disable=invalid-name
 
 import datetime
-import logging
-import sys
-from typing import Dict, Iterable
 
-import sphinx_autodoc_typehints
 from pkg_resources import get_distribution
 
 project = 'VWS-Python-Mock'
 author = 'Adam Dangoor'
-
-
-# ReadTheDocs runs Python 3.8.0, which suffers from
-# https://bugs.python.org/issue34776.
-# This means we hit
-# https://github.com/agronholm/sphinx-autodoc-typehints/issues/76.
-# We therefore skip warnings on 3.8.0 for a particular error message.
-# Skipping this means that we ignore legitimate warnings, and the issue means
-# that for dataclasses we miss out on some sections of our docs.
-def _custom_warning_handler(msg: str, *args: Iterable, **kwargs: Dict) -> None:
-    if (
-        sys.version_info.major,
-        sys.version_info.minor,
-        sys.version_info.micro,
-    ) == (3, 8, 0):
-        if 'Cannot resolve forward reference in type annotations' in msg:
-            level = logging.INFO
-            sphinx_autodoc_typehints.logger.log(level, msg, *args, **kwargs)
-
-
-sphinx_autodoc_typehints.logger.warning = _custom_warning_handler
 
 extensions = [
     'sphinx.ext.autodoc',
