@@ -44,7 +44,6 @@ class TestProcessingTime:
             name='TARGET_MANAGER_BASE_URL',
             value=target_manager_base_url,
         )
-        import pdb; pdb.set_trace()
         database = VuforiaDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
