@@ -31,13 +31,12 @@ def delete_database(database_name: str) -> Tuple[str, int]:
 
     :status 200: The database has been deleted.
     """
-    global VUFORIA_DATABASES
-    matching_databases = {
+    (matching_database,) = {
         database
         for database in VUFORIA_DATABASES
         if database_name == database.database_name
     }
-    VUFORIA_DATABASES = VUFORIA_DATABASES - matching_databases
+    VUFORIA_DATABASES.remove(matching_database)
     return '', HTTPStatus.OK
 
 
