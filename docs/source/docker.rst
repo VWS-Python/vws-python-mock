@@ -99,11 +99,11 @@ For example, with the containers set up as in :ref:`creating-containers`, use ``
 Deleting a database
 -------------------
 
-# TODO build this
+To delete a database use the following endpoint:
 
+.. autoflask:: mock_vws._flask_server.storage:STORAGE_FLASK_APP
+   :endpoints: delete_database
 
-# TODO rename storage container to target manager
-# TODO add restrictions to which dbs can be created - e.g. no two with same name, like on the decorator
 
 .. _Target Manager: https://developer.vuforia.com/target-manager
 

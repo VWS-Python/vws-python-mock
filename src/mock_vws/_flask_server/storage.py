@@ -27,10 +27,7 @@ VUFORIA_DATABASES: Set[VuforiaDatabase] = set()
 )
 def delete_database(database_name: str) -> Tuple[str, int]:
     """
-    Reset the back-end to a state of no databases.
-
-    :reqheader Content-Type: application/json
-    :reqjson string database_name: The name of the database.
+    Delete a database.
 
     :status 200: The database has been deleted.
     """
