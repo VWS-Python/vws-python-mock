@@ -16,7 +16,7 @@ from vws import VWS
 from vws.exceptions.vws_exceptions import TargetStatusNotSuccess
 
 from mock_vws import MockVWS
-from mock_vws._flask_server.storage import STORAGE_FLASK_APP
+from mock_vws._flask_server.storage import TARGET_MANAGER_FLASK_APP
 from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
 from mock_vws._flask_server.vws import VWS_FLASK_APP
 from mock_vws.database import VuforiaDatabase
@@ -108,8 +108,8 @@ def _enable_use_docker_in_memory(
     VWS_FLASK_APP.config['TERMINATE_WSGI_INPUT'] = True
     CLOUDRECO_FLASK_APP.config['TERMINATE_WSGI_INPUT'] = True
     storage_base_url = 'http://example.com'
-    VWS_FLASK_APP.config['STORAGE_BASE_URL'] = storage_base_url
-    CLOUDRECO_FLASK_APP.config['STORAGE_BASE_URL'] = storage_base_url
+    VWS_FLASK_APP.config['TARGET_MANAGER_BASE_URL'] = storage_base_url
+    CLOUDRECO_FLASK_APP.config['TARGET_MANAGER_BASE_URL'] = storage_base_url
 
     with requests_mock.Mocker(real_http=False) as mock:
         add_flask_app_to_mock(
@@ -126,7 +126,7 @@ def _enable_use_docker_in_memory(
 
         add_flask_app_to_mock(
             mock_obj=mock,
-            flask_app=STORAGE_FLASK_APP,
+            flask_app=TARGET_MANAGER_FLASK_APP,
             base_url=storage_base_url,
         )
 

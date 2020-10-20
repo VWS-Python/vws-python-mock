@@ -13,7 +13,7 @@ One container mocks the VWS services, one container mocks the VWQ services and o
 
 Each of these containers run their services on port 5000.
 
-The VWS and VWQ containers must point to the storage container using the :envvar:`STORAGE_BACKEND` variable.
+The VWS and VWQ containers must point to the storage container using the :envvar:`TARGET_MANAGER_BACKEND` variable.
 
 Building images from source
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -23,17 +23,17 @@ Building images from source
    export REPOSITORY_ROOT=$PWD
    export DOCKERFILE_DIR=$REPOSITORY_ROOT/src/mock_vws/_flask_server/dockerfiles
    export BASE_DOCKERFILE=$DOCKERFILE_DIR/base/Dockerfile
-   export STORAGE_DOCKERFILE=$DOCKERFILE_DIR/storage/Dockerfile
+   export TARGET_MANAGER_DOCKERFILE=$DOCKERFILE_DIR/storage/Dockerfile
    export VWS_DOCKERFILE=$DOCKERFILE_DIR/vws/Dockerfile
    export VWQ_DOCKERFILE=$DOCKERFILE_DIR/vwq/Dockerfile
 
    export BASE_TAG=vws-mock:base
-   export STORAGE_TAG=adamtheturtle/vws-mock-storage:latest
+   export TARGET_MANAGER_TAG=adamtheturtle/vws-mock-storage:latest
    export VWS_TAG=adamtheturtle/vuforia-vws-mock:latest
    export VWQ_TAG=adamtheturtle/vuforia-vwq-mock:latest
 
    docker build $REPOSITORY_ROOT --file $BASE_DOCKERFILE --tag $BASE_TAG
-   docker build $REPOSITORY_ROOT --file $STORAGE_DOCKERFILE --tag $STORAGE_TAG
+   docker build $REPOSITORY_ROOT --file $TARGET_MANAGER_DOCKERFILE --tag $STORAGE_TAG
    docker build $REPOSITORY_ROOT --file $VWS_DOCKERFILE --tag $VWS_TAG
    docker build $REPOSITORY_ROOT --file $VWQ_DOCKERFILE --tag $VWQ_TAG
 
@@ -54,13 +54,13 @@ Creating containers
    docker run \
        --detach \
        --publish 5001:5000 \
-       -e STORAGE_BACKEND=vws-mock-storage:5000 \
+       -e TARGET_MANAGER_BACKEND=vws-mock-storage:5000 \
        --network vws-bridge-network \
        adamtheturtle/vuforia-vws-mock
    docker run \
        --detach \
        --publish 5002:5000 \
-       -e STORAGE_BACKEND=vws-mock-storage:5000 \
+       -e TARGET_MANAGER_BACKEND=vws-mock-storage:5000 \
        --network vws-bridge-network \
        adamtheturtle/vuforia-vwq-mock
 
@@ -75,7 +75,7 @@ To mimic this functionality, this mock provides a storage container which has an
 
 To add a database, make a request to the following endpoint against the storage container:
 
-.. autoflask:: mock_vws._flask_server.storage:STORAGE_FLASK_APP
+.. autoflask:: mock_vws._flask_server.storage:TARGET_MANAGER_FLASK_APP
    :endpoints: create_database
 
 For example, with the containers set up as in :ref:`creating-containers`, use ``curl``:
@@ -101,7 +101,7 @@ Deleting a database
 
 To delete a database use the following endpoint:
 
-.. autoflask:: mock_vws._flask_server.storage:STORAGE_FLASK_APP
+.. autoflask:: mock_vws._flask_server.storage:TARGET_MANAGER_FLASK_APP
    :endpoints: delete_database
 
 
@@ -114,7 +114,7 @@ Configuration options
 Required configuration
 ^^^^^^^^^^^^^^^^^^^^^^
 
-.. envvar:: STORAGE_BACKEND
+.. envvar:: TARGET_MANAGER_BACKEND
 
    This is required by the VWS mock and the VWQ mock containers.
    This is the route to the storage container from the other containers.
