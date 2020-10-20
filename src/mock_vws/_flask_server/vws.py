@@ -31,6 +31,7 @@ from mock_vws.target import Target
 
 VWS_FLASK_APP = Flask(import_name=__name__)
 VWS_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
+import pdb; pdb.set_trace()
 VWS_FLASK_APP.config['TARGET_MANAGER_BASE_URL'] = os.environ.get(
     'TARGET_MANAGER_BASE_URL',
 )

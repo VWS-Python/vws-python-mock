@@ -35,11 +35,16 @@ class TestProcessingTime:
     Tests for the time taken to process targets in the mock.
     """
 
-    def test_default(self, image_file_failed_state: io.BytesIO) -> None:
+    def test_default(self, image_file_failed_state: io.BytesIO, monkeypatch) -> None:
         """
         By default, targets in the mock take 0.5 seconds to be processed.
         """
         target_manager_base_url = 'http://example.com'
+        monkeypatch.setenv(
+            name='TARGET_MANAGER_BASE_URL',
+            value=target_manager_base_url,
+        )
+        import pdb; pdb.set_trace()
         database = VuforiaDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -51,7 +56,6 @@ class TestProcessingTime:
                 flask_app=VWS_FLASK_APP,
                 base_url='https://vws.vuforia.com',
             )
-            VWS_FLASK_APP.config['TARGET_MANAGER_BASE_URL'] = target_manager_base_url
 
             add_flask_app_to_mock(
                 mock_obj=mock,
@@ -59,6 +63,7 @@ class TestProcessingTime:
                 base_url=target_manager_base_url,
             )
 
+            # VWS_FLASK_APP.config['TARGET_MANAGER_BASE_URL'] = target_manager_base_url
             databases_url = target_manager_base_url + '/databases'
             requests.post(url=databases_url, json=database.to_dict())
 
@@ -83,6 +88,54 @@ class TestProcessingTime:
                     # fail, maybe extend the acceptable range.
                     assert elapsed_time < timedelta(seconds=0.55)
                     assert elapsed_time > timedelta(seconds=0.49)
+                    return
+
+    def test_custom(self, image_file_failed_state: io.BytesIO) -> None:
+        """
+        It is possible to set a custom processing time.
+        """
+        return
+        target_manager_base_url = 'http://example.com'
+        database = VuforiaDatabase()
+        vws_client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+        with requests_mock.Mocker(real_http=False) as mock:
+            add_flask_app_to_mock(
+                mock_obj=mock,
+                flask_app=VWS_FLASK_APP,
+                base_url='https://vws.vuforia.com',
+            )
+
+            add_flask_app_to_mock(
+                mock_obj=mock,
+                flask_app=TARGET_MANAGER_FLASK_APP,
+                base_url=target_manager_base_url,
+            )
+
+            VWS_FLASK_APP.config['TARGET_MANAGER_BASE_URL'] = target_manager_base_url
+            mock.add_database(database=database)
+            target_id = vws_client.add_target(
+                name='example',
+                width=1,
+                image=image_file_failed_state,
+                active_flag=True,
+                application_metadata=None,
+            )
+
+            start_time = datetime.now()
+
+            while True:
+                target_details = vws_client.get_target_record(
+                    target_id=target_id,
+                )
+
+                status = target_details.status
+                if status != TargetStatuses.PROCESSING:
+                    elapsed_time = datetime.now() - start_time
+                    assert elapsed_time < timedelta(seconds=0.15)
+                    assert elapsed_time > timedelta(seconds=0.09)
                     return
 
 class TestCustomQueryRecognizesDeletionSeconds:
