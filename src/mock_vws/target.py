@@ -59,7 +59,7 @@ def _random_tracking_rating() -> int:
 
 
 @dataclass(frozen=True, eq=True)
-class Target:  # pylint: disable=too-many-instance-attributes
+class Target:
     """
     A Vuforia Target as managed in
     https://developer.vuforia.com/target-manager.

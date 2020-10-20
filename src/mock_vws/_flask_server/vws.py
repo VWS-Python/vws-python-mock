@@ -157,7 +157,7 @@ def add_target() -> Response:
     target_manager_base_url = VWS_FLASK_APP.config['TARGET_MANAGER_BASE_URL']
     databases_url = f'{target_manager_base_url}/databases'
     requests.post(
-        url=f'{databases_url}/{databases.database_name}/targets',
+        url=f'{databases_url}/{database.database_name}/targets',
         json=new_target.to_dict(),
     )
 
