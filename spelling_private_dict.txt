@@ -71,6 +71,12 @@ refactoring
 regex
 reimplementation
 repr
+reqheader
+reqjson
+reqjsonarr
+resheader
+resjson
+resjsonarr
 rfc
 rgb
 str
