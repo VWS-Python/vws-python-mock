@@ -130,7 +130,11 @@ def _enable_use_docker_in_memory(
             base_url=storage_base_url,
         )
 
-        requests.post(url=storage_base_url + '/reset')
+        databases = requests.get(url=storage_base_url + '/databases').json()
+        for database in databases:
+            database_name = database['database_name']
+            delete_url = storage_base_url + '/databases/' + database_name
+            requests.delete(url=delete_url)
 
         working_database_dict = working_database.to_dict()
         inactive_database_dict = inactive_database.to_dict()

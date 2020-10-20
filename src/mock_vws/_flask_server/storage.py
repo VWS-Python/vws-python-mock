@@ -7,7 +7,7 @@ import dataclasses
 import datetime
 import random
 from http import HTTPStatus
-from typing import List, Tuple
+from typing import Set, Tuple
 
 from backports.zoneinfo import ZoneInfo
 from flask import Flask, jsonify, request
@@ -18,15 +18,29 @@ from mock_vws.target import Target
 
 STORAGE_FLASK_APP = Flask(__name__)
 
-VUFORIA_DATABASES: List[VuforiaDatabase] = []
+VUFORIA_DATABASES: Set[VuforiaDatabase] = set()
 
 
-@STORAGE_FLASK_APP.route('/reset', methods=['POST'])
-def reset() -> Tuple[str, int]:
+@STORAGE_FLASK_APP.route(
+    '/databases/<string:database_name>',
+    methods=['DELETE'],
+)
+def delete_database(database_name: str) -> Tuple[str, int]:
     """
     Reset the back-end to a state of no databases.
+
+    :reqheader Content-Type: application/json
+    :reqjson string database_name: The name of the database.
+
+    :status 200: The database has been deleted.
     """
-    VUFORIA_DATABASES.clear()
+    global VUFORIA_DATABASES
+    matching_databases = {
+        database
+        for database in VUFORIA_DATABASES
+        if database_name == database.database_name
+    }
+    VUFORIA_DATABASES = VUFORIA_DATABASES - matching_databases
     return '', HTTPStatus.OK
 
 
@@ -106,7 +120,7 @@ def create_database() -> Tuple[str, int]:
         database_name=database_name,
         state=state,
     )
-    VUFORIA_DATABASES.append(database)
+    VUFORIA_DATABASES.add(database)
     return jsonify(database.to_dict()), HTTPStatus.CREATED
 
 
