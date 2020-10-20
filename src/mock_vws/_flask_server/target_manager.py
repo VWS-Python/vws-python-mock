@@ -7,7 +7,7 @@ import dataclasses
 import datetime
 import random
 from http import HTTPStatus
-from typing import Set, Tuple
+from typing import Tuple
 
 from backports.zoneinfo import ZoneInfo
 from flask import Flask, jsonify, request
@@ -15,10 +15,11 @@ from flask import Flask, jsonify, request
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
 from mock_vws.target import Target
+from mock_vws.target_manager import TargetManager
 
 TARGET_MANAGER_FLASK_APP = Flask(__name__)
 
-VUFORIA_DATABASES: Set[VuforiaDatabase] = set()
+TARGET_MANAGER = TargetManager()
 
 
 @TARGET_MANAGER_FLASK_APP.route(
@@ -33,10 +34,10 @@ def delete_database(database_name: str) -> Tuple[str, int]:
     """
     (matching_database,) = {
         database
-        for database in VUFORIA_DATABASES
+        for database in TARGET_MANAGER.databases
         if database_name == database.database_name
     }
-    VUFORIA_DATABASES.remove(matching_database)
+    TARGET_MANAGER.remove_database(database=matching_database)
     return '', HTTPStatus.OK
 
 
@@ -45,7 +46,7 @@ def get_databases() -> Tuple[str, int]:
     """
     Return a list of all databases.
     """
-    databases = [database.to_dict() for database in VUFORIA_DATABASES]
+    databases = [database.to_dict() for database in TARGET_MANAGER.databases]
     return jsonify(databases), HTTPStatus.OK
 
 
@@ -116,7 +117,7 @@ def create_database() -> Tuple[str, int]:
         database_name=database_name,
         state=state,
     )
-    VUFORIA_DATABASES.add(database)
+    TARGET_MANAGER.add_database(database=database)
     return jsonify(database.to_dict()), HTTPStatus.CREATED
 
 
@@ -130,7 +131,7 @@ def create_target(database_name: str) -> Tuple[str, int]:
     """
     [database] = [
         database
-        for database in VUFORIA_DATABASES
+        for database in TARGET_MANAGER.databases
         if database.database_name == database_name
     ]
     image_base64 = request.json['image_base64']
@@ -159,7 +160,7 @@ def delete_target(database_name: str, target_id: str) -> Tuple[str, int]:
     """
     [database] = [
         database
-        for database in VUFORIA_DATABASES
+        for database in TARGET_MANAGER.databases
         if database.database_name == database_name
     ]
     target = database.get_target(target_id=target_id)
@@ -180,7 +181,7 @@ def update_target(database_name: str, target_id: str) -> Tuple[str, int]:
     """
     [database] = [
         database
-        for database in VUFORIA_DATABASES
+        for database in TARGET_MANAGER.databases
         if database.database_name == database_name
     ]
     target = database.get_target(target_id=target_id)

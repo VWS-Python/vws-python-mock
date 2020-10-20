@@ -18,6 +18,18 @@ class TargetManager:
         """
         self._databases: Set[VuforiaDatabase] = set()
 
+    def remove_database(self, database: VuforiaDatabase) -> None:
+        """
+        Remove a cloud database.
+
+        Args:
+            database: The database to add.
+
+        Raises:
+            KeyError: The database is not in the target manager.
+        """
+        self._databases.remove(database)
+
     def add_database(self, database: VuforiaDatabase) -> None:
         """
         Add a cloud database.
