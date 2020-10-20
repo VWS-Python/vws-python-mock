@@ -11,6 +11,7 @@ import requests
 from requests_mock.mocker import Mocker
 
 from mock_vws.database import VuforiaDatabase
+from mock_vws.target_manager import TargetManager
 
 from .mock_web_query_api import MockVuforiaWebQueryAPI
 from .mock_web_services_api import MockVuforiaWebServicesAPI
@@ -57,6 +58,7 @@ class MockVWS(ContextDecorator):
         super().__init__()
         self._real_http = real_http
         self._mock: Mocker
+        self._target_manager = TargetManager()
 
         self._base_vws_url = base_vws_url
         self._base_vwq_url = base_vwq_url
@@ -71,10 +73,12 @@ class MockVWS(ContextDecorator):
                 raise requests.exceptions.MissingSchema(error)
 
         self._mock_vws_api = MockVuforiaWebServicesAPI(
+            target_manager=self._target_manager,
             processing_time_seconds=processing_time_seconds,
         )
 
         self._mock_vwq_api = MockVuforiaWebQueryAPI(
+            target_manager=self._target_manager,
             query_processes_deletion_seconds=(
                 query_processes_deletion_seconds
             ),
@@ -94,8 +98,7 @@ class MockVWS(ContextDecorator):
             ValueError: One of the given database keys matches a key for an
                 existing database.
         """
-        self._mock_vws_api.target_manager.add_database(database=database)
-        self._mock_vwq_api.target_manager.add_database(database=database)
+        self._target_manager.add_database(database=database)
 
     def __enter__(self) -> 'MockVWS':
         """
