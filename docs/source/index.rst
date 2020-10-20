@@ -12,7 +12,14 @@ This requires Python 3.8+.
 
 .. include:: basic-example.rst
 
-TODO reference Docker here
+Using Docker to mock calls to Vuforia from any language
+-------------------------------------------------------
+
+It is possible run a Mock VWS instance using Docker containers.
+
+This allows you to run tests against a mock VWS instance regardless of the language or tooling you are using.
+
+See :doc:`docker` for how to do this.
 
 Reference
 ---------
