@@ -1,6 +1,9 @@
 Running a server with Docker
 ============================
 
+It is possible run a Mock VWS instance using Docker containers.
+
+This allows you to run tests against a mock VWS instance regardless of the language or tooling you are using.
 
 Running the mock
 ----------------
@@ -61,6 +64,45 @@ Creating containers
        --network vws-bridge-network \
        adamtheturtle/vuforia-vwq-mock
 
+
+Adding a database to the mock target manager
+--------------------------------------------
+
+When using Vuforia Web Services, it is necessary to create a database on the `Target Manager`_.
+This is a web interface which does not have an HTTP API.
+
+To mimic this functionality, this mock provides a storage container which has an HTTP API.
+
+To add a database, make a request to the following endpoint against the storage container:
+
+.. autoflask:: mock_vws._flask_server.storage:STORAGE_FLASK_APP
+   :endpoints: create_database
+
+For example, with the containers set up as in :ref:`creating-containers`, use ``curl``:
+
+.. prompt:: bash $ auto
+
+   $ curl --request POST \
+     --header "Content-Type: application/json" \
+     --data '{}' \
+     '127.0.0.1:5000/databases'
+   {
+       "client_access_key": "2d61c1d17bb94694bee77c1f1f41e5d9",
+       "client_secret_key": "b73f8170cf7d42728fa8ce66221ad147",
+       "database_name": "e515df24ba944f43b8f7969bc98af107",
+       "server_access_key": "cb1759871a504875ab5f96d6db5ff79b",
+       "server_secret_key": "9b8533d912ad4aa79cb61b6ee197ece2",
+       "state_name": "WORKING",
+       "targets": []
+   }
+
+
+# TODO document resetting the db
+# TODO add restrictions to which dbs can be created - e.g. no two with same name, like on the decorator
+
+.. _Target Manager: https://developer.vuforia.com/target-manager
+
+
 Configuration options
 ---------------------
 
@@ -100,35 +142,3 @@ VWS container
    The number of seconds to process each image for.
 
    Default 0.2
-
-Creating a database
--------------------
-
-The storage container does not mock any Vuforia service but it provides some functionality which mimics the database creation featurew of the Vuforia target manager.
-
-To add a database, make a request to the following endpoint against the storage container:
-
-.. autoflask:: mock_vws._flask_server.storage:STORAGE_FLASK_APP
-   :endpoints: create_database
-
-For example, with the containers set up as in :ref:`creating-containers`, use ``curl``:
-
-.. prompt:: bash $ auto
-
-   $ curl --request POST \
-     --header "Content-Type: application/json" \
-     --data '{}' \
-     '127.0.0.1:5000/databases'
-   {
-       "client_access_key": "2d61c1d17bb94694bee77c1f1f41e5d9",
-       "client_secret_key": "b73f8170cf7d42728fa8ce66221ad147",
-       "database_name": "e515df24ba944f43b8f7969bc98af107",
-       "server_access_key": "cb1759871a504875ab5f96d6db5ff79b",
-       "server_secret_key": "9b8533d912ad4aa79cb61b6ee197ece2",
-       "state_name": "WORKING",
-       "targets": []
-   }
-
-
-# TODO document resetting the db
-# TODO add restrictions to which dbs can be created - e.g. no two with same name, like on the decorator
