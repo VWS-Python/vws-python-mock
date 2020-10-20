@@ -13,6 +13,12 @@ class TestCustomQueryRecognizesDeletionSeconds:
     until it is not recognized by the query endpoint.
     """
 
+class TestCustomQueryProcessDeletionSeconds:
+    """
+    Tests for setting the amount of time after a target has been deleted
+    until it is not processed by the query endpoint.
+    """
+
 class TestDatabaseManagement:
     """
     TODO
