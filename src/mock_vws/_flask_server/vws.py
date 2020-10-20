@@ -31,7 +31,9 @@ from mock_vws.target import Target
 
 VWS_FLASK_APP = Flask(import_name=__name__)
 VWS_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
-VWS_FLASK_APP.config['STORAGE_BASE_URL'] = os.environ.get('STORAGE_BASE_URL')
+VWS_FLASK_APP.config['TARGET_MANAGER_BASE_URL'] = os.environ.get(
+    'TARGET_MANAGER_BASE_URL',
+)
 VWS_FLASK_APP.config['PROCESSING_TIME_SECONDS'] = float(
     os.environ.get('PROCESSING_TIME_SECONDS', '0.2'),
 )
@@ -39,10 +41,10 @@ VWS_FLASK_APP.config['PROCESSING_TIME_SECONDS'] = float(
 
 def get_all_databases() -> Set[VuforiaDatabase]:
     """
-    Get all database objects from the storage back-end.
+    Get all database objects from the task manager back-end.
     """
     response = requests.get(
-        url=VWS_FLASK_APP.config['STORAGE_BASE_URL'] + '/databases',
+        url=VWS_FLASK_APP.config['TARGET_MANAGER_BASE_URL'] + '/databases',
     )
     return {
         VuforiaDatabase.from_dict(database_dict=database_dict)
@@ -152,9 +154,10 @@ def add_target() -> Response:
         application_metadata=request_json.get('application_metadata'),
     )
 
-    storage_base_url = VWS_FLASK_APP.config['STORAGE_BASE_URL']
+    target_manager_base_url = VWS_FLASK_APP.config['TARGET_MANAGER_BASE_URL']
+    databases_url = f'{target_manager_base_url}/databases'
     requests.post(
-        url=f'{storage_base_url}/databases/{database.database_name}/targets',
+        url=f'{databases_url}/{database.database_name}/targets',
         json=new_target.to_dict(),
     )
 
@@ -254,12 +257,11 @@ def delete_target(target_id: str) -> Response:
     if target.status == TargetStatuses.PROCESSING.value:
         raise TargetStatusProcessing
 
-    storage_base_url = VWS_FLASK_APP.config['STORAGE_BASE_URL']
-    delete_url = (
-        f'{storage_base_url}/databases/{database.database_name}/targets/'
-        f'{target_id}'
+    target_manager_base_url = VWS_FLASK_APP.config['TARGET_MANAGER_BASE_URL']
+    databases_url = f'{target_manager_base_url}/databases'
+    requests.delete(
+        url=f'{databases_url}/{database.database_name}/targets/{target_id}',
     )
-    requests.delete(url=delete_url)
 
     body = {
         'transaction_id': uuid.uuid4().hex,
@@ -519,10 +521,10 @@ def update_target(target_id: str) -> Response:
         image = request_json['image']
         update_values['image'] = image
 
-    storage_base_url = VWS_FLASK_APP.config['STORAGE_BASE_URL']
+    target_manager_base_url = VWS_FLASK_APP.config['TARGET_MANAGER_BASE_URL']
     put_url = (
-        f'{storage_base_url}/databases/{database.database_name}/targets/'
-        f'{target_id}'
+        f'{target_manager_base_url}/databases/{database.database_name}/'
+        f'targets/{target_id}'
     )
     requests.put(url=put_url, json=update_values)
 

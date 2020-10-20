@@ -21,7 +21,7 @@ class MockVWS(ContextDecorator):
     Route requests to Vuforia's Web Service APIs to fakes of those APIs.
     """
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(
         self,
         base_vws_url: str = 'https://vws.vuforia.com',
         base_vwq_url: str = 'https://cloudreco.vuforia.com',

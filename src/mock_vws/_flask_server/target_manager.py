@@ -16,12 +16,12 @@ from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
 from mock_vws.target import Target
 
-STORAGE_FLASK_APP = Flask(__name__)
+TARGET_MANAGER_FLASK_APP = Flask(__name__)
 
 VUFORIA_DATABASES: Set[VuforiaDatabase] = set()
 
 
-@STORAGE_FLASK_APP.route(
+@TARGET_MANAGER_FLASK_APP.route(
     '/databases/<string:database_name>',
     methods=['DELETE'],
 )
@@ -40,7 +40,7 @@ def delete_database(database_name: str) -> Tuple[str, int]:
     return '', HTTPStatus.OK
 
 
-@STORAGE_FLASK_APP.route('/databases', methods=['GET'])
+@TARGET_MANAGER_FLASK_APP.route('/databases', methods=['GET'])
 def get_databases() -> Tuple[str, int]:
     """
     Return a list of all databases.
@@ -49,7 +49,7 @@ def get_databases() -> Tuple[str, int]:
     return jsonify(databases), HTTPStatus.OK
 
 
-@STORAGE_FLASK_APP.route('/databases', methods=['POST'])
+@TARGET_MANAGER_FLASK_APP.route('/databases', methods=['POST'])
 def create_database() -> Tuple[str, int]:
     """
     Create a new database.
@@ -120,7 +120,7 @@ def create_database() -> Tuple[str, int]:
     return jsonify(database.to_dict()), HTTPStatus.CREATED
 
 
-@STORAGE_FLASK_APP.route(
+@TARGET_MANAGER_FLASK_APP.route(
     '/databases/<string:database_name>/targets',
     methods=['POST'],
 )
@@ -149,7 +149,7 @@ def create_target(database_name: str) -> Tuple[str, int]:
     return jsonify(target.to_dict()), HTTPStatus.CREATED
 
 
-@STORAGE_FLASK_APP.route(
+@TARGET_MANAGER_FLASK_APP.route(
     '/databases/<string:database_name>/targets/<string:target_id>',
     methods=['DELETE'],
 )
@@ -170,7 +170,7 @@ def delete_target(database_name: str, target_id: str) -> Tuple[str, int]:
     return jsonify(new_target.to_dict()), HTTPStatus.OK
 
 
-@STORAGE_FLASK_APP.route(
+@TARGET_MANAGER_FLASK_APP.route(
     '/databases/<string:database_name>/targets/<string:target_id>',
     methods=['PUT'],
 )
@@ -224,4 +224,4 @@ def update_target(database_name: str, target_id: str) -> Tuple[str, int]:
 
 
 if __name__ == '__main__':  # pragma: no cover
-    STORAGE_FLASK_APP.run(debug=True, host='0.0.0.0')
+    TARGET_MANAGER_FLASK_APP.run(debug=True, host='0.0.0.0')
