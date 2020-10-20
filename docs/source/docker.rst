@@ -9,11 +9,11 @@ Running the mock
 ----------------
 
 There are three containers required.
-One container mocks the VWS services, one container mocks the VWQ services and one container provides a shared storage backend.
+One container mocks the VWS services, one container mocks the VWQ services and one container provides a shared target manager backend.
 
 Each of these containers run their services on port 5000.
 
-The VWS and VWQ containers must point to the storage container using the :envvar:`TARGET_MANAGER_BACKEND` variable.
+The VWS and VWQ containers must point to the target manager container using the :envvar:`TARGET_MANAGER_BACKEND` variable.
 
 Building images from source
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -23,12 +23,12 @@ Building images from source
    export REPOSITORY_ROOT=$PWD
    export DOCKERFILE_DIR=$REPOSITORY_ROOT/src/mock_vws/_flask_server/dockerfiles
    export BASE_DOCKERFILE=$DOCKERFILE_DIR/base/Dockerfile
-   export TARGET_MANAGER_DOCKERFILE=$DOCKERFILE_DIR/storage/Dockerfile
+   export TARGET_MANAGER_DOCKERFILE=$DOCKERFILE_DIR/task_manager/Dockerfile
    export VWS_DOCKERFILE=$DOCKERFILE_DIR/vws/Dockerfile
    export VWQ_DOCKERFILE=$DOCKERFILE_DIR/vwq/Dockerfile
 
    export BASE_TAG=vws-mock:base
-   export TARGET_MANAGER_TAG=adamtheturtle/vws-mock-storage:latest
+   export TARGET_MANAGER_TAG=adamtheturtle/vuforia-target-manager-mock:latest
    export VWS_TAG=adamtheturtle/vuforia-vws-mock:latest
    export VWQ_TAG=adamtheturtle/vuforia-vwq-mock:latest
 
@@ -48,19 +48,19 @@ Creating containers
    docker run \
        --detach \
        --publish 5000:5000 \
-       --name vws-mock-storage \
+       --name vuforia-target-manager-mock \
        --network vws-bridge-network \
-       adamtheturtle/vws-mock-storage
+       adamtheturtle/vuforia-target-manager-mock
    docker run \
        --detach \
        --publish 5001:5000 \
-       -e TARGET_MANAGER_BACKEND=vws-mock-storage:5000 \
+       -e TARGET_MANAGER_BACKEND=vuforia-target-manager-mock:5000 \
        --network vws-bridge-network \
        adamtheturtle/vuforia-vws-mock
    docker run \
        --detach \
        --publish 5002:5000 \
-       -e TARGET_MANAGER_BACKEND=vws-mock-storage:5000 \
+       -e TARGET_MANAGER_BACKEND=vuforia-target-manager-mock:5000 \
        --network vws-bridge-network \
        adamtheturtle/vuforia-vwq-mock
 
@@ -71,11 +71,11 @@ Adding a database to the mock target manager
 When using Vuforia Web Services, it is necessary to create a database on the `Target Manager`_.
 This is a web interface which does not have an HTTP API.
 
-To mimic this functionality, this mock provides a storage container which has an HTTP API.
+To mimic this functionality, this mock provides a target manager container which has an HTTP API.
 
-To add a database, make a request to the following endpoint against the storage container:
+To add a database, make a request to the following endpoint against the target manager container:
 
-.. autoflask:: mock_vws._flask_server.storage:TARGET_MANAGER_FLASK_APP
+.. autoflask:: mock_vws._flask_server.target_manager:TARGET_MANAGER_FLASK_APP
    :endpoints: create_database
 
 For example, with the containers set up as in :ref:`creating-containers`, use ``curl``:
@@ -101,7 +101,7 @@ Deleting a database
 
 To delete a database use the following endpoint:
 
-.. autoflask:: mock_vws._flask_server.storage:TARGET_MANAGER_FLASK_APP
+.. autoflask:: mock_vws._flask_server.target_manager:TARGET_MANAGER_FLASK_APP
    :endpoints: delete_database
 
 
@@ -117,7 +117,7 @@ Required configuration
 .. envvar:: TARGET_MANAGER_BACKEND
 
    This is required by the VWS mock and the VWQ mock containers.
-   This is the route to the storage container from the other containers.
+   This is the route to the target manager container from the other containers.
 
 Optional configuration
 ^^^^^^^^^^^^^^^^^^^^^^
