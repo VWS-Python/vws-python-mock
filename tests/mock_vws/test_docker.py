@@ -59,13 +59,15 @@ def test_build_and_run(
 
     dockerfile_dir = repository_root / 'src/mock_vws/_flask_server/dockerfiles'
     base_dockerfile = dockerfile_dir / 'base' / 'Dockerfile'
-    task_manager_dockerfile = dockerfile_dir / 'task_manager' / 'Dockerfile'
+    target_manager_dockerfile = (
+        dockerfile_dir / 'target_manager' / 'Dockerfile'
+    )
     vws_dockerfile = dockerfile_dir / 'vws' / 'Dockerfile'
     vwq_dockerfile = dockerfile_dir / 'vwq' / 'Dockerfile'
 
     random = uuid.uuid4().hex
     base_tag = 'vws-mock:base'
-    task_manager_tag = 'vws-mock-task-manager:latest-' + random
+    target_manager_tag = 'vws-mock-target-manager:latest-' + random
     vws_tag = 'vws-mock-vws:latest-' + random
     vwq_tag = 'vws-mock-vwq:latest-' + random
 
@@ -80,10 +82,10 @@ def test_build_and_run(
         reason = 'We do not currently support using Windows containers.'
         pytest.skip(reason)
 
-    task_manager_image, _ = client.images.build(
+    target_manager_image, _ = client.images.build(
         path=str(repository_root),
-        dockerfile=str(task_manager_dockerfile),
-        tag=task_manager_tag,
+        dockerfile=str(target_manager_dockerfile),
+        tag=target_manager_tag,
     )
     vws_image, _ = client.images.build(
         path=str(repository_root),
@@ -97,13 +99,13 @@ def test_build_and_run(
     )
 
     database = VuforiaDatabase()
-    task_manager_container_name = 'vws-mock-task-manager-' + random
-    task_manager_base_url = f'http://{task_manager_container_name}:5000'
+    target_manager_container_name = 'vws-mock-target-manager-' + random
+    target_manager_base_url = f'http://{target_manager_container_name}:5000'
 
-    task_manager_container = client.containers.run(
-        image=task_manager_image,
+    target_manager_container = client.containers.run(
+        image=target_manager_image,
         detach=True,
-        name=task_manager_container_name,
+        name=target_manager_container_name,
         publish_all_ports=True,
         network=custom_bridge_network.name,
     )
@@ -113,7 +115,7 @@ def test_build_and_run(
         name='vws-mock-vws-' + random,
         publish_all_ports=True,
         network=custom_bridge_network.name,
-        environment={'STORAGE_BASE_URL': task_manager_base_url},
+        environment={'TARGET_MANAGER_BASE_URL': target_manager_base_url},
     )
     vwq_container = client.containers.run(
         image=vwq_image,
@@ -121,15 +123,17 @@ def test_build_and_run(
         name='vws-mock-vwq-' + random,
         publish_all_ports=True,
         network=custom_bridge_network.name,
-        environment={'STORAGE_BASE_URL': task_manager_base_url},
+        environment={'TARGET_MANAGER_BASE_URL': target_manager_base_url},
     )
 
-    task_manager_container.reload()
-    task_manager_port_attrs = task_manager_container.attrs['NetworkSettings'][
-        'Ports'
+    target_manager_container.reload()
+    target_manager_port_attrs = target_manager_container.attrs[
+        'NetworkSettings'
+    ]['Ports']
+    target_manager_host_ip = target_manager_port_attrs['5000/tcp'][0]['HostIp']
+    target_manager_host_port = target_manager_port_attrs['5000/tcp'][0][
+        'HostPort'
     ]
-    task_manager_host_ip = task_manager_port_attrs['5000/tcp'][0]['HostIp']
-    task_manager_host_port = task_manager_port_attrs['5000/tcp'][0]['HostPort']
 
     vws_container.reload()
     vws_port_attrs = vws_container.attrs['NetworkSettings']['Ports']
@@ -141,8 +145,11 @@ def test_build_and_run(
     vwq_host_ip = vwq_port_attrs['5000/tcp'][0]['HostIp']
     vwq_host_port = vwq_port_attrs['5000/tcp'][0]['HostPort']
 
+    target_manager_host_url = (
+        f'http://{target_manager_host_ip}:{target_manager_host_port}'
+    )
     response = requests.post(
-        url=f'http://{task_manager_host_ip}:{task_manager_host_port}/databases',
+        url=f'{target_manager_host_url}/databases',
         json=database.to_dict(),
     )
 
@@ -172,7 +179,7 @@ def test_build_and_run(
 
     matching_targets = cloud_reco_client.query(image=high_quality_image)
 
-    for container in (task_manager_container, vws_container, vwq_container):
+    for container in (target_manager_container, vws_container, vwq_container):
         container.stop()
         container.remove()
 

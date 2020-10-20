@@ -107,11 +107,11 @@ def _enable_use_docker_in_memory(
     # This is documented as a difference in the documentation for this package.
     VWS_FLASK_APP.config['TERMINATE_WSGI_INPUT'] = True
     CLOUDRECO_FLASK_APP.config['TERMINATE_WSGI_INPUT'] = True
-    task_manager_base_url = 'http://example.com'
-    VWS_FLASK_APP.config['TARGET_MANAGER_BASE_URL'] = task_manager_base_url
+    target_manager_base_url = 'http://example.com'
+    VWS_FLASK_APP.config['TARGET_MANAGER_BASE_URL'] = target_manager_base_url
     CLOUDRECO_FLASK_APP.config[
         'TARGET_MANAGER_BASE_URL'
-    ] = task_manager_base_url
+    ] = target_manager_base_url
 
     with requests_mock.Mocker(real_http=False) as mock:
         add_flask_app_to_mock(
@@ -129,29 +129,20 @@ def _enable_use_docker_in_memory(
         add_flask_app_to_mock(
             mock_obj=mock,
             flask_app=TARGET_MANAGER_FLASK_APP,
-            base_url=task_manager_base_url,
+            base_url=target_manager_base_url,
         )
 
-        databases = requests.get(
-            url=task_manager_base_url + '/databases'
-        ).json()
+        databases_url = target_manager_base_url + '/databases'
+        databases = requests.get(url=databases_url).json()
         for database in databases:
             database_name = database['database_name']
-            delete_url = task_manager_base_url + '/databases/' + database_name
-            requests.delete(url=delete_url)
+            requests.delete(url=databases_url + '/' + database_name)
 
         working_database_dict = working_database.to_dict()
         inactive_database_dict = inactive_database.to_dict()
 
-        requests.post(
-            url=task_manager_base_url + '/databases',
-            json=working_database_dict,
-        )
-
-        requests.post(
-            url=task_manager_base_url + '/databases',
-            json=inactive_database_dict,
-        )
+        requests.post(url=databases_url, json=working_database_dict)
+        requests.post(url=databases_url, json=inactive_database_dict)
 
         yield
 

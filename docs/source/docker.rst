@@ -23,7 +23,7 @@ Building images from source
    export REPOSITORY_ROOT=$PWD
    export DOCKERFILE_DIR=$REPOSITORY_ROOT/src/mock_vws/_flask_server/dockerfiles
    export BASE_DOCKERFILE=$DOCKERFILE_DIR/base/Dockerfile
-   export TARGET_MANAGER_DOCKERFILE=$DOCKERFILE_DIR/task_manager/Dockerfile
+   export TARGET_MANAGER_DOCKERFILE=$DOCKERFILE_DIR/target_manager/Dockerfile
    export VWS_DOCKERFILE=$DOCKERFILE_DIR/vws/Dockerfile
    export VWQ_DOCKERFILE=$DOCKERFILE_DIR/vwq/Dockerfile
 
@@ -33,7 +33,7 @@ Building images from source
    export VWQ_TAG=adamtheturtle/vuforia-vwq-mock:latest
 
    docker build $REPOSITORY_ROOT --file $BASE_DOCKERFILE --tag $BASE_TAG
-   docker build $REPOSITORY_ROOT --file $TARGET_MANAGER_DOCKERFILE --tag $STORAGE_TAG
+   docker build $REPOSITORY_ROOT --file $TARGET_MANAGER_DOCKERFILE --tag $TARGET_MANAGER_TAG
    docker build $REPOSITORY_ROOT --file $VWS_DOCKERFILE --tag $VWS_TAG
    docker build $REPOSITORY_ROOT --file $VWQ_DOCKERFILE --tag $VWQ_TAG
 
