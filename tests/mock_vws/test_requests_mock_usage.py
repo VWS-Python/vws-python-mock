@@ -1,5 +1,5 @@
 """
-Tests for the usage of the mock.
+Tests for the usage of the mock for ``requests``.
 """
 
 import email.utils
