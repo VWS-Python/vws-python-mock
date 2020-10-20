@@ -23,6 +23,7 @@ from mock_vws._query_validators.exceptions import (
     ValidatorException,
 )
 from mock_vws.database import VuforiaDatabase
+from mock_vws.target_manager import TargetManager
 
 ROUTES = set()
 
@@ -90,7 +91,7 @@ class MockVuforiaWebQueryAPI:
             routes: The `Route`s to be used in the mock.
         """
         self.routes: Set[Route] = ROUTES
-        self.target_manager: Set[VuforiaDatabase] = set()
+        self.target_manager = TargetManager()
         self._query_processes_deletion_seconds = (
             query_processes_deletion_seconds
         )
@@ -113,7 +114,7 @@ class MockVuforiaWebQueryAPI:
                 request_headers=request.headers,
                 request_body=request.body,
                 request_method=request.method,
-                databases=self.target_manager,
+                databases=self.target_manager.databases,
             )
         except ValidatorException as exc:
             context.headers = exc.headers
@@ -126,7 +127,7 @@ class MockVuforiaWebQueryAPI:
                 request_body=request.body,
                 request_method=request.method,
                 request_path=request.path,
-                databases=self.target_manager,
+                databases=self.target_manager.databases,
                 query_processes_deletion_seconds=(
                     self._query_processes_deletion_seconds
                 ),

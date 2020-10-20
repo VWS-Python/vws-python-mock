@@ -97,7 +97,7 @@ class MockVuforiaWebServicesAPI:
             target_manager: Target Manager which stores databases.
             routes: The `Route`s to be used in the mock.
         """
-        self.target_manager: Set[VuforiaDatabase] = set()
+        self.target_manager = TargetManager()
         self.routes: Set[Route] = ROUTES
         self._processing_time_seconds = processing_time_seconds
 
@@ -122,7 +122,7 @@ class MockVuforiaWebServicesAPI:
                 request_body=request.body,
                 request_method=request.method,
                 request_path=request.path,
-                databases=self.target_manager,
+                databases=self.target_manager.databases,
             )
         except ValidatorException as exc:
             context.headers = exc.headers
@@ -134,7 +134,7 @@ class MockVuforiaWebServicesAPI:
             request_body=request.body,
             request_method=request.method,
             request_path=request.path,
-            databases=self.target_manager,
+            databases=self.target_manager.databases,
         )
 
         assert isinstance(database, VuforiaDatabase)
@@ -196,7 +196,7 @@ class MockVuforiaWebServicesAPI:
                 request_body=request.body,
                 request_method=request.method,
                 request_path=request.path,
-                databases=self.target_manager,
+                databases=self.target_manager.databases,
             )
         except ValidatorException as exc:
             context.headers = exc.headers
@@ -209,7 +209,7 @@ class MockVuforiaWebServicesAPI:
             request_body=request.body,
             request_method=request.method,
             request_path=request.path,
-            databases=self.target_manager,
+            databases=self.target_manager.databases,
         )
 
         assert isinstance(database, VuforiaDatabase)
@@ -260,7 +260,7 @@ class MockVuforiaWebServicesAPI:
                 request_body=request.body,
                 request_method=request.method,
                 request_path=request.path,
-                databases=self.target_manager,
+                databases=self.target_manager.databases,
             )
         except ValidatorException as exc:
             context.headers = exc.headers
@@ -274,7 +274,7 @@ class MockVuforiaWebServicesAPI:
             request_body=request.body,
             request_method=request.method,
             request_path=request.path,
-            databases=self.target_manager,
+            databases=self.target_manager.databases,
         )
 
         assert isinstance(database, VuforiaDatabase)
@@ -323,7 +323,7 @@ class MockVuforiaWebServicesAPI:
                 request_body=request.body,
                 request_method=request.method,
                 request_path=request.path,
-                databases=self.target_manager,
+                databases=self.target_manager.databases,
             )
         except ValidatorException as exc:
             context.headers = exc.headers
@@ -335,7 +335,7 @@ class MockVuforiaWebServicesAPI:
             request_body=request.body,
             request_method=request.method,
             request_path=request.path,
-            databases=self.target_manager,
+            databases=self.target_manager.databases,
         )
 
         assert isinstance(database, VuforiaDatabase)
@@ -375,7 +375,7 @@ class MockVuforiaWebServicesAPI:
                 request_body=request.body,
                 request_method=request.method,
                 request_path=request.path,
-                databases=self.target_manager,
+                databases=self.target_manager.databases,
             )
         except ValidatorException as exc:
             context.headers = exc.headers
@@ -387,7 +387,7 @@ class MockVuforiaWebServicesAPI:
             request_body=request.body,
             request_method=request.method,
             request_path=request.path,
-            databases=self.target_manager,
+            databases=self.target_manager.databases,
         )
         assert isinstance(database, VuforiaDatabase)
         target_id = request.path.split('/')[-1]
@@ -440,7 +440,7 @@ class MockVuforiaWebServicesAPI:
                 request_body=request.body,
                 request_method=request.method,
                 request_path=request.path,
-                databases=self.target_manager,
+                databases=self.target_manager.databases,
             )
         except ValidatorException as exc:
             context.headers = exc.headers
@@ -452,7 +452,7 @@ class MockVuforiaWebServicesAPI:
             request_body=request.body,
             request_method=request.method,
             request_path=request.path,
-            databases=self.target_manager,
+            databases=self.target_manager.databases,
         )
         assert isinstance(database, VuforiaDatabase)
         target_id = request.path.split('/')[-1]
@@ -508,7 +508,7 @@ class MockVuforiaWebServicesAPI:
                 request_body=request.body,
                 request_method=request.method,
                 request_path=request.path,
-                databases=self.target_manager,
+                databases=self.target_manager.databases,
             )
         except ValidatorException as exc:
             context.headers = exc.headers
@@ -520,7 +520,7 @@ class MockVuforiaWebServicesAPI:
             request_body=request.body,
             request_method=request.method,
             request_path=request.path,
-            databases=self.target_manager,
+            databases=self.target_manager.databases,
         )
 
         assert isinstance(database, VuforiaDatabase)
@@ -619,7 +619,7 @@ class MockVuforiaWebServicesAPI:
                 request_body=request.body,
                 request_method=request.method,
                 request_path=request.path,
-                databases=self.target_manager,
+                databases=self.target_manager.databases,
             )
         except ValidatorException as exc:
             context.headers = exc.headers
@@ -631,7 +631,7 @@ class MockVuforiaWebServicesAPI:
             request_body=request.body,
             request_method=request.method,
             request_path=request.path,
-            databases=self.target_manager,
+            databases=self.target_manager.databases,
         )
         assert isinstance(database, VuforiaDatabase)
         target_id = request.path.split('/')[-1]
