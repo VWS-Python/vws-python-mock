@@ -33,7 +33,7 @@ VWS_FLASK_APP = Flask(import_name=__name__)
 VWS_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
 VWS_FLASK_APP.config['STORAGE_BASE_URL'] = os.environ.get('STORAGE_BASE_URL')
 VWS_FLASK_APP.config['PROCESSING_TIME_SECONDS'] = float(
-    os.environ.get('PROCESSING_TIME_SECONDS', '0.2')
+    os.environ.get('PROCESSING_TIME_SECONDS', '0.2'),
 )
 
 
