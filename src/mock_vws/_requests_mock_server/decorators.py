@@ -98,7 +98,7 @@ class MockVWS(ContextDecorator):
             'All {key_name}s must be unique. '
             'There is already a database with the {key_name} "{value}".'
         )
-        for existing_db in self._mock_vws_api.databases:
+        for existing_db in self._mock_vws_api.target_manager:
             for existing, new, key_name in (
                 (
                     existing_db.server_access_key,
@@ -125,8 +125,8 @@ class MockVWS(ContextDecorator):
                     message = message_fmt.format(key_name=key_name, value=new)
                     raise ValueError(message)
 
-        self._mock_vws_api.databases.add(database)
-        self._mock_vwq_api.databases.add(database)
+        self._mock_vws_api.target_manager.add(database)
+        self._mock_vwq_api.target_manager.add(database)
 
     def __enter__(self) -> 'MockVWS':
         """

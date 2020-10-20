@@ -86,11 +86,11 @@ class MockVuforiaWebQueryAPI:
                 return a 500 response on a match.
 
         Attributes:
+            target_manager: Target manager.
             routes: The `Route`s to be used in the mock.
-            databases: Target databases.
         """
         self.routes: Set[Route] = ROUTES
-        self.databases: Set[VuforiaDatabase] = set()
+        self.target_manager: Set[VuforiaDatabase] = set()
         self._query_processes_deletion_seconds = (
             query_processes_deletion_seconds
         )
@@ -113,7 +113,7 @@ class MockVuforiaWebQueryAPI:
                 request_headers=request.headers,
                 request_body=request.body,
                 request_method=request.method,
-                databases=self.databases,
+                databases=self.target_manager,
             )
         except ValidatorException as exc:
             context.headers = exc.headers
@@ -126,7 +126,7 @@ class MockVuforiaWebQueryAPI:
                 request_body=request.body,
                 request_method=request.method,
                 request_path=request.path,
-                databases=self.databases,
+                databases=self.target_manager,
                 query_processes_deletion_seconds=(
                     self._query_processes_deletion_seconds
                 ),
