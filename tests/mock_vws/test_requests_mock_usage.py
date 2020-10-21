@@ -20,11 +20,10 @@ from mock_vws import MockVWS
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
 from mock_vws.target import Target
-
 from tests.mock_vws.utils.usage_test_helpers import (
     process_deletion_seconds,
-    recognize_deletion_seconds,
     processing_time_seconds,
+    recognize_deletion_seconds,
 )
 
 
@@ -241,7 +240,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
         expected = 0.2
         assert abs(expected - time_taken) < self.LEEWAY
 
-    def test_with_noprocessing_time(
+    def test_with_no_processing_time(
         self,
         high_quality_image: io.BytesIO,
     ) -> None:
