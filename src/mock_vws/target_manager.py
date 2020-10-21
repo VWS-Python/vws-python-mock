@@ -67,6 +67,11 @@ class TargetManager:
                     database.client_secret_key,
                     'client secret key',
                 ),
+                (
+                    existing_db.database_name,
+                    database.database_name,
+                    'name',
+                ),
             ):
                 if existing == new:
                     message = message_fmt.format(key_name=key_name, value=new)
