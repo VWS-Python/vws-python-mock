@@ -35,7 +35,7 @@ def delete_database(database_name: str) -> Tuple[str, int]:
     try:
         (matching_database,) = {
             database
-            for database in VUFORIA_DATABASES
+            for database in TARGET_MANAGER.databases
             if database_name == database.database_name
         }
     except ValueError:
