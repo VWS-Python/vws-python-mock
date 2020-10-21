@@ -3,19 +3,6 @@ Tests for the usage of the mock Flask application.
 """
 
 import io
-<<<<<<< HEAD
-from datetime import datetime, timedelta
-from typing import Generator
-import uuid
-
-import requests
-from _pytest.monkeypatch import MonkeyPatch
-import pytest
-from requests_mock_flask import add_flask_app_to_mock
-from requests_mock import Mocker
-from vws import VWS
-from vws.reports import TargetStatuses
-=======
 import uuid
 
 import pytest
@@ -23,15 +10,14 @@ import requests
 from _pytest.monkeypatch import MonkeyPatch
 from requests_mock import Mocker
 from requests_mock_flask import add_flask_app_to_mock
-from vws import VWS
 
 from mock_vws._flask_server.target_manager import TARGET_MANAGER_FLASK_APP
 from mock_vws._flask_server.vws import VWS_FLASK_APP
 from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils.usage_test_helpers import processing_time_seconds
 
-
 _EXAMPLE_URL_FOR_TARGET_MANAGER = 'http://' + uuid.uuid4().hex + '.com'
+
 
 @pytest.fixture(autouse=True)
 def enable_requests_mock(
