@@ -20,11 +20,10 @@ from mock_vws import MockVWS
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
 from mock_vws.target import Target
-
 from tests.mock_vws.utils.usage_test_helpers import (
     process_deletion_seconds,
-    recognize_deletion_seconds,
     processing_time_seconds,
+    recognize_deletion_seconds,
 )
 
 
