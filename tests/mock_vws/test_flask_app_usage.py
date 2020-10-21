@@ -58,13 +58,12 @@ class TestProcessingTime:
     def test_default(
         self,
         image_file_failed_state: io.BytesIO,
-        target_manager_base_url: str,
     ) -> None:
         """
         By default, targets in the mock take 0.5 seconds to be processed.
         """
         database = VuforiaDatabase()
-        databases_url = target_manager_base_url + '/databases'
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
         requests.post(url=databases_url, json=database.to_dict())
 
         time_taken = processing_time_seconds(
