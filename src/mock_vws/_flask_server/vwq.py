@@ -26,25 +26,14 @@ from mock_vws.database import VuforiaDatabase
 
 CLOUDRECO_FLASK_APP = Flask(import_name=__name__)
 CLOUDRECO_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
-CLOUDRECO_FLASK_APP.config['TARGET_MANAGER_BASE_URL'] = os.environ.get(
-    'TARGET_MANAGER_BASE_URL',
-)
-CLOUDRECO_FLASK_APP.config['DELETION_PROCESSING_SECONDS'] = float(
-    os.environ.get('DELETION_PROCESSING_SECONDS', '0.2'),
-)
-CLOUDRECO_FLASK_APP.config['DELETION_RECOGNITION_SECONDS'] = float(
-    os.environ.get('DELETION_RECOGNITION_SECONDS', '0.2'),
-)
 
 
 def get_all_databases() -> Set[VuforiaDatabase]:
     """
     Get all database objects from the target manager back-end.
     """
-    target_manager_base_url = CLOUDRECO_FLASK_APP.config[
-        'TARGET_MANAGER_BASE_URL'
-    ]
-    response = requests.get(url=target_manager_base_url + '/databases')
+    target_manager_base_url = os.environ['TARGET_MANAGER_BASE_URL']
+    response = requests.get(url=f'{target_manager_base_url}/databases')
     return {
         VuforiaDatabase.from_dict(database_dict=database_dict)
         for database_dict in response.json()
@@ -106,12 +95,12 @@ def query() -> Response:
     """
     Perform an image recognition query.
     """
-    query_processes_deletion_seconds = CLOUDRECO_FLASK_APP.config[
-        'DELETION_PROCESSING_SECONDS'
-    ]
-    query_recognizes_deletion_seconds = CLOUDRECO_FLASK_APP.config[
-        'DELETION_RECOGNITION_SECONDS'
-    ]
+    query_processes_deletion_seconds = float(
+        os.environ.get('DELETION_PROCESSING_SECONDS', '3.0'),
+    )
+    query_recognizes_deletion_seconds = float(
+        os.environ.get('DELETION_RECOGNITION_SECONDS', '0.2'),
+    )
 
     databases = get_all_databases()
     request_body = request.stream.read()

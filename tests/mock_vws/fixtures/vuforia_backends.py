@@ -11,6 +11,7 @@ import pytest
 import requests
 import requests_mock
 from _pytest.fixtures import SubRequest
+from _pytest.monkeypatch import MonkeyPatch
 from requests_mock_flask import add_flask_app_to_mock
 from vws import VWS
 from vws.exceptions.vws_exceptions import TargetStatusNotSuccess
@@ -56,7 +57,9 @@ def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
 def _enable_use_real_vuforia(
     working_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
+    monkeypatch: MonkeyPatch,
 ) -> Generator:
+    assert monkeypatch
     assert inactive_database
     _delete_all_targets(database_keys=working_database)
     yield
@@ -65,7 +68,9 @@ def _enable_use_real_vuforia(
 def _enable_use_mock_vuforia(
     working_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
+    monkeypatch: MonkeyPatch,
 ) -> Generator:
+    assert monkeypatch
     working_database = VuforiaDatabase(
         database_name=working_database.database_name,
         server_access_key=working_database.server_access_key,
@@ -92,6 +97,7 @@ def _enable_use_mock_vuforia(
 def _enable_use_docker_in_memory(
     working_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
+    monkeypatch: MonkeyPatch,
 ) -> Generator:
     # We set ``wsgi.input_terminated`` to ``True`` so that when going through
     # ``requests``, the Flask applications
@@ -107,11 +113,12 @@ def _enable_use_docker_in_memory(
     # This is documented as a difference in the documentation for this package.
     VWS_FLASK_APP.config['TERMINATE_WSGI_INPUT'] = True
     CLOUDRECO_FLASK_APP.config['TERMINATE_WSGI_INPUT'] = True
+
     target_manager_base_url = 'http://example.com'
-    VWS_FLASK_APP.config['TARGET_MANAGER_BASE_URL'] = target_manager_base_url
-    CLOUDRECO_FLASK_APP.config[
-        'TARGET_MANAGER_BASE_URL'
-    ] = target_manager_base_url
+    monkeypatch.setenv(
+        name='TARGET_MANAGER_BASE_URL',
+        value=target_manager_base_url,
+    )
 
     with requests_mock.Mocker(real_http=False) as mock:
         add_flask_app_to_mock(
@@ -138,11 +145,8 @@ def _enable_use_docker_in_memory(
             database_name = database['database_name']
             requests.delete(url=databases_url + '/' + database_name)
 
-        working_database_dict = working_database.to_dict()
-        inactive_database_dict = inactive_database.to_dict()
-
-        requests.post(url=databases_url, json=working_database_dict)
-        requests.post(url=databases_url, json=inactive_database_dict)
+        requests.post(url=databases_url, json=working_database.to_dict())
+        requests.post(url=databases_url, json=inactive_database.to_dict())
 
         yield
 
@@ -165,6 +169,7 @@ def verify_mock_vuforia(
     request: SubRequest,
     vuforia_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
+    monkeypatch: MonkeyPatch,
 ) -> Generator:
     """
     Test functions which use this fixture are run twice. Once with the real
@@ -186,4 +191,5 @@ def verify_mock_vuforia(
     yield from enable_function(
         working_database=vuforia_database,
         inactive_database=inactive_database,
+        monkeypatch=monkeypatch,
     )

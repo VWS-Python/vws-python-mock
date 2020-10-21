@@ -130,7 +130,7 @@ Query container
    The number of seconds after a target deletion is recognized that the
    query endpoint will return a 500 response on a match.
 
-   Default 0.2
+   Default 3.0
 
 .. envvar:: DELETION_RECOGNITION_SECONDS
 
@@ -146,4 +146,4 @@ VWS container
 
    The number of seconds to process each image for.
 
-   Default 0.2
+   Default 0.5
