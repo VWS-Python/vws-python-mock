@@ -12,9 +12,14 @@ from requests_mock import Mocker
 from requests_mock_flask import add_flask_app_to_mock
 
 from mock_vws._flask_server.target_manager import TARGET_MANAGER_FLASK_APP
+from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
 from mock_vws._flask_server.vws import VWS_FLASK_APP
 from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils.usage_test_helpers import processing_time_seconds
+from tests.mock_vws.utils.usage_test_helpers import (
+    processing_time_seconds,
+    recognize_deletion_seconds,
+    process_deletion_seconds,
+)
 
 _EXAMPLE_URL_FOR_TARGET_MANAGER = 'http://' + uuid.uuid4().hex + '.com'
 
@@ -31,6 +36,12 @@ def enable_requests_mock(
         mock_obj=requests_mock,
         flask_app=VWS_FLASK_APP,
         base_url='https://vws.vuforia.com',
+    )
+
+    add_flask_app_to_mock(
+        mock_obj=requests_mock,
+        flask_app=CLOUDRECO_FLASK_APP,
+        base_url='https://cloudreco.vuforia.com',
     )
 
     add_flask_app_to_mock(
@@ -109,7 +120,6 @@ class TestCustomQueryRecognizesDeletionSeconds:
     def test_default(
         self,
         high_quality_image: io.BytesIO,
-        target_manager_base_url: str,
     ) -> None:
         """
         By default it takes zero seconds for the Query API on the mock to
@@ -119,7 +129,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
         See ``test_query`` for more information.
         """
         database = VuforiaDatabase()
-        databases_url = target_manager_base_url + '/databases'
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
         requests.post(url=databases_url, json=database.to_dict())
         time_taken = recognize_deletion_seconds(
             high_quality_image=high_quality_image,
@@ -141,11 +151,11 @@ class TestCustomQueryRecognizesDeletionSeconds:
         # We choose a low time for a quick test.
         query_recognizes_deletion = 0.5
         database = VuforiaDatabase()
-        databases_url = target_manager_base_url + '/databases'
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
         requests.post(url=databases_url, json=database.to_dict())
         monkeypatch.setenv(
-            name='TARGET_MANAGER_BASE_URL',
-            value=query_recognizes_deletion,
+            name='DELETION_RECOGNITION_SECONDS',
+            value=str(query_recognizes_deletion),
         )
         time_taken = recognize_deletion_seconds(
             high_quality_image=high_quality_image,
@@ -174,12 +184,12 @@ class TestCustomQueryProcessDeletionSeconds:
         See ``test_query`` for more information.
         """
         database = VuforiaDatabase()
-        with MockVWS() as mock:
-            mock.add_database(database=database)
-            time_taken = process_deletion_seconds(
-                high_quality_image=high_quality_image,
-                vuforia_database=database,
-            )
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
+        requests.post(url=databases_url, json=database.to_dict())
+        time_taken = process_deletion_seconds(
+            high_quality_image=high_quality_image,
+            vuforia_database=database,
+        )
 
         expected = 3
         assert abs(expected - time_taken) < 0.1
@@ -187,6 +197,7 @@ class TestCustomQueryProcessDeletionSeconds:
     def test_custom(
         self,
         high_quality_image: io.BytesIO,
+        monkeypatch: MonkeyPatch,
     ) -> None:
         """
         It is possible to use set a custom amount of time that it takes for the
@@ -195,14 +206,16 @@ class TestCustomQueryProcessDeletionSeconds:
         # We choose a low time for a quick test.
         query_processes_deletion = 0.1
         database = VuforiaDatabase()
-        with MockVWS(
-            query_processes_deletion_seconds=query_processes_deletion,
-        ) as mock:
-            mock.add_database(database=database)
-            time_taken = process_deletion_seconds(
-                high_quality_image=high_quality_image,
-                vuforia_database=database,
-            )
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
+        requests.post(url=databases_url, json=database.to_dict())
+        monkeypatch.setenv(
+            name='DELETION_PROCESSING_SECONDS',
+            value=str(query_processes_deletion),
+        )
+        time_taken = process_deletion_seconds(
+            high_quality_image=high_quality_image,
+            vuforia_database=database,
+        )
 
         expected = query_processes_deletion
         assert abs(expected - time_taken) < 0.1
