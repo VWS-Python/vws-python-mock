@@ -6,7 +6,7 @@ import email.utils
 import io
 import json
 import socket
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import pytest
 import requests
@@ -89,78 +89,70 @@ class TestRealHTTP:
                 request_unmocked_address()
 
 
+def _processing_time_seconds(
+    vuforia_database: VuforiaDatabase,
+    image: io.BytesIO,
+) -> float:
+    vws_client = VWS(
+        server_access_key=vuforia_database.server_access_key,
+        server_secret_key=vuforia_database.server_secret_key,
+    )
+    target_id = vws_client.add_target(
+        name='example',
+        width=1,
+        image=image,
+        active_flag=True,
+        application_metadata=None,
+    )
+    start_time = datetime.now()
+
+    while (
+        vws_client.get_target_record(target_id=target_id).status
+        == TargetStatuses.PROCESSING
+    ):
+        pass
+
+    return (datetime.now() - start_time).total_seconds()
+
+
 class TestProcessingTime:
     """
     Tests for the time taken to process targets in the mock.
     """
+
+    # There is a race condition in this test type - if tests start to
+    # fail, consider increasing the leeway.
+    LEEWAY = 0.05
 
     def test_default(self, image_file_failed_state: io.BytesIO) -> None:
         """
         By default, targets in the mock take 0.5 seconds to be processed.
         """
         database = VuforiaDatabase()
-        vws_client = VWS(
-            server_access_key=database.server_access_key,
-            server_secret_key=database.server_secret_key,
-        )
         with MockVWS() as mock:
             mock.add_database(database=database)
-
-            target_id = vws_client.add_target(
-                name='example',
-                width=1,
+            processing_time_seconds = _processing_time_seconds(
+                vuforia_database=database,
                 image=image_file_failed_state,
-                active_flag=True,
-                application_metadata=None,
             )
-            start_time = datetime.now()
 
-            while True:
-                target_details = vws_client.get_target_record(
-                    target_id=target_id,
-                )
-
-                status = target_details.status
-                if status != TargetStatuses.PROCESSING:
-                    elapsed_time = datetime.now() - start_time
-                    # There is a race condition in this test - if it starts to
-                    # fail, maybe extend the acceptable range.
-                    assert elapsed_time < timedelta(seconds=0.55)
-                    assert elapsed_time > timedelta(seconds=0.49)
-                    return
+        expected = 0.5
+        assert abs(expected - processing_time_seconds) < self.LEEWAY
 
     def test_custom(self, image_file_failed_state: io.BytesIO) -> None:
         """
         It is possible to set a custom processing time.
         """
         database = VuforiaDatabase()
-        vws_client = VWS(
-            server_access_key=database.server_access_key,
-            server_secret_key=database.server_secret_key,
-        )
         with MockVWS(processing_time_seconds=0.1) as mock:
             mock.add_database(database=database)
-            target_id = vws_client.add_target(
-                name='example',
-                width=1,
+            processing_time_seconds = _processing_time_seconds(
+                vuforia_database=database,
                 image=image_file_failed_state,
-                active_flag=True,
-                application_metadata=None,
             )
 
-            start_time = datetime.now()
-
-            while True:
-                target_details = vws_client.get_target_record(
-                    target_id=target_id,
-                )
-
-                status = target_details.status
-                if status != TargetStatuses.PROCESSING:
-                    elapsed_time = datetime.now() - start_time
-                    assert elapsed_time < timedelta(seconds=0.15)
-                    assert elapsed_time > timedelta(seconds=0.09)
-                    return
+        expected = 0.1
+        assert abs(expected - processing_time_seconds) < self.LEEWAY
 
 
 class TestDatabaseName:
@@ -319,35 +311,35 @@ def _wait_for_deletion_processed(
         return
 
 
+def _recognize_deletion_seconds(
+    high_quality_image: io.BytesIO,
+    vuforia_database: VuforiaDatabase,
+) -> float:
+    """
+    The number of seconds it takes for the query endpoint to recognize a
+    deletion.
+    """
+    _add_and_delete_target(
+        image=high_quality_image,
+        vuforia_database=vuforia_database,
+    )
+
+    time_after_deletion = datetime.now()
+
+    _wait_for_deletion_recognized(
+        image=high_quality_image,
+        vuforia_database=vuforia_database,
+    )
+
+    time_difference = datetime.now() - time_after_deletion
+    return time_difference.total_seconds()
+
+
 class TestCustomQueryRecognizesDeletionSeconds:
     """
     Tests for setting the amount of time after a target has been deleted
     until it is not recognized by the query endpoint.
     """
-
-    def _recognize_deletion_seconds(
-        self,
-        high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
-    ) -> float:
-        """
-        The number of seconds it takes for the query endpoint to recognize a
-        deletion.
-        """
-        _add_and_delete_target(
-            image=high_quality_image,
-            vuforia_database=vuforia_database,
-        )
-
-        time_after_deletion = datetime.now()
-
-        _wait_for_deletion_recognized(
-            image=high_quality_image,
-            vuforia_database=vuforia_database,
-        )
-
-        time_difference = datetime.now() - time_after_deletion
-        return time_difference.total_seconds()
 
     def test_default(
         self,
@@ -363,7 +355,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
         database = VuforiaDatabase()
         with MockVWS() as mock:
             mock.add_database(database=database)
-            recognize_deletion_seconds = self._recognize_deletion_seconds(
+            recognize_deletion_seconds = _recognize_deletion_seconds(
                 high_quality_image=high_quality_image,
                 vuforia_database=database,
             )
@@ -381,7 +373,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
         database = VuforiaDatabase()
         with MockVWS(query_processes_deletion_seconds=0) as mock:
             mock.add_database(database=database)
-            recognize_deletion_seconds = self._recognize_deletion_seconds(
+            recognize_deletion_seconds = _recognize_deletion_seconds(
                 high_quality_image=high_quality_image,
                 vuforia_database=database,
             )
@@ -404,7 +396,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
             query_recognizes_deletion_seconds=query_recognizes_deletion,
         ) as mock:
             mock.add_database(database=database)
-            recognize_deletion_seconds = self._recognize_deletion_seconds(
+            recognize_deletion_seconds = _recognize_deletion_seconds(
                 high_quality_image=high_quality_image,
                 vuforia_database=database,
             )
@@ -413,40 +405,40 @@ class TestCustomQueryRecognizesDeletionSeconds:
         assert abs(expected - recognize_deletion_seconds) < 0.15
 
 
+def _process_deletion_seconds(
+    high_quality_image: io.BytesIO,
+    vuforia_database: VuforiaDatabase,
+) -> float:
+    """
+    The number of seconds it takes for the query endpoint to process a
+    deletion.
+    """
+    _add_and_delete_target(
+        image=high_quality_image,
+        vuforia_database=vuforia_database,
+    )
+
+    _wait_for_deletion_recognized(
+        image=high_quality_image,
+        vuforia_database=vuforia_database,
+    )
+
+    time_after_deletion_recognized = datetime.now()
+
+    _wait_for_deletion_processed(
+        image=high_quality_image,
+        vuforia_database=vuforia_database,
+    )
+
+    time_difference = datetime.now() - time_after_deletion_recognized
+    return time_difference.total_seconds()
+
+
 class TestCustomQueryProcessDeletionSeconds:
     """
     Tests for setting the amount of time after a target has been deleted
     until it is not processed by the query endpoint.
     """
-
-    def _process_deletion_seconds(
-        self,
-        high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
-    ) -> float:
-        """
-        The number of seconds it takes for the query endpoint to process a
-        deletion.
-        """
-        _add_and_delete_target(
-            image=high_quality_image,
-            vuforia_database=vuforia_database,
-        )
-
-        _wait_for_deletion_recognized(
-            image=high_quality_image,
-            vuforia_database=vuforia_database,
-        )
-
-        time_after_deletion_recognized = datetime.now()
-
-        _wait_for_deletion_processed(
-            image=high_quality_image,
-            vuforia_database=vuforia_database,
-        )
-
-        time_difference = datetime.now() - time_after_deletion_recognized
-        return time_difference.total_seconds()
 
     def test_default(
         self,
@@ -462,7 +454,7 @@ class TestCustomQueryProcessDeletionSeconds:
         database = VuforiaDatabase()
         with MockVWS() as mock:
             mock.add_database(database=database)
-            process_deletion_seconds = self._process_deletion_seconds(
+            process_deletion_seconds = _process_deletion_seconds(
                 high_quality_image=high_quality_image,
                 vuforia_database=database,
             )
@@ -485,7 +477,7 @@ class TestCustomQueryProcessDeletionSeconds:
             query_processes_deletion_seconds=query_processes_deletion,
         ) as mock:
             mock.add_database(database=database)
-            process_deletion_seconds = self._process_deletion_seconds(
+            process_deletion_seconds = _process_deletion_seconds(
                 high_quality_image=high_quality_image,
                 vuforia_database=database,
             )
