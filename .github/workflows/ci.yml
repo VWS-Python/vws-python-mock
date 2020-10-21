@@ -106,6 +106,10 @@ jobs:
           ENCRYPTED_FILE: secrets.tar.gpg
           LARGE_SECRET_PASSPHRASE: ${{ secrets.PASSPHRASE_FOR_VUFORIA_SECRETS }}
 
+      - name: "Run tests"
+        run: |
+          pytest -s -vvv --exitfirst --cov=src/ --cov=tests --cov-report=xml tests/mock_vws/${{ matrix.ci_pattern }}
+
       - name: "Show coverage file"
         run: |
           # Sometimes we have been sure that we have 100% coverage, but codecov
@@ -114,10 +118,6 @@ jobs:
           # We show the coverage file here to help with debugging.
           # https://github.com/VWS-Python/vws-python-mock/issues/708
           cat ./coverage.xml
-
-      - name: "Run tests"
-        run: |
-          pytest -s -vvv --exitfirst --cov=src/ --cov=tests --cov-report=xml tests/mock_vws/${{ matrix.ci_pattern }}
 
       - name: "Upload coverage to Codecov"
         uses: "codecov/codecov-action@v1.0.13"
