@@ -479,21 +479,19 @@ class TestAddDatabase:
         """
         It is not possible to have multiple databases with matching keys.
         """
-        server_access_key = '1'
-        server_secret_key = '2'
-        client_access_key = '3'
-        client_secret_key = '4'
         database = VuforiaDatabase(
-            server_access_key=server_access_key,
-            server_secret_key=server_secret_key,
-            client_access_key=client_access_key,
-            client_secret_key=client_secret_key,
+            server_access_key='1',
+            server_secret_key='2',
+            client_access_key='3',
+            client_secret_key='4',
+            database_name='5',
         )
 
         bad_server_access_key_db = VuforiaDatabase(server_access_key='1')
         bad_server_secret_key_db = VuforiaDatabase(server_secret_key='2')
         bad_client_access_key_db = VuforiaDatabase(client_access_key='3')
         bad_client_secret_key_db = VuforiaDatabase(client_secret_key='4')
+        bad_database_name_db = VuforiaDatabase(database_name='5')
 
         server_access_key_conflict_error = (
             'All server access keys must be unique. '
@@ -511,6 +509,10 @@ class TestAddDatabase:
             'All client secret keys must be unique. '
             'There is already a database with the client secret key "4".'
         )
+        database_name_conflict_error = (
+            'All names must be unique. '
+            'There is already a database with the name "5".'
+        )
 
         with MockVWS() as mock:
             mock.add_database(database=database)
@@ -519,6 +521,7 @@ class TestAddDatabase:
                 (bad_server_secret_key_db, server_secret_key_conflict_error),
                 (bad_client_access_key_db, client_access_key_conflict_error),
                 (bad_client_secret_key_db, client_secret_key_conflict_error),
+                (bad_database_name_db, database_name_conflict_error),
             ):
                 with pytest.raises(ValueError) as exc:
                     mock.add_database(database=bad_database)
