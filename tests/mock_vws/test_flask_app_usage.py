@@ -270,6 +270,10 @@ class TestDeleteDatabase:
     """
 
     def test_not_found(self) -> None:
+        """
+        A 404 error is returned when trying to delete a database which does not
+        exist.
+        """
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
         delete_url = databases_url + '/' + 'foobar'
         response = requests.delete(url=delete_url, json={})
