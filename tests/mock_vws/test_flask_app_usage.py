@@ -4,21 +4,23 @@ Tests for the usage of the mock Flask application.
 
 import io
 import uuid
+from http import HTTPStatus
 
 import pytest
 import requests
 from _pytest.monkeypatch import MonkeyPatch
 from requests_mock import Mocker
 from requests_mock_flask import add_flask_app_to_mock
+from vws import VWS, CloudRecoService
 
 from mock_vws._flask_server.target_manager import TARGET_MANAGER_FLASK_APP
 from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
 from mock_vws._flask_server.vws import VWS_FLASK_APP
 from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils.usage_test_helpers import (
+    process_deletion_seconds,
     processing_time_seconds,
     recognize_deletion_seconds,
-    process_deletion_seconds,
 )
 
 _EXAMPLE_URL_FOR_TARGET_MANAGER = 'http://' + uuid.uuid4().hex + '.com'
@@ -219,3 +221,64 @@ class TestCustomQueryProcessDeletionSeconds:
 
         expected = query_processes_deletion
         assert abs(expected - time_taken) < 0.1
+
+
+class TestAddDatabase:
+    """
+    Tests for adding databases to the mock.
+    """
+
+    def test_give_no_details(self, high_quality_image: io.BytesIO) -> None:
+        """
+        It is possible to create a database without giving any data.
+        """
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
+        response = requests.post(url=databases_url, json={})
+        assert response.status_code == HTTPStatus.CREATED
+
+        data = response.json()
+
+        assert data['targets'] == []
+        assert data['state_name'] == 'WORKING'
+        assert 'database_name' in data.keys()
+
+        vws_client = VWS(
+            server_access_key=data['server_access_key'],
+            server_secret_key=data['server_secret_key'],
+        )
+
+        cloud_reco_client = CloudRecoService(
+            client_access_key=data['client_access_key'],
+            client_secret_key=data['client_secret_key'],
+        )
+
+        assert vws_client.list_targets() == []
+        assert cloud_reco_client.query(image=high_quality_image) == []
+
+
+class TestDeleteDatabase:
+    """
+    Tests for deleting databases from the mock.
+    """
+
+    def test_not_found(self) -> None:
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
+        delete_url = databases_url + '/' + 'foobar'
+        response = requests.delete(url=delete_url, json={})
+        assert response.status_code == HTTPStatus.NOT_FOUND
+
+    def test_delete_database(self) -> None:
+        """
+        It is possible to delete a database.
+        """
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
+        response = requests.post(url=databases_url, json={})
+        assert response.status_code == HTTPStatus.CREATED
+
+        data = response.json()
+        delete_url = databases_url + '/' + data['database_name']
+        response = requests.delete(url=delete_url, json={})
+        assert response.status_code == HTTPStatus.OK
+
+        response = requests.delete(url=delete_url, json={})
+        assert response.status_code == HTTPStatus.NOT_FOUND
