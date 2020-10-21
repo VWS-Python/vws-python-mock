@@ -219,27 +219,3 @@ class TestCustomQueryProcessDeletionSeconds:
 
         expected = query_processes_deletion
         assert abs(expected - time_taken) < 0.1
-
-
-class TestDatabaseManagement:
-    """
-    TODO
-    """
-
-    def test_duplicate_keys(self) -> None:
-        """
-        It is not possible to have multiple databases with matching keys.
-        """
-        # Add one
-        # Add another different
-        # Add another conflict
-
-    def test_give_no_details(self) -> None:
-        # Random stuff
-        pass
-
-    def test_delete_database(self) -> None:
-        # Add one
-        # Delete
-        # Add another one same
-        pass
