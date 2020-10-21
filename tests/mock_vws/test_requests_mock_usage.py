@@ -241,7 +241,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
         expected = 0.2
         assert abs(expected - time_taken) < self.LEEWAY
 
-    def test_with_noprocessing_time(
+    def test_with_no_processing_time(
         self,
         high_quality_image: io.BytesIO,
     ) -> None:
