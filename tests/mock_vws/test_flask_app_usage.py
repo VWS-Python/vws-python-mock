@@ -261,8 +261,24 @@ class TestDeleteDatabase:
     Tests for deleting databases from the mock.
     """
 
+    def test_not_found(self) -> None:
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
+        delete_url = databases_url + '/' + 'foobar'
+        response = requests.delete(url=delete_url, json={})
+        assert response.status_code == HTTPStatus.NOT_FOUND
+
     def test_delete_database(self) -> None:
-        # Add one
-        # Delete
-        # Add another one same
-        pass
+        """
+        It is possible to delete a database.
+        """
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
+        response = requests.post(url=databases_url, json={})
+        assert response.status_code == HTTPStatus.CREATED
+
+        data = response.json()
+        delete_url = databases_url + '/' + data['database_name']
+        response = requests.delete(url=delete_url, json={})
+        assert response.status_code == HTTPStatus.OK
+
+        response = requests.delete(url=delete_url, json={})
+        assert response.status_code == HTTPStatus.NOT_FOUND
