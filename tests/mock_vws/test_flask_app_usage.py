@@ -92,6 +92,10 @@ class TestProcessingTime:
             name='TARGET_MANAGER_BASE_URL',
             value=target_manager_base_url,
         )
+        monkeypatch.setenv(
+            name='PROCESSING_TIME_SECONDS',
+            value='0.1',
+        )
         database = VuforiaDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -110,7 +114,7 @@ class TestProcessingTime:
                 base_url=target_manager_base_url,
             )
 
-            mock.add_database(database=database)
+            requests.post(url=target_manager_base_url + '/databases', json=database.to_dict())
             target_id = vws_client.add_target(
                 name='example',
                 width=1,
