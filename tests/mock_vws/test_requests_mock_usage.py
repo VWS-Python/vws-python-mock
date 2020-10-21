@@ -479,54 +479,48 @@ class TestAddDatabase:
         """
         It is not possible to have multiple databases with matching keys.
         """
-        with MockVWS() as mock:
-            mock.add_database(database=VuforiaDatabase(server_access_key='1'))
-            with pytest.raises(ValueError) as exc:
-                mock.add_database(
-                    database=VuforiaDatabase(server_access_key='1'),
-                )
+        server_access_key = '1'
+        server_secret_key = '2'
+        client_access_key = '3'
+        client_secret_key = '4'
+        database = VuforiaDatabase(
+            server_access_key=server_access_key,
+            server_secret_key=server_secret_key,
+            client_access_key=client_access_key,
+            client_secret_key=client_secret_key,
+        )
 
-        expected_message = (
+        bad_server_access_key_db = VuforiaDatabase(server_access_key='1')
+        bad_server_secret_key_db = VuforiaDatabase(server_secret_key='2')
+        bad_client_access_key_db = VuforiaDatabase(client_access_key='3')
+        bad_client_secret_key_db = VuforiaDatabase(client_secret_key='4')
+
+        server_access_key_conflict_error = (
             'All server access keys must be unique. '
             'There is already a database with the server access key "1".'
         )
-        assert str(exc.value) == expected_message
-
-        with MockVWS() as mock:
-            mock.add_database(database=VuforiaDatabase(server_secret_key='1'))
-            with pytest.raises(ValueError) as exc:
-                mock.add_database(
-                    database=VuforiaDatabase(server_secret_key='1'),
-                )
-
-        expected_message = (
+        server_secret_key_conflict_error = (
             'All server secret keys must be unique. '
-            'There is already a database with the server secret key "1".'
+            'There is already a database with the server secret key "2".'
         )
-        assert str(exc.value) == expected_message
-
-        with MockVWS() as mock:
-            mock.add_database(database=VuforiaDatabase(client_access_key='1'))
-            with pytest.raises(ValueError) as exc:
-                mock.add_database(
-                    database=VuforiaDatabase(client_access_key='1'),
-                )
-
-        expected_message = (
+        client_access_key_conflict_error = (
             'All client access keys must be unique. '
-            'There is already a database with the client access key "1".'
+            'There is already a database with the client access key "3".'
         )
-        assert str(exc.value) == expected_message
+        client_secret_key_conflict_error = (
+            'All client secret keys must be unique. '
+            'There is already a database with the client secret key "4".'
+        )
 
         with MockVWS() as mock:
-            mock.add_database(database=VuforiaDatabase(client_secret_key='1'))
-            with pytest.raises(ValueError) as exc:
-                mock.add_database(
-                    database=VuforiaDatabase(client_secret_key='1'),
-                )
+            mock.add_database(database=database)
+            for bad_database, expected_message in (
+                (bad_server_access_key_db, server_access_key_conflict_error),
+                (bad_server_secret_key_db, server_secret_key_conflict_error),
+                (bad_client_access_key_db, client_access_key_conflict_error),
+                (bad_client_secret_key_db, client_secret_key_conflict_error),
+            ):
+                with pytest.raises(ValueError) as exc:
+                    mock.add_database(database=bad_database)
 
-        expected_message = (
-            'All client secret keys must be unique. '
-            'There is already a database with the client secret key "1".'
-        )
-        assert str(exc.value) == expected_message
+                assert str(exc.value) == expected_message
