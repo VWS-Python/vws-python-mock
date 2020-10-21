@@ -232,9 +232,55 @@ class TestAddDatabase:
         """
         It is not possible to have multiple databases with matching keys.
         """
-        # Add one
-        # Add another different
-        # Add another conflict
+        server_access_key = '1'
+        server_secret_key = '2'
+        client_access_key = '3'
+        client_secret_key = '4'
+        database = VuforiaDatabase(
+            server_access_key=server_access_key,
+            server_secret_key=server_secret_key,
+            client_access_key=client_access_key,
+            client_secret_key=client_secret_key,
+        )
+
+        bad_server_access_key_db = VuforiaDatabase(server_access_key='1')
+        bad_server_secret_key_db = VuforiaDatabase(server_secret_key='2')
+        bad_client_access_key_db = VuforiaDatabase(client_access_key='3')
+        bad_client_secret_key_db = VuforiaDatabase(client_secret_key='4')
+
+        server_access_key_conflict_error = (
+            'All server access keys must be unique. '
+            'There is already a database with the server access key "1".'
+        )
+        server_secret_key_conflict_error = (
+            'All server secret keys must be unique. '
+            'There is already a database with the server secret key "2".'
+        )
+        client_access_key_conflict_error = (
+            'All client access keys must be unique. '
+            'There is already a database with the client access key "3".'
+        )
+        client_secret_key_conflict_error = (
+            'All client secret keys must be unique. '
+            'There is already a database with the client secret key "4".'
+        )
+
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
+        requests.post(url=databases_url, json=database.to_dict())
+
+        for bad_database, expected_message in (
+            (bad_server_access_key_db, server_access_key_conflict_error),
+            (bad_server_secret_key_db, server_secret_key_conflict_error),
+            (bad_client_access_key_db, client_access_key_conflict_error),
+            (bad_client_secret_key_db, client_secret_key_conflict_error),
+        ):
+            response = requests.post(
+                url=databases_url,
+                json=bad_database.to_dict(),
+            )
+
+            assert response.status_code == HTTPStatus.CONFLICT
+            assert response.text == expected_message
 
     def test_give_no_details(self, high_quality_image: io.BytesIO) -> None:
         """

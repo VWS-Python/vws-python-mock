@@ -121,7 +121,11 @@ def create_database() -> Tuple[str, int]:
         database_name=database_name,
         state=state,
     )
-    TARGET_MANAGER.add_database(database=database)
+    try:
+        TARGET_MANAGER.add_database(database=database)
+    except ValueError as exc:
+        return str(exc), HTTPStatus.CONFLICT
+
     return jsonify(database.to_dict()), HTTPStatus.CREATED
 
 
