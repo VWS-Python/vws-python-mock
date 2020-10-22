@@ -36,6 +36,9 @@ def _random_hex() -> str:
 
 @dataclass(eq=True, frozen=True)
 class VuforiaDatabase:
+    """
+    Credentials for VWS APIs.
+    """
 
     # We hide a few things in the ``repr`` with ``repr=False`` so that they do
     # not show up in CI logs.
