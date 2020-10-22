@@ -36,32 +36,6 @@ def _random_hex() -> str:
 
 @dataclass(eq=True, frozen=True)
 class VuforiaDatabase:
-    """
-    Credentials for VWS APIs.
-
-    Args:
-        database_name: The name of a VWS target manager database name. By
-            default this is a random string.
-        server_access_key: A VWS server access key. By default this is a random
-            string.
-        server_secret_key: A VWS server secret key. By default this is a random
-            string.
-        client_access_key: A VWS client access key. By default this is a random
-            string.
-        client_secret_key: A VWS client secret key. By default this is a random
-            string.
-        state: The state of the database.
-
-    Attributes:
-        database_name (str): The name of a VWS target manager database.
-        server_access_key (str): A VWS server access key.
-        server_secret_key (str): A VWS server secret key.
-        client_access_key (str): A VWS client access key.
-        client_secret_key (str): A VWS client secret key.
-        targets (typing.Set[Target]): The :class:`~mock_vws.target.Target` s
-            in the database.
-        state (States): The state of the database.
-    """
 
     # We hide a few things in the ``repr`` with ``repr=False`` so that they do
     # not show up in CI logs.
