@@ -40,11 +40,16 @@ class VuforiaDatabase:
     Credentials for VWS APIs.
 
     Args:
-        database_name: The name of a VWS target manager database name.
-        server_access_key: A VWS server access key.
-        server_secret_key: A VWS server secret key.
-        client_access_key: A VWS client access key.
-        client_secret_key: A VWS client secret key.
+        database_name: The name of a VWS target manager database name. By
+            default this is a random string.
+        server_access_key: A VWS server access key. By default this is a random
+            string.
+        server_secret_key: A VWS server secret key. By default this is a random
+            string.
+        client_access_key: A VWS client access key. By default this is a random
+            string.
+        client_secret_key: A VWS client secret key. By default this is a random
+            string.
         state: The state of the database.
 
     Attributes:
