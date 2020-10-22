@@ -38,6 +38,19 @@ def _random_hex() -> str:
 class VuforiaDatabase:
     """
     Credentials for VWS APIs.
+
+    Args:
+        database_name: The name of a VWS target manager database name. Defaults
+            to a random string.
+        server_access_key: A VWS server access key. Defaults to a random
+            string.
+        server_secret_key: A VWS server secret key. Defaults to a random
+            string.
+        client_access_key: A VWS client access key. Defaults to a random
+            string.
+        client_secret_key: A VWS client secret key. Defaults to a random
+            string.
+        state: The state of the database.
     """
 
     # We hide a few things in the ``repr`` with ``repr=False`` so that they do
