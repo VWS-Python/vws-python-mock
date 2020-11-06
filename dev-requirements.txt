@@ -2,7 +2,6 @@ PyYAML==5.3.1
 Sphinx-Substitution-Extensions==2020.9.30.0
 Sphinx==3.3.0
 VWS-Test-Fixtures==2020.9.25.1
-attrs==20.2.0  # Modern attrs is required for pytest
 autoflake==1.4
 black==20.8b1
 check-manifest==0.45
