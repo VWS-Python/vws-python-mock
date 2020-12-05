@@ -18,8 +18,8 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false
       matrix:
-        fail-fast: false
         python-version: [3.8.5]
         ci_pattern:
           - test_query.py::TestContentType
