@@ -102,7 +102,7 @@ class VuforiaDatabase:
         targets = {
             Target.from_dict(target_dict=target_dict)
             for target_dict in database_dict['targets']
-        },
+        }
 
         database = cls(
             database_name=database_dict['database_name'],
