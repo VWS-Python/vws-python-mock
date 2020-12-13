@@ -153,7 +153,13 @@ def create_target(database_name: str) -> Tuple[str, int]:
         application_metadata=request.json['application_metadata'],
         target_id=request.json['target_id'],
     )
-    database.targets.add(target)
+    new_database_targets = database.targets.union({target})
+    new_database = dataclasses.replace(
+        database,
+        targets=new_database_targets,
+    )
+    TARGET_MANAGER.databases.remove(database)
+    TARGET_MANAGER.databases.add(new_database)
 
     return jsonify(target.to_dict()), HTTPStatus.CREATED
 
@@ -174,8 +180,13 @@ def delete_target(database_name: str, target_id: str) -> Tuple[str, int]:
     target = database.get_target(target_id=target_id)
     now = datetime.datetime.now(tz=target.upload_date.tzinfo)
     new_target = dataclasses.replace(target, delete_date=now)
-    database.targets.remove(target)
-    database.targets.add(new_target)
+    new_database_targets = database.targets.union({new_target}) - {target}
+    new_database = dataclasses.replace(
+        database,
+        targets=new_database_targets,
+    )
+    TARGET_MANAGER.databases.remove(database)
+    TARGET_MANAGER.databases.add(new_database)
     return jsonify(new_target.to_dict()), HTTPStatus.OK
 
 
@@ -226,8 +237,13 @@ def update_target(database_name: str, target_id: str) -> Tuple[str, int]:
         last_modified_date=last_modified_date,
     )
 
-    database.targets.remove(target)
-    database.targets.add(new_target)
+    new_database_targets = database.targets.union({new_target}) - {target}
+    new_database = dataclasses.replace(
+        database,
+        targets=new_database_targets,
+    )
+    TARGET_MANAGER.databases.remove(database)
+    TARGET_MANAGER.databases.add(new_database)
 
     return jsonify(new_target.to_dict()), HTTPStatus.OK
 
