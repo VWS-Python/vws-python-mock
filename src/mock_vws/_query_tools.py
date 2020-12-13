@@ -18,29 +18,10 @@ from mock_vws._mock_common import json_dump
 from mock_vws.database import VuforiaDatabase
 
 
-class MatchingTargetsWithProcessingStatus(Exception):
-    """
-    There is at least one matching target which has the status 'processing'.
-    """
-
-
 class ActiveMatchingTargetsDeleteProcessing(Exception):
     """
     There is at least one active target which matches and was recently deleted.
     """
-
-
-def _images_match(image: io.BytesIO, another_image: io.BytesIO) -> bool:
-    """
-    Given two images, return whether they are matching.
-
-    In the real Vuforia, this matching is fuzzy.
-    For now, we check exact byte matching.
-
-    See https://github.com/VWS-Python/vws-python-mock/issues/3 for changing
-    that.
-    """
-    return bool(image.getvalue() == another_image.getvalue())
 
 
 def get_query_match_response_text(
@@ -70,8 +51,6 @@ def get_query_match_response_text(
         The response text for a query endpoint request.
 
     Raises:
-        MatchingTargetsWithProcessingStatus: There is at least one matching
-            target which has the status 'processing'.
         ActiveMatchingTargetsDeleteProcessing: There is at least one active
             target which matches and was recently deleted.
     """
@@ -90,9 +69,8 @@ def get_query_match_response_text(
     [include_target_data] = parsed.get('include_target_data', ['top'])
     include_target_data = include_target_data.lower()
 
-    [image_bytes] = parsed['image']
-    assert isinstance(image_bytes, bytes)
-    image = io.BytesIO(image_bytes)
+    [image_value] = parsed['image']
+    assert isinstance(image_value, bytes)
     gmt = ZoneInfo('GMT')
     now = datetime.datetime.now(tz=gmt)
 
@@ -117,7 +95,7 @@ def get_query_match_response_text(
     matching_targets = [
         target
         for target in database.targets
-        if _images_match(image=target.image, another_image=image)
+        if target.image_value == image_value
     ]
 
     not_deleted_matches = [
@@ -136,12 +114,6 @@ def get_query_match_response_text(
         and (now - target.delete_date) < recognition_timedelta
     ]
 
-    matching_targets_with_processing_status = [
-        target
-        for target in matching_targets
-        if target.status == TargetStatuses.PROCESSING.value
-    ]
-
     active_matching_targets_delete_processing = [
         target
         for target in matching_targets
@@ -151,9 +123,6 @@ def get_query_match_response_text(
         < (recognition_timedelta + processing_timedelta)
         and target not in deletion_not_recognized_matches
     ]
-
-    if matching_targets_with_processing_status:
-        raise MatchingTargetsWithProcessingStatus
 
     if active_matching_targets_delete_processing:
         raise ActiveMatchingTargetsDeleteProcessing

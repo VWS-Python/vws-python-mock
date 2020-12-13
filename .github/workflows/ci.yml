@@ -18,6 +18,7 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false
       matrix:
         python-version: [3.8.5]
         ci_pattern:
@@ -63,7 +64,9 @@ jobs:
           - test_update_target.py::TestUpdate
           - test_update_target.py::TestWidth
           - test_update_target.py::TestInactiveProject
-          - test_usage.py
+          - test_requests_mock_usage.py
+          - test_flask_app_usage.py
+          - test_docker.py
 
     steps:
       # We share Vuforia credentials and therefore Vuforia databases across
@@ -107,6 +110,15 @@ jobs:
       - name: "Run tests"
         run: |
           pytest -s -vvv --exitfirst --cov=src/ --cov=tests --cov-report=xml tests/mock_vws/${{ matrix.ci_pattern }}
+
+      - name: "Show coverage file"
+        run: |
+          # Sometimes we have been sure that we have 100% coverage, but codecov
+          # says otherwise.
+          #
+          # We show the coverage file here to help with debugging.
+          # https://github.com/VWS-Python/vws-python-mock/issues/708
+          cat ./coverage.xml
 
       - name: "Upload coverage to Codecov"
         uses: "codecov/codecov-action@v1.0.13"

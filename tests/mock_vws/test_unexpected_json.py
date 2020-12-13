@@ -63,9 +63,7 @@ class TestUnexpectedJSON:
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         endpoint.prepared_request.prepare_content_length(body=content)
         session = requests.Session()
-        response = session.send(  # type: ignore
-            request=endpoint.prepared_request,
-        )
+        response = session.send(request=endpoint.prepared_request)
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
@@ -77,6 +75,8 @@ class TestUnexpectedJSON:
                 response=response,
                 status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
                 content_type=None,
+                cache_control=None,
+                www_authenticate=None,
             )
             return
 

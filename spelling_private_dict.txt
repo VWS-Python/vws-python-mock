@@ -8,6 +8,7 @@ api
 args
 ascii
 auth
+backend
 backends
 binascii
 bool
@@ -55,6 +56,8 @@ metadata
 mib
 mockvws
 multipart
+mypy
+nat
 noqa
 pdict
 plugins
@@ -69,6 +72,12 @@ refactoring
 regex
 reimplementation
 repr
+reqheader
+reqjson
+reqjsonarr
+resheader
+resjson
+resjsonarr
 rfc
 rgb
 str

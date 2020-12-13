@@ -1,27 +1,30 @@
 """
-Tests for the usage of the mock.
+Tests for the usage of the mock for ``requests``.
 """
 
 import email.utils
 import io
 import json
 import socket
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import pytest
 import requests
 from freezegun import freeze_time
 from requests.exceptions import MissingSchema
 from requests_mock.exceptions import NoMockAddress
-from vws import VWS, CloudRecoService
-from vws.exceptions.cloud_reco_exceptions import MatchProcessing
-from vws.reports import TargetStatuses
+from vws import VWS
 from vws_auth_tools import rfc_1123_date
 
 from mock_vws import MockVWS
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
 from mock_vws.target import Target
+from tests.mock_vws.utils.usage_test_helpers import (
+    process_deletion_seconds,
+    processing_time_seconds,
+    recognize_deletion_seconds,
+)
 
 
 def request_unmocked_address() -> None:
@@ -94,73 +97,39 @@ class TestProcessingTime:
     Tests for the time taken to process targets in the mock.
     """
 
+    # There is a race condition in this test type - if tests start to
+    # fail, consider increasing the leeway.
+    LEEWAY = 0.05
+
     def test_default(self, image_file_failed_state: io.BytesIO) -> None:
         """
         By default, targets in the mock take 0.5 seconds to be processed.
         """
         database = VuforiaDatabase()
-        vws_client = VWS(
-            server_access_key=database.server_access_key,
-            server_secret_key=database.server_secret_key,
-        )
         with MockVWS() as mock:
             mock.add_database(database=database)
-
-            target_id = vws_client.add_target(
-                name='example',
-                width=1,
+            time_taken = processing_time_seconds(
+                vuforia_database=database,
                 image=image_file_failed_state,
-                active_flag=True,
-                application_metadata=None,
             )
-            start_time = datetime.now()
 
-            while True:
-                target_details = vws_client.get_target_record(
-                    target_id=target_id,
-                )
-
-                status = target_details.status
-                if status != TargetStatuses.PROCESSING:
-                    elapsed_time = datetime.now() - start_time
-                    # There is a race condition in this test - if it starts to
-                    # fail, maybe extend the acceptable range.
-                    assert elapsed_time < timedelta(seconds=0.55)
-                    assert elapsed_time > timedelta(seconds=0.49)
-                    return
+        expected = 0.5
+        assert abs(expected - time_taken) < self.LEEWAY
 
     def test_custom(self, image_file_failed_state: io.BytesIO) -> None:
         """
         It is possible to set a custom processing time.
         """
         database = VuforiaDatabase()
-        vws_client = VWS(
-            server_access_key=database.server_access_key,
-            server_secret_key=database.server_secret_key,
-        )
         with MockVWS(processing_time_seconds=0.1) as mock:
             mock.add_database(database=database)
-            target_id = vws_client.add_target(
-                name='example',
-                width=1,
+            time_taken = processing_time_seconds(
+                vuforia_database=database,
                 image=image_file_failed_state,
-                active_flag=True,
-                application_metadata=None,
             )
 
-            start_time = datetime.now()
-
-            while True:
-                target_details = vws_client.get_target_record(
-                    target_id=target_id,
-                )
-
-                status = target_details.status
-                if status != TargetStatuses.PROCESSING:
-                    elapsed_time = datetime.now() - start_time
-                    assert elapsed_time < timedelta(seconds=0.15)
-                    assert elapsed_time > timedelta(seconds=0.09)
-                    return
+        expected = 0.1
+        assert abs(expected - time_taken) < self.LEEWAY
 
 
 class TestDatabaseName:
@@ -241,113 +210,13 @@ class TestCustomBaseURLs:
         assert str(exc.value) == expected
 
 
-def _add_and_delete_target(
-    image: io.BytesIO,
-    vuforia_database: VuforiaDatabase,
-) -> None:
-    """
-    Add and delete a target with the given image.
-    """
-    vws_client = VWS(
-        server_access_key=vuforia_database.server_access_key,
-        server_secret_key=vuforia_database.server_secret_key,
-    )
-
-    target_id = vws_client.add_target(
-        name='example_name',
-        width=1,
-        image=image,
-        active_flag=True,
-        application_metadata=None,
-    )
-    vws_client.wait_for_target_processed(target_id=target_id)
-    vws_client.delete_target(target_id=target_id)
-
-
-def _wait_for_deletion_recognized(
-    image: io.BytesIO,
-    vuforia_database: VuforiaDatabase,
-) -> None:
-    """
-    Wait until the query endpoint "recognizes" the deletion of all targets with
-    an image matching the given image.
-
-    That is, wait until querying the given image does not return a result with
-    targets.
-    """
-    cloud_reco_client = CloudRecoService(
-        client_access_key=vuforia_database.client_access_key,
-        client_secret_key=vuforia_database.client_secret_key,
-    )
-
-    while True:
-        try:
-            results = cloud_reco_client.query(image=image)
-        except MatchProcessing:
-            return
-
-        if not results:
-            return
-
-
-def _wait_for_deletion_processed(
-    image: io.BytesIO,
-    vuforia_database: VuforiaDatabase,
-) -> None:
-    """
-    Wait until the query endpoint "recognizes" the deletion of all targets with
-    an image matching the given image.
-
-    That is, wait until querying the given image returns a result with no
-    targets.
-    """
-    _wait_for_deletion_recognized(
-        image=image,
-        vuforia_database=vuforia_database,
-    )
-
-    cloud_reco_client = CloudRecoService(
-        client_access_key=vuforia_database.client_access_key,
-        client_secret_key=vuforia_database.client_secret_key,
-    )
-
-    while True:
-        try:
-            cloud_reco_client.query(image=image)
-        except MatchProcessing:
-            continue
-        return
-
-
 class TestCustomQueryRecognizesDeletionSeconds:
     """
     Tests for setting the amount of time after a target has been deleted
     until it is not recognized by the query endpoint.
     """
 
-    def _recognize_deletion_seconds(
-        self,
-        high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
-    ) -> float:
-        """
-        The number of seconds it takes for the query endpoint to recognize a
-        deletion.
-        """
-        _add_and_delete_target(
-            image=high_quality_image,
-            vuforia_database=vuforia_database,
-        )
-
-        time_after_deletion = datetime.now()
-
-        _wait_for_deletion_recognized(
-            image=high_quality_image,
-            vuforia_database=vuforia_database,
-        )
-
-        time_difference = datetime.now() - time_after_deletion
-        return time_difference.total_seconds()
+    LEEWAY = 0.15
 
     def test_default(
         self,
@@ -363,13 +232,13 @@ class TestCustomQueryRecognizesDeletionSeconds:
         database = VuforiaDatabase()
         with MockVWS() as mock:
             mock.add_database(database=database)
-            recognize_deletion_seconds = self._recognize_deletion_seconds(
+            time_taken = recognize_deletion_seconds(
                 high_quality_image=high_quality_image,
                 vuforia_database=database,
             )
 
         expected = 0.2
-        assert abs(expected - recognize_deletion_seconds) < 0.15
+        assert abs(expected - time_taken) < self.LEEWAY
 
     def test_with_no_processing_time(
         self,
@@ -381,13 +250,13 @@ class TestCustomQueryRecognizesDeletionSeconds:
         database = VuforiaDatabase()
         with MockVWS(query_processes_deletion_seconds=0) as mock:
             mock.add_database(database=database)
-            recognize_deletion_seconds = self._recognize_deletion_seconds(
+            time_taken = recognize_deletion_seconds(
                 high_quality_image=high_quality_image,
                 vuforia_database=database,
             )
 
         expected = 0.2
-        assert abs(expected - recognize_deletion_seconds) < 0.15
+        assert abs(expected - time_taken) < self.LEEWAY
 
     def test_custom(
         self,
@@ -404,13 +273,13 @@ class TestCustomQueryRecognizesDeletionSeconds:
             query_recognizes_deletion_seconds=query_recognizes_deletion,
         ) as mock:
             mock.add_database(database=database)
-            recognize_deletion_seconds = self._recognize_deletion_seconds(
+            time_taken = recognize_deletion_seconds(
                 high_quality_image=high_quality_image,
                 vuforia_database=database,
             )
 
         expected = query_recognizes_deletion
-        assert abs(expected - recognize_deletion_seconds) < 0.15
+        assert abs(expected - time_taken) < self.LEEWAY
 
 
 class TestCustomQueryProcessDeletionSeconds:
@@ -418,35 +287,6 @@ class TestCustomQueryProcessDeletionSeconds:
     Tests for setting the amount of time after a target has been deleted
     until it is not processed by the query endpoint.
     """
-
-    def _process_deletion_seconds(
-        self,
-        high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
-    ) -> float:
-        """
-        The number of seconds it takes for the query endpoint to process a
-        deletion.
-        """
-        _add_and_delete_target(
-            image=high_quality_image,
-            vuforia_database=vuforia_database,
-        )
-
-        _wait_for_deletion_recognized(
-            image=high_quality_image,
-            vuforia_database=vuforia_database,
-        )
-
-        time_after_deletion_recognized = datetime.now()
-
-        _wait_for_deletion_processed(
-            image=high_quality_image,
-            vuforia_database=vuforia_database,
-        )
-
-        time_difference = datetime.now() - time_after_deletion_recognized
-        return time_difference.total_seconds()
 
     def test_default(
         self,
@@ -462,13 +302,13 @@ class TestCustomQueryProcessDeletionSeconds:
         database = VuforiaDatabase()
         with MockVWS() as mock:
             mock.add_database(database=database)
-            process_deletion_seconds = self._process_deletion_seconds(
+            time_taken = process_deletion_seconds(
                 high_quality_image=high_quality_image,
                 vuforia_database=database,
             )
 
         expected = 3
-        assert abs(expected - process_deletion_seconds) < 0.1
+        assert abs(expected - time_taken) < 0.1
 
     def test_custom(
         self,
@@ -485,13 +325,13 @@ class TestCustomQueryProcessDeletionSeconds:
             query_processes_deletion_seconds=query_processes_deletion,
         ) as mock:
             mock.add_database(database=database)
-            process_deletion_seconds = self._process_deletion_seconds(
+            time_taken = process_deletion_seconds(
                 high_quality_image=high_quality_image,
                 vuforia_database=database,
             )
 
         expected = query_processes_deletion
-        assert abs(expected - process_deletion_seconds) < 0.1
+        assert abs(expected - time_taken) < 0.1
 
 
 class TestStates:
@@ -539,7 +379,6 @@ class TestTargets:
         assert json.dumps(target_dict)
 
         new_target = Target.from_dict(target_dict=target_dict)
-        assert new_target.image.getvalue() == target.image.getvalue()
         assert new_target == target
 
     def test_to_dict_deleted(self, high_quality_image: io.BytesIO) -> None:
@@ -640,54 +479,51 @@ class TestAddDatabase:
         """
         It is not possible to have multiple databases with matching keys.
         """
-        with MockVWS() as mock:
-            mock.add_database(database=VuforiaDatabase(server_access_key='1'))
-            with pytest.raises(ValueError) as exc:
-                mock.add_database(
-                    database=VuforiaDatabase(server_access_key='1'),
-                )
+        database = VuforiaDatabase(
+            server_access_key='1',
+            server_secret_key='2',
+            client_access_key='3',
+            client_secret_key='4',
+            database_name='5',
+        )
 
-        expected_message = (
+        bad_server_access_key_db = VuforiaDatabase(server_access_key='1')
+        bad_server_secret_key_db = VuforiaDatabase(server_secret_key='2')
+        bad_client_access_key_db = VuforiaDatabase(client_access_key='3')
+        bad_client_secret_key_db = VuforiaDatabase(client_secret_key='4')
+        bad_database_name_db = VuforiaDatabase(database_name='5')
+
+        server_access_key_conflict_error = (
             'All server access keys must be unique. '
             'There is already a database with the server access key "1".'
         )
-        assert str(exc.value) == expected_message
-
-        with MockVWS() as mock:
-            mock.add_database(database=VuforiaDatabase(server_secret_key='1'))
-            with pytest.raises(ValueError) as exc:
-                mock.add_database(
-                    database=VuforiaDatabase(server_secret_key='1'),
-                )
-
-        expected_message = (
+        server_secret_key_conflict_error = (
             'All server secret keys must be unique. '
-            'There is already a database with the server secret key "1".'
+            'There is already a database with the server secret key "2".'
         )
-        assert str(exc.value) == expected_message
-
-        with MockVWS() as mock:
-            mock.add_database(database=VuforiaDatabase(client_access_key='1'))
-            with pytest.raises(ValueError) as exc:
-                mock.add_database(
-                    database=VuforiaDatabase(client_access_key='1'),
-                )
-
-        expected_message = (
+        client_access_key_conflict_error = (
             'All client access keys must be unique. '
-            'There is already a database with the client access key "1".'
+            'There is already a database with the client access key "3".'
         )
-        assert str(exc.value) == expected_message
+        client_secret_key_conflict_error = (
+            'All client secret keys must be unique. '
+            'There is already a database with the client secret key "4".'
+        )
+        database_name_conflict_error = (
+            'All names must be unique. '
+            'There is already a database with the name "5".'
+        )
 
         with MockVWS() as mock:
-            mock.add_database(database=VuforiaDatabase(client_secret_key='1'))
-            with pytest.raises(ValueError) as exc:
-                mock.add_database(
-                    database=VuforiaDatabase(client_secret_key='1'),
-                )
+            mock.add_database(database=database)
+            for bad_database, expected_message in (
+                (bad_server_access_key_db, server_access_key_conflict_error),
+                (bad_server_secret_key_db, server_secret_key_conflict_error),
+                (bad_client_access_key_db, client_access_key_conflict_error),
+                (bad_client_secret_key_db, client_secret_key_conflict_error),
+                (bad_database_name_db, database_name_conflict_error),
+            ):
+                with pytest.raises(ValueError) as exc:
+                    mock.add_database(database=bad_database)
 
-        expected_message = (
-            'All client secret keys must be unique. '
-            'There is already a database with the client secret key "1".'
-        )
-        assert str(exc.value) == expected_message
+                assert str(exc.value) == expected_message

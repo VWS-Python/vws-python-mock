@@ -6,17 +6,15 @@ https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognitio
 """
 
 import email.utils
-from typing import Any, Callable, Dict, Set, Tuple, Union
+from typing import Callable, Set, Union
 
-import wrapt
 from requests_mock import POST
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context
 
-from mock_vws._mock_common import Route, set_content_length_header
+from mock_vws._mock_common import Route
 from mock_vws._query_tools import (
     ActiveMatchingTargetsDeleteProcessing,
-    MatchingTargetsWithProcessingStatus,
     get_query_match_response_text,
 )
 from mock_vws._query_validators import run_query_validators
@@ -24,44 +22,9 @@ from mock_vws._query_validators.exceptions import (
     MatchProcessing,
     ValidatorException,
 )
-from mock_vws.database import VuforiaDatabase
+from mock_vws.target_manager import TargetManager
 
-ROUTES = set([])
-
-
-@wrapt.decorator
-def run_validators(
-    wrapped: Callable[..., str],
-    instance: Any,
-    args: Tuple[_RequestObjectProxy, _Context],
-    kwargs: Dict,
-) -> str:
-    """
-    Run all validators for the query endpoint.
-
-    Args:
-        wrapped: An endpoint function for `requests_mock`.
-        instance: The class that the endpoint function is in.
-        args: The arguments given to the endpoint function.
-        kwargs: The keyword arguments given to the endpoint function.
-
-    Returns:
-        The result of calling the endpoint.
-    """
-    request, context = args
-    try:
-        run_query_validators(
-            request_path=request.path,
-            request_headers=request.headers,
-            request_body=request.body,
-            request_method=request.method,
-            databases=instance.databases,
-        )
-        return wrapped(*args, **kwargs)
-    except ValidatorException as exc:
-        context.headers = exc.headers
-        context.status_code = exc.status_code
-        return exc.response_text
+ROUTES = set()
 
 
 def route(
@@ -96,17 +59,6 @@ def route(
             ),
         )
 
-        decorators = [
-            run_validators,
-            set_content_length_header,
-        ]
-
-        for decorator in decorators:
-            # See https://github.com/PyCQA/pylint/issues/259
-            method = decorator(  # pylint: disable=no-value-for-parameter
-                method,
-            )
-
         return method
 
     return decorator
@@ -121,11 +73,13 @@ class MockVuforiaWebQueryAPI:
 
     def __init__(
         self,
+        target_manager: TargetManager,
         query_recognizes_deletion_seconds: Union[int, float],
         query_processes_deletion_seconds: Union[int, float],
     ) -> None:
         """
         Args:
+            target_manager: The target manager which holds all databases.
             query_recognizes_deletion_seconds: The number of seconds after a
                 target has been deleted that the query endpoint will still
                 recognize the target for.
@@ -135,10 +89,9 @@ class MockVuforiaWebQueryAPI:
 
         Attributes:
             routes: The `Route`s to be used in the mock.
-            databases: Target databases.
         """
         self.routes: Set[Route] = ROUTES
-        self.databases: Set[VuforiaDatabase] = set([])
+        self._target_manager = target_manager
         self._query_processes_deletion_seconds = (
             query_processes_deletion_seconds
         )
@@ -156,12 +109,25 @@ class MockVuforiaWebQueryAPI:
         Perform an image recognition query.
         """
         try:
+            run_query_validators(
+                request_path=request.path,
+                request_headers=request.headers,
+                request_body=request.body,
+                request_method=request.method,
+                databases=self._target_manager.databases,
+            )
+        except ValidatorException as exc:
+            context.headers = exc.headers
+            context.status_code = exc.status_code
+            return exc.response_text
+
+        try:
             response_text = get_query_match_response_text(
                 request_headers=request.headers,
                 request_body=request.body,
                 request_method=request.method,
                 request_path=request.path,
-                databases=self.databases,
+                databases=self._target_manager.databases,
                 query_processes_deletion_seconds=(
                     self._query_processes_deletion_seconds
                 ),
@@ -169,11 +135,11 @@ class MockVuforiaWebQueryAPI:
                     self._query_recognizes_deletion_seconds
                 ),
             )
-        except (
-            ActiveMatchingTargetsDeleteProcessing,
-            MatchingTargetsWithProcessingStatus,
-        ) as exc:
-            raise MatchProcessing from exc
+        except ActiveMatchingTargetsDeleteProcessing:
+            match_processing_exception = MatchProcessing()
+            context.headers = match_processing_exception.headers
+            context.status_code = match_processing_exception.status_code
+            return match_processing_exception.response_text
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {
@@ -181,5 +147,6 @@ class MockVuforiaWebQueryAPI:
             'Content-Type': 'application/json',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(response_text)),
         }
         return response_text

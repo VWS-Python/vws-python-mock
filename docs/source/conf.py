@@ -7,33 +7,11 @@ Configuration for Sphinx.
 # pylint: disable=invalid-name
 
 import datetime
-import logging
-from typing import Dict, Iterable
 
-import sphinx_autodoc_typehints
 from pkg_resources import get_distribution
 
 project = 'VWS-Python-Mock'
 author = 'Adam Dangoor'
-
-
-# sphinx_autodoc_typehints has a problem with dataclasses.
-# See https://github.com/agronholm/sphinx-autodoc-typehints/issues/123.
-#
-# The logger emits a warning, which is shown in Sphinx as an error as we use
-# -W to show warnings as errors.
-#
-# We want to ignore that error while the bug is open, and therefore we turn
-# that one warning into an info message.
-def _custom_warning_handler(msg: str, *args: Iterable, **kwargs: Dict) -> None:
-    level = logging.WARNING
-    if 'Cannot treat a function defined as a local function' in msg:
-        level = logging.INFO
-
-    sphinx_autodoc_typehints.logger.log(level, msg, *args, **kwargs)
-
-
-sphinx_autodoc_typehints.logger.warning = _custom_warning_handler
 
 extensions = [
     'sphinx.ext.autodoc',
@@ -44,6 +22,7 @@ extensions = [
     'sphinx-prompt',
     'sphinx_substitution_extensions',
     'sphinxcontrib.spelling',
+    'sphinxcontrib.autohttp.flask',
 ]
 
 templates_path = ['_templates']
@@ -98,6 +77,7 @@ nitpick_ignore = [
     ('py:class', '_io.BytesIO'),
     ('py:class', 'docker.types.services.Mount'),
     ('py:exc', 'requests.exceptions.MissingSchema'),
+    ('http:obj', 'string'),
 ]
 
 html_show_copyright = False

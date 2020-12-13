@@ -6,8 +6,9 @@ import cgi
 from typing import Dict
 
 from mock_vws._query_validators.exceptions import (
-    BoundaryNotInBody,
+    ImageNotGiven,
     NoBoundaryFound,
+    NoContentType,
     UnsupportedMediaType,
 )
 
@@ -28,15 +29,19 @@ def validate_content_type_header(
             'multipart/form-data'.
         NoBoundaryFound: The ``Content-Type`` header does not contain a
             boundary.
-        BoundaryNotInBody: The boundary is not in the request body.
+        ImageNotGiven: The boundary is not in the request body.
+        NoContentType: The content type header is either empty or not given.
     """
     content_type_header = request_headers.get('Content-Type', '')
     main_value, pdict = cgi.parse_header(content_type_header)
-    if main_value != 'multipart/form-data':
+    if content_type_header == '':
+        raise NoContentType
+
+    if main_value not in ('multipart/form-data', '*/*'):
         raise UnsupportedMediaType
 
     if 'boundary' not in pdict:
         raise NoBoundaryFound
 
     if pdict['boundary'].encode() not in request_body:
-        raise BoundaryNotInBody
+        raise ImageNotGiven

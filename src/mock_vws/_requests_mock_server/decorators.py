@@ -11,6 +11,7 @@ import requests
 from requests_mock.mocker import Mocker
 
 from mock_vws.database import VuforiaDatabase
+from mock_vws.target_manager import TargetManager
 
 from .mock_web_query_api import MockVuforiaWebQueryAPI
 from .mock_web_services_api import MockVuforiaWebServicesAPI
@@ -21,7 +22,7 @@ class MockVWS(ContextDecorator):
     Route requests to Vuforia's Web Service APIs to fakes of those APIs.
     """
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(
         self,
         base_vws_url: str = 'https://vws.vuforia.com',
         base_vwq_url: str = 'https://cloudreco.vuforia.com',
@@ -57,6 +58,7 @@ class MockVWS(ContextDecorator):
         super().__init__()
         self._real_http = real_http
         self._mock: Mocker
+        self._target_manager = TargetManager()
 
         self._base_vws_url = base_vws_url
         self._base_vwq_url = base_vwq_url
@@ -71,10 +73,12 @@ class MockVWS(ContextDecorator):
                 raise requests.exceptions.MissingSchema(error)
 
         self._mock_vws_api = MockVuforiaWebServicesAPI(
+            target_manager=self._target_manager,
             processing_time_seconds=processing_time_seconds,
         )
 
         self._mock_vwq_api = MockVuforiaWebQueryAPI(
+            target_manager=self._target_manager,
             query_processes_deletion_seconds=(
                 query_processes_deletion_seconds
             ),
@@ -94,39 +98,7 @@ class MockVWS(ContextDecorator):
             ValueError: One of the given database keys matches a key for an
                 existing database.
         """
-        message_fmt = (
-            'All {key_name}s must be unique. '
-            'There is already a database with the {key_name} "{value}".'
-        )
-        for existing_db in self._mock_vws_api.databases:
-            for existing, new, key_name in (
-                (
-                    existing_db.server_access_key,
-                    database.server_access_key,
-                    'server access key',
-                ),
-                (
-                    existing_db.server_secret_key,
-                    database.server_secret_key,
-                    'server secret key',
-                ),
-                (
-                    existing_db.client_access_key,
-                    database.client_access_key,
-                    'client access key',
-                ),
-                (
-                    existing_db.client_secret_key,
-                    database.client_secret_key,
-                    'client secret key',
-                ),
-            ):
-                if existing == new:
-                    message = message_fmt.format(key_name=key_name, value=new)
-                    raise ValueError(message)
-
-        self._mock_vws_api.databases.add(database)
-        self._mock_vwq_api.databases.add(database)
+        self._target_manager.add_database(database=database)
 
     def __enter__(self) -> 'MockVWS':
         """

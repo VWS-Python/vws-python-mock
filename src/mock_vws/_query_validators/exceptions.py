@@ -3,6 +3,7 @@ Exceptions to raise from validators.
 """
 
 import email.utils
+import textwrap
 import uuid
 from http import HTTPStatus
 from pathlib import Path
@@ -41,10 +42,11 @@ class DateHeaderNotGiven(ValidatorException):
         self.response_text = 'Date header required.'
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'text/plain; charset=ISO-8859-1',
+            'Content-Type': 'text/plain;charset=iso-8859-1',
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -66,11 +68,12 @@ class DateFormatNotValid(ValidatorException):
         self.response_text = 'Malformed date header.'
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'text/plain; charset=ISO-8859-1',
+            'Content-Type': 'text/plain;charset=iso-8859-1',
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
             'WWW-Authenticate': 'VWS',
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -101,6 +104,7 @@ class RequestTimeTooSkewed(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -138,6 +142,7 @@ class BadImage(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -175,6 +180,7 @@ class AuthenticationFailure(ValidatorException):
             'Server': 'nginx',
             'Date': date,
             'WWW-Authenticate': 'VWS',
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -207,6 +213,7 @@ class AuthenticationFailureGoodFormatting(ValidatorException):
             'Server': 'nginx',
             'Date': date,
             'WWW-Authenticate': 'VWS',
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -233,6 +240,7 @@ class ImageNotGiven(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -255,11 +263,12 @@ class AuthHeaderMissing(ValidatorException):
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'text/plain; charset=ISO-8859-1',
+            'Content-Type': 'text/plain;charset=iso-8859-1',
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
             'WWW-Authenticate': 'VWS',
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -282,11 +291,12 @@ class MalformedAuthHeader(ValidatorException):
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'text/plain; charset=ISO-8859-1',
+            'Content-Type': 'text/plain;charset=iso-8859-1',
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
             'WWW-Authenticate': 'VWS',
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -313,6 +323,7 @@ class UnknownParameters(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -349,6 +360,7 @@ class InactiveProject(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -380,6 +392,7 @@ class InvalidMaxNumResults(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -411,6 +424,7 @@ class MaxNumResultsOutOfRange(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -444,6 +458,7 @@ class InvalidIncludeTargetData(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -469,6 +484,7 @@ class UnsupportedMediaType(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -494,35 +510,7 @@ class InvalidAcceptHeader(ValidatorException):
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
-        }
-
-
-class BoundaryNotInBody(ValidatorException):
-    """
-    Exception raised when the form boundary is not in the request body.
-    """
-
-    def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this is
-                raised.
-        """
-        super().__init__()
-        self.status_code = HTTPStatus.BAD_REQUEST
-        self.response_text = (
-            'java.lang.RuntimeException: RESTEASY007500: '
-            'Could find no Content-Disposition header within part'
-        )
-
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
-        self.headers = {
-            'Content-Type': 'text/html;charset=UTF-8',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -548,10 +536,11 @@ class NoBoundaryFound(ValidatorException):
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'text/html;charset=UTF-8',
+            'Content-Type': 'text/html;charset=utf-8',
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -579,11 +568,12 @@ class QueryOutOfBounds(ValidatorException):
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'text/html; charset=ISO-8859-1',
+            'Content-Type': 'text/html;charset=iso-8859-1',
             'Connection': 'keep-alive',
             'Server': 'nginx',
             'Date': date,
             'Cache-Control': 'must-revalidate,no-cache,no-store',
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -605,6 +595,7 @@ class ContentLengthHeaderTooLarge(ValidatorException):
         self.response_text = ''
         self.headers = {
             'Connection': 'keep-alive',
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -626,6 +617,7 @@ class ContentLengthHeaderNotInt(ValidatorException):
         self.response_text = ''
         self.headers = {
             'Connection': 'Close',
+            'Content-Length': str(len(self.response_text)),
         }
 
 
@@ -646,13 +638,6 @@ class MatchProcessing(ValidatorException):
         super().__init__()
         self.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
-        self.headers = {
-            'Connection': 'keep-alive',
-            'Content-Type': 'text/html; charset=ISO-8859-1',
-            'Server': 'nginx',
-            'Cache-Control': 'must-revalidate,no-cache,no-store',
-            'Date': date,
-        }
         # We return an example 500 response.
         # Each response given by Vuforia is different.
         #
@@ -664,3 +649,58 @@ class MatchProcessing(ValidatorException):
         filename = 'match_processing_response.html'
         match_processing_resp_file = resources_dir / filename
         self.response_text = Path(match_processing_resp_file).read_text()
+        self.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'text/html;charset=iso-8859-1',
+            'Server': 'nginx',
+            'Cache-Control': 'must-revalidate,no-cache,no-store',
+            'Date': date,
+            'Content-Length': str(len(self.response_text)),
+        }
+
+
+class NoContentType(ValidatorException):
+    """
+    Exception raised when a content type is either not given or is empty.
+    """
+
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
+        super().__init__()
+        self.status_code = HTTPStatus.BAD_REQUEST
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        jetty_content_type_error = textwrap.dedent(
+            """\
+            <html>
+            <head>
+            <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+            <title>Error 400 Bad Request</title>
+            </head>
+            <body><h2>HTTP ERROR 400 Bad Request</h2>
+            <table>
+            <tr><th>URI:</th><td>/v1/query</td></tr>
+            <tr><th>STATUS:</th><td>400</td></tr>
+            <tr><th>MESSAGE:</th><td>Bad Request</td></tr>
+            <tr><th>SERVLET:</th><td>Resteasy</td></tr>
+            </table>
+            <hr><a href="http://eclipse.org/jetty">Powered by Jetty:// 9.4.31.v20200723</a><hr/>
+
+            </body>
+            </html>
+            """,  # noqa: E501
+        )
+        self.response_text = jetty_content_type_error
+        self.headers = {
+            'Connection': 'keep-alive',
+            'Content-Type': 'text/html;charset=iso-8859-1',
+            'Server': 'nginx',
+            'Cache-Control': 'must-revalidate,no-cache,no-store',
+            'Date': date,
+            'Content-Length': str(len(self.response_text)),
+        }

@@ -8,11 +8,18 @@ from enum import Enum
 from typing import Generator
 
 import pytest
+import requests
+import requests_mock
 from _pytest.fixtures import SubRequest
+from _pytest.monkeypatch import MonkeyPatch
+from requests_mock_flask import add_flask_app_to_mock
 from vws import VWS
 from vws.exceptions.vws_exceptions import TargetStatusNotSuccess
 
 from mock_vws import MockVWS
+from mock_vws._flask_server.target_manager import TARGET_MANAGER_FLASK_APP
+from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
+from mock_vws._flask_server.vws import VWS_FLASK_APP
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
 
@@ -50,7 +57,9 @@ def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
 def _enable_use_real_vuforia(
     working_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
+    monkeypatch: MonkeyPatch,
 ) -> Generator:
+    assert monkeypatch
     assert inactive_database
     _delete_all_targets(database_keys=working_database)
     yield
@@ -59,7 +68,9 @@ def _enable_use_real_vuforia(
 def _enable_use_mock_vuforia(
     working_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
+    monkeypatch: MonkeyPatch,
 ) -> Generator:
+    assert monkeypatch
     working_database = VuforiaDatabase(
         database_name=working_database.database_name,
         server_access_key=working_database.server_access_key,
@@ -83,6 +94,63 @@ def _enable_use_mock_vuforia(
         yield
 
 
+def _enable_use_docker_in_memory(
+    working_database: VuforiaDatabase,
+    inactive_database: VuforiaDatabase,
+    monkeypatch: MonkeyPatch,
+) -> Generator:
+    # We set ``wsgi.input_terminated`` to ``True`` so that when going through
+    # ``requests``, the Flask applications
+    # have the given ``Content-Length`` headers and the given data in
+    # ``request.headers`` and ``request.data``.
+    #
+    # We do not set these in the Flask application itself.
+    # This is because when running the Flask application, if this is set,
+    # reading ``request.data`` hangs.
+    #
+    # Therefore, when running the real Flask application, the behavior is not
+    # the same as the real Vuforia.
+    # This is documented as a difference in the documentation for this package.
+    VWS_FLASK_APP.config['TERMINATE_WSGI_INPUT'] = True
+    CLOUDRECO_FLASK_APP.config['TERMINATE_WSGI_INPUT'] = True
+
+    target_manager_base_url = 'http://example.com'
+    monkeypatch.setenv(
+        name='TARGET_MANAGER_BASE_URL',
+        value=target_manager_base_url,
+    )
+
+    with requests_mock.Mocker(real_http=False) as mock:
+        add_flask_app_to_mock(
+            mock_obj=mock,
+            flask_app=VWS_FLASK_APP,
+            base_url='https://vws.vuforia.com',
+        )
+
+        add_flask_app_to_mock(
+            mock_obj=mock,
+            flask_app=CLOUDRECO_FLASK_APP,
+            base_url='https://cloudreco.vuforia.com',
+        )
+
+        add_flask_app_to_mock(
+            mock_obj=mock,
+            flask_app=TARGET_MANAGER_FLASK_APP,
+            base_url=target_manager_base_url,
+        )
+
+        databases_url = target_manager_base_url + '/databases'
+        databases = requests.get(url=databases_url).json()
+        for database in databases:
+            database_name = database['database_name']
+            requests.delete(url=databases_url + '/' + database_name)
+
+        requests.post(url=databases_url, json=working_database.to_dict())
+        requests.post(url=databases_url, json=inactive_database.to_dict())
+
+        yield
+
+
 class VuforiaBackend(Enum):
     """
     Backends for tests.
@@ -90,6 +158,7 @@ class VuforiaBackend(Enum):
 
     REAL = 'Real Vuforia'
     MOCK = 'In Memory Mock Vuforia'
+    DOCKER_IN_MEMORY = 'In Memory version of Docker application'
 
 
 @pytest.fixture(
@@ -100,6 +169,7 @@ def verify_mock_vuforia(
     request: SubRequest,
     vuforia_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
+    monkeypatch: MonkeyPatch,
 ) -> Generator:
     """
     Test functions which use this fixture are run twice. Once with the real
@@ -115,9 +185,11 @@ def verify_mock_vuforia(
     enable_function = {
         VuforiaBackend.REAL: _enable_use_real_vuforia,
         VuforiaBackend.MOCK: _enable_use_mock_vuforia,
+        VuforiaBackend.DOCKER_IN_MEMORY: _enable_use_docker_in_memory,
     }[backend]
 
     yield from enable_function(
         working_database=vuforia_database,
         inactive_database=inactive_database,
+        monkeypatch=monkeypatch,
     )

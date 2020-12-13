@@ -28,14 +28,10 @@ def _tests_from_pattern(ci_pattern: str) -> Set[str]:
     """
     From a CI pattern, get all tests ``pytest`` would collect.
     """
-    tests: Set[str] = set([])
-    args = ['pytest', '--collect-only', ci_pattern, '-q']
+    tests: Set[str] = set()
+    args = ['pytest', '-p', 'no:terminal', '--collect-only', ci_pattern]
     result = subprocess.run(args=args, stdout=subprocess.PIPE, check=True)
-    output = result.stdout
-    for line in output.splitlines():
-        if line and not line.startswith(b'no tests ran in'):
-            tests.add(line.decode())
-
+    tests = set(result.stdout.decode().splitlines())
     return tests
 
 
@@ -69,7 +65,7 @@ def test_tests_collected_once() -> None:
             if test in tests_to_patterns:
                 tests_to_patterns[test].add(pattern)
             else:
-                tests_to_patterns[test] = set([pattern])
+                tests_to_patterns[test] = {pattern}
 
     for test_name, patterns in tests_to_patterns.items():
         message = (

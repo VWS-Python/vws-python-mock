@@ -101,3 +101,8 @@ These are:
 * ``TargetQuotaReached``
 * ``ProjectSuspended``
 * ``ProjectHasNoAPIAccess``
+
+``Content-Length`` headers
+--------------------------
+
+When the given ``Content-Length`` header does not match the length of the given data, the mock server (written with Flask) will not behave as the real Vuforia Web Services behaves.

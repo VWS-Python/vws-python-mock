@@ -1,5 +1,4 @@
-Requests made to Vuforia can be mocked.
-Using the mock redirects requests to Vuforia made with `requests <https://pypi.org/project/requests/>`_ to an in-memory implementation.
+Using the mock redirects requests to Vuforia made with `requests`_ to an in-memory implementation.
 
 .. code:: python
 
@@ -16,3 +15,5 @@ Using the mock redirects requests to Vuforia made with `requests <https://pypi.o
 By default, an exception will be raised if any requests to unmocked addresses are made.
 
 See :ref:`mock-api-reference` for details of what can be changed and how.
+
+.. _requests: https://pypi.org/project/requests/

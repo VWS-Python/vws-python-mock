@@ -5,6 +5,7 @@ Tests for the `Authorization` header.
 import io
 import uuid
 from http import HTTPStatus
+from pathlib import Path
 from typing import Dict
 from urllib.parse import urlparse
 
@@ -50,9 +51,7 @@ class TestAuthorizationHeader:
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
-        response = session.send(  # type: ignore
-            request=endpoint.prepared_request,
-        )
+        response = session.send(request=endpoint.prepared_request)
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
@@ -60,7 +59,9 @@ class TestAuthorizationHeader:
             assert_vwq_failure(
                 response=response,
                 status_code=HTTPStatus.UNAUTHORIZED,
-                content_type='text/plain; charset=ISO-8859-1',
+                content_type='text/plain;charset=iso-8859-1',
+                cache_control=None,
+                www_authenticate='VWS',
             )
             assert response.text == 'Authorization header missing.'
             return
@@ -102,9 +103,7 @@ class TestMalformed:
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
-        response = session.send(  # type: ignore
-            request=endpoint.prepared_request,
-        )
+        response = session.send(request=endpoint.prepared_request)
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
@@ -112,7 +111,9 @@ class TestMalformed:
             assert_vwq_failure(
                 response=response,
                 status_code=HTTPStatus.UNAUTHORIZED,
-                content_type='text/plain; charset=ISO-8859-1',
+                content_type='text/plain;charset=iso-8859-1',
+                cache_control=None,
+                www_authenticate='VWS',
             )
             assert response.text == 'Malformed authorization header.'
             return
@@ -149,9 +150,7 @@ class TestMalformed:
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
-        response = session.send(  # type: ignore
-            request=endpoint.prepared_request,
-        )
+        response = session.send(request=endpoint.prepared_request)
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
@@ -159,11 +158,17 @@ class TestMalformed:
             assert_vwq_failure(
                 response=response,
                 status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
-                content_type='text/html; charset=ISO-8859-1',
+                content_type='text/html;charset=iso-8859-1',
+                cache_control='must-revalidate,no-cache,no-store',
+                www_authenticate=None,
             )
-            # We have seen multiple responses given.
-            assert 'Powered by Jetty' in response.text
-            assert '500 Server Error' in response.text
+            content_filename = 'jetty_error_array_out_of_bounds.html'
+            content_filename_2 = 'jetty_error_array_out_of_bounds_2.html'
+            content_path = Path(__file__).parent / content_filename
+            content_path_2 = Path(__file__).parent / content_filename_2
+            content_text = content_path.read_text()
+            content_2_text = content_path_2.read_text()
+            assert response.text in (content_text, content_2_text)
             return
 
         assert_vws_failure(
@@ -220,6 +225,8 @@ class TestBadKey:
             response=response,
             status_code=HTTPStatus.UNAUTHORIZED,
             content_type='application/json',
+            cache_control=None,
+            www_authenticate='VWS',
         )
 
         assert response.json().keys() == {'transaction_id', 'result_code'}
@@ -276,6 +283,8 @@ class TestBadKey:
             response=response,
             status_code=HTTPStatus.UNAUTHORIZED,
             content_type='application/json',
+            cache_control=None,
+            www_authenticate='VWS',
         )
 
         assert response.json().keys() == {'transaction_id', 'result_code'}

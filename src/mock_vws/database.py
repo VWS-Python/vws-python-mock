@@ -38,6 +38,19 @@ def _random_hex() -> str:
 class VuforiaDatabase:
     """
     Credentials for VWS APIs.
+
+    Args:
+        database_name: The name of a VWS target manager database name. Defaults
+            to a random string.
+        server_access_key: A VWS server access key. Defaults to a random
+            string.
+        server_secret_key: A VWS server secret key. Defaults to a random
+            string.
+        client_access_key: A VWS client access key. Defaults to a random
+            string.
+        client_secret_key: A VWS client secret key. Defaults to a random
+            string.
+        state: The state of the database.
     """
 
     # We hide a few things in the ``repr`` with ``repr=False`` so that they do
@@ -72,15 +85,24 @@ class VuforiaDatabase:
             'targets': targets,
         }
 
+    def get_target(self, target_id: str) -> Target:
+        """
+        Return a target from the database with the given ID.
+        """
+        [target] = [
+            target for target in self.targets if target.target_id == target_id
+        ]
+        return target
+
     @classmethod
     def from_dict(cls, database_dict: DatabaseDict) -> VuforiaDatabase:
         """
         Load a database from a dictionary.
         """
-        targets = set()
-        for target_dict in database_dict['targets']:
-            target = Target.from_dict(target_dict=target_dict)
-            targets.add(target)
+        targets = {
+            Target.from_dict(target_dict=target_dict)
+            for target_dict in database_dict['targets']
+        },
 
         database = cls(
             database_name=database_dict['database_name'],
@@ -99,50 +121,50 @@ class VuforiaDatabase:
         """
         All targets which have not been deleted.
         """
-        return set(target for target in self.targets if not target.delete_date)
+        return {target for target in self.targets if not target.delete_date}
 
     @property
     def active_targets(self) -> Set[Target]:
         """
         All active targets.
         """
-        return set(
+        return {
             target
             for target in self.not_deleted_targets
             if target.status == TargetStatuses.SUCCESS.value
             and target.active_flag
-        )
+        }
 
     @property
     def inactive_targets(self) -> Set[Target]:
         """
         All inactive targets.
         """
-        return set(
+        return {
             target
             for target in self.not_deleted_targets
             if target.status == TargetStatuses.SUCCESS.value
             and not target.active_flag
-        )
+        }
 
     @property
     def failed_targets(self) -> Set[Target]:
         """
         All failed targets.
         """
-        return set(
+        return {
             target
             for target in self.not_deleted_targets
             if target.status == TargetStatuses.FAILED.value
-        )
+        }
 
     @property
     def processing_targets(self) -> Set[Target]:
         """
         All processing targets.
         """
-        return set(
+        return {
             target
             for target in self.not_deleted_targets
             if target.status == TargetStatuses.PROCESSING.value
-        )
+        }
