@@ -8,7 +8,7 @@ from http import HTTPStatus
 
 import pytest
 import requests
-from _pytest.monkeypatch import MonkeyPatch
+from pytest import MonkeyPatch
 from requests_mock import Mocker
 from requests_mock_flask import add_flask_app_to_mock
 from vws import VWS, CloudRecoService
