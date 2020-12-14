@@ -60,6 +60,10 @@ class VuforiaDatabase:
     server_secret_key: str = field(default_factory=_random_hex, repr=False)
     client_access_key: str = field(default_factory=_random_hex, repr=False)
     client_secret_key: str = field(default_factory=_random_hex, repr=False)
+    # We have ``targets`` as ``hash=False`` so that we can have the class as
+    # ``frozen=True`` while still being able to keep the interface we want.
+    # In particular, we might want to inspect the ``database`` object's targets
+    # as they change via API requests.
     targets: Set[Target] = field(default_factory=set, hash=False)
     state: States = States.WORKING
 
