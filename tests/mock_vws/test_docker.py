@@ -76,13 +76,15 @@ def test_build_and_run(
             path=str(repository_root),
             dockerfile=str(base_dockerfile),
             tag=base_tag,
-            platform='amd64',
+            platform='arm64',
         )
     except docker.errors.BuildError as exc:
-        import pdb; pdb.set_trace()
+        full_log = '\n'.join(
+            [item['stream'] for item in exc.build_log if 'stream' in item],
+        )
         # If this assertion fails, it may be useful to look at the other
         # properties of ``exc``.
-        assert 'no matching manifest for windows/amd64' in exc.msg
+        assert 'no matching manifest for windows/amd64' in exc.msg, full_log
         reason = 'We do not currently support using Windows containers.'
         pytest.skip(reason)
 

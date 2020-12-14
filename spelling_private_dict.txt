@@ -27,6 +27,7 @@ dev
 dict
 docstring
 docstrings
+exc
 filename
 foo
 formdata
