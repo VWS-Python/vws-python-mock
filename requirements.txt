@@ -1,6 +1,9 @@
 Pillow
 VWS-Auth-Tools
 # We add ``[tzdata]`` for Windows.
+# Building the wheel for this on Apple Silicon needs ``gcc`` - that is
+# hardcoded in the base Dockerfile.
+# This can be removed when we only support Python 3.9+.
 backports.zoneinfo[tzdata]
 flask
 requests-mock
