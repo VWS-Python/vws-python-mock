@@ -158,8 +158,8 @@ def create_target(database_name: str) -> Tuple[str, int]:
         database,
         targets=new_database_targets,
     )
-    TARGET_MANAGER.databases.remove(database)
-    TARGET_MANAGER.databases.add(new_database)
+    TARGET_MANAGER.remove_database(database)
+    TARGET_MANAGER.add_database(new_database)
 
     return jsonify(target.to_dict()), HTTPStatus.CREATED
 
@@ -185,8 +185,8 @@ def delete_target(database_name: str, target_id: str) -> Tuple[str, int]:
         database,
         targets=new_database_targets,
     )
-    TARGET_MANAGER.databases.remove(database)
-    TARGET_MANAGER.databases.add(new_database)
+    TARGET_MANAGER.remove_database(database)
+    TARGET_MANAGER.add_database(new_database)
     return jsonify(new_target.to_dict()), HTTPStatus.OK
 
 
@@ -242,8 +242,8 @@ def update_target(database_name: str, target_id: str) -> Tuple[str, int]:
         database,
         targets=new_database_targets,
     )
-    TARGET_MANAGER.databases.remove(database)
-    TARGET_MANAGER.databases.add(new_database)
+    TARGET_MANAGER.remove_database(database)
+    TARGET_MANAGER.add_database(new_database)
 
     return jsonify(new_target.to_dict()), HTTPStatus.OK
 

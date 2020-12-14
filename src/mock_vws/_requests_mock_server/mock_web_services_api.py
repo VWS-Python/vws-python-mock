@@ -162,8 +162,8 @@ class MockVuforiaWebServicesAPI:
             database,
             targets=new_database_targets,
         )
-        self._target_manager.databases.remove(database)
-        self._target_manager.databases.add(new_database)
+        self._target_manager.remove_database(database)
+        self._target_manager.add_database(new_database)
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.status_code = HTTPStatus.CREATED
@@ -236,8 +236,8 @@ class MockVuforiaWebServicesAPI:
             database,
             targets=new_database_targets,
         )
-        self._target_manager.databases.remove(database)
-        self._target_manager.databases.add(new_database)
+        self._target_manager.remove_database(database)
+        self._target_manager.add_database(new_database)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
 
         body = {
@@ -596,13 +596,13 @@ class MockVuforiaWebServicesAPI:
             last_modified_date=last_modified_date,
         )
 
-        new_database_targets = database.targets.union({new_target})
+        new_database_targets = database.targets.union({new_target}) - {target}
         new_database = dataclasses.replace(
             database,
             targets=new_database_targets,
         )
-        self._target_manager.databases.remove(database)
-        self._target_manager.databases.add(new_database)
+        self._target_manager.remove_database(database)
+        self._target_manager.add_database(new_database)
 
         body = {
             'result_code': ResultCodes.SUCCESS.value,
