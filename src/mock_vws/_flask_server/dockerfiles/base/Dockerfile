@@ -6,7 +6,6 @@ RUN apt update --yes
 RUN apt install --yes git gcc
 COPY . /app
 WORKDIR /app
-RUN pip install --upgrade pip setuptools wheel
 RUN pip install .
 EXPOSE 5000
 ENTRYPOINT ["python"]
