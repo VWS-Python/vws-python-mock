@@ -76,7 +76,6 @@ def test_build_and_run(
             path=str(repository_root),
             dockerfile=str(base_dockerfile),
             tag=base_tag,
-            platform='arm64',
         )
     except docker.errors.BuildError as exc:
         full_log = '\n'.join(
