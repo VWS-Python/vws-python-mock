@@ -477,8 +477,8 @@ class TestImage:
     """
     Tests for the image parameter.
 
-    The specification for images is documented in "Supported Images" on
-    https://library.vuforia.com/articles/Training/Image-Target-Guide
+    The specification for images is documented at
+    https://library.vuforia.com/features/images/image-targets.html.
     """
 
     def test_image_valid(

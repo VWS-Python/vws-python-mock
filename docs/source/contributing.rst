@@ -134,10 +134,6 @@ The database summary from ``GET /summary`` has multiple undocumented return fiel
 
 The database summary from ``GET /summary`` is not immediately accurate.
 
-Some of the `Vuforia Web Services documentation <https://library.vuforia.com/articles/Training/Image-Target-Guide>`__ states that "The size of the input images must 2 MB or less".
-However, the documentation page `How To Perform an Image Recognition Query`_ is more accurate:
-"Maximum image size: 2.1 MPixel. 512 KiB for JPEG, 2MiB for PNG".
-
 The documentation page `How To Perform an Image Recognition Query`_ states that the ``Content-Type`` header must be set to ``multipart/form-data``.
 However, it must be set to ``multipart/form-data; boundary=<BOUNDARY>`` where ``<BOUNDARY>`` is the boundary used when encoding the form data.
 
