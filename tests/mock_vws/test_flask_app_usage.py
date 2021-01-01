@@ -65,7 +65,7 @@ class TestProcessingTime:
 
     # There is a race condition in this test type - if tests start to
     # fail, consider increasing the leeway.
-    LEEWAY = 0.05
+    LEEWAY = 0.1
 
     def test_default(
         self,
@@ -174,6 +174,10 @@ class TestCustomQueryProcessDeletionSeconds:
     until it is not processed by the query endpoint.
     """
 
+    # There is a race condition in this test type - if tests start to
+    # fail, consider increasing the leeway.
+    LEEWAY = 0.2
+
     def test_default(
         self,
         high_quality_image: io.BytesIO,
@@ -194,7 +198,7 @@ class TestCustomQueryProcessDeletionSeconds:
         )
 
         expected = 3
-        assert abs(expected - time_taken) < 0.1
+        assert abs(expected - time_taken) < self.LEEWAY
 
     def test_custom(
         self,
@@ -220,7 +224,7 @@ class TestCustomQueryProcessDeletionSeconds:
         )
 
         expected = query_processes_deletion
-        assert abs(expected - time_taken) < 0.1
+        assert abs(expected - time_taken) < self.LEEWAY
 
 
 class TestAddDatabase:
