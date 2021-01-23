@@ -1,4 +1,4 @@
-PyYAML==5.4
+PyYAML==5.4.1
 Sphinx-Substitution-Extensions==2020.9.30.0
 Sphinx==3.4.3
 VWS-Test-Fixtures==2020.9.25.1
