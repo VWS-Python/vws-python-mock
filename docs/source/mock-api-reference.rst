@@ -7,6 +7,8 @@ API Reference
    :members:
    :undoc-members:
 
+.. TODO why does this error only with :undoc-members:
+
 .. autoclass:: mock_vws.target.TargetDict
    :members:
    :undoc-members:
