@@ -69,10 +69,7 @@ class ResponseNoContentTypeAdded(Response):
     Without this, a content type is added to all responses.
     Some of our responses need to not have a "Content-Type" header.
     """
-
-    # When https://github.com/python/typeshed/pull/4563 is shipped in a future
-    # release of mypy, we can remove this ignore.
-    default_mimetype = None  # type: ignore
+    default_mimetype = None
 
 
 CLOUDRECO_FLASK_APP.response_class = ResponseNoContentTypeAdded
