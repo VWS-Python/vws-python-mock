@@ -5,4 +5,4 @@ Installation
 
    pip3 install vws-python-mock
 
-This requires Python 3.8+.
+This requires Python 3.9+.

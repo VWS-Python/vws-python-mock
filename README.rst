@@ -13,7 +13,7 @@ Mocking calls made to Vuforia with Python ``requests``
 
 Using the mock redirects requests to Vuforia made with `requests`_ to an in-memory implementation.
 
-This requires Python 3.8.5+.
+This requires Python 3.9+.
 
 .. code:: sh
 
