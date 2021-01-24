@@ -5,6 +5,8 @@ See
 https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query
 """
 
+from __future__ import annotations
+
 import email.utils
 from typing import Callable, Set
 

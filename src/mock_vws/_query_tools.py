@@ -2,6 +2,8 @@
 Tools for making Vuforia queries.
 """
 
+from __future__ import annotations
+
 import base64
 import cgi
 import datetime
