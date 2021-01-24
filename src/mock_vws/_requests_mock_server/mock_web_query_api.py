@@ -6,7 +6,7 @@ https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognitio
 """
 
 import email.utils
-from typing import Callable, Set, Union
+from typing import Callable, Set
 
 from requests_mock import POST
 from requests_mock.request import _RequestObjectProxy
@@ -74,8 +74,8 @@ class MockVuforiaWebQueryAPI:
     def __init__(
         self,
         target_manager: TargetManager,
-        query_recognizes_deletion_seconds: Union[int, float],
-        query_processes_deletion_seconds: Union[int, float],
+        query_recognizes_deletion_seconds: int | float,
+        query_processes_deletion_seconds: int | float,
     ) -> None:
         """
         Args:

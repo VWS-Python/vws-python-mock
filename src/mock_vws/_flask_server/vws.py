@@ -11,7 +11,7 @@ import json
 import os
 import uuid
 from http import HTTPStatus
-from typing import List, Set
+from typing import Set
 
 import requests
 from flask import Flask, Response, request
@@ -52,6 +52,7 @@ class ResponseNoContentTypeAdded(Response):
     Without this, a content type is added to all responses.
     Some of our responses need to not have a "Content-Type" header.
     """
+
     default_mimetype = None
 
 
@@ -394,7 +395,7 @@ def get_duplicates(target_id: str) -> Response:
     ]
     other_targets = set(database.targets) - {target}
 
-    similar_targets: List[str] = [
+    similar_targets: list[str] = [
         other.target_id
         for other in other_targets
         if other.image_value == target.image_value

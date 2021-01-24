@@ -2,7 +2,9 @@
 Helpers for getting databases which match keys given in requests.
 """
 
-from typing import Dict, Iterable, Optional
+from __future__ import annotations
+
+from typing import Dict, Iterable
 
 from vws_auth_tools import authorization_header
 
@@ -11,11 +13,11 @@ from mock_vws.database import VuforiaDatabase
 
 def get_database_matching_client_keys(
     request_headers: Dict[str, str],
-    request_body: Optional[bytes],
+    request_body: bytes | None,
     request_method: str,
     request_path: str,
     databases: Iterable[VuforiaDatabase],
-) -> Optional[VuforiaDatabase]:
+) -> VuforiaDatabase | None:
     """
     Return which, if any, of the given databases is being accessed by the given
     client request.
@@ -53,11 +55,11 @@ def get_database_matching_client_keys(
 
 def get_database_matching_server_keys(
     request_headers: Dict[str, str],
-    request_body: Optional[bytes],
+    request_body: bytes | None,
     request_method: str,
     request_path: str,
     databases: Iterable[VuforiaDatabase],
-) -> Optional[VuforiaDatabase]:
+) -> VuforiaDatabase | None:
     """
     Return which, if any, of the given databases is being accessed by the given
     server request.

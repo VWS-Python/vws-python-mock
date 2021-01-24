@@ -10,7 +10,7 @@ import random
 import statistics
 import uuid
 from dataclasses import dataclass, field
-from typing import Optional, TypedDict, Union
+from typing import TypedDict
 
 from backports.zoneinfo import ZoneInfo
 from PIL import Image, ImageStat
@@ -27,12 +27,12 @@ class TargetDict(TypedDict):
     width: float
     image_base64: str
     active_flag: bool
-    processing_time_seconds: Union[int, float]
+    processing_time_seconds: int | float
     processed_tracking_rating: int
-    application_metadata: Optional[str]
+    application_metadata: str | None
     target_id: str
     last_modified_date: str
-    delete_date_optional: Optional[str]
+    delete_date_optional: str | None
     upload_date: str
 
 
@@ -66,13 +66,13 @@ class Target:
     """
 
     active_flag: bool
-    application_metadata: Optional[str]
+    application_metadata: str | None
     image_value: bytes
     name: str
     processing_time_seconds: float
     width: float
     current_month_recos: int = 0
-    delete_date: Optional[datetime.datetime] = None
+    delete_date: datetime.datetime | None = None
     last_modified_date: datetime.datetime = field(default_factory=_time_now)
     previous_month_recos: int = 0
     processed_tracking_rating: int = field(
@@ -208,7 +208,7 @@ class Target:
         """
         Dump a target to a dictionary which can be loaded as JSON.
         """
-        delete_date: Optional[str] = None
+        delete_date: str | None = None
         if self.delete_date:
             delete_date = datetime.datetime.isoformat(self.delete_date)
 

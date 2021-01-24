@@ -7,7 +7,7 @@ import cgi
 import datetime
 import io
 import uuid
-from typing import Any, Dict, List, Set, Union
+from typing import Any, Dict, Set
 
 from backports.zoneinfo import ZoneInfo
 
@@ -30,8 +30,8 @@ def get_query_match_response_text(
     request_method: str,
     request_path: str,
     databases: Set[VuforiaDatabase],
-    query_processes_deletion_seconds: Union[int, float],
-    query_recognizes_deletion_seconds: Union[int, float],
+    query_processes_deletion_seconds: int | float,
+    query_recognizes_deletion_seconds: int | float,
 ) -> str:
     """
     Args:
@@ -129,7 +129,7 @@ def get_query_match_response_text(
 
     matches = not_deleted_matches + deletion_not_recognized_matches
 
-    results: List[Dict[str, Any]] = []
+    results: list[Dict[str, Any]] = []
     for target in matches:
         target_timestamp = target.last_modified_date.timestamp()
         if target.application_metadata is None:
