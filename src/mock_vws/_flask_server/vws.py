@@ -52,7 +52,6 @@ class ResponseNoContentTypeAdded(Response):
     Without this, a content type is added to all responses.
     Some of our responses need to not have a "Content-Type" header.
     """
-
     default_mimetype = None
 
 
