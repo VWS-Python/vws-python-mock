@@ -2,6 +2,8 @@
 Assertion helpers.
 """
 
+from __future__ import annotations
+
 import copy
 import datetime
 import email.utils

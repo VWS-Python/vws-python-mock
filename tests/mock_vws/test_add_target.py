@@ -2,6 +2,8 @@
 Tests for the mock of the add target endpoint.
 """
 
+from __future__ import annotations
+
 import base64
 import io
 import json

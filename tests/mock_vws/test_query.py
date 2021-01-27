@@ -4,6 +4,8 @@ Tests for the mock of the query endpoint.
 https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query.
 """
 
+from __future__ import annotations
+
 import base64
 import calendar
 import datetime
