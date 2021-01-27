@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from typing import Set, TypedDict
+from typing import List, Set, TypedDict
 
 from mock_vws._constants import TargetStatuses
 from mock_vws.states import States
@@ -24,7 +24,7 @@ class DatabaseDict(TypedDict):
     client_access_key: str
     client_secret_key: str
     state_name: str
-    targets: list[TargetDict]
+    targets: List[TargetDict]
 
 
 def _random_hex() -> str:

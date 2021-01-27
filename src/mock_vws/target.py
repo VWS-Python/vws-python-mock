@@ -23,6 +23,8 @@ class TargetDict(TypedDict):
     A dictionary type which represents a target.
     """
 
+    # We cannot use the `X | Y` sytanx for `Union`s and `Optional`s until
+    # https://github.com/sphinx-doc/sphinx/issues/8775 is resolved.
     name: str
     width: float
     image_base64: str
