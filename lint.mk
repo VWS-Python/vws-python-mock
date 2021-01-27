@@ -18,7 +18,7 @@ fix-black:
 
 .PHONY: mypy
 mypy:
-	mypy *.py src/ tests/ docs/source/ admin ci/
+	mypy .
 
 .PHONY: check-manifest
 check-manifest:
