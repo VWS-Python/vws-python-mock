@@ -208,7 +208,7 @@ class Target:
         """
         Dump a target to a dictionary which can be loaded as JSON.
         """
-        delete_date: Optional[str] = None
+        delete_date: str | None = None
         if self.delete_date:
             delete_date = datetime.datetime.isoformat(self.delete_date)
 
