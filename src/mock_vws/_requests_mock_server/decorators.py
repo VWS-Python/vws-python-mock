@@ -2,9 +2,11 @@
 Decorators for using the mock.
 """
 
+from __future__ import annotations
+
 import re
 from contextlib import ContextDecorator
-from typing import Literal, Tuple, Union
+from typing import Literal, Tuple
 from urllib.parse import urljoin, urlparse
 
 import requests
@@ -27,9 +29,9 @@ class MockVWS(ContextDecorator):
         base_vws_url: str = 'https://vws.vuforia.com',
         base_vwq_url: str = 'https://cloudreco.vuforia.com',
         real_http: bool = False,
-        processing_time_seconds: Union[int, float] = 0.5,
-        query_recognizes_deletion_seconds: Union[int, float] = 0.2,
-        query_processes_deletion_seconds: Union[int, float] = 3,
+        processing_time_seconds: int | float = 0.5,
+        query_recognizes_deletion_seconds: int | float = 0.2,
+        query_processes_deletion_seconds: int | float = 3,
     ) -> None:
         """
         Route requests to Vuforia's Web Service APIs to fakes of those APIs.

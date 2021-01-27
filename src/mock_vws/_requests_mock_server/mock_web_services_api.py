@@ -5,6 +5,8 @@ See
 https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API
 """
 
+from __future__ import annotations
+
 import base64
 import dataclasses
 import datetime
@@ -12,7 +14,7 @@ import email.utils
 import random
 import uuid
 from http import HTTPStatus
-from typing import Callable, Dict, List, Set, Union
+from typing import Callable, Dict, Set
 
 from backports.zoneinfo import ZoneInfo
 from requests_mock import DELETE, GET, POST, PUT
@@ -86,7 +88,7 @@ class MockVuforiaWebServicesAPI:
     def __init__(
         self,
         target_manager: TargetManager,
-        processing_time_seconds: Union[int, float],
+        processing_time_seconds: int | float,
     ) -> None:
         """
         Args:
@@ -268,7 +270,7 @@ class MockVuforiaWebServicesAPI:
             context.status_code = exc.status_code
             return exc.response_text
 
-        body: Dict[str, Union[str, int]] = {}
+        body: Dict[str, str | int] = {}
 
         database = get_database_matching_server_keys(
             request_headers=request.headers,
@@ -343,7 +345,7 @@ class MockVuforiaWebServicesAPI:
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
 
         results = [target.target_id for target in database.not_deleted_targets]
-        body: Dict[str, Union[str, List[str]]] = {
+        body: Dict[str, str | list[str]] = {
             'transaction_id': uuid.uuid4().hex,
             'result_code': ResultCodes.SUCCESS.value,
             'results': results,
@@ -461,7 +463,7 @@ class MockVuforiaWebServicesAPI:
 
         other_targets = set(database.targets) - {target}
 
-        similar_targets: List[str] = [
+        similar_targets: list[str] = [
             other.target_id
             for other in other_targets
             if other.image_value == target.image_value

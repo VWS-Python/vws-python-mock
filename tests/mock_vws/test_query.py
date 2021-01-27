@@ -4,6 +4,8 @@ Tests for the mock of the query endpoint.
 https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query.
 """
 
+from __future__ import annotations
+
 import base64
 import calendar
 import datetime
@@ -13,7 +15,7 @@ import time
 import uuid
 from http import HTTPStatus
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict
 from urllib.parse import urljoin
 
 import pytest
@@ -180,8 +182,8 @@ class TestContentType:
         vuforia_database: VuforiaDatabase,
         content_type: str,
         resp_status_code: int,
-        resp_content_type: Optional[str],
-        resp_cache_control: Optional[str],
+        resp_content_type: str | None,
+        resp_cache_control: str | None,
         resp_text: str,
     ) -> None:
         """
@@ -689,7 +691,7 @@ class TestMaxNumResults:
         self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
-        num_results: Union[int, bytes],
+        num_results: int | bytes,
     ) -> None:
         """
         Numbers between 1 and 50 are valid inputs.

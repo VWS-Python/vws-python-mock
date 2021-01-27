@@ -1,4 +1,4 @@
-FROM python:3.8-slim-buster
+FROM python:3.9.1-slim-buster
 RUN apt update --yes
 # git is needed for setuptools-scm.
 # gcc is needed to create the wheel for backports.zoneinfo, at least on Apple

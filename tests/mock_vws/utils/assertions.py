@@ -2,13 +2,14 @@
 Assertion helpers.
 """
 
+from __future__ import annotations
+
 import copy
 import datetime
 import email.utils
 import json
 from http import HTTPStatus
 from string import hexdigits
-from typing import Optional
 
 from backports.zoneinfo import ZoneInfo
 from requests import Response
@@ -198,9 +199,9 @@ def assert_query_success(response: Response) -> None:
 def assert_vwq_failure(
     response: Response,
     status_code: int,
-    content_type: Optional[str],
-    cache_control: Optional[str],
-    www_authenticate: Optional[str],
+    content_type: str | None,
+    cache_control: str | None,
+    www_authenticate: str | None,
 ) -> None:
     """
     Assert that a VWQ failure response is as expected.

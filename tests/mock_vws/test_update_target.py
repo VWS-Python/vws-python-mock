@@ -2,12 +2,14 @@
 Tests for the mock of the update target endpoint.
 """
 
+from __future__ import annotations
+
 import base64
 import io
 import json
 import uuid
 from http import HTTPStatus
-from typing import Any, Dict, Union
+from typing import Any, Dict
 from urllib.parse import urljoin
 
 import pytest
@@ -317,7 +319,7 @@ class TestActiveFlag:
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
         target_id: str,
-        desired_active_flag: Union[str, None],
+        desired_active_flag: str | None,
     ) -> None:
         """
         Values which are not Boolean values are not valid active flags.
@@ -375,7 +377,7 @@ class TestApplicationMetadata:
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
         target_id: str,
-        invalid_metadata: Union[int, None],
+        invalid_metadata: int | None,
     ) -> None:
         """
         Non-string values cannot be given as valid application metadata.
@@ -877,7 +879,7 @@ class TestImage:
     @pytest.mark.parametrize('invalid_type_image', [1, None])
     def test_invalid_type(
         self,
-        invalid_type_image: Union[int, None],
+        invalid_type_image: int | None,
         target_id: str,
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,

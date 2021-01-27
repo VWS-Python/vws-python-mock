@@ -23,6 +23,8 @@ class TargetDict(TypedDict):
     A dictionary type which represents a target.
     """
 
+    # We cannot use the `X | Y` syntax for `Union`s and `Optional`s until
+    # https://github.com/sphinx-doc/sphinx/issues/8775 is resolved.
     name: str
     width: float
     image_base64: str
@@ -208,7 +210,7 @@ class Target:
         """
         Dump a target to a dictionary which can be loaded as JSON.
         """
-        delete_date: Optional[str] = None
+        delete_date: str | None = None
         if self.delete_date:
             delete_date = datetime.datetime.isoformat(self.delete_date)
 

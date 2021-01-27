@@ -2,13 +2,14 @@
 Setup script for VWS Python Mock, a mock of Vuforia's Web Services APIs.
 """
 
+from __future__ import annotations
+
 from pathlib import Path
-from typing import List
 
 from setuptools import setup
 
 
-def _get_dependencies(requirements_file: Path) -> List[str]:
+def _get_dependencies(requirements_file: Path) -> list[str]:
     """
     Return requirements from a requirements file.
 

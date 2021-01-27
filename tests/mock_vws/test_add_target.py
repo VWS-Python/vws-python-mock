@@ -2,12 +2,14 @@
 Tests for the mock of the add target endpoint.
 """
 
+from __future__ import annotations
+
 import base64
 import io
 import json
 from http import HTTPStatus
 from string import hexdigits
-from typing import Any, Dict, Union
+from typing import Any, Dict
 from urllib.parse import urljoin
 
 import pytest
@@ -758,7 +760,7 @@ class TestActiveFlag:
     @pytest.mark.parametrize('active_flag', [True, False, None])
     def test_valid(
         self,
-        active_flag: Union[bool, None],
+        active_flag: bool | None,
         image_file_failed_state: io.BytesIO,
         vuforia_database: VuforiaDatabase,
     ) -> None:
