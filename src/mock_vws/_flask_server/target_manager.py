@@ -9,7 +9,7 @@ import random
 from http import HTTPStatus
 from typing import Tuple
 
-from backports.zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 from flask import Flask, jsonify, request
 
 from mock_vws.database import VuforiaDatabase

@@ -12,7 +12,7 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Optional, TypedDict, Union
 
-from backports.zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 from PIL import Image, ImageStat
 
 from mock_vws._constants import TargetStatuses

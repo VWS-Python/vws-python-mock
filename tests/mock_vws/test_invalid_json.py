@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 
 import pytest
 import requests
-from backports.zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 from freezegun import freeze_time
 from requests.structures import CaseInsensitiveDict
 from vws_auth_tools import authorization_header, rfc_1123_date

@@ -8,7 +8,7 @@ import uuid
 
 import pytest
 from _pytest.fixtures import SubRequest
-from backports.zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 from vws import VWS, CloudRecoService
 from vws.exceptions.vws_exceptions import UnknownTarget
 from vws.reports import TargetStatuses

@@ -20,7 +20,7 @@ from urllib.parse import urljoin
 
 import pytest
 import requests
-from backports.zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 from PIL import Image
 from requests import Response
 from requests_mock import POST
