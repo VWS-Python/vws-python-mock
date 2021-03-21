@@ -23,7 +23,6 @@ jobs:
         python-version: [3.9]
         ci_pattern:
           - test_query.py::TestMaximumImageFileSize
-          - test_add_target.py
 
     steps:
       # We share Vuforia credentials and therefore Vuforia databases across
@@ -63,6 +62,11 @@ jobs:
           CI_PATTERN: ${{ matrix.ci_pattern }}
           ENCRYPTED_FILE: secrets.tar.gpg
           LARGE_SECRET_PASSPHRASE: ${{ secrets.PASSPHRASE_FOR_VUFORIA_SECRETS }}
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
 
       - name: "Run tests"
         run: |
