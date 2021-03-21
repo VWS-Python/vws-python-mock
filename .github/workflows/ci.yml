@@ -22,51 +22,8 @@ jobs:
       matrix:
         python-version: [3.9]
         ci_pattern:
-          - test_query.py::TestContentType
-          - test_query.py::TestSuccess
-          - test_query.py::TestIncorrectFields
-          - test_query.py::TestMaxNumResults
-          - test_query.py::TestIncludeTargetData
-          - test_query.py::TestAcceptHeader
-          - test_query.py::TestActiveFlag
-          - test_query.py::TestBadImage
           - test_query.py::TestMaximumImageFileSize
-          - test_query.py::TestMaximumImageDimensions
-          - test_query.py::TestImageFormats
-          - test_query.py::TestProcessing
-          - test_query.py::TestUpdate
-          - test_query.py::TestDeleted
-          - test_query.py::TestTargetStatusFailed
-          - test_query.py::TestDateFormats
-          - test_query.py::TestInactiveProject
           - test_add_target.py
-          - test_authorization_header.py::TestAuthorizationHeader
-          - test_authorization_header.py::TestMalformed
-          - test_authorization_header.py::TestBadKey
-          - test_content_length.py
-          - test_database_summary.py
-          - test_date_header.py::TestFormat
-          - test_date_header.py::TestMissing
-          - test_date_header.py::TestSkewedTime
-          - test_delete_target.py
-          - test_get_duplicates.py
-          - test_get_target.py
-          - test_invalid_given_id.py
-          - test_invalid_json.py
-          - test_target_list.py
-          - test_target_summary.py
-          - test_unexpected_json.py
-          - test_update_target.py::TestActiveFlag
-          - test_update_target.py::TestApplicationMetadata
-          - test_update_target.py::TestImage
-          - test_update_target.py::TestTargetName
-          - test_update_target.py::TestUnexpectedData
-          - test_update_target.py::TestUpdate
-          - test_update_target.py::TestWidth
-          - test_update_target.py::TestInactiveProject
-          - test_requests_mock_usage.py
-          - test_flask_app_usage.py
-          - test_docker.py
 
     steps:
       # We share Vuforia credentials and therefore Vuforia databases across
