@@ -621,6 +621,42 @@ class ContentLengthHeaderNotInt(ValidatorException):
         }
 
 
+class RequestEntityTooLarge(ValidatorException):
+    """
+    Exception raised when the given image file size is too large.
+    """
+
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this is
+                raised.
+        """
+        super().__init__()
+        self.status_code = HTTPStatus.REQUEST_ENTITY_TOO_LARGE
+        self.response_text = textwrap.dedent(
+            """\
+            <html>\r
+            <head><title>413 Request Entity Too Large</title></head>\r
+            <body bgcolor="white">\r
+            <center><h1>413 Request Entity Too Large</h1></center>\r
+            <hr><center>nginx</center>\r
+            </body>\r
+            </html>\r
+            """,
+        )
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        self.headers = {
+            'Connection': 'Close',
+            'Date': date,
+            'Server': 'nginx',
+            'Content-Type': 'text/html',
+            'Content-Length': str(len(self.response_text)),
+        }
+
+
 class MatchProcessing(ValidatorException):
     """
     Exception raised a target is matched which is processing or recently

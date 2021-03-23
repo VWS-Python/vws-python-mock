@@ -99,6 +99,7 @@ class TestInvalidJSON:
                 content_type='application/json',
                 cache_control=None,
                 www_authenticate=None,
+                connection='keep-alive',
             )
             expected_text = 'No image.'
             assert response.text == expected_text

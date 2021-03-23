@@ -62,6 +62,17 @@ _JETTY_CONTENT_TYPE_ERROR = textwrap.dedent(
     """,  # noqa: E501
 )
 
+_NGINX_REQUEST_ENTITY_TOO_LARGE_ERROR = textwrap.dedent(
+    """\
+    <html>\r
+    <head><title>413 Request Entity Too Large</title></head>\r
+    <body bgcolor="white">\r
+    <center><h1>413 Request Entity Too Large</h1></center>\r
+    <hr><center>nginx</center>\r
+    </body>\r
+    </html>\r
+    """,
+)
 
 _JETTY_ERROR_DELETION_NOT_COMPLETE_START_PATH = (
     Path(__file__).parent / 'jetty_error_deletion_not_complete.html'
@@ -228,6 +239,7 @@ class TestContentType:
             content_type=resp_content_type,
             cache_control=resp_cache_control,
             www_authenticate=None,
+            connection='keep-alive',
         )
 
     def test_incorrect_with_boundary(
@@ -284,6 +296,7 @@ class TestContentType:
             content_type=None,
             cache_control=None,
             www_authenticate=None,
+            connection='keep-alive',
         )
 
     @pytest.mark.parametrize(
@@ -347,6 +360,7 @@ class TestContentType:
             content_type='text/html;charset=utf-8',
             cache_control=None,
             www_authenticate=None,
+            connection='keep-alive',
         )
 
     def test_bogus_boundary(
@@ -398,6 +412,7 @@ class TestContentType:
             content_type='application/json',
             cache_control=None,
             www_authenticate=None,
+            connection='keep-alive',
         )
 
     def test_extra_section(
@@ -590,6 +605,7 @@ class TestIncorrectFields:
             content_type='application/json',
             cache_control=None,
             www_authenticate=None,
+            connection='keep-alive',
         )
 
     def test_extra_fields(
@@ -615,6 +631,7 @@ class TestIncorrectFields:
             status_code=HTTPStatus.BAD_REQUEST,
             cache_control=None,
             www_authenticate=None,
+            connection='keep-alive',
         )
 
     def test_missing_image_and_extra_fields(
@@ -640,6 +657,7 @@ class TestIncorrectFields:
             status_code=HTTPStatus.BAD_REQUEST,
             cache_control=None,
             www_authenticate=None,
+            connection='keep-alive',
         )
 
 
@@ -778,6 +796,7 @@ class TestMaxNumResults:
             status_code=HTTPStatus.BAD_REQUEST,
             cache_control=None,
             www_authenticate=None,
+            connection='keep-alive',
         )
 
     @pytest.mark.parametrize(
@@ -816,6 +835,7 @@ class TestMaxNumResults:
             status_code=HTTPStatus.BAD_REQUEST,
             cache_control=None,
             www_authenticate=None,
+            connection='keep-alive',
         )
 
 
@@ -999,6 +1019,7 @@ class TestIncludeTargetData:
             content_type='application/json',
             cache_control=None,
             www_authenticate=None,
+            connection='keep-alive',
         )
 
 
@@ -1111,6 +1132,7 @@ class TestAcceptHeader:
             content_type=None,
             cache_control=None,
             www_authenticate=None,
+            connection='keep-alive',
         )
 
 
@@ -1189,6 +1211,7 @@ class TestBadImage:
             content_type='application/json',
             cache_control=None,
             www_authenticate=None,
+            connection='keep-alive',
         )
         assert response.json().keys() == {'transaction_id', 'result_code'}
         assert_valid_transaction_id(response=response)
@@ -1221,7 +1244,7 @@ class TestMaximumImageFileSize:
         https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query.
         the maximum file size is "2MiB for PNG".
 
-        Above this limit, a ``ConnectionError`` is raised.
+        Above this limit, a ``REQUEST_ENTITY_TOO_LARGE`` response is returned.
         We do not test exactly at this limit, but that may be beneficial in the
         future.
         """
@@ -1271,11 +1294,20 @@ class TestMaximumImageFileSize:
         assert image_content_size > max_bytes
         assert (image_content_size * 0.95) < max_bytes
 
-        with pytest.raises(requests.exceptions.ConnectionError):
-            query(
-                vuforia_database=vuforia_database,
-                body=body,
-            )
+        response = query(
+            vuforia_database=vuforia_database,
+            body=body,
+        )
+
+        assert_vwq_failure(
+            response=response,
+            status_code=HTTPStatus.REQUEST_ENTITY_TOO_LARGE,
+            content_type='text/html',
+            cache_control=None,
+            www_authenticate=None,
+            connection='Close',
+        )
+        assert response.text == _NGINX_REQUEST_ENTITY_TOO_LARGE_ERROR
 
     def test_jpeg(
         self,
@@ -1287,7 +1319,7 @@ class TestMaximumImageFileSize:
         the maximum file size is "512 KiB for JPEG".
         However, this test shows that the maximum size for JPEG is 2 MiB.
 
-        Above this limit, a ``ConnectionError`` is raised.
+        Above this limit, a ``REQUEST_ENTITY_TOO_LARGE`` response is returned.
         We do not test exactly at this limit, but that may be beneficial in the
         future.
         """
@@ -1336,11 +1368,21 @@ class TestMaximumImageFileSize:
         assert image_content_size > max_bytes
         assert (image_content_size * 0.95) < max_bytes
 
-        with pytest.raises(requests.exceptions.ConnectionError):
-            query(
-                vuforia_database=vuforia_database,
-                body=body,
-            )
+        response = query(
+            vuforia_database=vuforia_database,
+            body=body,
+        )
+
+        assert_vwq_failure(
+            response=response,
+            status_code=HTTPStatus.REQUEST_ENTITY_TOO_LARGE,
+            content_type='text/html',
+            cache_control=None,
+            www_authenticate=None,
+            connection='Close',
+        )
+
+        assert response.text == _NGINX_REQUEST_ENTITY_TOO_LARGE_ERROR
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -1391,6 +1433,7 @@ class TestMaximumImageDimensions:
             content_type='application/json',
             cache_control=None,
             www_authenticate=None,
+            connection='keep-alive',
         )
         assert response.json().keys() == {'transaction_id', 'result_code'}
         assert_valid_transaction_id(response=response)
@@ -1449,6 +1492,7 @@ class TestMaximumImageDimensions:
             content_type='application/json',
             cache_control=None,
             www_authenticate=None,
+            connection='keep-alive',
         )
         assert response.json().keys() == {'transaction_id', 'result_code'}
         assert_valid_transaction_id(response=response)
@@ -1518,6 +1562,7 @@ class TestImageFormats:
             content_type='application/json',
             cache_control=None,
             www_authenticate=None,
+            connection='keep-alive',
         )
         assert response.json().keys() == {'transaction_id', 'result_code'}
         assert_valid_transaction_id(response=response)
@@ -1716,6 +1761,7 @@ class TestDeleted:
                     status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
                     cache_control='must-revalidate,no-cache,no-store',
                     www_authenticate=None,
+                    connection='keep-alive',
                 )
 
                 return
@@ -1955,6 +2001,7 @@ class TestInactiveProject:
             content_type='application/json',
             cache_control=None,
             www_authenticate=None,
+            connection='keep-alive',
         )
         assert response.json().keys() == {'transaction_id', 'result_code'}
         assert_valid_transaction_id(response=response)

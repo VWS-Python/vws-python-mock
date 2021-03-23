@@ -97,6 +97,7 @@ class TestIncorrect:
                 content_type='application/json',
                 cache_control=None,
                 www_authenticate='VWS',
+                connection='keep-alive',
             )
             return
 
