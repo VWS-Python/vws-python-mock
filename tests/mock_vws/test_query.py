@@ -1221,7 +1221,7 @@ class TestMaximumImageFileSize:
         https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query.
         the maximum file size is "2MiB for PNG".
 
-        Above this limit, a ``ConnectionError`` is raised.
+        Above this limit, a ``TODO`` is raised.
         We do not test exactly at this limit, but that may be beneficial in the
         future.
         """
@@ -1271,11 +1271,18 @@ class TestMaximumImageFileSize:
         assert image_content_size > max_bytes
         assert (image_content_size * 0.95) < max_bytes
 
-        with pytest.raises(requests.exceptions.ConnectionError):
-            query(
-                vuforia_database=vuforia_database,
-                body=body,
-            )
+        response = query(
+            vuforia_database=vuforia_database,
+            body=body,
+        )
+
+        assert_vwq_failure(
+            response=response,
+            status_code=HTTPStatus.REQUEST_ENTITY_TOO_LARGE,
+            content_type=None,
+            cache_control=None,
+            www_authenticate=None,
+        )
 
     def test_jpeg(
         self,
