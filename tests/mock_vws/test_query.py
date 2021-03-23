@@ -1307,7 +1307,7 @@ class TestMaximumImageFileSize:
         the maximum file size is "512 KiB for JPEG".
         However, this test shows that the maximum size for JPEG is 2 MiB.
 
-        Above this limit, a ``ConnectionError`` is raised.
+        Above this limit, a ``REQUEST_ENTITY_TOO_LARGE`` response is returned.
         We do not test exactly at this limit, but that may be beneficial in the
         future.
         """

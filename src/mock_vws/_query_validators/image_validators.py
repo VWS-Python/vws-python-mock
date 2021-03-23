@@ -9,7 +9,7 @@ from typing import Dict
 import requests
 from PIL import Image
 
-from mock_vws._query_validators.exceptions import BadImage, ImageNotGiven
+from mock_vws._query_validators.exceptions import BadImage, ImageNotGiven, RequestEntityTooLarge
 
 
 def validate_image_field_given(
@@ -54,7 +54,7 @@ def validate_image_file_size(
         request_body: The body of the request.
 
     Raises:
-        requests.exceptions.ConnectionError: The image file size is too large.
+        RequestEntityTooLarge: The image file size is too large.
     """
     body_file = io.BytesIO(request_body)
 
@@ -74,7 +74,7 @@ def validate_image_file_size(
     # files.
     max_bytes = 2 * 1024 * 1024
     if len(image) > max_bytes:
-        raise requests.exceptions.ConnectionError
+        raise RequestEntityTooLarge
 
 
 def validate_image_dimensions(
