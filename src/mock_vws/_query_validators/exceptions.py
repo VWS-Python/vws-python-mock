@@ -636,8 +636,17 @@ class RequestEntityTooLarge(ValidatorException):
         """
         super().__init__()
         self.status_code = HTTPStatus.REQUEST_ENTITY_TOO_LARGE
-        # TODO assert this!
-        self.response_text = ''
+        self.response_text = textwrap.dedent(
+            """\
+            <html>\r
+            <head><title>413 Request Entity Too Large</title></head>\r
+            <body bgcolor="white">\r
+            <center><h1>413 Request Entity Too Large</h1></center>\r
+            <hr><center>nginx</center>\r
+            </body>\r
+            </html>\r
+            """,
+        )
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
             'Connection': 'Close',

@@ -6,10 +6,13 @@ import cgi
 import io
 from typing import Dict
 
-import requests
 from PIL import Image
 
-from mock_vws._query_validators.exceptions import BadImage, ImageNotGiven, RequestEntityTooLarge
+from mock_vws._query_validators.exceptions import (
+    BadImage,
+    ImageNotGiven,
+    RequestEntityTooLarge,
+)
 
 
 def validate_image_field_given(

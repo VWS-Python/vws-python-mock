@@ -62,6 +62,17 @@ _JETTY_CONTENT_TYPE_ERROR = textwrap.dedent(
     """,  # noqa: E501
 )
 
+_NGINX_REQUEST_ENTITY_TOO_LARGE_ERROR = textwrap.dedent(
+    """\
+    <html>\r
+    <head><title>413 Request Entity Too Large</title></head>\r
+    <body bgcolor="white">\r
+    <center><h1>413 Request Entity Too Large</h1></center>\r
+    <hr><center>nginx</center>\r
+    </body>\r
+    </html>\r
+    """,
+)
 
 _JETTY_ERROR_DELETION_NOT_COMPLETE_START_PATH = (
     Path(__file__).parent / 'jetty_error_deletion_not_complete.html'
@@ -1296,6 +1307,7 @@ class TestMaximumImageFileSize:
             www_authenticate=None,
             connection='Close',
         )
+        assert response.text == _NGINX_REQUEST_ENTITY_TOO_LARGE_ERROR
 
     def test_jpeg(
         self,
@@ -1369,6 +1381,8 @@ class TestMaximumImageFileSize:
             www_authenticate=None,
             connection='Close',
         )
+
+        assert response.text == _NGINX_REQUEST_ENTITY_TOO_LARGE_ERROR
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
