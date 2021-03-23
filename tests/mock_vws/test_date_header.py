@@ -75,6 +75,7 @@ class TestMissing:
                 content_type=expected_content_type,
                 cache_control=None,
                 www_authenticate=None,
+                connection='keep-alive',
             )
             return
 
@@ -141,6 +142,7 @@ class TestFormat:
                 content_type='text/plain;charset=iso-8859-1',
                 cache_control=None,
                 www_authenticate='VWS',
+                connection='keep-alive',
             )
             return
 

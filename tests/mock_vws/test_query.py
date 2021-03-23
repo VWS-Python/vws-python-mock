@@ -228,6 +228,7 @@ class TestContentType:
             content_type=resp_content_type,
             cache_control=resp_cache_control,
             www_authenticate=None,
+            connection='keep-alive',
         )
 
     def test_incorrect_with_boundary(
@@ -284,6 +285,7 @@ class TestContentType:
             content_type=None,
             cache_control=None,
             www_authenticate=None,
+            connection='keep-alive',
         )
 
     @pytest.mark.parametrize(
@@ -347,6 +349,7 @@ class TestContentType:
             content_type='text/html;charset=utf-8',
             cache_control=None,
             www_authenticate=None,
+            connection='keep-alive',
         )
 
     def test_bogus_boundary(
@@ -398,6 +401,7 @@ class TestContentType:
             content_type='application/json',
             cache_control=None,
             www_authenticate=None,
+            connection='keep-alive',
         )
 
     def test_extra_section(
@@ -590,6 +594,7 @@ class TestIncorrectFields:
             content_type='application/json',
             cache_control=None,
             www_authenticate=None,
+            connection='keep-alive',
         )
 
     def test_extra_fields(
@@ -615,6 +620,7 @@ class TestIncorrectFields:
             status_code=HTTPStatus.BAD_REQUEST,
             cache_control=None,
             www_authenticate=None,
+            connection='keep-alive',
         )
 
     def test_missing_image_and_extra_fields(
@@ -640,6 +646,7 @@ class TestIncorrectFields:
             status_code=HTTPStatus.BAD_REQUEST,
             cache_control=None,
             www_authenticate=None,
+            connection='keep-alive',
         )
 
 
@@ -778,6 +785,7 @@ class TestMaxNumResults:
             status_code=HTTPStatus.BAD_REQUEST,
             cache_control=None,
             www_authenticate=None,
+            connection='keep-alive',
         )
 
     @pytest.mark.parametrize(
@@ -816,6 +824,7 @@ class TestMaxNumResults:
             status_code=HTTPStatus.BAD_REQUEST,
             cache_control=None,
             www_authenticate=None,
+            connection='keep-alive',
         )
 
 
@@ -999,6 +1008,7 @@ class TestIncludeTargetData:
             content_type='application/json',
             cache_control=None,
             www_authenticate=None,
+            connection='keep-alive',
         )
 
 
@@ -1111,6 +1121,7 @@ class TestAcceptHeader:
             content_type=None,
             cache_control=None,
             www_authenticate=None,
+            connection='keep-alive',
         )
 
 
@@ -1189,6 +1200,7 @@ class TestBadImage:
             content_type='application/json',
             cache_control=None,
             www_authenticate=None,
+            connection='keep-alive',
         )
         assert response.json().keys() == {'transaction_id', 'result_code'}
         assert_valid_transaction_id(response=response)
@@ -1221,7 +1233,7 @@ class TestMaximumImageFileSize:
         https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query.
         the maximum file size is "2MiB for PNG".
 
-        Above this limit, a ``TODO`` is raised.
+        Above this limit, a ``REQUEST_ENTITY_TOO_LARGE`` response is returned.
         We do not test exactly at this limit, but that may be beneficial in the
         future.
         """
@@ -1279,9 +1291,10 @@ class TestMaximumImageFileSize:
         assert_vwq_failure(
             response=response,
             status_code=HTTPStatus.REQUEST_ENTITY_TOO_LARGE,
-            content_type=None,
+            content_type='text/html',
             cache_control=None,
             www_authenticate=None,
+            connection='Close',
         )
 
     def test_jpeg(
@@ -1343,11 +1356,19 @@ class TestMaximumImageFileSize:
         assert image_content_size > max_bytes
         assert (image_content_size * 0.95) < max_bytes
 
-        with pytest.raises(requests.exceptions.ConnectionError):
-            query(
-                vuforia_database=vuforia_database,
-                body=body,
-            )
+        response = query(
+            vuforia_database=vuforia_database,
+            body=body,
+        )
+
+        assert_vwq_failure(
+            response=response,
+            status_code=HTTPStatus.REQUEST_ENTITY_TOO_LARGE,
+            content_type='text/html',
+            cache_control=None,
+            www_authenticate=None,
+            connection='Close',
+        )
 
 
 @pytest.mark.usefixtures('verify_mock_vuforia')
@@ -1398,6 +1419,7 @@ class TestMaximumImageDimensions:
             content_type='application/json',
             cache_control=None,
             www_authenticate=None,
+            connection='keep-alive',
         )
         assert response.json().keys() == {'transaction_id', 'result_code'}
         assert_valid_transaction_id(response=response)
@@ -1456,6 +1478,7 @@ class TestMaximumImageDimensions:
             content_type='application/json',
             cache_control=None,
             www_authenticate=None,
+            connection='keep-alive',
         )
         assert response.json().keys() == {'transaction_id', 'result_code'}
         assert_valid_transaction_id(response=response)
@@ -1525,6 +1548,7 @@ class TestImageFormats:
             content_type='application/json',
             cache_control=None,
             www_authenticate=None,
+            connection='keep-alive',
         )
         assert response.json().keys() == {'transaction_id', 'result_code'}
         assert_valid_transaction_id(response=response)
@@ -1723,6 +1747,7 @@ class TestDeleted:
                     status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
                     cache_control='must-revalidate,no-cache,no-store',
                     www_authenticate=None,
+                    connection='keep-alive',
                 )
 
                 return
@@ -1962,6 +1987,7 @@ class TestInactiveProject:
             content_type='application/json',
             cache_control=None,
             www_authenticate=None,
+            connection='keep-alive',
         )
         assert response.json().keys() == {'transaction_id', 'result_code'}
         assert_valid_transaction_id(response=response)

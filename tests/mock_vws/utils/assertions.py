@@ -202,6 +202,7 @@ def assert_vwq_failure(
     content_type: str | None,
     cache_control: str | None,
     www_authenticate: str | None,
+    connection: str,
 ) -> None:
     """
     Assert that a VWQ failure response is as expected.
@@ -212,6 +213,7 @@ def assert_vwq_failure(
         status_code: The expected status code.
         cache_control: The expected Cache-Control header.
         www_authenticate: The expected WWW-Authenticate header.
+        connection: The expected Connection header.
 
     Raises:
         AssertionError: The response is not in the expected VWQ error format
@@ -248,7 +250,7 @@ def assert_vwq_failure(
         response_header_keys_chunked,
     )
     assert response.headers.get('transfer-encoding', 'chunked') == 'chunked'
-    assert response.headers['Connection'] == 'keep-alive'
+    assert response.headers['Connection'] == connection
     if 'Content-Length' in response.headers:
         assert response.headers['Content-Length'] == str(len(response.text))
     assert_valid_date_header(response=response)

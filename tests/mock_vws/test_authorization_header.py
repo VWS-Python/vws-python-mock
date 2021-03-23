@@ -62,6 +62,7 @@ class TestAuthorizationHeader:
                 content_type='text/plain;charset=iso-8859-1',
                 cache_control=None,
                 www_authenticate='VWS',
+                connection='keep-alive',
             )
             assert response.text == 'Authorization header missing.'
             return
@@ -114,6 +115,7 @@ class TestMalformed:
                 content_type='text/plain;charset=iso-8859-1',
                 cache_control=None,
                 www_authenticate='VWS',
+                connection='keep-alive',
             )
             assert response.text == 'Malformed authorization header.'
             return
@@ -161,6 +163,7 @@ class TestMalformed:
                 content_type='text/html;charset=iso-8859-1',
                 cache_control='must-revalidate,no-cache,no-store',
                 www_authenticate=None,
+                connection='keep-alive',
             )
             content_filename = 'jetty_error_array_out_of_bounds.html'
             content_filename_2 = 'jetty_error_array_out_of_bounds_2.html'
@@ -227,6 +230,7 @@ class TestBadKey:
             content_type='application/json',
             cache_control=None,
             www_authenticate='VWS',
+            connection='keep-alive',
         )
 
         assert response.json().keys() == {'transaction_id', 'result_code'}
@@ -285,6 +289,7 @@ class TestBadKey:
             content_type='application/json',
             cache_control=None,
             www_authenticate='VWS',
+            connection='keep-alive',
         )
 
         assert response.json().keys() == {'transaction_id', 'result_code'}
