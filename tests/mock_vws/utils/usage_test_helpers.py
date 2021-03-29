@@ -115,7 +115,7 @@ def _wait_for_deletion_processed(
     while True:
         try:
             cloud_reco_client.query(image=image)
-        except MatchProcessing:
+        except ActiveMatchingTargetsDeleteProcessing:
             continue
         return
 
