@@ -5,7 +5,7 @@ import io
 from datetime import datetime
 
 from vws import VWS, CloudRecoService
-from vws.exceptions.cloud_reco_exceptions import (
+from vws.exceptions.custom_exceptions import (
     ActiveMatchingTargetsDeleteProcessing,
 )
 from vws.reports import TargetStatuses
