@@ -31,4 +31,4 @@ sphinxcontrib-httpdomain==1.7.0
 sphinxcontrib-spelling==7.1.0
 twine==3.4.1
 vulture==2.3
-vws-python==2020.9.28.0
+vws-python==2021.3.28.2
