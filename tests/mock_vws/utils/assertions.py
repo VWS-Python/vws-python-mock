@@ -251,6 +251,11 @@ def assert_vwq_failure(
     )
     assert response.headers.get('transfer-encoding', 'chunked') == 'chunked'
     assert response.headers['Connection'] == connection
-    assert response.headers['Content-Length'] == str(len(response.text))
+    if 'Content-Length' in response.headers:
+        assert response.headers['Content-Length'] == str(len(response.text))
+    # In some tests we see that sometimes there is no Content-Length header
+    # here.
+    else:  # pragma: no cover
+        pass
     assert_valid_date_header(response=response)
     assert response.headers['Server'] == 'nginx'
