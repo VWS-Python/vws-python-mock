@@ -37,21 +37,21 @@ class MockVWS(ContextDecorator):
         Route requests to Vuforia's Web Service APIs to fakes of those APIs.
 
         Args:
-            real_http: Whether or not to forward requests to the real server if
-                they are not handled by the mock.
+            real_http (bool): Whether or not to forward requests to the real
+                server if they are not handled by the mock.
                 See
                 https://requests-mock.readthedocs.io/en/latest/mocker.html#real-http-requests.
-            processing_time_seconds: The number of seconds to process each
-                image for. In the real Vuforia Web Services, this is not
-                deterministic.
-            base_vwq_url: The base URL for the VWQ API.
-            base_vws_url: The base URL for the VWS API.
-            query_recognizes_deletion_seconds: The number of seconds after a
-                target has been deleted that the query endpoint will still
-                recognize the target for.
-            query_processes_deletion_seconds: The number of seconds after a
-                target deletion is recognized that the query endpoint will
-                return a 500 response on a match.
+            processing_time_seconds (Union[int, float]): The number of seconds
+                to process each image for.
+                In the real Vuforia Web Services, this is not deterministic.
+            base_vwq_url (str): The base URL for the VWQ API.
+            base_vws_url (str): The base URL for the VWS API.
+            query_recognizes_deletion_seconds (Union[int, float]): The number
+                of seconds after a target has been deleted that the query
+                endpoint will still recognize the target for.
+            query_processes_deletion_seconds (Union[int, float]): The number of
+                seconds after a target deletion is recognized that the query
+                endpoint will return a 500 response on a match.
 
         Raises:
             requests.exceptions.MissingSchema: There is no schema in a given
