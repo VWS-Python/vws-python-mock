@@ -41,13 +41,17 @@ jobs:
           - test_query.py::TestInactiveProject
           - test_add_target.py
           - test_authorization_header.py::TestAuthorizationHeader
-          - test_authorization_header.py::TestMalformed
+          - test_authorization_header.py::TestMalformed::test_one_part
+          - test_authorization_header.py::TestMalformed::test_missing_signature
           - test_authorization_header.py::TestBadKey
-          - test_content_length.py
+          - test_content_length.py::TestIncorrect::test_not_integer
+          - test_content_length.py::TestIncorrect::test_too_large
+          - test_content_length.py::TestIncorrect::test_too_small
           - test_database_summary.py
           - test_date_header.py::TestFormat
           - test_date_header.py::TestMissing
-          - test_date_header.py::TestSkewedTime
+          - test_date_header.py::TestSkewedTime::test_date_out_of_range
+          - test_date_header.py::TestSkewedTime::test_date_in_range
           - test_delete_target.py
           - test_get_duplicates.py
           - test_get_target.py
