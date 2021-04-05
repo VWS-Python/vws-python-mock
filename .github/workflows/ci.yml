@@ -62,7 +62,15 @@ jobs:
           - test_unexpected_json.py
           - test_update_target.py::TestActiveFlag
           - test_update_target.py::TestApplicationMetadata
-          - test_update_target.py::TestImage
+          - test_update_target.py::TestImage::test_image_valid
+          - test_update_target.py::TestImage::test_bad_image_format_or_color_space
+          - test_update_target.py::TestImage::test_corrupted
+          - test_update_target.py::TestImage::test_image_too_large
+          - test_update_target.py::TestImage::test_not_base64_encoded_processable
+          - test_update_target.py::TestImage::test_not_base64_encoded_not_processable
+          - test_update_target.py::TestImage::test_not_image
+          - test_update_target.py::TestImage::test_invalid_type
+          - test_update_target.py::TestImage::test_rating_can_change
           - test_update_target.py::TestTargetName
           - test_update_target.py::TestUnexpectedData
           - test_update_target.py::TestUpdate
