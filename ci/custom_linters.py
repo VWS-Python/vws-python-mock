@@ -32,7 +32,7 @@ def _tests_from_pattern(ci_pattern: str) -> Set[str]:
     args = ['pytest', '-q', '--collect-only', ci_pattern]
     result = subprocess.run(args=args, stdout=subprocess.PIPE, check=True)
     for line in result.stdout.decode().splitlines():
-        if line and "collected in" not in line:
+        if line and 'collected in' not in line:
             tests.add(line)
     return tests
 
