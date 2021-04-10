@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import re
 from contextlib import ContextDecorator
-from typing import Literal, Tuple
+from typing import Literal, Tuple, Union
 from urllib.parse import urljoin, urlparse
 
 import requests
@@ -29,27 +29,27 @@ class MockVWS(ContextDecorator):
         base_vws_url: str = 'https://vws.vuforia.com',
         base_vwq_url: str = 'https://cloudreco.vuforia.com',
         real_http: bool = False,
-        processing_time_seconds: int | float = 0.5,
-        query_recognizes_deletion_seconds: int | float = 0.2,
-        query_processes_deletion_seconds: int | float = 3,
+        processing_time_seconds: Union[int, float] = 0.5,
+        query_recognizes_deletion_seconds: Union[int, float] = 0.2,
+        query_processes_deletion_seconds: Union[int, float] = 3,
     ) -> None:
         """
         Route requests to Vuforia's Web Service APIs to fakes of those APIs.
 
         Args:
-            real_http (bool): Whether or not to forward requests to the real
+            real_http: Whether or not to forward requests to the real
                 server if they are not handled by the mock.
                 See
                 https://requests-mock.readthedocs.io/en/latest/mocker.html#real-http-requests.
-            processing_time_seconds (Union[int, float]): The number of seconds
+            processing_time_seconds: The number of seconds
                 to process each image for.
                 In the real Vuforia Web Services, this is not deterministic.
-            base_vwq_url (str): The base URL for the VWQ API.
-            base_vws_url (str): The base URL for the VWS API.
-            query_recognizes_deletion_seconds (Union[int, float]): The number
+            base_vwq_url: The base URL for the VWQ API.
+            base_vws_url: The base URL for the VWS API.
+            query_recognizes_deletion_seconds: The number
                 of seconds after a target has been deleted that the query
                 endpoint will still recognize the target for.
-            query_processes_deletion_seconds (Union[int, float]): The number of
+            query_processes_deletion_seconds: The number of
                 seconds after a target deletion is recognized that the query
                 endpoint will return a 500 response on a match.
 
