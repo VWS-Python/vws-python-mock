@@ -99,6 +99,8 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+          # See https://github.com/codecov/codecov-action/issues/190.
+          fetch-depth: 2
 
       - uses: actions/cache@v2
         with:
