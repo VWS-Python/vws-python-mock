@@ -41,13 +41,17 @@ jobs:
           - test_query.py::TestInactiveProject
           - test_add_target.py
           - test_authorization_header.py::TestAuthorizationHeader
-          - test_authorization_header.py::TestMalformed
+          - test_authorization_header.py::TestMalformed::test_one_part
+          - test_authorization_header.py::TestMalformed::test_missing_signature
           - test_authorization_header.py::TestBadKey
-          - test_content_length.py
+          - test_content_length.py::TestIncorrect::test_not_integer
+          - test_content_length.py::TestIncorrect::test_too_large
+          - test_content_length.py::TestIncorrect::test_too_small
           - test_database_summary.py
           - test_date_header.py::TestFormat
           - test_date_header.py::TestMissing
-          - test_date_header.py::TestSkewedTime
+          - test_date_header.py::TestSkewedTime::test_date_out_of_range
+          - test_date_header.py::TestSkewedTime::test_date_in_range
           - test_delete_target.py
           - test_get_duplicates.py
           - test_get_target.py
@@ -58,7 +62,15 @@ jobs:
           - test_unexpected_json.py
           - test_update_target.py::TestActiveFlag
           - test_update_target.py::TestApplicationMetadata
-          - test_update_target.py::TestImage
+          - test_update_target.py::TestImage::test_image_valid
+          - test_update_target.py::TestImage::test_bad_image_format_or_color_space
+          - test_update_target.py::TestImage::test_corrupted
+          - test_update_target.py::TestImage::test_image_too_large
+          - test_update_target.py::TestImage::test_not_base64_encoded_processable
+          - test_update_target.py::TestImage::test_not_base64_encoded_not_processable
+          - test_update_target.py::TestImage::test_not_image
+          - test_update_target.py::TestImage::test_invalid_type
+          - test_update_target.py::TestImage::test_rating_can_change
           - test_update_target.py::TestTargetName
           - test_update_target.py::TestUnexpectedData
           - test_update_target.py::TestUpdate
@@ -83,6 +95,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/checkout@v2
+        with:
+          # See https://github.com/codecov/codecov-action/issues/190.
+          fetch-depth: 2
+
       - name: "Set up Python"
         uses: actions/setup-python@v2
         with:
