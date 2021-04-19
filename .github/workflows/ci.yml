@@ -95,12 +95,15 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/checkout@v2
-      - name: "Set up Python"
-        uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
           # See https://github.com/codecov/codecov-action/issues/190.
           fetch-depth: 2
+
+      - name: "Set up Python"
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
 
       - uses: actions/cache@v2
         with:
