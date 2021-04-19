@@ -96,7 +96,6 @@ jobs:
 
       - uses: actions/checkout@v2
         with:
-          python-version: ${{ matrix.python-version }}
           # See https://github.com/codecov/codecov-action/issues/190.
           fetch-depth: 2
 
