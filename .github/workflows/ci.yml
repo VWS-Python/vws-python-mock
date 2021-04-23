@@ -157,6 +157,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+      - name: Install coveralls
+          run: |
+            python -m pip install --upgrade coveralls
+
       - name: Coveralls Finished
         uses: coverallsapp/github-action@master
         with:
