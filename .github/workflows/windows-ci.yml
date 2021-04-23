@@ -65,8 +65,6 @@ jobs:
           parallel: true
 
   finish:
-    needs: windows-ci
-    runs-on: ubuntu-latest
 
     steps:
       - name: Coveralls Finished
