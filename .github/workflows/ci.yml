@@ -154,6 +154,7 @@ jobs:
           parallel: true
 
   finish:
+    runs-on: ubuntu-latest
 
     steps:
       - name: Coveralls Finished

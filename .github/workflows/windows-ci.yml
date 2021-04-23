@@ -65,6 +65,7 @@ jobs:
           parallel: true
 
   finish:
+    runs-on: windows-latest
 
     steps:
       - name: Coveralls Finished
