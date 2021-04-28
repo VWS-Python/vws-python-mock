@@ -1,0 +1,3 @@
+# We use .coveragerc rather than pyproj... gh actions...
+[run]
+branch = true
