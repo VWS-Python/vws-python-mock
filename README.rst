@@ -1,4 +1,4 @@
-|Build Status| |codecov| |PyPI| |Documentation Status|
+|Build Status| |coverage| |PyPI| |Documentation Status|
 
 VWS Mock
 ========
@@ -52,8 +52,8 @@ This includes details on how to use the mock, options, and details of the differ
 
 .. |Build Status| image:: https://github.com/VWS-Python/vws-python-mock/workflows/CI/badge.svg
    :target: https://github.com/VWS-Python/vws-python-mock/actions
-.. |codecov| image:: https://codecov.io/gh/VWS-Python/vws-python-mock/branch/master/graph/badge.svg
-   :target: https://codecov.io/gh/VWS-Python/vws-python-mock
+.. |coverage| image:: https://coveralls.io/repos/github/VWS-Python/vws-python-mock/badge.svg?branch=master
+   :target: https://coveralls.io/github/VWS-Python/vws-python-mock?branch=master
 .. |PyPI| image:: https://badge.fury.io/py/VWS-Python-Mock.svg
     :target: https://badge.fury.io/py/VWS-Python-Mock
 .. |Documentation Status| image:: https://readthedocs.org/projects/vws-python-mock/badge/?version=latest
