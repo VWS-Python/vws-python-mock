@@ -29,7 +29,7 @@ requests-mock-flask==2020.9.25.0
 sphinx-autodoc-typehints==1.12.0
 sphinx_paramlinks==0.5.0
 sphinxcontrib-httpdomain==1.7.0
-sphinxcontrib-spelling==7.1.0
+sphinxcontrib-spelling==7.2.1
 twine==3.4.1
 vulture==2.3
 vws-python==2021.3.28.2
