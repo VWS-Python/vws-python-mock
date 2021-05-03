@@ -251,7 +251,7 @@ def assert_vwq_failure(
     )
     assert response.headers.get('transfer-encoding', 'chunked') == 'chunked'
     assert response.headers['Connection'] == connection
-    if 'Content-Length' in response.headers:
+    if 'Content-Length' in response.headers:  # pragma: no cover
         assert response.headers['Content-Length'] == str(len(response.text))
     # In some tests we see that sometimes there is no Content-Length header
     # here.
