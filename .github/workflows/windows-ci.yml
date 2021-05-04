@@ -61,10 +61,6 @@ jobs:
         run: |
           pytest -s -vvv --exitfirst --cov=src/ --cov=tests --cov-report=xml tests/mock_vws/${{ matrix.ci_pattern }}
 
-      - name: "Upload coverage to Codecov"
-        uses: "codecov/codecov-action@v1.0.13"
-        with:
-          fail_ci_if_error: true
       - name: "Show coverage file"
         run: |
           # Sometimes we have been sure that we have 100% coverage, but codecov
@@ -87,7 +83,7 @@ jobs:
           echo ${{ github.event_name }}
 
       - name: "Upload coverage to Codecov"
-        uses: "codecov/codecov-action@v1.0.13"
+        uses: "codecov/codecov-action@v1"
         with:
           fail_ci_if_error: true
         if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
