@@ -345,7 +345,7 @@ class TestStates:
 
     def test_repr(self) -> None:
         """
-        Test for the representation of a ``State``.
+        The representation of a ``State`` shows the state.
         """
         assert repr(States.WORKING) == '<States.WORKING>'
 
@@ -357,7 +357,7 @@ class TestTargets:
 
     def test_to_dict(self, high_quality_image: io.BytesIO) -> None:
         """
-        Test for dumping a target to a dictionary and loading it back.
+        It is possible to dump a target to a dictionary and load it back.
         """
         database = VuforiaDatabase()
 
@@ -387,7 +387,8 @@ class TestTargets:
 
     def test_to_dict_deleted(self, high_quality_image: io.BytesIO) -> None:
         """
-        Test for dumping a deleted target to a dictionary and loading it back.
+        It is possible to dump a deleted target to a dictionary and load it
+        back.
         """
         database = VuforiaDatabase()
 
@@ -425,7 +426,7 @@ class TestDatabaseToDict:
 
     def test_to_dict(self, high_quality_image: io.BytesIO) -> None:
         """
-        Test for dumping a database to a dictionary and loading it back.
+        It is possible to dump a database to a dictionary and load it back.
         """
         database = VuforiaDatabase()
         vws_client = VWS(
