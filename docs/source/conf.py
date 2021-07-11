@@ -90,3 +90,4 @@ rst_prolog = f"""
 .. |github-owner| replace:: VWS-Python
 .. |github-repository| replace:: vws-python-mock
 """
+
