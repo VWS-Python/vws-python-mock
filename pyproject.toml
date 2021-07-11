@@ -68,12 +68,6 @@
         'duplicate-code',
         # Let isort handle imports
         'wrong-import-order',
-
-        # Wait until pylint supports Python 3.9 to disable these:
-        # - https://github.com/PyCQA/pylint/issues/3876
-        # - https://github.com/PyCQA/pylint/issues/3882
-        'unsubscriptable-object',
-        'inherit-non-class',
     ]
 
     [tool.pylint.'FORMAT']
