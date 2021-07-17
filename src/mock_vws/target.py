@@ -10,7 +10,7 @@ import random
 import statistics
 import uuid
 from dataclasses import dataclass, field
-from typing import Optional, TypedDict, Union
+from typing import TypedDict
 
 from backports.zoneinfo import ZoneInfo
 from PIL import Image, ImageStat
@@ -23,18 +23,16 @@ class TargetDict(TypedDict):
     A dictionary type which represents a target.
     """
 
-    # We cannot use the `X | Y` syntax for `Union`s and `Optional`s until
-    # https://github.com/sphinx-doc/sphinx/issues/8775 is resolved.
     name: str
     width: float
     image_base64: str
     active_flag: bool
-    processing_time_seconds: Union[int, float]
+    processing_time_seconds: int | float
     processed_tracking_rating: int
-    application_metadata: Optional[str]
+    application_metadata: str | None
     target_id: str
     last_modified_date: str
-    delete_date_optional: Optional[str]
+    delete_date_optional: str | None
     upload_date: str
 
 
@@ -68,13 +66,13 @@ class Target:
     """
 
     active_flag: bool
-    application_metadata: Optional[str]
+    application_metadata: str | None
     image_value: bytes
     name: str
     processing_time_seconds: float
     width: float
     current_month_recos: int = 0
-    delete_date: Optional[datetime.datetime] = None
+    delete_date: datetime.datetime | None = None
     last_modified_date: datetime.datetime = field(default_factory=_time_now)
     previous_month_recos: int = 0
     processed_tracking_rating: int = field(
