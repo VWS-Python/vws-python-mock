@@ -5,7 +5,7 @@ VWS-Test-Fixtures==2020.9.25.1
 autoflake==1.4
 black==21.5b0
 check-manifest==0.46
-doc8==0.8.1
+doc8==0.9.0
 docker==5.0.0
 dodgy==0.2.1  # Look for uploaded secrets
 flake8-commas==2.0.0  # Require silicon valley commas
@@ -16,11 +16,11 @@ furo==2021.7.5b38
 isort==5.9.2  # Lint imports
 keyring==23.0.1
 mypy==0.910 # Type checking
-pip_check_reqs==2.2.2
+pip_check_reqs==2.3.0
 pydocstyle==6.1.1  # Lint docstrings
 pyenchant==3.2.1  # Bindings for a spellchecking sytem
 pygithub==1.55
-pylint==2.9.3  # Lint
+pylint==2.9.5  # Lint
 pyroma==3.2  # Packaging best practices checker
 pytest-cov==2.12.1  # Measure code coverage
 pytest-envfiles==0.1.0  # Use files for environment variables for tests
@@ -30,7 +30,7 @@ sphinx-autodoc-typehints==1.12.0
 sphinx_paramlinks==0.5.1
 sphinxcontrib-httpdomain==1.7.0
 sphinxcontrib-spelling==7.2.1
-twine==3.4.1
+twine==3.4.2
 types-Flask==1.1.1
 types-freezegun==0.1.4
 types-PyYAML==5.4.3
