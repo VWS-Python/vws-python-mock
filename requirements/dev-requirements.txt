@@ -6,7 +6,7 @@ autoflake==1.4
 black==21.8b0
 check-manifest==0.46
 doc8==0.9.0
-docker==5.0.0
+docker==5.0.1
 dodgy==0.2.1  # Look for uploaded secrets
 flake8-commas==2.0.0  # Require silicon valley commas
 flake8-quotes==3.3.0  # Require single quotes
