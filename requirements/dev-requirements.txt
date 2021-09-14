@@ -3,7 +3,7 @@ Sphinx-Substitution-Extensions==2020.9.30.0
 Sphinx==4.0.3  # Pinned to this to avoid https://phoenix.yizimg.com/sphinx-contrib/httpdomain/issues/53
 VWS-Test-Fixtures==2020.9.25.1
 autoflake==1.4
-black==21.8b0
+black==21.9b0
 check-manifest==0.46
 doc8==0.9.0
 docker==5.0.2
