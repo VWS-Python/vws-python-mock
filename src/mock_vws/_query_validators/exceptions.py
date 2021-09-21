@@ -684,7 +684,9 @@ class MatchProcessing(ValidatorException):
         resources_dir = Path(__file__).parent.parent / 'resources'
         filename = 'match_processing_response.html'
         match_processing_resp_file = resources_dir / filename
-        self.response_text = Path(match_processing_resp_file).read_text()
+        self.response_text = Path(match_processing_resp_file).read_text(
+            encoding='utf-8',
+        )
         self.headers = {
             'Connection': 'keep-alive',
             'Content-Type': 'text/html;charset=iso-8859-1',
