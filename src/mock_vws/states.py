@@ -19,7 +19,4 @@ class States(Enum):
         """
         Return a representation which does not include the generated number.
         """
-        return '<{class_name}.{state_name}>'.format(
-            class_name=self.__class__.__name__,
-            state_name=self.name,
-        )
+        return f'<{self.__class__.__name__}.{self.name}>'
