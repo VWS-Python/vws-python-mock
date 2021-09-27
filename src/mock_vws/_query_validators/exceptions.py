@@ -727,7 +727,7 @@ class NoContentType(ValidatorException):
             <tr><th>MESSAGE:</th><td>Bad Request</td></tr>
             <tr><th>SERVLET:</th><td>Resteasy</td></tr>
             </table>
-            <hr><a href="http://eclipse.org/jetty">Powered by Jetty:// 9.4.43.v20210629</a><hr/>
+            <hr><a href="https://eclipse.org/jetty">Powered by Jetty:// 9.4.43.v20210629</a><hr/>
 
             </body>
             </html>
