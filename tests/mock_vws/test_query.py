@@ -55,7 +55,7 @@ _JETTY_CONTENT_TYPE_ERROR = textwrap.dedent(
     <tr><th>MESSAGE:</th><td>Bad Request</td></tr>
     <tr><th>SERVLET:</th><td>Resteasy</td></tr>
     </table>
-    <hr><a href="http://eclipse.org/jetty">Powered by Jetty:// 9.4.31.v20200723</a><hr/>
+    <hr><a href="https://eclipse.org/jetty">Powered by Jetty:// 9.4.43.v20210629</a><hr/>
 
     </body>
     </html>
@@ -66,7 +66,7 @@ _NGINX_REQUEST_ENTITY_TOO_LARGE_ERROR = textwrap.dedent(
     """\
     <html>\r
     <head><title>413 Request Entity Too Large</title></head>\r
-    <body bgcolor="white">\r
+    <body>\r
     <center><h1>413 Request Entity Too Large</h1></center>\r
     <hr><center>nginx</center>\r
     </body>\r
