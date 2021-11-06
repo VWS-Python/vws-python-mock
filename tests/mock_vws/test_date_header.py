@@ -6,10 +6,10 @@ from datetime import datetime, timedelta
 from http import HTTPStatus
 from typing import Dict
 from urllib.parse import urlparse
+from zoneinfo import ZoneInfo
 
 import pytest
 import requests
-from backports.zoneinfo import ZoneInfo
 from freezegun import freeze_time
 from requests.structures import CaseInsensitiveDict
 from vws_auth_tools import authorization_header, rfc_1123_date

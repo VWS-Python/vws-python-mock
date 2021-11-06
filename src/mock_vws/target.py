@@ -11,8 +11,8 @@ import statistics
 import uuid
 from dataclasses import dataclass, field
 from typing import TypedDict
+from zoneinfo import ZoneInfo
 
-from backports.zoneinfo import ZoneInfo
 from PIL import Image, ImageStat
 
 from mock_vws._constants import TargetStatuses

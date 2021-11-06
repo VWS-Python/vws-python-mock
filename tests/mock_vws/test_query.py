@@ -17,10 +17,10 @@ from http import HTTPStatus
 from pathlib import Path
 from typing import Any, Dict
 from urllib.parse import urljoin
+from zoneinfo import ZoneInfo
 
 import pytest
 import requests
-from backports.zoneinfo import ZoneInfo
 from PIL import Image
 from requests import Response
 from requests_mock import POST

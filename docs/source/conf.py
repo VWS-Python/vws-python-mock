@@ -51,7 +51,7 @@ pygments_style = 'sphinx'
 htmlhelp_basename = 'VWSPYTHONMOCKdoc'
 autoclass_content = 'init'
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3.9', None),
+    'python': ('https://docs.python.org/3.10', None),
     'docker': ('https://docker-py.readthedocs.io/en/stable', None),
 }
 nitpicky = True
