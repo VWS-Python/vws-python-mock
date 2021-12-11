@@ -59,7 +59,7 @@ jobs:
         env:
           SKIP_REAL: 1
         run: |
-          pytest -s -vvv --exitfirst --cov=src/ --cov=tests --cov-report=xml tests/mock_vws/${{ matrix.ci_pattern }}
+          pytest -s -vvv --exitfirst --cov=src/ --cov=tests --cov-report=xml tests/mock_vws/
 
       - name: "Show coverage file"
         run: |
