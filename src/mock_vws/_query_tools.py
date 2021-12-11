@@ -10,8 +10,7 @@ import datetime
 import io
 import uuid
 from typing import Any, Dict, Set
-
-from backports.zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._constants import ResultCodes, TargetStatuses

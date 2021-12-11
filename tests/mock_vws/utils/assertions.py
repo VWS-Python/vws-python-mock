@@ -10,8 +10,8 @@ import email.utils
 import json
 from http import HTTPStatus
 from string import hexdigits
+from zoneinfo import ZoneInfo
 
-from backports.zoneinfo import ZoneInfo
 from requests import Response
 
 from mock_vws._constants import ResultCodes
