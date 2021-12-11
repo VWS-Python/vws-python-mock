@@ -313,8 +313,8 @@ class TestAddDatabase:
             client_secret_key=data['client_secret_key'],
         )
 
-        assert vws_client.list_targets() == []
-        assert cloud_reco_client.query(image=high_quality_image) == []
+        assert not vws_client.list_targets()
+        assert not cloud_reco_client.query(image=high_quality_image)
 
 
 class TestDeleteDatabase:
