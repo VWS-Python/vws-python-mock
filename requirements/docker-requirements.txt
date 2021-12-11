@@ -1,3 +1,9 @@
+# This file was created as part of a workaround for
+# https://github.com/docker/docker-py/issues/2902.
+#
+# It is a copy of
+# https://github.com/docker/docker-py/blob/master/requirements.txt
+# but with the version of pywin32 bumped.
 appdirs==1.4.3
 asn1crypto==0.22.0
 backports.ssl-match-hostname==3.5.0.1

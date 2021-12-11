@@ -51,12 +51,22 @@ jobs:
       - name: "Install dependencies"
         run: |
           python -m pip install --upgrade pip setuptools wheel
+
+          # We cannot install docker-py on Windows with Python 3.10 because of
+          # https://github.com/docker/docker-py/issues/2902.
+          #
+          # In particular, the pywin32 dependency is pinned by docker-py
+          # to a version which is not available.
+          #
+          # We therefore install our own dependencies for Docker and then we
+          # install Docker with no dependencies.
           python -m pip install --upgrade -r requirements/docker-requirements.txt
           python -m pip install --no-deps docker
+
           # We use '--ignore-installed' to avoid GitHub's cache which can cause
           # issues - we have seen packages from this cache be cause trouble with
           # pip-extra-reqs.
-          python -m pip install --upgrade --editable .[dev]
+          python -m pip install --ignore-installed --upgrade --editable .[dev]
 
       - name: "Set secrets file"
         run: |
