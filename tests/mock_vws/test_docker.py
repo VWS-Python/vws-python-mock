@@ -9,7 +9,11 @@ from http import HTTPStatus
 from pathlib import Path
 from typing import Iterator
 
-import docker
+try:
+    import docker
+except ImportError:
+    pass
+
 import pytest
 import requests
 from docker.models.networks import Network
