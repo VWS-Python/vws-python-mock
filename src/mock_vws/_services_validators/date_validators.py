@@ -5,8 +5,7 @@ Validators of the date header to use in the mock services API.
 import datetime
 from http import HTTPStatus
 from typing import Dict
-
-from backports.zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 
 from mock_vws._services_validators.exceptions import Fail, RequestTimeTooSkewed
 
