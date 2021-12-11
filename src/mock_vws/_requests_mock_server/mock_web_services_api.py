@@ -15,8 +15,8 @@ import random
 import uuid
 from http import HTTPStatus
 from typing import Callable, Dict, Set
+from zoneinfo import ZoneInfo
 
-from backports.zoneinfo import ZoneInfo
 from requests_mock import DELETE, GET, POST, PUT
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _Context

@@ -4,8 +4,7 @@ Validators of the date header to use in the mock query API.
 
 import datetime
 from typing import Dict, Set
-
-from backports.zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo
 
 from mock_vws._query_validators.exceptions import (
     DateFormatNotValid,
