@@ -42,7 +42,7 @@ fix-isort:
 
 .PHONY: pip-extra-reqs
 pip-extra-reqs:
-	pip-extra-reqs --requirements-file=requirements/requirements.txt src/
+	pip-extra-reqs --skip-incompatible --requirements-file=requirements/requirements.txt src/
 
 .PHONY: pip-missing-reqs
 pip-missing-reqs:
