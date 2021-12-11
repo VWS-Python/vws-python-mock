@@ -47,11 +47,16 @@ language = None
 # The name of the syntax highlighting style to use.
 pygments_style = 'sphinx'
 
+python_minumum_supported_version = '3.10'
+
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'VWSPYTHONMOCKdoc'
 autoclass_content = 'init'
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3.10', None),
+    'python': (
+        f'https://docs.python.org/{python_minumum_supported_version}',
+        None,
+    ),
     'docker': ('https://docker-py.readthedocs.io/en/stable', None),
 }
 nitpicky = True
@@ -85,6 +90,7 @@ spelling_word_list_filename = '../../spelling_private_dict.txt'
 autodoc_member_order = 'bysource'
 
 rst_prolog = f"""
+.. |python-minumum-version| replace:: {python_minumum_supported_version}
 .. |project| replace:: {project}
 .. |release| replace:: {release}
 .. |github-owner| replace:: VWS-Python

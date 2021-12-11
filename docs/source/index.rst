@@ -8,7 +8,7 @@ Mocking calls made to Vuforia with Python ``requests``
 
    pip3 install vws-python-mock
 
-This requires Python 3.10+.
+This requires Python |python-minumum-version|\+.
 
 .. include:: basic-example.rst
 
