@@ -181,6 +181,9 @@ ignore_path = [
     "./src/*/_setuptools_scm_version.txt",
 ]
 
+[tool.setuptools_scm]
+
+
 [tool.pydocstyle]
 # We do not have summary lines, care about "mood", or need sections with
 # dash underlined titles.
