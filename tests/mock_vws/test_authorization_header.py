@@ -82,9 +82,9 @@ class TestMalformed:
 
     @pytest.mark.parametrize(
         'authorization_string',
-        ['gibberish', 'VWS', 'VWS '],
+        ['gibberish', 'VWS'],
     )
-    def test_one_part(
+    def test_one_part_no_space(
         self,
         endpoint: Endpoint,
         authorization_string: str,
@@ -94,6 +94,45 @@ class TestMalformed:
         a string is given which is one "part", a ``BAD_REQUEST`` or
         ``UNAUTHORIZED`` response is returned.
         """
+        date = rfc_1123_date()
+
+        headers: Dict[str, str] = {
+            **endpoint.prepared_request.headers,
+            'Authorization': authorization_string,
+            'Date': date,
+        }
+
+        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        session = requests.Session()
+        response = session.send(request=endpoint.prepared_request)
+
+        url = str(endpoint.prepared_request.url)
+        netloc = urlparse(url).netloc
+        if netloc == 'cloudreco.vuforia.com':
+            assert_vwq_failure(
+                response=response,
+                status_code=HTTPStatus.UNAUTHORIZED,
+                content_type='text/plain;charset=iso-8859-1',
+                cache_control=None,
+                www_authenticate='VWS',
+                connection='keep-alive',
+            )
+            assert response.text == 'Malformed authorization header.'
+            return
+
+        assert_vws_failure(
+            response=response,
+            status_code=HTTPStatus.BAD_REQUEST,
+            result_code=ResultCodes.FAIL,
+        )
+
+    def test_one_part_with_space(self, endpoint: Endpoint) -> None:
+        """
+        A valid authorization string is two "parts" when split on a space. When
+        a string is given which is one "part", a ``BAD_REQUEST`` or
+        ``UNAUTHORIZED`` response is returned.
+        """
+        authorization_string = 'VWS '
         date = rfc_1123_date()
 
         headers: Dict[str, str] = {

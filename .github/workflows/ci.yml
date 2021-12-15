@@ -41,7 +41,8 @@ jobs:
           - test_query.py::TestInactiveProject
           - test_add_target.py
           - test_authorization_header.py::TestAuthorizationHeader
-          - test_authorization_header.py::TestMalformed::test_one_part
+          - test_authorization_header.py::TestMalformed::test_one_part_no_space
+          - test_authorization_header.py::TestMalformed::test_one_part_with_space
           - test_authorization_header.py::TestMalformed::test_missing_signature
           - test_authorization_header.py::TestBadKey
           - test_content_length.py::TestIncorrect::test_not_integer
