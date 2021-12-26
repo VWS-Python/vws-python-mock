@@ -66,16 +66,15 @@ def test_build_and_run(
     vwq_dockerfile = dockerfile_dir / 'vwq' / 'Dockerfile'
 
     random = uuid.uuid4().hex
-    base_tag = 'vws-mock:base'
     target_manager_tag = 'vws-mock-target-manager:latest-' + random
     vws_tag = 'vws-mock-vws:latest-' + random
     vwq_tag = 'vws-mock-vwq:latest-' + random
 
     try:
-        client.images.build(
+        target_manager_image, _ = client.images.build(
             path=str(repository_root),
-            dockerfile=str(base_dockerfile),
-            tag=base_tag,
+            dockerfile=str(target_manager_dockerfile),
+            tag=target_manager_tag,
         )
     except docker.errors.BuildError as exc:
         full_log = '\n'.join(
@@ -87,11 +86,6 @@ def test_build_and_run(
         reason = 'We do not currently support using Windows containers.'
         pytest.skip(reason)
 
-    target_manager_image, _ = client.images.build(
-        path=str(repository_root),
-        dockerfile=str(target_manager_dockerfile),
-        tag=target_manager_tag,
-    )
     vws_image, _ = client.images.build(
         path=str(repository_root),
         dockerfile=str(vws_dockerfile),
