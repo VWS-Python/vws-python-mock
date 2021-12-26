@@ -58,7 +58,6 @@ def test_build_and_run(
     client = docker.from_env()
 
     dockerfile_dir = repository_root / 'src/mock_vws/_flask_server/dockerfiles'
-    base_dockerfile = dockerfile_dir / 'base' / 'Dockerfile'
     target_manager_dockerfile = (
         dockerfile_dir / 'target_manager' / 'Dockerfile'
     )
