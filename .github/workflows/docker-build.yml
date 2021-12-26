@@ -26,26 +26,11 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
-        with:
-          # This defaults to "docker-containerized".
-          # We want to share the vws-mock:base image to the building of the
-          # later builds, without pushing to a registry.
-          #
-          # Therefore, we choose not to build in a container.
-          driver: docker
-
-      - name: Build base Docker image
-        uses: docker/build-push-action@v2.7.0
-        with:
-          buildkitd-flags: --debug
-          file: src/mock_vws/_flask_server/dockerfiles/base/Dockerfile
-          push: false
-          tags: |
-            vws-mock:base
 
       - name: Build target manager Docker image
         uses: docker/build-push-action@v2.7.0
         with:
+          platforms: linux/amd64,linux/arm64
           file: src/mock_vws/_flask_server/dockerfiles/target_manager/Dockerfile
           push: false
           tags: |
@@ -54,6 +39,7 @@ jobs:
       - name: Build VWS Docker image
         uses: docker/build-push-action@v2.7.0
         with:
+          platforms: linux/amd64,linux/arm64
           file: src/mock_vws/_flask_server/dockerfiles/vws/Dockerfile
           push: false
           tags: |
@@ -62,6 +48,7 @@ jobs:
       - name: Build VWQ Docker image
         uses: docker/build-push-action@v2.7.0
         with:
+          platforms: linux/amd64,linux/arm64
           file: src/mock_vws/_flask_server/dockerfiles/vwq/Dockerfile
           push: false
           tags: |

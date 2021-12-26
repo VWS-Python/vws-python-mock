@@ -138,12 +138,10 @@ Building images from source
    export VWS_DOCKERFILE=$DOCKERFILE_DIR/vws/Dockerfile
    export VWQ_DOCKERFILE=$DOCKERFILE_DIR/vwq/Dockerfile
 
-   export BASE_TAG=vws-mock:base
    export TARGET_MANAGER_TAG=adamtheturtle/vuforia-target-manager-mock:latest
    export VWS_TAG=adamtheturtle/vuforia-vws-mock:latest
    export VWQ_TAG=adamtheturtle/vuforia-vwq-mock:latest
 
-   docker buildx build $REPOSITORY_ROOT --file $BASE_DOCKERFILE --tag $BASE_TAG
    docker buildx build $REPOSITORY_ROOT --file $TARGET_MANAGER_DOCKERFILE --tag $TARGET_MANAGER_TAG
    docker buildx build $REPOSITORY_ROOT --file $VWS_DOCKERFILE --tag $VWS_TAG
    docker buildx build $REPOSITORY_ROOT --file $VWQ_DOCKERFILE --tag $VWQ_TAG
