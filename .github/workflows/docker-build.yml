@@ -30,6 +30,7 @@ jobs:
         with:
           file: src/mock_vws/_flask_server/dockerfiles/base/Dockerfile
           push: false
+          load: true
           tags: |
             vws-mock:base
 
