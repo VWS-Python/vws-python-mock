@@ -74,3 +74,38 @@ jobs:
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
           verbose: true
+
+      - name: Build base Docker image
+        uses: docker/build-push-action@v2.7.0
+        with:
+          file: src/mock_vws/_flask_server/dockerfiles/base/Dockerfile
+          push: false
+          tags:
+            - vws-mock:base
+
+      - name: Build and push target manager Docker image
+        uses: docker/build-push-action@v2.7.0
+        with:
+          file: src/mock_vws/_flask_server/dockerfiles/target_manager/Dockerfile
+          push: false
+          tags:
+            - adamtheturtle/vuforia-target-manager-mock:latest
+            - adamtheturtle/vuforia-target-manager-mock:${{ steps.calver.outputs.release }}
+
+      - name: Build and push VWS Docker image
+        uses: docker/build-push-action@v2.7.0
+        with:
+          file: src/mock_vws/_flask_server/dockerfiles/vws/Dockerfile
+          push: false
+          tags:
+            - adamtheturtle/vuforia-vws-mock:latest
+            - adamtheturtle/vuforia-vws-mock:${{ steps.calver.outputs.release }}
+
+      - name: Build and push VWQ Docker image
+        uses: docker/build-push-action@v2.7.0
+        with:
+          file: src/mock_vws/_flask_server/dockerfiles/vwq/Dockerfile
+          push: false
+          tags:
+            - adamtheturtle/vuforia-vwq-mock:latest
+            - adamtheturtle/vuforia-vwq-mock:${{ steps.calver.outputs.release }}
