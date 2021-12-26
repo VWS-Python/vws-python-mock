@@ -1,0 +1,89 @@
+---
+
+name: Windows CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    # Run at 1:00 every day
+    - cron: '0 1 * * *'
+
+jobs:
+  build:
+
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+        platform: [windows-latest]
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          # See https://github.com/codecov/codecov-action/issues/190.
+          fetch-depth: 2
+
+      - name: "Set up Python"
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          # This is like the example but we use ``*requirements.txt`` rather
+          # than ``requirements.txt`` because we have multiple requirements
+          # files.
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/*requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: "Install dependencies"
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          # We use '--ignore-installed' to avoid GitHub's cache which can cause
+          # issues - we have seen packages from this cache be cause trouble with
+          # pip-extra-reqs.
+          python -m pip install --ignore-installed --upgrade --editable .[dev]
+
+      - name: "Set secrets file"
+        run: |
+          cp ./vuforia_secrets.env.example ./vuforia_secrets.env
+
+      - name: "Run tests"
+        env:
+          SKIP_REAL: 1
+        run: |
+          pytest -s -vvv --exitfirst --cov=src/ --cov=tests --cov-report=xml tests/mock_vws/
+
+      - name: "Show coverage file"
+        run: |
+          # Sometimes we have been sure that we have 100% coverage, but codecov
+          # says otherwise.
+          #
+          # We show the coverage file here to help with debugging.
+          # https://github.com/VWS-Python/vws-python-mock/issues/708
+          cat ./coverage.xml
+
+      # We run this job on every PR, on every merge to master, and nightly.
+      # This causes us to hit an issue with Codecov.
+      #
+      # We see "Too many uploads to this commit.".
+      # See https://community.codecov.io/t/too-many-uploads-to-this-commit/2574.
+      #
+      # To work around this, we do not upload coverage data on scheduled runs.
+      # We print the event name here to help with debugging.
+      - name: "Show event name"
+        run: |
+          echo ${{ github.event_name }}
+
+      - name: "Upload coverage to Codecov"
+        uses: "codecov/codecov-action@v1"
+        with:
+          fail_ci_if_error: true
+        if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
