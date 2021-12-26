@@ -181,6 +181,11 @@ ignore_path = [
 
 [tool.setuptools_scm]
 
+# We use a fallback version like
+# https://github.com/pypa/setuptools_scm/issues/77 so that we do not
+# error in the Docker build stage of the release pipeline.
+fallback_version = "FALLBACK_VERSION"
+
 
 [tool.pydocstyle]
 # We do not have summary lines, care about "mood", or need sections with
