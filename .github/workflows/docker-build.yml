@@ -1,0 +1,55 @@
+---
+
+name: Build Docker images
+
+# This matches the Docker image building done in the release process.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    # Run at 1:00 every day
+    - cron: '0 1 * * *'
+
+jobs:
+  build:
+    name: Build Docker images
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build base Docker image
+        uses: docker/build-push-action@v2.7.0
+        with:
+          file: src/mock_vws/_flask_server/dockerfiles/base/Dockerfile
+          push: false
+          tags: |
+            vws-mock:base
+
+      - name: Build and push target manager Docker image
+        uses: docker/build-push-action@v2.7.0
+        with:
+          file: src/mock_vws/_flask_server/dockerfiles/target_manager/Dockerfile
+          push: false
+          tags: |
+            adamtheturtle/vuforia-target-manager-mock:latest
+
+      - name: Build and push VWS Docker image
+        uses: docker/build-push-action@v2.7.0
+        with:
+          file: src/mock_vws/_flask_server/dockerfiles/vws/Dockerfile
+          push: false
+          tags: |
+            adamtheturtle/vuforia-vws-mock:latest
+
+      - name: Build and push VWQ Docker image
+        uses: docker/build-push-action@v2.7.0
+        with:
+          file: src/mock_vws/_flask_server/dockerfiles/vwq/Dockerfile
+          push: false
+          tags: |
+            adamtheturtle/vuforia-vwq-mock:latest
