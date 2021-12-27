@@ -19,7 +19,7 @@ from mock_vws._query_tools import (
 )
 from mock_vws._query_validators import run_query_validators
 from mock_vws._query_validators.exceptions import (
-    MatchProcessing,
+    DeletedTargetMatched,
     ValidatorException,
 )
 from mock_vws.database import VuforiaDatabase
@@ -124,7 +124,7 @@ def query() -> Response:
             ),
         )
     except ActiveMatchingTargetsDeleteProcessing as exc:
-        raise MatchProcessing from exc
+        raise DeletedTargetMatched from exc
 
     headers = {
         'Content-Type': 'application/json',

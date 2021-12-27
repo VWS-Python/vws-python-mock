@@ -21,7 +21,7 @@ from mock_vws._query_tools import (
 )
 from mock_vws._query_validators import run_query_validators
 from mock_vws._query_validators.exceptions import (
-    MatchProcessing,
+    DeletedTargetMatched,
     ValidatorException,
 )
 from mock_vws.target_manager import TargetManager
@@ -138,10 +138,10 @@ class MockVuforiaWebQueryAPI:
                 ),
             )
         except ActiveMatchingTargetsDeleteProcessing:
-            match_processing_exception = MatchProcessing()
-            context.headers = match_processing_exception.headers
-            context.status_code = match_processing_exception.status_code
-            return match_processing_exception.response_text
+            deleted_target_matched_exception = DeletedTargetMatched()
+            context.headers = deleted_target_matched_exception.headers
+            context.status_code = deleted_target_matched_exception.status_code
+            return deleted_target_matched_exception.response_text
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {
