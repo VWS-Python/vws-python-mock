@@ -88,6 +88,7 @@ jobs:
         uses: docker/build-push-action@v2.7.0
         with:
           file: src/mock_vws/_flask_server/dockerfiles/target_manager/Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             adamtheturtle/vuforia-target-manager-mock:latest
@@ -97,6 +98,7 @@ jobs:
         uses: docker/build-push-action@v2.7.0
         with:
           file: src/mock_vws/_flask_server/dockerfiles/vws/Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             adamtheturtle/vuforia-vws-mock:latest
@@ -106,6 +108,7 @@ jobs:
         uses: docker/build-push-action@v2.7.0
         with:
           file: src/mock_vws/_flask_server/dockerfiles/vwq/Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             adamtheturtle/vuforia-vwq-mock:latest
