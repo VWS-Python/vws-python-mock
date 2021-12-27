@@ -14,9 +14,11 @@ from zoneinfo import ZoneInfo
 
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._constants import ResultCodes, TargetStatuses
-from mock_vws._query_validators.exceptions import MatchProcessing
 from mock_vws._database_matchers import get_database_matching_client_keys
 from mock_vws._mock_common import json_dump
+from mock_vws._query_validators.exceptions import (
+    ActiveMatchingTargetsDeleteProcessing,
+)
 from mock_vws.database import VuforiaDatabase
 
 
@@ -47,8 +49,8 @@ def get_query_match_response_text(
         The response text for a query endpoint request.
 
     Raises:
-        MatchProcessing: There is at least one active target which matches and
-            was recently deleted.
+        ActiveMatchingTargetsDeleteProcessing: There is at least one active
+            target which matches and was recently deleted.
     """
     body_file = io.BytesIO(request_body)
 
@@ -121,7 +123,7 @@ def get_query_match_response_text(
     ]
 
     if active_matching_targets_delete_processing:
-        raise MatchProcessing
+        raise ActiveMatchingTargetsDeleteProcessing
 
     matches = not_deleted_matches + deletion_not_recognized_matches
 

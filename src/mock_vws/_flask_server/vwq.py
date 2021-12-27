@@ -13,9 +13,7 @@ from typing import Set
 import requests
 from flask import Flask, Response, request
 
-from mock_vws._query_tools import (
-    get_query_match_response_text,
-)
+from mock_vws._query_tools import get_query_match_response_text
 from mock_vws._query_validators import run_query_validators
 from mock_vws._query_validators.exceptions import ValidatorException
 from mock_vws.database import VuforiaDatabase

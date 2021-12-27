@@ -657,10 +657,9 @@ class RequestEntityTooLarge(ValidatorException):
         }
 
 
-class MatchProcessing(ValidatorException):
+class ActiveMatchingTargetsDeleteProcessing(ValidatorException):
     """
-    Exception raised a target is matched which is processing or recently
-    deleted.
+    Exception raised when a target is matched which was recently deleted.
     """
 
     def __init__(self) -> None:
