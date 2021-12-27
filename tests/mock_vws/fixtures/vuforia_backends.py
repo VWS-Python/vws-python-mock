@@ -26,6 +26,9 @@ from mock_vws.states import States
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
+_SKIP_REAL: bool
+_SKIP_DOCKER_IN_MEMORY: bool
+_SKIP_MOCK: bool
 
 def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
     """
@@ -160,6 +163,11 @@ class VuforiaBackend(Enum):
     MOCK = 'In Memory Mock Vuforia'
     DOCKER_IN_MEMORY = 'In Memory version of Docker application'
 
+def pytest_addoption(parser):
+    parser.addoption(
+        "--runslow", action="store_true", default=False, help="run slow tests"
+    )
+
 
 @pytest.fixture(
     params=list(VuforiaBackend),
@@ -172,13 +180,14 @@ def verify_mock_vuforia(
     monkeypatch: MonkeyPatch,
 ) -> Generator:
     """
-    Test functions which use this fixture are run twice. Once with the real
-    Vuforia, and once with the mock.
+    Test functions which use this fixture are run multiple times. Once with the
+    real Vuforia, and once with each mock.
 
-    This is useful for verifying the mock.
+    This is useful for verifying the mocks.
     """
     backend = request.param
     should_skip = bool(os.getenv(f'SKIP_{backend.name}') == '1')
+    request.config.getvalue("--runslow")
     if should_skip:  # pragma: no cover
         pytest.skip()
 
