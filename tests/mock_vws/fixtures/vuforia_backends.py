@@ -3,7 +3,6 @@ Choose which backends to use for the tests.
 """
 
 import logging
-import os
 from enum import Enum
 from typing import Generator
 
@@ -159,6 +158,7 @@ class VuforiaBackend(Enum):
     REAL = 'Real Vuforia'
     MOCK = 'In Memory Mock Vuforia'
     DOCKER_IN_MEMORY = 'In Memory version of Docker application'
+
 
 def pytest_addoption(parser):
     """
