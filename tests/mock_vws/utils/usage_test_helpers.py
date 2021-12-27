@@ -5,12 +5,10 @@ import io
 from datetime import datetime
 
 from vws import VWS, CloudRecoService
-from vws.exceptions.custom_exceptions import (
-    ActiveMatchingTargetsDeleteProcessing,
-)
 from vws.reports import TargetStatuses
 
 from mock_vws.database import VuforiaDatabase
+from mock_vws._query_validators.exceptions import MatchProcessing
 
 
 def _add_and_delete_target(
@@ -84,7 +82,7 @@ def _wait_for_deletion_recognized(
     while True:
         try:
             results = cloud_reco_client.query(image=image)
-        except ActiveMatchingTargetsDeleteProcessing:
+        except MatchProcessing:
             return
 
         if not results:
@@ -115,7 +113,7 @@ def _wait_for_deletion_processed(
     while True:
         try:
             cloud_reco_client.query(image=image)
-        except ActiveMatchingTargetsDeleteProcessing:
+        except MatchProcessing:
             continue
         return
 

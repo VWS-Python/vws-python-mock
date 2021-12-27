@@ -16,14 +16,10 @@ from requests_mock.response import _Context
 
 from mock_vws._mock_common import Route
 from mock_vws._query_tools import (
-    ActiveMatchingTargetsDeleteProcessing,
     get_query_match_response_text,
 )
 from mock_vws._query_validators import run_query_validators
-from mock_vws._query_validators.exceptions import (
-    MatchProcessing,
-    ValidatorException,
-)
+from mock_vws._query_validators.exceptions import ValidatorException
 from mock_vws.target_manager import TargetManager
 
 ROUTES = set()
@@ -118,12 +114,7 @@ class MockVuforiaWebQueryAPI:
                 request_method=request.method,
                 databases=self._target_manager.databases,
             )
-        except ValidatorException as exc:
-            context.headers = exc.headers
-            context.status_code = exc.status_code
-            return exc.response_text
 
-        try:
             response_text = get_query_match_response_text(
                 request_headers=request.headers,
                 request_body=request.body,
@@ -137,11 +128,10 @@ class MockVuforiaWebQueryAPI:
                     self._query_recognizes_deletion_seconds
                 ),
             )
-        except ActiveMatchingTargetsDeleteProcessing:
-            match_processing_exception = MatchProcessing()
-            context.headers = match_processing_exception.headers
-            context.status_code = match_processing_exception.status_code
-            return match_processing_exception.response_text
+        except ValidatorException as exc:
+            context.headers = exc.headers
+            context.status_code = exc.status_code
+            return exc.response_text
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {

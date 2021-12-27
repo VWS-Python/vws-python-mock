@@ -14,14 +14,10 @@ import requests
 from flask import Flask, Response, request
 
 from mock_vws._query_tools import (
-    ActiveMatchingTargetsDeleteProcessing,
     get_query_match_response_text,
 )
 from mock_vws._query_validators import run_query_validators
-from mock_vws._query_validators.exceptions import (
-    MatchProcessing,
-    ValidatorException,
-)
+from mock_vws._query_validators.exceptions import ValidatorException
 from mock_vws.database import VuforiaDatabase
 
 CLOUDRECO_FLASK_APP = Flask(import_name=__name__)
@@ -111,20 +107,15 @@ def query() -> Response:
     )
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
 
-    try:
-        response_text = get_query_match_response_text(
-            request_headers=dict(request.headers),
-            request_body=request_body,
-            request_method=request.method,
-            request_path=request.path,
-            databases=databases,
-            query_processes_deletion_seconds=query_processes_deletion_seconds,
-            query_recognizes_deletion_seconds=(
-                query_recognizes_deletion_seconds
-            ),
-        )
-    except ActiveMatchingTargetsDeleteProcessing as exc:
-        raise MatchProcessing from exc
+    response_text = get_query_match_response_text(
+        request_headers=dict(request.headers),
+        request_body=request_body,
+        request_method=request.method,
+        request_path=request.path,
+        databases=databases,
+        query_processes_deletion_seconds=query_processes_deletion_seconds,
+        query_recognizes_deletion_seconds=query_recognizes_deletion_seconds,
+    )
 
     headers = {
         'Content-Type': 'application/json',
