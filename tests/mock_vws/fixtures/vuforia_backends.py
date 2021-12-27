@@ -26,9 +26,6 @@ from mock_vws.states import States
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
-_SKIP_REAL: bool
-_SKIP_DOCKER_IN_MEMORY: bool
-_SKIP_MOCK: bool
 
 def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
     """
@@ -165,14 +162,15 @@ class VuforiaBackend(Enum):
 
 def pytest_addoption(parser):
     """
-    XXX
+    Add options to the pytest command line for skipping tests with particular
+    backends.
     """
     for backend in VuforiaBackend:
         parser.addoption(
-            "--skip-",
-            action="store_true",
+            f'--skip-{backend.name.lower()}',
+            action='store_true',
             default=False,
-            help="run slow tests",
+            help=f'Skip tests for {backend.value}',
         )
 
 
@@ -193,8 +191,7 @@ def verify_mock_vuforia(
     This is useful for verifying the mocks.
     """
     backend = request.param
-    should_skip = bool(os.getenv(f'SKIP_{backend.name}') == '1')
-    request.config.getvalue("--runslow")
+    should_skip = request.config.getvalue(f'--skip-{backend.name.lower()}')
     if should_skip:  # pragma: no cover
         pytest.skip()
 
