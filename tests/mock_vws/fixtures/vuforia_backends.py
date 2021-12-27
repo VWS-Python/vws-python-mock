@@ -164,9 +164,16 @@ class VuforiaBackend(Enum):
     DOCKER_IN_MEMORY = 'In Memory version of Docker application'
 
 def pytest_addoption(parser):
-    parser.addoption(
-        "--runslow", action="store_true", default=False, help="run slow tests"
-    )
+    """
+    XXX
+    """
+    for backend in VuforiaBackend:
+        parser.addoption(
+            "--skip-",
+            action="store_true",
+            default=False,
+            help="run slow tests",
+        )
 
 
 @pytest.fixture(
