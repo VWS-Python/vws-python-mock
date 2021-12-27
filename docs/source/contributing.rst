@@ -99,7 +99,14 @@ See https://github.com/VWS-Python/vws-python-mock/issues/901 for a start on how 
 Skipping Some Tests
 -------------------
 
-Set either ``SKIP_MOCK`` or ``SKIP_REAL`` to ``1`` to skip tests against the mock, or tests against the real implementation, for tests which run against both.
+Use the following custom ``pytest`` options to skip some tests:
+
+.. prompt:: bash
+
+  --skip-real           Skip tests for Real Vuforia
+  --skip-mock           Skip tests for In Memory Mock Vuforia
+  --skip-docker_in_memory
+                        Skip tests for In Memory version of Docker application
 
 Documentation
 -------------

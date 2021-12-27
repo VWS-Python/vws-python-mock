@@ -160,6 +160,19 @@ class VuforiaBackend(Enum):
     MOCK = 'In Memory Mock Vuforia'
     DOCKER_IN_MEMORY = 'In Memory version of Docker application'
 
+def pytest_addoption(parser):
+    """
+    Add options to the pytest command line for skipping tests with particular
+    backends.
+    """
+    for backend in VuforiaBackend:
+        parser.addoption(
+            f'--skip-{backend.name.lower()}',
+            action='store_true',
+            default=False,
+            help=f'Skip tests for {backend.value}',
+        )
+
 
 @pytest.fixture(
     params=list(VuforiaBackend),
@@ -172,13 +185,13 @@ def verify_mock_vuforia(
     monkeypatch: MonkeyPatch,
 ) -> Generator:
     """
-    Test functions which use this fixture are run twice. Once with the real
-    Vuforia, and once with the mock.
+    Test functions which use this fixture are run multiple times. Once with the
+    real Vuforia, and once with each mock.
 
-    This is useful for verifying the mock.
+    This is useful for verifying the mocks.
     """
     backend = request.param
-    should_skip = bool(os.getenv(f'SKIP_{backend.name}') == '1')
+    should_skip = request.config.getvalue(f'--skip-{backend.name.lower()}')
     if should_skip:  # pragma: no cover
         pytest.skip()
 
