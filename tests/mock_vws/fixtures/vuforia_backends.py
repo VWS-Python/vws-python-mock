@@ -10,6 +10,7 @@ import pytest
 import requests
 import requests_mock
 from _pytest.fixtures import SubRequest
+from _pytest.config.argparsing import Parser
 from pytest import MonkeyPatch
 from requests_mock_flask import add_flask_app_to_mock
 from vws import VWS
@@ -160,7 +161,7 @@ class VuforiaBackend(Enum):
     DOCKER_IN_MEMORY = 'In Memory version of Docker application'
 
 
-def pytest_addoption(parser):
+def pytest_addoption(parser: Parser) -> None:
     """
     Add options to the pytest command line for skipping tests with particular
     backends.
