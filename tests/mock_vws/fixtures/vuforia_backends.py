@@ -9,8 +9,8 @@ from typing import Generator
 import pytest
 import requests
 import requests_mock
-from _pytest.fixtures import SubRequest
 from _pytest.config.argparsing import Parser
+from _pytest.fixtures import SubRequest
 from pytest import MonkeyPatch
 from requests_mock_flask import add_flask_app_to_mock
 from vws import VWS
