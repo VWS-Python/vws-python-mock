@@ -210,7 +210,10 @@ class TestMalformed:
             content_path_2 = Path(__file__).parent / content_filename_2
             content_text = content_path.read_text()
             content_2_text = content_path_2.read_text()
-            assert response.text in (content_text, content_2_text)
+            # We make a new variable for response text so that it is printed
+            # with ``pytest --showlocals``.
+            response_text = response.text
+            assert response_text in (content_text, content_2_text)
             return
 
         assert_vws_failure(
