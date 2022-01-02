@@ -206,14 +206,21 @@ class TestMalformed:
             )
             content_filename = 'jetty_error_array_out_of_bounds.html'
             content_filename_2 = 'jetty_error_array_out_of_bounds_2.html'
+            content_filename_3 = 'jetty_error_array_out_of_bounds_3.html'
             content_path = Path(__file__).parent / content_filename
             content_path_2 = Path(__file__).parent / content_filename_2
+            content_path_3 = Path(__file__).parent / content_filename_3
             content_text = content_path.read_text()
             content_2_text = content_path_2.read_text()
+            content_3_text = content_path_3.read_text()
             # We make a new variable for response text so that it is printed
             # with ``pytest --showlocals``.
             response_text = response.text
-            assert response_text in (content_text, content_2_text)
+            assert response_text in (
+                content_text,
+                content_2_text,
+                content_3_text,
+            )
             return
 
         assert_vws_failure(
