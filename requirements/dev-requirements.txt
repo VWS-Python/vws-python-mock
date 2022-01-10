@@ -25,7 +25,7 @@ pytest-cov==3.0.0  # Measure code coverage
 pytest-envfiles==0.1.0  # Use files for environment variables for tests
 pytest==6.2.5  # Test runners
 requests-mock-flask==2021.12.28.1
-sphinx-autodoc-typehints==1.14.0
+sphinx-autodoc-typehints==1.14.1
 sphinx_paramlinks==0.5.2
 sphinxcontrib-httpdomain==1.8.0
 sphinxcontrib-spelling==7.3.2
