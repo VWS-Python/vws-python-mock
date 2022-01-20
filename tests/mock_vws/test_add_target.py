@@ -92,7 +92,7 @@ def _assert_oops_response(response: Response) -> None:
         'Content-Type': 'text/html; charset=UTF-8',
         'Date': response.headers['Date'],
         'Server': 'nginx',
-        'Content-Length': '1172',
+        'Content-Length': '1190',
         'Connection': 'keep-alive',
     }
     assert dict(response.headers) == expected_headers
