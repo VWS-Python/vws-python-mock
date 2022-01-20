@@ -1,6 +1,6 @@
 PyYAML==6.0
 Sphinx-Substitution-Extensions==2020.9.30.0
-Sphinx==4.3.2
+Sphinx==4.4.0
 VWS-Test-Fixtures==2022.1.3
 autoflake==1.4
 black==21.12b0
