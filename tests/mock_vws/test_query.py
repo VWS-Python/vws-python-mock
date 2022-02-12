@@ -99,7 +99,9 @@ def query(
     """
     date = rfc_1123_date()
     request_path = '/v1/query'
-    content, content_type_header = encode_multipart_formdata(body)
+    content, content_type_header = encode_multipart_formdata(  # type: ignore
+        fields=body,
+    )
     method = POST
 
     access_key = vuforia_database.client_access_key
@@ -204,7 +206,7 @@ class TestContentType:
         date = rfc_1123_date()
         request_path = '/v1/query'
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
-        content, _ = encode_multipart_formdata(body)
+        content, _ = encode_multipart_formdata(fields=body)  # type: ignore
         method = POST
 
         access_key = vuforia_database.client_access_key
@@ -256,7 +258,9 @@ class TestContentType:
         date = rfc_1123_date()
         request_path = '/v1/query'
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
-        content, content_type_header = encode_multipart_formdata(body)
+        content, content_type_header = encode_multipart_formdata(
+            fields=body,
+        )  # type: ignore
         method = POST
 
         content_type = 'text/html'
@@ -320,7 +324,7 @@ class TestContentType:
         date = rfc_1123_date()
         request_path = '/v1/query'
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
-        content, _ = encode_multipart_formdata(body)
+        content, _ = encode_multipart_formdata(fields=body)  # type: ignore
         method = POST
 
         access_key = vuforia_database.client_access_key
@@ -375,7 +379,7 @@ class TestContentType:
         date = rfc_1123_date()
         request_path = '/v1/query'
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
-        content, _ = encode_multipart_formdata(body)
+        content, _ = encode_multipart_formdata(fields=body)  # type: ignore
         method = POST
 
         access_key = vuforia_database.client_access_key
@@ -428,7 +432,9 @@ class TestContentType:
         date = rfc_1123_date()
         request_path = '/v1/query'
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
-        content, content_type_header = encode_multipart_formdata(body)
+        content, content_type_header = encode_multipart_formdata(
+            fields=body,
+        )  # type: ignore
         method = POST
 
         access_key = vuforia_database.client_access_key
@@ -1051,7 +1057,9 @@ class TestAcceptHeader:
         date = rfc_1123_date()
         request_path = '/v1/query'
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
-        content, content_type_header = encode_multipart_formdata(body)
+        content, content_type_header = encode_multipart_formdata(
+            fields=body,
+        )  # type: ignore
         method = POST
 
         access_key = vuforia_database.client_access_key
@@ -1096,7 +1104,9 @@ class TestAcceptHeader:
         date = rfc_1123_date()
         request_path = '/v1/query'
         body = {'image': ('image.jpeg', image_content, 'image/jpeg')}
-        content, content_type_header = encode_multipart_formdata(body)
+        content, content_type_header = encode_multipart_formdata(
+            fields=body,
+        )  # type: ignore
         method = POST
 
         access_key = vuforia_database.client_access_key
@@ -1944,7 +1954,9 @@ class TestDateFormats:
         now = datetime.datetime.now(tz=gmt)
         date = now.strftime(datetime_format)
         request_path = '/v1/query'
-        content, content_type_header = encode_multipart_formdata(body)
+        content, content_type_header = encode_multipart_formdata(
+            fields=body,
+        )  # type: ignore
         method = POST
 
         access_key = vuforia_database.client_access_key
