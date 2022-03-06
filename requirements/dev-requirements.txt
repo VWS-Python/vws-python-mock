@@ -11,8 +11,8 @@ dodgy==0.2.1  # Look for uploaded secrets
 flake8-commas==2.1.0  # Require silicon valley commas
 flake8-quotes==3.3.1  # Require single quotes
 flake8==4.0.1  # Lint
-freezegun==1.1.0  # Freeze time in tests
-furo==2022.1.2
+freezegun==1.2.0  # Freeze time in tests
+furo==2022.3.4
 isort==5.10.1  # Lint imports
 keyring==23.5.0
 mypy==0.931 # Type checking
@@ -23,9 +23,9 @@ pylint==2.12.2  # Lint
 pyroma==3.2  # Packaging best practices checker
 pytest-cov==3.0.0  # Measure code coverage
 pytest-envfiles==0.1.0  # Use files for environment variables for tests
-pytest==7.0.0  # Test runners
+pytest==7.0.1  # Test runners
 requests-mock-flask==2021.12.28.1
-sphinx-autodoc-typehints==1.16.0
+sphinx-autodoc-typehints==1.17.0
 sphinx-prompt==1.5.0
 sphinx_paramlinks==0.5.2
 sphinxcontrib-httpdomain==1.8.0
@@ -33,7 +33,7 @@ sphinxcontrib-spelling==7.3.2
 types-Flask==1.1.6
 types-freezegun==1.1.6
 types-PyYAML==6.0.4
-types-requests==2.27.9
+types-requests==2.27.11
 types-setuptools==57.4.9
 vulture==2.3
 vws-python==2021.3.28.2
