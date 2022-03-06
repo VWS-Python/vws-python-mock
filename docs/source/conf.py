@@ -64,6 +64,7 @@ warning_is_error = True
 nitpick_ignore = [
     ('py:exc', 'requests.exceptions.MissingSchema'),
     ('http:obj', 'string'),
+    ('py:class', 'types.UnionType'),
 ]
 
 html_theme = 'furo'
