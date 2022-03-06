@@ -139,7 +139,7 @@ def assert_vws_response(
         'x-aws-region',
         'x-envoy-upstream-service-time',
     }
-    assert response.headers.keys() == response_header_keys
+    assert set(map(str.lower, response.headers.keys())) == response_header_keys
     assert response.headers['Content-Length'] == str(len(response.text))
     assert response.headers['Content-Type'] == 'application/json'
     assert response.headers['Server'] == 'envoy'
