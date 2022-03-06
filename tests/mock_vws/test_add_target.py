@@ -14,6 +14,7 @@ from urllib.parse import urljoin
 
 import pytest
 import requests
+from dirty_equals import IsPositiveInt
 from requests import Response
 from requests_mock import POST
 from vws import VWS
@@ -93,7 +94,7 @@ def _assert_oops_response(response: Response) -> None:
         'date': response.headers['date'],
         'server': 'envoy',
         'content-length': '1190',
-        'x-envoy-upstream-service-time': '5',
+        'x-envoy-upstream-service-time': IsPositiveInt,
         'x-aws-region': 'us-west-2, eu-west-1',
     }
     assert dict(response.headers) == expected_headers
