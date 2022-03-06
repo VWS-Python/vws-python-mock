@@ -14,7 +14,7 @@ from urllib.parse import urljoin
 
 import pytest
 import requests
-from dirty_equals import IsInstance, IsPositiveInt
+from dirty_equals import IsInstance
 from requests import Response
 from requests_mock import POST
 from vws import VWS
