@@ -89,15 +89,17 @@ def _assert_oops_response(response: Response) -> None:
     assert 'Oops, an error occurred' in response.text
     assert 'This exception has been logged with id' in response.text
 
-    expected_headers = {
-        'content-type': 'text/html; charset=UTF-8',
-        'date': response.headers['date'],
-        'server': 'envoy',
-        'content-length': '1190',
-        'x-envoy-upstream-service-time': IsInstance(expected_type=str),
-        'x-aws-region': IsInstance(expected_type=str),
-    }
-    assert dict(response.headers) == expected_headers
+    expected_headers = requests.structures.CaseInsensitiveDict(
+        data={
+            'content-type': 'text/html; charset=UTF-8',
+            'date': response.headers['date'],
+            'server': 'envoy',
+            'content-length': '1190',
+            'x-envoy-upstream-service-time': IsInstance(expected_type=str),
+            'x-aws-region': IsInstance(expected_type=str),
+        }
+    )
+    assert response.headers == expected_headers
 
 
 def assert_success(response: Response) -> None:
