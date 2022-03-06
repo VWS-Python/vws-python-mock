@@ -94,8 +94,8 @@ def _assert_oops_response(response: Response) -> None:
         'date': response.headers['date'],
         'server': 'envoy',
         'content-length': '1190',
-        'x-envoy-upstream-service-time': IsPositiveInt,
-        'x-aws-region': IsInstance(expected_type=str)
+        'x-envoy-upstream-service-time': IsInstance(expected_type=str),
+        'x-aws-region': IsInstance(expected_type=str),
     }
     assert dict(response.headers) == expected_headers
 
