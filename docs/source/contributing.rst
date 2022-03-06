@@ -103,10 +103,10 @@ Use the following custom ``pytest`` options to skip some tests:
 
 .. prompt:: bash
 
-  --skip-real           Skip tests for Real Vuforia
-  --skip-mock           Skip tests for In Memory Mock Vuforia
-  --skip-docker_in_memory
-                        Skip tests for In Memory version of Docker application
+  --no-real           Skip tests for Real Vuforia
+  --no-mock           Skip tests for In Memory Mock Vuforia
+  --no-docker_in_memory
+                      Skip tests for In Memory version of Docker application
 
 Documentation
 -------------

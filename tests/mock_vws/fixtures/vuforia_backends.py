@@ -168,7 +168,7 @@ def pytest_addoption(parser: Parser) -> None:
     """
     for backend in VuforiaBackend:
         parser.addoption(
-            f'--skip-{backend.name.lower()}',
+            f'--no-{backend.name.lower()}',
             action='store_true',
             default=False,
             help=f'Skip tests for {backend.value}',
@@ -192,7 +192,7 @@ def verify_mock_vuforia(
     This is useful for verifying the mocks.
     """
     backend = request.param
-    should_skip = request.config.getvalue(f'--skip-{backend.name.lower()}')
+    should_skip = request.config.getvalue(f'--no-{backend.name.lower()}')
     if should_skip:  # pragma: no cover
         pytest.skip()
 
