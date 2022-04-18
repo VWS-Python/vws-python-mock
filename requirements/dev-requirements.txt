@@ -31,7 +31,7 @@ sphinx_paramlinks==0.5.2
 sphinxcontrib-httpdomain==1.8.0
 sphinxcontrib-spelling==7.3.2
 types-Flask==1.1.6
-types-freezegun==1.1.8
+types-freezegun==1.1.9
 types-PyYAML==6.0.5
 types-requests==2.27.16
 types-setuptools==57.4.12
