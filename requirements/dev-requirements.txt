@@ -33,7 +33,7 @@ sphinxcontrib-spelling==7.3.2
 types-Flask==1.1.6
 types-freezegun==1.1.9
 types-PyYAML==6.0.5
-types-requests==2.27.19
+types-requests==2.27.20
 types-setuptools==57.4.12
 vulture==2.3
 vws-python==2021.3.28.2
