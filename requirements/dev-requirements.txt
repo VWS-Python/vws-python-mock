@@ -23,7 +23,7 @@ pylint==2.13.5  # Lint
 pyroma==4.0  # Packaging best practices checker
 pytest-cov==3.0.0  # Measure code coverage
 pytest-envfiles==0.1.0  # Use files for environment variables for tests
-pytest==7.1.1  # Test runners
+pytest==7.1.2  # Test runners
 requests-mock-flask==2022.4.3
 sphinx-autodoc-typehints==1.18.1
 sphinx-prompt==1.5.0
