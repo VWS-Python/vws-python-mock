@@ -35,5 +35,5 @@ types-freezegun==1.1.9
 types-PyYAML==6.0.7
 types-requests==2.27.27
 types-setuptools==57.4.14
-vulture==2.3
+vulture==2.4
 vws-python==2021.3.28.2
