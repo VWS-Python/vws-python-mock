@@ -34,6 +34,6 @@ types-Flask==1.1.6
 types-freezegun==1.1.9
 types-PyYAML==6.0.7
 types-requests==2.27.29
-types-setuptools==57.4.14
+types-setuptools==57.4.17
 vulture==2.4
 vws-python==2021.3.28.2
