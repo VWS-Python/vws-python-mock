@@ -29,7 +29,7 @@ sphinx-autodoc-typehints==1.18.3
 sphinx-prompt==1.5.0
 sphinx_paramlinks==0.5.4
 sphinxcontrib-httpdomain==1.8.0
-sphinxcontrib-spelling==7.5.1
+sphinxcontrib-spelling==7.6.0
 types-Flask==1.1.6
 types-freezegun==1.1.9
 types-PyYAML==6.0.9
