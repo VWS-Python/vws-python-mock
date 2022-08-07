@@ -66,8 +66,7 @@ class TestIncorrect:
 
     def test_too_large(self, endpoint: Endpoint) -> None:
         """
-        A ``GATEWAY_TIMEOUT`` is given if the given content length is too
-        large.
+        An error is given if the given content length is too large.
         """
         endpoint_headers = dict(endpoint.prepared_request.headers)
         if not endpoint_headers.get('Content-Type'):
@@ -80,12 +79,29 @@ class TestIncorrect:
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
 
-        assert response.text == ''
+        url = str(endpoint.prepared_request.url)
+        netloc = urlparse(url).netloc
+        if netloc == 'cloudreco.vuforia.com':
+            assert response.status_code == HTTPStatus.GATEWAY_TIMEOUT
+            assert response.text == ''
+            assert dict(response.headers) == {
+                'Content-Length': str(len(response.text)),
+                'Connection': 'keep-alive',
+            }
+            return
+
+        assert_valid_date_header(response=response)
+        assert response.text == 'stream timeout'
         assert dict(response.headers) == {
-            'Content-Length': '0',
-            'Connection': 'keep-alive',
+            'content-length': str(len(response.text)),
+            'connection': 'close',
+            'content-type': 'text/plain',
+            'connection': 'close',
+            'server': 'envoy',
+            'date': response.headers['date'],
+            'x-aws-region': 'eu-west-1',
         }
-        assert response.status_code == HTTPStatus.GATEWAY_TIMEOUT
+        assert response.status_code == HTTPStatus.REQUEST_TIMEOUT
 
     def test_too_small(self, endpoint: Endpoint) -> None:
         """
