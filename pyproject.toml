@@ -10,7 +10,10 @@
 
     # List of plugins (as comma separated values of python modules names) to load,
     # usually to register additional checkers.
-    load-plugins = ['pylint.extensions.docparams']
+    load-plugins = [
+		'pylint.extensions.docparams',
+		'pylint.extensions.no_self_use',
+	]
 
     # Allow loading of arbitrary C extensions. Extensions are imported into the
     # active Python interpreter and may run arbitrary code.
@@ -58,12 +61,7 @@
         'ungrouped-imports',
         # We don't need everything to be documented because of mypy
         'missing-type-doc',
-        'missing-returns-doc',
         'missing-return-type-doc',
-        # Let auto-formatters deal with this
-        'bad-continuation',
-        # Let auto-formatters deal with this
-        'bad-whitespace',
         # Too difficult to please
         'duplicate-code',
         # Let isort handle imports
