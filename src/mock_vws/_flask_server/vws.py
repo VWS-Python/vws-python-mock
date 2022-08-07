@@ -159,8 +159,6 @@ def add_target() -> Response:
         'content-type': 'application/json',
         'server': 'envoy',
         'date': date,
-        # TODO document that this is the region / service time in the
-        # differences with real vuforia doc
         'x-aws-region': 'us-west-2, eu-west-1',
         'x-envoy-upstream-service-time': '5',
     }
@@ -530,8 +528,6 @@ def update_target(target_id: str) -> Response:
         'content-type': 'application/json',
         'server': 'envoy',
         'date': date,
-        # TODO document that this is the region / service time in the
-        # differences with real vuforia doc
         'x-aws-region': 'us-west-2, eu-west-1',
         'x-envoy-upstream-service-time': '5',
     }
