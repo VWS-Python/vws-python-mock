@@ -170,11 +170,14 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
-            'Connection': 'keep-alive',
-            'Content-Type': 'application/json',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(body_json)),
+            'content-type': 'application/json',
+            'server': 'envoy',
+            'date': date,
+            'content-length': str(len(body_json)),
+            # TODO document that this is the region / service time in the
+            # differences with real vuforia doc
+            'x-aws-region': 'us-west-2, eu-west-1',
+            'x-envoy-upstream-service-time': '5',
         }
         return body_json
 
@@ -596,11 +599,14 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
-            'Connection': 'keep-alive',
-            'Content-Type': 'application/json',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(body_json)),
+            'content-type': 'application/json',
+            'server': 'envoy',
+            'date': date,
+            'content-length': str(len(body_json)),
+            # TODO document that this is the region / service time in the
+            # differences with real vuforia doc
+            'x-aws-region': 'us-west-2, eu-west-1',
+            'x-envoy-upstream-service-time': '5',
         }
         return body_json
 
