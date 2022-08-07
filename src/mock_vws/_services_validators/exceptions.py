@@ -379,10 +379,14 @@ class ContentLengthHeaderNotInt(ValidatorException):
         """
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
-        self.response_text = ''
+        self.response_text = 'Bad Request'
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Connection': 'Close',
+            'connection': 'close',
             'content-length': str(len(self.response_text)),
+            'date': date,
+            'server': 'envoy',
+            'content-type': 'text/plain',
         }
 
 

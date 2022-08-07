@@ -12,6 +12,7 @@ from requests.structures import CaseInsensitiveDict
 from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import (
+    assert_valid_date_header,
     assert_vwq_failure,
     assert_vws_failure,
 )
@@ -41,13 +42,27 @@ class TestIncorrect:
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
-
-        assert response.text == ''
-        assert dict(response.headers) == {
-            'Content-Length': '0',
-            'Connection': 'Close',
-        }
         assert response.status_code == HTTPStatus.BAD_REQUEST
+
+        url = str(endpoint.prepared_request.url)
+        netloc = urlparse(url).netloc
+        if netloc == 'cloudreco.vuforia.com':
+            assert response.text == ''
+            assert dict(response.headers) == {
+                'Content-Length': str(len(response.text)),
+                'Connection': 'Close',
+            }
+            return
+
+        assert_valid_date_header(response=response)
+        assert response.text == 'Bad Request'
+        assert dict(response.headers) == {
+            'content-length': str(len(response.text)),
+            'content-type': 'text/plain',
+            'connection': 'close',
+            'server': 'envoy',
+            'date': response.headers['date'],
+        }
 
     def test_too_large(self, endpoint: Endpoint) -> None:
         """
