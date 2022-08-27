@@ -17,8 +17,8 @@ class TestDuplicates:
     Tests for the mock of the target duplicates endpoint.
     """
 
+    @staticmethod
     def test_duplicates(
-        self,
         high_quality_image: io.BytesIO,
         image_file_success_state_low_rating: io.BytesIO,
         vws_client: VWS,
@@ -65,8 +65,8 @@ class TestDuplicates:
 
         assert duplicates == [similar_target_id]
 
+    @staticmethod
     def test_status(
-        self,
         image_file_failed_state: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -110,8 +110,8 @@ class TestActiveFlag:
     Tests for the effects of the active flag on duplicate matching.
     """
 
+    @staticmethod
     def test_active_flag(
-        self,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -165,8 +165,8 @@ class TestProcessing:
     Tests for targets in the processing stage.
     """
 
+    @staticmethod
     def test_processing(
-        self,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -215,10 +215,8 @@ class TestInactiveProject:
     Tests for inactive projects.
     """
 
-    def test_inactive_project(
-        self,
-        inactive_vws_client: VWS,
-    ) -> None:
+    @staticmethod
+    def test_inactive_project(inactive_vws_client: VWS) -> None:
         """
         If the project is inactive, a FORBIDDEN response is returned.
         """

@@ -174,8 +174,6 @@ class MockVuforiaWebServicesAPI:
             'server': 'envoy',
             'date': date,
             'content-length': str(len(body_json)),
-            # TODO document that this is the region / service time in the
-            # differences with real vuforia doc
             'x-aws-region': 'us-west-2, eu-west-1',
             'x-envoy-upstream-service-time': '5',
         }
@@ -603,8 +601,6 @@ class MockVuforiaWebServicesAPI:
             'server': 'envoy',
             'date': date,
             'content-length': str(len(body_json)),
-            # TODO document that this is the region / service time in the
-            # differences with real vuforia doc
             'x-aws-region': 'us-west-2, eu-west-1',
             'x-envoy-upstream-service-time': '5',
         }

@@ -22,11 +22,8 @@ class TestDelete:
     Tests for deleting targets.
     """
 
-    def test_no_wait(
-        self,
-        target_id: str,
-        vws_client: VWS,
-    ) -> None:
+    @staticmethod
+    def test_no_wait(target_id: str, vws_client: VWS) -> None:
         """
         When attempting to delete a target immediately after creating it, a
         `FORBIDDEN` response is returned.
@@ -45,11 +42,8 @@ class TestDelete:
             result_code=ResultCodes.TARGET_STATUS_PROCESSING,
         )
 
-    def test_processed(
-        self,
-        target_id: str,
-        vws_client: VWS,
-    ) -> None:
+    @staticmethod
+    def test_processed(target_id: str, vws_client: VWS) -> None:
         """
         When a target has finished processing, it can be deleted.
         """
@@ -66,10 +60,8 @@ class TestInactiveProject:
     Tests for inactive projects.
     """
 
-    def test_inactive_project(
-        self,
-        inactive_vws_client: VWS,
-    ) -> None:
+    @staticmethod
+    def test_inactive_project(inactive_vws_client: VWS) -> None:
         """
         If the project is inactive, a FORBIDDEN response is returned.
         """

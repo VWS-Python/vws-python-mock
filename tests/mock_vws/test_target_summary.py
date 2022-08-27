@@ -23,8 +23,8 @@ class TestTargetSummary:
     """
 
     @pytest.mark.parametrize('active_flag', [True, False])
+    @staticmethod
     def test_target_summary(
-        self,
         vws_client: VWS,
         vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
@@ -74,8 +74,8 @@ class TestTargetSummary:
             ('image_file_failed_state', TargetStatuses.FAILED),
         ],
     )
+    @staticmethod
     def test_after_processing(
-        self,
         vws_client: VWS,
         request: SubRequest,
         image_fixture_name: str,
@@ -127,8 +127,8 @@ class TestRecognitionCounts:
     Tests for the recognition counts in the summary.
     """
 
+    @staticmethod
     def test_recognition(
-        self,
         vws_client: VWS,
         cloud_reco_client: CloudRecoService,
         high_quality_image: io.BytesIO,
@@ -163,10 +163,8 @@ class TestInactiveProject:
     Tests for inactive projects.
     """
 
-    def test_inactive_project(
-        self,
-        inactive_vws_client: VWS,
-    ) -> None:
+    @staticmethod
+    def test_inactive_project(inactive_vws_client: VWS) -> None:
         """
         The project's active state does not affect getting a target.
         """

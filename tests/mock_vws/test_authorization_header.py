@@ -34,7 +34,8 @@ class TestAuthorizationHeader:
     Tests for what happens when the `Authorization` header is not as expected.
     """
 
-    def test_missing(self, endpoint: Endpoint) -> None:
+    @staticmethod
+    def test_missing(endpoint: Endpoint) -> None:
         """
         An `UNAUTHORIZED` response is returned when no `Authorization` header
         is given.
@@ -84,8 +85,8 @@ class TestMalformed:
         'authorization_string',
         ['gibberish', 'VWS'],
     )
+    @staticmethod
     def test_one_part_no_space(
-        self,
         endpoint: Endpoint,
         authorization_string: str,
     ) -> None:
@@ -126,7 +127,8 @@ class TestMalformed:
             result_code=ResultCodes.FAIL,
         )
 
-    def test_one_part_with_space(self, endpoint: Endpoint) -> None:
+    @staticmethod
+    def test_one_part_with_space(endpoint: Endpoint) -> None:
         """
         A valid authorization string is two "parts" when split on a space. When
         a string is given which is one "part", a ``BAD_REQUEST`` or
@@ -172,8 +174,8 @@ class TestMalformed:
             'VWS foobar',
         ],
     )
+    @staticmethod
     def test_missing_signature(
-        self,
         endpoint: Endpoint,
         authorization_string: str,
     ) -> None:
@@ -236,8 +238,8 @@ class TestBadKey:
     Tests for making requests with incorrect keys.
     """
 
+    @staticmethod
     def test_bad_access_key_services(
-        self,
         vuforia_database: VuforiaDatabase,
     ) -> None:
         """
@@ -254,8 +256,8 @@ class TestBadKey:
 
         assert exc.value.response.status_code == HTTPStatus.BAD_REQUEST
 
+    @staticmethod
     def test_bad_access_key_query(
-        self,
         vuforia_database: VuforiaDatabase,
         high_quality_image: io.BytesIO,
     ) -> None:
@@ -297,8 +299,8 @@ class TestBadKey:
         )
         assert response.text == expected_text
 
+    @staticmethod
     def test_bad_secret_key_services(
-        self,
         vuforia_database: VuforiaDatabase,
     ) -> None:
         """
@@ -313,8 +315,8 @@ class TestBadKey:
         with pytest.raises(AuthenticationFailure):
             vws_client.get_target_record(target_id=uuid.uuid4().hex)
 
+    @staticmethod
     def test_bad_secret_key_query(
-        self,
         vuforia_database: VuforiaDatabase,
         high_quality_image: io.BytesIO,
     ) -> None:
