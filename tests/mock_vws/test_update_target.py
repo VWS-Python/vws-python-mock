@@ -348,6 +348,7 @@ class TestApplicationMetadata:
     Tests for the application metadata parameter.
     """
 
+    @staticmethod
     @pytest.mark.parametrize(
         'metadata',
         [
@@ -356,7 +357,6 @@ class TestApplicationMetadata:
         ],
         ids=['Short', 'Max length'],
     )
-    @staticmethod
     def test_base64_encoded(
         target_id: str,
         metadata: bytes,
@@ -372,8 +372,8 @@ class TestApplicationMetadata:
             application_metadata=metadata_encoded,
         )
 
-    @pytest.mark.parametrize('invalid_metadata', [1, None])
     @staticmethod
+    @pytest.mark.parametrize('invalid_metadata', [1, None])
     def test_invalid_type(
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
@@ -463,7 +463,7 @@ class TestApplicationMetadata:
 
         response = update_target(
             vuforia_database=vuforia_database,
-            data={'application_metadata': metadata_encoded},
+   g         data={'application_metadata': metadata_encoded},
             target_id=target_id,
         )
 
