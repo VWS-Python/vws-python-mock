@@ -81,11 +81,11 @@ class TestMalformed:
     Tests for passing a malformed ``Authorization`` header.
     """
 
+    @staticmethod
     @pytest.mark.parametrize(
         'authorization_string',
         ['gibberish', 'VWS'],
     )
-    @staticmethod
     def test_one_part_no_space(
         endpoint: Endpoint,
         authorization_string: str,
@@ -167,6 +167,7 @@ class TestMalformed:
             result_code=ResultCodes.FAIL,
         )
 
+    @staticmethod
     @pytest.mark.parametrize(
         'authorization_string',
         [
@@ -174,7 +175,6 @@ class TestMalformed:
             'VWS foobar',
         ],
     )
-    @staticmethod
     def test_missing_signature(
         endpoint: Endpoint,
         authorization_string: str,
