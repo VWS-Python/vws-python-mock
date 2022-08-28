@@ -316,8 +316,8 @@ class TestActiveFlag:
         target_details = vws_client.get_target_record(target_id=target_id)
         assert target_details.target_record.active_flag == desired_active_flag
 
-    @pytest.mark.parametrize('desired_active_flag', ['string', None])
     @staticmethod
+    @pytest.mark.parametrize('desired_active_flag', ['string', None])
     def test_invalid(
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
@@ -877,8 +877,8 @@ class TestImage:
             result_code=ResultCodes.BAD_IMAGE,
         )
 
-    @pytest.mark.parametrize('invalid_type_image', [1, None])
     @staticmethod
+    @pytest.mark.parametrize('invalid_type_image', [1, None])
     def test_invalid_type(
         invalid_type_image: int | None,
         target_id: str,
