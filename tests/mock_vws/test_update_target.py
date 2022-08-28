@@ -463,7 +463,7 @@ class TestApplicationMetadata:
 
         response = update_target(
             vuforia_database=vuforia_database,
-   g         data={'application_metadata': metadata_encoded},
+            data={'application_metadata': metadata_encoded},
             target_id=target_id,
         )
 
