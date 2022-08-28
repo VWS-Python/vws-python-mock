@@ -9,7 +9,7 @@ import io
 import json
 from http import HTTPStatus
 from string import hexdigits
-from typing import Any, Dict
+from typing import Any, Dict, Final
 from urllib.parse import urljoin
 
 import pytest
@@ -28,6 +28,8 @@ from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
     assert_vws_response,
 )
+
+_MAX_METADATA_BYTES: Final[int] = 1024 * 1024 - 1
 
 
 def add_target_to_vws(
@@ -129,6 +131,7 @@ class TestContentTypes:
     Tests for the `Content-Type` header.
     """
 
+    @staticmethod
     @pytest.mark.parametrize(
         'content_type',
         [
@@ -143,7 +146,6 @@ class TestContentTypes:
         ],
     )
     def test_content_types(
-        self,
         vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
         content_type: str,
@@ -168,8 +170,8 @@ class TestContentTypes:
 
         assert_success(response=response)
 
+    @staticmethod
     def test_empty_content_type(
-        self,
         vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
@@ -205,9 +207,9 @@ class TestMissingData:
     Tests for giving incomplete data.
     """
 
+    @staticmethod
     @pytest.mark.parametrize('data_to_remove', ['name', 'width', 'image'])
     def test_missing_data(
-        self,
         vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
         data_to_remove: str,
@@ -243,13 +245,13 @@ class TestWidth:
     Tests for the target width field.
     """
 
+    @staticmethod
     @pytest.mark.parametrize(
         'width',
         [-1, '10', None, 0],
         ids=['Negative', 'Wrong Type', 'None', 'Zero'],
     )
     def test_width_invalid(
-        self,
         vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
         width: Any,
@@ -277,8 +279,8 @@ class TestWidth:
             result_code=ResultCodes.FAIL,
         )
 
+    @staticmethod
     def test_width_valid(
-        self,
         vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
@@ -312,6 +314,7 @@ class TestTargetName:
     _MAX_CHAR_VALUE = 65535
     _MAX_NAME_LENGTH = 64
 
+    @staticmethod
     @pytest.mark.parametrize(
         'name',
         [
@@ -325,7 +328,6 @@ class TestTargetName:
         ids=['Short name', 'Max char value', 'Long name'],
     )
     def test_name_valid(
-        self,
         name: str,
         image_file_failed_state: io.BytesIO,
         vuforia_database: VuforiaDatabase,
@@ -350,6 +352,7 @@ class TestTargetName:
 
         assert_success(response=response)
 
+    @staticmethod
     @pytest.mark.parametrize(
         'name,status_code',
         [
@@ -373,7 +376,6 @@ class TestTargetName:
         ],
     )
     def test_name_invalid(
-        self,
         name: str,
         image_file_failed_state: io.BytesIO,
         vuforia_database: VuforiaDatabase,
@@ -409,8 +411,8 @@ class TestTargetName:
             result_code=ResultCodes.FAIL,
         )
 
+    @staticmethod
     def test_existing_target_name(
-        self,
         image_file_failed_state: io.BytesIO,
         vuforia_database: VuforiaDatabase,
     ) -> None:
@@ -442,8 +444,8 @@ class TestTargetName:
             result_code=ResultCodes.TARGET_NAME_EXIST,
         )
 
+    @staticmethod
     def test_deleted_existing_target_name(
-        self,
         image_file_failed_state: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
@@ -487,8 +489,8 @@ class TestImage:
     https://library.vuforia.com/features/images/image-targets.html.
     """
 
+    @staticmethod
     def test_image_valid(
-        self,
         vuforia_database: VuforiaDatabase,
         image_files_failed_state: io.BytesIO,
     ) -> None:
@@ -513,8 +515,8 @@ class TestImage:
 
         assert_success(response=response)
 
+    @staticmethod
     def test_bad_image_format_or_color_space(
-        self,
         bad_image_file: io.BytesIO,
         vuforia_database: VuforiaDatabase,
     ) -> None:
@@ -543,8 +545,8 @@ class TestImage:
             result_code=ResultCodes.BAD_IMAGE,
         )
 
+    @staticmethod
     def test_corrupted(
-        self,
         vuforia_database: VuforiaDatabase,
         corrupted_image_file: io.BytesIO,
     ) -> None:
@@ -567,8 +569,8 @@ class TestImage:
 
         assert_success(response=response)
 
+    @staticmethod
     def test_image_file_size_too_large(
-        self,
         vuforia_database: VuforiaDatabase,
     ) -> None:
         """
@@ -645,8 +647,8 @@ class TestImage:
             result_code=ResultCodes.IMAGE_TOO_LARGE,
         )
 
+    @staticmethod
     def test_not_base64_encoded_processable(
-        self,
         vuforia_database: VuforiaDatabase,
         not_base64_encoded_processable: str,
     ) -> None:
@@ -673,8 +675,8 @@ class TestImage:
             result_code=ResultCodes.BAD_IMAGE,
         )
 
+    @staticmethod
     def test_not_base64_encoded_not_processable(
-        self,
         vuforia_database: VuforiaDatabase,
         not_base64_encoded_not_processable: str,
     ) -> None:
@@ -700,8 +702,8 @@ class TestImage:
             result_code=ResultCodes.FAIL,
         )
 
+    @staticmethod
     def test_not_image(
-        self,
         vuforia_database: VuforiaDatabase,
     ) -> None:
         """
@@ -728,9 +730,9 @@ class TestImage:
             result_code=ResultCodes.BAD_IMAGE,
         )
 
+    @staticmethod
     @pytest.mark.parametrize('invalid_type_image', [1, None])
     def test_invalid_type(
-        self,
         invalid_type_image: Any,
         vuforia_database: VuforiaDatabase,
     ) -> None:
@@ -761,9 +763,9 @@ class TestActiveFlag:
     Tests for the active flag parameter.
     """
 
+    @staticmethod
     @pytest.mark.parametrize('active_flag', [True, False, None])
     def test_valid(
-        self,
         active_flag: bool | None,
         image_file_failed_state: io.BytesIO,
         vuforia_database: VuforiaDatabase,
@@ -790,8 +792,8 @@ class TestActiveFlag:
 
         assert_success(response=response)
 
+    @staticmethod
     def test_invalid(
-        self,
         image_file_failed_state: io.BytesIO,
         vuforia_database: VuforiaDatabase,
     ) -> None:
@@ -822,8 +824,8 @@ class TestActiveFlag:
             result_code=ResultCodes.FAIL,
         )
 
+    @staticmethod
     def test_not_set(
-        self,
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
         image_file_failed_state: io.BytesIO,
@@ -849,8 +851,8 @@ class TestActiveFlag:
         target_details = vws_client.get_target_record(target_id=target_id)
         assert target_details.target_record.active_flag is True
 
+    @staticmethod
     def test_set_to_none(
-        self,
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
         image_file_failed_state: io.BytesIO,
@@ -884,8 +886,8 @@ class TestUnexpectedData:
     Tests for passing data which is not mandatory or allowed to the endpoint.
     """
 
+    @staticmethod
     def test_invalid_extra_data(
-        self,
         vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
@@ -920,8 +922,7 @@ class TestApplicationMetadata:
     Tests for the application metadata parameter.
     """
 
-    _MAX_METADATA_BYTES = 1024 * 1024 - 1
-
+    @staticmethod
     @pytest.mark.parametrize(
         'metadata',
         [
@@ -931,7 +932,6 @@ class TestApplicationMetadata:
         ids=['Short', 'Max length'],
     )
     def test_base64_encoded(
-        self,
         vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
         metadata: bytes,
@@ -957,8 +957,8 @@ class TestApplicationMetadata:
 
         assert_success(response=response)
 
+    @staticmethod
     def test_null(
-        self,
         vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
@@ -982,8 +982,8 @@ class TestApplicationMetadata:
 
         assert_success(response=response)
 
+    @staticmethod
     def test_invalid_type(
-        self,
         vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
@@ -1012,8 +1012,8 @@ class TestApplicationMetadata:
             result_code=ResultCodes.FAIL,
         )
 
+    @staticmethod
     def test_not_base64_encoded_processable(
-        self,
         vuforia_database: VuforiaDatabase,
         high_quality_image: io.BytesIO,
         not_base64_encoded_processable: str,
@@ -1039,8 +1039,8 @@ class TestApplicationMetadata:
 
         assert_success(response=response)
 
+    @staticmethod
     def test_not_base64_encoded_not_processable(
-        self,
         vuforia_database: VuforiaDatabase,
         high_quality_image: io.BytesIO,
         not_base64_encoded_not_processable: str,
@@ -1070,8 +1070,8 @@ class TestApplicationMetadata:
             result_code=ResultCodes.FAIL,
         )
 
+    @staticmethod
     def test_metadata_too_large(
-        self,
         vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:
@@ -1081,7 +1081,7 @@ class TestApplicationMetadata:
         """
         image_data = image_file_failed_state.read()
         image_data_encoded = base64.b64encode(image_data).decode('ascii')
-        metadata = b'a' * (self._MAX_METADATA_BYTES + 1)
+        metadata = b'a' * (_MAX_METADATA_BYTES + 1)
         metadata_encoded = base64.b64encode(metadata).decode('ascii')
 
         data = {
@@ -1109,8 +1109,8 @@ class TestInactiveProject:
     Tests for inactive projects.
     """
 
+    @staticmethod
     def test_inactive_project(
-        self,
         inactive_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
     ) -> None:

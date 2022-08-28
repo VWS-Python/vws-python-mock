@@ -232,7 +232,8 @@ class TestAddDatabase:
     Tests for adding databases to the mock.
     """
 
-    def test_duplicate_keys(self) -> None:
+    @staticmethod
+    def test_duplicate_keys() -> None:
         """
         It is not possible to have multiple databases with matching keys.
         """
@@ -289,7 +290,8 @@ class TestAddDatabase:
             assert response.status_code == HTTPStatus.CONFLICT
             assert response.text == expected_message
 
-    def test_give_no_details(self, high_quality_image: io.BytesIO) -> None:
+    @staticmethod
+    def test_give_no_details(high_quality_image: io.BytesIO) -> None:
         """
         It is possible to create a database without giving any data.
         """
@@ -322,7 +324,8 @@ class TestDeleteDatabase:
     Tests for deleting databases from the mock.
     """
 
-    def test_not_found(self) -> None:
+    @staticmethod
+    def test_not_found() -> None:
         """
         A 404 error is returned when trying to delete a database which does not
         exist.
@@ -332,7 +335,8 @@ class TestDeleteDatabase:
         response = requests.delete(url=delete_url, json={})
         assert response.status_code == HTTPStatus.NOT_FOUND
 
-    def test_delete_database(self) -> None:
+    @staticmethod
+    def test_delete_database() -> None:
         """
         It is possible to delete a database.
         """

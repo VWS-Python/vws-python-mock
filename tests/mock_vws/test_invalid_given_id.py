@@ -21,8 +21,8 @@ class TestInvalidGivenID:
     be given.
     """
 
+    @staticmethod
     def test_not_real_id(
-        self,
         vws_client: VWS,
         endpoint: Endpoint,
         target_id: str,
