@@ -49,21 +49,26 @@ class TestIncorrect:
         netloc = urlparse(url).netloc
         if netloc == 'cloudreco.vuforia.com':
             assert response.text == ''
-            assert dict(response.headers) == {
-                'Content-Length': str(len(response.text)),
-                'Connection': 'Close',
-            }
+            assert response.headers == CaseInsensitiveDict(
+                data={
+                    'Content-Length': str(len(response.text)),
+                    'Connection': 'Close',
+                },
+            )
             return
 
         assert_valid_date_header(response=response)
         assert response.text == 'Bad Request'
-        assert dict(response.headers) == {
-            'content-length': str(len(response.text)),
-            'content-type': 'text/plain',
-            'connection': 'close',
-            'server': 'envoy',
-            'date': response.headers['date'],
-        }
+        expected_headers = CaseInsensitiveDict(
+            data={
+                'content-length': str(len(response.text)),
+                'content-type': 'text/plain',
+                'connection': 'close',
+                'server': 'envoy',
+                'date': response.headers['date'],
+            }
+        )
+        assert response.headers == expected_headers
 
     @staticmethod
     def test_too_large(endpoint: Endpoint) -> None:
@@ -86,15 +91,17 @@ class TestIncorrect:
         if netloc == 'cloudreco.vuforia.com':
             assert response.status_code == HTTPStatus.GATEWAY_TIMEOUT
             assert response.text == ''
-            assert dict(response.headers) == {
-                'Content-Length': str(len(response.text)),
-                'Connection': 'keep-alive',
-            }
+            assert response.headers == CaseInsensitiveDict(
+                data={
+                    'Content-Length': str(len(response.text)),
+                    'Connection': 'keep-alive',
+                }
+            )
             return
 
         assert_valid_date_header(response=response)
         assert response.text == 'stream timeout'
-        assert dict(response.headers) == {
+        expected_headers = {
             'content-length': str(len(response.text)),
             'connection': 'close',
             'content-type': 'text/plain',
@@ -102,6 +109,9 @@ class TestIncorrect:
             'date': response.headers['date'],
             'x-aws-region': 'eu-west-1',
         }
+        assert response.headers == CaseInsensitiveDict(
+            data=expected_headers,
+        )
         assert response.status_code == HTTPStatus.REQUEST_TIMEOUT
 
     @staticmethod
