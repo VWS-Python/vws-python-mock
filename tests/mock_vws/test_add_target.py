@@ -131,6 +131,7 @@ class TestContentTypes:
     Tests for the `Content-Type` header.
     """
 
+    @staticmethod
     @pytest.mark.parametrize(
         'content_type',
         [
@@ -144,7 +145,6 @@ class TestContentTypes:
             'Undocumented Content-Type',
         ],
     )
-    @staticmethod
     def test_content_types(
         vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
@@ -207,8 +207,8 @@ class TestMissingData:
     Tests for giving incomplete data.
     """
 
-    @pytest.mark.parametrize('data_to_remove', ['name', 'width', 'image'])
     @staticmethod
+    @pytest.mark.parametrize('data_to_remove', ['name', 'width', 'image'])
     def test_missing_data(
         vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
@@ -245,12 +245,12 @@ class TestWidth:
     Tests for the target width field.
     """
 
+    @staticmethod
     @pytest.mark.parametrize(
         'width',
         [-1, '10', None, 0],
         ids=['Negative', 'Wrong Type', 'None', 'Zero'],
     )
-    @staticmethod
     def test_width_invalid(
         vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
@@ -314,6 +314,7 @@ class TestTargetName:
     _MAX_CHAR_VALUE = 65535
     _MAX_NAME_LENGTH = 64
 
+    @staticmethod
     @pytest.mark.parametrize(
         'name',
         [
@@ -326,7 +327,6 @@ class TestTargetName:
         ],
         ids=['Short name', 'Max char value', 'Long name'],
     )
-    @staticmethod
     def test_name_valid(
         name: str,
         image_file_failed_state: io.BytesIO,
@@ -352,6 +352,7 @@ class TestTargetName:
 
         assert_success(response=response)
 
+    @staticmethod
     @pytest.mark.parametrize(
         'name,status_code',
         [
@@ -374,7 +375,6 @@ class TestTargetName:
             'Bad char too long',
         ],
     )
-    @staticmethod
     def test_name_invalid(
         name: str,
         image_file_failed_state: io.BytesIO,
@@ -730,8 +730,8 @@ class TestImage:
             result_code=ResultCodes.BAD_IMAGE,
         )
 
-    @pytest.mark.parametrize('invalid_type_image', [1, None])
     @staticmethod
+    @pytest.mark.parametrize('invalid_type_image', [1, None])
     def test_invalid_type(
         invalid_type_image: Any,
         vuforia_database: VuforiaDatabase,
@@ -763,8 +763,8 @@ class TestActiveFlag:
     Tests for the active flag parameter.
     """
 
-    @pytest.mark.parametrize('active_flag', [True, False, None])
     @staticmethod
+    @pytest.mark.parametrize('active_flag', [True, False, None])
     def test_valid(
         active_flag: bool | None,
         image_file_failed_state: io.BytesIO,
@@ -922,6 +922,7 @@ class TestApplicationMetadata:
     Tests for the application metadata parameter.
     """
 
+    @staticmethod
     @pytest.mark.parametrize(
         'metadata',
         [
@@ -930,7 +931,6 @@ class TestApplicationMetadata:
         ],
         ids=['Short', 'Max length'],
     )
-    @staticmethod
     def test_base64_encoded(
         vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,

@@ -88,6 +88,7 @@ class TestUpdate:
     Tests for updating targets.
     """
 
+    @staticmethod
     @pytest.mark.parametrize(
         'content_type',
         [
@@ -98,7 +99,6 @@ class TestUpdate:
         ],
         ids=['Documented Content-Type', 'Undocumented Content-Type'],
     )
-    @staticmethod
     def test_content_types(
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
@@ -233,12 +233,12 @@ class TestWidth:
     Tests for the target width field.
     """
 
+    @staticmethod
     @pytest.mark.parametrize(
         'width',
         [-1, '10', None, 0],
         ids=['Negative', 'Wrong Type', 'None', 'Zero'],
     )
-    @staticmethod
     def test_width_invalid(
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
@@ -287,9 +287,9 @@ class TestActiveFlag:
     Tests for the active flag parameter.
     """
 
+    @staticmethod
     @pytest.mark.parametrize('initial_active_flag', [True, False])
     @pytest.mark.parametrize('desired_active_flag', [True, False])
-    @staticmethod
     def test_active_flag(
         vws_client: VWS,
         image_file_success_state_low_rating: io.BytesIO,
@@ -483,6 +483,7 @@ class TestTargetName:
     _MAX_CHAR_VALUE = 65535
     _MAX_NAME_LENGTH = 64
 
+    @staticmethod
     @pytest.mark.parametrize(
         'name',
         [
@@ -495,7 +496,6 @@ class TestTargetName:
         ],
         ids=['Short name', 'Max char value', 'Long name'],
     )
-    @staticmethod
     def test_name_valid(
         name: str,
         target_id: str,
@@ -512,6 +512,7 @@ class TestTargetName:
         target_details = vws_client.get_target_record(target_id=target_id)
         assert target_details.target_record.name == name
 
+    @staticmethod
     @pytest.mark.parametrize(
         'name,status_code,result_code',
         [
@@ -543,7 +544,6 @@ class TestTargetName:
             'Bad char too long',
         ],
     )
-    @staticmethod
     def test_name_invalid(
         name: str,
         target_id: str,
