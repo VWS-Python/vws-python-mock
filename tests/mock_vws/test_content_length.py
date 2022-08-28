@@ -66,7 +66,7 @@ class TestIncorrect:
                 'connection': 'close',
                 'server': 'envoy',
                 'date': response.headers['date'],
-            }
+            },
         )
         assert response.headers == expected_headers
 
@@ -95,7 +95,7 @@ class TestIncorrect:
                 data={
                     'Content-Length': str(len(response.text)),
                     'Connection': 'keep-alive',
-                }
+                },
             )
             return
 
