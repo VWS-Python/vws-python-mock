@@ -98,7 +98,6 @@ class TestIncorrect:
             'content-length': str(len(response.text)),
             'connection': 'close',
             'content-type': 'text/plain',
-            'connection': 'close',
             'server': 'envoy',
             'date': response.headers['date'],
             'x-aws-region': 'eu-west-1',
