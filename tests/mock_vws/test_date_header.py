@@ -18,6 +18,7 @@ from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import (
     assert_query_success,
+    assert_valid_transaction_id,
     assert_vwq_failure,
     assert_vws_failure,
     assert_vws_response,
@@ -211,6 +212,20 @@ class TestSkewedTime:
         response = session.send(request=endpoint.prepared_request)
 
         # Even with the query endpoint, we get a JSON response.
+        if netloc == 'cloudreco.vuforia.com':
+            assert response.json().keys() == {'transaction_id', 'result_code'}
+            assert response.json()['result_code'] == 'RequestTimeTooSkewed'
+            assert_valid_transaction_id(response=response)
+            assert_vwq_failure(
+                response=response,
+                status_code=HTTPStatus.FORBIDDEN,
+                content_type='application/json',
+                cache_control=None,
+                www_authenticate=None,
+                connection='keep-alive',
+            )
+            return
+
         assert_vws_failure(
             response=response,
             status_code=HTTPStatus.FORBIDDEN,
