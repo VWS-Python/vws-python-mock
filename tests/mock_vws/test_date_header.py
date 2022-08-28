@@ -34,10 +34,8 @@ class TestMissing:
     Tests for what happens when the `Date` header is missing.
     """
 
-    def test_no_date_header(
-        self,
-        endpoint: Endpoint,
-    ) -> None:
+    @staticmethod
+    def test_no_date_header(endpoint: Endpoint) -> None:
         """
         A `BAD_REQUEST` response is returned when no `Date` header is given.
         """
@@ -93,10 +91,8 @@ class TestFormat:
     expected format.
     """
 
-    def test_incorrect_date_format(
-        self,
-        endpoint: Endpoint,
-    ) -> None:
+    @staticmethod
+    def test_incorrect_date_format(endpoint: Endpoint) -> None:
         """
         A `BAD_REQUEST` response is returned when the date given in the date
         header is not in the expected format (RFC 1123) to VWS API.
@@ -160,13 +156,13 @@ class TestSkewedTime:
     unexpected time.
     """
 
+    @staticmethod
     @pytest.mark.parametrize(
         'time_multiplier',
         [1, -1],
         ids=(['After', 'Before']),
     )
     def test_date_out_of_range(
-        self,
         time_multiplier: int,
         endpoint: Endpoint,
     ) -> None:
@@ -221,13 +217,13 @@ class TestSkewedTime:
             result_code=ResultCodes.REQUEST_TIME_TOO_SKEWED,
         )
 
+    @staticmethod
     @pytest.mark.parametrize(
         'time_multiplier',
         [1, -1],
         ids=(['After', 'Before']),
     )
     def test_date_in_range(
-        self,
         time_multiplier: int,
         endpoint: Endpoint,
     ) -> None:

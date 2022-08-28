@@ -97,8 +97,8 @@ class TestDatabaseSummary:
     Tests for the mock of the database summary endpoint at `GET /summary`.
     """
 
+    @staticmethod
     def test_success(
-        self,
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
     ) -> None:
@@ -116,8 +116,8 @@ class TestDatabaseSummary:
             processing_images=0,
         )
 
+    @staticmethod
     def test_active_images(
-        self,
         vws_client: VWS,
         target_id: str,
     ) -> None:
@@ -134,8 +134,8 @@ class TestDatabaseSummary:
             processing_images=0,
         )
 
+    @staticmethod
     def test_failed_images(
-        self,
         image_file_failed_state: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -160,8 +160,8 @@ class TestDatabaseSummary:
             processing_images=0,
         )
 
+    @staticmethod
     def test_inactive_images(
-        self,
         vws_client: VWS,
         image_file_success_state_low_rating: io.BytesIO,
     ) -> None:
@@ -187,8 +187,8 @@ class TestDatabaseSummary:
             processing_images=0,
         )
 
+    @staticmethod
     def test_inactive_failed(
-        self,
         image_file_failed_state: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -213,8 +213,8 @@ class TestDatabaseSummary:
             processing_images=0,
         )
 
+    @staticmethod
     def test_deleted(
-        self,
         image_file_failed_state: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -252,8 +252,8 @@ class TestProcessingImages:
     implementation.
     """
 
+    @staticmethod
     def test_processing_images(
-        self,
         image_file_success_state_low_rating: io.BytesIO,
     ) -> None:
         """
@@ -290,7 +290,8 @@ class TestQuotas:
     Tests for quotas and thresholds.
     """
 
-    def test_quotas(self, vws_client: VWS) -> None:
+    @staticmethod
+    def test_quotas(vws_client: VWS) -> None:
         """
         Quotas are included in the database summary.
         These match the quotas given for a free license.
@@ -307,8 +308,8 @@ class TestRecos:
     Tests for the recognition count fields.
     """
 
+    @staticmethod
     def test_query_request(
-        self,
         cloud_reco_client: CloudRecoService,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
@@ -350,10 +351,8 @@ class TestRequestUsage:
     Tests for the ``request_usage`` field.
     """
 
-    def test_target_request(
-        self,
-        vws_client: VWS,
-    ) -> None:
+    @staticmethod
+    def test_target_request(vws_client: VWS) -> None:
         """
         The ``request_usage`` count does not increase with each request to the
         target API.
@@ -365,8 +364,8 @@ class TestRequestUsage:
         new_request_usage = report.request_usage
         assert new_request_usage == original_request_usage
 
+    @staticmethod
     def test_bad_target_request(
-        self,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -392,8 +391,8 @@ class TestRequestUsage:
         new_request_usage = report.request_usage
         assert new_request_usage == original_request_usage
 
+    @staticmethod
     def test_query_request(
-        self,
         cloud_reco_client: CloudRecoService,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
@@ -417,8 +416,8 @@ class TestInactiveProject:
     Tests for inactive projects.
     """
 
+    @staticmethod
     def test_inactive_project(
-        self,
         inactive_vws_client: VWS,
     ) -> None:
         """

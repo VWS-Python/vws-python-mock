@@ -28,9 +28,9 @@ class TestInvalidJSON:
     Tests for giving invalid JSON to endpoints.
     """
 
+    @staticmethod
     @pytest.mark.parametrize('date_skew_minutes', [0, 10])
     def test_invalid_json(
-        self,
         endpoint: Endpoint,
         date_skew_minutes: int,
     ) -> None:

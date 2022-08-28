@@ -12,8 +12,8 @@ class TestTargetList:
     Tests for the mock of the target list endpoint at `/targets`.
     """
 
+    @staticmethod
     def test_includes_targets(
-        self,
         vws_client: VWS,
         target_id: str,
     ) -> None:
@@ -22,8 +22,8 @@ class TestTargetList:
         """
         assert vws_client.list_targets() == [target_id]
 
+    @staticmethod
     def test_deleted(
-        self,
         vws_client: VWS,
         target_id: str,
     ) -> None:
@@ -41,10 +41,8 @@ class TestInactiveProject:
     Tests for inactive projects.
     """
 
-    def test_inactive_project(
-        self,
-        inactive_vws_client: VWS,
-    ) -> None:
+    @staticmethod
+    def test_inactive_project(inactive_vws_client: VWS) -> None:
         """
         The project's active state does not affect the target list.
         """

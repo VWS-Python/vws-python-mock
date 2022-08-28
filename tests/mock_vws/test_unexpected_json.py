@@ -21,10 +21,8 @@ class TestUnexpectedJSON:
     Tests for giving JSON to endpoints which do not expect it.
     """
 
-    def test_does_not_take_data(
-        self,
-        endpoint: Endpoint,
-    ) -> None:
+    @staticmethod
+    def test_does_not_take_data(endpoint: Endpoint) -> None:
         """
         Giving JSON to endpoints which do not take any JSON data returns error
         responses.

@@ -19,8 +19,8 @@ class TestGetRecord:
     Tests for getting a target record.
     """
 
+    @staticmethod
     def test_get_vws_target(
-        self,
         vws_client: VWS,
         image_file_failed_state: io.BytesIO,
     ) -> None:
@@ -56,8 +56,8 @@ class TestGetRecord:
 
         assert target_record == expected_target_record
 
+    @staticmethod
     def test_fail_status(
-        self,
         vws_client: VWS,
         image_file_failed_state: io.BytesIO,
     ) -> None:
@@ -79,8 +79,8 @@ class TestGetRecord:
         # Tracking rating is 0 when status is 'failed'
         assert target_details.target_record.tracking_rating == 0
 
+    @staticmethod
     def test_success_status(
-        self,
         image_file_success_state_low_rating: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -120,10 +120,8 @@ class TestInactiveProject:
     Tests for inactive projects.
     """
 
-    def test_inactive_project(
-        self,
-        inactive_vws_client: VWS,
-    ) -> None:
+    @staticmethod
+    def test_inactive_project(inactive_vws_client: VWS) -> None:
         """
         The project's active state does not affect getting a target.
         """

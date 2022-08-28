@@ -28,7 +28,8 @@ class TestIncorrect:
     ``requests`` - https://github.com/jamielennox/requests-mock/issues/80.
     """
 
-    def test_not_integer(self, endpoint: Endpoint) -> None:
+    @staticmethod
+    def test_not_integer(endpoint: Endpoint) -> None:
         """
         A ``BAD_REQUEST`` error is given when the given ``Content-Length`` is
         not an integer.
@@ -64,7 +65,8 @@ class TestIncorrect:
             'date': response.headers['date'],
         }
 
-    def test_too_large(self, endpoint: Endpoint) -> None:
+    @staticmethod
+    def test_too_large(endpoint: Endpoint) -> None:
         """
         An error is given if the given content length is too large.
         """
@@ -103,7 +105,8 @@ class TestIncorrect:
         }
         assert response.status_code == HTTPStatus.REQUEST_TIMEOUT
 
-    def test_too_small(self, endpoint: Endpoint) -> None:
+    @staticmethod
+    def test_too_small(endpoint: Endpoint) -> None:
         """
         An ``UNAUTHORIZED`` response is given if the given content length is
         too small.

@@ -140,6 +140,7 @@ class TestContentType:
     Tests for the Content-Type header.
     """
 
+    @staticmethod
     @pytest.mark.parametrize(
         [
             'content_type',
@@ -190,7 +191,6 @@ class TestContentType:
         ],
     )
     def test_incorrect_no_boundary(
-        self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         content_type: str,
@@ -244,8 +244,8 @@ class TestContentType:
             connection='keep-alive',
         )
 
+    @staticmethod
     def test_incorrect_with_boundary(
-        self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
     ) -> None:
@@ -303,6 +303,7 @@ class TestContentType:
             connection='keep-alive',
         )
 
+    @staticmethod
     @pytest.mark.parametrize(
         'content_type',
         [
@@ -312,7 +313,6 @@ class TestContentType:
         ],
     )
     def test_no_boundary(
-        self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         content_type: str,
@@ -367,8 +367,8 @@ class TestContentType:
             connection='keep-alive',
         )
 
+    @staticmethod
     def test_bogus_boundary(
-        self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
     ) -> None:
@@ -419,8 +419,8 @@ class TestContentType:
             connection='keep-alive',
         )
 
+    @staticmethod
     def test_extra_section(
-        self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
     ) -> None:
@@ -473,8 +473,8 @@ class TestSuccess:
     Tests for successful calls to the query endpoint.
     """
 
+    @staticmethod
     def test_no_results(
-        self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
     ) -> None:
@@ -490,8 +490,8 @@ class TestSuccess:
         assert_query_success(response=response)
         assert response.json()['results'] == []
 
+    @staticmethod
     def test_match(
-        self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
@@ -536,8 +536,8 @@ class TestSuccess:
         time_difference = abs(approximate_target_created - target_timestamp)
         assert time_difference < 5
 
+    @staticmethod
     def test_not_base64_encoded_processable(
-        self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
@@ -595,10 +595,8 @@ class TestIncorrectFields:
     Tests for incorrect and unexpected fields.
     """
 
-    def test_missing_image(
-        self,
-        vuforia_database: VuforiaDatabase,
-    ) -> None:
+    @staticmethod
+    def test_missing_image(vuforia_database: VuforiaDatabase) -> None:
         """
         If an image is not given, a ``BAD_REQUEST`` response is returned.
         """
@@ -614,8 +612,8 @@ class TestIncorrectFields:
             connection='keep-alive',
         )
 
+    @staticmethod
     def test_extra_fields(
-        self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
     ) -> None:
@@ -640,8 +638,8 @@ class TestIncorrectFields:
             connection='keep-alive',
         )
 
+    @staticmethod
     def test_missing_image_and_extra_fields(
-        self,
         vuforia_database: VuforiaDatabase,
     ) -> None:
         """
@@ -673,8 +671,8 @@ class TestMaxNumResults:
     Tests for the ``max_num_results`` parameter.
     """
 
+    @staticmethod
     def test_default(
-        self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
@@ -710,9 +708,9 @@ class TestMaxNumResults:
         assert_query_success(response=response)
         assert len(response.json()['results']) == 1
 
+    @staticmethod
     @pytest.mark.parametrize('num_results', [1, b'1', 50])
     def test_valid_accepted(
-        self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         num_results: int | bytes,
@@ -741,8 +739,8 @@ class TestMaxNumResults:
         assert_query_success(response=response)
         assert response.json()['results'] == []
 
+    @staticmethod
     def test_valid_works(
-        self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
@@ -767,9 +765,9 @@ class TestMaxNumResults:
         assert_query_success(response=response)
         assert len(response.json()['results']) == 2
 
+    @staticmethod
     @pytest.mark.parametrize('num_results', [-1, 0, 51])
     def test_out_of_range(
-        self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         num_results: int,
@@ -805,12 +803,12 @@ class TestMaxNumResults:
             connection='keep-alive',
         )
 
+    @staticmethod
     @pytest.mark.parametrize(
         'num_results',
         [b'0.1', b'1.1', b'a', b'2147483648'],
     )
     def test_invalid_type(
-        self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         num_results: bytes,
@@ -874,8 +872,8 @@ class TestIncludeTargetData:
     Tests for the ``include_target_data`` parameter.
     """
 
+    @staticmethod
     def test_default(
-        self,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
         vuforia_database: VuforiaDatabase,
@@ -901,9 +899,9 @@ class TestIncludeTargetData:
         assert 'target_data' in result_1
         assert 'target_data' not in result_2
 
+    @staticmethod
     @pytest.mark.parametrize('include_target_data', ['top', 'TOP'])
     def test_top(
-        self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         include_target_data: str,
@@ -932,9 +930,9 @@ class TestIncludeTargetData:
         assert 'target_data' in result_1
         assert 'target_data' not in result_2
 
+    @staticmethod
     @pytest.mark.parametrize('include_target_data', ['none', 'NONE'])
     def test_none(
-        self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         include_target_data: str,
@@ -963,9 +961,9 @@ class TestIncludeTargetData:
         assert 'target_data' not in result_1
         assert 'target_data' not in result_2
 
+    @staticmethod
     @pytest.mark.parametrize('include_target_data', ['all', 'ALL'])
     def test_all(
-        self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         include_target_data: str,
@@ -994,9 +992,9 @@ class TestIncludeTargetData:
         assert 'target_data' in result_1
         assert 'target_data' in result_2
 
+    @staticmethod
     @pytest.mark.parametrize('include_target_data', ['a', True, 0])
     def test_invalid_value(
-        self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         include_target_data: Any,
@@ -1035,6 +1033,7 @@ class TestAcceptHeader:
     Tests for the ``Accept`` header.
     """
 
+    @staticmethod
     @pytest.mark.parametrize(
         'extra_headers',
         [
@@ -1045,7 +1044,6 @@ class TestAcceptHeader:
         ],
     )
     def test_valid(
-        self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         extra_headers: Dict[str, str],
@@ -1091,8 +1089,8 @@ class TestAcceptHeader:
         assert_query_success(response=response)
         assert response.json()['results'] == []
 
+    @staticmethod
     def test_invalid(
-        self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
     ) -> None:
@@ -1152,8 +1150,8 @@ class TestActiveFlag:
     Tests for active versus inactive targets.
     """
 
+    @staticmethod
     def test_inactive(
-        self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
@@ -1185,8 +1183,8 @@ class TestBadImage:
     Tests for bad images.
     """
 
+    @staticmethod
     def test_corrupted(
-        self,
         vuforia_database: VuforiaDatabase,
         corrupted_image_file: io.BytesIO,
     ) -> None:
@@ -1202,10 +1200,8 @@ class TestBadImage:
         assert_query_success(response=response)
         assert response.json()['results'] == []
 
-    def test_not_image(
-        self,
-        vuforia_database: VuforiaDatabase,
-    ) -> None:
+    @staticmethod
+    def test_not_image(vuforia_database: VuforiaDatabase) -> None:
         """
         No error is returned when a corrupted image is given.
         """
@@ -1245,10 +1241,8 @@ class TestMaximumImageFileSize:
     Tests for maximum image file sizes.
     """
 
-    def test_png(
-        self,
-        vuforia_database: VuforiaDatabase,
-    ) -> None:
+    @staticmethod
+    def test_png(vuforia_database: VuforiaDatabase) -> None:
         """
         According to
         https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query.
@@ -1319,10 +1313,8 @@ class TestMaximumImageFileSize:
         )
         assert response.text == _NGINX_REQUEST_ENTITY_TOO_LARGE_ERROR
 
-    def test_jpeg(
-        self,
-        vuforia_database: VuforiaDatabase,
-    ) -> None:
+    @staticmethod
+    def test_jpeg(vuforia_database: VuforiaDatabase) -> None:
         """
         According to
         https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query.
@@ -1401,7 +1393,8 @@ class TestMaximumImageDimensions:
     Tests for maximum image dimensions.
     """
 
-    def test_max_height(self, vuforia_database: VuforiaDatabase) -> None:
+    @staticmethod
+    def test_max_height(vuforia_database: VuforiaDatabase) -> None:
         """
         An error is returned when an image with a height greater than 30000 is
         given.
@@ -1460,7 +1453,8 @@ class TestMaximumImageDimensions:
         )
         assert response.text == expected_text
 
-    def test_max_width(self, vuforia_database: VuforiaDatabase) -> None:
+    @staticmethod
+    def test_max_width(vuforia_database: VuforiaDatabase) -> None:
         """
         An error is returned when an image with a width greater than 30000 is
         given.
@@ -1526,9 +1520,9 @@ class TestImageFormats:
     Tests for various image formats.
     """
 
+    @staticmethod
     @pytest.mark.parametrize('file_format', ['png', 'jpeg'])
     def test_supported(
-        self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         file_format: str,
@@ -1548,8 +1542,8 @@ class TestImageFormats:
         assert_query_success(response=response)
         assert response.json()['results'] == []
 
+    @staticmethod
     def test_unsupported(
-        self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
     ) -> None:
@@ -1596,12 +1590,12 @@ class TestProcessing:
     Tests for targets in the processing state.
     """
 
+    @staticmethod
     @pytest.mark.parametrize(
         'active_flag',
         [True, False],
     )
     def test_processing(
-        self,
         high_quality_image: io.BytesIO,
         active_flag: bool,
         vws_client: VWS,
@@ -1644,8 +1638,8 @@ class TestUpdate:
     Tests for updated targets.
     """
 
+    @staticmethod
     def test_updated_target(
-        self,
         high_quality_image: io.BytesIO,
         different_high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
@@ -1733,8 +1727,8 @@ class TestDeleted:
     Tests for matching deleted targets.
     """
 
+    @staticmethod
     def test_deleted(
-        self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
@@ -1776,8 +1770,8 @@ class TestDeleted:
 
                 return
 
+    @staticmethod
     def test_deleted_and_wait(
-        self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
@@ -1844,8 +1838,8 @@ class TestDeleted:
         # The deletion never takes effect immediately.
         assert total_waited
 
+    @staticmethod
     def test_deleted_inactive(
-        self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
@@ -1879,8 +1873,8 @@ class TestTargetStatusFailed:
     Tests for targets with the status "failed".
     """
 
+    @staticmethod
     def test_status_failed(
-        self,
         image_file_failed_state: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
@@ -1921,6 +1915,7 @@ class TestDateFormats:
     > header.
     """
 
+    @staticmethod
     @pytest.mark.parametrize(
         'datetime_format',
         [
@@ -1932,7 +1927,6 @@ class TestDateFormats:
     )
     @pytest.mark.parametrize('include_tz', [True, False])
     def test_date_formats(
-        self,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         datetime_format: str,
@@ -1994,8 +1988,8 @@ class TestInactiveProject:
     Tests for inactive projects.
     """
 
+    @staticmethod
     def test_inactive_project(
-        self,
         inactive_database: VuforiaDatabase,
         high_quality_image: io.BytesIO,
     ) -> None:

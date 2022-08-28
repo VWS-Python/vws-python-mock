@@ -82,3 +82,7 @@ autoflake:
 .PHONY: pydocstyle
 pydocstyle:
 	pydocstyle
+
+.PHONY: add-trailing-comma
+add-trailing-comma:
+	add-trailing-comma $(find . -type f -name '*.py') --exit-zero-even-if-changed
