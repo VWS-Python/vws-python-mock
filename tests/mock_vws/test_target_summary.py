@@ -22,8 +22,8 @@ class TestTargetSummary:
     Tests for the target summary endpoint.
     """
 
-    @pytest.mark.parametrize('active_flag', [True, False])
     @staticmethod
+    @pytest.mark.parametrize('active_flag', [True, False])
     def test_target_summary(
         vws_client: VWS,
         vuforia_database: VuforiaDatabase,
@@ -67,6 +67,7 @@ class TestTargetSummary:
         assert report.current_month_recos == 0
         assert report.previous_month_recos == 0
 
+    @staticmethod
     @pytest.mark.parametrize(
         ['image_fixture_name', 'expected_status'],
         [
@@ -74,7 +75,6 @@ class TestTargetSummary:
             ('image_file_failed_state', TargetStatuses.FAILED),
         ],
     )
-    @staticmethod
     def test_after_processing(
         vws_client: VWS,
         request: SubRequest,

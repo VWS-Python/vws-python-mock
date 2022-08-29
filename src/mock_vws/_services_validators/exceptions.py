@@ -357,10 +357,16 @@ class ContentLengthHeaderTooLarge(ValidatorException):
                 raised.
         """
         super().__init__()
-        self.status_code = HTTPStatus.GATEWAY_TIMEOUT
-        self.response_text = ''
+        self.status_code = HTTPStatus.REQUEST_TIMEOUT
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        self.response_text = 'stream timeout'
         self.headers = {
             'content-length': str(len(self.response_text)),
+            'date': date,
+            'server': 'envoy',
+            'content-type': 'text/plain',
+            'connection': 'close',
+            'x-aws-region': 'eu-west-1',
         }
 
 
@@ -379,10 +385,14 @@ class ContentLengthHeaderNotInt(ValidatorException):
         """
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
-        self.response_text = ''
+        self.response_text = 'Bad Request'
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Connection': 'Close',
+            'connection': 'close',
             'content-length': str(len(self.response_text)),
+            'date': date,
+            'server': 'envoy',
+            'content-type': 'text/plain',
         }
 
 

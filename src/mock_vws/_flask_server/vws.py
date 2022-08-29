@@ -213,10 +213,11 @@ def get_target(target_id: str) -> Response:
 
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        'Connection': 'keep-alive',
-        'Content-Type': 'application/json',
-        'Server': 'nginx',
-        'Date': date,
+        'content-type': 'application/json',
+        'server': 'envoy',
+        'date': date,
+        'x-aws-region': 'us-west-2, eu-west-1',
+        'x-envoy-upstream-service-time': '5',
     }
     body = {
         'result_code': ResultCodes.SUCCESS.value,
@@ -269,10 +270,11 @@ def delete_target(target_id: str) -> Response:
     }
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        'Connection': 'keep-alive',
-        'Content-Type': 'application/json',
-        'Server': 'nginx',
-        'Date': date,
+        'content-type': 'application/json',
+        'server': 'envoy',
+        'date': date,
+        'x-aws-region': 'us-west-2, eu-west-1',
+        'x-envoy-upstream-service-time': '5',
     }
     return Response(
         status=HTTPStatus.OK,
@@ -319,10 +321,11 @@ def database_summary() -> Response:
     }
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        'Connection': 'keep-alive',
-        'Content-Type': 'application/json',
-        'Server': 'nginx',
-        'Date': date,
+        'content-type': 'application/json',
+        'server': 'envoy',
+        'date': date,
+        'x-aws-region': 'us-west-2, eu-west-1',
+        'x-envoy-upstream-service-time': '5',
     }
     return Response(
         status=HTTPStatus.OK,
@@ -367,10 +370,11 @@ def target_summary(target_id: str) -> Response:
     }
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        'Connection': 'keep-alive',
-        'Content-Type': 'application/json',
-        'Server': 'nginx',
-        'Date': date,
+        'content-type': 'application/json',
+        'server': 'envoy',
+        'date': date,
+        'x-aws-region': 'us-west-2, eu-west-1',
+        'x-envoy-upstream-service-time': '5',
     }
     return Response(
         status=HTTPStatus.OK,
@@ -419,10 +423,11 @@ def get_duplicates(target_id: str) -> Response:
 
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        'Connection': 'keep-alive',
-        'Content-Type': 'application/json',
-        'Server': 'nginx',
-        'Date': date,
+        'content-type': 'application/json',
+        'server': 'envoy',
+        'date': date,
+        'x-aws-region': 'us-west-2, eu-west-1',
+        'x-envoy-upstream-service-time': '5',
     }
     return Response(
         status=HTTPStatus.OK,
@@ -457,10 +462,11 @@ def target_list() -> Response:
     }
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        'Connection': 'keep-alive',
-        'Content-Type': 'application/json',
-        'Server': 'nginx',
-        'Date': date,
+        'content-type': 'application/json',
+        'server': 'envoy',
+        'date': date,
+        'x-aws-region': 'us-west-2, eu-west-1',
+        'x-envoy-upstream-service-time': '5',
     }
     return Response(
         status=HTTPStatus.OK,

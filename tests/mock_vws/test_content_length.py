@@ -12,6 +12,7 @@ from requests.structures import CaseInsensitiveDict
 from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import (
+    assert_valid_date_header,
     assert_vwq_failure,
     assert_vws_failure,
 )
@@ -42,19 +43,37 @@ class TestIncorrect:
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
-
-        assert response.text == ''
-        assert dict(response.headers) == {
-            'Content-Length': '0',
-            'Connection': 'Close',
-        }
         assert response.status_code == HTTPStatus.BAD_REQUEST
+
+        url = str(endpoint.prepared_request.url)
+        netloc = urlparse(url).netloc
+        if netloc == 'cloudreco.vuforia.com':
+            assert response.text == ''
+            assert response.headers == CaseInsensitiveDict(
+                data={
+                    'Content-Length': str(len(response.text)),
+                    'Connection': 'Close',
+                },
+            )
+            return
+
+        assert_valid_date_header(response=response)
+        assert response.text == 'Bad Request'
+        expected_headers = CaseInsensitiveDict(
+            data={
+                'content-length': str(len(response.text)),
+                'content-type': 'text/plain',
+                'connection': 'close',
+                'server': 'envoy',
+                'date': response.headers['date'],
+            },
+        )
+        assert response.headers == expected_headers
 
     @staticmethod
     def test_too_large(endpoint: Endpoint) -> None:
         """
-        A ``GATEWAY_TIMEOUT`` is given if the given content length is too
-        large.
+        An error is given if the given content length is too large.
         """
         endpoint_headers = dict(endpoint.prepared_request.headers)
         if not endpoint_headers.get('Content-Type'):
@@ -67,12 +86,34 @@ class TestIncorrect:
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
 
-        assert response.text == ''
-        assert dict(response.headers) == {
-            'Content-Length': '0',
-            'Connection': 'keep-alive',
+        url = str(endpoint.prepared_request.url)
+        netloc = urlparse(url).netloc
+        if netloc == 'cloudreco.vuforia.com':
+            assert response.status_code == HTTPStatus.GATEWAY_TIMEOUT
+            assert response.text == ''
+            assert response.headers == CaseInsensitiveDict(
+                data={
+                    'Content-Length': str(len(response.text)),
+                    'Connection': 'keep-alive',
+                },
+            )
+            return
+
+        assert_valid_date_header(response=response)
+        # We have seen both of these response texts.
+        assert response.text in ('stream timeout', '')
+        expected_headers = {
+            'content-length': str(len(response.text)),
+            'connection': 'close',
+            'content-type': 'text/plain',
+            'server': 'envoy',
+            'date': response.headers['date'],
+            'x-aws-region': 'eu-west-1',
         }
-        assert response.status_code == HTTPStatus.GATEWAY_TIMEOUT
+        assert response.headers == CaseInsensitiveDict(
+            data=expected_headers,
+        )
+        assert response.status_code == HTTPStatus.REQUEST_TIMEOUT
 
     @staticmethod
     def test_too_small(endpoint: Endpoint) -> None:
