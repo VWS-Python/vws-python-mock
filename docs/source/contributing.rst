@@ -89,13 +89,24 @@ To create an inactive project, delete the license key associated with a database
 Targets sometimes get stuck at the "Processing" stage meaning that they cannot be deleted.
 When this happens, create a new target database to use for testing.
 
+To create databases without using the browser, use `vws web tools`_.
+See https://github.com/VWS-Python/vws-python-mock/issues/901 for a start on how to use the database details created by that tool.
+
 .. _Vuforia License Manager: https://developer.vuforia.com/targetmanager/licenseManager/licenseListing
 .. _Vuforia Target Manager: https://developer.vuforia.com/targetmanager
+.. _vws web tools: https://github.com/VWS-Python/vws-web-tools
 
 Skipping Some Tests
 -------------------
 
-Set either ``SKIP_MOCK`` or ``SKIP_REAL`` to ``1`` to skip tests against the mock, or tests against the real implementation, for tests which run against both.
+Use the following custom ``pytest`` options to skip some tests:
+
+.. prompt:: bash
+
+  --skip-real           Skip tests for Real Vuforia
+  --skip-mock           Skip tests for In Memory Mock Vuforia
+  --skip-docker_in_memory
+                      Skip tests for In Memory version of Docker application
 
 Documentation
 -------------

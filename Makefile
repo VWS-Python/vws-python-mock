@@ -22,7 +22,6 @@ lint: \
     pip-extra-reqs \
     pip-missing-reqs \
     pyroma \
-    shellcheck \
     spelling \
     vulture \
     pylint \
@@ -31,6 +30,7 @@ lint: \
 
 .PHONY: fix-lint
 fix-lint: \
+    add-trailing-comma \
     autoflake \
     fix-black \
     fix-isort

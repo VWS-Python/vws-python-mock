@@ -1,0 +1,59 @@
+---
+
+name: Build Docker images
+
+# This matches the Docker image building done in the release process.
+#
+# It is possible to use https://github.com/nektos/act to run this workflow.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    # Run at 1:00 every day
+    - cron: '0 1 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    name: Build Docker images
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build target manager Docker image
+        uses: docker/build-push-action@v2.7.0
+        with:
+          platforms: linux/amd64,linux/arm64
+          file: src/mock_vws/_flask_server/dockerfiles/target_manager/Dockerfile
+          push: false
+          tags: |
+            adamtheturtle/vuforia-target-manager-mock:latest
+
+      - name: Build VWS Docker image
+        uses: docker/build-push-action@v2.7.0
+        with:
+          platforms: linux/amd64,linux/arm64
+          file: src/mock_vws/_flask_server/dockerfiles/vws/Dockerfile
+          push: false
+          tags: |
+            adamtheturtle/vuforia-vws-mock:latest
+
+      - name: Build VWQ Docker image
+        uses: docker/build-push-action@v2.7.0
+        with:
+          platforms: linux/amd64,linux/arm64
+          file: src/mock_vws/_flask_server/dockerfiles/vwq/Dockerfile
+          push: false
+          tags: |
+            adamtheturtle/vuforia-vwq-mock:latest

@@ -3,13 +3,13 @@ Choose which backends to use for the tests.
 """
 
 import logging
-import os
 from enum import Enum
 from typing import Generator
 
 import pytest
 import requests
 import requests_mock
+from _pytest.config.argparsing import Parser
 from _pytest.fixtures import SubRequest
 from pytest import MonkeyPatch
 from requests_mock_flask import add_flask_app_to_mock
@@ -140,13 +140,27 @@ def _enable_use_docker_in_memory(
         )
 
         databases_url = target_manager_base_url + '/databases'
-        databases = requests.get(url=databases_url).json()
+        databases = requests.get(
+            url=databases_url,
+            timeout=1,
+        ).json()
         for database in databases:
             database_name = database['database_name']
-            requests.delete(url=databases_url + '/' + database_name)
+            requests.delete(
+                url=databases_url + '/' + database_name,
+                timeout=1,
+            )
 
-        requests.post(url=databases_url, json=working_database.to_dict())
-        requests.post(url=databases_url, json=inactive_database.to_dict())
+        requests.post(
+            url=databases_url,
+            json=working_database.to_dict(),
+            timeout=1,
+        )
+        requests.post(
+            url=databases_url,
+            json=inactive_database.to_dict(),
+            timeout=1,
+        )
 
         yield
 
@@ -161,6 +175,20 @@ class VuforiaBackend(Enum):
     DOCKER_IN_MEMORY = 'In Memory version of Docker application'
 
 
+def pytest_addoption(parser: Parser) -> None:
+    """
+    Add options to the pytest command line for skipping tests with particular
+    backends.
+    """
+    for backend in VuforiaBackend:
+        parser.addoption(
+            f'--skip-{backend.name.lower()}',
+            action='store_true',
+            default=False,
+            help=f'Skip tests for {backend.value}',
+        )
+
+
 @pytest.fixture(
     params=list(VuforiaBackend),
     ids=[backend.value for backend in list(VuforiaBackend)],
@@ -172,13 +200,13 @@ def verify_mock_vuforia(
     monkeypatch: MonkeyPatch,
 ) -> Generator:
     """
-    Test functions which use this fixture are run twice. Once with the real
-    Vuforia, and once with the mock.
+    Test functions which use this fixture are run multiple times. Once with the
+    real Vuforia, and once with each mock.
 
-    This is useful for verifying the mock.
+    This is useful for verifying the mocks.
     """
     backend = request.param
-    should_skip = bool(os.getenv(f'SKIP_{backend.name}') == '1')
+    should_skip = request.config.getvalue(f'--skip-{backend.name.lower()}')
     if should_skip:  # pragma: no cover
         pytest.skip()
 

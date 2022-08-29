@@ -10,7 +10,10 @@
 
     # List of plugins (as comma separated values of python modules names) to load,
     # usually to register additional checkers.
-    load-plugins = ['pylint.extensions.docparams']
+    load-plugins = [
+		'pylint.extensions.docparams',
+		'pylint.extensions.no_self_use',
+	]
 
     # Allow loading of arbitrary C extensions. Extensions are imported into the
     # active Python interpreter and may run arbitrary code.
@@ -38,8 +41,6 @@
     # --disable=W"
 
     disable = [
-        # Tests need `self` to be in a class but do not use it.
-        'no-self-use',
         # Style issues that we can deal with ourselves
         'too-few-public-methods',
         'too-many-ancestors',
@@ -58,12 +59,7 @@
         'ungrouped-imports',
         # We don't need everything to be documented because of mypy
         'missing-type-doc',
-        'missing-returns-doc',
         'missing-return-type-doc',
-        # Let auto-formatters deal with this
-        'bad-continuation',
-        # Let auto-formatters deal with this
-        'bad-whitespace',
         # Too difficult to please
         'duplicate-code',
         # Let isort handle imports
@@ -123,8 +119,6 @@ ignore = [
   "readthedocs.yaml",
   ".style.yapf",
   ".travis.yml",
-  "admin",
-  "admin/**",
   "CHANGELOG.rst",
   "CODE_OF_CONDUCT.rst",
   "CONTRIBUTING.rst",
@@ -168,6 +162,28 @@ warn_redundant_casts = true
 warn_return_any = true
 warn_unused_configs = true
 warn_unused_ignores = true
+
+[tool.doc8]
+
+max_line_length = 2000
+ignore_path = [
+    "./.eggs",
+    "./docs/build",
+    "./docs/build/spelling/output.txt",
+    "./node_modules",
+    "./src/*.egg-info/",
+    "./src/*/_setuptools_scm_version.txt",
+]
+
+[tool.setuptools_scm]
+
+# We use a fallback version like
+# https://github.com/pypa/setuptools_scm/issues/77 so that we do not
+# error in the Docker build stage of the release pipeline.
+#
+# This must be a PEP 440 compliant version.
+fallback_version = "0.0.0"
+
 
 [tool.pydocstyle]
 # We do not have summary lines, care about "mood", or need sections with

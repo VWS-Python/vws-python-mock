@@ -15,28 +15,6 @@ Each of these containers run their services on port 5000.
 
 The VWS and VWQ containers must point to the target manager container using the :envvar:`TARGET_MANAGER_BACKEND` variable.
 
-Building images from source
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. prompt:: bash
-
-   export REPOSITORY_ROOT=$PWD
-   export DOCKERFILE_DIR=$REPOSITORY_ROOT/src/mock_vws/_flask_server/dockerfiles
-   export BASE_DOCKERFILE=$DOCKERFILE_DIR/base/Dockerfile
-   export TARGET_MANAGER_DOCKERFILE=$DOCKERFILE_DIR/target_manager/Dockerfile
-   export VWS_DOCKERFILE=$DOCKERFILE_DIR/vws/Dockerfile
-   export VWQ_DOCKERFILE=$DOCKERFILE_DIR/vwq/Dockerfile
-
-   export BASE_TAG=vws-mock:base
-   export TARGET_MANAGER_TAG=adamtheturtle/vuforia-target-manager-mock:latest
-   export VWS_TAG=adamtheturtle/vuforia-vws-mock:latest
-   export VWQ_TAG=adamtheturtle/vuforia-vwq-mock:latest
-
-   docker build $REPOSITORY_ROOT --file $BASE_DOCKERFILE --tag $BASE_TAG
-   docker build $REPOSITORY_ROOT --file $TARGET_MANAGER_DOCKERFILE --tag $TARGET_MANAGER_TAG
-   docker build $REPOSITORY_ROOT --file $VWS_DOCKERFILE --tag $VWS_TAG
-   docker build $REPOSITORY_ROOT --file $VWQ_DOCKERFILE --tag $VWQ_TAG
-
 .. _creating-containers:
 
 Creating containers
@@ -47,19 +25,19 @@ Creating containers
    docker network create -d bridge vws-bridge-network
    docker run \
        --detach \
-       --publish 5000:5000 \
+       --publish 5005:5000 \
        --name vuforia-target-manager-mock \
        --network vws-bridge-network \
        adamtheturtle/vuforia-target-manager-mock
    docker run \
        --detach \
-       --publish 5001:5000 \
+       --publish 5006:5000 \
        -e TARGET_MANAGER_BACKEND=vuforia-target-manager-mock:5000 \
        --network vws-bridge-network \
        adamtheturtle/vuforia-vws-mock
    docker run \
        --detach \
-       --publish 5002:5000 \
+       --publish 5007:5000 \
        -e TARGET_MANAGER_BACKEND=vuforia-target-manager-mock:5000 \
        --network vws-bridge-network \
        adamtheturtle/vuforia-vwq-mock
@@ -85,7 +63,7 @@ For example, with the containers set up as in :ref:`creating-containers`, use ``
    $ curl --request POST \
      --header "Content-Type: application/json" \
      --data '{}' \
-     '127.0.0.1:5000/databases'
+     '127.0.0.1:5005/databases'
    {
        "client_access_key": "2d61c1d17bb94694bee77c1f1f41e5d9",
        "client_secret_key": "b73f8170cf7d42728fa8ce66221ad147",
@@ -147,3 +125,23 @@ VWS container
    The number of seconds to process each image for.
 
    Default 0.5
+
+Building images from source
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. prompt:: bash
+
+   export REPOSITORY_ROOT=$PWD
+   export DOCKERFILE_DIR=$REPOSITORY_ROOT/src/mock_vws/_flask_server/dockerfiles
+   export BASE_DOCKERFILE=$DOCKERFILE_DIR/base/Dockerfile
+   export TARGET_MANAGER_DOCKERFILE=$DOCKERFILE_DIR/target_manager/Dockerfile
+   export VWS_DOCKERFILE=$DOCKERFILE_DIR/vws/Dockerfile
+   export VWQ_DOCKERFILE=$DOCKERFILE_DIR/vwq/Dockerfile
+
+   export TARGET_MANAGER_TAG=adamtheturtle/vuforia-target-manager-mock:latest
+   export VWS_TAG=adamtheturtle/vuforia-vws-mock:latest
+   export VWQ_TAG=adamtheturtle/vuforia-vwq-mock:latest
+
+   docker buildx build $REPOSITORY_ROOT --file $TARGET_MANAGER_DOCKERFILE --tag $TARGET_MANAGER_TAG
+   docker buildx build $REPOSITORY_ROOT --file $VWS_DOCKERFILE --tag $VWS_TAG
+   docker buildx build $REPOSITORY_ROOT --file $VWQ_DOCKERFILE --tag $VWQ_TAG

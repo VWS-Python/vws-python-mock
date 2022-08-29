@@ -50,7 +50,7 @@ pip-missing-reqs:
 
 .PHONY: pylint
 pylint:
-	pylint *.py src/ tests/ admin/ docs/ ci/
+	pylint *.py src/ tests/ docs/ ci/
 
 .PHONY: pyroma
 pyroma:
@@ -68,10 +68,6 @@ linkcheck:
 spelling:
 	$(MAKE) -C docs/ spelling SPHINXOPTS=$(SPHINXOPTS)
 
-.PHONY: shellcheck
-shellcheck:
-	shellcheck --exclude SC2164,SC1091 */*.sh
-
 .PHONY: autoflake
 autoflake:
 	autoflake \
@@ -86,3 +82,7 @@ autoflake:
 .PHONY: pydocstyle
 pydocstyle:
 	pydocstyle
+
+.PHONY: add-trailing-comma
+add-trailing-comma:
+	add-trailing-comma $$(find . -type f -name '*.py') --exit-zero-even-if-changed

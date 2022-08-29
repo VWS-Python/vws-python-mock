@@ -32,10 +32,6 @@ SETUP_REQUIRES = _get_dependencies(
 )
 
 setup(
-    # We use a dictionary with a fallback version rather than "True"
-    # like https://github.com/pypa/setuptools_scm/issues/77 so that we do not
-    # error in Docker.
-    use_scm_version={'fallback_version': 'FALLBACK_VERSION'},
     setup_requires=SETUP_REQUIRES,
     install_requires=INSTALL_REQUIRES,
     extras_require={'dev': DEV_REQUIRES},

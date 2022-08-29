@@ -38,7 +38,10 @@ def get_all_databases() -> Set[VuforiaDatabase]:
     Get all database objects from the task manager back-end.
     """
     target_manager_base_url = os.environ['TARGET_MANAGER_BASE_URL']
-    response = requests.get(url=f'{target_manager_base_url}/databases')
+    response = requests.get(
+        url=f'{target_manager_base_url}/databases',
+        timeout=1,
+    )
     return {
         VuforiaDatabase.from_dict(database_dict=database_dict)
         for database_dict in response.json()
@@ -152,15 +155,18 @@ def add_target() -> Response:
     requests.post(
         url=f'{databases_url}/{database.database_name}/targets',
         json=new_target.to_dict(),
+        timeout=1,
     )
 
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        'Connection': 'keep-alive',
-        'Content-Type': 'application/json',
-        'Server': 'nginx',
-        'Date': date,
+        'content-type': 'application/json',
+        'server': 'envoy',
+        'date': date,
+        'x-aws-region': 'us-west-2, eu-west-1',
+        'x-envoy-upstream-service-time': '5',
     }
+
     body = {
         'transaction_id': uuid.uuid4().hex,
         'result_code': ResultCodes.TARGET_CREATED.value,
@@ -207,10 +213,11 @@ def get_target(target_id: str) -> Response:
 
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        'Connection': 'keep-alive',
-        'Content-Type': 'application/json',
-        'Server': 'nginx',
-        'Date': date,
+        'content-type': 'application/json',
+        'server': 'envoy',
+        'date': date,
+        'x-aws-region': 'us-west-2, eu-west-1',
+        'x-envoy-upstream-service-time': '5',
     }
     body = {
         'result_code': ResultCodes.SUCCESS.value,
@@ -254,6 +261,7 @@ def delete_target(target_id: str) -> Response:
     databases_url = f'{target_manager_base_url}/databases'
     requests.delete(
         url=f'{databases_url}/{database.database_name}/targets/{target_id}',
+        timeout=1,
     )
 
     body = {
@@ -262,10 +270,11 @@ def delete_target(target_id: str) -> Response:
     }
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        'Connection': 'keep-alive',
-        'Content-Type': 'application/json',
-        'Server': 'nginx',
-        'Date': date,
+        'content-type': 'application/json',
+        'server': 'envoy',
+        'date': date,
+        'x-aws-region': 'us-west-2, eu-west-1',
+        'x-envoy-upstream-service-time': '5',
     }
     return Response(
         status=HTTPStatus.OK,
@@ -312,10 +321,11 @@ def database_summary() -> Response:
     }
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        'Connection': 'keep-alive',
-        'Content-Type': 'application/json',
-        'Server': 'nginx',
-        'Date': date,
+        'content-type': 'application/json',
+        'server': 'envoy',
+        'date': date,
+        'x-aws-region': 'us-west-2, eu-west-1',
+        'x-envoy-upstream-service-time': '5',
     }
     return Response(
         status=HTTPStatus.OK,
@@ -360,10 +370,11 @@ def target_summary(target_id: str) -> Response:
     }
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        'Connection': 'keep-alive',
-        'Content-Type': 'application/json',
-        'Server': 'nginx',
-        'Date': date,
+        'content-type': 'application/json',
+        'server': 'envoy',
+        'date': date,
+        'x-aws-region': 'us-west-2, eu-west-1',
+        'x-envoy-upstream-service-time': '5',
     }
     return Response(
         status=HTTPStatus.OK,
@@ -412,10 +423,11 @@ def get_duplicates(target_id: str) -> Response:
 
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        'Connection': 'keep-alive',
-        'Content-Type': 'application/json',
-        'Server': 'nginx',
-        'Date': date,
+        'content-type': 'application/json',
+        'server': 'envoy',
+        'date': date,
+        'x-aws-region': 'us-west-2, eu-west-1',
+        'x-envoy-upstream-service-time': '5',
     }
     return Response(
         status=HTTPStatus.OK,
@@ -450,10 +462,11 @@ def target_list() -> Response:
     }
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        'Connection': 'keep-alive',
-        'Content-Type': 'application/json',
-        'Server': 'nginx',
-        'Date': date,
+        'content-type': 'application/json',
+        'server': 'envoy',
+        'date': date,
+        'x-aws-region': 'us-west-2, eu-west-1',
+        'x-envoy-upstream-service-time': '5',
     }
     return Response(
         status=HTTPStatus.OK,
@@ -519,14 +532,15 @@ def update_target(target_id: str) -> Response:
         f'{target_manager_base_url}/databases/{database.database_name}/'
         f'targets/{target_id}'
     )
-    requests.put(url=put_url, json=update_values)
+    requests.put(url=put_url, json=update_values, timeout=1)
 
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        'Connection': 'keep-alive',
-        'Content-Type': 'application/json',
-        'Server': 'nginx',
-        'Date': date,
+        'content-type': 'application/json',
+        'server': 'envoy',
+        'date': date,
+        'x-aws-region': 'us-west-2, eu-west-1',
+        'x-envoy-upstream-service-time': '5',
     }
     body = {
         'result_code': ResultCodes.SUCCESS.value,

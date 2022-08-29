@@ -170,11 +170,12 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
-            'Connection': 'keep-alive',
-            'Content-Type': 'application/json',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(body_json)),
+            'content-type': 'application/json',
+            'server': 'envoy',
+            'date': date,
+            'content-length': str(len(body_json)),
+            'x-aws-region': 'us-west-2, eu-west-1',
+            'x-envoy-upstream-service-time': '5',
         }
         return body_json
 
@@ -237,11 +238,12 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
-            'Connection': 'keep-alive',
-            'Content-Type': 'application/json',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(body_json)),
+            'content-length': str(len(body_json)),
+            'content-type': 'application/json',
+            'date': date,
+            'server': 'envoy',
+            'x-aws-region': 'us-west-2, eu-west-1',
+            'x-envoy-upstream-service-time': '5',
         }
         return body_json
 
@@ -300,11 +302,12 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
-            'Connection': 'keep-alive',
-            'Content-Type': 'application/json',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(body_json)),
+            'content-length': str(len(body_json)),
+            'content-type': 'application/json',
+            'date': date,
+            'server': 'envoy',
+            'x-aws-region': 'us-west-2, eu-west-1',
+            'x-envoy-upstream-service-time': '5',
         }
         return body_json
 
@@ -352,11 +355,12 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
-            'Connection': 'keep-alive',
-            'Content-Type': 'application/json',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(body_json)),
+            'content-length': str(len(body_json)),
+            'content-type': 'application/json',
+            'date': date,
+            'server': 'envoy',
+            'x-aws-region': 'us-west-2, eu-west-1',
+            'x-envoy-upstream-service-time': '5',
         }
         return body_json
 
@@ -414,11 +418,12 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
-            'Connection': 'keep-alive',
-            'Content-Type': 'application/json',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(body_json)),
+            'content-length': str(len(body_json)),
+            'content-type': 'application/json',
+            'date': date,
+            'server': 'envoy',
+            'x-aws-region': 'us-west-2, eu-west-1',
+            'x-envoy-upstream-service-time': '5',
         }
         return body_json
 
@@ -481,11 +486,12 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
-            'Connection': 'keep-alive',
-            'Content-Type': 'application/json',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(body_json)),
+            'content-length': str(len(body_json)),
+            'content-type': 'application/json',
+            'date': date,
+            'server': 'envoy',
+            'x-aws-region': 'us-west-2, eu-west-1',
+            'x-envoy-upstream-service-time': '5',
         }
 
         return body_json
@@ -596,11 +602,12 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
-            'Connection': 'keep-alive',
-            'Content-Type': 'application/json',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(body_json)),
+            'content-type': 'application/json',
+            'server': 'envoy',
+            'date': date,
+            'content-length': str(len(body_json)),
+            'x-aws-region': 'us-west-2, eu-west-1',
+            'x-envoy-upstream-service-time': '5',
         }
         return body_json
 
@@ -657,11 +664,12 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
-            'Connection': 'keep-alive',
-            'Content-Type': 'application/json',
-            'Content-Length': str(len(body_json)),
-            'Server': 'nginx',
-            'Date': date,
+            'content-length': str(len(body_json)),
+            'content-type': 'application/json',
+            'date': date,
+            'server': 'envoy',
+            'x-aws-region': 'us-west-2, eu-west-1',
+            'x-envoy-upstream-service-time': '5',
         }
 
         return body_json

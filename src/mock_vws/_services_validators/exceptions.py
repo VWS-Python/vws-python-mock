@@ -45,11 +45,12 @@ class UnknownTarget(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'application/json',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(self.response_text)),
+            'content-type': 'application/json',
+            'server': 'envoy',
+            'date': date,
+            'x-envoy-upstream-service-time': '5',
+            'x-aws-region': 'us-west-2, eu-west-1',
+            'content-length': str(len(self.response_text)),
         }
 
 
@@ -76,11 +77,12 @@ class ProjectInactive(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'application/json',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(self.response_text)),
+            'content-type': 'application/json',
+            'server': 'envoy',
+            'date': date,
+            'x-envoy-upstream-service-time': '5',
+            'x-aws-region': 'us-west-2, eu-west-1',
+            'content-length': str(len(self.response_text)),
         }
 
 
@@ -107,11 +109,12 @@ class AuthenticationFailure(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'application/json',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(self.response_text)),
+            'content-type': 'application/json',
+            'server': 'envoy',
+            'date': date,
+            'x-envoy-upstream-service-time': '5',
+            'x-aws-region': 'us-west-2, eu-west-1',
+            'content-length': str(len(self.response_text)),
         }
 
 
@@ -137,11 +140,12 @@ class Fail(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'application/json',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(self.response_text)),
+            'content-type': 'application/json',
+            'server': 'envoy',
+            'date': date,
+            'x-envoy-upstream-service-time': '5',
+            'x-aws-region': 'us-west-2, eu-west-1',
+            'content-length': str(len(self.response_text)),
         }
 
 
@@ -168,11 +172,12 @@ class MetadataTooLarge(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'application/json',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(self.response_text)),
+            'content-type': 'application/json',
+            'server': 'envoy',
+            'date': date,
+            'x-envoy-upstream-service-time': '5',
+            'x-aws-region': 'us-west-2, eu-west-1',
+            'content-length': str(len(self.response_text)),
         }
 
 
@@ -199,11 +204,12 @@ class TargetNameExist(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'application/json',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(self.response_text)),
+            'content-type': 'application/json',
+            'server': 'envoy',
+            'date': date,
+            'x-envoy-upstream-service-time': '5',
+            'x-aws-region': 'us-west-2, eu-west-1',
+            'content-length': str(len(self.response_text)),
         }
 
 
@@ -232,11 +238,12 @@ class OopsErrorOccurredResponse(ValidatorException):
         self.response_text = text
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'text/html; charset=UTF-8',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(self.response_text)),
+            'content-type': 'text/html; charset=UTF-8',
+            'server': 'envoy',
+            'date': date,
+            'x-envoy-upstream-service-time': '5',
+            'x-aws-region': 'us-west-2, eu-west-1',
+            'content-length': str(len(self.response_text)),
         }
 
 
@@ -263,11 +270,12 @@ class BadImage(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'application/json',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(self.response_text)),
+            'content-type': 'application/json',
+            'server': 'envoy',
+            'date': date,
+            'x-envoy-upstream-service-time': '5',
+            'x-aws-region': 'us-west-2, eu-west-1',
+            'content-length': str(len(self.response_text)),
         }
 
 
@@ -294,11 +302,12 @@ class ImageTooLarge(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'application/json',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(self.response_text)),
+            'content-type': 'application/json',
+            'server': 'envoy',
+            'date': date,
+            'x-envoy-upstream-service-time': '5',
+            'x-aws-region': 'us-west-2, eu-west-1',
+            'content-length': str(len(self.response_text)),
         }
 
 
@@ -325,11 +334,12 @@ class RequestTimeTooSkewed(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'application/json',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(self.response_text)),
+            'content-type': 'application/json',
+            'server': 'envoy',
+            'date': date,
+            'x-envoy-upstream-service-time': '5',
+            'x-aws-region': 'us-west-2, eu-west-1',
+            'content-length': str(len(self.response_text)),
         }
 
 
@@ -347,11 +357,16 @@ class ContentLengthHeaderTooLarge(ValidatorException):
                 raised.
         """
         super().__init__()
-        self.status_code = HTTPStatus.GATEWAY_TIMEOUT
-        self.response_text = ''
+        self.status_code = HTTPStatus.REQUEST_TIMEOUT
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        self.response_text = 'stream timeout'
         self.headers = {
-            'Connection': 'keep-alive',
-            'Content-Length': str(len(self.response_text)),
+            'content-length': str(len(self.response_text)),
+            'date': date,
+            'server': 'envoy',
+            'content-type': 'text/plain',
+            'connection': 'close',
+            'x-aws-region': 'eu-west-1',
         }
 
 
@@ -370,10 +385,14 @@ class ContentLengthHeaderNotInt(ValidatorException):
         """
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
-        self.response_text = ''
+        self.response_text = 'Bad Request'
+        date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Connection': 'Close',
-            'Content-Length': str(len(self.response_text)),
+            'connection': 'close',
+            'content-length': str(len(self.response_text)),
+            'date': date,
+            'server': 'envoy',
+            'content-type': 'text/plain',
         }
 
 
@@ -395,10 +414,11 @@ class UnnecessaryRequestBody(ValidatorException):
         self.response_text = ''
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(self.response_text)),
+            'server': 'envoy',
+            'date': date,
+            'x-envoy-upstream-service-time': '5',
+            'x-aws-region': 'us-west-2, eu-west-1',
+            'content-length': str(len(self.response_text)),
         }
 
 
@@ -425,11 +445,12 @@ class TargetStatusNotSuccess(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'application/json',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(self.response_text)),
+            'content-type': 'application/json',
+            'server': 'envoy',
+            'date': date,
+            'x-envoy-upstream-service-time': '5',
+            'x-aws-region': 'us-west-2, eu-west-1',
+            'content-length': str(len(self.response_text)),
         }
 
 
@@ -455,9 +476,10 @@ class TargetStatusProcessing(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'application/json',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(self.response_text)),
+            'content-type': 'application/json',
+            'server': 'envoy',
+            'date': date,
+            'x-envoy-upstream-service-time': '5',
+            'x-aws-region': 'us-west-2, eu-west-1',
+            'content-length': str(len(self.response_text)),
         }

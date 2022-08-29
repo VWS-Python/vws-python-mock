@@ -34,7 +34,8 @@ class TestAuthorizationHeader:
     Tests for what happens when the `Authorization` header is not as expected.
     """
 
-    def test_missing(self, endpoint: Endpoint) -> None:
+    @staticmethod
+    def test_missing(endpoint: Endpoint) -> None:
         """
         An `UNAUTHORIZED` response is returned when no `Authorization` header
         is given.
@@ -80,12 +81,12 @@ class TestMalformed:
     Tests for passing a malformed ``Authorization`` header.
     """
 
+    @staticmethod
     @pytest.mark.parametrize(
         'authorization_string',
-        ['gibberish', 'VWS', 'VWS '],
+        ['gibberish', 'VWS'],
     )
-    def test_one_part(
-        self,
+    def test_one_part_no_space(
         endpoint: Endpoint,
         authorization_string: str,
     ) -> None:
@@ -126,6 +127,47 @@ class TestMalformed:
             result_code=ResultCodes.FAIL,
         )
 
+    @staticmethod
+    def test_one_part_with_space(endpoint: Endpoint) -> None:
+        """
+        A valid authorization string is two "parts" when split on a space. When
+        a string is given which is one "part", a ``BAD_REQUEST`` or
+        ``UNAUTHORIZED`` response is returned.
+        """
+        authorization_string = 'VWS '
+        date = rfc_1123_date()
+
+        headers: Dict[str, str] = {
+            **endpoint.prepared_request.headers,
+            'Authorization': authorization_string,
+            'Date': date,
+        }
+
+        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        session = requests.Session()
+        response = session.send(request=endpoint.prepared_request)
+
+        url = str(endpoint.prepared_request.url)
+        netloc = urlparse(url).netloc
+        if netloc == 'cloudreco.vuforia.com':
+            assert_vwq_failure(
+                response=response,
+                status_code=HTTPStatus.UNAUTHORIZED,
+                content_type='text/plain;charset=iso-8859-1',
+                cache_control=None,
+                www_authenticate='VWS',
+                connection='keep-alive',
+            )
+            assert response.text == 'Malformed authorization header.'
+            return
+
+        assert_vws_failure(
+            response=response,
+            status_code=HTTPStatus.BAD_REQUEST,
+            result_code=ResultCodes.FAIL,
+        )
+
+    @staticmethod
     @pytest.mark.parametrize(
         'authorization_string',
         [
@@ -134,7 +176,6 @@ class TestMalformed:
         ],
     )
     def test_missing_signature(
-        self,
         endpoint: Endpoint,
         authorization_string: str,
     ) -> None:
@@ -167,11 +208,21 @@ class TestMalformed:
             )
             content_filename = 'jetty_error_array_out_of_bounds.html'
             content_filename_2 = 'jetty_error_array_out_of_bounds_2.html'
+            content_filename_3 = 'jetty_error_array_out_of_bounds_3.html'
             content_path = Path(__file__).parent / content_filename
             content_path_2 = Path(__file__).parent / content_filename_2
+            content_path_3 = Path(__file__).parent / content_filename_3
             content_text = content_path.read_text()
             content_2_text = content_path_2.read_text()
-            assert response.text in (content_text, content_2_text)
+            content_3_text = content_path_3.read_text()
+            # We make a new variable for response text so that it is printed
+            # with ``pytest --showlocals``.
+            response_text = response.text
+            assert response_text in (
+                content_text,
+                content_2_text,
+                content_3_text,
+            )
             return
 
         assert_vws_failure(
@@ -187,8 +238,8 @@ class TestBadKey:
     Tests for making requests with incorrect keys.
     """
 
+    @staticmethod
     def test_bad_access_key_services(
-        self,
         vuforia_database: VuforiaDatabase,
     ) -> None:
         """
@@ -205,8 +256,8 @@ class TestBadKey:
 
         assert exc.value.response.status_code == HTTPStatus.BAD_REQUEST
 
+    @staticmethod
     def test_bad_access_key_query(
-        self,
         vuforia_database: VuforiaDatabase,
         high_quality_image: io.BytesIO,
     ) -> None:
@@ -248,8 +299,8 @@ class TestBadKey:
         )
         assert response.text == expected_text
 
+    @staticmethod
     def test_bad_secret_key_services(
-        self,
         vuforia_database: VuforiaDatabase,
     ) -> None:
         """
@@ -264,8 +315,8 @@ class TestBadKey:
         with pytest.raises(AuthenticationFailure):
             vws_client.get_target_record(target_id=uuid.uuid4().hex)
 
+    @staticmethod
     def test_bad_secret_key_query(
-        self,
         vuforia_database: VuforiaDatabase,
         high_quality_image: io.BytesIO,
     ) -> None:

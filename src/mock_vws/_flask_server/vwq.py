@@ -19,7 +19,7 @@ from mock_vws._query_tools import (
 )
 from mock_vws._query_validators import run_query_validators
 from mock_vws._query_validators.exceptions import (
-    MatchProcessing,
+    DeletedTargetMatched,
     ValidatorException,
 )
 from mock_vws.database import VuforiaDatabase
@@ -33,7 +33,10 @@ def get_all_databases() -> Set[VuforiaDatabase]:
     Get all database objects from the target manager back-end.
     """
     target_manager_base_url = os.environ['TARGET_MANAGER_BASE_URL']
-    response = requests.get(url=f'{target_manager_base_url}/databases')
+    response = requests.get(
+        url=f'{target_manager_base_url}/databases',
+        timeout=1,
+    )
     return {
         VuforiaDatabase.from_dict(database_dict=database_dict)
         for database_dict in response.json()
@@ -124,7 +127,7 @@ def query() -> Response:
             ),
         )
     except ActiveMatchingTargetsDeleteProcessing as exc:
-        raise MatchProcessing from exc
+        raise DeletedTargetMatched from exc
 
     headers = {
         'Content-Type': 'application/json',

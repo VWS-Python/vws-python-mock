@@ -43,7 +43,7 @@ def request_unmocked_address() -> None:
     port = sock.getsockname()[1]
     sock.close()
     address = f'http://localhost:{port}'
-    requests.get(address)
+    requests.get(address, timeout=1)
 
 
 def request_mocked_address() -> None:
@@ -57,6 +57,7 @@ def request_mocked_address() -> None:
             'Authorization': 'bad_auth_token',
         },
         data=b'',
+        timeout=1,
     )
 
 
@@ -65,7 +66,8 @@ class TestRealHTTP:
     Tests for making requests to mocked and unmocked addresses.
     """
 
-    def test_default(self) -> None:
+    @staticmethod
+    def test_default() -> None:
         """
         By default, the mock stops any requests made with `requests` to
         non-Vuforia addresses, but not to mocked Vuforia endpoints.
@@ -82,7 +84,8 @@ class TestRealHTTP:
         with pytest.raises(requests.exceptions.ConnectionError):
             request_unmocked_address()
 
-    def test_real_http(self) -> None:
+    @staticmethod
+    def test_real_http() -> None:
         """
         When the `real_http` parameter given to the context manager is set to
         `True`, requests made to unmocked addresses are not stopped.
@@ -137,7 +140,8 @@ class TestDatabaseName:
     Tests for the database name.
     """
 
-    def test_default(self) -> None:
+    @staticmethod
+    def test_default() -> None:
         """
         By default, the database has a random name.
         """
@@ -148,7 +152,8 @@ class TestDatabaseName:
             != other_database_details.database_name
         )
 
-    def test_custom_name(self) -> None:
+    @staticmethod
+    def test_custom_name() -> None:
         """
         It is possible to set a custom database name.
         """
@@ -161,7 +166,8 @@ class TestCustomBaseURLs:
     Tests for using custom base URLs.
     """
 
-    def test_custom_base_vws_url(self) -> None:
+    @staticmethod
+    def test_custom_base_vws_url() -> None:
         """
         It is possible to use a custom base VWS URL.
         """
@@ -170,12 +176,19 @@ class TestCustomBaseURLs:
             real_http=False,
         ):
             with pytest.raises(NoMockAddress):
-                requests.get('https://vws.vuforia.com/summary')
+                requests.get(url='https://vws.vuforia.com/summary', timeout=1)
 
-            requests.get(url='https://vuforia.vws.example.com/summary')
-            requests.post('https://cloudreco.vuforia.com/v1/query')
+            requests.get(
+                url='https://vuforia.vws.example.com/summary',
+                timeout=1,
+            )
+            requests.post(
+                url='https://cloudreco.vuforia.com/v1/query',
+                timeout=1,
+            )
 
-    def test_custom_base_vwq_url(self) -> None:
+    @staticmethod
+    def test_custom_base_vwq_url() -> None:
         """
         It is possible to use a custom base cloud recognition URL.
         """
@@ -184,12 +197,22 @@ class TestCustomBaseURLs:
             real_http=False,
         ):
             with pytest.raises(NoMockAddress):
-                requests.post('https://cloudreco.vuforia.com/v1/query')
+                requests.post(
+                    url='https://cloudreco.vuforia.com/v1/query',
+                    timeout=1,
+                )
 
-            requests.post(url='https://vuforia.vwq.example.com/v1/query')
-            requests.get('https://vws.vuforia.com/summary')
+            requests.post(
+                url='https://vuforia.vwq.example.com/v1/query',
+                timeout=1,
+            )
+            requests.get(
+                url='https://vws.vuforia.com/summary',
+                timeout=1,
+            )
 
-    def test_no_scheme(self) -> None:
+    @staticmethod
+    def test_no_scheme() -> None:
         """
         An error if raised if a URL is given with no scheme.
         """
@@ -343,7 +366,8 @@ class TestStates:
     Tests for different mock states.
     """
 
-    def test_repr(self) -> None:
+    @staticmethod
+    def test_repr() -> None:
         """
         The representation of a ``State`` shows the state.
         """
@@ -355,7 +379,8 @@ class TestTargets:
     Tests for target representations.
     """
 
-    def test_to_dict(self, high_quality_image: io.BytesIO) -> None:
+    @staticmethod
+    def test_to_dict(high_quality_image: io.BytesIO) -> None:
         """
         It is possible to dump a target to a dictionary and load it back.
         """
@@ -385,7 +410,8 @@ class TestTargets:
         new_target = Target.from_dict(target_dict=target_dict)
         assert new_target == target
 
-    def test_to_dict_deleted(self, high_quality_image: io.BytesIO) -> None:
+    @staticmethod
+    def test_to_dict_deleted(high_quality_image: io.BytesIO) -> None:
         """
         It is possible to dump a deleted target to a dictionary and load it
         back.
@@ -424,7 +450,8 @@ class TestDatabaseToDict:
     Tests for dumping a database to a dictionary.
     """
 
-    def test_to_dict(self, high_quality_image: io.BytesIO) -> None:
+    @staticmethod
+    def test_to_dict(high_quality_image: io.BytesIO) -> None:
         """
         It is possible to dump a database to a dictionary and load it back.
         """
@@ -458,7 +485,8 @@ class TestDateHeader:
     Tests for the date header in responses from mock routes.
     """
 
-    def test_date_changes(self) -> None:
+    @staticmethod
+    def test_date_changes() -> None:
         """
         The date that the response is sent is in the response Date header.
         """
@@ -466,7 +494,10 @@ class TestDateHeader:
         new_time = datetime(new_year, 1, 1)
         with MockVWS():
             with freeze_time(new_time):
-                response = requests.get('https://vws.vuforia.com/summary')
+                response = requests.get(
+                    url='https://vws.vuforia.com/summary',
+                    timeout=1,
+                )
 
         date_response = response.headers['Date']
         date_from_response = email.utils.parsedate(date_response)
@@ -480,7 +511,8 @@ class TestAddDatabase:
     Tests for adding databases to the mock.
     """
 
-    def test_duplicate_keys(self) -> None:
+    @staticmethod
+    def test_duplicate_keys() -> None:
         """
         It is not possible to have multiple databases with matching keys.
         """

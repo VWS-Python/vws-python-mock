@@ -18,6 +18,7 @@ from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import (
     assert_query_success,
+    assert_valid_transaction_id,
     assert_vwq_failure,
     assert_vws_failure,
     assert_vws_response,
@@ -34,10 +35,8 @@ class TestMissing:
     Tests for what happens when the `Date` header is missing.
     """
 
-    def test_no_date_header(
-        self,
-        endpoint: Endpoint,
-    ) -> None:
+    @staticmethod
+    def test_no_date_header(endpoint: Endpoint) -> None:
         """
         A `BAD_REQUEST` response is returned when no `Date` header is given.
         """
@@ -93,10 +92,8 @@ class TestFormat:
     expected format.
     """
 
-    def test_incorrect_date_format(
-        self,
-        endpoint: Endpoint,
-    ) -> None:
+    @staticmethod
+    def test_incorrect_date_format(endpoint: Endpoint) -> None:
         """
         A `BAD_REQUEST` response is returned when the date given in the date
         header is not in the expected format (RFC 1123) to VWS API.
@@ -160,13 +157,13 @@ class TestSkewedTime:
     unexpected time.
     """
 
+    @staticmethod
     @pytest.mark.parametrize(
         'time_multiplier',
         [1, -1],
         ids=(['After', 'Before']),
     )
     def test_date_out_of_range(
-        self,
         time_multiplier: int,
         endpoint: Endpoint,
     ) -> None:
@@ -215,19 +212,33 @@ class TestSkewedTime:
         response = session.send(request=endpoint.prepared_request)
 
         # Even with the query endpoint, we get a JSON response.
+        if netloc == 'cloudreco.vuforia.com':
+            assert response.json().keys() == {'transaction_id', 'result_code'}
+            assert response.json()['result_code'] == 'RequestTimeTooSkewed'
+            assert_valid_transaction_id(response=response)
+            assert_vwq_failure(
+                response=response,
+                status_code=HTTPStatus.FORBIDDEN,
+                content_type='application/json',
+                cache_control=None,
+                www_authenticate=None,
+                connection='keep-alive',
+            )
+            return
+
         assert_vws_failure(
             response=response,
             status_code=HTTPStatus.FORBIDDEN,
             result_code=ResultCodes.REQUEST_TIME_TOO_SKEWED,
         )
 
+    @staticmethod
     @pytest.mark.parametrize(
         'time_multiplier',
         [1, -1],
         ids=(['After', 'Before']),
     )
     def test_date_in_range(
-        self,
         time_multiplier: int,
         endpoint: Endpoint,
     ) -> None:

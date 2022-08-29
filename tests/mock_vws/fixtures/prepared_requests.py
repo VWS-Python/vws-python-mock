@@ -445,7 +445,9 @@ def _query(
     files = {'image': ('image.jpeg', image_content, 'image/jpeg')}
     method = POST
 
-    content, content_type_header = encode_multipart_formdata(files)
+    content, content_type_header = encode_multipart_formdata(
+        fields=files,
+    )  # type: ignore
 
     access_key = vuforia_database.client_access_key
     secret_key = vuforia_database.client_secret_key

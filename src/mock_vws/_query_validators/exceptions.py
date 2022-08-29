@@ -657,10 +657,9 @@ class RequestEntityTooLarge(ValidatorException):
         }
 
 
-class MatchProcessing(ValidatorException):
+class DeletedTargetMatched(ValidatorException):
     """
-    Exception raised a target is matched which is processing or recently
-    deleted.
+    Exception raised when target which was recently deleted is matched.
     """
 
     def __init__(self) -> None:
@@ -682,9 +681,9 @@ class MatchProcessing(ValidatorException):
         # * Do the most unexpected thing.
         # * Be consistent with every response.
         resources_dir = Path(__file__).parent.parent / 'resources'
-        filename = 'match_processing_response.html'
-        match_processing_resp_file = resources_dir / filename
-        self.response_text = Path(match_processing_resp_file).read_text(
+        filename = 'deleted_target_matched_response.html'
+        deleted_target_matched_resp_file = resources_dir / filename
+        self.response_text = Path(deleted_target_matched_resp_file).read_text(
             encoding='utf-8',
         )
         self.headers = {

@@ -11,6 +11,7 @@ on:
     # * is a special character in YAML so you have to quote this string
     # Run at 1:00 every day
     - cron: '0 1 * * *'
+  workflow_dispatch: {}
 
 jobs:
   build:
@@ -73,10 +74,8 @@ jobs:
           cp ./vuforia_secrets.env.example ./vuforia_secrets.env
 
       - name: "Run tests"
-        env:
-          SKIP_REAL: 1
         run: |
-          pytest -s -vvv --exitfirst --cov=src/ --cov=tests --cov-report=xml tests/mock_vws/
+          pytest --skip-real -s -vvv --exitfirst --cov=src/ --cov=tests --cov-report=xml tests/mock_vws/
 
       - name: "Show coverage file"
         run: |

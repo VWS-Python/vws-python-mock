@@ -76,7 +76,7 @@ class TestProcessingTime:
         """
         database = VuforiaDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
-        requests.post(url=databases_url, json=database.to_dict())
+        requests.post(url=databases_url, json=database.to_dict(), timeout=1)
 
         time_taken = processing_time_seconds(
             vuforia_database=database,
@@ -100,7 +100,7 @@ class TestProcessingTime:
         )
         database = VuforiaDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
-        requests.post(url=databases_url, json=database.to_dict())
+        requests.post(url=databases_url, json=database.to_dict(), timeout=1)
 
         time_taken = processing_time_seconds(
             vuforia_database=database,
@@ -132,7 +132,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
         """
         database = VuforiaDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
-        requests.post(url=databases_url, json=database.to_dict())
+        requests.post(url=databases_url, json=database.to_dict(), timeout=1)
         time_taken = recognize_deletion_seconds(
             high_quality_image=high_quality_image,
             vuforia_database=database,
@@ -154,7 +154,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
         query_recognizes_deletion = 0.5
         database = VuforiaDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
-        requests.post(url=databases_url, json=database.to_dict())
+        requests.post(url=databases_url, json=database.to_dict(), timeout=1)
         monkeypatch.setenv(
             name='DELETION_RECOGNITION_SECONDS',
             value=str(query_recognizes_deletion),
@@ -191,7 +191,7 @@ class TestCustomQueryProcessDeletionSeconds:
         """
         database = VuforiaDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
-        requests.post(url=databases_url, json=database.to_dict())
+        requests.post(url=databases_url, json=database.to_dict(), timeout=1)
         time_taken = process_deletion_seconds(
             high_quality_image=high_quality_image,
             vuforia_database=database,
@@ -213,7 +213,7 @@ class TestCustomQueryProcessDeletionSeconds:
         query_processes_deletion = 0.1
         database = VuforiaDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
-        requests.post(url=databases_url, json=database.to_dict())
+        requests.post(url=databases_url, json=database.to_dict(), timeout=1)
         monkeypatch.setenv(
             name='DELETION_PROCESSING_SECONDS',
             value=str(query_processes_deletion),
@@ -232,7 +232,8 @@ class TestAddDatabase:
     Tests for adding databases to the mock.
     """
 
-    def test_duplicate_keys(self) -> None:
+    @staticmethod
+    def test_duplicate_keys() -> None:
         """
         It is not possible to have multiple databases with matching keys.
         """
@@ -272,7 +273,7 @@ class TestAddDatabase:
         )
 
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
-        requests.post(url=databases_url, json=database.to_dict())
+        requests.post(url=databases_url, json=database.to_dict(), timeout=1)
 
         for bad_database, expected_message in (
             (bad_server_access_key_db, server_access_key_conflict_error),
@@ -284,17 +285,19 @@ class TestAddDatabase:
             response = requests.post(
                 url=databases_url,
                 json=bad_database.to_dict(),
+                timeout=1,
             )
 
             assert response.status_code == HTTPStatus.CONFLICT
             assert response.text == expected_message
 
-    def test_give_no_details(self, high_quality_image: io.BytesIO) -> None:
+    @staticmethod
+    def test_give_no_details(high_quality_image: io.BytesIO) -> None:
         """
         It is possible to create a database without giving any data.
         """
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
-        response = requests.post(url=databases_url, json={})
+        response = requests.post(url=databases_url, json={}, timeout=1)
         assert response.status_code == HTTPStatus.CREATED
 
         data = response.json()
@@ -322,28 +325,30 @@ class TestDeleteDatabase:
     Tests for deleting databases from the mock.
     """
 
-    def test_not_found(self) -> None:
+    @staticmethod
+    def test_not_found() -> None:
         """
         A 404 error is returned when trying to delete a database which does not
         exist.
         """
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
         delete_url = databases_url + '/' + 'foobar'
-        response = requests.delete(url=delete_url, json={})
+        response = requests.delete(url=delete_url, json={}, timeout=1)
         assert response.status_code == HTTPStatus.NOT_FOUND
 
-    def test_delete_database(self) -> None:
+    @staticmethod
+    def test_delete_database() -> None:
         """
         It is possible to delete a database.
         """
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
-        response = requests.post(url=databases_url, json={})
+        response = requests.post(url=databases_url, json={}, timeout=1)
         assert response.status_code == HTTPStatus.CREATED
 
         data = response.json()
         delete_url = databases_url + '/' + data['database_name']
-        response = requests.delete(url=delete_url, json={})
+        response = requests.delete(url=delete_url, json={}, timeout=1)
         assert response.status_code == HTTPStatus.OK
 
-        response = requests.delete(url=delete_url, json={})
+        response = requests.delete(url=delete_url, json={}, timeout=1)
         assert response.status_code == HTTPStatus.NOT_FOUND

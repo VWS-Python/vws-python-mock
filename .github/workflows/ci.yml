@@ -11,6 +11,7 @@ on:
     # * is a special character in YAML so you have to quote this string
     # Run at 1:00 every day
     - cron: '0 1 * * *'
+  workflow_dispatch: {}
 
 jobs:
   build:
@@ -41,7 +42,8 @@ jobs:
           - test_query.py::TestInactiveProject
           - test_add_target.py
           - test_authorization_header.py::TestAuthorizationHeader
-          - test_authorization_header.py::TestMalformed::test_one_part
+          - test_authorization_header.py::TestMalformed::test_one_part_no_space
+          - test_authorization_header.py::TestMalformed::test_one_part_with_space
           - test_authorization_header.py::TestMalformed::test_missing_signature
           - test_authorization_header.py::TestBadKey
           - test_content_length.py::TestIncorrect::test_not_integer
@@ -135,7 +137,15 @@ jobs:
 
       - name: "Run tests"
         run: |
-          pytest -s -vvv --exitfirst --cov=src/ --cov=tests --cov-report=xml tests/mock_vws/${{ matrix.ci_pattern }}
+          pytest \
+            -s \
+            -vvv \
+            --showlocals \
+            --exitfirst \
+            --cov=src/ \
+            --cov=tests \
+            --cov-report=xml \
+            tests/mock_vws/${{ matrix.ci_pattern }}
 
       - name: "Show coverage file"
         run: |
