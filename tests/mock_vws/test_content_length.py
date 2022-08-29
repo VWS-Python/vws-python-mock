@@ -71,7 +71,8 @@ class TestIncorrect:
         assert response.headers == expected_headers
 
     @staticmethod
-    def test_too_large(endpoint: Endpoint) -> None:
+    @pytest.mark.skip(reason="It takes too long to run this test.")
+    def test_too_large(endpoint: Endpoint) -> None:  # pragma: no cover
         """
         An error is given if the given content length is too large.
         """
@@ -81,17 +82,6 @@ class TestIncorrect:
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
-        request_path = url.split('/')[-1]
-        if not (request_path == 'targets' or netloc == 'cloudreco.vuforia.com'):
-            skip_reason = (
-                """\
-                This test takes a very long time.
-                On VWS, we only run it for the /targets endpoint and hope that
-                is representative.
-                """
-            )
-            pytest.skip(reason=skip_reason)
-
         content_length = str(int(endpoint_headers['Content-Length']) + 1)
         headers = {**endpoint_headers, 'Content-Length': content_length}
 
@@ -118,7 +108,7 @@ class TestIncorrect:
             'content-type': 'text/plain',
             'server': 'envoy',
             'date': response.headers['date'],
-            'x-aws-region': 'eu-west-1',
+            'x-aws-region': IsInstance(expected_type=str),
         }
         assert response.headers == CaseInsensitiveDict(
             data=expected_headers,
