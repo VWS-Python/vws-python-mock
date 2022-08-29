@@ -74,6 +74,7 @@ def add_target_to_vws(
         url=urljoin(base='https://vws.vuforia.com/', url=request_path),
         headers=headers,
         data=content,
+        timeout=1,
     )
 
     return response

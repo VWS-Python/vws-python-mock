@@ -149,6 +149,7 @@ def test_build_and_run(
     response = requests.post(
         url=f'{target_manager_host_url}/databases',
         json=database.to_dict(),
+        timeout=1,
     )
 
     assert response.status_code == HTTPStatus.CREATED

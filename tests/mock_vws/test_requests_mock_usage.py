@@ -43,7 +43,7 @@ def request_unmocked_address() -> None:
     port = sock.getsockname()[1]
     sock.close()
     address = f'http://localhost:{port}'
-    requests.get(address)
+    requests.get(address, timeout=1)
 
 
 def request_mocked_address() -> None:
@@ -57,6 +57,7 @@ def request_mocked_address() -> None:
             'Authorization': 'bad_auth_token',
         },
         data=b'',
+        timeout=1,
     )
 
 
@@ -175,10 +176,16 @@ class TestCustomBaseURLs:
             real_http=False,
         ):
             with pytest.raises(NoMockAddress):
-                requests.get('https://vws.vuforia.com/summary')
+                requests.get(url='https://vws.vuforia.com/summary', timeout=1)
 
-            requests.get(url='https://vuforia.vws.example.com/summary')
-            requests.post('https://cloudreco.vuforia.com/v1/query')
+            requests.get(
+                url='https://vuforia.vws.example.com/summary',
+                timeout=1,
+            )
+            requests.post(
+                url='https://cloudreco.vuforia.com/v1/query',
+                timeout=1,
+            )
 
     @staticmethod
     def test_custom_base_vwq_url() -> None:
@@ -190,10 +197,19 @@ class TestCustomBaseURLs:
             real_http=False,
         ):
             with pytest.raises(NoMockAddress):
-                requests.post('https://cloudreco.vuforia.com/v1/query')
+                requests.post(
+                    url='https://cloudreco.vuforia.com/v1/query',
+                    timeout=1,
+                )
 
-            requests.post(url='https://vuforia.vwq.example.com/v1/query')
-            requests.get('https://vws.vuforia.com/summary')
+            requests.post(
+                url='https://vuforia.vwq.example.com/v1/query',
+                timeout=1,
+            )
+            requests.get(
+                url='https://vws.vuforia.com/summary',
+                timeout=1,
+            )
 
     @staticmethod
     def test_no_scheme() -> None:
@@ -478,7 +494,10 @@ class TestDateHeader:
         new_time = datetime(new_year, 1, 1)
         with MockVWS():
             with freeze_time(new_time):
-                response = requests.get('https://vws.vuforia.com/summary')
+                response = requests.get(
+                    url='https://vws.vuforia.com/summary',
+                    timeout=1,
+                )
 
         date_response = response.headers['Date']
         date_from_response = email.utils.parsedate(date_response)
