@@ -77,7 +77,20 @@ class TestIncorrect:
         """
         endpoint_headers = dict(endpoint.prepared_request.headers)
         if not endpoint_headers.get('Content-Type'):
-            return
+            pytest.skip("No Content-Type header for this request")
+
+        url = str(endpoint.prepared_request.url)
+        netloc = urlparse(url).netloc
+        request_path = url.split('/')[-1]
+        if not (request_path == 'targets' or netloc == 'cloudreco.vuforia.com'):
+            skip_reason = (
+                """\
+                This test takes a very long time.
+                On VWS, we only run it for the /targets endpoint and hope that
+                is representative.
+                """
+            )
+            pytest.skip(reason=skip_reason)
 
         content_length = str(int(endpoint_headers['Content-Length']) + 1)
         headers = {**endpoint_headers, 'Content-Length': content_length}
@@ -85,9 +98,6 @@ class TestIncorrect:
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
-
-        url = str(endpoint.prepared_request.url)
-        netloc = urlparse(url).netloc
         if netloc == 'cloudreco.vuforia.com':
             assert response.status_code == HTTPStatus.GATEWAY_TIMEOUT
             assert response.text == ''
