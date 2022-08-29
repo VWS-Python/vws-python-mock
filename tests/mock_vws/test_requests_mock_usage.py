@@ -43,7 +43,7 @@ def request_unmocked_address() -> None:
     port = sock.getsockname()[1]
     sock.close()
     address = f'http://localhost:{port}'
-    requests.get(address, timeout=1)
+    requests.get(address, timeout=30)
 
 
 def request_mocked_address() -> None:
@@ -57,7 +57,7 @@ def request_mocked_address() -> None:
             'Authorization': 'bad_auth_token',
         },
         data=b'',
-        timeout=1,
+        timeout=30,
     )
 
 
@@ -176,15 +176,15 @@ class TestCustomBaseURLs:
             real_http=False,
         ):
             with pytest.raises(NoMockAddress):
-                requests.get(url='https://vws.vuforia.com/summary', timeout=1)
+                requests.get(url='https://vws.vuforia.com/summary', timeout=30)
 
             requests.get(
                 url='https://vuforia.vws.example.com/summary',
-                timeout=1,
+                timeout=30,
             )
             requests.post(
                 url='https://cloudreco.vuforia.com/v1/query',
-                timeout=1,
+                timeout=30,
             )
 
     @staticmethod
@@ -199,16 +199,16 @@ class TestCustomBaseURLs:
             with pytest.raises(NoMockAddress):
                 requests.post(
                     url='https://cloudreco.vuforia.com/v1/query',
-                    timeout=1,
+                    timeout=30,
                 )
 
             requests.post(
                 url='https://vuforia.vwq.example.com/v1/query',
-                timeout=1,
+                timeout=30,
             )
             requests.get(
                 url='https://vws.vuforia.com/summary',
-                timeout=1,
+                timeout=30,
             )
 
     @staticmethod
@@ -496,7 +496,7 @@ class TestDateHeader:
             with freeze_time(new_time):
                 response = requests.get(
                     url='https://vws.vuforia.com/summary',
-                    timeout=1,
+                    timeout=30,
                 )
 
         date_response = response.headers['Date']
