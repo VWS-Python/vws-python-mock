@@ -348,7 +348,8 @@ class ContentLengthHeaderTooLarge(ValidatorException):
     Exception raised when the given content length header is too large.
     """
 
-    def __init__(self) -> None:
+    # We skip coverage here as running a test to cover this is very slow.
+    def __init__(self) -> None:  # pragma: no cover
         """
         Attributes:
             status_code: The status code to use in a response if this is

@@ -129,7 +129,7 @@ def query(
         url=urljoin(base=vwq_host, url=request_path),
         headers=headers,
         data=content,
-        timeout=1,
+        timeout=30,
     )
 
     return response
@@ -233,7 +233,7 @@ class TestContentType:
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
             data=content,
-            timeout=1,
+            timeout=30,
         )
 
         assert response.text == resp_text
@@ -293,7 +293,7 @@ class TestContentType:
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
             data=content,
-            timeout=1,
+            timeout=30,
         )
 
         assert response.text == ''
@@ -354,7 +354,7 @@ class TestContentType:
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
             data=content,
-            timeout=1,
+            timeout=30,
         )
 
         expected_text = (
@@ -410,7 +410,7 @@ class TestContentType:
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
             data=content,
-            timeout=1,
+            timeout=30,
         )
 
         expected_text = 'No image.'
@@ -466,7 +466,7 @@ class TestContentType:
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
             data=content,
-            timeout=1,
+            timeout=30,
         )
 
         assert_query_success(response=response)
@@ -1090,7 +1090,7 @@ class TestAcceptHeader:
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
             data=content,
-            timeout=1,
+            timeout=30,
         )
 
         assert_query_success(response=response)
@@ -1139,7 +1139,7 @@ class TestAcceptHeader:
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
             data=content,
-            timeout=1,
+            timeout=30,
         )
 
         assert_vwq_failure(
@@ -1984,7 +1984,7 @@ class TestDateFormats:
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
             data=content,
-            timeout=1,
+            timeout=30,
         )
 
         assert_query_success(response=response)

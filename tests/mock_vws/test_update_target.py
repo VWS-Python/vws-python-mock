@@ -77,7 +77,7 @@ def update_target(
         url=urljoin('https://vws.vuforia.com/', request_path),
         headers=headers,
         data=content,
-        timeout=1,
+        timeout=30,
     )
 
     return response
