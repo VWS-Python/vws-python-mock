@@ -35,7 +35,7 @@ def get_all_databases() -> Set[VuforiaDatabase]:
     target_manager_base_url = os.environ['TARGET_MANAGER_BASE_URL']
     response = requests.get(
         url=f'{target_manager_base_url}/databases',
-        timeout=1,
+        timeout=30,
     )
     return {
         VuforiaDatabase.from_dict(database_dict=database_dict)
