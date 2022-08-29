@@ -100,7 +100,8 @@ class TestIncorrect:
             return
 
         assert_valid_date_header(response=response)
-        assert response.text == 'stream timeout'
+        # We have seen both of these response texts.
+        assert response.text in ('stream timeout', '')
         expected_headers = {
             'content-length': str(len(response.text)),
             'connection': 'close',
