@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 
 import pytest
 import requests
+from dirty_equals import IsInstance
 from requests.structures import CaseInsensitiveDict
 
 from mock_vws._constants import ResultCodes
@@ -71,23 +72,23 @@ class TestIncorrect:
         assert response.headers == expected_headers
 
     @staticmethod
-    def test_too_large(endpoint: Endpoint) -> None:
+    @pytest.mark.skip(reason='It takes too long to run this test.')
+    def test_too_large(endpoint: Endpoint) -> None:  # pragma: no cover
         """
         An error is given if the given content length is too large.
         """
         endpoint_headers = dict(endpoint.prepared_request.headers)
         if not endpoint_headers.get('Content-Type'):
-            return
+            pytest.skip('No Content-Type header for this request')
 
+        url = str(endpoint.prepared_request.url)
+        netloc = urlparse(url).netloc
         content_length = str(int(endpoint_headers['Content-Length']) + 1)
         headers = {**endpoint_headers, 'Content-Length': content_length}
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
-
-        url = str(endpoint.prepared_request.url)
-        netloc = urlparse(url).netloc
         if netloc == 'cloudreco.vuforia.com':
             assert response.status_code == HTTPStatus.GATEWAY_TIMEOUT
             assert response.text == ''
@@ -108,7 +109,7 @@ class TestIncorrect:
             'content-type': 'text/plain',
             'server': 'envoy',
             'date': response.headers['date'],
-            'x-aws-region': 'eu-west-1',
+            'x-aws-region': IsInstance(expected_type=str),
         }
         assert response.headers == CaseInsensitiveDict(
             data=expected_headers,
