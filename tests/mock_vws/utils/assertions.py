@@ -143,6 +143,7 @@ def assert_vws_response(
     assert response.headers['Content-Length'] == str(len(response.text))
     assert response.headers['Content-Type'] == 'application/json'
     assert response.headers['Server'] == 'envoy'
+    # The AWS region is not static so we just check that one exists.
     assert response.headers['x-aws-region']
     assert int(response.headers['x-envoy-upstream-service-time']) > 1
     assert_json_separators(response=response)
