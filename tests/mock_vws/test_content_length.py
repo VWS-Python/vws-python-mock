@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 
 import pytest
 import requests
+from dirty_equals import IsInstance
 from requests.structures import CaseInsensitiveDict
 
 from mock_vws._constants import ResultCodes
@@ -71,14 +72,14 @@ class TestIncorrect:
         assert response.headers == expected_headers
 
     @staticmethod
-    @pytest.mark.skip(reason="It takes too long to run this test.")
+    @pytest.mark.skip(reason='It takes too long to run this test.')
     def test_too_large(endpoint: Endpoint) -> None:  # pragma: no cover
         """
         An error is given if the given content length is too large.
         """
         endpoint_headers = dict(endpoint.prepared_request.headers)
         if not endpoint_headers.get('Content-Type'):
-            pytest.skip("No Content-Type header for this request")
+            pytest.skip('No Content-Type header for this request')
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
