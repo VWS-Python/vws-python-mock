@@ -6,7 +6,7 @@ add-trailing-comma==2.2.3
 autoflake==1.5.3
 black==22.6.0
 check-manifest==0.48
-dirty-equals==0.4
+dirty-equals==0.5.0
 doc8==1.0.0
 docker==6.0.0
 dodgy==0.2.1  # Look for uploaded secrets
