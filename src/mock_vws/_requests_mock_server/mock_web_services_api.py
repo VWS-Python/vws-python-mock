@@ -38,7 +38,7 @@ from mock_vws.target_manager import TargetManager
 _TARGET_ID_PATTERN = '[A-Za-z0-9]+'
 
 
-ROUTES = set()
+_ROUTES: Set[Route] = set()
 
 
 def route(
@@ -65,7 +65,7 @@ def route(
             The given `method` with multiple changes, including added
             validators.
         """
-        ROUTES.add(
+        _ROUTES.add(
             Route(
                 route_name=method.__name__,
                 path_pattern=path_pattern,
@@ -101,7 +101,7 @@ class MockVuforiaWebServicesAPI:
             routes: The `Route`s to be used in the mock.
         """
         self._target_manager = target_manager
-        self.routes: Set[Route] = ROUTES
+        self.routes: Set[Route] = _ROUTES
         self._processing_time_seconds = processing_time_seconds
 
     @route(
