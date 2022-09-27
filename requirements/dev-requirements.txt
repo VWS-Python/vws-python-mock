@@ -17,7 +17,7 @@ freezegun==1.2.2  # Freeze time in tests
 furo==2022.9.15
 isort==5.10.1  # Lint imports
 keyring==23.9.3
-mypy==0.971 # Type checking
+mypy==0.981 # Type checking
 pip_check_reqs==2.3.2
 pydocstyle==6.1.1  # Lint docstrings
 pyenchant==3.2.2  # Bindings for a spellchecking sytem
