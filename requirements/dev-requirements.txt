@@ -36,7 +36,7 @@ types-Flask==1.1.6
 types-freezegun==1.1.10
 types-PyYAML==6.0.12
 types-requests==2.28.11
-types-setuptools==65.3.0
+types-setuptools==65.4.0.0
 vulture==2.6
 vws-python==2021.3.28.2
 Werkzeug==2.1.2  # >=2.2.0 is incompatible with sphinxcontrib-httpdomain, see https://github.com/sphinx-contrib/httpdomain/issues/60
