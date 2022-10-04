@@ -26,7 +26,7 @@ from mock_vws._query_validators.exceptions import (
 )
 from mock_vws.target_manager import TargetManager
 
-ROUTES = set()
+_ROUTES: Set[Route] = set()
 
 
 def route(
@@ -53,7 +53,7 @@ def route(
             The given `method` with multiple changes, including added
             validators.
         """
-        ROUTES.add(
+        _ROUTES.add(
             Route(
                 route_name=method.__name__,
                 path_pattern=path_pattern,
@@ -92,7 +92,7 @@ class MockVuforiaWebQueryAPI:
         Attributes:
             routes: The `Route`s to be used in the mock.
         """
-        self.routes: Set[Route] = ROUTES
+        self.routes: Set[Route] = _ROUTES
         self._target_manager = target_manager
         self._query_processes_deletion_seconds = (
             query_processes_deletion_seconds
