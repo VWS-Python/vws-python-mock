@@ -76,7 +76,10 @@ def validate_image_file_size(
     # However, the tests show that this maximum size also applies to JPEG
     # files.
     max_bytes = 2 * 1024 * 1024
-    if len(image) > max_bytes:
+    # Ignore coverage on this as there is a bug in urllib3 which means that we
+    # do not trigger this exception.
+    # See https://github.com/urllib3/urllib3/issues/2733.
+    if len(image) > max_bytes:  # pragma: no cover
         raise RequestEntityTooLarge
 
 
