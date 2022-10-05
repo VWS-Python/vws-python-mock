@@ -1258,9 +1258,9 @@ class TestMaximumImageFileSize:
             'https://github.com/urllib3/urllib3/issues/2733'
         ),
     )
-    def test_png(  # pragma: no cover
+    def test_png(
         vuforia_database: VuforiaDatabase,
-    ) -> None:
+    ) -> None:  # pragma: no cover
         """
         According to
         https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query.
@@ -1339,9 +1339,9 @@ class TestMaximumImageFileSize:
             'https://github.com/urllib3/urllib3/issues/2733'
         ),
     )
-    def test_jpeg(  # pragma: no cover
+    def test_jpeg(
         vuforia_database: VuforiaDatabase,
-    ) -> None:
+    ) -> None:  # pragma: no cover
         """
         According to
         https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query.
