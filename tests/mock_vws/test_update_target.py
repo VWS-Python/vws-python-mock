@@ -9,7 +9,7 @@ import io
 import json
 import uuid
 from http import HTTPStatus
-from typing import Any, Dict, Final
+from typing import Any, Final
 from urllib.parse import urljoin
 
 import pytest
@@ -34,7 +34,7 @@ _MAX_METADATA_BYTES: Final[int] = 1024 * 1024 - 1
 
 def update_target(
     vuforia_database: VuforiaDatabase,
-    data: Dict[str, Any],
+    data: dict[str, Any],
     target_id: str,
     content_type: str = 'application/json',
 ) -> Response:

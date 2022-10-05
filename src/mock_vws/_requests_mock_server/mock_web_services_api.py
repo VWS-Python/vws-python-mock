@@ -14,7 +14,7 @@ import email.utils
 import random
 import uuid
 from http import HTTPStatus
-from typing import Callable, Dict, Set
+from typing import Callable
 from zoneinfo import ZoneInfo
 
 from requests_mock import DELETE, GET, POST, PUT
@@ -38,12 +38,12 @@ from mock_vws.target_manager import TargetManager
 _TARGET_ID_PATTERN = '[A-Za-z0-9]+'
 
 
-_ROUTES: Set[Route] = set()
+_ROUTES: set[Route] = set()
 
 
 def route(
     path_pattern: str,
-    http_methods: Set[str],
+    http_methods: set[str],
 ) -> Callable[..., Callable]:
     """
     Register a decorated method so that it can be recognized as a route.
@@ -101,7 +101,7 @@ class MockVuforiaWebServicesAPI:
             routes: The `Route`s to be used in the mock.
         """
         self._target_manager = target_manager
-        self.routes: Set[Route] = _ROUTES
+        self.routes: set[Route] = _ROUTES
         self._processing_time_seconds = processing_time_seconds
 
     @route(
@@ -207,7 +207,7 @@ class MockVuforiaWebServicesAPI:
             context.status_code = exc.status_code
             return exc.response_text
 
-        body: Dict[str, str] = {}
+        body: dict[str, str] = {}
         database = get_database_matching_server_keys(
             request_headers=request.headers,
             request_body=request.body,
@@ -272,7 +272,7 @@ class MockVuforiaWebServicesAPI:
             context.status_code = exc.status_code
             return exc.response_text
 
-        body: Dict[str, str | int] = {}
+        body: dict[str, str | int] = {}
 
         database = get_database_matching_server_keys(
             request_headers=request.headers,
@@ -348,7 +348,7 @@ class MockVuforiaWebServicesAPI:
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
 
         results = [target.target_id for target in database.not_deleted_targets]
-        body: Dict[str, str | list[str]] = {
+        body: dict[str, str | list[str]] = {
             'transaction_id': uuid.uuid4().hex,
             'result_code': ResultCodes.SUCCESS.value,
             'results': results,
@@ -536,7 +536,7 @@ class MockVuforiaWebServicesAPI:
 
         target_id = request.path.split('/')[-1]
         target = database.get_target(target_id=target_id)
-        body: Dict[str, str] = {}
+        body: dict[str, str] = {}
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
 

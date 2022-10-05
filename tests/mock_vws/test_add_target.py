@@ -9,7 +9,7 @@ import io
 import json
 from http import HTTPStatus
 from string import hexdigits
-from typing import Any, Dict, Final
+from typing import Any, Final
 from urllib.parse import urljoin
 
 import pytest
@@ -34,7 +34,7 @@ _MAX_METADATA_BYTES: Final[int] = 1024 * 1024 - 1
 
 def add_target_to_vws(
     vuforia_database: VuforiaDatabase,
-    data: Dict[str, Any],
+    data: dict[str, Any],
     content_type: str = 'application/json',
 ) -> Response:
     """

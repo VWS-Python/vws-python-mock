@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import re
 from contextlib import ContextDecorator
-from typing import Literal, Tuple
+from typing import Literal
 from urllib.parse import urljoin, urlparse
 
 import requests
@@ -102,7 +102,7 @@ class MockVWS(ContextDecorator):
         """
         self._target_manager.add_database(database=database)
 
-    def __enter__(self) -> 'MockVWS':
+    def __enter__(self) -> MockVWS:
         """
         Start an instance of a Vuforia mock.
 
@@ -142,7 +142,7 @@ class MockVWS(ContextDecorator):
 
         return self
 
-    def __exit__(self, *exc: Tuple[None, None, None]) -> Literal[False]:
+    def __exit__(self, *exc: tuple[None, None, None]) -> Literal[False]:
         """
         Stop the Vuforia mock.
 
