@@ -10,6 +10,7 @@ import base64
 import calendar
 import datetime
 import io
+import sys
 import textwrap
 import time
 import uuid
@@ -1250,7 +1251,16 @@ class TestMaximumImageFileSize:
     """
 
     @staticmethod
-    def test_png(vuforia_database: VuforiaDatabase) -> None:
+    @pytest.mark.skipif(
+        sys.version_info > (3, 9),
+        reason=(
+            'There is a bug in urllib3: '
+            'https://github.com/urllib3/urllib3/issues/2733'
+        ),
+    )
+    def test_png(  # pragma: no cover
+        vuforia_database: VuforiaDatabase,
+    ) -> None:
         """
         According to
         https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query.
@@ -1322,7 +1332,16 @@ class TestMaximumImageFileSize:
         assert response.text == _NGINX_REQUEST_ENTITY_TOO_LARGE_ERROR
 
     @staticmethod
-    def test_jpeg(vuforia_database: VuforiaDatabase) -> None:
+    @pytest.mark.skipif(
+        sys.version_info > (3, 9),
+        reason=(
+            'There is a bug in urllib3: '
+            'https://github.com/urllib3/urllib3/issues/2733'
+        ),
+    )
+    def test_jpeg(  # pragma: no cover
+        vuforia_database: VuforiaDatabase,
+    ) -> None:
         """
         According to
         https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query.
