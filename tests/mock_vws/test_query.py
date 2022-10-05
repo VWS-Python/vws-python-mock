@@ -16,7 +16,7 @@ import time
 import uuid
 from http import HTTPStatus
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 from urllib.parse import urljoin
 from zoneinfo import ZoneInfo
 
@@ -85,7 +85,7 @@ _JETTY_ERROR_DELETION_NOT_COMPLETE = (
 
 def query(
     vuforia_database: VuforiaDatabase,
-    body: Dict[str, Any],
+    body: dict[str, Any],
 ) -> Response:
     """
     Make a request to the endpoint to make an image recognition query.
@@ -1053,7 +1053,7 @@ class TestAcceptHeader:
     def test_valid(
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
-        extra_headers: Dict[str, str],
+        extra_headers: dict[str, str],
     ) -> None:
         """
         An ``Accept`` header can be given iff its value is "application/json".

@@ -8,7 +8,7 @@ https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognitio
 from __future__ import annotations
 
 import email.utils
-from typing import Callable, Set
+from typing import Callable
 
 from requests_mock import POST
 from requests_mock.request import _RequestObjectProxy
@@ -26,12 +26,12 @@ from mock_vws._query_validators.exceptions import (
 )
 from mock_vws.target_manager import TargetManager
 
-_ROUTES: Set[Route] = set()
+_ROUTES: set[Route] = set()
 
 
 def route(
     path_pattern: str,
-    http_methods: Set[str],
+    http_methods: set[str],
 ) -> Callable[..., Callable]:
     """
     Register a decorated method so that it can be recognized as a route.
@@ -92,7 +92,7 @@ class MockVuforiaWebQueryAPI:
         Attributes:
             routes: The `Route`s to be used in the mock.
         """
-        self.routes: Set[Route] = _ROUTES
+        self.routes: set[Route] = _ROUTES
         self._target_manager = target_manager
         self._query_processes_deletion_seconds = (
             query_processes_deletion_seconds
