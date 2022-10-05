@@ -4,8 +4,8 @@ Validators for the fields given.
 
 import cgi
 import io
-from typing import Dict
 from email.message import EmailMessage
+from typing import Dict
 
 from mock_vws._query_validators.exceptions import UnknownParameters
 

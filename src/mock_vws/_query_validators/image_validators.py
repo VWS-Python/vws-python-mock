@@ -4,8 +4,8 @@ Input validators for the image field use in the mock query API.
 
 import cgi
 import io
-from typing import Dict
 from email.message import EmailMessage
+from typing import Dict
 
 from PIL import Image
 
