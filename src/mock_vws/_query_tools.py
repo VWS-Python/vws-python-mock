@@ -9,6 +9,7 @@ import cgi
 import datetime
 import io
 import uuid
+from email.message import EmailMessage
 from typing import Any, Dict, Set
 from zoneinfo import ZoneInfo
 
@@ -57,14 +58,12 @@ def get_query_match_response_text(
     """
     body_file = io.BytesIO(request_body)
 
-    _, pdict = cgi.parse_header(request_headers['Content-Type'])
-    parsed = cgi.parse_multipart(
-        fp=body_file,
-        pdict={
-            'boundary': pdict['boundary'].encode(),
-        },
-    )
+    email_message = EmailMessage()
+    email_message['content-type'] = request_headers['Content-Type']
+    boundary = email_message.get_boundary().encode()
+    parsed = cgi.parse_multipart(fp=body_file, pdict={'boundary': boundary})
 
+    breakpoint()
     [max_num_results] = parsed.get('max_num_results', ['1'])
 
     [include_target_data] = parsed.get('include_target_data', ['top'])

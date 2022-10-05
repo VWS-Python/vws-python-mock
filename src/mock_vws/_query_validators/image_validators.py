@@ -5,6 +5,7 @@ Input validators for the image field use in the mock query API.
 import cgi
 import io
 from typing import Dict
+from email.message import EmailMessage
 
 from PIL import Image
 
@@ -31,13 +32,10 @@ def validate_image_field_given(
     """
     body_file = io.BytesIO(request_body)
 
-    _, pdict = cgi.parse_header(request_headers['Content-Type'])
-    parsed = cgi.parse_multipart(
-        fp=body_file,
-        pdict={
-            'boundary': pdict['boundary'].encode(),
-        },
-    )
+    email_message = EmailMessage()
+    email_message['content-type'] = request_headers['Content-Type']
+    boundary = email_message.get_boundary().encode()
+    parsed = cgi.parse_multipart(fp=body_file, pdict={'boundary': boundary})
 
     if 'image' in parsed.keys():
         return
@@ -61,13 +59,10 @@ def validate_image_file_size(
     """
     body_file = io.BytesIO(request_body)
 
-    _, pdict = cgi.parse_header(request_headers['Content-Type'])
-    parsed = cgi.parse_multipart(
-        fp=body_file,
-        pdict={
-            'boundary': pdict['boundary'].encode(),
-        },
-    )
+    email_message = EmailMessage()
+    email_message['content-type'] = request_headers['Content-Type']
+    boundary = email_message.get_boundary().encode()
+    parsed = cgi.parse_multipart(fp=body_file, pdict={'boundary': boundary})
 
     [image] = parsed['image']
 
@@ -97,13 +92,10 @@ def validate_image_dimensions(
     """
     body_file = io.BytesIO(request_body)
 
-    _, pdict = cgi.parse_header(request_headers['Content-Type'])
-    parsed = cgi.parse_multipart(
-        fp=body_file,
-        pdict={
-            'boundary': pdict['boundary'].encode(),
-        },
-    )
+    email_message = EmailMessage()
+    email_message['content-type'] = request_headers['Content-Type']
+    boundary = email_message.get_boundary().encode()
+    parsed = cgi.parse_multipart(fp=body_file, pdict={'boundary': boundary})
 
     [image] = parsed['image']
     assert isinstance(image, bytes)
@@ -133,13 +125,10 @@ def validate_image_format(
     """
     body_file = io.BytesIO(request_body)
 
-    _, pdict = cgi.parse_header(request_headers['Content-Type'])
-    parsed = cgi.parse_multipart(
-        fp=body_file,
-        pdict={
-            'boundary': pdict['boundary'].encode(),
-        },
-    )
+    email_message = EmailMessage()
+    email_message['content-type'] = request_headers['Content-Type']
+    boundary = email_message.get_boundary().encode()
+    parsed = cgi.parse_multipart(fp=body_file, pdict={'boundary': boundary})
 
     [image] = parsed['image']
 
@@ -169,13 +158,10 @@ def validate_image_is_image(
     """
     body_file = io.BytesIO(request_body)
 
-    _, pdict = cgi.parse_header(request_headers['Content-Type'])
-    parsed = cgi.parse_multipart(
-        fp=body_file,
-        pdict={
-            'boundary': pdict['boundary'].encode(),
-        },
-    )
+    email_message = EmailMessage()
+    email_message['content-type'] = request_headers['Content-Type']
+    boundary = email_message.get_boundary().encode()
+    parsed = cgi.parse_multipart(fp=body_file, pdict={'boundary': boundary})
 
     [image] = parsed['image']
 
