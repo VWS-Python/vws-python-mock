@@ -4,6 +4,7 @@ Validators for the fields given.
 
 import cgi
 import io
+from email.message import EmailMessage
 from typing import Dict
 
 from mock_vws._query_validators.exceptions import UnknownParameters
@@ -25,13 +26,10 @@ def validate_extra_fields(
     """
     body_file = io.BytesIO(request_body)
 
-    _, pdict = cgi.parse_header(request_headers['Content-Type'])
-    parsed = cgi.parse_multipart(
-        fp=body_file,
-        pdict={
-            'boundary': pdict['boundary'].encode(),
-        },
-    )
+    email_message = EmailMessage()
+    email_message['content-type'] = request_headers['Content-Type']
+    boundary = email_message.get_boundary().encode()
+    parsed = cgi.parse_multipart(fp=body_file, pdict={'boundary': boundary})
 
     known_parameters = {'image', 'max_num_results', 'include_target_data'}
 
