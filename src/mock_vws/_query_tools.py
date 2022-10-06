@@ -10,7 +10,7 @@ import datetime
 import io
 import uuid
 from email.message import EmailMessage
-from typing import Any, Dict, Set
+from typing import Any
 from zoneinfo import ZoneInfo
 
 from mock_vws._base64_decoding import decode_base64
@@ -27,11 +27,11 @@ class ActiveMatchingTargetsDeleteProcessing(Exception):
 
 
 def get_query_match_response_text(
-    request_headers: Dict[str, str],
+    request_headers: dict[str, str],
     request_body: bytes,
     request_method: str,
     request_path: str,
-    databases: Set[VuforiaDatabase],
+    databases: set[VuforiaDatabase],
     query_processes_deletion_seconds: int | float,
     query_recognizes_deletion_seconds: int | float,
 ) -> str:
@@ -63,7 +63,6 @@ def get_query_match_response_text(
     boundary = email_message.get_boundary().encode()
     parsed = cgi.parse_multipart(fp=body_file, pdict={'boundary': boundary})
 
-    breakpoint()
     [max_num_results] = parsed.get('max_num_results', ['1'])
 
     [include_target_data] = parsed.get('include_target_data', ['top'])
@@ -129,7 +128,7 @@ def get_query_match_response_text(
 
     matches = not_deleted_matches + deletion_not_recognized_matches
 
-    results: list[Dict[str, Any]] = []
+    results: list[dict[str, Any]] = []
     for target in matches:
         target_timestamp = target.last_modified_date.timestamp()
         if target.application_metadata is None:
