@@ -18,23 +18,23 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ["3.9"]
+        python-version: ["3.11"]
         platform: [windows-latest]
 
     runs-on: ${{ matrix.platform }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           # See https://github.com/codecov/codecov-action/issues/190.
           fetch-depth: 2
 
       - name: "Set up Python"
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: ~/.cache/pip
           # This is like the example but we use ``*requirements.txt`` rather
@@ -82,7 +82,7 @@ jobs:
           echo ${{ github.event_name }}
 
       - name: "Upload coverage to Codecov"
-        uses: "codecov/codecov-action@v1"
+        uses: "codecov/codecov-action@v3"
         with:
           fail_ci_if_error: true
         if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
