@@ -5,7 +5,6 @@ Tools for making Vuforia queries.
 from __future__ import annotations
 
 import base64
-import cgi
 import datetime
 import io
 import uuid
@@ -13,6 +12,7 @@ from email.message import EmailMessage
 from typing import Any
 from zoneinfo import ZoneInfo
 
+import mock_vws._cgi as cgi
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_client_keys

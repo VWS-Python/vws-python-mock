@@ -1,4 +1,6 @@
 """
+Vendored deprecated module, modified to satisfy linters.
+
 Support module for CGI (Common Gateway Interface) scripts.
 
 This module defines a number of utilities for use by CGI scripts
@@ -11,22 +13,6 @@ ValueError being raised during parsing. The default value of this variable is
 """
 
 # pylint: skip-file
-
-# History
-# -------
-#
-# Michael McLay started this module.  Steve Majewski changed the
-# interface to SvFormContentDict and FormContentDict.  The multipart
-# parsing was inspired by code submitted by Andreas Paepcke.  Guido van
-# Rossum rewrote, reformatted and documented the module and is currently
-# responsible for its maintenance.
-#
-
-__version__ = '2.6'
-
-
-# Imports
-# =======
 
 import locale
 import os
@@ -42,16 +28,10 @@ from io import BytesIO, StringIO, TextIOWrapper
 __all__ = [
     'MiniFieldStorage',
     'FieldStorage',
-    'parse',
     'parse_multipart',
     'parse_header',
 ]
 
-
-warnings._deprecated(__name__, remove=(3, 13))
-
-# Logging support
-# ===============
 
 logfile = ''  # Filename to log to, if not empty
 logfp = None  # File object to log to, if not None
@@ -127,89 +107,6 @@ log = initlog  # The current logging function
 # Maximum input we will accept when REQUEST_METHOD is POST
 # 0 ==> unlimited input
 maxlen = 0
-
-
-def parse(
-    fp=None,
-    environ=os.environ,
-    keep_blank_values=0,
-    strict_parsing=0,
-    separator='&',
-):
-    """
-    Parse a query in the environment or from a file (default stdin)
-
-    Arguments, all optional:
-
-    fp              : file pointer; default: sys.stdin.buffer
-
-    environ         : environment dictionary; default: os.environ
-
-    keep_blank_values: flag indicating whether blank values in
-        percent-encoded forms should be treated as blank strings.
-        A true value indicates that blanks should be retained as
-        blank strings.  The default false value indicates that
-        blank values are to be ignored and treated as if they were
-        not included.
-
-    strict_parsing: flag indicating what to do with parsing errors.
-        If false (the default), errors are silently ignored.
-        If true, errors raise a ValueError exception.
-
-    separator: str. The symbol to use for separating the query arguments.
-        Defaults to &.
-    """
-    if fp is None:
-        fp = sys.stdin
-
-    # field keys and values (except for files) are returned as strings
-    # an encoding is required to decode the bytes read from self.fp
-    if hasattr(fp, 'encoding'):
-        encoding = fp.encoding
-    else:
-        encoding = 'latin-1'
-
-    # fp.read() must return bytes
-    if isinstance(fp, TextIOWrapper):
-        fp = fp.buffer
-
-    if 'REQUEST_METHOD' not in environ:
-        environ['REQUEST_METHOD'] = 'GET'  # For testing stand-alone
-    if environ['REQUEST_METHOD'] == 'POST':
-        ctype, pdict = parse_header(environ['CONTENT_TYPE'])
-        if ctype == 'multipart/form-data':
-            return parse_multipart(fp, pdict, separator=separator)
-        elif ctype == 'application/x-www-form-urlencoded':
-            clength = int(environ['CONTENT_LENGTH'])
-            if maxlen and clength > maxlen:
-                raise ValueError('Maximum content length exceeded')
-            qs = fp.read(clength).decode(encoding)
-        else:
-            qs = ''  # Unknown content-type
-        if 'QUERY_STRING' in environ:
-            if qs:
-                qs = qs + '&'
-            qs = qs + environ['QUERY_STRING']
-        elif sys.argv[1:]:
-            if qs:
-                qs = qs + '&'
-            qs = qs + sys.argv[1]
-        environ['QUERY_STRING'] = qs  # XXX Shouldn't, really
-    elif 'QUERY_STRING' in environ:
-        qs = environ['QUERY_STRING']
-    else:
-        if sys.argv[1:]:
-            qs = sys.argv[1]
-        else:
-            qs = ''
-        environ['QUERY_STRING'] = qs  # XXX Shouldn't, really
-    return urllib.parse.parse_qs(
-        qs,
-        keep_blank_values,
-        strict_parsing,
-        encoding=encoding,
-        separator=separator,
-    )
 
 
 def parse_multipart(
