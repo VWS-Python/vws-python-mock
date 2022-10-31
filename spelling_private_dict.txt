@@ -27,6 +27,7 @@ dev
 dict
 docstring
 docstrings
+eof
 exc
 filename
 foo
@@ -60,6 +61,8 @@ multipart
 mypy
 nat
 noqa
+outerboundary
+overridable
 pdict
 plugins
 png
@@ -86,6 +89,7 @@ timestamp
 todo
 travis
 txt
+unlinks
 unmocked
 url
 usefixtures
