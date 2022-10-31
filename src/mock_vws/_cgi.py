@@ -46,11 +46,11 @@ maxlen = 0
 
 def parse_multipart(
     fp,
-    pdict,
-    encoding='utf-8',
-    errors='replace',
-    separator='&',
-):
+    pdict: dict,
+    encoding: str = 'utf-8',
+    errors: str = 'replace',
+    separator: str = '&',
+) -> dict:
     """
     Parse multipart input.
 
@@ -99,7 +99,7 @@ def _parseparam(s):
         s = s[end:]
 
 
-def parse_header(line):
+def parse_header(line: str) -> tuple:
     """
     Parse a Content-type like header.
 
@@ -430,6 +430,17 @@ class FieldStorage:
             return found[0]
         else:
             return found
+
+    def getlist(self, key):
+        """Return list of received values."""
+        if key in self:
+            value = self[key]
+            if isinstance(value, list):
+                return [x.value for x in value]
+            else:
+                return [value.value]
+        else:
+            return []
 
     def keys(self):
         """Dictionary style keys method."""
