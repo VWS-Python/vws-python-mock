@@ -98,6 +98,9 @@ include_trailing_comma = true
 [tool.coverage.run]
 
 branch = true
+omit = [
+  "src/mock_vws/_cgi.py",
+]
 
 [tool.pytest.ini_options]
 

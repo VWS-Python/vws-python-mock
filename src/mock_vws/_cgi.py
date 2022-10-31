@@ -19,7 +19,6 @@ import os
 import sys
 import tempfile
 import urllib.parse
-import warnings
 from collections.abc import Mapping
 from email.message import Message
 from email.parser import FeedParser
