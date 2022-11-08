@@ -16,7 +16,7 @@ flake8==5.0.4  # Lint
 freezegun==1.2.2  # Freeze time in tests
 furo==2022.9.29
 isort==5.10.1  # Lint imports
-keyring==23.9.3
+keyring==23.11.0
 mypy==0.982 # Type checking
 pip_check_reqs==2.4.2
 pydocstyle==6.1.1  # Lint docstrings
