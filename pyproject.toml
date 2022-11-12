@@ -149,28 +149,22 @@ ignore = [
 
 [tool.mypy]
 
-check_untyped_defs = true
-disallow_incomplete_defs = true
-disallow_subclassing_any = true
-disallow_untyped_calls = true
-disallow_untyped_decorators = true
-disallow_untyped_defs = true
-follow_imports = "normal"
-ignore_missing_imports = true
-no_implicit_optional = true
-strict_equality = true
-strict_optional = true
-warn_no_return = true
-warn_redundant_casts = true
-warn_return_any = true
-warn_unused_configs = true
-warn_unused_ignores = true
+strict = true
 
 [[tool.mypy.overrides]]
 module = [
     "mock_vws/_cgi",
 ]
 ignore_errors = true
+
+[[tool.mypy.overrides]]
+
+module = [
+	"docker",
+	"docker.models.networks",
+]
+
+ignore_missing_imports = true
 
 [tool.doc8]
 
