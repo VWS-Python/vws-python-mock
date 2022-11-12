@@ -44,7 +44,7 @@ _ROUTES: set[Route] = set()
 def route(
     path_pattern: str,
     http_methods: set[str],
-) -> Callable[..., Callable]:
+) -> Callable[[Callable[..., str]], Callable[..., str]]:
     """
     Register a decorated method so that it can be recognized as a route.
 
