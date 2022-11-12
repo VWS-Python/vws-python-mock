@@ -58,7 +58,7 @@ def _enable_use_real_vuforia(
     working_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
     monkeypatch: MonkeyPatch,
-) -> Generator:
+) -> Generator[None, None, None]:
     assert monkeypatch
     assert inactive_database
     _delete_all_targets(database_keys=working_database)
@@ -69,7 +69,7 @@ def _enable_use_mock_vuforia(
     working_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
     monkeypatch: MonkeyPatch,
-) -> Generator:
+) -> Generator[None, None, None]:
     assert monkeypatch
     working_database = VuforiaDatabase(
         database_name=working_database.database_name,
@@ -98,7 +98,7 @@ def _enable_use_docker_in_memory(
     working_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
     monkeypatch: MonkeyPatch,
-) -> Generator:
+) -> Generator[None, None, None]:
     # We set ``wsgi.input_terminated`` to ``True`` so that when going through
     # ``requests``, the Flask applications
     # have the given ``Content-Length`` headers and the given data in
@@ -198,7 +198,7 @@ def verify_mock_vuforia(
     vuforia_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
     monkeypatch: MonkeyPatch,
-) -> Generator:
+) -> Generator[None, None, None]:
     """
     Test functions which use this fixture are run multiple times. Once with the
     real Vuforia, and once with each mock.
