@@ -41,4 +41,3 @@ types-setuptools==65.5.0.2
 types-urllib3==1.26.25.3
 vulture==2.6
 vws-python==2021.3.28.2
-Werkzeug==2.1.2  # >=2.2.0 is incompatible with sphinxcontrib-httpdomain, see https://github.com/sphinx-contrib/httpdomain/issues/60
