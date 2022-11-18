@@ -30,7 +30,7 @@ requests-mock-flask==2022.4.3
 sphinx-autodoc-typehints==1.19.5
 sphinx-prompt==1.5.0
 sphinx_paramlinks==0.5.4
-sphinxcontrib-httpdomain==1.8.0
+sphinxcontrib-httpdomain==1.8.1
 sphinxcontrib-spelling==7.7.0
 types-Flask==1.1.6
 types-freezegun==1.1.10
@@ -41,4 +41,3 @@ types-setuptools==65.5.0.2
 types-urllib3==1.26.25.4
 vulture==2.6
 vws-python==2021.3.28.2
-Werkzeug==2.1.2  # >=2.2.0 is incompatible with sphinxcontrib-httpdomain, see https://github.com/sphinx-contrib/httpdomain/issues/60
