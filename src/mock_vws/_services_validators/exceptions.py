@@ -367,7 +367,6 @@ class ContentLengthHeaderTooLarge(ValidatorException):
             'server': 'envoy',
             'content-type': 'text/plain',
             'connection': 'close',
-            'x-aws-region': 'eu-west-1',
         }
 
 

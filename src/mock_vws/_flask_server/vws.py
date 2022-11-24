@@ -163,7 +163,6 @@ def add_target() -> Response:
         'content-type': 'application/json',
         'server': 'envoy',
         'date': date,
-        'x-aws-region': 'us-west-2, eu-west-1',
         'x-envoy-upstream-service-time': '5',
     }
 
@@ -216,7 +215,6 @@ def get_target(target_id: str) -> Response:
         'content-type': 'application/json',
         'server': 'envoy',
         'date': date,
-        'x-aws-region': 'us-west-2, eu-west-1',
         'x-envoy-upstream-service-time': '5',
     }
     body = {
@@ -273,7 +271,6 @@ def delete_target(target_id: str) -> Response:
         'content-type': 'application/json',
         'server': 'envoy',
         'date': date,
-        'x-aws-region': 'us-west-2, eu-west-1',
         'x-envoy-upstream-service-time': '5',
     }
     return Response(
@@ -324,7 +321,6 @@ def database_summary() -> Response:
         'content-type': 'application/json',
         'server': 'envoy',
         'date': date,
-        'x-aws-region': 'us-west-2, eu-west-1',
         'x-envoy-upstream-service-time': '5',
     }
     return Response(
@@ -373,7 +369,6 @@ def target_summary(target_id: str) -> Response:
         'content-type': 'application/json',
         'server': 'envoy',
         'date': date,
-        'x-aws-region': 'us-west-2, eu-west-1',
         'x-envoy-upstream-service-time': '5',
     }
     return Response(
@@ -426,7 +421,6 @@ def get_duplicates(target_id: str) -> Response:
         'content-type': 'application/json',
         'server': 'envoy',
         'date': date,
-        'x-aws-region': 'us-west-2, eu-west-1',
         'x-envoy-upstream-service-time': '5',
     }
     return Response(
@@ -465,7 +459,6 @@ def target_list() -> Response:
         'content-type': 'application/json',
         'server': 'envoy',
         'date': date,
-        'x-aws-region': 'us-west-2, eu-west-1',
         'x-envoy-upstream-service-time': '5',
     }
     return Response(
@@ -539,7 +532,6 @@ def update_target(target_id: str) -> Response:
         'content-type': 'application/json',
         'server': 'envoy',
         'date': date,
-        'x-aws-region': 'us-west-2, eu-west-1',
         'x-envoy-upstream-service-time': '5',
     }
     body = {

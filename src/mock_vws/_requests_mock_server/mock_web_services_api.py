@@ -174,8 +174,7 @@ class MockVuforiaWebServicesAPI:
             'server': 'envoy',
             'date': date,
             'content-length': str(len(body_json)),
-            'x-aws-region': 'us-west-2, eu-west-1',
-            'x-envoy-upstream-service-time': '5',
+                'x-envoy-upstream-service-time': '5',
         }
         return body_json
 
@@ -242,8 +241,7 @@ class MockVuforiaWebServicesAPI:
             'content-type': 'application/json',
             'date': date,
             'server': 'envoy',
-            'x-aws-region': 'us-west-2, eu-west-1',
-            'x-envoy-upstream-service-time': '5',
+                'x-envoy-upstream-service-time': '5',
         }
         return body_json
 
@@ -306,8 +304,7 @@ class MockVuforiaWebServicesAPI:
             'content-type': 'application/json',
             'date': date,
             'server': 'envoy',
-            'x-aws-region': 'us-west-2, eu-west-1',
-            'x-envoy-upstream-service-time': '5',
+                'x-envoy-upstream-service-time': '5',
         }
         return body_json
 
@@ -359,8 +356,7 @@ class MockVuforiaWebServicesAPI:
             'content-type': 'application/json',
             'date': date,
             'server': 'envoy',
-            'x-aws-region': 'us-west-2, eu-west-1',
-            'x-envoy-upstream-service-time': '5',
+                'x-envoy-upstream-service-time': '5',
         }
         return body_json
 
@@ -422,8 +418,7 @@ class MockVuforiaWebServicesAPI:
             'content-type': 'application/json',
             'date': date,
             'server': 'envoy',
-            'x-aws-region': 'us-west-2, eu-west-1',
-            'x-envoy-upstream-service-time': '5',
+                'x-envoy-upstream-service-time': '5',
         }
         return body_json
 
@@ -490,8 +485,7 @@ class MockVuforiaWebServicesAPI:
             'content-type': 'application/json',
             'date': date,
             'server': 'envoy',
-            'x-aws-region': 'us-west-2, eu-west-1',
-            'x-envoy-upstream-service-time': '5',
+                'x-envoy-upstream-service-time': '5',
         }
 
         return body_json
@@ -606,8 +600,7 @@ class MockVuforiaWebServicesAPI:
             'server': 'envoy',
             'date': date,
             'content-length': str(len(body_json)),
-            'x-aws-region': 'us-west-2, eu-west-1',
-            'x-envoy-upstream-service-time': '5',
+                'x-envoy-upstream-service-time': '5',
         }
         return body_json
 
@@ -668,8 +661,7 @@ class MockVuforiaWebServicesAPI:
             'content-type': 'application/json',
             'date': date,
             'server': 'envoy',
-            'x-aws-region': 'us-west-2, eu-west-1',
-            'x-envoy-upstream-service-time': '5',
+                'x-envoy-upstream-service-time': '5',
         }
 
         return body_json
