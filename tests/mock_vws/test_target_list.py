@@ -6,7 +6,7 @@ import pytest
 from vws import VWS
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestTargetList:
     """
     Tests for the mock of the target list endpoint at `/targets`.
@@ -35,7 +35,7 @@ class TestTargetList:
         assert vws_client.list_targets() == []
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestInactiveProject:
     """
     Tests for inactive projects.

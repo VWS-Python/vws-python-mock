@@ -32,16 +32,16 @@ def validate_content_type_header(
         ImageNotGiven: The boundary is not in the request body.
         NoContentType: The content type header is either empty or not given.
     """
-    content_type_header = request_headers.get('Content-Type', '')
+    content_type_header = request_headers.get("Content-Type", "")
     main_value, pdict = cgi.parse_header(content_type_header)
-    if content_type_header == '':
+    if content_type_header == "":
         raise NoContentType
 
-    if main_value not in ('multipart/form-data', '*/*'):
+    if main_value not in ("multipart/form-data", "*/*"):
         raise UnsupportedMediaType
 
-    if 'boundary' not in pdict:
+    if "boundary" not in pdict:
         raise NoBoundaryFound
 
-    if pdict['boundary'].encode() not in request_body:
+    if pdict["boundary"].encode() not in request_body:
         raise ImageNotGiven

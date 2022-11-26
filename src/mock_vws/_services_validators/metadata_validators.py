@@ -26,7 +26,7 @@ def validate_metadata_size(request_body: bytes) -> None:
 
     request_text = request_body.decode()
     request_json = json.loads(request_text)
-    application_metadata = request_json.get('application_metadata')
+    application_metadata = request_json.get("application_metadata")
     if application_metadata is None:
         return
     decoded = decode_base64(encoded_data=application_metadata)
@@ -54,10 +54,10 @@ def validate_metadata_encoding(request_body: bytes) -> None:
 
     request_text = request_body.decode()
     request_json = json.loads(request_text)
-    if 'application_metadata' not in request_json:
+    if "application_metadata" not in request_json:
         return
 
-    application_metadata = request_json.get('application_metadata')
+    application_metadata = request_json.get("application_metadata")
 
     if application_metadata is None:
         return
@@ -83,10 +83,10 @@ def validate_metadata_type(request_body: bytes) -> None:
 
     request_text = request_body.decode()
     request_json = json.loads(request_text)
-    if 'application_metadata' not in request_json:
+    if "application_metadata" not in request_json:
         return
 
-    application_metadata = request_json.get('application_metadata')
+    application_metadata = request_json.get("application_metadata")
 
     if application_metadata is None or isinstance(application_metadata, str):
         return

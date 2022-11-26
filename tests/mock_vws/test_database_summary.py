@@ -49,10 +49,10 @@ def _wait_for_image_numbers(
             within the time limit.
     """
     requirements = {
-        'active_images': active_images,
-        'inactive_images': inactive_images,
-        'failed_images': failed_images,
-        'processing_images': processing_images,
+        "active_images": active_images,
+        "inactive_images": inactive_images,
+        "failed_images": failed_images,
+        "processing_images": processing_images,
     }
 
     maximum_wait_seconds = 500
@@ -71,14 +71,14 @@ def _wait_for_image_numbers(
         while True:
             seconds_waited = time.monotonic() - start_time
             if seconds_waited > maximum_wait_seconds:  # pragma: no cover
-                raise Exception('Timed out waiting.')
+                raise Exception("Timed out waiting.")
 
             report = vws_client.get_database_summary_report()
             relevant_images_in_summary = getattr(report, key)
             if value != relevant_images_in_summary:  # pragma: no cover
                 message = (
-                    f'Expected {value} `{key}`s. '
-                    f'Found {relevant_images_in_summary} `{key}`s.'
+                    f"Expected {value} `{key}`s. "
+                    f"Found {relevant_images_in_summary} `{key}`s."
                 )
                 LOGGER.debug(message)
 
@@ -91,7 +91,7 @@ def _wait_for_image_numbers(
             break
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestDatabaseSummary:
     """
     Tests for the mock of the database summary endpoint at `GET /summary`.
@@ -284,7 +284,7 @@ class TestProcessingImages:
             )
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestQuotas:
     """
     Tests for quotas and thresholds.
@@ -302,7 +302,7 @@ class TestQuotas:
         assert report.reco_threshold == 1000
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestRecos:
     """
     Tests for the recognition count fields.
@@ -345,7 +345,7 @@ class TestRecos:
         )
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestRequestUsage:
     """
     Tests for the ``request_usage`` field.
@@ -378,7 +378,7 @@ class TestRequestUsage:
 
         with pytest.raises(Fail) as exc:
             vws_client.add_target(
-                name='example',
+                name="example",
                 width=-1,
                 image=high_quality_image,
                 active_flag=True,
@@ -410,7 +410,7 @@ class TestRequestUsage:
         assert new_request_usage == original_request_usage
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestInactiveProject:
     """
     Tests for inactive projects.

@@ -28,7 +28,7 @@ from tests.mock_vws.utils.assertions import (
 )
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestAuthorizationHeader:
     """
     Tests for what happens when the `Authorization` header is not as expected.
@@ -45,10 +45,10 @@ class TestAuthorizationHeader:
 
         headers: Dict[str, str] = {
             **endpoint_headers,
-            'Date': date,
+            "Date": date,
         }
 
-        headers.pop('Authorization', None)
+        headers.pop("Authorization", None)
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
@@ -56,16 +56,16 @@ class TestAuthorizationHeader:
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
-        if netloc == 'cloudreco.vuforia.com':
+        if netloc == "cloudreco.vuforia.com":
             assert_vwq_failure(
                 response=response,
                 status_code=HTTPStatus.UNAUTHORIZED,
-                content_type='text/plain;charset=iso-8859-1',
+                content_type="text/plain;charset=iso-8859-1",
                 cache_control=None,
-                www_authenticate='VWS',
-                connection='keep-alive',
+                www_authenticate="VWS",
+                connection="keep-alive",
             )
-            assert response.text == 'Authorization header missing.'
+            assert response.text == "Authorization header missing."
             return
 
         assert_vws_failure(
@@ -75,7 +75,7 @@ class TestAuthorizationHeader:
         )
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestMalformed:
     """
     Tests for passing a malformed ``Authorization`` header.
@@ -83,8 +83,8 @@ class TestMalformed:
 
     @staticmethod
     @pytest.mark.parametrize(
-        'authorization_string',
-        ['gibberish', 'VWS'],
+        "authorization_string",
+        ["gibberish", "VWS"],
     )
     def test_one_part_no_space(
         endpoint: Endpoint,
@@ -99,8 +99,8 @@ class TestMalformed:
 
         headers: Dict[str, str] = {
             **endpoint.prepared_request.headers,
-            'Authorization': authorization_string,
-            'Date': date,
+            "Authorization": authorization_string,
+            "Date": date,
         }
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
@@ -109,16 +109,16 @@ class TestMalformed:
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
-        if netloc == 'cloudreco.vuforia.com':
+        if netloc == "cloudreco.vuforia.com":
             assert_vwq_failure(
                 response=response,
                 status_code=HTTPStatus.UNAUTHORIZED,
-                content_type='text/plain;charset=iso-8859-1',
+                content_type="text/plain;charset=iso-8859-1",
                 cache_control=None,
-                www_authenticate='VWS',
-                connection='keep-alive',
+                www_authenticate="VWS",
+                connection="keep-alive",
             )
-            assert response.text == 'Malformed authorization header.'
+            assert response.text == "Malformed authorization header."
             return
 
         assert_vws_failure(
@@ -134,13 +134,13 @@ class TestMalformed:
         a string is given which is one "part", a ``BAD_REQUEST`` or
         ``UNAUTHORIZED`` response is returned.
         """
-        authorization_string = 'VWS '
+        authorization_string = "VWS "
         date = rfc_1123_date()
 
         headers: Dict[str, str] = {
             **endpoint.prepared_request.headers,
-            'Authorization': authorization_string,
-            'Date': date,
+            "Authorization": authorization_string,
+            "Date": date,
         }
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
@@ -149,16 +149,16 @@ class TestMalformed:
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
-        if netloc == 'cloudreco.vuforia.com':
+        if netloc == "cloudreco.vuforia.com":
             assert_vwq_failure(
                 response=response,
                 status_code=HTTPStatus.UNAUTHORIZED,
-                content_type='text/plain;charset=iso-8859-1',
+                content_type="text/plain;charset=iso-8859-1",
                 cache_control=None,
-                www_authenticate='VWS',
-                connection='keep-alive',
+                www_authenticate="VWS",
+                connection="keep-alive",
             )
-            assert response.text == 'Malformed authorization header.'
+            assert response.text == "Malformed authorization header."
             return
 
         assert_vws_failure(
@@ -169,10 +169,10 @@ class TestMalformed:
 
     @staticmethod
     @pytest.mark.parametrize(
-        'authorization_string',
+        "authorization_string",
         [
-            'VWS foobar:',
-            'VWS foobar',
+            "VWS foobar:",
+            "VWS foobar",
         ],
     )
     def test_missing_signature(
@@ -187,8 +187,8 @@ class TestMalformed:
 
         headers: Dict[str, str] = {
             **endpoint.prepared_request.headers,
-            'Authorization': authorization_string,
-            'Date': date,
+            "Authorization": authorization_string,
+            "Date": date,
         }
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
@@ -197,18 +197,18 @@ class TestMalformed:
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
-        if netloc == 'cloudreco.vuforia.com':
+        if netloc == "cloudreco.vuforia.com":
             assert_vwq_failure(
                 response=response,
                 status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
-                content_type='text/html;charset=iso-8859-1',
-                cache_control='must-revalidate,no-cache,no-store',
+                content_type="text/html;charset=iso-8859-1",
+                cache_control="must-revalidate,no-cache,no-store",
                 www_authenticate=None,
-                connection='keep-alive',
+                connection="keep-alive",
             )
-            content_filename = 'jetty_error_array_out_of_bounds.html'
-            content_filename_2 = 'jetty_error_array_out_of_bounds_2.html'
-            content_filename_3 = 'jetty_error_array_out_of_bounds_3.html'
+            content_filename = "jetty_error_array_out_of_bounds.html"
+            content_filename_2 = "jetty_error_array_out_of_bounds_2.html"
+            content_filename_3 = "jetty_error_array_out_of_bounds_3.html"
             content_path = Path(__file__).parent / content_filename
             content_path_2 = Path(__file__).parent / content_filename_2
             content_path_3 = Path(__file__).parent / content_filename_3
@@ -232,7 +232,7 @@ class TestMalformed:
         )
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestBadKey:
     """
     Tests for making requests with incorrect keys.
@@ -247,7 +247,7 @@ class TestBadKey:
         response is returned.
         """
         vws_client = VWS(
-            server_access_key='example',
+            server_access_key="example",
             server_secret_key=vuforia_database.server_secret_key,
         )
 
@@ -266,7 +266,7 @@ class TestBadKey:
         response is returned.
         """
         cloud_reco_client = CloudRecoService(
-            client_access_key='example',
+            client_access_key="example",
             client_secret_key=vuforia_database.client_secret_key,
         )
 
@@ -278,24 +278,24 @@ class TestBadKey:
         assert_vwq_failure(
             response=response,
             status_code=HTTPStatus.UNAUTHORIZED,
-            content_type='application/json',
+            content_type="application/json",
             cache_control=None,
-            www_authenticate='VWS',
-            connection='keep-alive',
+            www_authenticate="VWS",
+            connection="keep-alive",
         )
 
-        assert response.json().keys() == {'transaction_id', 'result_code'}
+        assert response.json().keys() == {"transaction_id", "result_code"}
         assert_valid_transaction_id(response=response)
         assert_valid_date_header(response=response)
-        result_code = response.json()['result_code']
-        transaction_id = response.json()['transaction_id']
+        result_code = response.json()["result_code"]
+        transaction_id = response.json()["transaction_id"]
         assert result_code == ResultCodes.AUTHENTICATION_FAILURE.value
         # The separators are inconsistent and we test this.
         expected_text = (
             '{"transaction_id":'
             f'"{transaction_id}",'
             f'"result_code":"{result_code}"'
-            '}'
+            "}"
         )
         assert response.text == expected_text
 
@@ -309,7 +309,7 @@ class TestBadKey:
         """
         vws_client = VWS(
             server_access_key=vuforia_database.server_access_key,
-            server_secret_key='example',
+            server_secret_key="example",
         )
 
         with pytest.raises(AuthenticationFailure):
@@ -326,7 +326,7 @@ class TestBadKey:
         """
         cloud_reco_client = CloudRecoService(
             client_access_key=vuforia_database.client_access_key,
-            client_secret_key='example',
+            client_secret_key="example",
         )
 
         with pytest.raises(cloud_reco_exceptions.AuthenticationFailure) as exc:
@@ -337,23 +337,23 @@ class TestBadKey:
         assert_vwq_failure(
             response=response,
             status_code=HTTPStatus.UNAUTHORIZED,
-            content_type='application/json',
+            content_type="application/json",
             cache_control=None,
-            www_authenticate='VWS',
-            connection='keep-alive',
+            www_authenticate="VWS",
+            connection="keep-alive",
         )
 
-        assert response.json().keys() == {'transaction_id', 'result_code'}
+        assert response.json().keys() == {"transaction_id", "result_code"}
         assert_valid_transaction_id(response=response)
         assert_valid_date_header(response=response)
-        result_code = response.json()['result_code']
-        transaction_id = response.json()['transaction_id']
+        result_code = response.json()["result_code"]
+        transaction_id = response.json()["transaction_id"]
         assert result_code == ResultCodes.AUTHENTICATION_FAILURE.value
         # The separators are inconsistent and we test this.
         expected_text = (
             '{"transaction_id":'
             f'"{transaction_id}",'
             f'"result_code":"{result_code}"'
-            '}'
+            "}"
         )
         assert response.text == expected_text

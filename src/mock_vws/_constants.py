@@ -15,25 +15,25 @@ class ResultCodes(Enum):
     Some codes here are not documented in the above link.
     """
 
-    SUCCESS = 'Success'
-    TARGET_CREATED = 'TargetCreated'
-    AUTHENTICATION_FAILURE = 'AuthenticationFailure'
-    REQUEST_TIME_TOO_SKEWED = 'RequestTimeTooSkewed'
-    TARGET_NAME_EXIST = 'TargetNameExist'
-    UNKNOWN_TARGET = 'UnknownTarget'
-    BAD_IMAGE = 'BadImage'
-    IMAGE_TOO_LARGE = 'ImageTooLarge'
-    METADATA_TOO_LARGE = 'MetadataTooLarge'
+    SUCCESS = "Success"
+    TARGET_CREATED = "TargetCreated"
+    AUTHENTICATION_FAILURE = "AuthenticationFailure"
+    REQUEST_TIME_TOO_SKEWED = "RequestTimeTooSkewed"
+    TARGET_NAME_EXIST = "TargetNameExist"
+    UNKNOWN_TARGET = "UnknownTarget"
+    BAD_IMAGE = "BadImage"
+    IMAGE_TOO_LARGE = "ImageTooLarge"
+    METADATA_TOO_LARGE = "MetadataTooLarge"
     # The documentation says "Start date is after the end date" but, at the
     # time of writing, I do not know how to trigger that, therefore this is not
     # tested.
-    DATE_RANGE_ERROR = 'DateRangeError'
-    FAIL = 'Fail'
-    TARGET_STATUS_PROCESSING = 'TargetStatusProcessing'
-    REQUEST_QUOTA_REACHED = 'RequestQuotaReached'
-    TARGET_STATUS_NOT_SUCCESS = 'TargetStatusNotSuccess'
-    PROJECT_INACTIVE = 'ProjectInactive'
-    INACTIVE_PROJECT = 'InactiveProject'
+    DATE_RANGE_ERROR = "DateRangeError"
+    FAIL = "Fail"
+    TARGET_STATUS_PROCESSING = "TargetStatusProcessing"
+    REQUEST_QUOTA_REACHED = "RequestQuotaReached"
+    TARGET_STATUS_NOT_SUCCESS = "TargetStatusNotSuccess"
+    PROJECT_INACTIVE = "ProjectInactive"
+    INACTIVE_PROJECT = "InactiveProject"
 
 
 class TargetStatuses(Enum):
@@ -44,6 +44,6 @@ class TargetStatuses(Enum):
     https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Retrieve-a-Target-Record
     """
 
-    PROCESSING = 'processing'
-    SUCCESS = 'success'
-    FAILED = 'failed'
+    PROCESSING = "processing"
+    SUCCESS = "success"
+    FAILED = "failed"

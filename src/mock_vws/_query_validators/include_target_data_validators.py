@@ -29,13 +29,13 @@ def validate_include_target_data(
     body_file = io.BytesIO(request_body)
 
     email_message = EmailMessage()
-    email_message['content-type'] = request_headers['Content-Type']
+    email_message["content-type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary().encode()
-    parsed = cgi.parse_multipart(fp=body_file, pdict={'boundary': boundary})
+    parsed = cgi.parse_multipart(fp=body_file, pdict={"boundary": boundary})
 
-    [include_target_data] = parsed.get('include_target_data', ['top'])
+    [include_target_data] = parsed.get("include_target_data", ["top"])
     lower_include_target_data = include_target_data.lower()
-    allowed_included_target_data = {'top', 'all', 'none'}
+    allowed_included_target_data = {"top", "all", "none"}
     if lower_include_target_data in allowed_included_target_data:
         return
 

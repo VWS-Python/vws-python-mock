@@ -24,10 +24,10 @@ def validate_width(request_body: bytes) -> None:
         return
 
     request_text = request_body.decode()
-    if 'width' not in json.loads(request_text):
+    if "width" not in json.loads(request_text):
         return
 
-    width = json.loads(request_text).get('width')
+    width = json.loads(request_text).get("width")
 
     width_is_number = isinstance(width, numbers.Number)
     width_positive = width_is_number and width > 0

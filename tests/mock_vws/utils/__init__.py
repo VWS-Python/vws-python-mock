@@ -57,8 +57,8 @@ class Endpoint:
         self.successful_headers_status_code = successful_headers_status_code
         self.successful_headers_result_code = successful_headers_result_code
         headers = prepared_request.headers
-        content_type = headers.get('Content-Type', '')
-        content_type = content_type.split(';')[0]
+        content_type = headers.get("Content-Type", "")
+        content_type = content_type.split(";")[0]
         assert isinstance(content_type, str)
         self.auth_header_content_type: str = content_type
         self.access_key = access_key
@@ -67,7 +67,7 @@ class Endpoint:
 
 def make_image_file(
     file_format: str,
-    color_space: Literal['L'] | Literal['RGB'] | Literal['CMYK'],
+    color_space: Literal["L"] | Literal["RGB"] | Literal["CMYK"],
     width: int,
     height: int,
 ) -> io.BytesIO:
@@ -90,11 +90,11 @@ def make_image_file(
     image = Image.new(color_space, (width, height))
     for row_index in range(height):
         for column_index in range(width):
-            if color_space == 'L':
+            if color_space == "L":
                 grey = random.choice(seq=range(0, 255))
                 image.putpixel(xy=(column_index, row_index), value=grey)
             else:
-                assert color_space in ('CMYK', 'RGB')
+                assert color_space in ("CMYK", "RGB")
                 red = random.choice(seq=range(0, 255))
                 green = random.choice(seq=range(0, 255))
                 blue = random.choice(seq=range(0, 255))

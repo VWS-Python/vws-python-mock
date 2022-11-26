@@ -23,7 +23,7 @@ from tests.mock_vws.utils.usage_test_helpers import (
     recognize_deletion_seconds,
 )
 
-_EXAMPLE_URL_FOR_TARGET_MANAGER = 'http://' + uuid.uuid4().hex + '.com'
+_EXAMPLE_URL_FOR_TARGET_MANAGER = "http://" + uuid.uuid4().hex + ".com"
 
 
 @pytest.fixture(autouse=True)
@@ -37,13 +37,13 @@ def enable_requests_mock(
     add_flask_app_to_mock(
         mock_obj=requests_mock,
         flask_app=VWS_FLASK_APP,
-        base_url='https://vws.vuforia.com',
+        base_url="https://vws.vuforia.com",
     )
 
     add_flask_app_to_mock(
         mock_obj=requests_mock,
         flask_app=CLOUDRECO_FLASK_APP,
-        base_url='https://cloudreco.vuforia.com',
+        base_url="https://cloudreco.vuforia.com",
     )
 
     add_flask_app_to_mock(
@@ -53,7 +53,7 @@ def enable_requests_mock(
     )
 
     monkeypatch.setenv(
-        name='TARGET_MANAGER_BASE_URL',
+        name="TARGET_MANAGER_BASE_URL",
         value=_EXAMPLE_URL_FOR_TARGET_MANAGER,
     )
 
@@ -75,7 +75,7 @@ class TestProcessingTime:
         By default, targets in the mock take 0.5 seconds to be processed.
         """
         database = VuforiaDatabase()
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         time_taken = processing_time_seconds(
@@ -95,11 +95,11 @@ class TestProcessingTime:
         It is possible to set a custom processing time.
         """
         monkeypatch.setenv(
-            name='PROCESSING_TIME_SECONDS',
-            value='0.1',
+            name="PROCESSING_TIME_SECONDS",
+            value="0.1",
         )
         database = VuforiaDatabase()
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         time_taken = processing_time_seconds(
@@ -131,7 +131,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
         See ``test_query`` for more information.
         """
         database = VuforiaDatabase()
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
         time_taken = recognize_deletion_seconds(
             high_quality_image=high_quality_image,
@@ -153,10 +153,10 @@ class TestCustomQueryRecognizesDeletionSeconds:
         # We choose a low time for a quick test.
         query_recognizes_deletion = 0.5
         database = VuforiaDatabase()
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
         monkeypatch.setenv(
-            name='DELETION_RECOGNITION_SECONDS',
+            name="DELETION_RECOGNITION_SECONDS",
             value=str(query_recognizes_deletion),
         )
         time_taken = recognize_deletion_seconds(
@@ -190,7 +190,7 @@ class TestCustomQueryProcessDeletionSeconds:
         See ``test_query`` for more information.
         """
         database = VuforiaDatabase()
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
         time_taken = process_deletion_seconds(
             high_quality_image=high_quality_image,
@@ -212,10 +212,10 @@ class TestCustomQueryProcessDeletionSeconds:
         # We choose a low time for a quick test.
         query_processes_deletion = 0.1
         database = VuforiaDatabase()
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
         monkeypatch.setenv(
-            name='DELETION_PROCESSING_SECONDS',
+            name="DELETION_PROCESSING_SECONDS",
             value=str(query_processes_deletion),
         )
         time_taken = process_deletion_seconds(
@@ -238,41 +238,41 @@ class TestAddDatabase:
         It is not possible to have multiple databases with matching keys.
         """
         database = VuforiaDatabase(
-            server_access_key='1',
-            server_secret_key='2',
-            client_access_key='3',
-            client_secret_key='4',
-            database_name='5',
+            server_access_key="1",
+            server_secret_key="2",
+            client_access_key="3",
+            client_secret_key="4",
+            database_name="5",
         )
 
-        bad_server_access_key_db = VuforiaDatabase(server_access_key='1')
-        bad_server_secret_key_db = VuforiaDatabase(server_secret_key='2')
-        bad_client_access_key_db = VuforiaDatabase(client_access_key='3')
-        bad_client_secret_key_db = VuforiaDatabase(client_secret_key='4')
-        bad_database_name_db = VuforiaDatabase(database_name='5')
+        bad_server_access_key_db = VuforiaDatabase(server_access_key="1")
+        bad_server_secret_key_db = VuforiaDatabase(server_secret_key="2")
+        bad_client_access_key_db = VuforiaDatabase(client_access_key="3")
+        bad_client_secret_key_db = VuforiaDatabase(client_secret_key="4")
+        bad_database_name_db = VuforiaDatabase(database_name="5")
 
         server_access_key_conflict_error = (
-            'All server access keys must be unique. '
+            "All server access keys must be unique. "
             'There is already a database with the server access key "1".'
         )
         server_secret_key_conflict_error = (
-            'All server secret keys must be unique. '
+            "All server secret keys must be unique. "
             'There is already a database with the server secret key "2".'
         )
         client_access_key_conflict_error = (
-            'All client access keys must be unique. '
+            "All client access keys must be unique. "
             'There is already a database with the client access key "3".'
         )
         client_secret_key_conflict_error = (
-            'All client secret keys must be unique. '
+            "All client secret keys must be unique. "
             'There is already a database with the client secret key "4".'
         )
         database_name_conflict_error = (
-            'All names must be unique. '
+            "All names must be unique. "
             'There is already a database with the name "5".'
         )
 
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         for bad_database, expected_message in (
@@ -296,24 +296,24 @@ class TestAddDatabase:
         """
         It is possible to create a database without giving any data.
         """
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         response = requests.post(url=databases_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.CREATED
 
         data = response.json()
 
-        assert data['targets'] == []
-        assert data['state_name'] == 'WORKING'
-        assert 'database_name' in data.keys()
+        assert data["targets"] == []
+        assert data["state_name"] == "WORKING"
+        assert "database_name" in data.keys()
 
         vws_client = VWS(
-            server_access_key=data['server_access_key'],
-            server_secret_key=data['server_secret_key'],
+            server_access_key=data["server_access_key"],
+            server_secret_key=data["server_secret_key"],
         )
 
         cloud_reco_client = CloudRecoService(
-            client_access_key=data['client_access_key'],
-            client_secret_key=data['client_secret_key'],
+            client_access_key=data["client_access_key"],
+            client_secret_key=data["client_secret_key"],
         )
 
         assert not vws_client.list_targets()
@@ -331,8 +331,8 @@ class TestDeleteDatabase:
         A 404 error is returned when trying to delete a database which does not
         exist.
         """
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
-        delete_url = databases_url + '/' + 'foobar'
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        delete_url = databases_url + "/" + "foobar"
         response = requests.delete(url=delete_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.NOT_FOUND
 
@@ -341,12 +341,12 @@ class TestDeleteDatabase:
         """
         It is possible to delete a database.
         """
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         response = requests.post(url=databases_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.CREATED
 
         data = response.json()
-        delete_url = databases_url + '/' + data['database_name']
+        delete_url = databases_url + "/" + data["database_name"]
         response = requests.delete(url=delete_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.OK
 

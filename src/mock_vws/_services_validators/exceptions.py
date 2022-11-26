@@ -39,18 +39,18 @@ class UnknownTarget(ValidatorException):
         super().__init__()
         self.status_code = HTTPStatus.NOT_FOUND
         body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.UNKNOWN_TARGET.value,
+            "transaction_id": uuid.uuid4().hex,
+            "result_code": ResultCodes.UNKNOWN_TARGET.value,
         }
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'content-type': 'application/json',
-            'server': 'envoy',
-            'date': date,
-            'x-envoy-upstream-service-time': '5',
-            'x-aws-region': 'us-west-2, eu-west-1',
-            'content-length': str(len(self.response_text)),
+            "content-type": "application/json",
+            "server": "envoy",
+            "date": date,
+            "x-envoy-upstream-service-time": "5",
+            "x-aws-region": "us-west-2, eu-west-1",
+            "content-length": str(len(self.response_text)),
         }
 
 
@@ -71,18 +71,18 @@ class ProjectInactive(ValidatorException):
         super().__init__()
         self.status_code = HTTPStatus.FORBIDDEN
         body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.PROJECT_INACTIVE.value,
+            "transaction_id": uuid.uuid4().hex,
+            "result_code": ResultCodes.PROJECT_INACTIVE.value,
         }
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'content-type': 'application/json',
-            'server': 'envoy',
-            'date': date,
-            'x-envoy-upstream-service-time': '5',
-            'x-aws-region': 'us-west-2, eu-west-1',
-            'content-length': str(len(self.response_text)),
+            "content-type": "application/json",
+            "server": "envoy",
+            "date": date,
+            "x-envoy-upstream-service-time": "5",
+            "x-aws-region": "us-west-2, eu-west-1",
+            "content-length": str(len(self.response_text)),
         }
 
 
@@ -103,18 +103,18 @@ class AuthenticationFailure(ValidatorException):
         super().__init__()
         self.status_code = HTTPStatus.UNAUTHORIZED
         body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.AUTHENTICATION_FAILURE.value,
+            "transaction_id": uuid.uuid4().hex,
+            "result_code": ResultCodes.AUTHENTICATION_FAILURE.value,
         }
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'content-type': 'application/json',
-            'server': 'envoy',
-            'date': date,
-            'x-envoy-upstream-service-time': '5',
-            'x-aws-region': 'us-west-2, eu-west-1',
-            'content-length': str(len(self.response_text)),
+            "content-type": "application/json",
+            "server": "envoy",
+            "date": date,
+            "x-envoy-upstream-service-time": "5",
+            "x-aws-region": "us-west-2, eu-west-1",
+            "content-length": str(len(self.response_text)),
         }
 
 
@@ -134,18 +134,18 @@ class Fail(ValidatorException):
         super().__init__()
         self.status_code = status_code
         body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.FAIL.value,
+            "transaction_id": uuid.uuid4().hex,
+            "result_code": ResultCodes.FAIL.value,
         }
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'content-type': 'application/json',
-            'server': 'envoy',
-            'date': date,
-            'x-envoy-upstream-service-time': '5',
-            'x-aws-region': 'us-west-2, eu-west-1',
-            'content-length': str(len(self.response_text)),
+            "content-type": "application/json",
+            "server": "envoy",
+            "date": date,
+            "x-envoy-upstream-service-time": "5",
+            "x-aws-region": "us-west-2, eu-west-1",
+            "content-length": str(len(self.response_text)),
         }
 
 
@@ -166,18 +166,18 @@ class MetadataTooLarge(ValidatorException):
         super().__init__()
         self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
         body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.METADATA_TOO_LARGE.value,
+            "transaction_id": uuid.uuid4().hex,
+            "result_code": ResultCodes.METADATA_TOO_LARGE.value,
         }
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'content-type': 'application/json',
-            'server': 'envoy',
-            'date': date,
-            'x-envoy-upstream-service-time': '5',
-            'x-aws-region': 'us-west-2, eu-west-1',
-            'content-length': str(len(self.response_text)),
+            "content-type": "application/json",
+            "server": "envoy",
+            "date": date,
+            "x-envoy-upstream-service-time": "5",
+            "x-aws-region": "us-west-2, eu-west-1",
+            "content-length": str(len(self.response_text)),
         }
 
 
@@ -198,18 +198,18 @@ class TargetNameExist(ValidatorException):
         super().__init__()
         self.status_code = HTTPStatus.FORBIDDEN
         body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.TARGET_NAME_EXIST.value,
+            "transaction_id": uuid.uuid4().hex,
+            "result_code": ResultCodes.TARGET_NAME_EXIST.value,
         }
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'content-type': 'application/json',
-            'server': 'envoy',
-            'date': date,
-            'x-envoy-upstream-service-time': '5',
-            'x-aws-region': 'us-west-2, eu-west-1',
-            'content-length': str(len(self.response_text)),
+            "content-type": "application/json",
+            "server": "envoy",
+            "date": date,
+            "x-envoy-upstream-service-time": "5",
+            "x-aws-region": "us-west-2, eu-west-1",
+            "content-length": str(len(self.response_text)),
         }
 
 
@@ -231,19 +231,19 @@ class OopsErrorOccurredResponse(ValidatorException):
         """
         super().__init__()
         self.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-        resources_dir = Path(__file__).parent.parent / 'resources'
-        filename = 'oops_error_occurred_response.html'
+        resources_dir = Path(__file__).parent.parent / "resources"
+        filename = "oops_error_occurred_response.html"
         oops_resp_file = resources_dir / filename
         text = str(oops_resp_file.read_text())
         self.response_text = text
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'content-type': 'text/html; charset=UTF-8',
-            'server': 'envoy',
-            'date': date,
-            'x-envoy-upstream-service-time': '5',
-            'x-aws-region': 'us-west-2, eu-west-1',
-            'content-length': str(len(self.response_text)),
+            "content-type": "text/html; charset=UTF-8",
+            "server": "envoy",
+            "date": date,
+            "x-envoy-upstream-service-time": "5",
+            "x-aws-region": "us-west-2, eu-west-1",
+            "content-length": str(len(self.response_text)),
         }
 
 
@@ -264,18 +264,18 @@ class BadImage(ValidatorException):
         super().__init__()
         self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
         body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.BAD_IMAGE.value,
+            "transaction_id": uuid.uuid4().hex,
+            "result_code": ResultCodes.BAD_IMAGE.value,
         }
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'content-type': 'application/json',
-            'server': 'envoy',
-            'date': date,
-            'x-envoy-upstream-service-time': '5',
-            'x-aws-region': 'us-west-2, eu-west-1',
-            'content-length': str(len(self.response_text)),
+            "content-type": "application/json",
+            "server": "envoy",
+            "date": date,
+            "x-envoy-upstream-service-time": "5",
+            "x-aws-region": "us-west-2, eu-west-1",
+            "content-length": str(len(self.response_text)),
         }
 
 
@@ -296,18 +296,18 @@ class ImageTooLarge(ValidatorException):
         super().__init__()
         self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
         body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.IMAGE_TOO_LARGE.value,
+            "transaction_id": uuid.uuid4().hex,
+            "result_code": ResultCodes.IMAGE_TOO_LARGE.value,
         }
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'content-type': 'application/json',
-            'server': 'envoy',
-            'date': date,
-            'x-envoy-upstream-service-time': '5',
-            'x-aws-region': 'us-west-2, eu-west-1',
-            'content-length': str(len(self.response_text)),
+            "content-type": "application/json",
+            "server": "envoy",
+            "date": date,
+            "x-envoy-upstream-service-time": "5",
+            "x-aws-region": "us-west-2, eu-west-1",
+            "content-length": str(len(self.response_text)),
         }
 
 
@@ -328,18 +328,18 @@ class RequestTimeTooSkewed(ValidatorException):
         super().__init__()
         self.status_code = HTTPStatus.FORBIDDEN
         body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.REQUEST_TIME_TOO_SKEWED.value,
+            "transaction_id": uuid.uuid4().hex,
+            "result_code": ResultCodes.REQUEST_TIME_TOO_SKEWED.value,
         }
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'content-type': 'application/json',
-            'server': 'envoy',
-            'date': date,
-            'x-envoy-upstream-service-time': '5',
-            'x-aws-region': 'us-west-2, eu-west-1',
-            'content-length': str(len(self.response_text)),
+            "content-type": "application/json",
+            "server": "envoy",
+            "date": date,
+            "x-envoy-upstream-service-time": "5",
+            "x-aws-region": "us-west-2, eu-west-1",
+            "content-length": str(len(self.response_text)),
         }
 
 
@@ -360,14 +360,14 @@ class ContentLengthHeaderTooLarge(ValidatorException):
         super().__init__()
         self.status_code = HTTPStatus.REQUEST_TIMEOUT
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
-        self.response_text = 'stream timeout'
+        self.response_text = "stream timeout"
         self.headers = {
-            'content-length': str(len(self.response_text)),
-            'date': date,
-            'server': 'envoy',
-            'content-type': 'text/plain',
-            'connection': 'close',
-            'x-aws-region': 'eu-west-1',
+            "content-length": str(len(self.response_text)),
+            "date": date,
+            "server": "envoy",
+            "content-type": "text/plain",
+            "connection": "close",
+            "x-aws-region": "eu-west-1",
         }
 
 
@@ -386,14 +386,14 @@ class ContentLengthHeaderNotInt(ValidatorException):
         """
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
-        self.response_text = 'Bad Request'
+        self.response_text = "Bad Request"
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'connection': 'close',
-            'content-length': str(len(self.response_text)),
-            'date': date,
-            'server': 'envoy',
-            'content-type': 'text/plain',
+            "connection": "close",
+            "content-length": str(len(self.response_text)),
+            "date": date,
+            "server": "envoy",
+            "content-type": "text/plain",
         }
 
 
@@ -412,14 +412,14 @@ class UnnecessaryRequestBody(ValidatorException):
         """
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
-        self.response_text = ''
+        self.response_text = ""
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'server': 'envoy',
-            'date': date,
-            'x-envoy-upstream-service-time': '5',
-            'x-aws-region': 'us-west-2, eu-west-1',
-            'content-length': str(len(self.response_text)),
+            "server": "envoy",
+            "date": date,
+            "x-envoy-upstream-service-time": "5",
+            "x-aws-region": "us-west-2, eu-west-1",
+            "content-length": str(len(self.response_text)),
         }
 
 
@@ -440,18 +440,18 @@ class TargetStatusNotSuccess(ValidatorException):
         super().__init__()
         self.status_code = HTTPStatus.FORBIDDEN
         body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.TARGET_STATUS_NOT_SUCCESS.value,
+            "transaction_id": uuid.uuid4().hex,
+            "result_code": ResultCodes.TARGET_STATUS_NOT_SUCCESS.value,
         }
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'content-type': 'application/json',
-            'server': 'envoy',
-            'date': date,
-            'x-envoy-upstream-service-time': '5',
-            'x-aws-region': 'us-west-2, eu-west-1',
-            'content-length': str(len(self.response_text)),
+            "content-type": "application/json",
+            "server": "envoy",
+            "date": date,
+            "x-envoy-upstream-service-time": "5",
+            "x-aws-region": "us-west-2, eu-west-1",
+            "content-length": str(len(self.response_text)),
         }
 
 
@@ -471,16 +471,16 @@ class TargetStatusProcessing(ValidatorException):
         super().__init__()
         self.status_code = HTTPStatus.FORBIDDEN
         body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.TARGET_STATUS_PROCESSING.value,
+            "transaction_id": uuid.uuid4().hex,
+            "result_code": ResultCodes.TARGET_STATUS_PROCESSING.value,
         }
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'content-type': 'application/json',
-            'server': 'envoy',
-            'date': date,
-            'x-envoy-upstream-service-time': '5',
-            'x-aws-region': 'us-west-2, eu-west-1',
-            'content-length': str(len(self.response_text)),
+            "content-type": "application/json",
+            "server": "envoy",
+            "date": date,
+            "x-envoy-upstream-service-time": "5",
+            "x-aws-region": "us-west-2, eu-west-1",
+            "content-length": str(len(self.response_text)),
         }

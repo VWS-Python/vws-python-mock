@@ -33,11 +33,11 @@ def validate_image_field_given(
     body_file = io.BytesIO(request_body)
 
     email_message = EmailMessage()
-    email_message['content-type'] = request_headers['Content-Type']
+    email_message["content-type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary().encode()
-    parsed = cgi.parse_multipart(fp=body_file, pdict={'boundary': boundary})
+    parsed = cgi.parse_multipart(fp=body_file, pdict={"boundary": boundary})
 
-    if 'image' in parsed.keys():
+    if "image" in parsed.keys():
         return
 
     raise ImageNotGiven
@@ -60,11 +60,11 @@ def validate_image_file_size(
     body_file = io.BytesIO(request_body)
 
     email_message = EmailMessage()
-    email_message['content-type'] = request_headers['Content-Type']
+    email_message["content-type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary().encode()
-    parsed = cgi.parse_multipart(fp=body_file, pdict={'boundary': boundary})
+    parsed = cgi.parse_multipart(fp=body_file, pdict={"boundary": boundary})
 
-    [image] = parsed['image']
+    [image] = parsed["image"]
 
     # This is the documented maximum size of a PNG as per.
     # https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query.
@@ -96,11 +96,11 @@ def validate_image_dimensions(
     body_file = io.BytesIO(request_body)
 
     email_message = EmailMessage()
-    email_message['content-type'] = request_headers['Content-Type']
+    email_message["content-type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary().encode()
-    parsed = cgi.parse_multipart(fp=body_file, pdict={'boundary': boundary})
+    parsed = cgi.parse_multipart(fp=body_file, pdict={"boundary": boundary})
 
-    [image] = parsed['image']
+    [image] = parsed["image"]
     assert isinstance(image, bytes)
     image_file = io.BytesIO(image)
     pil_image = Image.open(image_file)
@@ -129,17 +129,17 @@ def validate_image_format(
     body_file = io.BytesIO(request_body)
 
     email_message = EmailMessage()
-    email_message['content-type'] = request_headers['Content-Type']
+    email_message["content-type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary().encode()
-    parsed = cgi.parse_multipart(fp=body_file, pdict={'boundary': boundary})
+    parsed = cgi.parse_multipart(fp=body_file, pdict={"boundary": boundary})
 
-    [image] = parsed['image']
+    [image] = parsed["image"]
 
     assert isinstance(image, bytes)
     image_file = io.BytesIO(image)
     pil_image = Image.open(image_file)
 
-    if pil_image.format in ('PNG', 'JPEG'):
+    if pil_image.format in ("PNG", "JPEG"):
         return
 
     raise BadImage
@@ -162,11 +162,11 @@ def validate_image_is_image(
     body_file = io.BytesIO(request_body)
 
     email_message = EmailMessage()
-    email_message['content-type'] = request_headers['Content-Type']
+    email_message["content-type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary().encode()
-    parsed = cgi.parse_multipart(fp=body_file, pdict={'boundary': boundary})
+    parsed = cgi.parse_multipart(fp=body_file, pdict={"boundary": boundary})
 
-    [image] = parsed['image']
+    [image] = parsed["image"]
 
     assert isinstance(image, bytes)
     image_file = io.BytesIO(image)

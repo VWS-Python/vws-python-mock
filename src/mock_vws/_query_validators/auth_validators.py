@@ -25,7 +25,7 @@ def validate_auth_header_exists(request_headers: Dict[str, str]) -> None:
         AuthHeaderMissing: There is no "Authorization" header.
     """
 
-    if 'Authorization' in request_headers:
+    if "Authorization" in request_headers:
         return
 
     raise AuthHeaderMissing
@@ -44,8 +44,8 @@ def validate_auth_header_number_of_parts(
         MalformedAuthHeader: The "Authorization" header is not as expected.
     """
 
-    header = request_headers['Authorization']
-    parts = header.split(' ')
+    header = request_headers["Authorization"]
+    parts = header.split(" ")
     if len(parts) == 2 and parts[1]:
         return
 
@@ -67,9 +67,9 @@ def validate_client_key_exists(
         AuthenticationFailure: The client key is unknown.
     """
 
-    header = request_headers['Authorization']
-    first_part, _ = header.split(':')
-    _, access_key = first_part.split(' ')
+    header = request_headers["Authorization"]
+    first_part, _ = header.split(":")
+    _, access_key = first_part.split(" ")
     for database in databases:
         if access_key == database.client_access_key:
             return
@@ -90,8 +90,8 @@ def validate_auth_header_has_signature(
         QueryOutOfBounds: The "Authorization" header has no signature.
     """
 
-    header = request_headers['Authorization']
-    if header.count(':') == 1 and header.split(':')[1]:
+    header = request_headers["Authorization"]
+    if header.count(":") == 1 and header.split(":")[1]:
         return
 
     raise QueryOutOfBounds

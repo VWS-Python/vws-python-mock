@@ -32,10 +32,10 @@ def get_database_matching_client_keys(
     Returns:
         The database which is being accessed by the given client request.
     """
-    content_type = request_headers.get('Content-Type', '').split(';')[0]
-    auth_header = request_headers.get('Authorization')
-    content = request_body or b''
-    date = request_headers.get('Date', '')
+    content_type = request_headers.get("Content-Type", "").split(";")[0]
+    auth_header = request_headers.get("Authorization")
+    content = request_body or b""
+    date = request_headers.get("Date", "")
 
     for database in databases:
         expected_authorization_header = authorization_header(
@@ -74,10 +74,10 @@ def get_database_matching_server_keys(
     Returns:
         The database being accessed by the given server request.
     """
-    content_type = request_headers.get('Content-Type', '').split(';')[0]
-    auth_header = request_headers.get('Authorization')
-    content = request_body or b''
-    date = request_headers.get('Date', '')
+    content_type = request_headers.get("Content-Type", "").split(";")[0]
+    auth_header = request_headers.get("Authorization")
+    content = request_body or b""
+    date = request_headers.get("Date", "")
 
     for database in databases:
         expected_authorization_header = authorization_header(

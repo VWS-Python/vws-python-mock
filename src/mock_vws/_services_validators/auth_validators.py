@@ -23,7 +23,7 @@ def validate_auth_header_exists(request_headers: Dict[str, str]) -> None:
     Raises:
         AuthenticationFailure: There is no "Authorization" header.
     """
-    if 'Authorization' not in request_headers:
+    if "Authorization" not in request_headers:
         raise AuthenticationFailure
 
 
@@ -41,9 +41,9 @@ def validate_access_key_exists(
     Raises:
         Fail: The access key does not match a given database.
     """
-    header = request_headers['Authorization']
-    first_part, _ = header.split(':')
-    _, access_key = first_part.split(' ')
+    header = request_headers["Authorization"]
+    first_part, _ = header.split(":")
+    _, access_key = first_part.split(" ")
     for database in databases:
         if access_key == database.server_access_key:
             return
@@ -63,8 +63,8 @@ def validate_auth_header_has_signature(
     Raises:
         Fail: The "Authorization" header does not include a signature.
     """
-    header = request_headers['Authorization']
-    if header.count(':') == 1 and header.split(':')[1]:
+    header = request_headers["Authorization"]
+    if header.count(":") == 1 and header.split(":")[1]:
         return
 
     raise Fail(status_code=HTTPStatus.BAD_REQUEST)

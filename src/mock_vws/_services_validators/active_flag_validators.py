@@ -24,10 +24,10 @@ def validate_active_flag(request_body: bytes) -> None:
         return
 
     request_text = request_body.decode()
-    if 'active_flag' not in json.loads(request_text):
+    if "active_flag" not in json.loads(request_text):
         return
 
-    active_flag = json.loads(request_text).get('active_flag')
+    active_flag = json.loads(request_text).get("active_flag")
 
     if active_flag is None or isinstance(active_flag, bool):
         return

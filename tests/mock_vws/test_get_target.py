@@ -13,7 +13,7 @@ from vws.exceptions.vws_exceptions import UnknownTarget
 from vws.reports import TargetRecord, TargetStatuses
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestGetRecord:
     """
     Tests for getting a target record.
@@ -27,7 +27,7 @@ class TestGetRecord:
         """
         Details of a target are returned.
         """
-        name = 'my_example_name'
+        name = "my_example_name"
         width = 1234
 
         target_id = vws_client.add_target(
@@ -51,7 +51,7 @@ class TestGetRecord:
             name=name,
             width=width,
             tracking_rating=tracking_rating,
-            reco_rating='',
+            reco_rating="",
         )
 
         assert target_record == expected_target_record
@@ -66,7 +66,7 @@ class TestGetRecord:
         'failed' after some time.
         """
         target_id = vws_client.add_target(
-            name='my_example_name',
+            name="my_example_name",
             width=1,
             image=image_file_failed_state,
             active_flag=True,
@@ -93,7 +93,7 @@ class TestGetRecord:
         mock will be counted as a success in the real implementation.
         """
         target_id = vws_client.add_target(
-            name='example',
+            name="example",
             width=1,
             image=image_file_success_state_low_rating,
             active_flag=True,
@@ -114,7 +114,7 @@ class TestGetRecord:
         assert new_tracking_rating == tracking_rating
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestInactiveProject:
     """
     Tests for inactive projects.

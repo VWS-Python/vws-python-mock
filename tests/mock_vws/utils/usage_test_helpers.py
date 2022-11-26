@@ -26,7 +26,7 @@ def _add_and_delete_target(
     )
 
     target_id = vws_client.add_target(
-        name='example_name',
+        name="example_name",
         width=1,
         image=image,
         active_flag=True,
@@ -48,7 +48,7 @@ def processing_time_seconds(
         server_secret_key=vuforia_database.server_secret_key,
     )
     target_id = vws_client.add_target(
-        name='example',
+        name="example",
         width=1,
         image=image,
         active_flag=True,
