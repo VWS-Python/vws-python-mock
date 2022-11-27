@@ -25,14 +25,14 @@ from email.parser import FeedParser
 from io import BytesIO, StringIO, TextIOWrapper
 
 __all__ = [
-    'MiniFieldStorage',
-    'FieldStorage',
-    'parse_multipart',
-    'parse_header',
+    "MiniFieldStorage",
+    "FieldStorage",
+    "parse_multipart",
+    "parse_header",
 ]
 
 
-logfile = ''  # Filename to log to, if not empty
+logfile = ""  # Filename to log to, if not empty
 logfp = None  # File object to log to, if not None
 
 
@@ -47,9 +47,9 @@ maxlen = 0
 def parse_multipart(
     fp,
     pdict: dict,
-    encoding: str = 'utf-8',
-    errors: str = 'replace',
-    separator: str = '&',
+    encoding: str = "utf-8",
+    errors: str = "replace",
+    separator: str = "&",
 ) -> dict:
     """
     Parse multipart input.
@@ -67,12 +67,12 @@ def parse_multipart(
     """
     # RFC 2046, Section 5.1 : The 'multipart' boundary delimiters are always
     # represented as 7bit US-ASCII.
-    boundary = pdict['boundary'].decode('ascii')
-    ctype = 'multipart/form-data; boundary={}'.format(boundary)
+    boundary = pdict["boundary"].decode("ascii")
+    ctype = "multipart/form-data; boundary={}".format(boundary)
     headers = Message()
     headers.set_type(ctype)
     try:
-        headers['Content-Length'] = pdict['CONTENT-LENGTH']
+        headers["Content-Length"] = pdict["CONTENT-LENGTH"]
     except KeyError:
         pass
     fs = FieldStorage(
@@ -80,18 +80,18 @@ def parse_multipart(
         headers=headers,
         encoding=encoding,
         errors=errors,
-        environ={'REQUEST_METHOD': 'POST'},
+        environ={"REQUEST_METHOD": "POST"},
         separator=separator,
     )
     return {k: fs.getlist(k) for k in fs}
 
 
 def _parseparam(s):
-    while s[:1] == ';':
+    while s[:1] == ";":
         s = s[1:]
-        end = s.find(';')
+        end = s.find(";")
         while end > 0 and (s.count('"', 0, end) - s.count('\\"', 0, end)) % 2:
-            end = s.find(';', end + 1)
+            end = s.find(";", end + 1)
         if end < 0:
             end = len(s)
         f = s[:end]
@@ -105,17 +105,17 @@ def parse_header(line: str) -> tuple:
 
     Return the main content-type and a dictionary of options.
     """
-    parts = _parseparam(';' + line)
+    parts = _parseparam(";" + line)
     key = parts.__next__()
     pdict = {}
     for p in parts:
-        i = p.find('=')
+        i = p.find("=")
         if i >= 0:
             name = p[:i].strip().lower()
             value = p[i + 1 :].strip()  # noqa
             if len(value) >= 2 and value[0] == value[-1] == '"':
                 value = value[1:-1]
-                value = value.replace('\\\\', '\\').replace('\\"', '"')
+                value = value.replace("\\\\", "\\").replace('\\"', '"')
             pdict[name] = value
     return key, pdict
 
@@ -145,7 +145,7 @@ class MiniFieldStorage:
 
     def __repr__(self):
         """Return printable representation."""
-        return 'MiniFieldStorage(%r, %r)' % (self.name, self.value)
+        return "MiniFieldStorage(%r, %r)" % (self.name, self.value)
 
 
 class FieldStorage:
@@ -196,15 +196,15 @@ class FieldStorage:
         self,
         fp=None,
         headers=None,
-        outerboundary=b'',
+        outerboundary=b"",
         environ=os.environ,
         keep_blank_values=0,
         strict_parsing=0,
         limit=None,
-        encoding='utf-8',
-        errors='replace',
+        encoding="utf-8",
+        errors="replace",
         max_num_fields=None,
-        separator='&',
+        separator="&",
     ):
         """
         Constructor.  Read multipart/* until last part.
@@ -250,43 +250,43 @@ class FieldStorage:
             if there are more than n fields read by parse_qsl().
 
         """
-        method = 'GET'
+        method = "GET"
         self.keep_blank_values = keep_blank_values
         self.strict_parsing = strict_parsing
         self.max_num_fields = max_num_fields
         self.separator = separator
-        if 'REQUEST_METHOD' in environ:
-            method = environ['REQUEST_METHOD'].upper()
+        if "REQUEST_METHOD" in environ:
+            method = environ["REQUEST_METHOD"].upper()
         self.qs_on_post = None
-        if method == 'GET' or method == 'HEAD':
-            if 'QUERY_STRING' in environ:
-                qs = environ['QUERY_STRING']
+        if method == "GET" or method == "HEAD":
+            if "QUERY_STRING" in environ:
+                qs = environ["QUERY_STRING"]
             elif sys.argv[1:]:
                 qs = sys.argv[1]
             else:
-                qs = ''
-            qs = qs.encode(locale.getpreferredencoding(), 'surrogateescape')
+                qs = ""
+            qs = qs.encode(locale.getpreferredencoding(), "surrogateescape")
             fp = BytesIO(qs)
             if headers is None:
                 headers = {
-                    'content-type': 'application/x-www-form-urlencoded',
+                    "content-type": "application/x-www-form-urlencoded",
                 }
         if headers is None:
             headers = {}
-            if method == 'POST':
+            if method == "POST":
                 # Set default content-type for POST to what's traditional
-                headers['content-type'] = 'application/x-www-form-urlencoded'
-            if 'CONTENT_TYPE' in environ:
-                headers['content-type'] = environ['CONTENT_TYPE']
-            if 'QUERY_STRING' in environ:
-                self.qs_on_post = environ['QUERY_STRING']
-            if 'CONTENT_LENGTH' in environ:
-                headers['content-length'] = environ['CONTENT_LENGTH']
+                headers["content-type"] = "application/x-www-form-urlencoded"
+            if "CONTENT_TYPE" in environ:
+                headers["content-type"] = environ["CONTENT_TYPE"]
+            if "QUERY_STRING" in environ:
+                self.qs_on_post = environ["QUERY_STRING"]
+            if "CONTENT_LENGTH" in environ:
+                headers["content-length"] = environ["CONTENT_LENGTH"]
         else:
             if not (isinstance(headers, (Mapping, Message))):
                 raise TypeError(
-                    'headers must be mapping or an instance of '
-                    'email.message.Message',
+                    "headers must be mapping or an instance of "
+                    "email.message.Message",
                 )
         self.headers = headers
         if fp is None:
@@ -295,8 +295,8 @@ class FieldStorage:
         elif isinstance(fp, TextIOWrapper):
             self.fp = fp.buffer
         else:
-            if not (hasattr(fp, 'read') and hasattr(fp, 'readline')):
-                raise TypeError('fp must be file pointer')
+            if not (hasattr(fp, "read") and hasattr(fp, "readline")):
+                raise TypeError("fp must be file pointer")
             self.fp = fp
 
         self.encoding = encoding
@@ -304,7 +304,7 @@ class FieldStorage:
 
         if not isinstance(outerboundary, bytes):
             raise TypeError(
-                'outerboundary must be bytes, not %s'
+                "outerboundary must be bytes, not %s"
                 % type(outerboundary).__name__,
             )
         self.outerboundary = outerboundary
@@ -313,17 +313,17 @@ class FieldStorage:
         self.limit = limit
 
         # Process content-disposition header
-        cdisp, pdict = '', {}
-        if 'content-disposition' in self.headers:
-            cdisp, pdict = parse_header(self.headers['content-disposition'])
+        cdisp, pdict = "", {}
+        if "content-disposition" in self.headers:
+            cdisp, pdict = parse_header(self.headers["content-disposition"])
         self.disposition = cdisp
         self.disposition_options = pdict
         self.name = None
-        if 'name' in pdict:
-            self.name = pdict['name']
+        if "name" in pdict:
+            self.name = pdict["name"]
         self.filename = None
-        if 'filename' in pdict:
-            self.filename = pdict['filename']
+        if "filename" in pdict:
+            self.filename = pdict["filename"]
         self._binary_file = self.filename is not None
 
         # Process content-type header
@@ -338,39 +338,39 @@ class FieldStorage:
         #
         # See below for what we do if there does exist a content-type header,
         # but it happens to be something we don't understand.
-        if 'content-type' in self.headers:
-            ctype, pdict = parse_header(self.headers['content-type'])
-        elif self.outerboundary or method != 'POST':
-            ctype, pdict = 'text/plain', {}
+        if "content-type" in self.headers:
+            ctype, pdict = parse_header(self.headers["content-type"])
+        elif self.outerboundary or method != "POST":
+            ctype, pdict = "text/plain", {}
         else:
-            ctype, pdict = 'application/x-www-form-urlencoded', {}
+            ctype, pdict = "application/x-www-form-urlencoded", {}
         self.type = ctype
         self.type_options = pdict
-        if 'boundary' in pdict:
-            self.innerboundary = pdict['boundary'].encode(
+        if "boundary" in pdict:
+            self.innerboundary = pdict["boundary"].encode(
                 self.encoding,
                 self.errors,
             )
         else:
-            self.innerboundary = b''
+            self.innerboundary = b""
 
         clen = -1
-        if 'content-length' in self.headers:
+        if "content-length" in self.headers:
             try:
-                clen = int(self.headers['content-length'])
+                clen = int(self.headers["content-length"])
             except ValueError:
                 pass
             if maxlen and clen > maxlen:
-                raise ValueError('Maximum content length exceeded')
+                raise ValueError("Maximum content length exceeded")
         self.length = clen
         if self.limit is None and clen >= 0:
             self.limit = clen
 
         self.list = self.file = None
         self.done = 0
-        if ctype == 'application/x-www-form-urlencoded':
+        if ctype == "application/x-www-form-urlencoded":
             self.read_urlencoded()
-        elif ctype[:10] == 'multipart/':
+        elif ctype[:10] == "multipart/":
             self.read_multi(environ, keep_blank_values, strict_parsing)
         else:
             self.read_single()
@@ -392,7 +392,7 @@ class FieldStorage:
 
     def __repr__(self):
         """Return a printable representation."""
-        return 'FieldStorage(%r, %r, %r)' % (
+        return "FieldStorage(%r, %r, %r)" % (
             self.name,
             self.filename,
             self.value,
@@ -404,7 +404,7 @@ class FieldStorage:
 
     def __getattr__(self, name):
         """Ignore this docstring: Made to satisfy pydocstyle."""
-        if name != 'value':
+        if name != "value":
             raise AttributeError(name)
         if self.file:
             self.file.seek(0)
@@ -419,7 +419,7 @@ class FieldStorage:
     def __getitem__(self, key):
         """Dictionary style indexing."""
         if self.list is None:
-            raise TypeError('not indexable')
+            raise TypeError("not indexable")
         found = []
         for item in self.list:
             if item.name == key:
@@ -445,13 +445,13 @@ class FieldStorage:
     def keys(self):
         """Dictionary style keys method."""
         if self.list is None:
-            raise TypeError('not indexable')
+            raise TypeError("not indexable")
         return list(set(item.name for item in self.list))
 
     def __contains__(self, key):
         """Dictionary style __contains__ method."""
         if self.list is None:
-            raise TypeError('not indexable')
+            raise TypeError("not indexable")
         return any(item.name == key for item in self.list)
 
     def __len__(self):
@@ -463,12 +463,12 @@ class FieldStorage:
         qs = self.fp.read(self.length)
         if not isinstance(qs, bytes):
             raise ValueError(
-                '%s should return bytes, got %s'
+                "%s should return bytes, got %s"
                 % (self.fp, type(qs).__name__),
             )
         qs = qs.decode(self.encoding, self.errors)
         if self.qs_on_post:
-            qs += '&' + self.qs_on_post
+            qs += "&" + self.qs_on_post
         query = urllib.parse.parse_qsl(
             qs,
             self.keep_blank_values,
@@ -487,7 +487,7 @@ class FieldStorage:
         """Internal: read a part that is itself multipart."""
         ib = self.innerboundary
         if not valid_boundary(ib):
-            raise ValueError('Invalid boundary in multipart form: %r' % (ib,))
+            raise ValueError("Invalid boundary in multipart form: %r" % (ib,))
         self.list = []
         if self.qs_on_post:
             query = urllib.parse.parse_qsl(
@@ -507,14 +507,14 @@ class FieldStorage:
         first_line = self.fp.readline()  # bytes
         if not isinstance(first_line, bytes):
             raise ValueError(
-                '%s should return bytes, got %s'
+                "%s should return bytes, got %s"
                 % (self.fp, type(first_line).__name__),
             )
         self.bytes_read += len(first_line)
 
         # Ensure that we consume the file until we've hit our inner boundary
         while (
-            first_line.strip() != (b'--' + self.innerboundary) and first_line
+            first_line.strip() != (b"--" + self.innerboundary) and first_line
         ):
             first_line = self.fp.readline()
             self.bytes_read += len(first_line)
@@ -526,7 +526,7 @@ class FieldStorage:
 
         while True:
             parser = FeedParser()
-            hdr_text = b''
+            hdr_text = b""
             while True:
                 data = self.fp.readline()
                 hdr_text += data
@@ -540,8 +540,8 @@ class FieldStorage:
             headers = parser.close()
 
             # Some clients add Content-Length for part headers, ignore them
-            if 'content-length' in headers:
-                del headers['content-length']
+            if "content-length" in headers:
+                del headers["content-length"]
 
             limit = (
                 None if self.limit is None else self.limit - self.bytes_read
@@ -565,7 +565,7 @@ class FieldStorage:
                 if part.list:
                     max_num_fields -= len(part.list)
                 if max_num_fields < 0:
-                    raise ValueError('Max number of fields exceeded')
+                    raise ValueError("Max number of fields exceeded")
 
             self.bytes_read += part.bytes_read
             self.list.append(part)
@@ -593,7 +593,7 @@ class FieldStorage:
                 data = self.fp.read(min(todo, self.bufsize))  # bytes
                 if not isinstance(data, bytes):
                     raise ValueError(
-                        '%s should return bytes, got %s'
+                        "%s should return bytes, got %s"
                         % (self.fp, type(data).__name__),
                     )
                 self.bytes_read += len(data)
@@ -648,9 +648,9 @@ class FieldStorage:
         Data is read as bytes: boundaries and line ends must be converted
         to bytes for comparisons.
         """
-        next_boundary = b'--' + self.outerboundary
-        last_boundary = next_boundary + b'--'
-        delim = b''
+        next_boundary = b"--" + self.outerboundary
+        last_boundary = next_boundary + b"--"
+        delim = b""
         last_line_lfend = True
         _read = 0
         while 1:
@@ -663,10 +663,10 @@ class FieldStorage:
             if not line:
                 self.done = -1
                 break
-            if delim == b'\r':
+            if delim == b"\r":
                 line = delim + line
-                delim = b''
-            if line.startswith(b'--') and last_line_lfend:
+                delim = b""
+            if line.startswith(b"--") and last_line_lfend:
                 strippedline = line.rstrip()
                 if strippedline == next_boundary:
                     break
@@ -674,22 +674,22 @@ class FieldStorage:
                     self.done = 1
                     break
             odelim = delim
-            if line.endswith(b'\r\n'):
-                delim = b'\r\n'
+            if line.endswith(b"\r\n"):
+                delim = b"\r\n"
                 line = line[:-2]
                 last_line_lfend = True
-            elif line.endswith(b'\n'):
-                delim = b'\n'
+            elif line.endswith(b"\n"):
+                delim = b"\n"
                 line = line[:-1]
                 last_line_lfend = True
-            elif line.endswith(b'\r'):
+            elif line.endswith(b"\r"):
                 # We may interrupt \r\n sequences if they span the 2**16
                 # byte boundary
-                delim = b'\r'
+                delim = b"\r"
                 line = line[:-1]
                 last_line_lfend = False
             else:
-                delim = b''
+                delim = b""
                 last_line_lfend = False
             self.__write(odelim + line)
 
@@ -697,8 +697,8 @@ class FieldStorage:
         """Internal: skip lines until outer boundary if defined."""
         if not self.outerboundary or self.done:
             return
-        next_boundary = b'--' + self.outerboundary
-        last_boundary = next_boundary + b'--'
+        next_boundary = b"--" + self.outerboundary
+        last_boundary = next_boundary + b"--"
         last_line_lfend = True
         while True:
             line = self.fp.readline(1 << 16)
@@ -706,14 +706,14 @@ class FieldStorage:
             if not line:
                 self.done = -1
                 break
-            if line.endswith(b'--') and last_line_lfend:
+            if line.endswith(b"--") and last_line_lfend:
                 strippedline = line.strip()
                 if strippedline == next_boundary:
                     break
                 if strippedline == last_boundary:
                     self.done = 1
                     break
-            last_line_lfend = line.endswith(b'\n')
+            last_line_lfend = line.endswith(b"\n")
 
     def make_file(self):
         """
@@ -741,12 +741,12 @@ class FieldStorage:
 
         """
         if self._binary_file:
-            return tempfile.TemporaryFile('wb+')
+            return tempfile.TemporaryFile("wb+")
         else:
             return tempfile.TemporaryFile(
-                'w+',
+                "w+",
                 encoding=self.encoding,
-                newline='\n',
+                newline="\n",
             )
 
 
@@ -758,7 +758,7 @@ def valid_boundary(s):
     import re
 
     if isinstance(s, bytes):
-        _vb_pattern = b'^[ -~]{0,200}[!-~]$'
+        _vb_pattern = b"^[ -~]{0,200}[!-~]$"
     else:
-        _vb_pattern = '^[ -~]{0,200}[!-~]$'
+        _vb_pattern = "^[ -~]{0,200}[!-~]$"
     return re.match(_vb_pattern, s)

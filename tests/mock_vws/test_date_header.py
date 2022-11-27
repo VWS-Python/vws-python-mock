@@ -29,7 +29,7 @@ _VWQ_MAX_TIME_SKEW = timedelta(minutes=65)
 _LEEWAY = timedelta(seconds=10)
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestMissing:
     """
     Tests for what happens when the `Date` header is missing.
@@ -41,7 +41,7 @@ class TestMissing:
         A `BAD_REQUEST` response is returned when no `Date` header is given.
         """
         endpoint_headers = dict(endpoint.prepared_request.headers)
-        content = endpoint.prepared_request.body or b''
+        content = endpoint.prepared_request.body or b""
         assert isinstance(content, bytes)
 
         authorization_string = authorization_header(
@@ -50,31 +50,31 @@ class TestMissing:
             method=str(endpoint.prepared_request.method),
             content=content,
             content_type=endpoint.auth_header_content_type,
-            date='',
+            date="",
             request_path=endpoint.prepared_request.path_url,
         )
 
         headers: Dict[str, str] = {
             **endpoint_headers,
-            'Authorization': authorization_string,
+            "Authorization": authorization_string,
         }
-        headers.pop('Date', None)
+        headers.pop("Date", None)
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
-        if netloc == 'cloudreco.vuforia.com':
-            expected_content_type = 'text/plain;charset=iso-8859-1'
-            assert response.text == 'Date header required.'
+        if netloc == "cloudreco.vuforia.com":
+            expected_content_type = "text/plain;charset=iso-8859-1"
+            assert response.text == "Date header required."
             assert_vwq_failure(
                 response=response,
                 status_code=HTTPStatus.BAD_REQUEST,
                 content_type=expected_content_type,
                 cache_control=None,
                 www_authenticate=None,
-                connection='keep-alive',
+                connection="keep-alive",
             )
             return
 
@@ -85,7 +85,7 @@ class TestMissing:
         )
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestFormat:
     """
     Tests for what happens when the `Date` header is not in the
@@ -100,13 +100,13 @@ class TestFormat:
 
         An `UNAUTHORIZED` response is returned to the VWQ API.
         """
-        gmt = ZoneInfo('GMT')
+        gmt = ZoneInfo("GMT")
         with freeze_time(datetime.now(tz=gmt)):
             now = datetime.now()
-            date_incorrect_format = now.strftime('%a %b %d %H:%M:%S')
+            date_incorrect_format = now.strftime("%a %b %d %H:%M:%S")
 
         endpoint_headers = dict(endpoint.prepared_request.headers)
-        content = endpoint.prepared_request.body or b''
+        content = endpoint.prepared_request.body or b""
         assert isinstance(content, bytes)
 
         authorization_string = authorization_header(
@@ -121,8 +121,8 @@ class TestFormat:
 
         headers = {
             **endpoint_headers,
-            'Authorization': authorization_string,
-            'Date': date_incorrect_format,
+            "Authorization": authorization_string,
+            "Date": date_incorrect_format,
         }
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
@@ -131,15 +131,15 @@ class TestFormat:
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
-        if netloc == 'cloudreco.vuforia.com':
-            assert response.text == 'Malformed date header.'
+        if netloc == "cloudreco.vuforia.com":
+            assert response.text == "Malformed date header."
             assert_vwq_failure(
                 response=response,
                 status_code=HTTPStatus.UNAUTHORIZED,
-                content_type='text/plain;charset=iso-8859-1',
+                content_type="text/plain;charset=iso-8859-1",
                 cache_control=None,
-                www_authenticate='VWS',
-                connection='keep-alive',
+                www_authenticate="VWS",
+                connection="keep-alive",
             )
             return
 
@@ -150,7 +150,7 @@ class TestFormat:
         )
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestSkewedTime:
     """
     Tests for what happens when the `Date` header is given with an
@@ -159,9 +159,9 @@ class TestSkewedTime:
 
     @staticmethod
     @pytest.mark.parametrize(
-        'time_multiplier',
+        "time_multiplier",
         [1, -1],
-        ids=(['After', 'Before']),
+        ids=(["After", "Before"]),
     )
     def test_date_out_of_range(
         time_multiplier: int,
@@ -178,17 +178,17 @@ class TestSkewedTime:
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
         skew = {
-            'vws.vuforia.com': _VWS_MAX_TIME_SKEW,
-            'cloudreco.vuforia.com': _VWQ_MAX_TIME_SKEW,
+            "vws.vuforia.com": _VWS_MAX_TIME_SKEW,
+            "cloudreco.vuforia.com": _VWQ_MAX_TIME_SKEW,
         }[netloc]
         time_difference_from_now = skew + _LEEWAY
         time_difference_from_now *= time_multiplier
-        gmt = ZoneInfo('GMT')
+        gmt = ZoneInfo("GMT")
         with freeze_time(datetime.now(tz=gmt) + time_difference_from_now):
             date = rfc_1123_date()
 
         endpoint_headers = dict(endpoint.prepared_request.headers)
-        content = endpoint.prepared_request.body or b''
+        content = endpoint.prepared_request.body or b""
         assert isinstance(content, bytes)
 
         authorization_string = authorization_header(
@@ -203,8 +203,8 @@ class TestSkewedTime:
 
         headers = {
             **endpoint_headers,
-            'Authorization': authorization_string,
-            'Date': date,
+            "Authorization": authorization_string,
+            "Date": date,
         }
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
@@ -212,17 +212,17 @@ class TestSkewedTime:
         response = session.send(request=endpoint.prepared_request)
 
         # Even with the query endpoint, we get a JSON response.
-        if netloc == 'cloudreco.vuforia.com':
-            assert response.json().keys() == {'transaction_id', 'result_code'}
-            assert response.json()['result_code'] == 'RequestTimeTooSkewed'
+        if netloc == "cloudreco.vuforia.com":
+            assert response.json().keys() == {"transaction_id", "result_code"}
+            assert response.json()["result_code"] == "RequestTimeTooSkewed"
             assert_valid_transaction_id(response=response)
             assert_vwq_failure(
                 response=response,
                 status_code=HTTPStatus.FORBIDDEN,
-                content_type='application/json',
+                content_type="application/json",
                 cache_control=None,
                 www_authenticate=None,
-                connection='keep-alive',
+                connection="keep-alive",
             )
             return
 
@@ -234,9 +234,9 @@ class TestSkewedTime:
 
     @staticmethod
     @pytest.mark.parametrize(
-        'time_multiplier',
+        "time_multiplier",
         [1, -1],
-        ids=(['After', 'Before']),
+        ids=(["After", "Before"]),
     )
     def test_date_in_range(
         time_multiplier: int,
@@ -252,17 +252,17 @@ class TestSkewedTime:
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
         skew = {
-            'vws.vuforia.com': _VWS_MAX_TIME_SKEW,
-            'cloudreco.vuforia.com': _VWQ_MAX_TIME_SKEW,
+            "vws.vuforia.com": _VWS_MAX_TIME_SKEW,
+            "cloudreco.vuforia.com": _VWQ_MAX_TIME_SKEW,
         }[netloc]
         time_difference_from_now = skew - _LEEWAY
         time_difference_from_now *= time_multiplier
-        gmt = ZoneInfo('GMT')
+        gmt = ZoneInfo("GMT")
         with freeze_time(datetime.now(tz=gmt) + time_difference_from_now):
             date = rfc_1123_date()
 
         endpoint_headers = dict(endpoint.prepared_request.headers)
-        content = endpoint.prepared_request.body or b''
+        content = endpoint.prepared_request.body or b""
         assert isinstance(content, bytes)
 
         authorization_string = authorization_header(
@@ -277,8 +277,8 @@ class TestSkewedTime:
 
         headers = {
             **endpoint_headers,
-            'Authorization': authorization_string,
-            'Date': date,
+            "Authorization": authorization_string,
+            "Date": date,
         }
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
@@ -287,7 +287,7 @@ class TestSkewedTime:
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
-        if netloc == 'cloudreco.vuforia.com':
+        if netloc == "cloudreco.vuforia.com":
             assert_query_success(response=response)
             return
 

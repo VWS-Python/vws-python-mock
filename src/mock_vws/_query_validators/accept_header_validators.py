@@ -18,8 +18,8 @@ def validate_accept_header(request_headers: Dict[str, str]) -> None:
         InvalidAcceptHeader: The Accept header is given and is not
             'application/json' or '*/*'.
     """
-    accept = request_headers.get('Accept')
-    if accept in ('application/json', '*/*', None):
+    accept = request_headers.get("Accept")
+    if accept in ("application/json", "*/*", None):
         return
 
     raise InvalidAcceptHeader

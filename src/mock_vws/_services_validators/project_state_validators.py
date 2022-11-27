@@ -43,7 +43,7 @@ def validate_project_state(
     if database.state != States.PROJECT_INACTIVE:
         return
 
-    if request_method == 'GET' and 'duplicates' not in request_path:
+    if request_method == "GET" and "duplicates" not in request_path:
         return
 
     raise ProjectInactive

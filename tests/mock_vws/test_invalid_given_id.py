@@ -14,7 +14,7 @@ from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import assert_vws_failure
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestInvalidGivenID:
     """
     Tests for giving an invalid ID to endpoints which require a target ID to

@@ -59,18 +59,18 @@ def get_query_match_response_text(
     body_file = io.BytesIO(request_body)
 
     email_message = EmailMessage()
-    email_message['content-type'] = request_headers['Content-Type']
+    email_message["content-type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary().encode()
-    parsed = cgi.parse_multipart(fp=body_file, pdict={'boundary': boundary})
+    parsed = cgi.parse_multipart(fp=body_file, pdict={"boundary": boundary})
 
-    [max_num_results] = parsed.get('max_num_results', ['1'])
+    [max_num_results] = parsed.get("max_num_results", ["1"])
 
-    [include_target_data] = parsed.get('include_target_data', ['top'])
+    [include_target_data] = parsed.get("include_target_data", ["top"])
     include_target_data = include_target_data.lower()
 
-    [image_value] = parsed['image']
+    [image_value] = parsed["image"]
     assert isinstance(image_value, bytes)
-    gmt = ZoneInfo('GMT')
+    gmt = ZoneInfo("GMT")
     now = datetime.datetime.now(tz=gmt)
 
     processing_timedelta = datetime.timedelta(
@@ -136,35 +136,35 @@ def get_query_match_response_text(
         else:
             application_metadata = base64.b64encode(
                 decode_base64(encoded_data=target.application_metadata),
-            ).decode('ascii')
+            ).decode("ascii")
         target_data = {
-            'target_timestamp': int(target_timestamp),
-            'name': target.name,
-            'application_metadata': application_metadata,
+            "target_timestamp": int(target_timestamp),
+            "name": target.name,
+            "application_metadata": application_metadata,
         }
 
-        if include_target_data == 'all':
+        if include_target_data == "all":
             result = {
-                'target_id': target.target_id,
-                'target_data': target_data,
+                "target_id": target.target_id,
+                "target_data": target_data,
             }
-        elif include_target_data == 'top' and not results:
+        elif include_target_data == "top" and not results:
             result = {
-                'target_id': target.target_id,
-                'target_data': target_data,
+                "target_id": target.target_id,
+                "target_data": target_data,
             }
         else:
             result = {
-                'target_id': target.target_id,
+                "target_id": target.target_id,
             }
 
         results.append(result)
 
     results = results[: int(max_num_results)]
     body = {
-        'result_code': ResultCodes.SUCCESS.value,
-        'results': results,
-        'query_id': uuid.uuid4().hex,
+        "result_code": ResultCodes.SUCCESS.value,
+        "results": results,
+        "query_id": uuid.uuid4().hex,
     }
 
     value = json_dump(body)

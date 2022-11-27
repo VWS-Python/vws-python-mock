@@ -39,15 +39,15 @@ def validate_name_characters_in_range(
         return
 
     request_text = request_body.decode()
-    if 'name' not in json.loads(request_text):
+    if "name" not in json.loads(request_text):
         return
 
-    name = json.loads(request_text)['name']
+    name = json.loads(request_text)["name"]
 
     if all(ord(character) <= 65535 for character in name):
         return
 
-    if (request_method, request_path) == ('POST', '/targets'):
+    if (request_method, request_path) == ("POST", "/targets"):
         raise OopsErrorOccurredResponse
 
     raise TargetNameExist
@@ -68,10 +68,10 @@ def validate_name_type(request_body: bytes) -> None:
         return
 
     request_text = request_body.decode()
-    if 'name' not in json.loads(request_text):
+    if "name" not in json.loads(request_text):
         return
 
-    name = json.loads(request_text)['name']
+    name = json.loads(request_text)["name"]
 
     if isinstance(name, str):
         return
@@ -94,10 +94,10 @@ def validate_name_length(request_body: bytes) -> None:
         return
 
     request_text = request_body.decode()
-    if 'name' not in json.loads(request_text):
+    if "name" not in json.loads(request_text):
         return
 
-    name = json.loads(request_text)['name']
+    name = json.loads(request_text)["name"]
 
     if name and len(name) < 65:
         return
@@ -129,14 +129,14 @@ def validate_name_does_not_exist_new_target(
         return
 
     request_text = request_body.decode()
-    if 'name' not in json.loads(request_text):
+    if "name" not in json.loads(request_text):
         return
 
-    split_path = request_path.split('/')
+    split_path = request_path.split("/")
     if len(split_path) != 2:
         return
 
-    name = json.loads(request_text)['name']
+    name = json.loads(request_text)["name"]
     database = get_database_matching_server_keys(
         request_headers=request_headers,
         request_body=request_body,
@@ -185,16 +185,16 @@ def validate_name_does_not_exist_existing_target(
         return
 
     request_text = request_body.decode()
-    if 'name' not in json.loads(request_text):
+    if "name" not in json.loads(request_text):
         return
 
-    split_path = request_path.split('/')
+    split_path = request_path.split("/")
     if len(split_path) == 2:
         return
 
     target_id = split_path[-1]
 
-    name = json.loads(request_text)['name']
+    name = json.loads(request_text)["name"]
     database = get_database_matching_server_keys(
         request_headers=request_headers,
         request_body=request_body,

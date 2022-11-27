@@ -25,16 +25,16 @@ from mock_vws._query_validators.exceptions import (
 from mock_vws.database import VuforiaDatabase
 
 CLOUDRECO_FLASK_APP = Flask(import_name=__name__)
-CLOUDRECO_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
+CLOUDRECO_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
 
 
 def get_all_databases() -> Set[VuforiaDatabase]:
     """
     Get all database objects from the target manager back-end.
     """
-    target_manager_base_url = os.environ['TARGET_MANAGER_BASE_URL']
+    target_manager_base_url = os.environ["TARGET_MANAGER_BASE_URL"]
     response = requests.get(
-        url=f'{target_manager_base_url}/databases',
+        url=f"{target_manager_base_url}/databases",
         timeout=30,
     )
     return {
@@ -59,10 +59,10 @@ def set_terminate_wsgi_input() -> None:
     This is documented as a difference in the documentation for this package.
     """
     terminate_wsgi_input = CLOUDRECO_FLASK_APP.config.get(
-        'TERMINATE_WSGI_INPUT',
+        "TERMINATE_WSGI_INPUT",
         False,
     )
-    request.environ['wsgi.input_terminated'] = terminate_wsgi_input
+    request.environ["wsgi.input_terminated"] = terminate_wsgi_input
 
 
 class ResponseNoContentTypeAdded(Response):
@@ -91,16 +91,16 @@ def handle_exceptions(exc: ValidatorException) -> Response:
     )
 
 
-@CLOUDRECO_FLASK_APP.route('/v1/query', methods=['POST'])
+@CLOUDRECO_FLASK_APP.route("/v1/query", methods=["POST"])
 def query() -> Response:
     """
     Perform an image recognition query.
     """
     query_processes_deletion_seconds = float(
-        os.environ.get('DELETION_PROCESSING_SECONDS', '3.0'),
+        os.environ.get("DELETION_PROCESSING_SECONDS", "3.0"),
     )
     query_recognizes_deletion_seconds = float(
-        os.environ.get('DELETION_RECOGNITION_SECONDS', '0.2'),
+        os.environ.get("DELETION_RECOGNITION_SECONDS", "0.2"),
     )
 
     databases = get_all_databases()
@@ -130,10 +130,10 @@ def query() -> Response:
         raise DeletedTargetMatched from exc
 
     headers = {
-        'Content-Type': 'application/json',
-        'Date': date,
-        'Connection': 'keep-alive',
-        'Server': 'nginx',
+        "Content-Type": "application/json",
+        "Date": date,
+        "Connection": "keep-alive",
+        "Server": "nginx",
     }
     return Response(
         status=HTTPStatus.OK,
@@ -142,5 +142,5 @@ def query() -> Response:
     )
 
 
-if __name__ == '__main__':  # pragma: no cover
-    CLOUDRECO_FLASK_APP.run(debug=True, host='0.0.0.0')
+if __name__ == "__main__":  # pragma: no cover
+    CLOUDRECO_FLASK_APP.run(debug=True, host="0.0.0.0")

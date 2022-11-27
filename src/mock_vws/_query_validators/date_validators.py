@@ -23,7 +23,7 @@ def validate_date_header_given(request_headers: Dict[str, str]) -> None:
     Raises:
         DateHeaderNotGiven: The date is not given.
     """
-    if 'Date' in request_headers:
+    if "Date" in request_headers:
         return
 
     raise DateHeaderNotGiven
@@ -37,14 +37,14 @@ def _accepted_date_formats() -> Set[str]:
     These are the accepted ones we know of at the time of writing.
     """
     known_accepted_formats = {
-        '%a, %b %d %H:%M:%S %Y',
-        '%a %b %d %H:%M:%S %Y',
-        '%a, %d %b %Y %H:%M:%S',
-        '%a %d %b %Y %H:%M:%S',
+        "%a, %b %d %H:%M:%S %Y",
+        "%a %b %d %H:%M:%S %Y",
+        "%a, %d %b %Y %H:%M:%S",
+        "%a %d %b %Y %H:%M:%S",
     }
 
     known_accepted_formats = known_accepted_formats.union(
-        {date_format + ' GMT' for date_format in known_accepted_formats},
+        {date_format + " GMT" for date_format in known_accepted_formats},
     )
 
     return known_accepted_formats
@@ -60,7 +60,7 @@ def validate_date_format(request_headers: Dict[str, str]) -> None:
     Raises:
         DateFormatNotValid: The date is in the wrong format.
     """
-    date_header = request_headers['Date']
+    date_header = request_headers["Date"]
 
     for date_format in _accepted_date_formats():
         try:
@@ -83,7 +83,7 @@ def validate_date_in_range(request_headers: Dict[str, str]) -> None:
     Raises:
         RequestTimeTooSkewed: The date is out of range.
     """
-    date_header = request_headers['Date']
+    date_header = request_headers["Date"]
 
     for date_format in _accepted_date_formats():
         try:
@@ -93,7 +93,7 @@ def validate_date_in_range(request_headers: Dict[str, str]) -> None:
         except ValueError:
             pass
 
-    gmt = ZoneInfo('GMT')
+    gmt = ZoneInfo("GMT")
     now = datetime.datetime.now(tz=gmt)
     date_from_header = date.replace(tzinfo=gmt)
     time_difference = now - date_from_header

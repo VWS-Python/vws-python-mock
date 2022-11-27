@@ -23,7 +23,7 @@ def validate_content_length_header_is_int(
     Raises:
         ContentLengthHeaderNotInt: ``Content-Length`` header is not an integer.
     """
-    given_content_length = request_headers['Content-Length']
+    given_content_length = request_headers["Content-Length"]
 
     try:
         int(given_content_length)
@@ -46,9 +46,9 @@ def validate_content_length_header_not_too_large(
         ContentLengthHeaderTooLarge: The given content length header says that
             the content length is greater than the body length.
     """
-    given_content_length = request_headers['Content-Length']
+    given_content_length = request_headers["Content-Length"]
 
-    body_length = len(request_body if request_body else b'')
+    body_length = len(request_body if request_body else b"")
     given_content_length_value = int(given_content_length)
     # We skip coverage here as running a test to cover this is very slow.
     if given_content_length_value > body_length:  # pragma: no cover
@@ -70,9 +70,9 @@ def validate_content_length_header_not_too_small(
         AuthenticationFailureGoodFormatting: The given content length header
             says that the content length is smaller than the body length.
     """
-    given_content_length = request_headers['Content-Length']
+    given_content_length = request_headers["Content-Length"]
 
-    body_length = len(request_body if request_body else b'')
+    body_length = len(request_body if request_body else b"")
     given_content_length_value = int(given_content_length)
 
     if given_content_length_value < body_length:

@@ -101,7 +101,7 @@ class MockVuforiaWebQueryAPI:
             query_recognizes_deletion_seconds
         )
 
-    @route(path_pattern='/v1/query', http_methods={POST})
+    @route(path_pattern="/v1/query", http_methods={POST})
     def query(
         self,
         request: _RequestObjectProxy,
@@ -145,10 +145,10 @@ class MockVuforiaWebQueryAPI:
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {
-            'Connection': 'keep-alive',
-            'Content-Type': 'application/json',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(response_text)),
+            "Connection": "keep-alive",
+            "Content-Type": "application/json",
+            "Server": "nginx",
+            "Date": date,
+            "Content-Length": str(len(response_text)),
         }
         return response_text

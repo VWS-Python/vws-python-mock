@@ -20,8 +20,8 @@ from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import Endpoint
 
-VWS_HOST = 'https://vws.vuforia.com'
-VWQ_HOST = 'https://cloudreco.vuforia.com'
+VWS_HOST = "https://vws.vuforia.com"
+VWQ_HOST = "https://cloudreco.vuforia.com"
 
 
 @pytest.fixture()
@@ -33,18 +33,18 @@ def _add_target(
     Return details of the endpoint for adding a target.
     """
     image_data = image_file_failed_state.read()
-    image_data_encoded = base64.b64encode(image_data).decode('ascii')
+    image_data_encoded = base64.b64encode(image_data).decode("ascii")
     date = rfc_1123_date()
     data: Dict[str, Any] = {
-        'name': 'example_name',
-        'width': 1,
-        'image': image_data_encoded,
+        "name": "example_name",
+        "width": 1,
+        "image": image_data_encoded,
     }
-    request_path = '/targets'
-    content_type = 'application/json'
+    request_path = "/targets"
+    content_type = "application/json"
     method = POST
 
-    content = bytes(json.dumps(data), encoding='utf-8')
+    content = bytes(json.dumps(data), encoding="utf-8")
 
     access_key = vuforia_database.server_access_key
     secret_key = vuforia_database.server_secret_key
@@ -59,9 +59,9 @@ def _add_target(
     )
 
     headers = {
-        'Authorization': authorization_string,
-        'Date': date,
-        'Content-Type': content_type,
+        "Authorization": authorization_string,
+        "Date": date,
+        "Content-Type": content_type,
     }
 
     request = requests.Request(
@@ -93,9 +93,9 @@ def _delete_target(
     """
     vws_client.wait_for_target_processed(target_id=target_id)
     date = rfc_1123_date()
-    request_path = f'/targets/{target_id}'
+    request_path = f"/targets/{target_id}"
     method = DELETE
-    content = b''
+    content = b""
 
     access_key = vuforia_database.server_access_key
     secret_key = vuforia_database.server_secret_key
@@ -104,14 +104,14 @@ def _delete_target(
         secret_key=secret_key,
         method=method,
         content=content,
-        content_type='',
+        content_type="",
         date=date,
         request_path=request_path,
     )
 
     headers = {
-        'Authorization': authorization_string,
-        'Date': date,
+        "Authorization": authorization_string,
+        "Date": date,
     }
 
     request = requests.Request(
@@ -137,10 +137,10 @@ def _database_summary(vuforia_database: VuforiaDatabase) -> Endpoint:
     Return details of the endpoint for getting details about the database.
     """
     date = rfc_1123_date()
-    request_path = '/summary'
+    request_path = "/summary"
     method = GET
 
-    content = b''
+    content = b""
 
     access_key = vuforia_database.server_access_key
     secret_key = vuforia_database.server_secret_key
@@ -149,14 +149,14 @@ def _database_summary(vuforia_database: VuforiaDatabase) -> Endpoint:
         secret_key=secret_key,
         method=method,
         content=content,
-        content_type='',
+        content_type="",
         date=date,
         request_path=request_path,
     )
 
     headers = {
-        'Authorization': authorization_string,
-        'Date': date,
+        "Authorization": authorization_string,
+        "Date": date,
     }
 
     request = requests.Request(
@@ -189,10 +189,10 @@ def _get_duplicates(
     """
     vws_client.wait_for_target_processed(target_id=target_id)
     date = rfc_1123_date()
-    request_path = f'/duplicates/{target_id}'
+    request_path = f"/duplicates/{target_id}"
     method = GET
 
-    content = b''
+    content = b""
 
     access_key = vuforia_database.server_access_key
     secret_key = vuforia_database.server_secret_key
@@ -201,14 +201,14 @@ def _get_duplicates(
         secret_key=secret_key,
         method=method,
         content=content,
-        content_type='',
+        content_type="",
         date=date,
         request_path=request_path,
     )
 
     headers = {
-        'Authorization': authorization_string,
-        'Date': date,
+        "Authorization": authorization_string,
+        "Date": date,
     }
 
     request = requests.Request(
@@ -240,10 +240,10 @@ def _get_target(
     """
     vws_client.wait_for_target_processed(target_id=target_id)
     date = rfc_1123_date()
-    request_path = f'/targets/{target_id}'
+    request_path = f"/targets/{target_id}"
     method = GET
 
-    content = b''
+    content = b""
 
     access_key = vuforia_database.server_access_key
     secret_key = vuforia_database.server_secret_key
@@ -252,14 +252,14 @@ def _get_target(
         secret_key=secret_key,
         method=method,
         content=content,
-        content_type='',
+        content_type="",
         date=date,
         request_path=request_path,
     )
 
     headers = {
-        'Authorization': authorization_string,
-        'Date': date,
+        "Authorization": authorization_string,
+        "Date": date,
     }
 
     request = requests.Request(
@@ -286,10 +286,10 @@ def _target_list(vuforia_database: VuforiaDatabase) -> Endpoint:
     Return details of the endpoint for getting a list of targets.
     """
     date = rfc_1123_date()
-    request_path = '/targets'
+    request_path = "/targets"
     method = GET
 
-    content = b''
+    content = b""
 
     access_key = vuforia_database.server_access_key
     secret_key = vuforia_database.server_secret_key
@@ -298,14 +298,14 @@ def _target_list(vuforia_database: VuforiaDatabase) -> Endpoint:
         secret_key=secret_key,
         method=method,
         content=content,
-        content_type='',
+        content_type="",
         date=date,
         request_path=request_path,
     )
 
     headers = {
-        'Authorization': authorization_string,
-        'Date': date,
+        "Authorization": authorization_string,
+        "Date": date,
     }
 
     request = requests.Request(
@@ -337,10 +337,10 @@ def _target_summary(
     """
     vws_client.wait_for_target_processed(target_id=target_id)
     date = rfc_1123_date()
-    request_path = f'/summary/{target_id}'
+    request_path = f"/summary/{target_id}"
     method = GET
 
-    content = b''
+    content = b""
 
     access_key = vuforia_database.server_access_key
     secret_key = vuforia_database.server_secret_key
@@ -349,14 +349,14 @@ def _target_summary(
         secret_key=secret_key,
         method=method,
         content=content,
-        content_type='',
+        content_type="",
         date=date,
         request_path=request_path,
     )
 
     headers = {
-        'Authorization': authorization_string,
-        'Date': date,
+        "Authorization": authorization_string,
+        "Date": date,
     }
 
     request = requests.Request(
@@ -388,9 +388,9 @@ def _update_target(
     """
     vws_client.wait_for_target_processed(target_id=target_id)
     data: Dict[str, Any] = {}
-    request_path = f'/targets/{target_id}'
-    content = bytes(json.dumps(data), encoding='utf-8')
-    content_type = 'application/json'
+    request_path = f"/targets/{target_id}"
+    content = bytes(json.dumps(data), encoding="utf-8")
+    content_type = "application/json"
 
     date = rfc_1123_date()
     method = PUT
@@ -408,9 +408,9 @@ def _update_target(
     )
 
     headers = {
-        'Authorization': authorization_string,
-        'Date': date,
-        'Content-Type': content_type,
+        "Authorization": authorization_string,
+        "Date": date,
+        "Content-Type": content_type,
     }
 
     request = requests.Request(
@@ -441,8 +441,8 @@ def _query(
     """
     image_content = high_quality_image.read()
     date = rfc_1123_date()
-    request_path = '/v1/query'
-    files = {'image': ('image.jpeg', image_content, 'image/jpeg')}
+    request_path = "/v1/query"
+    files = {"image": ("image.jpeg", image_content, "image/jpeg")}
     method = POST
 
     content, content_type_header = encode_multipart_formdata(
@@ -457,15 +457,15 @@ def _query(
         method=method,
         content=content,
         # Note that this is not the actual Content-Type header value sent.
-        content_type='multipart/form-data',
+        content_type="multipart/form-data",
         date=date,
         request_path=request_path,
     )
 
     headers = {
-        'Authorization': authorization_string,
-        'Date': date,
-        'Content-Type': content_type_header,
+        "Authorization": authorization_string,
+        "Date": date,
+        "Content-Type": content_type_header,
     }
 
     request = requests.Request(

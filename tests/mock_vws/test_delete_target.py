@@ -16,7 +16,7 @@ from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils.assertions import assert_vws_failure
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestDelete:
     """
     Tests for deleting targets.
@@ -54,7 +54,7 @@ class TestDelete:
             vws_client.get_target_record(target_id=target_id)
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestInactiveProject:
     """
     Tests for inactive projects.
@@ -65,7 +65,7 @@ class TestInactiveProject:
         """
         If the project is inactive, a FORBIDDEN response is returned.
         """
-        target_id = 'abc12345a'
+        target_id = "abc12345a"
         with pytest.raises(ProjectInactive) as exc:
             inactive_vws_client.delete_target(target_id=target_id)
 

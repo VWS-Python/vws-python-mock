@@ -35,7 +35,7 @@ from mock_vws.database import VuforiaDatabase
 from mock_vws.target import Target
 from mock_vws.target_manager import TargetManager
 
-_TARGET_ID_PATTERN = '[A-Za-z0-9]+'
+_TARGET_ID_PATTERN = "[A-Za-z0-9]+"
 
 
 _ROUTES: set[Route] = set()
@@ -105,7 +105,7 @@ class MockVuforiaWebServicesAPI:
         self._processing_time_seconds = processing_time_seconds
 
     @route(
-        path_pattern='/targets',
+        path_pattern="/targets",
         http_methods={POST},
     )
     def add_target(
@@ -142,19 +142,19 @@ class MockVuforiaWebServicesAPI:
 
         assert isinstance(database, VuforiaDatabase)
 
-        given_active_flag = request.json().get('active_flag')
+        given_active_flag = request.json().get("active_flag")
         active_flag = {
             None: True,
             True: True,
             False: False,
         }[given_active_flag]
 
-        application_metadata = request.json().get('application_metadata')
+        application_metadata = request.json().get("application_metadata")
 
         new_target = Target(
-            name=request.json()['name'],
-            width=request.json()['width'],
-            image_value=base64.b64decode(request.json()['image']),
+            name=request.json()["name"],
+            width=request.json()["width"],
+            image_value=base64.b64decode(request.json()["image"]),
             active_flag=active_flag,
             processing_time_seconds=self._processing_time_seconds,
             application_metadata=application_metadata,
@@ -164,23 +164,23 @@ class MockVuforiaWebServicesAPI:
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.status_code = HTTPStatus.CREATED
         body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.TARGET_CREATED.value,
-            'target_id': new_target.target_id,
+            "transaction_id": uuid.uuid4().hex,
+            "result_code": ResultCodes.TARGET_CREATED.value,
+            "target_id": new_target.target_id,
         }
         body_json = json_dump(body)
         context.headers = {
-            'content-type': 'application/json',
-            'server': 'envoy',
-            'date': date,
-            'content-length': str(len(body_json)),
-            'x-aws-region': 'us-west-2, eu-west-1',
-            'x-envoy-upstream-service-time': '5',
+            "content-type": "application/json",
+            "server": "envoy",
+            "date": date,
+            "content-length": str(len(body_json)),
+            "x-aws-region": "us-west-2, eu-west-1",
+            "x-envoy-upstream-service-time": "5",
         }
         return body_json
 
     @route(
-        path_pattern=f'/targets/{_TARGET_ID_PATTERN}',
+        path_pattern=f"/targets/{_TARGET_ID_PATTERN}",
         http_methods={DELETE},
     )
     def delete_target(
@@ -217,7 +217,7 @@ class MockVuforiaWebServicesAPI:
         )
 
         assert isinstance(database, VuforiaDatabase)
-        target_id = request.path.split('/')[-1]
+        target_id = request.path.split("/")[-1]
         target = database.get_target(target_id=target_id)
 
         if target.status == TargetStatuses.PROCESSING.value:
@@ -233,21 +233,21 @@ class MockVuforiaWebServicesAPI:
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
 
         body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.SUCCESS.value,
+            "transaction_id": uuid.uuid4().hex,
+            "result_code": ResultCodes.SUCCESS.value,
         }
         body_json = json_dump(body)
         context.headers = {
-            'content-length': str(len(body_json)),
-            'content-type': 'application/json',
-            'date': date,
-            'server': 'envoy',
-            'x-aws-region': 'us-west-2, eu-west-1',
-            'x-envoy-upstream-service-time': '5',
+            "content-length": str(len(body_json)),
+            "content-type": "application/json",
+            "date": date,
+            "server": "envoy",
+            "x-aws-region": "us-west-2, eu-west-1",
+            "x-envoy-upstream-service-time": "5",
         }
         return body_json
 
-    @route(path_pattern='/summary', http_methods={GET})
+    @route(path_pattern="/summary", http_methods={GET})
     def database_summary(
         self,
         request: _RequestObjectProxy,
@@ -285,33 +285,33 @@ class MockVuforiaWebServicesAPI:
         assert isinstance(database, VuforiaDatabase)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         body = {
-            'result_code': ResultCodes.SUCCESS.value,
-            'transaction_id': uuid.uuid4().hex,
-            'name': database.database_name,
-            'active_images': len(database.active_targets),
-            'inactive_images': len(database.inactive_targets),
-            'failed_images': len(database.failed_targets),
-            'target_quota': database.target_quota,
-            'total_recos': database.total_recos,
-            'current_month_recos': database.current_month_recos,
-            'previous_month_recos': database.previous_month_recos,
-            'processing_images': len(database.processing_targets),
-            'reco_threshold': database.reco_threshold,
-            'request_quota': database.request_quota,
-            'request_usage': 0,
+            "result_code": ResultCodes.SUCCESS.value,
+            "transaction_id": uuid.uuid4().hex,
+            "name": database.database_name,
+            "active_images": len(database.active_targets),
+            "inactive_images": len(database.inactive_targets),
+            "failed_images": len(database.failed_targets),
+            "target_quota": database.target_quota,
+            "total_recos": database.total_recos,
+            "current_month_recos": database.current_month_recos,
+            "previous_month_recos": database.previous_month_recos,
+            "processing_images": len(database.processing_targets),
+            "reco_threshold": database.reco_threshold,
+            "request_quota": database.request_quota,
+            "request_usage": 0,
         }
         body_json = json_dump(body)
         context.headers = {
-            'content-length': str(len(body_json)),
-            'content-type': 'application/json',
-            'date': date,
-            'server': 'envoy',
-            'x-aws-region': 'us-west-2, eu-west-1',
-            'x-envoy-upstream-service-time': '5',
+            "content-length": str(len(body_json)),
+            "content-type": "application/json",
+            "date": date,
+            "server": "envoy",
+            "x-aws-region": "us-west-2, eu-west-1",
+            "x-envoy-upstream-service-time": "5",
         }
         return body_json
 
-    @route(path_pattern='/targets', http_methods={GET})
+    @route(path_pattern="/targets", http_methods={GET})
     def target_list(
         self,
         request: _RequestObjectProxy,
@@ -349,22 +349,22 @@ class MockVuforiaWebServicesAPI:
 
         results = [target.target_id for target in database.not_deleted_targets]
         body: dict[str, str | list[str]] = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.SUCCESS.value,
-            'results': results,
+            "transaction_id": uuid.uuid4().hex,
+            "result_code": ResultCodes.SUCCESS.value,
+            "results": results,
         }
         body_json = json_dump(body)
         context.headers = {
-            'content-length': str(len(body_json)),
-            'content-type': 'application/json',
-            'date': date,
-            'server': 'envoy',
-            'x-aws-region': 'us-west-2, eu-west-1',
-            'x-envoy-upstream-service-time': '5',
+            "content-length": str(len(body_json)),
+            "content-type": "application/json",
+            "date": date,
+            "server": "envoy",
+            "x-aws-region": "us-west-2, eu-west-1",
+            "x-envoy-upstream-service-time": "5",
         }
         return body_json
 
-    @route(path_pattern=f'/targets/{_TARGET_ID_PATTERN}', http_methods={GET})
+    @route(path_pattern=f"/targets/{_TARGET_ID_PATTERN}", http_methods={GET})
     def get_target(
         self,
         request: _RequestObjectProxy,
@@ -397,38 +397,38 @@ class MockVuforiaWebServicesAPI:
             databases=self._target_manager.databases,
         )
         assert isinstance(database, VuforiaDatabase)
-        target_id = request.path.split('/')[-1]
+        target_id = request.path.split("/")[-1]
         target = database.get_target(target_id=target_id)
 
         target_record = {
-            'target_id': target.target_id,
-            'active_flag': target.active_flag,
-            'name': target.name,
-            'width': target.width,
-            'tracking_rating': target.tracking_rating,
-            'reco_rating': target.reco_rating,
+            "target_id": target.target_id,
+            "active_flag": target.active_flag,
+            "name": target.name,
+            "width": target.width,
+            "tracking_rating": target.tracking_rating,
+            "reco_rating": target.reco_rating,
         }
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
 
         body = {
-            'result_code': ResultCodes.SUCCESS.value,
-            'transaction_id': uuid.uuid4().hex,
-            'target_record': target_record,
-            'status': target.status,
+            "result_code": ResultCodes.SUCCESS.value,
+            "transaction_id": uuid.uuid4().hex,
+            "target_record": target_record,
+            "status": target.status,
         }
         body_json = json_dump(body)
         context.headers = {
-            'content-length': str(len(body_json)),
-            'content-type': 'application/json',
-            'date': date,
-            'server': 'envoy',
-            'x-aws-region': 'us-west-2, eu-west-1',
-            'x-envoy-upstream-service-time': '5',
+            "content-length": str(len(body_json)),
+            "content-type": "application/json",
+            "date": date,
+            "server": "envoy",
+            "x-aws-region": "us-west-2, eu-west-1",
+            "x-envoy-upstream-service-time": "5",
         }
         return body_json
 
     @route(
-        path_pattern=f'/duplicates/{_TARGET_ID_PATTERN}',
+        path_pattern=f"/duplicates/{_TARGET_ID_PATTERN}",
         http_methods={GET},
     )
     def get_duplicates(
@@ -463,7 +463,7 @@ class MockVuforiaWebServicesAPI:
             databases=self._target_manager.databases,
         )
         assert isinstance(database, VuforiaDatabase)
-        target_id = request.path.split('/')[-1]
+        target_id = request.path.split("/")[-1]
         target = database.get_target(target_id=target_id)
 
         other_targets = set(database.targets) - {target}
@@ -480,24 +480,24 @@ class MockVuforiaWebServicesAPI:
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.SUCCESS.value,
-            'similar_targets': similar_targets,
+            "transaction_id": uuid.uuid4().hex,
+            "result_code": ResultCodes.SUCCESS.value,
+            "similar_targets": similar_targets,
         }
         body_json = json_dump(body)
         context.headers = {
-            'content-length': str(len(body_json)),
-            'content-type': 'application/json',
-            'date': date,
-            'server': 'envoy',
-            'x-aws-region': 'us-west-2, eu-west-1',
-            'x-envoy-upstream-service-time': '5',
+            "content-length": str(len(body_json)),
+            "content-type": "application/json",
+            "date": date,
+            "server": "envoy",
+            "x-aws-region": "us-west-2, eu-west-1",
+            "x-envoy-upstream-service-time": "5",
         }
 
         return body_json
 
     @route(
-        path_pattern=f'/targets/{_TARGET_ID_PATTERN}',
+        path_pattern=f"/targets/{_TARGET_ID_PATTERN}",
         http_methods={PUT},
     )
     def update_target(
@@ -534,7 +534,7 @@ class MockVuforiaWebServicesAPI:
 
         assert isinstance(database, VuforiaDatabase)
 
-        target_id = request.path.split('/')[-1]
+        target_id = request.path.split("/")[-1]
         target = database.get_target(target_id=target_id)
         body: dict[str, str] = {}
 
@@ -546,26 +546,26 @@ class MockVuforiaWebServicesAPI:
             context.status_code = exception.status_code
             return exception.response_text
 
-        width = request.json().get('width', target.width)
-        name = request.json().get('name', target.name)
-        active_flag = request.json().get('active_flag', target.active_flag)
+        width = request.json().get("width", target.width)
+        name = request.json().get("name", target.name)
+        active_flag = request.json().get("active_flag", target.active_flag)
         application_metadata = request.json().get(
-            'application_metadata',
+            "application_metadata",
             target.application_metadata,
         )
 
         image_value = target.image_value
-        if 'image' in request.json():
-            image_value = base64.b64decode(request.json()['image'])
+        if "image" in request.json():
+            image_value = base64.b64decode(request.json()["image"])
 
-        if 'active_flag' in request.json() and active_flag is None:
+        if "active_flag" in request.json() and active_flag is None:
             fail_exception = Fail(status_code=HTTPStatus.BAD_REQUEST)
             context.headers = fail_exception.headers
             context.status_code = fail_exception.status_code
             return fail_exception.response_text
 
         if (
-            'application_metadata' in request.json()
+            "application_metadata" in request.json()
             and application_metadata is None
         ):
             fail_exception = Fail(status_code=HTTPStatus.BAD_REQUEST)
@@ -579,7 +579,7 @@ class MockVuforiaWebServicesAPI:
         available_values = list(set(range(6)) - {target.tracking_rating})
         processed_tracking_rating = random.choice(available_values)
 
-        gmt = ZoneInfo('GMT')
+        gmt = ZoneInfo("GMT")
         last_modified_date = datetime.datetime.now(tz=gmt)
 
         new_target = dataclasses.replace(
@@ -597,21 +597,21 @@ class MockVuforiaWebServicesAPI:
         database.targets.add(new_target)
 
         body = {
-            'result_code': ResultCodes.SUCCESS.value,
-            'transaction_id': uuid.uuid4().hex,
+            "result_code": ResultCodes.SUCCESS.value,
+            "transaction_id": uuid.uuid4().hex,
         }
         body_json = json_dump(body)
         context.headers = {
-            'content-type': 'application/json',
-            'server': 'envoy',
-            'date': date,
-            'content-length': str(len(body_json)),
-            'x-aws-region': 'us-west-2, eu-west-1',
-            'x-envoy-upstream-service-time': '5',
+            "content-type": "application/json",
+            "server": "envoy",
+            "date": date,
+            "content-length": str(len(body_json)),
+            "x-aws-region": "us-west-2, eu-west-1",
+            "x-envoy-upstream-service-time": "5",
         }
         return body_json
 
-    @route(path_pattern=f'/summary/{_TARGET_ID_PATTERN}', http_methods={GET})
+    @route(path_pattern=f"/summary/{_TARGET_ID_PATTERN}", http_methods={GET})
     def target_summary(
         self,
         request: _RequestObjectProxy,
@@ -644,32 +644,32 @@ class MockVuforiaWebServicesAPI:
             databases=self._target_manager.databases,
         )
         assert isinstance(database, VuforiaDatabase)
-        target_id = request.path.split('/')[-1]
+        target_id = request.path.split("/")[-1]
         target = database.get_target(target_id=target_id)
 
         assert isinstance(database, VuforiaDatabase)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         body = {
-            'status': target.status,
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.SUCCESS.value,
-            'database_name': database.database_name,
-            'target_name': target.name,
-            'upload_date': target.upload_date.strftime('%Y-%m-%d'),
-            'active_flag': target.active_flag,
-            'tracking_rating': target.tracking_rating,
-            'total_recos': target.total_recos,
-            'current_month_recos': target.current_month_recos,
-            'previous_month_recos': target.previous_month_recos,
+            "status": target.status,
+            "transaction_id": uuid.uuid4().hex,
+            "result_code": ResultCodes.SUCCESS.value,
+            "database_name": database.database_name,
+            "target_name": target.name,
+            "upload_date": target.upload_date.strftime("%Y-%m-%d"),
+            "active_flag": target.active_flag,
+            "tracking_rating": target.tracking_rating,
+            "total_recos": target.total_recos,
+            "current_month_recos": target.current_month_recos,
+            "previous_month_recos": target.previous_month_recos,
         }
         body_json = json_dump(body)
         context.headers = {
-            'content-length': str(len(body_json)),
-            'content-type': 'application/json',
-            'date': date,
-            'server': 'envoy',
-            'x-aws-region': 'us-west-2, eu-west-1',
-            'x-envoy-upstream-service-time': '5',
+            "content-length": str(len(body_json)),
+            "content-type": "application/json",
+            "date": date,
+            "server": "envoy",
+            "x-aws-region": "us-west-2, eu-west-1",
+            "x-envoy-upstream-service-time": "5",
         }
 
         return body_json

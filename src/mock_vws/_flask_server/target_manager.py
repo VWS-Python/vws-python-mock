@@ -23,8 +23,8 @@ TARGET_MANAGER = TargetManager()
 
 
 @TARGET_MANAGER_FLASK_APP.route(
-    '/databases/<string:database_name>',
-    methods=['DELETE'],
+    "/databases/<string:database_name>",
+    methods=["DELETE"],
 )
 def delete_database(database_name: str) -> Tuple[str, int]:
     """
@@ -39,13 +39,13 @@ def delete_database(database_name: str) -> Tuple[str, int]:
             if database_name == database.database_name
         }
     except ValueError:
-        return '', HTTPStatus.NOT_FOUND
+        return "", HTTPStatus.NOT_FOUND
 
     TARGET_MANAGER.remove_database(database=matching_database)
-    return '', HTTPStatus.OK
+    return "", HTTPStatus.OK
 
 
-@TARGET_MANAGER_FLASK_APP.route('/databases', methods=['GET'])
+@TARGET_MANAGER_FLASK_APP.route("/databases", methods=["GET"])
 def get_databases() -> Tuple[str, int]:
     """
     Return a list of all databases.
@@ -54,7 +54,7 @@ def get_databases() -> Tuple[str, int]:
     return jsonify(databases), HTTPStatus.OK
 
 
-@TARGET_MANAGER_FLASK_APP.route('/databases', methods=['POST'])
+@TARGET_MANAGER_FLASK_APP.route("/databases", methods=["POST"])
 def create_database() -> Tuple[str, int]:
     """
     Create a new database.
@@ -87,27 +87,27 @@ def create_database() -> Tuple[str, int]:
     """
     random_database = VuforiaDatabase()
     server_access_key = request.json.get(
-        'server_access_key',
+        "server_access_key",
         random_database.server_access_key,
     )
     server_secret_key = request.json.get(
-        'server_secret_key',
+        "server_secret_key",
         random_database.server_secret_key,
     )
     client_access_key = request.json.get(
-        'client_access_key',
+        "client_access_key",
         random_database.client_access_key,
     )
     client_secret_key = request.json.get(
-        'client_secret_key',
+        "client_secret_key",
         random_database.client_secret_key,
     )
     database_name = request.json.get(
-        'database_name',
+        "database_name",
         random_database.database_name,
     )
     state_name = request.json.get(
-        'state_name',
+        "state_name",
         random_database.state.name,
     )
 
@@ -130,8 +130,8 @@ def create_database() -> Tuple[str, int]:
 
 
 @TARGET_MANAGER_FLASK_APP.route(
-    '/databases/<string:database_name>/targets',
-    methods=['POST'],
+    "/databases/<string:database_name>/targets",
+    methods=["POST"],
 )
 def create_target(database_name: str) -> Tuple[str, int]:
     """
@@ -142,16 +142,16 @@ def create_target(database_name: str) -> Tuple[str, int]:
         for database in TARGET_MANAGER.databases
         if database.database_name == database_name
     ]
-    image_base64 = request.json['image_base64']
+    image_base64 = request.json["image_base64"]
     image_bytes = base64.b64decode(image_base64)
     target = Target(
-        name=request.json['name'],
-        width=request.json['width'],
+        name=request.json["name"],
+        width=request.json["width"],
         image_value=image_bytes,
-        active_flag=request.json['active_flag'],
-        processing_time_seconds=request.json['processing_time_seconds'],
-        application_metadata=request.json['application_metadata'],
-        target_id=request.json['target_id'],
+        active_flag=request.json["active_flag"],
+        processing_time_seconds=request.json["processing_time_seconds"],
+        application_metadata=request.json["application_metadata"],
+        target_id=request.json["target_id"],
     )
     database.targets.add(target)
 
@@ -159,8 +159,8 @@ def create_target(database_name: str) -> Tuple[str, int]:
 
 
 @TARGET_MANAGER_FLASK_APP.route(
-    '/databases/<string:database_name>/targets/<string:target_id>',
-    methods=['DELETE'],
+    "/databases/<string:database_name>/targets/<string:target_id>",
+    methods=["DELETE"],
 )
 def delete_target(database_name: str, target_id: str) -> Tuple[str, int]:
     """
@@ -180,8 +180,8 @@ def delete_target(database_name: str, target_id: str) -> Tuple[str, int]:
 
 
 @TARGET_MANAGER_FLASK_APP.route(
-    '/databases/<string:database_name>/targets/<string:target_id>',
-    methods=['PUT'],
+    "/databases/<string:database_name>/targets/<string:target_id>",
+    methods=["PUT"],
 )
 def update_target(database_name: str, target_id: str) -> Tuple[str, int]:
     """
@@ -194,17 +194,17 @@ def update_target(database_name: str, target_id: str) -> Tuple[str, int]:
     ]
     target = database.get_target(target_id=target_id)
 
-    width = request.json.get('width', target.width)
-    name = request.json.get('name', target.name)
-    active_flag = request.json.get('active_flag', target.active_flag)
+    width = request.json.get("width", target.width)
+    name = request.json.get("name", target.name)
+    active_flag = request.json.get("active_flag", target.active_flag)
     application_metadata = request.json.get(
-        'application_metadata',
+        "application_metadata",
         target.application_metadata,
     )
 
     image_value = target.image_value
-    if 'image' in request.json:
-        image_value = base64.b64decode(request.json['image'])
+    if "image" in request.json:
+        image_value = base64.b64decode(request.json["image"])
 
     # In the real implementation, the tracking rating can stay the same.
     # However, for demonstration purposes, the tracking rating changes but
@@ -212,7 +212,7 @@ def update_target(database_name: str, target_id: str) -> Tuple[str, int]:
     available_values = list(set(range(6)) - {target.tracking_rating})
     processed_tracking_rating = random.choice(available_values)
 
-    gmt = ZoneInfo('GMT')
+    gmt = ZoneInfo("GMT")
     last_modified_date = datetime.datetime.now(tz=gmt)
 
     new_target = dataclasses.replace(
@@ -232,5 +232,5 @@ def update_target(database_name: str, target_id: str) -> Tuple[str, int]:
     return jsonify(new_target.to_dict()), HTTPStatus.OK
 
 
-if __name__ == '__main__':  # pragma: no cover
-    TARGET_MANAGER_FLASK_APP.run(debug=True, host='0.0.0.0')
+if __name__ == "__main__":  # pragma: no cover
+    TARGET_MANAGER_FLASK_APP.run(debug=True, host="0.0.0.0")

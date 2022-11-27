@@ -31,7 +31,7 @@ def validate_image_format(request_body: bytes) -> None:
         return
 
     request_text = request_body.decode()
-    image = json.loads(request_text).get('image')
+    image = json.loads(request_text).get("image")
 
     if image is None:
         return
@@ -40,7 +40,7 @@ def validate_image_format(request_body: bytes) -> None:
     image_file = io.BytesIO(decoded)
     pil_image = Image.open(image_file)
 
-    if pil_image.format in ('PNG', 'JPEG'):
+    if pil_image.format in ("PNG", "JPEG"):
         return
 
     raise BadImage
@@ -62,7 +62,7 @@ def validate_image_color_space(request_body: bytes) -> None:
         return
 
     request_text = request_body.decode()
-    image = json.loads(request_text).get('image')
+    image = json.loads(request_text).get("image")
 
     if image is None:
         return
@@ -71,7 +71,7 @@ def validate_image_color_space(request_body: bytes) -> None:
     image_file = io.BytesIO(decoded)
     pil_image = Image.open(image_file)
 
-    if pil_image.mode in ('L', 'RGB'):
+    if pil_image.mode in ("L", "RGB"):
         return
 
     raise BadImage
@@ -93,7 +93,7 @@ def validate_image_size(request_body: bytes) -> None:
         return
 
     request_text = request_body.decode()
-    image = json.loads(request_text).get('image')
+    image = json.loads(request_text).get("image")
 
     if image is None:
         return
@@ -121,7 +121,7 @@ def validate_image_is_image(request_body: bytes) -> None:
         return
 
     request_text = request_body.decode()
-    image = json.loads(request_text).get('image')
+    image = json.loads(request_text).get("image")
 
     if image is None:
         return
@@ -150,10 +150,10 @@ def validate_image_encoding(request_body: bytes) -> None:
         return
 
     request_text = request_body.decode()
-    if 'image' not in json.loads(request_text):
+    if "image" not in json.loads(request_text):
         return
 
-    image = json.loads(request_text).get('image')
+    image = json.loads(request_text).get("image")
 
     try:
         decode_base64(encoded_data=image)
@@ -176,10 +176,10 @@ def validate_image_data_type(request_body: bytes) -> None:
         return
 
     request_text = request_body.decode()
-    if 'image' not in json.loads(request_text):
+    if "image" not in json.loads(request_text):
         return
 
-    image = json.loads(request_text).get('image')
+    image = json.loads(request_text).get("image")
 
     if isinstance(image, str):
         return

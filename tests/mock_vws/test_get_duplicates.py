@@ -11,7 +11,7 @@ from vws.exceptions.vws_exceptions import ProjectInactive
 from vws.reports import TargetStatuses
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestDuplicates:
     """
     Tests for the mock of the target duplicates endpoint.
@@ -104,7 +104,7 @@ class TestDuplicates:
         assert duplicates == []
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestActiveFlag:
     """
     Tests for the effects of the active flag on duplicate matching.
@@ -159,7 +159,7 @@ class TestActiveFlag:
         assert duplicates == []
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestProcessing:
     """
     Tests for targets in the processing stage.
@@ -209,7 +209,7 @@ class TestProcessing:
         assert duplicates == [processed_target_id]
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestInactiveProject:
     """
     Tests for inactive projects.

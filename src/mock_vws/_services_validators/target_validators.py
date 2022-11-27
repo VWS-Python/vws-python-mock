@@ -29,7 +29,7 @@ def validate_target_id_exists(
     Raises:
         UnknownTarget: There are no matching targets for a given target ID.
     """
-    split_path = request_path.split('/')
+    split_path = request_path.split("/")
 
     if len(split_path) == 2:
         return

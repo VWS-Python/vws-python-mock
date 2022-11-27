@@ -39,14 +39,14 @@ class DateHeaderNotGiven(ValidatorException):
         """
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
-        self.response_text = 'Date header required.'
+        self.response_text = "Date header required."
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'text/plain;charset=iso-8859-1',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(self.response_text)),
+            "Content-Type": "text/plain;charset=iso-8859-1",
+            "Connection": "keep-alive",
+            "Server": "nginx",
+            "Date": date,
+            "Content-Length": str(len(self.response_text)),
         }
 
 
@@ -65,15 +65,15 @@ class DateFormatNotValid(ValidatorException):
         """
         super().__init__()
         self.status_code = HTTPStatus.UNAUTHORIZED
-        self.response_text = 'Malformed date header.'
+        self.response_text = "Malformed date header."
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'text/plain;charset=iso-8859-1',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'WWW-Authenticate': 'VWS',
-            'Content-Length': str(len(self.response_text)),
+            "Content-Type": "text/plain;charset=iso-8859-1",
+            "Connection": "keep-alive",
+            "Server": "nginx",
+            "Date": date,
+            "WWW-Authenticate": "VWS",
+            "Content-Length": str(len(self.response_text)),
         }
 
 
@@ -94,17 +94,17 @@ class RequestTimeTooSkewed(ValidatorException):
         super().__init__()
         self.status_code = HTTPStatus.FORBIDDEN
         body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.REQUEST_TIME_TOO_SKEWED.value,
+            "transaction_id": uuid.uuid4().hex,
+            "result_code": ResultCodes.REQUEST_TIME_TOO_SKEWED.value,
         }
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'application/json',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(self.response_text)),
+            "Content-Type": "application/json",
+            "Connection": "keep-alive",
+            "Server": "nginx",
+            "Date": date,
+            "Content-Length": str(len(self.response_text)),
         }
 
 
@@ -133,16 +133,16 @@ class BadImage(ValidatorException):
             '{"transaction_id": '
             f'"{transaction_id}",'
             f'"result_code":"{result_code}"'
-            '}'
+            "}"
         )
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'application/json',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(self.response_text)),
+            "Content-Type": "application/json",
+            "Connection": "keep-alive",
+            "Server": "nginx",
+            "Date": date,
+            "Content-Length": str(len(self.response_text)),
         }
 
 
@@ -171,16 +171,16 @@ class AuthenticationFailure(ValidatorException):
             '{"transaction_id":'
             f'"{transaction_id}",'
             f'"result_code":"{result_code}"'
-            '}'
+            "}"
         )
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'application/json',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'WWW-Authenticate': 'VWS',
-            'Content-Length': str(len(self.response_text)),
+            "Content-Type": "application/json",
+            "Connection": "keep-alive",
+            "Server": "nginx",
+            "Date": date,
+            "WWW-Authenticate": "VWS",
+            "Content-Length": str(len(self.response_text)),
         }
 
 
@@ -202,18 +202,18 @@ class AuthenticationFailureGoodFormatting(ValidatorException):
         self.status_code = HTTPStatus.UNAUTHORIZED
 
         body = {
-            'transaction_id': uuid.uuid4().hex,
-            'result_code': ResultCodes.AUTHENTICATION_FAILURE.value,
+            "transaction_id": uuid.uuid4().hex,
+            "result_code": ResultCodes.AUTHENTICATION_FAILURE.value,
         }
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'application/json',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'WWW-Authenticate': 'VWS',
-            'Content-Length': str(len(self.response_text)),
+            "Content-Type": "application/json",
+            "Connection": "keep-alive",
+            "Server": "nginx",
+            "Date": date,
+            "WWW-Authenticate": "VWS",
+            "Content-Length": str(len(self.response_text)),
         }
 
 
@@ -232,15 +232,15 @@ class ImageNotGiven(ValidatorException):
         """
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
-        self.response_text = 'No image.'
+        self.response_text = "No image."
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'application/json',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(self.response_text)),
+            "Content-Type": "application/json",
+            "Connection": "keep-alive",
+            "Server": "nginx",
+            "Date": date,
+            "Content-Length": str(len(self.response_text)),
         }
 
 
@@ -259,16 +259,16 @@ class AuthHeaderMissing(ValidatorException):
         """
         super().__init__()
         self.status_code = HTTPStatus.UNAUTHORIZED
-        self.response_text = 'Authorization header missing.'
+        self.response_text = "Authorization header missing."
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'text/plain;charset=iso-8859-1',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'WWW-Authenticate': 'VWS',
-            'Content-Length': str(len(self.response_text)),
+            "Content-Type": "text/plain;charset=iso-8859-1",
+            "Connection": "keep-alive",
+            "Server": "nginx",
+            "Date": date,
+            "WWW-Authenticate": "VWS",
+            "Content-Length": str(len(self.response_text)),
         }
 
 
@@ -287,16 +287,16 @@ class MalformedAuthHeader(ValidatorException):
         """
         super().__init__()
         self.status_code = HTTPStatus.UNAUTHORIZED
-        self.response_text = 'Malformed authorization header.'
+        self.response_text = "Malformed authorization header."
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'text/plain;charset=iso-8859-1',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'WWW-Authenticate': 'VWS',
-            'Content-Length': str(len(self.response_text)),
+            "Content-Type": "text/plain;charset=iso-8859-1",
+            "Connection": "keep-alive",
+            "Server": "nginx",
+            "Date": date,
+            "WWW-Authenticate": "VWS",
+            "Content-Length": str(len(self.response_text)),
         }
 
 
@@ -315,15 +315,15 @@ class UnknownParameters(ValidatorException):
         """
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
-        self.response_text = 'Unknown parameters in the request.'
+        self.response_text = "Unknown parameters in the request."
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'application/json',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(self.response_text)),
+            "Content-Type": "application/json",
+            "Connection": "keep-alive",
+            "Server": "nginx",
+            "Date": date,
+            "Content-Length": str(len(self.response_text)),
         }
 
 
@@ -351,16 +351,16 @@ class InactiveProject(ValidatorException):
             '{"transaction_id": '
             f'"{transaction_id}",'
             f'"result_code":"{result_code}"'
-            '}'
+            "}"
         )
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'application/json',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(self.response_text)),
+            "Content-Type": "application/json",
+            "Connection": "keep-alive",
+            "Server": "nginx",
+            "Date": date,
+            "Content-Length": str(len(self.response_text)),
         }
 
 
@@ -382,17 +382,17 @@ class InvalidMaxNumResults(ValidatorException):
         self.status_code = HTTPStatus.BAD_REQUEST
         invalid_value_message = (
             f"Invalid value '{given_value}' in form data part 'max_result'. "
-            'Expecting integer value in range from 1 to 50 (inclusive).'
+            "Expecting integer value in range from 1 to 50 (inclusive)."
         )
         self.response_text = invalid_value_message
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'application/json',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(self.response_text)),
+            "Content-Type": "application/json",
+            "Connection": "keep-alive",
+            "Server": "nginx",
+            "Date": date,
+            "Content-Length": str(len(self.response_text)),
         }
 
 
@@ -413,18 +413,18 @@ class MaxNumResultsOutOfRange(ValidatorException):
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
         integer_out_of_range_message = (
-            f'Integer out of range ({given_value}) in form data part '
+            f"Integer out of range ({given_value}) in form data part "
             "'max_result'. Accepted range is from 1 to 50 (inclusive)."
         )
         self.response_text = integer_out_of_range_message
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'application/json',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(self.response_text)),
+            "Content-Type": "application/json",
+            "Connection": "keep-alive",
+            "Server": "nginx",
+            "Date": date,
+            "Content-Length": str(len(self.response_text)),
         }
 
 
@@ -454,11 +454,11 @@ class InvalidIncludeTargetData(ValidatorException):
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'application/json',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(self.response_text)),
+            "Content-Type": "application/json",
+            "Connection": "keep-alive",
+            "Server": "nginx",
+            "Date": date,
+            "Content-Length": str(len(self.response_text)),
         }
 
 
@@ -477,14 +477,14 @@ class UnsupportedMediaType(ValidatorException):
         """
         super().__init__()
         self.status_code = HTTPStatus.UNSUPPORTED_MEDIA_TYPE
-        self.response_text = ''
+        self.response_text = ""
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(self.response_text)),
+            "Connection": "keep-alive",
+            "Server": "nginx",
+            "Date": date,
+            "Content-Length": str(len(self.response_text)),
         }
 
 
@@ -503,14 +503,14 @@ class InvalidAcceptHeader(ValidatorException):
         """
         super().__init__()
         self.status_code = HTTPStatus.NOT_ACCEPTABLE
-        self.response_text = ''
+        self.response_text = ""
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(self.response_text)),
+            "Connection": "keep-alive",
+            "Server": "nginx",
+            "Date": date,
+            "Content-Length": str(len(self.response_text)),
         }
 
 
@@ -530,17 +530,17 @@ class NoBoundaryFound(ValidatorException):
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
         self.response_text = (
-            'java.io.IOException: RESTEASY007550: '
-            'Unable to get boundary for multipart'
+            "java.io.IOException: RESTEASY007550: "
+            "Unable to get boundary for multipart"
         )
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'text/html;charset=utf-8',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(self.response_text)),
+            "Content-Type": "text/html;charset=utf-8",
+            "Connection": "keep-alive",
+            "Server": "nginx",
+            "Date": date,
+            "Content-Length": str(len(self.response_text)),
         }
 
 
@@ -560,20 +560,20 @@ class QueryOutOfBounds(ValidatorException):
         """
         super().__init__()
         self.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-        resources_dir = Path(__file__).parent / 'resources'
-        filename = 'query_out_of_bounds_response.html'
+        resources_dir = Path(__file__).parent / "resources"
+        filename = "query_out_of_bounds_response.html"
         oops_resp_file = resources_dir / filename
         text = str(oops_resp_file.read_text())
         self.response_text = text
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Content-Type': 'text/html;charset=iso-8859-1',
-            'Connection': 'keep-alive',
-            'Server': 'nginx',
-            'Date': date,
-            'Cache-Control': 'must-revalidate,no-cache,no-store',
-            'Content-Length': str(len(self.response_text)),
+            "Content-Type": "text/html;charset=iso-8859-1",
+            "Connection": "keep-alive",
+            "Server": "nginx",
+            "Date": date,
+            "Cache-Control": "must-revalidate,no-cache,no-store",
+            "Content-Length": str(len(self.response_text)),
         }
 
 
@@ -593,10 +593,10 @@ class ContentLengthHeaderTooLarge(ValidatorException):
         """
         super().__init__()
         self.status_code = HTTPStatus.GATEWAY_TIMEOUT
-        self.response_text = ''
+        self.response_text = ""
         self.headers = {
-            'Connection': 'keep-alive',
-            'Content-Length': str(len(self.response_text)),
+            "Connection": "keep-alive",
+            "Content-Length": str(len(self.response_text)),
         }
 
 
@@ -615,10 +615,10 @@ class ContentLengthHeaderNotInt(ValidatorException):
         """
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
-        self.response_text = ''
+        self.response_text = ""
         self.headers = {
-            'Connection': 'Close',
-            'Content-Length': str(len(self.response_text)),
+            "Connection": "Close",
+            "Content-Length": str(len(self.response_text)),
         }
 
 
@@ -653,11 +653,11 @@ class RequestEntityTooLarge(ValidatorException):
         )
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            'Connection': 'Close',
-            'Date': date,
-            'Server': 'nginx',
-            'Content-Type': 'text/html',
-            'Content-Length': str(len(self.response_text)),
+            "Connection": "Close",
+            "Date": date,
+            "Server": "nginx",
+            "Content-Type": "text/html",
+            "Content-Length": str(len(self.response_text)),
         }
 
 
@@ -684,19 +684,19 @@ class DeletedTargetMatched(ValidatorException):
         # processing status, but we choose to:
         # * Do the most unexpected thing.
         # * Be consistent with every response.
-        resources_dir = Path(__file__).parent.parent / 'resources'
-        filename = 'deleted_target_matched_response.html'
+        resources_dir = Path(__file__).parent.parent / "resources"
+        filename = "deleted_target_matched_response.html"
         deleted_target_matched_resp_file = resources_dir / filename
         self.response_text = Path(deleted_target_matched_resp_file).read_text(
-            encoding='utf-8',
+            encoding="utf-8",
         )
         self.headers = {
-            'Connection': 'keep-alive',
-            'Content-Type': 'text/html;charset=iso-8859-1',
-            'Server': 'nginx',
-            'Cache-Control': 'must-revalidate,no-cache,no-store',
-            'Date': date,
-            'Content-Length': str(len(self.response_text)),
+            "Connection": "keep-alive",
+            "Content-Type": "text/html;charset=iso-8859-1",
+            "Server": "nginx",
+            "Cache-Control": "must-revalidate,no-cache,no-store",
+            "Date": date,
+            "Content-Length": str(len(self.response_text)),
         }
 
 
@@ -738,10 +738,10 @@ class NoContentType(ValidatorException):
         )
         self.response_text = jetty_content_type_error
         self.headers = {
-            'Connection': 'keep-alive',
-            'Content-Type': 'text/html;charset=iso-8859-1',
-            'Server': 'nginx',
-            'Cache-Control': 'must-revalidate,no-cache,no-store',
-            'Date': date,
-            'Content-Length': str(len(self.response_text)),
+            "Connection": "keep-alive",
+            "Content-Type": "text/html;charset=iso-8859-1",
+            "Server": "nginx",
+            "Cache-Control": "must-revalidate,no-cache,no-store",
+            "Date": date,
+            "Content-Length": str(len(self.response_text)),
         }

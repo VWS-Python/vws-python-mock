@@ -111,12 +111,12 @@ def _enable_use_docker_in_memory(
     # Therefore, when running the real Flask application, the behavior is not
     # the same as the real Vuforia.
     # This is documented as a difference in the documentation for this package.
-    VWS_FLASK_APP.config['TERMINATE_WSGI_INPUT'] = True
-    CLOUDRECO_FLASK_APP.config['TERMINATE_WSGI_INPUT'] = True
+    VWS_FLASK_APP.config["TERMINATE_WSGI_INPUT"] = True
+    CLOUDRECO_FLASK_APP.config["TERMINATE_WSGI_INPUT"] = True
 
-    target_manager_base_url = 'http://example.com'
+    target_manager_base_url = "http://example.com"
     monkeypatch.setenv(
-        name='TARGET_MANAGER_BASE_URL',
+        name="TARGET_MANAGER_BASE_URL",
         value=target_manager_base_url,
     )
 
@@ -124,13 +124,13 @@ def _enable_use_docker_in_memory(
         add_flask_app_to_mock(
             mock_obj=mock,
             flask_app=VWS_FLASK_APP,
-            base_url='https://vws.vuforia.com',
+            base_url="https://vws.vuforia.com",
         )
 
         add_flask_app_to_mock(
             mock_obj=mock,
             flask_app=CLOUDRECO_FLASK_APP,
-            base_url='https://cloudreco.vuforia.com',
+            base_url="https://cloudreco.vuforia.com",
         )
 
         add_flask_app_to_mock(
@@ -139,15 +139,15 @@ def _enable_use_docker_in_memory(
             base_url=target_manager_base_url,
         )
 
-        databases_url = target_manager_base_url + '/databases'
+        databases_url = target_manager_base_url + "/databases"
         databases = requests.get(
             url=databases_url,
             timeout=30,
         ).json()
         for database in databases:
-            database_name = database['database_name']
+            database_name = database["database_name"]
             requests.delete(
-                url=databases_url + '/' + database_name,
+                url=databases_url + "/" + database_name,
                 timeout=30,
             )
 
@@ -170,9 +170,9 @@ class VuforiaBackend(Enum):
     Backends for tests.
     """
 
-    REAL = 'Real Vuforia'
-    MOCK = 'In Memory Mock Vuforia'
-    DOCKER_IN_MEMORY = 'In Memory version of Docker application'
+    REAL = "Real Vuforia"
+    MOCK = "In Memory Mock Vuforia"
+    DOCKER_IN_MEMORY = "In Memory version of Docker application"
 
 
 def pytest_addoption(parser: Parser) -> None:
@@ -182,10 +182,10 @@ def pytest_addoption(parser: Parser) -> None:
     """
     for backend in VuforiaBackend:
         parser.addoption(
-            f'--skip-{backend.name.lower()}',
-            action='store_true',
+            f"--skip-{backend.name.lower()}",
+            action="store_true",
             default=False,
-            help=f'Skip tests for {backend.value}',
+            help=f"Skip tests for {backend.value}",
         )
 
 
@@ -206,7 +206,7 @@ def verify_mock_vuforia(
     This is useful for verifying the mocks.
     """
     backend = request.param
-    should_skip = request.config.getvalue(f'--skip-{backend.name.lower()}')
+    should_skip = request.config.getvalue(f"--skip-{backend.name.lower()}")
     if should_skip:  # pragma: no cover
         pytest.skip()
 

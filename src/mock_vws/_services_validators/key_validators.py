@@ -50,71 +50,71 @@ def validate_keys(
         Fail: Any given keys are not allowed, or if any required keys are
             missing.
     """
-    target_id_pattern = '[A-Za-z0-9]+'
+    target_id_pattern = "[A-Za-z0-9]+"
     add_target = _Route(
-        path_pattern='/targets',
+        path_pattern="/targets",
         http_methods={POST},
-        mandatory_keys={'image', 'width', 'name'},
-        optional_keys={'active_flag', 'application_metadata'},
+        mandatory_keys={"image", "width", "name"},
+        optional_keys={"active_flag", "application_metadata"},
     )
 
     delete_target = _Route(
-        path_pattern=f'/targets/{target_id_pattern}',
+        path_pattern=f"/targets/{target_id_pattern}",
         http_methods={DELETE},
         mandatory_keys=set(),
         optional_keys=set(),
     )
 
     database_summary = _Route(
-        path_pattern='/summary',
+        path_pattern="/summary",
         http_methods={GET},
         mandatory_keys=set(),
         optional_keys=set(),
     )
 
     target_list = _Route(
-        path_pattern='/targets',
+        path_pattern="/targets",
         http_methods={GET},
         mandatory_keys=set(),
         optional_keys=set(),
     )
 
     get_target = _Route(
-        path_pattern=f'/targets/{target_id_pattern}',
+        path_pattern=f"/targets/{target_id_pattern}",
         http_methods={GET},
         mandatory_keys=set(),
         optional_keys=set(),
     )
 
     target_summary = _Route(
-        path_pattern=f'/summary/{target_id_pattern}',
+        path_pattern=f"/summary/{target_id_pattern}",
         http_methods={GET},
         mandatory_keys=set(),
         optional_keys=set(),
     )
 
     get_duplicates = _Route(
-        path_pattern=f'/duplicates/{target_id_pattern}',
+        path_pattern=f"/duplicates/{target_id_pattern}",
         http_methods={GET},
         mandatory_keys=set(),
         optional_keys=set(),
     )
 
     update_target = _Route(
-        path_pattern=f'/targets/{target_id_pattern}',
+        path_pattern=f"/targets/{target_id_pattern}",
         http_methods={PUT},
         mandatory_keys=set(),
         optional_keys={
-            'active_flag',
-            'application_metadata',
-            'image',
-            'name',
-            'width',
+            "active_flag",
+            "application_metadata",
+            "image",
+            "name",
+            "width",
         },
     )
 
     target_summary = _Route(
-        path_pattern=f'/summary/{target_id_pattern}',
+        path_pattern=f"/summary/{target_id_pattern}",
         http_methods={GET},
         mandatory_keys=set(),
         optional_keys=set(),
@@ -134,7 +134,7 @@ def validate_keys(
     [matching_route] = [
         route
         for route in routes
-        if re.match(re.compile(route.path_pattern + '$'), request_path)
+        if re.match(re.compile(route.path_pattern + "$"), request_path)
         and request_method in route.http_methods
     ]
 

@@ -19,4 +19,4 @@ class States(Enum):
         """
         Return a representation which does not include the generated number.
         """
-        return f'<{self.__class__.__name__}.{self.name}>'
+        return f"<{self.__class__.__name__}.{self.name}>"

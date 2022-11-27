@@ -39,10 +39,10 @@ def request_unmocked_address() -> None:
             addresses.
     """
     sock = socket.socket()
-    sock.bind(('', 0))
+    sock.bind(("", 0))
     port = sock.getsockname()[1]
     sock.close()
-    address = f'http://localhost:{port}'
+    address = f"http://localhost:{port}"
     requests.get(address, timeout=30)
 
 
@@ -51,12 +51,12 @@ def request_mocked_address() -> None:
     Make a request, using `requests` to an address that is mocked by `MockVWS`.
     """
     requests.get(
-        url='https://vws.vuforia.com/summary',
+        url="https://vws.vuforia.com/summary",
         headers={
-            'Date': rfc_1123_date(),
-            'Authorization': 'bad_auth_token',
+            "Date": rfc_1123_date(),
+            "Authorization": "bad_auth_token",
         },
-        data=b'',
+        data=b"",
         timeout=30,
     )
 
@@ -157,8 +157,8 @@ class TestDatabaseName:
         """
         It is possible to set a custom database name.
         """
-        database_details = VuforiaDatabase(database_name='foo')
-        assert database_details.database_name == 'foo'
+        database_details = VuforiaDatabase(database_name="foo")
+        assert database_details.database_name == "foo"
 
 
 class TestCustomBaseURLs:
@@ -172,18 +172,18 @@ class TestCustomBaseURLs:
         It is possible to use a custom base VWS URL.
         """
         with MockVWS(
-            base_vws_url='https://vuforia.vws.example.com',
+            base_vws_url="https://vuforia.vws.example.com",
             real_http=False,
         ):
             with pytest.raises(NoMockAddress):
-                requests.get(url='https://vws.vuforia.com/summary', timeout=30)
+                requests.get(url="https://vws.vuforia.com/summary", timeout=30)
 
             requests.get(
-                url='https://vuforia.vws.example.com/summary',
+                url="https://vuforia.vws.example.com/summary",
                 timeout=30,
             )
             requests.post(
-                url='https://cloudreco.vuforia.com/v1/query',
+                url="https://cloudreco.vuforia.com/v1/query",
                 timeout=30,
             )
 
@@ -193,21 +193,21 @@ class TestCustomBaseURLs:
         It is possible to use a custom base cloud recognition URL.
         """
         with MockVWS(
-            base_vwq_url='https://vuforia.vwq.example.com',
+            base_vwq_url="https://vuforia.vwq.example.com",
             real_http=False,
         ):
             with pytest.raises(NoMockAddress):
                 requests.post(
-                    url='https://cloudreco.vuforia.com/v1/query',
+                    url="https://cloudreco.vuforia.com/v1/query",
                     timeout=30,
                 )
 
             requests.post(
-                url='https://vuforia.vwq.example.com/v1/query',
+                url="https://vuforia.vwq.example.com/v1/query",
                 timeout=30,
             )
             requests.get(
-                url='https://vws.vuforia.com/summary',
+                url="https://vws.vuforia.com/summary",
                 timeout=30,
             )
 
@@ -217,7 +217,7 @@ class TestCustomBaseURLs:
         An error if raised if a URL is given with no scheme.
         """
         with pytest.raises(MissingSchema) as exc:
-            MockVWS(base_vws_url='vuforia.vws.example.com')
+            MockVWS(base_vws_url="vuforia.vws.example.com")
 
         expected = (
             'Invalid URL "vuforia.vws.example.com": No scheme supplied. '
@@ -225,7 +225,7 @@ class TestCustomBaseURLs:
         )
         assert str(exc.value) == expected
         with pytest.raises(MissingSchema) as exc:
-            MockVWS(base_vwq_url='vuforia.vwq.example.com')
+            MockVWS(base_vwq_url="vuforia.vwq.example.com")
         expected = (
             'Invalid URL "vuforia.vwq.example.com": No scheme supplied. '
             'Perhaps you meant "https://vuforia.vwq.example.com".'
@@ -371,7 +371,7 @@ class TestStates:
         """
         The representation of a ``State`` shows the state.
         """
-        assert repr(States.WORKING) == '<States.WORKING>'
+        assert repr(States.WORKING) == "<States.WORKING>"
 
 
 class TestTargets:
@@ -394,7 +394,7 @@ class TestTargets:
         with MockVWS() as mock:
             mock.add_database(database=database)
             vws_client.add_target(
-                name='example',
+                name="example",
                 width=1,
                 image=high_quality_image,
                 active_flag=True,
@@ -426,7 +426,7 @@ class TestTargets:
         with MockVWS() as mock:
             mock.add_database(database=database)
             target_id = vws_client.add_target(
-                name='example',
+                name="example",
                 width=1,
                 image=high_quality_image,
                 active_flag=True,
@@ -465,7 +465,7 @@ class TestDatabaseToDict:
         with MockVWS() as mock:
             mock.add_database(database=database)
             vws_client.add_target(
-                name='example',
+                name="example",
                 width=1,
                 image=high_quality_image,
                 active_flag=True,
@@ -495,11 +495,11 @@ class TestDateHeader:
         with MockVWS():
             with freeze_time(new_time):
                 response = requests.get(
-                    url='https://vws.vuforia.com/summary',
+                    url="https://vws.vuforia.com/summary",
                     timeout=30,
                 )
 
-        date_response = response.headers['Date']
+        date_response = response.headers["Date"]
         date_from_response = email.utils.parsedate(date_response)
         assert date_from_response is not None
         year = date_from_response[0]
@@ -517,37 +517,37 @@ class TestAddDatabase:
         It is not possible to have multiple databases with matching keys.
         """
         database = VuforiaDatabase(
-            server_access_key='1',
-            server_secret_key='2',
-            client_access_key='3',
-            client_secret_key='4',
-            database_name='5',
+            server_access_key="1",
+            server_secret_key="2",
+            client_access_key="3",
+            client_secret_key="4",
+            database_name="5",
         )
 
-        bad_server_access_key_db = VuforiaDatabase(server_access_key='1')
-        bad_server_secret_key_db = VuforiaDatabase(server_secret_key='2')
-        bad_client_access_key_db = VuforiaDatabase(client_access_key='3')
-        bad_client_secret_key_db = VuforiaDatabase(client_secret_key='4')
-        bad_database_name_db = VuforiaDatabase(database_name='5')
+        bad_server_access_key_db = VuforiaDatabase(server_access_key="1")
+        bad_server_secret_key_db = VuforiaDatabase(server_secret_key="2")
+        bad_client_access_key_db = VuforiaDatabase(client_access_key="3")
+        bad_client_secret_key_db = VuforiaDatabase(client_secret_key="4")
+        bad_database_name_db = VuforiaDatabase(database_name="5")
 
         server_access_key_conflict_error = (
-            'All server access keys must be unique. '
+            "All server access keys must be unique. "
             'There is already a database with the server access key "1".'
         )
         server_secret_key_conflict_error = (
-            'All server secret keys must be unique. '
+            "All server secret keys must be unique. "
             'There is already a database with the server secret key "2".'
         )
         client_access_key_conflict_error = (
-            'All client access keys must be unique. '
+            "All client access keys must be unique. "
             'There is already a database with the client access key "3".'
         )
         client_secret_key_conflict_error = (
-            'All client secret keys must be unique. '
+            "All client secret keys must be unique. "
             'There is already a database with the client secret key "4".'
         )
         database_name_conflict_error = (
-            'All names must be unique. '
+            "All names must be unique. "
             'There is already a database with the name "5".'
         )
 

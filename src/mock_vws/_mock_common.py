@@ -29,4 +29,4 @@ def json_dump(body: Dict[str, Any]) -> str:
     Returns:
         JSON dump of data in the same way that Vuforia dumps data.
     """
-    return json.dumps(obj=body, separators=(',', ':'))
+    return json.dumps(obj=body, separators=(",", ":"))

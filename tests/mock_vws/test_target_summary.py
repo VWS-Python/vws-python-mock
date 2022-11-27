@@ -16,14 +16,14 @@ from vws.reports import TargetStatuses
 from mock_vws.database import VuforiaDatabase
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestTargetSummary:
     """
     Tests for the target summary endpoint.
     """
 
     @staticmethod
-    @pytest.mark.parametrize('active_flag', [True, False])
+    @pytest.mark.parametrize("active_flag", [True, False])
     def test_target_summary(
         vws_client: VWS,
         vuforia_database: VuforiaDatabase,
@@ -34,7 +34,7 @@ class TestTargetSummary:
         A target summary is returned.
         """
         name = uuid.uuid4().hex
-        gmt = ZoneInfo('GMT')
+        gmt = ZoneInfo("GMT")
         date_before_add_target = datetime.datetime.now(tz=gmt).date()
 
         target_id = vws_client.add_target(
@@ -69,10 +69,10 @@ class TestTargetSummary:
 
     @staticmethod
     @pytest.mark.parametrize(
-        ['image_fixture_name', 'expected_status'],
+        ["image_fixture_name", "expected_status"],
         [
-            ('high_quality_image', TargetStatuses.SUCCESS),
-            ('image_file_failed_state', TargetStatuses.FAILED),
+            ("high_quality_image", TargetStatuses.SUCCESS),
+            ("image_file_failed_state", TargetStatuses.FAILED),
         ],
     )
     def test_after_processing(
@@ -98,7 +98,7 @@ class TestTargetSummary:
         image_file = request.getfixturevalue(image_fixture_name)
 
         target_id = vws_client.add_target(
-            name='example',
+            name="example",
             width=1,
             image=image_file,
             active_flag=True,
@@ -121,7 +121,7 @@ class TestTargetSummary:
         assert report.previous_month_recos == 0
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestRecognitionCounts:
     """
     Tests for the recognition counts in the summary.
@@ -137,7 +137,7 @@ class TestRecognitionCounts:
         The recognition counts stay at 0 even after recognitions.
         """
         target_id = vws_client.add_target(
-            name='example',
+            name="example",
             width=1,
             image=high_quality_image,
             active_flag=True,
@@ -157,7 +157,7 @@ class TestRecognitionCounts:
         assert report.previous_month_recos == 0
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestInactiveProject:
     """
     Tests for inactive projects.

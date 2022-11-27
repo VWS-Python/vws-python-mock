@@ -80,13 +80,13 @@ class VuforiaDatabase:
         """
         targets = [target.to_dict() for target in self.targets]
         return {
-            'database_name': self.database_name,
-            'server_access_key': self.server_access_key,
-            'server_secret_key': self.server_secret_key,
-            'client_access_key': self.client_access_key,
-            'client_secret_key': self.client_secret_key,
-            'state_name': self.state.name,
-            'targets': targets,
+            "database_name": self.database_name,
+            "server_access_key": self.server_access_key,
+            "server_secret_key": self.server_secret_key,
+            "client_access_key": self.client_access_key,
+            "client_secret_key": self.client_secret_key,
+            "state_name": self.state.name,
+            "targets": targets,
         }
 
     def get_target(self, target_id: str) -> Target:
@@ -104,15 +104,15 @@ class VuforiaDatabase:
         Load a database from a dictionary.
         """
         return cls(
-            database_name=database_dict['database_name'],
-            server_access_key=database_dict['server_access_key'],
-            server_secret_key=database_dict['server_secret_key'],
-            client_access_key=database_dict['client_access_key'],
-            client_secret_key=database_dict['client_secret_key'],
-            state=States[database_dict['state_name']],
+            database_name=database_dict["database_name"],
+            server_access_key=database_dict["server_access_key"],
+            server_secret_key=database_dict["server_secret_key"],
+            client_access_key=database_dict["client_access_key"],
+            client_secret_key=database_dict["client_secret_key"],
+            state=States[database_dict["state_name"]],
             targets={
                 Target.from_dict(target_dict=target_dict)
-                for target_dict in database_dict['targets']
+                for target_dict in database_dict["targets"]
             },
         )
 

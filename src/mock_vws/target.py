@@ -47,7 +47,7 @@ def _time_now() -> datetime.datetime:
     """
     Return the current time in the GMT time zone.
     """
-    gmt = ZoneInfo('GMT')
+    gmt = ZoneInfo("GMT")
     return datetime.datetime.now(tz=gmt)
 
 
@@ -78,7 +78,7 @@ class Target:
     processed_tracking_rating: int = field(
         default_factory=_random_tracking_rating,
     )
-    reco_rating: str = ''
+    reco_rating: str = ""
     target_id: str = field(default_factory=_random_hex)
     total_recos: int = 0
     upload_date: datetime.datetime = field(default_factory=_time_now)
@@ -165,17 +165,17 @@ class Target:
         """
         Load a target from a dictionary.
         """
-        timezone = ZoneInfo('GMT')
-        name = target_dict['name']
-        active_flag = target_dict['active_flag']
-        width = target_dict['width']
-        image_base64 = target_dict['image_base64']
+        timezone = ZoneInfo("GMT")
+        name = target_dict["name"]
+        active_flag = target_dict["active_flag"]
+        width = target_dict["width"]
+        image_base64 = target_dict["image_base64"]
         image_value = base64.b64decode(image_base64)
-        processed_tracking_rating = target_dict['processed_tracking_rating']
-        processing_time_seconds = target_dict['processing_time_seconds']
-        application_metadata = target_dict['application_metadata']
-        target_id = target_dict['target_id']
-        delete_date_optional = target_dict['delete_date_optional']
+        processed_tracking_rating = target_dict["processed_tracking_rating"]
+        processing_time_seconds = target_dict["processing_time_seconds"]
+        application_metadata = target_dict["application_metadata"]
+        target_id = target_dict["target_id"]
+        delete_date_optional = target_dict["delete_date_optional"]
         if delete_date_optional is None:
             delete_date = None
         else:
@@ -183,10 +183,10 @@ class Target:
             delete_date = delete_date.replace(tzinfo=timezone)
 
         last_modified_date = datetime.datetime.fromisoformat(
-            target_dict['last_modified_date'],
+            target_dict["last_modified_date"],
         ).replace(tzinfo=timezone)
         upload_date = datetime.datetime.fromisoformat(
-            target_dict['upload_date'],
+            target_dict["upload_date"],
         ).replace(tzinfo=timezone)
 
         target = Target(
@@ -215,15 +215,15 @@ class Target:
         image_base64 = base64.encodebytes(self.image_value).decode()
 
         return {
-            'name': self.name,
-            'width': self.width,
-            'image_base64': image_base64,
-            'active_flag': self.active_flag,
-            'processing_time_seconds': self.processing_time_seconds,
-            'processed_tracking_rating': self.processed_tracking_rating,
-            'application_metadata': self.application_metadata,
-            'target_id': self.target_id,
-            'last_modified_date': self.last_modified_date.isoformat(),
-            'delete_date_optional': delete_date,
-            'upload_date': self.upload_date.isoformat(),
+            "name": self.name,
+            "width": self.width,
+            "image_base64": image_base64,
+            "active_flag": self.active_flag,
+            "processing_time_seconds": self.processing_time_seconds,
+            "processed_tracking_rating": self.processed_tracking_rating,
+            "application_metadata": self.application_metadata,
+            "target_id": self.target_id,
+            "last_modified_date": self.last_modified_date.isoformat(),
+            "delete_date_optional": delete_date,
+            "upload_date": self.upload_date.isoformat(),
         }
