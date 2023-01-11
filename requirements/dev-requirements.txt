@@ -37,5 +37,5 @@ types-Pillow==9.4.0.0
 types-requests==2.28.11.7
 types-setuptools==65.6.0.2
 types-urllib3==1.26.25.4
-vulture==2.6
+vulture==2.7
 vws-python==2021.3.28.2
