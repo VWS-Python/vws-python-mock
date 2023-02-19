@@ -9,11 +9,10 @@ import uuid
 from http import HTTPStatus
 
 import pytest
-from vws import VWS, CloudRecoService
-from vws.exceptions.vws_exceptions import Fail
-
 from mock_vws import MockVWS
 from mock_vws.database import VuforiaDatabase
+from vws import VWS, CloudRecoService
+from vws.exceptions.vws_exceptions import Fail
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -71,7 +70,8 @@ def _wait_for_image_numbers(
         while True:
             seconds_waited = time.monotonic() - start_time
             if seconds_waited > maximum_wait_seconds:  # pragma: no cover
-                raise Exception("Timed out waiting.")
+                timeout_message = "Timed out waiting"
+                raise ValueError(timeout_message)
 
             report = vws_client.get_database_summary_report()
             relevant_images_in_summary = getattr(report, key)
@@ -297,9 +297,12 @@ class TestQuotas:
         These match the quotas given for a free license.
         """
         report = vws_client.get_database_summary_report()
-        assert report.target_quota == 1000
-        assert report.request_quota == 100000
-        assert report.reco_threshold == 1000
+        expected_target_quota = 1000
+        expected_request_quota = 100000
+        expected_reco_threshold = 1000
+        assert report.target_quota == expected_target_quota
+        assert report.request_quota == expected_request_quota
+        assert report.reco_threshold == expected_reco_threshold
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")

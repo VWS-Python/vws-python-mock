@@ -4,7 +4,6 @@ Validators for the ``max_num_results`` fields.
 
 import io
 from email.message import EmailMessage
-from typing import Dict
 
 import mock_vws._cgi as cgi
 from mock_vws._query_validators.exceptions import (
@@ -14,7 +13,7 @@ from mock_vws._query_validators.exceptions import (
 
 
 def validate_max_num_results(
-    request_headers: Dict[str, str],
+    request_headers: dict[str, str],
     request_body: bytes,
 ) -> None:
     """
@@ -49,5 +48,6 @@ def validate_max_num_results(
     if max_num_results_int > java_max_int:
         raise InvalidMaxNumResults(given_value=max_num_results)
 
-    if max_num_results_int < 1 or max_num_results_int > 50:
+    max_allowed_results = 50
+    if max_num_results_int < 1 or max_num_results_int > max_allowed_results:
         raise MaxNumResultsOutOfRange(given_value=max_num_results)

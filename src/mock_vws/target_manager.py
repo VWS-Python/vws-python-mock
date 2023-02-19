@@ -2,7 +2,6 @@
 A fake implementation of a Vuforia target manager.
 """
 
-from typing import Set
 
 from mock_vws.database import VuforiaDatabase
 
@@ -16,7 +15,7 @@ class TargetManager:
         """
         Create a target manager with no databases.
         """
-        self._databases: Set[VuforiaDatabase] = set()
+        self._databases: set[VuforiaDatabase] = set()
 
     def remove_database(self, database: VuforiaDatabase) -> None:
         """
@@ -80,7 +79,7 @@ class TargetManager:
         self._databases.add(database)
 
     @property
-    def databases(self) -> Set[VuforiaDatabase]:
+    def databases(self) -> set[VuforiaDatabase]:
         """
         All cloud databases.
         """

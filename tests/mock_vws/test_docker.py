@@ -5,17 +5,16 @@ Tests for running the mock server in Docker.
 import io
 import os
 import uuid
+from collections.abc import Iterator
 from http import HTTPStatus
 from pathlib import Path
-from typing import Iterator
 
 import docker
 import pytest
 import requests
 from docker.models.networks import Network
-from vws import VWS, CloudRecoService
-
 from mock_vws.database import VuforiaDatabase
+from vws import VWS, CloudRecoService
 
 
 @pytest.fixture(name="custom_bridge_network")
@@ -81,7 +80,10 @@ def test_build_and_run(
         )
         # If this assertion fails, it may be useful to look at the other
         # properties of ``exc``.
-        assert "no matching manifest for windows/amd64" in exc.msg, full_log
+        if (
+            "no matching manifest for windows/amd64" not in exc.msg
+        ):  # pragma: no cover
+            raise AssertionError(full_log) from exc
         reason = "We do not currently support using Windows containers."
         pytest.skip(reason)
 

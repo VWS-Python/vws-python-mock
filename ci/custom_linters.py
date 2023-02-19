@@ -4,13 +4,12 @@ Custom lint tests.
 
 import subprocess
 from pathlib import Path
-from typing import Dict, Set
 
 import pytest
 import yaml
 
 
-def _ci_patterns() -> Set[str]:
+def _ci_patterns() -> set[str]:
     """
     Return the CI patterns given in the CI configuration file.
     """
@@ -24,11 +23,11 @@ def _ci_patterns() -> Set[str]:
     return ci_patterns
 
 
-def _tests_from_pattern(ci_pattern: str) -> Set[str]:
+def _tests_from_pattern(ci_pattern: str) -> set[str]:
     """
     From a CI pattern, get all tests ``pytest`` would collect.
     """
-    tests: Set[str] = set()
+    tests: set[str] = set()
     args = ["pytest", "-q", "--collect-only", ci_pattern]
     result = subprocess.run(args=args, stdout=subprocess.PIPE, check=True)
     for line in result.stdout.decode().splitlines():
@@ -59,7 +58,7 @@ def test_tests_collected_once() -> None:
     This does not necessarily mean that they are run - they may be skipped.
     """
     ci_patterns = _ci_patterns()
-    tests_to_patterns: Dict[str, Set[str]] = {}
+    tests_to_patterns: dict[str, set[str]] = {}
     for pattern in ci_patterns:
         pattern = "tests/mock_vws/" + pattern
         tests = _tests_from_pattern(ci_pattern=pattern)
@@ -80,20 +79,3 @@ def test_tests_collected_once() -> None:
     all_tests = _tests_from_pattern(ci_pattern="tests/")
     assert tests_to_patterns.keys() - all_tests == set()
     assert all_tests - tests_to_patterns.keys() == set()
-
-
-def test_init_files() -> None:
-    """
-    ``__init__`` files exist where they should do.
-
-    If ``__init__`` files are missing, linters may not run on all files that
-    they should run on.
-    """
-    directories = (Path("src"), Path("tests"))
-
-    for directory in directories:
-        files = directory.glob("**/*.py")
-        for python_file in files:
-            parent = python_file.parent
-            expected_init = parent / "__init__.py"
-            assert expected_init.exists()

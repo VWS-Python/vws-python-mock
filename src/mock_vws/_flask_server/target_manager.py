@@ -5,9 +5,9 @@ Storage layer for the mock Vuforia Flask application.
 import base64
 import dataclasses
 import datetime
+import os
 import random
 from http import HTTPStatus
-from typing import Tuple
 from zoneinfo import ZoneInfo
 
 from flask import Flask, jsonify, request
@@ -26,7 +26,7 @@ TARGET_MANAGER = TargetManager()
     "/databases/<string:database_name>",
     methods=["DELETE"],
 )
-def delete_database(database_name: str) -> Tuple[str, int]:
+def delete_database(database_name: str) -> tuple[str, int]:
     """
     Delete a database.
 
@@ -46,7 +46,7 @@ def delete_database(database_name: str) -> Tuple[str, int]:
 
 
 @TARGET_MANAGER_FLASK_APP.route("/databases", methods=["GET"])
-def get_databases() -> Tuple[str, int]:
+def get_databases() -> tuple[str, int]:
     """
     Return a list of all databases.
     """
@@ -55,7 +55,7 @@ def get_databases() -> Tuple[str, int]:
 
 
 @TARGET_MANAGER_FLASK_APP.route("/databases", methods=["POST"])
-def create_database() -> Tuple[str, int]:
+def create_database() -> tuple[str, int]:
     """
     Create a new database.
 
@@ -133,7 +133,7 @@ def create_database() -> Tuple[str, int]:
     "/databases/<string:database_name>/targets",
     methods=["POST"],
 )
-def create_target(database_name: str) -> Tuple[str, int]:
+def create_target(database_name: str) -> tuple[str, int]:
     """
     Create a new target in a given database.
     """
@@ -162,7 +162,7 @@ def create_target(database_name: str) -> Tuple[str, int]:
     "/databases/<string:database_name>/targets/<string:target_id>",
     methods=["DELETE"],
 )
-def delete_target(database_name: str, target_id: str) -> Tuple[str, int]:
+def delete_target(database_name: str, target_id: str) -> tuple[str, int]:
     """
     Delete a target.
     """
@@ -183,7 +183,7 @@ def delete_target(database_name: str, target_id: str) -> Tuple[str, int]:
     "/databases/<string:database_name>/targets/<string:target_id>",
     methods=["PUT"],
 )
-def update_target(database_name: str, target_id: str) -> Tuple[str, int]:
+def update_target(database_name: str, target_id: str) -> tuple[str, int]:
     """
     Update a target.
     """
@@ -233,4 +233,7 @@ def update_target(database_name: str, target_id: str) -> Tuple[str, int]:
 
 
 if __name__ == "__main__":  # pragma: no cover
-    TARGET_MANAGER_FLASK_APP.run(debug=True, host="0.0.0.0")
+    TARGET_MANAGER_FLASK_APP.run(
+        debug=True,
+        host=os.environ["TARGET_MANAGER_HOST"],
+    )

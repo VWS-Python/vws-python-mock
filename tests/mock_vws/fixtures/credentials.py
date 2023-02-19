@@ -5,7 +5,6 @@ Fixtures for credentials for Vuforia databases.
 import os
 
 import pytest
-
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
 

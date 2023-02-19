@@ -6,18 +6,18 @@ import base64
 import io
 import json
 from http import HTTPStatus
-from typing import Any, Dict
+from typing import Any
 from urllib.parse import urljoin
 
 import pytest
 import requests
+from mock_vws._constants import ResultCodes
+from mock_vws.database import VuforiaDatabase
 from requests_mock import DELETE, GET, POST, PUT
 from urllib3.filepost import encode_multipart_formdata
 from vws import VWS
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from mock_vws._constants import ResultCodes
-from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import Endpoint
 
 VWS_HOST = "https://vws.vuforia.com"
@@ -25,7 +25,7 @@ VWQ_HOST = "https://cloudreco.vuforia.com"
 
 
 @pytest.fixture()
-def _add_target(
+def add_target(
     vuforia_database: VuforiaDatabase,
     image_file_failed_state: io.BytesIO,
 ) -> Endpoint:
@@ -35,7 +35,7 @@ def _add_target(
     image_data = image_file_failed_state.read()
     image_data_encoded = base64.b64encode(image_data).decode("ascii")
     date = rfc_1123_date()
-    data: Dict[str, Any] = {
+    data: dict[str, Any] = {
         "name": "example_name",
         "width": 1,
         "image": image_data_encoded,
@@ -83,7 +83,7 @@ def _add_target(
 
 
 @pytest.fixture()
-def _delete_target(
+def delete_target(
     vuforia_database: VuforiaDatabase,
     target_id: str,
     vws_client: VWS,
@@ -132,7 +132,7 @@ def _delete_target(
 
 
 @pytest.fixture()
-def _database_summary(vuforia_database: VuforiaDatabase) -> Endpoint:
+def database_summary(vuforia_database: VuforiaDatabase) -> Endpoint:
     """
     Return details of the endpoint for getting details about the database.
     """
@@ -178,7 +178,7 @@ def _database_summary(vuforia_database: VuforiaDatabase) -> Endpoint:
 
 
 @pytest.fixture()
-def _get_duplicates(
+def get_duplicates(
     vuforia_database: VuforiaDatabase,
     target_id: str,
     vws_client: VWS,
@@ -230,7 +230,7 @@ def _get_duplicates(
 
 
 @pytest.fixture()
-def _get_target(
+def get_target(
     vuforia_database: VuforiaDatabase,
     target_id: str,
     vws_client: VWS,
@@ -281,7 +281,7 @@ def _get_target(
 
 
 @pytest.fixture()
-def _target_list(vuforia_database: VuforiaDatabase) -> Endpoint:
+def target_list(vuforia_database: VuforiaDatabase) -> Endpoint:
     """
     Return details of the endpoint for getting a list of targets.
     """
@@ -327,7 +327,7 @@ def _target_list(vuforia_database: VuforiaDatabase) -> Endpoint:
 
 
 @pytest.fixture()
-def _target_summary(
+def target_summary(
     vuforia_database: VuforiaDatabase,
     target_id: str,
     vws_client: VWS,
@@ -378,7 +378,7 @@ def _target_summary(
 
 
 @pytest.fixture()
-def _update_target(
+def update_target(
     vuforia_database: VuforiaDatabase,
     target_id: str,
     vws_client: VWS,
@@ -387,7 +387,7 @@ def _update_target(
     Return details of the endpoint for updating a target.
     """
     vws_client.wait_for_target_processed(target_id=target_id)
-    data: Dict[str, Any] = {}
+    data: dict[str, Any] = {}
     request_path = f"/targets/{target_id}"
     content = bytes(json.dumps(data), encoding="utf-8")
     content_type = "application/json"
@@ -432,7 +432,7 @@ def _update_target(
 
 
 @pytest.fixture()
-def _query(
+def query(
     vuforia_database: VuforiaDatabase,
     high_quality_image: io.BytesIO,
 ) -> Endpoint:
@@ -447,7 +447,7 @@ def _query(
 
     content, content_type_header = encode_multipart_formdata(
         fields=files,
-    )  # type: ignore
+    )  # type: ignore[no-untyped-call]
 
     access_key = vuforia_database.client_access_key
     secret_key = vuforia_database.client_secret_key

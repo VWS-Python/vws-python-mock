@@ -8,15 +8,14 @@ from http import HTTPStatus
 
 import pytest
 import requests
-from pytest import MonkeyPatch
-from requests_mock import Mocker
-from requests_mock_flask import add_flask_app_to_mock
-from vws import VWS, CloudRecoService
-
 from mock_vws._flask_server.target_manager import TARGET_MANAGER_FLASK_APP
 from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
 from mock_vws._flask_server.vws import VWS_FLASK_APP
 from mock_vws.database import VuforiaDatabase
+from requests_mock import Mocker
+from requests_mock_flask import add_flask_app_to_mock
+from vws import VWS, CloudRecoService
+
 from tests.mock_vws.utils.usage_test_helpers import (
     process_deletion_seconds,
     processing_time_seconds,
@@ -27,8 +26,8 @@ _EXAMPLE_URL_FOR_TARGET_MANAGER = "http://" + uuid.uuid4().hex + ".com"
 
 
 @pytest.fixture(autouse=True)
-def enable_requests_mock(
-    monkeypatch: MonkeyPatch,
+def _enable_requests_mock(
+    monkeypatch: pytest.MonkeyPatch,
     requests_mock: Mocker,
 ) -> None:
     """
@@ -89,7 +88,7 @@ class TestProcessingTime:
     def test_custom(
         self,
         image_file_failed_state: io.BytesIO,
-        monkeypatch: MonkeyPatch,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """
         It is possible to set a custom processing time.
@@ -144,7 +143,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
     def test_custom(
         self,
         high_quality_image: io.BytesIO,
-        monkeypatch: MonkeyPatch,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """
         It is possible to use set a custom amount of time that it takes for the
@@ -203,7 +202,7 @@ class TestCustomQueryProcessDeletionSeconds:
     def test_custom(
         self,
         high_quality_image: io.BytesIO,
-        monkeypatch: MonkeyPatch,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """
         It is possible to use set a custom amount of time that it takes for the
@@ -304,7 +303,7 @@ class TestAddDatabase:
 
         assert data["targets"] == []
         assert data["state_name"] == "WORKING"
-        assert "database_name" in data.keys()
+        assert "database_name" in data
 
         vws_client = VWS(
             server_access_key=data["server_access_key"],

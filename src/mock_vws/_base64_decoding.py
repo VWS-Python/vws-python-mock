@@ -21,16 +21,15 @@ def decode_base64(encoded_data: str) -> bytes:
     acceptable_characters = string.ascii_letters + string.digits + "+/="
     for character in encoded_data:
         if character not in acceptable_characters:
-            raise binascii.Error()
+            raise binascii.Error
 
-    if len(encoded_data) % 4 == 0:
-        decoded = base64.b64decode(encoded_data)
-    elif len(encoded_data) % 4 == 1:
-        decoded = base64.b64decode(encoded_data[:-1])
-    elif len(encoded_data) % 4 == 2:
-        decoded = base64.b64decode(encoded_data + "==")
-    else:
-        assert len(encoded_data) % 4 == 3
-        decoded = base64.b64decode(encoded_data + "=")
-
-    return decoded
+    mod_4_result_to_modified_encoded_data = {
+        0: encoded_data,
+        1: encoded_data[:-1],
+        2: encoded_data + "==",
+        3: encoded_data + "=",
+    }
+    modified_encoded_data = mod_4_result_to_modified_encoded_data[
+        len(encoded_data) % 4
+    ]
+    return base64.b64decode(modified_encoded_data)

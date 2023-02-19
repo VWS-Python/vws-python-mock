@@ -12,9 +12,8 @@ from http import HTTPStatus
 from string import hexdigits
 from zoneinfo import ZoneInfo
 
-from requests import Response
-
 from mock_vws._constants import ResultCodes
+from requests import Response
 
 
 def assert_vws_failure(
@@ -84,7 +83,8 @@ def assert_valid_transaction_id(response: Response) -> None:
         AssertionError: The response does not include a valid transaction ID.
     """
     transaction_id = response.json()["transaction_id"]
-    assert len(transaction_id) == 32
+    expected_transaction_id_length = 32
+    assert len(transaction_id) == expected_transaction_id_length
     assert all(char in hexdigits for char in transaction_id)
 
 
@@ -164,7 +164,8 @@ def assert_query_success(response: Response) -> None:
     assert response.json().keys() == {"result_code", "results", "query_id"}
 
     query_id = response.json()["query_id"]
-    assert len(query_id) == 32
+    expected_query_id_length = 32
+    assert len(query_id) == expected_query_id_length
     assert all(char in hexdigits for char in query_id)
 
     assert response.json()["result_code"] == "Success"

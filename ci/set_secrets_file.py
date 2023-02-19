@@ -2,6 +2,7 @@
 Move the right secrets file into place for CI.
 """
 
+import logging
 import os
 import shutil
 from pathlib import Path
@@ -23,7 +24,7 @@ def move_secrets_file() -> None:
 
     secrets_dir = Path("ci_secrets")
     secrets_path = secrets_dir / f"vuforia_secrets_{builder_number}.env"
-    print(f"Using {secrets_path}")
+    logging.debug("Using %s", secrets_path)
     shutil.copy(secrets_path, "./vuforia_secrets.env")
 
 

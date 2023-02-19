@@ -19,7 +19,6 @@ def validate_width(request_body: bytes) -> None:
     Raises:
         Fail: Width is given and is not a positive number.
     """
-
     if not request_body:
         return
 

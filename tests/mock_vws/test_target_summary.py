@@ -9,11 +9,10 @@ from zoneinfo import ZoneInfo
 
 import pytest
 from _pytest.fixtures import SubRequest
+from mock_vws.database import VuforiaDatabase
 from vws import VWS, CloudRecoService
 from vws.exceptions.vws_exceptions import UnknownTarget
 from vws.reports import TargetStatuses
-
-from mock_vws.database import VuforiaDatabase
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -28,6 +27,7 @@ class TestTargetSummary:
         vws_client: VWS,
         vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
+        *,
         active_flag: bool,
     ) -> None:
         """
@@ -69,7 +69,7 @@ class TestTargetSummary:
 
     @staticmethod
     @pytest.mark.parametrize(
-        ["image_fixture_name", "expected_status"],
+        ("image_fixture_name", "expected_status"),
         [
             ("high_quality_image", TargetStatuses.SUCCESS),
             ("image_file_failed_state", TargetStatuses.FAILED),

@@ -7,9 +7,9 @@ from http import HTTPStatus
 
 import pytest
 import requests
+from mock_vws._constants import ResultCodes
 from vws import VWS
 
-from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import assert_vws_failure
 

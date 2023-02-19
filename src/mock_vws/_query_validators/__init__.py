@@ -2,7 +2,6 @@
 Input validators to use in the mock query API.
 """
 
-from typing import Dict, Set
 
 from mock_vws.database import VuforiaDatabase
 
@@ -40,10 +39,10 @@ from .project_state_validators import validate_project_state
 
 def run_query_validators(
     request_path: str,
-    request_headers: Dict[str, str],
+    request_headers: dict[str, str],
     request_body: bytes,
     request_method: str,
-    databases: Set[VuforiaDatabase],
+    databases: set[VuforiaDatabase],
 ) -> None:
     """
     Run all validators.

@@ -2,7 +2,6 @@
 Content-Type header validators to use in the mock.
 """
 
-from typing import Dict
 
 from requests_mock import POST, PUT
 
@@ -10,7 +9,7 @@ from mock_vws._services_validators.exceptions import AuthenticationFailure
 
 
 def validate_content_type_header_given(
-    request_headers: Dict[str, str],
+    request_headers: dict[str, str],
     request_method: str,
 ) -> None:
     """

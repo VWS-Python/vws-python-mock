@@ -4,7 +4,6 @@ Validators for target names.
 
 import json
 from http import HTTPStatus
-from typing import Dict, Set
 
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._services_validators.exceptions import (
@@ -34,7 +33,6 @@ def validate_name_characters_in_range(
         TargetNameExist: Characters are out of range and the request is for
             another endpoint.
     """
-
     if not request_body:
         return
 
@@ -44,7 +42,8 @@ def validate_name_characters_in_range(
 
     name = json.loads(request_text)["name"]
 
-    if all(ord(character) <= 65535 for character in name):
+    max_character_ord = 65535
+    if all(ord(character) <= max_character_ord for character in name):
         return
 
     if (request_method, request_path) == ("POST", "/targets"):
@@ -63,7 +62,6 @@ def validate_name_type(request_body: bytes) -> None:
     Raises:
         Fail: A name is given and it is not a string.
     """
-
     if not request_body:
         return
 
@@ -99,16 +97,17 @@ def validate_name_length(request_body: bytes) -> None:
 
     name = json.loads(request_text)["name"]
 
-    if name and len(name) < 65:
+    max_length = 64
+    if name and len(name) <= max_length:
         return
 
     raise Fail(status_code=HTTPStatus.BAD_REQUEST)
 
 
 def validate_name_does_not_exist_new_target(
-    databases: Set[VuforiaDatabase],
+    databases: set[VuforiaDatabase],
     request_body: bytes,
-    request_headers: Dict[str, str],
+    request_headers: dict[str, str],
     request_method: str,
     request_path: str,
 ) -> None:
@@ -133,7 +132,9 @@ def validate_name_does_not_exist_new_target(
         return
 
     split_path = request_path.split("/")
-    if len(split_path) != 2:
+
+    split_path_no_target_id_length = 2
+    if len(split_path) != split_path_no_target_id_length:
         return
 
     name = json.loads(request_text)["name"]
@@ -159,11 +160,11 @@ def validate_name_does_not_exist_new_target(
 
 
 def validate_name_does_not_exist_existing_target(
-    request_headers: Dict[str, str],
+    request_headers: dict[str, str],
     request_body: bytes,
     request_method: str,
     request_path: str,
-    databases: Set[VuforiaDatabase],
+    databases: set[VuforiaDatabase],
 ) -> None:
     """
     Validate that the name does not exist for any existing target apart from
@@ -180,7 +181,6 @@ def validate_name_does_not_exist_existing_target(
         TargetNameExist: The target name is not the same as the name of the
             target being updated but it is the same as another target.
     """
-
     if not request_body:
         return
 
@@ -189,7 +189,8 @@ def validate_name_does_not_exist_existing_target(
         return
 
     split_path = request_path.split("/")
-    if len(split_path) == 2:
+    split_path_no_target_id_length = 2
+    if len(split_path) == split_path_no_target_id_length:
         return
 
     target_id = split_path[-1]

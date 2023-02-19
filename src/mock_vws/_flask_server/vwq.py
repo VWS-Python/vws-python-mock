@@ -8,7 +8,6 @@ https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognitio
 import email.utils
 import os
 from http import HTTPStatus
-from typing import Set
 
 import requests
 from flask import Flask, Response, request
@@ -28,7 +27,7 @@ CLOUDRECO_FLASK_APP = Flask(import_name=__name__)
 CLOUDRECO_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
 
 
-def get_all_databases() -> Set[VuforiaDatabase]:
+def get_all_databases() -> set[VuforiaDatabase]:
     """
     Get all database objects from the target manager back-end.
     """
@@ -143,4 +142,4 @@ def query() -> Response:
 
 
 if __name__ == "__main__":  # pragma: no cover
-    CLOUDRECO_FLASK_APP.run(debug=True, host="0.0.0.0")
+    CLOUDRECO_FLASK_APP.run(debug=True, host=os.environ["VWQ_HOST"])

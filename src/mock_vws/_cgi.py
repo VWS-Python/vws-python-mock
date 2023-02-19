@@ -68,7 +68,7 @@ def parse_multipart(
     # RFC 2046, Section 5.1 : The 'multipart' boundary delimiters are always
     # represented as 7bit US-ASCII.
     boundary = pdict["boundary"].decode("ascii")
-    ctype = "multipart/form-data; boundary={}".format(boundary)
+    ctype = f"multipart/form-data; boundary={boundary}"
     headers = Message()
     headers.set_type(ctype)
     try:
@@ -112,7 +112,7 @@ def parse_header(line: str) -> tuple:
         i = p.find("=")
         if i >= 0:
             name = p[:i].strip().lower()
-            value = p[i + 1 :].strip()  # noqa
+            value = p[i + 1 :].strip()
             if len(value) >= 2 and value[0] == value[-1] == '"':
                 value = value[1:-1]
                 value = value.replace("\\\\", "\\").replace('\\"', '"')
@@ -137,15 +137,14 @@ class MiniFieldStorage:
     disposition_options = {}
     headers = {}
 
-    def __init__(self, name, value):
+    def __init__(self, name, value) -> None:
         """Constructor from field name and value."""
         self.name = name
         self.value = value
-        # self.file = StringIO(value)
 
     def __repr__(self):
         """Return printable representation."""
-        return "MiniFieldStorage(%r, %r)" % (self.name, self.value)
+        return f"MiniFieldStorage({self.name!r}, {self.value!r})"
 
 
 class FieldStorage:
@@ -205,7 +204,7 @@ class FieldStorage:
         errors="replace",
         max_num_fields=None,
         separator="&",
-    ):
+    ) -> None:
         """
         Constructor.  Read multipart/* until last part.
 
@@ -392,7 +391,7 @@ class FieldStorage:
 
     def __repr__(self):
         """Return a printable representation."""
-        return "FieldStorage(%r, %r, %r)" % (
+        return "FieldStorage({!r}, {!r}, {!r})".format(
             self.name,
             self.filename,
             self.value,
@@ -446,7 +445,7 @@ class FieldStorage:
         """Dictionary style keys method."""
         if self.list is None:
             raise TypeError("not indexable")
-        return list(set(item.name for item in self.list))
+        return list({item.name for item in self.list})
 
     def __contains__(self, key):
         """Dictionary style __contains__ method."""
@@ -487,7 +486,7 @@ class FieldStorage:
         """Internal: read a part that is itself multipart."""
         ib = self.innerboundary
         if not valid_boundary(ib):
-            raise ValueError("Invalid boundary in multipart form: %r" % (ib,))
+            raise ValueError(f"Invalid boundary in multipart form: {ib!r}")
         self.list = []
         if self.qs_on_post:
             query = urllib.parse.parse_qsl(
@@ -617,13 +616,12 @@ class FieldStorage:
             self.read_lines_to_eof()
 
     def __write(self, line):
-        """Line is always bytes, not string"""
-        if self.__file is not None:
-            if self.__file.tell() + len(line) > 1000:
-                self.file = self.make_file()
-                data = self.__file.getvalue()
-                self.file.write(data)
-                self.__file = None
+        """Line is always bytes, not string."""
+        if self.__file is not None and self.__file.tell() + len(line) > 1000:
+            self.file = self.make_file()
+            data = self.__file.getvalue()
+            self.file.write(data)
+            self.__file = None
         if self._binary_file:
             # keep bytes
             self.file.write(line)

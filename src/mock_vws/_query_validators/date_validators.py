@@ -2,8 +2,8 @@
 Validators of the date header to use in the mock query API.
 """
 
+import contextlib
 import datetime
-from typing import Dict, Set
 from zoneinfo import ZoneInfo
 
 from mock_vws._query_validators.exceptions import (
@@ -13,7 +13,7 @@ from mock_vws._query_validators.exceptions import (
 )
 
 
-def validate_date_header_given(request_headers: Dict[str, str]) -> None:
+def validate_date_header_given(request_headers: dict[str, str]) -> None:
     """
     Validate the date header is given to the query endpoint.
 
@@ -29,7 +29,7 @@ def validate_date_header_given(request_headers: Dict[str, str]) -> None:
     raise DateHeaderNotGiven
 
 
-def _accepted_date_formats() -> Set[str]:
+def _accepted_date_formats() -> set[str]:
     """
     Return all known accepted date formats.
 
@@ -50,7 +50,7 @@ def _accepted_date_formats() -> Set[str]:
     return known_accepted_formats
 
 
-def validate_date_format(request_headers: Dict[str, str]) -> None:
+def validate_date_format(request_headers: dict[str, str]) -> None:
     """
     Validate the format of the date header given to the query endpoint.
 
@@ -63,17 +63,14 @@ def validate_date_format(request_headers: Dict[str, str]) -> None:
     date_header = request_headers["Date"]
 
     for date_format in _accepted_date_formats():
-        try:
-            datetime.datetime.strptime(date_header, date_format)
-        except ValueError:
-            pass
-        else:
+        with contextlib.suppress(ValueError):
+            datetime.datetime.strptime(date_header, date_format).astimezone()
             return
 
     raise DateFormatNotValid
 
 
-def validate_date_in_range(request_headers: Dict[str, str]) -> None:
+def validate_date_in_range(request_headers: dict[str, str]) -> None:
     """
     Validate date in the date header given to the query endpoint.
 
@@ -86,12 +83,11 @@ def validate_date_in_range(request_headers: Dict[str, str]) -> None:
     date_header = request_headers["Date"]
 
     for date_format in _accepted_date_formats():
-        try:
-            date = datetime.datetime.strptime(date_header, date_format)
-            # We could break here but that would give a coverage report that is
-            # not 100%.
-        except ValueError:
-            pass
+        with contextlib.suppress(ValueError):
+            date = datetime.datetime.strptime(
+                date_header,
+                date_format,
+            ).astimezone()
 
     gmt = ZoneInfo("GMT")
     now = datetime.datetime.now(tz=gmt)

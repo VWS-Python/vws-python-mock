@@ -22,6 +22,8 @@ from zoneinfo import ZoneInfo
 
 import pytest
 import requests
+from mock_vws._constants import ResultCodes
+from mock_vws.database import VuforiaDatabase
 from PIL import Image
 from requests import Response
 from requests_mock import POST
@@ -30,8 +32,6 @@ from vws import VWS, CloudRecoService
 from vws.reports import TargetStatuses
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from mock_vws._constants import ResultCodes
-from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import make_image_file
 from tests.mock_vws.utils.assertions import (
     assert_query_success,
@@ -100,9 +100,9 @@ def query(
     """
     date = rfc_1123_date()
     request_path = "/v1/query"
-    content, content_type_header = encode_multipart_formdata(  # type: ignore
+    content, content_type_header = encode_multipart_formdata(
         fields=body,
-    )
+    )  # type: ignore[no-untyped-call]
     method = POST
 
     access_key = vuforia_database.client_access_key
@@ -125,15 +125,13 @@ def query(
     }
 
     vwq_host = "https://cloudreco.vuforia.com"
-    response = requests.request(
+    return requests.request(
         method=method,
         url=urljoin(base=vwq_host, url=request_path),
         headers=headers,
         data=content,
         timeout=30,
     )
-
-    return response
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -144,13 +142,13 @@ class TestContentType:
 
     @staticmethod
     @pytest.mark.parametrize(
-        [
+        (
             "content_type",
             "resp_status_code",
             "resp_content_type",
             "resp_cache_control",
             "resp_text",
-        ],
+        ),
         [
             (
                 "text/html",
@@ -208,7 +206,9 @@ class TestContentType:
         date = rfc_1123_date()
         request_path = "/v1/query"
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
-        content, _ = encode_multipart_formdata(fields=body)  # type: ignore
+        content, _ = encode_multipart_formdata(
+            fields=body,
+        )  # type: ignore[no-untyped-call]
         method = POST
 
         access_key = vuforia_database.client_access_key
@@ -263,7 +263,7 @@ class TestContentType:
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
         content, content_type_header = encode_multipart_formdata(
             fields=body,
-        )  # type: ignore
+        )  # type: ignore[no-untyped-call]
         method = POST
 
         content_type = "text/html"
@@ -328,7 +328,9 @@ class TestContentType:
         date = rfc_1123_date()
         request_path = "/v1/query"
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
-        content, _ = encode_multipart_formdata(fields=body)  # type: ignore
+        content, _ = encode_multipart_formdata(
+            fields=body,
+        )  # type: ignore[no-untyped-call]
         method = POST
 
         access_key = vuforia_database.client_access_key
@@ -384,7 +386,9 @@ class TestContentType:
         date = rfc_1123_date()
         request_path = "/v1/query"
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
-        content, _ = encode_multipart_formdata(fields=body)  # type: ignore
+        content, _ = encode_multipart_formdata(
+            fields=body,
+        )  # type: ignore[no-untyped-call]
         method = POST
 
         access_key = vuforia_database.client_access_key
@@ -440,7 +444,7 @@ class TestContentType:
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
         content, content_type_header = encode_multipart_formdata(
             fields=body,
-        )  # type: ignore
+        )  # type: ignore[no-untyped-call]
         method = POST
 
         access_key = vuforia_database.client_access_key
@@ -541,7 +545,8 @@ class TestSuccess:
         target_timestamp = target_data["target_timestamp"]
         assert isinstance(target_timestamp, int)
         time_difference = abs(approximate_target_created - target_timestamp)
-        assert time_difference < 5
+        max_time_difference = 5
+        assert time_difference < max_time_difference
 
     @staticmethod
     def test_not_base64_encoded_processable(
@@ -582,14 +587,14 @@ class TestSuccess:
         assert_query_success(response=response)
         [result] = response.json()["results"]
         query_metadata = result["target_data"]["application_metadata"]
-        if len(not_base64_encoded_processable) % 4 == 1:
-            expected_metadata_original = not_base64_encoded_processable[:-1]
-        elif len(not_base64_encoded_processable) % 4 == 2:
-            expected_metadata_original = not_base64_encoded_processable + "=="
-        else:
-            assert len(not_base64_encoded_processable) % 4 == 3
-            expected_metadata_original = not_base64_encoded_processable + "="
-
+        mod_4_to_expected_metadata_original = {
+            1: not_base64_encoded_processable[:-1],
+            2: not_base64_encoded_processable + "==",
+            3: not_base64_encoded_processable + "=",
+        }
+        expected_metadata_original = mod_4_to_expected_metadata_original[
+            len(not_base64_encoded_processable) % 4
+        ]
         expected_metadata = base64.b64encode(
             base64.b64decode(expected_metadata_original),
         )
@@ -731,7 +736,7 @@ class TestMaxNumResults:
         This is because uploading 50 images would be very slow.
 
         The documentation at
-        https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query  # noqa: E501
+        https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query
         states that this must be between 1 and 10, but in practice, 50 is the
         maximum.
         """
@@ -762,15 +767,16 @@ class TestMaxNumResults:
             num_targets=3,
         )
 
+        max_num_results = 2
         body = {
             "image": ("image.jpeg", image_content, "image/jpeg"),
-            "max_num_results": (None, 2, "text/plain"),
+            "max_num_results": (None, max_num_results, "text/plain"),
         }
 
         response = query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
-        assert len(response.json()["results"]) == 2
+        assert len(response.json()["results"]) == max_num_results
 
     @staticmethod
     @pytest.mark.parametrize("num_results", [-1, 0, 51])
@@ -784,7 +790,7 @@ class TestMaxNumResults:
         of the range (1, 50).
 
         The documentation at
-        https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query.  # noqa: E501
+        https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query.
         states that this must be between 1 and 10, but in practice, 50 is the
         maximum.
         """
@@ -1064,7 +1070,7 @@ class TestAcceptHeader:
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
         content, content_type_header = encode_multipart_formdata(
             fields=body,
-        )  # type: ignore
+        )  # type: ignore[no-untyped-call]
         method = POST
 
         access_key = vuforia_database.client_access_key
@@ -1112,7 +1118,7 @@ class TestAcceptHeader:
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
         content, content_type_header = encode_multipart_formdata(
             fields=body,
-        )  # type: ignore
+        )  # type: ignore[no-untyped-call]
         method = POST
 
         access_key = vuforia_database.client_access_key
@@ -1618,15 +1624,13 @@ class TestProcessing:
     """
 
     @staticmethod
-    @pytest.mark.parametrize(
-        "active_flag",
-        [True, False],
-    )
+    @pytest.mark.parametrize("active_flag", [True, False])
     def test_processing(
         high_quality_image: io.BytesIO,
-        active_flag: bool,
         vws_client: VWS,
         cloud_reco_client: CloudRecoService,
+        *,
+        active_flag: bool,
     ) -> None:
         """
         When a target with a matching image is in the processing state it is
@@ -1740,7 +1744,8 @@ class TestUpdate:
         # second.
         assert target_timestamp >= original_target_timestamp
         time_difference = abs(approximate_target_updated - target_timestamp)
-        assert time_difference < 5
+        max_time_difference = 5
+        assert time_difference < max_time_difference
 
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
         response = query(vuforia_database=vuforia_database, body=body)
@@ -1938,7 +1943,7 @@ class TestDateFormats:
     However, for the query endpoint, the documentation does not mention the
     format. It says:
 
-    > The data format must exactly match the Date that is sent in the ‘Date’
+    > The data format must exactly match the Date that is sent in the `Date`
     > header.
     """
 
@@ -1957,6 +1962,7 @@ class TestDateFormats:
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         datetime_format: str,
+        *,
         include_tz: bool,
     ) -> None:
         """
@@ -1977,7 +1983,7 @@ class TestDateFormats:
         request_path = "/v1/query"
         content, content_type_header = encode_multipart_formdata(
             fields=body,
-        )  # type: ignore
+        )  # type: ignore[no-untyped-call]
         method = POST
 
         access_key = vuforia_database.client_access_key

@@ -13,8 +13,8 @@ import datetime
 import email.utils
 import random
 import uuid
+from collections.abc import Callable
 from http import HTTPStatus
-from typing import Callable
 from zoneinfo import ZoneInfo
 
 from requests_mock import DELETE, GET, POST, PUT

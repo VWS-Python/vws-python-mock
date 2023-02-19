@@ -2,26 +2,25 @@
 Choose which backends to use for the tests.
 """
 
+import contextlib
 import logging
+from collections.abc import Generator
 from enum import Enum
-from typing import Generator
 
 import pytest
 import requests
 import requests_mock
 from _pytest.config.argparsing import Parser
 from _pytest.fixtures import SubRequest
-from pytest import MonkeyPatch
-from requests_mock_flask import add_flask_app_to_mock
-from vws import VWS
-from vws.exceptions.vws_exceptions import TargetStatusNotSuccess
-
 from mock_vws import MockVWS
 from mock_vws._flask_server.target_manager import TARGET_MANAGER_FLASK_APP
 from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
 from mock_vws._flask_server.vws import VWS_FLASK_APP
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
+from requests_mock_flask import add_flask_app_to_mock
+from vws import VWS
+from vws.exceptions.vws_exceptions import TargetStatusNotSuccess
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -46,10 +45,8 @@ def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
         vws_client.wait_for_target_processed(target_id=target)
         # Even deleted targets can be matched by a query for a few seconds so
         # we change the target to inactive before deleting it.
-        try:
+        with contextlib.suppress(TargetStatusNotSuccess):
             vws_client.update_target(target_id=target, active_flag=False)
-        except TargetStatusNotSuccess:
-            pass
         vws_client.wait_for_target_processed(target_id=target)
         vws_client.delete_target(target_id=target)
 
@@ -57,7 +54,7 @@ def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
 def _enable_use_real_vuforia(
     working_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
-    monkeypatch: MonkeyPatch,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None, None, None]:
     assert monkeypatch
     assert inactive_database
@@ -68,7 +65,7 @@ def _enable_use_real_vuforia(
 def _enable_use_mock_vuforia(
     working_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
-    monkeypatch: MonkeyPatch,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None, None, None]:
     assert monkeypatch
     working_database = VuforiaDatabase(
@@ -97,7 +94,7 @@ def _enable_use_mock_vuforia(
 def _enable_use_docker_in_memory(
     working_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
-    monkeypatch: MonkeyPatch,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None, None, None]:
     # We set ``wsgi.input_terminated`` to ``True`` so that when going through
     # ``requests``, the Flask applications
@@ -197,7 +194,7 @@ def verify_mock_vuforia(
     request: SubRequest,
     vuforia_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
-    monkeypatch: MonkeyPatch,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None, None, None]:
     """
     Test functions which use this fixture are run multiple times. Once with the
