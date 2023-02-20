@@ -6,7 +6,6 @@ import json
 import re
 from dataclasses import dataclass
 from http import HTTPStatus
-from typing import Set
 
 from requests_mock import DELETE, GET, POST, PUT
 
@@ -28,9 +27,9 @@ class _Route:
     """
 
     path_pattern: str
-    http_methods: Set[str]
-    mandatory_keys: Set[str]
-    optional_keys: Set[str]
+    http_methods: set[str]
+    mandatory_keys: set[str]
+    optional_keys: set[str]
 
 
 def validate_keys(

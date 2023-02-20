@@ -4,7 +4,7 @@ Helpers for getting databases which match keys given in requests.
 
 from __future__ import annotations
 
-from typing import Iterable
+from collections.abc import Iterable
 
 from vws_auth_tools import authorization_header
 

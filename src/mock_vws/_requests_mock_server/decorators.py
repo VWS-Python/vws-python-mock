@@ -28,10 +28,11 @@ class MockVWS(ContextDecorator):
         self,
         base_vws_url: str = "https://vws.vuforia.com",
         base_vwq_url: str = "https://cloudreco.vuforia.com",
-        real_http: bool = False,
         processing_time_seconds: int | float = 0.5,
         query_recognizes_deletion_seconds: int | float = 0.2,
         query_processes_deletion_seconds: int | float = 3,
+        *,
+        real_http: bool = False,
     ) -> None:
         """
         Route requests to Vuforia's Web Service APIs to fakes of those APIs.
@@ -109,7 +110,6 @@ class MockVWS(ContextDecorator):
         Returns:
             ``self``.
         """
-
         with Mocker(real_http=self._real_http) as mock:
             for route in self._mock_vws_api.routes:
                 url_pattern = urljoin(

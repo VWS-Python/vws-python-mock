@@ -4,7 +4,6 @@ Input validators for the image field use in the mock query API.
 
 import io
 from email.message import EmailMessage
-from typing import Dict
 
 from PIL import Image
 
@@ -17,7 +16,7 @@ from mock_vws._query_validators.exceptions import (
 
 
 def validate_image_field_given(
-    request_headers: Dict[str, str],
+    request_headers: dict[str, str],
     request_body: bytes,
 ) -> None:
     """
@@ -37,14 +36,14 @@ def validate_image_field_given(
     boundary = email_message.get_boundary().encode()
     parsed = cgi.parse_multipart(fp=body_file, pdict={"boundary": boundary})
 
-    if "image" in parsed.keys():
+    if "image" in parsed:
         return
 
     raise ImageNotGiven
 
 
 def validate_image_file_size(
-    request_headers: Dict[str, str],
+    request_headers: dict[str, str],
     request_body: bytes,
 ) -> None:
     """
@@ -79,7 +78,7 @@ def validate_image_file_size(
 
 
 def validate_image_dimensions(
-    request_headers: Dict[str, str],
+    request_headers: dict[str, str],
     request_body: bytes,
 ) -> None:
     """
@@ -113,7 +112,7 @@ def validate_image_dimensions(
 
 
 def validate_image_format(
-    request_headers: Dict[str, str],
+    request_headers: dict[str, str],
     request_body: bytes,
 ) -> None:
     """
@@ -146,7 +145,7 @@ def validate_image_format(
 
 
 def validate_image_is_image(
-    request_headers: Dict[str, str],
+    request_headers: dict[str, str],
     request_body: bytes,
 ) -> None:
     """

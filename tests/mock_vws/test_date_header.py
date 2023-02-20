@@ -4,17 +4,16 @@ Tests for the `Date` header.
 
 from datetime import datetime, timedelta
 from http import HTTPStatus
-from typing import Dict
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
 import pytest
 import requests
 from freezegun import freeze_time
+from mock_vws._constants import ResultCodes
 from requests.structures import CaseInsensitiveDict
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import (
     assert_query_success,
@@ -54,7 +53,7 @@ class TestMissing:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers: Dict[str, str] = {
+        headers: dict[str, str] = {
             **endpoint_headers,
             "Authorization": authorization_string,
         }
@@ -102,7 +101,7 @@ class TestFormat:
         """
         gmt = ZoneInfo("GMT")
         with freeze_time(datetime.now(tz=gmt)):
-            now = datetime.now()
+            now = datetime.now(tz=gmt)
             date_incorrect_format = now.strftime("%a %b %d %H:%M:%S")
 
         endpoint_headers = dict(endpoint.prepared_request.headers)

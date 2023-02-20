@@ -30,7 +30,6 @@ def validate_json(
             does not require one.
         Fail: The request body includes invalid JSON.
     """
-
     if not request_body:
         return
 

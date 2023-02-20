@@ -1,7 +1,6 @@
 """
 Validators for given target IDs.
 """
-from typing import Dict, Set
 
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._services_validators.exceptions import UnknownTarget
@@ -10,10 +9,10 @@ from mock_vws.database import VuforiaDatabase
 
 def validate_target_id_exists(
     request_path: str,
-    request_headers: Dict[str, str],
+    request_headers: dict[str, str],
     request_body: bytes,
     request_method: str,
-    databases: Set[VuforiaDatabase],
+    databases: set[VuforiaDatabase],
 ) -> None:
     """
     Validate that if a target ID is given, it exists in the database matching
@@ -31,7 +30,8 @@ def validate_target_id_exists(
     """
     split_path = request_path.split("/")
 
-    if len(split_path) == 2:
+    request_path_no_target_id_length = 2
+    if len(split_path) == request_path_no_target_id_length:
         return
 
     target_id = split_path[-1]

@@ -3,7 +3,6 @@ Authorization header validators to use in the mock.
 """
 
 from http import HTTPStatus
-from typing import Dict, Set
 
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._services_validators.exceptions import (
@@ -13,7 +12,7 @@ from mock_vws._services_validators.exceptions import (
 from mock_vws.database import VuforiaDatabase
 
 
-def validate_auth_header_exists(request_headers: Dict[str, str]) -> None:
+def validate_auth_header_exists(request_headers: dict[str, str]) -> None:
     """
     Validate that there is an authorization header given to a VWS endpoint.
 
@@ -28,8 +27,8 @@ def validate_auth_header_exists(request_headers: Dict[str, str]) -> None:
 
 
 def validate_access_key_exists(
-    request_headers: Dict[str, str],
-    databases: Set[VuforiaDatabase],
+    request_headers: dict[str, str],
+    databases: set[VuforiaDatabase],
 ) -> None:
     """
     Validate the authorization header includes an access key for a database.
@@ -52,7 +51,7 @@ def validate_access_key_exists(
 
 
 def validate_auth_header_has_signature(
-    request_headers: Dict[str, str],
+    request_headers: dict[str, str],
 ) -> None:
     """
     Validate the authorization header includes a signature.
@@ -72,10 +71,10 @@ def validate_auth_header_has_signature(
 
 def validate_authorization(
     request_path: str,
-    request_headers: Dict[str, str],
+    request_headers: dict[str, str],
     request_body: bytes,
     request_method: str,
-    databases: Set[VuforiaDatabase],
+    databases: set[VuforiaDatabase],
 ) -> None:
     """
     Validate the authorization header given to a VWS endpoint.

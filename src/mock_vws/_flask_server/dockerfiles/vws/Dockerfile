@@ -4,6 +4,7 @@ COPY . /app
 # not care enough about having the version correct inside the Docker container
 # to install it.
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0
+ENV VWS_HOST=0.0.0.0
 WORKDIR /app
 RUN pip install .
 EXPOSE 5000

@@ -7,7 +7,6 @@ import textwrap
 import uuid
 from http import HTTPStatus
 from pathlib import Path
-from typing import Dict
 
 from mock_vws._constants import ResultCodes
 from mock_vws._mock_common import json_dump
@@ -21,7 +20,7 @@ class ValidatorException(Exception):
 
     status_code: HTTPStatus
     response_text: str
-    headers: Dict[str, str]
+    headers: dict[str, str]
 
 
 class DateHeaderNotGiven(ValidatorException):

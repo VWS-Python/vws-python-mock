@@ -57,7 +57,6 @@ def validate_image_color_space(request_body: bytes) -> None:
         BadImage: The image is given and is not in either the RGB or
             greyscale color space.
     """
-
     if not request_body:
         return
 
@@ -88,7 +87,6 @@ def validate_image_size(request_body: bytes) -> None:
         ImageTooLarge:  The image is given and is not under a certain file
             size threshold.
     """
-
     if not request_body:
         return
 
@@ -100,7 +98,8 @@ def validate_image_size(request_body: bytes) -> None:
 
     decoded = decode_base64(encoded_data=image)
 
-    if len(decoded) <= 2359293:
+    max_allowed_size = 2_359_293
+    if len(decoded) <= max_allowed_size:
         return
 
     raise ImageTooLarge
@@ -116,7 +115,6 @@ def validate_image_is_image(request_body: bytes) -> None:
     Raises:
         BadImage: Image data is given and it is not an image file.
     """
-
     if not request_body:
         return
 
@@ -145,7 +143,6 @@ def validate_image_encoding(request_body: bytes) -> None:
     Raises:
         Fail: Image data is given and it cannot be base64 decoded.
     """
-
     if not request_body:
         return
 
@@ -171,7 +168,6 @@ def validate_image_data_type(request_body: bytes) -> None:
     Raises:
         Fail: Image data is given and it is not a string.
     """
-
     if not request_body:
         return
 

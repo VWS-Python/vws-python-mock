@@ -15,13 +15,13 @@ from urllib.parse import urljoin
 import pytest
 import requests
 from dirty_equals import IsInstance
+from mock_vws._constants import ResultCodes
+from mock_vws.database import VuforiaDatabase
 from requests import Response
 from requests_mock import POST
 from vws import VWS
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from mock_vws._constants import ResultCodes
-from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import make_image_file
 from tests.mock_vws.utils.assertions import (
     assert_valid_date_header,
@@ -69,15 +69,13 @@ def add_target_to_vws(
         "Content-Type": content_type,
     }
 
-    response = requests.request(
+    return requests.request(
         method=POST,
         url=urljoin(base="https://vws.vuforia.com/", url=request_path),
         headers=headers,
         data=content,
         timeout=30,
     )
-
-    return response
 
 
 def _assert_oops_response(response: Response) -> None:
@@ -86,7 +84,7 @@ def _assert_oops_response(response: Response) -> None:
     occurred" HTML response.
 
     Raises:
-        AssertionError: The given response is not in the expected format.
+        AssertionError: The given response is not expected format.
     """
     assert_valid_date_header(response=response)
     assert "Oops, an error occurred" in response.text
@@ -122,7 +120,8 @@ def assert_success(response: Response) -> None:
     expected_keys = {"result_code", "transaction_id", "target_id"}
     assert response.json().keys() == expected_keys
     target_id = response.json()["target_id"]
-    assert len(target_id) == 32
+    expected_target_id_length = 32
+    assert len(target_id) == expected_target_id_length
     assert all(char in hexdigits for char in target_id)
 
 
@@ -355,7 +354,7 @@ class TestTargetName:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "name,status_code",
+        ("name", "status_code"),
         [
             (1, HTTPStatus.BAD_REQUEST),
             ("", HTTPStatus.BAD_REQUEST),

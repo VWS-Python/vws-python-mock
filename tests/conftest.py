@@ -9,9 +9,9 @@ import uuid
 
 import pytest
 from _pytest.fixtures import SubRequest
+from mock_vws.database import VuforiaDatabase
 from vws import VWS, CloudRecoService
 
-from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import Endpoint
 
 pytest_plugins = [
@@ -75,15 +75,15 @@ def target_id(
 
 @pytest.fixture(
     params=[
-        "_add_target",
-        "_database_summary",
-        "_delete_target",
-        "_get_duplicates",
-        "_get_target",
-        "_target_list",
-        "_target_summary",
-        "_update_target",
-        "_query",
+        "add_target",
+        "database_summary",
+        "delete_target",
+        "get_duplicates",
+        "get_target",
+        "target_list",
+        "target_summary",
+        "update_target",
+        "query",
     ],
 )
 def endpoint(request: SubRequest) -> Endpoint:
@@ -103,7 +103,6 @@ def endpoint(request: SubRequest) -> Endpoint:
         pytest.param(
             # We choose XN because it is different when decoded then encoded:
             #
-            #   print(base64.b64encode(base64.b64decode('XN==')))
             #
             # prints ``XA==``.
             "XN",

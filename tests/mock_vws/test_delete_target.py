@@ -5,6 +5,7 @@ Tests for deleting targets.
 from http import HTTPStatus
 
 import pytest
+from mock_vws._constants import ResultCodes
 from vws import VWS
 from vws.exceptions.vws_exceptions import (
     ProjectInactive,
@@ -12,7 +13,6 @@ from vws.exceptions.vws_exceptions import (
     UnknownTarget,
 )
 
-from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils.assertions import assert_vws_failure
 
 

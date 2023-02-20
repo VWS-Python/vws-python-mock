@@ -14,6 +14,8 @@ from urllib.parse import urljoin
 
 import pytest
 import requests
+from mock_vws._constants import ResultCodes
+from mock_vws.database import VuforiaDatabase
 from requests import Response
 from requests_mock import PUT
 from vws import VWS
@@ -21,8 +23,6 @@ from vws.exceptions.vws_exceptions import BadImage, ProjectInactive
 from vws.reports import TargetStatuses
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from mock_vws._constants import ResultCodes
-from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import make_image_file
 from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
@@ -72,15 +72,13 @@ def update_target(
         "Content-Type": content_type,
     }
 
-    response = requests.request(
+    return requests.request(
         method=PUT,
         url=urljoin("https://vws.vuforia.com/", request_path),
         headers=headers,
         data=content,
         timeout=30,
     )
-
-    return response
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -294,6 +292,7 @@ class TestActiveFlag:
     def test_active_flag(
         vws_client: VWS,
         image_file_success_state_low_rating: io.BytesIO,
+        *,
         initial_active_flag: bool,
         desired_active_flag: bool,
     ) -> None:
@@ -515,7 +514,7 @@ class TestTargetName:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "name,status_code,result_code",
+        ("name", "status_code", "result_code"),
         [
             (1, HTTPStatus.BAD_REQUEST, ResultCodes.FAIL),
             ("", HTTPStatus.BAD_REQUEST, ResultCodes.FAIL),

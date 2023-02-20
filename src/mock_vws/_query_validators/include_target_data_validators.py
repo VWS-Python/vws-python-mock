@@ -4,14 +4,13 @@ Validators for the ``include_target_data`` field.
 
 import io
 from email.message import EmailMessage
-from typing import Dict
 
 import mock_vws._cgi as cgi
 from mock_vws._query_validators.exceptions import InvalidIncludeTargetData
 
 
 def validate_include_target_data(
-    request_headers: Dict[str, str],
+    request_headers: dict[str, str],
     request_body: bytes,
 ) -> None:
     """

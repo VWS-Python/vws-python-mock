@@ -11,7 +11,6 @@ import json
 import os
 import uuid
 from http import HTTPStatus
-from typing import Set
 
 import requests
 from flask import Flask, Response, request
@@ -33,7 +32,7 @@ VWS_FLASK_APP = Flask(import_name=__name__)
 VWS_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
 
 
-def get_all_databases() -> Set[VuforiaDatabase]:
+def get_all_databases() -> set[VuforiaDatabase]:
     """
     Get all database objects from the task manager back-end.
     """
@@ -554,4 +553,4 @@ def update_target(target_id: str) -> Response:
 
 
 if __name__ == "__main__":  # pragma: no cover
-    VWS_FLASK_APP.run(debug=True, host="0.0.0.0")
+    VWS_FLASK_APP.run(debug=True, host=os.environ["VWS_HOST"])

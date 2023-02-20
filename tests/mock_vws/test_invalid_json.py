@@ -10,10 +10,10 @@ from zoneinfo import ZoneInfo
 import pytest
 import requests
 from freezegun import freeze_time
+from mock_vws._constants import ResultCodes
 from requests.structures import CaseInsensitiveDict
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import (
     assert_valid_date_header,
@@ -37,7 +37,7 @@ class TestInvalidJSON:
         """
         Giving invalid JSON to endpoints returns error responses.
         """
-        date_is_skewed = not date_skew_minutes == 0
+        date_is_skewed = date_skew_minutes != 0
         content = b"a"
         gmt = ZoneInfo("GMT")
         now = datetime.now(tz=gmt)

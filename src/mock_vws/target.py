@@ -99,7 +99,9 @@ class Target:
 
         average_std_dev = statistics.mean(image_stat.stddev)
 
-        if average_std_dev > 5:
+        success_threshold = 5
+
+        if average_std_dev > success_threshold:
             return TargetStatuses.SUCCESS
 
         return TargetStatuses.FAILED
@@ -189,7 +191,7 @@ class Target:
             target_dict["upload_date"],
         ).replace(tzinfo=timezone)
 
-        target = Target(
+        return Target(
             target_id=target_id,
             name=name,
             active_flag=active_flag,
@@ -202,7 +204,6 @@ class Target:
             upload_date=upload_date,
             processed_tracking_rating=processed_tracking_rating,
         )
-        return target
 
     def to_dict(self) -> TargetDict:
         """

@@ -19,7 +19,6 @@ def validate_active_flag(request_body: bytes) -> None:
         Fail: There is active flag data given to the endpoint which is not
             either a Boolean or NULL.
     """
-
     if not request_body:
         return
 

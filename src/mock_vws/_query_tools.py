@@ -143,12 +143,9 @@ def get_query_match_response_text(
             "application_metadata": application_metadata,
         }
 
-        if include_target_data == "all":
-            result = {
-                "target_id": target.target_id,
-                "target_data": target_data,
-            }
-        elif include_target_data == "top" and not results:
+        if include_target_data == "all" or (
+            include_target_data == "top" and not results
+        ):
             result = {
                 "target_id": target.target_id,
                 "target_data": target_data,
@@ -167,5 +164,4 @@ def get_query_match_response_text(
         "query_id": uuid.uuid4().hex,
     }
 
-    value = json_dump(body)
-    return value
+    return json_dump(body)

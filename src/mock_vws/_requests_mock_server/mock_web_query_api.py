@@ -8,7 +8,7 @@ https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognitio
 from __future__ import annotations
 
 import email.utils
-from typing import Callable
+from collections.abc import Callable
 
 from requests_mock import POST
 from requests_mock.request import _RequestObjectProxy

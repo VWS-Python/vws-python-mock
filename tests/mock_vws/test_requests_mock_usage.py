@@ -2,24 +2,24 @@
 Tests for the usage of the mock for ``requests``.
 """
 
+import datetime
 import email.utils
 import io
 import json
 import socket
-from datetime import datetime
 
 import pytest
 import requests
 from freezegun import freeze_time
+from mock_vws import MockVWS
+from mock_vws.database import VuforiaDatabase
+from mock_vws.states import States
+from mock_vws.target import Target
 from requests.exceptions import MissingSchema
 from requests_mock.exceptions import NoMockAddress
 from vws import VWS
 from vws_auth_tools import rfc_1123_date
 
-from mock_vws import MockVWS
-from mock_vws.database import VuforiaDatabase
-from mock_vws.states import States
-from mock_vws.target import Target
 from tests.mock_vws.utils.usage_test_helpers import (
     process_deletion_seconds,
     processing_time_seconds,
@@ -90,9 +90,11 @@ class TestRealHTTP:
         When the `real_http` parameter given to the context manager is set to
         `True`, requests made to unmocked addresses are not stopped.
         """
-        with MockVWS(real_http=True):
-            with pytest.raises(requests.exceptions.ConnectionError):
-                request_unmocked_address()
+        with (
+            MockVWS(real_http=True),
+            pytest.raises(requests.exceptions.ConnectionError),
+        ):
+            request_unmocked_address()
 
 
 class TestProcessingTime:
@@ -268,7 +270,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
         high_quality_image: io.BytesIO,
     ) -> None:
         """
-        This exercises some otherwise untouched code.
+        We test this because it exercises some otherwise untouched code.
         """
         database = VuforiaDatabase()
         with MockVWS(query_processes_deletion_seconds=0) as mock:
@@ -491,13 +493,12 @@ class TestDateHeader:
         The date that the response is sent is in the response Date header.
         """
         new_year = 2012
-        new_time = datetime(new_year, 1, 1)
-        with MockVWS():
-            with freeze_time(new_time):
-                response = requests.get(
-                    url="https://vws.vuforia.com/summary",
-                    timeout=30,
-                )
+        new_time = datetime.datetime(new_year, 1, 1, tzinfo=datetime.UTC)
+        with MockVWS(), freeze_time(new_time):
+            response = requests.get(
+                url="https://vws.vuforia.com/summary",
+                timeout=30,
+            )
 
         date_response = response.headers["Date"]
         date_from_response = email.utils.parsedate(date_response)
@@ -560,7 +561,8 @@ class TestAddDatabase:
                 (bad_client_secret_key_db, client_secret_key_conflict_error),
                 (bad_database_name_db, database_name_conflict_error),
             ):
-                with pytest.raises(ValueError) as exc:
+                with pytest.raises(
+                    ValueError,
+                    match=expected_message + "$",
+                ):
                     mock.add_database(database=bad_database)
-
-                assert str(exc.value) == expected_message
