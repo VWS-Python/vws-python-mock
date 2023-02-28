@@ -60,13 +60,13 @@ def test_tests_collected_once() -> None:
     ci_patterns = _ci_patterns()
     tests_to_patterns: dict[str, set[str]] = {}
     for pattern in ci_patterns:
-        pattern = "tests/mock_vws/" + pattern
-        tests = _tests_from_pattern(ci_pattern=pattern)
+        pattern_in_dir = "tests/mock_vws/" + pattern
+        tests = _tests_from_pattern(ci_pattern=pattern_in_dir)
         for test in tests:
             if test in tests_to_patterns:
-                tests_to_patterns[test].add(pattern)
+                tests_to_patterns[test].add(pattern_in_dir)
             else:
-                tests_to_patterns[test] = {pattern}
+                tests_to_patterns[test] = {pattern_in_dir}
 
     for test_name, patterns in tests_to_patterns.items():
         message = (
