@@ -229,3 +229,37 @@ target-version = "py311"
     "S106",
 ]
 
+[tool.distutils.bdist_wheel]
+universal = true
+
+[project]
+authors = [ { name = "Adam Dangoor", email = "adamdangoor@gmail.com"} ]
+classifiers = [
+    "Operating System :: POSIX",
+    "Environment :: Web Environment",
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: MIT License",
+    "Development Status :: 5 - Production/Stable",
+    "Framework :: Pytest",
+]
+description = "A mock for the Vuforia Web Services (VWS) API."
+dynamic = ["version"]
+keywords = ["vuforia", "vws", "mock", "fake", "client"]
+license = { file = "LICENSE" }
+name = "vws-python-mock"
+readme = { file = "README.rst", content-type = "text/x-rst"}
+requires-python = ">=3.10"
+
+[project.urls]
+Source = "https://github.com/VWS-Python/vws-python-mock"
+Documentation = "https://vws-python-mock.readthedocs.io"
+
+[tool.setuptools]
+zip-safe = false
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+mock_vws = ["py.typed"]
+
