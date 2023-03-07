@@ -33,9 +33,12 @@ def validate_image_field_given(
 
     email_message = EmailMessage()
     email_message["content-type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary().encode()
-    parsed = cgi.parse_multipart(fp=body_file, pdict={"boundary": boundary})
-
+    boundary = email_message.get_boundary()
+    assert isinstance(boundary, str)
+    parsed = cgi.parse_multipart(
+        fp=body_file,
+        pdict={"boundary": boundary.encode()},
+    )
     if "image" in parsed:
         return
 
@@ -60,9 +63,12 @@ def validate_image_file_size(
 
     email_message = EmailMessage()
     email_message["content-type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary().encode()
-    parsed = cgi.parse_multipart(fp=body_file, pdict={"boundary": boundary})
-
+    boundary = email_message.get_boundary()
+    assert isinstance(boundary, str)
+    parsed = cgi.parse_multipart(
+        fp=body_file,
+        pdict={"boundary": boundary.encode()},
+    )
     [image] = parsed["image"]
 
     # This is the documented maximum size of a PNG as per.
@@ -96,9 +102,12 @@ def validate_image_dimensions(
 
     email_message = EmailMessage()
     email_message["content-type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary().encode()
-    parsed = cgi.parse_multipart(fp=body_file, pdict={"boundary": boundary})
-
+    boundary = email_message.get_boundary()
+    assert isinstance(boundary, str)
+    parsed = cgi.parse_multipart(
+        fp=body_file,
+        pdict={"boundary": boundary.encode()},
+    )
     [image] = parsed["image"]
     assert isinstance(image, bytes)
     image_file = io.BytesIO(image)
@@ -129,9 +138,12 @@ def validate_image_format(
 
     email_message = EmailMessage()
     email_message["content-type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary().encode()
-    parsed = cgi.parse_multipart(fp=body_file, pdict={"boundary": boundary})
-
+    boundary = email_message.get_boundary()
+    assert isinstance(boundary, str)
+    parsed = cgi.parse_multipart(
+        fp=body_file,
+        pdict={"boundary": boundary.encode()},
+    )
     [image] = parsed["image"]
 
     assert isinstance(image, bytes)
@@ -162,9 +174,12 @@ def validate_image_is_image(
 
     email_message = EmailMessage()
     email_message["content-type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary().encode()
-    parsed = cgi.parse_multipart(fp=body_file, pdict={"boundary": boundary})
-
+    boundary = email_message.get_boundary()
+    assert isinstance(boundary, str)
+    parsed = cgi.parse_multipart(
+        fp=body_file,
+        pdict={"boundary": boundary.encode()},
+    )
     [image] = parsed["image"]
 
     assert isinstance(image, bytes)
