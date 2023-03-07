@@ -27,9 +27,12 @@ def validate_extra_fields(
 
     email_message = EmailMessage()
     email_message["content-type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary().encode()
-    parsed = cgi.parse_multipart(fp=body_file, pdict={"boundary": boundary})
-
+    boundary = email_message.get_boundary()
+    assert isinstance(boundary, str)
+    parsed = cgi.parse_multipart(
+        fp=body_file,
+        pdict={"boundary": boundary.encode()},
+    )
     known_parameters = {"image", "max_num_results", "include_target_data"}
 
     if not parsed.keys() - known_parameters:

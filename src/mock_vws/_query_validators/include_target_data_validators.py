@@ -29,8 +29,12 @@ def validate_include_target_data(
 
     email_message = EmailMessage()
     email_message["content-type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary().encode()
-    parsed = cgi.parse_multipart(fp=body_file, pdict={"boundary": boundary})
+    boundary = email_message.get_boundary()
+    assert isinstance(boundary, str)
+    parsed = cgi.parse_multipart(
+        fp=body_file,
+        pdict={"boundary": boundary.encode()},
+    )
 
     [include_target_data] = parsed.get("include_target_data", ["top"])
     lower_include_target_data = include_target_data.lower()

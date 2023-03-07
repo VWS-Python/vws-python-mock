@@ -33,8 +33,12 @@ def validate_max_num_results(
 
     email_message = EmailMessage()
     email_message["content-type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary().encode()
-    parsed = cgi.parse_multipart(fp=body_file, pdict={"boundary": boundary})
+    boundary = email_message.get_boundary()
+    assert isinstance(boundary, str)
+    parsed = cgi.parse_multipart(
+        fp=body_file,
+        pdict={"boundary": boundary.encode()},
+    )
 
     [max_num_results] = parsed.get("max_num_results", ["1"])
     assert isinstance(max_num_results, str)
