@@ -48,7 +48,6 @@ class UnknownTarget(ValidatorException):
             "server": "envoy",
             "date": date,
             "x-envoy-upstream-service-time": "5",
-            "x-aws-region": "us-west-2, eu-west-1",
             "content-length": str(len(self.response_text)),
         }
 
@@ -80,7 +79,6 @@ class ProjectInactive(ValidatorException):
             "server": "envoy",
             "date": date,
             "x-envoy-upstream-service-time": "5",
-            "x-aws-region": "us-west-2, eu-west-1",
             "content-length": str(len(self.response_text)),
         }
 
@@ -112,7 +110,6 @@ class AuthenticationFailure(ValidatorException):
             "server": "envoy",
             "date": date,
             "x-envoy-upstream-service-time": "5",
-            "x-aws-region": "us-west-2, eu-west-1",
             "content-length": str(len(self.response_text)),
         }
 
@@ -143,7 +140,6 @@ class Fail(ValidatorException):
             "server": "envoy",
             "date": date,
             "x-envoy-upstream-service-time": "5",
-            "x-aws-region": "us-west-2, eu-west-1",
             "content-length": str(len(self.response_text)),
         }
 
@@ -175,7 +171,6 @@ class MetadataTooLarge(ValidatorException):
             "server": "envoy",
             "date": date,
             "x-envoy-upstream-service-time": "5",
-            "x-aws-region": "us-west-2, eu-west-1",
             "content-length": str(len(self.response_text)),
         }
 
@@ -207,7 +202,6 @@ class TargetNameExist(ValidatorException):
             "server": "envoy",
             "date": date,
             "x-envoy-upstream-service-time": "5",
-            "x-aws-region": "us-west-2, eu-west-1",
             "content-length": str(len(self.response_text)),
         }
 
@@ -272,7 +266,6 @@ class BadImage(ValidatorException):
             "server": "envoy",
             "date": date,
             "x-envoy-upstream-service-time": "5",
-            "x-aws-region": "us-west-2, eu-west-1",
             "content-length": str(len(self.response_text)),
         }
 
@@ -304,7 +297,6 @@ class ImageTooLarge(ValidatorException):
             "server": "envoy",
             "date": date,
             "x-envoy-upstream-service-time": "5",
-            "x-aws-region": "us-west-2, eu-west-1",
             "content-length": str(len(self.response_text)),
         }
 
@@ -336,7 +328,6 @@ class RequestTimeTooSkewed(ValidatorException):
             "server": "envoy",
             "date": date,
             "x-envoy-upstream-service-time": "5",
-            "x-aws-region": "us-west-2, eu-west-1",
             "content-length": str(len(self.response_text)),
         }
 
@@ -365,7 +356,6 @@ class ContentLengthHeaderTooLarge(ValidatorException):
             "server": "envoy",
             "content-type": "text/plain",
             "connection": "close",
-            "x-aws-region": "eu-west-1",
         }
 
 
@@ -416,7 +406,6 @@ class UnnecessaryRequestBody(ValidatorException):
             "server": "envoy",
             "date": date,
             "x-envoy-upstream-service-time": "5",
-            "x-aws-region": "us-west-2, eu-west-1",
             "content-length": str(len(self.response_text)),
         }
 
@@ -448,7 +437,6 @@ class TargetStatusNotSuccess(ValidatorException):
             "server": "envoy",
             "date": date,
             "x-envoy-upstream-service-time": "5",
-            "x-aws-region": "us-west-2, eu-west-1",
             "content-length": str(len(self.response_text)),
         }
 
@@ -479,6 +467,5 @@ class TargetStatusProcessing(ValidatorException):
             "server": "envoy",
             "date": date,
             "x-envoy-upstream-service-time": "5",
-            "x-aws-region": "us-west-2, eu-west-1",
             "content-length": str(len(self.response_text)),
         }
