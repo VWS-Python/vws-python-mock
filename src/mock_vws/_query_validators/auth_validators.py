@@ -8,7 +8,6 @@ from mock_vws._query_validators.exceptions import (
     AuthenticationFailure,
     AuthHeaderMissing,
     MalformedAuthHeader,
-    QueryOutOfBounds,
 )
 from mock_vws.database import VuforiaDatabase
 
@@ -84,13 +83,13 @@ def validate_auth_header_has_signature(
         request_headers: The headers sent with the request.
 
     Raises:
-        QueryOutOfBounds: The "Authorization" header has no signature.
+        MalformedAuthHeader: The "Authorization" header has no signature.
     """
     header = request_headers["Authorization"]
     if header.count(":") == 1 and header.split(":")[1]:
         return
 
-    raise QueryOutOfBounds
+    raise MalformedAuthHeader
 
 
 def validate_authorization(
