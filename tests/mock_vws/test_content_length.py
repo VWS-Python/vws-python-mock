@@ -7,7 +7,6 @@ from urllib.parse import urlparse
 
 import pytest
 import requests
-from dirty_equals import IsInstance
 from mock_vws._constants import ResultCodes
 from requests.structures import CaseInsensitiveDict
 
@@ -109,7 +108,6 @@ class TestIncorrect:
             "content-type": "text/plain",
             "server": "envoy",
             "date": response.headers["date"],
-            "x-aws-region": IsInstance(expected_type=str),
         }
         assert response.headers == CaseInsensitiveDict(
             data=expected_headers,
