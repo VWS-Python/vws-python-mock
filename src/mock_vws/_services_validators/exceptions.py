@@ -241,7 +241,6 @@ class OopsErrorOccurredResponse(ValidatorException):
             "server": "envoy",
             "date": date,
             "x-envoy-upstream-service-time": "5",
-            "x-aws-region": "us-west-2, eu-west-1",
             "content-length": str(len(self.response_text)),
         }
 
