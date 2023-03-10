@@ -46,7 +46,7 @@ def validate_auth_header_number_of_parts(
     if len(parts) == expected_number_of_parts and parts[1]:
         return
 
-    raise MalformedAuthHeader(www_authenticate="VWS")
+    raise MalformedAuthHeader
 
 
 def validate_client_key_exists(
@@ -89,7 +89,7 @@ def validate_auth_header_has_signature(
     if header.count(":") == 1 and header.split(":")[1]:
         return
 
-    raise MalformedAuthHeader(www_authenticate="KWS")
+    raise MalformedAuthHeader
 
 
 def validate_authorization(

@@ -71,7 +71,7 @@ class DateFormatNotValid(ValidatorException):
             "Connection": "keep-alive",
             "Server": "nginx",
             "Date": date,
-            "WWW-Authenticate": "VWS",
+            "WWW-Authenticate": "KWS",
             "Content-Length": str(len(self.response_text)),
         }
 
@@ -266,7 +266,7 @@ class AuthHeaderMissing(ValidatorException):
             "Connection": "keep-alive",
             "Server": "nginx",
             "Date": date,
-            "WWW-Authenticate": "VWS",
+            "WWW-Authenticate": "KWS",
             "Content-Length": str(len(self.response_text)),
         }
 
@@ -276,7 +276,7 @@ class MalformedAuthHeader(ValidatorException):
     Exception raised when an auth header is not given.
     """
 
-    def __init__(self, www_authenticate: str) -> None:
+    def __init__(self) -> None:
         """
         Attributes:
             status_code: The status code to use in a response if this is
@@ -295,7 +295,7 @@ class MalformedAuthHeader(ValidatorException):
             "Connection": "keep-alive",
             "Server": "nginx",
             "Date": date,
-            "WWW-Authenticate": www_authenticate,
+            "WWW-Authenticate": "KWS",
             "Content-Length": str(len(self.response_text)),
         }
 

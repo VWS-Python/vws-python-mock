@@ -137,7 +137,7 @@ class TestFormat:
                 status_code=HTTPStatus.UNAUTHORIZED,
                 content_type="text/plain;charset=iso-8859-1",
                 cache_control=None,
-                www_authenticate="VWS",
+                www_authenticate="KWS",
                 connection="keep-alive",
             )
             return

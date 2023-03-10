@@ -60,7 +60,7 @@ class TestAuthorizationHeader:
                 status_code=HTTPStatus.UNAUTHORIZED,
                 content_type="text/plain;charset=iso-8859-1",
                 cache_control=None,
-                www_authenticate="VWS",
+                www_authenticate="KWS",
                 connection="keep-alive",
             )
             assert response.text == "Authorization header missing."
@@ -113,7 +113,7 @@ class TestMalformed:
                 status_code=HTTPStatus.UNAUTHORIZED,
                 content_type="text/plain;charset=iso-8859-1",
                 cache_control=None,
-                www_authenticate="VWS",
+                www_authenticate="KWS",
                 connection="keep-alive",
             )
             assert response.text == "Malformed authorization header."
@@ -153,7 +153,7 @@ class TestMalformed:
                 status_code=HTTPStatus.UNAUTHORIZED,
                 content_type="text/plain;charset=iso-8859-1",
                 cache_control=None,
-                www_authenticate="VWS",
+                www_authenticate="KWS",
                 connection="keep-alive",
             )
             assert response.text == "Malformed authorization header."
@@ -204,10 +204,7 @@ class TestMalformed:
                 www_authenticate="KWS",
                 connection="keep-alive",
             )
-            # We make a new variable for response text so that it is printed
-            # with ``pytest --showlocals``.
-            response_text = response.text
-            assert response_text == "Malformed authorization header."
+            assert response.text == "Malformed authorization header."
             return
 
         assert_vws_failure(
