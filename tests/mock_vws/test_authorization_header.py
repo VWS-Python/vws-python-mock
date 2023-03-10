@@ -5,7 +5,6 @@ Tests for the `Authorization` header.
 import io
 import uuid
 from http import HTTPStatus
-from pathlib import Path
 from urllib.parse import urlparse
 
 import pytest
@@ -199,29 +198,16 @@ class TestMalformed:
         if netloc == "cloudreco.vuforia.com":
             assert_vwq_failure(
                 response=response,
-                status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
-                content_type="text/html;charset=iso-8859-1",
-                cache_control="must-revalidate,no-cache,no-store",
-                www_authenticate=None,
+                status_code=HTTPStatus.UNAUTHORIZED,
+                content_type="text/plain;charset=iso-8859-1",
+                cache_control=None,
+                www_authenticate="KWS",
                 connection="keep-alive",
             )
-            content_filename = "jetty_error_array_out_of_bounds.html"
-            content_filename_2 = "jetty_error_array_out_of_bounds_2.html"
-            content_filename_3 = "jetty_error_array_out_of_bounds_3.html"
-            content_path = Path(__file__).parent / content_filename
-            content_path_2 = Path(__file__).parent / content_filename_2
-            content_path_3 = Path(__file__).parent / content_filename_3
-            content_text = content_path.read_text()
-            content_2_text = content_path_2.read_text()
-            content_3_text = content_path_3.read_text()
             # We make a new variable for response text so that it is printed
             # with ``pytest --showlocals``.
             response_text = response.text
-            assert response_text in (
-                content_text,
-                content_2_text,
-                content_3_text,
-            )
+            assert response_text == "Malformed authorization header."
             return
 
         assert_vws_failure(

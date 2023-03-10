@@ -276,13 +276,14 @@ class MalformedAuthHeader(ValidatorException):
     Exception raised when an auth header is not given.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, www_authenticate: str) -> None:
         """
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
             response_text: The response text to use in a response if this is
                 raised.
+            www_authenticate: The WWW-Authenticate header value.
         """
         super().__init__()
         self.status_code = HTTPStatus.UNAUTHORIZED
@@ -294,7 +295,7 @@ class MalformedAuthHeader(ValidatorException):
             "Connection": "keep-alive",
             "Server": "nginx",
             "Date": date,
-            "WWW-Authenticate": "VWS",
+            "WWW-Authenticate": www_authenticate,
             "Content-Length": str(len(self.response_text)),
         }
 
@@ -539,39 +540,6 @@ class NoBoundaryFound(ValidatorException):
             "Connection": "keep-alive",
             "Server": "nginx",
             "Date": date,
-            "Content-Length": str(len(self.response_text)),
-        }
-
-
-class QueryOutOfBounds(ValidatorException):
-    """
-    Exception raised when VWS returns an HTML page which says that there is a
-    particular out of bounds error.
-    """
-
-    def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this is
-                raised.
-        """
-        super().__init__()
-        self.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-        resources_dir = Path(__file__).parent / "resources"
-        filename = "query_out_of_bounds_response.html"
-        oops_resp_file = resources_dir / filename
-        text = str(oops_resp_file.read_text())
-        self.response_text = text
-
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
-        self.headers = {
-            "Content-Type": "text/html;charset=iso-8859-1",
-            "Connection": "keep-alive",
-            "Server": "nginx",
-            "Date": date,
-            "Cache-Control": "must-revalidate,no-cache,no-store",
             "Content-Length": str(len(self.response_text)),
         }
 
