@@ -97,7 +97,6 @@ def _assert_oops_response(response: Response) -> None:
             "server": "envoy",
             "content-length": "1190",
             "x-envoy-upstream-service-time": IsInstance(expected_type=str),
-            "x-aws-region": IsInstance(expected_type=str),
         },
     )
     assert response.headers == expected_headers
