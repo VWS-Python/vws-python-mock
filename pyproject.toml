@@ -258,6 +258,7 @@ requires-python = ">=3.10"
 dependencies = [
     "Pillow",
     "flask",
+    "multipart",
     "requests",
     "requests-mock",
     "tzdata; sys_platform == 'win32'",
