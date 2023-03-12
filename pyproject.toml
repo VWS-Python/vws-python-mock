@@ -92,9 +92,6 @@ line-length = 79
 [tool.coverage.run]
 
 branch = true
-omit = [
-  "src/mock_vws/_cgi.py",
-]
 
 [tool.pytest.ini_options]
 
@@ -134,16 +131,11 @@ ignore = [
 strict = true
 
 [[tool.mypy.overrides]]
-module = [
-    "mock_vws/_cgi",
-]
-ignore_errors = true
-
-[[tool.mypy.overrides]]
 
 module = [
     "docker",
     "docker.models.networks",
+    "multipart",
 ]
 
 ignore_missing_imports = true
@@ -227,8 +219,6 @@ line-length = 79
 target-version = "py311"
 
 [tool.ruff.per-file-ignores]
-# Ignore copy of old stdlib cgi module.
-"src/mock_vws/_cgi.py" = ["ALL"]
 "tests/**" = [
     # Allow possible hardcoded passwords in tests.
     "S105",
@@ -258,6 +248,7 @@ requires-python = ">=3.10"
 dependencies = [
     "Pillow",
     "flask",
+    "multipart",
     "requests",
     "requests-mock",
     "tzdata; sys_platform == 'win32'",

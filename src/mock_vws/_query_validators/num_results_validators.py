@@ -5,7 +5,8 @@ Validators for the ``max_num_results`` fields.
 import io
 from email.message import EmailMessage
 
-import mock_vws._cgi as cgi
+import multipart
+
 from mock_vws._query_validators.exceptions import (
     InvalidMaxNumResults,
     MaxNumResultsOutOfRange,
@@ -35,13 +36,13 @@ def validate_max_num_results(
     email_message["content-type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
-    parsed = cgi.parse_multipart(
-        fp=body_file,
-        pdict={"boundary": boundary.encode()},
-    )
+    parsed = multipart.MultipartParser(stream=body_file, boundary=boundary)
 
-    [max_num_results] = parsed.get("max_num_results", ["1"])
-    assert isinstance(max_num_results, str)
+    parsed_max_num_results = parsed.get("max_num_results")
+    if parsed_max_num_results is None:
+        max_num_results = "1"
+    else:
+        max_num_results = parsed_max_num_results.value
 
     try:
         max_num_results_int = int(max_num_results)

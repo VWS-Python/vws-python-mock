@@ -5,9 +5,9 @@ Input validators for the image field use in the mock query API.
 import io
 from email.message import EmailMessage
 
+import multipart
 from PIL import Image
 
-import mock_vws._cgi as cgi
 from mock_vws._query_validators.exceptions import (
     BadImage,
     ImageNotGiven,
@@ -35,11 +35,8 @@ def validate_image_field_given(
     email_message["content-type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
-    parsed = cgi.parse_multipart(
-        fp=body_file,
-        pdict={"boundary": boundary.encode()},
-    )
-    if "image" in parsed:
+    parsed = multipart.MultipartParser(stream=body_file, boundary=boundary)
+    if parsed.get("image") is not None:
         return
 
     raise ImageNotGiven
@@ -65,11 +62,8 @@ def validate_image_file_size(
     email_message["content-type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
-    parsed = cgi.parse_multipart(
-        fp=body_file,
-        pdict={"boundary": boundary.encode()},
-    )
-    [image] = parsed["image"]
+    parsed = multipart.MultipartParser(stream=body_file, boundary=boundary)
+    image = parsed.get("image").raw
 
     # This is the documented maximum size of a PNG as per.
     # https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query.
@@ -104,12 +98,8 @@ def validate_image_dimensions(
     email_message["content-type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
-    parsed = cgi.parse_multipart(
-        fp=body_file,
-        pdict={"boundary": boundary.encode()},
-    )
-    [image] = parsed["image"]
-    assert isinstance(image, bytes)
+    parsed = multipart.MultipartParser(stream=body_file, boundary=boundary)
+    image = parsed.get("image").raw
     image_file = io.BytesIO(image)
     pil_image = Image.open(image_file)
     max_width = 30000
@@ -140,13 +130,9 @@ def validate_image_format(
     email_message["content-type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
-    parsed = cgi.parse_multipart(
-        fp=body_file,
-        pdict={"boundary": boundary.encode()},
-    )
-    [image] = parsed["image"]
+    parsed = multipart.MultipartParser(stream=body_file, boundary=boundary)
+    image = parsed.get("image").raw
 
-    assert isinstance(image, bytes)
     image_file = io.BytesIO(image)
     pil_image = Image.open(image_file)
 
@@ -176,13 +162,9 @@ def validate_image_is_image(
     email_message["content-type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
-    parsed = cgi.parse_multipart(
-        fp=body_file,
-        pdict={"boundary": boundary.encode()},
-    )
-    [image] = parsed["image"]
+    parsed = multipart.MultipartParser(stream=body_file, boundary=boundary)
+    image = parsed.get("image").raw
 
-    assert isinstance(image, bytes)
     image_file = io.BytesIO(image)
 
     try:

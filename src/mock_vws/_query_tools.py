@@ -12,7 +12,8 @@ from email.message import EmailMessage
 from typing import Any
 from zoneinfo import ZoneInfo
 
-import mock_vws._cgi as cgi
+import multipart
+
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_client_keys
@@ -62,18 +63,22 @@ def get_query_match_response_text(
     email_message["content-type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
-    parsed = cgi.parse_multipart(
-        fp=body_file,
-        pdict={"boundary": boundary.encode()},
-    )
 
-    [max_num_results] = parsed.get("max_num_results", ["1"])
+    parsed = multipart.MultipartParser(stream=body_file, boundary=boundary)
 
-    [include_target_data] = parsed.get("include_target_data", ["top"])
-    include_target_data = include_target_data.lower()
+    parsed_max_num_results = parsed.get("max_num_results")
+    if parsed_max_num_results is None:
+        max_num_results = "1"
+    else:
+        max_num_results = parsed_max_num_results.value
 
-    [image_value] = parsed["image"]
-    assert isinstance(image_value, bytes)
+    parsed_include_target_data = parsed.get("include_target_data")
+    if parsed_include_target_data is None:
+        include_target_data = "top"
+    else:
+        include_target_data = parsed_include_target_data.value.lower()
+
+    image_value = parsed.get("image").raw
     gmt = ZoneInfo("GMT")
     now = datetime.datetime.now(tz=gmt)
 
