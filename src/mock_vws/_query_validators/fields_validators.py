@@ -5,7 +5,8 @@ Validators for the fields given.
 import io
 from email.message import EmailMessage
 
-import mock_vws._cgi as cgi
+import multipart
+
 from mock_vws._query_validators.exceptions import UnknownParameters
 
 
@@ -29,13 +30,11 @@ def validate_extra_fields(
     email_message["content-type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
-    parsed = cgi.parse_multipart(
-        fp=body_file,
-        pdict={"boundary": boundary.encode()},
-    )
+    parsed = multipart.MultipartParser(stream=body_file, boundary=boundary)
+    parsed_keys = {item.name for item in parsed.parts()}
     known_parameters = {"image", "max_num_results", "include_target_data"}
 
-    if not parsed.keys() - known_parameters:
+    if not parsed_keys - known_parameters:
         return
 
     raise UnknownParameters

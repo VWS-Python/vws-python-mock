@@ -3,7 +3,8 @@ Validators for the ``Content-Type`` header.
 """
 
 
-import mock_vws._cgi as cgi
+from email.message import EmailMessage
+
 from mock_vws._query_validators.exceptions import (
     ImageNotGiven,
     NoBoundaryFound,
@@ -32,15 +33,17 @@ def validate_content_type_header(
         NoContentType: The content type header is either empty or not given.
     """
     content_type_header = request_headers.get("Content-Type", "")
-    main_value, pdict = cgi.parse_header(content_type_header)
     if content_type_header == "":
         raise NoContentType
 
-    if main_value not in ("multipart/form-data", "*/*"):
+    email_message = EmailMessage()
+    email_message["content-type"] = request_headers["Content-Type"]
+    if email_message.get_content_type() not in ("multipart/form-data", "*/*"):
         raise UnsupportedMediaType
 
-    if "boundary" not in pdict:
+    boundary = email_message.get_boundary()
+    if boundary is None:
         raise NoBoundaryFound
 
-    if pdict["boundary"].encode() not in request_body:
+    if boundary.encode() not in request_body:
         raise ImageNotGiven

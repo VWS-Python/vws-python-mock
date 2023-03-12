@@ -5,7 +5,8 @@ Validators for the ``include_target_data`` field.
 import io
 from email.message import EmailMessage
 
-import mock_vws._cgi as cgi
+import multipart
+
 from mock_vws._query_validators.exceptions import InvalidIncludeTargetData
 
 
@@ -31,15 +32,16 @@ def validate_include_target_data(
     email_message["content-type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
-    parsed = cgi.parse_multipart(
-        fp=body_file,
-        pdict={"boundary": boundary.encode()},
-    )
+    parsed = multipart.MultipartParser(stream=body_file, boundary=boundary)
 
-    [include_target_data] = parsed.get("include_target_data", ["top"])
-    lower_include_target_data = include_target_data.lower()
+    parsed_include_target_data = parsed.get("include_target_data")
+    if parsed_include_target_data is None:
+        include_target_data = "top"
+    else:
+        include_target_data = parsed_include_target_data.value
+
     allowed_included_target_data = {"top", "all", "none"}
-    if lower_include_target_data in allowed_included_target_data:
+    if include_target_data.lower() in allowed_included_target_data:
         return
 
     assert isinstance(include_target_data, str)

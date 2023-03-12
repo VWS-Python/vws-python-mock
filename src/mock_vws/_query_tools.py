@@ -14,7 +14,6 @@ from zoneinfo import ZoneInfo
 
 import multipart
 
-import mock_vws._cgi as cgi
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_client_keys
@@ -59,48 +58,27 @@ def get_query_match_response_text(
             target which matches and was recently deleted.
     """
     body_file = io.BytesIO(request_body)
-    body_file2 = io.BytesIO(request_body)
 
     email_message = EmailMessage()
-    # email_message.set_content(request_body, maintype="multipart", subtype="form-data")
     email_message["content-type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
-    parsed = cgi.parse_multipart(
-        fp=body_file,
-        pdict={"boundary": boundary.encode()},
-    )
 
-    # import email.parser
+    parsed = multipart.MultipartParser(stream=body_file, boundary=boundary)
 
-
-    # msg = email.parser.BytesParser().parsebytes(body_file.getvalue())
-
-    # new = msg.get_payload(decode=True)
-
-    # from requests_toolbelt.multipart import decoder
-
-    # multipart_data = decoder.MultipartDecoder(content=new, content_type=request_headers["Content-Type"])
-
-    parsed = multipart.MultipartParser(stream=body_file2, boundary=boundary)
-    
-
-
-
-    try:
-        max_num_results = parsed.get("max_num_results").value
-    except AttributeError:
+    parsed_max_num_results = parsed.get("max_num_results")
+    if parsed_max_num_results is None:
         max_num_results = "1"
+    else:
+        max_num_results = parsed_max_num_results.value
 
-    try:
-        include_target_data = parsed.get("include_target_data").value
-    except AttributeError:
+    parsed_include_target_data = parsed.get("include_target_data")
+    if parsed_include_target_data is None:
         include_target_data = "top"
-
-    include_target_data = include_target_data.lower()
+    else:
+        include_target_data = parsed_include_target_data.value.lower()
 
     image_value = parsed.get("image").raw
-    assert isinstance(image_value, bytes)
     gmt = ZoneInfo("GMT")
     now = datetime.datetime.now(tz=gmt)
 
