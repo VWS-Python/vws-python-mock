@@ -1546,6 +1546,29 @@ class TestMaximumImageDimensions:
         )
         assert response.text == expected_text
 
+    @staticmethod
+    def test_max_pixels(vuforia_database: VuforiaDatabase) -> None:
+        """
+        No error is returned for an 835 x 835 image.
+        """
+        # If we make this 836 then we hit REQUEST_ENTITY_TOO_LARGE errors.
+        max_height = max_width = 835
+        png_not_too_wide = make_image_file(
+            file_format="PNG",
+            color_space="RGB",
+            width=max_width,
+            height=max_height,
+        )
+
+        image_content = png_not_too_wide.getvalue()
+
+        body = {"image": ("image.jpeg", image_content, "image/jpeg")}
+
+        response = query(vuforia_database=vuforia_database, body=body)
+
+        assert_query_success(response=response)
+        assert response.json()["results"] == []
+
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestImageFormats:
