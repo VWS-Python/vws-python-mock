@@ -14,12 +14,10 @@ from mock_vws._services_validators.exceptions import (
 )
 
 
-def validate_json(
-    request_body: bytes,
-    request_method: str,
-) -> None:
+def validate_body_given(request_body: bytes, request_method: str) -> None:
     """
-    Validate that there is either no JSON given or the JSON given is valid.
+    Validate that no JSON is given for requests other than ``POST`` and ``PUT``
+    requests.
 
     Args:
         request_body: The body of the request.
@@ -35,6 +33,12 @@ def validate_json(
 
     if request_method not in (POST, PUT):
         raise UnnecessaryRequestBody
+
+
+def validate_json(request_body: bytes) -> None:
+    """Validate that any given body is valid JSON."""
+    if not request_body:
+        return
 
     try:
         json.loads(request_body.decode())
