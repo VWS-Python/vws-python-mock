@@ -12,14 +12,32 @@ from email.message import EmailMessage
 from typing import Any
 from zoneinfo import ZoneInfo
 
+from PIL import Image
+import numpy
 import multipart
 
+from mock_vws.target import Target
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_client_keys
 from mock_vws._mock_common import json_dump
 from mock_vws.database import VuforiaDatabase
+from brisque import BRISQUE
 
+def _quality(target: Target) -> float:
+    """
+    Args:
+        target: A target.
+
+    Returns:
+        The quality of the target.
+    """
+    image_file = io.BytesIO(initial_bytes=target.image_value)
+    image = Image.open(fp=image_file)
+    image_array = numpy.asarray(a=image)
+    obj = BRISQUE(url=False)
+    score = obj.score(img=image_array)
+    return score
 
 class ActiveMatchingTargetsDeleteProcessing(Exception):
     """
@@ -136,7 +154,7 @@ def get_query_match_response_text(
         raise ActiveMatchingTargetsDeleteProcessing
 
     all_quality_matches = not_deleted_matches + deletion_not_recognized_matches
-    matches = [match for match in all_quality_matches if match.tracking_rating > 0.0]
+    matches = [match for match in all_quality_matches if _quality(target=match) > 0.0]
 
     results: list[dict[str, Any]] = []
     for target in matches:
