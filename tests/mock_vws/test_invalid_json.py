@@ -75,10 +75,11 @@ class TestInvalidJSON:
         assert_valid_date_header(response=response)
 
         if date_is_skewed and takes_json_data:
-            # On the real implementation, we get `HTTPStatus.FORBIDDEN` and
-            # `REQUEST_TIME_TOO_SKEWED`.
-            # See https://github.com/VWS-Python/vws-python-mock/issues/4 for
-            # implementing this on them mock.
+            assert_vws_failure(
+                response=response,
+                status_code=HTTPStatus.FORBIDDEN,
+                result_code=ResultCodes.REQUEST_TIME_TOO_SKEWED,
+            )
             return
 
         if not date_is_skewed and takes_json_data:

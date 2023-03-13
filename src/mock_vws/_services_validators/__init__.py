@@ -31,7 +31,7 @@ from .image_validators import (
     validate_image_is_image,
     validate_image_size,
 )
-from .json_validators import validate_json
+from .json_validators import validate_body_given, validate_json
 from .key_validators import validate_keys
 from .metadata_validators import (
     validate_metadata_encoding,
@@ -94,10 +94,18 @@ def run_services_validators(
         request_path=request_path,
         databases=databases,
     )
-    validate_json(
+
+    validate_body_given(
         request_body=request_body,
         request_method=request_method,
     )
+
+    validate_date_header_given(request_headers=request_headers)
+    validate_date_format(request_headers=request_headers)
+    validate_date_in_range(request_headers=request_headers)
+
+    validate_json(request_body=request_body)
+
     validate_keys(
         request_body=request_body,
         request_path=request_path,
@@ -142,11 +150,6 @@ def run_services_validators(
         request_headers=request_headers,
         request_method=request_method,
     )
-
-    validate_date_header_given(request_headers=request_headers)
-
-    validate_date_format(request_headers=request_headers)
-    validate_date_in_range(request_headers=request_headers)
 
     validate_content_length_header_is_int(
         request_headers=request_headers,
