@@ -154,7 +154,7 @@ def get_query_match_response_text(
         raise ActiveMatchingTargetsDeleteProcessing
 
     all_quality_matches = not_deleted_matches + deletion_not_recognized_matches
-    matches = [match for match in all_quality_matches if _quality(target=match) > 0.0]
+    matches = [match for match in all_quality_matches if match.tracking_rating > 0.0]
 
     results: list[dict[str, Any]] = []
     for target in matches:

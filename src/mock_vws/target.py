@@ -18,6 +18,7 @@ from PIL import Image, ImageStat
 from mock_vws._constants import TargetStatuses
 
 
+# TODO: Can this be a JSONOBject type?
 class TargetDict(TypedDict):
     """
     A dictionary type which represents a target.
@@ -75,9 +76,6 @@ class Target:
     delete_date: datetime.datetime | None = None
     last_modified_date: datetime.datetime = field(default_factory=_time_now)
     previous_month_recos: int = 0
-    processed_tracking_rating: int = field(
-        default_factory=_random_tracking_rating,
-    )
     reco_rating: str = ""
     target_id: str = field(default_factory=_random_hex)
     total_recos: int = 0
@@ -132,6 +130,10 @@ class Target:
         return str(self._post_processing_status.value)
 
     @property
+    def _processed_tracking_rating(self) -> int:
+        pass
+
+    @property
     def tracking_rating(self) -> int:
         """
         Return the tracking rating of the target recognition image.
@@ -158,7 +160,7 @@ class Target:
             return -1
 
         if self._post_processing_status == TargetStatuses.SUCCESS:
-            return self.processed_tracking_rating
+            return self._processed_tracking_rating
 
         return 0
 
@@ -173,7 +175,6 @@ class Target:
         width = target_dict["width"]
         image_base64 = target_dict["image_base64"]
         image_value = base64.b64decode(image_base64)
-        processed_tracking_rating = target_dict["processed_tracking_rating"]
         processing_time_seconds = target_dict["processing_time_seconds"]
         application_metadata = target_dict["application_metadata"]
         target_id = target_dict["target_id"]
@@ -202,7 +203,6 @@ class Target:
             delete_date=delete_date,
             last_modified_date=last_modified_date,
             upload_date=upload_date,
-            processed_tracking_rating=processed_tracking_rating,
         )
 
     def to_dict(self) -> TargetDict:
@@ -221,7 +221,6 @@ class Target:
             "image_base64": image_base64,
             "active_flag": self.active_flag,
             "processing_time_seconds": self.processing_time_seconds,
-            "processed_tracking_rating": self.processed_tracking_rating,
             "application_metadata": self.application_metadata,
             "target_id": self.target_id,
             "last_modified_date": self.last_modified_date.isoformat(),
