@@ -178,7 +178,6 @@ ignore = [
     # We do not annotate the type of 'self', or 'cls'.
     "ANN101",
     "ANN102",
-    "ANN401",
     # We are happy to manage our own "complexity".
     "C901",
     # Allow our chosen docstring line-style - no one-line summary.

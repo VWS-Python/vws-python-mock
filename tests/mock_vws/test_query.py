@@ -1012,7 +1012,7 @@ class TestIncludeTargetData:
     def test_invalid_value(
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
-        include_target_data: Any,
+        include_target_data: str | bool | int,
     ) -> None:
         """
         A ``BAD_REQUEST`` error is given when a string that is not one of

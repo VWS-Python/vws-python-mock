@@ -256,7 +256,7 @@ class TestWidth:
     def test_width_invalid(
         vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
-        width: Any,
+        width: int | str | None,
     ) -> None:
         """
         The width must be a number greater than zero.
@@ -735,7 +735,7 @@ class TestImage:
     @staticmethod
     @pytest.mark.parametrize("invalid_type_image", [1, None])
     def test_invalid_type(
-        invalid_type_image: Any,
+        invalid_type_image: int | None,
         vuforia_database: VuforiaDatabase,
     ) -> None:
         """

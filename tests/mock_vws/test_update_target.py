@@ -244,7 +244,7 @@ class TestWidth:
     def test_width_invalid(
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
-        width: Any,
+        width: int | str | None,
         target_id: str,
     ) -> None:
         """
