@@ -33,7 +33,7 @@ def validate_content_type_header(
         NoContentType: The content type header is either empty or not given.
     """
     content_type_header = request_headers.get("Content-Type", "")
-    if content_type_header == "":
+    if not content_type_header:
         raise NoContentType
 
     email_message = EmailMessage()

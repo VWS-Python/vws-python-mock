@@ -48,7 +48,7 @@ class TestIncorrect:
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
         if netloc == "cloudreco.vuforia.com":
-            assert response.text == ""
+            assert not response.text
             assert response.headers == CaseInsensitiveDict(
                 data={
                     "Content-Length": str(len(response.text)),
@@ -90,7 +90,7 @@ class TestIncorrect:
         response = session.send(request=endpoint.prepared_request)
         if netloc == "cloudreco.vuforia.com":
             assert response.status_code == HTTPStatus.GATEWAY_TIMEOUT
-            assert response.text == ""
+            assert not response.text
             assert response.headers == CaseInsensitiveDict(
                 data={
                     "Content-Length": str(len(response.text)),

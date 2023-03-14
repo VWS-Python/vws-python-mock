@@ -68,7 +68,7 @@ class TestUnexpectedJSON:
         if netloc == "cloudreco.vuforia.com":
             # The multipart/formdata boundary is no longer in the given
             # content.
-            assert response.text == ""
+            assert not response.text
             assert_vwq_failure(
                 response=response,
                 status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
@@ -80,5 +80,5 @@ class TestUnexpectedJSON:
             return
 
         assert response.status_code == HTTPStatus.BAD_REQUEST
-        assert response.text == ""
+        assert not response.text
         assert "Content-Type" not in response.headers

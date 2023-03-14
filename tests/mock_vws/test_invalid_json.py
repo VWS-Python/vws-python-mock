@@ -106,5 +106,5 @@ class TestInvalidJSON:
             assert response.text == expected_text
             return
 
-        assert response.text == ""
+        assert not response.text
         assert "Content-Type" not in response.headers
