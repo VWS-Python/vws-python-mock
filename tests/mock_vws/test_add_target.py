@@ -5,21 +5,18 @@ Tests for the mock of the add target endpoint.
 from __future__ import annotations
 
 import base64
-import io
 import json
 from http import HTTPStatus
 from string import hexdigits
-from typing import Any, Final
+from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import urljoin
 
 import pytest
 import requests
 from dirty_equals import IsInstance
 from mock_vws._constants import ResultCodes
-from mock_vws.database import VuforiaDatabase
 from requests import Response
 from requests_mock import POST
-from vws import VWS
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from tests.mock_vws.utils import make_image_file
@@ -28,6 +25,12 @@ from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
     assert_vws_response,
 )
+
+if TYPE_CHECKING:
+    import io
+
+    from mock_vws.database import VuforiaDatabase
+    from vws import VWS
 
 _MAX_METADATA_BYTES: Final[int] = 1024 * 1024 - 1
 
@@ -253,7 +256,7 @@ class TestWidth:
     def test_width_invalid(
         vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
-        width: Any,
+        width: int | str | None,
     ) -> None:
         """
         The width must be a number greater than zero.
@@ -732,7 +735,7 @@ class TestImage:
     @staticmethod
     @pytest.mark.parametrize("invalid_type_image", [1, None])
     def test_invalid_type(
-        invalid_type_image: Any,
+        invalid_type_image: int | None,
         vuforia_database: VuforiaDatabase,
     ) -> None:
         """

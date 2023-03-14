@@ -6,17 +6,19 @@ from __future__ import annotations
 
 import re
 from contextlib import ContextDecorator
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 from urllib.parse import urljoin, urlparse
 
 import requests
 from requests_mock.mocker import Mocker
 
-from mock_vws.database import VuforiaDatabase
 from mock_vws.target_manager import TargetManager
 
 from .mock_web_query_api import MockVuforiaWebQueryAPI
 from .mock_web_services_api import MockVuforiaWebServicesAPI
+
+if TYPE_CHECKING:
+    from mock_vws.database import VuforiaDatabase
 
 
 class MockVWS(ContextDecorator):

@@ -178,9 +178,6 @@ ignore = [
     # We do not annotate the type of 'self', or 'cls'.
     "ANN101",
     "ANN102",
-    "ANN401",
-    # We are happy to manage our own "complexity".
-    "C901",
     # Allow our chosen docstring line-style - no one-line summary.
     "D200",
     "D203",
@@ -189,9 +186,6 @@ ignore = [
     "D213",
     "D400",
     "D415",
-    # Allow backslashes in a docstring.
-    # See https://click.palletsprojects.com/en/8.0.x/documentation/#preventing-rewrapping.
-    "D301",
     # It is too much work to make every docstring imperative.
     "D401",
     # We ignore some docstyle errors which do not apply to Google style
@@ -203,16 +197,12 @@ ignore = [
     "N818",
     # Ignore "too-many-*" errors as they seem to get in the way more than
     # helping.
-    "PLR0912",
     "PLR0913",
-    "PLR0915",
-    # Allow 'assert' as we use it for tests.
+    # Allow 'assert' in tests as it is the standard for pytest.
+    # Also, allow 'assert' in other code as it is the standard for Python type hint
+    # narrowing - see
+    # https://mypy.readthedocs.io/en/stable/type_narrowing.html#type-narrowing-expressions.
     "S101",
-    # Allow imports which are only used for type checking to be outside type
-    # checking blocks.
-    "TCH001",
-    "TCH002",
-    "TCH003",
 ]
 
 line-length = 79

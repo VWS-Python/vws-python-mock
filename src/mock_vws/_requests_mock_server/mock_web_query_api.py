@@ -8,11 +8,9 @@ https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognitio
 from __future__ import annotations
 
 import email.utils
-from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 from requests_mock import POST
-from requests_mock.request import _RequestObjectProxy
-from requests_mock.response import _Context
 
 from mock_vws._mock_common import Route
 from mock_vws._query_tools import (
@@ -24,7 +22,14 @@ from mock_vws._query_validators.exceptions import (
     DeletedTargetMatched,
     ValidatorException,
 )
-from mock_vws.target_manager import TargetManager
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from requests_mock.request import _RequestObjectProxy
+    from requests_mock.response import _Context
+
+    from mock_vws.target_manager import TargetManager
 
 _ROUTES: set[Route] = set()
 
