@@ -189,9 +189,6 @@ ignore = [
     "D213",
     "D400",
     "D415",
-    # Allow backslashes in a docstring.
-    # See https://click.palletsprojects.com/en/8.0.x/documentation/#preventing-rewrapping.
-    "D301",
     # It is too much work to make every docstring imperative.
     "D401",
     # We ignore some docstyle errors which do not apply to Google style
