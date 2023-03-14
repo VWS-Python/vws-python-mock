@@ -64,9 +64,9 @@ def test_build_and_run(
     vwq_dockerfile = dockerfile_dir / "vwq" / "Dockerfile"
 
     random = uuid.uuid4().hex
-    target_manager_tag = "vws-mock-target-manager:latest-" + random
-    vws_tag = "vws-mock-vws:latest-" + random
-    vwq_tag = "vws-mock-vwq:latest-" + random
+    target_manager_tag = f"vws-mock-target-manager:latest-{random}"
+    vws_tag = f"vws-mock-vws:latest-{random}"
+    vwq_tag = f"vws-mock-vwq:latest-{random}"
 
     try:
         target_manager_image, _ = client.images.build(
@@ -126,7 +126,9 @@ def test_build_and_run(
         environment={"TARGET_MANAGER_BASE_URL": target_manager_base_url},
     )
 
-    target_manager_container.reload()
+    for container in (target_manager_container, vws_container, vwq_container):
+        container.reload()
+
     target_manager_port_attrs = target_manager_container.attrs[
         "NetworkSettings"
     ]["Ports"]
@@ -135,12 +137,10 @@ def test_build_and_run(
         "HostPort"
     ]
 
-    vws_container.reload()
     vws_port_attrs = vws_container.attrs["NetworkSettings"]["Ports"]
     vws_host_ip = vws_port_attrs["5000/tcp"][0]["HostIp"]
     vws_host_port = vws_port_attrs["5000/tcp"][0]["HostPort"]
 
-    vwq_container.reload()
     vwq_port_attrs = vwq_container.attrs["NetworkSettings"]["Ports"]
     vwq_host_ip = vwq_port_attrs["5000/tcp"][0]["HostIp"]
     vwq_host_port = vwq_port_attrs["5000/tcp"][0]["HostPort"]
