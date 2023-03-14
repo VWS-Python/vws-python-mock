@@ -16,19 +16,17 @@ import time
 import uuid
 from http import HTTPStatus
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urljoin
 from zoneinfo import ZoneInfo
 
 import pytest
 import requests
 from mock_vws._constants import ResultCodes
-from mock_vws.database import VuforiaDatabase
 from PIL import Image
 from requests import Response
 from requests_mock import POST
 from urllib3.filepost import encode_multipart_formdata
-from vws import VWS, CloudRecoService
 from vws.reports import TargetStatuses
 from vws_auth_tools import authorization_header, rfc_1123_date
 
@@ -39,6 +37,10 @@ from tests.mock_vws.utils.assertions import (
     assert_valid_transaction_id,
     assert_vwq_failure,
 )
+
+if TYPE_CHECKING:
+    from mock_vws.database import VuforiaDatabase
+    from vws import VWS, CloudRecoService
 
 VWQ_HOST = "https://cloudreco.vuforia.com"
 

@@ -13,13 +13,11 @@ import datetime
 import email.utils
 import random
 import uuid
-from collections.abc import Callable
 from http import HTTPStatus
+from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
 from requests_mock import DELETE, GET, POST, PUT
-from requests_mock.request import _RequestObjectProxy
-from requests_mock.response import _Context
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
@@ -33,7 +31,14 @@ from mock_vws._services_validators.exceptions import (
 )
 from mock_vws.database import VuforiaDatabase
 from mock_vws.target import Target
-from mock_vws.target_manager import TargetManager
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from requests_mock.request import _RequestObjectProxy
+    from requests_mock.response import _Context
+
+    from mock_vws.target_manager import TargetManager
 
 _TARGET_ID_PATTERN = "[A-Za-z0-9]+"
 

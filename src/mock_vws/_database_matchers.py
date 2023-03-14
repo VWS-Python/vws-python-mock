@@ -4,11 +4,14 @@ Helpers for getting databases which match keys given in requests.
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from typing import TYPE_CHECKING
 
 from vws_auth_tools import authorization_header
 
-from mock_vws.database import VuforiaDatabase
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+
+    from mock_vws.database import VuforiaDatabase
 
 
 def get_database_matching_client_keys(

@@ -10,10 +10,12 @@ import email.utils
 import json
 from http import HTTPStatus
 from string import hexdigits
+from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
-from mock_vws._constants import ResultCodes
-from requests import Response
+if TYPE_CHECKING:
+    from mock_vws._constants import ResultCodes
+    from requests import Response
 
 
 def assert_vws_failure(

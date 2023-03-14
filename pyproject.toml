@@ -206,13 +206,11 @@ ignore = [
     "PLR0912",
     "PLR0913",
     "PLR0915",
-    # Allow 'assert' as we use it for tests.
+    # Allow 'assert' in tests as it is the standard for pytest.
+    # Also, allow 'assert' in other code as it is the standard for Python type hint
+    # narrowing - see
+    # https://mypy.readthedocs.io/en/stable/type_narrowing.html#type-narrowing-expressions.
     "S101",
-    # Allow imports which are only used for type checking to be outside type
-    # checking blocks.
-    "TCH001",
-    "TCH002",
-    "TCH003",
 ]
 
 line-length = 79
