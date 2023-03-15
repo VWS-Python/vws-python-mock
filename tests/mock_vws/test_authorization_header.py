@@ -1,29 +1,35 @@
 """
 Tests for the `Authorization` header.
 """
+from __future__ import annotations
 
-import io
 import uuid
 from http import HTTPStatus
+from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
 import pytest
 import requests
 from mock_vws._constants import ResultCodes
-from mock_vws.database import VuforiaDatabase
 from requests.structures import CaseInsensitiveDict
 from vws import VWS, CloudRecoService
 from vws.exceptions import cloud_reco_exceptions
 from vws.exceptions.vws_exceptions import AuthenticationFailure, Fail
 from vws_auth_tools import rfc_1123_date
 
-from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import (
     assert_valid_date_header,
     assert_valid_transaction_id,
     assert_vwq_failure,
     assert_vws_failure,
 )
+
+if TYPE_CHECKING:
+    import io
+
+    from mock_vws.database import VuforiaDatabase
+
+    from tests.mock_vws.utils import Endpoint
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")

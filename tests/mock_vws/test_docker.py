@@ -2,19 +2,25 @@
 Tests for running the mock server in Docker.
 """
 
-import io
+from __future__ import annotations
+
 import os
 import uuid
-from collections.abc import Iterator
 from http import HTTPStatus
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import docker
 import pytest
 import requests
-from docker.models.networks import Network
 from mock_vws.database import VuforiaDatabase
 from vws import VWS, CloudRecoService
+
+if TYPE_CHECKING:
+    import io
+    from collections.abc import Iterator
+
+    from docker.models.networks import Network
 
 
 @pytest.fixture(name="custom_bridge_network")
