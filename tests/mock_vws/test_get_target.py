@@ -3,14 +3,19 @@ Tests for getting a target record.
 
 https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Retrieve-a-Target-Record
 """
+from __future__ import annotations
 
-import io
 import uuid
+from typing import TYPE_CHECKING
 
 import pytest
-from vws import VWS
 from vws.exceptions.vws_exceptions import UnknownTarget
 from vws.reports import TargetRecord, TargetStatuses
+
+if TYPE_CHECKING:
+    import io
+
+    from vws import VWS
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")

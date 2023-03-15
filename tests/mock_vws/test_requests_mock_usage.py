@@ -1,12 +1,13 @@
 """
 Tests for the usage of the mock for ``requests``.
 """
+from __future__ import annotations
 
 import datetime
 import email.utils
-import io
 import json
 import socket
+from typing import TYPE_CHECKING
 
 import pytest
 import requests
@@ -25,6 +26,9 @@ from tests.mock_vws.utils.usage_test_helpers import (
     processing_time_seconds,
     recognize_deletion_seconds,
 )
+
+if TYPE_CHECKING:
+    import io
 
 
 def request_unmocked_address() -> None:

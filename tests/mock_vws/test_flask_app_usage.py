@@ -1,10 +1,11 @@
 """
 Tests for the usage of the mock Flask application.
 """
+from __future__ import annotations
 
-import io
 import uuid
 from http import HTTPStatus
+from typing import TYPE_CHECKING
 
 import pytest
 import requests
@@ -12,7 +13,6 @@ from mock_vws._flask_server.target_manager import TARGET_MANAGER_FLASK_APP
 from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
 from mock_vws._flask_server.vws import VWS_FLASK_APP
 from mock_vws.database import VuforiaDatabase
-from requests_mock import Mocker
 from requests_mock_flask import add_flask_app_to_mock
 from vws import VWS, CloudRecoService
 
@@ -21,6 +21,11 @@ from tests.mock_vws.utils.usage_test_helpers import (
     processing_time_seconds,
     recognize_deletion_seconds,
 )
+
+if TYPE_CHECKING:
+    import io
+
+    from requests_mock import Mocker
 
 _EXAMPLE_URL_FOR_TARGET_MANAGER = "http://" + uuid.uuid4().hex + ".com"
 

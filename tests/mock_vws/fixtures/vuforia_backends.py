@@ -1,17 +1,16 @@
 """
 Choose which backends to use for the tests.
 """
+from __future__ import annotations
 
 import contextlib
 import logging
-from collections.abc import Generator
 from enum import Enum
+from typing import TYPE_CHECKING
 
 import pytest
 import requests
 import requests_mock
-from _pytest.config.argparsing import Parser
-from _pytest.fixtures import SubRequest
 from mock_vws import MockVWS
 from mock_vws._flask_server.target_manager import TARGET_MANAGER_FLASK_APP
 from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
@@ -21,6 +20,12 @@ from mock_vws.states import States
 from requests_mock_flask import add_flask_app_to_mock
 from vws import VWS
 from vws.exceptions.vws_exceptions import TargetStatusNotSuccess
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
+    from _pytest.config.argparsing import Parser
+    from _pytest.fixtures import SubRequest
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)

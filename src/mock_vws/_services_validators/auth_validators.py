@@ -1,15 +1,19 @@
 """
 Authorization header validators to use in the mock.
 """
+from __future__ import annotations
 
 from http import HTTPStatus
+from typing import TYPE_CHECKING
 
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._services_validators.exceptions import (
     AuthenticationFailure,
     Fail,
 )
-from mock_vws.database import VuforiaDatabase
+
+if TYPE_CHECKING:
+    from mock_vws.database import VuforiaDatabase
 
 
 def validate_auth_header_exists(request_headers: dict[str, str]) -> None:

@@ -1,15 +1,21 @@
 """
 Helpers for testing the usage of the mocks.
 """
-import datetime
-import io
+from __future__ import annotations
 
-from mock_vws.database import VuforiaDatabase
+import datetime
+from typing import TYPE_CHECKING
+
 from vws import VWS, CloudRecoService
 from vws.exceptions.custom_exceptions import (
     ActiveMatchingTargetsDeleteProcessing,
 )
 from vws.reports import TargetStatuses
+
+if TYPE_CHECKING:
+    import io
+
+    from mock_vws.database import VuforiaDatabase
 
 
 def _add_and_delete_target(
