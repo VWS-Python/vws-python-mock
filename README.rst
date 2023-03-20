@@ -19,7 +19,7 @@ This requires Python 3.11+.
 
     pip install vws-python-mock
 
-.. code:: python
+.. code-block:: python
 
     import requests
     from mock_vws import MockVWS, VuforiaDatabase

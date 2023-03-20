@@ -44,8 +44,7 @@ def test_ci_patterns_valid() -> None:
     ci_patterns = _ci_patterns()
 
     for ci_pattern in ci_patterns:
-        pattern = "tests/mock_vws/" + ci_pattern
-        collect_only_result = pytest.main(["--collect-only", pattern])
+        collect_only_result = pytest.main(["--collect-only", ci_pattern])
 
         message = f'"{ci_pattern}" does not match any tests.'
         assert collect_only_result == 0, message
@@ -60,13 +59,12 @@ def test_tests_collected_once() -> None:
     ci_patterns = _ci_patterns()
     tests_to_patterns: dict[str, set[str]] = {}
     for pattern in ci_patterns:
-        pattern_in_dir = "tests/mock_vws/" + pattern
-        tests = _tests_from_pattern(ci_pattern=pattern_in_dir)
+        tests = _tests_from_pattern(ci_pattern=pattern)
         for test in tests:
             if test in tests_to_patterns:
-                tests_to_patterns[test].add(pattern_in_dir)
+                tests_to_patterns[test].add(pattern)
             else:
-                tests_to_patterns[test] = {pattern_in_dir}
+                tests_to_patterns[test] = {pattern}
 
     for test_name, patterns in tests_to_patterns.items():
         message = (
@@ -76,6 +74,6 @@ def test_tests_collected_once() -> None:
         )
         assert len(patterns) == 1, message
 
-    all_tests = _tests_from_pattern(ci_pattern="tests/")
+    all_tests = _tests_from_pattern(ci_pattern=".")
     assert tests_to_patterns.keys() - all_tests == set()
     assert all_tests - tests_to_patterns.keys() == set()
