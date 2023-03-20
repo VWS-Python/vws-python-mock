@@ -1,9 +1,10 @@
 Using the mock redirects requests to Vuforia made with `requests`_ to an in-memory implementation.
 
-.. code:: python
+.. code-block:: python
 
     import requests
-    from mock_vws import MockVWS, VuforiaDatabase
+    from mock_vws import MockVWS
+    from mock_vws.database import VuforiaDatabase
 
     with MockVWS() as mock:
         database = VuforiaDatabase()
