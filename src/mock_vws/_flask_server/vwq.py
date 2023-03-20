@@ -22,6 +22,7 @@ from mock_vws._query_validators.exceptions import (
     ValidatorException,
 )
 from mock_vws.database import VuforiaDatabase
+from mock_vws.query_matchers import ExactMatcher
 
 CLOUDRECO_FLASK_APP = Flask(import_name=__name__)
 CLOUDRECO_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
@@ -102,6 +103,8 @@ def query() -> Response:
         os.environ.get("DELETION_RECOGNITION_SECONDS", "0.2"),
     )
 
+    match_checker = ExactMatcher()
+
     databases = get_all_databases()
     request_body = request.stream.read()
     run_query_validators(
@@ -124,6 +127,7 @@ def query() -> Response:
             query_recognizes_deletion_seconds=(
                 query_recognizes_deletion_seconds
             ),
+            match_checker=match_checker,
         )
     except ActiveMatchingTargetsDeleteProcessing as exc:
         raise DeletedTargetMatched from exc

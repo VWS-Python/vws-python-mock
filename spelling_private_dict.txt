@@ -53,6 +53,8 @@ linters
 linting
 login
 macOS
+matcher
+matchers
 mb
 metadata
 mib
