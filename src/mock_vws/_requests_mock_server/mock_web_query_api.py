@@ -29,6 +29,7 @@ if TYPE_CHECKING:
     from requests_mock.request import _RequestObjectProxy
     from requests_mock.response import _Context
 
+    from mock_vws.query_matchers import QueryMatcher
     from mock_vws.target_manager import TargetManager
 
 _ROUTES: set[Route] = set()
@@ -83,6 +84,7 @@ class MockVuforiaWebQueryAPI:
         target_manager: TargetManager,
         query_recognizes_deletion_seconds: int | float,
         query_processes_deletion_seconds: int | float,
+        match_checker: QueryMatcher,
     ) -> None:
         """
         Args:
@@ -93,6 +95,8 @@ class MockVuforiaWebQueryAPI:
             query_processes_deletion_seconds: The number of seconds after a
                 target deletion is recognized that the query endpoint will
                 return a 500 response on a match.
+            match_checker: A callable which takes two image values and returns
+                whether they match.
 
         Attributes:
             routes: The `Route`s to be used in the mock.
@@ -105,6 +109,7 @@ class MockVuforiaWebQueryAPI:
         self._query_recognizes_deletion_seconds = (
             query_recognizes_deletion_seconds
         )
+        self._match_checker = match_checker
 
     @route(path_pattern="/v1/query", http_methods={POST})
     def query(
@@ -141,6 +146,7 @@ class MockVuforiaWebQueryAPI:
                 query_recognizes_deletion_seconds=(
                     self._query_recognizes_deletion_seconds
                 ),
+                match_checker=self._match_checker,
             )
         except ActiveMatchingTargetsDeleteProcessing:
             deleted_target_matched_exception = DeletedTargetMatched()

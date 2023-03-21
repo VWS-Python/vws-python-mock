@@ -12,6 +12,7 @@ from urllib.parse import urljoin, urlparse
 import requests
 from requests_mock.mocker import Mocker
 
+from mock_vws.query_matchers import ExactMatcher
 from mock_vws.target_manager import TargetManager
 
 from .mock_web_query_api import MockVuforiaWebQueryAPI
@@ -90,6 +91,7 @@ class MockVWS(ContextDecorator):
             query_recognizes_deletion_seconds=(
                 query_recognizes_deletion_seconds
             ),
+            match_checker=ExactMatcher(),
         )
 
     def add_database(self, database: VuforiaDatabase) -> None:
