@@ -136,7 +136,7 @@ jobs:
             --cov=src/ \
             --cov=tests \
             --cov-report=xml \
-            tests/mock_vws/${{ matrix.ci_pattern }}
+            ${{ matrix.ci_pattern }}
 
       - name: "Show coverage file"
         run: |
