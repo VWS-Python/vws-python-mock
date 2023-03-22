@@ -5,12 +5,12 @@ Storage layer for the mock Vuforia Flask application.
 import base64
 import dataclasses
 import datetime
-import os
 import random
 from http import HTTPStatus
 from zoneinfo import ZoneInfo
 
 from flask import Flask, jsonify, request
+from pydantic import BaseSettings
 
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
@@ -20,6 +20,12 @@ from mock_vws.target_manager import TargetManager
 TARGET_MANAGER_FLASK_APP = Flask(__name__)
 
 TARGET_MANAGER = TargetManager()
+
+
+class TargetManagerSettings(BaseSettings):
+    """Settings for the Target Manager Flask app."""
+
+    target_manager_host: str
 
 
 @TARGET_MANAGER_FLASK_APP.route(
@@ -233,7 +239,5 @@ def update_target(database_name: str, target_id: str) -> tuple[str, int]:
 
 
 if __name__ == "__main__":  # pragma: no cover
-    TARGET_MANAGER_FLASK_APP.run(
-        debug=True,
-        host=os.environ["TARGET_MANAGER_HOST"],
-    )
+    settings = TargetManagerSettings()
+    TARGET_MANAGER_FLASK_APP.run(debug=True, host=settings.target_manager_host)

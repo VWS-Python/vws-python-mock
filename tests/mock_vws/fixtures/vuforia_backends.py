@@ -190,6 +190,30 @@ def pytest_addoption(parser: Parser) -> None:
             help=f"Skip tests for {backend.value}",
         )
 
+    parser.addoption(
+        "--skip-docker_build_tests",
+        action="store_true",
+        default=False,
+    )
+
+
+def pytest_collection_modifyitems(
+    config: pytest.Config,
+    items: list[pytest.Function],
+) -> None:
+    """Skip Docker tests if requested."""
+    skip_docker_build_tests_option = "--skip-docker_build_tests"
+    skip_docker_build_tests_marker = pytest.mark.skip(
+        reason=(
+            "Skipping docker build tests because "
+            f"{skip_docker_build_tests_option} was set"
+        ),
+    )
+    if config.getoption(skip_docker_build_tests_option):
+        for item in items:
+            if "requires_docker_build" in item.keywords:
+                item.add_marker(skip_docker_build_tests_marker)
+
 
 @pytest.fixture(
     params=list(VuforiaBackend),
