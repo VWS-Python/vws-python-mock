@@ -51,7 +51,7 @@ pyroma:
 	pyroma --min 10 .
 
 .PHONY: pyright
-pyroma:
+pyright:
 	pyright .
 
 .PHONY: vulture
