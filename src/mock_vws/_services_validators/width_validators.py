@@ -27,7 +27,7 @@ def validate_width(request_body: bytes) -> None:
 
     width = json.loads(request_text).get("width")
 
-    width_is_number = isinstance(width, (int, float))
+    width_is_number = isinstance(width, int | float)
     width_positive = width_is_number and width > 0
 
     if not width_positive:

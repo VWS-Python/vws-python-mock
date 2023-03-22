@@ -2,6 +2,7 @@
     "recommendations": [
         "ms-python.black-formatter",
         "charliermarsh.ruff",
-        "ms-python.python"
+        "ms-python.python",
+        "ms-python.pylint"
     ]
 }

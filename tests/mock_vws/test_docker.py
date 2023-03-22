@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 import docker
 import pytest
 import requests
+from docker.errors import BuildError
 from mock_vws.database import VuforiaDatabase
 from vws import VWS, CloudRecoService
 
@@ -76,7 +77,7 @@ def test_build_and_run(
             dockerfile=str(target_manager_dockerfile),
             tag=target_manager_tag,
         )
-    except docker.errors.BuildError as exc:
+    except BuildError as exc:
         full_log = "\n".join(
             [item["stream"] for item in exc.build_log if "stream" in item],
         )

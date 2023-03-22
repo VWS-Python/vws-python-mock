@@ -20,7 +20,9 @@ class QueryMatcher(Protocol):
                 database.
             query_image_content: The image content from a query.
         """
-        ...
+        # We disable a pylint warning here because the ellipsis is required
+        # for pyright to recognize this as a protocol.
+        ...  # pylint: disable=unnecessary-ellipsis
 
 
 class ExactMatcher:
