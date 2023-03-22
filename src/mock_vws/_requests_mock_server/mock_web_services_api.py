@@ -180,6 +180,9 @@ class MockVuforiaWebServicesAPI:
             "date": date,
             "content-length": str(len(body_json)),
             "x-envoy-upstream-service-time": "5",
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
         }
         return body_json
 
@@ -247,6 +250,9 @@ class MockVuforiaWebServicesAPI:
             "date": date,
             "server": "envoy",
             "x-envoy-upstream-service-time": "5",
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
         }
         return body_json
 
@@ -310,6 +316,9 @@ class MockVuforiaWebServicesAPI:
             "date": date,
             "server": "envoy",
             "x-envoy-upstream-service-time": "5",
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
         }
         return body_json
 
@@ -362,6 +371,9 @@ class MockVuforiaWebServicesAPI:
             "date": date,
             "server": "envoy",
             "x-envoy-upstream-service-time": "5",
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
         }
         return body_json
 
@@ -424,6 +436,9 @@ class MockVuforiaWebServicesAPI:
             "date": date,
             "server": "envoy",
             "x-envoy-upstream-service-time": "5",
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
         }
         return body_json
 
@@ -491,6 +506,9 @@ class MockVuforiaWebServicesAPI:
             "date": date,
             "server": "envoy",
             "x-envoy-upstream-service-time": "5",
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
         }
 
         return body_json
@@ -606,6 +624,9 @@ class MockVuforiaWebServicesAPI:
             "date": date,
             "content-length": str(len(body_json)),
             "x-envoy-upstream-service-time": "5",
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
         }
         return body_json
 
@@ -667,6 +688,9 @@ class MockVuforiaWebServicesAPI:
             "date": date,
             "server": "envoy",
             "x-envoy-upstream-service-time": "5",
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
         }
 
         return body_json
