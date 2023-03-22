@@ -44,7 +44,7 @@ def get_all_databases() -> set[VuforiaDatabase]:
     """
     Get all database objects from the task manager back-end.
     """
-    settings = VWSSettings()
+    settings = VWSSettings.parse_obj(obj={})
     response = requests.get(
         url=f"{settings.target_manager_base_url}/databases",
         timeout=30,
@@ -126,7 +126,7 @@ def add_target() -> Response:
     Fake implementation of
     https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Add-a-Target
     """
-    settings = VWSSettings()
+    settings = VWSSettings.parse_obj(obj={})
     databases = get_all_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
@@ -248,7 +248,7 @@ def delete_target(target_id: str) -> Response:
     Fake implementation of
     https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Delete-a-Target
     """
-    settings = VWSSettings()
+    settings = VWSSettings.parse_obj(obj={})
     databases = get_all_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
@@ -501,7 +501,7 @@ def update_target(target_id: str) -> Response:
     Fake implementation of
     https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Update-a-Target
     """
-    settings = VWSSettings()
+    settings = VWSSettings.parse_obj(obj={})
     # We do not use ``request.get_json(force=True)`` because this only works
     # when the content type is given as ``application/json``.
     request_json = json.loads(request.data)
@@ -574,5 +574,5 @@ def update_target(target_id: str) -> Response:
 
 
 if __name__ == "__main__":  # pragma: no cover
-    SETTINGS = VWSSettings()
+    SETTINGS = VWSSettings.parse_obj(obj={})
     VWS_FLASK_APP.run(debug=True, host=SETTINGS.vws_host)

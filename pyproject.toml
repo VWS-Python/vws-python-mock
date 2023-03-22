@@ -311,3 +311,4 @@ where = ["src"]
 [tool.setuptools.package-data]
 mock_vws = ["py.typed"]
 
+[tool.pyright]

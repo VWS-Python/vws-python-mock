@@ -232,7 +232,7 @@ def verify_mock_vuforia(
     This is useful for verifying the mocks.
     """
     backend = request.param
-    should_skip = request.config.getvalue(f"--skip-{backend.name.lower()}")
+    should_skip = request.config.getoption(f"--skip-{backend.name.lower()}")
     if should_skip:  # pragma: no cover
         pytest.skip()
 
