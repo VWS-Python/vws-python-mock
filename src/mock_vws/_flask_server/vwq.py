@@ -31,7 +31,7 @@ CLOUDRECO_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
 class VWQSettings(BaseSettings):
     """Settings for the VWQ Flask app."""
 
-    vwq_host: str
+    vwq_host: str = ""
     target_manager_base_url: str
     deletion_processing_seconds: float = 3.0
     deletion_recognition_seconds: float = 0.2
@@ -41,6 +41,7 @@ def get_all_databases() -> set[VuforiaDatabase]:
     """
     Get all database objects from the target manager back-end.
     """
+    settings = VWQSettings()
     response = requests.get(
         url=f"{settings.target_manager_base_url}/databases",
         timeout=30,
@@ -104,6 +105,7 @@ def query() -> Response:
     """
     Perform an image recognition query.
     """
+    settings = VWQSettings()
     match_checker = ExactMatcher()
 
     databases = get_all_databases()
@@ -147,5 +149,5 @@ def query() -> Response:
 
 
 if __name__ == "__main__":  # pragma: no cover
-    settings = VWQSettings()
-    CLOUDRECO_FLASK_APP.run(debug=True, host=settings.vwq_host)
+    SETTINGS = VWQSettings()
+    CLOUDRECO_FLASK_APP.run(debug=True, host=SETTINGS.vwq_host)

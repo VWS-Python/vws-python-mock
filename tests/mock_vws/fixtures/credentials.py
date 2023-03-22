@@ -22,6 +22,7 @@ class _VuforiaDatabaseSettings(BaseSettings):
         """Configuration for the settings."""
 
         env_prefix = "VUFORIA_"
+        env_file = "vuforia_secrets.env"
 
 
 class _InactiveVuforiaDatabaseSettings(_VuforiaDatabaseSettings):
@@ -29,6 +30,7 @@ class _InactiveVuforiaDatabaseSettings(_VuforiaDatabaseSettings):
         """Configuration for the settings."""
 
         env_prefix = "INACTIVE_VUFORIA_"
+        env_file = "vuforia_secrets.env"
 
 
 @pytest.fixture()

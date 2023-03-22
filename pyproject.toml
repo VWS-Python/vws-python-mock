@@ -97,7 +97,8 @@ branch = true
 
 xfail_strict = true
 log_cli = true
-env_files = ["./vuforia_secrets.env"]
+addopts = ["--strict-markers"]
+markers = ["requires_docker_build"]
 
 [tool.check-manifest]
 
@@ -278,7 +279,6 @@ dev = [
     "pylint==2.17.0",
     "pyroma==4.2",
     "pytest-cov==4.0.0",
-    "pytest-envfiles==0.1.0",
     "pytest==7.2.2",
     "requests-mock-flask==2023.3.5.1",
     "ruff==0.0.257",
