@@ -16,6 +16,7 @@ import requests
 from dirty_equals import IsInstance
 from mock_vws._constants import ResultCodes
 from requests import Response
+from requests.structures import CaseInsensitiveDict
 from requests_mock import POST
 from vws_auth_tools import authorization_header, rfc_1123_date
 
@@ -93,7 +94,7 @@ def _assert_oops_response(response: Response) -> None:
     assert "Oops, an error occurred" in response.text
     assert "This exception has been logged with id" in response.text
 
-    expected_headers = requests.structures.CaseInsensitiveDict(
+    expected_headers = CaseInsensitiveDict(
         data={
             "content-type": "text/html; charset=UTF-8",
             "date": response.headers["date"],

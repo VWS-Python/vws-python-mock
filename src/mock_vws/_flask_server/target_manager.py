@@ -210,7 +210,7 @@ def update_target(database_name: str, target_id: str) -> tuple[str, int]:
 
     image_value = target.image_value
     if "image" in request.json:
-        image_value = base64.b64decode(request.json["image"])
+        image_value = base64.b64decode(s=request.json["image"])
 
     # In the real implementation, the tracking rating can stay the same.
     # However, for demonstration purposes, the tracking rating changes but
@@ -239,5 +239,5 @@ def update_target(database_name: str, target_id: str) -> tuple[str, int]:
 
 
 if __name__ == "__main__":  # pragma: no cover
-    settings = TargetManagerSettings()
+    settings = TargetManagerSettings.parse_obj(obj={})
     TARGET_MANAGER_FLASK_APP.run(debug=True, host=settings.target_manager_host)

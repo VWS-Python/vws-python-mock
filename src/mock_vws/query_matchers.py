@@ -20,6 +20,7 @@ class QueryMatcher(Protocol):
                 database.
             query_image_content: The image content from a query.
         """
+        ...
 
 
 class ExactMatcher:
