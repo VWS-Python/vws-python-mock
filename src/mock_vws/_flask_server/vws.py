@@ -168,6 +168,9 @@ def add_target() -> Response:
         "server": "envoy",
         "date": date,
         "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
     }
 
     body = {
@@ -220,6 +223,9 @@ def get_target(target_id: str) -> Response:
         "server": "envoy",
         "date": date,
         "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
     }
     body = {
         "result_code": ResultCodes.SUCCESS.value,
@@ -276,6 +282,9 @@ def delete_target(target_id: str) -> Response:
         "server": "envoy",
         "date": date,
         "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
     }
     return Response(
         status=HTTPStatus.OK,
@@ -326,6 +335,9 @@ def database_summary() -> Response:
         "server": "envoy",
         "date": date,
         "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
     }
     return Response(
         status=HTTPStatus.OK,
@@ -374,6 +386,9 @@ def target_summary(target_id: str) -> Response:
         "server": "envoy",
         "date": date,
         "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
     }
     return Response(
         status=HTTPStatus.OK,
@@ -426,6 +441,9 @@ def get_duplicates(target_id: str) -> Response:
         "server": "envoy",
         "date": date,
         "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
     }
     return Response(
         status=HTTPStatus.OK,
@@ -464,6 +482,9 @@ def target_list() -> Response:
         "server": "envoy",
         "date": date,
         "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
     }
     return Response(
         status=HTTPStatus.OK,
@@ -537,6 +558,9 @@ def update_target(target_id: str) -> Response:
         "server": "envoy",
         "date": date,
         "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
     }
     body = {
         "result_code": ResultCodes.SUCCESS.value,

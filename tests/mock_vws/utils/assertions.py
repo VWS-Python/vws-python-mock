@@ -138,12 +138,18 @@ def assert_vws_response(
         "content-type",
         "date",
         "server",
+        "strict-transport-security",
+        "x-aws-region",
+        "x-content-type-options",
         "x-envoy-upstream-service-time",
     }
     assert set(map(str.lower, response.headers.keys())) == response_header_keys
     assert response.headers["Content-Length"] == str(len(response.text))
     assert response.headers["Content-Type"] == "application/json"
     assert response.headers["Server"] == "envoy"
+    assert response.headers["x-content-type-options"] == "nosniff"
+    assert "-" in response.headers["x-aws-region"]
+    assert response.headers["strict-transport-security"] == "max-age=31536000"
     assert int(response.headers["x-envoy-upstream-service-time"]) > 1
     assert_json_separators(response=response)
     assert_valid_transaction_id(response=response)
