@@ -6,11 +6,11 @@ https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognitio
 """
 
 import email.utils
-import os
 from http import HTTPStatus
 
 import requests
 from flask import Flask, Response, request
+from pydantic import BaseSettings
 
 from mock_vws._query_tools import (
     ActiveMatchingTargetsDeleteProcessing,
@@ -28,13 +28,21 @@ CLOUDRECO_FLASK_APP = Flask(import_name=__name__)
 CLOUDRECO_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
 
 
+class VWQSettings(BaseSettings):
+    """Settings for the VWQ Flask app."""
+
+    vwq_host: str
+    target_manager_base_url: str
+    deletion_processing_seconds: float = 3.0
+    deletion_recognition_seconds: float = 0.2
+
+
 def get_all_databases() -> set[VuforiaDatabase]:
     """
     Get all database objects from the target manager back-end.
     """
-    target_manager_base_url = os.environ["TARGET_MANAGER_BASE_URL"]
     response = requests.get(
-        url=f"{target_manager_base_url}/databases",
+        url=f"{settings.target_manager_base_url}/databases",
         timeout=30,
     )
     return {
@@ -96,13 +104,6 @@ def query() -> Response:
     """
     Perform an image recognition query.
     """
-    query_processes_deletion_seconds = float(
-        os.environ.get("DELETION_PROCESSING_SECONDS", "3.0"),
-    )
-    query_recognizes_deletion_seconds = float(
-        os.environ.get("DELETION_RECOGNITION_SECONDS", "0.2"),
-    )
-
     match_checker = ExactMatcher()
 
     databases = get_all_databases()
@@ -123,9 +124,9 @@ def query() -> Response:
             request_method=request.method,
             request_path=request.path,
             databases=databases,
-            query_processes_deletion_seconds=query_processes_deletion_seconds,
+            query_processes_deletion_seconds=settings.deletion_processing_seconds,
             query_recognizes_deletion_seconds=(
-                query_recognizes_deletion_seconds
+                settings.deletion_recognition_seconds
             ),
             match_checker=match_checker,
         )
@@ -146,4 +147,5 @@ def query() -> Response:
 
 
 if __name__ == "__main__":  # pragma: no cover
-    CLOUDRECO_FLASK_APP.run(debug=True, host=os.environ["VWQ_HOST"])
+    settings = VWQSettings()
+    CLOUDRECO_FLASK_APP.run(debug=True, host=settings.vwq_host)

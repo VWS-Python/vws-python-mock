@@ -8,12 +8,12 @@ https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Service
 import base64
 import email.utils
 import json
-import os
 import uuid
 from http import HTTPStatus
 
 import requests
 from flask import Flask, Response, request
+from pydantic import BaseSettings
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
@@ -32,13 +32,20 @@ VWS_FLASK_APP = Flask(import_name=__name__)
 VWS_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
 
 
+class VWSSettings(BaseSettings):
+    """Settings for the VWS Flask app."""
+
+    target_manager_base_url: str
+    processing_time_seconds: float = 0.5
+    vws_host: str
+
+
 def get_all_databases() -> set[VuforiaDatabase]:
     """
     Get all database objects from the task manager back-end.
     """
-    target_manager_base_url = os.environ["TARGET_MANAGER_BASE_URL"]
     response = requests.get(
-        url=f"{target_manager_base_url}/databases",
+        url=f"{settings.target_manager_base_url}/databases",
         timeout=30,
     )
     return {
@@ -118,9 +125,6 @@ def add_target() -> Response:
     Fake implementation of
     https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Add-a-Target
     """
-    processing_time_seconds = float(
-        os.environ.get("PROCESSING_TIME_SECONDS", "0.5"),
-    )
     databases = get_all_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
@@ -145,12 +149,11 @@ def add_target() -> Response:
         width=request_json["width"],
         image_value=base64.b64decode(request_json["image"]),
         active_flag=active_flag,
-        processing_time_seconds=processing_time_seconds,
+        processing_time_seconds=settings.processing_time_seconds,
         application_metadata=request_json.get("application_metadata"),
     )
 
-    target_manager_base_url = os.environ["TARGET_MANAGER_BASE_URL"]
-    databases_url = f"{target_manager_base_url}/databases"
+    databases_url = f"{settings.target_manager_base_url}/databases"
     requests.post(
         url=f"{databases_url}/{database.database_name}/targets",
         json=new_target.to_dict(),
@@ -254,8 +257,7 @@ def delete_target(target_id: str) -> Response:
     if target.status == TargetStatuses.PROCESSING.value:
         raise TargetStatusProcessing
 
-    target_manager_base_url = os.environ["TARGET_MANAGER_BASE_URL"]
-    databases_url = f"{target_manager_base_url}/databases"
+    databases_url = f"{settings.target_manager_base_url}/databases"
     requests.delete(
         url=f"{databases_url}/{database.database_name}/targets/{target_id}",
         timeout=30,
@@ -519,9 +521,8 @@ def update_target(target_id: str) -> Response:
         image = request_json["image"]
         update_values["image"] = image
 
-    target_manager_base_url = os.environ["TARGET_MANAGER_BASE_URL"]
     put_url = (
-        f"{target_manager_base_url}/databases/{database.database_name}/"
+        f"{settings.target_manager_base_url}/databases/{database.database_name}/"
         f"targets/{target_id}"
     )
     requests.put(url=put_url, json=update_values, timeout=30)
@@ -545,4 +546,5 @@ def update_target(target_id: str) -> Response:
 
 
 if __name__ == "__main__":  # pragma: no cover
-    VWS_FLASK_APP.run(debug=True, host=os.environ["VWS_HOST"])
+    settings = VWSSettings()
+    VWS_FLASK_APP.run(debug=True, host=settings.vws_host)
