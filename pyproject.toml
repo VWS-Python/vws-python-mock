@@ -119,7 +119,6 @@ ignore = [
   ".git_archival.txt",
   "spelling_private_dict.txt",
   "tests",
-  "tests-pylintrc",
   "tests/**",
   "vuforia_secrets.env.example",
   "lint.mk",
@@ -151,6 +150,7 @@ module = [
 
 ignore_missing_imports = true
 
+# This is ignored until we can bump doc8.
 [tool.doc8]
 
 max_line_length = 2000
@@ -268,7 +268,9 @@ dev = [
     "black==23.1.0",
     "check-manifest==0.49",
     "dirty-equals==0.5.0",
-    "doc8==1.1.1",
+    # We pin to an old doc8 to avoid version conflicts with sphinx_toolbox.
+    # When we bump this, we can remove doc8.ini.
+    "doc8==0.11.2",
     "docker==6.0.1",
     "dodgy==0.2.1",
     "freezegun==1.2.2",
@@ -291,6 +293,7 @@ dev = [
     "sphinx_paramlinks==0.5.4",
     "sphinxcontrib-httpdomain==1.8.1",
     "sphinxcontrib-spelling==8.0.0",
+    "sphinx-toolbox==3.4.0",
     "sybil==4.0.1",
     "types-Flask==1.1.6",
     "types-freezegun==1.1.10",
