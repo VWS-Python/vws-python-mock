@@ -67,12 +67,12 @@ class VuforiaDatabase:
     targets: set[Target] = field(default_factory=set, hash=False)
     state: States = States.WORKING
 
-    request_quota = 100000
-    reco_threshold = 1000
-    current_month_recos = 0
-    previous_month_recos = 0
-    total_recos = 0
-    target_quota = 1000
+    request_quota: int = 100000
+    reco_threshold: int = 1000
+    current_month_recos: int = 0
+    previous_month_recos: int = 0
+    total_recos: int = 0
+    target_quota: int = 1000
 
     def to_dict(self) -> DatabaseDict:
         """
