@@ -3,7 +3,13 @@ Differences between the mock and the real Vuforia Web Services
 
 The mock attempts to be realistic, but it was built without access to the source code of the original API.
 Please report any issues `here <https://github.com/VWS-Python/vws-python-mock/issues>`__.
-There is no attempt to make the image matching realistic.
+
+Image matching
+--------------
+
+Vuforia's image matching is proprietary and we do not intend to accurately copy it.
+Instead, we aim for simple algorithms which are fast and are good enough for testing purposes.
+The image matcher is configurable, using :paramref:`~mock_vws.MockVWS.match_checker`.
 
 Speed and summary accuracy
 --------------------------
