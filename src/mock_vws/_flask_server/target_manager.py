@@ -149,7 +149,7 @@ def create_target(database_name: str) -> tuple[str, int]:
         if database.database_name == database_name
     ]
     image_base64 = request.json["image_base64"]
-    image_bytes = base64.b64decode(image_base64)
+    image_bytes = base64.b64decode(s=image_base64)
     target = Target(
         name=request.json["name"],
         width=request.json["width"],

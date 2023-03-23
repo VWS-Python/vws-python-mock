@@ -70,6 +70,7 @@ plugins
 png
 pragma
 processable
+pyright
 pytest
 readme
 readthedocs
