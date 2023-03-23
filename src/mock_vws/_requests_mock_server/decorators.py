@@ -12,7 +12,7 @@ from urllib.parse import urljoin, urlparse
 import requests
 from requests_mock.mocker import Mocker
 
-from mock_vws.query_matchers import ExactMatcher
+from mock_vws.query_matchers import ExactMatcher, QueryMatcher
 from mock_vws.target_manager import TargetManager
 
 from .mock_web_query_api import MockVuforiaWebQueryAPI
@@ -20,6 +20,9 @@ from .mock_web_services_api import MockVuforiaWebServicesAPI
 
 if TYPE_CHECKING:
     from mock_vws.database import VuforiaDatabase
+
+
+_EXACT_MATCHER = ExactMatcher()
 
 
 class MockVWS(ContextDecorator):
@@ -31,6 +34,7 @@ class MockVWS(ContextDecorator):
         self,
         base_vws_url: str = "https://vws.vuforia.com",
         base_vwq_url: str = "https://cloudreco.vuforia.com",
+        match_checker: QueryMatcher = _EXACT_MATCHER,
         processing_time_seconds: int | float = 0.5,
         query_recognizes_deletion_seconds: int | float = 0.2,
         query_processes_deletion_seconds: int | float = 3,
@@ -56,6 +60,8 @@ class MockVWS(ContextDecorator):
             query_processes_deletion_seconds: The number of
                 seconds after a target deletion is recognized that the query
                 endpoint will return a 500 response on a match.
+            match_checker: A callable which takes two image values and returns
+                whether they will match in a query request.
 
         Raises:
             requests.exceptions.MissingSchema: There is no schema in a given
@@ -91,7 +97,7 @@ class MockVWS(ContextDecorator):
             query_recognizes_deletion_seconds=(
                 query_recognizes_deletion_seconds
             ),
-            match_checker=ExactMatcher(),
+            match_checker=match_checker,
         )
 
     def add_database(self, database: VuforiaDatabase) -> None:

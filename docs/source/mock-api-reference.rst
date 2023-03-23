@@ -26,3 +26,5 @@ API Reference
 .. autoclass:: mock_vws.database.VuforiaDatabase
    :members:
    :undoc-members:
+
+.. autoprotocol:: mock_vws.query_matchers.QueryMatcher
