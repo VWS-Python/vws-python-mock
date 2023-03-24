@@ -6,6 +6,7 @@ https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognitio
 """
 
 import email.utils
+from enum import StrEnum, auto
 from http import HTTPStatus
 
 import requests
@@ -28,6 +29,18 @@ CLOUDRECO_FLASK_APP = Flask(import_name=__name__)
 CLOUDRECO_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
 
 
+class _QueryMatcherChoice(StrEnum):
+    """Query matcher choices."""
+
+    EXACT = auto()
+
+    def to_query_matcher(self) -> ExactMatcher:
+        """Get the query matcher."""
+        return {
+            _QueryMatcherChoice.EXACT: ExactMatcher(),
+        }[self]
+
+
 class VWQSettings(BaseSettings):
     """Settings for the VWQ Flask app."""
 
@@ -35,6 +48,7 @@ class VWQSettings(BaseSettings):
     target_manager_base_url: str
     deletion_processing_seconds: float = 3.0
     deletion_recognition_seconds: float = 0.2
+    query_matcher: _QueryMatcherChoice = _QueryMatcherChoice.EXACT
 
 
 def get_all_databases() -> set[VuforiaDatabase]:
@@ -106,7 +120,7 @@ def query() -> Response:
     Perform an image recognition query.
     """
     settings = VWQSettings.parse_obj(obj={})
-    match_checker = ExactMatcher()
+    match_checker = settings.query_matcher.to_query_matcher()
 
     databases = get_all_databases()
     request_body = request.stream.read()
