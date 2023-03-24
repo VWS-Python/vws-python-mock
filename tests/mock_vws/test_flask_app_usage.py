@@ -379,7 +379,6 @@ class TestQueryMatchers:
         re_exported_image = io.BytesIO()
         pil_image.save(re_exported_image, format="PNG")
 
-        database = VuforiaDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 

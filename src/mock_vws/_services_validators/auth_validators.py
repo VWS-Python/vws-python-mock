@@ -57,10 +57,8 @@ def validate_access_key_exists(
             return
 
     _LOGGER.warning(
-        msg=(
-            'The access key "%s" does not match a given database.',
-            access_key,
-        ),
+        'The access key "%s" does not match a known database.',
+        access_key,
     )
     raise Fail(status_code=HTTPStatus.BAD_REQUEST)
 
