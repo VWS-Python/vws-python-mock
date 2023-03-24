@@ -3,6 +3,7 @@ Validators for target names.
 """
 
 import json
+import logging
 from http import HTTPStatus
 
 from mock_vws._database_matchers import get_database_matching_server_keys
@@ -12,6 +13,8 @@ from mock_vws._services_validators.exceptions import (
     TargetNameExist,
 )
 from mock_vws.database import VuforiaDatabase
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def validate_name_characters_in_range(
@@ -47,8 +50,10 @@ def validate_name_characters_in_range(
         return
 
     if (request_method, request_path) == ("POST", "/targets"):
+        _LOGGER.warning(msg="Characters are out of range.")
         raise OopsErrorOccurredResponse
 
+    _LOGGER.warning(msg="Characters are out of range.")
     raise TargetNameExist
 
 
@@ -74,6 +79,7 @@ def validate_name_type(request_body: bytes) -> None:
     if isinstance(name, str):
         return
 
+    _LOGGER.warning(msg="Name is not a string.")
     raise Fail(status_code=HTTPStatus.BAD_REQUEST)
 
 
@@ -101,6 +107,7 @@ def validate_name_length(request_body: bytes) -> None:
     if name and len(name) <= max_length:
         return
 
+    _LOGGER.warning(msg="Name is not between 1 and 64 characters in length.")
     raise Fail(status_code=HTTPStatus.BAD_REQUEST)
 
 
@@ -156,6 +163,7 @@ def validate_name_does_not_exist_new_target(
     if not matching_name_targets:
         return
 
+    _LOGGER.warning(msg="Target name already exists.")
     raise TargetNameExist
 
 
@@ -218,4 +226,5 @@ def validate_name_does_not_exist_existing_target(
     if matching_name_target.target_id == target_id:
         return
 
+    _LOGGER.warning(msg="Name already exists for another target.")
     raise TargetNameExist

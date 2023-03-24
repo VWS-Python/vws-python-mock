@@ -3,10 +3,14 @@ Validators for the project state.
 """
 
 
+import logging
+
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._services_validators.exceptions import ProjectInactive
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def validate_project_state(
@@ -45,4 +49,5 @@ def validate_project_state(
     if request_method == "GET" and "duplicates" not in request_path:
         return
 
+    _LOGGER.warning(msg="The project is inactive.")
     raise ProjectInactive

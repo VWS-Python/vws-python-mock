@@ -8,6 +8,7 @@ https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Service
 import base64
 import email.utils
 import json
+import logging
 import uuid
 from http import HTTPStatus
 
@@ -30,6 +31,9 @@ from mock_vws.target import Target
 
 VWS_FLASK_APP = Flask(import_name=__name__)
 VWS_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
+
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class VWSSettings(BaseSettings):
@@ -529,12 +533,24 @@ def update_target(target_id: str) -> Response:
     if "active_flag" in request_json:
         active_flag = request_json["active_flag"]
         if active_flag is None:
+            _LOGGER.warning(
+                msg=(
+                    'The value of "active_flag" was None. '
+                    "This is not allowed. "
+                ),
+            )
             raise Fail(status_code=HTTPStatus.BAD_REQUEST)
         update_values["active_flag"] = active_flag
 
     if "application_metadata" in request_json:
         application_metadata = request_json["application_metadata"]
         if application_metadata is None:
+            _LOGGER.warning(
+                msg=(
+                    'The value of "application_metadata" was None. '
+                    "This is not allowed."
+                ),
+            )
             raise Fail(status_code=HTTPStatus.BAD_REQUEST)
         update_values["application_metadata"] = application_metadata
 

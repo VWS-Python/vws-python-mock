@@ -4,10 +4,13 @@ Validators for application metadata.
 
 import binascii
 import json
+import logging
 from http import HTTPStatus
 
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._services_validators.exceptions import Fail, MetadataTooLarge
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def validate_metadata_size(request_body: bytes) -> None:
@@ -35,6 +38,7 @@ def validate_metadata_size(request_body: bytes) -> None:
     if len(decoded) <= max_metadata_bytes:
         return
 
+    _LOGGER.warning(msg="The application metadata is too large.")
     raise MetadataTooLarge
 
 
@@ -65,6 +69,7 @@ def validate_metadata_encoding(request_body: bytes) -> None:
     try:
         decode_base64(encoded_data=application_metadata)
     except binascii.Error as exc:
+        _LOGGER.warning(msg="The application metadata is not base64 encoded.")
         raise Fail(status_code=HTTPStatus.UNPROCESSABLE_ENTITY) from exc
 
 
@@ -91,4 +96,5 @@ def validate_metadata_type(request_body: bytes) -> None:
     if application_metadata is None or isinstance(application_metadata, str):
         return
 
+    _LOGGER.warning(msg="The application metadata is not a string or NULL.")
     raise Fail(status_code=HTTPStatus.BAD_REQUEST)
