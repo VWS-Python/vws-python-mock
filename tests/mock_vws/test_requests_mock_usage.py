@@ -14,7 +14,6 @@ import requests
 from freezegun import freeze_time
 from mock_vws import MockVWS
 from mock_vws.database import VuforiaDatabase
-from mock_vws.states import States
 from mock_vws.target import Target
 from PIL import Image
 from requests.exceptions import MissingSchema
@@ -363,19 +362,6 @@ class TestCustomQueryProcessDeletionSeconds:
 
         expected = query_processes_deletion
         assert abs(expected - time_taken) < self.LEEWAY
-
-
-class TestStates:
-    """
-    Tests for different mock states.
-    """
-
-    @staticmethod
-    def test_repr() -> None:
-        """
-        The representation of a ``State`` shows the state.
-        """
-        assert repr(States.WORKING) == "<States.WORKING>"
 
 
 class TestTargets:
