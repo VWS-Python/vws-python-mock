@@ -108,14 +108,24 @@ Query container
    The number of seconds after a target deletion is recognized that the
    query endpoint will return a 500 response on a match.
 
-   Default 3.0
+   Default: 3.0
 
 .. envvar:: DELETION_RECOGNITION_SECONDS
 
    The number of seconds after a target has been deleted that the query
    endpoint will still recognize the target for.
 
-   Default 0.2
+   Default: 0.2
+
+.. envvar:: QUERY_MATCHER
+
+   The matcher to use for the query endpoint.
+
+   Options include:
+
+   * ``exact``: The images must be exactly the same to match.
+
+   Default: ``exact``
 
 VWS container
 ~~~~~~~~~~~~~
