@@ -3,6 +3,7 @@ Tests for the usage of the mock Flask application.
 """
 from __future__ import annotations
 
+import io
 import uuid
 from http import HTTPStatus
 from typing import TYPE_CHECKING
@@ -13,6 +14,7 @@ from mock_vws._flask_server.target_manager import TARGET_MANAGER_FLASK_APP
 from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
 from mock_vws._flask_server.vws import VWS_FLASK_APP
 from mock_vws.database import VuforiaDatabase
+from PIL import Image
 from requests_mock_flask import add_flask_app_to_mock
 from vws import VWS, CloudRecoService
 
@@ -23,7 +25,6 @@ from tests.mock_vws.utils.usage_test_helpers import (
 )
 
 if TYPE_CHECKING:
-    import io
 
     from requests_mock import Mocker
 
@@ -356,3 +357,45 @@ class TestDeleteDatabase:
 
         response = requests.delete(url=delete_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.NOT_FOUND
+
+
+class TestQueryMatchers:
+    """Tests for query matchers."""
+
+    @staticmethod
+    def test_exact_match(high_quality_image: io.BytesIO) -> None:
+        """The exact matcher matches only exactly the same images."""
+        database = VuforiaDatabase()
+        vws_client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+        cloud_reco_client = CloudRecoService(
+            client_access_key=database.client_access_key,
+            client_secret_key=database.client_secret_key,
+        )
+
+        pil_image = Image.open(fp=high_quality_image)
+        re_exported_image = io.BytesIO()
+        pil_image.save(re_exported_image, format="PNG")
+
+        database = VuforiaDatabase()
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+
+        target_id = vws_client.add_target(
+            name="example",
+            width=1,
+            image=high_quality_image,
+            application_metadata=None,
+            active_flag=True,
+        )
+        vws_client.wait_for_target_processed(target_id=target_id)
+        same_image_result = cloud_reco_client.query(
+            image=high_quality_image,
+        )
+        assert len(same_image_result) == 1
+        different_image_result = cloud_reco_client.query(
+            image=re_exported_image,
+        )
+        assert len(different_image_result) == 0

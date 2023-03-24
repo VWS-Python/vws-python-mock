@@ -117,6 +117,8 @@ Query container
 
    Default 0.2
 
+.. TODO add new settings here
+
 VWS container
 ~~~~~~~~~~~~~
 
