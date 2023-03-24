@@ -97,7 +97,7 @@ Result codes
 ------------
 
 Result codes are returned by requests to Vuforia to help with debugging.
-See `How To Interpret VWS API Result Codes <https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API#How-To-Interperete-VWS-API-Result-Codes>`_ for details of the available result codes.
+See `VWS API Result Codes <https://library.vuforia.com/web-api/cloud-targets-web-services-api#result-codes>`_ for details of the available result codes.
 There are some result codes which the mock cannot return.
 
 These are:

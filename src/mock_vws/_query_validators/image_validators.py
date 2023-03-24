@@ -70,7 +70,7 @@ def validate_image_file_size(
     image = parsed.get("image").raw
 
     # This is the documented maximum size of a PNG as per.
-    # https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query.
+    # https://library.vuforia.com/web-api/vuforia-query-web-api.
     # However, the tests show that this maximum size also applies to JPEG
     # files.
     max_bytes = 2 * 1024 * 1024
