@@ -3,11 +3,14 @@ Validators for the ``include_target_data`` field.
 """
 
 import io
+import logging
 from email.message import EmailMessage
 
 import multipart
 
 from mock_vws._query_validators.exceptions import InvalidIncludeTargetData
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def validate_include_target_data(
@@ -45,4 +48,7 @@ def validate_include_target_data(
         return
 
     assert isinstance(include_target_data, str)
+    _LOGGER.warning(
+        msg="The include_target_data field is not an accepted value.",
+    )
     raise InvalidIncludeTargetData(given_value=include_target_data)

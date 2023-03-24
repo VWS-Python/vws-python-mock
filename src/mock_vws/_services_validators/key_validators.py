@@ -3,6 +3,7 @@ Validators for JSON keys.
 """
 
 import json
+import logging
 import re
 from dataclasses import dataclass
 from http import HTTPStatus
@@ -10,6 +11,8 @@ from http import HTTPStatus
 from requests_mock import DELETE, GET, POST, PUT
 
 from .exceptions import Fail
+
+_LOGGER = logging.getLogger(__name__)
 
 
 @dataclass
@@ -153,4 +156,5 @@ def validate_keys(
     if all_given_keys_allowed and all_mandatory_keys_given:
         return
 
+    _LOGGER.warning(msg="Invalid keys given to endpoint.")
     raise Fail(status_code=HTTPStatus.BAD_REQUEST)

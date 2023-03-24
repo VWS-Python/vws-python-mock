@@ -3,6 +3,7 @@ Validators for the ``max_num_results`` fields.
 """
 
 import io
+import logging
 from email.message import EmailMessage
 
 import multipart
@@ -11,6 +12,8 @@ from mock_vws._query_validators.exceptions import (
     InvalidMaxNumResults,
     MaxNumResultsOutOfRange,
 )
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def validate_max_num_results(
@@ -47,12 +50,15 @@ def validate_max_num_results(
     try:
         max_num_results_int = int(max_num_results)
     except ValueError as exc:
+        _LOGGER.warning(msg="The max_num_results field is not an integer.")
         raise InvalidMaxNumResults(given_value=max_num_results) from exc
 
     java_max_int = 2147483647
     if max_num_results_int > java_max_int:
+        _LOGGER.warning(msg="The max_num_results field is too large.")
         raise InvalidMaxNumResults(given_value=max_num_results)
 
     max_allowed_results = 50
     if max_num_results_int < 1 or max_num_results_int > max_allowed_results:
+        _LOGGER.warning(msg="The max_num_results field is out of range.")
         raise MaxNumResultsOutOfRange(given_value=max_num_results)

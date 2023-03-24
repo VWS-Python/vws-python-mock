@@ -4,6 +4,7 @@ Validators of the date header to use in the mock query API.
 
 import contextlib
 import datetime
+import logging
 from zoneinfo import ZoneInfo
 
 from mock_vws._query_validators.exceptions import (
@@ -11,6 +12,8 @@ from mock_vws._query_validators.exceptions import (
     DateHeaderNotGiven,
     RequestTimeTooSkewed,
 )
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def validate_date_header_given(request_headers: dict[str, str]) -> None:
@@ -26,6 +29,7 @@ def validate_date_header_given(request_headers: dict[str, str]) -> None:
     if "Date" in request_headers:
         return
 
+    _LOGGER.warning(msg="The date header is not given.")
     raise DateHeaderNotGiven
 
 
@@ -67,6 +71,7 @@ def validate_date_format(request_headers: dict[str, str]) -> None:
             datetime.datetime.strptime(date_header, date_format).astimezone()
             return
 
+    _LOGGER.warning(msg="The date header is in the wrong format.")
     raise DateFormatNotValid
 
 
@@ -101,4 +106,5 @@ def validate_date_in_range(request_headers: dict[str, str]) -> None:
     if abs(time_difference) < maximum_time_difference:
         return
 
+    _LOGGER.warning(msg="The date header is out of range.")
     raise RequestTimeTooSkewed

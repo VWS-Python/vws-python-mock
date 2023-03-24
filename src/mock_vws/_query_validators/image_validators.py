@@ -3,6 +3,7 @@ Input validators for the image field use in the mock query API.
 """
 
 import io
+import logging
 from email.message import EmailMessage
 
 import multipart
@@ -13,6 +14,8 @@ from mock_vws._query_validators.exceptions import (
     ImageNotGiven,
     RequestEntityTooLarge,
 )
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def validate_image_field_given(
@@ -39,6 +42,7 @@ def validate_image_field_given(
     if parsed.get("image") is not None:
         return
 
+    _LOGGER.warning(msg="The image field is not given.")
     raise ImageNotGiven
 
 
@@ -74,6 +78,7 @@ def validate_image_file_size(
     # do not trigger this exception.
     # See https://github.com/urllib3/urllib3/issues/2733.
     if len(image) > max_bytes:  # pragma: no cover
+        _LOGGER.warning(msg="The image file size is too large.")
         raise RequestEntityTooLarge
 
 
@@ -107,6 +112,7 @@ def validate_image_dimensions(
     if pil_image.height <= max_height and pil_image.width <= max_width:
         return
 
+    _LOGGER.warning(msg="The image dimensions are too large.")
     raise BadImage
 
 
@@ -139,6 +145,7 @@ def validate_image_format(
     if pil_image.format in ("PNG", "JPEG"):
         return
 
+    _LOGGER.warning(msg="The image format is not PNG or JPEG.")
     raise BadImage
 
 
@@ -170,4 +177,5 @@ def validate_image_is_image(
     try:
         Image.open(image_file)
     except OSError as exc:
+        _LOGGER.warning(msg="The image is not an image file.")
         raise BadImage from exc

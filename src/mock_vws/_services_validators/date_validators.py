@@ -3,10 +3,13 @@ Validators of the date header to use in the mock services API.
 """
 
 import datetime
+import logging
 from http import HTTPStatus
 from zoneinfo import ZoneInfo
 
 from mock_vws._services_validators.exceptions import Fail, RequestTimeTooSkewed
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def validate_date_header_given(request_headers: dict[str, str]) -> None:
@@ -22,6 +25,7 @@ def validate_date_header_given(request_headers: dict[str, str]) -> None:
     if "Date" in request_headers:
         return
 
+    _LOGGER.warning(msg="The date header is not given.")
     raise Fail(status_code=HTTPStatus.BAD_REQUEST)
 
 
@@ -40,6 +44,7 @@ def validate_date_format(request_headers: dict[str, str]) -> None:
     try:
         datetime.datetime.strptime(date_header, date_format).astimezone()
     except ValueError as exc:
+        _LOGGER.warning(msg="The date header is in the wrong format.")
         raise Fail(status_code=HTTPStatus.BAD_REQUEST) from exc
 
 
@@ -65,4 +70,5 @@ def validate_date_in_range(request_headers: dict[str, str]) -> None:
     maximum_time_difference = datetime.timedelta(minutes=5)
 
     if abs(time_difference) >= maximum_time_difference:
+        _LOGGER.warning(msg="The date header is out of range.")
         raise RequestTimeTooSkewed
