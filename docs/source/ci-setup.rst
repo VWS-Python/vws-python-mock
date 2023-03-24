@@ -11,9 +11,6 @@ To avoid hitting request quotas and to avoid conflicts when running multiple tes
 
 CI builds use a different credentials file depending on the build configuration.
 Within a workflow, this avoids conflicts.
-However, there may be conflicts across workflows, as currently there is no way to prevent workflows from running in parallel.
-See https://github.community/t5/GitHub-Actions/Prevent-parallel-workflows/td-p/32889.
-
 
 How to set GitHub Actions secrets
 ---------------------------------

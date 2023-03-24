@@ -1,7 +1,7 @@
 """
 Tests for the mock of the query endpoint.
 
-https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query.
+https://library.vuforia.com/web-api/vuforia-query-web-api.
 """
 
 from __future__ import annotations
@@ -738,7 +738,7 @@ class TestMaxNumResults:
         This is because uploading 50 images would be very slow.
 
         The documentation at
-        https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query
+        https://library.vuforia.com/web-api/vuforia-query-web-api
         states that this must be between 1 and 10, but in practice, 50 is the
         maximum.
         """
@@ -792,7 +792,7 @@ class TestMaxNumResults:
         of the range (1, 50).
 
         The documentation at
-        https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query.
+        https://library.vuforia.com/web-api/vuforia-query-web-api.
         states that this must be between 1 and 10, but in practice, 50 is the
         maximum.
         """
@@ -1271,7 +1271,7 @@ class TestMaximumImageFileSize:
     ) -> None:  # pragma: no cover
         """
         According to
-        https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query.
+        https://library.vuforia.com/web-api/vuforia-query-web-api.
         the maximum file size is "2MiB for PNG".
 
         Above this limit, a ``REQUEST_ENTITY_TOO_LARGE`` response is returned.
@@ -1352,7 +1352,7 @@ class TestMaximumImageFileSize:
     ) -> None:  # pragma: no cover
         """
         According to
-        https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query.
+        https://library.vuforia.com/web-api/vuforia-query-web-api.
         the maximum file size is "512 KiB for JPEG".
         However, this test shows that the maximum size for JPEG is 2 MiB.
 
