@@ -3,11 +3,14 @@ Validators for the fields given.
 """
 
 import io
+import logging
 from email.message import EmailMessage
 
 import multipart
 
 from mock_vws._query_validators.exceptions import UnknownParameters
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def validate_extra_fields(
@@ -37,4 +40,5 @@ def validate_extra_fields(
     if not parsed_keys - known_parameters:
         return
 
+    _LOGGER.warning(msg="Unknown parameters are given.")
     raise UnknownParameters

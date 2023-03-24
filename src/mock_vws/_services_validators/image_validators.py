@@ -5,6 +5,7 @@ Image validators to use in the mock.
 import binascii
 import io
 import json
+import logging
 from http import HTTPStatus
 
 from PIL import Image
@@ -15,6 +16,8 @@ from mock_vws._services_validators.exceptions import (
     Fail,
     ImageTooLarge,
 )
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def validate_image_format(request_body: bytes) -> None:
@@ -43,6 +46,7 @@ def validate_image_format(request_body: bytes) -> None:
     if pil_image.format in ("PNG", "JPEG"):
         return
 
+    _LOGGER.warning(msg="The image is not a PNG or JPEG.")
     raise BadImage
 
 
@@ -73,6 +77,9 @@ def validate_image_color_space(request_body: bytes) -> None:
     if pil_image.mode in ("L", "RGB"):
         return
 
+    _LOGGER.warning(
+        msg="The image is not in the RGB or greyscale color space.",
+    )
     raise BadImage
 
 
@@ -102,6 +109,7 @@ def validate_image_size(request_body: bytes) -> None:
     if len(decoded) <= max_allowed_size:
         return
 
+    _LOGGER.warning(msg="The image is too large.")
     raise ImageTooLarge
 
 
@@ -155,6 +163,7 @@ def validate_image_encoding(request_body: bytes) -> None:
     try:
         decode_base64(encoded_data=image)
     except binascii.Error as exc:
+        _LOGGER.warning(msg=('Image data cannot be base64 decoded: "%s"', exc))
         raise Fail(status_code=HTTPStatus.UNPROCESSABLE_ENTITY) from exc
 
 
@@ -180,4 +189,5 @@ def validate_image_data_type(request_body: bytes) -> None:
     if isinstance(image, str):
         return
 
+    _LOGGER.warning(msg=('Image data is not a string: "%s"', image))
     raise Fail(status_code=HTTPStatus.BAD_REQUEST)

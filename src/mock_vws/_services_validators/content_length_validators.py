@@ -3,11 +3,15 @@ Content-Length header validators to use in the mock.
 """
 
 
+import logging
+
 from mock_vws._services_validators.exceptions import (
     AuthenticationFailure,
     ContentLengthHeaderNotInt,
     ContentLengthHeaderTooLarge,
 )
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def validate_content_length_header_is_int(
@@ -31,6 +35,7 @@ def validate_content_length_header_is_int(
     try:
         int(given_content_length)
     except ValueError as exc:
+        _LOGGER.warning(msg="The Content-Length header is not an integer.")
         raise ContentLengthHeaderNotInt from exc
 
 
@@ -54,6 +59,7 @@ def validate_content_length_header_not_too_large(
     given_content_length_value = int(given_content_length)
     # We skip coverage here as running a test to cover this is very slow.
     if given_content_length_value > body_length:  # pragma: no cover
+        _LOGGER.warning(msg="The Content-Length header is too large.")
         raise ContentLengthHeaderTooLarge
 
 
@@ -77,4 +83,5 @@ def validate_content_length_header_not_too_small(
     given_content_length_value = int(given_content_length)
 
     if given_content_length_value < body_length:
+        _LOGGER.warning(msg="The Content-Length header is too small.")
         raise AuthenticationFailure
