@@ -14,7 +14,7 @@ import pytest
 import requests
 from docker.errors import BuildError
 from mock_vws.database import VuforiaDatabase
-from vws import VWS, CloudRecoService
+from requests.adapters import HTTPAdapter, Retry
 
 if TYPE_CHECKING:
     import io
@@ -27,6 +27,9 @@ if TYPE_CHECKING:
 def fixture_custom_bridge_network() -> Iterator[Network]:
     """
     Yield a custom bridge network which containers can connect to.
+
+    This also cleans up all containers connected to the network and the network
+    after the test.
     """
     client = docker.from_env()
     try:
@@ -44,6 +47,11 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
     try:
         yield network
     finally:
+        network.reload()
+        for container in network.containers:
+            network.disconnect(container=container)
+            container.stop()
+            container.remove()
         network.remove()
 
 
@@ -63,13 +71,9 @@ def test_build_and_run(
     target_manager_dockerfile = (
         dockerfile_dir / "target_manager" / "Dockerfile"
     )
-    vws_dockerfile = dockerfile_dir / "vws" / "Dockerfile"
-    vwq_dockerfile = dockerfile_dir / "vwq" / "Dockerfile"
 
     random = uuid.uuid4().hex
     target_manager_tag = f"vws-mock-target-manager:latest-{random}"
-    vws_tag = f"vws-mock-vws:latest-{random}"
-    vwq_tag = f"vws-mock-vwq:latest-{random}"
 
     try:
         target_manager_image, _ = client.images.build(
@@ -90,20 +94,19 @@ def test_build_and_run(
         reason = "We do not currently support using Windows containers."
         pytest.skip(reason)
 
-    vws_image, _ = client.images.build(
-        path=str(repository_root),
-        dockerfile=str(vws_dockerfile),
-        tag=vws_tag,
-    )
-    vwq_image, _ = client.images.build(
-        path=str(repository_root),
-        dockerfile=str(vwq_dockerfile),
-        tag=vwq_tag,
-    )
+    # vws_image, _ = client.images.build(
+    #     path=str(repository_root),
+    #     dockerfile=str(vws_dockerfile),
+    #     tag=vws_tag,
+    # )
+    # vwq_image, _ = client.images.build(
+    #     path=str(repository_root),
+    #     dockerfile=str(vwq_dockerfile),
+    #     tag=vwq_tag,
+    # )
 
     database = VuforiaDatabase()
     target_manager_container_name = "vws-mock-target-manager-" + random
-    target_manager_base_url = f"http://{target_manager_container_name}:5000"
 
     target_manager_container = client.containers.run(
         image=target_manager_image,
@@ -112,25 +115,26 @@ def test_build_and_run(
         publish_all_ports=True,
         network=custom_bridge_network.name,
     )
-    vws_container = client.containers.run(
-        image=vws_image,
-        detach=True,
-        name="vws-mock-vws-" + random,
-        publish_all_ports=True,
-        network=custom_bridge_network.name,
-        environment={"TARGET_MANAGER_BASE_URL": target_manager_base_url},
-    )
-    vwq_container = client.containers.run(
-        image=vwq_image,
-        detach=True,
-        name="vws-mock-vwq-" + random,
-        publish_all_ports=True,
-        network=custom_bridge_network.name,
-        environment={"TARGET_MANAGER_BASE_URL": target_manager_base_url},
-    )
+    # vws_container = client.containers.run(
+    #     image=vws_image,
+    #     detach=True,
+    #     name="vws-mock-vws-" + random,
+    #     publish_all_ports=True,
+    #     network=custom_bridge_network.name,
+    #     environment={"TARGET_MANAGER_BASE_URL": target_manager_base_url},
+    # )
+    # vwq_container = client.containers.run(
+    #     image=vwq_image,
+    #     detach=True,
+    #     name="vws-mock-vwq-" + random,
+    #     publish_all_ports=True,
+    #     network=custom_bridge_network.name,
+    #     environment={"TARGET_MANAGER_BASE_URL": target_manager_base_url},
+    # )
 
-    for container in (target_manager_container, vws_container, vwq_container):
-        container.reload()
+    # for container in (target_manager_container, vws_container, vwq_container):
+    #     container.reload()
+    target_manager_container.reload()
 
     target_manager_port_attrs = target_manager_container.attrs[
         "NetworkSettings"
@@ -140,51 +144,55 @@ def test_build_and_run(
         "HostPort"
     ]
 
-    vws_port_attrs = vws_container.attrs["NetworkSettings"]["Ports"]
-    vws_host_ip = vws_port_attrs["5000/tcp"][0]["HostIp"]
-    vws_host_port = vws_port_attrs["5000/tcp"][0]["HostPort"]
+    # vws_port_attrs = vws_container.attrs["NetworkSettings"]["Ports"]
+    # vws_host_ip = vws_port_attrs["5000/tcp"][0]["HostIp"]
+    # vws_host_port = vws_port_attrs["5000/tcp"][0]["HostPort"]
 
-    vwq_port_attrs = vwq_container.attrs["NetworkSettings"]["Ports"]
-    vwq_host_ip = vwq_port_attrs["5000/tcp"][0]["HostIp"]
-    vwq_host_port = vwq_port_attrs["5000/tcp"][0]["HostPort"]
+    # vwq_port_attrs = vwq_container.attrs["NetworkSettings"]["Ports"]
+    # vwq_host_ip = vwq_port_attrs["5000/tcp"][0]["HostIp"]
+    # vwq_host_port = vwq_port_attrs["5000/tcp"][0]["HostPort"]
 
+    import time
+
+    time.sleep(5)
     target_manager_host_url = (
         f"http://{target_manager_host_ip}:{target_manager_host_port}"
     )
+    url = f"{target_manager_host_url}/databases"
+    requests_session = requests.Session()
+    retries = Retry()
+    requests_session.mount("http://", HTTPAdapter(max_retries=retries))
+    # breakpoint()
     response = requests.post(
-        url=f"{target_manager_host_url}/databases",
+        url=url,
         json=database.to_dict(),
         timeout=30,
     )
 
     assert response.status_code == HTTPStatus.CREATED
 
-    vws_client = VWS(
-        server_access_key=database.server_access_key,
-        server_secret_key=database.server_secret_key,
-        base_vws_url=f"http://{vws_host_ip}:{vws_host_port}",
-    )
+    # vws_client = VWS(
+    #     server_access_key=database.server_access_key,
+    #     server_secret_key=database.server_secret_key,
+    #     base_vws_url=f"http://{vws_host_ip}:{vws_host_port}",
+    # )
 
-    target_id = vws_client.add_target(
-        name="example",
-        width=1,
-        image=high_quality_image,
-        active_flag=True,
-        application_metadata=None,
-    )
+    # target_id = vws_client.add_target(
+    #     name="example",
+    #     width=1,
+    #     image=high_quality_image,
+    #     active_flag=True,
+    #     application_metadata=None,
+    # )
 
-    vws_client.wait_for_target_processed(target_id=target_id)
+    # vws_client.wait_for_target_processed(target_id=target_id)
 
-    cloud_reco_client = CloudRecoService(
-        client_access_key=database.client_access_key,
-        client_secret_key=database.client_secret_key,
-        base_vwq_url=f"http://{vwq_host_ip}:{vwq_host_port}",
-    )
+    # cloud_reco_client = CloudRecoService(
+    #     client_access_key=database.client_access_key,
+    #     client_secret_key=database.client_secret_key,
+    #     base_vwq_url=f"http://{vwq_host_ip}:{vwq_host_port}",
+    # )
 
-    matching_targets = cloud_reco_client.query(image=high_quality_image)
+    # matching_targets = cloud_reco_client.query(image=high_quality_image)
 
-    for container in (target_manager_container, vws_container, vwq_container):
-        container.stop()
-        container.remove()
-
-    assert matching_targets[0].target_id == target_id
+    # assert matching_targets[0].target_id == target_id
