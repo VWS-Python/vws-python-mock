@@ -29,15 +29,12 @@ Image quality and ratings
 -------------------------
 
 Targets are assigned a rating between 0 and 5 of how good they are for tracking purposes.
-In the mock this is a random number between 0 and 5.
+In the mock this is calculated from the image quality, differently to how Vuforia does this.
 
 Image targets which are not suited to detection are given 'failed' statuses.
 The criteria for these images is not defined by the Vuforia documentation.
 The mock is more forgiving than the real Vuforia Web Services.
 Therefore, an image given a 'success' status by the mock may not be given a 'success' status by the real Vuforia Web Services.
-
-When updating an image for a target on the real Vuforia Web Services, the rating may stay the same.
-The mock changes the rating for a target to a different random number when the image is changed.
 
 Matching targets in the processing state
 ----------------------------------------

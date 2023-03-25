@@ -5,7 +5,6 @@ Storage layer for the mock Vuforia Flask application.
 import base64
 import dataclasses
 import datetime
-import random
 from http import HTTPStatus
 from zoneinfo import ZoneInfo
 
@@ -212,12 +211,6 @@ def update_target(database_name: str, target_id: str) -> tuple[str, int]:
     if "image" in request.json:
         image_value = base64.b64decode(s=request.json["image"])
 
-    # In the real implementation, the tracking rating can stay the same.
-    # However, for demonstration purposes, the tracking rating changes but
-    # when the target is updated.
-    available_values = list(set(range(6)) - {target.tracking_rating})
-    processed_tracking_rating = random.choice(available_values)
-
     gmt = ZoneInfo("GMT")
     last_modified_date = datetime.datetime.now(tz=gmt)
 
@@ -228,7 +221,6 @@ def update_target(database_name: str, target_id: str) -> tuple[str, int]:
         active_flag=active_flag,
         application_metadata=application_metadata,
         image_value=image_value,
-        processed_tracking_rating=processed_tracking_rating,
         last_modified_date=last_modified_date,
     )
 
