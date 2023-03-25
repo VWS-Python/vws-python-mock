@@ -114,14 +114,6 @@ def handle_exceptions(exc: ValidatorException) -> Response:
     )
 
 
-@CLOUDRECO_FLASK_APP.route("/_healthcheck", methods=["GET"])
-def healthcheck() -> Response:
-    """This is a healthcheck endpoint which does not exist in the real query API but we need it to know when the service is up in tests."""
-    return Response(
-        status=HTTPStatus.OK,
-    )
-
-
 @CLOUDRECO_FLASK_APP.route("/v1/query", methods=["POST"])
 def query() -> Response:
     """

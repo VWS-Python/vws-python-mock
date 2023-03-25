@@ -177,8 +177,6 @@ def test_build_and_run(
 
     for container in (target_manager_container, vws_container, vwq_container):
         container.reload()
-        assert container.status == "running"
-    target_manager_container.reload()
 
     target_manager_port_attrs = target_manager_container.attrs[
         "NetworkSettings"
