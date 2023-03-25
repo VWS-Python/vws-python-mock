@@ -28,6 +28,7 @@ class TargetDict(TypedDict):
     image_base64: str
     active_flag: bool
     processing_time_seconds: int | float
+    processed_tracking_rating: int
     application_metadata: str | None
     target_id: str
     last_modified_date: str
@@ -50,6 +51,13 @@ def _time_now() -> datetime.datetime:
     return datetime.datetime.now(tz=gmt)
 
 
+def _random_tracking_rating() -> int:
+    """
+    Return a random tracking rating.
+    """
+    return random.randint(0, 5)
+
+
 @dataclass(frozen=True, eq=True)
 class Target:
     """
@@ -67,17 +75,13 @@ class Target:
     delete_date: datetime.datetime | None = None
     last_modified_date: datetime.datetime = field(default_factory=_time_now)
     previous_month_recos: int = 0
+    processed_tracking_rating: int = field(
+        default_factory=_random_tracking_rating,
+    )
     reco_rating: str = ""
     target_id: str = field(default_factory=_random_hex)
     total_recos: int = 0
     upload_date: datetime.datetime = field(default_factory=_time_now)
-
-    @staticmethod
-    def _tracking_rater(image_content: bytes) -> int:
-        """
-        Return a random tracking rating.
-        """
-        return random.randint(0, 5)
 
     @property
     def _post_processing_status(self) -> TargetStatuses:
@@ -154,7 +158,7 @@ class Target:
             return -1
 
         if self._post_processing_status == TargetStatuses.SUCCESS:
-            return self._tracking_rater(image_content=self.image_value)
+            return self.processed_tracking_rating
 
         return 0
 
@@ -215,6 +219,7 @@ class Target:
             "image_base64": image_base64,
             "active_flag": self.active_flag,
             "processing_time_seconds": self.processing_time_seconds,
+            "processed_tracking_rating": self.processed_tracking_rating,
             "application_metadata": self.application_metadata,
             "target_id": self.target_id,
             "last_modified_date": self.last_modified_date.isoformat(),
