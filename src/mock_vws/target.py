@@ -6,13 +6,15 @@ from __future__ import annotations
 import base64
 import datetime
 import io
-import random
+import math
 import statistics
 import uuid
 from dataclasses import dataclass, field
 from typing import TypedDict
 from zoneinfo import ZoneInfo
 
+import brisque
+import numpy as np
 from PIL import Image, ImageStat
 
 from mock_vws._constants import TargetStatuses
@@ -28,7 +30,6 @@ class TargetDict(TypedDict):
     image_base64: str
     active_flag: bool
     processing_time_seconds: int | float
-    processed_tracking_rating: int
     application_metadata: str | None
     target_id: str
     last_modified_date: str
@@ -51,11 +52,24 @@ def _time_now() -> datetime.datetime:
     return datetime.datetime.now(tz=gmt)
 
 
-def _random_tracking_rating() -> int:
+def _quality(image_content: bytes) -> int:
     """
-    Return a random tracking rating.
+    Args:
+        image_content: The image content.
+
+    Returns:
+        The quality of the image.
     """
-    return random.randint(0, 5)
+    image_file = io.BytesIO(initial_bytes=image_content)
+    image = Image.open(fp=image_file)
+    image_array = np.asarray(a=image)
+    obj = brisque.BRISQUE(url=False)
+    # We avoid a barrage of warnings from the BRISQUE library.
+    with np.errstate(divide="ignore", invalid="ignore"):
+        score = obj.score(img=image_array)
+    if math.isnan(score):
+        return 0
+    return int(score / 20)
 
 
 @dataclass(frozen=True, eq=True)
@@ -75,9 +89,6 @@ class Target:
     delete_date: datetime.datetime | None = None
     last_modified_date: datetime.datetime = field(default_factory=_time_now)
     previous_month_recos: int = 0
-    processed_tracking_rating: int = field(
-        default_factory=_random_tracking_rating,
-    )
     reco_rating: str = ""
     target_id: str = field(default_factory=_random_hex)
     total_recos: int = 0
@@ -158,7 +169,7 @@ class Target:
             return -1
 
         if self._post_processing_status == TargetStatuses.SUCCESS:
-            return self.processed_tracking_rating
+            return _quality(image_content=self.image_value)
 
         return 0
 
@@ -219,7 +230,6 @@ class Target:
             "image_base64": image_base64,
             "active_flag": self.active_flag,
             "processing_time_seconds": self.processing_time_seconds,
-            "processed_tracking_rating": self.processed_tracking_rating,
             "application_metadata": self.application_metadata,
             "target_id": self.target_id,
             "last_modified_date": self.last_modified_date.isoformat(),

@@ -140,6 +140,7 @@ warn_untyped_fields = true
 [[tool.mypy.overrides]]
 
 module = [
+    "brisque",
     "docker",
     "docker.errors",
     "docker.models.networks",
@@ -250,8 +251,10 @@ readme = { file = "README.rst", content-type = "text/x-rst"}
 requires-python = ">=3.10"
 dependencies = [
     "Pillow",
+    "brisque",
     "flask",
     "multipart",
+    "numpy",
     "pydantic",
     "requests",
     "requests-mock",

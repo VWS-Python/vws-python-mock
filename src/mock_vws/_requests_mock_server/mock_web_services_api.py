@@ -589,8 +589,6 @@ class MockVuforiaWebServicesAPI:
             context.status_code = fail_exception.status_code
             return fail_exception.response_text
 
-        # TODO: Consider the case of the code that was here
-
         gmt = ZoneInfo("GMT")
         last_modified_date = datetime.datetime.now(tz=gmt)
 
