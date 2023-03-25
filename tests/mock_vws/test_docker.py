@@ -27,6 +27,9 @@ if TYPE_CHECKING:
 def fixture_custom_bridge_network() -> Iterator[Network]:
     """
     Yield a custom bridge network which containers can connect to.
+
+    This also cleans up all containers connected to the network and the network
+    after the test.
     """
     client = docker.from_env()
     try:
@@ -44,6 +47,11 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
     try:
         yield network
     finally:
+        network.reload()
+        for container in network.containers:
+            network.disconnect(container=container)
+            container.stop()
+            container.remove()
         network.remove()
 
 
@@ -182,9 +190,5 @@ def test_build_and_run(
     )
 
     matching_targets = cloud_reco_client.query(image=high_quality_image)
-
-    for container in (target_manager_container, vws_container, vwq_container):
-        container.stop()
-        container.remove()
 
     assert matching_targets[0].target_id == target_id
