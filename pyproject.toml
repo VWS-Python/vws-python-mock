@@ -219,6 +219,11 @@ ignore = [
     "S311",
 ]
 
+# Do not automatically remove commented out code.
+# We comment out code during development, and with VSCode auto-save, this code
+# is sometimes annoyingly removed.
+unfixable = ["ERA001"]
+
 line-length = 79
 target-version = "py311"
 
