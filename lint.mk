@@ -4,8 +4,6 @@ SHELL := /bin/bash -euxo pipefail
 
 .PHONY: custom-linters
 custom-linters:
-	# Running pytest needs this file
-	touch vuforia_secrets.env
 	pytest ci/custom_linters.py
 
 .PHONY: black
@@ -46,11 +44,15 @@ pip-missing-reqs:
 
 .PHONY: pylint
 pylint:
-	pylint src/ tests/ docs/ ci/
+	pylint *.py src/ tests/ docs/ ci/
 
 .PHONY: pyroma
 pyroma:
 	pyroma --min 10 .
+
+.PHONY: pyright
+pyright:
+	pyright .
 
 .PHONY: vulture
 vulture:

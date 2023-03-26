@@ -3,14 +3,19 @@ Tests for getting a target record.
 
 https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Retrieve-a-Target-Record
 """
+from __future__ import annotations
 
-import io
 import uuid
+from typing import TYPE_CHECKING
 
 import pytest
-from vws import VWS
 from vws.exceptions.vws_exceptions import UnknownTarget
 from vws.reports import TargetRecord, TargetStatuses
+
+if TYPE_CHECKING:
+    import io
+
+    from vws import VWS
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -112,6 +117,62 @@ class TestGetRecord:
         target_details = vws_client.get_target_record(target_id=target_id)
         new_tracking_rating = target_details.target_record.tracking_rating
         assert new_tracking_rating == tracking_rating
+
+
+def _get_target_tracking_rating(
+    vws_client: VWS,
+    image_file: io.BytesIO,
+) -> int:
+    """
+    Get the tracking rating of a target.
+    """
+    target_id = vws_client.add_target(
+        name=f"example_{uuid.uuid4().hex}",
+        width=1,
+        image=image_file,
+        active_flag=True,
+        application_metadata=None,
+    )
+
+    vws_client.wait_for_target_processed(target_id=target_id)
+    target_details = vws_client.get_target_record(target_id=target_id)
+    return target_details.target_record.tracking_rating
+
+
+@pytest.mark.usefixtures("verify_mock_vuforia")
+class TestTargetTrackingRating:
+    """
+    Tests which exercise the target tracking_rating, and check the image
+    fixtures we use.
+    """
+
+    @staticmethod
+    def test_target_quality(
+        vws_client: VWS,
+        high_quality_image: io.BytesIO,
+        image_file_success_state_low_rating: io.BytesIO,
+        corrupted_image_file: io.BytesIO,
+    ) -> None:
+        """
+        The target tracking rating is as expected.
+        """
+        high_quality_image_tracking_rating = _get_target_tracking_rating(
+            vws_client=vws_client,
+            image_file=high_quality_image,
+        )
+        low_quality_image_tracking_rating = _get_target_tracking_rating(
+            vws_client=vws_client,
+            image_file=image_file_success_state_low_rating,
+        )
+        corrupted_image_file_tracking_rating = _get_target_tracking_rating(
+            vws_client=vws_client,
+            image_file=corrupted_image_file,
+        )
+        assert (
+            high_quality_image_tracking_rating
+            > low_quality_image_tracking_rating
+            >= corrupted_image_file_tracking_rating
+        )
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")

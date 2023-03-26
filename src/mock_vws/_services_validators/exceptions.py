@@ -49,6 +49,9 @@ class UnknownTarget(ValidatorException):
             "date": date,
             "x-envoy-upstream-service-time": "5",
             "content-length": str(len(self.response_text)),
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
         }
 
 
@@ -80,6 +83,9 @@ class ProjectInactive(ValidatorException):
             "date": date,
             "x-envoy-upstream-service-time": "5",
             "content-length": str(len(self.response_text)),
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
         }
 
 
@@ -111,6 +117,9 @@ class AuthenticationFailure(ValidatorException):
             "date": date,
             "x-envoy-upstream-service-time": "5",
             "content-length": str(len(self.response_text)),
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
         }
 
 
@@ -141,6 +150,9 @@ class Fail(ValidatorException):
             "date": date,
             "x-envoy-upstream-service-time": "5",
             "content-length": str(len(self.response_text)),
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
         }
 
 
@@ -172,6 +184,9 @@ class MetadataTooLarge(ValidatorException):
             "date": date,
             "x-envoy-upstream-service-time": "5",
             "content-length": str(len(self.response_text)),
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
         }
 
 
@@ -203,6 +218,9 @@ class TargetNameExist(ValidatorException):
             "date": date,
             "x-envoy-upstream-service-time": "5",
             "content-length": str(len(self.response_text)),
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
         }
 
 
@@ -236,6 +254,9 @@ class OopsErrorOccurredResponse(ValidatorException):
             "date": date,
             "x-envoy-upstream-service-time": "5",
             "content-length": str(len(self.response_text)),
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
         }
 
 
@@ -267,6 +288,9 @@ class BadImage(ValidatorException):
             "date": date,
             "x-envoy-upstream-service-time": "5",
             "content-length": str(len(self.response_text)),
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
         }
 
 
@@ -298,6 +322,9 @@ class ImageTooLarge(ValidatorException):
             "date": date,
             "x-envoy-upstream-service-time": "5",
             "content-length": str(len(self.response_text)),
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
         }
 
 
@@ -329,6 +356,9 @@ class RequestTimeTooSkewed(ValidatorException):
             "date": date,
             "x-envoy-upstream-service-time": "5",
             "content-length": str(len(self.response_text)),
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
         }
 
 
@@ -438,6 +468,9 @@ class TargetStatusNotSuccess(ValidatorException):
             "date": date,
             "x-envoy-upstream-service-time": "5",
             "content-length": str(len(self.response_text)),
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
         }
 
 
@@ -468,4 +501,7 @@ class TargetStatusProcessing(ValidatorException):
             "date": date,
             "x-envoy-upstream-service-time": "5",
             "content-length": str(len(self.response_text)),
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
         }

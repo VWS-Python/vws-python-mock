@@ -1,7 +1,10 @@
 """
 Authorization validators to use in the mock query API.
 """
+from __future__ import annotations
 
+import logging
+from typing import TYPE_CHECKING
 
 from mock_vws._database_matchers import get_database_matching_client_keys
 from mock_vws._query_validators.exceptions import (
@@ -9,7 +12,11 @@ from mock_vws._query_validators.exceptions import (
     AuthHeaderMissing,
     MalformedAuthHeader,
 )
-from mock_vws.database import VuforiaDatabase
+
+_LOGGER = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from mock_vws.database import VuforiaDatabase
 
 
 def validate_auth_header_exists(request_headers: dict[str, str]) -> None:
@@ -25,6 +32,7 @@ def validate_auth_header_exists(request_headers: dict[str, str]) -> None:
     if "Authorization" in request_headers:
         return
 
+    _LOGGER.warning(msg="There is no authorization header.")
     raise AuthHeaderMissing
 
 
@@ -46,6 +54,7 @@ def validate_auth_header_number_of_parts(
     if len(parts) == expected_number_of_parts and parts[1]:
         return
 
+    _LOGGER.warning(msg="The authorization header is malformed.")
     raise MalformedAuthHeader
 
 
@@ -70,6 +79,7 @@ def validate_client_key_exists(
         if access_key == database.client_access_key:
             return
 
+    _LOGGER.warning(msg="The client key is unknown.")
     raise AuthenticationFailure
 
 
@@ -89,6 +99,7 @@ def validate_auth_header_has_signature(
     if header.count(":") == 1 and header.split(":")[1]:
         return
 
+    _LOGGER.warning(msg="The authorization header has no signature.")
     raise MalformedAuthHeader
 
 
@@ -123,4 +134,7 @@ def validate_authorization(
     if database is not None:
         return
 
+    _LOGGER.warning(
+        msg="The authorization header does not match any databases.",
+    )
     raise AuthenticationFailure

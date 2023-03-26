@@ -19,10 +19,11 @@ This requires Python 3.11+.
 
     pip install vws-python-mock
 
-.. code:: python
+.. code-block:: python
 
     import requests
-    from mock_vws import MockVWS, VuforiaDatabase
+    from mock_vws import MockVWS
+    from mock_vws.database import VuforiaDatabase
 
     with MockVWS() as mock:
         database = VuforiaDatabase()

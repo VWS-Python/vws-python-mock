@@ -1,6 +1,7 @@
 """
 Tests for the usage of the mock for ``requests``.
 """
+from __future__ import annotations
 
 import datetime
 import email.utils
@@ -13,11 +14,12 @@ import requests
 from freezegun import freeze_time
 from mock_vws import MockVWS
 from mock_vws.database import VuforiaDatabase
-from mock_vws.states import States
+from mock_vws.query_matchers import AverageHashMatcher, ExactMatcher
 from mock_vws.target import Target
+from PIL import Image
 from requests.exceptions import MissingSchema
 from requests_mock.exceptions import NoMockAddress
-from vws import VWS
+from vws import VWS, CloudRecoService
 from vws_auth_tools import rfc_1123_date
 
 from tests.mock_vws.utils.usage_test_helpers import (
@@ -104,7 +106,7 @@ class TestProcessingTime:
 
     # There is a race condition in this test type - if tests start to
     # fail, consider increasing the leeway.
-    LEEWAY = 0.1
+    LEEWAY = 0.15
 
     def test_default(self, image_file_failed_state: io.BytesIO) -> None:
         """
@@ -363,19 +365,6 @@ class TestCustomQueryProcessDeletionSeconds:
         assert abs(expected - time_taken) < self.LEEWAY
 
 
-class TestStates:
-    """
-    Tests for different mock states.
-    """
-
-    @staticmethod
-    def test_repr() -> None:
-        """
-        The representation of a ``State`` shows the state.
-        """
-        assert repr(States.WORKING) == "<States.WORKING>"
-
-
 class TestTargets:
     """
     Tests for target representations.
@@ -566,3 +555,129 @@ class TestAddDatabase:
                     match=expected_message + "$",
                 ):
                     mock.add_database(database=bad_database)
+
+
+class TestQueryMatchers:
+    """Tests for query matchers."""
+
+    @staticmethod
+    def test_exact_match(high_quality_image: io.BytesIO) -> None:
+        """The exact matcher matches only exactly the same images."""
+        database = VuforiaDatabase()
+        vws_client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+        cloud_reco_client = CloudRecoService(
+            client_access_key=database.client_access_key,
+            client_secret_key=database.client_secret_key,
+        )
+
+        pil_image = Image.open(fp=high_quality_image)
+        re_exported_image = io.BytesIO()
+        pil_image.save(re_exported_image, format="PNG")
+
+        with MockVWS(match_checker=ExactMatcher()) as mock:
+            mock.add_database(database=database)
+            target_id = vws_client.add_target(
+                name="example",
+                width=1,
+                image=high_quality_image,
+                application_metadata=None,
+                active_flag=True,
+            )
+            vws_client.wait_for_target_processed(target_id=target_id)
+            same_image_result = cloud_reco_client.query(
+                image=high_quality_image,
+            )
+            assert len(same_image_result) == 1
+            different_image_result = cloud_reco_client.query(
+                image=re_exported_image,
+            )
+            assert len(different_image_result) == 0
+
+    @staticmethod
+    def test_custom_matcher(high_quality_image: io.BytesIO) -> None:
+        """It is possible to use a custom matcher."""
+        database = VuforiaDatabase()
+        vws_client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+        cloud_reco_client = CloudRecoService(
+            client_access_key=database.client_access_key,
+            client_secret_key=database.client_secret_key,
+        )
+
+        def custom_matcher(
+            database_image_content: bytes,
+            query_image_content: bytes,
+        ) -> bool:
+            return database_image_content != query_image_content
+
+        pil_image = Image.open(fp=high_quality_image)
+        re_exported_image = io.BytesIO()
+        pil_image.save(re_exported_image, format="PNG")
+
+        with MockVWS(match_checker=custom_matcher) as mock:
+            mock.add_database(database=database)
+            target_id = vws_client.add_target(
+                name="example",
+                width=1,
+                image=high_quality_image,
+                application_metadata=None,
+                active_flag=True,
+            )
+            vws_client.wait_for_target_processed(target_id=target_id)
+            same_image_result = cloud_reco_client.query(
+                image=high_quality_image,
+            )
+            assert len(same_image_result) == 0
+            different_image_result = cloud_reco_client.query(
+                image=re_exported_image,
+            )
+            assert len(different_image_result) == 1
+
+    @staticmethod
+    def test_average_hash_matcher(
+        high_quality_image: io.BytesIO,
+        different_high_quality_image: io.BytesIO,
+    ) -> None:
+        """The average hash matcher matches similar images."""
+        database = VuforiaDatabase()
+        vws_client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+        cloud_reco_client = CloudRecoService(
+            client_access_key=database.client_access_key,
+            client_secret_key=database.client_secret_key,
+        )
+
+        pil_image = Image.open(fp=high_quality_image)
+        re_exported_image = io.BytesIO()
+        pil_image.save(re_exported_image, format="PNG")
+
+        with MockVWS(match_checker=AverageHashMatcher(threshold=10)) as mock:
+            mock.add_database(database=database)
+            target_id = vws_client.add_target(
+                name="example",
+                width=1,
+                image=high_quality_image,
+                application_metadata=None,
+                active_flag=True,
+            )
+            vws_client.wait_for_target_processed(target_id=target_id)
+            same_image_result = cloud_reco_client.query(
+                image=high_quality_image,
+            )
+            assert len(same_image_result) == 1
+            similar_image_result = cloud_reco_client.query(
+                image=re_exported_image,
+            )
+            assert len(similar_image_result) == 1
+
+            different_image_result = cloud_reco_client.query(
+                image=different_high_quality_image,
+            )
+            assert len(different_image_result) == 0

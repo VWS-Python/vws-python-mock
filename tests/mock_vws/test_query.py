@@ -1,13 +1,14 @@
 """
 Tests for the mock of the query endpoint.
 
-https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query.
+https://library.vuforia.com/web-api/vuforia-query-web-api.
 """
 
 from __future__ import annotations
 
 import base64
 import calendar
+import copy
 import datetime
 import io
 import sys
@@ -16,19 +17,17 @@ import time
 import uuid
 from http import HTTPStatus
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urljoin
 from zoneinfo import ZoneInfo
 
 import pytest
 import requests
 from mock_vws._constants import ResultCodes
-from mock_vws.database import VuforiaDatabase
 from PIL import Image
 from requests import Response
 from requests_mock import POST
 from urllib3.filepost import encode_multipart_formdata
-from vws import VWS, CloudRecoService
 from vws.reports import TargetStatuses
 from vws_auth_tools import authorization_header, rfc_1123_date
 
@@ -39,6 +38,10 @@ from tests.mock_vws.utils.assertions import (
     assert_valid_transaction_id,
     assert_vwq_failure,
 )
+
+if TYPE_CHECKING:
+    from mock_vws.database import VuforiaDatabase
+    from vws import VWS, CloudRecoService
 
 VWQ_HOST = "https://cloudreco.vuforia.com"
 
@@ -100,9 +103,7 @@ def query(
     """
     date = rfc_1123_date()
     request_path = "/v1/query"
-    content, content_type_header = encode_multipart_formdata(
-        fields=body,
-    )  # type: ignore[no-untyped-call]
+    content, content_type_header = encode_multipart_formdata(fields=body)
     method = POST
 
     access_key = vuforia_database.client_access_key
@@ -206,9 +207,7 @@ class TestContentType:
         date = rfc_1123_date()
         request_path = "/v1/query"
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
-        content, _ = encode_multipart_formdata(
-            fields=body,
-        )  # type: ignore[no-untyped-call]
+        content, _ = encode_multipart_formdata(fields=body)
         method = POST
 
         access_key = vuforia_database.client_access_key
@@ -261,9 +260,7 @@ class TestContentType:
         date = rfc_1123_date()
         request_path = "/v1/query"
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
-        content, content_type_header = encode_multipart_formdata(
-            fields=body,
-        )  # type: ignore[no-untyped-call]
+        content, content_type_header = encode_multipart_formdata(fields=body)
         method = POST
 
         content_type = "text/html"
@@ -297,7 +294,7 @@ class TestContentType:
             timeout=30,
         )
 
-        assert response.text == ""
+        assert not response.text
         assert_vwq_failure(
             response=response,
             status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
@@ -328,9 +325,7 @@ class TestContentType:
         date = rfc_1123_date()
         request_path = "/v1/query"
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
-        content, _ = encode_multipart_formdata(
-            fields=body,
-        )  # type: ignore[no-untyped-call]
+        content, _ = encode_multipart_formdata(fields=body)
         method = POST
 
         access_key = vuforia_database.client_access_key
@@ -386,9 +381,7 @@ class TestContentType:
         date = rfc_1123_date()
         request_path = "/v1/query"
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
-        content, _ = encode_multipart_formdata(
-            fields=body,
-        )  # type: ignore[no-untyped-call]
+        content, _ = encode_multipart_formdata(fields=body)
         method = POST
 
         access_key = vuforia_database.client_access_key
@@ -442,9 +435,7 @@ class TestContentType:
         date = rfc_1123_date()
         request_path = "/v1/query"
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
-        content, content_type_header = encode_multipart_formdata(
-            fields=body,
-        )  # type: ignore[no-untyped-call]
+        content, content_type_header = encode_multipart_formdata(fields=body)
         method = POST
 
         access_key = vuforia_database.client_access_key
@@ -502,7 +493,7 @@ class TestSuccess:
         assert response.json()["results"] == []
 
     @staticmethod
-    def test_match(
+    def test_match_exact(
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
@@ -553,7 +544,7 @@ class TestSuccess:
     @staticmethod
     def test_low_quality_image(
         image_file_success_state_low_rating: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        cloud_reco_client: CloudRecoService,
         vws_client: VWS,
     ) -> None:
         """
@@ -561,7 +552,6 @@ class TestSuccess:
         are returned.
         """
         image_file = image_file_success_state_low_rating
-        image_content = image_file.getvalue()
         metadata_encoded = base64.b64encode(b"example").decode("ascii")
         name = "example_name"
 
@@ -573,16 +563,55 @@ class TestSuccess:
             application_metadata=metadata_encoded,
         )
 
-        approximate_target_created = calendar.timegm(time.gmtime())
-
         vws_client.wait_for_target_processed(target_id=target_id)
+        matching_targets = cloud_reco_client.query(image=image_file)
+        assert matching_targets == []
 
-        body = {"image": ("image.jpeg", image_content, "image/jpeg")}
+    def test_match_similar(
+        high_quality_image: io.BytesIO,
+        different_high_quality_image: io.BytesIO,
+        vws_client: VWS,
+        cloud_reco_client: CloudRecoService,
+    ) -> None:
+        """
+        If a similar image to one that was added is queried for, target data is
+        shown.
+        """
+        metadata_encoded = base64.b64encode(b"example").decode("ascii")
+        name_matching = "example_name_matching"
+        name_not_matching = "example_name_not_matching"
 
-        response = query(vuforia_database=vuforia_database, body=body)
+        target_id_matching = vws_client.add_target(
+            name=name_matching,
+            width=1,
+            image=high_quality_image,
+            active_flag=True,
+            application_metadata=metadata_encoded,
+        )
 
-        assert_query_success(response=response)
-        assert response.json()["results"] == []
+        target_id_not_matching = vws_client.add_target(
+            name=name_not_matching,
+            width=1,
+            image=different_high_quality_image,
+            active_flag=True,
+            application_metadata=metadata_encoded,
+        )
+
+        vws_client.wait_for_target_processed(target_id=target_id_matching)
+        vws_client.wait_for_target_processed(target_id=target_id_not_matching)
+
+        similar_image_buffer = io.BytesIO()
+        similar_image_data = copy.copy(high_quality_image)
+        pil_similar_image = Image.open(similar_image_data)
+        # Re-save means similar but not identical.
+        pil_similar_image.save(similar_image_buffer, format="JPEG")
+
+        [matching_target] = cloud_reco_client.query(
+            image=similar_image_buffer,
+            max_num_results=5,
+        )
+
+        assert matching_target.target_id == target_id_matching
 
     @staticmethod
     def test_not_base64_encoded_processable(
@@ -772,7 +801,7 @@ class TestMaxNumResults:
         This is because uploading 50 images would be very slow.
 
         The documentation at
-        https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query
+        https://library.vuforia.com/web-api/vuforia-query-web-api
         states that this must be between 1 and 10, but in practice, 50 is the
         maximum.
         """
@@ -826,7 +855,7 @@ class TestMaxNumResults:
         of the range (1, 50).
 
         The documentation at
-        https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query.
+        https://library.vuforia.com/web-api/vuforia-query-web-api.
         states that this must be between 1 and 10, but in practice, 50 is the
         maximum.
         """
@@ -900,7 +929,7 @@ def add_and_wait_for_targets(
     """
     Add targets with the given image.
     """
-    target_ids = set()
+    target_ids: set[str] = set()
     for _ in range(num_targets):
         target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
@@ -1046,7 +1075,7 @@ class TestIncludeTargetData:
     def test_invalid_value(
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
-        include_target_data: Any,
+        include_target_data: str | bool | int,
     ) -> None:
         """
         A ``BAD_REQUEST`` error is given when a string that is not one of
@@ -1104,9 +1133,7 @@ class TestAcceptHeader:
         date = rfc_1123_date()
         request_path = "/v1/query"
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
-        content, content_type_header = encode_multipart_formdata(
-            fields=body,
-        )  # type: ignore[no-untyped-call]
+        content, content_type_header = encode_multipart_formdata(fields=body)
         method = POST
 
         access_key = vuforia_database.client_access_key
@@ -1152,9 +1179,7 @@ class TestAcceptHeader:
         date = rfc_1123_date()
         request_path = "/v1/query"
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
-        content, content_type_header = encode_multipart_formdata(
-            fields=body,
-        )  # type: ignore[no-untyped-call]
+        content, content_type_header = encode_multipart_formdata(fields=body)
         method = POST
 
         access_key = vuforia_database.client_access_key
@@ -1305,7 +1330,7 @@ class TestMaximumImageFileSize:
     ) -> None:  # pragma: no cover
         """
         According to
-        https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query.
+        https://library.vuforia.com/web-api/vuforia-query-web-api.
         the maximum file size is "2MiB for PNG".
 
         Above this limit, a ``REQUEST_ENTITY_TOO_LARGE`` response is returned.
@@ -1386,7 +1411,7 @@ class TestMaximumImageFileSize:
     ) -> None:  # pragma: no cover
         """
         According to
-        https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query.
+        https://library.vuforia.com/web-api/vuforia-query-web-api.
         the maximum file size is "512 KiB for JPEG".
         However, this test shows that the maximum size for JPEG is 2 MiB.
 
@@ -2040,9 +2065,7 @@ class TestDateFormats:
         now = datetime.datetime.now(tz=gmt)
         date = now.strftime(datetime_format)
         request_path = "/v1/query"
-        content, content_type_header = encode_multipart_formdata(
-            fields=body,
-        )  # type: ignore[no-untyped-call]
+        content, content_type_header = encode_multipart_formdata(fields=body)
         method = POST
 
         access_key = vuforia_database.client_access_key

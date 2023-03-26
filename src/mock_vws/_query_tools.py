@@ -9,35 +9,20 @@ import datetime
 import io
 import uuid
 from email.message import EmailMessage
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from zoneinfo import ZoneInfo
 
-from PIL import Image
-import numpy
 import multipart
 
-from mock_vws.target import Target
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_client_keys
 from mock_vws._mock_common import json_dump
 from mock_vws.database import VuforiaDatabase
-from brisque import BRISQUE
 
-def _quality(target: Target) -> float:
-    """
-    Args:
-        target: A target.
+if TYPE_CHECKING:
+    from mock_vws.query_matchers import QueryMatcher
 
-    Returns:
-        The quality of the target.
-    """
-    image_file = io.BytesIO(initial_bytes=target.image_value)
-    image = Image.open(fp=image_file)
-    image_array = numpy.asarray(a=image)
-    obj = BRISQUE(url=False)
-    score = obj.score(img=image_array)
-    return score
 
 class ActiveMatchingTargetsDeleteProcessing(Exception):
     """
@@ -53,6 +38,7 @@ def get_query_match_response_text(
     databases: set[VuforiaDatabase],
     query_processes_deletion_seconds: int | float,
     query_recognizes_deletion_seconds: int | float,
+    match_checker: QueryMatcher,
 ) -> str:
     """
     Args:
@@ -67,6 +53,8 @@ def get_query_match_response_text(
         query_processes_deletion_seconds: The number of seconds after a target
             deletion is recognized that the query endpoint will return a 500
             response on a match.
+        match_checker: A callable which takes two image values and returns
+            whether they match.
 
     Returns:
         The response text for a query endpoint request.
@@ -121,7 +109,10 @@ def get_query_match_response_text(
     matching_targets = [
         target
         for target in database.targets
-        if target.image_value == image_value
+        if match_checker(
+            database_image_content=target.image_value,
+            query_image_content=image_value,
+        )
     ]
 
     not_deleted_matches = [
@@ -154,7 +145,9 @@ def get_query_match_response_text(
         raise ActiveMatchingTargetsDeleteProcessing
 
     all_quality_matches = not_deleted_matches + deletion_not_recognized_matches
-    matches = [match for match in all_quality_matches if match.tracking_rating > 0.0]
+    matches = [
+        match for match in all_quality_matches if match.tracking_rating > 0.0
+    ]
 
     results: list[dict[str, Any]] = []
     for target in matches:

@@ -3,7 +3,13 @@ Differences between the mock and the real Vuforia Web Services
 
 The mock attempts to be realistic, but it was built without access to the source code of the original API.
 Please report any issues `here <https://github.com/VWS-Python/vws-python-mock/issues>`__.
-There is no attempt to make the image matching realistic.
+
+Image matching
+--------------
+
+Vuforia's image matching is proprietary and we do not intend to accurately copy it.
+Instead, we aim for simple algorithms which are fast and are good enough for testing purposes.
+The image matcher is configurable, using :paramref:`~mock_vws.MockVWS.match_checker`.
 
 Speed and summary accuracy
 --------------------------
@@ -23,15 +29,12 @@ Image quality and ratings
 -------------------------
 
 Targets are assigned a rating between 0 and 5 of how good they are for tracking purposes.
-In the mock this is a random number between 0 and 5.
+In the mock this is calculated from the image quality, differently to how Vuforia does this.
 
 Image targets which are not suited to detection are given 'failed' statuses.
 The criteria for these images is not defined by the Vuforia documentation.
 The mock is more forgiving than the real Vuforia Web Services.
 Therefore, an image given a 'success' status by the mock may not be given a 'success' status by the real Vuforia Web Services.
-
-When updating an image for a target on the real Vuforia Web Services, the rating may stay the same.
-The mock changes the rating for a target to a different random number when the image is changed.
 
 Matching targets in the processing state
 ----------------------------------------
@@ -91,7 +94,7 @@ Result codes
 ------------
 
 Result codes are returned by requests to Vuforia to help with debugging.
-See `How To Interpret VWS API Result Codes <https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API#How-To-Interperete-VWS-API-Result-Codes>`_ for details of the available result codes.
+See `VWS API Result Codes <https://library.vuforia.com/web-api/cloud-targets-web-services-api#result-codes>`_ for details of the available result codes.
 There are some result codes which the mock cannot return.
 
 These are:

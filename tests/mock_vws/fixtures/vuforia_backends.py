@@ -1,17 +1,16 @@
 """
 Choose which backends to use for the tests.
 """
+from __future__ import annotations
 
 import contextlib
 import logging
-from collections.abc import Generator
 from enum import Enum
+from typing import TYPE_CHECKING
 
 import pytest
 import requests
 import requests_mock
-from _pytest.config.argparsing import Parser
-from _pytest.fixtures import SubRequest
 from mock_vws import MockVWS
 from mock_vws._flask_server.target_manager import TARGET_MANAGER_FLASK_APP
 from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
@@ -21,6 +20,12 @@ from mock_vws.states import States
 from requests_mock_flask import add_flask_app_to_mock
 from vws import VWS
 from vws.exceptions.vws_exceptions import TargetStatusNotSuccess
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
+    from _pytest.config.argparsing import Parser
+    from _pytest.fixtures import SubRequest
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -185,6 +190,30 @@ def pytest_addoption(parser: Parser) -> None:
             help=f"Skip tests for {backend.value}",
         )
 
+    parser.addoption(
+        "--skip-docker_build_tests",
+        action="store_true",
+        default=False,
+    )
+
+
+def pytest_collection_modifyitems(
+    config: pytest.Config,
+    items: list[pytest.Function],
+) -> None:
+    """Skip Docker tests if requested."""
+    skip_docker_build_tests_option = "--skip-docker_build_tests"
+    skip_docker_build_tests_marker = pytest.mark.skip(
+        reason=(
+            "Skipping docker build tests because "
+            f"{skip_docker_build_tests_option} was set"
+        ),
+    )
+    if config.getoption(skip_docker_build_tests_option):
+        for item in items:
+            if "requires_docker_build" in item.keywords:
+                item.add_marker(skip_docker_build_tests_marker)
+
 
 @pytest.fixture(
     params=list(VuforiaBackend),
@@ -203,7 +232,7 @@ def verify_mock_vuforia(
     This is useful for verifying the mocks.
     """
     backend = request.param
-    should_skip = request.config.getvalue(f"--skip-{backend.name.lower()}")
+    should_skip = request.config.getoption(f"--skip-{backend.name.lower()}")
     if should_skip:  # pragma: no cover
         pytest.skip()
 

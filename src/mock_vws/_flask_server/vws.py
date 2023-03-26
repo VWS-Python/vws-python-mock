@@ -8,12 +8,14 @@ https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Service
 import base64
 import email.utils
 import json
-import os
+import logging
 import uuid
 from http import HTTPStatus
 
 import requests
 from flask import Flask, Response, request
+from pydantic import BaseSettings
+from werkzeug.datastructures import Headers
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
@@ -32,33 +34,30 @@ VWS_FLASK_APP = Flask(import_name=__name__)
 VWS_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
 
 
+_LOGGER = logging.getLogger(__name__)
+
+
+class VWSSettings(BaseSettings):
+    """Settings for the VWS Flask app."""
+
+    target_manager_base_url: str
+    processing_time_seconds: float = 0.5
+    vws_host: str = ""
+
+
 def get_all_databases() -> set[VuforiaDatabase]:
     """
     Get all database objects from the task manager back-end.
     """
-    target_manager_base_url = os.environ["TARGET_MANAGER_BASE_URL"]
+    settings = VWSSettings.parse_obj(obj={})
     response = requests.get(
-        url=f"{target_manager_base_url}/databases",
+        url=f"{settings.target_manager_base_url}/databases",
         timeout=30,
     )
     return {
         VuforiaDatabase.from_dict(database_dict=database_dict)
         for database_dict in response.json()
     }
-
-
-class ResponseNoContentTypeAdded(Response):
-    """
-    A custom response type.
-
-    Without this, a content type is added to all responses.
-    Some of our responses need to not have a "Content-Type" header.
-    """
-
-    default_mimetype = None
-
-
-VWS_FLASK_APP.response_class = ResponseNoContentTypeAdded
 
 
 @VWS_FLASK_APP.before_request
@@ -103,11 +102,14 @@ def handle_exceptions(exc: ValidatorException) -> Response:
     """
     Return the error response associated with the given exception.
     """
-    return ResponseNoContentTypeAdded(
+    response = Response(
         status=exc.status_code.value,
         response=exc.response_text,
         headers=exc.headers,
     )
+
+    response.headers = Headers(exc.headers)
+    return response
 
 
 @VWS_FLASK_APP.route("/targets", methods=["POST"])
@@ -118,9 +120,7 @@ def add_target() -> Response:
     Fake implementation of
     https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Add-a-Target
     """
-    processing_time_seconds = float(
-        os.environ.get("PROCESSING_TIME_SECONDS", "0.5"),
-    )
+    settings = VWSSettings.parse_obj(obj={})
     databases = get_all_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
@@ -145,12 +145,11 @@ def add_target() -> Response:
         width=request_json["width"],
         image_value=base64.b64decode(request_json["image"]),
         active_flag=active_flag,
-        processing_time_seconds=processing_time_seconds,
+        processing_time_seconds=settings.processing_time_seconds,
         application_metadata=request_json.get("application_metadata"),
     )
 
-    target_manager_base_url = os.environ["TARGET_MANAGER_BASE_URL"]
-    databases_url = f"{target_manager_base_url}/databases"
+    databases_url = f"{settings.target_manager_base_url}/databases"
     requests.post(
         url=f"{databases_url}/{database.database_name}/targets",
         json=new_target.to_dict(),
@@ -163,6 +162,9 @@ def add_target() -> Response:
         "server": "envoy",
         "date": date,
         "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
     }
 
     body = {
@@ -215,6 +217,9 @@ def get_target(target_id: str) -> Response:
         "server": "envoy",
         "date": date,
         "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
     }
     body = {
         "result_code": ResultCodes.SUCCESS.value,
@@ -237,6 +242,7 @@ def delete_target(target_id: str) -> Response:
     Fake implementation of
     https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Delete-a-Target
     """
+    settings = VWSSettings.parse_obj(obj={})
     databases = get_all_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
@@ -254,8 +260,7 @@ def delete_target(target_id: str) -> Response:
     if target.status == TargetStatuses.PROCESSING.value:
         raise TargetStatusProcessing
 
-    target_manager_base_url = os.environ["TARGET_MANAGER_BASE_URL"]
-    databases_url = f"{target_manager_base_url}/databases"
+    databases_url = f"{settings.target_manager_base_url}/databases"
     requests.delete(
         url=f"{databases_url}/{database.database_name}/targets/{target_id}",
         timeout=30,
@@ -271,6 +276,9 @@ def delete_target(target_id: str) -> Response:
         "server": "envoy",
         "date": date,
         "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
     }
     return Response(
         status=HTTPStatus.OK,
@@ -321,6 +329,9 @@ def database_summary() -> Response:
         "server": "envoy",
         "date": date,
         "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
     }
     return Response(
         status=HTTPStatus.OK,
@@ -369,6 +380,9 @@ def target_summary(target_id: str) -> Response:
         "server": "envoy",
         "date": date,
         "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
     }
     return Response(
         status=HTTPStatus.OK,
@@ -421,6 +435,9 @@ def get_duplicates(target_id: str) -> Response:
         "server": "envoy",
         "date": date,
         "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
     }
     return Response(
         status=HTTPStatus.OK,
@@ -459,6 +476,9 @@ def target_list() -> Response:
         "server": "envoy",
         "date": date,
         "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
     }
     return Response(
         status=HTTPStatus.OK,
@@ -475,6 +495,7 @@ def update_target(target_id: str) -> Response:
     Fake implementation of
     https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Update-a-Target
     """
+    settings = VWSSettings.parse_obj(obj={})
     # We do not use ``request.get_json(force=True)`` because this only works
     # when the content type is given as ``application/json``.
     request_json = json.loads(request.data)
@@ -502,12 +523,24 @@ def update_target(target_id: str) -> Response:
     if "active_flag" in request_json:
         active_flag = request_json["active_flag"]
         if active_flag is None:
+            _LOGGER.warning(
+                msg=(
+                    'The value of "active_flag" was None. '
+                    "This is not allowed. "
+                ),
+            )
             raise Fail(status_code=HTTPStatus.BAD_REQUEST)
         update_values["active_flag"] = active_flag
 
     if "application_metadata" in request_json:
         application_metadata = request_json["application_metadata"]
         if application_metadata is None:
+            _LOGGER.warning(
+                msg=(
+                    'The value of "application_metadata" was None. '
+                    "This is not allowed."
+                ),
+            )
             raise Fail(status_code=HTTPStatus.BAD_REQUEST)
         update_values["application_metadata"] = application_metadata
 
@@ -519,9 +552,8 @@ def update_target(target_id: str) -> Response:
         image = request_json["image"]
         update_values["image"] = image
 
-    target_manager_base_url = os.environ["TARGET_MANAGER_BASE_URL"]
     put_url = (
-        f"{target_manager_base_url}/databases/{database.database_name}/"
+        f"{settings.target_manager_base_url}/databases/{database.database_name}/"
         f"targets/{target_id}"
     )
     requests.put(url=put_url, json=update_values, timeout=30)
@@ -532,6 +564,9 @@ def update_target(target_id: str) -> Response:
         "server": "envoy",
         "date": date,
         "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
     }
     body = {
         "result_code": ResultCodes.SUCCESS.value,
@@ -545,4 +580,5 @@ def update_target(target_id: str) -> Response:
 
 
 if __name__ == "__main__":  # pragma: no cover
-    VWS_FLASK_APP.run(debug=True, host=os.environ["VWS_HOST"])
+    SETTINGS = VWSSettings.parse_obj(obj={})
+    VWS_FLASK_APP.run(debug=True, host=SETTINGS.vws_host)

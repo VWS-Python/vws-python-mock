@@ -3,9 +3,13 @@ Content-Type header validators to use in the mock.
 """
 
 
+import logging
+
 from requests_mock import POST, PUT
 
 from mock_vws._services_validators.exceptions import AuthenticationFailure
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def validate_content_type_header_given(
@@ -27,4 +31,5 @@ def validate_content_type_header_given(
     if request_headers.get("Content-Type") or not request_needs_content_type:
         return
 
+    _LOGGER.warning(msg="No Content-Type header is given.")
     raise AuthenticationFailure

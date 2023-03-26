@@ -53,6 +53,8 @@ linters
 linting
 login
 macOS
+matcher
+matchers
 mb
 metadata
 mib
@@ -68,6 +70,7 @@ plugins
 png
 pragma
 processable
+pyright
 pytest
 readme
 readthedocs

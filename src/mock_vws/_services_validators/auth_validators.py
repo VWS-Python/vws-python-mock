@@ -1,15 +1,23 @@
 """
 Authorization header validators to use in the mock.
 """
+from __future__ import annotations
 
+import logging
 from http import HTTPStatus
+from typing import TYPE_CHECKING
 
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._services_validators.exceptions import (
     AuthenticationFailure,
     Fail,
 )
-from mock_vws.database import VuforiaDatabase
+
+if TYPE_CHECKING:
+    from mock_vws.database import VuforiaDatabase
+
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def validate_auth_header_exists(request_headers: dict[str, str]) -> None:
@@ -23,6 +31,7 @@ def validate_auth_header_exists(request_headers: dict[str, str]) -> None:
         AuthenticationFailure: There is no "Authorization" header.
     """
     if "Authorization" not in request_headers:
+        _LOGGER.warning(msg="There is no authorization header.")
         raise AuthenticationFailure
 
 
@@ -47,6 +56,10 @@ def validate_access_key_exists(
         if access_key == database.server_access_key:
             return
 
+    _LOGGER.warning(
+        'The access key "%s" does not match a known database.',
+        access_key,
+    )
     raise Fail(status_code=HTTPStatus.BAD_REQUEST)
 
 
@@ -66,6 +79,9 @@ def validate_auth_header_has_signature(
     if header.count(":") == 1 and header.split(":")[1]:
         return
 
+    _LOGGER.warning(
+        msg="The authorization header does not include a signature.",
+    )
     raise Fail(status_code=HTTPStatus.BAD_REQUEST)
 
 
@@ -99,4 +115,7 @@ def validate_authorization(
     )
 
     if database is None:
+        _LOGGER.warning(
+            msg="No database matches the given authorization header.",
+        )
         raise AuthenticationFailure

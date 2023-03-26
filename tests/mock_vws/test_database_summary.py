@@ -1,18 +1,22 @@
 """
 Tests for the mock of the database summary endpoint.
 """
+from __future__ import annotations
 
-import io
 import logging
 import time
 import uuid
 from http import HTTPStatus
+from typing import TYPE_CHECKING
 
 import pytest
 from mock_vws import MockVWS
 from mock_vws.database import VuforiaDatabase
 from vws import VWS, CloudRecoService
 from vws.exceptions.vws_exceptions import Fail
+
+if TYPE_CHECKING:
+    import io
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)

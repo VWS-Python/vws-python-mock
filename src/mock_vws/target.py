@@ -6,13 +6,16 @@ from __future__ import annotations
 import base64
 import datetime
 import io
-import random
+import math
 import statistics
 import uuid
 from dataclasses import dataclass, field
 from typing import TypedDict
 from zoneinfo import ZoneInfo
 
+import brisque
+import cv2
+import numpy as np
 from PIL import Image, ImageStat
 
 from mock_vws._constants import TargetStatuses
@@ -29,7 +32,6 @@ class TargetDict(TypedDict):
     image_base64: str
     active_flag: bool
     processing_time_seconds: int | float
-    processed_tracking_rating: int
     application_metadata: str | None
     target_id: str
     last_modified_date: str
@@ -52,11 +54,33 @@ def _time_now() -> datetime.datetime:
     return datetime.datetime.now(tz=gmt)
 
 
-def _random_tracking_rating() -> int:
+def _quality(image_content: bytes) -> int:
     """
-    Return a random tracking rating.
+    Get a quality score for an image.
+
+    This is a rough approximation of the quality score used by Vuforia, but
+    is not accurate. For example, our "corrupted_image" fixture is rated as -2
+    by Vuforia, but is rated as 0 by this function.
+
+    Args:
+        image_content: The image content.
+
+    Returns:
+        The quality of the image.
     """
-    return random.randint(0, 5)
+    image_file = io.BytesIO(initial_bytes=image_content)
+    image = Image.open(fp=image_file)
+    image_array = np.asarray(a=image)
+    obj = brisque.BRISQUE(url=False)
+    # We avoid a barrage of warnings from the BRISQUE library.
+    with np.errstate(divide="ignore", invalid="ignore"):
+        try:
+            score = obj.score(img=image_array)
+        except cv2.error:  # pylint: disable=no-member
+            return 0
+    if math.isnan(score):
+        return 0
+    return int(score / 20)
 
 
 @dataclass(frozen=True, eq=True)
@@ -130,20 +154,9 @@ class Target:
         return str(self._post_processing_status.value)
 
     @property
-    def _processed_tracking_rating(self) -> int:
-        pass
-
-    @property
     def tracking_rating(self) -> int:
         """
         Return the tracking rating of the target recognition image.
-
-        In this implementation that is just a random integer between 0 and 5
-        if the target status is 'success'.
-        The rating is 0 if the target status is 'failed'.
-        The rating is -1 for a short time while the target is being processed.
-        The real VWS seems to give -1 for a short time while processing, then
-        the real rating, even while it is still processing.
         """
         pre_rating_time = datetime.timedelta(
             # That this is half of the total processing time is unrealistic.
@@ -156,13 +169,12 @@ class Target:
         now = datetime.datetime.now(tz=timezone)
         time_since_upload = now - self.upload_date
 
+        # The real VWS seems to give -1 for a short time while processing, then
+        # the real rating, even while it is still processing.
         if time_since_upload <= pre_rating_time:
             return -1
 
-        if self._post_processing_status == TargetStatuses.SUCCESS:
-            return self._processed_tracking_rating
-
-        return 0
+        return _quality(image_content=self.image_value)
 
     @classmethod
     def from_dict(cls, target_dict: TargetDict) -> Target:

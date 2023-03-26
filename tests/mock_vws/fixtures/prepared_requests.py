@@ -1,24 +1,28 @@
 """
 Fixtures which prepare requests.
 """
+from __future__ import annotations
 
 import base64
-import io
 import json
 from http import HTTPStatus
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urljoin
 
 import pytest
 import requests
 from mock_vws._constants import ResultCodes
-from mock_vws.database import VuforiaDatabase
 from requests_mock import DELETE, GET, POST, PUT
 from urllib3.filepost import encode_multipart_formdata
-from vws import VWS
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from tests.mock_vws.utils import Endpoint
+
+if TYPE_CHECKING:
+    import io
+
+    from mock_vws.database import VuforiaDatabase
+    from vws import VWS
 
 VWS_HOST = "https://vws.vuforia.com"
 VWQ_HOST = "https://cloudreco.vuforia.com"
@@ -445,9 +449,7 @@ def query(
     files = {"image": ("image.jpeg", image_content, "image/jpeg")}
     method = POST
 
-    content, content_type_header = encode_multipart_formdata(
-        fields=files,
-    )  # type: ignore[no-untyped-call]
+    content, content_type_header = encode_multipart_formdata(fields=files)
 
     access_key = vuforia_database.client_access_key
     secret_key = vuforia_database.client_secret_key

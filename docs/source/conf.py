@@ -21,6 +21,8 @@ extensions = [
     "sphinx_substitution_extensions",
     "sphinxcontrib.spelling",
     "sphinxcontrib.autohttp.flask",
+    "sphinx_toolbox.more_autodoc.autoprotocol",
+    "enum_tools.autoenum",
 ]
 
 templates_path = ["_templates"]

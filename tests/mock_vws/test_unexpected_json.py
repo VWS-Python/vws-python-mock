@@ -2,8 +2,11 @@
 Tests for giving JSON data to endpoints which do not expect it.
 """
 
+from __future__ import annotations
+
 import json
 from http import HTTPStatus
+from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
 import pytest
@@ -11,8 +14,10 @@ import requests
 from requests.structures import CaseInsensitiveDict
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import assert_vwq_failure
+
+if TYPE_CHECKING:
+    from tests.mock_vws.utils import Endpoint
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -68,7 +73,7 @@ class TestUnexpectedJSON:
         if netloc == "cloudreco.vuforia.com":
             # The multipart/formdata boundary is no longer in the given
             # content.
-            assert response.text == ""
+            assert not response.text
             assert_vwq_failure(
                 response=response,
                 status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
@@ -80,5 +85,5 @@ class TestUnexpectedJSON:
             return
 
         assert response.status_code == HTTPStatus.BAD_REQUEST
-        assert response.text == ""
+        assert not response.text
         assert "Content-Type" not in response.headers

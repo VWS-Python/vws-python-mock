@@ -10,10 +10,12 @@ import email.utils
 import json
 from http import HTTPStatus
 from string import hexdigits
+from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
-from mock_vws._constants import ResultCodes
-from requests import Response
+if TYPE_CHECKING:
+    from mock_vws._constants import ResultCodes
+    from requests import Response
 
 
 def assert_vws_failure(
@@ -112,7 +114,7 @@ def assert_vws_response(
     """
     Assert that a VWS response is as expected, at least in part.
 
-    https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Interperete-VWS-API-Result-Codes
+    https://library.vuforia.com/web-api/cloud-targets-web-services-api#result-codes
     implies that the expected status code can be worked out from the result
     code. However, this is not the case as the real results differ from the
     documentation.
@@ -136,12 +138,18 @@ def assert_vws_response(
         "content-type",
         "date",
         "server",
+        "strict-transport-security",
+        "x-aws-region",
+        "x-content-type-options",
         "x-envoy-upstream-service-time",
     }
     assert set(map(str.lower, response.headers.keys())) == response_header_keys
     assert response.headers["Content-Length"] == str(len(response.text))
     assert response.headers["Content-Type"] == "application/json"
     assert response.headers["Server"] == "envoy"
+    assert response.headers["x-content-type-options"] == "nosniff"
+    assert "-" in response.headers["x-aws-region"]
+    assert response.headers["strict-transport-security"] == "max-age=31536000"
     assert int(response.headers["x-envoy-upstream-service-time"]) > 1
     assert_json_separators(response=response)
     assert_valid_transaction_id(response=response)

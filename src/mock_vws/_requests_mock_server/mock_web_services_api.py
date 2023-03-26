@@ -11,15 +11,12 @@ import base64
 import dataclasses
 import datetime
 import email.utils
-import random
 import uuid
-from collections.abc import Callable
 from http import HTTPStatus
+from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
 from requests_mock import DELETE, GET, POST, PUT
-from requests_mock.request import _RequestObjectProxy
-from requests_mock.response import _Context
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
@@ -33,7 +30,14 @@ from mock_vws._services_validators.exceptions import (
 )
 from mock_vws.database import VuforiaDatabase
 from mock_vws.target import Target
-from mock_vws.target_manager import TargetManager
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from requests_mock.request import _RequestObjectProxy
+    from requests_mock.response import _Context
+
+    from mock_vws.target_manager import TargetManager
 
 _TARGET_ID_PATTERN = "[A-Za-z0-9]+"
 
@@ -175,6 +179,9 @@ class MockVuforiaWebServicesAPI:
             "date": date,
             "content-length": str(len(body_json)),
             "x-envoy-upstream-service-time": "5",
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
         }
         return body_json
 
@@ -242,6 +249,9 @@ class MockVuforiaWebServicesAPI:
             "date": date,
             "server": "envoy",
             "x-envoy-upstream-service-time": "5",
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
         }
         return body_json
 
@@ -305,6 +315,9 @@ class MockVuforiaWebServicesAPI:
             "date": date,
             "server": "envoy",
             "x-envoy-upstream-service-time": "5",
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
         }
         return body_json
 
@@ -357,6 +370,9 @@ class MockVuforiaWebServicesAPI:
             "date": date,
             "server": "envoy",
             "x-envoy-upstream-service-time": "5",
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
         }
         return body_json
 
@@ -419,6 +435,9 @@ class MockVuforiaWebServicesAPI:
             "date": date,
             "server": "envoy",
             "x-envoy-upstream-service-time": "5",
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
         }
         return body_json
 
@@ -486,6 +505,9 @@ class MockVuforiaWebServicesAPI:
             "date": date,
             "server": "envoy",
             "x-envoy-upstream-service-time": "5",
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
         }
 
         return body_json
@@ -567,12 +589,6 @@ class MockVuforiaWebServicesAPI:
             context.status_code = fail_exception.status_code
             return fail_exception.response_text
 
-        # In the real implementation, the tracking rating can stay the same.
-        # However, for demonstration purposes, the tracking rating changes but
-        # when the target is updated.
-        available_values = list(set(range(6)) - {target.tracking_rating})
-        processed_tracking_rating = random.choice(available_values)
-
         gmt = ZoneInfo("GMT")
         last_modified_date = datetime.datetime.now(tz=gmt)
 
@@ -583,7 +599,6 @@ class MockVuforiaWebServicesAPI:
             active_flag=active_flag,
             application_metadata=application_metadata,
             image_value=image_value,
-            processed_tracking_rating=processed_tracking_rating,
             last_modified_date=last_modified_date,
         )
 
@@ -601,6 +616,9 @@ class MockVuforiaWebServicesAPI:
             "date": date,
             "content-length": str(len(body_json)),
             "x-envoy-upstream-service-time": "5",
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
         }
         return body_json
 
@@ -662,6 +680,9 @@ class MockVuforiaWebServicesAPI:
             "date": date,
             "server": "envoy",
             "x-envoy-upstream-service-time": "5",
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
         }
 
         return body_json
