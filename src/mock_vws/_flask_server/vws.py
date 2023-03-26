@@ -15,6 +15,7 @@ from http import HTTPStatus
 import requests
 from flask import Flask, Response, request
 from pydantic import BaseSettings
+from werkzeug.datastructures import Headers
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
@@ -59,24 +60,6 @@ def get_all_databases() -> set[VuforiaDatabase]:
     }
 
 
-_SENTINEL_CONTENT_TYPE = uuid.uuid4().hex
-
-
-class ResponseSentinelContentTypeAdded(Response):
-    """
-    A custom response type.
-
-    Some of our responses need to not have a "Content-Type" header.
-    We add a sentinel value to the default "Content-Type" header so we can
-    remove it later if it is not overridden.
-    """
-
-    default_mimetype = _SENTINEL_CONTENT_TYPE
-
-
-VWS_FLASK_APP.response_class = ResponseSentinelContentTypeAdded
-
-
 @VWS_FLASK_APP.before_request
 def set_terminate_wsgi_input() -> None:
     """
@@ -119,13 +102,13 @@ def handle_exceptions(exc: ValidatorException) -> Response:
     """
     Return the error response associated with the given exception.
     """
-    response = ResponseSentinelContentTypeAdded(
+    response = Response(
         status=exc.status_code.value,
         response=exc.response_text,
         headers=exc.headers,
     )
 
-    response.headers = exc.headers
+    response.headers = Headers(exc.headers)
     return response
 
 

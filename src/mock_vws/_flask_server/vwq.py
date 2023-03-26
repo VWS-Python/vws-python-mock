@@ -6,13 +6,13 @@ https://library.vuforia.com/web-api/vuforia-query-web-api
 """
 
 import email.utils
-import uuid
 from enum import StrEnum, auto
 from http import HTTPStatus
 
 import requests
 from flask import Flask, Response, request
 from pydantic import BaseSettings
+from werkzeug.datastructures import Headers
 
 from mock_vws._query_tools import (
     ActiveMatchingTargetsDeleteProcessing,
@@ -89,36 +89,18 @@ def set_terminate_wsgi_input() -> None:
     request.environ["wsgi.input_terminated"] = terminate_wsgi_input
 
 
-_SENTINEL_CONTENT_TYPE = uuid.uuid4().hex
-
-
-class ResponseSentinelContentTypeAdded(Response):
-    """
-    A custom response type.
-
-    Some of our responses need to not have a "Content-Type" header.
-    We add a sentinel value to the default "Content-Type" header so we can
-    remove it later if it is not overridden.
-    """
-
-    default_mimetype = _SENTINEL_CONTENT_TYPE
-
-
-CLOUDRECO_FLASK_APP.response_class = ResponseSentinelContentTypeAdded
-
-
 @CLOUDRECO_FLASK_APP.errorhandler(ValidatorException)
 def handle_exceptions(exc: ValidatorException) -> Response:
     """
     Return the error response associated with the given exception.
     """
-    response = ResponseSentinelContentTypeAdded(
+    response = Response(
         status=exc.status_code.value,
         response=exc.response_text,
         headers=exc.headers,
     )
 
-    response.headers = exc.headers
+    response.headers = Headers(exc.headers)
     return response
 
 
