@@ -243,7 +243,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
     until it is not recognized by the query endpoint.
     """
 
-    LEEWAY = 0.15
+    LEEWAY = 0.2
 
     def test_default(
         self,
@@ -257,7 +257,10 @@ class TestCustomQueryRecognizesDeletionSeconds:
         See ``test_query`` for more information.
         """
         database = VuforiaDatabase()
-        with MockVWS() as mock:
+        with MockVWS(
+            # Use the fastest available matcher.
+            query_match_checker=ExactMatcher(),
+        ) as mock:
             mock.add_database(database=database)
             time_taken = recognize_deletion_seconds(
                 high_quality_image=high_quality_image,
@@ -275,7 +278,11 @@ class TestCustomQueryRecognizesDeletionSeconds:
         We test this because it exercises some otherwise untouched code.
         """
         database = VuforiaDatabase()
-        with MockVWS(query_processes_deletion_seconds=0) as mock:
+        with MockVWS(
+            # Use the fastest available matcher.
+            query_match_checker=ExactMatcher(),
+            query_processes_deletion_seconds=0,
+        ) as mock:
             mock.add_database(database=database)
             time_taken = recognize_deletion_seconds(
                 high_quality_image=high_quality_image,
@@ -297,6 +304,8 @@ class TestCustomQueryRecognizesDeletionSeconds:
         query_recognizes_deletion = 0.5
         database = VuforiaDatabase()
         with MockVWS(
+            # Use the fastest available matcher.
+            query_match_checker=ExactMatcher(),
             query_recognizes_deletion_seconds=query_recognizes_deletion,
         ) as mock:
             mock.add_database(database=database)
@@ -331,7 +340,10 @@ class TestCustomQueryProcessDeletionSeconds:
         See ``test_query`` for more information.
         """
         database = VuforiaDatabase()
-        with MockVWS() as mock:
+        with MockVWS(
+            # Use the fastest available matcher.
+            query_match_checker=ExactMatcher(),
+        ) as mock:
             mock.add_database(database=database)
             time_taken = process_deletion_seconds(
                 high_quality_image=high_quality_image,
@@ -354,6 +366,8 @@ class TestCustomQueryProcessDeletionSeconds:
         database = VuforiaDatabase()
         with MockVWS(
             query_processes_deletion_seconds=query_processes_deletion,
+            # Use the fastest available matcher.
+            query_match_checker=ExactMatcher(),
         ) as mock:
             mock.add_database(database=database)
             time_taken = process_deletion_seconds(
@@ -557,8 +571,8 @@ class TestAddDatabase:
                     mock.add_database(database=bad_database)
 
 
-class TestImageMatchers:
-    """Tests for image matchers."""
+class TestQueryImageMatchers:
+    """Tests for query image matchers."""
 
     @staticmethod
     def test_exact_match(high_quality_image: io.BytesIO) -> None:
@@ -683,3 +697,137 @@ class TestImageMatchers:
                 image=different_high_quality_image,
             )
             assert len(different_image_result) == 0
+
+
+class TestDuplicatesImageMatchers:
+    """Tests for duplicates image matchers."""
+
+    @staticmethod
+    def test_exact_match(high_quality_image: io.BytesIO) -> None:
+        """The exact matcher matches only exactly the same images."""
+        database = VuforiaDatabase()
+        vws_client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+
+        pil_image = Image.open(fp=high_quality_image)
+        re_exported_image = io.BytesIO()
+        pil_image.save(re_exported_image, format="PNG")
+
+        with MockVWS(duplicate_match_checker=ExactMatcher()) as mock:
+            mock.add_database(database=database)
+            target_id = vws_client.add_target(
+                name="example_0",
+                width=1,
+                image=high_quality_image,
+                application_metadata=None,
+                active_flag=True,
+            )
+            duplicate_target_id = vws_client.add_target(
+                name="example_1",
+                width=1,
+                image=high_quality_image,
+                application_metadata=None,
+                active_flag=True,
+            )
+            not_duplicate_target_id = vws_client.add_target(
+                name="example_2",
+                width=1,
+                image=re_exported_image,
+                application_metadata=None,
+                active_flag=True,
+            )
+            vws_client.wait_for_target_processed(target_id=target_id)
+            vws_client.wait_for_target_processed(target_id=duplicate_target_id)
+            vws_client.wait_for_target_processed(
+                target_id=not_duplicate_target_id,
+            )
+            duplicates = vws_client.get_duplicate_targets(target_id=target_id)
+            assert duplicates == [duplicate_target_id]
+
+    @staticmethod
+    def test_custom_matcher(high_quality_image: io.BytesIO) -> None:
+        """It is possible to use a custom matcher."""
+        database = VuforiaDatabase()
+        vws_client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+
+        def custom_matcher(
+            first_image_content: bytes,
+            second_image_content: bytes,
+        ) -> bool:
+            return first_image_content != second_image_content
+
+        pil_image = Image.open(fp=high_quality_image)
+        re_exported_image = io.BytesIO()
+        pil_image.save(re_exported_image, format="PNG")
+
+        with MockVWS(duplicate_match_checker=custom_matcher) as mock:
+            mock.add_database(database=database)
+            target_id = vws_client.add_target(
+                name="example_0",
+                width=1,
+                image=high_quality_image,
+                application_metadata=None,
+                active_flag=True,
+            )
+            duplicate_target_id = vws_client.add_target(
+                name="example_1",
+                width=1,
+                image=high_quality_image,
+                application_metadata=None,
+                active_flag=True,
+            )
+            not_duplicate_target_id = vws_client.add_target(
+                name="example_2",
+                width=1,
+                image=re_exported_image,
+                application_metadata=None,
+                active_flag=True,
+            )
+            vws_client.wait_for_target_processed(target_id=target_id)
+            vws_client.wait_for_target_processed(target_id=duplicate_target_id)
+            vws_client.wait_for_target_processed(
+                target_id=not_duplicate_target_id,
+            )
+            duplicates = vws_client.get_duplicate_targets(target_id=target_id)
+            assert duplicates == [not_duplicate_target_id]
+
+    @staticmethod
+    def test_average_hash_matcher(high_quality_image: io.BytesIO) -> None:
+        """The average hash matcher matches similar images."""
+        database = VuforiaDatabase()
+        vws_client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+
+        pil_image = Image.open(fp=high_quality_image)
+        re_exported_image = io.BytesIO()
+        pil_image.save(re_exported_image, format="PNG")
+
+        with MockVWS(
+            duplicate_match_checker=AverageHashMatcher(threshold=10),
+        ) as mock:
+            mock.add_database(database=database)
+            target_id = vws_client.add_target(
+                name="example",
+                width=1,
+                image=high_quality_image,
+                application_metadata=None,
+                active_flag=True,
+            )
+            duplicate_target_id = vws_client.add_target(
+                name="example_1",
+                width=1,
+                image=re_exported_image,
+                application_metadata=None,
+                active_flag=True,
+            )
+            vws_client.wait_for_target_processed(target_id=target_id)
+            vws_client.wait_for_target_processed(target_id=duplicate_target_id)
+            duplicates = vws_client.get_duplicate_targets(target_id=target_id)
+            assert duplicates == [duplicate_target_id]

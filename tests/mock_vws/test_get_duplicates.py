@@ -14,7 +14,6 @@ from vws.exceptions.vws_exceptions import ProjectInactive
 from vws.reports import TargetStatuses
 
 if TYPE_CHECKING:
-
     from vws import VWS
 
 

@@ -10,6 +10,7 @@ import email.utils
 import json
 import logging
 import uuid
+from enum import StrEnum, auto
 from http import HTTPStatus
 
 import requests
@@ -28,6 +29,11 @@ from mock_vws._services_validators.exceptions import (
     ValidatorException,
 )
 from mock_vws.database import VuforiaDatabase
+from mock_vws.image_matchers import (
+    AverageHashMatcher,
+    ExactMatcher,
+    ImageMatcher,
+)
 from mock_vws.target import Target
 
 VWS_FLASK_APP = Flask(import_name=__name__)
@@ -37,12 +43,31 @@ VWS_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
 _LOGGER = logging.getLogger(__name__)
 
 
+class _ImageMatcherChoice(StrEnum):
+    """Image matcher choices."""
+
+    EXACT = auto()
+    AVERAGE_HASH = auto()
+
+    def to_image_matcher(self) -> ImageMatcher:
+        """Get the image matcher."""
+        matcher = {
+            _ImageMatcherChoice.EXACT: ExactMatcher(),
+            _ImageMatcherChoice.AVERAGE_HASH: AverageHashMatcher(threshold=10),
+        }[self]
+        assert isinstance(matcher, ImageMatcher)
+        return matcher
+
+
 class VWSSettings(BaseSettings):
     """Settings for the VWS Flask app."""
 
     target_manager_base_url: str
     processing_time_seconds: float = 0.5
     vws_host: str = ""
+    duplicates_image_matcher: _ImageMatcherChoice = (
+        _ImageMatcherChoice.AVERAGE_HASH
+    )
 
 
 def get_all_databases() -> set[VuforiaDatabase]:
@@ -400,6 +425,7 @@ def get_duplicates(target_id: str) -> Response:
     https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Check-for-Duplicate-Targets
     """
     databases = get_all_databases()
+    settings = VWSSettings.parse_obj(obj={})
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
         request_body=request.data,
@@ -407,6 +433,7 @@ def get_duplicates(target_id: str) -> Response:
         request_path=request.path,
         databases=databases,
     )
+    image_match_checker = settings.duplicates_image_matcher.to_image_matcher()
 
     assert isinstance(database, VuforiaDatabase)
     [target] = [
@@ -417,7 +444,10 @@ def get_duplicates(target_id: str) -> Response:
     similar_targets: list[str] = [
         other.target_id
         for other in other_targets
-        if other.image_value == target.image_value
+        if image_match_checker(
+            first_image_content=target.image_value,
+            second_image_content=other.image_value,
+        )
         and TargetStatuses.FAILED.value not in (target.status, other.status)
         and TargetStatuses.PROCESSING.value != other.status
         and other.active_flag

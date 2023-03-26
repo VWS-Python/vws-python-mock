@@ -117,7 +117,7 @@ Query container
 
    Default: 0.2
 
-.. envvar:: IMAGE_MATCHER
+.. envvar:: QUERY_IMAGE_MATCHER
 
    The matcher to use for the query endpoint.
 
@@ -136,6 +136,17 @@ VWS container
    The number of seconds to process each image for.
 
    Default 0.5
+
+.. envvar:: DUPLICATES_IMAGE_MATCHER
+
+   The matcher to use for the duplicates endpoint.
+
+   Options include:
+
+   * ``exact``: The images must be exactly the same to be duplicates.
+   * ``average_hash``: The images must have a similar average hash to be duplicates.
+
+   Default: ``average_hash``
 
 Building images from source
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
