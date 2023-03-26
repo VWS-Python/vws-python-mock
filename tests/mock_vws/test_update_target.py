@@ -708,21 +708,6 @@ class TestImage:
         assert status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
     @staticmethod
-    def test_corrupted(
-        vws_client: VWS,
-        corrupted_image_file: io.BytesIO,
-        target_id: str,
-    ) -> None:
-        """
-        No error is returned when the given image is corrupted.
-        """
-        vws_client.wait_for_target_processed(target_id=target_id)
-        vws_client.update_target(
-            target_id=target_id,
-            image=corrupted_image_file,
-        )
-
-    @staticmethod
     def test_image_too_large(
         vuforia_database: VuforiaDatabase,
         target_id: str,

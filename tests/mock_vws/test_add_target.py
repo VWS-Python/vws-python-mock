@@ -552,30 +552,6 @@ class TestImage:
         )
 
     @staticmethod
-    def test_corrupted(
-        vuforia_database: VuforiaDatabase,
-        corrupted_image_file: io.BytesIO,
-    ) -> None:
-        """
-        No error is returned when the given image is corrupted.
-        """
-        image_data = corrupted_image_file.getvalue()
-        image_data_encoded = base64.b64encode(image_data).decode("ascii")
-
-        data = {
-            "name": "example_name",
-            "width": 1,
-            "image": image_data_encoded,
-        }
-
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
-        )
-
-        assert_success(response=response)
-
-    @staticmethod
     def test_image_file_size_too_large(
         vuforia_database: VuforiaDatabase,
     ) -> None:

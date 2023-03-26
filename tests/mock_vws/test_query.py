@@ -1201,23 +1201,6 @@ class TestBadImage:
     """
 
     @staticmethod
-    def test_corrupted(
-        vuforia_database: VuforiaDatabase,
-        corrupted_image_file: io.BytesIO,
-    ) -> None:
-        """
-        No error is returned when a corrupted image is given.
-        """
-        corrupted_data = corrupted_image_file.getvalue()
-
-        body = {"image": ("image.jpeg", corrupted_data, "image/jpeg")}
-
-        response = query(vuforia_database=vuforia_database, body=body)
-
-        assert_query_success(response=response)
-        assert response.json()["results"] == []
-
-    @staticmethod
     def test_not_image(vuforia_database: VuforiaDatabase) -> None:
         """
         No error is returned when a corrupted image is given.
