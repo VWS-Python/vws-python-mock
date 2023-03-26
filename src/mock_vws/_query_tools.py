@@ -38,7 +38,7 @@ def get_query_match_response_text(
     databases: set[VuforiaDatabase],
     query_processes_deletion_seconds: int | float,
     query_recognizes_deletion_seconds: int | float,
-    match_checker: ImageMatcher,
+    query_match_checker: ImageMatcher,
 ) -> str:
     """
     Args:
@@ -53,8 +53,8 @@ def get_query_match_response_text(
         query_processes_deletion_seconds: The number of seconds after a target
             deletion is recognized that the query endpoint will return a 500
             response on a match.
-        match_checker: A callable which takes two image values and returns
-            whether they match.
+        query_match_checker: A callable which takes two image values and
+            returns whether they match.
 
     Returns:
         The response text for a query endpoint request.
@@ -109,7 +109,7 @@ def get_query_match_response_text(
     matching_targets = [
         target
         for target in database.targets
-        if match_checker(
+        if query_match_checker(
             first_image_content=target.image_value,
             second_image_content=image_value,
         )

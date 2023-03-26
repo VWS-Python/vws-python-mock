@@ -558,7 +558,7 @@ class TestAddDatabase:
 
 
 class TestImageMatchers:
-    """Tests for query matchers."""
+    """Tests for image matchers."""
 
     @staticmethod
     def test_exact_match(high_quality_image: io.BytesIO) -> None:
@@ -577,7 +577,7 @@ class TestImageMatchers:
         re_exported_image = io.BytesIO()
         pil_image.save(re_exported_image, format="PNG")
 
-        with MockVWS(match_checker=ExactMatcher()) as mock:
+        with MockVWS(query_match_checker=ExactMatcher()) as mock:
             mock.add_database(database=database)
             target_id = vws_client.add_target(
                 name="example",
@@ -619,7 +619,7 @@ class TestImageMatchers:
         re_exported_image = io.BytesIO()
         pil_image.save(re_exported_image, format="PNG")
 
-        with MockVWS(match_checker=custom_matcher) as mock:
+        with MockVWS(query_match_checker=custom_matcher) as mock:
             mock.add_database(database=database)
             target_id = vws_client.add_target(
                 name="example",
@@ -658,7 +658,9 @@ class TestImageMatchers:
         re_exported_image = io.BytesIO()
         pil_image.save(re_exported_image, format="PNG")
 
-        with MockVWS(match_checker=AverageHashMatcher(threshold=10)) as mock:
+        with MockVWS(
+            query_match_checker=AverageHashMatcher(threshold=10),
+        ) as mock:
             mock.add_database(database=database)
             target_id = vws_client.add_target(
                 name="example",

@@ -37,7 +37,7 @@ class MockVWS(ContextDecorator):
         self,
         base_vws_url: str = "https://vws.vuforia.com",
         base_vwq_url: str = "https://cloudreco.vuforia.com",
-        match_checker: ImageMatcher = _AVERAGE_HASH_MATCHER,
+        query_match_checker: ImageMatcher = _AVERAGE_HASH_MATCHER,
         processing_time_seconds: int | float = 0.5,
         query_recognizes_deletion_seconds: int | float = 0.2,
         query_processes_deletion_seconds: int | float = 3,
@@ -63,8 +63,8 @@ class MockVWS(ContextDecorator):
             query_processes_deletion_seconds: The number of
                 seconds after a target deletion is recognized that the query
                 endpoint will return a 500 response on a match.
-            match_checker: A callable which takes two image values and returns
-                whether they will match in a query request.
+            query_match_checker: A callable which takes two image values and
+                returns whether they will match in a query request.
 
         Raises:
             requests.exceptions.MissingSchema: There is no schema in a given
@@ -100,7 +100,7 @@ class MockVWS(ContextDecorator):
             query_recognizes_deletion_seconds=(
                 query_recognizes_deletion_seconds
             ),
-            match_checker=match_checker,
+            query_match_checker=query_match_checker,
         )
 
     def add_database(self, database: VuforiaDatabase) -> None:
