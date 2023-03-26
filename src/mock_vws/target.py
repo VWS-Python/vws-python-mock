@@ -21,7 +21,6 @@ from PIL import Image, ImageStat
 from mock_vws._constants import TargetStatuses
 
 
-# TODO: Can this be a JSONOBject type?
 class TargetDict(TypedDict):
     """
     A dictionary type which represents a target.

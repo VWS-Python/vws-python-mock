@@ -548,8 +548,8 @@ class TestSuccess:
         vws_client: VWS,
     ) -> None:
         """
-        If the exact low quality image that was added is queried for, no results
-        are returned.
+        If the exact low quality image that was added is queried for, no
+        results are returned.
         """
         image_file = image_file_success_state_low_rating
         metadata_encoded = base64.b64encode(b"example").decode("ascii")
@@ -567,6 +567,7 @@ class TestSuccess:
         matching_targets = cloud_reco_client.query(image=image_file)
         assert matching_targets == []
 
+    @staticmethod
     def test_match_similar(
         high_quality_image: io.BytesIO,
         different_high_quality_image: io.BytesIO,
