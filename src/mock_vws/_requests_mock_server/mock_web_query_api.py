@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     from requests_mock.request import _RequestObjectProxy
     from requests_mock.response import _Context
 
-    from mock_vws.query_matchers import QueryMatcher
+    from mock_vws.image_matchers import ImageMatcher
     from mock_vws.target_manager import TargetManager
 
 _ROUTES: set[Route] = set()
@@ -84,7 +84,7 @@ class MockVuforiaWebQueryAPI:
         target_manager: TargetManager,
         query_recognizes_deletion_seconds: int | float,
         query_processes_deletion_seconds: int | float,
-        match_checker: QueryMatcher,
+        match_checker: ImageMatcher,
     ) -> None:
         """
         Args:

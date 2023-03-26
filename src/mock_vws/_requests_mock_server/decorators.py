@@ -12,9 +12,9 @@ from urllib.parse import urljoin, urlparse
 import requests
 from requests_mock.mocker import Mocker
 
-from mock_vws.query_matchers import (
+from mock_vws.image_matchers import (
     AverageHashMatcher,
-    QueryMatcher,
+    ImageMatcher,
 )
 from mock_vws.target_manager import TargetManager
 
@@ -37,7 +37,7 @@ class MockVWS(ContextDecorator):
         self,
         base_vws_url: str = "https://vws.vuforia.com",
         base_vwq_url: str = "https://cloudreco.vuforia.com",
-        match_checker: QueryMatcher = _AVERAGE_HASH_MATCHER,
+        match_checker: ImageMatcher = _AVERAGE_HASH_MATCHER,
         processing_time_seconds: int | float = 0.5,
         query_recognizes_deletion_seconds: int | float = 0.2,
         query_processes_deletion_seconds: int | float = 3,

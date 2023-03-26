@@ -22,11 +22,11 @@ API Reference
 
 .. autoclass:: mock_vws.target.Target
 
-Query matchers
+Image matchers
 --------------
 
-.. autoprotocol:: mock_vws.query_matchers.QueryMatcher
+.. autoprotocol:: mock_vws.image_matchers.ImageMatcher
 
-.. autoclass:: mock_vws.query_matchers.ExactMatcher
+.. autoclass:: mock_vws.image_matchers.ExactMatcher
 
-.. autoclass:: mock_vws.query_matchers.AverageHashMatcher
+.. autoclass:: mock_vws.image_matchers.AverageHashMatcher

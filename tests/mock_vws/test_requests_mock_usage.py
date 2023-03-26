@@ -14,7 +14,7 @@ import requests
 from freezegun import freeze_time
 from mock_vws import MockVWS
 from mock_vws.database import VuforiaDatabase
-from mock_vws.query_matchers import AverageHashMatcher, ExactMatcher
+from mock_vws.image_matchers import AverageHashMatcher, ExactMatcher
 from mock_vws.target import Target
 from PIL import Image
 from requests.exceptions import MissingSchema
@@ -557,7 +557,7 @@ class TestAddDatabase:
                     mock.add_database(database=bad_database)
 
 
-class TestQueryMatchers:
+class TestImageMatchers:
     """Tests for query matchers."""
 
     @staticmethod
@@ -610,10 +610,10 @@ class TestQueryMatchers:
         )
 
         def custom_matcher(
-            database_image_content: bytes,
-            query_image_content: bytes,
+            first_image_content: bytes,
+            second_image_content: bytes,
         ) -> bool:
-            return database_image_content != query_image_content
+            return first_image_content != second_image_content
 
         pil_image = Image.open(fp=high_quality_image)
         re_exported_image = io.BytesIO()
