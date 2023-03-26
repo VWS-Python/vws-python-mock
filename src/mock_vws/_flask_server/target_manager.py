@@ -9,7 +9,7 @@ import json
 from http import HTTPStatus
 from zoneinfo import ZoneInfo
 
-from flask import Flask, jsonify, request
+from flask import Flask, Response, request
 from pydantic import BaseSettings
 
 from mock_vws.database import VuforiaDatabase
@@ -32,7 +32,7 @@ class TargetManagerSettings(BaseSettings):
     "/databases/<string:database_name>",
     methods=["DELETE"],
 )
-def delete_database(database_name: str) -> tuple[str, int]:
+def delete_database(database_name: str) -> Response:
     """
     Delete a database.
 
@@ -45,23 +45,26 @@ def delete_database(database_name: str) -> tuple[str, int]:
             if database_name == database.database_name
         }
     except ValueError:
-        return "", HTTPStatus.NOT_FOUND
+        return Response(response="", status=HTTPStatus.NOT_FOUND)
 
     TARGET_MANAGER.remove_database(database=matching_database)
-    return "", HTTPStatus.OK
+    return Response(response="", status=HTTPStatus.OK)
 
 
 @TARGET_MANAGER_FLASK_APP.route("/databases", methods=["GET"])
-def get_databases() -> tuple[str, int]:
+def get_databases() -> Response:
     """
     Return a list of all databases.
     """
     databases = [database.to_dict() for database in TARGET_MANAGER.databases]
-    return jsonify(databases), HTTPStatus.OK
+    return Response(
+        response=json.dumps(obj=databases),
+        status=HTTPStatus.OK,
+    )
 
 
 @TARGET_MANAGER_FLASK_APP.route("/databases", methods=["POST"])
-def create_database() -> tuple[str, int]:
+def create_database() -> Response:
     """
     Create a new database.
 
@@ -131,16 +134,22 @@ def create_database() -> tuple[str, int]:
     try:
         TARGET_MANAGER.add_database(database=database)
     except ValueError as exc:
-        return str(exc), HTTPStatus.CONFLICT
+        return Response(
+            response=str(exc),
+            status=HTTPStatus.CONFLICT,
+        )
 
-    return jsonify(database.to_dict()), HTTPStatus.CREATED
+    return Response(
+        response=json.dumps(database.to_dict()),
+        status=HTTPStatus.CREATED,
+    )
 
 
 @TARGET_MANAGER_FLASK_APP.route(
     "/databases/<string:database_name>/targets",
     methods=["POST"],
 )
-def create_target(database_name: str) -> tuple[str, int]:
+def create_target(database_name: str) -> Response:
     """
     Create a new target in a given database.
     """
@@ -163,14 +172,17 @@ def create_target(database_name: str) -> tuple[str, int]:
     )
     database.targets.add(target)
 
-    return jsonify(target.to_dict()), HTTPStatus.CREATED
+    return Response(
+        response=json.dumps(target.to_dict()),
+        status=HTTPStatus.CREATED,
+    )
 
 
 @TARGET_MANAGER_FLASK_APP.route(
     "/databases/<string:database_name>/targets/<string:target_id>",
     methods=["DELETE"],
 )
-def delete_target(database_name: str, target_id: str) -> tuple[str, int]:
+def delete_target(database_name: str, target_id: str) -> Response:
     """
     Delete a target.
     """
@@ -184,14 +196,17 @@ def delete_target(database_name: str, target_id: str) -> tuple[str, int]:
     new_target = dataclasses.replace(target, delete_date=now)
     database.targets.remove(target)
     database.targets.add(new_target)
-    return jsonify(new_target.to_dict()), HTTPStatus.OK
+    return Response(
+        response=json.dumps(new_target.to_dict()),
+        status=HTTPStatus.OK,
+    )
 
 
 @TARGET_MANAGER_FLASK_APP.route(
     "/databases/<string:database_name>/targets/<string:target_id>",
     methods=["PUT"],
 )
-def update_target(database_name: str, target_id: str) -> tuple[str, int]:
+def update_target(database_name: str, target_id: str) -> Response:
     """
     Update a target.
     """
@@ -214,7 +229,7 @@ def update_target(database_name: str, target_id: str) -> tuple[str, int]:
     image_value = target.image_value
     request_json = json.loads(request.data)
     if "image" in request_json:
-        image_value = base64.b64decode(s=request.json["image"])
+        image_value = base64.b64decode(s=request_json["image"])
 
     gmt = ZoneInfo("GMT")
     last_modified_date = datetime.datetime.now(tz=gmt)
@@ -232,7 +247,10 @@ def update_target(database_name: str, target_id: str) -> tuple[str, int]:
     database.targets.remove(target)
     database.targets.add(new_target)
 
-    return jsonify(new_target.to_dict()), HTTPStatus.OK
+    return Response(
+        response=json.dumps(new_target.to_dict()),
+        status=HTTPStatus.OK,
+    )
 
 
 if __name__ == "__main__":  # pragma: no cover
