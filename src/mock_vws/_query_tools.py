@@ -21,7 +21,7 @@ from mock_vws._mock_common import json_dump
 from mock_vws.database import VuforiaDatabase
 
 if TYPE_CHECKING:
-    from mock_vws.query_matchers import QueryMatcher
+    from mock_vws.image_matchers import ImageMatcher
 
 
 class ActiveMatchingTargetsDeleteProcessing(Exception):
@@ -38,7 +38,7 @@ def get_query_match_response_text(
     databases: set[VuforiaDatabase],
     query_processes_deletion_seconds: int | float,
     query_recognizes_deletion_seconds: int | float,
-    match_checker: QueryMatcher,
+    match_checker: ImageMatcher,
 ) -> str:
     """
     Args:
@@ -110,8 +110,8 @@ def get_query_match_response_text(
         target
         for target in database.targets
         if match_checker(
-            database_image_content=target.image_value,
-            query_image_content=image_value,
+            first_image_content=target.image_value,
+            second_image_content=image_value,
         )
     ]
 

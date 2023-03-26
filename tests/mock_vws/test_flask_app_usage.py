@@ -358,8 +358,8 @@ class TestDeleteDatabase:
         assert response.status_code == HTTPStatus.NOT_FOUND
 
 
-class TestQueryMatchers:
-    """Tests for query matchers."""
+class TestImageMatchers:
+    """Tests for image matchers."""
 
     @staticmethod
     def test_exact_match(
@@ -367,10 +367,7 @@ class TestQueryMatchers:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """The exact matcher matches only exactly the same images."""
-        monkeypatch.setenv(
-            name="QUERY_MATCHER",
-            value="exact",
-        )
+        monkeypatch.setenv(name="IMAGE_MATCHER", value="exact")
 
         database = VuforiaDatabase()
 
@@ -415,7 +412,7 @@ class TestQueryMatchers:
     ) -> None:
         """The average hash matcher matches similar images."""
         monkeypatch.setenv(
-            name="QUERY_MATCHER",
+            name="IMAGE_MATCHER",
             value="average_hash",
         )
         database = VuforiaDatabase()

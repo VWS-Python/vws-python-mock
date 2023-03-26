@@ -117,7 +117,7 @@ Query container
 
    Default: 0.2
 
-.. envvar:: QUERY_MATCHER
+.. envvar:: IMAGE_MATCHER
 
    The matcher to use for the query endpoint.
 
