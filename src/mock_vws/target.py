@@ -14,6 +14,7 @@ from typing import TypedDict
 from zoneinfo import ZoneInfo
 
 import brisque
+import cv2
 import numpy as np
 from PIL import Image, ImageStat
 
@@ -64,12 +65,15 @@ def _quality(image_content: bytes) -> int:
     image = Image.open(fp=image_file)
     image_array = np.asarray(a=image)
     obj = brisque.BRISQUE(url=False)
+    min_height = min_width = 2
+    if image.height < min_height or image.width < min_width:
+        return -2
     # We avoid a barrage of warnings from the BRISQUE library.
     with np.errstate(divide="ignore", invalid="ignore"):
         score = obj.score(img=image_array)
     if math.isnan(score):
         return 0
-    return int(score / 20)
+    return min(int(score / 5), 5)
 
 
 @dataclass(frozen=True, eq=True)
@@ -168,10 +172,14 @@ class Target:
         if time_since_upload <= pre_rating_time:
             return -1
 
-        if self._post_processing_status == TargetStatuses.SUCCESS:
+        try:
             return _quality(image_content=self.image_value)
-
-        return 0
+        except cv2.error as exc:
+            breakpoint()
+            print(exc)
+            return -2
+        else:
+            return 0
 
     @classmethod
     def from_dict(cls, target_dict: TargetDict) -> Target:

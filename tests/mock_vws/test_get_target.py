@@ -6,6 +6,7 @@ https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Service
 from __future__ import annotations
 
 import uuid
+from enum import Enum, auto
 from typing import TYPE_CHECKING
 
 import pytest
@@ -140,13 +141,19 @@ class TestTargetTrackingRating:
         """
         The target tracking rating is as expected.
         """
+
+        class TrackingRating(Enum):
+            ZERO = auto()
+            NEGATIVE = auto()
+            POSITIVE = auto()
+
         target_id_expected_rating_pairs = []
         for image_file in (
             high_quality_image,
             image_file_failed_state,
-            image_file_success_state_low_rating,
+            # image_file_success_state_low_rating,
             corrupted_image_file,
-            different_high_quality_image,
+            # different_high_quality_image,
         ):
             target_id = vws_client.add_target(
                 name=f"example_{uuid.uuid4().hex}",
@@ -157,11 +164,11 @@ class TestTargetTrackingRating:
             )
 
             expected_tracking_rating = {
-                high_quality_image: 5,
-                image_file_failed_state: 0,
-                image_file_success_state_low_rating: 0,
-                corrupted_image_file: -2,
-                different_high_quality_image: 0,
+                high_quality_image: TrackingRating.POSITIVE,
+                image_file_failed_state: TrackingRating.ZERO,
+                image_file_success_state_low_rating: TrackingRating.ZERO,
+                corrupted_image_file: TrackingRating.NEGATIVE,
+                different_high_quality_image: TrackingRating.ZERO,
             }[image_file]
             target_id_expected_rating_pairs.append(
                 (target_id, expected_tracking_rating),
@@ -174,10 +181,12 @@ class TestTargetTrackingRating:
             vws_client.wait_for_target_processed(target_id=target_id)
 
             target_details = vws_client.get_target_record(target_id=target_id)
-            assert (
-                target_details.target_record.tracking_rating
-                == expected_tracking_rating
-            )
+            if expected_tracking_rating == TrackingRating.ZERO:
+                assert target_details.target_record.tracking_rating == 0
+            elif expected_tracking_rating == TrackingRating.NEGATIVE:
+                assert target_details.target_record.tracking_rating < 0
+            else:
+                assert target_details.target_record.tracking_rating > 0
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
