@@ -120,6 +120,67 @@ class TestGetRecord:
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
+class TestTargetTrackingRating:
+    """
+    Tests which exercise the target tracking_rating, and check the image fixtures we
+    use.
+    """
+
+    @staticmethod
+    # We use almost all of the image fixtures here.
+    # We do not use images which we expect to fail to upload (`png_too_large`, `bad_image_file`).
+    def test_target_quality(
+        vws_client: VWS,
+        high_quality_image: io.BytesIO,
+        image_file_failed_state: io.BytesIO,
+        image_file_success_state_low_rating: io.BytesIO,
+        corrupted_image_file: io.BytesIO,
+        different_high_quality_image: io.BytesIO,
+    ) -> None:
+        """
+        The target tracking rating is as expected.
+        """
+        target_id_expected_rating_pairs = []
+        for image_file in (
+            high_quality_image,
+            image_file_failed_state,
+            image_file_success_state_low_rating,
+            corrupted_image_file,
+            different_high_quality_image,
+        ):
+            target_id = vws_client.add_target(
+                name=f"example_{uuid.uuid4().hex}",
+                width=1,
+                image=image_file,
+                active_flag=True,
+                application_metadata=None,
+            )
+
+            expected_tracking_rating = {
+                high_quality_image: 5,
+                image_file_failed_state: 0,
+                image_file_success_state_low_rating: 0,
+                corrupted_image_file: -2,
+                different_high_quality_image: 0,
+            }[image_file]
+            target_id_expected_rating_pairs.append(
+                (target_id, expected_tracking_rating),
+            )
+
+        for (
+            target_id,
+            expected_tracking_rating,
+        ) in target_id_expected_rating_pairs:
+            vws_client.wait_for_target_processed(target_id=target_id)
+
+            target_details = vws_client.get_target_record(target_id=target_id)
+            assert (
+                target_details.target_record.tracking_rating
+                == expected_tracking_rating
+            )
+
+
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestInactiveProject:
     """
     Tests for inactive projects.
