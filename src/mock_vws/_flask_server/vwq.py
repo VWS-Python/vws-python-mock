@@ -96,7 +96,9 @@ class ResponseNoContentTypeAdded(Response):
     Some of our responses need to not have a "Content-Type" header.
     """
 
-    default_mimetype = None
+    # The type in Flask is incorrect.
+    # See https://github.com/pallets/flask/pull/5034.
+    default_mimetype = None  # type: ignore[assignment]
 
 
 CLOUDRECO_FLASK_APP.response_class = ResponseNoContentTypeAdded

@@ -305,7 +305,6 @@ dev = [
     "sphinxcontrib-spelling==8.0.0",
     "sphinx-toolbox==3.4.0",
     "sybil==4.0.1",
-    "types-Flask==1.1.6",
     "types-PyYAML==6.0.12.8",
     "types-Pillow==9.4.0.17",
     "types-requests==2.28.11.16",
