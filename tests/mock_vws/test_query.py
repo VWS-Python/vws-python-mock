@@ -499,16 +499,18 @@ class TestSuccess:
         vws_client: VWS,
     ) -> None:
         """
-        If the exact image that was added is queried for, target data is shown.
+        If the exact high quality image that was added is queried for, target
+        data is shown.
         """
-        image_content = high_quality_image.getvalue()
+        image_file = high_quality_image
+        image_content = image_file.getvalue()
         metadata_encoded = base64.b64encode(b"example").decode("ascii")
         name = "example_name"
 
         target_id = vws_client.add_target(
             name=name,
             width=1,
-            image=high_quality_image,
+            image=image_file,
             active_flag=True,
             application_metadata=metadata_encoded,
         )
@@ -538,6 +540,32 @@ class TestSuccess:
         time_difference = abs(approximate_target_created - target_timestamp)
         max_time_difference = 5
         assert time_difference < max_time_difference
+
+    @staticmethod
+    def test_low_quality_image(
+        image_file_success_state_low_rating: io.BytesIO,
+        cloud_reco_client: CloudRecoService,
+        vws_client: VWS,
+    ) -> None:
+        """
+        If the exact low quality image that was added is queried for, no
+        results are returned.
+        """
+        image_file = image_file_success_state_low_rating
+        metadata_encoded = base64.b64encode(b"example").decode("ascii")
+        name = "example_name"
+
+        target_id = vws_client.add_target(
+            name=name,
+            width=1,
+            image=image_file,
+            active_flag=True,
+            application_metadata=metadata_encoded,
+        )
+
+        vws_client.wait_for_target_processed(target_id=target_id)
+        matching_targets = cloud_reco_client.query(image=image_file)
+        assert matching_targets == []
 
     @staticmethod
     def test_match_similar(

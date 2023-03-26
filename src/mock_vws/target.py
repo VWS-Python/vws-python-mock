@@ -156,13 +156,6 @@ class Target:
     def tracking_rating(self) -> int:
         """
         Return the tracking rating of the target recognition image.
-
-        In this implementation that is just a random integer between 0 and 5
-        if the target status is 'success'.
-        The rating is 0 if the target status is 'failed'.
-        The rating is -1 for a short time while the target is being processed.
-        The real VWS seems to give -1 for a short time while processing, then
-        the real rating, even while it is still processing.
         """
         pre_rating_time = datetime.timedelta(
             # That this is half of the total processing time is unrealistic.
@@ -175,6 +168,8 @@ class Target:
         now = datetime.datetime.now(tz=timezone)
         time_since_upload = now - self.upload_date
 
+        # The real VWS seems to give -1 for a short time while processing, then
+        # the real rating, even while it is still processing.
         if time_since_upload <= pre_rating_time:
             return -1
 

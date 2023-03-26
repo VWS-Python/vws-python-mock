@@ -144,7 +144,10 @@ def get_query_match_response_text(
     if active_matching_targets_delete_processing:
         raise ActiveMatchingTargetsDeleteProcessing
 
-    matches = not_deleted_matches + deletion_not_recognized_matches
+    all_quality_matches = not_deleted_matches + deletion_not_recognized_matches
+    matches = [
+        match for match in all_quality_matches if match.tracking_rating > 0.0
+    ]
 
     results: list[dict[str, Any]] = []
     for target in matches:
