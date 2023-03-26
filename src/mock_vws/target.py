@@ -14,6 +14,7 @@ from typing import TypedDict
 from zoneinfo import ZoneInfo
 
 import brisque
+import cv2
 import numpy as np
 from PIL import Image, ImageStat
 
@@ -54,6 +55,12 @@ def _time_now() -> datetime.datetime:
 
 def _quality(image_content: bytes) -> int:
     """
+    Get a quality score for an image.
+
+    This is a rough approximation of the quality score used by Vuforia, but
+    is not accurate. For example, our "corrupted_image" fixture is rated as -2
+    by Vuforia, but is rated as 0 by this function.
+
     Args:
         image_content: The image content.
 
@@ -66,7 +73,10 @@ def _quality(image_content: bytes) -> int:
     obj = brisque.BRISQUE(url=False)
     # We avoid a barrage of warnings from the BRISQUE library.
     with np.errstate(divide="ignore", invalid="ignore"):
-        score = obj.score(img=image_array)
+        try:
+            score = obj.score(img=image_array)
+        except cv2.error:  # pylint: disable=no-member
+            return 0
     if math.isnan(score):
         return 0
     return int(score / 20)
@@ -168,10 +178,7 @@ class Target:
         if time_since_upload <= pre_rating_time:
             return -1
 
-        if self._post_processing_status == TargetStatuses.SUCCESS:
-            return _quality(image_content=self.image_value)
-
-        return 0
+        return _quality(image_content=self.image_value)
 
     @classmethod
     def from_dict(cls, target_dict: TargetDict) -> Target:
