@@ -35,7 +35,7 @@ CLOUDRECO_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
 
 
 class _ImageMatcherChoice(StrEnum):
-    """Query matcher choices."""
+    """Image matcher choices."""
 
     EXACT = auto()
     AVERAGE_HASH = auto()
@@ -118,7 +118,7 @@ def query() -> Response:
     Perform an image recognition query.
     """
     settings = VWQSettings.parse_obj(obj={})
-    match_checker = settings.image_matcher.to_image_matcher()
+    query_match_checker = settings.image_matcher.to_image_matcher()
 
     databases = get_all_databases()
     request_body = request.stream.read()
@@ -142,7 +142,7 @@ def query() -> Response:
             query_recognizes_deletion_seconds=(
                 settings.deletion_recognition_seconds
             ),
-            match_checker=match_checker,
+            query_match_checker=query_match_checker,
         )
     except ActiveMatchingTargetsDeleteProcessing as exc:
         raise DeletedTargetMatched from exc
