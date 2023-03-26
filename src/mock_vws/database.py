@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from typing import List, Set, TypedDict
+from typing import TypedDict
 
 from mock_vws._constants import TargetStatuses
 from mock_vws.states import States
@@ -24,7 +24,7 @@ class DatabaseDict(TypedDict):
     client_access_key: str
     client_secret_key: str
     state_name: str
-    targets: List[TargetDict]
+    targets: list[TargetDict]
 
 
 def _random_hex() -> str:
@@ -64,15 +64,15 @@ class VuforiaDatabase:
     # ``frozen=True`` while still being able to keep the interface we want.
     # In particular, we might want to inspect the ``database`` object's targets
     # as they change via API requests.
-    targets: Set[Target] = field(default_factory=set, hash=False)
+    targets: set[Target] = field(default_factory=set, hash=False)
     state: States = States.WORKING
 
-    request_quota = 100000
-    reco_threshold = 1000
-    current_month_recos = 0
-    previous_month_recos = 0
-    total_recos = 0
-    target_quota = 1000
+    request_quota: int = 100000
+    reco_threshold: int = 1000
+    current_month_recos: int = 0
+    previous_month_recos: int = 0
+    total_recos: int = 0
+    target_quota: int = 1000
 
     def to_dict(self) -> DatabaseDict:
         """
@@ -80,13 +80,13 @@ class VuforiaDatabase:
         """
         targets = [target.to_dict() for target in self.targets]
         return {
-            'database_name': self.database_name,
-            'server_access_key': self.server_access_key,
-            'server_secret_key': self.server_secret_key,
-            'client_access_key': self.client_access_key,
-            'client_secret_key': self.client_secret_key,
-            'state_name': self.state.name,
-            'targets': targets,
+            "database_name": self.database_name,
+            "server_access_key": self.server_access_key,
+            "server_secret_key": self.server_secret_key,
+            "client_access_key": self.client_access_key,
+            "client_secret_key": self.client_secret_key,
+            "state_name": self.state.name,
+            "targets": targets,
         }
 
     def get_target(self, target_id: str) -> Target:
@@ -104,27 +104,27 @@ class VuforiaDatabase:
         Load a database from a dictionary.
         """
         return cls(
-            database_name=database_dict['database_name'],
-            server_access_key=database_dict['server_access_key'],
-            server_secret_key=database_dict['server_secret_key'],
-            client_access_key=database_dict['client_access_key'],
-            client_secret_key=database_dict['client_secret_key'],
-            state=States[database_dict['state_name']],
+            database_name=database_dict["database_name"],
+            server_access_key=database_dict["server_access_key"],
+            server_secret_key=database_dict["server_secret_key"],
+            client_access_key=database_dict["client_access_key"],
+            client_secret_key=database_dict["client_secret_key"],
+            state=States[database_dict["state_name"]],
             targets={
                 Target.from_dict(target_dict=target_dict)
-                for target_dict in database_dict['targets']
+                for target_dict in database_dict["targets"]
             },
         )
 
     @property
-    def not_deleted_targets(self) -> Set[Target]:
+    def not_deleted_targets(self) -> set[Target]:
         """
         All targets which have not been deleted.
         """
         return {target for target in self.targets if not target.delete_date}
 
     @property
-    def active_targets(self) -> Set[Target]:
+    def active_targets(self) -> set[Target]:
         """
         All active targets.
         """
@@ -136,7 +136,7 @@ class VuforiaDatabase:
         }
 
     @property
-    def inactive_targets(self) -> Set[Target]:
+    def inactive_targets(self) -> set[Target]:
         """
         All inactive targets.
         """
@@ -148,7 +148,7 @@ class VuforiaDatabase:
         }
 
     @property
-    def failed_targets(self) -> Set[Target]:
+    def failed_targets(self) -> set[Target]:
         """
         All failed targets.
         """
@@ -159,7 +159,7 @@ class VuforiaDatabase:
         }
 
     @property
-    def processing_targets(self) -> Set[Target]:
+    def processing_targets(self) -> set[Target]:
         """
         All processing targets.
         """

@@ -1,10 +1,12 @@
 """
 Tests for the mock of the get duplicates endpoint.
 """
+from __future__ import annotations
 
 import copy
 import io
 import uuid
+from typing import TYPE_CHECKING
 
 import pytest
 from PIL import Image
@@ -12,15 +14,20 @@ from vws import VWS
 from vws.exceptions.vws_exceptions import ProjectInactive
 from vws.reports import TargetStatuses
 
+if TYPE_CHECKING:
+    import io
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+    from vws import VWS
+
+
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestDuplicates:
     """
     Tests for the mock of the target duplicates endpoint.
     """
 
+    @staticmethod
     def test_duplicates(
-        self,
         high_quality_image: io.BytesIO,
         image_file_success_state_low_rating: io.BytesIO,
         vws_client: VWS,
@@ -67,6 +74,7 @@ class TestDuplicates:
 
         assert duplicates == [similar_target_id]
 
+<<<<<<< HEAD
     def test_duplicates_not_same(
         self,
         high_quality_image: io.BytesIO,
@@ -83,7 +91,7 @@ class TestDuplicates:
         similar_image_buffer = io.BytesIO()
         pil_similar_image = Image.open(similar_image_data)
         # Re-save means similar but not identical.
-        pil_similar_image.save(similar_image_buffer, format='JPEG')
+        pil_similar_image.save(similar_image_buffer, format="JPEG")
         assert similar_image_buffer.getvalue() != image_data.getvalue()
 
         original_target_id = vws_client.add_target(
@@ -111,8 +119,10 @@ class TestDuplicates:
 
         assert duplicates == [similar_target_id]
 
+=======
+    @staticmethod
+>>>>>>> origin/master
     def test_status(
-        self,
         image_file_failed_state: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -150,14 +160,14 @@ class TestDuplicates:
         assert duplicates == []
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestActiveFlag:
     """
     Tests for the effects of the active flag on duplicate matching.
     """
 
+    @staticmethod
     def test_active_flag(
-        self,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -205,14 +215,14 @@ class TestActiveFlag:
         assert duplicates == []
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestProcessing:
     """
     Tests for targets in the processing stage.
     """
 
+    @staticmethod
     def test_processing(
-        self,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -255,16 +265,14 @@ class TestProcessing:
         assert duplicates == [processed_target_id]
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestInactiveProject:
     """
     Tests for inactive projects.
     """
 
-    def test_inactive_project(
-        self,
-        inactive_vws_client: VWS,
-    ) -> None:
+    @staticmethod
+    def test_inactive_project(inactive_vws_client: VWS) -> None:
         """
         If the project is inactive, a FORBIDDEN response is returned.
         """

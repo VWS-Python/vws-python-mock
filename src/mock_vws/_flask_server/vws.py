@@ -8,13 +8,14 @@ https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Service
 import base64
 import email.utils
 import json
-import os
+import logging
 import uuid
 from http import HTTPStatus
-from typing import Set
 
 import requests
 from flask import Flask, Response, request
+from pydantic import BaseSettings
+from werkzeug.datastructures import Headers
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
@@ -30,33 +31,33 @@ from mock_vws.database import VuforiaDatabase
 from mock_vws.target import Target
 
 VWS_FLASK_APP = Flask(import_name=__name__)
-VWS_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
+VWS_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
 
 
-def get_all_databases() -> Set[VuforiaDatabase]:
+_LOGGER = logging.getLogger(__name__)
+
+
+class VWSSettings(BaseSettings):
+    """Settings for the VWS Flask app."""
+
+    target_manager_base_url: str
+    processing_time_seconds: float = 0.5
+    vws_host: str = ""
+
+
+def get_all_databases() -> set[VuforiaDatabase]:
     """
     Get all database objects from the task manager back-end.
     """
-    target_manager_base_url = os.environ['TARGET_MANAGER_BASE_URL']
-    response = requests.get(url=f'{target_manager_base_url}/databases')
+    settings = VWSSettings.parse_obj(obj={})
+    response = requests.get(
+        url=f"{settings.target_manager_base_url}/databases",
+        timeout=30,
+    )
     return {
         VuforiaDatabase.from_dict(database_dict=database_dict)
         for database_dict in response.json()
     }
-
-
-class ResponseNoContentTypeAdded(Response):
-    """
-    A custom response type.
-
-    Without this, a content type is added to all responses.
-    Some of our responses need to not have a "Content-Type" header.
-    """
-
-    default_mimetype = None
-
-
-VWS_FLASK_APP.response_class = ResponseNoContentTypeAdded
 
 
 @VWS_FLASK_APP.before_request
@@ -75,10 +76,10 @@ def set_terminate_wsgi_input() -> None:
     This is documented as a difference in the documentation for this package.
     """
     terminate_wsgi_input = VWS_FLASK_APP.config.get(
-        'TERMINATE_WSGI_INPUT',
+        "TERMINATE_WSGI_INPUT",
         False,
     )
-    request.environ['wsgi.input_terminated'] = terminate_wsgi_input
+    request.environ["wsgi.input_terminated"] = terminate_wsgi_input
 
 
 @VWS_FLASK_APP.before_request
@@ -101,14 +102,17 @@ def handle_exceptions(exc: ValidatorException) -> Response:
     """
     Return the error response associated with the given exception.
     """
-    return ResponseNoContentTypeAdded(
+    response = Response(
         status=exc.status_code.value,
         response=exc.response_text,
         headers=exc.headers,
     )
 
+    response.headers = Headers(exc.headers)
+    return response
 
-@VWS_FLASK_APP.route('/targets', methods=['POST'])
+
+@VWS_FLASK_APP.route("/targets", methods=["POST"])
 def add_target() -> Response:
     """
     Add a target.
@@ -116,9 +120,7 @@ def add_target() -> Response:
     Fake implementation of
     https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Add-a-Target
     """
-    processing_time_seconds = float(
-        os.environ.get('PROCESSING_TIME_SECONDS', '0.5'),
-    )
+    settings = VWSSettings.parse_obj(obj={})
     databases = get_all_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
@@ -133,38 +135,42 @@ def add_target() -> Response:
     # We do not use ``request.get_json(force=True)`` because this only works
     # when the content type is given as ``application/json``.
     request_json = json.loads(request.data)
-    name = request_json['name']
-    active_flag = request_json.get('active_flag')
+    name = request_json["name"]
+    active_flag = request_json.get("active_flag")
     if active_flag is None:
         active_flag = True
 
     new_target = Target(
         name=name,
-        width=request_json['width'],
-        image_value=base64.b64decode(request_json['image']),
+        width=request_json["width"],
+        image_value=base64.b64decode(request_json["image"]),
         active_flag=active_flag,
-        processing_time_seconds=processing_time_seconds,
-        application_metadata=request_json.get('application_metadata'),
+        processing_time_seconds=settings.processing_time_seconds,
+        application_metadata=request_json.get("application_metadata"),
     )
 
-    target_manager_base_url = os.environ['TARGET_MANAGER_BASE_URL']
-    databases_url = f'{target_manager_base_url}/databases'
+    databases_url = f"{settings.target_manager_base_url}/databases"
     requests.post(
-        url=f'{databases_url}/{database.database_name}/targets',
+        url=f"{databases_url}/{database.database_name}/targets",
         json=new_target.to_dict(),
+        timeout=30,
     )
 
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        'Connection': 'keep-alive',
-        'Content-Type': 'application/json',
-        'Server': 'nginx',
-        'Date': date,
+        "content-type": "application/json",
+        "server": "envoy",
+        "date": date,
+        "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
     }
+
     body = {
-        'transaction_id': uuid.uuid4().hex,
-        'result_code': ResultCodes.TARGET_CREATED.value,
-        'target_id': new_target.target_id,
+        "transaction_id": uuid.uuid4().hex,
+        "result_code": ResultCodes.TARGET_CREATED.value,
+        "target_id": new_target.target_id,
     }
 
     return Response(
@@ -174,7 +180,7 @@ def add_target() -> Response:
     )
 
 
-@VWS_FLASK_APP.route('/targets/<string:target_id>', methods=['GET'])
+@VWS_FLASK_APP.route("/targets/<string:target_id>", methods=["GET"])
 def get_target(target_id: str) -> Response:
     """
     Get details of a target.
@@ -197,26 +203,29 @@ def get_target(target_id: str) -> Response:
     ]
 
     target_record = {
-        'target_id': target.target_id,
-        'active_flag': target.active_flag,
-        'name': target.name,
-        'width': target.width,
-        'tracking_rating': target.tracking_rating,
-        'reco_rating': target.reco_rating,
+        "target_id": target.target_id,
+        "active_flag": target.active_flag,
+        "name": target.name,
+        "width": target.width,
+        "tracking_rating": target.tracking_rating,
+        "reco_rating": target.reco_rating,
     }
 
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        'Connection': 'keep-alive',
-        'Content-Type': 'application/json',
-        'Server': 'nginx',
-        'Date': date,
+        "content-type": "application/json",
+        "server": "envoy",
+        "date": date,
+        "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
     }
     body = {
-        'result_code': ResultCodes.SUCCESS.value,
-        'transaction_id': uuid.uuid4().hex,
-        'target_record': target_record,
-        'status': target.status,
+        "result_code": ResultCodes.SUCCESS.value,
+        "transaction_id": uuid.uuid4().hex,
+        "target_record": target_record,
+        "status": target.status,
     }
     return Response(
         status=HTTPStatus.OK,
@@ -225,7 +234,7 @@ def get_target(target_id: str) -> Response:
     )
 
 
-@VWS_FLASK_APP.route('/targets/<string:target_id>', methods=['DELETE'])
+@VWS_FLASK_APP.route("/targets/<string:target_id>", methods=["DELETE"])
 def delete_target(target_id: str) -> Response:
     """
     Delete a target.
@@ -233,6 +242,7 @@ def delete_target(target_id: str) -> Response:
     Fake implementation of
     https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Delete-a-Target
     """
+    settings = VWSSettings.parse_obj(obj={})
     databases = get_all_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
@@ -250,22 +260,25 @@ def delete_target(target_id: str) -> Response:
     if target.status == TargetStatuses.PROCESSING.value:
         raise TargetStatusProcessing
 
-    target_manager_base_url = os.environ['TARGET_MANAGER_BASE_URL']
-    databases_url = f'{target_manager_base_url}/databases'
+    databases_url = f"{settings.target_manager_base_url}/databases"
     requests.delete(
-        url=f'{databases_url}/{database.database_name}/targets/{target_id}',
+        url=f"{databases_url}/{database.database_name}/targets/{target_id}",
+        timeout=30,
     )
 
     body = {
-        'transaction_id': uuid.uuid4().hex,
-        'result_code': ResultCodes.SUCCESS.value,
+        "transaction_id": uuid.uuid4().hex,
+        "result_code": ResultCodes.SUCCESS.value,
     }
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        'Connection': 'keep-alive',
-        'Content-Type': 'application/json',
-        'Server': 'nginx',
-        'Date': date,
+        "content-type": "application/json",
+        "server": "envoy",
+        "date": date,
+        "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
     }
     return Response(
         status=HTTPStatus.OK,
@@ -274,7 +287,7 @@ def delete_target(target_id: str) -> Response:
     )
 
 
-@VWS_FLASK_APP.route('/summary', methods=['GET'])
+@VWS_FLASK_APP.route("/summary", methods=["GET"])
 def database_summary() -> Response:
     """
     Get a database summary report.
@@ -293,29 +306,32 @@ def database_summary() -> Response:
 
     assert isinstance(database, VuforiaDatabase)
     body = {
-        'result_code': ResultCodes.SUCCESS.value,
-        'transaction_id': uuid.uuid4().hex,
-        'name': database.database_name,
-        'active_images': len(database.active_targets),
-        'inactive_images': len(database.inactive_targets),
-        'failed_images': len(database.failed_targets),
-        'target_quota': database.target_quota,
-        'total_recos': database.total_recos,
-        'current_month_recos': database.current_month_recos,
-        'previous_month_recos': database.previous_month_recos,
-        'processing_images': len(database.processing_targets),
-        'reco_threshold': database.reco_threshold,
-        'request_quota': database.request_quota,
+        "result_code": ResultCodes.SUCCESS.value,
+        "transaction_id": uuid.uuid4().hex,
+        "name": database.database_name,
+        "active_images": len(database.active_targets),
+        "inactive_images": len(database.inactive_targets),
+        "failed_images": len(database.failed_targets),
+        "target_quota": database.target_quota,
+        "total_recos": database.total_recos,
+        "current_month_recos": database.current_month_recos,
+        "previous_month_recos": database.previous_month_recos,
+        "processing_images": len(database.processing_targets),
+        "reco_threshold": database.reco_threshold,
+        "request_quota": database.request_quota,
         # We have ``self.request_count`` but Vuforia always shows 0.
         # This was not always the case.
-        'request_usage': 0,
+        "request_usage": 0,
     }
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        'Connection': 'keep-alive',
-        'Content-Type': 'application/json',
-        'Server': 'nginx',
-        'Date': date,
+        "content-type": "application/json",
+        "server": "envoy",
+        "date": date,
+        "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
     }
     return Response(
         status=HTTPStatus.OK,
@@ -324,7 +340,7 @@ def database_summary() -> Response:
     )
 
 
-@VWS_FLASK_APP.route('/summary/<string:target_id>', methods=['GET'])
+@VWS_FLASK_APP.route("/summary/<string:target_id>", methods=["GET"])
 def target_summary(target_id: str) -> Response:
     """
     Get a summary report for a target.
@@ -346,24 +362,27 @@ def target_summary(target_id: str) -> Response:
         target for target in database.targets if target.target_id == target_id
     ]
     body = {
-        'status': target.status,
-        'transaction_id': uuid.uuid4().hex,
-        'result_code': ResultCodes.SUCCESS.value,
-        'database_name': database.database_name,
-        'target_name': target.name,
-        'upload_date': target.upload_date.strftime('%Y-%m-%d'),
-        'active_flag': target.active_flag,
-        'tracking_rating': target.tracking_rating,
-        'total_recos': target.total_recos,
-        'current_month_recos': target.current_month_recos,
-        'previous_month_recos': target.previous_month_recos,
+        "status": target.status,
+        "transaction_id": uuid.uuid4().hex,
+        "result_code": ResultCodes.SUCCESS.value,
+        "database_name": database.database_name,
+        "target_name": target.name,
+        "upload_date": target.upload_date.strftime("%Y-%m-%d"),
+        "active_flag": target.active_flag,
+        "tracking_rating": target.tracking_rating,
+        "total_recos": target.total_recos,
+        "current_month_recos": target.current_month_recos,
+        "previous_month_recos": target.previous_month_recos,
     }
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        'Connection': 'keep-alive',
-        'Content-Type': 'application/json',
-        'Server': 'nginx',
-        'Date': date,
+        "content-type": "application/json",
+        "server": "envoy",
+        "date": date,
+        "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
     }
     return Response(
         status=HTTPStatus.OK,
@@ -372,7 +391,7 @@ def target_summary(target_id: str) -> Response:
     )
 
 
-@VWS_FLASK_APP.route('/duplicates/<string:target_id>', methods=['GET'])
+@VWS_FLASK_APP.route("/duplicates/<string:target_id>", methods=["GET"])
 def get_duplicates(target_id: str) -> Response:
     """
     Get targets which may be considered duplicates of a given target.
@@ -405,17 +424,20 @@ def get_duplicates(target_id: str) -> Response:
     ]
 
     body = {
-        'transaction_id': uuid.uuid4().hex,
-        'result_code': ResultCodes.SUCCESS.value,
-        'similar_targets': similar_targets,
+        "transaction_id": uuid.uuid4().hex,
+        "result_code": ResultCodes.SUCCESS.value,
+        "similar_targets": similar_targets,
     }
 
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        'Connection': 'keep-alive',
-        'Content-Type': 'application/json',
-        'Server': 'nginx',
-        'Date': date,
+        "content-type": "application/json",
+        "server": "envoy",
+        "date": date,
+        "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
     }
     return Response(
         status=HTTPStatus.OK,
@@ -424,7 +446,7 @@ def get_duplicates(target_id: str) -> Response:
     )
 
 
-@VWS_FLASK_APP.route('/targets', methods=['GET'])
+@VWS_FLASK_APP.route("/targets", methods=["GET"])
 def target_list() -> Response:
     """
     Get a list of all targets.
@@ -444,16 +466,19 @@ def target_list() -> Response:
     results = [target.target_id for target in database.not_deleted_targets]
 
     body = {
-        'transaction_id': uuid.uuid4().hex,
-        'result_code': ResultCodes.SUCCESS.value,
-        'results': results,
+        "transaction_id": uuid.uuid4().hex,
+        "result_code": ResultCodes.SUCCESS.value,
+        "results": results,
     }
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        'Connection': 'keep-alive',
-        'Content-Type': 'application/json',
-        'Server': 'nginx',
-        'Date': date,
+        "content-type": "application/json",
+        "server": "envoy",
+        "date": date,
+        "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
     }
     return Response(
         status=HTTPStatus.OK,
@@ -462,7 +487,7 @@ def target_list() -> Response:
     )
 
 
-@VWS_FLASK_APP.route('/targets/<string:target_id>', methods=['PUT'])
+@VWS_FLASK_APP.route("/targets/<string:target_id>", methods=["PUT"])
 def update_target(target_id: str) -> Response:
     """
     Update a target.
@@ -470,6 +495,7 @@ def update_target(target_id: str) -> Response:
     Fake implementation of
     https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Update-a-Target
     """
+    settings = VWSSettings.parse_obj(obj={})
     # We do not use ``request.get_json(force=True)`` because this only works
     # when the content type is given as ``application/json``.
     request_json = json.loads(request.data)
@@ -491,46 +517,60 @@ def update_target(target_id: str) -> Response:
         raise TargetStatusNotSuccess
 
     update_values = {}
-    if 'width' in request_json:
-        update_values['width'] = request_json['width']
+    if "width" in request_json:
+        update_values["width"] = request_json["width"]
 
-    if 'active_flag' in request_json:
-        active_flag = request_json['active_flag']
+    if "active_flag" in request_json:
+        active_flag = request_json["active_flag"]
         if active_flag is None:
+            _LOGGER.warning(
+                msg=(
+                    'The value of "active_flag" was None. '
+                    "This is not allowed. "
+                ),
+            )
             raise Fail(status_code=HTTPStatus.BAD_REQUEST)
-        update_values['active_flag'] = active_flag
+        update_values["active_flag"] = active_flag
 
-    if 'application_metadata' in request_json:
-        application_metadata = request_json['application_metadata']
+    if "application_metadata" in request_json:
+        application_metadata = request_json["application_metadata"]
         if application_metadata is None:
+            _LOGGER.warning(
+                msg=(
+                    'The value of "application_metadata" was None. '
+                    "This is not allowed."
+                ),
+            )
             raise Fail(status_code=HTTPStatus.BAD_REQUEST)
-        update_values['application_metadata'] = application_metadata
+        update_values["application_metadata"] = application_metadata
 
-    if 'name' in request_json:
-        name = request_json['name']
-        update_values['name'] = name
+    if "name" in request_json:
+        name = request_json["name"]
+        update_values["name"] = name
 
-    if 'image' in request_json:
-        image = request_json['image']
-        update_values['image'] = image
+    if "image" in request_json:
+        image = request_json["image"]
+        update_values["image"] = image
 
-    target_manager_base_url = os.environ['TARGET_MANAGER_BASE_URL']
     put_url = (
-        f'{target_manager_base_url}/databases/{database.database_name}/'
-        f'targets/{target_id}'
+        f"{settings.target_manager_base_url}/databases/{database.database_name}/"
+        f"targets/{target_id}"
     )
-    requests.put(url=put_url, json=update_values)
+    requests.put(url=put_url, json=update_values, timeout=30)
 
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        'Connection': 'keep-alive',
-        'Content-Type': 'application/json',
-        'Server': 'nginx',
-        'Date': date,
+        "content-type": "application/json",
+        "server": "envoy",
+        "date": date,
+        "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
     }
     body = {
-        'result_code': ResultCodes.SUCCESS.value,
-        'transaction_id': uuid.uuid4().hex,
+        "result_code": ResultCodes.SUCCESS.value,
+        "transaction_id": uuid.uuid4().hex,
     }
     return Response(
         status=HTTPStatus.OK,
@@ -539,5 +579,6 @@ def update_target(target_id: str) -> Response:
     )
 
 
-if __name__ == '__main__':  # pragma: no cover
-    VWS_FLASK_APP.run(debug=True, host='0.0.0.0')
+if __name__ == "__main__":  # pragma: no cover
+    SETTINGS = VWSSettings.parse_obj(obj={})
+    VWS_FLASK_APP.run(debug=True, host=SETTINGS.vws_host)

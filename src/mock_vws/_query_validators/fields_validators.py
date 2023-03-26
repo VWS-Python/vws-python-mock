@@ -2,15 +2,19 @@
 Validators for the fields given.
 """
 
-import cgi
 import io
-from typing import Dict
+import logging
+from email.message import EmailMessage
+
+import multipart
 
 from mock_vws._query_validators.exceptions import UnknownParameters
 
+_LOGGER = logging.getLogger(__name__)
+
 
 def validate_extra_fields(
-    request_headers: Dict[str, str],
+    request_headers: dict[str, str],
     request_body: bytes,
 ) -> None:
     """
@@ -25,17 +29,16 @@ def validate_extra_fields(
     """
     body_file = io.BytesIO(request_body)
 
-    _, pdict = cgi.parse_header(request_headers['Content-Type'])
-    parsed = cgi.parse_multipart(
-        fp=body_file,
-        pdict={
-            'boundary': pdict['boundary'].encode(),
-        },
-    )
+    email_message = EmailMessage()
+    email_message["content-type"] = request_headers["Content-Type"]
+    boundary = email_message.get_boundary()
+    assert isinstance(boundary, str)
+    parsed = multipart.MultipartParser(stream=body_file, boundary=boundary)
+    parsed_keys = {item.name for item in parsed.parts()}
+    known_parameters = {"image", "max_num_results", "include_target_data"}
 
-    known_parameters = {'image', 'max_num_results', 'include_target_data'}
-
-    if not parsed.keys() - known_parameters:
+    if not parsed_keys - known_parameters:
         return
 
+    _LOGGER.warning(msg="Unknown parameters are given.")
     raise UnknownParameters

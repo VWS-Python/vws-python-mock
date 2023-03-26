@@ -2,27 +2,32 @@
 Tests for passing invalid target IDs to endpoints which
 require a target ID to be given.
 """
+from __future__ import annotations
 
 from http import HTTPStatus
+from typing import TYPE_CHECKING
 
 import pytest
 import requests
-from vws import VWS
-
 from mock_vws._constants import ResultCodes
-from tests.mock_vws.utils import Endpoint
+
 from tests.mock_vws.utils.assertions import assert_vws_failure
 
+if TYPE_CHECKING:
+    from vws import VWS
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+    from tests.mock_vws.utils import Endpoint
+
+
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestInvalidGivenID:
     """
     Tests for giving an invalid ID to endpoints which require a target ID to
     be given.
     """
 
+    @staticmethod
     def test_not_real_id(
-        self,
         vws_client: VWS,
         endpoint: Endpoint,
         target_id: str,

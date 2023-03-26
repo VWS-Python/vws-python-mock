@@ -2,9 +2,9 @@
 Input validators to use in the mock.
 """
 
-from typing import Dict, Set
+from __future__ import annotations
 
-from mock_vws.database import VuforiaDatabase
+from typing import TYPE_CHECKING
 
 from .active_flag_validators import validate_active_flag
 from .auth_validators import (
@@ -32,7 +32,7 @@ from .image_validators import (
     validate_image_is_image,
     validate_image_size,
 )
-from .json_validators import validate_json
+from .json_validators import validate_body_given, validate_json
 from .key_validators import validate_keys
 from .metadata_validators import (
     validate_metadata_encoding,
@@ -50,13 +50,16 @@ from .project_state_validators import validate_project_state
 from .target_validators import validate_target_id_exists
 from .width_validators import validate_width
 
+if TYPE_CHECKING:
+    from mock_vws.database import VuforiaDatabase
+
 
 def run_services_validators(
     request_path: str,
-    request_headers: Dict[str, str],
+    request_headers: dict[str, str],
     request_body: bytes,
     request_method: str,
-    databases: Set[VuforiaDatabase],
+    databases: set[VuforiaDatabase],
 ) -> None:
     """
     Run all validators.
@@ -95,10 +98,18 @@ def run_services_validators(
         request_path=request_path,
         databases=databases,
     )
-    validate_json(
+
+    validate_body_given(
         request_body=request_body,
         request_method=request_method,
     )
+
+    validate_date_header_given(request_headers=request_headers)
+    validate_date_format(request_headers=request_headers)
+    validate_date_in_range(request_headers=request_headers)
+
+    validate_json(request_body=request_body)
+
     validate_keys(
         request_body=request_body,
         request_path=request_path,
@@ -143,11 +154,6 @@ def run_services_validators(
         request_headers=request_headers,
         request_method=request_method,
     )
-
-    validate_date_header_given(request_headers=request_headers)
-
-    validate_date_format(request_headers=request_headers)
-    validate_date_in_range(request_headers=request_headers)
 
     validate_content_length_header_is_int(
         request_headers=request_headers,

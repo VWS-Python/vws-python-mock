@@ -2,16 +2,17 @@
 A fake implementation of the Vuforia Web Query API using Flask.
 
 See
-https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query
+https://library.vuforia.com/web-api/vuforia-query-web-api
 """
 
 import email.utils
-import os
+from enum import StrEnum, auto
 from http import HTTPStatus
-from typing import Set
 
 import requests
 from flask import Flask, Response, request
+from pydantic import BaseSettings
+from werkzeug.datastructures import Headers
 
 from mock_vws._query_tools import (
     ActiveMatchingTargetsDeleteProcessing,
@@ -23,17 +24,51 @@ from mock_vws._query_validators.exceptions import (
     ValidatorException,
 )
 from mock_vws.database import VuforiaDatabase
+from mock_vws.image_matchers import (
+    AverageHashMatcher,
+    ExactMatcher,
+    ImageMatcher,
+)
 
 CLOUDRECO_FLASK_APP = Flask(import_name=__name__)
-CLOUDRECO_FLASK_APP.config['PROPAGATE_EXCEPTIONS'] = True
+CLOUDRECO_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
 
 
-def get_all_databases() -> Set[VuforiaDatabase]:
+class _ImageMatcherChoice(StrEnum):
+    """Query matcher choices."""
+
+    EXACT = auto()
+    AVERAGE_HASH = auto()
+
+    def to_image_matcher(self) -> ImageMatcher:
+        """Get the image matcher."""
+        matcher = {
+            _ImageMatcherChoice.EXACT: ExactMatcher(),
+            _ImageMatcherChoice.AVERAGE_HASH: AverageHashMatcher(threshold=10),
+        }[self]
+        assert isinstance(matcher, ImageMatcher)
+        return matcher
+
+
+class VWQSettings(BaseSettings):
+    """Settings for the VWQ Flask app."""
+
+    vwq_host: str = ""
+    target_manager_base_url: str
+    deletion_processing_seconds: float = 3.0
+    deletion_recognition_seconds: float = 0.2
+    image_matcher: _ImageMatcherChoice = _ImageMatcherChoice.AVERAGE_HASH
+
+
+def get_all_databases() -> set[VuforiaDatabase]:
     """
     Get all database objects from the target manager back-end.
     """
-    target_manager_base_url = os.environ['TARGET_MANAGER_BASE_URL']
-    response = requests.get(url=f'{target_manager_base_url}/databases')
+    settings = VWQSettings.parse_obj(obj={})
+    response = requests.get(
+        url=f"{settings.target_manager_base_url}/databases",
+        timeout=30,
+    )
     return {
         VuforiaDatabase.from_dict(database_dict=database_dict)
         for database_dict in response.json()
@@ -56,24 +91,10 @@ def set_terminate_wsgi_input() -> None:
     This is documented as a difference in the documentation for this package.
     """
     terminate_wsgi_input = CLOUDRECO_FLASK_APP.config.get(
-        'TERMINATE_WSGI_INPUT',
+        "TERMINATE_WSGI_INPUT",
         False,
     )
-    request.environ['wsgi.input_terminated'] = terminate_wsgi_input
-
-
-class ResponseNoContentTypeAdded(Response):
-    """
-    A custom response type.
-
-    Without this, a content type is added to all responses.
-    Some of our responses need to not have a "Content-Type" header.
-    """
-
-    default_mimetype = None
-
-
-CLOUDRECO_FLASK_APP.response_class = ResponseNoContentTypeAdded
+    request.environ["wsgi.input_terminated"] = terminate_wsgi_input
 
 
 @CLOUDRECO_FLASK_APP.errorhandler(ValidatorException)
@@ -81,24 +102,23 @@ def handle_exceptions(exc: ValidatorException) -> Response:
     """
     Return the error response associated with the given exception.
     """
-    return ResponseNoContentTypeAdded(
+    response = Response(
         status=exc.status_code.value,
         response=exc.response_text,
         headers=exc.headers,
     )
 
+    response.headers = Headers(exc.headers)
+    return response
 
-@CLOUDRECO_FLASK_APP.route('/v1/query', methods=['POST'])
+
+@CLOUDRECO_FLASK_APP.route("/v1/query", methods=["POST"])
 def query() -> Response:
     """
     Perform an image recognition query.
     """
-    query_processes_deletion_seconds = float(
-        os.environ.get('DELETION_PROCESSING_SECONDS', '3.0'),
-    )
-    query_recognizes_deletion_seconds = float(
-        os.environ.get('DELETION_RECOGNITION_SECONDS', '0.2'),
-    )
+    settings = VWQSettings.parse_obj(obj={})
+    match_checker = settings.image_matcher.to_image_matcher()
 
     databases = get_all_databases()
     request_body = request.stream.read()
@@ -118,19 +138,20 @@ def query() -> Response:
             request_method=request.method,
             request_path=request.path,
             databases=databases,
-            query_processes_deletion_seconds=query_processes_deletion_seconds,
+            query_processes_deletion_seconds=settings.deletion_processing_seconds,
             query_recognizes_deletion_seconds=(
-                query_recognizes_deletion_seconds
+                settings.deletion_recognition_seconds
             ),
+            match_checker=match_checker,
         )
     except ActiveMatchingTargetsDeleteProcessing as exc:
         raise DeletedTargetMatched from exc
 
     headers = {
-        'Content-Type': 'application/json',
-        'Date': date,
-        'Connection': 'keep-alive',
-        'Server': 'nginx',
+        "Content-Type": "application/json",
+        "Date": date,
+        "Connection": "keep-alive",
+        "Server": "nginx",
     }
     return Response(
         status=HTTPStatus.OK,
@@ -139,5 +160,6 @@ def query() -> Response:
     )
 
 
-if __name__ == '__main__':  # pragma: no cover
-    CLOUDRECO_FLASK_APP.run(debug=True, host='0.0.0.0')
+if __name__ == "__main__":  # pragma: no cover
+    SETTINGS = VWQSettings.parse_obj(obj={})
+    CLOUDRECO_FLASK_APP.run(debug=True, host=SETTINGS.vwq_host)

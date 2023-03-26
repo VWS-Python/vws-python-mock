@@ -15,24 +15,22 @@ lint: \
     black \
     check-manifest \
     doc8 \
-    flake8 \
-    isort \
     linkcheck \
     mypy \
     pip-extra-reqs \
     pip-missing-reqs \
+    pyright \
     pyroma \
+    ruff \
     spelling \
     vulture \
     pylint \
-    pydocstyle \
-    custom-linters \
+    custom-linters
 
 .PHONY: fix-lint
 fix-lint: \
-    autoflake \
     fix-black \
-    fix-isort
+    fix-ruff
 
 .PHONY: docs
 docs:

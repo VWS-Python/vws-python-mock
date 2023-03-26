@@ -4,6 +4,7 @@ MiB
 MissingSchema
 Ubuntu
 admin
+another's
 api
 args
 ascii
@@ -27,6 +28,7 @@ dev
 dict
 docstring
 docstrings
+eof
 exc
 filename
 foo
@@ -52,6 +54,8 @@ linters
 linting
 login
 macOS
+matcher
+matchers
 mb
 metadata
 mib
@@ -60,11 +64,14 @@ multipart
 mypy
 nat
 noqa
+outerboundary
+overridable
 pdict
 plugins
 png
 pragma
 processable
+pyright
 pytest
 readme
 readthedocs
@@ -86,6 +93,7 @@ timestamp
 todo
 travis
 txt
+unlinks
 unmocked
 url
 usefixtures

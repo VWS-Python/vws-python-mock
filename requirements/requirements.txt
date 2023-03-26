@@ -1,6 +1,0 @@
-Pillow
-VWS-Auth-Tools
-flask
-requests-mock
-requests
-tzdata; sys_platform == 'win32'

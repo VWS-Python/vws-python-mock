@@ -3,14 +3,16 @@ Validators for JSON keys.
 """
 
 import json
+import logging
 import re
 from dataclasses import dataclass
 from http import HTTPStatus
-from typing import Set
 
 from requests_mock import DELETE, GET, POST, PUT
 
 from .exceptions import Fail
+
+_LOGGER = logging.getLogger(__name__)
 
 
 @dataclass
@@ -28,9 +30,9 @@ class _Route:
     """
 
     path_pattern: str
-    http_methods: Set[str]
-    mandatory_keys: Set[str]
-    optional_keys: Set[str]
+    http_methods: set[str]
+    mandatory_keys: set[str]
+    optional_keys: set[str]
 
 
 def validate_keys(
@@ -50,71 +52,71 @@ def validate_keys(
         Fail: Any given keys are not allowed, or if any required keys are
             missing.
     """
-    target_id_pattern = '[A-Za-z0-9]+'
+    target_id_pattern = "[A-Za-z0-9]+"
     add_target = _Route(
-        path_pattern='/targets',
+        path_pattern="/targets",
         http_methods={POST},
-        mandatory_keys={'image', 'width', 'name'},
-        optional_keys={'active_flag', 'application_metadata'},
+        mandatory_keys={"image", "width", "name"},
+        optional_keys={"active_flag", "application_metadata"},
     )
 
     delete_target = _Route(
-        path_pattern=f'/targets/{target_id_pattern}',
+        path_pattern=f"/targets/{target_id_pattern}",
         http_methods={DELETE},
         mandatory_keys=set(),
         optional_keys=set(),
     )
 
     database_summary = _Route(
-        path_pattern='/summary',
+        path_pattern="/summary",
         http_methods={GET},
         mandatory_keys=set(),
         optional_keys=set(),
     )
 
     target_list = _Route(
-        path_pattern='/targets',
+        path_pattern="/targets",
         http_methods={GET},
         mandatory_keys=set(),
         optional_keys=set(),
     )
 
     get_target = _Route(
-        path_pattern=f'/targets/{target_id_pattern}',
+        path_pattern=f"/targets/{target_id_pattern}",
         http_methods={GET},
         mandatory_keys=set(),
         optional_keys=set(),
     )
 
     target_summary = _Route(
-        path_pattern=f'/summary/{target_id_pattern}',
+        path_pattern=f"/summary/{target_id_pattern}",
         http_methods={GET},
         mandatory_keys=set(),
         optional_keys=set(),
     )
 
     get_duplicates = _Route(
-        path_pattern=f'/duplicates/{target_id_pattern}',
+        path_pattern=f"/duplicates/{target_id_pattern}",
         http_methods={GET},
         mandatory_keys=set(),
         optional_keys=set(),
     )
 
     update_target = _Route(
-        path_pattern=f'/targets/{target_id_pattern}',
+        path_pattern=f"/targets/{target_id_pattern}",
         http_methods={PUT},
         mandatory_keys=set(),
         optional_keys={
-            'active_flag',
-            'application_metadata',
-            'image',
-            'name',
-            'width',
+            "active_flag",
+            "application_metadata",
+            "image",
+            "name",
+            "width",
         },
     )
 
     target_summary = _Route(
-        path_pattern=f'/summary/{target_id_pattern}',
+        path_pattern=f"/summary/{target_id_pattern}",
         http_methods={GET},
         mandatory_keys=set(),
         optional_keys=set(),
@@ -134,7 +136,7 @@ def validate_keys(
     [matching_route] = [
         route
         for route in routes
-        if re.match(re.compile(route.path_pattern + '$'), request_path)
+        if re.match(re.compile(route.path_pattern + "$"), request_path)
         and request_method in route.http_methods
     ]
 
@@ -154,4 +156,5 @@ def validate_keys(
     if all_given_keys_allowed and all_mandatory_keys_given:
         return
 
+    _LOGGER.warning(msg="Invalid keys given to endpoint.")
     raise Fail(status_code=HTTPStatus.BAD_REQUEST)

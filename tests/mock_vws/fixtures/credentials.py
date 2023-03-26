@@ -2,12 +2,35 @@
 Fixtures for credentials for Vuforia databases.
 """
 
-import os
 
 import pytest
-
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
+from pydantic import BaseSettings
+
+
+class _VuforiaDatabaseSettings(BaseSettings):
+    """Settings for a Vuforia database."""
+
+    target_manager_database_name: str
+    server_access_key: str
+    server_secret_key: str
+    client_access_key: str
+    client_secret_key: str
+
+    class Config:
+        """Configuration for the settings."""
+
+        env_prefix = "VUFORIA_"
+        env_file = "vuforia_secrets.env"
+
+
+class _InactiveVuforiaDatabaseSettings(_VuforiaDatabaseSettings):
+    class Config:
+        """Configuration for the settings."""
+
+        env_prefix = "INACTIVE_VUFORIA_"
+        env_file = "vuforia_secrets.env"
 
 
 @pytest.fixture()
@@ -15,15 +38,15 @@ def vuforia_database() -> VuforiaDatabase:
     """
     Return VWS credentials from environment variables.
     """
-    credentials: VuforiaDatabase = VuforiaDatabase(
-        database_name=os.environ['VUFORIA_TARGET_MANAGER_DATABASE_NAME'],
-        server_access_key=os.environ['VUFORIA_SERVER_ACCESS_KEY'],
-        server_secret_key=os.environ['VUFORIA_SERVER_SECRET_KEY'],
-        client_access_key=os.environ['VUFORIA_CLIENT_ACCESS_KEY'],
-        client_secret_key=os.environ['VUFORIA_CLIENT_SECRET_KEY'],
+    settings = _VuforiaDatabaseSettings.parse_obj(obj={})
+    return VuforiaDatabase(
+        database_name=settings.target_manager_database_name,
+        server_access_key=settings.server_access_key,
+        server_secret_key=settings.server_secret_key,
+        client_access_key=settings.client_access_key,
+        client_secret_key=settings.client_secret_key,
         state=States.WORKING,
     )
-    return credentials
 
 
 @pytest.fixture()
@@ -31,14 +54,12 @@ def inactive_database() -> VuforiaDatabase:
     """
     Return VWS credentials for an inactive project from environment variables.
     """
-    credentials: VuforiaDatabase = VuforiaDatabase(
-        database_name=os.environ[
-            'INACTIVE_VUFORIA_TARGET_MANAGER_DATABASE_NAME'
-        ],
-        server_access_key=os.environ['INACTIVE_VUFORIA_SERVER_ACCESS_KEY'],
-        server_secret_key=os.environ['INACTIVE_VUFORIA_SERVER_SECRET_KEY'],
-        client_access_key=os.environ['INACTIVE_VUFORIA_CLIENT_ACCESS_KEY'],
-        client_secret_key=os.environ['INACTIVE_VUFORIA_CLIENT_SECRET_KEY'],
+    settings = _InactiveVuforiaDatabaseSettings.parse_obj(obj={})
+    return VuforiaDatabase(
+        database_name=settings.target_manager_database_name,
+        server_access_key=settings.server_access_key,
+        server_secret_key=settings.server_secret_key,
+        client_access_key=settings.client_access_key,
+        client_secret_key=settings.client_secret_key,
         state=States.PROJECT_INACTIVE,
     )
-    return credentials

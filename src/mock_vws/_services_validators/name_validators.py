@@ -3,8 +3,8 @@ Validators for target names.
 """
 
 import json
+import logging
 from http import HTTPStatus
-from typing import Dict, Set
 
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._services_validators.exceptions import (
@@ -13,6 +13,8 @@ from mock_vws._services_validators.exceptions import (
     TargetNameExist,
 )
 from mock_vws.database import VuforiaDatabase
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def validate_name_characters_in_range(
@@ -34,22 +36,24 @@ def validate_name_characters_in_range(
         TargetNameExist: Characters are out of range and the request is for
             another endpoint.
     """
-
     if not request_body:
         return
 
     request_text = request_body.decode()
-    if 'name' not in json.loads(request_text):
+    if "name" not in json.loads(request_text):
         return
 
-    name = json.loads(request_text)['name']
+    name = json.loads(request_text)["name"]
 
-    if all(ord(character) <= 65535 for character in name):
+    max_character_ord = 65535
+    if all(ord(character) <= max_character_ord for character in name):
         return
 
-    if (request_method, request_path) == ('POST', '/targets'):
+    if (request_method, request_path) == ("POST", "/targets"):
+        _LOGGER.warning(msg="Characters are out of range.")
         raise OopsErrorOccurredResponse
 
+    _LOGGER.warning(msg="Characters are out of range.")
     raise TargetNameExist
 
 
@@ -63,19 +67,19 @@ def validate_name_type(request_body: bytes) -> None:
     Raises:
         Fail: A name is given and it is not a string.
     """
-
     if not request_body:
         return
 
     request_text = request_body.decode()
-    if 'name' not in json.loads(request_text):
+    if "name" not in json.loads(request_text):
         return
 
-    name = json.loads(request_text)['name']
+    name = json.loads(request_text)["name"]
 
     if isinstance(name, str):
         return
 
+    _LOGGER.warning(msg="Name is not a string.")
     raise Fail(status_code=HTTPStatus.BAD_REQUEST)
 
 
@@ -94,21 +98,23 @@ def validate_name_length(request_body: bytes) -> None:
         return
 
     request_text = request_body.decode()
-    if 'name' not in json.loads(request_text):
+    if "name" not in json.loads(request_text):
         return
 
-    name = json.loads(request_text)['name']
+    name = json.loads(request_text)["name"]
 
-    if name and len(name) < 65:
+    max_length = 64
+    if name and len(name) <= max_length:
         return
 
+    _LOGGER.warning(msg="Name is not between 1 and 64 characters in length.")
     raise Fail(status_code=HTTPStatus.BAD_REQUEST)
 
 
 def validate_name_does_not_exist_new_target(
-    databases: Set[VuforiaDatabase],
+    databases: set[VuforiaDatabase],
     request_body: bytes,
-    request_headers: Dict[str, str],
+    request_headers: dict[str, str],
     request_method: str,
     request_path: str,
 ) -> None:
@@ -129,14 +135,16 @@ def validate_name_does_not_exist_new_target(
         return
 
     request_text = request_body.decode()
-    if 'name' not in json.loads(request_text):
+    if "name" not in json.loads(request_text):
         return
 
-    split_path = request_path.split('/')
-    if len(split_path) != 2:
+    split_path = request_path.split("/")
+
+    split_path_no_target_id_length = 2
+    if len(split_path) != split_path_no_target_id_length:
         return
 
-    name = json.loads(request_text)['name']
+    name = json.loads(request_text)["name"]
     database = get_database_matching_server_keys(
         request_headers=request_headers,
         request_body=request_body,
@@ -155,15 +163,16 @@ def validate_name_does_not_exist_new_target(
     if not matching_name_targets:
         return
 
+    _LOGGER.warning(msg="Target name already exists.")
     raise TargetNameExist
 
 
 def validate_name_does_not_exist_existing_target(
-    request_headers: Dict[str, str],
+    request_headers: dict[str, str],
     request_body: bytes,
     request_method: str,
     request_path: str,
-    databases: Set[VuforiaDatabase],
+    databases: set[VuforiaDatabase],
 ) -> None:
     """
     Validate that the name does not exist for any existing target apart from
@@ -180,21 +189,21 @@ def validate_name_does_not_exist_existing_target(
         TargetNameExist: The target name is not the same as the name of the
             target being updated but it is the same as another target.
     """
-
     if not request_body:
         return
 
     request_text = request_body.decode()
-    if 'name' not in json.loads(request_text):
+    if "name" not in json.loads(request_text):
         return
 
-    split_path = request_path.split('/')
-    if len(split_path) == 2:
+    split_path = request_path.split("/")
+    split_path_no_target_id_length = 2
+    if len(split_path) == split_path_no_target_id_length:
         return
 
     target_id = split_path[-1]
 
-    name = json.loads(request_text)['name']
+    name = json.loads(request_text)["name"]
     database = get_database_matching_server_keys(
         request_headers=request_headers,
         request_body=request_body,
@@ -217,4 +226,5 @@ def validate_name_does_not_exist_existing_target(
     if matching_name_target.target_id == target_id:
         return
 
+    _LOGGER.warning(msg="Name already exists for another target.")
     raise TargetNameExist

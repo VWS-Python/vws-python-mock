@@ -1,8 +1,10 @@
 """
 Helpers for testing the usage of the mocks.
 """
-import io
-from datetime import datetime
+from __future__ import annotations
+
+import datetime
+from typing import TYPE_CHECKING
 
 from vws import VWS, CloudRecoService
 from vws.exceptions.custom_exceptions import (
@@ -10,7 +12,10 @@ from vws.exceptions.custom_exceptions import (
 )
 from vws.reports import TargetStatuses
 
-from mock_vws.database import VuforiaDatabase
+if TYPE_CHECKING:
+    import io
+
+    from mock_vws.database import VuforiaDatabase
 
 
 def _add_and_delete_target(
@@ -26,7 +31,7 @@ def _add_and_delete_target(
     )
 
     target_id = vws_client.add_target(
-        name='example_name',
+        name="example_name",
         width=1,
         image=image,
         active_flag=True,
@@ -48,13 +53,13 @@ def processing_time_seconds(
         server_secret_key=vuforia_database.server_secret_key,
     )
     target_id = vws_client.add_target(
-        name='example',
+        name="example",
         width=1,
         image=image,
         active_flag=True,
         application_metadata=None,
     )
-    start_time = datetime.now()
+    start_time = datetime.datetime.now(tz=datetime.UTC)
 
     while (
         vws_client.get_target_record(target_id=target_id).status
@@ -62,7 +67,9 @@ def processing_time_seconds(
     ):
         pass
 
-    return (datetime.now() - start_time).total_seconds()
+    return (
+        datetime.datetime.now(tz=datetime.UTC) - start_time
+    ).total_seconds()
 
 
 def _wait_for_deletion_recognized(
@@ -133,14 +140,16 @@ def recognize_deletion_seconds(
         vuforia_database=vuforia_database,
     )
 
-    time_after_deletion = datetime.now()
+    time_after_deletion = datetime.datetime.now(tz=datetime.UTC)
 
     _wait_for_deletion_recognized(
         image=high_quality_image,
         vuforia_database=vuforia_database,
     )
 
-    time_difference = datetime.now() - time_after_deletion
+    time_difference = (
+        datetime.datetime.now(tz=datetime.UTC) - time_after_deletion
+    )
     return time_difference.total_seconds()
 
 
@@ -162,12 +171,14 @@ def process_deletion_seconds(
         vuforia_database=vuforia_database,
     )
 
-    time_after_deletion_recognized = datetime.now()
+    time_after_deletion_recognized = datetime.datetime.now(tz=datetime.UTC)
 
     _wait_for_deletion_processed(
         image=high_quality_image,
         vuforia_database=vuforia_database,
     )
 
-    time_difference = datetime.now() - time_after_deletion_recognized
+    time_difference = (
+        datetime.datetime.now(tz=datetime.UTC) - time_after_deletion_recognized
+    )
     return time_difference.total_seconds()

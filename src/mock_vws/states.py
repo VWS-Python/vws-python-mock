@@ -2,10 +2,10 @@
 Vuforia database states.
 """
 
-from enum import Enum, auto
+from enum import StrEnum, auto
 
 
-class States(Enum):
+class States(StrEnum):
     """
     Constants representing various web service states.
     """
@@ -14,9 +14,3 @@ class States(Enum):
 
     # A project is inactive if the license key has been deleted.
     PROJECT_INACTIVE = auto()
-
-    def __repr__(self) -> str:
-        """
-        Return a representation which does not include the generated number.
-        """
-        return f'<{self.__class__.__name__}.{self.name}>'

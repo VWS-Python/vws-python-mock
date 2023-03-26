@@ -1,27 +1,31 @@
 """
 Choose which backends to use for the tests.
 """
+from __future__ import annotations
 
+import contextlib
 import logging
 from enum import Enum
-from typing import Generator
+from typing import TYPE_CHECKING
 
 import pytest
 import requests
 import requests_mock
-from _pytest.config.argparsing import Parser
-from _pytest.fixtures import SubRequest
-from pytest import MonkeyPatch
-from requests_mock_flask import add_flask_app_to_mock
-from vws import VWS
-from vws.exceptions.vws_exceptions import TargetStatusNotSuccess
-
 from mock_vws import MockVWS
 from mock_vws._flask_server.target_manager import TARGET_MANAGER_FLASK_APP
 from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
 from mock_vws._flask_server.vws import VWS_FLASK_APP
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
+from requests_mock_flask import add_flask_app_to_mock
+from vws import VWS
+from vws.exceptions.vws_exceptions import TargetStatusNotSuccess
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
+    from _pytest.config.argparsing import Parser
+    from _pytest.fixtures import SubRequest
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -46,10 +50,8 @@ def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
         vws_client.wait_for_target_processed(target_id=target)
         # Even deleted targets can be matched by a query for a few seconds so
         # we change the target to inactive before deleting it.
-        try:
+        with contextlib.suppress(TargetStatusNotSuccess):
             vws_client.update_target(target_id=target, active_flag=False)
-        except TargetStatusNotSuccess:
-            pass
         vws_client.wait_for_target_processed(target_id=target)
         vws_client.delete_target(target_id=target)
 
@@ -57,8 +59,8 @@ def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
 def _enable_use_real_vuforia(
     working_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
-    monkeypatch: MonkeyPatch,
-) -> Generator:
+    monkeypatch: pytest.MonkeyPatch,
+) -> Generator[None, None, None]:
     assert monkeypatch
     assert inactive_database
     _delete_all_targets(database_keys=working_database)
@@ -68,8 +70,8 @@ def _enable_use_real_vuforia(
 def _enable_use_mock_vuforia(
     working_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
-    monkeypatch: MonkeyPatch,
-) -> Generator:
+    monkeypatch: pytest.MonkeyPatch,
+) -> Generator[None, None, None]:
     assert monkeypatch
     working_database = VuforiaDatabase(
         database_name=working_database.database_name,
@@ -97,8 +99,8 @@ def _enable_use_mock_vuforia(
 def _enable_use_docker_in_memory(
     working_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
-    monkeypatch: MonkeyPatch,
-) -> Generator:
+    monkeypatch: pytest.MonkeyPatch,
+) -> Generator[None, None, None]:
     # We set ``wsgi.input_terminated`` to ``True`` so that when going through
     # ``requests``, the Flask applications
     # have the given ``Content-Length`` headers and the given data in
@@ -111,12 +113,12 @@ def _enable_use_docker_in_memory(
     # Therefore, when running the real Flask application, the behavior is not
     # the same as the real Vuforia.
     # This is documented as a difference in the documentation for this package.
-    VWS_FLASK_APP.config['TERMINATE_WSGI_INPUT'] = True
-    CLOUDRECO_FLASK_APP.config['TERMINATE_WSGI_INPUT'] = True
+    VWS_FLASK_APP.config["TERMINATE_WSGI_INPUT"] = True
+    CLOUDRECO_FLASK_APP.config["TERMINATE_WSGI_INPUT"] = True
 
-    target_manager_base_url = 'http://example.com'
+    target_manager_base_url = "http://example.com"
     monkeypatch.setenv(
-        name='TARGET_MANAGER_BASE_URL',
+        name="TARGET_MANAGER_BASE_URL",
         value=target_manager_base_url,
     )
 
@@ -124,13 +126,13 @@ def _enable_use_docker_in_memory(
         add_flask_app_to_mock(
             mock_obj=mock,
             flask_app=VWS_FLASK_APP,
-            base_url='https://vws.vuforia.com',
+            base_url="https://vws.vuforia.com",
         )
 
         add_flask_app_to_mock(
             mock_obj=mock,
             flask_app=CLOUDRECO_FLASK_APP,
-            base_url='https://cloudreco.vuforia.com',
+            base_url="https://cloudreco.vuforia.com",
         )
 
         add_flask_app_to_mock(
@@ -139,14 +141,28 @@ def _enable_use_docker_in_memory(
             base_url=target_manager_base_url,
         )
 
-        databases_url = target_manager_base_url + '/databases'
-        databases = requests.get(url=databases_url).json()
+        databases_url = target_manager_base_url + "/databases"
+        databases = requests.get(
+            url=databases_url,
+            timeout=30,
+        ).json()
         for database in databases:
-            database_name = database['database_name']
-            requests.delete(url=databases_url + '/' + database_name)
+            database_name = database["database_name"]
+            requests.delete(
+                url=databases_url + "/" + database_name,
+                timeout=30,
+            )
 
-        requests.post(url=databases_url, json=working_database.to_dict())
-        requests.post(url=databases_url, json=inactive_database.to_dict())
+        requests.post(
+            url=databases_url,
+            json=working_database.to_dict(),
+            timeout=30,
+        )
+        requests.post(
+            url=databases_url,
+            json=inactive_database.to_dict(),
+            timeout=30,
+        )
 
         yield
 
@@ -156,9 +172,9 @@ class VuforiaBackend(Enum):
     Backends for tests.
     """
 
-    REAL = 'Real Vuforia'
-    MOCK = 'In Memory Mock Vuforia'
-    DOCKER_IN_MEMORY = 'In Memory version of Docker application'
+    REAL = "Real Vuforia"
+    MOCK = "In Memory Mock Vuforia"
+    DOCKER_IN_MEMORY = "In Memory version of Docker application"
 
 
 def pytest_addoption(parser: Parser) -> None:
@@ -168,11 +184,35 @@ def pytest_addoption(parser: Parser) -> None:
     """
     for backend in VuforiaBackend:
         parser.addoption(
-            f'--skip-{backend.name.lower()}',
-            action='store_true',
+            f"--skip-{backend.name.lower()}",
+            action="store_true",
             default=False,
-            help=f'Skip tests for {backend.value}',
+            help=f"Skip tests for {backend.value}",
         )
+
+    parser.addoption(
+        "--skip-docker_build_tests",
+        action="store_true",
+        default=False,
+    )
+
+
+def pytest_collection_modifyitems(
+    config: pytest.Config,
+    items: list[pytest.Function],
+) -> None:
+    """Skip Docker tests if requested."""
+    skip_docker_build_tests_option = "--skip-docker_build_tests"
+    skip_docker_build_tests_marker = pytest.mark.skip(
+        reason=(
+            "Skipping docker build tests because "
+            f"{skip_docker_build_tests_option} was set"
+        ),
+    )
+    if config.getoption(skip_docker_build_tests_option):
+        for item in items:
+            if "requires_docker_build" in item.keywords:
+                item.add_marker(skip_docker_build_tests_marker)
 
 
 @pytest.fixture(
@@ -183,8 +223,8 @@ def verify_mock_vuforia(
     request: SubRequest,
     vuforia_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
-    monkeypatch: MonkeyPatch,
-) -> Generator:
+    monkeypatch: pytest.MonkeyPatch,
+) -> Generator[None, None, None]:
     """
     Test functions which use this fixture are run multiple times. Once with the
     real Vuforia, and once with each mock.
@@ -192,7 +232,7 @@ def verify_mock_vuforia(
     This is useful for verifying the mocks.
     """
     backend = request.param
-    should_skip = request.config.getvalue(f'--skip-{backend.name.lower()}')
+    should_skip = request.config.getoption(f"--skip-{backend.name.lower()}")
     if should_skip:  # pragma: no cover
         pytest.skip()
 

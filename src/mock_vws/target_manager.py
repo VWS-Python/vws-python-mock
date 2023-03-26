@@ -1,10 +1,12 @@
 """
 A fake implementation of a Vuforia target manager.
 """
+from __future__ import annotations
 
-from typing import Set
+from typing import TYPE_CHECKING
 
-from mock_vws.database import VuforiaDatabase
+if TYPE_CHECKING:
+    from mock_vws.database import VuforiaDatabase
 
 
 class TargetManager:
@@ -16,7 +18,7 @@ class TargetManager:
         """
         Create a target manager with no databases.
         """
-        self._databases: Set[VuforiaDatabase] = set()
+        self._databases: set[VuforiaDatabase] = set()
 
     def remove_database(self, database: VuforiaDatabase) -> None:
         """
@@ -42,7 +44,7 @@ class TargetManager:
                 existing database.
         """
         message_fmt = (
-            'All {key_name}s must be unique. '
+            "All {key_name}s must be unique. "
             'There is already a database with the {key_name} "{value}".'
         )
         for existing_db in self.databases:
@@ -50,27 +52,27 @@ class TargetManager:
                 (
                     existing_db.server_access_key,
                     database.server_access_key,
-                    'server access key',
+                    "server access key",
                 ),
                 (
                     existing_db.server_secret_key,
                     database.server_secret_key,
-                    'server secret key',
+                    "server secret key",
                 ),
                 (
                     existing_db.client_access_key,
                     database.client_access_key,
-                    'client access key',
+                    "client access key",
                 ),
                 (
                     existing_db.client_secret_key,
                     database.client_secret_key,
-                    'client secret key',
+                    "client secret key",
                 ),
                 (
                     existing_db.database_name,
                     database.database_name,
-                    'name',
+                    "name",
                 ),
             ):
                 if existing == new:
@@ -80,7 +82,7 @@ class TargetManager:
         self._databases.add(database)
 
     @property
-    def databases(self) -> Set[VuforiaDatabase]:
+    def databases(self) -> set[VuforiaDatabase]:
         """
         All cloud databases.
         """

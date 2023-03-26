@@ -2,18 +2,22 @@
 Validators for the ``max_num_results`` fields.
 """
 
-import cgi
 import io
-from typing import Dict
+import logging
+from email.message import EmailMessage
+
+import multipart
 
 from mock_vws._query_validators.exceptions import (
     InvalidMaxNumResults,
     MaxNumResultsOutOfRange,
 )
 
+_LOGGER = logging.getLogger(__name__)
+
 
 def validate_max_num_results(
-    request_headers: Dict[str, str],
+    request_headers: dict[str, str],
     request_body: bytes,
 ) -> None:
     """
@@ -31,24 +35,30 @@ def validate_max_num_results(
     """
     body_file = io.BytesIO(request_body)
 
-    _, pdict = cgi.parse_header(request_headers['Content-Type'])
-    parsed = cgi.parse_multipart(
-        fp=body_file,
-        pdict={
-            'boundary': pdict['boundary'].encode(),
-        },
-    )
-    [max_num_results] = parsed.get('max_num_results', ['1'])
-    assert isinstance(max_num_results, str)
+    email_message = EmailMessage()
+    email_message["content-type"] = request_headers["Content-Type"]
+    boundary = email_message.get_boundary()
+    assert isinstance(boundary, str)
+    parsed = multipart.MultipartParser(stream=body_file, boundary=boundary)
+
+    parsed_max_num_results = parsed.get("max_num_results")
+    if parsed_max_num_results is None:
+        max_num_results = "1"
+    else:
+        max_num_results = parsed_max_num_results.value
 
     try:
         max_num_results_int = int(max_num_results)
     except ValueError as exc:
+        _LOGGER.warning(msg="The max_num_results field is not an integer.")
         raise InvalidMaxNumResults(given_value=max_num_results) from exc
 
     java_max_int = 2147483647
     if max_num_results_int > java_max_int:
+        _LOGGER.warning(msg="The max_num_results field is too large.")
         raise InvalidMaxNumResults(given_value=max_num_results)
 
-    if max_num_results_int < 1 or max_num_results_int > 50:
+    max_allowed_results = 50
+    if max_num_results_int < 1 or max_num_results_int > max_allowed_results:
+        _LOGGER.warning(msg="The max_num_results field is out of range.")
         raise MaxNumResultsOutOfRange(given_value=max_num_results)

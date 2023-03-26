@@ -13,16 +13,17 @@ Mocking calls made to Vuforia with Python ``requests``
 
 Using the mock redirects requests to Vuforia made with `requests`_ to an in-memory implementation.
 
-This requires Python 3.9+.
+This requires Python 3.11+.
 
 .. code:: sh
 
     pip install vws-python-mock
 
-.. code:: python
+.. code-block:: python
 
     import requests
-    from mock_vws import MockVWS, VuforiaDatabase
+    from mock_vws import MockVWS
+    from mock_vws.database import VuforiaDatabase
 
     with MockVWS() as mock:
         database = VuforiaDatabase()

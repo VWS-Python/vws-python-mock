@@ -4,8 +4,6 @@ SHELL := /bin/bash -euxo pipefail
 
 .PHONY: custom-linters
 custom-linters:
-	# Running pytest needs this file
-	touch vuforia_secrets.env
 	pytest ci/custom_linters.py
 
 .PHONY: black
@@ -28,25 +26,21 @@ check-manifest:
 doc8:
 	doc8 .
 
-.PHONY: flake8
-flake8:
-	flake8 .
+.PHONY: ruff
+ruff:
+	ruff .
 
-.PHONY: isort
-isort:
-	isort --check-only .
-
-.PHONY: fix-isort
-fix-isort:
-	isort .
+.PHONY: fix-ruff
+fix-ruff:
+	ruff --fix .
 
 .PHONY: pip-extra-reqs
 pip-extra-reqs:
-	pip-extra-reqs --skip-incompatible --requirements-file=requirements/requirements.txt src/
+	pip-extra-reqs --skip-incompatible --requirements-file=<(pdm export --pyproject) src/
 
 .PHONY: pip-missing-reqs
 pip-missing-reqs:
-	pip-missing-reqs --requirements-file=requirements/requirements.txt src/
+	pip-missing-reqs --requirements-file=<(pdm export --pyproject) src/
 
 .PHONY: pylint
 pylint:
@@ -55,6 +49,10 @@ pylint:
 .PHONY: pyroma
 pyroma:
 	pyroma --min 10 .
+
+.PHONY: pyright
+pyright:
+	pyright .
 
 .PHONY: vulture
 vulture:
@@ -67,18 +65,3 @@ linkcheck:
 .PHONY: spelling
 spelling:
 	$(MAKE) -C docs/ spelling SPHINXOPTS=$(SPHINXOPTS)
-
-.PHONY: autoflake
-autoflake:
-	autoflake \
-	    --in-place \
-	    --recursive \
-	    --remove-all-unused-imports \
-	    --remove-unused-variables \
-	    --expand-star-imports \
-	    --exclude _vendor,release \
-	    .
-
-.PHONY: pydocstyle
-pydocstyle:
-	pydocstyle

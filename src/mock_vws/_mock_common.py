@@ -4,7 +4,7 @@ Common utilities for creating mock routes.
 
 import json
 from dataclasses import dataclass
-from typing import Any, Dict, FrozenSet
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -21,12 +21,12 @@ class Route:
 
     route_name: str
     path_pattern: str
-    http_methods: FrozenSet[str]
+    http_methods: frozenset[str]
 
 
-def json_dump(body: Dict[str, Any]) -> str:
+def json_dump(body: dict[str, Any]) -> str:
     """
     Returns:
         JSON dump of data in the same way that Vuforia dumps data.
     """
-    return json.dumps(obj=body, separators=(',', ':'))
+    return json.dumps(obj=body, separators=(",", ":"))

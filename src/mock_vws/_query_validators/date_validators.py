@@ -2,8 +2,9 @@
 Validators of the date header to use in the mock query API.
 """
 
+import contextlib
 import datetime
-from typing import Dict, Set
+import logging
 from zoneinfo import ZoneInfo
 
 from mock_vws._query_validators.exceptions import (
@@ -12,8 +13,10 @@ from mock_vws._query_validators.exceptions import (
     RequestTimeTooSkewed,
 )
 
+_LOGGER = logging.getLogger(__name__)
 
-def validate_date_header_given(request_headers: Dict[str, str]) -> None:
+
+def validate_date_header_given(request_headers: dict[str, str]) -> None:
     """
     Validate the date header is given to the query endpoint.
 
@@ -23,13 +26,14 @@ def validate_date_header_given(request_headers: Dict[str, str]) -> None:
     Raises:
         DateHeaderNotGiven: The date is not given.
     """
-    if 'Date' in request_headers:
+    if "Date" in request_headers:
         return
 
+    _LOGGER.warning(msg="The date header is not given.")
     raise DateHeaderNotGiven
 
 
-def _accepted_date_formats() -> Set[str]:
+def _accepted_date_formats() -> set[str]:
     """
     Return all known accepted date formats.
 
@@ -37,20 +41,20 @@ def _accepted_date_formats() -> Set[str]:
     These are the accepted ones we know of at the time of writing.
     """
     known_accepted_formats = {
-        '%a, %b %d %H:%M:%S %Y',
-        '%a %b %d %H:%M:%S %Y',
-        '%a, %d %b %Y %H:%M:%S',
-        '%a %d %b %Y %H:%M:%S',
+        "%a, %b %d %H:%M:%S %Y",
+        "%a %b %d %H:%M:%S %Y",
+        "%a, %d %b %Y %H:%M:%S",
+        "%a %d %b %Y %H:%M:%S",
     }
 
     known_accepted_formats = known_accepted_formats.union(
-        {date_format + ' GMT' for date_format in known_accepted_formats},
+        {date_format + " GMT" for date_format in known_accepted_formats},
     )
 
     return known_accepted_formats
 
 
-def validate_date_format(request_headers: Dict[str, str]) -> None:
+def validate_date_format(request_headers: dict[str, str]) -> None:
     """
     Validate the format of the date header given to the query endpoint.
 
@@ -60,20 +64,18 @@ def validate_date_format(request_headers: Dict[str, str]) -> None:
     Raises:
         DateFormatNotValid: The date is in the wrong format.
     """
-    date_header = request_headers['Date']
+    date_header = request_headers["Date"]
 
     for date_format in _accepted_date_formats():
-        try:
-            datetime.datetime.strptime(date_header, date_format)
-        except ValueError:
-            pass
-        else:
+        with contextlib.suppress(ValueError):
+            datetime.datetime.strptime(date_header, date_format).astimezone()
             return
 
+    _LOGGER.warning(msg="The date header is in the wrong format.")
     raise DateFormatNotValid
 
 
-def validate_date_in_range(request_headers: Dict[str, str]) -> None:
+def validate_date_in_range(request_headers: dict[str, str]) -> None:
     """
     Validate date in the date header given to the query endpoint.
 
@@ -83,17 +85,18 @@ def validate_date_in_range(request_headers: Dict[str, str]) -> None:
     Raises:
         RequestTimeTooSkewed: The date is out of range.
     """
-    date_header = request_headers['Date']
+    date_header = request_headers["Date"]
 
+    date = None
     for date_format in _accepted_date_formats():
-        try:
-            date = datetime.datetime.strptime(date_header, date_format)
-            # We could break here but that would give a coverage report that is
-            # not 100%.
-        except ValueError:
-            pass
+        with contextlib.suppress(ValueError):
+            date = datetime.datetime.strptime(
+                date_header,
+                date_format,
+            ).astimezone()
 
-    gmt = ZoneInfo('GMT')
+    assert date is not None
+    gmt = ZoneInfo("GMT")
     now = datetime.datetime.now(tz=gmt)
     date_from_header = date.replace(tzinfo=gmt)
     time_difference = now - date_from_header
@@ -103,4 +106,5 @@ def validate_date_in_range(request_headers: Dict[str, str]) -> None:
     if abs(time_difference) < maximum_time_difference:
         return
 
+    _LOGGER.warning(msg="The date header is out of range.")
     raise RequestTimeTooSkewed

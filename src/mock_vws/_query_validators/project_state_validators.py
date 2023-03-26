@@ -2,20 +2,23 @@
 Validators for the project state.
 """
 
-from typing import Dict, Set
+
+import logging
 
 from mock_vws._database_matchers import get_database_matching_client_keys
 from mock_vws._query_validators.exceptions import InactiveProject
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
 
+_LOGGER = logging.getLogger(__name__)
+
 
 def validate_project_state(
     request_path: str,
-    request_headers: Dict[str, str],
+    request_headers: dict[str, str],
     request_body: bytes,
     request_method: str,
-    databases: Set[VuforiaDatabase],
+    databases: set[VuforiaDatabase],
 ) -> None:
     """
     Validate the state of the project.
@@ -42,4 +45,5 @@ def validate_project_state(
     if database.state != States.PROJECT_INACTIVE:
         return
 
+    _LOGGER.warning(msg="The project is inactive.")
     raise InactiveProject

@@ -2,44 +2,49 @@
 Tests for giving invalid JSON to endpoints.
 """
 
+from __future__ import annotations
+
 from datetime import datetime, timedelta
 from http import HTTPStatus
+from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
 import pytest
 import requests
 from freezegun import freeze_time
+from mock_vws._constants import ResultCodes
 from requests.structures import CaseInsensitiveDict
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from mock_vws._constants import ResultCodes
-from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import (
     assert_valid_date_header,
     assert_vwq_failure,
     assert_vws_failure,
 )
 
+if TYPE_CHECKING:
+    from tests.mock_vws.utils import Endpoint
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestInvalidJSON:
     """
     Tests for giving invalid JSON to endpoints.
     """
 
-    @pytest.mark.parametrize('date_skew_minutes', [0, 10])
+    @staticmethod
+    @pytest.mark.parametrize("date_skew_minutes", [0, 10])
     def test_invalid_json(
-        self,
         endpoint: Endpoint,
         date_skew_minutes: int,
     ) -> None:
         """
         Giving invalid JSON to endpoints returns error responses.
         """
-        date_is_skewed = not date_skew_minutes == 0
-        content = b'a'
-        gmt = ZoneInfo('GMT')
+        date_is_skewed = date_skew_minutes != 0
+        content = b"a"
+        gmt = ZoneInfo("GMT")
         now = datetime.now(tz=gmt)
         time_to_freeze = now + timedelta(minutes=date_skew_minutes)
         with freeze_time(time_to_freeze):
@@ -58,8 +63,8 @@ class TestInvalidJSON:
 
         headers = {
             **endpoint_headers,
-            'Authorization': authorization_string,
-            'Date': date,
+            "Authorization": authorization_string,
+            "Date": date,
         }
 
         endpoint.prepared_request.body = content
@@ -69,16 +74,17 @@ class TestInvalidJSON:
         response = session.send(request=endpoint.prepared_request)
 
         takes_json_data = (
-            endpoint.auth_header_content_type == 'application/json'
+            endpoint.auth_header_content_type == "application/json"
         )
 
         assert_valid_date_header(response=response)
 
         if date_is_skewed and takes_json_data:
-            # On the real implementation, we get `HTTPStatus.FORBIDDEN` and
-            # `REQUEST_TIME_TOO_SKEWED`.
-            # See https://github.com/VWS-Python/vws-python-mock/issues/4 for
-            # implementing this on them mock.
+            assert_vws_failure(
+                response=response,
+                status_code=HTTPStatus.FORBIDDEN,
+                result_code=ResultCodes.REQUEST_TIME_TOO_SKEWED,
+            )
             return
 
         if not date_is_skewed and takes_json_data:
@@ -92,18 +98,18 @@ class TestInvalidJSON:
         assert response.status_code == HTTPStatus.BAD_REQUEST
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
-        if netloc == 'cloudreco.vuforia.com':
+        if netloc == "cloudreco.vuforia.com":
             assert_vwq_failure(
                 response=response,
                 status_code=HTTPStatus.BAD_REQUEST,
-                content_type='application/json',
+                content_type="application/json",
                 cache_control=None,
                 www_authenticate=None,
-                connection='keep-alive',
+                connection="keep-alive",
             )
-            expected_text = 'No image.'
+            expected_text = "No image."
             assert response.text == expected_text
             return
 
-        assert response.text == ''
-        assert 'Content-Type' not in response.headers
+        assert not response.text
+        assert "Content-Type" not in response.headers

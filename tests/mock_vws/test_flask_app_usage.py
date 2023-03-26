@@ -1,34 +1,38 @@
 """
 Tests for the usage of the mock Flask application.
 """
+from __future__ import annotations
 
 import io
 import uuid
 from http import HTTPStatus
+from typing import TYPE_CHECKING
 
 import pytest
 import requests
-from pytest import MonkeyPatch
-from requests_mock import Mocker
-from requests_mock_flask import add_flask_app_to_mock
-from vws import VWS, CloudRecoService
-
 from mock_vws._flask_server.target_manager import TARGET_MANAGER_FLASK_APP
 from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
 from mock_vws._flask_server.vws import VWS_FLASK_APP
 from mock_vws.database import VuforiaDatabase
+from PIL import Image
+from requests_mock_flask import add_flask_app_to_mock
+from vws import VWS, CloudRecoService
+
 from tests.mock_vws.utils.usage_test_helpers import (
     process_deletion_seconds,
     processing_time_seconds,
     recognize_deletion_seconds,
 )
 
-_EXAMPLE_URL_FOR_TARGET_MANAGER = 'http://' + uuid.uuid4().hex + '.com'
+if TYPE_CHECKING:
+    from requests_mock import Mocker
+
+_EXAMPLE_URL_FOR_TARGET_MANAGER = "http://" + uuid.uuid4().hex + ".com"
 
 
 @pytest.fixture(autouse=True)
-def enable_requests_mock(
-    monkeypatch: MonkeyPatch,
+def _enable_requests_mock(
+    monkeypatch: pytest.MonkeyPatch,
     requests_mock: Mocker,
 ) -> None:
     """
@@ -37,13 +41,13 @@ def enable_requests_mock(
     add_flask_app_to_mock(
         mock_obj=requests_mock,
         flask_app=VWS_FLASK_APP,
-        base_url='https://vws.vuforia.com',
+        base_url="https://vws.vuforia.com",
     )
 
     add_flask_app_to_mock(
         mock_obj=requests_mock,
         flask_app=CLOUDRECO_FLASK_APP,
-        base_url='https://cloudreco.vuforia.com',
+        base_url="https://cloudreco.vuforia.com",
     )
 
     add_flask_app_to_mock(
@@ -53,7 +57,7 @@ def enable_requests_mock(
     )
 
     monkeypatch.setenv(
-        name='TARGET_MANAGER_BASE_URL',
+        name="TARGET_MANAGER_BASE_URL",
         value=_EXAMPLE_URL_FOR_TARGET_MANAGER,
     )
 
@@ -75,8 +79,8 @@ class TestProcessingTime:
         By default, targets in the mock take 0.5 seconds to be processed.
         """
         database = VuforiaDatabase()
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
-        requests.post(url=databases_url, json=database.to_dict())
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         time_taken = processing_time_seconds(
             vuforia_database=database,
@@ -89,18 +93,18 @@ class TestProcessingTime:
     def test_custom(
         self,
         image_file_failed_state: io.BytesIO,
-        monkeypatch: MonkeyPatch,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """
         It is possible to set a custom processing time.
         """
         monkeypatch.setenv(
-            name='PROCESSING_TIME_SECONDS',
-            value='0.1',
+            name="PROCESSING_TIME_SECONDS",
+            value="0.1",
         )
         database = VuforiaDatabase()
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
-        requests.post(url=databases_url, json=database.to_dict())
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         time_taken = processing_time_seconds(
             vuforia_database=database,
@@ -131,8 +135,8 @@ class TestCustomQueryRecognizesDeletionSeconds:
         See ``test_query`` for more information.
         """
         database = VuforiaDatabase()
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
-        requests.post(url=databases_url, json=database.to_dict())
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
         time_taken = recognize_deletion_seconds(
             high_quality_image=high_quality_image,
             vuforia_database=database,
@@ -144,7 +148,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
     def test_custom(
         self,
         high_quality_image: io.BytesIO,
-        monkeypatch: MonkeyPatch,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """
         It is possible to use set a custom amount of time that it takes for the
@@ -153,10 +157,10 @@ class TestCustomQueryRecognizesDeletionSeconds:
         # We choose a low time for a quick test.
         query_recognizes_deletion = 0.5
         database = VuforiaDatabase()
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
-        requests.post(url=databases_url, json=database.to_dict())
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
         monkeypatch.setenv(
-            name='DELETION_RECOGNITION_SECONDS',
+            name="DELETION_RECOGNITION_SECONDS",
             value=str(query_recognizes_deletion),
         )
         time_taken = recognize_deletion_seconds(
@@ -190,8 +194,8 @@ class TestCustomQueryProcessDeletionSeconds:
         See ``test_query`` for more information.
         """
         database = VuforiaDatabase()
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
-        requests.post(url=databases_url, json=database.to_dict())
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
         time_taken = process_deletion_seconds(
             high_quality_image=high_quality_image,
             vuforia_database=database,
@@ -203,7 +207,7 @@ class TestCustomQueryProcessDeletionSeconds:
     def test_custom(
         self,
         high_quality_image: io.BytesIO,
-        monkeypatch: MonkeyPatch,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """
         It is possible to use set a custom amount of time that it takes for the
@@ -212,10 +216,10 @@ class TestCustomQueryProcessDeletionSeconds:
         # We choose a low time for a quick test.
         query_processes_deletion = 0.1
         database = VuforiaDatabase()
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
-        requests.post(url=databases_url, json=database.to_dict())
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
         monkeypatch.setenv(
-            name='DELETION_PROCESSING_SECONDS',
+            name="DELETION_PROCESSING_SECONDS",
             value=str(query_processes_deletion),
         )
         time_taken = process_deletion_seconds(
@@ -232,47 +236,48 @@ class TestAddDatabase:
     Tests for adding databases to the mock.
     """
 
-    def test_duplicate_keys(self) -> None:
+    @staticmethod
+    def test_duplicate_keys() -> None:
         """
         It is not possible to have multiple databases with matching keys.
         """
         database = VuforiaDatabase(
-            server_access_key='1',
-            server_secret_key='2',
-            client_access_key='3',
-            client_secret_key='4',
-            database_name='5',
+            server_access_key="1",
+            server_secret_key="2",
+            client_access_key="3",
+            client_secret_key="4",
+            database_name="5",
         )
 
-        bad_server_access_key_db = VuforiaDatabase(server_access_key='1')
-        bad_server_secret_key_db = VuforiaDatabase(server_secret_key='2')
-        bad_client_access_key_db = VuforiaDatabase(client_access_key='3')
-        bad_client_secret_key_db = VuforiaDatabase(client_secret_key='4')
-        bad_database_name_db = VuforiaDatabase(database_name='5')
+        bad_server_access_key_db = VuforiaDatabase(server_access_key="1")
+        bad_server_secret_key_db = VuforiaDatabase(server_secret_key="2")
+        bad_client_access_key_db = VuforiaDatabase(client_access_key="3")
+        bad_client_secret_key_db = VuforiaDatabase(client_secret_key="4")
+        bad_database_name_db = VuforiaDatabase(database_name="5")
 
         server_access_key_conflict_error = (
-            'All server access keys must be unique. '
+            "All server access keys must be unique. "
             'There is already a database with the server access key "1".'
         )
         server_secret_key_conflict_error = (
-            'All server secret keys must be unique. '
+            "All server secret keys must be unique. "
             'There is already a database with the server secret key "2".'
         )
         client_access_key_conflict_error = (
-            'All client access keys must be unique. '
+            "All client access keys must be unique. "
             'There is already a database with the client access key "3".'
         )
         client_secret_key_conflict_error = (
-            'All client secret keys must be unique. '
+            "All client secret keys must be unique. "
             'There is already a database with the client secret key "4".'
         )
         database_name_conflict_error = (
-            'All names must be unique. '
+            "All names must be unique. "
             'There is already a database with the name "5".'
         )
 
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
-        requests.post(url=databases_url, json=database.to_dict())
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         for bad_database, expected_message in (
             (bad_server_access_key_db, server_access_key_conflict_error),
@@ -284,33 +289,35 @@ class TestAddDatabase:
             response = requests.post(
                 url=databases_url,
                 json=bad_database.to_dict(),
+                timeout=30,
             )
 
             assert response.status_code == HTTPStatus.CONFLICT
             assert response.text == expected_message
 
-    def test_give_no_details(self, high_quality_image: io.BytesIO) -> None:
+    @staticmethod
+    def test_give_no_details(high_quality_image: io.BytesIO) -> None:
         """
         It is possible to create a database without giving any data.
         """
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
-        response = requests.post(url=databases_url, json={})
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        response = requests.post(url=databases_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.CREATED
 
         data = response.json()
 
-        assert data['targets'] == []
-        assert data['state_name'] == 'WORKING'
-        assert 'database_name' in data.keys()
+        assert data["targets"] == []
+        assert data["state_name"] == "WORKING"
+        assert "database_name" in data
 
         vws_client = VWS(
-            server_access_key=data['server_access_key'],
-            server_secret_key=data['server_secret_key'],
+            server_access_key=data["server_access_key"],
+            server_secret_key=data["server_secret_key"],
         )
 
         cloud_reco_client = CloudRecoService(
-            client_access_key=data['client_access_key'],
-            client_secret_key=data['client_secret_key'],
+            client_access_key=data["client_access_key"],
+            client_secret_key=data["client_secret_key"],
         )
 
         assert not vws_client.list_targets()
@@ -322,28 +329,126 @@ class TestDeleteDatabase:
     Tests for deleting databases from the mock.
     """
 
-    def test_not_found(self) -> None:
+    @staticmethod
+    def test_not_found() -> None:
         """
         A 404 error is returned when trying to delete a database which does not
         exist.
         """
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
-        delete_url = databases_url + '/' + 'foobar'
-        response = requests.delete(url=delete_url, json={})
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        delete_url = databases_url + "/" + "foobar"
+        response = requests.delete(url=delete_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.NOT_FOUND
 
-    def test_delete_database(self) -> None:
+    @staticmethod
+    def test_delete_database() -> None:
         """
         It is possible to delete a database.
         """
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + '/databases'
-        response = requests.post(url=databases_url, json={})
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        response = requests.post(url=databases_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.CREATED
 
         data = response.json()
-        delete_url = databases_url + '/' + data['database_name']
-        response = requests.delete(url=delete_url, json={})
+        delete_url = databases_url + "/" + data["database_name"]
+        response = requests.delete(url=delete_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.OK
 
-        response = requests.delete(url=delete_url, json={})
+        response = requests.delete(url=delete_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.NOT_FOUND
+
+
+class TestImageMatchers:
+    """Tests for image matchers."""
+
+    @staticmethod
+    def test_exact_match(
+        high_quality_image: io.BytesIO,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """The exact matcher matches only exactly the same images."""
+        monkeypatch.setenv(name="IMAGE_MATCHER", value="exact")
+
+        database = VuforiaDatabase()
+
+        vws_client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+        cloud_reco_client = CloudRecoService(
+            client_access_key=database.client_access_key,
+            client_secret_key=database.client_secret_key,
+        )
+
+        pil_image = Image.open(fp=high_quality_image)
+        re_exported_image = io.BytesIO()
+        pil_image.save(re_exported_image, format="PNG")
+
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+
+        target_id = vws_client.add_target(
+            name="example",
+            width=1,
+            image=high_quality_image,
+            application_metadata=None,
+            active_flag=True,
+        )
+        vws_client.wait_for_target_processed(target_id=target_id)
+        same_image_result = cloud_reco_client.query(
+            image=high_quality_image,
+        )
+        assert len(same_image_result) == 1
+        different_image_result = cloud_reco_client.query(
+            image=re_exported_image,
+        )
+        assert len(different_image_result) == 0
+
+    @staticmethod
+    def test_average_hash_matcher(
+        high_quality_image: io.BytesIO,
+        different_high_quality_image: io.BytesIO,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """The average hash matcher matches similar images."""
+        monkeypatch.setenv(
+            name="IMAGE_MATCHER",
+            value="average_hash",
+        )
+        database = VuforiaDatabase()
+        vws_client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+        cloud_reco_client = CloudRecoService(
+            client_access_key=database.client_access_key,
+            client_secret_key=database.client_secret_key,
+        )
+
+        pil_image = Image.open(fp=high_quality_image)
+        re_exported_image = io.BytesIO()
+        pil_image.save(re_exported_image, format="PNG")
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+
+        target_id = vws_client.add_target(
+            name="example",
+            width=1,
+            image=high_quality_image,
+            application_metadata=None,
+            active_flag=True,
+        )
+        vws_client.wait_for_target_processed(target_id=target_id)
+        same_image_result = cloud_reco_client.query(
+            image=high_quality_image,
+        )
+        assert len(same_image_result) == 1
+        similar_image_result = cloud_reco_client.query(
+            image=re_exported_image,
+        )
+        assert len(similar_image_result) == 1
+
+        different_image_result = cloud_reco_client.query(
+            image=different_high_quality_image,
+        )
+        assert len(different_image_result) == 0

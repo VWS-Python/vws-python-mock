@@ -106,7 +106,7 @@ Use the following custom ``pytest`` options to skip some tests:
   --skip-real           Skip tests for Real Vuforia
   --skip-mock           Skip tests for In Memory Mock Vuforia
   --skip-docker_in_memory
-                        Skip tests for In Memory version of Docker application
+                      Skip tests for In Memory version of Docker application
 
 Documentation
 -------------
@@ -143,13 +143,13 @@ The database summary from ``GET /summary`` has multiple undocumented return fiel
 
 The database summary from ``GET /summary`` is not immediately accurate.
 
-The documentation page `How To Perform an Image Recognition Query`_ states that the ``Content-Type`` header must be set to ``multipart/form-data``.
+The documentation page `Vuforia Query Web API`_ states that the ``Content-Type`` header must be set to ``multipart/form-data``.
 However, it must be set to ``multipart/form-data; boundary=<BOUNDARY>`` where ``<BOUNDARY>`` is the boundary used when encoding the form data.
 
-The documentation page `How To Perform an Image Recognition Query`_ states that ``Content-Type`` will be the only response header.
+The documentation page `Vuforia Query Web API`_ states that ``Content-Type`` will be the only response header.
 This is not the case.
 
-The documentation page `How To Perform an Image Recognition Query`_ states that 10 is the maximum allowed value of ``max_num_results``.
+The documentation page `Vuforia Query Web API`_ states that 10 is the maximum allowed value of ``max_num_results``.
 However, the maximum allowed value is 50.
 
 A response to an invalid query may have an ``application/json`` content type but include text (not JSON) data.
@@ -158,10 +158,10 @@ After deleting a target, for up to approximately 30 seconds, matching it with a 
 
 A target with the name ``\uffff`` gets stuck in processing.
 
-The documentation page `How To Perform an Image Recognition Query`_ states that "The API accepts requests with unknown data fields, and ignore the unknown fields.".
+The documentation page `Vuforia Query Web API`_ states that "The API accepts requests with unknown data fields, and ignore the unknown fields.".
 This is not the case.
 
-The documentation page `How To Perform an Image Recognition Query`_ states "Maximum image size: 2.1 MPixel. 512 KiB for JPEG, 2MiB for PNG".
+The documentation page `Vuforia Query Web API`_ states "Maximum image size: 2.1 MPixel. 512 KiB for JPEG, 2MiB for PNG".
 However, JPEG images up to 2MiB are accepted.
 
 The ``request_count`` in a database summary is always ``0``.
@@ -169,7 +169,7 @@ The ``request_count`` in a database summary is always ``0``.
 The documentation for the target summary report says "Note: tracking_rating and ``reco_rating`` are provided only when status = success.".
 However, ``reco_rating`` is never provided and ``tracking_rating`` is provided even when the status is "failed".
 
-.. _How To Perform an Image Recognition Query: https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query
+.. _Vuforia Query Web API: https://library.vuforia.com/web-api/vuforia-query-web-api
 
 Release Process
 ---------------

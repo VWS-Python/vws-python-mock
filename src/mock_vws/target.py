@@ -6,13 +6,16 @@ from __future__ import annotations
 import base64
 import datetime
 import io
-import random
+import math
 import statistics
 import uuid
 from dataclasses import dataclass, field
 from typing import TypedDict
 from zoneinfo import ZoneInfo
 
+import brisque
+import cv2
+import numpy as np
 from PIL import Image, ImageStat
 
 from mock_vws._constants import TargetStatuses
@@ -28,7 +31,6 @@ class TargetDict(TypedDict):
     image_base64: str
     active_flag: bool
     processing_time_seconds: int | float
-    processed_tracking_rating: int
     application_metadata: str | None
     target_id: str
     last_modified_date: str
@@ -47,15 +49,37 @@ def _time_now() -> datetime.datetime:
     """
     Return the current time in the GMT time zone.
     """
-    gmt = ZoneInfo('GMT')
+    gmt = ZoneInfo("GMT")
     return datetime.datetime.now(tz=gmt)
 
 
-def _random_tracking_rating() -> int:
+def _quality(image_content: bytes) -> int:
     """
-    Return a random tracking rating.
+    Get a quality score for an image.
+
+    This is a rough approximation of the quality score used by Vuforia, but
+    is not accurate. For example, our "corrupted_image" fixture is rated as -2
+    by Vuforia, but is rated as 0 by this function.
+
+    Args:
+        image_content: The image content.
+
+    Returns:
+        The quality of the image.
     """
-    return random.randint(0, 5)
+    image_file = io.BytesIO(initial_bytes=image_content)
+    image = Image.open(fp=image_file)
+    image_array = np.asarray(a=image)
+    obj = brisque.BRISQUE(url=False)
+    # We avoid a barrage of warnings from the BRISQUE library.
+    with np.errstate(divide="ignore", invalid="ignore"):
+        try:
+            score = obj.score(img=image_array)
+        except cv2.error:  # pylint: disable=no-member
+            return 0
+    if math.isnan(score):
+        return 0
+    return int(score / 20)
 
 
 @dataclass(frozen=True, eq=True)
@@ -75,10 +99,7 @@ class Target:
     delete_date: datetime.datetime | None = None
     last_modified_date: datetime.datetime = field(default_factory=_time_now)
     previous_month_recos: int = 0
-    processed_tracking_rating: int = field(
-        default_factory=_random_tracking_rating,
-    )
-    reco_rating: str = ''
+    reco_rating: str = ""
     target_id: str = field(default_factory=_random_hex)
     total_recos: int = 0
     upload_date: datetime.datetime = field(default_factory=_time_now)
@@ -99,7 +120,9 @@ class Target:
 
         average_std_dev = statistics.mean(image_stat.stddev)
 
-        if average_std_dev > 5:
+        success_threshold = 5
+
+        if average_std_dev > success_threshold:
             return TargetStatuses.SUCCESS
 
         return TargetStatuses.FAILED
@@ -133,13 +156,6 @@ class Target:
     def tracking_rating(self) -> int:
         """
         Return the tracking rating of the target recognition image.
-
-        In this implementation that is just a random integer between 0 and 5
-        if the target status is 'success'.
-        The rating is 0 if the target status is 'failed'.
-        The rating is -1 for a short time while the target is being processed.
-        The real VWS seems to give -1 for a short time while processing, then
-        the real rating, even while it is still processing.
         """
         pre_rating_time = datetime.timedelta(
             # That this is half of the total processing time is unrealistic.
@@ -152,30 +168,28 @@ class Target:
         now = datetime.datetime.now(tz=timezone)
         time_since_upload = now - self.upload_date
 
+        # The real VWS seems to give -1 for a short time while processing, then
+        # the real rating, even while it is still processing.
         if time_since_upload <= pre_rating_time:
             return -1
 
-        if self._post_processing_status == TargetStatuses.SUCCESS:
-            return self.processed_tracking_rating
-
-        return 0
+        return _quality(image_content=self.image_value)
 
     @classmethod
     def from_dict(cls, target_dict: TargetDict) -> Target:
         """
         Load a target from a dictionary.
         """
-        timezone = ZoneInfo('GMT')
-        name = target_dict['name']
-        active_flag = target_dict['active_flag']
-        width = target_dict['width']
-        image_base64 = target_dict['image_base64']
+        timezone = ZoneInfo("GMT")
+        name = target_dict["name"]
+        active_flag = target_dict["active_flag"]
+        width = target_dict["width"]
+        image_base64 = target_dict["image_base64"]
         image_value = base64.b64decode(image_base64)
-        processed_tracking_rating = target_dict['processed_tracking_rating']
-        processing_time_seconds = target_dict['processing_time_seconds']
-        application_metadata = target_dict['application_metadata']
-        target_id = target_dict['target_id']
-        delete_date_optional = target_dict['delete_date_optional']
+        processing_time_seconds = target_dict["processing_time_seconds"]
+        application_metadata = target_dict["application_metadata"]
+        target_id = target_dict["target_id"]
+        delete_date_optional = target_dict["delete_date_optional"]
         if delete_date_optional is None:
             delete_date = None
         else:
@@ -183,13 +197,13 @@ class Target:
             delete_date = delete_date.replace(tzinfo=timezone)
 
         last_modified_date = datetime.datetime.fromisoformat(
-            target_dict['last_modified_date'],
+            target_dict["last_modified_date"],
         ).replace(tzinfo=timezone)
         upload_date = datetime.datetime.fromisoformat(
-            target_dict['upload_date'],
+            target_dict["upload_date"],
         ).replace(tzinfo=timezone)
 
-        target = Target(
+        return Target(
             target_id=target_id,
             name=name,
             active_flag=active_flag,
@@ -200,9 +214,7 @@ class Target:
             delete_date=delete_date,
             last_modified_date=last_modified_date,
             upload_date=upload_date,
-            processed_tracking_rating=processed_tracking_rating,
         )
-        return target
 
     def to_dict(self) -> TargetDict:
         """
@@ -215,15 +227,14 @@ class Target:
         image_base64 = base64.encodebytes(self.image_value).decode()
 
         return {
-            'name': self.name,
-            'width': self.width,
-            'image_base64': image_base64,
-            'active_flag': self.active_flag,
-            'processing_time_seconds': self.processing_time_seconds,
-            'processed_tracking_rating': self.processed_tracking_rating,
-            'application_metadata': self.application_metadata,
-            'target_id': self.target_id,
-            'last_modified_date': self.last_modified_date.isoformat(),
-            'delete_date_optional': delete_date,
-            'upload_date': self.upload_date.isoformat(),
+            "name": self.name,
+            "width": self.width,
+            "image_base64": image_base64,
+            "active_flag": self.active_flag,
+            "processing_time_seconds": self.processing_time_seconds,
+            "application_metadata": self.application_metadata,
+            "target_id": self.target_id,
+            "last_modified_date": self.last_modified_date.isoformat(),
+            "delete_date_optional": delete_date,
+            "upload_date": self.upload_date.isoformat(),
         }

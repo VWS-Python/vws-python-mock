@@ -5,18 +5,23 @@ Tools for making Vuforia queries.
 from __future__ import annotations
 
 import base64
-import cgi
 import datetime
 import io
 import uuid
-from typing import Any, Dict, Set
+from email.message import EmailMessage
+from typing import TYPE_CHECKING, Any
 from zoneinfo import ZoneInfo
+
+import multipart
 
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_client_keys
 from mock_vws._mock_common import json_dump
 from mock_vws.database import VuforiaDatabase
+
+if TYPE_CHECKING:
+    from mock_vws.image_matchers import ImageMatcher
 
 
 class ActiveMatchingTargetsDeleteProcessing(Exception):
@@ -26,13 +31,14 @@ class ActiveMatchingTargetsDeleteProcessing(Exception):
 
 
 def get_query_match_response_text(
-    request_headers: Dict[str, str],
+    request_headers: dict[str, str],
     request_body: bytes,
     request_method: str,
     request_path: str,
-    databases: Set[VuforiaDatabase],
+    databases: set[VuforiaDatabase],
     query_processes_deletion_seconds: int | float,
     query_recognizes_deletion_seconds: int | float,
+    match_checker: ImageMatcher,
 ) -> str:
     """
     Args:
@@ -47,6 +53,8 @@ def get_query_match_response_text(
         query_processes_deletion_seconds: The number of seconds after a target
             deletion is recognized that the query endpoint will return a 500
             response on a match.
+        match_checker: A callable which takes two image values and returns
+            whether they match.
 
     Returns:
         The response text for a query endpoint request.
@@ -57,22 +65,27 @@ def get_query_match_response_text(
     """
     body_file = io.BytesIO(request_body)
 
-    _, pdict = cgi.parse_header(request_headers['Content-Type'])
-    parsed = cgi.parse_multipart(
-        fp=body_file,
-        pdict={
-            'boundary': pdict['boundary'].encode(),
-        },
-    )
+    email_message = EmailMessage()
+    email_message["content-type"] = request_headers["Content-Type"]
+    boundary = email_message.get_boundary()
+    assert isinstance(boundary, str)
 
-    [max_num_results] = parsed.get('max_num_results', ['1'])
+    parsed = multipart.MultipartParser(stream=body_file, boundary=boundary)
 
-    [include_target_data] = parsed.get('include_target_data', ['top'])
-    include_target_data = include_target_data.lower()
+    parsed_max_num_results = parsed.get("max_num_results")
+    if parsed_max_num_results is None:
+        max_num_results = "1"
+    else:
+        max_num_results = parsed_max_num_results.value
 
-    [image_value] = parsed['image']
-    assert isinstance(image_value, bytes)
-    gmt = ZoneInfo('GMT')
+    parsed_include_target_data = parsed.get("include_target_data")
+    if parsed_include_target_data is None:
+        include_target_data = "top"
+    else:
+        include_target_data = parsed_include_target_data.value.lower()
+
+    image_value = parsed.get("image").raw
+    gmt = ZoneInfo("GMT")
     now = datetime.datetime.now(tz=gmt)
 
     processing_timedelta = datetime.timedelta(
@@ -96,7 +109,10 @@ def get_query_match_response_text(
     matching_targets = [
         target
         for target in database.targets
-        if target.image_value == image_value
+        if match_checker(
+            first_image_content=target.image_value,
+            second_image_content=image_value,
+        )
     ]
 
     not_deleted_matches = [
@@ -128,9 +144,15 @@ def get_query_match_response_text(
     if active_matching_targets_delete_processing:
         raise ActiveMatchingTargetsDeleteProcessing
 
-    matches = not_deleted_matches + deletion_not_recognized_matches
+    all_quality_matches = not_deleted_matches + deletion_not_recognized_matches
+    minimum_rating = 0.0
+    matches = [
+        match
+        for match in all_quality_matches
+        if match.tracking_rating > minimum_rating
+    ]
 
-    results: list[Dict[str, Any]] = []
+    results: list[dict[str, Any]] = []
     for target in matches:
         target_timestamp = target.last_modified_date.timestamp()
         if target.application_metadata is None:
@@ -138,36 +160,32 @@ def get_query_match_response_text(
         else:
             application_metadata = base64.b64encode(
                 decode_base64(encoded_data=target.application_metadata),
-            ).decode('ascii')
+            ).decode("ascii")
         target_data = {
-            'target_timestamp': int(target_timestamp),
-            'name': target.name,
-            'application_metadata': application_metadata,
+            "target_timestamp": int(target_timestamp),
+            "name": target.name,
+            "application_metadata": application_metadata,
         }
 
-        if include_target_data == 'all':
+        if include_target_data == "all" or (
+            include_target_data == "top" and not results
+        ):
             result = {
-                'target_id': target.target_id,
-                'target_data': target_data,
-            }
-        elif include_target_data == 'top' and not results:
-            result = {
-                'target_id': target.target_id,
-                'target_data': target_data,
+                "target_id": target.target_id,
+                "target_data": target_data,
             }
         else:
             result = {
-                'target_id': target.target_id,
+                "target_id": target.target_id,
             }
 
         results.append(result)
 
     results = results[: int(max_num_results)]
     body = {
-        'result_code': ResultCodes.SUCCESS.value,
-        'results': results,
-        'query_id': uuid.uuid4().hex,
+        "result_code": ResultCodes.SUCCESS.value,
+        "results": results,
+        "query_id": uuid.uuid4().hex,
     }
 
-    value = json_dump(body)
-    return value
+    return json_dump(body)

@@ -5,6 +5,7 @@ Image validators to use in the mock.
 import binascii
 import io
 import json
+import logging
 from http import HTTPStatus
 
 from PIL import Image
@@ -15,6 +16,8 @@ from mock_vws._services_validators.exceptions import (
     Fail,
     ImageTooLarge,
 )
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def validate_image_format(request_body: bytes) -> None:
@@ -31,7 +34,7 @@ def validate_image_format(request_body: bytes) -> None:
         return
 
     request_text = request_body.decode()
-    image = json.loads(request_text).get('image')
+    image = json.loads(request_text).get("image")
 
     if image is None:
         return
@@ -40,9 +43,10 @@ def validate_image_format(request_body: bytes) -> None:
     image_file = io.BytesIO(decoded)
     pil_image = Image.open(image_file)
 
-    if pil_image.format in ('PNG', 'JPEG'):
+    if pil_image.format in ("PNG", "JPEG"):
         return
 
+    _LOGGER.warning(msg="The image is not a PNG or JPEG.")
     raise BadImage
 
 
@@ -57,12 +61,11 @@ def validate_image_color_space(request_body: bytes) -> None:
         BadImage: The image is given and is not in either the RGB or
             greyscale color space.
     """
-
     if not request_body:
         return
 
     request_text = request_body.decode()
-    image = json.loads(request_text).get('image')
+    image = json.loads(request_text).get("image")
 
     if image is None:
         return
@@ -71,9 +74,12 @@ def validate_image_color_space(request_body: bytes) -> None:
     image_file = io.BytesIO(decoded)
     pil_image = Image.open(image_file)
 
-    if pil_image.mode in ('L', 'RGB'):
+    if pil_image.mode in ("L", "RGB"):
         return
 
+    _LOGGER.warning(
+        msg="The image is not in the RGB or greyscale color space.",
+    )
     raise BadImage
 
 
@@ -88,21 +94,22 @@ def validate_image_size(request_body: bytes) -> None:
         ImageTooLarge:  The image is given and is not under a certain file
             size threshold.
     """
-
     if not request_body:
         return
 
     request_text = request_body.decode()
-    image = json.loads(request_text).get('image')
+    image = json.loads(request_text).get("image")
 
     if image is None:
         return
 
     decoded = decode_base64(encoded_data=image)
 
-    if len(decoded) <= 2359293:
+    max_allowed_size = 2_359_293
+    if len(decoded) <= max_allowed_size:
         return
 
+    _LOGGER.warning(msg="The image is too large.")
     raise ImageTooLarge
 
 
@@ -116,12 +123,11 @@ def validate_image_is_image(request_body: bytes) -> None:
     Raises:
         BadImage: Image data is given and it is not an image file.
     """
-
     if not request_body:
         return
 
     request_text = request_body.decode()
-    image = json.loads(request_text).get('image')
+    image = json.loads(request_text).get("image")
 
     if image is None:
         return
@@ -145,19 +151,19 @@ def validate_image_encoding(request_body: bytes) -> None:
     Raises:
         Fail: Image data is given and it cannot be base64 decoded.
     """
-
     if not request_body:
         return
 
     request_text = request_body.decode()
-    if 'image' not in json.loads(request_text):
+    if "image" not in json.loads(request_text):
         return
 
-    image = json.loads(request_text).get('image')
+    image = json.loads(request_text).get("image")
 
     try:
         decode_base64(encoded_data=image)
     except binascii.Error as exc:
+        _LOGGER.warning(msg=('Image data cannot be base64 decoded: "%s"', exc))
         raise Fail(status_code=HTTPStatus.UNPROCESSABLE_ENTITY) from exc
 
 
@@ -171,17 +177,17 @@ def validate_image_data_type(request_body: bytes) -> None:
     Raises:
         Fail: Image data is given and it is not a string.
     """
-
     if not request_body:
         return
 
     request_text = request_body.decode()
-    if 'image' not in json.loads(request_text):
+    if "image" not in json.loads(request_text):
         return
 
-    image = json.loads(request_text).get('image')
+    image = json.loads(request_text).get("image")
 
     if isinstance(image, str):
         return
 
+    _LOGGER.warning(msg=('Image data is not a string: "%s"', image))
     raise Fail(status_code=HTTPStatus.BAD_REQUEST)

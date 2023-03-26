@@ -10,11 +10,12 @@ import email.utils
 import json
 from http import HTTPStatus
 from string import hexdigits
+from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
-from requests import Response
-
-from mock_vws._constants import ResultCodes
+if TYPE_CHECKING:
+    from mock_vws._constants import ResultCodes
+    from requests import Response
 
 
 def assert_vws_failure(
@@ -34,7 +35,7 @@ def assert_vws_failure(
         AssertionError: The response is not in the expected VWS error format
             for the given codes.
     """
-    assert response.json().keys() == {'transaction_id', 'result_code'}
+    assert response.json().keys() == {"transaction_id", "result_code"}
     assert_vws_response(
         response=response,
         status_code=status_code,
@@ -54,11 +55,11 @@ def assert_valid_date_header(response: Response) -> None:
         AssertionError: The response does not include a `Date` header which is
             within one minute of "now".
     """
-    date_response = response.headers['Date']
+    date_response = response.headers["Date"]
     date_from_response = email.utils.parsedate(date_response)
     assert date_from_response is not None
     year, month, day, hour, minute, second, _, _, _ = date_from_response
-    gmt = ZoneInfo('GMT')
+    gmt = ZoneInfo("GMT")
     datetime_from_response = datetime.datetime(
         year=year,
         month=month,
@@ -83,8 +84,9 @@ def assert_valid_transaction_id(response: Response) -> None:
     Raises:
         AssertionError: The response does not include a valid transaction ID.
     """
-    transaction_id = response.json()['transaction_id']
-    assert len(transaction_id) == 32
+    transaction_id = response.json()["transaction_id"]
+    expected_transaction_id_length = 32
+    assert len(transaction_id) == expected_transaction_id_length
     assert all(char in hexdigits for char in transaction_id)
 
 
@@ -100,7 +102,7 @@ def assert_json_separators(response: Response) -> None:
     """
     assert response.text == json.dumps(
         obj=response.json(),
-        separators=(',', ':'),
+        separators=(",", ":"),
     )
 
 
@@ -112,7 +114,7 @@ def assert_vws_response(
     """
     Assert that a VWS response is as expected, at least in part.
 
-    https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Interperete-VWS-API-Result-Codes
+    https://library.vuforia.com/web-api/cloud-targets-web-services-api#result-codes
     implies that the expected status code can be worked out from the result
     code. However, this is not the case as the real results differ from the
     documentation.
@@ -129,20 +131,26 @@ def assert_vws_response(
             given codes.
     """
     assert response.status_code == status_code
-    response_result_code = response.json()['result_code']
+    response_result_code = response.json()["result_code"]
     assert response_result_code == result_code.value
     response_header_keys = {
-        'Connection',
-        'Content-Length',
-        'Content-Type',
-        'Date',
-        'Server',
+        "content-length",
+        "content-type",
+        "date",
+        "server",
+        "strict-transport-security",
+        "x-aws-region",
+        "x-content-type-options",
+        "x-envoy-upstream-service-time",
     }
-    assert response.headers.keys() == response_header_keys
-    assert response.headers['Connection'] == 'keep-alive'
-    assert response.headers['Content-Length'] == str(len(response.text))
-    assert response.headers['Content-Type'] == 'application/json'
-    assert response.headers['Server'] == 'nginx'
+    assert set(map(str.lower, response.headers.keys())) == response_header_keys
+    assert response.headers["Content-Length"] == str(len(response.text))
+    assert response.headers["Content-Type"] == "application/json"
+    assert response.headers["Server"] == "envoy"
+    assert response.headers["x-content-type-options"] == "nosniff"
+    assert "-" in response.headers["x-aws-region"]
+    assert response.headers["strict-transport-security"] == "max-age=31536000"
+    assert int(response.headers["x-envoy-upstream-service-time"]) > 1
     assert_json_separators(response=response)
     assert_valid_transaction_id(response=response)
     assert_valid_date_header(response=response)
@@ -158,36 +166,37 @@ def assert_query_success(response: Response) -> None:
             for performing an image recognition query.
     """
     assert response.status_code == HTTPStatus.OK
-    assert response.json().keys() == {'result_code', 'results', 'query_id'}
+    assert response.json().keys() == {"result_code", "results", "query_id"}
 
-    query_id = response.json()['query_id']
-    assert len(query_id) == 32
+    query_id = response.json()["query_id"]
+    expected_query_id_length = 32
+    assert len(query_id) == expected_query_id_length
     assert all(char in hexdigits for char in query_id)
 
-    assert response.json()['result_code'] == 'Success'
+    assert response.json()["result_code"] == "Success"
     assert_valid_date_header(response=response)
     copied_response_headers = dict(copy.deepcopy(response.headers))
-    copied_response_headers.pop('Date')
+    copied_response_headers.pop("Date")
 
     # In the mock, all responses have the ``Content-Encoding`` ``gzip``.
     # In the real Vuforia, some do and some do not.
     # We are not sure why.
-    content_encoding = copied_response_headers.pop('Content-Encoding', None)
-    assert content_encoding in (None, 'gzip')
+    content_encoding = copied_response_headers.pop("Content-Encoding", None)
+    assert content_encoding in (None, "gzip")
 
     expected_response_header_not_chunked = {
-        'Connection': 'keep-alive',
-        'Content-Length': str(response.raw.tell()),
-        'Content-Type': 'application/json',
-        'Server': 'nginx',
+        "Connection": "keep-alive",
+        "Content-Length": str(response.raw.tell()),
+        "Content-Type": "application/json",
+        "Server": "nginx",
     }
 
     # The mock does not send chunked responses.
     expected_response_header_chunked = {
-        'Connection': 'keep-alive',
-        'Content-Type': 'application/json',
-        'Server': 'nginx',
-        'transfer-encoding': 'chunked',
+        "Connection": "keep-alive",
+        "Content-Type": "application/json",
+        "Server": "nginx",
+        "transfer-encoding": "chunked",
     }
 
     assert copied_response_headers in (
@@ -221,41 +230,41 @@ def assert_vwq_failure(
     """
     assert response.status_code == status_code
     response_header_keys = {
-        'Connection',
-        'Content-Length',
-        'Date',
-        'Server',
+        "Connection",
+        "Content-Length",
+        "Date",
+        "Server",
     }
 
     if cache_control is not None:
-        response_header_keys.add('Cache-Control')
-        assert response.headers['Cache-Control'] == cache_control
+        response_header_keys.add("Cache-Control")
+        assert response.headers["Cache-Control"] == cache_control
 
     if content_type is not None:
-        response_header_keys.add('Content-Type')
-        assert response.headers['Content-Type'] == content_type
+        response_header_keys.add("Content-Type")
+        assert response.headers["Content-Type"] == content_type
 
     if www_authenticate is not None:
-        response_header_keys.add('WWW-Authenticate')
-        assert response.headers['WWW-Authenticate'] == www_authenticate
+        response_header_keys.add("WWW-Authenticate")
+        assert response.headers["WWW-Authenticate"] == www_authenticate
 
     # Sometimes the "transfer-encoding" is given.
     # It is not given by the mock.
     response_header_keys_chunked = copy.copy(response_header_keys)
-    response_header_keys_chunked.remove('Content-Length')
-    response_header_keys_chunked.add('transfer-encoding')
+    response_header_keys_chunked.remove("Content-Length")
+    response_header_keys_chunked.add("transfer-encoding")
 
     assert response.headers.keys() in (
         response_header_keys,
         response_header_keys_chunked,
     )
-    assert response.headers.get('transfer-encoding', 'chunked') == 'chunked'
-    assert response.headers['Connection'] == connection
-    if 'Content-Length' in response.headers:  # pragma: no cover
-        assert response.headers['Content-Length'] == str(len(response.text))
+    assert response.headers.get("transfer-encoding", "chunked") == "chunked"
+    assert response.headers["Connection"] == connection
+    if "Content-Length" in response.headers:  # pragma: no cover
+        assert response.headers["Content-Length"] == str(len(response.text))
     # In some tests we see that sometimes there is no Content-Length header
     # here.
     else:  # pragma: no cover
         pass
     assert_valid_date_header(response=response)
-    assert response.headers['Server'] == 'nginx'
+    assert response.headers["Server"] == "nginx"

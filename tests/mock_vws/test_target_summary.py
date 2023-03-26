@@ -2,39 +2,45 @@
 Tests for the mock of the target summary endpoint.
 """
 
+from __future__ import annotations
+
 import datetime
-import io
 import uuid
+from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
 import pytest
-from _pytest.fixtures import SubRequest
-from vws import VWS, CloudRecoService
 from vws.exceptions.vws_exceptions import UnknownTarget
 from vws.reports import TargetStatuses
 
-from mock_vws.database import VuforiaDatabase
+if TYPE_CHECKING:
+    import io
+
+    from _pytest.fixtures import SubRequest
+    from mock_vws.database import VuforiaDatabase
+    from vws import VWS, CloudRecoService
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestTargetSummary:
     """
     Tests for the target summary endpoint.
     """
 
-    @pytest.mark.parametrize('active_flag', [True, False])
+    @staticmethod
+    @pytest.mark.parametrize("active_flag", [True, False])
     def test_target_summary(
-        self,
         vws_client: VWS,
         vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
+        *,
         active_flag: bool,
     ) -> None:
         """
         A target summary is returned.
         """
         name = uuid.uuid4().hex
-        gmt = ZoneInfo('GMT')
+        gmt = ZoneInfo("GMT")
         date_before_add_target = datetime.datetime.now(tz=gmt).date()
 
         target_id = vws_client.add_target(
@@ -67,15 +73,15 @@ class TestTargetSummary:
         assert report.current_month_recos == 0
         assert report.previous_month_recos == 0
 
+    @staticmethod
     @pytest.mark.parametrize(
-        ['image_fixture_name', 'expected_status'],
+        ("image_fixture_name", "expected_status"),
         [
-            ('high_quality_image', TargetStatuses.SUCCESS),
-            ('image_file_failed_state', TargetStatuses.FAILED),
+            ("high_quality_image", TargetStatuses.SUCCESS),
+            ("image_file_failed_state", TargetStatuses.FAILED),
         ],
     )
     def test_after_processing(
-        self,
         vws_client: VWS,
         request: SubRequest,
         image_fixture_name: str,
@@ -98,7 +104,7 @@ class TestTargetSummary:
         image_file = request.getfixturevalue(image_fixture_name)
 
         target_id = vws_client.add_target(
-            name='example',
+            name="example",
             width=1,
             image=image_file,
             active_flag=True,
@@ -121,14 +127,14 @@ class TestTargetSummary:
         assert report.previous_month_recos == 0
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestRecognitionCounts:
     """
     Tests for the recognition counts in the summary.
     """
 
+    @staticmethod
     def test_recognition(
-        self,
         vws_client: VWS,
         cloud_reco_client: CloudRecoService,
         high_quality_image: io.BytesIO,
@@ -137,7 +143,7 @@ class TestRecognitionCounts:
         The recognition counts stay at 0 even after recognitions.
         """
         target_id = vws_client.add_target(
-            name='example',
+            name="example",
             width=1,
             image=high_quality_image,
             active_flag=True,
@@ -157,16 +163,14 @@ class TestRecognitionCounts:
         assert report.previous_month_recos == 0
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestInactiveProject:
     """
     Tests for inactive projects.
     """
 
-    def test_inactive_project(
-        self,
-        inactive_vws_client: VWS,
-    ) -> None:
+    @staticmethod
+    def test_inactive_project(inactive_vws_client: VWS) -> None:
         """
         The project's active state does not affect getting a target.
         """

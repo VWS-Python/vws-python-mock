@@ -2,17 +2,15 @@
 A fake implementation of the Vuforia Web Query API.
 
 See
-https://library.vuforia.com/articles/Solution/How-To-Perform-an-Image-Recognition-Query
+https://library.vuforia.com/web-api/vuforia-query-web-api
 """
 
 from __future__ import annotations
 
 import email.utils
-from typing import Callable, Set
+from typing import TYPE_CHECKING
 
 from requests_mock import POST
-from requests_mock.request import _RequestObjectProxy
-from requests_mock.response import _Context
 
 from mock_vws._mock_common import Route
 from mock_vws._query_tools import (
@@ -24,15 +22,23 @@ from mock_vws._query_validators.exceptions import (
     DeletedTargetMatched,
     ValidatorException,
 )
-from mock_vws.target_manager import TargetManager
 
-ROUTES = set()
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from requests_mock.request import _RequestObjectProxy
+    from requests_mock.response import _Context
+
+    from mock_vws.image_matchers import ImageMatcher
+    from mock_vws.target_manager import TargetManager
+
+_ROUTES: set[Route] = set()
 
 
 def route(
     path_pattern: str,
-    http_methods: Set[str],
-) -> Callable[..., Callable]:
+    http_methods: set[str],
+) -> Callable[[Callable[..., str]], Callable[..., str]]:
     """
     Register a decorated method so that it can be recognized as a route.
 
@@ -53,7 +59,7 @@ def route(
             The given `method` with multiple changes, including added
             validators.
         """
-        ROUTES.add(
+        _ROUTES.add(
             Route(
                 route_name=method.__name__,
                 path_pattern=path_pattern,
@@ -78,6 +84,7 @@ class MockVuforiaWebQueryAPI:
         target_manager: TargetManager,
         query_recognizes_deletion_seconds: int | float,
         query_processes_deletion_seconds: int | float,
+        match_checker: ImageMatcher,
     ) -> None:
         """
         Args:
@@ -88,11 +95,13 @@ class MockVuforiaWebQueryAPI:
             query_processes_deletion_seconds: The number of seconds after a
                 target deletion is recognized that the query endpoint will
                 return a 500 response on a match.
+            match_checker: A callable which takes two image values and returns
+                whether they match.
 
         Attributes:
             routes: The `Route`s to be used in the mock.
         """
-        self.routes: Set[Route] = ROUTES
+        self.routes: set[Route] = _ROUTES
         self._target_manager = target_manager
         self._query_processes_deletion_seconds = (
             query_processes_deletion_seconds
@@ -100,8 +109,9 @@ class MockVuforiaWebQueryAPI:
         self._query_recognizes_deletion_seconds = (
             query_recognizes_deletion_seconds
         )
+        self._match_checker = match_checker
 
-    @route(path_pattern='/v1/query', http_methods={POST})
+    @route(path_pattern="/v1/query", http_methods={POST})
     def query(
         self,
         request: _RequestObjectProxy,
@@ -136,6 +146,7 @@ class MockVuforiaWebQueryAPI:
                 query_recognizes_deletion_seconds=(
                     self._query_recognizes_deletion_seconds
                 ),
+                match_checker=self._match_checker,
             )
         except ActiveMatchingTargetsDeleteProcessing:
             deleted_target_matched_exception = DeletedTargetMatched()
@@ -145,10 +156,10 @@ class MockVuforiaWebQueryAPI:
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {
-            'Connection': 'keep-alive',
-            'Content-Type': 'application/json',
-            'Server': 'nginx',
-            'Date': date,
-            'Content-Length': str(len(response_text)),
+            "Connection": "keep-alive",
+            "Content-Type": "application/json",
+            "Server": "nginx",
+            "Date": date,
+            "Content-Length": str(len(response_text)),
         }
         return response_text

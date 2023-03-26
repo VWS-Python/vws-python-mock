@@ -1,27 +1,32 @@
 """
 Configuration, plugins and fixtures for `pytest`.
 """
+from __future__ import annotations
 
 import base64
 import binascii
-import io
 import uuid
+from typing import TYPE_CHECKING
 
 import pytest
-from _pytest.fixtures import SubRequest
 from vws import VWS, CloudRecoService
 
-from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.utils import Endpoint
+if TYPE_CHECKING:
+    import io
+
+    from _pytest.fixtures import SubRequest
+    from mock_vws.database import VuforiaDatabase
+
+    from tests.mock_vws.utils import Endpoint
 
 pytest_plugins = [
-    'tests.mock_vws.fixtures.prepared_requests',
-    'tests.mock_vws.fixtures.credentials',
-    'tests.mock_vws.fixtures.vuforia_backends',
+    "tests.mock_vws.fixtures.prepared_requests",
+    "tests.mock_vws.fixtures.credentials",
+    "tests.mock_vws.fixtures.vuforia_backends",
 ]
 
 
-@pytest.fixture(name='vws_client')
+@pytest.fixture(name="vws_client")
 def fixture_vws_client(vuforia_database: VuforiaDatabase) -> VWS:
     """
     A VWS client for an active VWS database.
@@ -43,7 +48,7 @@ def cloud_reco_client(vuforia_database: VuforiaDatabase) -> CloudRecoService:
     )
 
 
-@pytest.fixture(name='inactive_vws_client')
+@pytest.fixture(name="inactive_vws_client")
 def fixture_inactive_vws_client(inactive_database: VuforiaDatabase) -> VWS:
     """
     A client for an inactive VWS database.
@@ -75,15 +80,15 @@ def target_id(
 
 @pytest.fixture(
     params=[
-        '_add_target',
-        '_database_summary',
-        '_delete_target',
-        '_get_duplicates',
-        '_get_target',
-        '_target_list',
-        '_target_summary',
-        '_update_target',
-        '_query',
+        "add_target",
+        "database_summary",
+        "delete_target",
+        "get_duplicates",
+        "get_target",
+        "target_list",
+        "target_summary",
+        "update_target",
+        "query",
     ],
 )
 def endpoint(request: SubRequest) -> Endpoint:
@@ -97,21 +102,20 @@ def endpoint(request: SubRequest) -> Endpoint:
 @pytest.fixture(
     params=[
         pytest.param(
-            'abcde',
-            id='Length is one more than a multiple of four.',
+            "abcde",
+            id="Length is one more than a multiple of four.",
         ),
         pytest.param(
             # We choose XN because it is different when decoded then encoded:
             #
-            #   print(base64.b64encode(base64.b64decode('XN==')))
             #
             # prints ``XA==``.
-            'XN',
-            id='Length is two more than a multiple of four.',
+            "XN",
+            id="Length is two more than a multiple of four.",
         ),
         pytest.param(
-            'XNA',
-            id='Length is three more than a multiple of four.',
+            "XNA",
+            id="Length is three more than a multiple of four.",
         ),
     ],
 )
@@ -133,9 +137,9 @@ def not_base64_encoded_processable(request: SubRequest) -> str:
     params=[
         pytest.param(
             'aaa"',
-            id='Includes a character which is not a base64 digit.',
+            id="Includes a character which is not a base64 digit.",
         ),
-        pytest.param('"', id='Not a base64 character.'),
+        pytest.param('"', id="Not a base64 character."),
     ],
 )
 def not_base64_encoded_not_processable(request: SubRequest) -> str:

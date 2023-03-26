@@ -4,11 +4,11 @@ Utilities for tests.
 
 import io
 import random
+from typing import Literal
 
 import requests
-from PIL import Image
-
 from mock_vws._constants import ResultCodes
+from PIL import Image
 
 
 class Endpoint:
@@ -56,8 +56,8 @@ class Endpoint:
         self.successful_headers_status_code = successful_headers_status_code
         self.successful_headers_result_code = successful_headers_result_code
         headers = prepared_request.headers
-        content_type = headers.get('Content-Type', '')
-        content_type = content_type.split(';')[0]
+        content_type = headers.get("Content-Type", "")
+        content_type = content_type.split(";")[0]
         assert isinstance(content_type, str)
         self.auth_header_content_type: str = content_type
         self.access_key = access_key
@@ -66,7 +66,7 @@ class Endpoint:
 
 def make_image_file(
     file_format: str,
-    color_space: str,
+    color_space: Literal["L"] | Literal["RGB"] | Literal["CMYK"],
     width: int,
     height: int,
 ) -> io.BytesIO:
@@ -87,14 +87,21 @@ def make_image_file(
     """
     image_buffer = io.BytesIO()
     image = Image.new(color_space, (width, height))
-    # If this assertion ever fails, see
-    # https://github.com/VWS-Python/vws-test-fixtures for what to do.
-    assert color_space != 'L'
-    reds = random.choices(population=range(0, 255), k=width * height)
-    greens = random.choices(population=range(0, 255), k=width * height)
-    blues = random.choices(population=range(0, 255), k=width * height)
-    pixels = list(zip(reds, greens, blues))
-    image.putdata(pixels)
+    for row_index in range(height):
+        for column_index in range(width):
+            if color_space == "L":
+                grey = random.choice(seq=range(0, 255))
+                image.putpixel(xy=(column_index, row_index), value=grey)
+            else:
+                assert color_space in ("CMYK", "RGB")
+                red = random.choice(seq=range(0, 255))
+                green = random.choice(seq=range(0, 255))
+                blue = random.choice(seq=range(0, 255))
+                image.putpixel(
+                    xy=(column_index, row_index),
+                    value=(red, green, blue),
+                )
+
     image.save(image_buffer, file_format)
     image_buffer.seek(0)
     return image_buffer

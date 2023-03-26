@@ -1,19 +1,22 @@
 """
 Tests for the mock of the database summary endpoint.
 """
+from __future__ import annotations
 
-import io
 import logging
 import time
 import uuid
 from http import HTTPStatus
+from typing import TYPE_CHECKING
 
 import pytest
+from mock_vws import MockVWS
+from mock_vws.database import VuforiaDatabase
 from vws import VWS, CloudRecoService
 from vws.exceptions.vws_exceptions import Fail
 
-from mock_vws import MockVWS
-from mock_vws.database import VuforiaDatabase
+if TYPE_CHECKING:
+    import io
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -49,10 +52,10 @@ def _wait_for_image_numbers(
             within the time limit.
     """
     requirements = {
-        'active_images': active_images,
-        'inactive_images': inactive_images,
-        'failed_images': failed_images,
-        'processing_images': processing_images,
+        "active_images": active_images,
+        "inactive_images": inactive_images,
+        "failed_images": failed_images,
+        "processing_images": processing_images,
     }
 
     maximum_wait_seconds = 500
@@ -71,14 +74,15 @@ def _wait_for_image_numbers(
         while True:
             seconds_waited = time.monotonic() - start_time
             if seconds_waited > maximum_wait_seconds:  # pragma: no cover
-                raise Exception('Timed out waiting.')
+                timeout_message = "Timed out waiting"
+                raise ValueError(timeout_message)
 
             report = vws_client.get_database_summary_report()
             relevant_images_in_summary = getattr(report, key)
             if value != relevant_images_in_summary:  # pragma: no cover
                 message = (
-                    f'Expected {value} `{key}`s. '
-                    f'Found {relevant_images_in_summary} `{key}`s.'
+                    f"Expected {value} `{key}`s. "
+                    f"Found {relevant_images_in_summary} `{key}`s."
                 )
                 LOGGER.debug(message)
 
@@ -91,14 +95,14 @@ def _wait_for_image_numbers(
             break
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestDatabaseSummary:
     """
     Tests for the mock of the database summary endpoint at `GET /summary`.
     """
 
+    @staticmethod
     def test_success(
-        self,
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
     ) -> None:
@@ -116,8 +120,8 @@ class TestDatabaseSummary:
             processing_images=0,
         )
 
+    @staticmethod
     def test_active_images(
-        self,
         vws_client: VWS,
         target_id: str,
     ) -> None:
@@ -134,8 +138,8 @@ class TestDatabaseSummary:
             processing_images=0,
         )
 
+    @staticmethod
     def test_failed_images(
-        self,
         image_file_failed_state: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -160,8 +164,8 @@ class TestDatabaseSummary:
             processing_images=0,
         )
 
+    @staticmethod
     def test_inactive_images(
-        self,
         vws_client: VWS,
         image_file_success_state_low_rating: io.BytesIO,
     ) -> None:
@@ -187,8 +191,8 @@ class TestDatabaseSummary:
             processing_images=0,
         )
 
+    @staticmethod
     def test_inactive_failed(
-        self,
         image_file_failed_state: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -213,8 +217,8 @@ class TestDatabaseSummary:
             processing_images=0,
         )
 
+    @staticmethod
     def test_deleted(
-        self,
         image_file_failed_state: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -252,8 +256,8 @@ class TestProcessingImages:
     implementation.
     """
 
+    @staticmethod
     def test_processing_images(
-        self,
         image_file_success_state_low_rating: io.BytesIO,
     ) -> None:
         """
@@ -284,31 +288,35 @@ class TestProcessingImages:
             )
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestQuotas:
     """
     Tests for quotas and thresholds.
     """
 
-    def test_quotas(self, vws_client: VWS) -> None:
+    @staticmethod
+    def test_quotas(vws_client: VWS) -> None:
         """
         Quotas are included in the database summary.
         These match the quotas given for a free license.
         """
         report = vws_client.get_database_summary_report()
-        assert report.target_quota == 1000
-        assert report.request_quota == 100000
-        assert report.reco_threshold == 1000
+        expected_target_quota = 1000
+        expected_request_quota = 100000
+        expected_reco_threshold = 1000
+        assert report.target_quota == expected_target_quota
+        assert report.request_quota == expected_request_quota
+        assert report.reco_threshold == expected_reco_threshold
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestRecos:
     """
     Tests for the recognition count fields.
     """
 
+    @staticmethod
     def test_query_request(
-        self,
         cloud_reco_client: CloudRecoService,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
@@ -344,16 +352,14 @@ class TestRecos:
         )
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestRequestUsage:
     """
     Tests for the ``request_usage`` field.
     """
 
-    def test_target_request(
-        self,
-        vws_client: VWS,
-    ) -> None:
+    @staticmethod
+    def test_target_request(vws_client: VWS) -> None:
         """
         The ``request_usage`` count does not increase with each request to the
         target API.
@@ -365,8 +371,8 @@ class TestRequestUsage:
         new_request_usage = report.request_usage
         assert new_request_usage == original_request_usage
 
+    @staticmethod
     def test_bad_target_request(
-        self,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -379,7 +385,7 @@ class TestRequestUsage:
 
         with pytest.raises(Fail) as exc:
             vws_client.add_target(
-                name='example',
+                name="example",
                 width=-1,
                 image=high_quality_image,
                 active_flag=True,
@@ -392,8 +398,8 @@ class TestRequestUsage:
         new_request_usage = report.request_usage
         assert new_request_usage == original_request_usage
 
+    @staticmethod
     def test_query_request(
-        self,
         cloud_reco_client: CloudRecoService,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
@@ -411,14 +417,14 @@ class TestRequestUsage:
         assert new_request_usage == original_request_usage
 
 
-@pytest.mark.usefixtures('verify_mock_vuforia')
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestInactiveProject:
     """
     Tests for inactive projects.
     """
 
+    @staticmethod
     def test_inactive_project(
-        self,
         inactive_vws_client: VWS,
     ) -> None:
         """
