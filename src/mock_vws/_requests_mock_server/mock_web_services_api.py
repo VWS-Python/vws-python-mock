@@ -480,7 +480,7 @@ class MockVuforiaWebServicesAPI:
         target_id = request.path.split("/")[-1]
         target = database.get_target(target_id=target_id)
 
-        other_targets = set(database.targets) - {target}
+        other_targets = database.targets - {target}
 
         similar_targets: list[str] = [
             other.target_id

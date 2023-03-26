@@ -412,7 +412,7 @@ def get_duplicates(target_id: str) -> Response:
     [target] = [
         target for target in database.targets if target.target_id == target_id
     ]
-    other_targets = set(database.targets) - {target}
+    other_targets = database.targets - {target}
 
     similar_targets: list[str] = [
         other.target_id
