@@ -118,9 +118,7 @@ def handle_exceptions(exc: ValidatorException) -> Response:
         headers=exc.headers,
     )
 
-    if response.headers["Content-Type"] == _SENTINEL_CONTENT_TYPE:
-        del response.headers["Content-Type"]
-
+    response.headers = exc.headers
     return response
 
 

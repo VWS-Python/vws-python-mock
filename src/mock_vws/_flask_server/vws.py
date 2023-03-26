@@ -66,8 +66,9 @@ class ResponseSentinelContentTypeAdded(Response):
     """
     A custom response type.
 
-    Without this, a content type is added to all responses.
     Some of our responses need to not have a "Content-Type" header.
+    We add a sentinel value to the default "Content-Type" header so we can
+    remove it later if it is not overridden.
     """
 
     default_mimetype = _SENTINEL_CONTENT_TYPE
@@ -124,9 +125,7 @@ def handle_exceptions(exc: ValidatorException) -> Response:
         headers=exc.headers,
     )
 
-    if response.headers["Content-Type"] == _SENTINEL_CONTENT_TYPE:
-        del response.headers["Content-Type"]
-
+    response.headers = exc.headers
     return response
 
 
