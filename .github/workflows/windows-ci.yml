@@ -82,4 +82,7 @@ jobs:
         uses: "codecov/codecov-action@v3"
         with:
           fail_ci_if_error: true
+          # See https://community.codecov.com/t/upload-issues-unable-to-locate-build-via-github-actions-api/3954
+          # which tells us to use the token to avoid errors.
+          token: ${{ secrets.CODECOV_TOKEN }}
         if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
