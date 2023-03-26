@@ -37,6 +37,7 @@ if TYPE_CHECKING:
     from requests_mock.request import _RequestObjectProxy
     from requests_mock.response import _Context
 
+    from mock_vws.image_matchers import ImageMatcher
     from mock_vws.target_manager import TargetManager
 
 _TARGET_ID_PATTERN = "[A-Za-z0-9]+"
@@ -93,6 +94,7 @@ class MockVuforiaWebServicesAPI:
         self,
         target_manager: TargetManager,
         processing_time_seconds: int | float,
+        duplicate_match_checker: ImageMatcher,
     ) -> None:
         """
         Args:
@@ -100,6 +102,8 @@ class MockVuforiaWebServicesAPI:
             processing_time_seconds: The number of seconds to process each
                 image for. In the real Vuforia Web Services, this is not
                 deterministic.
+            duplicate_match_checker: A callable which takes two image values
+                and returns whether they are duplicates.
 
         Attributes:
             routes: The `Route`s to be used in the mock.
@@ -107,6 +111,7 @@ class MockVuforiaWebServicesAPI:
         self._target_manager = target_manager
         self.routes: set[Route] = _ROUTES
         self._processing_time_seconds = processing_time_seconds
+        self._duplicate_match_checker = duplicate_match_checker
 
     @route(
         path_pattern="/targets",
@@ -485,7 +490,10 @@ class MockVuforiaWebServicesAPI:
         similar_targets: list[str] = [
             other.target_id
             for other in other_targets
-            if other.image_value == target.image_value
+            if self._duplicate_match_checker(
+                first_image_content=target.image_value,
+                second_image_content=other.image_value,
+            )
             and TargetStatuses.FAILED.value
             not in (target.status, other.status)
             and TargetStatuses.PROCESSING.value != other.status

@@ -57,7 +57,7 @@ class VWQSettings(BaseSettings):
     target_manager_base_url: str
     deletion_processing_seconds: float = 3.0
     deletion_recognition_seconds: float = 0.2
-    image_matcher: _ImageMatcherChoice = _ImageMatcherChoice.AVERAGE_HASH
+    query_image_matcher: _ImageMatcherChoice = _ImageMatcherChoice.AVERAGE_HASH
 
 
 def get_all_databases() -> set[VuforiaDatabase]:
@@ -118,7 +118,7 @@ def query() -> Response:
     Perform an image recognition query.
     """
     settings = VWQSettings.parse_obj(obj={})
-    query_match_checker = settings.image_matcher.to_image_matcher()
+    query_match_checker = settings.query_image_matcher.to_image_matcher()
 
     databases = get_all_databases()
     request_body = request.stream.read()

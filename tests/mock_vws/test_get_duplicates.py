@@ -3,16 +3,17 @@ Tests for the mock of the get duplicates endpoint.
 """
 from __future__ import annotations
 
+import copy
+import io
 import uuid
 from typing import TYPE_CHECKING
 
 import pytest
+from PIL import Image
 from vws.exceptions.vws_exceptions import ProjectInactive
 from vws.reports import TargetStatuses
 
 if TYPE_CHECKING:
-    import io
-
     from vws import VWS
 
 
@@ -29,9 +30,7 @@ class TestDuplicates:
         vws_client: VWS,
     ) -> None:
         """
-        Target IDs of similar targets are returned.
-
-        In the mock, "similar" means that the images are exactly the same.
+        Target IDs of the exact same targets are returned.
         """
         image_data = high_quality_image
         different_image_data = image_file_success_state_low_rating
@@ -63,6 +62,47 @@ class TestDuplicates:
         vws_client.wait_for_target_processed(target_id=original_target_id)
         vws_client.wait_for_target_processed(target_id=similar_target_id)
         vws_client.wait_for_target_processed(target_id=different_target_id)
+
+        duplicates = vws_client.get_duplicate_targets(
+            target_id=original_target_id,
+        )
+
+        assert duplicates == [similar_target_id]
+
+    @staticmethod
+    def test_duplicates_not_same(
+        high_quality_image: io.BytesIO,
+        vws_client: VWS,
+    ) -> None:
+        """
+        Target IDs of similar targets are returned.
+        """
+        image_data = high_quality_image
+        similar_image_data = copy.copy(image_data)
+        similar_image_buffer = io.BytesIO()
+        pil_similar_image = Image.open(similar_image_data)
+        # Re-save means similar but not identical.
+        pil_similar_image.save(similar_image_buffer, format="JPEG")
+        assert similar_image_buffer.getvalue() != image_data.getvalue()
+
+        original_target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=image_data,
+            active_flag=True,
+            application_metadata=None,
+        )
+
+        similar_target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=similar_image_buffer,
+            active_flag=True,
+            application_metadata=None,
+        )
+
+        vws_client.wait_for_target_processed(target_id=original_target_id)
+        vws_client.wait_for_target_processed(target_id=similar_target_id)
 
         duplicates = vws_client.get_duplicate_targets(
             target_id=original_target_id,

@@ -126,6 +126,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
     def test_default(
         self,
         high_quality_image: io.BytesIO,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """
         By default it takes zero seconds for the Query API on the mock to
@@ -135,6 +136,8 @@ class TestCustomQueryRecognizesDeletionSeconds:
         See ``test_query`` for more information.
         """
         database = VuforiaDatabase()
+        # Use the "exact" matcher, as it is the fastest.
+        monkeypatch.setenv(name="QUERY_IMAGE_MATCHER", value="exact")
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
         time_taken = recognize_deletion_seconds(
@@ -163,6 +166,8 @@ class TestCustomQueryRecognizesDeletionSeconds:
             name="DELETION_RECOGNITION_SECONDS",
             value=str(query_recognizes_deletion),
         )
+        # Use the "exact" matcher, as it is the fastest.
+        monkeypatch.setenv(name="QUERY_IMAGE_MATCHER", value="exact")
         time_taken = recognize_deletion_seconds(
             high_quality_image=high_quality_image,
             vuforia_database=database,
@@ -358,8 +363,8 @@ class TestDeleteDatabase:
         assert response.status_code == HTTPStatus.NOT_FOUND
 
 
-class TestImageMatchers:
-    """Tests for image matchers."""
+class TestQueryImageMatchers:
+    """Tests for query image matchers."""
 
     @staticmethod
     def test_exact_match(
@@ -367,7 +372,7 @@ class TestImageMatchers:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """The exact matcher matches only exactly the same images."""
-        monkeypatch.setenv(name="IMAGE_MATCHER", value="exact")
+        monkeypatch.setenv(name="QUERY_IMAGE_MATCHER", value="exact")
 
         database = VuforiaDatabase()
 
@@ -411,10 +416,7 @@ class TestImageMatchers:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """The average hash matcher matches similar images."""
-        monkeypatch.setenv(
-            name="IMAGE_MATCHER",
-            value="average_hash",
-        )
+        monkeypatch.setenv(name="QUERY_IMAGE_MATCHER", value="average_hash")
         database = VuforiaDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -452,3 +454,98 @@ class TestImageMatchers:
             image=different_high_quality_image,
         )
         assert len(different_image_result) == 0
+
+
+class TestDuplicatesImageMatchers:
+    """Tests for duplicates image matchers."""
+
+    @staticmethod
+    def test_exact_match(
+        high_quality_image: io.BytesIO,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """The exact matcher matches only exactly the same images."""
+        monkeypatch.setenv(name="DUPLICATES_IMAGE_MATCHER", value="exact")
+        database = VuforiaDatabase()
+        vws_client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+
+        pil_image = Image.open(fp=high_quality_image)
+        re_exported_image = io.BytesIO()
+        pil_image.save(re_exported_image, format="PNG")
+
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+
+        target_id = vws_client.add_target(
+            name="example_0",
+            width=1,
+            image=high_quality_image,
+            application_metadata=None,
+            active_flag=True,
+        )
+        duplicate_target_id = vws_client.add_target(
+            name="example_1",
+            width=1,
+            image=high_quality_image,
+            application_metadata=None,
+            active_flag=True,
+        )
+        not_duplicate_target_id = vws_client.add_target(
+            name="example_2",
+            width=1,
+            image=re_exported_image,
+            application_metadata=None,
+            active_flag=True,
+        )
+        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(target_id=duplicate_target_id)
+        vws_client.wait_for_target_processed(
+            target_id=not_duplicate_target_id,
+        )
+        duplicates = vws_client.get_duplicate_targets(target_id=target_id)
+        assert duplicates == [duplicate_target_id]
+
+    @staticmethod
+    def test_average_hash_matcher(
+        high_quality_image: io.BytesIO,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """The average hash matcher matches similar images."""
+        monkeypatch.setenv(
+            name="DUPLICATES_IMAGE_MATCHER",
+            value="average_hash",
+        )
+        database = VuforiaDatabase()
+        vws_client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+
+        pil_image = Image.open(fp=high_quality_image)
+        re_exported_image = io.BytesIO()
+        pil_image.save(re_exported_image, format="PNG")
+
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+
+        target_id = vws_client.add_target(
+            name="example",
+            width=1,
+            image=high_quality_image,
+            application_metadata=None,
+            active_flag=True,
+        )
+        duplicate_target_id = vws_client.add_target(
+            name="example_1",
+            width=1,
+            image=re_exported_image,
+            application_metadata=None,
+            active_flag=True,
+        )
+        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(target_id=duplicate_target_id)
+        duplicates = vws_client.get_duplicate_targets(target_id=target_id)
+        assert duplicates == [duplicate_target_id]

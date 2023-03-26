@@ -37,6 +37,7 @@ class MockVWS(ContextDecorator):
         self,
         base_vws_url: str = "https://vws.vuforia.com",
         base_vwq_url: str = "https://cloudreco.vuforia.com",
+        duplicate_match_checker: ImageMatcher = _AVERAGE_HASH_MATCHER,
         query_match_checker: ImageMatcher = _AVERAGE_HASH_MATCHER,
         processing_time_seconds: int | float = 0.5,
         query_recognizes_deletion_seconds: int | float = 0.2,
@@ -65,6 +66,8 @@ class MockVWS(ContextDecorator):
                 endpoint will return a 500 response on a match.
             query_match_checker: A callable which takes two image values and
                 returns whether they will match in a query request.
+            duplicate_match_checker: A callable which takes two image values
+                and returns whether they are duplicates.
 
         Raises:
             requests.exceptions.MissingSchema: There is no schema in a given
@@ -90,6 +93,7 @@ class MockVWS(ContextDecorator):
         self._mock_vws_api = MockVuforiaWebServicesAPI(
             target_manager=self._target_manager,
             processing_time_seconds=processing_time_seconds,
+            duplicate_match_checker=duplicate_match_checker,
         )
 
         self._mock_vwq_api = MockVuforiaWebQueryAPI(
