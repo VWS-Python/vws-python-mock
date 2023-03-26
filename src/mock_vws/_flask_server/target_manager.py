@@ -5,6 +5,7 @@ Storage layer for the mock Vuforia Flask application.
 import base64
 import dataclasses
 import datetime
+import json
 from http import HTTPStatus
 from zoneinfo import ZoneInfo
 
@@ -91,27 +92,28 @@ def create_database() -> tuple[str, int]:
     :status 201: The database has been successfully created.
     """
     random_database = VuforiaDatabase()
-    server_access_key = request.json.get(
+    request_json = json.loads(request.data)
+    server_access_key = request_json.get(
         "server_access_key",
         random_database.server_access_key,
     )
-    server_secret_key = request.json.get(
+    server_secret_key = request_json.get(
         "server_secret_key",
         random_database.server_secret_key,
     )
-    client_access_key = request.json.get(
+    client_access_key = request_json.get(
         "client_access_key",
         random_database.client_access_key,
     )
-    client_secret_key = request.json.get(
+    client_secret_key = request_json.get(
         "client_secret_key",
         random_database.client_secret_key,
     )
-    database_name = request.json.get(
+    database_name = request_json.get(
         "database_name",
         random_database.database_name,
     )
-    state_name = request.json.get(
+    state_name = request_json.get(
         "state_name",
         random_database.state.name,
     )
@@ -147,16 +149,17 @@ def create_target(database_name: str) -> tuple[str, int]:
         for database in TARGET_MANAGER.databases
         if database.database_name == database_name
     ]
-    image_base64 = request.json["image_base64"]
+    request_json = json.loads(request.data)
+    image_base64 = request_json["image_base64"]
     image_bytes = base64.b64decode(s=image_base64)
     target = Target(
-        name=request.json["name"],
-        width=request.json["width"],
+        name=request_json["name"],
+        width=request_json["width"],
         image_value=image_bytes,
-        active_flag=request.json["active_flag"],
-        processing_time_seconds=request.json["processing_time_seconds"],
-        application_metadata=request.json["application_metadata"],
-        target_id=request.json["target_id"],
+        active_flag=request_json["active_flag"],
+        processing_time_seconds=request_json["processing_time_seconds"],
+        application_metadata=request_json["application_metadata"],
+        target_id=request_json["target_id"],
     )
     database.targets.add(target)
 
@@ -199,16 +202,18 @@ def update_target(database_name: str, target_id: str) -> tuple[str, int]:
     ]
     target = database.get_target(target_id=target_id)
 
-    width = request.json.get("width", target.width)
-    name = request.json.get("name", target.name)
-    active_flag = request.json.get("active_flag", target.active_flag)
-    application_metadata = request.json.get(
+    request_json = json.loads(request.data)
+    width = request_json.get("width", target.width)
+    name = request_json.get("name", target.name)
+    active_flag = request_json.get("active_flag", target.active_flag)
+    application_metadata = request_json.get(
         "application_metadata",
         target.application_metadata,
     )
 
     image_value = target.image_value
-    if "image" in request.json:
+    request_json = json.loads(request.data)
+    if "image" in request_json:
         image_value = base64.b64decode(s=request.json["image"])
 
     gmt = ZoneInfo("GMT")
