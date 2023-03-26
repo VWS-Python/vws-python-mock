@@ -141,6 +141,7 @@ warn_untyped_fields = true
 
 module = [
     "brisque",
+    "cv2",
     "docker",
     "docker.errors",
     "docker.models.networks",
@@ -252,6 +253,7 @@ requires-python = ">=3.10"
 dependencies = [
     "Pillow",
     "brisque",
+    "opencv-python",
     "flask",
     "multipart",
     "numpy",
