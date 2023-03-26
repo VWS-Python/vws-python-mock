@@ -408,8 +408,16 @@ class TestQueryMatchers:
         assert len(different_image_result) == 0
 
     @staticmethod
-    def test_default(high_quality_image: io.BytesIO) -> None:
-        """The exact matcher is used by default."""
+    def test_average_hash_matcher(
+        high_quality_image: io.BytesIO,
+        different_high_quality_image: io.BytesIO,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """The average hash matcher matches similar images."""
+        monkeypatch.setenv(
+            name="QUERY_MATCHER",
+            value="average_hash",
+        )
         database = VuforiaDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -423,7 +431,6 @@ class TestQueryMatchers:
         pil_image = Image.open(fp=high_quality_image)
         re_exported_image = io.BytesIO()
         pil_image.save(re_exported_image, format="PNG")
-
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
@@ -439,7 +446,12 @@ class TestQueryMatchers:
             image=high_quality_image,
         )
         assert len(same_image_result) == 1
-        different_image_result = cloud_reco_client.query(
+        similar_image_result = cloud_reco_client.query(
             image=re_exported_image,
+        )
+        assert len(similar_image_result) == 1
+
+        different_image_result = cloud_reco_client.query(
+            image=different_high_quality_image,
         )
         assert len(different_image_result) == 0

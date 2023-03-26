@@ -124,8 +124,9 @@ Query container
    Options include:
 
    * ``exact``: The images must be exactly the same to match.
+   * ``average_hash``: The images must have a similar average hash to match.
 
-   Default: ``exact``
+   Default: ``average_hash``
 
 VWS container
 ~~~~~~~~~~~~~

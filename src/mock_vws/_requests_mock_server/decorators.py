@@ -12,7 +12,10 @@ from urllib.parse import urljoin, urlparse
 import requests
 from requests_mock.mocker import Mocker
 
-from mock_vws.query_matchers import ExactMatcher, QueryMatcher
+from mock_vws.query_matchers import (
+    AverageHashMatcher,
+    QueryMatcher,
+)
 from mock_vws.target_manager import TargetManager
 
 from .mock_web_query_api import MockVuforiaWebQueryAPI
@@ -22,7 +25,7 @@ if TYPE_CHECKING:
     from mock_vws.database import VuforiaDatabase
 
 
-_EXACT_MATCHER = ExactMatcher()
+_AVERAGE_HASH_MATCHER = AverageHashMatcher(threshold=10)
 
 
 class MockVWS(ContextDecorator):
@@ -34,7 +37,7 @@ class MockVWS(ContextDecorator):
         self,
         base_vws_url: str = "https://vws.vuforia.com",
         base_vwq_url: str = "https://cloudreco.vuforia.com",
-        match_checker: QueryMatcher = _EXACT_MATCHER,
+        match_checker: QueryMatcher = _AVERAGE_HASH_MATCHER,
         processing_time_seconds: int | float = 0.5,
         query_recognizes_deletion_seconds: int | float = 0.2,
         query_processes_deletion_seconds: int | float = 3,
