@@ -59,7 +59,10 @@ def get_all_databases() -> set[VuforiaDatabase]:
     }
 
 
-class ResponseNoContentTypeAdded(Response):
+_SENTINEL_CONTENT_TYPE = uuid.uuid4().hex
+
+
+class ResponseSentinelContentTypeAdded(Response):
     """
     A custom response type.
 
@@ -67,12 +70,10 @@ class ResponseNoContentTypeAdded(Response):
     Some of our responses need to not have a "Content-Type" header.
     """
 
-    # The type in Flask is incorrect.
-    # See https://github.com/pallets/flask/pull/5034.
-    default_mimetype = None  # type: ignore[assignment]
+    default_mimetype = _SENTINEL_CONTENT_TYPE
 
 
-VWS_FLASK_APP.response_class = ResponseNoContentTypeAdded
+VWS_FLASK_APP.response_class = ResponseSentinelContentTypeAdded
 
 
 @VWS_FLASK_APP.before_request
@@ -117,11 +118,16 @@ def handle_exceptions(exc: ValidatorException) -> Response:
     """
     Return the error response associated with the given exception.
     """
-    return ResponseNoContentTypeAdded(
+    response = ResponseSentinelContentTypeAdded(
         status=exc.status_code.value,
         response=exc.response_text,
         headers=exc.headers,
     )
+
+    if response.headers["Content-Type"] == _SENTINEL_CONTENT_TYPE:
+        del response.headers["Content-Type"]
+
+    return response
 
 
 @VWS_FLASK_APP.route("/targets", methods=["POST"])

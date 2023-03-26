@@ -6,6 +6,7 @@ https://library.vuforia.com/web-api/vuforia-query-web-api
 """
 
 import email.utils
+import uuid
 from enum import StrEnum, auto
 from http import HTTPStatus
 
@@ -88,20 +89,22 @@ def set_terminate_wsgi_input() -> None:
     request.environ["wsgi.input_terminated"] = terminate_wsgi_input
 
 
-class ResponseNoContentTypeAdded(Response):
+_SENTINEL_CONTENT_TYPE = uuid.uuid4().hex
+
+
+class ResponseSentinelContentTypeAdded(Response):
     """
     A custom response type.
 
-    Without this, a content type is added to all responses.
     Some of our responses need to not have a "Content-Type" header.
+    We add a sentinel value to the default "Content-Type" header so we can
+    remove it later if it is not overridden.
     """
 
-    # The type in Flask is incorrect.
-    # See https://github.com/pallets/flask/pull/5034.
-    default_mimetype = None  # type: ignore[assignment]
+    default_mimetype = _SENTINEL_CONTENT_TYPE
 
 
-CLOUDRECO_FLASK_APP.response_class = ResponseNoContentTypeAdded
+CLOUDRECO_FLASK_APP.response_class = ResponseSentinelContentTypeAdded
 
 
 @CLOUDRECO_FLASK_APP.errorhandler(ValidatorException)
@@ -109,11 +112,16 @@ def handle_exceptions(exc: ValidatorException) -> Response:
     """
     Return the error response associated with the given exception.
     """
-    return ResponseNoContentTypeAdded(
+    response = ResponseSentinelContentTypeAdded(
         status=exc.status_code.value,
         response=exc.response_text,
         headers=exc.headers,
     )
+
+    if response.headers["Content-Type"] == _SENTINEL_CONTENT_TYPE:
+        del response.headers["Content-Type"]
+
+    return response
 
 
 @CLOUDRECO_FLASK_APP.route("/v1/query", methods=["POST"])
