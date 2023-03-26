@@ -12,6 +12,7 @@ from http import HTTPStatus
 import requests
 from flask import Flask, Response, request
 from pydantic import BaseSettings
+from werkzeug.datastructures import Headers
 
 from mock_vws._query_tools import (
     ActiveMatchingTargetsDeleteProcessing,
@@ -88,32 +89,19 @@ def set_terminate_wsgi_input() -> None:
     request.environ["wsgi.input_terminated"] = terminate_wsgi_input
 
 
-class ResponseNoContentTypeAdded(Response):
-    """
-    A custom response type.
-
-    Without this, a content type is added to all responses.
-    Some of our responses need to not have a "Content-Type" header.
-    """
-
-    # The type in Flask is incorrect.
-    # See https://github.com/pallets/flask/pull/5034.
-    default_mimetype = None  # type: ignore[assignment]
-
-
-CLOUDRECO_FLASK_APP.response_class = ResponseNoContentTypeAdded
-
-
 @CLOUDRECO_FLASK_APP.errorhandler(ValidatorException)
 def handle_exceptions(exc: ValidatorException) -> Response:
     """
     Return the error response associated with the given exception.
     """
-    return ResponseNoContentTypeAdded(
+    response = Response(
         status=exc.status_code.value,
         response=exc.response_text,
         headers=exc.headers,
     )
+
+    response.headers = Headers(exc.headers)
+    return response
 
 
 @CLOUDRECO_FLASK_APP.route("/v1/query", methods=["POST"])

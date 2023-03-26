@@ -15,6 +15,7 @@ from http import HTTPStatus
 import requests
 from flask import Flask, Response, request
 from pydantic import BaseSettings
+from werkzeug.datastructures import Headers
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
@@ -59,22 +60,6 @@ def get_all_databases() -> set[VuforiaDatabase]:
     }
 
 
-class ResponseNoContentTypeAdded(Response):
-    """
-    A custom response type.
-
-    Without this, a content type is added to all responses.
-    Some of our responses need to not have a "Content-Type" header.
-    """
-
-    # The type in Flask is incorrect.
-    # See https://github.com/pallets/flask/pull/5034.
-    default_mimetype = None  # type: ignore[assignment]
-
-
-VWS_FLASK_APP.response_class = ResponseNoContentTypeAdded
-
-
 @VWS_FLASK_APP.before_request
 def set_terminate_wsgi_input() -> None:
     """
@@ -117,11 +102,14 @@ def handle_exceptions(exc: ValidatorException) -> Response:
     """
     Return the error response associated with the given exception.
     """
-    return ResponseNoContentTypeAdded(
+    response = Response(
         status=exc.status_code.value,
         response=exc.response_text,
         headers=exc.headers,
     )
+
+    response.headers = Headers(exc.headers)
+    return response
 
 
 @VWS_FLASK_APP.route("/targets", methods=["POST"])
