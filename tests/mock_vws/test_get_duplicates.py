@@ -10,12 +10,10 @@ from typing import TYPE_CHECKING
 
 import pytest
 from PIL import Image
-from vws import VWS
 from vws.exceptions.vws_exceptions import ProjectInactive
 from vws.reports import TargetStatuses
 
 if TYPE_CHECKING:
-    import io
 
     from vws import VWS
 
@@ -33,9 +31,7 @@ class TestDuplicates:
         vws_client: VWS,
     ) -> None:
         """
-        Target IDs of similar targets are returned.
-
-        In the mock, "similar" means that the images are exactly the same.
+        Target IDs of the exact same targets are returned.
         """
         image_data = high_quality_image
         different_image_data = image_file_success_state_low_rating
@@ -74,17 +70,13 @@ class TestDuplicates:
 
         assert duplicates == [similar_target_id]
 
-<<<<<<< HEAD
+    @staticmethod
     def test_duplicates_not_same(
-        self,
         high_quality_image: io.BytesIO,
-        image_file_success_state_low_rating: io.BytesIO,
         vws_client: VWS,
     ) -> None:
         """
         Target IDs of similar targets are returned.
-
-        In the mock, "similar" means that the images are exactly the same.
         """
         image_data = high_quality_image
         similar_image_data = copy.copy(image_data)
@@ -119,9 +111,7 @@ class TestDuplicates:
 
         assert duplicates == [similar_target_id]
 
-=======
     @staticmethod
->>>>>>> origin/master
     def test_status(
         image_file_failed_state: io.BytesIO,
         vws_client: VWS,
