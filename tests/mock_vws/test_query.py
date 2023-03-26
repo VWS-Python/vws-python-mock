@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import base64
 import calendar
+import copy
 import datetime
 import io
 import sys
@@ -492,7 +493,7 @@ class TestSuccess:
         assert response.json()["results"] == []
 
     @staticmethod
-    def test_match(
+    def test_match_exact(
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
@@ -537,6 +538,53 @@ class TestSuccess:
         time_difference = abs(approximate_target_created - target_timestamp)
         max_time_difference = 5
         assert time_difference < max_time_difference
+
+    @staticmethod
+    def test_match_similar(
+        high_quality_image: io.BytesIO,
+        different_high_quality_image: io.BytesIO,
+        vws_client: VWS,
+        cloud_reco_client: CloudRecoService,
+    ) -> None:
+        """
+        If a similar image to one that was added is queried for, target data is
+        shown.
+        """
+        metadata_encoded = base64.b64encode(b"example").decode("ascii")
+        name_matching = "example_name_matching"
+        name_not_matching = "example_name_not_matching"
+
+        target_id_matching = vws_client.add_target(
+            name=name_matching,
+            width=1,
+            image=high_quality_image,
+            active_flag=True,
+            application_metadata=metadata_encoded,
+        )
+
+        target_id_not_matching = vws_client.add_target(
+            name=name_not_matching,
+            width=1,
+            image=different_high_quality_image,
+            active_flag=True,
+            application_metadata=metadata_encoded,
+        )
+
+        vws_client.wait_for_target_processed(target_id=target_id_matching)
+        vws_client.wait_for_target_processed(target_id=target_id_not_matching)
+
+        similar_image_buffer = io.BytesIO()
+        similar_image_data = copy.copy(high_quality_image)
+        pil_similar_image = Image.open(similar_image_data)
+        # Re-save means similar but not identical.
+        pil_similar_image.save(similar_image_buffer, format="JPEG")
+
+        [matching_target] = cloud_reco_client.query(
+            image=similar_image_buffer,
+            max_num_results=5,
+        )
+
+        assert matching_target.target_id == target_id_matching
 
     @staticmethod
     def test_not_base64_encoded_processable(

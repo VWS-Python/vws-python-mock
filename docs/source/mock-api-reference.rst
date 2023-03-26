@@ -28,3 +28,5 @@ Query matchers
 .. autoprotocol:: mock_vws.query_matchers.QueryMatcher
 
 .. autoclass:: mock_vws.query_matchers.ExactMatcher
+
+.. autoclass:: mock_vws.query_matchers.AverageHashMatcher

@@ -256,12 +256,13 @@ name = "vws-python-mock"
 readme = { file = "README.rst", content-type = "text/x-rst"}
 requires-python = ">=3.10"
 dependencies = [
+    "ImageHash",
     "Pillow",
     "brisque",
-    "opencv-python",
     "flask",
     "multipart",
     "numpy",
+    "opencv-python",
     "pydantic",
     "requests",
     "requests-mock",
