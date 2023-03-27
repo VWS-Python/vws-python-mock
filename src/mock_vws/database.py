@@ -99,10 +99,7 @@ class VuforiaDatabase:
         return target
 
     @classmethod
-    def from_dict(
-        cls,
-        database_dict: DatabaseDict,
-    ) -> VuforiaDatabase:
+    def from_dict(cls, database_dict: DatabaseDict) -> VuforiaDatabase:
         """
         Load a database from a dictionary.
         """
