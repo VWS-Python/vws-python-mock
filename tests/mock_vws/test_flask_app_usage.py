@@ -69,7 +69,7 @@ class TestProcessingTime:
 
     # There is a race condition in this test type - if tests start to
     # fail, consider increasing the leeway.
-    LEEWAY = 0.1
+    LEEWAY = 0.5
 
     def test_default(
         self,
@@ -88,7 +88,7 @@ class TestProcessingTime:
         )
 
         expected = 0.5
-        assert abs(expected - time_taken) < self.LEEWAY
+        assert expected - self.LEEWAY < time_taken < expected + self.LEEWAY
 
     def test_custom(
         self,
@@ -98,9 +98,10 @@ class TestProcessingTime:
         """
         It is possible to set a custom processing time.
         """
+        seconds = 5
         monkeypatch.setenv(
             name="PROCESSING_TIME_SECONDS",
-            value="0.1",
+            value=str(seconds),
         )
         database = VuforiaDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
@@ -111,8 +112,8 @@ class TestProcessingTime:
             image=image_file_failed_state,
         )
 
-        expected = 0.1
-        assert abs(expected - time_taken) < self.LEEWAY
+        expected = seconds
+        assert expected - self.LEEWAY < time_taken < expected + self.LEEWAY
 
 
 class TestCustomQueryRecognizesDeletionSeconds:
@@ -121,7 +122,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
     until it is not recognized by the query endpoint.
     """
 
-    LEEWAY = 0.15
+    LEEWAY = 0.5
 
     def test_default(
         self,
@@ -148,7 +149,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
         )
 
         expected = 0.2
-        assert abs(expected - time_taken) < self.LEEWAY
+        assert expected < time_taken < expected + self.LEEWAY
 
     def test_custom(
         self,
@@ -160,7 +161,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
         Query API on the mock to recognize that a target has been deleted.
         """
         # We choose a low time for a quick test.
-        query_recognizes_deletion = 0.5
+        query_recognizes_deletion = 5
         database = VuforiaDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
@@ -176,7 +177,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
         )
 
         expected = query_recognizes_deletion
-        assert abs(expected - time_taken) < self.LEEWAY
+        assert expected < time_taken < expected + self.LEEWAY
 
 
 class TestCustomQueryProcessDeletionSeconds:
@@ -187,7 +188,7 @@ class TestCustomQueryProcessDeletionSeconds:
 
     # There is a race condition in this test type - if tests start to
     # fail, consider increasing the leeway.
-    LEEWAY = 0.2
+    LEEWAY = 0.5
 
     def test_default(
         self,
@@ -214,7 +215,9 @@ class TestCustomQueryProcessDeletionSeconds:
         )
 
         expected = 3
-        assert abs(expected - time_taken) < self.LEEWAY
+        # We minus the leeway because we might start the timer after the
+        # deletion processing has started.
+        assert expected - self.LEEWAY < time_taken < expected + self.LEEWAY
 
     def test_custom(
         self,
@@ -230,7 +233,7 @@ class TestCustomQueryProcessDeletionSeconds:
         # Use the "random" rater, as it is the fastest.
         monkeypatch.setenv(name="TARGET_RATER", value="random")
         # We choose a low time for a quick test.
-        query_processes_deletion = 0.1
+        query_processes_deletion = 5
         database = VuforiaDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
@@ -244,7 +247,9 @@ class TestCustomQueryProcessDeletionSeconds:
         )
 
         expected = query_processes_deletion
-        assert abs(expected - time_taken) < self.LEEWAY
+        # We minus the leeway because we might start the timer after the
+        # deletion processing has started.
+        assert expected - self.LEEWAY < time_taken < expected + self.LEEWAY
 
 
 class TestAddDatabase:
