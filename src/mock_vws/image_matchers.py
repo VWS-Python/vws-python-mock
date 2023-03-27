@@ -1,4 +1,4 @@
-"""Matchers for query requests."""
+"""Matchers for query and duplicate requests."""
 
 import io
 from typing import Protocol, runtime_checkable

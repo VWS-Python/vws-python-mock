@@ -16,6 +16,7 @@ from mock_vws import MockVWS
 from mock_vws.database import VuforiaDatabase
 from mock_vws.image_matchers import AverageHashMatcher, ExactMatcher
 from mock_vws.target import Target
+from mock_vws.target_raters import RandomTargetTrackingRater
 from PIL import Image
 from requests.exceptions import MissingSchema
 from requests_mock.exceptions import NoMockAddress
@@ -412,7 +413,11 @@ class TestTargets:
         # The dictionary is JSON dump-able
         assert json.dumps(target_dict)
 
-        new_target = Target.from_dict(target_dict=target_dict)
+        target_tracking_rater = RandomTargetTrackingRater()
+        new_target = Target.from_dict(
+            target_dict=target_dict,
+            target_tracking_rater=target_tracking_rater,
+        )
         assert new_target == target
 
     @staticmethod
@@ -446,7 +451,11 @@ class TestTargets:
         # The dictionary is JSON dump-able
         assert json.dumps(target_dict)
 
-        new_target = Target.from_dict(target_dict=target_dict)
+        target_tracking_rater = RandomTargetTrackingRater()
+        new_target = Target.from_dict(
+            target_dict=target_dict,
+            target_tracking_rater=target_tracking_rater,
+        )
         assert new_target.delete_date == target.delete_date
 
 
@@ -481,7 +490,11 @@ class TestDatabaseToDict:
         # The dictionary is JSON dump-able
         assert json.dumps(database_dict)
 
-        new_database = VuforiaDatabase.from_dict(database_dict=database_dict)
+        target_tracking_rater = RandomTargetTrackingRater()
+        new_database = VuforiaDatabase.from_dict(
+            database_dict=database_dict,
+            target_tracking_rater=target_tracking_rater,
+        )
         assert new_database == database
 
 

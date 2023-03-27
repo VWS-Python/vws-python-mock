@@ -10,7 +10,7 @@ import math
 import statistics
 import uuid
 from dataclasses import dataclass, field
-from typing import TypedDict
+from typing import TYPE_CHECKING, TypedDict
 from zoneinfo import ZoneInfo
 
 import brisque
@@ -19,6 +19,9 @@ import numpy as np
 from PIL import Image, ImageStat
 
 from mock_vws._constants import TargetStatuses
+
+if TYPE_CHECKING:
+    from mock_vws.target_raters import TargetTrackingRater
 
 
 class TargetDict(TypedDict):
@@ -95,6 +98,7 @@ class Target:
     name: str
     processing_time_seconds: float
     width: float
+    target_tracking_rater: TargetTrackingRater
     current_month_recos: int = 0
     delete_date: datetime.datetime | None = None
     last_modified_date: datetime.datetime = field(default_factory=_time_now)
@@ -176,7 +180,11 @@ class Target:
         return _quality(image_content=self.image_value)
 
     @classmethod
-    def from_dict(cls, target_dict: TargetDict) -> Target:
+    def from_dict(
+        cls,
+        target_dict: TargetDict,
+        target_tracking_rater: TargetTrackingRater,
+    ) -> Target:
         """
         Load a target from a dictionary.
         """
@@ -214,6 +222,7 @@ class Target:
             delete_date=delete_date,
             last_modified_date=last_modified_date,
             upload_date=upload_date,
+            target_tracking_rater=target_tracking_rater,
         )
 
     def to_dict(self) -> TargetDict:

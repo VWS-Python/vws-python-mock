@@ -35,6 +35,11 @@ from mock_vws.image_matchers import (
     ImageMatcher,
 )
 from mock_vws.target import Target
+from mock_vws.target_raters import (
+    BrisqueTargetTrackingRater,
+    RandomTargetTrackingRater,
+    TargetTrackingRater,
+)
 
 VWS_FLASK_APP = Flask(import_name=__name__)
 VWS_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
@@ -59,6 +64,22 @@ class _ImageMatcherChoice(StrEnum):
         return matcher
 
 
+class _TargetRaterChoice(StrEnum):
+    """Target rater choices."""
+
+    RANDOM = auto()
+    BRISQUE = auto()
+
+    def to_target_rater(self) -> TargetTrackingRater:
+        """Get the target rater."""
+        rater = {
+            _TargetRaterChoice.RANDOM: RandomTargetTrackingRater(),
+            _TargetRaterChoice.BRISQUE: BrisqueTargetTrackingRater(),
+        }[self]
+        assert isinstance(rater, TargetTrackingRater)
+        return rater
+
+
 class VWSSettings(BaseSettings):
     """Settings for the VWS Flask app."""
 
@@ -68,6 +89,7 @@ class VWSSettings(BaseSettings):
     duplicates_image_matcher: _ImageMatcherChoice = (
         _ImageMatcherChoice.AVERAGE_HASH
     )
+    target_rater: _TargetRaterChoice = _TargetRaterChoice.BRISQUE
 
 
 def get_all_databases() -> set[VuforiaDatabase]:
@@ -79,8 +101,12 @@ def get_all_databases() -> set[VuforiaDatabase]:
         url=f"{settings.target_manager_base_url}/databases",
         timeout=30,
     )
+    target_tracking_rater = settings.target_rater.to_target_rater()
     return {
-        VuforiaDatabase.from_dict(database_dict=database_dict)
+        VuforiaDatabase.from_dict(
+            database_dict=database_dict,
+            target_tracking_rater=target_tracking_rater,
+        )
         for database_dict in response.json()
     }
 
@@ -145,8 +171,9 @@ def add_target() -> Response:
     Fake implementation of
     https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Add-a-Target
     """
-    settings = VWSSettings.parse_obj(obj={})
     databases = get_all_databases()
+    settings = VWSSettings.parse_obj(obj={})
+    target_tracking_rater = settings.target_rater.to_target_rater()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
         request_body=request.data,
@@ -172,6 +199,7 @@ def add_target() -> Response:
         active_flag=active_flag,
         processing_time_seconds=settings.processing_time_seconds,
         application_metadata=request_json.get("application_metadata"),
+        target_tracking_rater=target_tracking_rater,
     )
 
     databases_url = f"{settings.target_manager_base_url}/databases"

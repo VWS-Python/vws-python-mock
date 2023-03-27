@@ -17,15 +17,18 @@ from mock_vws.image_matchers import (
     ImageMatcher,
 )
 from mock_vws.target_manager import TargetManager
+from mock_vws.target_raters import BrisqueTargetTrackingRater
 
 from .mock_web_query_api import MockVuforiaWebQueryAPI
 from .mock_web_services_api import MockVuforiaWebServicesAPI
 
 if TYPE_CHECKING:
     from mock_vws.database import VuforiaDatabase
+    from mock_vws.target_raters import TargetTrackingRater
 
 
 _AVERAGE_HASH_MATCHER = AverageHashMatcher(threshold=10)
+_BRISQUE_TRACKING_RATER = BrisqueTargetTrackingRater()
 
 
 class MockVWS(ContextDecorator):
@@ -35,6 +38,7 @@ class MockVWS(ContextDecorator):
 
     def __init__(
         self,
+        target_tracking_rater: TargetTrackingRater = _BRISQUE_TRACKING_RATER,
         base_vws_url: str = "https://vws.vuforia.com",
         base_vwq_url: str = "https://cloudreco.vuforia.com",
         duplicate_match_checker: ImageMatcher = _AVERAGE_HASH_MATCHER,
@@ -94,6 +98,7 @@ class MockVWS(ContextDecorator):
             target_manager=self._target_manager,
             processing_time_seconds=processing_time_seconds,
             duplicate_match_checker=duplicate_match_checker,
+            target_tracking_rater=target_tracking_rater,
         )
 
         self._mock_vwq_api = MockVuforiaWebQueryAPI(

@@ -29,6 +29,11 @@ from mock_vws.image_matchers import (
     ExactMatcher,
     ImageMatcher,
 )
+from mock_vws.target_raters import (
+    BrisqueTargetTrackingRater,
+    RandomTargetTrackingRater,
+    TargetTrackingRater,
+)
 
 CLOUDRECO_FLASK_APP = Flask(import_name=__name__)
 CLOUDRECO_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
@@ -50,6 +55,22 @@ class _ImageMatcherChoice(StrEnum):
         return matcher
 
 
+class _TargetRaterChoice(StrEnum):
+    """Target rater choices."""
+
+    RANDOM = auto()
+    BRISQUE = auto()
+
+    def to_target_rater(self) -> TargetTrackingRater:
+        """Get the target rater."""
+        rater = {
+            _TargetRaterChoice.RANDOM: RandomTargetTrackingRater(),
+            _TargetRaterChoice.BRISQUE: BrisqueTargetTrackingRater(),
+        }[self]
+        assert isinstance(rater, TargetTrackingRater)
+        return rater
+
+
 class VWQSettings(BaseSettings):
     """Settings for the VWQ Flask app."""
 
@@ -58,6 +79,7 @@ class VWQSettings(BaseSettings):
     deletion_processing_seconds: float = 3.0
     deletion_recognition_seconds: float = 0.2
     query_image_matcher: _ImageMatcherChoice = _ImageMatcherChoice.AVERAGE_HASH
+    target_rater: _TargetRaterChoice = _TargetRaterChoice.BRISQUE
 
 
 def get_all_databases() -> set[VuforiaDatabase]:
@@ -69,8 +91,12 @@ def get_all_databases() -> set[VuforiaDatabase]:
         url=f"{settings.target_manager_base_url}/databases",
         timeout=30,
     )
+    target_tracking_rater = settings.target_rater.to_target_rater()
     return {
-        VuforiaDatabase.from_dict(database_dict=database_dict)
+        VuforiaDatabase.from_dict(
+            database_dict=database_dict,
+            target_tracking_rater=target_tracking_rater,
+        )
         for database_dict in response.json()
     }
 
