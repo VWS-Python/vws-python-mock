@@ -261,6 +261,8 @@ class TestCustomQueryRecognizesDeletionSeconds:
         with MockVWS(
             # Use the fastest available matcher.
             query_match_checker=ExactMatcher(),
+            # Use the fastest available tracker.
+            target_tracking_rater=RandomTargetTrackingRater(),
         ) as mock:
             mock.add_database(database=database)
             time_taken = recognize_deletion_seconds(
@@ -282,6 +284,8 @@ class TestCustomQueryRecognizesDeletionSeconds:
         with MockVWS(
             # Use the fastest available matcher.
             query_match_checker=ExactMatcher(),
+            # Use the fastest available tracker.
+            target_tracking_rater=RandomTargetTrackingRater(),
             query_processes_deletion_seconds=0,
         ) as mock:
             mock.add_database(database=database)
@@ -307,6 +311,8 @@ class TestCustomQueryRecognizesDeletionSeconds:
         with MockVWS(
             # Use the fastest available matcher.
             query_match_checker=ExactMatcher(),
+            # Use the fastest available tracker.
+            target_tracking_rater=RandomTargetTrackingRater(),
             query_recognizes_deletion_seconds=query_recognizes_deletion,
         ) as mock:
             mock.add_database(database=database)
@@ -344,6 +350,8 @@ class TestCustomQueryProcessDeletionSeconds:
         with MockVWS(
             # Use the fastest available matcher.
             query_match_checker=ExactMatcher(),
+            # Use the fastest available tracker.
+            target_tracking_rater=RandomTargetTrackingRater(),
         ) as mock:
             mock.add_database(database=database)
             time_taken = process_deletion_seconds(
@@ -369,6 +377,8 @@ class TestCustomQueryProcessDeletionSeconds:
             query_processes_deletion_seconds=query_processes_deletion,
             # Use the fastest available matcher.
             query_match_checker=ExactMatcher(),
+            # Use the fastest available tracker.
+            target_tracking_rater=RandomTargetTrackingRater(),
         ) as mock:
             mock.add_database(database=database)
             time_taken = process_deletion_seconds(

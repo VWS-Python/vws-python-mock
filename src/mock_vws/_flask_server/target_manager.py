@@ -47,7 +47,7 @@ class _TargetRaterChoice(StrEnum):
 class TargetManagerSettings(BaseSettings):
     """Settings for the Target Manager Flask app."""
 
-    target_manager_host: str
+    target_manager_host: str = ""
     target_rater: _TargetRaterChoice = _TargetRaterChoice.BRISQUE
 
 

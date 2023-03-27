@@ -138,6 +138,8 @@ class TestCustomQueryRecognizesDeletionSeconds:
         database = VuforiaDatabase()
         # Use the "exact" matcher, as it is the fastest.
         monkeypatch.setenv(name="QUERY_IMAGE_MATCHER", value="exact")
+        # Use the "random" rater, as it is the fastest.
+        monkeypatch.setenv(name="TARGET_RATER", value="random")
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
         time_taken = recognize_deletion_seconds(

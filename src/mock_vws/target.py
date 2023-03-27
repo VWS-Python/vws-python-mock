@@ -98,7 +98,7 @@ class Target:
     name: str
     processing_time_seconds: float
     width: float
-    target_tracking_rater: TargetTrackingRater
+    target_tracking_rater: TargetTrackingRater = field(compare=False)
     current_month_recos: int = 0
     delete_date: datetime.datetime | None = None
     last_modified_date: datetime.datetime = field(default_factory=_time_now)
