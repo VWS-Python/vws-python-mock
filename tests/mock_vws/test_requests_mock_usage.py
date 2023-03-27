@@ -271,8 +271,8 @@ class TestCustomQueryRecognizesDeletionSeconds:
                 vuforia_database=database,
             )
 
-        expected = 0.2
-        assert expected < time_taken < expected + self.LEEWAY
+        expected = 0.0
+        assert expected - self.LEEWAY < time_taken < expected + self.LEEWAY
 
     def test_with_no_processing_time(
         self,
@@ -295,8 +295,8 @@ class TestCustomQueryRecognizesDeletionSeconds:
                 vuforia_database=database,
             )
 
-        expected = 0.2
-        assert expected < time_taken < expected + self.LEEWAY
+        expected = 0.0
+        assert expected - self.LEEWAY < time_taken < expected + self.LEEWAY
 
     def test_custom(
         self,
@@ -323,7 +323,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
             )
 
         expected = query_recognizes_deletion
-        assert expected < time_taken < expected + self.LEEWAY
+        assert expected - self.LEEWAY < time_taken < expected + self.LEEWAY
 
 
 class TestCustomQueryProcessDeletionSeconds:

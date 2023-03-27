@@ -90,7 +90,7 @@ def _enable_use_mock_vuforia(
         client_secret_key=inactive_database.client_secret_key,
     )
 
-    with MockVWS(processing_time_seconds=0.2) as mock:
+    with MockVWS(processing_time_seconds=0.5) as mock:
         mock.add_database(database=working_database)
         mock.add_database(database=inactive_database)
         yield

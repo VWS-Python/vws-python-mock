@@ -84,7 +84,7 @@ class BrisqueTargetTrackingRater:
         with np.errstate(divide="ignore", invalid="ignore"):
             try:
                 score = obj.score(img=image_array)
-            except cv2.error:  # pylint: disable=no-member
+            except (cv2.error, ValueError):  # pylint: disable=no-member
                 return 0
         if math.isnan(score):
             return 0

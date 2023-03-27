@@ -68,7 +68,6 @@ class AverageHashMatcher:
             first_image_content: One image's content.
             second_image_content: Another image's content.
         """
-        breakpoint()
         database_image = Image.open(io.BytesIO(first_image_content))
         query_image = Image.open(io.BytesIO(second_image_content))
         database_hash = imagehash.average_hash(database_image)
