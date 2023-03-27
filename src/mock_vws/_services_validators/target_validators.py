@@ -56,5 +56,5 @@ def validate_target_id_exists(
             if target.target_id == target_id
         ]
     except ValueError as exc:
-        _LOGGER.warning(msg=('The target ID "%s" does not exist.', target_id))
+        _LOGGER.warning('The target ID "%s" does not exist.', target_id)
         raise UnknownTarget from exc
