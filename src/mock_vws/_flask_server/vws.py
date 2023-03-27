@@ -36,9 +36,7 @@ from mock_vws.image_matchers import (
 )
 from mock_vws.target import Target
 from mock_vws.target_raters import (
-    BrisqueTargetTrackingRater,
-    RandomTargetTrackingRater,
-    TargetTrackingRater,
+    HardcodedTargetTrackingRater,
 )
 
 VWS_FLASK_APP = Flask(import_name=__name__)
@@ -64,22 +62,6 @@ class _ImageMatcherChoice(StrEnum):
         return matcher
 
 
-class _TargetRaterChoice(StrEnum):
-    """Target rater choices."""
-
-    RANDOM = auto()
-    BRISQUE = auto()
-
-    def to_target_rater(self) -> TargetTrackingRater:
-        """Get the target rater."""
-        rater = {
-            _TargetRaterChoice.RANDOM: RandomTargetTrackingRater(),
-            _TargetRaterChoice.BRISQUE: BrisqueTargetTrackingRater(),
-        }[self]
-        assert isinstance(rater, TargetTrackingRater)
-        return rater
-
-
 class VWSSettings(BaseSettings):
     """Settings for the VWS Flask app."""
 
@@ -89,7 +71,6 @@ class VWSSettings(BaseSettings):
     duplicates_image_matcher: _ImageMatcherChoice = (
         _ImageMatcherChoice.AVERAGE_HASH
     )
-    target_rater: _TargetRaterChoice = _TargetRaterChoice.BRISQUE
 
 
 def get_all_databases() -> set[VuforiaDatabase]:
@@ -169,7 +150,6 @@ def add_target() -> Response:
     """
     databases = get_all_databases()
     settings = VWSSettings.parse_obj(obj={})
-    target_tracking_rater = settings.target_rater.to_target_rater()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
         request_body=request.data,
@@ -187,6 +167,9 @@ def add_target() -> Response:
     active_flag = request_json.get("active_flag")
     if active_flag is None:
         active_flag = True
+
+    # This rater is not used.
+    target_tracking_rater = HardcodedTargetTrackingRater(rating=1)
 
     new_target = Target(
         name=name,

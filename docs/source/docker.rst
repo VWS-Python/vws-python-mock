@@ -100,7 +100,8 @@ Required configuration
 Optional configuration
 ^^^^^^^^^^^^^^^^^^^^^^
 
-All containers:
+Target manager container
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. envvar:: TARGET_RATER
 
