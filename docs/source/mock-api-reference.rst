@@ -30,3 +30,14 @@ Image matchers
 .. autoclass:: mock_vws.image_matchers.ExactMatcher
 
 .. autoclass:: mock_vws.image_matchers.AverageHashMatcher
+
+Target raters
+-------------
+
+.. autoprotocol:: mock_vws.target_raters.TargetTrackingRater
+
+.. autoclass:: mock_vws.target_raters.RandomTargetTrackingRater
+
+.. autoclass:: mock_vws.target_raters.HardcodedTargetTrackingRater
+
+.. autoclass:: mock_vws.target_raters.BrisqueTargetTrackingRater
