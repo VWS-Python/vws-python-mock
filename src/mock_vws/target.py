@@ -6,19 +6,16 @@ from __future__ import annotations
 import base64
 import datetime
 import io
-import math
 import statistics
 import uuid
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, TypedDict
 from zoneinfo import ZoneInfo
 
-import brisque
-import cv2
-import numpy as np
 from PIL import Image, ImageStat
 
 from mock_vws._constants import TargetStatuses
+from mock_vws.target_raters import HardcodedTargetTrackingRater
 
 if TYPE_CHECKING:
     from mock_vws.target_raters import TargetTrackingRater
@@ -39,6 +36,7 @@ class TargetDict(TypedDict):
     last_modified_date: str
     delete_date_optional: str | None
     upload_date: str
+    tracking_rating: int
 
 
 def _random_hex() -> str:
@@ -54,35 +52,6 @@ def _time_now() -> datetime.datetime:
     """
     gmt = ZoneInfo("GMT")
     return datetime.datetime.now(tz=gmt)
-
-
-def _quality(image_content: bytes) -> int:
-    """
-    Get a quality score for an image.
-
-    This is a rough approximation of the quality score used by Vuforia, but
-    is not accurate. For example, our "corrupted_image" fixture is rated as -2
-    by Vuforia, but is rated as 0 by this function.
-
-    Args:
-        image_content: The image content.
-
-    Returns:
-        The quality of the image.
-    """
-    image_file = io.BytesIO(initial_bytes=image_content)
-    image = Image.open(fp=image_file)
-    image_array = np.asarray(a=image)
-    obj = brisque.BRISQUE(url=False)
-    # We avoid a barrage of warnings from the BRISQUE library.
-    with np.errstate(divide="ignore", invalid="ignore"):
-        try:
-            score = obj.score(img=image_array)
-        except cv2.error:  # pylint: disable=no-member
-            return 0
-    if math.isnan(score):
-        return 0
-    return int(score / 20)
 
 
 @dataclass(frozen=True, eq=True)
@@ -157,6 +126,10 @@ class Target:
         return str(self._post_processing_status.value)
 
     @property
+    def _post_processing_target_rating(self) -> int:
+        return self.target_tracking_rater(image_content=self.image_value)
+
+    @property
     def tracking_rating(self) -> int:
         """
         Return the tracking rating of the target recognition image.
@@ -177,13 +150,12 @@ class Target:
         if time_since_upload <= pre_rating_time:
             return -1
 
-        return _quality(image_content=self.image_value)
+        return self._post_processing_target_rating
 
     @classmethod
     def from_dict(
         cls,
         target_dict: TargetDict,
-        target_tracking_rater: TargetTrackingRater,
     ) -> Target:
         """
         Load a target from a dictionary.
@@ -211,6 +183,9 @@ class Target:
             target_dict["upload_date"],
         ).replace(tzinfo=timezone)
 
+        target_tracking_rater = HardcodedTargetTrackingRater(
+            rating=target_dict["tracking_rating"],
+        )
         return Target(
             target_id=target_id,
             name=name,
@@ -246,4 +221,5 @@ class Target:
             "last_modified_date": self.last_modified_date.isoformat(),
             "delete_date_optional": delete_date,
             "upload_date": self.upload_date.isoformat(),
+            "tracking_rating": self.tracking_rating,
         }

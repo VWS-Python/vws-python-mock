@@ -41,6 +41,27 @@ class RandomTargetTrackingRater:
         return random.randint(0, 5)
 
 
+class HardcodedTargetTrackingRater:
+    """A rater which returns a hardcoded number."""
+
+    def __init__(self, rating: int) -> None:
+        """
+        Args:
+            rating: The rating to return.
+        """
+        self._rating = rating
+
+    def __call__(self, image_content: bytes) -> int:
+        """
+        A random target tracking rating.
+
+        Args:
+            image_content: A target's image's content.
+        """
+        assert image_content
+        return self._rating
+
+
 class BrisqueTargetTrackingRater:
     """A rater which returns a rating based on a BRISQUE score."""
 

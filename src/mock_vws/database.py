@@ -118,10 +118,7 @@ class VuforiaDatabase:
             client_secret_key=database_dict["client_secret_key"],
             state=States[database_dict["state_name"]],
             targets={
-                Target.from_dict(
-                    target_dict=target_dict,
-                    target_tracking_rater=target_tracking_rater,
-                )
+                Target.from_dict(target_dict=target_dict)
                 for target_dict in database_dict["targets"]
             },
         )

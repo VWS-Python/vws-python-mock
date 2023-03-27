@@ -423,11 +423,7 @@ class TestTargets:
         # The dictionary is JSON dump-able
         assert json.dumps(target_dict)
 
-        target_tracking_rater = RandomTargetTrackingRater()
-        new_target = Target.from_dict(
-            target_dict=target_dict,
-            target_tracking_rater=target_tracking_rater,
-        )
+        new_target = Target.from_dict(target_dict=target_dict)
         assert new_target == target
 
     @staticmethod
@@ -461,11 +457,7 @@ class TestTargets:
         # The dictionary is JSON dump-able
         assert json.dumps(target_dict)
 
-        target_tracking_rater = RandomTargetTrackingRater()
-        new_target = Target.from_dict(
-            target_dict=target_dict,
-            target_tracking_rater=target_tracking_rater,
-        )
+        new_target = Target.from_dict(target_dict=target_dict)
         assert new_target.delete_date == target.delete_date
 
 
