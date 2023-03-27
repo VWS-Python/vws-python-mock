@@ -106,6 +106,7 @@ class MockVuforiaWebServicesAPI:
                 deterministic.
             duplicate_match_checker: A callable which takes two image values
                 and returns whether they are duplicates.
+            target_tracking_rater: A callable for rating targets for tracking.
 
         Attributes:
             routes: The `Route`s to be used in the mock.

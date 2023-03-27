@@ -6,14 +6,11 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, TypedDict
+from typing import TypedDict
 
 from mock_vws._constants import TargetStatuses
 from mock_vws.states import States
 from mock_vws.target import Target, TargetDict
-
-if TYPE_CHECKING:
-    from mock_vws.target_raters import TargetTrackingRater
 
 
 class DatabaseDict(TypedDict):
@@ -105,7 +102,6 @@ class VuforiaDatabase:
     def from_dict(
         cls,
         database_dict: DatabaseDict,
-        target_tracking_rater: TargetTrackingRater,
     ) -> VuforiaDatabase:
         """
         Load a database from a dictionary.

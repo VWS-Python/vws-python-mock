@@ -101,12 +101,8 @@ def get_all_databases() -> set[VuforiaDatabase]:
         url=f"{settings.target_manager_base_url}/databases",
         timeout=30,
     )
-    target_tracking_rater = settings.target_rater.to_target_rater()
     return {
-        VuforiaDatabase.from_dict(
-            database_dict=database_dict,
-            target_tracking_rater=target_tracking_rater,
-        )
+        VuforiaDatabase.from_dict(database_dict=database_dict)
         for database_dict in response.json()
     }
 

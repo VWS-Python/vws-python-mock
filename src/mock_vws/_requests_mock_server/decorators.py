@@ -38,7 +38,6 @@ class MockVWS(ContextDecorator):
 
     def __init__(
         self,
-        target_tracking_rater: TargetTrackingRater = _BRISQUE_TRACKING_RATER,
         base_vws_url: str = "https://vws.vuforia.com",
         base_vwq_url: str = "https://cloudreco.vuforia.com",
         duplicate_match_checker: ImageMatcher = _AVERAGE_HASH_MATCHER,
@@ -46,6 +45,7 @@ class MockVWS(ContextDecorator):
         processing_time_seconds: int | float = 0.5,
         query_recognizes_deletion_seconds: int | float = 0.2,
         query_processes_deletion_seconds: int | float = 3,
+        target_tracking_rater: TargetTrackingRater = _BRISQUE_TRACKING_RATER,
         *,
         real_http: bool = False,
     ) -> None:
@@ -72,6 +72,7 @@ class MockVWS(ContextDecorator):
                 returns whether they will match in a query request.
             duplicate_match_checker: A callable which takes two image values
                 and returns whether they are duplicates.
+            target_tracking_rater: A callable for rating targets for tracking.
 
         Raises:
             requests.exceptions.MissingSchema: There is no schema in a given

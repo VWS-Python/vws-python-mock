@@ -492,11 +492,7 @@ class TestDatabaseToDict:
         # The dictionary is JSON dump-able
         assert json.dumps(database_dict)
 
-        target_tracking_rater = RandomTargetTrackingRater()
-        new_database = VuforiaDatabase.from_dict(
-            database_dict=database_dict,
-            target_tracking_rater=target_tracking_rater,
-        )
+        new_database = VuforiaDatabase.from_dict(database_dict=database_dict)
         assert new_database == database
 
 

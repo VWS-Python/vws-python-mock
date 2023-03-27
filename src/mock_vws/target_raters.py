@@ -70,8 +70,8 @@ class BrisqueTargetTrackingRater:
         A rating based on a BRISQUE score.
 
         This is a rough approximation of the quality score used by Vuforia, but
-        is not accurate. For example, our "corrupted_image" fixture is rated as -2
-        by Vuforia, but is rated as 0 by this function.
+        is not accurate. For example, our "corrupted_image" fixture is rated as
+        -2 by Vuforia, but is rated as 0 by this function.
 
         Args:
             image_content: A target's image's content.
