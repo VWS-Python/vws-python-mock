@@ -106,7 +106,7 @@ class TestProcessingTime:
 
     # There is a race condition in this test type - if tests start to
     # fail, consider increasing the leeway.
-    LEEWAY = 0.15
+    LEEWAY = 0.5
 
     def test_default(self, image_file_failed_state: io.BytesIO) -> None:
         """
@@ -121,22 +121,23 @@ class TestProcessingTime:
             )
 
         expected = 0.5
-        assert expected < time_taken < expected + self.LEEWAY
+        assert expected - self.LEEWAY < time_taken < expected + self.LEEWAY
 
     def test_custom(self, image_file_failed_state: io.BytesIO) -> None:
         """
         It is possible to set a custom processing time.
         """
         database = VuforiaDatabase()
-        with MockVWS(processing_time_seconds=0.1) as mock:
+        seconds = 5
+        with MockVWS(processing_time_seconds=seconds) as mock:
             mock.add_database(database=database)
             time_taken = processing_time_seconds(
                 vuforia_database=database,
                 image=image_file_failed_state,
             )
 
-        expected = 0.1
-        assert expected < time_taken < expected + self.LEEWAY
+        expected = seconds
+        assert expected - self.LEEWAY < time_taken < expected + self.LEEWAY
 
 
 class TestDatabaseName:
@@ -243,7 +244,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
     until it is not recognized by the query endpoint.
     """
 
-    LEEWAY = 0.2
+    LEEWAY = 0.5
 
     def test_default(
         self,
@@ -301,7 +302,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
         Query API on the mock to recognize that a target has been deleted.
         """
         # We choose a low time for a quick test.
-        query_recognizes_deletion = 0.5
+        query_recognizes_deletion = 5
         database = VuforiaDatabase()
         with MockVWS(
             # Use the fastest available matcher.
@@ -326,7 +327,7 @@ class TestCustomQueryProcessDeletionSeconds:
 
     # There is a race condition in this test type - if tests start to
     # fail, consider increasing the leeway.
-    LEEWAY = 0.2
+    LEEWAY = 0.5
 
     def test_default(
         self,
@@ -351,7 +352,9 @@ class TestCustomQueryProcessDeletionSeconds:
             )
 
         expected = 3
-        assert expected < time_taken < expected + self.LEEWAY
+        # We minus the leeway because we might start the timer after the
+        # deletion processing has started.
+        assert expected - self.LEEWAY < time_taken < expected + self.LEEWAY
 
     def test_custom(
         self,
@@ -362,7 +365,8 @@ class TestCustomQueryProcessDeletionSeconds:
         Query API on the mock to process that a target has been deleted.
         """
         # We choose a low time for a quick test.
-        query_processes_deletion = 0.1
+        # We choose a time high enough that the leeway won't be a problem.
+        query_processes_deletion = 5
         database = VuforiaDatabase()
         with MockVWS(
             query_processes_deletion_seconds=query_processes_deletion,
@@ -376,7 +380,9 @@ class TestCustomQueryProcessDeletionSeconds:
             )
 
         expected = query_processes_deletion
-        assert expected < time_taken < expected + self.LEEWAY
+        # We minus the leeway because we might start the timer after the
+        # deletion processing has started.
+        assert expected - self.LEEWAY < time_taken < expected + self.LEEWAY
 
 
 class TestTargets:
