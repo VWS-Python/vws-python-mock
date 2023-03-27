@@ -121,7 +121,7 @@ class TestProcessingTime:
             )
 
         expected = 0.5
-        assert abs(expected - time_taken) < self.LEEWAY
+        assert expected < time_taken < expected + self.LEEWAY
 
     def test_custom(self, image_file_failed_state: io.BytesIO) -> None:
         """
@@ -136,7 +136,7 @@ class TestProcessingTime:
             )
 
         expected = 0.1
-        assert abs(expected - time_taken) < self.LEEWAY
+        assert expected < time_taken < expected + self.LEEWAY
 
 
 class TestDatabaseName:
@@ -268,7 +268,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
             )
 
         expected = 0.2
-        assert abs(expected - time_taken) < self.LEEWAY
+        assert expected < time_taken < expected + self.LEEWAY
 
     def test_with_no_processing_time(
         self,
@@ -290,7 +290,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
             )
 
         expected = 0.2
-        assert abs(expected - time_taken) < self.LEEWAY
+        assert expected < time_taken < expected + self.LEEWAY
 
     def test_custom(
         self,
@@ -315,7 +315,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
             )
 
         expected = query_recognizes_deletion
-        assert abs(expected - time_taken) < self.LEEWAY
+        assert expected < time_taken < expected + self.LEEWAY
 
 
 class TestCustomQueryProcessDeletionSeconds:
@@ -351,7 +351,7 @@ class TestCustomQueryProcessDeletionSeconds:
             )
 
         expected = 3
-        assert abs(expected - time_taken) < self.LEEWAY
+        assert expected < time_taken < expected + self.LEEWAY
 
     def test_custom(
         self,
@@ -376,7 +376,7 @@ class TestCustomQueryProcessDeletionSeconds:
             )
 
         expected = query_processes_deletion
-        assert abs(expected - time_taken) < self.LEEWAY
+        assert expected < time_taken < expected + self.LEEWAY
 
 
 class TestTargets:
