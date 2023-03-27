@@ -100,6 +100,19 @@ Required configuration
 Optional configuration
 ^^^^^^^^^^^^^^^^^^^^^^
 
+All containers:
+
+.. envvar:: TARGET_RATER
+
+   The rater to use for target tracking ratings.
+
+   Options include:
+
+   * ``random``: The rating is random.
+   * ``brisque``: The rating is derived using the BRISQUE algorithm.
+
+   Default: ``average_hash``
+
 Query container
 ~~~~~~~~~~~~~~~
 
