@@ -76,7 +76,7 @@ class TestProcessingTime:
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
-        By default, targets in the mock take 2 seconds to be processed.
+        By default, targets in the mock takes 2 seconds to be processed.
         """
         database = VuforiaDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"

@@ -149,7 +149,7 @@ VWS container
 
    The number of seconds to process each image for.
 
-   Default 0.5
+   Default 2
 
 .. envvar:: DUPLICATES_IMAGE_MATCHER
 
