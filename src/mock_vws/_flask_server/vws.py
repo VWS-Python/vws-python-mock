@@ -148,8 +148,8 @@ def add_target() -> Response:
     Fake implementation of
     https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Add-a-Target
     """
-    databases = get_all_databases()
     settings = VWSSettings.parse_obj(obj={})
+    databases = get_all_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
         request_body=request.data,
