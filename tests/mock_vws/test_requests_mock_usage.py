@@ -252,7 +252,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
         high_quality_image: io.BytesIO,
     ) -> None:
         """
-        By default it takes zero seconds for the Query API on the mock to
+        By default it takes 0.2 seconds for the Query API on the mock to
         recognize that a target has been deleted.
 
         The real Query API takes between zero and two seconds.
