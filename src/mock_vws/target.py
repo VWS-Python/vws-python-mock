@@ -15,10 +15,14 @@ from zoneinfo import ZoneInfo
 from PIL import Image, ImageStat
 
 from mock_vws._constants import TargetStatuses
+<<<<<<< HEAD
 from mock_vws.target_raters import HardcodedTargetTrackingRater
 
 if TYPE_CHECKING:
     from mock_vws.target_raters import TargetTrackingRater
+=======
+from mock_vws.target_raters import BrisqueTargetTrackingRater
+>>>>>>> origin/master
 
 
 class TargetDict(TypedDict):
