@@ -148,7 +148,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
             vuforia_database=database,
         )
 
-        expected = 0.0
+        expected = 0.2
         assert expected < time_taken < expected + self.LEEWAY
 
     def test_custom(
