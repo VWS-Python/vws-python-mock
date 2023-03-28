@@ -151,23 +151,27 @@ class TestCustomQueryRecognizesDeletionSeconds:
         expected = 0.2
         assert expected < time_taken < expected + self.LEEWAY
 
+    @pytest.mark.parametrize(
+        argnames=["seconds"],
+        # We include 0 because it exercises some otherwise untouched code.
+        argvalues=[(0,), (5,)],
+    )
     def test_custom(
         self,
         high_quality_image: io.BytesIO,
         monkeypatch: pytest.MonkeyPatch,
+        seconds: int | float,
     ) -> None:
         """
         It is possible to use set a custom amount of time that it takes for the
         Query API on the mock to recognize that a target has been deleted.
         """
-        # We choose a low time for a quick test.
-        query_recognizes_deletion = 5
         database = VuforiaDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
         monkeypatch.setenv(
             name="DELETION_RECOGNITION_SECONDS",
-            value=str(query_recognizes_deletion),
+            value=str(seconds),
         )
         # Use the "exact" matcher, as it is the fastest.
         monkeypatch.setenv(name="QUERY_IMAGE_MATCHER", value="exact")
@@ -176,7 +180,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
             vuforia_database=database,
         )
 
-        expected = query_recognizes_deletion
+        expected = seconds
         assert expected < time_taken < expected + self.LEEWAY
 
 
