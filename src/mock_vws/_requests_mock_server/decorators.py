@@ -39,7 +39,7 @@ class MockVWS(ContextDecorator):
         base_vwq_url: str = "https://cloudreco.vuforia.com",
         duplicate_match_checker: ImageMatcher = _AVERAGE_HASH_MATCHER,
         query_match_checker: ImageMatcher = _AVERAGE_HASH_MATCHER,
-        processing_time_seconds: int | float = 0.5,
+        processing_time_seconds: int | float = 2,
         query_recognizes_deletion_seconds: int | float = 0.2,
         query_processes_deletion_seconds: int | float = 3,
         *,
