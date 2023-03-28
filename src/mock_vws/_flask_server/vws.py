@@ -35,6 +35,9 @@ from mock_vws.image_matchers import (
     ImageMatcher,
 )
 from mock_vws.target import Target
+from mock_vws.target_raters import (
+    HardcodedTargetTrackingRater,
+)
 
 VWS_FLASK_APP = Flask(import_name=__name__)
 VWS_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
@@ -165,6 +168,9 @@ def add_target() -> Response:
     if active_flag is None:
         active_flag = True
 
+    # This rater is not used.
+    target_tracking_rater = HardcodedTargetTrackingRater(rating=1)
+
     new_target = Target(
         name=name,
         width=request_json["width"],
@@ -172,6 +178,7 @@ def add_target() -> Response:
         active_flag=active_flag,
         processing_time_seconds=settings.processing_time_seconds,
         application_metadata=request_json.get("application_metadata"),
+        target_tracking_rater=target_tracking_rater,
     )
 
     databases_url = f"{settings.target_manager_base_url}/databases"

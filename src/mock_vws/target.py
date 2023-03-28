@@ -9,13 +9,16 @@ import io
 import statistics
 import uuid
 from dataclasses import dataclass, field
-from typing import TypedDict
+from typing import TYPE_CHECKING, TypedDict
 from zoneinfo import ZoneInfo
 
 from PIL import Image, ImageStat
 
 from mock_vws._constants import TargetStatuses
-from mock_vws.target_raters import BrisqueTargetTrackingRater
+from mock_vws.target_raters import HardcodedTargetTrackingRater
+
+if TYPE_CHECKING:
+    from mock_vws.target_raters import TargetTrackingRater
 
 
 class TargetDict(TypedDict):
@@ -33,6 +36,7 @@ class TargetDict(TypedDict):
     last_modified_date: str
     delete_date_optional: str | None
     upload_date: str
+    tracking_rating: int
 
 
 def _random_hex() -> str:
@@ -63,6 +67,7 @@ class Target:
     name: str
     processing_time_seconds: float
     width: float
+    target_tracking_rater: TargetTrackingRater = field(compare=False)
     current_month_recos: int = 0
     delete_date: datetime.datetime | None = None
     last_modified_date: datetime.datetime = field(default_factory=_time_now)
@@ -121,6 +126,10 @@ class Target:
         return str(self._post_processing_status.value)
 
     @property
+    def _post_processing_target_rating(self) -> int:
+        return self.target_tracking_rater(image_content=self.image_value)
+
+    @property
     def tracking_rating(self) -> int:
         """
         Return the tracking rating of the target recognition image.
@@ -141,8 +150,7 @@ class Target:
         if time_since_upload <= pre_rating_time:
             return -1
 
-        tracking_rater = BrisqueTargetTrackingRater()
-        return tracking_rater(image_content=self.image_value)
+        return self._post_processing_target_rating
 
     @classmethod
     def from_dict(cls, target_dict: TargetDict) -> Target:
@@ -172,6 +180,9 @@ class Target:
             target_dict["upload_date"],
         ).replace(tzinfo=timezone)
 
+        target_tracking_rater = HardcodedTargetTrackingRater(
+            rating=target_dict["tracking_rating"],
+        )
         return Target(
             target_id=target_id,
             name=name,
@@ -183,6 +194,7 @@ class Target:
             delete_date=delete_date,
             last_modified_date=last_modified_date,
             upload_date=upload_date,
+            target_tracking_rater=target_tracking_rater,
         )
 
     def to_dict(self) -> TargetDict:
@@ -206,4 +218,5 @@ class Target:
             "last_modified_date": self.last_modified_date.isoformat(),
             "delete_date_optional": delete_date,
             "upload_date": self.upload_date.isoformat(),
+            "tracking_rating": self.tracking_rating,
         }

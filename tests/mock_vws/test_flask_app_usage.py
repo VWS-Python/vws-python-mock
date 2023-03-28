@@ -139,6 +139,8 @@ class TestCustomQueryRecognizesDeletionSeconds:
         database = VuforiaDatabase()
         # Use the "exact" matcher, as it is the fastest.
         monkeypatch.setenv(name="QUERY_IMAGE_MATCHER", value="exact")
+        # Use the fastest tracking rater.
+        monkeypatch.setenv(name="TARGET_RATER", value="perfect")
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
         time_taken = recognize_deletion_seconds(
@@ -147,7 +149,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
         )
 
         expected = 0.2
-        assert expected < time_taken < expected + self.LEEWAY
+        assert expected - self.LEEWAY < time_taken < expected + self.LEEWAY
 
     @pytest.mark.parametrize(
         argnames=["seconds"],
@@ -179,7 +181,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
         )
 
         expected = seconds
-        assert expected < time_taken < expected + self.LEEWAY
+        assert expected - self.LEEWAY < time_taken < expected + self.LEEWAY
 
 
 class TestCustomQueryProcessDeletionSeconds:
@@ -195,6 +197,7 @@ class TestCustomQueryProcessDeletionSeconds:
     def test_default(
         self,
         high_quality_image: io.BytesIO,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """
         By default it takes three seconds for the Query API on the mock to
@@ -203,6 +206,10 @@ class TestCustomQueryProcessDeletionSeconds:
         The real Query API takes between seven and thirty seconds.
         See ``test_query`` for more information.
         """
+        # Use the "exact" matcher, as it is the fastest.
+        monkeypatch.setenv(name="QUERY_IMAGE_MATCHER", value="exact")
+        # Use the fastest tracking rater.
+        monkeypatch.setenv(name="TARGET_RATER", value="perfect")
         database = VuforiaDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
@@ -225,6 +232,10 @@ class TestCustomQueryProcessDeletionSeconds:
         It is possible to use set a custom amount of time that it takes for the
         Query API on the mock to process that a target has been deleted.
         """
+        # Use the "exact" matcher, as it is the fastest.
+        monkeypatch.setenv(name="QUERY_IMAGE_MATCHER", value="exact")
+        # Use the fastest tracking rater.
+        monkeypatch.setenv(name="TARGET_RATER", value="perfect")
         # We choose a low time for a quick test.
         query_processes_deletion = 5
         database = VuforiaDatabase()

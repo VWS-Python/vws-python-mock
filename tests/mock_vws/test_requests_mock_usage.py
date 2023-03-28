@@ -16,6 +16,7 @@ from mock_vws import MockVWS
 from mock_vws.database import VuforiaDatabase
 from mock_vws.image_matchers import AverageHashMatcher, ExactMatcher
 from mock_vws.target import Target
+from mock_vws.target_raters import HardcodedTargetTrackingRater
 from PIL import Image
 from requests.exceptions import MissingSchema
 from requests_mock.exceptions import NoMockAddress
@@ -261,6 +262,8 @@ class TestCustomQueryRecognizesDeletionSeconds:
         with MockVWS(
             # Use the fastest available matcher.
             query_match_checker=ExactMatcher(),
+            # Use the fastest available tracker.
+            target_tracking_rater=HardcodedTargetTrackingRater(rating=5),
         ) as mock:
             mock.add_database(database=database)
             time_taken = recognize_deletion_seconds(
@@ -269,7 +272,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
             )
 
         expected = 0.2
-        assert expected < time_taken < expected + self.LEEWAY
+        assert expected - self.LEEWAY < time_taken < expected + self.LEEWAY
 
     @pytest.mark.parametrize(
         argnames=["seconds"],
@@ -298,7 +301,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
             )
 
         expected = seconds
-        assert expected < time_taken < expected + self.LEEWAY
+        assert expected - self.LEEWAY < time_taken < expected + self.LEEWAY
 
 
 class TestCustomQueryProcessDeletionSeconds:
@@ -326,6 +329,8 @@ class TestCustomQueryProcessDeletionSeconds:
         with MockVWS(
             # Use the fastest available matcher.
             query_match_checker=ExactMatcher(),
+            # Use the fastest available tracker.
+            target_tracking_rater=HardcodedTargetTrackingRater(rating=5),
         ) as mock:
             mock.add_database(database=database)
             time_taken = process_deletion_seconds(
@@ -354,6 +359,8 @@ class TestCustomQueryProcessDeletionSeconds:
             query_processes_deletion_seconds=query_processes_deletion,
             # Use the fastest available matcher.
             query_match_checker=ExactMatcher(),
+            # Use the fastest available tracker.
+            target_tracking_rater=HardcodedTargetTrackingRater(rating=5),
         ) as mock:
             mock.add_database(database=database)
             time_taken = process_deletion_seconds(

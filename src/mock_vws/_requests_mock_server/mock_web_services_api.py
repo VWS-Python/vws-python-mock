@@ -39,6 +39,7 @@ if TYPE_CHECKING:
 
     from mock_vws.image_matchers import ImageMatcher
     from mock_vws.target_manager import TargetManager
+    from mock_vws.target_raters import TargetTrackingRater
 
 _TARGET_ID_PATTERN = "[A-Za-z0-9]+"
 
@@ -95,6 +96,7 @@ class MockVuforiaWebServicesAPI:
         target_manager: TargetManager,
         processing_time_seconds: int | float,
         duplicate_match_checker: ImageMatcher,
+        target_tracking_rater: TargetTrackingRater,
     ) -> None:
         """
         Args:
@@ -104,6 +106,7 @@ class MockVuforiaWebServicesAPI:
                 deterministic.
             duplicate_match_checker: A callable which takes two image values
                 and returns whether they are duplicates.
+            target_tracking_rater: A callable for rating targets for tracking.
 
         Attributes:
             routes: The `Route`s to be used in the mock.
@@ -112,6 +115,7 @@ class MockVuforiaWebServicesAPI:
         self.routes: set[Route] = _ROUTES
         self._processing_time_seconds = processing_time_seconds
         self._duplicate_match_checker = duplicate_match_checker
+        self._target_tracking_rater = target_tracking_rater
 
     @route(
         path_pattern="/targets",
@@ -167,6 +171,7 @@ class MockVuforiaWebServicesAPI:
             active_flag=active_flag,
             processing_time_seconds=self._processing_time_seconds,
             application_metadata=application_metadata,
+            target_tracking_rater=self._target_tracking_rater,
         )
         database.targets.add(new_target)
 

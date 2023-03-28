@@ -17,15 +17,18 @@ from mock_vws.image_matchers import (
     ImageMatcher,
 )
 from mock_vws.target_manager import TargetManager
+from mock_vws.target_raters import BrisqueTargetTrackingRater
 
 from .mock_web_query_api import MockVuforiaWebQueryAPI
 from .mock_web_services_api import MockVuforiaWebServicesAPI
 
 if TYPE_CHECKING:
     from mock_vws.database import VuforiaDatabase
+    from mock_vws.target_raters import TargetTrackingRater
 
 
 _AVERAGE_HASH_MATCHER = AverageHashMatcher(threshold=10)
+_BRISQUE_TRACKING_RATER = BrisqueTargetTrackingRater()
 
 
 class MockVWS(ContextDecorator):
@@ -42,6 +45,7 @@ class MockVWS(ContextDecorator):
         processing_time_seconds: int | float = 2,
         query_recognizes_deletion_seconds: int | float = 0.2,
         query_processes_deletion_seconds: int | float = 3,
+        target_tracking_rater: TargetTrackingRater = _BRISQUE_TRACKING_RATER,
         *,
         real_http: bool = False,
     ) -> None:
@@ -53,8 +57,8 @@ class MockVWS(ContextDecorator):
                 server if they are not handled by the mock.
                 See
                 https://requests-mock.readthedocs.io/en/latest/mocker.html#real-http-requests.
-            processing_time_seconds: The number of seconds
-                to process each image for.
+            processing_time_seconds: The number of seconds to process each
+                image for.
                 In the real Vuforia Web Services, this is not deterministic.
             base_vwq_url: The base URL for the VWQ API.
             base_vws_url: The base URL for the VWS API.
@@ -68,6 +72,7 @@ class MockVWS(ContextDecorator):
                 returns whether they will match in a query request.
             duplicate_match_checker: A callable which takes two image values
                 and returns whether they are duplicates.
+            target_tracking_rater: A callable for rating targets for tracking.
 
         Raises:
             requests.exceptions.MissingSchema: There is no schema in a given
@@ -94,6 +99,7 @@ class MockVWS(ContextDecorator):
             target_manager=self._target_manager,
             processing_time_seconds=processing_time_seconds,
             duplicate_match_checker=duplicate_match_checker,
+            target_tracking_rater=target_tracking_rater,
         )
 
         self._mock_vwq_api = MockVuforiaWebQueryAPI(

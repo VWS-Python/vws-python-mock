@@ -6,6 +6,7 @@ import base64
 import dataclasses
 import datetime
 import json
+from enum import StrEnum, auto
 from http import HTTPStatus
 from zoneinfo import ZoneInfo
 
@@ -16,16 +17,41 @@ from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
 from mock_vws.target import Target
 from mock_vws.target_manager import TargetManager
+from mock_vws.target_raters import (
+    BrisqueTargetTrackingRater,
+    HardcodedTargetTrackingRater,
+    RandomTargetTrackingRater,
+    TargetTrackingRater,
+)
 
 TARGET_MANAGER_FLASK_APP = Flask(__name__)
 
 TARGET_MANAGER = TargetManager()
 
 
+class _TargetRaterChoice(StrEnum):
+    """Target rater choices."""
+
+    BRISQUE = auto()
+    PERFECT = auto()
+    RANDOM = auto()
+
+    def to_target_rater(self) -> TargetTrackingRater:
+        """Get the target rater."""
+        rater = {
+            _TargetRaterChoice.BRISQUE: BrisqueTargetTrackingRater(),
+            _TargetRaterChoice.PERFECT: HardcodedTargetTrackingRater(rating=5),
+            _TargetRaterChoice.RANDOM: RandomTargetTrackingRater(),
+        }[self]
+        assert isinstance(rater, TargetTrackingRater)
+        return rater
+
+
 class TargetManagerSettings(BaseSettings):
     """Settings for the Target Manager Flask app."""
 
-    target_manager_host: str
+    target_manager_host: str = ""
+    target_rater: _TargetRaterChoice = _TargetRaterChoice.BRISQUE
 
 
 @TARGET_MANAGER_FLASK_APP.route(
@@ -161,6 +187,9 @@ def create_target(database_name: str) -> Response:
     request_json = json.loads(request.data)
     image_base64 = request_json["image_base64"]
     image_bytes = base64.b64decode(s=image_base64)
+    settings = TargetManagerSettings.parse_obj(obj={})
+    target_tracking_rater = settings.target_rater.to_target_rater()
+
     target = Target(
         name=request_json["name"],
         width=request_json["width"],
@@ -169,6 +198,7 @@ def create_target(database_name: str) -> Response:
         processing_time_seconds=request_json["processing_time_seconds"],
         application_metadata=request_json["application_metadata"],
         target_id=request_json["target_id"],
+        target_tracking_rater=target_tracking_rater,
     )
     database.targets.add(target)
 
@@ -254,5 +284,5 @@ def update_target(database_name: str, target_id: str) -> Response:
 
 
 if __name__ == "__main__":  # pragma: no cover
-    settings = TargetManagerSettings.parse_obj(obj={})
-    TARGET_MANAGER_FLASK_APP.run(debug=True, host=settings.target_manager_host)
+    SETTINGS = TargetManagerSettings.parse_obj(obj={})
+    TARGET_MANAGER_FLASK_APP.run(debug=True, host=SETTINGS.target_manager_host)

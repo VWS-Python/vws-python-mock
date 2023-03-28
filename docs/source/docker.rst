@@ -100,6 +100,21 @@ Required configuration
 Optional configuration
 ^^^^^^^^^^^^^^^^^^^^^^
 
+Target manager container
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. envvar:: TARGET_RATER
+
+   The rater to use for target tracking ratings.
+
+   Options include:
+
+   * ``brisque``: The rating is derived using the BRISQUE algorithm.
+   * ``perfect``: The rating is always 5.
+   * ``random``: The rating is random.
+
+   Default: ``brisque``
+
 Query container
 ~~~~~~~~~~~~~~~
 
