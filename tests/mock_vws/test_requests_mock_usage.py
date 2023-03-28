@@ -271,43 +271,25 @@ class TestCustomQueryRecognizesDeletionSeconds:
         expected = 0.2
         assert expected < time_taken < expected + self.LEEWAY
 
-    def test_with_no_processing_time(
-        self,
-        high_quality_image: io.BytesIO,
-    ) -> None:
-        """
-        We test this because it exercises some otherwise untouched code.
-        """
-        database = VuforiaDatabase()
-        with MockVWS(
-            # Use the fastest available matcher.
-            query_match_checker=ExactMatcher(),
-            query_processes_deletion_seconds=0,
-        ) as mock:
-            mock.add_database(database=database)
-            time_taken = recognize_deletion_seconds(
-                high_quality_image=high_quality_image,
-                vuforia_database=database,
-            )
-
-        expected = 0.2
-        assert expected < time_taken < expected + self.LEEWAY
-
+    @pytest.mark.parametrize(
+        argnames=["seconds"],
+        # We include 0 because it exercises some otherwise untouched code.
+        argvalues=[(0,), (5,)],
+    )
     def test_custom(
         self,
         high_quality_image: io.BytesIO,
+        seconds: int | float,
     ) -> None:
         """
         It is possible to use set a custom amount of time that it takes for the
         Query API on the mock to recognize that a target has been deleted.
         """
-        # We choose a low time for a quick test.
-        query_recognizes_deletion = 5
         database = VuforiaDatabase()
         with MockVWS(
             # Use the fastest available matcher.
             query_match_checker=ExactMatcher(),
-            query_recognizes_deletion_seconds=query_recognizes_deletion,
+            query_recognizes_deletion_seconds=seconds,
         ) as mock:
             mock.add_database(database=database)
             time_taken = recognize_deletion_seconds(
@@ -315,7 +297,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
                 vuforia_database=database,
             )
 
-        expected = query_recognizes_deletion
+        expected = seconds
         assert expected < time_taken < expected + self.LEEWAY
 
 
