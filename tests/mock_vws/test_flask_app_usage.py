@@ -139,8 +139,8 @@ class TestCustomQueryRecognizesDeletionSeconds:
         database = VuforiaDatabase()
         # Use the "exact" matcher, as it is the fastest.
         monkeypatch.setenv(name="QUERY_IMAGE_MATCHER", value="exact")
-        # Use the "random" rater, as it is the fastest.
-        monkeypatch.setenv(name="TARGET_RATER", value="random")
+        # Use the fastest tracking rater.
+        monkeypatch.setenv(name="TARGET_RATER", value="perfect")
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
         time_taken = recognize_deletion_seconds(
@@ -208,8 +208,8 @@ class TestCustomQueryProcessDeletionSeconds:
         """
         # Use the "exact" matcher, as it is the fastest.
         monkeypatch.setenv(name="QUERY_IMAGE_MATCHER", value="exact")
-        # Use the "random" rater, as it is the fastest.
-        monkeypatch.setenv(name="TARGET_RATER", value="random")
+        # Use the fastest tracking rater.
+        monkeypatch.setenv(name="TARGET_RATER", value="perfect")
         database = VuforiaDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
@@ -234,8 +234,8 @@ class TestCustomQueryProcessDeletionSeconds:
         """
         # Use the "exact" matcher, as it is the fastest.
         monkeypatch.setenv(name="QUERY_IMAGE_MATCHER", value="exact")
-        # Use the "random" rater, as it is the fastest.
-        monkeypatch.setenv(name="TARGET_RATER", value="random")
+        # Use the fastest tracking rater.
+        monkeypatch.setenv(name="TARGET_RATER", value="perfect")
         # We choose a low time for a quick test.
         query_processes_deletion = 5
         database = VuforiaDatabase()

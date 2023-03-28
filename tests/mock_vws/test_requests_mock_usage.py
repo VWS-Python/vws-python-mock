@@ -16,7 +16,7 @@ from mock_vws import MockVWS
 from mock_vws.database import VuforiaDatabase
 from mock_vws.image_matchers import AverageHashMatcher, ExactMatcher
 from mock_vws.target import Target
-from mock_vws.target_raters import RandomTargetTrackingRater
+from mock_vws.target_raters import HardcodedTargetTrackingRater
 from PIL import Image
 from requests.exceptions import MissingSchema
 from requests_mock.exceptions import NoMockAddress
@@ -263,7 +263,7 @@ class TestCustomQueryRecognizesDeletionSeconds:
             # Use the fastest available matcher.
             query_match_checker=ExactMatcher(),
             # Use the fastest available tracker.
-            target_tracking_rater=RandomTargetTrackingRater(),
+            target_tracking_rater=HardcodedTargetTrackingRater(rating=5),
         ) as mock:
             mock.add_database(database=database)
             time_taken = recognize_deletion_seconds(
@@ -330,7 +330,7 @@ class TestCustomQueryProcessDeletionSeconds:
             # Use the fastest available matcher.
             query_match_checker=ExactMatcher(),
             # Use the fastest available tracker.
-            target_tracking_rater=RandomTargetTrackingRater(),
+            target_tracking_rater=HardcodedTargetTrackingRater(rating=5),
         ) as mock:
             mock.add_database(database=database)
             time_taken = process_deletion_seconds(
@@ -360,7 +360,7 @@ class TestCustomQueryProcessDeletionSeconds:
             # Use the fastest available matcher.
             query_match_checker=ExactMatcher(),
             # Use the fastest available tracker.
-            target_tracking_rater=RandomTargetTrackingRater(),
+            target_tracking_rater=HardcodedTargetTrackingRater(rating=5),
         ) as mock:
             mock.add_database(database=database)
             time_taken = process_deletion_seconds(

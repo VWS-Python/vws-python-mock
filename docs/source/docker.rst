@@ -109,10 +109,11 @@ Target manager container
 
    Options include:
 
-   * ``random``: The rating is random.
    * ``brisque``: The rating is derived using the BRISQUE algorithm.
+   * ``perfect``: The rating is always 5.
+   * ``random``: The rating is random.
 
-   Default: ``average_hash``
+   Default: ``brisque``
 
 Query container
 ~~~~~~~~~~~~~~~

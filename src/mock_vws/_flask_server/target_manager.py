@@ -19,6 +19,7 @@ from mock_vws.target import Target
 from mock_vws.target_manager import TargetManager
 from mock_vws.target_raters import (
     BrisqueTargetTrackingRater,
+    HardcodedTargetTrackingRater,
     RandomTargetTrackingRater,
     TargetTrackingRater,
 )
@@ -31,14 +32,16 @@ TARGET_MANAGER = TargetManager()
 class _TargetRaterChoice(StrEnum):
     """Target rater choices."""
 
-    RANDOM = auto()
     BRISQUE = auto()
+    PERFECT = auto()
+    RANDOM = auto()
 
     def to_target_rater(self) -> TargetTrackingRater:
         """Get the target rater."""
         rater = {
-            _TargetRaterChoice.RANDOM: RandomTargetTrackingRater(),
             _TargetRaterChoice.BRISQUE: BrisqueTargetTrackingRater(),
+            _TargetRaterChoice.PERFECT: HardcodedTargetTrackingRater(rating=5),
+            _TargetRaterChoice.RANDOM: RandomTargetTrackingRater(),
         }[self]
         assert isinstance(rater, TargetTrackingRater)
         return rater
