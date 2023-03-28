@@ -42,7 +42,7 @@ class MockVWS(ContextDecorator):
         base_vwq_url: str = "https://cloudreco.vuforia.com",
         duplicate_match_checker: ImageMatcher = _AVERAGE_HASH_MATCHER,
         query_match_checker: ImageMatcher = _AVERAGE_HASH_MATCHER,
-        processing_time_seconds: int | float = 0.5,
+        processing_time_seconds: int | float = 2,
         query_recognizes_deletion_seconds: int | float = 0.2,
         query_processes_deletion_seconds: int | float = 3,
         target_tracking_rater: TargetTrackingRater = _BRISQUE_TRACKING_RATER,
@@ -57,8 +57,8 @@ class MockVWS(ContextDecorator):
                 server if they are not handled by the mock.
                 See
                 https://requests-mock.readthedocs.io/en/latest/mocker.html#real-http-requests.
-            processing_time_seconds: The number of seconds
-                to process each image for.
+            processing_time_seconds: The number of seconds to process each
+                image for.
                 In the real Vuforia Web Services, this is not deterministic.
             base_vwq_url: The base URL for the VWQ API.
             base_vws_url: The base URL for the VWS API.
