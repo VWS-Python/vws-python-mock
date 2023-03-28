@@ -36,6 +36,7 @@ formdata
 github
 greyscale
 gzip
+hardcoded
 hexdigits
 hmac
 html

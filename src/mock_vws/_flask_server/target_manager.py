@@ -284,5 +284,5 @@ def update_target(database_name: str, target_id: str) -> Response:
 
 
 if __name__ == "__main__":  # pragma: no cover
-    settings = TargetManagerSettings.parse_obj(obj={})
-    TARGET_MANAGER_FLASK_APP.run(debug=True, host=settings.target_manager_host)
+    SETTINGS = TargetManagerSettings.parse_obj(obj={})
+    TARGET_MANAGER_FLASK_APP.run(debug=True, host=SETTINGS.target_manager_host)
