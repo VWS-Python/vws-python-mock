@@ -30,6 +30,7 @@ Image quality and ratings
 
 Targets are assigned a rating between 0 and 5 of how good they are for tracking purposes.
 In the mock this is calculated from the image quality, differently to how Vuforia does this.
+This is customizable with the :paramref:`~mock_vws.MockVWS.target_tracking_rater` parameter.
 
 Image targets which are not suited to detection are given 'failed' statuses.
 The criteria for these images is not defined by the Vuforia documentation.
