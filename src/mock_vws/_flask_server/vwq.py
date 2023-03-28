@@ -56,7 +56,7 @@ class VWQSettings(BaseSettings):
     vwq_host: str = ""
     target_manager_base_url: str
     deletion_processing_seconds: float = 3.0
-    deletion_recognition_seconds: float = 0.2
+    deletion_recognition_seconds: float = 2.0
     query_image_matcher: _ImageMatcherChoice = _ImageMatcherChoice.AVERAGE_HASH
 
 

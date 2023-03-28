@@ -130,7 +130,7 @@ Query container
    The number of seconds after a target has been deleted that the query
    endpoint will still recognize the target for.
 
-   Default: 0.2
+   Default: 2.0
 
 .. envvar:: QUERY_IMAGE_MATCHER
 
