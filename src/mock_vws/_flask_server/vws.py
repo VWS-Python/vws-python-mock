@@ -63,7 +63,7 @@ class VWSSettings(BaseSettings):
     """Settings for the VWS Flask app."""
 
     target_manager_base_url: str
-    processing_time_seconds: float = 0.5
+    processing_time_seconds: float = 2
     vws_host: str = ""
     duplicates_image_matcher: _ImageMatcherChoice = (
         _ImageMatcherChoice.AVERAGE_HASH
