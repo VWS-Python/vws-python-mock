@@ -1,10 +1,32 @@
 """Matchers for query and duplicate requests."""
 
 import io
+from functools import cache
 from typing import Protocol, runtime_checkable
 
 import imagehash
 from PIL import Image
+
+
+@cache
+def _average_hash_match(
+    first_image_content: bytes,
+    second_image_content: bytes,
+) -> bool:
+    """
+    Whether one image's content matches another's closely enough.
+
+    Args:
+        first_image_content: One image's content.
+        second_image_content: Another image's content.
+    """
+    first_image_file = io.BytesIO(initial_bytes=first_image_content)
+    first_image = Image.open(fp=first_image_file)
+    second_image_file = io.BytesIO(initial_bytes=second_image_content)
+    second_image = Image.open(fp=second_image_file)
+    first_image_hash = imagehash.average_hash(first_image)
+    second_image_hash = imagehash.average_hash(second_image)
+    return bool(first_image_hash == second_image_hash)
 
 
 @runtime_checkable
@@ -68,8 +90,7 @@ class AverageHashMatcher:
             first_image_content: One image's content.
             second_image_content: Another image's content.
         """
-        database_image = Image.open(io.BytesIO(first_image_content))
-        query_image = Image.open(io.BytesIO(second_image_content))
-        database_hash = imagehash.average_hash(database_image)
-        query_hash = imagehash.average_hash(query_image)
-        return bool(database_hash - query_hash < self._threshold)
+        return _average_hash_match(
+            first_image_content=first_image_content,
+            second_image_content=second_image_content,
+        )
