@@ -250,6 +250,9 @@ class TestProcessing:
             target_id=processing_target_id,
         )
 
+        # There is a race condition here.
+        # If getting the target details and getting the duplicates takes longer
+        # than the processing time, the target will be in the success state.
         assert target_details.status == TargetStatuses.PROCESSING
         assert duplicates == [processed_target_id]
 

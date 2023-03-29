@@ -1,5 +1,6 @@
 """Raters for target quality."""
 
+import functools
 import io
 import math
 import random
@@ -9,6 +10,33 @@ import brisque
 import cv2
 import numpy as np
 from PIL import Image
+
+
+@functools.cache
+def _get_brisque_target_tracking_rating(image_content: bytes) -> int:
+    """
+    Get a target tracking rating based on a BRISQUE score.
+
+    This is a rough approximation of the quality score used by Vuforia, but is
+    not accurate. For example, our "corrupted_image" rating is based on a
+    BRISQUE score of 0, but Vuforia's is 1.
+
+    Args:
+        image_content: A target's image's content.
+    """
+    image_file = io.BytesIO(initial_bytes=image_content)
+    image = Image.open(fp=image_file)
+    image_array = np.asarray(a=image)
+    obj = brisque.BRISQUE(url=False)
+    # We avoid a barrage of warnings from the BRISQUE library.
+    with np.errstate(divide="ignore", invalid="ignore"):
+        try:
+            score = obj.score(img=image_array)
+        except (cv2.error, ValueError):  # pylint: disable=no-member
+            return 0
+    if math.isnan(score):
+        return 0
+    return int(score / 20)
 
 
 @runtime_checkable
@@ -76,16 +104,4 @@ class BrisqueTargetTrackingRater:
         Args:
             image_content: A target's image's content.
         """
-        image_file = io.BytesIO(initial_bytes=image_content)
-        image = Image.open(fp=image_file)
-        image_array = np.asarray(a=image)
-        obj = brisque.BRISQUE(url=False)
-        # We avoid a barrage of warnings from the BRISQUE library.
-        with np.errstate(divide="ignore", invalid="ignore"):
-            try:
-                score = obj.score(img=image_array)
-            except (cv2.error, ValueError):  # pylint: disable=no-member
-                return 0
-        if math.isnan(score):
-            return 0
-        return int(score / 20)
+        return _get_brisque_target_tracking_rating(image_content=image_content)
