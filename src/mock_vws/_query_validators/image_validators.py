@@ -142,7 +142,7 @@ def validate_image_format(
     image_file = io.BytesIO(image)
     pil_image = Image.open(image_file)
 
-    if pil_image.format in ("PNG", "JPEG"):
+    if pil_image.format in {"PNG", "JPEG"}:
         return
 
     _LOGGER.warning(msg="The image format is not PNG or JPEG.")

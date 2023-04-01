@@ -50,11 +50,11 @@ def validate_target_id_exists(
     assert isinstance(database, VuforiaDatabase)
 
     try:
-        [_] = [
+        (_,) = (
             target
             for target in database.not_deleted_targets
             if target.target_id == target_id
-        ]
+        )
     except ValueError as exc:
         _LOGGER.warning('The target ID "%s" does not exist.', target_id)
         raise UnknownTarget from exc

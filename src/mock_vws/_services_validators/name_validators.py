@@ -222,7 +222,7 @@ def validate_name_does_not_exist_existing_target(
     if not matching_name_targets:
         return
 
-    [matching_name_target] = matching_name_targets
+    (matching_name_target,) = matching_name_targets
     if matching_name_target.target_id == target_id:
         return
 

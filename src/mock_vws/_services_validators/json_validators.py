@@ -34,7 +34,7 @@ def validate_body_given(request_body: bytes, request_method: str) -> None:
     if not request_body:
         return
 
-    if request_method not in (POST, PUT):
+    if request_method not in {POST, PUT}:
         _LOGGER.warning(
             msg=(
                 "A request body was given for an endpoint which does not "
@@ -45,7 +45,15 @@ def validate_body_given(request_body: bytes, request_method: str) -> None:
 
 
 def validate_json(request_body: bytes) -> None:
-    """Validate that any given body is valid JSON."""
+    """
+    Validate that any given body is valid JSON.
+
+    Args:
+        request_body: The body of the request.
+
+    Raises:
+        Fail: The request body includes invalid JSON.
+    """
     if not request_body:
         return
 

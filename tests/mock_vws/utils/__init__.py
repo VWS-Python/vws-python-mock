@@ -93,7 +93,7 @@ def make_image_file(
                 grey = random.choice(seq=range(0, 255))
                 image.putpixel(xy=(column_index, row_index), value=grey)
             else:
-                assert color_space in ("CMYK", "RGB")
+                assert color_space in {"CMYK", "RGB"}
                 red = random.choice(seq=range(0, 255))
                 green = random.choice(seq=range(0, 255))
                 blue = random.choice(seq=range(0, 255))

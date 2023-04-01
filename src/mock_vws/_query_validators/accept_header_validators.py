@@ -22,7 +22,7 @@ def validate_accept_header(request_headers: dict[str, str]) -> None:
             'application/json' or '*/*'.
     """
     accept = request_headers.get("Accept")
-    if accept in ("application/json", "*/*", None):
+    if accept in {"application/json", "*/*", None}:
         return
 
     _LOGGER.warning(

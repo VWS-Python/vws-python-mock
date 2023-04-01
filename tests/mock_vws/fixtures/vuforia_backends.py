@@ -230,6 +230,9 @@ def verify_mock_vuforia(
     real Vuforia, and once with each mock.
 
     This is useful for verifying the mocks.
+
+    Yields:
+        ``None``.
     """
     backend = request.param
     should_skip = request.config.getoption(f"--skip-{backend.name.lower()}")

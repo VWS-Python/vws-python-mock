@@ -30,6 +30,13 @@ from tests.mock_vws.utils.usage_test_helpers import (
 )
 
 
+def _not_exact_matcher(
+    first_image_content: bytes,
+    second_image_content: bytes,
+) -> bool:
+    return first_image_content != second_image_content
+
+
 def request_unmocked_address() -> None:
     """
     Make a request, using `requests` to an unmocked, free local address.
@@ -222,21 +229,21 @@ class TestCustomBaseURLs:
         """
         An error if raised if a URL is given with no scheme.
         """
-        with pytest.raises(MissingSchema) as exc:
+        with pytest.raises(MissingSchema) as vws_exc:
             MockVWS(base_vws_url="vuforia.vws.example.com")
 
         expected = (
             'Invalid URL "vuforia.vws.example.com": No scheme supplied. '
             'Perhaps you meant "https://vuforia.vws.example.com".'
         )
-        assert str(exc.value) == expected
-        with pytest.raises(MissingSchema) as exc:
+        assert str(vws_exc.value) == expected
+        with pytest.raises(MissingSchema) as vwq_exc:
             MockVWS(base_vwq_url="vuforia.vwq.example.com")
         expected = (
             'Invalid URL "vuforia.vwq.example.com": No scheme supplied. '
             'Perhaps you meant "https://vuforia.vwq.example.com".'
         )
-        assert str(exc.value) == expected
+        assert str(vwq_exc.value) == expected
 
 
 class TestCustomQueryRecognizesDeletionSeconds:
@@ -603,7 +610,7 @@ class TestQueryImageMatchers:
             different_image_result = cloud_reco_client.query(
                 image=re_exported_image,
             )
-            assert len(different_image_result) == 0
+            assert not different_image_result
 
     @staticmethod
     def test_custom_matcher(high_quality_image: io.BytesIO) -> None:
@@ -618,17 +625,11 @@ class TestQueryImageMatchers:
             client_secret_key=database.client_secret_key,
         )
 
-        def custom_matcher(
-            first_image_content: bytes,
-            second_image_content: bytes,
-        ) -> bool:
-            return first_image_content != second_image_content
-
         pil_image = Image.open(fp=high_quality_image)
         re_exported_image = io.BytesIO()
         pil_image.save(re_exported_image, format="PNG")
 
-        with MockVWS(query_match_checker=custom_matcher) as mock:
+        with MockVWS(query_match_checker=_not_exact_matcher) as mock:
             mock.add_database(database=database)
             target_id = vws_client.add_target(
                 name="example",
@@ -641,7 +642,7 @@ class TestQueryImageMatchers:
             same_image_result = cloud_reco_client.query(
                 image=high_quality_image,
             )
-            assert len(same_image_result) == 0
+            assert not same_image_result
             different_image_result = cloud_reco_client.query(
                 image=re_exported_image,
             )
@@ -691,7 +692,7 @@ class TestQueryImageMatchers:
             different_image_result = cloud_reco_client.query(
                 image=different_high_quality_image,
             )
-            assert len(different_image_result) == 0
+            assert not different_image_result
 
 
 class TestDuplicatesImageMatchers:
@@ -750,17 +751,11 @@ class TestDuplicatesImageMatchers:
             server_secret_key=database.server_secret_key,
         )
 
-        def custom_matcher(
-            first_image_content: bytes,
-            second_image_content: bytes,
-        ) -> bool:
-            return first_image_content != second_image_content
-
         pil_image = Image.open(fp=high_quality_image)
         re_exported_image = io.BytesIO()
         pil_image.save(re_exported_image, format="PNG")
 
-        with MockVWS(duplicate_match_checker=custom_matcher) as mock:
+        with MockVWS(duplicate_match_checker=_not_exact_matcher) as mock:
             mock.add_database(database=database)
             target_id = vws_client.add_target(
                 name="example_0",

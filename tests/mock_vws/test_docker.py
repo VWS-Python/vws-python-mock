@@ -42,11 +42,11 @@ def wait_for_flask_app_to_start(base_url: str) -> None:  # pragma: no cover
         except requests.exceptions.ConnectionError:
             time.sleep(sleep_seconds)
         else:
-            if response.status_code in (
+            if response.status_code in {
                 HTTPStatus.NOT_FOUND,
                 HTTPStatus.UNAUTHORIZED,
                 HTTPStatus.FORBIDDEN,
-            ):
+            }:
                 return
     error_message = (
         f"Could not connect to {url} after "
@@ -62,6 +62,9 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
 
     This also cleans up all containers connected to the network and the network
     after the test.
+
+    Yields:
+        A custom bridge network.
     """
     client = docker.from_env()
     try:
@@ -200,11 +203,7 @@ def test_build_and_run(
         f"http://{task_manager_host_ip}:{task_manager_host_port}"
     )
 
-    for base_url in (
-        base_vws_url,
-        base_vwq_url,
-        base_task_manager_url,
-    ):
+    for base_url in (base_vws_url, base_vwq_url, base_task_manager_url):
         wait_for_flask_app_to_start(base_url=base_url)
 
     response = requests.post(

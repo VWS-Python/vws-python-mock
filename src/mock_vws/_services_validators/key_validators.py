@@ -133,12 +133,12 @@ def validate_keys(
         target_summary,
     )
 
-    [matching_route] = [
+    (matching_route,) = (
         route
         for route in routes
-        if re.match(re.compile(route.path_pattern + "$"), request_path)
+        if re.match(re.compile(f"{route.path_pattern}$"), request_path)
         and request_method in route.http_methods
-    ]
+    )
 
     mandatory_keys = matching_route.mandatory_keys
     optional_keys = matching_route.optional_keys

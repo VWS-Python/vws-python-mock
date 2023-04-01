@@ -37,7 +37,7 @@ class TestTargetList:
         """
         vws_client.wait_for_target_processed(target_id=target_id)
         vws_client.delete_target(target_id=target_id)
-        assert vws_client.list_targets() == []
+        assert not vws_client.list_targets()
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")

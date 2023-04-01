@@ -25,7 +25,6 @@ import pytest
 import requests
 from mock_vws._constants import ResultCodes
 from PIL import Image
-from requests import Response
 from requests_mock import POST
 from urllib3.filepost import encode_multipart_formdata
 from vws.reports import TargetStatuses
@@ -89,7 +88,7 @@ _JETTY_ERROR_DELETION_NOT_COMPLETE = (
 def query(
     vuforia_database: VuforiaDatabase,
     body: dict[str, Any],
-) -> Response:
+) -> requests.Response:
     """
     Make a request to the endpoint to make an image recognition query.
 
@@ -143,14 +142,14 @@ class TestContentType:
 
     @staticmethod
     @pytest.mark.parametrize(
-        (
+        argnames=(
             "content_type",
             "resp_status_code",
             "resp_content_type",
             "resp_cache_control",
             "resp_text",
         ),
-        [
+        argvalues=[
             (
                 "text/html",
                 HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
@@ -524,7 +523,7 @@ class TestSuccess:
         response = query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
-        [result] = response.json()["results"]
+        (result,) = response.json()["results"]
         assert result.keys() == {"target_id", "target_data"}
         assert result["target_id"] == target_id
         target_data = result["target_data"]
@@ -565,7 +564,7 @@ class TestSuccess:
 
         vws_client.wait_for_target_processed(target_id=target_id)
         matching_targets = cloud_reco_client.query(image=image_file)
-        assert matching_targets == []
+        assert not matching_targets
 
     @staticmethod
     def test_match_similar(
@@ -607,7 +606,7 @@ class TestSuccess:
         # Re-save means similar but not identical.
         pil_similar_image.save(similar_image_buffer, format="JPEG")
 
-        [matching_target] = cloud_reco_client.query(
+        (matching_target,) = cloud_reco_client.query(
             image=similar_image_buffer,
             max_num_results=5,
         )
@@ -651,7 +650,7 @@ class TestSuccess:
         response = query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
-        [result] = response.json()["results"]
+        (result,) = response.json()["results"]
         query_metadata = result["target_data"]["application_metadata"]
         mod_4_to_expected_metadata_original = {
             1: not_base64_encoded_processable[:-1],
@@ -941,8 +940,8 @@ def add_and_wait_for_targets(
         )
         target_ids.add(target_id)
 
-    for target_id in target_ids:
-        vws_client.wait_for_target_processed(target_id=target_id)
+    for created_target_id in target_ids:
+        vws_client.wait_for_target_processed(target_id=created_target_id)
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -1790,7 +1789,7 @@ class TestUpdate:
 
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
         response = query(vuforia_database=vuforia_database, body=body)
-        [result] = response.json()["results"]
+        (result,) = response.json()["results"]
         target_data = result["target_data"]
         target_timestamp = target_data["target_timestamp"]
         original_target_timestamp = int(target_timestamp)
@@ -1810,7 +1809,7 @@ class TestUpdate:
         response = query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
-        [result] = response.json()["results"]
+        (result,) = response.json()["results"]
         assert result.keys() == {"target_id", "target_data"}
         assert result["target_id"] == target_id
         target_data = result["target_data"]
@@ -1939,7 +1938,7 @@ class TestDeleted:
                 total_waited += sleep_seconds
             else:
                 if response.json()["results"]:
-                    [result] = response.json()["results"]
+                    (result,) = response.json()["results"]
                     assert result["target_id"] == target_id
                     # We never see the target ID after having seen the server
                     # error.

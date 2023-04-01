@@ -93,9 +93,9 @@ class VuforiaDatabase:
         """
         Return a target from the database with the given ID.
         """
-        [target] = [
+        (target,) = (
             target for target in self.targets if target.target_id == target_id
-        ]
+        )
         return target
 
     @classmethod

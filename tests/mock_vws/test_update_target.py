@@ -14,7 +14,6 @@ from urllib.parse import urljoin
 import pytest
 import requests
 from mock_vws._constants import ResultCodes
-from requests import Response
 from requests_mock import PUT
 from vws.exceptions.vws_exceptions import BadImage, ProjectInactive
 from vws.reports import TargetStatuses
@@ -40,7 +39,7 @@ def update_target(
     data: dict[str, Any],
     target_id: str,
     content_type: str = "application/json",
-) -> Response:
+) -> requests.Response:
     """
     Make a request to the endpoint to update a target.
 
@@ -517,8 +516,8 @@ class TestTargetName:
 
     @staticmethod
     @pytest.mark.parametrize(
-        ("name", "status_code", "result_code"),
-        [
+        argnames=("name", "status_code", "result_code"),
+        argvalues=[
             (1, HTTPStatus.BAD_REQUEST, ResultCodes.FAIL),
             ("", HTTPStatus.BAD_REQUEST, ResultCodes.FAIL),
             (

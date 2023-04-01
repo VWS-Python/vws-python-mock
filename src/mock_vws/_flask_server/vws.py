@@ -78,9 +78,10 @@ def get_all_databases() -> set[VuforiaDatabase]:
     Get all database objects from the task manager back-end.
     """
     settings = VWSSettings.parse_obj(obj={})
+    timeout_seconds = 30
     response = requests.get(
         url=f"{settings.target_manager_base_url}/databases",
-        timeout=30,
+        timeout=timeout_seconds,
     )
     return {
         VuforiaDatabase.from_dict(database_dict=database_dict)
@@ -182,10 +183,11 @@ def add_target() -> Response:
     )
 
     databases_url = f"{settings.target_manager_base_url}/databases"
+    timeout_seconds = 30
     requests.post(
         url=f"{databases_url}/{database.database_name}/targets",
         json=new_target.to_dict(),
-        timeout=30,
+        timeout=timeout_seconds,
     )
 
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
@@ -230,9 +232,9 @@ def get_target(target_id: str) -> Response:
     )
 
     assert isinstance(database, VuforiaDatabase)
-    [target] = [
+    (target,) = (
         target for target in database.targets if target.target_id == target_id
-    ]
+    )
 
     target_record = {
         "target_id": target.target_id,
@@ -285,9 +287,9 @@ def delete_target(target_id: str) -> Response:
     )
 
     assert isinstance(database, VuforiaDatabase)
-    [target] = [
+    (target,) = (
         target for target in database.targets if target.target_id == target_id
-    ]
+    )
 
     if target.status == TargetStatuses.PROCESSING.value:
         raise TargetStatusProcessing
@@ -390,9 +392,9 @@ def target_summary(target_id: str) -> Response:
     )
 
     assert isinstance(database, VuforiaDatabase)
-    [target] = [
+    (target,) = (
         target for target in database.targets if target.target_id == target_id
-    ]
+    )
     body = {
         "status": target.status,
         "transaction_id": uuid.uuid4().hex,
@@ -443,9 +445,9 @@ def get_duplicates(target_id: str) -> Response:
     image_match_checker = settings.duplicates_image_matcher.to_image_matcher()
 
     assert isinstance(database, VuforiaDatabase)
-    [target] = [
+    (target,) = (
         target for target in database.targets if target.target_id == target_id
-    ]
+    )
     other_targets = database.targets - {target}
 
     similar_targets: list[str] = [
@@ -455,7 +457,7 @@ def get_duplicates(target_id: str) -> Response:
             first_image_content=target.image_value,
             second_image_content=other.image_value,
         )
-        and TargetStatuses.FAILED.value not in (target.status, other.status)
+        and TargetStatuses.FAILED.value not in {target.status, other.status}
         and TargetStatuses.PROCESSING.value != other.status
         and other.active_flag
     ]
@@ -546,9 +548,9 @@ def update_target(target_id: str) -> Response:
     )
 
     assert isinstance(database, VuforiaDatabase)
-    [target] = [
+    (target,) = (
         target for target in database.targets if target.target_id == target_id
-    ]
+    )
 
     if target.status != TargetStatuses.SUCCESS.value:
         raise TargetStatusNotSuccess
@@ -590,8 +592,8 @@ def update_target(target_id: str) -> Response:
         update_values["image"] = image
 
     put_url = (
-        f"{settings.target_manager_base_url}/databases/{database.database_name}/"
-        f"targets/{target_id}"
+        f"{settings.target_manager_base_url}/databases/"
+        f"{database.database_name}/targets/{target_id}"
     )
     requests.put(url=put_url, json=update_values, timeout=30)
 
@@ -618,4 +620,4 @@ def update_target(target_id: str) -> Response:
 
 if __name__ == "__main__":  # pragma: no cover
     SETTINGS = VWSSettings.parse_obj(obj={})
-    VWS_FLASK_APP.run(debug=True, host=SETTINGS.vws_host)
+    VWS_FLASK_APP.run(host=SETTINGS.vws_host)

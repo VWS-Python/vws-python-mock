@@ -34,7 +34,7 @@ def validate_extra_fields(
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
     parsed = multipart.MultipartParser(stream=body_file, boundary=boundary)
-    parsed_keys = {item.name for item in parsed.parts()}
+    parsed_keys = {part.name for part in parsed.parts()}
     known_parameters = {"image", "max_num_results", "include_target_data"}
 
     if not parsed_keys - known_parameters:
