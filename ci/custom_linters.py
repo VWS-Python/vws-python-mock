@@ -2,7 +2,7 @@
 Custom lint tests.
 """
 
-import subprocess
+import asyncio
 from pathlib import Path
 
 import pytest
@@ -23,16 +23,20 @@ def _ci_patterns() -> set[str]:
     return ci_patterns
 
 
-def _tests_from_pattern(ci_pattern: str) -> set[str]:
+async def _tests_from_pattern(ci_pattern: str) -> set[str]:
     """
     From a CI pattern, get all tests ``pytest`` would collect.
     """
     tests: set[str] = set()
     args = ["pytest", "-q", "--collect-only", ci_pattern]
-    result = subprocess.run(args=args, stdout=subprocess.PIPE, check=True)
-    for line in result.stdout.decode().splitlines():
-        if line and "collected in" not in line:
-            tests.add(line)
+    process = await asyncio.create_subprocess_exec(
+        *args,
+        stdout=asyncio.subprocess.PIPE,
+    )
+    data, _ = await process.communicate()
+    for line in data.splitlines():
+        if line and b"collected in" not in line:
+            tests.add(line.decode())
     return tests
 
 
@@ -50,7 +54,8 @@ def test_ci_patterns_valid() -> None:
         assert collect_only_result == 0, message
 
 
-def test_tests_collected_once() -> None:
+@pytest.mark.asyncio()
+async def test_tests_collected_once() -> None:
     """
     Each test in the test suite is collected exactly once.
 
@@ -58,8 +63,13 @@ def test_tests_collected_once() -> None:
     """
     ci_patterns = _ci_patterns()
     tests_to_patterns: dict[str, set[str]] = {}
+    tasks = []
     for pattern in ci_patterns:
-        tests = _tests_from_pattern(ci_pattern=pattern)
+        tasks.append(_tests_from_pattern(ci_pattern=pattern))
+
+    results = await asyncio.gather(*tasks)
+    for index, pattern in enumerate(ci_patterns):
+        tests = results[index]
         for test in tests:
             if test in tests_to_patterns:
                 tests_to_patterns[test].add(pattern)
@@ -74,6 +84,6 @@ def test_tests_collected_once() -> None:
         )
         assert len(patterns) == 1, message
 
-    all_tests = _tests_from_pattern(ci_pattern=".")
+    all_tests = await _tests_from_pattern(ci_pattern=".")
     assert tests_to_patterns.keys() - all_tests == set()
     assert all_tests - tests_to_patterns.keys() == set()
