@@ -2,7 +2,6 @@
 Custom lint tests.
 """
 
-import asyncio
 from pathlib import Path
 
 import pytest
@@ -23,20 +22,23 @@ def _ci_patterns() -> set[str]:
     return ci_patterns
 
 
-async def _tests_from_pattern(ci_pattern: str) -> set[str]:
+def _tests_from_pattern(
+    ci_pattern: str,
+    capsys: pytest.CaptureFixture[str],
+) -> set[str]:
     """
     From a CI pattern, get all tests ``pytest`` would collect.
     """
+    # Clear the captured output.
+    capsys.readouterr()
     tests: set[str] = set()
-    args = ["pytest", "-q", "--collect-only", ci_pattern]
-    process = await asyncio.create_subprocess_exec(
-        *args,
-        stdout=asyncio.subprocess.PIPE,
-    )
-    data, _ = await process.communicate()
+    pytest.main(args=["-q", "--collect-only", ci_pattern])
+    data = capsys.readouterr().out
     for line in data.splitlines():
-        if line and b"collected in" not in line:
-            tests.add(line.decode())
+        # We filter empty lines and lines which look like
+        # "9 tests collected in 0.01s".
+        if line and "collected in" not in line:
+            tests.add(line)
     return tests
 
 
@@ -54,8 +56,9 @@ def test_ci_patterns_valid() -> None:
         assert collect_only_result == 0, message
 
 
-@pytest.mark.asyncio()
-async def test_tests_collected_once() -> None:
+def test_tests_collected_once(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
     """
     Each test in the test suite is collected exactly once.
 
@@ -63,13 +66,9 @@ async def test_tests_collected_once() -> None:
     """
     ci_patterns = _ci_patterns()
     tests_to_patterns: dict[str, set[str]] = {}
-    tasks = []
-    for pattern in ci_patterns:
-        tasks.append(_tests_from_pattern(ci_pattern=pattern))
 
-    results = await asyncio.gather(*tasks)
-    for index, pattern in enumerate(ci_patterns):
-        tests = results[index]
+    for pattern in ci_patterns:
+        tests = _tests_from_pattern(ci_pattern=pattern, capsys=capsys)
         for test in tests:
             if test in tests_to_patterns:
                 tests_to_patterns[test].add(pattern)
@@ -84,6 +83,6 @@ async def test_tests_collected_once() -> None:
         )
         assert len(patterns) == 1, message
 
-    all_tests = await _tests_from_pattern(ci_pattern=".")
+    all_tests = _tests_from_pattern(ci_pattern=".", capsys=capsys)
     assert tests_to_patterns.keys() - all_tests == set()
     assert all_tests - tests_to_patterns.keys() == set()
