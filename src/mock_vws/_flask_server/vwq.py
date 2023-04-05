@@ -162,4 +162,4 @@ def query() -> Response:
 
 if __name__ == "__main__":  # pragma: no cover
     SETTINGS = VWQSettings.parse_obj(obj={})
-    CLOUDRECO_FLASK_APP.run(debug=True, host=SETTINGS.vwq_host)
+    CLOUDRECO_FLASK_APP.run(host=SETTINGS.vwq_host)

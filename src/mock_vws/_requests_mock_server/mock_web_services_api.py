@@ -56,7 +56,7 @@ def route(
 
     Args:
         path_pattern: The end part of a URL pattern. E.g. `/targets` or
-            `/targets/.+`.
+          `/targets/.+`.
         http_methods: HTTP methods that map to the route function.
 
     Returns:
@@ -102,10 +102,10 @@ class MockVuforiaWebServicesAPI:
         Args:
             target_manager: Target Manager which stores databases.
             processing_time_seconds: The number of seconds to process each
-                image for. In the real Vuforia Web Services, this is not
-                deterministic.
+              image for. In the real Vuforia Web Services, this is not
+              deterministic.
             duplicate_match_checker: A callable which takes two image values
-                and returns whether they are duplicates.
+              and returns whether they are duplicates.
             target_tracking_rater: A callable for rating targets for tracking.
 
         Attributes:
@@ -367,11 +367,13 @@ class MockVuforiaWebServicesAPI:
         assert isinstance(database, VuforiaDatabase)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
 
-        results = [target.target_id for target in database.not_deleted_targets]
+        response_results = [
+            target.target_id for target in database.not_deleted_targets
+        ]
         body: dict[str, str | list[str]] = {
             "transaction_id": uuid.uuid4().hex,
             "result_code": ResultCodes.SUCCESS.value,
-            "results": results,
+            "results": response_results,
         }
         body_json = json_dump(body)
         context.headers = {
@@ -500,7 +502,7 @@ class MockVuforiaWebServicesAPI:
                 second_image_content=other.image_value,
             )
             and TargetStatuses.FAILED.value
-            not in (target.status, other.status)
+            not in {target.status, other.status}
             and TargetStatuses.PROCESSING.value != other.status
             and other.active_flag
         ]

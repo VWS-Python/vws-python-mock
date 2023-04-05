@@ -13,7 +13,7 @@ def decode_base64(encoded_data: str) -> bytes:
 
     Raises:
         binascii.Error: Vuforia would consider this encoded data as an
-        "UNPROCESSABLE_ENTITY".
+          "UNPROCESSABLE_ENTITY".
 
     Returns:
         The given data, decoded as base64.
@@ -23,13 +23,13 @@ def decode_base64(encoded_data: str) -> bytes:
         if character not in acceptable_characters:
             raise binascii.Error
 
-    mod_4_result_to_modified_encoded_data = {
+    mod_four_result_to_modified_encoded_data = {
         0: encoded_data,
         1: encoded_data[:-1],
-        2: encoded_data + "==",
-        3: encoded_data + "=",
+        2: f"{encoded_data}==",
+        3: f"{encoded_data}=",
     }
-    modified_encoded_data = mod_4_result_to_modified_encoded_data[
+    modified_encoded_data = mod_four_result_to_modified_encoded_data[
         len(encoded_data) % 4
     ]
     return base64.b64decode(modified_encoded_data)

@@ -62,10 +62,10 @@ class TestTargetSummary:
         # In case the date changes while adding a target
         # we allow the date before and after adding the target.
 
-        assert report.upload_date in (
+        assert report.upload_date in {
             date_before_add_target,
             date_after_add_target,
-        )
+        }
 
         # While processing the tracking rating is -1.
         assert report.tracking_rating == -1
@@ -75,8 +75,8 @@ class TestTargetSummary:
 
     @staticmethod
     @pytest.mark.parametrize(
-        ("image_fixture_name", "expected_status"),
-        [
+        argnames=("image_fixture_name", "expected_status"),
+        argvalues=[
             ("high_quality_image", TargetStatuses.SUCCESS),
             ("image_file_failed_state", TargetStatuses.FAILED),
         ],
@@ -153,7 +153,7 @@ class TestRecognitionCounts:
         vws_client.wait_for_target_processed(target_id=target_id)
 
         results = cloud_reco_client.query(image=high_quality_image)
-        [result] = results
+        (result,) = results
         assert result.target_id == target_id
 
         report = vws_client.get_target_summary_report(target_id=target_id)

@@ -43,7 +43,7 @@ def validate_image_format(request_body: bytes) -> None:
     image_file = io.BytesIO(decoded)
     pil_image = Image.open(image_file)
 
-    if pil_image.format in ("PNG", "JPEG"):
+    if pil_image.format in {"PNG", "JPEG"}:
         return
 
     _LOGGER.warning(msg="The image is not a PNG or JPEG.")
@@ -74,7 +74,7 @@ def validate_image_color_space(request_body: bytes) -> None:
     image_file = io.BytesIO(decoded)
     pil_image = Image.open(image_file)
 
-    if pil_image.mode in ("L", "RGB"):
+    if pil_image.mode in {"L", "RGB"}:
         return
 
     _LOGGER.warning(

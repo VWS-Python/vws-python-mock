@@ -48,7 +48,7 @@ def _wait_for_image_numbers(
         processing_images: The expected number of processing images.
 
     Raises:
-        Exception: The numbers of images in various categories do not match
+        ValueError: The numbers of images in various categories do not match
             within the time limit.
     """
     requirements = {

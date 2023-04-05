@@ -47,11 +47,9 @@ def _accepted_date_formats() -> set[str]:
         "%a %d %b %Y %H:%M:%S",
     }
 
-    known_accepted_formats = known_accepted_formats.union(
-        {date_format + " GMT" for date_format in known_accepted_formats},
+    return known_accepted_formats.union(
+        {f"{date_format} GMT" for date_format in known_accepted_formats},
     )
-
-    return known_accepted_formats
 
 
 def validate_date_format(request_headers: dict[str, str]) -> None:
@@ -95,7 +93,7 @@ def validate_date_in_range(request_headers: dict[str, str]) -> None:
                 date_format,
             ).astimezone()
 
-    assert date is not None
+    assert isinstance(date, datetime.datetime)
     gmt = ZoneInfo("GMT")
     now = datetime.datetime.now(tz=gmt)
     date_from_header = date.replace(tzinfo=gmt)

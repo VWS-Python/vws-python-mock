@@ -182,7 +182,7 @@ def assert_query_success(response: Response) -> None:
     # In the real Vuforia, some do and some do not.
     # We are not sure why.
     content_encoding = copied_response_headers.pop("Content-Encoding", None)
-    assert content_encoding in (None, "gzip")
+    assert content_encoding in {None, "gzip"}
 
     expected_response_header_not_chunked = {
         "Connection": "keep-alive",

@@ -81,7 +81,7 @@ linkcheck_anchors = False
 linkcheck_retries = 5
 linkcheck_ignore = [
     # Requires login.
-    r"https://developer.vuforia.com/targetmanager",
+    "https://developer.vuforia.com/targetmanager",
 ]
 
 spelling_word_list_filename = "../../spelling_private_dict.txt"

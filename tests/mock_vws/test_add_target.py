@@ -15,7 +15,6 @@ import pytest
 import requests
 from dirty_equals import IsInstance
 from mock_vws._constants import ResultCodes
-from requests import Response
 from requests.structures import CaseInsensitiveDict
 from requests_mock import POST
 from vws_auth_tools import authorization_header, rfc_1123_date
@@ -40,7 +39,7 @@ def add_target_to_vws(
     vuforia_database: VuforiaDatabase,
     data: dict[str, Any],
     content_type: str = "application/json",
-) -> Response:
+) -> requests.Response:
     """
     Return a response from a request to the endpoint to add a target.
 
@@ -82,7 +81,7 @@ def add_target_to_vws(
     )
 
 
-def _assert_oops_response(response: Response) -> None:
+def _assert_oops_response(response: requests.Response) -> None:
     """
     Assert that the response is in the format of Vuforia's "Oops, an error
     occurred" HTML response.
@@ -109,7 +108,7 @@ def _assert_oops_response(response: Response) -> None:
     assert response.headers == expected_headers
 
 
-def assert_success(response: Response) -> None:
+def assert_success(response: requests.Response) -> None:
     """
     Assert that the given response is a success response for adding a
     target.
@@ -360,8 +359,8 @@ class TestTargetName:
 
     @staticmethod
     @pytest.mark.parametrize(
-        ("name", "status_code"),
-        [
+        argnames=("name", "status_code"),
+        argvalues=[
             (1, HTTPStatus.BAD_REQUEST),
             ("", HTTPStatus.BAD_REQUEST),
             ("a" * (_MAX_NAME_LENGTH + 1), HTTPStatus.BAD_REQUEST),
@@ -974,7 +973,7 @@ class TestApplicationMetadata:
         image_data = image_file_failed_state.read()
         image_data_encoded = base64.b64encode(image_data).decode("ascii")
 
-        data = {
+        request_data = {
             "name": "example_name",
             "width": 1,
             "image": image_data_encoded,
@@ -983,7 +982,7 @@ class TestApplicationMetadata:
 
         response = add_target_to_vws(
             vuforia_database=vuforia_database,
-            data=data,
+            data=request_data,
         )
 
         assert_success(response=response)

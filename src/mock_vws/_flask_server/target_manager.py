@@ -179,11 +179,11 @@ def create_target(database_name: str) -> Response:
     """
     Create a new target in a given database.
     """
-    [database] = [
+    (database,) = (
         database
         for database in TARGET_MANAGER.databases
         if database.database_name == database_name
-    ]
+    )
     request_json = json.loads(request.data)
     image_base64 = request_json["image_base64"]
     image_bytes = base64.b64decode(s=image_base64)
@@ -216,11 +216,11 @@ def delete_target(database_name: str, target_id: str) -> Response:
     """
     Delete a target.
     """
-    [database] = [
+    (database,) = (
         database
         for database in TARGET_MANAGER.databases
         if database.database_name == database_name
-    ]
+    )
     target = database.get_target(target_id=target_id)
     now = datetime.datetime.now(tz=target.upload_date.tzinfo)
     new_target = dataclasses.replace(target, delete_date=now)
@@ -240,11 +240,11 @@ def update_target(database_name: str, target_id: str) -> Response:
     """
     Update a target.
     """
-    [database] = [
+    (database,) = (
         database
         for database in TARGET_MANAGER.databases
         if database.database_name == database_name
-    ]
+    )
     target = database.get_target(target_id=target_id)
 
     request_json = json.loads(request.data)
@@ -285,4 +285,4 @@ def update_target(database_name: str, target_id: str) -> Response:
 
 if __name__ == "__main__":  # pragma: no cover
     SETTINGS = TargetManagerSettings.parse_obj(obj={})
-    TARGET_MANAGER_FLASK_APP.run(debug=True, host=SETTINGS.target_manager_host)
+    TARGET_MANAGER_FLASK_APP.run(host=SETTINGS.target_manager_host)

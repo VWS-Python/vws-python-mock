@@ -27,16 +27,18 @@ def _get_brisque_target_tracking_rating(image_content: bytes) -> int:
     image_file = io.BytesIO(initial_bytes=image_content)
     image = Image.open(fp=image_file)
     image_array = np.asarray(a=image)
-    obj = brisque.BRISQUE(url=False)
+    brisque_obj = brisque.BRISQUE(url=False)
     # We avoid a barrage of warnings from the BRISQUE library.
     with np.errstate(divide="ignore", invalid="ignore"):
         try:
-            score = obj.score(img=image_array)
+            score = brisque_obj.score(img=image_array)
         except (cv2.error, ValueError):  # pylint: disable=no-member
             return 0
     if math.isnan(score):
         return 0
-    return int(score / 20)
+    brisque_max_score = 100
+    tracking_rating_max = 5
+    return int(score / (brisque_max_score / tracking_rating_max))
 
 
 @runtime_checkable

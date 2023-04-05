@@ -42,7 +42,7 @@ def validate_content_type_header(
 
     email_message = EmailMessage()
     email_message["content-type"] = request_headers["Content-Type"]
-    if email_message.get_content_type() not in ("multipart/form-data", "*/*"):
+    if email_message.get_content_type() not in {"multipart/form-data", "*/*"}:
         _LOGGER.warning(
             msg=(
                 "The content type header main part is not multipart/form-data."

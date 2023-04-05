@@ -145,7 +145,7 @@ def get_query_match_response_text(
         raise ActiveMatchingTargetsDeleteProcessing
 
     all_quality_matches = not_deleted_matches + deletion_not_recognized_matches
-    minimum_rating = 0.0
+    minimum_rating = 0
     matches = [
         match
         for match in all_quality_matches

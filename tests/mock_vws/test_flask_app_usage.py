@@ -427,7 +427,7 @@ class TestQueryImageMatchers:
         different_image_result = cloud_reco_client.query(
             image=re_exported_image,
         )
-        assert len(different_image_result) == 0
+        assert not different_image_result
 
     @staticmethod
     def test_average_hash_matcher(
@@ -473,7 +473,7 @@ class TestQueryImageMatchers:
         different_image_result = cloud_reco_client.query(
             image=different_high_quality_image,
         )
-        assert len(different_image_result) == 0
+        assert not different_image_result
 
 
 class TestDuplicatesImageMatchers:

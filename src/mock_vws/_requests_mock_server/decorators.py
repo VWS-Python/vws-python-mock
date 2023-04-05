@@ -90,8 +90,8 @@ class MockVWS(ContextDecorator):
             'Perhaps you meant "https://{url}".'
         )
         for url in (base_vwq_url, base_vws_url):
-            result = urlparse(url)
-            if not result.scheme:
+            parse_result = urlparse(url=url)
+            if not parse_result.scheme:
                 error = missing_scheme_error.format(url=url)
                 raise requests.exceptions.MissingSchema(error)
 
@@ -134,30 +134,30 @@ class MockVWS(ContextDecorator):
             ``self``.
         """
         with Mocker(real_http=self._real_http) as mock:
-            for route in self._mock_vws_api.routes:
+            for vws_route in self._mock_vws_api.routes:
                 url_pattern = urljoin(
                     base=self._base_vws_url,
-                    url=route.path_pattern + "$",
+                    url=f"{vws_route.path_pattern}$",
                 )
 
-                for http_method in route.http_methods:
+                for vws_http_method in vws_route.http_methods:
                     mock.register_uri(
-                        method=http_method,
+                        method=vws_http_method,
                         url=re.compile(url_pattern),
-                        text=getattr(self._mock_vws_api, route.route_name),
+                        text=getattr(self._mock_vws_api, vws_route.route_name),
                     )
 
-            for route in self._mock_vwq_api.routes:
+            for vwq_route in self._mock_vwq_api.routes:
                 url_pattern = urljoin(
                     base=self._base_vwq_url,
-                    url=route.path_pattern + "$",
+                    url=f"{vwq_route.path_pattern}$",
                 )
 
-                for http_method in route.http_methods:
+                for vwq_http_method in vwq_route.http_methods:
                     mock.register_uri(
-                        method=http_method,
+                        method=vwq_http_method,
                         url=re.compile(url_pattern),
-                        text=getattr(self._mock_vwq_api, route.route_name),
+                        text=getattr(self._mock_vwq_api, vwq_route.route_name),
                     )
 
         self._mock = mock
@@ -174,8 +174,7 @@ class MockVWS(ContextDecorator):
         """
         # __exit__ needs this to be passed in but vulture thinks that it is
         # unused, so we "use" it here.
-        for _ in (exc,):
-            pass
+        assert isinstance(exc, tuple)
 
         self._mock.stop()
         return False
