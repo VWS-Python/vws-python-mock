@@ -38,6 +38,8 @@ _BRISQUE_TRACKING_RATER = BrisqueTargetTrackingRater()
 
 
 # TODO: Add pickled-function Docker checkers
+# - Or maybe instead, add a Docker checker that uses a container with a known
+#   spec - and then create such a container with pickle
 # TODO: Make backends choosable by users
 # TODO: Make a backend for Docker
 #   - Be careful with real_http
