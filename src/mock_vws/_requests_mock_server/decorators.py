@@ -42,6 +42,7 @@ _BRISQUE_TRACKING_RATER = BrisqueTargetTrackingRater()
 #   spec - and then create such a container with pickle
 #   - First probably we need to make the AverageHashMatcher setting configurable
 #   - Then, add a configurable option for an HTTP endpoint
+#   - HTTP endpoint is for all backends... then not special case for Docker?
 # TODO: Make backends choosable by users
 # TODO: Make a backend for Docker
 #   - Be careful with real_http
