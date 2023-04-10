@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import re
 from contextlib import ContextDecorator
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, Protocol
 from urllib.parse import urljoin, urlparse
 
 import requests
@@ -29,6 +29,20 @@ if TYPE_CHECKING:
 
 _AVERAGE_HASH_MATCHER = AverageHashMatcher(threshold=10)
 _BRISQUE_TRACKING_RATER = BrisqueTargetTrackingRater()
+
+
+class _MockBackend(Protocol):
+    def add_database(self, database: VuforiaDatabase) -> None:
+        ...
+
+    def vws_add_target(self, request: requests.Request) -> requests.Response:
+        ...
+
+    def vwq_query(self, request: requests.Request) -> requests.Response:
+        ...
+
+
+_IN_MEMORY_MOCK_BACKEND = "in_memory"
 
 
 class MockVWS(ContextDecorator):
