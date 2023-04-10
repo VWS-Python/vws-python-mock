@@ -49,16 +49,16 @@ class _MockBackend(Protocol):
 
     def start(
         self,
-        base_vws_url: str = "https://vws.vuforia.com",
-        base_vwq_url: str = "https://cloudreco.vuforia.com",
-        duplicate_match_checker: ImageMatcher = _AVERAGE_HASH_MATCHER,
-        query_match_checker: ImageMatcher = _AVERAGE_HASH_MATCHER,
-        processing_time_seconds: int | float = 2,
-        query_recognizes_deletion_seconds: int | float = 2,
-        query_processes_deletion_seconds: int | float = 3,
-        target_tracking_rater: TargetTrackingRater = _BRISQUE_TRACKING_RATER,
+        base_vws_url: str,
+        base_vwq_url: str,
+        duplicate_match_checker: ImageMatcher,
+        query_match_checker: ImageMatcher,
+        processing_time_seconds: int | float,
+        query_recognizes_deletion_seconds: int | float,
+        query_processes_deletion_seconds: int | float,
+        target_tracking_rater: TargetTrackingRater,
         *,
-        real_http: bool = False,
+        real_http: bool,
     ) -> None:
         ...
 
@@ -76,16 +76,16 @@ class _RequestsMockBackend:
 
     def start(
         self,
-        base_vws_url: str = "https://vws.vuforia.com",
-        base_vwq_url: str = "https://cloudreco.vuforia.com",
-        duplicate_match_checker: ImageMatcher = _AVERAGE_HASH_MATCHER,
-        query_match_checker: ImageMatcher = _AVERAGE_HASH_MATCHER,
-        processing_time_seconds: int | float = 2,
-        query_recognizes_deletion_seconds: int | float = 2,
-        query_processes_deletion_seconds: int | float = 3,
-        target_tracking_rater: TargetTrackingRater = _BRISQUE_TRACKING_RATER,
+        base_vws_url: str,
+        base_vwq_url: str,
+        duplicate_match_checker: ImageMatcher,
+        query_match_checker: ImageMatcher,
+        processing_time_seconds: int | float,
+        query_recognizes_deletion_seconds: int | float,
+        query_processes_deletion_seconds: int | float,
+        target_tracking_rater: TargetTrackingRater,
         *,
-        real_http: bool = False,
+        real_http: bool,
     ) -> None:
         mock_vws_api = MockVuforiaWebServicesAPI(
             target_manager=self._target_manager,
@@ -139,7 +139,7 @@ class _RequestsMockBackend:
         self._mock.stop()
 
 
-_IN_MEMORY_MOCK_BACKEND = "in_memory"
+_IN_MEMORY_MOCK_BACKEND = _RequestsMockBackend()
 
 
 class MockVWS(ContextDecorator):
@@ -194,6 +194,18 @@ class MockVWS(ContextDecorator):
 
         self._base_vws_url = base_vws_url
         self._base_vwq_url = base_vwq_url
+        self._duplicate_match_checker = duplicate_match_checker
+        self._query_match_checker = query_match_checker
+        self._processing_time_seconds = processing_time_seconds
+        self._query_recognizes_deletion_seconds = (
+            query_recognizes_deletion_seconds
+        )
+        self._query_processes_deletion_seconds = (
+            query_processes_deletion_seconds
+        )
+        self._target_tracking_rater = target_tracking_rater
+        self._real_http = real_http
+
         missing_scheme_error = (
             'Invalid URL "{url}": No scheme supplied. '
             'Perhaps you meant "https://{url}".'
@@ -224,7 +236,17 @@ class MockVWS(ContextDecorator):
         Returns:
             ``self``.
         """
-        self._backend.start()
+        self._backend.start(
+            base_vws_url=self._base_vws_url,
+            base_vwq_url=self._base_vwq_url,
+            duplicate_match_checker=self._duplicate_match_checker,
+            query_match_checker=self._query_match_checker,
+            processing_time_seconds=self._processing_time_seconds,
+            query_recognizes_deletion_seconds=self._query_recognizes_deletion_seconds,
+            query_processes_deletion_seconds=self._query_processes_deletion_seconds,
+            target_tracking_rater=self._target_tracking_rater,
+            real_http=self._real_http,
+        )
         return self
 
     def __exit__(self, *exc: tuple[None, None, None]) -> Literal[False]:
