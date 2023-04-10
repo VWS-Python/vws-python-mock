@@ -1,4 +1,5 @@
 recursive-include src/mock_vws/resources *
+recursive-include src/mock_vws/_flask_server *
 recursive-include src/mock_vws/_query_validators/resources *
 include src/mock_vws/py.typed
 include pyproject.toml

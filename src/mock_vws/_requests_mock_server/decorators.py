@@ -5,11 +5,17 @@ Decorators for using the mock.
 from __future__ import annotations
 
 import re
+import time
+import uuid
 from contextlib import ContextDecorator
+from http import HTTPStatus
+from pathlib import Path
 from typing import TYPE_CHECKING, Literal, Protocol
 from urllib.parse import urljoin, urlparse
 
+import docker
 import requests
+from docker.errors import BuildError
 from requests_mock.mocker import Mocker
 
 from mock_vws.image_matchers import (
@@ -31,6 +37,7 @@ _AVERAGE_HASH_MATCHER = AverageHashMatcher(threshold=10)
 _BRISQUE_TRACKING_RATER = BrisqueTargetTrackingRater()
 
 
+# TODO: Add pickled-function Docker checkers
 # TODO: Make backends choosable by users
 # TODO: Make a backend for Docker
 #   - Be careful with real_http
@@ -38,12 +45,41 @@ _BRISQUE_TRACKING_RATER = BrisqueTargetTrackingRater()
 #   - Be careful with real_http
 # TODO: Use the Docker backend in VWS-Python timeout tests
 # TODO: Use backends in fixtures for e.g. --skip-real
+# TODO: Add a reset method to the backends
+
+
+# We do not cover this function because hitting particular branches depends on
+# timing.
+def _wait_for_flask_app_to_start(base_url: str) -> None:  # pragma: no cover
+    """
+    Wait for a server to start.
+
+    Args:
+        base_url: The base URL of the Flask app to wait for.
+    """
+    max_attempts = 10
+    sleep_seconds = 0.5
+    url = f"{base_url}/{uuid.uuid4().hex}"
+    for _ in range(max_attempts):
+        try:
+            response = requests.get(url, timeout=30)
+        except requests.exceptions.ConnectionError:
+            time.sleep(sleep_seconds)
+        else:
+            if response.status_code in {
+                HTTPStatus.NOT_FOUND,
+                HTTPStatus.UNAUTHORIZED,
+                HTTPStatus.FORBIDDEN,
+            }:
+                return
+    error_message = (
+        f"Could not connect to {url} after "
+        f"{max_attempts * sleep_seconds} seconds."
+    )
+    raise RuntimeError(error_message)
 
 
 class _MockBackend(Protocol):
-    def __init__(self) -> None:
-        ...
-
     def add_database(self, database: VuforiaDatabase) -> None:
         ...
 
@@ -139,6 +175,161 @@ class _RequestsMockBackend:
         self._mock.stop()
 
 
+class _DockerMockBackend:
+    def __init__(self) -> None:
+        self._network: docker.models.networks.Network
+
+    def add_database(self, database: VuforiaDatabase) -> None:
+        ...
+
+    def start(
+        self,
+        base_vws_url: str,
+        base_vwq_url: str,
+        duplicate_match_checker: ImageMatcher,
+        query_match_checker: ImageMatcher,
+        processing_time_seconds: int | float,
+        query_recognizes_deletion_seconds: int | float,
+        query_processes_deletion_seconds: int | float,
+        target_tracking_rater: TargetTrackingRater,
+        *,
+        real_http: bool,
+    ) -> None:
+        client = docker.from_env()
+        try:
+            self._network = client.networks.create(
+                name="test-vws-bridge-" + uuid.uuid4().hex,
+                driver="bridge",
+            )
+        except docker.errors.NotFound:
+            # On Windows the "bridge" network driver is not available and we use
+            # the "nat" driver instead.
+            self._network = client.networks.create(
+                name="test-vws-bridge-" + uuid.uuid4().hex,
+                driver="nat",
+            )
+
+        repository_root = Path(__file__).parent.parent.parent
+        dockerfile_dir = (
+            repository_root / "src/mock_vws/_flask_server/dockerfiles"
+        )
+        target_manager_dockerfile = (
+            dockerfile_dir / "target_manager" / "Dockerfile"
+        )
+        vws_dockerfile = dockerfile_dir / "vws" / "Dockerfile"
+        vwq_dockerfile = dockerfile_dir / "vwq" / "Dockerfile"
+
+        random = uuid.uuid4().hex
+        target_manager_tag = f"vws-mock-target-manager:latest-{random}"
+        vws_tag = f"vws-mock-vws:latest-{random}"
+        vwq_tag = f"vws-mock-vwq:latest-{random}"
+
+        try:
+            target_manager_image, _ = client.images.build(
+                path=str(repository_root),
+                dockerfile=str(target_manager_dockerfile),
+                tag=target_manager_tag,
+            )
+        except BuildError as exc:
+            full_log = "\n".join(
+                [item["stream"] for item in exc.build_log if "stream" in item],
+            )
+            # If this assertion fails, it may be useful to look at the other
+            # properties of ``exc``.
+            if (
+                "no matching manifest for windows/amd64" not in exc.msg
+            ):  # pragma: no cover
+                raise AssertionError(full_log) from exc
+            reason = "We do not currently support using Windows containers."
+            raise ValueError(reason) from exc
+
+        vws_image, _ = client.images.build(
+            path=str(repository_root),
+            dockerfile=str(vws_dockerfile),
+            tag=vws_tag,
+        )
+        vwq_image, _ = client.images.build(
+            path=str(repository_root),
+            dockerfile=str(vwq_dockerfile),
+            tag=vwq_tag,
+        )
+
+        target_manager_container_name = "vws-mock-target-manager-" + random
+        target_manager_internal_base_url = (
+            f"http://{target_manager_container_name}:5000"
+        )
+
+        target_manager_container = client.containers.run(
+            image=target_manager_image,
+            detach=True,
+            name=target_manager_container_name,
+            publish_all_ports=True,
+            network=self._network.name,
+        )
+        vws_container = client.containers.run(
+            image=vws_image,
+            detach=True,
+            name="vws-mock-vws-" + random,
+            publish_all_ports=True,
+            network=self._network.name,
+            environment={
+                "TARGET_MANAGER_BASE_URL": target_manager_internal_base_url,
+            },
+        )
+        vwq_container = client.containers.run(
+            image=vwq_image,
+            detach=True,
+            name="vws-mock-vwq-" + random,
+            publish_all_ports=True,
+            network=self._network.name,
+            environment={
+                "TARGET_MANAGER_BASE_URL": target_manager_internal_base_url,
+            },
+        )
+
+        for container in (
+            target_manager_container,
+            vws_container,
+            vwq_container,
+        ):
+            container.reload()
+
+        target_manager_port_attrs = target_manager_container.attrs[
+            "NetworkSettings"
+        ]["Ports"]
+        task_manager_host_ip = target_manager_port_attrs["5000/tcp"][0][
+            "HostIp"
+        ]
+        task_manager_host_port = target_manager_port_attrs["5000/tcp"][0][
+            "HostPort"
+        ]
+
+        vws_port_attrs = vws_container.attrs["NetworkSettings"]["Ports"]
+        vws_host_ip = vws_port_attrs["5000/tcp"][0]["HostIp"]
+        vws_host_port = vws_port_attrs["5000/tcp"][0]["HostPort"]
+
+        vwq_port_attrs = vwq_container.attrs["NetworkSettings"]["Ports"]
+        vwq_host_ip = vwq_port_attrs["5000/tcp"][0]["HostIp"]
+        vwq_host_port = vwq_port_attrs["5000/tcp"][0]["HostPort"]
+
+        base_vws_url = f"http://{vws_host_ip}:{vws_host_port}"
+        base_vwq_url = f"http://{vwq_host_ip}:{vwq_host_port}"
+        base_task_manager_url = (
+            f"http://{task_manager_host_ip}:{task_manager_host_port}"
+        )
+
+        for base_url in (base_vws_url, base_vwq_url, base_task_manager_url):
+            _wait_for_flask_app_to_start(base_url=base_url)
+
+    def stop(self) -> None:
+        self._network.reload()
+        for container in self._network.containers:
+            self._network.disconnect(container=container)
+            container.stop()
+            container.remove()
+        self._network.remove()
+
+
 class MockVWS(ContextDecorator):
     """
     Route requests to Vuforia's Web Service APIs to fakes of those APIs.
@@ -187,6 +378,7 @@ class MockVWS(ContextDecorator):
             requests.exceptions.MissingSchema: There is no schema in a given
                 URL.
         """
+        breakpoint()
         super().__init__()
         self._backend = mock_backend()
 
