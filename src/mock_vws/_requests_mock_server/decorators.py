@@ -40,6 +40,8 @@ _BRISQUE_TRACKING_RATER = BrisqueTargetTrackingRater()
 # TODO: Add pickled-function Docker checkers
 # - Or maybe instead, add a Docker checker that uses a container with a known
 #   spec - and then create such a container with pickle
+#   - First probably we need to make the AverageHashMatcher setting configurable
+#   - Then, add a configurable option for an HTTP endpoint
 # TODO: Make backends choosable by users
 # TODO: Make a backend for Docker
 #   - Be careful with real_http
