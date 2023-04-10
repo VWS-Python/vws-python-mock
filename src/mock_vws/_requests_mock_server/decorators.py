@@ -139,9 +139,6 @@ class _RequestsMockBackend:
         self._mock.stop()
 
 
-_IN_MEMORY_MOCK_BACKEND = _RequestsMockBackend()
-
-
 class MockVWS(ContextDecorator):
     """
     Route requests to Vuforia's Web Service APIs to fakes of those APIs.
@@ -157,6 +154,7 @@ class MockVWS(ContextDecorator):
         query_recognizes_deletion_seconds: int | float = 2,
         query_processes_deletion_seconds: int | float = 3,
         target_tracking_rater: TargetTrackingRater = _BRISQUE_TRACKING_RATER,
+        mock_backend: type[_MockBackend] = _RequestsMockBackend,
         *,
         real_http: bool = False,
     ) -> None:
@@ -190,7 +188,7 @@ class MockVWS(ContextDecorator):
                 URL.
         """
         super().__init__()
-        self._backend = _RequestsMockBackend()
+        self._backend = mock_backend()
 
         self._base_vws_url = base_vws_url
         self._base_vwq_url = base_vwq_url
