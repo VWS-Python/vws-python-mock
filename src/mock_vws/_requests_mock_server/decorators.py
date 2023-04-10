@@ -31,15 +31,112 @@ _AVERAGE_HASH_MATCHER = AverageHashMatcher(threshold=10)
 _BRISQUE_TRACKING_RATER = BrisqueTargetTrackingRater()
 
 
+# TODO: Make backends choosable by users
+# TODO: Make a backend for Docker
+#   - Be careful with real_http
+# TODO: Make a backend for real Vuforia
+#   - Be careful with real_http
+# TODO: Use the Docker backend in VWS-Python timeout tests
+# TODO: Use backends in fixtures for e.g. --skip-real
+
+
 class _MockBackend(Protocol):
+    def __init__(self) -> None:
+        ...
+
     def add_database(self, database: VuforiaDatabase) -> None:
         ...
 
-    def vws_add_target(self, request: requests.Request) -> requests.Response:
+    def start(
+        self,
+        base_vws_url: str = "https://vws.vuforia.com",
+        base_vwq_url: str = "https://cloudreco.vuforia.com",
+        duplicate_match_checker: ImageMatcher = _AVERAGE_HASH_MATCHER,
+        query_match_checker: ImageMatcher = _AVERAGE_HASH_MATCHER,
+        processing_time_seconds: int | float = 2,
+        query_recognizes_deletion_seconds: int | float = 2,
+        query_processes_deletion_seconds: int | float = 3,
+        target_tracking_rater: TargetTrackingRater = _BRISQUE_TRACKING_RATER,
+        *,
+        real_http: bool = False,
+    ) -> None:
         ...
 
-    def vwq_query(self, request: requests.Request) -> requests.Response:
+    def stop(self) -> None:
         ...
+
+
+class _RequestsMockBackend:
+    def __init__(self) -> None:
+        self._mock: Mocker
+        self._target_manager = TargetManager()
+
+    def add_database(self, database: VuforiaDatabase) -> None:
+        self._target_manager.add_database(database=database)
+
+    def start(
+        self,
+        base_vws_url: str = "https://vws.vuforia.com",
+        base_vwq_url: str = "https://cloudreco.vuforia.com",
+        duplicate_match_checker: ImageMatcher = _AVERAGE_HASH_MATCHER,
+        query_match_checker: ImageMatcher = _AVERAGE_HASH_MATCHER,
+        processing_time_seconds: int | float = 2,
+        query_recognizes_deletion_seconds: int | float = 2,
+        query_processes_deletion_seconds: int | float = 3,
+        target_tracking_rater: TargetTrackingRater = _BRISQUE_TRACKING_RATER,
+        *,
+        real_http: bool = False,
+    ) -> None:
+        mock_vws_api = MockVuforiaWebServicesAPI(
+            target_manager=self._target_manager,
+            processing_time_seconds=processing_time_seconds,
+            duplicate_match_checker=duplicate_match_checker,
+            target_tracking_rater=target_tracking_rater,
+        )
+
+        mock_vwq_api = MockVuforiaWebQueryAPI(
+            target_manager=self._target_manager,
+            query_processes_deletion_seconds=(
+                query_processes_deletion_seconds
+            ),
+            query_recognizes_deletion_seconds=(
+                query_recognizes_deletion_seconds
+            ),
+            query_match_checker=query_match_checker,
+        )
+
+        with Mocker(real_http=real_http) as mock:
+            for vws_route in mock_vws_api.routes:
+                url_pattern = urljoin(
+                    base=base_vws_url,
+                    url=f"{vws_route.path_pattern}$",
+                )
+
+                for vws_http_method in vws_route.http_methods:
+                    mock.register_uri(
+                        method=vws_http_method,
+                        url=re.compile(url_pattern),
+                        text=getattr(mock_vws_api, vws_route.route_name),
+                    )
+
+            for vwq_route in mock_vwq_api.routes:
+                url_pattern = urljoin(
+                    base=base_vwq_url,
+                    url=f"{vwq_route.path_pattern}$",
+                )
+
+                for vwq_http_method in vwq_route.http_methods:
+                    mock.register_uri(
+                        method=vwq_http_method,
+                        url=re.compile(url_pattern),
+                        text=getattr(mock_vwq_api, vwq_route.route_name),
+                    )
+
+        self._mock = mock
+        self._mock.start()
+
+    def stop(self) -> None:
+        self._mock.stop()
 
 
 _IN_MEMORY_MOCK_BACKEND = "in_memory"
@@ -93,9 +190,7 @@ class MockVWS(ContextDecorator):
                 URL.
         """
         super().__init__()
-        self._real_http = real_http
-        self._mock: Mocker
-        self._target_manager = TargetManager()
+        self._backend = _RequestsMockBackend()
 
         self._base_vws_url = base_vws_url
         self._base_vwq_url = base_vwq_url
@@ -109,24 +204,6 @@ class MockVWS(ContextDecorator):
                 error = missing_scheme_error.format(url=url)
                 raise requests.exceptions.MissingSchema(error)
 
-        self._mock_vws_api = MockVuforiaWebServicesAPI(
-            target_manager=self._target_manager,
-            processing_time_seconds=processing_time_seconds,
-            duplicate_match_checker=duplicate_match_checker,
-            target_tracking_rater=target_tracking_rater,
-        )
-
-        self._mock_vwq_api = MockVuforiaWebQueryAPI(
-            target_manager=self._target_manager,
-            query_processes_deletion_seconds=(
-                query_processes_deletion_seconds
-            ),
-            query_recognizes_deletion_seconds=(
-                query_recognizes_deletion_seconds
-            ),
-            query_match_checker=query_match_checker,
-        )
-
     def add_database(self, database: VuforiaDatabase) -> None:
         """
         Add a cloud database.
@@ -138,7 +215,7 @@ class MockVWS(ContextDecorator):
             ValueError: One of the given database keys matches a key for an
                 existing database.
         """
-        self._target_manager.add_database(database=database)
+        self._backend.add_database(database=database)
 
     def __enter__(self) -> MockVWS:
         """
@@ -147,36 +224,7 @@ class MockVWS(ContextDecorator):
         Returns:
             ``self``.
         """
-        with Mocker(real_http=self._real_http) as mock:
-            for vws_route in self._mock_vws_api.routes:
-                url_pattern = urljoin(
-                    base=self._base_vws_url,
-                    url=f"{vws_route.path_pattern}$",
-                )
-
-                for vws_http_method in vws_route.http_methods:
-                    mock.register_uri(
-                        method=vws_http_method,
-                        url=re.compile(url_pattern),
-                        text=getattr(self._mock_vws_api, vws_route.route_name),
-                    )
-
-            for vwq_route in self._mock_vwq_api.routes:
-                url_pattern = urljoin(
-                    base=self._base_vwq_url,
-                    url=f"{vwq_route.path_pattern}$",
-                )
-
-                for vwq_http_method in vwq_route.http_methods:
-                    mock.register_uri(
-                        method=vwq_http_method,
-                        url=re.compile(url_pattern),
-                        text=getattr(self._mock_vwq_api, vwq_route.route_name),
-                    )
-
-        self._mock = mock
-        self._mock.start()
-
+        self._backend.start()
         return self
 
     def __exit__(self, *exc: tuple[None, None, None]) -> Literal[False]:
@@ -189,6 +237,5 @@ class MockVWS(ContextDecorator):
         # __exit__ needs this to be passed in but vulture thinks that it is
         # unused, so we "use" it here.
         assert isinstance(exc, tuple)
-
-        self._mock.stop()
+        self._backend.stop()
         return False
