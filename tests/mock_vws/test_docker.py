@@ -33,7 +33,7 @@ def wait_for_flask_app_to_start(base_url: str) -> None:  # pragma: no cover
     Args:
         base_url: The base URL of the Flask app to wait for.
     """
-    max_attempts = 10
+    max_attempts = 20
     sleep_seconds = 0.5
     url = f"{base_url}/{uuid.uuid4().hex}"
     for _ in range(max_attempts):
