@@ -90,26 +90,26 @@ def get_all_databases() -> set[VuforiaDatabase]:
     }
 
 
-# @VWS_FLASK_APP.before_request
-# def set_terminate_wsgi_input() -> None:
-#     """
-#     We set ``wsgi.input_terminated`` to ``True`` when going through
-#     ``requests``, so that requests have the given ``Content-Length`` headers
-#     and the given data in ``request.headers`` and ``request.data``.
+@VWS_FLASK_APP.before_request
+def set_terminate_wsgi_input() -> None:
+    """
+    We set ``wsgi.input_terminated`` to ``True`` when going through
+    ``requests``, so that requests have the given ``Content-Length`` headers
+    and the given data in ``request.headers`` and ``request.data``.
 
-#     We set this to ``False`` when running an application as standalone.
-#     This is because when running the Flask application, if this is set,
-#     reading ``request.data`` hangs.
+    We set this to ``False`` when running an application as standalone.
+    This is because when running the Flask application, if this is set,
+    reading ``request.data`` hangs.
 
-#     Therefore, when running the real Flask application, the behavior is not the
-#     same as the real Vuforia.
-#     This is documented as a difference in the documentation for this package.
-#     """
-#     terminate_wsgi_input = VWS_FLASK_APP.config.get(
-#         "TERMINATE_WSGI_INPUT",
-#         False,
-#     )
-#     request.environ["wsgi.input_terminated"] = terminate_wsgi_input
+    Therefore, when running the real Flask application, the behavior is not the
+    same as the real Vuforia.
+    This is documented as a difference in the documentation for this package.
+    """
+    terminate_wsgi_input = VWS_FLASK_APP.config.get(
+        "TERMINATE_WSGI_INPUT",
+        False,
+    )
+    request.environ["wsgi.input_terminated"] = terminate_wsgi_input
 
 
 @VWS_FLASK_APP.before_request
