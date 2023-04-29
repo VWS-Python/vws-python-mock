@@ -5,6 +5,7 @@ RUN apt update && apt install -y gcc g++ libgl1-mesa-glx libglib2.0-0
 # to install it.
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0
 ENV TARGET_MANAGER_HOST=0.0.0.0
+ENV TARGET_MANAGER_PORT=5000
 COPY . /app
 WORKDIR /app
 RUN pip install --upgrade .

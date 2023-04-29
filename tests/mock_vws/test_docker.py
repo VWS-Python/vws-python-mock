@@ -52,6 +52,7 @@ def wait_for_flask_app_to_start(base_url: str) -> None:  # pragma: no cover
         f"Could not connect to {url} after "
         f"{max_attempts * sleep_seconds} seconds."
     )
+    breakpoint()
     raise RuntimeError(error_message)
 
 
@@ -145,9 +146,13 @@ def test_build_and_run(
     )
 
     database = VuforiaDatabase()
+    target_manager_port = 5000
+    vws_port = target_manager_port + 1
+    vwq_port = target_manager_port + 2
+
     target_manager_container_name = "vws-mock-target-manager-" + random
     target_manager_internal_base_url = (
-        f"http://{target_manager_container_name}:5000"
+        f"http://{target_manager_container_name}:{target_manager_port}"
     )
 
     target_manager_container = client.containers.run(
@@ -156,6 +161,7 @@ def test_build_and_run(
         name=target_manager_container_name,
         publish_all_ports=True,
         network=custom_bridge_network.name,
+        environment={"TARGET_MANAGER_PORT": target_manager_port},
     )
     vws_container = client.containers.run(
         image=vws_image,
@@ -164,6 +170,7 @@ def test_build_and_run(
         publish_all_ports=True,
         network=custom_bridge_network.name,
         environment={
+            "VWS_PORT": vws_port,
             "TARGET_MANAGER_BASE_URL": target_manager_internal_base_url,
         },
     )
@@ -174,6 +181,7 @@ def test_build_and_run(
         publish_all_ports=True,
         network=custom_bridge_network.name,
         environment={
+            "VWQ_PORT": vwq_port,
             "TARGET_MANAGER_BASE_URL": target_manager_internal_base_url,
         },
     )
@@ -184,18 +192,20 @@ def test_build_and_run(
     target_manager_port_attrs = target_manager_container.attrs[
         "NetworkSettings"
     ]["Ports"]
-    task_manager_host_ip = target_manager_port_attrs["5000/tcp"][0]["HostIp"]
-    task_manager_host_port = target_manager_port_attrs["5000/tcp"][0][
-        "HostPort"
-    ]
+    task_manager_host_ip = target_manager_port_attrs[
+        f"{target_manager_port}/tcp"
+    ][0]["HostIp"]
+    task_manager_host_port = target_manager_port_attrs[
+        f"{target_manager_port}/tcp"
+    ][0]["HostPort"]
 
     vws_port_attrs = vws_container.attrs["NetworkSettings"]["Ports"]
-    vws_host_ip = vws_port_attrs["5000/tcp"][0]["HostIp"]
-    vws_host_port = vws_port_attrs["5000/tcp"][0]["HostPort"]
+    vws_host_ip = vws_port_attrs[f"{vws_port}/tcp"][0]["HostIp"]
+    vws_host_port = vws_port_attrs[f"{vws_port}/tcp"][0]["HostPort"]
 
     vwq_port_attrs = vwq_container.attrs["NetworkSettings"]["Ports"]
-    vwq_host_ip = vwq_port_attrs["5000/tcp"][0]["HostIp"]
-    vwq_host_port = vwq_port_attrs["5000/tcp"][0]["HostPort"]
+    vwq_host_ip = vwq_port_attrs[f"{vwq_port}/tcp"][0]["HostIp"]
+    vwq_host_port = vwq_port_attrs[f"{vwq_port}/tcp"][0]["HostPort"]
 
     base_vws_url = f"http://{vws_host_ip}:{vws_host_port}"
     base_vwq_url = f"http://{vwq_host_ip}:{vwq_host_port}"

@@ -51,6 +51,7 @@ class TargetManagerSettings(BaseSettings):
     """Settings for the Target Manager Flask app."""
 
     target_manager_host: str = ""
+    target_manager_port: int | None = None
     target_rater: _TargetRaterChoice = _TargetRaterChoice.BRISQUE
 
 
@@ -285,4 +286,7 @@ def update_target(database_name: str, target_id: str) -> Response:
 
 if __name__ == "__main__":  # pragma: no cover
     SETTINGS = TargetManagerSettings.parse_obj(obj={})
-    TARGET_MANAGER_FLASK_APP.run(host=SETTINGS.target_manager_host)
+    TARGET_MANAGER_FLASK_APP.run(
+        host=SETTINGS.target_manager_host,
+        port=SETTINGS.target_manager_port,
+    )

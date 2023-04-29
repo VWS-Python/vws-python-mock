@@ -57,6 +57,7 @@ class VWQSettings(BaseSettings):
     target_manager_base_url: str
     deletion_processing_seconds: float = 3.0
     deletion_recognition_seconds: float = 2.0
+    vwq_port: int | None = None
     query_image_matcher: _ImageMatcherChoice = _ImageMatcherChoice.AVERAGE_HASH
 
 
@@ -162,4 +163,4 @@ def query() -> Response:
 
 if __name__ == "__main__":  # pragma: no cover
     SETTINGS = VWQSettings.parse_obj(obj={})
-    CLOUDRECO_FLASK_APP.run(host=SETTINGS.vwq_host)
+    CLOUDRECO_FLASK_APP.run(host=SETTINGS.vwq_host, port=SETTINGS.vwq_port)
