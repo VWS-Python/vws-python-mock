@@ -283,7 +283,7 @@ dev = [
     # We pin to an old doc8 to avoid version conflicts with sphinx_toolbox.
     # When we bump this, we can remove doc8.ini.
     "doc8==0.11.2",
-    "docker==6.1.1",
+    "docker==6.1.2",
     "dodgy==0.2.1",
     "enum-tools[sphinx]==0.9.0.post1",
     "freezegun==1.2.2",
