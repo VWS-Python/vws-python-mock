@@ -84,7 +84,9 @@ def get_query_match_response_text(
     else:
         include_target_data = parsed_include_target_data.value.lower()
 
-    image_value = parsed.get("image").raw
+    image_part = parsed.get("image")
+    assert image_part is not None
+    image_value = image_part.raw
     gmt = ZoneInfo("GMT")
     now = datetime.datetime.now(tz=gmt)
 

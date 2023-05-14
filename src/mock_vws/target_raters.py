@@ -11,6 +11,12 @@ import cv2
 import numpy as np
 from PIL import Image
 
+# cv2 errors cannot be inferred without type stubs.
+# See https://github.com/opencv/opencv/issues/14590.
+_CV2_ERROR = (
+    cv2.error  # pyright: ignore[reportGeneralTypeIssues] # noqa: E501 # pylint: disable=no-member
+)
+
 
 @functools.cache
 def _get_brisque_target_tracking_rating(image_content: bytes) -> int:
@@ -32,7 +38,7 @@ def _get_brisque_target_tracking_rating(image_content: bytes) -> int:
     with np.errstate(divide="ignore", invalid="ignore"):
         try:
             score = brisque_obj.score(img=image_array)
-        except (cv2.error, ValueError):  # pylint: disable=no-member
+        except (_CV2_ERROR, ValueError):
             return 0
     if math.isnan(score):
         return 0

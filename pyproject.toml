@@ -144,6 +144,7 @@ module = [
     "cv2",
     "docker",
     "docker.errors",
+    "docker.models.containers",
     "docker.models.networks",
     "multipart",
     "sybil",
@@ -211,6 +212,7 @@ ignore = [
     # Ignore "too-many-*" errors as they seem to get in the way more than
     # helping.
     "PLR0913",
+    "PLR0915",
     # Allow 'assert' in tests as it is the standard for pytest.
     # Also, allow 'assert' in other code as it is the standard for Python type hint
     # narrowing - see
