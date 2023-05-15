@@ -67,7 +67,9 @@ def validate_image_file_size(
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
     parsed = multipart.MultipartParser(stream=body_file, boundary=boundary)
-    image = parsed.get("image").raw
+    image_part = parsed.get("image")
+    assert image_part is not None
+    image_value = image_part.raw
 
     # This is the documented maximum size of a PNG as per.
     # https://library.vuforia.com/web-api/vuforia-query-web-api.
@@ -77,7 +79,7 @@ def validate_image_file_size(
     # Ignore coverage on this as there is a bug in urllib3 which means that we
     # do not trigger this exception.
     # See https://github.com/urllib3/urllib3/issues/2733.
-    if len(image) > max_bytes:  # pragma: no cover
+    if len(image_value) > max_bytes:  # pragma: no cover
         _LOGGER.warning(msg="The image file size is too large.")
         raise RequestEntityTooLarge
 
@@ -104,8 +106,10 @@ def validate_image_dimensions(
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
     parsed = multipart.MultipartParser(stream=body_file, boundary=boundary)
-    image = parsed.get("image").raw
-    image_file = io.BytesIO(image)
+    image_part = parsed.get("image")
+    assert image_part is not None
+    image_value = image_part.raw
+    image_file = io.BytesIO(image_value)
     pil_image = Image.open(image_file)
     max_width = 30000
     max_height = 30000
@@ -137,9 +141,11 @@ def validate_image_format(
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
     parsed = multipart.MultipartParser(stream=body_file, boundary=boundary)
-    image = parsed.get("image").raw
+    image_part = parsed.get("image")
+    assert image_part is not None
+    image_value = image_part.raw
 
-    image_file = io.BytesIO(image)
+    image_file = io.BytesIO(image_value)
     pil_image = Image.open(image_file)
 
     if pil_image.format in {"PNG", "JPEG"}:
@@ -170,9 +176,11 @@ def validate_image_is_image(
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
     parsed = multipart.MultipartParser(stream=body_file, boundary=boundary)
-    image = parsed.get("image").raw
+    image_part = parsed.get("image")
+    assert image_part is not None
+    image_value = image_part.raw
 
-    image_file = io.BytesIO(image)
+    image_file = io.BytesIO(image_value)
 
     try:
         Image.open(image_file)
