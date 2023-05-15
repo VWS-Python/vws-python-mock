@@ -13,15 +13,15 @@ from typing import TYPE_CHECKING
 import docker
 import pytest
 import requests
-from docker.errors import BuildError
+from docker.errors import BuildError, NotFound
+from docker.models.containers import Container
+from docker.models.networks import Network
 from mock_vws.database import VuforiaDatabase
 from vws import VWS, CloudRecoService
 
 if TYPE_CHECKING:
     import io
     from collections.abc import Iterator
-
-    from docker.models.networks import Network
 
 
 # We do not cover this function because hitting particular branches depends on
@@ -72,13 +72,15 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
             name="test-vws-bridge-" + uuid.uuid4().hex,
             driver="bridge",
         )
-    except docker.errors.NotFound:
+    except NotFound:
         # On Windows the "bridge" network driver is not available and we use
         # the "nat" driver instead.
         network = client.networks.create(
             name="test-vws-bridge-" + uuid.uuid4().hex,
             driver="nat",
         )
+
+    assert isinstance(network, Network)
     try:
         yield network
     finally:
@@ -115,7 +117,7 @@ def test_build_and_run(
     vwq_tag = f"vws-mock-vwq:latest-{random}"
 
     try:
-        target_manager_image, _ = client.images.build(
+        target_manager_build_result = client.images.build(
             path=str(repository_root),
             dockerfile=str(target_manager_dockerfile),
             tag=target_manager_tag,
@@ -133,16 +135,23 @@ def test_build_and_run(
         reason = "We do not currently support using Windows containers."
         pytest.skip(reason)
 
-    vws_image, _ = client.images.build(
+    assert isinstance(target_manager_build_result, tuple)
+    target_manager_image, _ = target_manager_build_result
+
+    vws_build_result = client.images.build(
         path=str(repository_root),
         dockerfile=str(vws_dockerfile),
         tag=vws_tag,
     )
-    vwq_image, _ = client.images.build(
+    assert isinstance(vws_build_result, tuple)
+    vws_image, _ = vws_build_result
+    vwq_build_result = client.images.build(
         path=str(repository_root),
         dockerfile=str(vwq_dockerfile),
         tag=vwq_tag,
     )
+    assert isinstance(vwq_build_result, tuple)
+    vwq_image, _ = vwq_build_result
 
     database = VuforiaDatabase()
     target_manager_container_name = "vws-mock-target-manager-" + random
@@ -178,9 +187,16 @@ def test_build_and_run(
         },
     )
 
+    assert isinstance(target_manager_container, Container)
+    assert isinstance(vws_container, Container)
+    assert isinstance(vwq_container, Container)
     for container in (target_manager_container, vws_container, vwq_container):
         container.reload()
 
+    assert isinstance(target_manager_container.attrs, dict)
+    target_manager_port_attrs = target_manager_container.attrs[
+        "NetworkSettings"
+    ]["Ports"]
     target_manager_port_attrs = target_manager_container.attrs[
         "NetworkSettings"
     ]["Ports"]
@@ -189,10 +205,12 @@ def test_build_and_run(
         "HostPort"
     ]
 
+    assert isinstance(vws_container.attrs, dict)
     vws_port_attrs = vws_container.attrs["NetworkSettings"]["Ports"]
     vws_host_ip = vws_port_attrs["5000/tcp"][0]["HostIp"]
     vws_host_port = vws_port_attrs["5000/tcp"][0]["HostPort"]
 
+    assert isinstance(vwq_container.attrs, dict)
     vwq_port_attrs = vwq_container.attrs["NetworkSettings"]["Ports"]
     vwq_host_ip = vwq_port_attrs["5000/tcp"][0]["HostIp"]
     vwq_host_port = vwq_port_attrs["5000/tcp"][0]["HostPort"]
