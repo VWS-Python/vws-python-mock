@@ -298,7 +298,7 @@ dev = [
     "pyroma==4.2",
     "pytest-cov==4.0.0",
     "pytest==7.3.1",
-    "requests-mock-flask==2023.3.5.1",
+    "requests-mock-flask==2023.5.14",
     "ruff==0.0.265",
     "sphinx-autodoc-typehints==1.23.0",
     "sphinx-prompt==1.5.0",
