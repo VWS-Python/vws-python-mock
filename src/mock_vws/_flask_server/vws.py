@@ -14,9 +14,9 @@ from enum import StrEnum, auto
 from http import HTTPStatus
 
 import requests
+import werkzeug
 from flask import Flask, Response, request
 from pydantic import BaseSettings
-from werkzeug.datastructures import Headers
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
@@ -134,7 +134,7 @@ def handle_exceptions(exc: ValidatorException) -> Response:
         headers=exc.headers,
     )
 
-    response.headers = Headers(exc.headers)
+    response.headers = werkzeug.datastructures.Headers(exc.headers)
     return response
 
 
