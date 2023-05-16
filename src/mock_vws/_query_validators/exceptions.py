@@ -6,7 +6,6 @@ import email.utils
 import textwrap
 import uuid
 from http import HTTPStatus
-from pathlib import Path
 
 from mock_vws._constants import ResultCodes
 from mock_vws._mock_common import json_dump
@@ -624,45 +623,6 @@ class RequestEntityTooLarge(ValidatorException):
             "Date": date,
             "Server": "nginx",
             "Content-Type": "text/html",
-            "Content-Length": str(len(self.response_text)),
-        }
-
-
-class DeletedTargetMatched(ValidatorException):
-    """
-    Exception raised when target which was recently deleted is matched.
-    """
-
-    def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this is
-                raised.
-        """
-        super().__init__()
-        self.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
-        # We return an example 500 response.
-        # Each response given by Vuforia is different.
-        #
-        # Sometimes Vuforia will ignore matching targets with the
-        # processing status, but we choose to:
-        # * Do the most unexpected thing.
-        # * Be consistent with every response.
-        resources_dir = Path(__file__).parent.parent / "resources"
-        filename = "deleted_target_matched_response.html"
-        deleted_target_matched_resp_file = resources_dir / filename
-        self.response_text = Path(deleted_target_matched_resp_file).read_text(
-            encoding="utf-8",
-        )
-        self.headers = {
-            "Connection": "keep-alive",
-            "Content-Type": "text/html;charset=iso-8859-1",
-            "Server": "nginx",
-            "Cache-Control": "must-revalidate,no-cache,no-store",
-            "Date": date,
             "Content-Length": str(len(self.response_text)),
         }
 

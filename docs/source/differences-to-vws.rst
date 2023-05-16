@@ -37,21 +37,6 @@ The criteria for these images is not defined by the Vuforia documentation.
 The mock is more forgiving than the real Vuforia Web Services.
 Therefore, an image given a 'success' status by the mock may not be given a 'success' status by the real Vuforia Web Services.
 
-Matching targets in the processing state
-----------------------------------------
-
-Matching a target which is in the processing state sometimes returns a successful response with no results.
-Sometimes a 500 (``INTERNAL SERVER ERROR``) response is given.
-The mock always gives a 500 response.
-
-Matching deleted targets
-------------------------
-
-Matching a target which has been deleted returns a 500 (``INTERNAL SERVER ERROR``) response within the first few seconds.
-This time frame is not consistent on the real Vuforia Web Services.
-On the mock, this time frame is three seconds by default.
-:py:class:`~mock_vws.MockVWS` takes a parameter :paramref:`~mock_vws.MockVWS.query_processes_deletion_seconds` to change this.
-
 Accepted date formats for the Query API
 ---------------------------------------
 
