@@ -277,6 +277,7 @@ dependencies = [
     "requests-mock",
     "tzdata; sys_platform == 'win32'",
     "vws-auth-tools",
+    "werkzeug"
 ]
 
 [project.optional-dependencies]
