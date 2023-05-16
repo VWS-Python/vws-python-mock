@@ -14,12 +14,10 @@ from requests_mock import POST
 
 from mock_vws._mock_common import Route
 from mock_vws._query_tools import (
-    ActiveMatchingTargetsDeleteProcessing,
     get_query_match_response_text,
 )
 from mock_vws._query_validators import run_query_validators
 from mock_vws._query_validators.exceptions import (
-    DeletedTargetMatched,
     ValidatorException,
 )
 
@@ -82,19 +80,11 @@ class MockVuforiaWebQueryAPI:
     def __init__(
         self,
         target_manager: TargetManager,
-        query_recognizes_deletion_seconds: int | float,
-        query_processes_deletion_seconds: int | float,
         query_match_checker: ImageMatcher,
     ) -> None:
         """
         Args:
             target_manager: The target manager which holds all databases.
-            query_recognizes_deletion_seconds: The number of seconds after a
-                target has been deleted that the query endpoint will still
-                recognize the target for.
-            query_processes_deletion_seconds: The number of seconds after a
-                target deletion is recognized that the query endpoint will
-                return a 500 response on a match.
             query_match_checker: A callable which takes two image values and
                 returns whether they match.
 
@@ -103,12 +93,6 @@ class MockVuforiaWebQueryAPI:
         """
         self.routes: set[Route] = _ROUTES
         self._target_manager = target_manager
-        self._query_processes_deletion_seconds = (
-            query_processes_deletion_seconds
-        )
-        self._query_recognizes_deletion_seconds = (
-            query_recognizes_deletion_seconds
-        )
         self._query_match_checker = query_match_checker
 
     @route(path_pattern="/v1/query", http_methods={POST})
@@ -133,26 +117,14 @@ class MockVuforiaWebQueryAPI:
             context.status_code = exc.status_code
             return exc.response_text
 
-        try:
-            response_text = get_query_match_response_text(
-                request_headers=request.headers,
-                request_body=request.body,
-                request_method=request.method,
-                request_path=request.path,
-                databases=self._target_manager.databases,
-                query_processes_deletion_seconds=(
-                    self._query_processes_deletion_seconds
-                ),
-                query_recognizes_deletion_seconds=(
-                    self._query_recognizes_deletion_seconds
-                ),
-                query_match_checker=self._query_match_checker,
-            )
-        except ActiveMatchingTargetsDeleteProcessing:
-            deleted_target_matched_exception = DeletedTargetMatched()
-            context.headers = deleted_target_matched_exception.headers
-            context.status_code = deleted_target_matched_exception.status_code
-            return deleted_target_matched_exception.response_text
+        response_text = get_query_match_response_text(
+            request_headers=request.headers,
+            request_body=request.body,
+            request_method=request.method,
+            request_path=request.path,
+            databases=self._target_manager.databases,
+            query_match_checker=self._query_match_checker,
+        )
 
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         context.headers = {

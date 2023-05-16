@@ -16,7 +16,6 @@ import textwrap
 import time
 import uuid
 from http import HTTPStatus
-from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urljoin
 from zoneinfo import ZoneInfo
@@ -75,13 +74,6 @@ _NGINX_REQUEST_ENTITY_TOO_LARGE_ERROR = textwrap.dedent(
     </body>\r
     </html>\r
     """,
-)
-
-_JETTY_ERROR_DELETION_NOT_COMPLETE_START_PATH = (
-    Path(__file__).parent / "jetty_error_deletion_not_complete.html"
-)
-_JETTY_ERROR_DELETION_NOT_COMPLETE = (
-    _JETTY_ERROR_DELETION_NOT_COMPLETE_START_PATH.read_text()
 )
 
 
@@ -1850,8 +1842,7 @@ class TestDeleted:
         vws_client: VWS,
     ) -> None:
         """
-        Within approximately 7 seconds of deleting a target, querying for its
-        image results in an ``INTERNAL_SERVER_ERROR``.
+        Deleted targets are not matched.
         """
         image_content = high_quality_image.getvalue()
         target_id = vws_client.add_target(

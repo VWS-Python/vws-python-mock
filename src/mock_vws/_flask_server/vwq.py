@@ -15,12 +15,10 @@ from pydantic import BaseSettings
 from werkzeug.datastructures import Headers
 
 from mock_vws._query_tools import (
-    ActiveMatchingTargetsDeleteProcessing,
     get_query_match_response_text,
 )
 from mock_vws._query_validators import run_query_validators
 from mock_vws._query_validators.exceptions import (
-    DeletedTargetMatched,
     ValidatorException,
 )
 from mock_vws.database import VuforiaDatabase
@@ -55,8 +53,6 @@ class VWQSettings(BaseSettings):
 
     vwq_host: str = ""
     target_manager_base_url: str
-    deletion_processing_seconds: float = 3.0
-    deletion_recognition_seconds: float = 2.0
     query_image_matcher: _ImageMatcherChoice = _ImageMatcherChoice.AVERAGE_HASH
 
 
@@ -128,21 +124,14 @@ def query() -> Response:
     )
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
 
-    try:
-        response_text = get_query_match_response_text(
-            request_headers=dict(request.headers),
-            request_body=request_body,
-            request_method=request.method,
-            request_path=request.path,
-            databases=databases,
-            query_processes_deletion_seconds=settings.deletion_processing_seconds,
-            query_recognizes_deletion_seconds=(
-                settings.deletion_recognition_seconds
-            ),
-            query_match_checker=query_match_checker,
-        )
-    except ActiveMatchingTargetsDeleteProcessing as exc:
-        raise DeletedTargetMatched from exc
+    response_text = get_query_match_response_text(
+        request_headers=dict(request.headers),
+        request_body=request_body,
+        request_method=request.method,
+        request_path=request.path,
+        databases=databases,
+        query_match_checker=query_match_checker,
+    )
 
     headers = {
         "Content-Type": "application/json",

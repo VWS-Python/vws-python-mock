@@ -277,7 +277,6 @@ dependencies = [
     "requests-mock",
     "tzdata; sys_platform == 'win32'",
     "vws-auth-tools",
-    "werkzeug",
 ]
 
 [project.optional-dependencies]
@@ -319,7 +318,10 @@ dev = [
     "types-PyYAML==6.0.12.9",
     "types-Pillow==9.5.0.4",
     "types-requests==2.30.0.0",
-    "urllib3==2.0.2",
+    # We need urllib3 < 2.0.0 for pdm to work.
+    # After we can bump urllib3, we can remove types-urllib.
+    "types-urllib3==1.26.25.13",
+    "urllib3<2.0.0",
     "vulture==2.7",
     "vws-python==2023.3.25",
 ]

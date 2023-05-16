@@ -43,8 +43,6 @@ class MockVWS(ContextDecorator):
         duplicate_match_checker: ImageMatcher = _AVERAGE_HASH_MATCHER,
         query_match_checker: ImageMatcher = _AVERAGE_HASH_MATCHER,
         processing_time_seconds: int | float = 2,
-        query_recognizes_deletion_seconds: int | float = 2,
-        query_processes_deletion_seconds: int | float = 3,
         target_tracking_rater: TargetTrackingRater = _BRISQUE_TRACKING_RATER,
         *,
         real_http: bool = False,
@@ -62,12 +60,6 @@ class MockVWS(ContextDecorator):
                 In the real Vuforia Web Services, this is not deterministic.
             base_vwq_url: The base URL for the VWQ API.
             base_vws_url: The base URL for the VWS API.
-            query_recognizes_deletion_seconds: The number
-                of seconds after a target has been deleted that the query
-                endpoint will still recognize the target for.
-            query_processes_deletion_seconds: The number of
-                seconds after a target deletion is recognized that the query
-                endpoint will return a 500 response on a match.
             query_match_checker: A callable which takes two image values and
                 returns whether they will match in a query request.
             duplicate_match_checker: A callable which takes two image values
@@ -104,12 +96,6 @@ class MockVWS(ContextDecorator):
 
         self._mock_vwq_api = MockVuforiaWebQueryAPI(
             target_manager=self._target_manager,
-            query_processes_deletion_seconds=(
-                query_processes_deletion_seconds
-            ),
-            query_recognizes_deletion_seconds=(
-                query_recognizes_deletion_seconds
-            ),
             query_match_checker=query_match_checker,
         )
 
