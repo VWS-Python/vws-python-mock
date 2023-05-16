@@ -10,7 +10,6 @@ from enum import StrEnum, auto
 from http import HTTPStatus
 
 import requests
-import werkzeug
 from flask import Flask, Response, request
 from pydantic import BaseSettings
 
@@ -101,7 +100,8 @@ def handle_exceptions(exc: ValidatorException) -> Response:
         headers=exc.headers,
     )
 
-    response.headers = werkzeug.datastructures.Headers(exc.headers)
+    response.headers.clear()
+    response.headers.extend(exc.headers)
     return response
 
 
