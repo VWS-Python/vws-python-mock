@@ -118,20 +118,6 @@ Target manager container
 Query container
 ~~~~~~~~~~~~~~~
 
-.. envvar:: DELETION_PROCESSING_SECONDS
-
-   The number of seconds after a target deletion is recognized that the
-   query endpoint will return a 500 response on a match.
-
-   Default: 3.0
-
-.. envvar:: DELETION_RECOGNITION_SECONDS
-
-   The number of seconds after a target has been deleted that the query
-   endpoint will still recognize the target for.
-
-   Default: 2.0
-
 .. envvar:: QUERY_IMAGE_MATCHER
 
    The matcher to use for the query endpoint.
