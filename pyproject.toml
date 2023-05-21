@@ -283,7 +283,7 @@ dependencies = [
 dev = [
     "PyYAML==6.0",
     "Sphinx-Substitution-Extensions==2022.2.16",
-    "Sphinx==6.2.1",
+    "Sphinx==7.0.1",
     "VWS-Test-Fixtures==2023.3.5",
     "black==23.3.0",
     "check-manifest==0.49",
