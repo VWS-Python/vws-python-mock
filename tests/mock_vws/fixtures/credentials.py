@@ -6,7 +6,7 @@ Fixtures for credentials for Vuforia databases.
 import pytest
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class _VuforiaDatabaseSettings(BaseSettings):
@@ -17,12 +17,17 @@ class _VuforiaDatabaseSettings(BaseSettings):
     server_secret_key: str
     client_access_key: str
     client_secret_key: str
+    model_config = SettingsConfigDict(
+        env_prefix="VUFORIA_",
+        env_file="vuforia_secrets.env",
+        extra="ignore",
+    )
 
-    class Config:
-        """Configuration for the settings."""
+    # class Config:
+    #     """Configuration for the settings."""
 
-        env_prefix = "VUFORIA_"
-        env_file = "vuforia_secrets.env"
+    #     env_prefix = "VUFORIA_"
+    #     env_file = "vuforia_secrets.env"
 
 
 class _InactiveVuforiaDatabaseSettings(_VuforiaDatabaseSettings):
