@@ -11,7 +11,7 @@ from http import HTTPStatus
 from zoneinfo import ZoneInfo
 
 from flask import Flask, Response, request
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
@@ -187,7 +187,7 @@ def create_target(database_name: str) -> Response:
     request_json = json.loads(request.data)
     image_base64 = request_json["image_base64"]
     image_bytes = base64.b64decode(s=image_base64)
-    settings = TargetManagerSettings.parse_obj(obj={})
+    settings = TargetManagerSettings.model_validate(obj={})
     target_tracking_rater = settings.target_rater.to_target_rater()
 
     target = Target(
@@ -284,5 +284,5 @@ def update_target(database_name: str, target_id: str) -> Response:
 
 
 if __name__ == "__main__":  # pragma: no cover
-    SETTINGS = TargetManagerSettings.parse_obj(obj={})
+    SETTINGS = TargetManagerSettings.model_validate(obj={})
     TARGET_MANAGER_FLASK_APP.run(host=SETTINGS.target_manager_host)

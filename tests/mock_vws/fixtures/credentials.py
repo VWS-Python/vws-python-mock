@@ -2,11 +2,12 @@
 Fixtures for credentials for Vuforia databases.
 """
 
+from pathlib import Path
 
 import pytest
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class _VuforiaDatabaseSettings(BaseSettings):
@@ -18,19 +19,19 @@ class _VuforiaDatabaseSettings(BaseSettings):
     client_access_key: str
     client_secret_key: str
 
-    class Config:
-        """Configuration for the settings."""
-
-        env_prefix = "VUFORIA_"
-        env_file = "vuforia_secrets.env"
+    model_config = SettingsConfigDict(
+        env_prefix="VUFORIA_",
+        env_file=Path("vuforia_secrets.env"),
+        extra="allow",
+    )
 
 
 class _InactiveVuforiaDatabaseSettings(_VuforiaDatabaseSettings):
-    class Config:
-        """Configuration for the settings."""
-
-        env_prefix = "INACTIVE_VUFORIA_"
-        env_file = "vuforia_secrets.env"
+    model_config = SettingsConfigDict(
+        env_prefix="INACTIVE_VUFORIA_",
+        env_file=Path("vuforia_secrets.env"),
+        extra="allow",
+    )
 
 
 @pytest.fixture()
@@ -38,7 +39,7 @@ def vuforia_database() -> VuforiaDatabase:
     """
     Return VWS credentials from environment variables.
     """
-    settings = _VuforiaDatabaseSettings.parse_obj(obj={})
+    settings = _VuforiaDatabaseSettings.model_validate(obj={})
     return VuforiaDatabase(
         database_name=settings.target_manager_database_name,
         server_access_key=settings.server_access_key,
@@ -54,7 +55,7 @@ def inactive_database() -> VuforiaDatabase:
     """
     Return VWS credentials for an inactive project from environment variables.
     """
-    settings = _InactiveVuforiaDatabaseSettings.parse_obj(obj={})
+    settings = _InactiveVuforiaDatabaseSettings.model_validate(obj={})
     return VuforiaDatabase(
         database_name=settings.target_manager_database_name,
         server_access_key=settings.server_access_key,
