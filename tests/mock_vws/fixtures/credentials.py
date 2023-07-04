@@ -2,6 +2,7 @@
 Fixtures for credentials for Vuforia databases.
 """
 
+from pathlib import Path
 
 import pytest
 from mock_vws.database import VuforiaDatabase
@@ -20,7 +21,7 @@ class _VuforiaDatabaseSettings(BaseSettings):
 
     model_config = SettingsConfigDict(
         env_prefix="VUFORIA_",
-        env_file="vuforia_secrets.env",
+        env_file=Path("vuforia_secrets.env"),
         extra="allow",
     )
 
@@ -28,7 +29,7 @@ class _VuforiaDatabaseSettings(BaseSettings):
 class _InactiveVuforiaDatabaseSettings(_VuforiaDatabaseSettings):
     model_config = SettingsConfigDict(
         env_prefix="INACTIVE_VUFORIA_",
-        env_file="vuforia_secrets.env",
+        env_file=Path("vuforia_secrets.env"),
         extra="allow",
     )
 
