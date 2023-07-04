@@ -59,7 +59,7 @@ def get_all_databases() -> set[VuforiaDatabase]:
     """
     Get all database objects from the target manager back-end.
     """
-    settings = VWQSettings.parse_obj(obj={})
+    settings = VWQSettings.model_validate(obj={})
     response = requests.get(
         url=f"{settings.target_manager_base_url}/databases",
         timeout=30,
@@ -110,7 +110,7 @@ def query() -> Response:
     """
     Perform an image recognition query.
     """
-    settings = VWQSettings.parse_obj(obj={})
+    settings = VWQSettings.model_validate(obj={})
     query_match_checker = settings.query_image_matcher.to_image_matcher()
 
     databases = get_all_databases()
@@ -147,5 +147,5 @@ def query() -> Response:
 
 
 if __name__ == "__main__":  # pragma: no cover
-    SETTINGS = VWQSettings.parse_obj(obj={})
+    SETTINGS = VWQSettings.model_validate(obj={})
     CLOUDRECO_FLASK_APP.run(host=SETTINGS.vwq_host)

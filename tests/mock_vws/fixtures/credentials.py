@@ -38,7 +38,7 @@ def vuforia_database() -> VuforiaDatabase:
     """
     Return VWS credentials from environment variables.
     """
-    settings = _VuforiaDatabaseSettings.parse_obj(obj={})
+    settings = _VuforiaDatabaseSettings.model_validate(obj={})
     return VuforiaDatabase(
         database_name=settings.target_manager_database_name,
         server_access_key=settings.server_access_key,
@@ -54,7 +54,7 @@ def inactive_database() -> VuforiaDatabase:
     """
     Return VWS credentials for an inactive project from environment variables.
     """
-    settings = _InactiveVuforiaDatabaseSettings.parse_obj(obj={})
+    settings = _InactiveVuforiaDatabaseSettings.model_validate(obj={})
     return VuforiaDatabase(
         database_name=settings.target_manager_database_name,
         server_access_key=settings.server_access_key,
