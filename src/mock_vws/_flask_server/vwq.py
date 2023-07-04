@@ -11,7 +11,7 @@ from http import HTTPStatus
 
 import requests
 from flask import Flask, Response, request
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 
 from mock_vws._query_tools import (
     get_query_match_response_text,

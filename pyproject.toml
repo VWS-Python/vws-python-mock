@@ -272,7 +272,7 @@ dependencies = [
     "multipart",
     "numpy",
     "opencv-python",
-    "pydantic",
+    "pydantic-settings",
     "requests",
     "requests-mock",
     "tzdata; sys_platform == 'win32'",

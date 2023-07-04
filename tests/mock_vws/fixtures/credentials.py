@@ -6,7 +6,7 @@ Fixtures for credentials for Vuforia databases.
 import pytest
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 
 
 class _VuforiaDatabaseSettings(BaseSettings):

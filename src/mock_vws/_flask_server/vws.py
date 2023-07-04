@@ -15,7 +15,7 @@ from http import HTTPStatus
 
 import requests
 from flask import Flask, Response, request
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys

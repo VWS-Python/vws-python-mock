@@ -11,7 +11,7 @@ from http import HTTPStatus
 from zoneinfo import ZoneInfo
 
 from flask import Flask, Response, request
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
