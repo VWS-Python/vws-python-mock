@@ -17,25 +17,20 @@ class _VuforiaDatabaseSettings(BaseSettings):
     server_secret_key: str
     client_access_key: str
     client_secret_key: str
+
     model_config = SettingsConfigDict(
         env_prefix="VUFORIA_",
         env_file="vuforia_secrets.env",
-        extra="ignore",
+        extra="allow",
     )
-
-    # class Config:
-    #     """Configuration for the settings."""
-
-    #     env_prefix = "VUFORIA_"
-    #     env_file = "vuforia_secrets.env"
 
 
 class _InactiveVuforiaDatabaseSettings(_VuforiaDatabaseSettings):
-    class Config:
-        """Configuration for the settings."""
-
-        env_prefix = "INACTIVE_VUFORIA_"
-        env_file = "vuforia_secrets.env"
+    model_config = SettingsConfigDict(
+        env_prefix="INACTIVE_VUFORIA_",
+        env_file="vuforia_secrets.env",
+        extra="allow",
+    )
 
 
 @pytest.fixture()
