@@ -314,7 +314,7 @@ dev = [
     "sphinxcontrib-httpdomain==1.8.1",
     "sphinxcontrib-spelling==8.0.0",
     "sphinx-toolbox==3.4.0",
-    "sybil==5.0.2",
+    "sybil==5.0.3",
     "types-PyYAML==6.0.12.10",
     "types-Pillow==10.0.0.1",
     "types-requests==2.31.0.1",
