@@ -318,7 +318,7 @@ dev = [
     "types-PyYAML==6.0.12.10",
     "types-Pillow==10.0.0.1",
     "types-requests==2.31.0.1",
-    "urllib3==2.0.3",
+    "urllib3==2.0.4",
     "vulture==2.7",
     "vws-python==2023.5.21",
 ]
