@@ -295,7 +295,7 @@ dev = [
     "dodgy==0.2.1",
     "enum-tools[sphinx]==0.10.0",
     "freezegun==1.2.2",
-    "furo==2023.5.20",
+    "furo==2023.7.26",
     "mypy==1.4.1",
     "pdm==2.8.1",
     "pip_check_reqs==2.4.4",
