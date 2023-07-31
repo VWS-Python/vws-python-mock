@@ -5,4 +5,4 @@ Installation
 
    pip3 install vws-python-mock
 
-This requires Python |python-minumum-version|\+.
+This requires Python |python-minimum-version|\+.
