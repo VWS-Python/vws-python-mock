@@ -92,8 +92,8 @@ When this happens, create a new target database to use for testing.
 To create databases without using the browser, use `vws web tools`_.
 See https://github.com/VWS-Python/vws-python-mock/issues/901 for a start on how to use the database details created by that tool.
 
-.. _Vuforia License Manager: https://developer.vuforia.com/targetmanager/licenseManager/licenseListing
-.. _Vuforia Target Manager: https://developer.vuforia.com/targetmanager
+.. _Vuforia License Manager: https://developer.vuforia.com/vui/develop/licenses
+.. _Vuforia Target Manager: https://developer.vuforia.com/vui/develop/databases
 .. _vws web tools: https://github.com/VWS-Python/vws-web-tools
 
 Skipping Some Tests

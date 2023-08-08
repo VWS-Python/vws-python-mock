@@ -2,7 +2,7 @@
 A fake implementation of the Vuforia Web Services API.
 
 See
-https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API
+https://library.vuforia.com/web-api/cloud-targets-web-services-api
 """
 
 import base64
@@ -144,7 +144,7 @@ def add_target() -> Response:
     Add a target.
 
     Fake implementation of
-    https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Add-a-Target
+    https://library.vuforia.com/web-api/cloud-targets-web-services-api#add
     """
     settings = VWSSettings.model_validate(obj={})
     databases = get_all_databases()
@@ -217,7 +217,7 @@ def get_target(target_id: str) -> Response:
     Get details of a target.
 
     Fake implementation of
-    https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Retrieve-a-Target-Record
+    https://library.vuforia.com/web-api/cloud-targets-web-services-api#target-record
     """
     databases = get_all_databases()
     database = get_database_matching_server_keys(
@@ -271,7 +271,7 @@ def delete_target(target_id: str) -> Response:
     Delete a target.
 
     Fake implementation of
-    https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Delete-a-Target
+    https://library.vuforia.com/web-api/cloud-targets-web-services-api#delete
     """
     settings = VWSSettings.model_validate(obj={})
     databases = get_all_databases()
@@ -324,7 +324,7 @@ def database_summary() -> Response:
     Get a database summary report.
 
     Fake implementation of
-    https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Get-a-Database-Summary-Report
+    https://library.vuforia.com/web-api/cloud-targets-web-services-api#summary-report
     """
     databases = get_all_databases()
     database = get_database_matching_server_keys(
@@ -377,7 +377,7 @@ def target_summary(target_id: str) -> Response:
     Get a summary report for a target.
 
     Fake implementation of
-    https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Retrieve-a-Target-Summary-Report
+    https://library.vuforia.com/web-api/cloud-targets-web-services-api#retrieve-report
     """
     databases = get_all_databases()
     database = get_database_matching_server_keys(
@@ -428,7 +428,7 @@ def get_duplicates(target_id: str) -> Response:
     Get targets which may be considered duplicates of a given target.
 
     Fake implementation of
-    https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Check-for-Duplicate-Targets
+    https://library.vuforia.com/web-api/cloud-targets-web-services-api#check
     """
     databases = get_all_databases()
     settings = VWSSettings.model_validate(obj={})
@@ -488,7 +488,7 @@ def target_list() -> Response:
     Get a list of all targets.
 
     Fake implementation of
-    https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Get-a-Target-List-for-a-Cloud-Database
+    https://library.vuforia.com/web-api/cloud-targets-web-services-api#details-list
     """
     databases = get_all_databases()
     database = get_database_matching_server_keys(
@@ -529,7 +529,7 @@ def update_target(target_id: str) -> Response:
     Update a target.
 
     Fake implementation of
-    https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Update-a-Target
+    https://library.vuforia.com/web-api/cloud-targets-web-services-api#update
     """
     settings = VWSSettings.model_validate(obj={})
     # We do not use ``request.get_json(force=True)`` because this only works

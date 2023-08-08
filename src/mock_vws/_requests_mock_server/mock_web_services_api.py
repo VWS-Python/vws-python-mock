@@ -130,7 +130,7 @@ class MockVuforiaWebServicesAPI:
         Add a target.
 
         Fake implementation of
-        https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Add-a-Target
+        https://library.vuforia.com/web-api/cloud-targets-web-services-api#add
         """
         try:
             run_services_validators(
@@ -208,7 +208,7 @@ class MockVuforiaWebServicesAPI:
         Delete a target.
 
         Fake implementation of
-        https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Delete-a-Target
+        https://library.vuforia.com/web-api/cloud-targets-web-services-api#delete
         """
         try:
             run_services_validators(
@@ -275,7 +275,7 @@ class MockVuforiaWebServicesAPI:
         Get a database summary report.
 
         Fake implementation of
-        https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Get-a-Database-Summary-Report
+        https://library.vuforia.com/web-api/cloud-targets-web-services-api#summary-report
         """
         try:
             run_services_validators(
@@ -341,7 +341,7 @@ class MockVuforiaWebServicesAPI:
         Get a list of all targets.
 
         Fake implementation of
-        https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Get-a-Target-List-for-a-Cloud-Database
+        https://library.vuforia.com/web-api/cloud-targets-web-services-api#details-list
         """
         try:
             run_services_validators(
@@ -398,7 +398,7 @@ class MockVuforiaWebServicesAPI:
         Get details of a target.
 
         Fake implementation of
-        https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Retrieve-a-Target-Record
+        https://library.vuforia.com/web-api/cloud-targets-web-services-api#target-record
         """
         try:
             run_services_validators(
@@ -466,7 +466,7 @@ class MockVuforiaWebServicesAPI:
         Get targets which may be considered duplicates of a given target.
 
         Fake implementation of
-        https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Check-for-Duplicate-Targets
+        https://library.vuforia.com/web-api/cloud-targets-web-services-api#check
         """
         try:
             run_services_validators(
@@ -647,7 +647,7 @@ class MockVuforiaWebServicesAPI:
         Get a summary report for a target.
 
         Fake implementation of
-        https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Retrieve-a-Target-Summary-Report
+        https://library.vuforia.com/web-api/cloud-targets-web-services-api#retrieve-report
         """
         try:
             run_services_validators(
