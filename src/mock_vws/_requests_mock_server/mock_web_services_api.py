@@ -2,7 +2,7 @@
 A fake implementation of the Vuforia Web Services API.
 
 See
-https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API
+https://library.vuforia.com/web-api/cloud-targets-web-services-api
 """
 
 from __future__ import annotations
@@ -540,7 +540,7 @@ class MockVuforiaWebServicesAPI:
         Update a target.
 
         Fake implementation of
-        https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Update-a-Target
+        https://library.vuforia.com/web-api/cloud-targets-web-services-api#update
         """
         try:
             run_services_validators(
