@@ -2,7 +2,7 @@
 A fake implementation of the Vuforia Web Services API.
 
 See
-https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API
+https://library.vuforia.com/web-api/cloud-targets-web-services-api
 """
 
 import base64
