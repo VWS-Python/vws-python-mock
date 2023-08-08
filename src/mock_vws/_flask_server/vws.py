@@ -217,7 +217,7 @@ def get_target(target_id: str) -> Response:
     Get details of a target.
 
     Fake implementation of
-    https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Retrieve-a-Target-Record
+    https://library.vuforia.com/web-api/cloud-targets-web-services-api#target-record
     """
     databases = get_all_databases()
     database = get_database_matching_server_keys(
@@ -428,7 +428,7 @@ def get_duplicates(target_id: str) -> Response:
     Get targets which may be considered duplicates of a given target.
 
     Fake implementation of
-    https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Check-for-Duplicate-Targets
+    https://library.vuforia.com/web-api/cloud-targets-web-services-api#check
     """
     databases = get_all_databases()
     settings = VWSSettings.model_validate(obj={})
@@ -529,7 +529,7 @@ def update_target(target_id: str) -> Response:
     Update a target.
 
     Fake implementation of
-    https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Update-a-Target
+    https://library.vuforia.com/web-api/cloud-targets-web-services-api#update
     """
     settings = VWSSettings.model_validate(obj={})
     # We do not use ``request.get_json(force=True)`` because this only works

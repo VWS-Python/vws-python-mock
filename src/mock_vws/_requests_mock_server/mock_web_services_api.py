@@ -398,7 +398,7 @@ class MockVuforiaWebServicesAPI:
         Get details of a target.
 
         Fake implementation of
-        https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Retrieve-a-Target-Record
+        https://library.vuforia.com/web-api/cloud-targets-web-services-api#target-record
         """
         try:
             run_services_validators(
@@ -466,7 +466,7 @@ class MockVuforiaWebServicesAPI:
         Get targets which may be considered duplicates of a given target.
 
         Fake implementation of
-        https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Check-for-Duplicate-Targets
+        https://library.vuforia.com/web-api/cloud-targets-web-services-api#check
         """
         try:
             run_services_validators(
