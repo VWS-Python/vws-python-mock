@@ -66,7 +66,7 @@ class Endpoint:
 
 def make_image_file(
     file_format: str,
-    color_space: Literal["L" | "RGB" | "CMYK"],
+    color_space: Literal["L", "RGB", "CMYK"],
     width: int,
     height: int,
 ) -> io.BytesIO:
