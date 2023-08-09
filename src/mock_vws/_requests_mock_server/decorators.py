@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import re
 from contextlib import ContextDecorator
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, Self
 from urllib.parse import urljoin, urlparse
 
 import requests
@@ -42,7 +42,7 @@ class MockVWS(ContextDecorator):
         base_vwq_url: str = "https://cloudreco.vuforia.com",
         duplicate_match_checker: ImageMatcher = _AVERAGE_HASH_MATCHER,
         query_match_checker: ImageMatcher = _AVERAGE_HASH_MATCHER,
-        processing_time_seconds: int | float = 2,
+        processing_time_seconds: float = 2,
         target_tracking_rater: TargetTrackingRater = _BRISQUE_TRACKING_RATER,
         *,
         real_http: bool = False,
@@ -112,7 +112,7 @@ class MockVWS(ContextDecorator):
         """
         self._target_manager.add_database(database=database)
 
-    def __enter__(self) -> MockVWS:
+    def __enter__(self) -> Self:
         """
         Start an instance of a Vuforia mock.
 
@@ -151,7 +151,7 @@ class MockVWS(ContextDecorator):
 
         return self
 
-    def __exit__(self, *exc: tuple[None, None, None]) -> Literal[False]:
+    def __exit__(self, *exc: object) -> Literal[False]:
         """
         Stop the Vuforia mock.
 

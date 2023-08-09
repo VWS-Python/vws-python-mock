@@ -94,7 +94,7 @@ class MockVuforiaWebServicesAPI:
     def __init__(
         self,
         target_manager: TargetManager,
-        processing_time_seconds: int | float,
+        processing_time_seconds: float,
         duplicate_match_checker: ImageMatcher,
         target_tracking_rater: TargetTrackingRater,
     ) -> None:
