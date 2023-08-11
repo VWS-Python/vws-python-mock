@@ -322,7 +322,7 @@ dev = [
     "types-Pillow==10.0.0.2",
     "types-requests==2.31.0.2",
     "urllib3==2.0.4",
-    "vulture==2.7",
+    "vulture==2.8",
     "vws-python==2023.5.21",
 ]
 
