@@ -310,7 +310,7 @@ dev = [
     "pytest-cov==4.1.0",
     "pytest==7.4.0",
     "requests-mock-flask==2023.5.14",
-    "ruff==0.0.285",
+    "ruff==0.0.286",
     "sphinx-autodoc-typehints==1.24.0",
     "sphinx-prompt==1.5.0",
     "sphinx_paramlinks==0.6.0",
