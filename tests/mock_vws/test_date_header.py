@@ -58,8 +58,7 @@ class TestMissing:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers: dict[str, str] = {
-            **endpoint_headers,
+        headers: dict[str, str] = endpoint_headers | {
             "Authorization": authorization_string,
         }
         headers.pop("Date", None)
@@ -123,8 +122,7 @@ class TestFormat:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers = {
-            **endpoint_headers,
+        headers: dict[str, str] = endpoint_headers | {
             "Authorization": authorization_string,
             "Date": date_incorrect_format,
         }
@@ -205,8 +203,7 @@ class TestSkewedTime:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers = {
-            **endpoint_headers,
+        headers = endpoint_headers | {
             "Authorization": authorization_string,
             "Date": date,
         }
@@ -279,8 +276,7 @@ class TestSkewedTime:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers = {
-            **endpoint_headers,
+        headers: dict[str, str] = endpoint_headers | {
             "Authorization": authorization_string,
             "Date": date,
         }
