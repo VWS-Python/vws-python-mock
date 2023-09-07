@@ -1144,8 +1144,7 @@ class TestAcceptHeader:
             "Authorization": authorization_string,
             "Date": date,
             "Content-Type": content_type_header,
-            **extra_headers,
-        }
+        } | extra_headers
 
         response = requests.request(
             method=method,

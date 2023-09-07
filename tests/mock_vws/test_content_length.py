@@ -43,7 +43,7 @@ class TestIncorrect:
             return
 
         content_length = "0.4"
-        headers = {**endpoint_headers, "Content-Length": content_length}
+        headers = endpoint_headers | {"Content-Length": content_length}
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
@@ -87,7 +87,7 @@ class TestIncorrect:
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
         content_length = str(int(endpoint_headers["Content-Length"]) + 1)
-        headers = {**endpoint_headers, "Content-Length": content_length}
+        headers = endpoint_headers | {"Content-Length": content_length}
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
@@ -129,7 +129,7 @@ class TestIncorrect:
             return
 
         content_length = str(int(endpoint_headers["Content-Length"]) - 1)
-        headers = {**endpoint_headers, "Content-Length": content_length}
+        headers = endpoint_headers | {"Content-Length": content_length}
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()

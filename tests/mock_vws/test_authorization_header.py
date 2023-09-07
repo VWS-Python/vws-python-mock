@@ -45,10 +45,7 @@ class TestAuthorizationHeader:
         is given.
         """
         date = rfc_1123_date()
-        endpoint_headers = dict(endpoint.prepared_request.headers)
-
-        headers: dict[str, str] = {
-            **endpoint_headers,
+        headers: dict[str, str] = dict(endpoint.prepared_request.headers) | {
             "Date": date,
         }
 
@@ -101,8 +98,7 @@ class TestMalformed:
         """
         date = rfc_1123_date()
 
-        headers: dict[str, str] = {
-            **endpoint.prepared_request.headers,
+        headers: dict[str, str] = dict(endpoint.prepared_request.headers) | {
             "Authorization": authorization_string,
             "Date": date,
         }
@@ -141,8 +137,7 @@ class TestMalformed:
         authorization_string = "VWS "
         date = rfc_1123_date()
 
-        headers: dict[str, str] = {
-            **endpoint.prepared_request.headers,
+        headers: dict[str, str] = dict(endpoint.prepared_request.headers) | {
             "Authorization": authorization_string,
             "Date": date,
         }
@@ -189,8 +184,7 @@ class TestMalformed:
         """
         date = rfc_1123_date()
 
-        headers: dict[str, str] = {
-            **endpoint.prepared_request.headers,
+        headers: dict[str, str] = dict(endpoint.prepared_request.headers) | {
             "Authorization": authorization_string,
             "Date": date,
         }

@@ -55,8 +55,7 @@ class TestUnexpectedJSON:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers = {
-            **endpoint_headers,
+        headers = endpoint_headers | {
             "Authorization": authorization_string,
             "Date": date,
             "Content-Type": content_type,
