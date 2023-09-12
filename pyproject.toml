@@ -340,3 +340,5 @@ where = ["src"]
 mock_vws = ["py.typed"]
 
 [tool.pyright]
+
+typeCheckingMode = "strict"
