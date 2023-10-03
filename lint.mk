@@ -44,7 +44,7 @@ pip-missing-reqs:
 
 .PHONY: pylint
 pylint:
-	pylint *.py src/ tests/ docs/ ci/
+	python -m pylint *.py src/ tests/ docs/ ci/
 
 .PHONY: pyroma
 pyroma:
