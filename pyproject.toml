@@ -274,7 +274,7 @@ dependencies = [
     "flask",
     "multipart",
     "numpy",
-    "opencv-python",
+    "opencv-python>=4.8.1.78",
     "pydantic-settings",
     "requests",
     "requests-mock",
