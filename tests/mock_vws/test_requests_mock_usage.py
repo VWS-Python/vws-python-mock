@@ -270,7 +270,8 @@ class TestTargets:
                 application_metadata=None,
             )
 
-        (target,) = database.targets
+        assert len(database.targets) == 1
+        target = next(iter(database.targets))
         target_dict = target.to_dict()
 
         # The dictionary is JSON dump-able
@@ -304,7 +305,8 @@ class TestTargets:
             vws_client.wait_for_target_processed(target_id=target_id)
             vws_client.delete_target(target_id=target_id)
 
-        (target,) = database.targets
+        assert len(database.targets) == 1
+        target = next(iter(database.targets))
         target_dict = target.to_dict()
 
         # The dictionary is JSON dump-able
