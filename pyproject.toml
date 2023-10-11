@@ -148,14 +148,11 @@ warn_untyped_fields = true
 
 module = [
     "brisque",
-    "cv2",
     "docker",
     "docker.errors",
     "docker.models.containers",
     "docker.models.networks",
     "multipart",
-    "sybil",
-    "sybil.parsers.rest",
 ]
 
 ignore_missing_imports = true
