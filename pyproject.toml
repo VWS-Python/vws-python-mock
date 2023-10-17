@@ -318,7 +318,7 @@ dev = [
     "sphinx-toolbox==3.5.0",
     "sybil==5.0.3",
     "types-PyYAML==6.0.12.12",
-    "types-Pillow==10.0.0.3",
+    "types-Pillow==10.1.0.0",
     "types-requests==2.31.0.9",
     "urllib3==2.0.6",
     "vulture==2.10",
