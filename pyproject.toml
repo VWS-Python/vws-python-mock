@@ -320,7 +320,7 @@ dev = [
     "types-PyYAML==6.0.12.12",
     "types-Pillow==10.1.0.0",
     "types-requests==2.31.0.10",
-    "urllib3==2.0.6",
+    "urllib3==2.0.7",
     "vulture==2.10",
     "vws-python==2023.5.21",
 ]
