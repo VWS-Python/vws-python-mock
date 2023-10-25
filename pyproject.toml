@@ -144,7 +144,6 @@ warn_untyped_fields = true
 
 module = [
     "brisque",
-    "cv2",
     "docker",
     "docker.errors",
     "docker.models.containers",
@@ -299,7 +298,7 @@ dev = [
     "pydocstyle==6.3.0",
     "pyenchant==3.2.2",
     "pylint==3.0.2",
-    "pyright==1.1.333",
+    "pyright==1.1.332",
     "pyroma==4.2",
     "pytest-cov==4.1.0",
     "pytest==7.4.3",
@@ -334,3 +333,5 @@ where = ["src"]
 mock_vws = ["py.typed"]
 
 [tool.pyright]
+# We want this to be "strict" but we need to fix a number of issues first.
+typeCheckingMode = "basic"
