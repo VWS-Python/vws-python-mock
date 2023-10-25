@@ -85,10 +85,6 @@
     # --spelling-private-dict-file option instead of raising a message.
     spelling-store-unknown-words = 'no'
 
-[tool.black]
-
-line-length = 79
-
 [tool.coverage.run]
 
 branch = true
@@ -287,7 +283,6 @@ dev = [
     "Sphinx-Substitution-Extensions==2022.2.16",
     "Sphinx==7.2.6",
     "VWS-Test-Fixtures==2023.3.5",
-    "black==23.10.1",
     "check-manifest==0.49",
     "dirty-equals==0.6.0",
     # We pin to an old doc8 to avoid version conflicts with sphinx_toolbox.
@@ -309,7 +304,7 @@ dev = [
     "pytest-cov==4.1.0",
     "pytest==7.4.2",
     "requests-mock-flask==2023.5.14",
-    "ruff==0.1.1",
+    "ruff==0.1.2",
     "sphinx-autodoc-typehints==1.24.0",
     "sphinx-prompt==1.8.0",
     "sphinx_paramlinks==0.6.0",
