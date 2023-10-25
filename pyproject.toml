@@ -307,7 +307,7 @@ dev = [
     "pyright==1.1.332",
     "pyroma==4.2",
     "pytest-cov==4.1.0",
-    "pytest==7.4.2",
+    "pytest==7.4.3",
     "requests-mock-flask==2023.5.14",
     "ruff==0.1.1",
     "sphinx-autodoc-typehints==1.24.0",
