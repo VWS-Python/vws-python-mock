@@ -46,7 +46,7 @@ pyroma:
 
 .PHONY: pyright
 pyright:
-	pyright .
+	pyright --verifytypes .
 
 .PHONY: vulture
 vulture:
