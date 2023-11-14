@@ -320,7 +320,7 @@ dev = [
     "sphinxcontrib-httpdomain==1.8.1",
     "sphinxcontrib-spelling==8",
     "sybil==5.0.3",
-    "types-Pillow==10.1.0.1",
+    "types-Pillow==10.1.0.2",
     "types-PyYAML==6.0.12.12",
     "types-requests==2.31.0.10",
     "urllib3==2.1.0",
