@@ -4,9 +4,9 @@ name: CI
 
 on:
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
-    branches: [master]
+    branches: [main]
   schedule:
     # * is a special character in YAML so you have to quote this string
     # Run at 1:00 every day
@@ -147,7 +147,7 @@ jobs:
           # https://github.com/VWS-Python/vws-python-mock/issues/708
           cat ./coverage.xml
 
-      # We run this job on every PR, on every merge to master, and nightly.
+      # We run this job on every PR, on every merge to main, and nightly.
       # This causes us to hit an issue with Codecov.
       #
       # We see "Too many uploads to this commit.".

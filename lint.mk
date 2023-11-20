@@ -6,14 +6,6 @@ SHELL := /bin/bash -euxo pipefail
 custom-linters:
 	pytest ci/custom_linters.py
 
-.PHONY: black
-black:
-	black --check .
-
-.PHONY: fix-black
-fix-black:
-	black .
-
 .PHONY: mypy
 mypy:
 	mypy .
@@ -29,10 +21,12 @@ doc8:
 .PHONY: ruff
 ruff:
 	ruff .
+	ruff format --check .
 
 .PHONY: fix-ruff
 fix-ruff:
 	ruff --fix .
+	ruff format .
 
 .PHONY: pip-extra-reqs
 pip-extra-reqs:
@@ -61,6 +55,14 @@ vulture:
 .PHONY: linkcheck
 linkcheck:
 	$(MAKE) -C docs/ linkcheck SPHINXOPTS=$(SPHINXOPTS)
+
+.PHONY: pyproject-fmt
+pyproject-fmt:
+	pyproject-fmt --keep-full-version --check --indent=4 pyproject.toml
+
+.PHONY: fix-pyproject-fmt
+fix-pyproject-fmt:
+	pyproject-fmt --keep-full-version --indent=4 pyproject.toml
 
 .PHONY: spelling
 spelling:
