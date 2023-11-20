@@ -144,11 +144,14 @@ warn_untyped_fields = true
 
 module = [
     "brisque",
+    "cv2",
     "docker",
     "docker.errors",
     "docker.models.containers",
     "docker.models.networks",
     "multipart",
+    "sybil",
+    "sybil.parsers.rest",
 ]
 
 ignore_missing_imports = true
@@ -255,7 +258,7 @@ keywords = [
 ]
 license = { file = "LICENSE" }
 authors = [ { name = "Adam Dangoor", email = "adamdangoor@gmail.com"} ]
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Web Environment",
@@ -263,8 +266,6 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: POSIX",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
 dynamic = [
