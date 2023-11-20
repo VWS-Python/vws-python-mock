@@ -46,6 +46,7 @@ pyroma:
 
 .PHONY: pyright
 pyright:
+	pyright .
 
 .PHONY: pyright-verifytypes
 pyright-verifytypes:
