@@ -47,7 +47,7 @@ language = "en"
 # The name of the syntax highlighting style to use.
 pygments_style = "sphinx"
 
-python_minimum_supported_version = "3.11"
+python_minimum_supported_version = "3.12"
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = "VWSPYTHONMOCKdoc"
