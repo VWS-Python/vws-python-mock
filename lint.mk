@@ -48,6 +48,10 @@ pyroma:
 pyright:
 	pyright .
 
+.PHONY: pyright-verifytypes
+pyright-verifytypes:
+	pyright --verifytypes mock_vws
+
 .PHONY: vulture
 vulture:
 	vulture --min-confidence 100 --exclude _vendor --exclude .eggs .

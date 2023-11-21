@@ -20,6 +20,7 @@ lint: \
     pip-missing-reqs \
     pyproject-fmt \
     pyright \
+    pyright-verifytypes \
     pyroma \
     ruff \
     spelling \
