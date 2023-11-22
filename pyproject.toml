@@ -150,8 +150,6 @@ module = [
     "docker.models.containers",
     "docker.models.networks",
     "multipart",
-    "sybil",
-    "sybil.parsers.rest",
 ]
 
 ignore_missing_imports = true
