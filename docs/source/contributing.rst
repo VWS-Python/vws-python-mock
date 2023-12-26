@@ -89,7 +89,7 @@ To create an inactive project, delete the license key associated with a database
 Targets sometimes get stuck at the "Processing" stage meaning that they cannot be deleted.
 When this happens, create a new target database to use for testing.
 
-To create databases without using the browser, use ``admin/create_secrets_files.py``.
+To create databases without using the browser, use :file:`admin/create_secrets_files.py`.
 See instructions in that file.
 
 .. _Vuforia License Manager: https://developer.vuforia.com/vui/develop/licenses
