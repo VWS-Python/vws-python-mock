@@ -28,66 +28,28 @@ jobs:
       matrix:
         python-version: ["3.12"]
         ci_pattern:
-          - tests/mock_vws/test_query.py::TestContentType
-          - tests/mock_vws/test_query.py::TestSuccess
-          - tests/mock_vws/test_query.py::TestIncorrectFields
-          - tests/mock_vws/test_query.py::TestMaxNumResults
-          - tests/mock_vws/test_query.py::TestIncludeTargetData
-          - tests/mock_vws/test_query.py::TestAcceptHeader
-          - tests/mock_vws/test_query.py::TestActiveFlag
-          - tests/mock_vws/test_query.py::TestBadImage
-          - tests/mock_vws/test_query.py::TestMaximumImageFileSize
-          - tests/mock_vws/test_query.py::TestMaximumImageDimensions
-          - tests/mock_vws/test_query.py::TestImageFormats
-          - tests/mock_vws/test_query.py::TestProcessing
-          - tests/mock_vws/test_query.py::TestUpdate
-          - tests/mock_vws/test_query.py::TestDeleted
-          - tests/mock_vws/test_query.py::TestTargetStatusFailed
-          - tests/mock_vws/test_query.py::TestDateFormats
-          - tests/mock_vws/test_query.py::TestInactiveProject
+          # We have a lot of tests and we split them by file.
+          # Having too many patterns makes us hit TooManyRequests 429 errors.
+          - README.rst
+          - docs/source/basic-example.rst
           - tests/mock_vws/test_add_target.py
-          - tests/mock_vws/test_authorization_header.py::TestAuthorizationHeader
-          - tests/mock_vws/test_authorization_header.py::TestMalformed::test_one_part_no_space
-          - tests/mock_vws/test_authorization_header.py::TestMalformed::test_one_part_with_space
-          - tests/mock_vws/test_authorization_header.py::TestMalformed::test_missing_signature
-          - tests/mock_vws/test_authorization_header.py::TestBadKey
-          - tests/mock_vws/test_content_length.py::TestIncorrect::test_not_integer
-          - tests/mock_vws/test_content_length.py::TestIncorrect::test_too_large
-          - tests/mock_vws/test_content_length.py::TestIncorrect::test_too_small
+          - tests/mock_vws/test_authorization_header.py
+          - tests/mock_vws/test_content_length.py
           - tests/mock_vws/test_database_summary.py
-          - tests/mock_vws/test_date_header.py::TestFormat
-          - tests/mock_vws/test_date_header.py::TestMissing
-          - tests/mock_vws/test_date_header.py::TestSkewedTime::test_date_out_of_range
-          - tests/mock_vws/test_date_header.py::TestSkewedTime::test_date_in_range
+          - tests/mock_vws/test_date_header.py
           - tests/mock_vws/test_delete_target.py
+          - tests/mock_vws/test_docker.py
+          - tests/mock_vws/test_flask_app_usage.py
           - tests/mock_vws/test_get_duplicates.py
           - tests/mock_vws/test_get_target.py
           - tests/mock_vws/test_invalid_given_id.py
           - tests/mock_vws/test_invalid_json.py
+          - tests/mock_vws/test_query.py
+          - tests/mock_vws/test_requests_mock_usage.py
           - tests/mock_vws/test_target_list.py
           - tests/mock_vws/test_target_summary.py
           - tests/mock_vws/test_unexpected_json.py
-          - tests/mock_vws/test_update_target.py::TestActiveFlag
-          - tests/mock_vws/test_update_target.py::TestApplicationMetadata
-          - tests/mock_vws/test_update_target.py::TestImage::test_image_valid
-          - tests/mock_vws/test_update_target.py::TestImage::test_bad_image_format_or_color_space
-          - tests/mock_vws/test_update_target.py::TestImage::test_corrupted
-          - tests/mock_vws/test_update_target.py::TestImage::test_image_too_large
-          - tests/mock_vws/test_update_target.py::TestImage::test_not_base64_encoded_processable
-          - tests/mock_vws/test_update_target.py::TestImage::test_not_base64_encoded_not_processable
-          - tests/mock_vws/test_update_target.py::TestImage::test_not_image
-          - tests/mock_vws/test_update_target.py::TestImage::test_invalid_type
-          - tests/mock_vws/test_update_target.py::TestImage::test_rating_can_change
-          - tests/mock_vws/test_update_target.py::TestTargetName
-          - tests/mock_vws/test_update_target.py::TestUnexpectedData
-          - tests/mock_vws/test_update_target.py::TestUpdate
-          - tests/mock_vws/test_update_target.py::TestWidth
-          - tests/mock_vws/test_update_target.py::TestInactiveProject
-          - tests/mock_vws/test_requests_mock_usage.py
-          - tests/mock_vws/test_flask_app_usage.py
-          - tests/mock_vws/test_docker.py
-          - README.rst
-          - docs/source/basic-example.rst
+          - tests/mock_vws/test_update_target.py
 
     steps:
       - uses: actions/checkout@v4

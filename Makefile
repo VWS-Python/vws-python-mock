@@ -7,6 +7,7 @@ SPHINXOPTS := -W
 
 .PHONY: update-secrets
 update-secrets:
+    # After updating secrets, commit the new secrets.tar.gpg file.
 	tar cvf secrets.tar ci_secrets/
 	gpg --yes --batch --passphrase=${PASSPHRASE_FOR_VUFORIA_SECRETS} --symmetric --cipher-algo AES256 secrets.tar
 

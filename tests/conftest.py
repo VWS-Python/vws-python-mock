@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import base64
 import binascii
+import time
 import uuid
 from typing import TYPE_CHECKING
 
@@ -31,6 +32,8 @@ def fixture_vws_client(vuforia_database: VuforiaDatabase) -> VWS:
     """
     A VWS client for an active VWS database.
     """
+    # Sleep between tests to avoid rate limiting (TooManyRequests 429 errors).
+    time.sleep(2)
     return VWS(
         server_access_key=vuforia_database.server_access_key,
         server_secret_key=vuforia_database.server_secret_key,

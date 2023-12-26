@@ -1,9 +1,10 @@
 {
     "[python]": {
         "editor.codeActionsOnSave": {
-            "source.fixAll": true
+            "source.fixAll": "explicit"
         },
         "editor.defaultFormatter": "charliermarsh.ruff",
         "editor.formatOnSave": true
-    }
+    },
+    "esbonio.sphinx.confDir": ""
 }
