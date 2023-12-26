@@ -48,7 +48,10 @@ def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
     targets = vws_client.list_targets()
 
     for target in targets:
-        vws_client.wait_for_target_processed(target_id=target)
+        vws_client.wait_for_target_processed(
+            target_id=target,
+            seconds_between_requests=5,
+        )
         # Even deleted targets can be matched by a query for a few seconds so
         # we change the target to inactive before deleting it.
         with contextlib.suppress(TargetStatusNotSuccess):
