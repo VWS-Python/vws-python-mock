@@ -1,5 +1,23 @@
 """
 Create licenses and target databases for the tests to run against.
+
+Usage:
+
+    $ export VWS_EMAIL_ADDRESS=...
+    $ export VWS_PASSWORD=...
+    $ export NEW_SECRETS_DIR=...
+    $ export EXISTING_SECRETS_FILE=/path/to/existing/secrets/file/with/inactive/database/credentials
+
+Then (fish):
+
+    $ exec bash -c "source $EXISTING_SECRETS_FILE; exec fish"
+    $ python admin/create_secrets_files.py
+
+or (bash):
+
+    $ source $EXISTING_SECRETS_FILE
+    $ python admin/create_secrets_files.py
+
 """
 
 import datetime
@@ -13,7 +31,7 @@ from selenium import webdriver
 
 email_address = os.environ["VWS_EMAIL_ADDRESS"]
 password = os.environ["VWS_PASSWORD"]
-new_secrets_dir = Path(__file__).parent / "vuforia_secrets"
+new_secrets_dir = Path(os.environ["NEW_SECRETS_DIR"])
 new_secrets_dir.mkdir(exist_ok=True)
 
 num_databases = 100
