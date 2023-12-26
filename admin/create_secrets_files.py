@@ -78,6 +78,7 @@ while files_to_create:
         continue
     finally:
         driver.quit()
+        driver = None
 
     file_contents = textwrap.dedent(
         f"""\
