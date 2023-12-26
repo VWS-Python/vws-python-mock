@@ -5,8 +5,11 @@ Usage:
 
     $ export VWS_EMAIL_ADDRESS=...
     $ export VWS_PASSWORD=...
+    # For ``make update-secrets`` to work, this has to be ``./ci_secrets``, or you
+    # have to copy the secrets there later.
     $ export NEW_SECRETS_DIR=...
     $ export EXISTING_SECRETS_FILE=/path/to/existing/secrets/file/with/inactive/database/credentials
+    # You may have to run this a few times, but it is idempotent.
     $ python admin/create_secrets_files.py
 
 """
