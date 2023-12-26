@@ -28,17 +28,19 @@ from pathlib import Path
 
 import vws_web_tools
 from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
 
 email_address = os.environ["VWS_EMAIL_ADDRESS"]
 password = os.environ["VWS_PASSWORD"]
-new_secrets_dir = Path(os.environ["NEW_SECRETS_DIR"])
+new_secrets_dir = Path(os.environ["NEW_SECRETS_DIR"]).expanduser()
 new_secrets_dir.mkdir(exist_ok=True)
 
 num_databases = 100
 start_number = len(list(new_secrets_dir.glob("*")))
-driver = webdriver.Safari()
+driver = None
 
 for i in range(start_number, num_databases):
+    driver = webdriver.Safari()
     sys.stdout.write(f"Creating database {i}\n")
     time = datetime.datetime.now(tz=datetime.UTC).strftime("%Y-%m-%d-%H-%M-%S")
     license_name = f"my-license-{time}"
@@ -58,26 +60,33 @@ for i in range(start_number, num_databases):
         license_name=license_name,
     )
 
-    database_details = vws_web_tools.get_database_details(
-        driver=driver,
-        database_name=database_name,
-    )
+    try:
+        database_details = vws_web_tools.get_database_details(
+            driver=driver,
+            database_name=database_name,
+        )
+    except TimeoutException:
+        sys.stderr.write("Timed out waiting for database to be created\n")
+        continue
+    finally:
+        driver.quit()
 
     file_contents = textwrap.dedent(
         f"""\
-        VUFORIA_TARGET_MANAGER_DATABASE_NAME={database_details["database_name"]},
-        VUFORIA_SERVER_ACCESS_KEY={database_details["server_access_key"]},
-        VUFORIA_SERVER_SECRET_KEY={database_details["server_secret_key"]},
-        VUFORIA_CLIENT_ACCESS_KEY={database_details["client_access_key"]},
-        VUFORIA_CLIENT_SECRET_KEY={database_details["client_secret_key"]},
+        VUFORIA_TARGET_MANAGER_DATABASE_NAME={database_details["database_name"]}
+        VUFORIA_SERVER_ACCESS_KEY={database_details["server_access_key"]}
+        VUFORIA_SERVER_SECRET_KEY={database_details["server_secret_key"]}
+        VUFORIA_CLIENT_ACCESS_KEY={database_details["client_access_key"]}
+        VUFORIA_CLIENT_SECRET_KEY={database_details["client_secret_key"]}
 
-        INACTIVE_VUFORIA_TARGET_MANAGER_DATABASE_NAME={os.environ["INACTIVE_VUFORIA_TARGET_MANAGER_DATABASE_NAME"]},
-        INACTIVE_VUFORIA_SERVER_ACCESS_KEY={os.environ["INACTIVE_VUFORIA_SERVER_ACCESS_KEY"]},
-        INACTIVE_VUFORIA_SERVER_SECRET_KEY={os.environ["INACTIVE_VUFORIA_SERVER_SECRET_KEY"]},
-        INACTIVE_VUFORIA_CLIENT_ACCESS_KEY={os.environ["INACTIVE_VUFORIA_CLIENT_ACCESS_KEY"]},
-        INACTIVE_VUFORIA_CLIENT_SECRET_KEY={os.environ["INACTIVE_VUFORIA_CLIENT_SECRET_KEY"]},
+        INACTIVE_VUFORIA_TARGET_MANAGER_DATABASE_NAME={os.environ["INACTIVE_VUFORIA_TARGET_MANAGER_DATABASE_NAME"]}
+        INACTIVE_VUFORIA_SERVER_ACCESS_KEY={os.environ["INACTIVE_VUFORIA_SERVER_ACCESS_KEY"]}
+        INACTIVE_VUFORIA_SERVER_SECRET_KEY={os.environ["INACTIVE_VUFORIA_SERVER_SECRET_KEY"]}
+        INACTIVE_VUFORIA_CLIENT_ACCESS_KEY={os.environ["INACTIVE_VUFORIA_CLIENT_ACCESS_KEY"]}
+        INACTIVE_VUFORIA_CLIENT_SECRET_KEY={os.environ["INACTIVE_VUFORIA_CLIENT_SECRET_KEY"]}
         """,
     )
 
     file_name = f"vuforia_secrets_{i}.env"
     (new_secrets_dir / file_name).write_text(file_contents)
+    sys.stdout.write(f"Created database {i}\n")
