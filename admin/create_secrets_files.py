@@ -44,6 +44,7 @@ driver = None
 
 while files_to_create:
     if driver is None:
+        # With Safari we get a bunch of errors / timeouts.
         driver = webdriver.Chrome()
     file = files_to_create[-1]
     sys.stdout.write(f"Creating database {file.name}\n")
