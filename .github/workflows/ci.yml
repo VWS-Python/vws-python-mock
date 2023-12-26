@@ -28,6 +28,8 @@ jobs:
       matrix:
         python-version: ["3.12"]
         ci_pattern:
+          # We have a lot of tests and we split them by file.
+          # Having too many patterns makes us hit TooManyRequests 429 errors.
           - README.rst
           - docs/source/basic-example.rst
           - tests/mock_vws/test_add_target.py
