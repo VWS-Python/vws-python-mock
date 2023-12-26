@@ -25,7 +25,9 @@ from selenium.common.exceptions import TimeoutException
 email_address = os.environ["VWS_EMAIL_ADDRESS"]
 password = os.environ["VWS_PASSWORD"]
 new_secrets_dir = Path(os.environ["NEW_SECRETS_DIR"]).expanduser()
-load_dotenv(dotenv_path=os.environ["EXISTING_SECRETS_FILE"])
+existing_secrets_file = Path(os.environ["EXISTING_SECRETS_FILE"]).expanduser()
+assert existing_secrets_file.exists(), existing_secrets_file
+load_dotenv(dotenv_path=existing_secrets_file)
 new_secrets_dir.mkdir(exist_ok=True)
 
 num_databases = 100
