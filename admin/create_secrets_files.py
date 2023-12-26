@@ -7,15 +7,6 @@ Usage:
     $ export VWS_PASSWORD=...
     $ export NEW_SECRETS_DIR=...
     $ export EXISTING_SECRETS_FILE=/path/to/existing/secrets/file/with/inactive/database/credentials
-
-Then (fish):
-
-    $ exec bash -c "source $EXISTING_SECRETS_FILE; exec fish"
-    $ python admin/create_secrets_files.py
-
-or (bash):
-
-    $ source $EXISTING_SECRETS_FILE
     $ python admin/create_secrets_files.py
 
 """
@@ -27,21 +18,30 @@ import textwrap
 from pathlib import Path
 
 import vws_web_tools
+from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 
 email_address = os.environ["VWS_EMAIL_ADDRESS"]
 password = os.environ["VWS_PASSWORD"]
 new_secrets_dir = Path(os.environ["NEW_SECRETS_DIR"]).expanduser()
+load_dotenv(dotenv_path=os.environ["EXISTING_SECRETS_FILE"])
 new_secrets_dir.mkdir(exist_ok=True)
 
 num_databases = 100
+required_files = [
+    (new_secrets_dir / f"vuforia_secrets_{i}.env")
+    for i in range(num_databases)
+]
+files_to_create = [file for file in required_files if not file.exists()]
 start_number = len(list(new_secrets_dir.glob("*")))
 driver = None
 
-for i in range(start_number, num_databases):
-    driver = webdriver.Safari()
-    sys.stdout.write(f"Creating database {i}\n")
+while files_to_create:
+    if driver is None:
+        driver = webdriver.Chrome()
+    file = files_to_create[-1]
+    sys.stdout.write(f"Creating database {file.name}\n")
     time = datetime.datetime.now(tz=datetime.UTC).strftime("%Y-%m-%d-%H-%M-%S")
     license_name = f"my-license-{time}"
     database_name = f"my-database-{time}"
@@ -52,7 +52,13 @@ for i in range(start_number, num_databases):
         password=password,
     )
     vws_web_tools.wait_for_logged_in(driver=driver)
-    vws_web_tools.create_license(driver=driver, license_name=license_name)
+    try:
+        vws_web_tools.create_license(driver=driver, license_name=license_name)
+    except TimeoutException:
+        sys.stderr.write("Timed out waiting for license creation\n")
+        driver.quit()
+        driver = None
+        continue
 
     vws_web_tools.create_database(
         driver=driver,
@@ -87,6 +93,6 @@ for i in range(start_number, num_databases):
         """,
     )
 
-    file_name = f"vuforia_secrets_{i}.env"
-    (new_secrets_dir / file_name).write_text(file_contents)
-    sys.stdout.write(f"Created database {i}\n")
+    file.write_text(file_contents)
+    sys.stdout.write(f"Created database {file.name}\n")
+    files_to_create.pop()
