@@ -14,11 +14,13 @@ from selenium import webdriver
 email_address = os.environ["VWS_EMAIL_ADDRESS"]
 password = os.environ["VWS_PASSWORD"]
 new_secrets_dir = Path(__file__).parent / "vuforia_secrets"
+new_secrets_dir.mkdir(exist_ok=True)
 
 num_databases = 100
+start_number = len(list(new_secrets_dir.glob("*")))
 driver = webdriver.Safari()
 
-for i in range(num_databases):
+for i in range(start_number, num_databases):
     sys.stdout.write(f"Creating database {i}\n")
     time = datetime.datetime.now(tz=datetime.UTC).strftime("%Y-%m-%d-%H-%M-%S")
     license_name = f"my-license-{time}"
@@ -58,3 +60,6 @@ for i in range(num_databases):
         INACTIVE_VUFORIA_CLIENT_SECRET_KEY={os.environ["INACTIVE_VUFORIA_CLIENT_SECRET_KEY"]},
         """,
     )
+
+    file_name = f"vuforia_secrets_{i}.env"
+    (new_secrets_dir / file_name).write_text(file_contents)
