@@ -508,7 +508,10 @@ class TestSuccess:
 
         approximate_target_created = calendar.timegm(time.gmtime())
 
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
 
@@ -554,7 +557,10 @@ class TestSuccess:
             application_metadata=metadata_encoded,
         )
 
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
         matching_targets = cloud_reco_client.query(image=image_file)
         assert not matching_targets
 
@@ -635,7 +641,10 @@ class TestSuccess:
             application_metadata=not_base64_encoded_processable,
         )
 
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
 
@@ -1235,7 +1244,10 @@ class TestActiveFlag:
             application_metadata=None,
         )
 
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
         response = query(vuforia_database=vuforia_database, body=body)
@@ -1770,7 +1782,10 @@ class TestUpdate:
 
         calendar.timegm(time.gmtime())
 
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         new_image_content = different_high_quality_image.getvalue()
 
@@ -1794,7 +1809,10 @@ class TestUpdate:
 
         approximate_target_updated = calendar.timegm(time.gmtime())
 
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         body = {"image": ("image.jpeg", new_image_content, "image/jpeg")}
         response = query(vuforia_database=vuforia_database, body=body)
@@ -1851,7 +1869,10 @@ class TestDeleted:
             active_flag=True,
             application_metadata=None,
         )
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
         vws_client.delete_target(target_id=target_id)
 
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
@@ -1877,7 +1898,10 @@ class TestDeleted:
             active_flag=False,
             application_metadata=None,
         )
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
         vws_client.delete_target(target_id=target_id)
 
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
@@ -1911,7 +1935,10 @@ class TestTargetStatusFailed:
             active_flag=True,
             application_metadata=None,
         )
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
 

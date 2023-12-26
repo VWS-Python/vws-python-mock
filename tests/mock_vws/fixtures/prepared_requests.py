@@ -95,7 +95,10 @@ def delete_target(
     """
     Return details of the endpoint for deleting a target.
     """
-    vws_client.wait_for_target_processed(target_id=target_id)
+    vws_client.wait_for_target_processed(
+        target_id=target_id,
+        seconds_between_requests=5,
+    )
     date = rfc_1123_date()
     request_path = f"/targets/{target_id}"
     method = DELETE
@@ -191,7 +194,10 @@ def get_duplicates(
     Return details of the endpoint for getting potential duplicates of a
     target.
     """
-    vws_client.wait_for_target_processed(target_id=target_id)
+    vws_client.wait_for_target_processed(
+        target_id=target_id,
+        seconds_between_requests=5,
+    )
     date = rfc_1123_date()
     request_path = f"/duplicates/{target_id}"
     method = GET
@@ -242,7 +248,10 @@ def get_target(
     """
     Return details of the endpoint for getting details of a target.
     """
-    vws_client.wait_for_target_processed(target_id=target_id)
+    vws_client.wait_for_target_processed(
+        target_id=target_id,
+        seconds_between_requests=5,
+    )
     date = rfc_1123_date()
     request_path = f"/targets/{target_id}"
     method = GET
@@ -339,7 +348,10 @@ def target_summary(
     """
     Return details of the endpoint for getting a summary report of a target.
     """
-    vws_client.wait_for_target_processed(target_id=target_id)
+    vws_client.wait_for_target_processed(
+        target_id=target_id,
+        seconds_between_requests=5,
+    )
     date = rfc_1123_date()
     request_path = f"/summary/{target_id}"
     method = GET
@@ -390,7 +402,10 @@ def update_target(
     """
     Return details of the endpoint for updating a target.
     """
-    vws_client.wait_for_target_processed(target_id=target_id)
+    vws_client.wait_for_target_processed(
+        target_id=target_id,
+        seconds_between_requests=5,
+    )
     data: dict[str, Any] = {}
     request_path = f"/targets/{target_id}"
     content = bytes(json.dumps(data), encoding="utf-8")

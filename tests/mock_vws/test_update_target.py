@@ -172,7 +172,10 @@ class TestUpdate:
         """
         No data fields are required.
         """
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -192,7 +195,10 @@ class TestUpdate:
         # Targets go back to processing after being updated.
         assert target_details.status == TargetStatuses.PROCESSING
 
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         target_details = vws_client.get_target_record(target_id=target_id)
         assert target_details.status == TargetStatuses.SUCCESS
@@ -213,7 +219,10 @@ class TestUnexpectedData:
         """
         A `BAD_REQUEST` response is returned when unexpected data is given.
         """
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -249,7 +258,10 @@ class TestWidth:
         """
         The width must be a number greater than zero.
         """
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         target_details = vws_client.get_target_record(target_id=target_id)
         original_width = target_details.target_record.width
@@ -274,7 +286,10 @@ class TestWidth:
         """
         Positive numbers are valid widths.
         """
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         width = 0.01
         vws_client.update_target(target_id=target_id, width=width)
@@ -309,7 +324,10 @@ class TestActiveFlag:
             application_metadata=None,
         )
 
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
         vws_client.update_target(
             target_id=target_id,
             active_flag=desired_active_flag,
@@ -329,7 +347,10 @@ class TestActiveFlag:
         """
         Values which are not Boolean values are not valid active flags.
         """
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -368,7 +389,10 @@ class TestApplicationMetadata:
         A base64 encoded string is valid application metadata.
         """
         metadata_encoded = base64.b64encode(metadata).decode("ascii")
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
         vws_client.update_target(
             target_id=target_id,
             application_metadata=metadata_encoded,
@@ -385,7 +409,10 @@ class TestApplicationMetadata:
         """
         Non-string values cannot be given as valid application metadata.
         """
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -410,7 +437,10 @@ class TestApplicationMetadata:
         Some strings which are not valid base64 encoded strings are allowed as
         application metadata.
         """
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -435,7 +465,10 @@ class TestApplicationMetadata:
         Some strings which are not valid base64 encoded strings are not allowed
         as application metadata.
         """
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -461,7 +494,10 @@ class TestApplicationMetadata:
         """
         metadata = b"a" * (_MAX_METADATA_BYTES + 1)
         metadata_encoded = base64.b64encode(metadata).decode("ascii")
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -509,7 +545,10 @@ class TestTargetName:
         We test characters out of range in another test as that gives a
         different error.
         """
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
         vws_client.update_target(target_id=target_id, name=name)
         target_details = vws_client.get_target_record(target_id=target_id)
         assert target_details.target_record.name == name
@@ -557,7 +596,10 @@ class TestTargetName:
         """
         A target's name must be a string of length 0 < N < 65.
         """
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -633,7 +675,10 @@ class TestTargetName:
             application_metadata=None,
         )
 
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -674,7 +719,10 @@ class TestImage:
         image_data = image_file.read()
         image_data_encoded = base64.b64encode(image_data).decode("ascii")
 
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -699,7 +747,10 @@ class TestImage:
         or PNG file is given, or if the given image is not in the greyscale or
         RGB color space.
         """
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
         with pytest.raises(BadImage) as exc:
             vws_client.update_target(target_id=target_id, image=bad_image_file)
 
@@ -715,7 +766,10 @@ class TestImage:
         """
         No error is returned when the given image is corrupted.
         """
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
         vws_client.update_target(
             target_id=target_id,
             image=corrupted_image_file,
@@ -740,7 +794,10 @@ class TestImage:
             height=height,
         )
 
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         image_data = png_not_too_large.read()
         image_data_encoded = base64.b64encode(image_data).decode("ascii")
@@ -765,7 +822,10 @@ class TestImage:
             result_code=ResultCodes.SUCCESS,
         )
 
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         width = width + 1
         height = height + 1
@@ -812,7 +872,10 @@ class TestImage:
         This is because Vuforia treats them as valid base64, but then not a
         valid image.
         """
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -838,7 +901,10 @@ class TestImage:
         processable by Vuforia, and then when given as an image Vuforia returns
         a "Fail" response.
         """
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -865,7 +931,10 @@ class TestImage:
         not_image_data = b"not_image_data"
         image_data_encoded = base64.b64encode(not_image_data).decode("ascii")
 
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -890,7 +959,10 @@ class TestImage:
         """
         If the given image is not a string, a `Fail` result is returned.
         """
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         response = update_target(
             vuforia_database=vuforia_database,
@@ -930,7 +1002,10 @@ class TestImage:
             application_metadata=None,
         )
 
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         target_details = vws_client.get_target_record(target_id=target_id)
         assert target_details.status == TargetStatuses.SUCCESS
@@ -944,7 +1019,10 @@ class TestImage:
             target_id=target_id,
         )
 
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
         target_details = vws_client.get_target_record(target_id=target_id)
         assert target_details.status == TargetStatuses.SUCCESS
         # Tracking rating is between 0 and 5 when status is 'success'

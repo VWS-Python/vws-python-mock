@@ -35,7 +35,10 @@ class TestTargetList:
         """
         Deleted targets are not returned in the list.
         """
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
         vws_client.delete_target(target_id=target_id)
         assert not vws_client.list_targets()
 

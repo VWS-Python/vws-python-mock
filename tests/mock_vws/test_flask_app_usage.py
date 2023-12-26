@@ -277,7 +277,10 @@ class TestQueryImageMatchers:
             application_metadata=None,
             active_flag=True,
         )
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
         same_image_result = cloud_reco_client.query(
             image=high_quality_image,
         )
@@ -318,7 +321,10 @@ class TestQueryImageMatchers:
             application_metadata=None,
             active_flag=True,
         )
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
         same_image_result = cloud_reco_client.query(
             image=high_quality_image,
         )
@@ -378,7 +384,10 @@ class TestDuplicatesImageMatchers:
             application_metadata=None,
             active_flag=True,
         )
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
         vws_client.wait_for_target_processed(target_id=duplicate_target_id)
         vws_client.wait_for_target_processed(
             target_id=not_duplicate_target_id,
@@ -423,7 +432,10 @@ class TestDuplicatesImageMatchers:
             application_metadata=None,
             active_flag=True,
         )
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
         vws_client.wait_for_target_processed(target_id=duplicate_target_id)
         duplicates = vws_client.get_duplicate_targets(target_id=target_id)
         assert duplicates == [duplicate_target_id]

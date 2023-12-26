@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import contextlib
 import logging
+import time
 from enum import Enum
 from typing import TYPE_CHECKING
 
@@ -61,6 +62,8 @@ def _enable_use_real_vuforia(
     inactive_database: VuforiaDatabase,
     monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None, None, None]:
+    # Sleep between tests to avoid rate limiting (TooManyRequests 429 errors).
+    time.sleep(15)
     assert monkeypatch
     assert inactive_database
     _delete_all_targets(database_keys=working_database)

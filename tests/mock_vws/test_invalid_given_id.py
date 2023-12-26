@@ -39,7 +39,10 @@ class TestInvalidGivenID:
         if not endpoint.prepared_request.path_url.endswith(target_id):
             return
 
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
         vws_client.delete_target(target_id=target_id)
 
         session = requests.Session()

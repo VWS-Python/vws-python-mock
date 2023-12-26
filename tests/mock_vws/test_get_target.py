@@ -78,7 +78,10 @@ class TestGetRecord:
             application_metadata=None,
         )
 
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
         target_details = vws_client.get_target_record(target_id=target_id)
         assert target_details.status == TargetStatuses.FAILED
         # Tracking rating is 0 when status is 'failed'
@@ -105,7 +108,10 @@ class TestGetRecord:
             application_metadata=None,
         )
 
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         target_details = vws_client.get_target_record(target_id=target_id)
         assert target_details.status == TargetStatuses.SUCCESS
@@ -134,7 +140,10 @@ def _get_target_tracking_rating(
         application_metadata=None,
     )
 
-    vws_client.wait_for_target_processed(target_id=target_id)
+    vws_client.wait_for_target_processed(
+        target_id=target_id,
+        seconds_between_requests=5,
+    )
     target_details = vws_client.get_target_record(target_id=target_id)
     return target_details.target_record.tracking_rating
 

@@ -51,7 +51,10 @@ class TestDelete:
         """
         When a target has finished processing, it can be deleted.
         """
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
         vws_client.delete_target(target_id=target_id)
 
         with pytest.raises(UnknownTarget):

@@ -113,7 +113,10 @@ class TestTargetSummary:
 
         # The tracking rating may change during processing.
         # Therefore we wait until processing ends.
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         report = vws_client.get_target_summary_report(target_id=target_id)
         target_details = vws_client.get_target_record(target_id=target_id)
@@ -150,7 +153,10 @@ class TestRecognitionCounts:
             application_metadata=None,
         )
 
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         results = cloud_reco_client.query(image=high_quality_image)
         (result,) = results

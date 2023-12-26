@@ -246,7 +246,10 @@ def test_build_and_run(
         application_metadata=None,
     )
 
-    vws_client.wait_for_target_processed(target_id=target_id)
+    vws_client.wait_for_target_processed(
+        target_id=target_id,
+        seconds_between_requests=5,
+    )
 
     cloud_reco_client = CloudRecoService(
         client_access_key=database.client_access_key,

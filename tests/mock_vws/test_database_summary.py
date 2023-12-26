@@ -128,7 +128,10 @@ class TestDatabaseSummary:
         """
         The number of images in the active state is returned.
         """
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         _wait_for_image_numbers(
             vws_client=vws_client,
@@ -154,7 +157,10 @@ class TestDatabaseSummary:
             application_metadata=None,
         )
 
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         _wait_for_image_numbers(
             vws_client=vws_client,
@@ -181,7 +187,10 @@ class TestDatabaseSummary:
             application_metadata=None,
         )
 
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         _wait_for_image_numbers(
             vws_client=vws_client,
@@ -207,7 +216,10 @@ class TestDatabaseSummary:
             application_metadata=None,
         )
 
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         _wait_for_image_numbers(
             vws_client=vws_client,
@@ -233,7 +245,10 @@ class TestDatabaseSummary:
             application_metadata=None,
         )
 
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
         vws_client.delete_target(target_id=target_id)
 
         _wait_for_image_numbers(
@@ -335,7 +350,10 @@ class TestRecos:
             active_flag=True,
             application_metadata=None,
         )
-        vws_client.wait_for_target_processed(target_id=target_id)
+        vws_client.wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=5,
+        )
 
         report_before = vws_client.get_database_summary_report()
         cloud_reco_client.query(image=high_quality_image)
