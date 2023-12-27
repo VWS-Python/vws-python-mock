@@ -45,7 +45,15 @@ jobs:
           - tests/mock_vws/test_query.py::TestTargetStatusFailed
           - tests/mock_vws/test_query.py::TestDateFormats
           - tests/mock_vws/test_query.py::TestInactiveProject
-          - tests/mock_vws/test_add_target.py
+          - tests/mock_vws/test_add_target.py::TestContentTypes
+          - tests/mock_vws/test_add_target.py::TestMissingData
+          - tests/mock_vws/test_add_target.py::TestWidth
+          - tests/mock_vws/test_add_target.py::TestTargetName
+          - tests/mock_vws/test_add_target.py::TestImage
+          - tests/mock_vws/test_add_target.py::TestActiveFlag
+          - tests/mock_vws/test_add_target.py::TestUnexpectedData
+          - tests/mock_vws/test_add_target.py::TestApplicationMetadata
+          - tests/mock_vws/test_add_target.py::TestInactiveProject
           - tests/mock_vws/test_authorization_header.py::TestAuthorizationHeader
           - tests/mock_vws/test_authorization_header.py::TestMalformed::test_one_part_no_space
           - tests/mock_vws/test_authorization_header.py::TestMalformed::test_one_part_with_space
