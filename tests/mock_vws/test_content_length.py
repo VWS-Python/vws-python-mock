@@ -3,6 +3,7 @@ Tests for the ``Content-Length`` header.
 """
 from __future__ import annotations
 
+import textwrap
 from http import HTTPStatus
 from typing import TYPE_CHECKING
 from urllib.parse import urlparse
@@ -62,13 +63,23 @@ class TestIncorrect:
             return
 
         assert_valid_date_header(response=response)
-        assert response.text == "Bad Request"
+        expected_response_text = textwrap.dedent(
+            """\
+            <html>\r
+            <head><title>400 Bad Request</title></head>\r
+            <body>\r
+            <center><h1>400 Bad Request</h1></center>\r
+            </body>\r
+            </html>\r
+            """,
+        )
+        assert response.text == expected_response_text
         expected_headers = CaseInsensitiveDict(
             data={
                 "content-length": str(len(response.text)),
-                "content-type": "text/plain",
+                "content-type": "text/html",
                 "connection": "close",
-                "server": "envoy",
+                "server": "awselb/2.0",
                 "date": response.headers["date"],
             },
         )
