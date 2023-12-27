@@ -218,6 +218,7 @@ def pytest_addoption(parser: Parser) -> None:
         "--skip-docker_build_tests",
         action="store_true",
         default=False,
+        help="Skip tests for building Docker images",
     )
 
 
