@@ -44,6 +44,7 @@ class UnknownTarget(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
+            "connection": "keep-alive",
             "content-type": "application/json",
             "server": "envoy",
             "date": date,
@@ -78,6 +79,7 @@ class ProjectInactive(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
+            "connection": "keep-alive",
             "content-type": "application/json",
             "server": "envoy",
             "date": date,
@@ -112,6 +114,7 @@ class AuthenticationFailure(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
+            "connection": "keep-alive",
             "content-type": "application/json",
             "server": "envoy",
             "date": date,
@@ -145,6 +148,7 @@ class Fail(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
+            "connection": "keep-alive",
             "content-type": "application/json",
             "server": "envoy",
             "date": date,
@@ -179,6 +183,7 @@ class MetadataTooLarge(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
+            "connection": "keep-alive",
             "content-type": "application/json",
             "server": "envoy",
             "date": date,
@@ -213,6 +218,7 @@ class TargetNameExist(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
+            "connection": "keep-alive",
             "content-type": "application/json",
             "server": "envoy",
             "date": date,
@@ -249,6 +255,7 @@ class OopsErrorOccurredResponse(ValidatorException):
         self.response_text = text
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
+            "connection": "keep-alive",
             "content-type": "text/html; charset=UTF-8",
             "server": "envoy",
             "date": date,
@@ -283,6 +290,7 @@ class BadImage(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
+            "connection": "keep-alive",
             "content-type": "application/json",
             "server": "envoy",
             "date": date,
@@ -317,6 +325,7 @@ class ImageTooLarge(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
+            "connection": "keep-alive",
             "content-type": "application/json",
             "server": "envoy",
             "date": date,
@@ -351,6 +360,7 @@ class RequestTimeTooSkewed(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
+            "connection": "keep-alive",
             "content-type": "application/json",
             "server": "envoy",
             "date": date,
@@ -463,6 +473,7 @@ class TargetStatusNotSuccess(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
+            "connection": "keep-alive",
             "content-type": "application/json",
             "server": "envoy",
             "date": date,
@@ -496,6 +507,7 @@ class TargetStatusProcessing(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
+            "connection": "keep-alive",
             "content-type": "application/json",
             "server": "envoy",
             "date": date,

@@ -95,6 +95,7 @@ def _assert_oops_response(response: requests.Response) -> None:
 
     expected_headers = CaseInsensitiveDict(
         data={
+            "connection": "keep-alive",
             "content-type": "text/html; charset=UTF-8",
             "date": response.headers["date"],
             "server": "envoy",
