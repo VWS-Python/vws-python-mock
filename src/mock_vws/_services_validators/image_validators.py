@@ -163,7 +163,7 @@ def validate_image_encoding(request_body: bytes) -> None:
     try:
         decode_base64(encoded_data=image)
     except binascii.Error as exc:
-        _LOGGER.warning(msg=('Image data cannot be base64 decoded: "%s"', exc))
+        _LOGGER.warning('Image data cannot be base64 decoded: "%s"', exc)
         raise Fail(status_code=HTTPStatus.UNPROCESSABLE_ENTITY) from exc
 
 
@@ -189,5 +189,5 @@ def validate_image_data_type(request_body: bytes) -> None:
     if isinstance(image, str):
         return
 
-    _LOGGER.warning(msg=('Image data is not a string: "%s"', image))
+    _LOGGER.warning('Image data is not a string: "%s"', image)
     raise Fail(status_code=HTTPStatus.BAD_REQUEST)
