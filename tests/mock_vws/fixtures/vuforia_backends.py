@@ -18,8 +18,14 @@ from mock_vws._flask_server.vws import VWS_FLASK_APP
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
 from requests_mock_flask import add_flask_app_to_mock
+from tenacity import retry
+from tenacity.retry import retry_if_exception_type
+from tenacity.wait import wait_fixed
 from vws import VWS
-from vws.exceptions.vws_exceptions import TargetStatusNotSuccess
+from vws.exceptions.vws_exceptions import (
+    TargetStatusNotSuccess,
+    TooManyRequests,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -59,6 +65,11 @@ def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
         vws_client.delete_target(target_id=target)
 
 
+@retry(
+    retry=retry_if_exception_type(TooManyRequests),
+    wait=wait_fixed(10),
+    reraise=True,
+)
 def _enable_use_real_vuforia(
     working_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
