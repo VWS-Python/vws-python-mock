@@ -74,7 +74,6 @@ def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
         vws_client.delete_target(target_id=target)
 
 
-@_RETRY_ON_TOO_MANY_REQUESTS
 def _enable_use_real_vuforia(
     working_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
@@ -232,6 +231,9 @@ def pytest_collection_modifyitems(
         for item in items:
             if "requires_docker_build" in item.keywords:
                 item.add_marker(skip_docker_build_tests_marker)
+
+    for item in items:
+        item.obj = _RETRY_ON_TOO_MANY_REQUESTS(item.obj)
 
 
 @pytest.fixture(
