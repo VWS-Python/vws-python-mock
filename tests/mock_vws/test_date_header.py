@@ -24,6 +24,7 @@ from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
     assert_vws_response,
 )
+from tests.mock_vws.utils.too_many_requests import handle_too_many_requests
 
 if TYPE_CHECKING:
     from tests.mock_vws.utils import Endpoint
@@ -65,9 +66,11 @@ class TestMissing:
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
+        handle_too_many_requests(response=response)
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
+
         if netloc == "cloudreco.vuforia.com":
             expected_content_type = "text/plain;charset=iso-8859-1"
             assert response.text == "Date header required."
@@ -130,6 +133,7 @@ class TestFormat:
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
+        handle_too_many_requests(response=response)
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
@@ -211,6 +215,7 @@ class TestSkewedTime:
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
+        handle_too_many_requests(response=response)
 
         # Even with the query endpoint, we get a JSON response.
         if netloc == "cloudreco.vuforia.com":
@@ -284,6 +289,7 @@ class TestSkewedTime:
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
+        handle_too_many_requests(response=response)
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
