@@ -184,6 +184,7 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
+            "connection": "keep-alive",
             "content-type": "application/json",
             "server": "envoy",
             "date": date,
@@ -254,6 +255,7 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
+            "connection": "keep-alive",
             "content-length": str(len(body_json)),
             "content-type": "application/json",
             "date": date,
@@ -320,6 +322,7 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
+            "connection": "keep-alive",
             "content-length": str(len(body_json)),
             "content-type": "application/json",
             "date": date,
@@ -377,6 +380,7 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
+            "connection": "keep-alive",
             "content-length": str(len(body_json)),
             "content-type": "application/json",
             "date": date,
@@ -442,6 +446,7 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
+            "connection": "keep-alive",
             "content-length": str(len(body_json)),
             "content-type": "application/json",
             "date": date,
@@ -515,6 +520,7 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
+            "connection": "keep-alive",
             "content-length": str(len(body_json)),
             "content-type": "application/json",
             "date": date,
@@ -626,6 +632,7 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
+            "connection": "keep-alive",
             "content-type": "application/json",
             "server": "envoy",
             "date": date,
@@ -690,6 +697,7 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
+            "connection": "keep-alive",
             "content-length": str(len(body_json)),
             "content-type": "application/json",
             "date": date,

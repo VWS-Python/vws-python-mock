@@ -189,6 +189,7 @@ def add_target() -> Response:
 
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
+        "connection": "keep-alive",
         "content-type": "application/json",
         "server": "envoy",
         "date": date,
@@ -244,6 +245,7 @@ def get_target(target_id: str) -> Response:
 
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
+        "connection": "keep-alive",
         "content-type": "application/json",
         "server": "envoy",
         "date": date,
@@ -303,6 +305,7 @@ def delete_target(target_id: str) -> Response:
     }
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
+        "connection": "keep-alive",
         "content-type": "application/json",
         "server": "envoy",
         "date": date,
@@ -356,6 +359,7 @@ def database_summary() -> Response:
     }
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
+        "connection": "keep-alive",
         "content-type": "application/json",
         "server": "envoy",
         "date": date,
@@ -407,6 +411,7 @@ def target_summary(target_id: str) -> Response:
     }
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
+        "connection": "keep-alive",
         "content-type": "application/json",
         "server": "envoy",
         "date": date,
@@ -467,6 +472,7 @@ def get_duplicates(target_id: str) -> Response:
 
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
+        "connection": "keep-alive",
         "content-type": "application/json",
         "server": "envoy",
         "date": date,
@@ -508,6 +514,7 @@ def target_list() -> Response:
     }
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
+        "connection": "keep-alive",
         "content-type": "application/json",
         "server": "envoy",
         "date": date,
@@ -596,6 +603,7 @@ def update_target(target_id: str) -> Response:
 
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
+        "connection": "keep-alive",
         "content-type": "application/json",
         "server": "envoy",
         "date": date,
