@@ -12,6 +12,7 @@ import requests
 from mock_vws._constants import ResultCodes
 
 from tests.mock_vws.utils.assertions import assert_vws_failure
+from tests.mock_vws.utils.too_many_requests import handle_too_many_requests
 
 if TYPE_CHECKING:
     from vws import VWS
@@ -44,6 +45,7 @@ class TestInvalidGivenID:
 
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
+        handle_too_many_requests(response=response)
 
         assert_vws_failure(
             response=response,

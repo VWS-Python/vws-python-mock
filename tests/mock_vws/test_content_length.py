@@ -18,6 +18,7 @@ from tests.mock_vws.utils.assertions import (
     assert_vwq_failure,
     assert_vws_failure,
 )
+from tests.mock_vws.utils.too_many_requests import handle_too_many_requests
 
 if TYPE_CHECKING:
     from tests.mock_vws.utils import Endpoint
@@ -48,6 +49,7 @@ class TestIncorrect:
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
+        handle_too_many_requests(response=response)
         assert response.status_code == HTTPStatus.BAD_REQUEST
 
         url = str(endpoint.prepared_request.url)
@@ -103,6 +105,7 @@ class TestIncorrect:
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
+        handle_too_many_requests(response=response)
         if netloc == "cloudreco.vuforia.com":
             assert response.status_code == HTTPStatus.GATEWAY_TIMEOUT
             assert not response.text
@@ -145,6 +148,7 @@ class TestIncorrect:
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
+        handle_too_many_requests(response=response)
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
