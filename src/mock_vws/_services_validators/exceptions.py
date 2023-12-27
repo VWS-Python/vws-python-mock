@@ -3,6 +3,7 @@ Exceptions to raise from validators.
 """
 
 import email.utils
+import textwrap
 import uuid
 from http import HTTPStatus
 from pathlib import Path
@@ -414,14 +415,23 @@ class ContentLengthHeaderNotInt(ValidatorException):
         """
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
-        self.response_text = "Bad Request"
+        self.response_text = textwrap.dedent(
+            """\
+            <html>\r
+            <head><title>400 Bad Request</title></head>\r
+            <body>\r
+            <center><h1>400 Bad Request</h1></center>\r
+            </body>\r
+            </html>\r
+            """,
+        )
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
             "connection": "close",
             "content-length": str(len(self.response_text)),
             "date": date,
-            "server": "envoy",
-            "content-type": "text/plain",
+            "server": "awselb/2.0",
+            "content-type": "text/html",
         }
 
 
