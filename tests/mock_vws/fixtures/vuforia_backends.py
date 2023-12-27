@@ -36,7 +36,14 @@ if TYPE_CHECKING:
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
+_RETRY_ON_TOO_MANY_REQUESTS = retry(
+    retry=retry_if_exception_type(exception_types=(TooManyRequests,)),
+    wait=wait_fixed(wait=10),
+    reraise=True,
+)
 
+
+@_RETRY_ON_TOO_MANY_REQUESTS
 def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
     """
     Delete all targets.
@@ -55,6 +62,8 @@ def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
     for target in targets:
         vws_client.wait_for_target_processed(
             target_id=target,
+            # Setting this to 2 is an attempt to avoid 429 Too Many Requests
+            # errors.
             seconds_between_requests=2,
         )
         # Even deleted targets can be matched by a query for a few seconds so
@@ -65,11 +74,7 @@ def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
         vws_client.delete_target(target_id=target)
 
 
-@retry(
-    retry=retry_if_exception_type(TooManyRequests),
-    wait=wait_fixed(10),
-    reraise=True,
-)
+@_RETRY_ON_TOO_MANY_REQUESTS
 def _enable_use_real_vuforia(
     working_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,

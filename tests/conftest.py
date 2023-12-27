@@ -80,8 +80,8 @@ def target_id(
 
 @pytest.fixture(
     params=[
-        # "add_target",
-        # "database_summary",
+        "add_target",
+        "database_summary",
         "delete_target",
         "get_duplicates",
         "get_target",
