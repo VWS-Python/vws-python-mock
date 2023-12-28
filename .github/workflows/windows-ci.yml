@@ -35,15 +35,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       # See https://github.com/actions/cache/blob/main/examples.md#python---pip
-      - name: Get pip cache dir
-        id: pip-cache
-        run: |
-          python -m pip cache dir
-          echo "dir=$(python -m pip cache dir)" >> $GITHUB_OUTPUT
-
       - uses: actions/cache@v3
         with:
-          path: ${{ steps.pip-cache.outputs.dir }}
+          path: ~\AppData\Local\pip\Cache
           key: ${{ runner.os }}-pip-${{ hashFiles('pyproject.toml') }}
           restore-keys: |
             ${{ runner.os }}-pip-
