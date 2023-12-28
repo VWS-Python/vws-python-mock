@@ -11,11 +11,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
-# cv2 errors cannot be inferred without type stubs.
-# See https://github.com/opencv/opencv/issues/14590.
-_CV2_ERROR = (
-    cv2.error  # pyright: ignore[reportGeneralTypeIssues] # pylint: disable=no-member
-)
+_CV2_ERROR = cv2.error  # pylint: disable=no-member
 
 
 @functools.cache
