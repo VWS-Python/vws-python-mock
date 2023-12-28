@@ -34,6 +34,7 @@ class ResultCodes(Enum):
     TARGET_STATUS_NOT_SUCCESS = "TargetStatusNotSuccess"
     PROJECT_INACTIVE = "ProjectInactive"
     INACTIVE_PROJECT = "InactiveProject"
+    TOO_MANY_REQUESTS = "TooManyRequests"
 
 
 class TargetStatuses(Enum):
@@ -41,7 +42,7 @@ class TargetStatuses(Enum):
     Constants representing VWS target statuses.
 
     See the 'status' field in
-    https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Retrieve-a-Target-Record
+    https://library.vuforia.com/web-api/cloud-targets-web-services-api#target-record
     """
 
     PROCESSING = "processing"

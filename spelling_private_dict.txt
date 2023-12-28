@@ -80,6 +80,7 @@ recognitions
 refactoring
 regex
 reimplementation
+reportGeneralTypeIssues
 repr
 reqheader
 reqjson

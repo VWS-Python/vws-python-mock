@@ -3,6 +3,7 @@ Exceptions to raise from validators.
 """
 
 import email.utils
+import textwrap
 import uuid
 from http import HTTPStatus
 from pathlib import Path
@@ -44,6 +45,7 @@ class UnknownTarget(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
+            "connection": "keep-alive",
             "content-type": "application/json",
             "server": "envoy",
             "date": date,
@@ -78,6 +80,7 @@ class ProjectInactive(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
+            "connection": "keep-alive",
             "content-type": "application/json",
             "server": "envoy",
             "date": date,
@@ -112,6 +115,7 @@ class AuthenticationFailure(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
+            "connection": "keep-alive",
             "content-type": "application/json",
             "server": "envoy",
             "date": date,
@@ -145,6 +149,7 @@ class Fail(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
+            "connection": "keep-alive",
             "content-type": "application/json",
             "server": "envoy",
             "date": date,
@@ -179,6 +184,7 @@ class MetadataTooLarge(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
+            "connection": "keep-alive",
             "content-type": "application/json",
             "server": "envoy",
             "date": date,
@@ -213,6 +219,7 @@ class TargetNameExist(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
+            "connection": "keep-alive",
             "content-type": "application/json",
             "server": "envoy",
             "date": date,
@@ -249,6 +256,7 @@ class OopsErrorOccurredResponse(ValidatorException):
         self.response_text = text
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
+            "connection": "keep-alive",
             "content-type": "text/html; charset=UTF-8",
             "server": "envoy",
             "date": date,
@@ -283,6 +291,7 @@ class BadImage(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
+            "connection": "keep-alive",
             "content-type": "application/json",
             "server": "envoy",
             "date": date,
@@ -317,6 +326,7 @@ class ImageTooLarge(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
+            "connection": "keep-alive",
             "content-type": "application/json",
             "server": "envoy",
             "date": date,
@@ -351,6 +361,7 @@ class RequestTimeTooSkewed(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
+            "connection": "keep-alive",
             "content-type": "application/json",
             "server": "envoy",
             "date": date,
@@ -404,14 +415,23 @@ class ContentLengthHeaderNotInt(ValidatorException):
         """
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
-        self.response_text = "Bad Request"
+        self.response_text = textwrap.dedent(
+            """\
+            <html>\r
+            <head><title>400 Bad Request</title></head>\r
+            <body>\r
+            <center><h1>400 Bad Request</h1></center>\r
+            </body>\r
+            </html>\r
+            """,
+        )
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
             "connection": "close",
             "content-length": str(len(self.response_text)),
             "date": date,
-            "server": "envoy",
-            "content-type": "text/plain",
+            "server": "awselb/2.0",
+            "content-type": "text/html",
         }
 
 
@@ -463,6 +483,7 @@ class TargetStatusNotSuccess(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
+            "connection": "keep-alive",
             "content-type": "application/json",
             "server": "envoy",
             "date": date,
@@ -496,6 +517,7 @@ class TargetStatusProcessing(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
+            "connection": "keep-alive",
             "content-type": "application/json",
             "server": "envoy",
             "date": date,

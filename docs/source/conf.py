@@ -47,14 +47,14 @@ language = "en"
 # The name of the syntax highlighting style to use.
 pygments_style = "sphinx"
 
-python_minumum_supported_version = "3.11"
+python_minimum_supported_version = "3.12"
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = "VWSPYTHONMOCKdoc"
 autoclass_content = "init"
 intersphinx_mapping = {
     "python": (
-        f"https://docs.python.org/{python_minumum_supported_version}",
+        f"https://docs.python.org/{python_minimum_supported_version}",
         None,
     ),
     "docker": ("https://docker-py.readthedocs.io/en/stable", None),
@@ -74,22 +74,15 @@ html_theme_options = {
     "sidebar_hide_name": False,
 }
 
-# Don't check anchors because many websites use #! for AJAX magic
-# http://sphinx-doc.org/config.html#confval-linkcheck_anchors
-linkcheck_anchors = False
 # Retry link checking to avoid transient network errors.
 linkcheck_retries = 5
-linkcheck_ignore = [
-    # Requires login.
-    "https://developer.vuforia.com/targetmanager",
-]
 
 spelling_word_list_filename = "../../spelling_private_dict.txt"
 
 autodoc_member_order = "bysource"
 
 rst_prolog = f"""
-.. |python-minumum-version| replace:: {python_minumum_supported_version}
+.. |python-minimum-version| replace:: {python_minimum_supported_version}
 .. |project| replace:: {project}
 .. |release| replace:: {release}
 .. |github-owner| replace:: VWS-Python

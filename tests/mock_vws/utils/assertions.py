@@ -134,6 +134,7 @@ def assert_vws_response(
     response_result_code = response.json()["result_code"]
     assert response_result_code == result_code.value
     response_header_keys = {
+        "connection",
         "content-length",
         "content-type",
         "date",
@@ -151,6 +152,7 @@ def assert_vws_response(
     assert "-" in response.headers["x-aws-region"]
     assert response.headers["strict-transport-security"] == "max-age=31536000"
     assert int(response.headers["x-envoy-upstream-service-time"]) > 1
+    assert response.headers["Connection"] == "keep-alive"
     assert_json_separators(response=response)
     assert_valid_transaction_id(response=response)
     assert_valid_date_header(response=response)

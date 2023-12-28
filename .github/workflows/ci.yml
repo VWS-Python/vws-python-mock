@@ -4,9 +4,9 @@ name: CI
 
 on:
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
-    branches: [master]
+    branches: [main]
   schedule:
     # * is a special character in YAML so you have to quote this string
     # Run at 1:00 every day
@@ -26,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11"]
+        python-version: ["3.12"]
         ci_pattern:
           - tests/mock_vws/test_query.py::TestContentType
           - tests/mock_vws/test_query.py::TestSuccess
@@ -45,7 +45,15 @@ jobs:
           - tests/mock_vws/test_query.py::TestTargetStatusFailed
           - tests/mock_vws/test_query.py::TestDateFormats
           - tests/mock_vws/test_query.py::TestInactiveProject
-          - tests/mock_vws/test_add_target.py
+          - tests/mock_vws/test_add_target.py::TestContentTypes
+          - tests/mock_vws/test_add_target.py::TestMissingData
+          - tests/mock_vws/test_add_target.py::TestWidth
+          - tests/mock_vws/test_add_target.py::TestTargetName
+          - tests/mock_vws/test_add_target.py::TestImage
+          - tests/mock_vws/test_add_target.py::TestActiveFlag
+          - tests/mock_vws/test_add_target.py::TestUnexpectedData
+          - tests/mock_vws/test_add_target.py::TestApplicationMetadata
+          - tests/mock_vws/test_add_target.py::TestInactiveProject
           - tests/mock_vws/test_authorization_header.py::TestAuthorizationHeader
           - tests/mock_vws/test_authorization_header.py::TestMalformed::test_one_part_no_space
           - tests/mock_vws/test_authorization_header.py::TestMalformed::test_one_part_with_space
@@ -90,19 +98,25 @@ jobs:
           - docs/source/basic-example.rst
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           # See https://github.com/codecov/codecov-action/issues/190.
           fetch-depth: 2
 
       - name: "Set up Python"
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
+      # See https://github.com/actions/cache/blob/main/examples.md#python---pip
+      - name: Get pip cache dir
+        id: pip-cache
+        run: |
+          echo "dir=$(python -m pip cache dir)" >> $GITHUB_OUTPUT
+
       - uses: actions/cache@v3
         with:
-          path: ~/.cache/pip
+          path: ${{ steps.pip-cache.outputs.dir }}
           key: ${{ runner.os }}-pip-${{ hashFiles('pyproject.toml') }}
           restore-keys: |
             ${{ runner.os }}-pip-
@@ -147,7 +161,7 @@ jobs:
           # https://github.com/VWS-Python/vws-python-mock/issues/708
           cat ./coverage.xml
 
-      # We run this job on every PR, on every merge to master, and nightly.
+      # We run this job on every PR, on every merge to main, and nightly.
       # This causes us to hit an issue with Codecov.
       #
       # We see "Too many uploads to this commit.".

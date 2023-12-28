@@ -32,7 +32,15 @@ def _tests_from_pattern(
     # Clear the captured output.
     capsys.readouterr()
     tests: set[str] = set()
-    pytest.main(args=["-q", "--collect-only", ci_pattern])
+    pytest.main(
+        args=[
+            "-q",
+            "--collect-only",
+            # If there are any warnings, these obscure the output.
+            "--disable-warnings",
+            ci_pattern,
+        ],
+    )
     data = capsys.readouterr().out
     for line in data.splitlines():
         # We filter empty lines and lines which look like

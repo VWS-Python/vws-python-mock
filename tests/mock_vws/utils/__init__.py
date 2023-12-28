@@ -66,7 +66,7 @@ class Endpoint:
 
 def make_image_file(
     file_format: str,
-    color_space: Literal["L"] | Literal["RGB"] | Literal["CMYK"],
+    color_space: Literal["L", "RGB", "CMYK"],
     width: int,
     height: int,
 ) -> io.BytesIO:
@@ -90,13 +90,13 @@ def make_image_file(
     for row_index in range(height):
         for column_index in range(width):
             if color_space == "L":
-                grey = random.choice(seq=range(0, 255))
+                grey = random.choice(seq=range(255))
                 image.putpixel(xy=(column_index, row_index), value=grey)
             else:
                 assert color_space in {"CMYK", "RGB"}
-                red = random.choice(seq=range(0, 255))
-                green = random.choice(seq=range(0, 255))
-                blue = random.choice(seq=range(0, 255))
+                red = random.choice(seq=range(255))
+                green = random.choice(seq=range(255))
+                blue = random.choice(seq=range(255))
                 image.putpixel(
                     xy=(column_index, row_index),
                     value=(red, green, blue),

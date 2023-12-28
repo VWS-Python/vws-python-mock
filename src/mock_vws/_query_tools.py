@@ -24,20 +24,12 @@ if TYPE_CHECKING:
     from mock_vws.image_matchers import ImageMatcher
 
 
-class ActiveMatchingTargetsDeleteProcessing(Exception):
-    """
-    There is at least one active target which matches and was recently deleted.
-    """
-
-
 def get_query_match_response_text(
     request_headers: dict[str, str],
     request_body: bytes,
     request_method: str,
     request_path: str,
     databases: set[VuforiaDatabase],
-    query_processes_deletion_seconds: int | float,
-    query_recognizes_deletion_seconds: int | float,
     query_match_checker: ImageMatcher,
 ) -> str:
     """
@@ -47,21 +39,11 @@ def get_query_match_response_text(
         request_body: The body of the request.
         request_method: The HTTP method of the request.
         databases: All Vuforia databases.
-        query_recognizes_deletion_seconds: The number of seconds after a target
-            has been deleted that the query endpoint will still recognize the
-            target for.
-        query_processes_deletion_seconds: The number of seconds after a target
-            deletion is recognized that the query endpoint will return a 500
-            response on a match.
         query_match_checker: A callable which takes two image values and
             returns whether they match.
 
     Returns:
         The response text for a query endpoint request.
-
-    Raises:
-        ActiveMatchingTargetsDeleteProcessing: There is at least one active
-            target which matches and was recently deleted.
     """
     body_file = io.BytesIO(request_body)
 
@@ -84,17 +66,11 @@ def get_query_match_response_text(
     else:
         include_target_data = parsed_include_target_data.value.lower()
 
-    image_value = parsed.get("image").raw
+    image_part = parsed.get("image")
+    assert image_part is not None
+    image_value = image_part.raw
     gmt = ZoneInfo("GMT")
-    now = datetime.datetime.now(tz=gmt)
-
-    processing_timedelta = datetime.timedelta(
-        seconds=query_processes_deletion_seconds,
-    )
-
-    recognition_timedelta = datetime.timedelta(
-        seconds=query_recognizes_deletion_seconds,
-    )
+    datetime.datetime.now(tz=gmt)
 
     database = get_database_matching_client_keys(
         request_headers=request_headers,
@@ -123,28 +99,7 @@ def get_query_match_response_text(
         and target.status == TargetStatuses.SUCCESS.value
     ]
 
-    deletion_not_recognized_matches = [
-        target
-        for target in matching_targets
-        if target.active_flag
-        and target.delete_date
-        and (now - target.delete_date) < recognition_timedelta
-    ]
-
-    active_matching_targets_delete_processing = [
-        target
-        for target in matching_targets
-        if target.active_flag
-        and target.delete_date
-        and (now - target.delete_date)
-        < (recognition_timedelta + processing_timedelta)
-        and target not in deletion_not_recognized_matches
-    ]
-
-    if active_matching_targets_delete_processing:
-        raise ActiveMatchingTargetsDeleteProcessing
-
-    all_quality_matches = not_deleted_matches + deletion_not_recognized_matches
+    all_quality_matches = not_deleted_matches
     minimum_rating = 0
     matches = [
         match

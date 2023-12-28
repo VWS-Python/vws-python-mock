@@ -137,8 +137,7 @@ class Target:
         pre_rating_time = datetime.timedelta(
             # That this is half of the total processing time is unrealistic.
             # In VWS it is not a constant percentage.
-            seconds=self.processing_time_seconds
-            / 2,
+            seconds=self.processing_time_seconds / 2,
         )
 
         timezone = self.upload_date.tzinfo

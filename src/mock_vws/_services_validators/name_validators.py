@@ -226,5 +226,5 @@ def validate_name_does_not_exist_existing_target(
     if matching_name_target.target_id == target_id:
         return
 
-    _LOGGER.warning(msg="Name already exists for another target.")
+    _LOGGER.warning("Name already exists for another target.")
     raise TargetNameExist

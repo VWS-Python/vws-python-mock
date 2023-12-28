@@ -7,19 +7,21 @@ SPHINXOPTS := -W
 
 .PHONY: update-secrets
 update-secrets:
+    # After updating secrets, commit the new secrets.tar.gpg file.
 	tar cvf secrets.tar ci_secrets/
 	gpg --yes --batch --passphrase=${PASSPHRASE_FOR_VUFORIA_SECRETS} --symmetric --cipher-algo AES256 secrets.tar
 
 .PHONY: lint
 lint: \
-    black \
     check-manifest \
     doc8 \
     linkcheck \
     mypy \
     pip-extra-reqs \
     pip-missing-reqs \
+    pyproject-fmt \
     pyright \
+    pyright-verifytypes \
     pyroma \
     ruff \
     spelling \
@@ -29,7 +31,7 @@ lint: \
 
 .PHONY: fix-lint
 fix-lint: \
-    fix-black \
+    fix-pyproject-fmt \
     fix-ruff
 
 .PHONY: docs

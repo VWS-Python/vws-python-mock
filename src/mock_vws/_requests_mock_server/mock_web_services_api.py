@@ -2,7 +2,7 @@
 A fake implementation of the Vuforia Web Services API.
 
 See
-https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API
+https://library.vuforia.com/web-api/cloud-targets-web-services-api
 """
 
 from __future__ import annotations
@@ -94,7 +94,7 @@ class MockVuforiaWebServicesAPI:
     def __init__(
         self,
         target_manager: TargetManager,
-        processing_time_seconds: int | float,
+        processing_time_seconds: float,
         duplicate_match_checker: ImageMatcher,
         target_tracking_rater: TargetTrackingRater,
     ) -> None:
@@ -130,7 +130,7 @@ class MockVuforiaWebServicesAPI:
         Add a target.
 
         Fake implementation of
-        https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Add-a-Target
+        https://library.vuforia.com/web-api/cloud-targets-web-services-api#add
         """
         try:
             run_services_validators(
@@ -184,6 +184,7 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
+            "connection": "keep-alive",
             "content-type": "application/json",
             "server": "envoy",
             "date": date,
@@ -208,7 +209,7 @@ class MockVuforiaWebServicesAPI:
         Delete a target.
 
         Fake implementation of
-        https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Delete-a-Target
+        https://library.vuforia.com/web-api/cloud-targets-web-services-api#delete
         """
         try:
             run_services_validators(
@@ -254,6 +255,7 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
+            "connection": "keep-alive",
             "content-length": str(len(body_json)),
             "content-type": "application/json",
             "date": date,
@@ -275,7 +277,7 @@ class MockVuforiaWebServicesAPI:
         Get a database summary report.
 
         Fake implementation of
-        https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Get-a-Database-Summary-Report
+        https://library.vuforia.com/web-api/cloud-targets-web-services-api#summary-report
         """
         try:
             run_services_validators(
@@ -320,6 +322,7 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
+            "connection": "keep-alive",
             "content-length": str(len(body_json)),
             "content-type": "application/json",
             "date": date,
@@ -341,7 +344,7 @@ class MockVuforiaWebServicesAPI:
         Get a list of all targets.
 
         Fake implementation of
-        https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Get-a-Target-List-for-a-Cloud-Database
+        https://library.vuforia.com/web-api/cloud-targets-web-services-api#details-list
         """
         try:
             run_services_validators(
@@ -377,6 +380,7 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
+            "connection": "keep-alive",
             "content-length": str(len(body_json)),
             "content-type": "application/json",
             "date": date,
@@ -398,7 +402,7 @@ class MockVuforiaWebServicesAPI:
         Get details of a target.
 
         Fake implementation of
-        https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Retrieve-a-Target-Record
+        https://library.vuforia.com/web-api/cloud-targets-web-services-api#target-record
         """
         try:
             run_services_validators(
@@ -442,6 +446,7 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
+            "connection": "keep-alive",
             "content-length": str(len(body_json)),
             "content-type": "application/json",
             "date": date,
@@ -466,7 +471,7 @@ class MockVuforiaWebServicesAPI:
         Get targets which may be considered duplicates of a given target.
 
         Fake implementation of
-        https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Check-for-Duplicate-Targets
+        https://library.vuforia.com/web-api/cloud-targets-web-services-api#check
         """
         try:
             run_services_validators(
@@ -515,6 +520,7 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
+            "connection": "keep-alive",
             "content-length": str(len(body_json)),
             "content-type": "application/json",
             "date": date,
@@ -540,7 +546,7 @@ class MockVuforiaWebServicesAPI:
         Update a target.
 
         Fake implementation of
-        https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Update-a-Target
+        https://library.vuforia.com/web-api/cloud-targets-web-services-api#update
         """
         try:
             run_services_validators(
@@ -626,6 +632,7 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
+            "connection": "keep-alive",
             "content-type": "application/json",
             "server": "envoy",
             "date": date,
@@ -647,7 +654,7 @@ class MockVuforiaWebServicesAPI:
         Get a summary report for a target.
 
         Fake implementation of
-        https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Retrieve-a-Target-Summary-Report
+        https://library.vuforia.com/web-api/cloud-targets-web-services-api#retrieve-report
         """
         try:
             run_services_validators(
@@ -690,6 +697,7 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
+            "connection": "keep-alive",
             "content-length": str(len(body_json)),
             "content-type": "application/json",
             "date": date,

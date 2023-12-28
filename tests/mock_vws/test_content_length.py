@@ -3,6 +3,7 @@ Tests for the ``Content-Length`` header.
 """
 from __future__ import annotations
 
+import textwrap
 from http import HTTPStatus
 from typing import TYPE_CHECKING
 from urllib.parse import urlparse
@@ -17,6 +18,7 @@ from tests.mock_vws.utils.assertions import (
     assert_vwq_failure,
     assert_vws_failure,
 )
+from tests.mock_vws.utils.too_many_requests import handle_too_many_requests
 
 if TYPE_CHECKING:
     from tests.mock_vws.utils import Endpoint
@@ -43,10 +45,11 @@ class TestIncorrect:
             return
 
         content_length = "0.4"
-        headers = {**endpoint_headers, "Content-Length": content_length}
+        headers = endpoint_headers | {"Content-Length": content_length}
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
+        handle_too_many_requests(response=response)
         assert response.status_code == HTTPStatus.BAD_REQUEST
 
         url = str(endpoint.prepared_request.url)
@@ -62,13 +65,23 @@ class TestIncorrect:
             return
 
         assert_valid_date_header(response=response)
-        assert response.text == "Bad Request"
+        expected_response_text = textwrap.dedent(
+            """\
+            <html>\r
+            <head><title>400 Bad Request</title></head>\r
+            <body>\r
+            <center><h1>400 Bad Request</h1></center>\r
+            </body>\r
+            </html>\r
+            """,
+        )
+        assert response.text == expected_response_text
         expected_headers = CaseInsensitiveDict(
             data={
                 "content-length": str(len(response.text)),
-                "content-type": "text/plain",
+                "content-type": "text/html",
                 "connection": "close",
-                "server": "envoy",
+                "server": "awselb/2.0",
                 "date": response.headers["date"],
             },
         )
@@ -87,11 +100,12 @@ class TestIncorrect:
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
         content_length = str(int(endpoint_headers["Content-Length"]) + 1)
-        headers = {**endpoint_headers, "Content-Length": content_length}
+        headers = endpoint_headers | {"Content-Length": content_length}
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
+        handle_too_many_requests(response=response)
         if netloc == "cloudreco.vuforia.com":
             assert response.status_code == HTTPStatus.GATEWAY_TIMEOUT
             assert not response.text
@@ -129,11 +143,12 @@ class TestIncorrect:
             return
 
         content_length = str(int(endpoint_headers["Content-Length"]) - 1)
-        headers = {**endpoint_headers, "Content-Length": content_length}
+        headers = endpoint_headers | {"Content-Length": content_length}
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
+        handle_too_many_requests(response=response)
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc

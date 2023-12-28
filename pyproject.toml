@@ -109,13 +109,16 @@
     # --spelling-private-dict-file option instead of raising a message.
     spelling-store-unknown-words = 'no'
 
-[tool.black]
-
-line-length = 79
-
 [tool.coverage.run]
 
 branch = true
+
+[tool.coverage.report]
+
+exclude_lines =  [
+  "pragma: no cover",
+  "if TYPE_CHECKING:",
+]
 
 [tool.pytest.ini_options]
 
@@ -128,6 +131,7 @@ markers = ["requires_docker_build"]
 
 ignore = [
   "*.enc",
+  "admin/**",
   "readthedocs.yaml",
   "CHANGELOG.rst",
   "CODE_OF_CONDUCT.rst",
@@ -168,10 +172,9 @@ module = [
     "cv2",
     "docker",
     "docker.errors",
+    "docker.models.containers",
     "docker.models.networks",
     "multipart",
-    "sybil",
-    "sybil.parsers.rest",
 ]
 
 ignore_missing_imports = true
@@ -199,14 +202,13 @@ ignore_path = [
 fallback_version = "0.0.0"
 
 [build-system]
-requires = [
-     "pip",
-     "setuptools",
-     "setuptools-scm-git-archive==1.4",
-     "setuptools_scm[toml]==7.1.0",
-     "wheel",
- ]
 build-backend = "setuptools.build_meta"
+requires = [
+    "pip",
+    "setuptools",
+    "setuptools_scm[toml]==7.1",
+    "wheel",
+]
 
 [tool.ruff]
 select = ["ALL"]
@@ -232,9 +234,13 @@ ignore = [
     # We have an existing interface to support and so we do not want to change
     # exception names.
     "N818",
+    # Ignore this as there is a bug in ruff:
+    # See https://github.com/astral-sh/ruff/issues/6454.
+    "PLE1205",
     # Ignore "too-many-*" errors as they seem to get in the way more than
     # helping.
     "PLR0913",
+    "PLR0915",
     # Allow 'assert' in tests as it is the standard for pytest.
     # Also, allow 'assert' in other code as it is the standard for Python type hint
     # narrowing - see
@@ -263,85 +269,93 @@ target-version = "py311"
 universal = true
 
 [project]
-authors = [ { name = "Adam Dangoor", email = "adamdangoor@gmail.com"} ]
-classifiers = [
-    "Operating System :: POSIX",
-    "Environment :: Web Environment",
-    "Programming Language :: Python :: 3.11",
-    "License :: OSI Approved :: MIT License",
-    "Development Status :: 5 - Production/Stable",
-    "Framework :: Pytest",
-]
-description = "A mock for the Vuforia Web Services (VWS) API."
-dynamic = ["version"]
-keywords = ["vuforia", "vws", "mock", "fake", "client"]
-license = { file = "LICENSE" }
 name = "vws-python-mock"
+description = "A mock for the Vuforia Web Services (VWS) API."
 readme = { file = "README.rst", content-type = "text/x-rst"}
-requires-python = ">=3.10"
+keywords = [
+    "client",
+    "fake",
+    "mock",
+    "vuforia",
+    "vws",
+]
+license = { file = "LICENSE" }
+authors = [ { name = "Adam Dangoor", email = "adamdangoor@gmail.com"} ]
+requires-python = ">=3.12"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Web Environment",
+    "Framework :: Pytest",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.12",
+]
+dynamic = [
+    "version",
+]
 dependencies = [
-    "ImageHash",
-    "Pillow",
     "brisque",
     "flask",
+    "ImageHash",
     "multipart",
     "numpy",
     "opencv-python",
-    "pydantic",
+    "Pillow",
+    "pydantic-settings",
     "requests",
     "requests-mock",
-    "tzdata; sys_platform == 'win32'",
+    'tzdata; sys_platform == "win32"',
     "vws-auth-tools",
-    "werkzeug",
 ]
-
 [project.optional-dependencies]
 dev = [
-    "PyYAML==6.0",
-    "Sphinx-Substitution-Extensions==2022.2.16",
-    "Sphinx==6.2.1",
-    "VWS-Test-Fixtures==2023.3.5",
-    "black==23.3.0",
     "check-manifest==0.49",
-    "dirty-equals==0.6.0",
-    # We pin to an old doc8 to avoid version conflicts with sphinx_toolbox.
-    # When we bump this, we can remove doc8.ini.
+    "dirty-equals==0.7.1.post0", # We pin to an old doc8 to avoid version conflicts with sphinx_toolbox. When we bump this, we can remove doc8.ini.
     "doc8==0.11.2",
-    "docker==6.0.1",
+    "docker==7.0.0",
     "dodgy==0.2.1",
-    "enum-tools[sphinx]==0.9.0.post1",
-    "freezegun==1.2.2",
-    "furo==2023.3.27",
-    "mypy==1.2.0",
-    "pdm==2.5.3",
-    "pip_check_reqs==2.4.4",
-    "pydocstyle==6.3.0",
+    "enum-tools[sphinx]==0.11",
+    "freezegun==1.4.0",
+    "furo==2023.9.10",
+    "mypy==1.8.0",
+    "pdm==2.11.1",
+    "pip_check_reqs==2.5.3",
+    "pydocstyle==6.3",
     "pyenchant==3.2.2",
-    "pylint==2.17.2",
-    "pyright==1.1.304",
+    "pylint==3.0.3",
+    "pyproject-fmt==1.5.3",
+    "pyright==1.1.343",
     "pyroma==4.2",
-    "pytest-cov==4.0.0",
-    "pytest==7.3.1",
-    "requests-mock-flask==2023.3.5.1",
-    "ruff==0.0.264",
-    "sphinx-autodoc-typehints==1.23.0",
-    "sphinx-prompt==1.5.0",
-    "sphinx_paramlinks==0.5.4",
+    "pytest==7.4.3",
+    "pytest-cov==4.1",
+    "pytest-xdist==3.5.0",
+    "python-dotenv==1.0.0",
+    "PyYAML==6.0.1",
+    "requests-mock-flask==2023.5.14",
+    "ruff==0.1.9",
+    "Sphinx==7.2.6",
+    "sphinx-autodoc-typehints==1.25.2",
+    "sphinx-prompt==1.8",
+    "Sphinx-Substitution-Extensions==2022.2.16",
+    "sphinx-toolbox==3.5",
+    "sphinx_paramlinks==0.6",
     "sphinxcontrib-httpdomain==1.8.1",
-    "sphinxcontrib-spelling==8.0.0",
-    "sphinx-toolbox==3.4.0",
-    "sybil==5.0.0",
-    "types-PyYAML==6.0.12.9",
-    "types-Pillow==9.5.0.1",
-    "types-requests==2.28.11.17",
-    "types-urllib3==1.26.25.10",
-    "vulture==2.7",
-    "vws-python==2023.3.25",
+    "sphinxcontrib-spelling==8",
+    "sybil==6.0.2",
+    "tenacity==8.2.3",
+    "types-Pillow==10.1.0.2",
+    "types-PyYAML==6.0.12.12",
+    "types-requests==2.31.0.10",
+    "urllib3==2.1.0",
+    "vulture==2.10",
+    "vws-python==2023.12.26",
+    "VWS-Test-Fixtures==2023.3.5",
+    "vws-web-tools==2023.12.26",
 ]
-
 [project.urls]
-Source = "https://github.com/VWS-Python/vws-python-mock"
 Documentation = "https://vws-python-mock.readthedocs.io"
+Source = "https://github.com/VWS-Python/vws-python-mock"
 
 [tool.setuptools]
 zip-safe = false
@@ -353,3 +367,6 @@ where = ["src"]
 mock_vws = ["py.typed"]
 
 [tool.pyright]
+# We would like this to be "strict" but we would need either to ignore errors,
+# or for more of docker, multipart, brisque, and maybe more to be typed.
+typeCheckingMode = "basic"

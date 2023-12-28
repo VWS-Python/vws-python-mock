@@ -2,7 +2,7 @@
 A fake implementation of the Vuforia Web Services API.
 
 See
-https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API
+https://library.vuforia.com/web-api/cloud-targets-web-services-api
 """
 
 import base64
@@ -15,8 +15,7 @@ from http import HTTPStatus
 
 import requests
 from flask import Flask, Response, request
-from pydantic import BaseSettings
-from werkzeug.datastructures import Headers
+from pydantic_settings import BaseSettings
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
@@ -68,16 +67,16 @@ class VWSSettings(BaseSettings):
     target_manager_base_url: str
     processing_time_seconds: float = 2
     vws_host: str = ""
-    duplicates_image_matcher: _ImageMatcherChoice = (
-        _ImageMatcherChoice.AVERAGE_HASH
-    )
+    duplicates_image_matcher: (
+        _ImageMatcherChoice
+    ) = _ImageMatcherChoice.AVERAGE_HASH
 
 
 def get_all_databases() -> set[VuforiaDatabase]:
     """
     Get all database objects from the task manager back-end.
     """
-    settings = VWSSettings.parse_obj(obj={})
+    settings = VWSSettings.model_validate(obj={})
     timeout_seconds = 30
     response = requests.get(
         url=f"{settings.target_manager_base_url}/databases",
@@ -96,7 +95,7 @@ def set_terminate_wsgi_input() -> None:
     ``requests``, so that requests have the given ``Content-Length`` headers
     and the given data in ``request.headers`` and ``request.data``.
 
-    We set this to ``False`` when running an application as standalone.
+    We do not set this at all when running an application as standalone.
     This is because when running the Flask application, if this is set,
     reading ``request.data`` hangs.
 
@@ -104,11 +103,8 @@ def set_terminate_wsgi_input() -> None:
     same as the real Vuforia.
     This is documented as a difference in the documentation for this package.
     """
-    terminate_wsgi_input = VWS_FLASK_APP.config.get(
-        "TERMINATE_WSGI_INPUT",
-        False,
-    )
-    request.environ["wsgi.input_terminated"] = terminate_wsgi_input
+    if VWS_FLASK_APP.config.get("TERMINATE_WSGI_INPUT") is True:
+        request.environ["wsgi.input_terminated"] = True
 
 
 @VWS_FLASK_APP.before_request
@@ -137,7 +133,8 @@ def handle_exceptions(exc: ValidatorException) -> Response:
         headers=exc.headers,
     )
 
-    response.headers = Headers(exc.headers)
+    response.headers.clear()
+    response.headers.extend(exc.headers)
     return response
 
 
@@ -147,9 +144,9 @@ def add_target() -> Response:
     Add a target.
 
     Fake implementation of
-    https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Add-a-Target
+    https://library.vuforia.com/web-api/cloud-targets-web-services-api#add
     """
-    settings = VWSSettings.parse_obj(obj={})
+    settings = VWSSettings.model_validate(obj={})
     databases = get_all_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
@@ -192,6 +189,7 @@ def add_target() -> Response:
 
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
+        "connection": "keep-alive",
         "content-type": "application/json",
         "server": "envoy",
         "date": date,
@@ -220,7 +218,7 @@ def get_target(target_id: str) -> Response:
     Get details of a target.
 
     Fake implementation of
-    https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Retrieve-a-Target-Record
+    https://library.vuforia.com/web-api/cloud-targets-web-services-api#target-record
     """
     databases = get_all_databases()
     database = get_database_matching_server_keys(
@@ -247,6 +245,7 @@ def get_target(target_id: str) -> Response:
 
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
+        "connection": "keep-alive",
         "content-type": "application/json",
         "server": "envoy",
         "date": date,
@@ -274,9 +273,9 @@ def delete_target(target_id: str) -> Response:
     Delete a target.
 
     Fake implementation of
-    https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Delete-a-Target
+    https://library.vuforia.com/web-api/cloud-targets-web-services-api#delete
     """
-    settings = VWSSettings.parse_obj(obj={})
+    settings = VWSSettings.model_validate(obj={})
     databases = get_all_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
@@ -306,6 +305,7 @@ def delete_target(target_id: str) -> Response:
     }
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
+        "connection": "keep-alive",
         "content-type": "application/json",
         "server": "envoy",
         "date": date,
@@ -327,7 +327,7 @@ def database_summary() -> Response:
     Get a database summary report.
 
     Fake implementation of
-    https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Get-a-Database-Summary-Report
+    https://library.vuforia.com/web-api/cloud-targets-web-services-api#summary-report
     """
     databases = get_all_databases()
     database = get_database_matching_server_keys(
@@ -359,6 +359,7 @@ def database_summary() -> Response:
     }
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
+        "connection": "keep-alive",
         "content-type": "application/json",
         "server": "envoy",
         "date": date,
@@ -380,7 +381,7 @@ def target_summary(target_id: str) -> Response:
     Get a summary report for a target.
 
     Fake implementation of
-    https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Retrieve-a-Target-Summary-Report
+    https://library.vuforia.com/web-api/cloud-targets-web-services-api#retrieve-report
     """
     databases = get_all_databases()
     database = get_database_matching_server_keys(
@@ -410,6 +411,7 @@ def target_summary(target_id: str) -> Response:
     }
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
+        "connection": "keep-alive",
         "content-type": "application/json",
         "server": "envoy",
         "date": date,
@@ -431,10 +433,10 @@ def get_duplicates(target_id: str) -> Response:
     Get targets which may be considered duplicates of a given target.
 
     Fake implementation of
-    https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Check-for-Duplicate-Targets
+    https://library.vuforia.com/web-api/cloud-targets-web-services-api#check
     """
     databases = get_all_databases()
-    settings = VWSSettings.parse_obj(obj={})
+    settings = VWSSettings.model_validate(obj={})
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
         request_body=request.data,
@@ -470,6 +472,7 @@ def get_duplicates(target_id: str) -> Response:
 
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
+        "connection": "keep-alive",
         "content-type": "application/json",
         "server": "envoy",
         "date": date,
@@ -491,7 +494,7 @@ def target_list() -> Response:
     Get a list of all targets.
 
     Fake implementation of
-    https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Get-a-Target-List-for-a-Cloud-Database
+    https://library.vuforia.com/web-api/cloud-targets-web-services-api#details-list
     """
     databases = get_all_databases()
     database = get_database_matching_server_keys(
@@ -511,6 +514,7 @@ def target_list() -> Response:
     }
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
+        "connection": "keep-alive",
         "content-type": "application/json",
         "server": "envoy",
         "date": date,
@@ -532,9 +536,9 @@ def update_target(target_id: str) -> Response:
     Update a target.
 
     Fake implementation of
-    https://library.vuforia.com/articles/Solution/How-To-Use-the-Vuforia-Web-Services-API.html#How-To-Update-a-Target
+    https://library.vuforia.com/web-api/cloud-targets-web-services-api#update
     """
-    settings = VWSSettings.parse_obj(obj={})
+    settings = VWSSettings.model_validate(obj={})
     # We do not use ``request.get_json(force=True)`` because this only works
     # when the content type is given as ``application/json``.
     request_json = json.loads(request.data)
@@ -599,6 +603,7 @@ def update_target(target_id: str) -> Response:
 
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
+        "connection": "keep-alive",
         "content-type": "application/json",
         "server": "envoy",
         "date": date,
@@ -619,5 +624,5 @@ def update_target(target_id: str) -> Response:
 
 
 if __name__ == "__main__":  # pragma: no cover
-    SETTINGS = VWSSettings.parse_obj(obj={})
+    SETTINGS = VWSSettings.model_validate(obj={})
     VWS_FLASK_APP.run(host=SETTINGS.vws_host)

@@ -13,7 +13,7 @@ Mocking calls made to Vuforia with Python ``requests``
 
 Using the mock redirects requests to Vuforia made with `requests`_ to an in-memory implementation.
 
-This requires Python 3.11+.
+This requires Python 3.12+.
 
 .. code:: sh
 
@@ -53,7 +53,7 @@ This includes details on how to use the mock, options, and details of the differ
 
 .. |Build Status| image:: https://github.com/VWS-Python/vws-python-mock/workflows/CI/badge.svg
    :target: https://github.com/VWS-Python/vws-python-mock/actions
-.. |codecov| image:: https://codecov.io/gh/VWS-Python/vws-python-mock/branch/master/graph/badge.svg
+.. |codecov| image:: https://codecov.io/gh/VWS-Python/vws-python-mock/branch/main/graph/badge.svg
    :target: https://codecov.io/gh/VWS-Python/vws-python-mock
 .. |PyPI| image:: https://badge.fury.io/py/VWS-Python-Mock.svg
     :target: https://badge.fury.io/py/VWS-Python-Mock

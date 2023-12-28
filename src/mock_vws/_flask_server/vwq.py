@@ -11,16 +11,13 @@ from http import HTTPStatus
 
 import requests
 from flask import Flask, Response, request
-from pydantic import BaseSettings
-from werkzeug.datastructures import Headers
+from pydantic_settings import BaseSettings
 
 from mock_vws._query_tools import (
-    ActiveMatchingTargetsDeleteProcessing,
     get_query_match_response_text,
 )
 from mock_vws._query_validators import run_query_validators
 from mock_vws._query_validators.exceptions import (
-    DeletedTargetMatched,
     ValidatorException,
 )
 from mock_vws.database import VuforiaDatabase
@@ -55,8 +52,6 @@ class VWQSettings(BaseSettings):
 
     vwq_host: str = ""
     target_manager_base_url: str
-    deletion_processing_seconds: float = 3.0
-    deletion_recognition_seconds: float = 2.0
     query_image_matcher: _ImageMatcherChoice = _ImageMatcherChoice.AVERAGE_HASH
 
 
@@ -64,7 +59,7 @@ def get_all_databases() -> set[VuforiaDatabase]:
     """
     Get all database objects from the target manager back-end.
     """
-    settings = VWQSettings.parse_obj(obj={})
+    settings = VWQSettings.model_validate(obj={})
     response = requests.get(
         url=f"{settings.target_manager_base_url}/databases",
         timeout=30,
@@ -82,7 +77,7 @@ def set_terminate_wsgi_input() -> None:
     ``requests``, so that requests have the given ``Content-Length`` headers
     and the given data in ``request.headers`` and ``request.data``.
 
-    We set this to ``False`` when running an application as standalone.
+    We do not set this at all when running an application as standalone.
     This is because when running the Flask application, if this is set,
     reading ``request.data`` hangs.
 
@@ -90,11 +85,8 @@ def set_terminate_wsgi_input() -> None:
     same as the real Vuforia.
     This is documented as a difference in the documentation for this package.
     """
-    terminate_wsgi_input = CLOUDRECO_FLASK_APP.config.get(
-        "TERMINATE_WSGI_INPUT",
-        False,
-    )
-    request.environ["wsgi.input_terminated"] = terminate_wsgi_input
+    if CLOUDRECO_FLASK_APP.config.get("TERMINATE_WSGI_INPUT") is True:
+        request.environ["wsgi.input_terminated"] = True
 
 
 @CLOUDRECO_FLASK_APP.errorhandler(ValidatorException)
@@ -108,7 +100,8 @@ def handle_exceptions(exc: ValidatorException) -> Response:
         headers=exc.headers,
     )
 
-    response.headers = Headers(exc.headers)
+    response.headers.clear()
+    response.headers.extend(exc.headers)
     return response
 
 
@@ -117,7 +110,7 @@ def query() -> Response:
     """
     Perform an image recognition query.
     """
-    settings = VWQSettings.parse_obj(obj={})
+    settings = VWQSettings.model_validate(obj={})
     query_match_checker = settings.query_image_matcher.to_image_matcher()
 
     databases = get_all_databases()
@@ -131,21 +124,14 @@ def query() -> Response:
     )
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
 
-    try:
-        response_text = get_query_match_response_text(
-            request_headers=dict(request.headers),
-            request_body=request_body,
-            request_method=request.method,
-            request_path=request.path,
-            databases=databases,
-            query_processes_deletion_seconds=settings.deletion_processing_seconds,
-            query_recognizes_deletion_seconds=(
-                settings.deletion_recognition_seconds
-            ),
-            query_match_checker=query_match_checker,
-        )
-    except ActiveMatchingTargetsDeleteProcessing as exc:
-        raise DeletedTargetMatched from exc
+    response_text = get_query_match_response_text(
+        request_headers=dict(request.headers),
+        request_body=request_body,
+        request_method=request.method,
+        request_path=request.path,
+        databases=databases,
+        query_match_checker=query_match_checker,
+    )
 
     headers = {
         "Content-Type": "application/json",
@@ -161,5 +147,5 @@ def query() -> Response:
 
 
 if __name__ == "__main__":  # pragma: no cover
-    SETTINGS = VWQSettings.parse_obj(obj={})
+    SETTINGS = VWQSettings.model_validate(obj={})
     CLOUDRECO_FLASK_APP.run(host=SETTINGS.vwq_host)

@@ -4,9 +4,9 @@ name: Windows CI
 
 on:
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
-    branches: [master]
+    branches: [main]
   schedule:
     # * is a special character in YAML so you have to quote this string
     # Run at 1:00 every day
@@ -18,25 +18,26 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ["3.11"]
+        python-version: ["3.12"]
         platform: [windows-latest]
 
     runs-on: ${{ matrix.platform }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           # See https://github.com/codecov/codecov-action/issues/190.
           fetch-depth: 2
 
       - name: "Set up Python"
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
+      # See https://github.com/actions/cache/blob/main/examples.md#python---pip
       - uses: actions/cache@v3
         with:
-          path: ~/.cache/pip
+          path: ~\AppData\Local\pip\Cache
           key: ${{ runner.os }}-pip-${{ hashFiles('pyproject.toml') }}
           restore-keys: |
             ${{ runner.os }}-pip-
@@ -55,7 +56,9 @@ jobs:
 
       - name: "Run tests"
         run: |
-          pytest --skip-real -s -vvv --exitfirst --cov=src/ --cov=tests --cov-report=xml tests/mock_vws/
+          # We use pytest-xdist to make this run much faster.
+          # The downside is that we cannot use -s / --capture=no.
+          pytest --skip-real -vvv --exitfirst -n auto --cov=src/ --cov=tests --cov-report=xml tests/mock_vws/
 
       - name: "Show coverage file"
         run: |
@@ -66,7 +69,7 @@ jobs:
           # https://github.com/VWS-Python/vws-python-mock/issues/708
           cat ./coverage.xml
 
-      # We run this job on every PR, on every merge to master, and nightly.
+      # We run this job on every PR, on every merge to main, and nightly.
       # This causes us to hit an issue with Codecov.
       #
       # We see "Too many uploads to this commit.".

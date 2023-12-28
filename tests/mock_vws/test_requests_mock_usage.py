@@ -16,7 +16,6 @@ from mock_vws import MockVWS
 from mock_vws.database import VuforiaDatabase
 from mock_vws.image_matchers import AverageHashMatcher, ExactMatcher
 from mock_vws.target import Target
-from mock_vws.target_raters import HardcodedTargetTrackingRater
 from PIL import Image
 from requests.exceptions import MissingSchema
 from requests_mock.exceptions import NoMockAddress
@@ -24,9 +23,7 @@ from vws import VWS, CloudRecoService
 from vws_auth_tools import rfc_1123_date
 
 from tests.mock_vws.utils.usage_test_helpers import (
-    process_deletion_seconds,
     processing_time_seconds,
-    recognize_deletion_seconds,
 )
 
 
@@ -246,141 +243,6 @@ class TestCustomBaseURLs:
         assert str(vwq_exc.value) == expected
 
 
-class TestCustomQueryRecognizesDeletionSeconds:
-    """
-    Tests for setting the amount of time after a target has been deleted
-    until it is not recognized by the query endpoint.
-    """
-
-    LEEWAY = 0.5
-
-    def test_default(
-        self,
-        high_quality_image: io.BytesIO,
-    ) -> None:
-        """
-        By default it takes 2 seconds for the Query API on the mock to
-        recognize that a target has been deleted.
-
-        The real Query API takes between zero and two seconds.
-        See ``test_query`` for more information.
-        """
-        database = VuforiaDatabase()
-        with MockVWS(
-            # Use the fastest available matcher.
-            query_match_checker=ExactMatcher(),
-            # Use the fastest available tracker.
-            target_tracking_rater=HardcodedTargetTrackingRater(rating=5),
-        ) as mock:
-            mock.add_database(database=database)
-            time_taken = recognize_deletion_seconds(
-                high_quality_image=high_quality_image,
-                vuforia_database=database,
-            )
-
-        expected = 2
-        assert expected - self.LEEWAY < time_taken < expected + self.LEEWAY
-
-    @pytest.mark.parametrize(
-        argnames=["seconds"],
-        # We include 0 because it exercises some otherwise untouched code.
-        argvalues=[(0,), (5,)],
-    )
-    def test_custom(
-        self,
-        high_quality_image: io.BytesIO,
-        seconds: int | float,
-    ) -> None:
-        """
-        It is possible to use set a custom amount of time that it takes for the
-        Query API on the mock to recognize that a target has been deleted.
-        """
-        database = VuforiaDatabase()
-        with MockVWS(
-            # Use the fastest available matcher.
-            query_match_checker=ExactMatcher(),
-            query_recognizes_deletion_seconds=seconds,
-        ) as mock:
-            mock.add_database(database=database)
-            time_taken = recognize_deletion_seconds(
-                high_quality_image=high_quality_image,
-                vuforia_database=database,
-            )
-
-        expected = seconds
-        assert expected - self.LEEWAY < time_taken < expected + self.LEEWAY
-
-
-class TestCustomQueryProcessDeletionSeconds:
-    """
-    Tests for setting the amount of time after a target has been deleted
-    until it is not processed by the query endpoint.
-    """
-
-    # There is a race condition in this test type - if tests start to
-    # fail, consider increasing the leeway.
-    LEEWAY = 0.5
-
-    def test_default(
-        self,
-        high_quality_image: io.BytesIO,
-    ) -> None:
-        """
-        By default it takes three seconds for the Query API on the mock to
-        process that a target has been deleted.
-
-        The real Query API takes between seven and thirty seconds.
-        See ``test_query`` for more information.
-        """
-        database = VuforiaDatabase()
-        with MockVWS(
-            # Use the fastest available matcher.
-            query_match_checker=ExactMatcher(),
-            # Use the fastest available tracker.
-            target_tracking_rater=HardcodedTargetTrackingRater(rating=5),
-        ) as mock:
-            mock.add_database(database=database)
-            time_taken = process_deletion_seconds(
-                high_quality_image=high_quality_image,
-                vuforia_database=database,
-            )
-
-        expected = 3
-        # We minus the leeway because we might start the timer after the
-        # deletion processing has started.
-        assert expected - self.LEEWAY < time_taken < expected + self.LEEWAY
-
-    def test_custom(
-        self,
-        high_quality_image: io.BytesIO,
-    ) -> None:
-        """
-        It is possible to use set a custom amount of time that it takes for the
-        Query API on the mock to process that a target has been deleted.
-        """
-        # We choose a low time for a quick test.
-        # We choose a time high enough that the leeway won't be a problem.
-        query_processes_deletion = 5
-        database = VuforiaDatabase()
-        with MockVWS(
-            query_processes_deletion_seconds=query_processes_deletion,
-            # Use the fastest available matcher.
-            query_match_checker=ExactMatcher(),
-            # Use the fastest available tracker.
-            target_tracking_rater=HardcodedTargetTrackingRater(rating=5),
-        ) as mock:
-            mock.add_database(database=database)
-            time_taken = process_deletion_seconds(
-                high_quality_image=high_quality_image,
-                vuforia_database=database,
-            )
-
-        expected = query_processes_deletion
-        # We minus the leeway because we might start the timer after the
-        # deletion processing has started.
-        assert expected - self.LEEWAY < time_taken < expected + self.LEEWAY
-
-
 class TestTargets:
     """
     Tests for target representations.
@@ -408,7 +270,8 @@ class TestTargets:
                 application_metadata=None,
             )
 
-        (target,) = database.targets
+        assert len(database.targets) == 1
+        target = next(iter(database.targets))
         target_dict = target.to_dict()
 
         # The dictionary is JSON dump-able
@@ -442,7 +305,8 @@ class TestTargets:
             vws_client.wait_for_target_processed(target_id=target_id)
             vws_client.delete_target(target_id=target_id)
 
-        (target,) = database.targets
+        assert len(database.targets) == 1
+        target = next(iter(database.targets))
         target_dict = target.to_dict()
 
         # The dictionary is JSON dump-able

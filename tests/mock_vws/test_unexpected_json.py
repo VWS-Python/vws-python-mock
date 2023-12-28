@@ -15,6 +15,7 @@ from requests.structures import CaseInsensitiveDict
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from tests.mock_vws.utils.assertions import assert_vwq_failure
+from tests.mock_vws.utils.too_many_requests import handle_too_many_requests
 
 if TYPE_CHECKING:
     from tests.mock_vws.utils import Endpoint
@@ -55,8 +56,7 @@ class TestUnexpectedJSON:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers = {
-            **endpoint_headers,
+        headers = endpoint_headers | {
             "Authorization": authorization_string,
             "Date": date,
             "Content-Type": content_type,
@@ -67,6 +67,7 @@ class TestUnexpectedJSON:
         endpoint.prepared_request.prepare_content_length(body=content)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
+        handle_too_many_requests(response=response)
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc

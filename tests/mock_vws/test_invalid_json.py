@@ -22,6 +22,7 @@ from tests.mock_vws.utils.assertions import (
     assert_vwq_failure,
     assert_vws_failure,
 )
+from tests.mock_vws.utils.too_many_requests import handle_too_many_requests
 
 if TYPE_CHECKING:
     from tests.mock_vws.utils import Endpoint
@@ -61,8 +62,7 @@ class TestInvalidJSON:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers = {
-            **endpoint_headers,
+        headers = endpoint_headers | {
             "Authorization": authorization_string,
             "Date": date,
         }
@@ -72,6 +72,7 @@ class TestInvalidJSON:
         endpoint.prepared_request.prepare_content_length(body=content)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
+        handle_too_many_requests(response=response)
 
         takes_json_data = (
             endpoint.auth_header_content_type == "application/json"
