@@ -32,7 +32,7 @@ def _get_brisque_target_tracking_rating(image_content: bytes) -> int:
     with np.errstate(divide="ignore", invalid="ignore"):
         try:
             score = brisque_obj.score(img=image_array)
-        except (cv2.error, ValueError):  # pylint: disable=catching-non-exception
+        except (cv2.error, ValueError):
             return 0
     if math.isnan(score):
         return 0
