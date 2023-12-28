@@ -16,7 +16,6 @@
         'pylint.extensions.comparison_placement',
         'pylint.extensions.consider_refactoring_into_while_condition',
         'pylint.extensions.docparams',
-        'pylint.extensions.docparams',
         'pylint.extensions.dunder',
         'pylint.extensions.eq_without_hash',
         'pylint.extensions.for_any_all',
