@@ -144,7 +144,7 @@ def assert_vws_response(
         "x-content-type-options",
         "x-envoy-upstream-service-time",
     }
-    assert set(map(str.lower, response.headers.keys())) == response_header_keys
+    assert {str.lower(key) for key in response.headers} == response_header_keys
     assert response.headers["Content-Length"] == str(len(response.text))
     assert response.headers["Content-Type"] == "application/json"
     assert response.headers["Server"] == "envoy"
