@@ -57,15 +57,7 @@ jobs:
         run: |
           # We use pytest-xdist to make this run much faster.
           # The downside is that we cannot use -s / --capture=no.
-          pytest \
-            --skip-real \
-            -vvv \
-            --exitfirst \
-            -n auto \
-            --cov=src/ \
-            --cov=tests \
-            --cov-report=xml \
-            tests/mock_vws/
+          pytest --skip-real -vvv --exitfirst -n auto --cov=src/ --cov=tests --cov-report=xml tests/mock_vws/
 
       - name: "Show coverage file"
         run: |
