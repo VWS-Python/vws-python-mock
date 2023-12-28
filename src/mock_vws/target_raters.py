@@ -11,8 +11,6 @@ import cv2
 import numpy as np
 from PIL import Image
 
-_CV2_ERROR = cv2.error  # pylint: disable=no-member
-
 
 @functools.cache
 def _get_brisque_target_tracking_rating(image_content: bytes) -> int:
@@ -34,7 +32,7 @@ def _get_brisque_target_tracking_rating(image_content: bytes) -> int:
     with np.errstate(divide="ignore", invalid="ignore"):
         try:
             score = brisque_obj.score(img=image_array)
-        except (_CV2_ERROR, ValueError):
+        except (cv2.error, ValueError):  # pylint: disable=catching-non-exception
             return 0
     if math.isnan(score):
         return 0
