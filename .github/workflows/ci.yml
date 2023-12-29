@@ -122,6 +122,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
+      - name: "Set secrets file"
+        run: |
+          # See the "CI Setup" document for details of how this was set up.
+          ci/decrypt_secret.sh
+          tar xvf "${HOME}"/secrets/secrets.tar
+          cp ./ci_secrets/vuforia_secrets_${{ strategy.job-index }}.env ./vuforia_secrets.env
+        env:
+          CI_PATTERN: ${{ matrix.ci_pattern }}
+          ENCRYPTED_FILE: secrets.tar.gpg
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.PASSPHRASE_FOR_VUFORIA_SECRETS }}
+
       - name: "Install dependencies"
         run: |
           python -m pip install --upgrade pip setuptools wheel
@@ -129,17 +140,6 @@ jobs:
           # issues - we have seen packages from this cache be cause trouble with
           # pip-extra-reqs.
           python -m pip install --ignore-installed --upgrade --editable .[dev]
-
-      - name: "Set secrets file"
-        run: |
-          # See the "CI Setup" document for details of how this was set up.
-          ci/decrypt_secret.sh
-          tar xvf "${HOME}"/secrets/secrets.tar
-          cp "${HOME}"/ci_secrets/vuforia_secrets_${{ strategy.job-index }}.json ./vuforia_secrets.env
-        env:
-          CI_PATTERN: ${{ matrix.ci_pattern }}
-          ENCRYPTED_FILE: secrets.tar.gpg
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.PASSPHRASE_FOR_VUFORIA_SECRETS }}
 
       - name: "Run tests"
         run: |
