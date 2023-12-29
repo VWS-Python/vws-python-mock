@@ -261,7 +261,7 @@ def verify_mock_vuforia(
     """
     backend = request.param
     should_skip = request.config.getoption(f"--skip-{backend.name.lower()}")
-    if should_skip:  # pragma: no cover
+    if should_skip:
         pytest.skip()
 
     enable_function = {
