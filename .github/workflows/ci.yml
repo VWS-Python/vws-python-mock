@@ -112,6 +112,7 @@ jobs:
       - name: Get pip cache dir
         id: pip-cache
         run: |
+          python -m pip cache dir
           echo "dir=$(python -m pip cache dir)" >> $GITHUB_OUTPUT
 
       - uses: actions/cache@v3
@@ -134,7 +135,7 @@ jobs:
           # See the "CI Setup" document for details of how this was set up.
           ci/decrypt_secret.sh
           tar xvf "${HOME}"/secrets/secrets.tar
-          python ci/set_secrets_file.py
+          cp "${HOME}"/ci_secrets/vuforia_secrets_${{ strategy.job-index }}.json ./vuforia_secrets.env
         env:
           CI_PATTERN: ${{ matrix.ci_pattern }}
           ENCRYPTED_FILE: secrets.tar.gpg
