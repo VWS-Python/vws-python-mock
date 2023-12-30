@@ -85,10 +85,7 @@ class TestMalformed:
     """
 
     @staticmethod
-    def test_one_part_no_space(
-        endpoint: Endpoint,
-        authorization_string: str,
-    ) -> None:
+    def test_one_part_no_space(endpoint: Endpoint) -> None:
         """
         A valid authorization string is two "parts" when split on a space. When
         a string is given which is one "part", a ``BAD_REQUEST`` or
@@ -171,10 +168,7 @@ class TestMalformed:
         )
 
     @staticmethod
-    def test_missing_signature(
-        endpoint: Endpoint,
-        authorization_string: str,
-    ) -> None:
+    def test_missing_signature(endpoint: Endpoint) -> None:
         """
         If a signature is missing `Authorization` header is given, a
         ``BAD_REQUEST`` response is given.

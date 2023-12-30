@@ -73,7 +73,8 @@ jobs:
           - tests/mock_vws/test_get_duplicates.py
           - tests/mock_vws/test_get_target.py
           - tests/mock_vws/test_invalid_given_id.py
-          - tests/mock_vws/test_invalid_json.py::TestInvalidJson::test_invalid_json
+          - tests/mock_vws/test_invalid_json.py::TestInvalidJSON::test_invalid_json
+          - tests/mock_vws/test_invalid_json.py::TestInvalidJSON::test_invalid_json_with_skewed_time
           - tests/mock_vws/test_target_list.py
           - tests/mock_vws/test_target_summary.py
           - tests/mock_vws/test_unexpected_json.py
