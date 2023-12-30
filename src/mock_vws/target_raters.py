@@ -32,7 +32,12 @@ def _get_brisque_target_tracking_rating(image_content: bytes) -> int:
     with np.errstate(divide="ignore", invalid="ignore"):
         try:
             score = brisque_obj.score(img=image_array)
+        # See https://github.com/pylint-dev/pylint/issues/9332
+        # for why we disable these warnings - pylint has trouble with
+        # cv2.error and behaves differently depending on the OS.
+        # pylint: disable=catching-non-exception, useless-suppression
         except (cv2.error, ValueError):
+            # pylint: enable=catching-non-exception, useless-suppression
             return 0
     if math.isnan(score):
         return 0
