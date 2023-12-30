@@ -74,12 +74,6 @@ def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
         vws_client.delete_target(target_id=target)
 
 
-@pytest.fixture(autouse=True)
-def _retry_on_too_many_requests(request: SubRequest) -> None:
-    decorated_function = _RETRY_ON_TOO_MANY_REQUESTS(request.node.obj)  # pyright: ignore [reportGeneralTypeIssues]
-    request.node.obj = decorated_function  # pyright: ignore [reportGeneralTypeIssues]
-
-
 def _enable_use_real_vuforia(
     working_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
@@ -269,6 +263,9 @@ def verify_mock_vuforia(
         VuforiaBackend.MOCK: _enable_use_mock_vuforia,
         VuforiaBackend.DOCKER_IN_MEMORY: _enable_use_docker_in_memory,
     }[backend]
+
+    decorated_function = _RETRY_ON_TOO_MANY_REQUESTS(request.node.obj)  # pyright: ignore [reportGeneralTypeIssues]
+    request.node.obj = decorated_function  # pyright: ignore [reportGeneralTypeIssues]
 
     yield from enable_function(
         working_database=vuforia_database,
