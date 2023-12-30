@@ -107,10 +107,10 @@ class TestInvalidJSON:
         """
         Giving invalid JSON to endpoints returns error responses.
         """
-        date_skew_minutes = 90
         content = b"a"
         gmt = ZoneInfo("GMT")
         now = datetime.now(tz=gmt)
+        date_skew_minutes = 10
         time_to_freeze = now + timedelta(minutes=date_skew_minutes)
         with freeze_time(time_to_freeze):
             date = rfc_1123_date()
