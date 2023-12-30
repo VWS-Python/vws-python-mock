@@ -35,15 +35,79 @@ class TestInvalidJSON:
     """
 
     @staticmethod
-    @pytest.mark.parametrize("date_skew_minutes", [0, 10])
-    def test_invalid_json(
-        endpoint: Endpoint,
-        date_skew_minutes: int,
-    ) -> None:
+    def test_invalid_json(endpoint: Endpoint) -> None:
         """
         Giving invalid JSON to endpoints returns error responses.
         """
-        date_is_skewed = date_skew_minutes != 0
+        content = b"a"
+        gmt = ZoneInfo("GMT")
+        now = datetime.now(tz=gmt)
+        time_to_freeze = now
+        with freeze_time(time_to_freeze):
+            date = rfc_1123_date()
+
+        endpoint_headers = dict(endpoint.prepared_request.headers)
+        authorization_string = authorization_header(
+            access_key=endpoint.access_key,
+            secret_key=endpoint.secret_key,
+            method=str(endpoint.prepared_request.method),
+            content=content,
+            content_type=endpoint.auth_header_content_type,
+            date=date,
+            request_path=endpoint.prepared_request.path_url,
+        )
+
+        headers = endpoint_headers | {
+            "Authorization": authorization_string,
+            "Date": date,
+        }
+
+        endpoint.prepared_request.body = content
+        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        endpoint.prepared_request.prepare_content_length(body=content)
+        session = requests.Session()
+        response = session.send(request=endpoint.prepared_request)
+        handle_too_many_requests(response=response)
+
+        takes_json_data = (
+            endpoint.auth_header_content_type == "application/json"
+        )
+
+        assert_valid_date_header(response=response)
+
+        if takes_json_data:
+            assert_vws_failure(
+                response=response,
+                status_code=HTTPStatus.BAD_REQUEST,
+                result_code=ResultCodes.FAIL,
+            )
+            return
+
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        url = str(endpoint.prepared_request.url)
+        netloc = urlparse(url).netloc
+        if netloc == "cloudreco.vuforia.com":
+            assert_vwq_failure(
+                response=response,
+                status_code=HTTPStatus.BAD_REQUEST,
+                content_type="application/json",
+                cache_control=None,
+                www_authenticate=None,
+                connection="keep-alive",
+            )
+            expected_text = "No image."
+            assert response.text == expected_text
+            return
+
+        assert not response.text
+        assert "Content-Type" not in response.headers
+
+    @staticmethod
+    def test_invalid_json_with_skewed_time(endpoint: Endpoint) -> None:
+        """
+        Giving invalid JSON to endpoints returns error responses.
+        """
+        date_skew_minutes = 90
         content = b"a"
         gmt = ZoneInfo("GMT")
         now = datetime.now(tz=gmt)
@@ -80,19 +144,11 @@ class TestInvalidJSON:
 
         assert_valid_date_header(response=response)
 
-        if date_is_skewed and takes_json_data:
+        if takes_json_data:
             assert_vws_failure(
                 response=response,
                 status_code=HTTPStatus.FORBIDDEN,
                 result_code=ResultCodes.REQUEST_TIME_TOO_SKEWED,
-            )
-            return
-
-        if not date_is_skewed and takes_json_data:
-            assert_vws_failure(
-                response=response,
-                status_code=HTTPStatus.BAD_REQUEST,
-                result_code=ResultCodes.FAIL,
             )
             return
 

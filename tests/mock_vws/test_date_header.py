@@ -164,18 +164,10 @@ class TestSkewedTime:
     """
 
     @staticmethod
-    @pytest.mark.parametrize(
-        "time_multiplier",
-        [1, -1],
-        ids=(["After", "Before"]),
-    )
-    def test_date_out_of_range(
-        time_multiplier: int,
-        endpoint: Endpoint,
-    ) -> None:
+    def test_date_out_of_range_after(endpoint: Endpoint) -> None:
         """
         If the date header is more than five minutes (target API) or 65 minutes
-        (query API) before or after the request is sent, a `FORBIDDEN` response
+        (query API) after the request is sent, a `FORBIDDEN` response
         is returned.
 
         Because there is a small delay in sending requests and Vuforia isn't
@@ -188,7 +180,6 @@ class TestSkewedTime:
             "cloudreco.vuforia.com": _VWQ_MAX_TIME_SKEW,
         }[netloc]
         time_difference_from_now = skew + _LEEWAY
-        time_difference_from_now *= time_multiplier
         gmt = ZoneInfo("GMT")
         with freeze_time(datetime.now(tz=gmt) + time_difference_from_now):
             date = rfc_1123_date()
@@ -239,18 +230,76 @@ class TestSkewedTime:
         )
 
     @staticmethod
-    @pytest.mark.parametrize(
-        "time_multiplier",
-        [1, -1],
-        ids=(["After", "Before"]),
-    )
-    def test_date_in_range(
-        time_multiplier: int,
-        endpoint: Endpoint,
-    ) -> None:
+    def test_date_out_of_range_before(endpoint: Endpoint) -> None:
         """
-        If a date header is within five minutes before or after the request
-        is sent, no error is returned.
+        If the date header is more than five minutes (target API) or 65 minutes
+        (query API) before the request is sent, a `FORBIDDEN` response
+        is returned.
+
+        Because there is a small delay in sending requests and Vuforia isn't
+        consistent, some leeway is given.
+        """
+        url = str(endpoint.prepared_request.url)
+        netloc = urlparse(url).netloc
+        skew = {
+            "vws.vuforia.com": _VWS_MAX_TIME_SKEW,
+            "cloudreco.vuforia.com": _VWQ_MAX_TIME_SKEW,
+        }[netloc]
+        time_difference_from_now = skew + _LEEWAY
+        gmt = ZoneInfo("GMT")
+        with freeze_time(datetime.now(tz=gmt) - time_difference_from_now):
+            date = rfc_1123_date()
+
+        endpoint_headers = dict(endpoint.prepared_request.headers)
+        content = endpoint.prepared_request.body or b""
+        assert isinstance(content, bytes)
+
+        authorization_string = authorization_header(
+            access_key=endpoint.access_key,
+            secret_key=endpoint.secret_key,
+            method=str(endpoint.prepared_request.method),
+            content=content,
+            content_type=endpoint.auth_header_content_type,
+            date=date,
+            request_path=endpoint.prepared_request.path_url,
+        )
+
+        headers = endpoint_headers | {
+            "Authorization": authorization_string,
+            "Date": date,
+        }
+
+        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        session = requests.Session()
+        response = session.send(request=endpoint.prepared_request)
+        handle_too_many_requests(response=response)
+
+        # Even with the query endpoint, we get a JSON response.
+        if netloc == "cloudreco.vuforia.com":
+            assert response.json().keys() == {"transaction_id", "result_code"}
+            assert response.json()["result_code"] == "RequestTimeTooSkewed"
+            assert_valid_transaction_id(response=response)
+            assert_vwq_failure(
+                response=response,
+                status_code=HTTPStatus.FORBIDDEN,
+                content_type="application/json",
+                cache_control=None,
+                www_authenticate=None,
+                connection="keep-alive",
+            )
+            return
+
+        assert_vws_failure(
+            response=response,
+            status_code=HTTPStatus.FORBIDDEN,
+            result_code=ResultCodes.REQUEST_TIME_TOO_SKEWED,
+        )
+
+    @staticmethod
+    def test_date_in_range_after(endpoint: Endpoint) -> None:
+        """
+        If a date header is within five minutes after the request is sent, no
+        error is returned.
 
         Because there is a small delay in sending requests and Vuforia isn't
         consistent, some leeway is given.
@@ -262,9 +311,64 @@ class TestSkewedTime:
             "cloudreco.vuforia.com": _VWQ_MAX_TIME_SKEW,
         }[netloc]
         time_difference_from_now = skew - _LEEWAY
-        time_difference_from_now *= time_multiplier
         gmt = ZoneInfo("GMT")
         with freeze_time(datetime.now(tz=gmt) + time_difference_from_now):
+            date = rfc_1123_date()
+
+        endpoint_headers = dict(endpoint.prepared_request.headers)
+        content = endpoint.prepared_request.body or b""
+        assert isinstance(content, bytes)
+
+        authorization_string = authorization_header(
+            access_key=endpoint.access_key,
+            secret_key=endpoint.secret_key,
+            method=str(endpoint.prepared_request.method),
+            content=content,
+            content_type=endpoint.auth_header_content_type,
+            date=date,
+            request_path=endpoint.prepared_request.path_url,
+        )
+
+        headers: dict[str, str] = endpoint_headers | {
+            "Authorization": authorization_string,
+            "Date": date,
+        }
+
+        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        session = requests.Session()
+        response = session.send(request=endpoint.prepared_request)
+        handle_too_many_requests(response=response)
+
+        url = str(endpoint.prepared_request.url)
+        netloc = urlparse(url).netloc
+        if netloc == "cloudreco.vuforia.com":
+            assert_query_success(response=response)
+            return
+
+        assert_vws_response(
+            response=response,
+            status_code=endpoint.successful_headers_status_code,
+            result_code=endpoint.successful_headers_result_code,
+        )
+
+    @staticmethod
+    def test_date_in_range_before(endpoint: Endpoint) -> None:
+        """
+        If a date header is within five minutes before the request is sent, no
+        error is returned.
+
+        Because there is a small delay in sending requests and Vuforia isn't
+        consistent, some leeway is given.
+        """
+        url = str(endpoint.prepared_request.url)
+        netloc = urlparse(url).netloc
+        skew = {
+            "vws.vuforia.com": _VWS_MAX_TIME_SKEW,
+            "cloudreco.vuforia.com": _VWQ_MAX_TIME_SKEW,
+        }[netloc]
+        time_difference_from_now = skew - _LEEWAY
+        gmt = ZoneInfo("GMT")
+        with freeze_time(datetime.now(tz=gmt) - time_difference_from_now):
             date = rfc_1123_date()
 
         endpoint_headers = dict(endpoint.prepared_request.headers)

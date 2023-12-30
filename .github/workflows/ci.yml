@@ -65,13 +65,15 @@ jobs:
           - tests/mock_vws/test_database_summary.py
           - tests/mock_vws/test_date_header.py::TestFormat
           - tests/mock_vws/test_date_header.py::TestMissing
-          - tests/mock_vws/test_date_header.py::TestSkewedTime::test_date_out_of_range
-          - tests/mock_vws/test_date_header.py::TestSkewedTime::test_date_in_range
+          - tests/mock_vws/test_date_header.py::TestSkewedTime::test_date_out_of_range_after
+          - tests/mock_vws/test_date_header.py::TestSkewedTime::test_date_out_of_range_before
+          - tests/mock_vws/test_date_header.py::TestSkewedTime::test_date_in_range_after
+          - tests/mock_vws/test_date_header.py::TestSkewedTime::test_date_in_range_before
           - tests/mock_vws/test_delete_target.py
           - tests/mock_vws/test_get_duplicates.py
           - tests/mock_vws/test_get_target.py
           - tests/mock_vws/test_invalid_given_id.py
-          - tests/mock_vws/test_invalid_json.py
+          - tests/mock_vws/test_invalid_json.py::TestInvalidJson::test_invalid_json
           - tests/mock_vws/test_target_list.py
           - tests/mock_vws/test_target_summary.py
           - tests/mock_vws/test_unexpected_json.py
