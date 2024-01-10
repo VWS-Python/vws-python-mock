@@ -357,7 +357,7 @@ dev = [
     "types-requests==2.31.0.20240106",
     "urllib3==2.1.0",
     "vulture==2.10",
-    "vws-python==2023.12.26",
+    "vws-python==2023.12.27",
     "VWS-Test-Fixtures==2023.3.5",
     "vws-web-tools==2023.12.26",
 ]
