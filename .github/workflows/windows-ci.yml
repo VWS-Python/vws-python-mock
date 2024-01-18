@@ -35,7 +35,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       # See https://github.com/actions/cache/blob/main/examples.md#python---pip
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ~\AppData\Local\pip\Cache
           key: ${{ runner.os }}-pip-${{ hashFiles('pyproject.toml') }}
