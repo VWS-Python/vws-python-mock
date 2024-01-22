@@ -313,7 +313,7 @@ dependencies = [
     "pydantic-settings",
     "requests",
     "requests-mock",
-    "scipy<1.12.0", # We pin to an old version of scipy as brisque does not support newer versions. `brisque` appears to be unmaintained, so we may need to switch to an alternative, such as `piq`, which currently does not support Python 3.12.
+    "scipy<1.13.0", # We pin to an old version of scipy as brisque does not support newer versions. `brisque` appears to be unmaintained, so we may need to switch to an alternative, such as `piq`, which currently does not support Python 3.12.
     'tzdata; sys_platform == "win32"',
     "vws-auth-tools",
 ]
