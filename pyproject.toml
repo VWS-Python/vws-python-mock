@@ -375,6 +375,10 @@ where = ["src"]
 [tool.setuptools.package-data]
 mock_vws = ["py.typed"]
 
+ [tool.pyproject-fmt]
+indent = 4
+keep_full_version = false
+
 [tool.pyright]
 # We would like this to be "strict" but we would need either to ignore errors,
 # or for more of docker, multipart, brisque, and maybe more to be typed.
