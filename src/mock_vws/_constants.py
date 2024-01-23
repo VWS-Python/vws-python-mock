@@ -34,6 +34,7 @@ class ResultCodes(Enum):
     TARGET_STATUS_NOT_SUCCESS = "TargetStatusNotSuccess"
     PROJECT_INACTIVE = "ProjectInactive"
     INACTIVE_PROJECT = "InactiveProject"
+    TOO_MANY_REQUESTS = "TooManyRequests"
 
 
 class TargetStatuses(Enum):

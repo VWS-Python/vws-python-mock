@@ -85,11 +85,12 @@ There are some result codes which the mock cannot return.
 
 These are:
 
-* ``RequestQuotaReached``
 * ``DateRangeError``
-* ``TargetQuotaReached``
-* ``ProjectSuspended``
 * ``ProjectHasNoAPIAccess``
+* ``ProjectSuspended``
+* ``RequestQuotaReached``
+* ``TargetQuotaReached``
+* ``TooManyRequests``
 
 ``Content-Length`` headers
 --------------------------

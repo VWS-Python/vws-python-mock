@@ -1,6 +1,8 @@
 ---
 
-name: Windows CI
+# We check that using all --skip options does not error.
+
+name: Skip tests
 
 on:
   push:
@@ -19,7 +21,7 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.12"]
-        platform: [windows-latest]
+        platform: [ubuntu-latest]
 
     runs-on: ${{ matrix.platform }}
 
@@ -56,9 +58,18 @@ jobs:
 
       - name: "Run tests"
         run: |
-          # We use pytest-xdist to make this run much faster.
-          # The downside is that we cannot use -s / --capture=no.
-          pytest --skip-real -vvv --exitfirst -n auto --cov=src/ --cov=tests/ --cov-report=xml tests/mock_vws/
+          pytest \
+            --skip-docker_build_tests \
+            --skip-docker_in_memory \
+            --skip-mock \
+            --skip-real \
+            --capture=no \
+            -vvv \
+            --exitfirst \
+            --cov=src/ \
+            --cov=tests/ \
+            --cov-report=xml \
+            tests/mock_vws/
 
       - name: "Show coverage file"
         run: |

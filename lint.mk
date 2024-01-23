@@ -6,14 +6,6 @@ SHELL := /bin/bash -euxo pipefail
 custom-linters:
 	pytest ci/custom_linters.py
 
-.PHONY: black
-black:
-	black --check .
-
-.PHONY: fix-black
-fix-black:
-	black .
-
 .PHONY: mypy
 mypy:
 	mypy .
@@ -29,14 +21,17 @@ doc8:
 .PHONY: ruff
 ruff:
 	ruff .
+	ruff format --check .
 
 .PHONY: fix-ruff
 fix-ruff:
 	ruff --fix .
+	ruff format .
 
 .PHONY: pip-extra-reqs
 pip-extra-reqs:
-	pip-extra-reqs --skip-incompatible --requirements-file=<(pdm export --pyproject) src/
+	# Ignore scipy as it is defined to constrain a version.
+	pip-extra-reqs --ignore-requirement=scipy --skip-incompatible --requirements-file=<(pdm export --pyproject) src/
 
 .PHONY: pip-missing-reqs
 pip-missing-reqs:
@@ -54,6 +49,10 @@ pyroma:
 pyright:
 	pyright .
 
+.PHONY: pyright-verifytypes
+pyright-verifytypes:
+	pyright --verifytypes mock_vws
+
 .PHONY: vulture
 vulture:
 	vulture --min-confidence 100 --exclude _vendor --exclude .eggs .
@@ -61,6 +60,14 @@ vulture:
 .PHONY: linkcheck
 linkcheck:
 	$(MAKE) -C docs/ linkcheck SPHINXOPTS=$(SPHINXOPTS)
+
+.PHONY: pyproject-fmt
+pyproject-fmt:
+	pyproject-fmt --check pyproject.toml
+
+.PHONY: fix-pyproject-fmt
+fix-pyproject-fmt:
+	pyproject-fmt pyproject.toml
 
 .PHONY: spelling
 spelling:
