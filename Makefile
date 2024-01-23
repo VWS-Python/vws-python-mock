@@ -19,7 +19,7 @@ lint: \
     mypy \
     pip-extra-reqs \
     pip-missing-reqs \
-    pyproject-fmt \
+   pyproject-fmt \
     pyright \
     pyright-verifytypes \
     pyroma \
