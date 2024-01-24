@@ -12,7 +12,7 @@ from email.message import EmailMessage
 from typing import TYPE_CHECKING, Any
 from zoneinfo import ZoneInfo
 
-import multipart
+from werkzeug.formparser import MultiPartParser
 
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._constants import ResultCodes, TargetStatuses
@@ -52,23 +52,18 @@ def get_query_match_response_text(
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
 
-    parsed = multipart.MultipartParser(stream=body_file, boundary=boundary)
+    parser = MultiPartParser()
+    fields, files = parser.parse(
+        stream=io.BytesIO(request_body),
+        boundary=boundary.encode("utf-8"),
+        content_length=len(request_body),
+    )
 
-    parsed_max_num_results = parsed.get("max_num_results")
-    if parsed_max_num_results is None:
-        max_num_results = "1"
-    else:
-        max_num_results = parsed_max_num_results.value
+    max_num_results = str(fields.get("max_num_results", "1"))
+    include_target_data = str(fields.get("include_target_data", "top")).lower()
 
-    parsed_include_target_data = parsed.get("include_target_data")
-    if parsed_include_target_data is None:
-        include_target_data = "top"
-    else:
-        include_target_data = parsed_include_target_data.value.lower()
-
-    image_part = parsed.get("image")
-    assert image_part is not None
-    image_value = image_part.raw
+    image_part = files["image"]
+    image_value = image_part.stream.read()
     gmt = ZoneInfo("GMT")
     datetime.datetime.now(tz=gmt)
 
