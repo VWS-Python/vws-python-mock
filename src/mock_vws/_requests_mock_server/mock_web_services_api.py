@@ -34,8 +34,8 @@ from mock_vws.target import Target
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from requests_mock.request import _RequestObjectProxy
-    from requests_mock.response import _Context
+    from requests_mock.request import Request
+    from requests_mock.response import Context
 
     from mock_vws.image_matchers import ImageMatcher
     from mock_vws.target_manager import TargetManager
@@ -121,11 +121,7 @@ class MockVuforiaWebServicesAPI:
         path_pattern="/targets",
         http_methods={POST},
     )
-    def add_target(
-        self,
-        request: _RequestObjectProxy,
-        context: _Context,
-    ) -> str:
+    def add_target(self, request: Request, context: Context) -> str:
         """
         Add a target.
 
@@ -200,11 +196,7 @@ class MockVuforiaWebServicesAPI:
         path_pattern=f"/targets/{_TARGET_ID_PATTERN}",
         http_methods={DELETE},
     )
-    def delete_target(
-        self,
-        request: _RequestObjectProxy,
-        context: _Context,
-    ) -> str:
+    def delete_target(self, request: Request, context: Context) -> str:
         """
         Delete a target.
 
@@ -268,11 +260,7 @@ class MockVuforiaWebServicesAPI:
         return body_json
 
     @route(path_pattern="/summary", http_methods={GET})
-    def database_summary(
-        self,
-        request: _RequestObjectProxy,
-        context: _Context,
-    ) -> str:
+    def database_summary(self, request: Request, context: Context) -> str:
         """
         Get a database summary report.
 
@@ -335,11 +323,7 @@ class MockVuforiaWebServicesAPI:
         return body_json
 
     @route(path_pattern="/targets", http_methods={GET})
-    def target_list(
-        self,
-        request: _RequestObjectProxy,
-        context: _Context,
-    ) -> str:
+    def target_list(self, request: Request, context: Context) -> str:
         """
         Get a list of all targets.
 
@@ -393,11 +377,7 @@ class MockVuforiaWebServicesAPI:
         return body_json
 
     @route(path_pattern=f"/targets/{_TARGET_ID_PATTERN}", http_methods={GET})
-    def get_target(
-        self,
-        request: _RequestObjectProxy,
-        context: _Context,
-    ) -> str:
+    def get_target(self, request: Request, context: Context) -> str:
         """
         Get details of a target.
 
@@ -462,11 +442,7 @@ class MockVuforiaWebServicesAPI:
         path_pattern=f"/duplicates/{_TARGET_ID_PATTERN}",
         http_methods={GET},
     )
-    def get_duplicates(
-        self,
-        request: _RequestObjectProxy,
-        context: _Context,
-    ) -> str:
+    def get_duplicates(self, request: Request, context: Context) -> str:
         """
         Get targets which may be considered duplicates of a given target.
 
@@ -537,11 +513,7 @@ class MockVuforiaWebServicesAPI:
         path_pattern=f"/targets/{_TARGET_ID_PATTERN}",
         http_methods={PUT},
     )
-    def update_target(
-        self,
-        request: _RequestObjectProxy,
-        context: _Context,
-    ) -> str:
+    def update_target(self, request: Request, context: Context) -> str:
         """
         Update a target.
 
@@ -645,11 +617,7 @@ class MockVuforiaWebServicesAPI:
         return body_json
 
     @route(path_pattern=f"/summary/{_TARGET_ID_PATTERN}", http_methods={GET})
-    def target_summary(
-        self,
-        request: _RequestObjectProxy,
-        context: _Context,
-    ) -> str:
+    def target_summary(self, request: Request, context: Context) -> str:
         """
         Get a summary report for a target.
 
