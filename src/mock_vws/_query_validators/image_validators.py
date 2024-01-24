@@ -177,18 +177,20 @@ def validate_image_is_image(
     Raises:
         BadImage: Image data is given and it is not an image file.
     """
-    body_file = io.BytesIO(request_body)
-
     email_message = EmailMessage()
     email_message["content-type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
-    parsed = multipart.MultipartParser(stream=body_file, boundary=boundary)
-    image_part = parsed.get("image")
-    assert image_part is not None
-    image_value = image_part.raw
+    parser = MultiPartParser()
+    _, files = parser.parse(
+        stream=io.BytesIO(request_body),
+        boundary=boundary.encode("utf-8"),
+        content_length=len(request_body),
+    )
+    image_part = files["image"]
+    image_value = image_part.stream.read()
 
-    image_file = io.BytesIO(image_value)
+    image_file = io.BytesIO(image_value)  # TODO just use the stream?
 
     try:
         Image.open(image_file)
