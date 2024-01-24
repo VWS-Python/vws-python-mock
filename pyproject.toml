@@ -382,4 +382,4 @@ keep_full_version = true
 # We would like this to be "strict" but we would need either to ignore errors,
 # or for more of docker, brisque, and maybe more to be typed.
 reportUnnecessaryTypeIgnoreComment = true
-typeCheckingMode = "strict"
+typeCheckingMode = "basic"
