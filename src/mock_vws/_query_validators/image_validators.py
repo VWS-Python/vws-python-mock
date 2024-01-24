@@ -188,9 +188,7 @@ def validate_image_is_image(
         content_length=len(request_body),
     )
     image_part = files["image"]
-    image_value = image_part.stream.read()
-
-    image_file = io.BytesIO(image_value)  # TODO just use the stream?
+    image_file = image_part.stream
 
     try:
         Image.open(image_file)
