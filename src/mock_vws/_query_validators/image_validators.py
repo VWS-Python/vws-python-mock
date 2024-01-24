@@ -74,8 +74,7 @@ def validate_image_file_size(
         boundary=boundary.encode("utf-8"),
         content_length=len(request_body),
     )
-    image_part = files.get("image")
-    assert image_part is not None
+    image_part = files["image"]
     image_value = image_part.stream.read()
 
     # This is the documented maximum size of a PNG as per.
@@ -106,16 +105,18 @@ def validate_image_dimensions(
         BadImage: The image is given and is not within the maximum width and
             height limits.
     """
-    body_file = io.BytesIO(request_body)
-
     email_message = EmailMessage()
     email_message["content-type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
-    parsed = multipart.MultipartParser(stream=body_file, boundary=boundary)
-    image_part = parsed.get("image")
-    assert image_part is not None
-    image_value = image_part.raw
+    parser = MultiPartParser()
+    _, files = parser.parse(
+        stream=io.BytesIO(request_body),
+        boundary=boundary.encode("utf-8"),
+        content_length=len(request_body),
+    )
+    image_part = files["image"]
+    image_value = image_part.stream.read()
     image_file = io.BytesIO(image_value)
     pil_image = Image.open(image_file)
     max_width = 30000
