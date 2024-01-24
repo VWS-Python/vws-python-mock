@@ -8,6 +8,7 @@ from email.message import EmailMessage
 
 import multipart
 from PIL import Image
+from werkzeug.formparser import MultiPartParser
 
 from mock_vws._query_validators.exceptions import (
     BadImage,
@@ -32,14 +33,17 @@ def validate_image_field_given(
     Raises:
         ImageNotGiven: The image field is not given.
     """
-    body_file = io.BytesIO(request_body)
-
     email_message = EmailMessage()
     email_message["content-type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
-    parsed = multipart.MultipartParser(stream=body_file, boundary=boundary)
-    if parsed.get("image") is not None:
+    parser = MultiPartParser()
+    _, files = parser.parse(
+        stream=io.BytesIO(request_body),
+        boundary=boundary.encode("utf-8"),
+        content_length=len(request_body),
+    )
+    if files.get("image") is not None:
         return
 
     _LOGGER.warning(msg="The image field is not given.")
