@@ -241,9 +241,6 @@ ignore = [
     # We have an existing interface to support and so we do not want to change
     # exception names.
     "N818",
-    # Ignore this as there is a bug in ruff:
-    # See https://github.com/astral-sh/ruff/issues/6454.
-    "PLE1205",
     # Ignore "too-many-*" errors as they seem to get in the way more than
     # helping.
     "PLR0913",
