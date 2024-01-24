@@ -64,16 +64,19 @@ def validate_image_file_size(
     Raises:
         RequestEntityTooLarge: The image file size is too large.
     """
-    body_file = io.BytesIO(request_body)
-
     email_message = EmailMessage()
     email_message["content-type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
-    parsed = multipart.MultipartParser(stream=body_file, boundary=boundary)
-    image_part = parsed.get("image")
+    parser = MultiPartParser()
+    _, files = parser.parse(
+        stream=io.BytesIO(request_body),
+        boundary=boundary.encode("utf-8"),
+        content_length=len(request_body),
+    )
+    image_part = files.get("image")
     assert image_part is not None
-    image_value = image_part.raw
+    image_value = image_part.stream.read()
 
     # This is the documented maximum size of a PNG as per.
     # https://library.vuforia.com/web-api/vuforia-query-web-api.
