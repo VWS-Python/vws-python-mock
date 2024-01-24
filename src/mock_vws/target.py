@@ -91,6 +91,7 @@ class Target:
         image = Image.open(image_file)
         image_stat = ImageStat.Stat(image)
 
+        breakpoint()
         average_std_dev = statistics.mean(image_stat.stddev)
 
         success_threshold = 5
