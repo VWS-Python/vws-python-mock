@@ -182,7 +182,6 @@ module = [
     "docker.errors",
     "docker.models.containers",
     "docker.models.networks",
-    "multipart",
 ]
 
 ignore_missing_imports = true
@@ -306,7 +305,6 @@ dependencies = [
     "brisque",
     "flask",
     "ImageHash",
-    "multipart",
     "numpy",
     "opencv-python",
     "Pillow",
@@ -316,6 +314,7 @@ dependencies = [
     "scipy<1.12.0", # We pin to an old version of scipy as brisque does not support newer versions. `brisque` appears to be unmaintained, so we may need to switch to an alternative, such as `piq`, which currently does not support Python 3.12.
     'tzdata; sys_platform == "win32"',
     "vws-auth-tools",
+    "Werkzeug",
 ]
 [project.optional-dependencies]
 dev = [
@@ -381,6 +380,6 @@ keep_full_version = true
 
 [tool.pyright]
 # We would like this to be "strict" but we would need either to ignore errors,
-# or for more of docker, multipart, brisque, and maybe more to be typed.
+# or for more of docker, brisque, and maybe more to be typed.
 reportUnnecessaryTypeIgnoreComment = true
 typeCheckingMode = "basic"
