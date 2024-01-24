@@ -339,7 +339,7 @@ dev = [
     "pytest==7.4.4",
     "pytest-cov==4.1",
     "pytest-xdist==3.5.0",
-    "python-dotenv==1.0.0",
+    "python-dotenv==1.0.1",
     "PyYAML==6.0.1",
     "requests-mock-flask==2023.5.14",
     "ruff==0.1.14",
