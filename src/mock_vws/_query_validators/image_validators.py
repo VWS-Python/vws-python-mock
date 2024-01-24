@@ -6,7 +6,6 @@ import io
 import logging
 from email.message import EmailMessage
 
-import multipart
 from PIL import Image
 from werkzeug.formparser import MultiPartParser
 
@@ -142,19 +141,18 @@ def validate_image_format(
     Raises:
         BadImage: The image is given and is not either a PNG or a JPEG.
     """
-    body_file = io.BytesIO(request_body)
-
     email_message = EmailMessage()
     email_message["content-type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
-    parsed = multipart.MultipartParser(stream=body_file, boundary=boundary)
-    image_part = parsed.get("image")
-    assert image_part is not None
-    image_value = image_part.raw
-
-    image_file = io.BytesIO(image_value)
-    pil_image = Image.open(image_file)
+    parser = MultiPartParser()
+    _, files = parser.parse(
+        stream=io.BytesIO(request_body),
+        boundary=boundary.encode("utf-8"),
+        content_length=len(request_body),
+    )
+    image_part = files["image"]
+    pil_image = Image.open(image_part.stream)
 
     if pil_image.format in {"PNG", "JPEG"}:
         return

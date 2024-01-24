@@ -45,8 +45,6 @@ def get_query_match_response_text(
     Returns:
         The response text for a query endpoint request.
     """
-    body_file = io.BytesIO(request_body)
-
     email_message = EmailMessage()
     email_message["content-type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
@@ -63,7 +61,7 @@ def get_query_match_response_text(
     include_target_data = str(fields.get("include_target_data", "top")).lower()
 
     image_part = files["image"]
-    image_value = image_part.stream.read()
+    image_value = bytes(image_part.stream.read())
     gmt = ZoneInfo("GMT")
     datetime.datetime.now(tz=gmt)
 
