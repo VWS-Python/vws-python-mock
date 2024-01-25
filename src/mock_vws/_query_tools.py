@@ -40,7 +40,7 @@ class TypedMultiPartParser(MultiPartParser):
         content_length: int | None,
     ) -> tuple[MultiDict[str, str], MultiDict[str, FileStorage]]:
         # Once this Pyright issue is fixed, we can remove this whole class.
-        return super().parse(  # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType]
+        return super().parse(
             stream=stream,
             boundary=boundary,
             content_length=content_length,
