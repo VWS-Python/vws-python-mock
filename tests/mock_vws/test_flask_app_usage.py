@@ -29,10 +29,7 @@ _EXAMPLE_URL_FOR_TARGET_MANAGER = "http://" + uuid.uuid4().hex + ".com"
 
 
 @pytest.fixture(autouse=True)
-def _enable_requests_mock(
-    monkeypatch: pytest.MonkeyPatch,
-    requests_mock: Mocker,
-) -> None:
+def _(monkeypatch: pytest.MonkeyPatch, requests_mock: Mocker) -> None:
     """
     Enable a mock service backed by the Flask applications.
     """
