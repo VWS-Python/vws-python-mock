@@ -6,8 +6,7 @@ import io
 import logging
 from email.message import EmailMessage
 
-from werkzeug.formparser import MultiPartParser
-
+from mock_vws._query_tools import TypedMultiPartParser
 from mock_vws._query_validators.exceptions import InvalidIncludeTargetData
 
 _LOGGER = logging.getLogger(__name__)
@@ -33,7 +32,7 @@ def validate_include_target_data(
     email_message["content-type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
-    parser = MultiPartParser()
+    parser = TypedMultiPartParser()
     fields, _ = parser.parse(
         stream=io.BytesIO(request_body),
         boundary=boundary.encode("utf-8"),
