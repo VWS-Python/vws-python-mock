@@ -559,7 +559,7 @@ def update_target(target_id: str) -> Response:
     if target.status != TargetStatuses.SUCCESS.value:
         raise TargetStatusNotSuccess
 
-    update_values = {}
+    update_values: dict[str, str | int | float | bool | None] = {}
     if "width" in request_json:
         update_values["width"] = request_json["width"]
 
