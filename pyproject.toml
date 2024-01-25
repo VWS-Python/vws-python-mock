@@ -349,7 +349,7 @@ dev = [
     "tenacity==8.2.3",
     "types-Pillow==10.2.0.20240111",
     "types-PyYAML==6.0.12.12",
-    "types-requests==2.31.0.20240106",
+    "types-requests==2.31.0.20240125",
     "urllib3==2.1.0",
     "vulture==2.11",
     "vws-python==2023.12.27",
