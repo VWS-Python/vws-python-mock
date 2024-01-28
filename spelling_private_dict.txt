@@ -80,7 +80,12 @@ recognitions
 refactoring
 regex
 reimplementation
+reportAttributeAccessIssue
 reportGeneralTypeIssues
+reportMissingTypeStubs
+reportUnknownArgumentType
+reportUnknownMemberType
+reportUnknownVariableType
 repr
 reqheader
 reqjson
