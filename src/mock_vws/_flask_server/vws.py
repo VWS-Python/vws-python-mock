@@ -103,7 +103,7 @@ def set_terminate_wsgi_input() -> None:
     same as the real Vuforia.
     This is documented as a difference in the documentation for this package.
     """
-    if VWS_FLASK_APP.config.get("TERMINATE_WSGI_INPUT") is True:
+    if VWS_FLASK_APP.config.get("TERMINATE_WSGI_INPUT") is True:  # pyright: ignore[reportUnknownMemberType]
         request.environ["wsgi.input_terminated"] = True
 
 
@@ -559,7 +559,7 @@ def update_target(target_id: str) -> Response:
     if target.status != TargetStatuses.SUCCESS.value:
         raise TargetStatusNotSuccess
 
-    update_values = {}
+    update_values: dict[str, str | int | float | bool | None] = {}
     if "width" in request_json:
         update_values["width"] = request_json["width"]
 

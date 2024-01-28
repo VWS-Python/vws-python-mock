@@ -264,8 +264,10 @@ def verify_mock_vuforia(
         VuforiaBackend.DOCKER_IN_MEMORY: _enable_use_docker_in_memory,
     }[backend]
 
-    decorated_function = _RETRY_ON_TOO_MANY_REQUESTS(request.node.obj)  # pyright: ignore [reportAttributeAccessIssue]
-    request.node.obj = decorated_function  # pyright: ignore [reportAttributeAccessIssue]
+    decorated_function = _RETRY_ON_TOO_MANY_REQUESTS(  # pyright: ignore[reportUnknownVariableType]
+        request.node.obj,  # pyright: ignore[reportUnknownMemberType,reportAttributeAccessIssue,reportUnknownArgumentType]
+    )
+    request.node.obj = decorated_function  # pyright: ignore[reportAttributeAccessIssue,reportUnknownMemberType]
 
     yield from enable_function(
         working_database=vuforia_database,
