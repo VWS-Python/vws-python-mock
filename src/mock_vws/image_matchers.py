@@ -4,8 +4,36 @@ import io
 from functools import cache
 from typing import Protocol, runtime_checkable
 
-import imagehash
+import numpy as np
+from imagehash import ANTIALIAS, ImageHash
 from PIL import Image
+
+
+def _average_hash(image: Image.Image) -> ImageHash:
+    """
+    Average Hash computation.
+
+    This is taken from `imagehash`'s `average_hash` function, but is modified
+    so that we can use pyright in strict mode without error..
+    See https://github.com/JohannesBuchner/imagehash/issues/206.
+
+    Implementation follows https://www.hackerfactor.com/blog/index.php?/archives/432-Looks-Like-It.html
+
+    Step by step explanation: https://web.archive.org/web/20171112054354/https://www.safaribooksonline.com/blog/2013/11/26/image-hashing-with-python/
+    """
+    hash_size = 8
+    # reduce size and complexity, then convert to greyscale
+    image = image.convert("L").resize((hash_size, hash_size), ANTIALIAS)
+
+    # find average pixel value; 'pixels' is an array of the pixel values,
+    # ranging from 0 (black) to 255 (white)
+    pixels = np.asarray(image)
+    avg = np.mean(pixels)
+
+    # create string of bits
+    diff = pixels > avg
+    # make a hash
+    return ImageHash(diff)
 
 
 @cache
@@ -24,8 +52,8 @@ def _average_hash_match(
     first_image = Image.open(fp=first_image_file)
     second_image_file = io.BytesIO(initial_bytes=second_image_content)
     second_image = Image.open(fp=second_image_file)
-    first_image_hash = imagehash.average_hash(first_image)  # pyright: ignore[reportUnknownMemberType]
-    second_image_hash = imagehash.average_hash(second_image)  # pyright: ignore[reportUnknownMemberType]
+    first_image_hash = _average_hash(first_image)
+    second_image_hash = _average_hash(second_image)
     return bool(first_image_hash == second_image_hash)
 
 
