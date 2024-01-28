@@ -6,7 +6,7 @@ import math
 import random
 from typing import Protocol, runtime_checkable
 
-import brisque
+import brisque  # pyright: ignore[reportMissingTypeStubs]
 import cv2
 import numpy as np
 from PIL import Image
@@ -31,7 +31,7 @@ def _get_brisque_target_tracking_rating(image_content: bytes) -> int:
     # We avoid a barrage of warnings from the BRISQUE library.
     with np.errstate(divide="ignore", invalid="ignore"):
         try:
-            score = float(brisque_obj.score(img=image_array))
+            score = float(brisque_obj.score(img=image_array))  # pyright: ignore[reportUnknownMemberType,reportUnknownArgumentType]
         # See https://github.com/pylint-dev/pylint/issues/9332
         # for why we disable these warnings - pylint has trouble with
         # cv2.error and behaves differently depending on the OS.

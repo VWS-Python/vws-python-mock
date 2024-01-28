@@ -85,7 +85,7 @@ def set_terminate_wsgi_input() -> None:
     same as the real Vuforia.
     This is documented as a difference in the documentation for this package.
     """
-    if CLOUDRECO_FLASK_APP.config.get("TERMINATE_WSGI_INPUT") is True:
+    if CLOUDRECO_FLASK_APP.config.get("TERMINATE_WSGI_INPUT") is True:  # pyright: ignore[reportUnknownMemberType]
         request.environ["wsgi.input_terminated"] = True
 
 

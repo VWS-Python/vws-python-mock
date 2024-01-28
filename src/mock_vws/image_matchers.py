@@ -24,8 +24,8 @@ def _average_hash_match(
     first_image = Image.open(fp=first_image_file)
     second_image_file = io.BytesIO(initial_bytes=second_image_content)
     second_image = Image.open(fp=second_image_file)
-    first_image_hash = imagehash.average_hash(first_image)
-    second_image_hash = imagehash.average_hash(second_image)
+    first_image_hash = imagehash.average_hash(first_image)  # pyright: ignore[reportUnknownMemberType]
+    second_image_hash = imagehash.average_hash(second_image)  # pyright: ignore[reportUnknownMemberType]
     return bool(first_image_hash == second_image_hash)
 
 
