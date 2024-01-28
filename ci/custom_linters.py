@@ -58,7 +58,23 @@ def test_ci_patterns_valid() -> None:
     ci_patterns = _ci_patterns()
 
     for ci_pattern in ci_patterns:
-        collect_only_result = pytest.main(["--collect-only", ci_pattern])
+        collect_only_result = pytest.main(
+            args=[
+                "--collect-only",
+                ci_pattern,
+                # Disable pytest-retry to avoid:
+                # ```
+                # ValueError: no option named 'filtered_exceptions'
+                # ````
+                "-p",
+                "no:pytest-retry",
+                # Disable warnings to avoid many instances of:
+                # ```
+                # Unknown config option: retry_delay
+                # ```
+                "--disable-warnings",
+            ],
+        )
 
         message = f'"{ci_pattern}" does not match any tests.'
         assert collect_only_result == 0, message

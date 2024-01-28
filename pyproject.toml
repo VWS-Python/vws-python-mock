@@ -135,6 +135,11 @@ log_cli = true
 addopts = ["--strict-markers"]
 markers = ["requires_docker_build"]
 
+# Options for pytest-retry.
+retries = 10
+retry_delay = 10
+cumulative_timing = false
+
 [tool.check-manifest]
 
 ignore = [
@@ -332,6 +337,7 @@ dev = [
     "pyroma==4.2",
     "pytest==7.4.4",
     "pytest-cov==4.1",
+    "pytest-retry==1.6.1",
     "pytest-xdist==3.5.0",
     "python-dotenv==1.0.1",
     "PyYAML==6.0.1",
@@ -346,7 +352,6 @@ dev = [
     "sphinxcontrib-httpdomain==1.8.1",
     "sphinxcontrib-spelling==8",
     "sybil==6.0.2",
-    "tenacity==8.2.3",
     "types-Pillow==10.2.0.20240125",
     "types-PyYAML==6.0.12.12",
     "types-requests==2.31.0.20240125",

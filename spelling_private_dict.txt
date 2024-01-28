@@ -18,6 +18,7 @@ bytesio
 changelog
 chunked
 cmyk
+config
 connectionerror
 customizable
 dataclass

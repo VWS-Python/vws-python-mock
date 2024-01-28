@@ -18,13 +18,9 @@ from mock_vws._flask_server.vws import VWS_FLASK_APP
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
 from requests_mock_flask import add_flask_app_to_mock
-from tenacity import retry
-from tenacity.retry import retry_if_exception_type
-from tenacity.wait import wait_fixed
 from vws import VWS
 from vws.exceptions.vws_exceptions import (
     TargetStatusNotSuccess,
-    TooManyRequests,
 )
 
 if TYPE_CHECKING:
@@ -36,14 +32,7 @@ if TYPE_CHECKING:
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
-_RETRY_ON_TOO_MANY_REQUESTS = retry(
-    retry=retry_if_exception_type(exception_types=(TooManyRequests,)),
-    wait=wait_fixed(wait=10),
-    reraise=True,
-)
 
-
-@_RETRY_ON_TOO_MANY_REQUESTS
 def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
     """
     Delete all targets.
@@ -263,11 +252,6 @@ def verify_mock_vuforia(
         VuforiaBackend.MOCK: _enable_use_mock_vuforia,
         VuforiaBackend.DOCKER_IN_MEMORY: _enable_use_docker_in_memory,
     }[backend]
-
-    decorated_function = _RETRY_ON_TOO_MANY_REQUESTS(  # pyright: ignore[reportUnknownVariableType]
-        request.node.obj,  # pyright: ignore[reportUnknownMemberType,reportAttributeAccessIssue,reportUnknownArgumentType]
-    )
-    request.node.obj = decorated_function  # pyright: ignore[reportAttributeAccessIssue,reportUnknownMemberType]
 
     yield from enable_function(
         working_database=vuforia_database,
