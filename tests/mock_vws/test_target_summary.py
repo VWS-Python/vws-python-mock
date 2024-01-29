@@ -16,7 +16,6 @@ from vws.reports import TargetStatuses
 if TYPE_CHECKING:
     import io
 
-    from _pytest.fixtures import SubRequest
     from mock_vws.database import VuforiaDatabase
     from vws import VWS, CloudRecoService
 
@@ -83,7 +82,7 @@ class TestTargetSummary:
     )
     def test_after_processing(
         vws_client: VWS,
-        request: SubRequest,
+        request: pytest.FixtureRequest,
         image_fixture_name: str,
         expected_status: TargetStatuses,
     ) -> None:

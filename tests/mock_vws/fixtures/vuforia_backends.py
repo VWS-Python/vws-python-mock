@@ -30,8 +30,6 @@ from vws.exceptions.vws_exceptions import (
 if TYPE_CHECKING:
     from collections.abc import Generator
 
-    from _pytest.config.argparsing import Parser
-    from _pytest.fixtures import SubRequest
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -197,7 +195,7 @@ class VuforiaBackend(Enum):
     DOCKER_IN_MEMORY = "In Memory version of Docker application"
 
 
-def pytest_addoption(parser: Parser) -> None:
+def pytest_addoption(parser: pytest.Parser) -> None:
     """
     Add options to the pytest command line for skipping tests with particular
     backends.
@@ -241,7 +239,7 @@ def pytest_collection_modifyitems(
     ids=[backend.value for backend in list(VuforiaBackend)],
 )
 def verify_mock_vuforia(
-    request: SubRequest,
+    request: pytest.FixtureRequest,
     vuforia_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
     monkeypatch: pytest.MonkeyPatch,
