@@ -374,7 +374,7 @@ where = ["src"]
 [tool.setuptools.package-data]
 mock_vws = ["py.typed"]
 
- [tool.pyproject-fmt]
+[tool.pyproject-fmt]
 indent = 4
 keep_full_version = true
 
