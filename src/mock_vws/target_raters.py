@@ -6,7 +6,7 @@ import math
 import random
 from typing import Protocol, runtime_checkable
 
-import brisque  # pyright: ignore[reportMissingTypeStubs]
+import brisque  # type: ignore[import-untyped]
 import cv2
 import numpy as np
 from PIL import Image

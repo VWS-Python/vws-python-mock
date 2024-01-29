@@ -10,12 +10,12 @@ from http import HTTPStatus
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import docker
+import docker  # type: ignore[import-untyped]
 import pytest
 import requests
-from docker.errors import BuildError, NotFound
-from docker.models.containers import Container
-from docker.models.networks import Network
+from docker.errors import BuildError, NotFound  # type: ignore[import-untyped]
+from docker.models.containers import Container  # type: ignore[import-untyped]
+from docker.models.networks import Network  # type: ignore[import-untyped]
 from mock_vws.database import VuforiaDatabase
 from vws import VWS, CloudRecoService
 
