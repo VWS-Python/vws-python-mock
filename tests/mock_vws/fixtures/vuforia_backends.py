@@ -36,6 +36,8 @@ if TYPE_CHECKING:
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
+# We rely on pytest-retry for exceptions *during* tests.
+# We use tenacity for exceptions *before* tests.
 _RETRY_ON_TOO_MANY_REQUESTS = retry(
     retry=retry_if_exception_type(exception_types=(TooManyRequests,)),
     wait=wait_fixed(wait=10),
@@ -263,11 +265,6 @@ def verify_mock_vuforia(
         VuforiaBackend.MOCK: _enable_use_mock_vuforia,
         VuforiaBackend.DOCKER_IN_MEMORY: _enable_use_docker_in_memory,
     }[backend]
-
-    decorated_function = _RETRY_ON_TOO_MANY_REQUESTS(  # pyright: ignore[reportUnknownVariableType]
-        request.node.obj,  # pyright: ignore[reportUnknownMemberType,reportAttributeAccessIssue,reportUnknownArgumentType]
-    )
-    request.node.obj = decorated_function  # pyright: ignore[reportAttributeAccessIssue,reportUnknownMemberType]
 
     yield from enable_function(
         working_database=vuforia_database,
