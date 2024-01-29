@@ -339,6 +339,7 @@ dev = [
     "sphinxcontrib-httpdomain==1.8.1",
     "sphinxcontrib-spelling==8",
     "sybil==6.0.2",
+    "tenacity==8.2.3",
     "types-Pillow==10.2.0.20240125",
     "types-PyYAML==6.0.12.12",
     "types-requests==2.31.0.20240125",
@@ -361,7 +362,7 @@ where = ["src"]
 [tool.setuptools.package-data]
 mock_vws = ["py.typed"]
 
- [tool.pyproject-fmt]
+[tool.pyproject-fmt]
 indent = 4
 keep_full_version = true
 
