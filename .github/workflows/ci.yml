@@ -113,7 +113,7 @@ jobs:
         id: pip-cache
         run: |
           python -m pip cache dir
-          echo "dir=$(python -m pip cache dir)" >> $GITHUB_OUTPUT
+          echo "dir=$(python -m pip cache dir)" >> "$GITHUB_OUTPUT"
 
       - uses: actions/cache@v4
         with:
