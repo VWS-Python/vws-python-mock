@@ -6,6 +6,10 @@ SHELL := /bin/bash -euxo pipefail
 custom-linters:
 	pytest ci/custom_linters.py
 
+.PHONY: actionlint
+actionlint:
+	actionlint
+
 .PHONY: mypy
 mypy:
 	mypy .
