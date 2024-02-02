@@ -90,7 +90,7 @@ def set_terminate_wsgi_input() -> None:
             CLOUDRECO_FLASK_APP.config["VWS_MOCK_TERMINATE_WSGI_INPUT"] is True
         )
     except KeyError:
-        return
+        set_terminate_wsgi_input_true = False
 
     if set_terminate_wsgi_input_true:
         request.environ["wsgi.input_terminated"] = True
