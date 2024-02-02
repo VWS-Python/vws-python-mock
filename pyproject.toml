@@ -220,6 +220,8 @@ ignore = [
     "ANN102",
     # Ruff warns that this conflicts with the formatter.
     "COM812",
+    # Allow missing copyright notice.
+    "CPY001",
     # Allow our chosen docstring line-style - no one-line summary.
     "D200",
     "D203",
@@ -378,4 +380,4 @@ reportUnnecessaryTypeIgnoreComment = true
 typeCheckingMode = "strict"
 # We have too many errors because of
 # docker-py not being typed.
-ignore = ["tests/mock_vws/test_docker.py"]
+# ignore = ["tests/mock_vws/test_docker.py"]
