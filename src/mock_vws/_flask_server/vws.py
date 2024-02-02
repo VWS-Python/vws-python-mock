@@ -91,9 +91,9 @@ def get_all_databases() -> set[VuforiaDatabase]:
 @VWS_FLASK_APP.before_request
 def set_terminate_wsgi_input() -> None:
     """
-    We set ``wsgi.input_terminated`` to ``True`` when going through
-    ``requests``, so that requests have the given ``Content-Length`` headers
-    and the given data in ``request.headers`` and ``request.data``.
+    We set ``wsgi.input_terminated`` to ``True`` when going through ``requests``
+    in our tests, so that requests have the given ``Content-Length`` headers and
+    the given data in ``request.headers`` and ``request.data``.
 
     We do not set this at all when running an application as standalone.
     This is because when running the Flask application, if this is set,
@@ -105,7 +105,7 @@ def set_terminate_wsgi_input() -> None:
     """
     try:
         set_terminate_wsgi_input_true = (
-            VWS_FLASK_APP.config["TERMINATE_WSGI_INPUT"] is True
+            VWS_FLASK_APP.config["VWS_MOCK_TERMINATE_WSGI_INPUT"] is True
         )
     except KeyError:
         return

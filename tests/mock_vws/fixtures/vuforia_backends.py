@@ -120,7 +120,7 @@ def _enable_use_docker_in_memory(
     monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None, None, None]:
     # We set ``wsgi.input_terminated`` to ``True`` so that when going through
-    # ``requests``, the Flask applications
+    # ``requests`` in our tests, the Flask applications
     # have the given ``Content-Length`` headers and the given data in
     # ``request.headers`` and ``request.data``.
     #
@@ -131,8 +131,8 @@ def _enable_use_docker_in_memory(
     # Therefore, when running the real Flask application, the behavior is not
     # the same as the real Vuforia.
     # This is documented as a difference in the documentation for this package.
-    VWS_FLASK_APP.config["TERMINATE_WSGI_INPUT"] = True
-    CLOUDRECO_FLASK_APP.config["TERMINATE_WSGI_INPUT"] = True
+    VWS_FLASK_APP.config["VWS_MOCK_TERMINATE_WSGI_INPUT"] = True
+    CLOUDRECO_FLASK_APP.config["VWS_MOCK_TERMINATE_WSGI_INPUT"] = True
 
     target_manager_base_url = "http://example.com"
     monkeypatch.setenv(
