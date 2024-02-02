@@ -2,7 +2,11 @@
 Tests for target quality raters.
 """
 
-from mock_vws.target_raters import RandomTargetTrackingRater
+import pytest
+from mock_vws.target_raters import (
+    HardcodedTargetTrackingRater,
+    RandomTargetTrackingRater,
+)
 
 
 def test_random_target_tracking_rater() -> None:
@@ -23,3 +27,14 @@ def test_random_target_tracking_rater() -> None:
     assert lowest_rating >= minimum_rating
     assert highest_rating <= maximum_rating
     assert lowest_rating != highest_rating
+
+
+@pytest.mark.parametrize("rating", range(-10, 10))
+def test_hardcoded_target_tracking_rater(rating: int) -> None:
+    """
+    Test that the hardcoded target tracking rater returns the hardcoded number.
+    """
+    rater = HardcodedTargetTrackingRater(rating=rating)
+    image_content = b"content"
+    ratings = [rater(image_content=image_content) for _ in range(50)]
+    assert all(given_rating == rating for given_rating in ratings)
