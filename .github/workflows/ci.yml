@@ -73,6 +73,7 @@ jobs:
           - tests/mock_vws/test_invalid_given_id.py
           - tests/mock_vws/test_invalid_json.py
           - tests/mock_vws/test_target_list.py
+          - tests/mock_vws/test_target_raters.py
           - tests/mock_vws/test_target_summary.py
           - tests/mock_vws/test_unexpected_json.py
           - tests/mock_vws/test_update_target.py::TestActiveFlag

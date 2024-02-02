@@ -123,9 +123,9 @@ branch = true
 
 [tool.coverage.report]
 
-exclude_lines =  [
-  "pragma: no cover",
+exclude_also =  [
   "if TYPE_CHECKING:",
+  "class .*\\bProtocol\\):",
 ]
 
 [tool.pytest.ini_options]
