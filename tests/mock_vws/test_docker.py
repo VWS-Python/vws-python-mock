@@ -104,12 +104,7 @@ def test_build_and_run(
     repository_root = Path(__file__).parent.parent.parent
     client = docker.from_env()
 
-    dockerfile_dir = repository_root / "src/mock_vws/_flask_server/dockerfiles"
-    target_manager_dockerfile = (
-        dockerfile_dir / "target_manager" / "Dockerfile"
-    )
-    vws_dockerfile = dockerfile_dir / "vws" / "Dockerfile"
-    vwq_dockerfile = dockerfile_dir / "vwq" / "Dockerfile"
+    dockerfile = repository_root / "src/mock_vws/_flask_server/Dockerfile"
 
     random = uuid.uuid4().hex
     target_manager_tag = f"vws-mock-target-manager:latest-{random}"
@@ -117,10 +112,11 @@ def test_build_and_run(
     vwq_tag = f"vws-mock-vwq:latest-{random}"
 
     try:
-        target_manager_image, _ = client.images.build(
+        target_manager_build_result = client.images.build(
             path=str(repository_root),
-            dockerfile=str(target_manager_dockerfile),
+            dockerfile=str(dockerfile),
             tag=target_manager_tag,
+            target="target-manager",
         )
     except BuildError as exc:
         full_log = "\n".join(
@@ -135,15 +131,20 @@ def test_build_and_run(
         reason = "We do not currently support using Windows containers."
         pytest.skip(reason)
 
+    assert isinstance(target_manager_build_result, tuple)
+    target_manager_image, _ = target_manager_build_result
+
     vws_image, _ = client.images.build(
         path=str(repository_root),
-        dockerfile=str(vws_dockerfile),
+        dockerfile=str(dockerfile),
         tag=vws_tag,
+        target="vws",
     )
     vwq_image, _ = client.images.build(
         path=str(repository_root),
-        dockerfile=str(vwq_dockerfile),
+        dockerfile=str(dockerfile),
         tag=vwq_tag,
+        target="vwq",
     )
 
     database = VuforiaDatabase()
