@@ -123,18 +123,16 @@ def validate_authorization(
     Raises:
         AuthenticationFailure: The "Authorization" header is not as expected.
     """
-    database = get_database_matching_client_keys(
-        request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
-    )
-
-    if database is not None:
-        return
-
-    _LOGGER.warning(
-        msg="The authorization header does not match any databases.",
-    )
-    raise AuthenticationFailure
+    try:
+        get_database_matching_client_keys(
+            request_headers=request_headers,
+            request_body=request_body,
+            request_method=request_method,
+            request_path=request_path,
+            databases=databases,
+        )
+    except ValueError:
+        _LOGGER.warning(
+            msg="The authorization header does not match any databases.",
+        )
+        raise AuthenticationFailure from ValueError

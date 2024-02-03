@@ -96,8 +96,6 @@ def get_query_match_response_text(
         databases=databases,
     )
 
-    assert isinstance(database, VuforiaDatabase)
-
     matching_targets = [
         target
         for target in database.targets
