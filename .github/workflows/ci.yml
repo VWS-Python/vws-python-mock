@@ -142,6 +142,20 @@ jobs:
           # pip-extra-reqs.
           python -m pip install --ignore-installed --upgrade --editable .[dev]
 
+      # We have seen issues with running out of disk space on test_docker
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          # All of these default to true (meaning they are removed).
+          docker-images: false
+          large-packages: false
+          swap-storage: false
+          tool-cache: false
+
+          android: true
+          dotnet: true
+          haskell: true
+
       - name: "Run tests"
         run: |
           pytest \
