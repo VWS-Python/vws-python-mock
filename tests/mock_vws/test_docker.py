@@ -139,22 +139,18 @@ def test_build_and_run(
     assert isinstance(target_manager_build_result, tuple)
     target_manager_image, _ = target_manager_build_result
 
-    vws_build_result = client.images.build(
+    vws_image, _ = client.images.build(
         path=str(repository_root),
         dockerfile=str(vws_dockerfile),
         tag=vws_tag,
         squash=True,
     )
-    assert isinstance(vws_build_result, tuple)
-    vws_image, _ = vws_build_result
-    vwq_build_result = client.images.build(
+    vwq_image, _ = client.images.build(
         path=str(repository_root),
         dockerfile=str(vwq_dockerfile),
         tag=vwq_tag,
         squash=True,
     )
-    assert isinstance(vwq_build_result, tuple)
-    vwq_image, _ = vwq_build_result
 
     database = VuforiaDatabase()
     target_manager_container_name = "vws-mock-target-manager-" + random
