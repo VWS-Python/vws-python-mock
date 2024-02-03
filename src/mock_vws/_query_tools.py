@@ -18,11 +18,11 @@ from mock_vws._base64_decoding import decode_base64
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_client_keys
 from mock_vws._mock_common import json_dump
-from mock_vws.database import VuforiaDatabase
 
 if TYPE_CHECKING:
     from werkzeug.datastructures import FileStorage, MultiDict
 
+    from mock_vws.database import VuforiaDatabase
     from mock_vws.image_matchers import ImageMatcher
 
 
