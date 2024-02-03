@@ -142,6 +142,13 @@ jobs:
           # pip-extra-reqs.
           python -m pip install --ignore-installed --upgrade --editable .[dev]
 
+      # Avoid "No space left on device" errors during Docker builds.
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          docker-images: false
+
       - name: "Run tests"
         run: |
           pytest \
