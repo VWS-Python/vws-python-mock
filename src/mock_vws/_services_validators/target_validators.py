@@ -47,8 +47,6 @@ def validate_target_id_exists(
         databases=databases,
     )
 
-    assert isinstance(database, VuforiaDatabase)
-
     try:
         (_,) = (
             target

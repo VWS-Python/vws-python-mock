@@ -20,10 +20,10 @@ def get_database_matching_client_keys(
     request_method: str,
     request_path: str,
     databases: Iterable[VuforiaDatabase],
-) -> VuforiaDatabase | None:
+) -> VuforiaDatabase:
     """
-    Return which, if any, of the given databases is being accessed by the given
-    client request.
+    Return the first of the given databases which is being accessed by the
+    given client request.
 
     Args:
         request_headers: The headers sent with the request.
@@ -34,6 +34,9 @@ def get_database_matching_client_keys(
 
     Returns:
         The database which is being accessed by the given client request.
+
+    Raises:
+        ValueError: No database matches the given request.
     """
     content_type = request_headers.get("Content-Type", "").split(";")[0]
     auth_header = request_headers.get("Authorization")
@@ -53,7 +56,7 @@ def get_database_matching_client_keys(
 
         if auth_header == expected_authorization_header:
             return database
-    return None
+    raise ValueError
 
 
 def get_database_matching_server_keys(
@@ -62,10 +65,10 @@ def get_database_matching_server_keys(
     request_method: str,
     request_path: str,
     databases: Iterable[VuforiaDatabase],
-) -> VuforiaDatabase | None:
+) -> VuforiaDatabase:
     """
-    Return which, if any, of the given databases is being accessed by the given
-    server request.
+    Return the first of the given databases which is being accessed by the
+    given server request.
 
     Args:
         request_headers: The headers sent with the request.
@@ -76,6 +79,9 @@ def get_database_matching_server_keys(
 
     Returns:
         The database being accessed by the given server request.
+
+    Raises:
+        ValueError: No database matches the given request.
     """
     content_type = request_headers.get("Content-Type", "").split(";")[0]
     auth_header = request_headers.get("Authorization")
@@ -95,4 +101,4 @@ def get_database_matching_server_keys(
 
         if auth_header == expected_authorization_header:
             return database
-    return None
+    raise ValueError

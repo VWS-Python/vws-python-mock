@@ -42,7 +42,6 @@ def validate_project_state(
         databases=databases,
     )
 
-    assert isinstance(database, VuforiaDatabase)
     if database.state != States.PROJECT_INACTIVE:
         return
 
