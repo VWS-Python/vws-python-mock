@@ -102,9 +102,10 @@ jobs:
       - name: Build and push target manager Docker image
         uses: docker/build-push-action@v5.1.0
         with:
-          file: src/mock_vws/_flask_server/dockerfiles/target_manager/Dockerfile
+          file: src/mock_vws/_flask_server/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
+          target: target-manager
           tags: |
             adamtheturtle/vuforia-target-manager-mock:latest
             adamtheturtle/vuforia-target-manager-mock:${{ steps.calver.outputs.release }}
@@ -112,9 +113,10 @@ jobs:
       - name: Build and push VWS Docker image
         uses: docker/build-push-action@v5.1.0
         with:
-          file: src/mock_vws/_flask_server/dockerfiles/vws/Dockerfile
+          file: src/mock_vws/_flask_server/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
+          target: vws
           tags: |
             adamtheturtle/vuforia-vws-mock:latest
             adamtheturtle/vuforia-vws-mock:${{ steps.calver.outputs.release }}
@@ -122,9 +124,10 @@ jobs:
       - name: Build and push VWQ Docker image
         uses: docker/build-push-action@v5.1.0
         with:
-          file: src/mock_vws/_flask_server/dockerfiles/vwq/Dockerfile
+          file: src/mock_vws/_flask_server/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
+          target: vwq
           tags: |
             adamtheturtle/vuforia-vwq-mock:latest
             adamtheturtle/vuforia-vwq-mock:${{ steps.calver.outputs.release }}

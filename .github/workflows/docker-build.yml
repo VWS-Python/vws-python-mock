@@ -26,11 +26,8 @@ jobs:
       matrix:
         image:
           - name: target-manager
-            file: src/mock_vws/_flask_server/dockerfiles/target_manager/Dockerfile
           - name: vws
-            file: src/mock_vws/_flask_server/dockerfiles/vws/Dockerfile
           - name: vwq
-            file: src/mock_vws/_flask_server/dockerfiles/vwq/Dockerfile
 
     steps:
       - uses: actions/checkout@v4
@@ -47,5 +44,6 @@ jobs:
           platforms: linux/amd64,linux/arm64
           file: src/mock_vws/_flask_server/Dockerfile
           push: false
+          target: ${{ matrix.image.name }}
           tags: |
             adamtheturtle/vuforia-${{ matrix.image.name }}-mock:latest
