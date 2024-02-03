@@ -45,7 +45,7 @@ jobs:
         uses: docker/build-push-action@v5.1.0
         with:
           platforms: linux/amd64,linux/arm64
-          file: ${{ matrix.image.file}}
+          file: src/mock_vws/_flask_server/Dockerfile
           push: false
           tags: |
             adamtheturtle/vuforia-${{ matrix.image.name }}-mock:latest

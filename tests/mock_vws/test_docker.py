@@ -104,12 +104,7 @@ def test_build_and_run(
     repository_root = Path(__file__).parent.parent.parent
     client = docker.from_env()
 
-    dockerfile_dir = repository_root / "src/mock_vws/_flask_server/dockerfiles"
-    target_manager_dockerfile = (
-        dockerfile_dir / "target_manager" / "Dockerfile"
-    )
-    vws_dockerfile = dockerfile_dir / "vws" / "Dockerfile"
-    vwq_dockerfile = dockerfile_dir / "vwq" / "Dockerfile"
+    dockerfile = repository_root / "src/mock_vws/_flask_server/Dockerfile"
 
     random = uuid.uuid4().hex
     target_manager_tag = f"vws-mock-target-manager:latest-{random}"
@@ -119,9 +114,9 @@ def test_build_and_run(
     try:
         target_manager_build_result = client.images.build(
             path=str(repository_root),
-            dockerfile=str(target_manager_dockerfile),
+            dockerfile=str(dockerfile),
             tag=target_manager_tag,
-            squash=True,
+            target="target-manager",
         )
     except BuildError as exc:
         full_log = "\n".join(
@@ -141,15 +136,15 @@ def test_build_and_run(
 
     vws_image, _ = client.images.build(
         path=str(repository_root),
-        dockerfile=str(vws_dockerfile),
+        dockerfile=str(dockerfile),
         tag=vws_tag,
-        squash=True,
+        target="vws",
     )
     vwq_image, _ = client.images.build(
         path=str(repository_root),
-        dockerfile=str(vwq_dockerfile),
+        dockerfile=str(dockerfile),
         tag=vwq_tag,
-        squash=True,
+        target="vwq",
     )
 
     database = VuforiaDatabase()
