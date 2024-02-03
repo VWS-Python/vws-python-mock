@@ -112,7 +112,7 @@ def test_build_and_run(
     vwq_tag = f"vws-mock-vwq:latest-{random}"
 
     try:
-        target_manager_build_result = client.images.build(
+        target_manager_image, _ = client.images.build(
             path=str(repository_root),
             dockerfile=str(dockerfile),
             tag=target_manager_tag,
@@ -130,9 +130,6 @@ def test_build_and_run(
             raise AssertionError(full_log) from exc
         reason = "We do not currently support using Windows containers."
         pytest.skip(reason)
-
-    assert isinstance(target_manager_build_result, tuple)
-    target_manager_image, _ = target_manager_build_result
 
     vws_image, _ = client.images.build(
         path=str(repository_root),
