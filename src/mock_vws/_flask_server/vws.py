@@ -505,7 +505,6 @@ def target_list() -> Response:
         request_path=request.path,
         databases=databases,
     )
-    assert isinstance(database, VuforiaDatabase)
     results = [target.target_id for target in database.not_deleted_targets]
 
     body = {
@@ -552,7 +551,6 @@ def update_target(target_id: str) -> Response:
         databases=databases,
     )
 
-    assert isinstance(database, VuforiaDatabase)
     (target,) = (
         target for target in database.targets if target.target_id == target_id
     )
