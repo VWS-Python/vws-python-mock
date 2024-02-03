@@ -7,7 +7,7 @@ COPY . /app
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0
 ENV VWS_HOST=0.0.0.0
 WORKDIR /app
-RUN pip install --upgrade .
+RUN pip install --upgrade pip .
 EXPOSE 5000
 ENTRYPOINT ["python"]
 CMD ["src/mock_vws/_flask_server/vws.py"]
