@@ -41,7 +41,7 @@ class _ImageMatcherChoice(StrEnum):
         """Get the image matcher."""
         matcher = {
             _ImageMatcherChoice.EXACT: ExactMatcher(),
-            _ImageMatcherChoice.AVERAGE_HASH: AverageHashMatcher(threshold=10),
+            _ImageMatcherChoice.AVERAGE_HASH: AverageHashMatcher(),
         }[self]
         assert isinstance(matcher, ImageMatcher)
         return matcher
