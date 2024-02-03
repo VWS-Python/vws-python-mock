@@ -35,7 +35,7 @@ def get_database_matching_client_keys(
     Returns:
         The database which is being accessed by the given client request.
 
-    Rasies:
+    Raises:
         ValueError: No database matches the given request.
     """
     content_type = request_headers.get("Content-Type", "").split(";")[0]
@@ -80,7 +80,7 @@ def get_database_matching_server_keys(
     Returns:
         The database being accessed by the given server request.
 
-    Rasies:
+    Raises:
         ValueError: No database matches the given request.
     """
     content_type = request_headers.get("Content-Type", "").split(";")[0]
