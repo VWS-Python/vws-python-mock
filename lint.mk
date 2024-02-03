@@ -34,8 +34,7 @@ fix-ruff:
 
 .PHONY: pip-extra-reqs
 pip-extra-reqs:
-	# Ignore scipy as it is defined to constrain a version.
-	pip-extra-reqs --ignore-requirement=scipy --skip-incompatible --requirements-file=<(pdm export --pyproject) src/
+	pip-extra-reqs --skip-incompatible --requirements-file=<(pdm export --pyproject) src/
 
 .PHONY: pip-missing-reqs
 pip-missing-reqs:
