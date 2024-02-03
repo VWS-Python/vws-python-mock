@@ -164,8 +164,6 @@ def add_target() -> Response:
         databases=databases,
     )
 
-    assert isinstance(database, VuforiaDatabase)
-
     # We do not use ``request.get_json(force=True)`` because this only works
     # when the content type is given as ``application/json``.
     request_json = json.loads(request.data)
@@ -237,7 +235,6 @@ def get_target(target_id: str) -> Response:
         databases=databases,
     )
 
-    assert isinstance(database, VuforiaDatabase)
     (target,) = (
         target for target in database.targets if target.target_id == target_id
     )
@@ -293,7 +290,6 @@ def delete_target(target_id: str) -> Response:
         databases=databases,
     )
 
-    assert isinstance(database, VuforiaDatabase)
     (target,) = (
         target for target in database.targets if target.target_id == target_id
     )
@@ -346,7 +342,6 @@ def database_summary() -> Response:
         databases=databases,
     )
 
-    assert isinstance(database, VuforiaDatabase)
     body = {
         "result_code": ResultCodes.SUCCESS.value,
         "transaction_id": uuid.uuid4().hex,
@@ -400,7 +395,6 @@ def target_summary(target_id: str) -> Response:
         databases=databases,
     )
 
-    assert isinstance(database, VuforiaDatabase)
     (target,) = (
         target for target in database.targets if target.target_id == target_id
     )
@@ -454,7 +448,6 @@ def get_duplicates(target_id: str) -> Response:
     )
     image_match_checker = settings.duplicates_image_matcher.to_image_matcher()
 
-    assert isinstance(database, VuforiaDatabase)
     (target,) = (
         target for target in database.targets if target.target_id == target_id
     )
@@ -512,7 +505,6 @@ def target_list() -> Response:
         request_path=request.path,
         databases=databases,
     )
-    assert isinstance(database, VuforiaDatabase)
     results = [target.target_id for target in database.not_deleted_targets]
 
     body = {
@@ -559,7 +551,6 @@ def update_target(target_id: str) -> Response:
         databases=databases,
     )
 
-    assert isinstance(database, VuforiaDatabase)
     (target,) = (
         target for target in database.targets if target.target_id == target_id
     )

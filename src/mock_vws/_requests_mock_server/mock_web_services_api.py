@@ -28,7 +28,6 @@ from mock_vws._services_validators.exceptions import (
     TargetStatusProcessing,
     ValidatorException,
 )
-from mock_vws.database import VuforiaDatabase
 from mock_vws.target import Target
 
 if TYPE_CHECKING:
@@ -149,8 +148,6 @@ class MockVuforiaWebServicesAPI:
             databases=self._target_manager.databases,
         )
 
-        assert isinstance(database, VuforiaDatabase)
-
         given_active_flag = request.json().get("active_flag")
         active_flag = {
             None: True,
@@ -225,7 +222,6 @@ class MockVuforiaWebServicesAPI:
             databases=self._target_manager.databases,
         )
 
-        assert isinstance(database, VuforiaDatabase)
         target_id = request.path.split("/")[-1]
         target = database.get_target(target_id=target_id)
 
@@ -290,7 +286,6 @@ class MockVuforiaWebServicesAPI:
             databases=self._target_manager.databases,
         )
 
-        assert isinstance(database, VuforiaDatabase)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         body = {
             "result_code": ResultCodes.SUCCESS.value,
@@ -351,7 +346,6 @@ class MockVuforiaWebServicesAPI:
             databases=self._target_manager.databases,
         )
 
-        assert isinstance(database, VuforiaDatabase)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
 
         response_results = [
@@ -404,7 +398,6 @@ class MockVuforiaWebServicesAPI:
             request_path=request.path,
             databases=self._target_manager.databases,
         )
-        assert isinstance(database, VuforiaDatabase)
         target_id = request.path.split("/")[-1]
         target = database.get_target(target_id=target_id)
 
@@ -469,7 +462,6 @@ class MockVuforiaWebServicesAPI:
             request_path=request.path,
             databases=self._target_manager.databases,
         )
-        assert isinstance(database, VuforiaDatabase)
         target_id = request.path.split("/")[-1]
         target = database.get_target(target_id=target_id)
 
@@ -540,8 +532,6 @@ class MockVuforiaWebServicesAPI:
             request_path=request.path,
             databases=self._target_manager.databases,
         )
-
-        assert isinstance(database, VuforiaDatabase)
 
         target_id = request.path.split("/")[-1]
         target = database.get_target(target_id=target_id)
@@ -644,11 +634,9 @@ class MockVuforiaWebServicesAPI:
             request_path=request.path,
             databases=self._target_manager.databases,
         )
-        assert isinstance(database, VuforiaDatabase)
         target_id = request.path.split("/")[-1]
         target = database.get_target(target_id=target_id)
 
-        assert isinstance(database, VuforiaDatabase)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         body = {
             "status": target.status,
