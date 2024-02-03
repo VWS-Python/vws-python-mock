@@ -156,7 +156,6 @@ Building images from source
 
    export REPOSITORY_ROOT=$PWD
    export DOCKERFILE_DIR=$REPOSITORY_ROOT/src/mock_vws/_flask_server/dockerfiles
-   export BASE_DOCKERFILE=$DOCKERFILE_DIR/base/Dockerfile
    export TARGET_MANAGER_DOCKERFILE=$DOCKERFILE_DIR/target_manager/Dockerfile
    export VWS_DOCKERFILE=$DOCKERFILE_DIR/vws/Dockerfile
    export VWQ_DOCKERFILE=$DOCKERFILE_DIR/vwq/Dockerfile
