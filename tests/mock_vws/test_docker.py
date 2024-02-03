@@ -121,6 +121,7 @@ def test_build_and_run(
             path=str(repository_root),
             dockerfile=str(target_manager_dockerfile),
             tag=target_manager_tag,
+            squash=True,
         )
     except BuildError as exc:
         full_log = "\n".join(
@@ -142,6 +143,7 @@ def test_build_and_run(
         path=str(repository_root),
         dockerfile=str(vws_dockerfile),
         tag=vws_tag,
+        squash=True,
     )
     assert isinstance(vws_build_result, tuple)
     vws_image, _ = vws_build_result
@@ -149,6 +151,7 @@ def test_build_and_run(
         path=str(repository_root),
         dockerfile=str(vwq_dockerfile),
         tag=vwq_tag,
+        squash=True,
     )
     assert isinstance(vwq_build_result, tuple)
     vwq_image, _ = vwq_build_result
