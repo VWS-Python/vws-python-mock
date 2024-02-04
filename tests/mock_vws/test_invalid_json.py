@@ -35,7 +35,10 @@ class TestInvalidJSON:
     """
 
     @staticmethod
-    @pytest.mark.parametrize("date_skew_minutes", [0, 10])
+    # We use a skew of 70 because the maximum allowed skew for services is 5
+    # minutes, and for query is 65 minutes.
+    # 70 is comfortably larger than the max of these two.
+    @pytest.mark.parametrize("date_skew_minutes", [0, 70])
     def test_invalid_json(
         endpoint: Endpoint,
         date_skew_minutes: int,
