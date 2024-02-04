@@ -125,9 +125,9 @@ Query container
    Options include:
 
    * ``exact``: The images must be exactly the same to match.
-   * ``average_hash``: The images must have a similar average hash to match.
+   * ``structural_similarity``: The images must have a similar structural similarity to match.
 
-   Default: ``average_hash``
+   Default: ``structural_similarity``
 
 VWS container
 ~~~~~~~~~~~~~
@@ -145,9 +145,9 @@ VWS container
    Options include:
 
    * ``exact``: The images must be exactly the same to be duplicates.
-   * ``average_hash``: The images must have a similar average hash to be duplicates.
+   * ``structural_similarity``: The images must have a similar structural similarity to be duplicates.
 
-   Default: ``average_hash``
+   Default: ``structural_similarity``
 
 Building images from source
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^

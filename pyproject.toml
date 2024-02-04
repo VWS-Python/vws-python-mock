@@ -296,13 +296,12 @@ dynamic = [
 ]
 dependencies = [
     "flask",
-    "ImageHash",
-    "numpy",
     "Pillow",
     "piq",
     "pydantic-settings",
     "requests",
     "requests-mock",
+    "torch",
     "torchvision",
     'tzdata; sys_platform == "win32"',
     "vws-auth-tools",

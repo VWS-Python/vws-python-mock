@@ -13,8 +13,8 @@ import requests
 from requests_mock.mocker import Mocker
 
 from mock_vws.image_matchers import (
-    AverageHashMatcher,
     ImageMatcher,
+    StructuralSimilarityMatcher,
 )
 from mock_vws.target_manager import TargetManager
 from mock_vws.target_raters import BrisqueTargetTrackingRater
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from mock_vws.target_raters import TargetTrackingRater
 
 
-_AVERAGE_HASH_MATCHER = AverageHashMatcher()
+_STRUCTURAL_SIMILARITY_MATCHER = StructuralSimilarityMatcher()
 _BRISQUE_TRACKING_RATER = BrisqueTargetTrackingRater()
 
 
@@ -40,8 +40,8 @@ class MockVWS(ContextDecorator):
         self,
         base_vws_url: str = "https://vws.vuforia.com",
         base_vwq_url: str = "https://cloudreco.vuforia.com",
-        duplicate_match_checker: ImageMatcher = _AVERAGE_HASH_MATCHER,
-        query_match_checker: ImageMatcher = _AVERAGE_HASH_MATCHER,
+        duplicate_match_checker: ImageMatcher = _STRUCTURAL_SIMILARITY_MATCHER,
+        query_match_checker: ImageMatcher = _STRUCTURAL_SIMILARITY_MATCHER,
         processing_time_seconds: float = 2,
         target_tracking_rater: TargetTrackingRater = _BRISQUE_TRACKING_RATER,
         *,
