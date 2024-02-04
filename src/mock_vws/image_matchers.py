@@ -69,7 +69,11 @@ class StructuralSimilarityMatcher:
         first_image = Image.open(fp=first_image_file)
         second_image_file = io.BytesIO(initial_bytes=second_image_content)
         second_image = Image.open(fp=second_image_file)
-        second_image = second_image.resize(size=first_image.size)
+        # Images must be the same size, and they must be larger than the
+        # default SSIM window size of 11x11.
+        target_size = (256, 256)
+        first_image = first_image.resize(size=target_size)
+        second_image = second_image.resize(size=target_size)
 
         # See https://github.com/pytorch/vision/pull/8251 for precise type.
         first_image_tensor = functional.to_tensor(pic=first_image)  # pyright: ignore[reportUnknownMemberType]
