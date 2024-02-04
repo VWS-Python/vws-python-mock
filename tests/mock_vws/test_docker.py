@@ -118,6 +118,7 @@ def test_build_and_run(
             dockerfile=str(dockerfile),
             tag=target_manager_tag,
             target="target-manager",
+            rm=True,
         )
     except BuildError as exc:
         full_log = "\n".join(
@@ -137,12 +138,14 @@ def test_build_and_run(
         dockerfile=str(dockerfile),
         tag=vws_tag,
         target="vws",
+        rm=True,
     )
     vwq_image, _ = client.images.build(
         path=str(repository_root),
         dockerfile=str(dockerfile),
         tag=vwq_tag,
         target="vwq",
+        rm=True,
     )
 
     database = VuforiaDatabase()
