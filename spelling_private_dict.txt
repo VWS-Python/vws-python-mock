@@ -81,6 +81,7 @@ recognitions
 refactoring
 regex
 reimplementation
+reportAssignmentType
 reportAttributeAccessIssue
 reportGeneralTypeIssues
 reportMissingTypeStubs

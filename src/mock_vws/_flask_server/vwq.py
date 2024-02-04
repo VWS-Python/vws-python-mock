@@ -35,14 +35,14 @@ class _ImageMatcherChoice(StrEnum):
     """Image matcher choices."""
 
     EXACT = auto()
-    structural_similarity = auto()
+    STRUCTURAL_SIMILARITY = auto()
 
     def to_image_matcher(self) -> ImageMatcher:
         """Get the image matcher."""
         ssim_matcher = StructuralSimilarityMatcher()
         matcher = {
             _ImageMatcherChoice.EXACT: ExactMatcher(),
-            _ImageMatcherChoice.structural_similarity: ssim_matcher,
+            _ImageMatcherChoice.STRUCTURAL_SIMILARITY: ssim_matcher,
         }[self]
         assert isinstance(matcher, ImageMatcher)
         return matcher
@@ -54,7 +54,7 @@ class VWQSettings(BaseSettings):
     vwq_host: str = ""
     target_manager_base_url: str
     query_image_matcher: _ImageMatcherChoice = (
-        _ImageMatcherChoice.structural_similarity
+        _ImageMatcherChoice.STRUCTURAL_SIMILARITY
     )
 
 
