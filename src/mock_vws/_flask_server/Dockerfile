@@ -1,5 +1,4 @@
 FROM python:3.12-slim as base
-RUN apt update && apt install -y gcc g++ libgl1-mesa-glx libglib2.0-0
 # We set this pretend version as we do not have Git in our path, and we do
 # not care enough about having the version correct inside the Docker container
 # to install it.
