@@ -22,9 +22,9 @@ from mock_vws._query_validators.exceptions import (
 )
 from mock_vws.database import VuforiaDatabase
 from mock_vws.image_matchers import (
-    AverageHashMatcher,
     ExactMatcher,
     ImageMatcher,
+    StructuralSimilarityMatcher,
 )
 
 CLOUDRECO_FLASK_APP = Flask(import_name=__name__)
@@ -35,13 +35,14 @@ class _ImageMatcherChoice(StrEnum):
     """Image matcher choices."""
 
     EXACT = auto()
-    AVERAGE_HASH = auto()
+    STRUCTURAL_SIMILARITY = auto()
 
     def to_image_matcher(self) -> ImageMatcher:
         """Get the image matcher."""
+        ssim_matcher = StructuralSimilarityMatcher()
         matcher = {
             _ImageMatcherChoice.EXACT: ExactMatcher(),
-            _ImageMatcherChoice.AVERAGE_HASH: AverageHashMatcher(),
+            _ImageMatcherChoice.STRUCTURAL_SIMILARITY: ssim_matcher,
         }[self]
         assert isinstance(matcher, ImageMatcher)
         return matcher
@@ -52,7 +53,9 @@ class VWQSettings(BaseSettings):
 
     vwq_host: str = ""
     target_manager_base_url: str
-    query_image_matcher: _ImageMatcherChoice = _ImageMatcherChoice.AVERAGE_HASH
+    query_image_matcher: _ImageMatcherChoice = (
+        _ImageMatcherChoice.STRUCTURAL_SIMILARITY
+    )
 
 
 def get_all_databases() -> set[VuforiaDatabase]:

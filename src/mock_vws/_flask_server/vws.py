@@ -29,9 +29,9 @@ from mock_vws._services_validators.exceptions import (
 )
 from mock_vws.database import VuforiaDatabase
 from mock_vws.image_matchers import (
-    AverageHashMatcher,
     ExactMatcher,
     ImageMatcher,
+    StructuralSimilarityMatcher,
 )
 from mock_vws.target import Target
 from mock_vws.target_raters import (
@@ -49,13 +49,14 @@ class _ImageMatcherChoice(StrEnum):
     """Image matcher choices."""
 
     EXACT = auto()
-    AVERAGE_HASH = auto()
+    STRUCTURAL_SIMILARITY = auto()
 
     def to_image_matcher(self) -> ImageMatcher:
         """Get the image matcher."""
+        ssim_matcher = StructuralSimilarityMatcher()
         matcher = {
             _ImageMatcherChoice.EXACT: ExactMatcher(),
-            _ImageMatcherChoice.AVERAGE_HASH: AverageHashMatcher(),
+            _ImageMatcherChoice.STRUCTURAL_SIMILARITY: ssim_matcher,
         }[self]
         assert isinstance(matcher, ImageMatcher)
         return matcher
@@ -69,7 +70,7 @@ class VWSSettings(BaseSettings):
     vws_host: str = ""
     duplicates_image_matcher: (
         _ImageMatcherChoice
-    ) = _ImageMatcherChoice.AVERAGE_HASH
+    ) = _ImageMatcherChoice.STRUCTURAL_SIMILARITY
 
 
 def get_all_databases() -> set[VuforiaDatabase]:
