@@ -123,9 +123,9 @@ branch = true
 
 [tool.coverage.report]
 
-exclude_lines =  [
-  "pragma: no cover",
+exclude_also =  [
   "if TYPE_CHECKING:",
+  "class .*\\bProtocol\\):",
 ]
 
 [tool.pytest.ini_options]
@@ -162,7 +162,7 @@ ignore = [
   "tests/**",
   "vuforia_secrets.env.example",
   "lint.mk",
-  "src/mock_vws/_flask_server/dockerfiles/*/Dockerfile",
+  "src/mock_vws/_flask_server/Dockerfile",
   "secrets.tar.gpg",
 ]
 
@@ -208,12 +208,18 @@ requires = [
 ]
 
 [tool.ruff]
+line-length = 79
+target-version = "py311"
+
+[tool.ruff.lint]
 select = ["ALL"]
 
 ignore = [
     # We do not annotate the type of 'self', or 'cls'.
     "ANN101",
     "ANN102",
+    # Ruff warns that this conflicts with the formatter.
+    "COM812",
     # Allow our chosen docstring line-style - no one-line summary.
     "D200",
     "D203",
@@ -228,6 +234,9 @@ ignore = [
     # docstrings.
     "D406",
     "D407",
+    "D413",
+    # Ruff warns that this conflicts with the formatter.
+    "ISC001",
     # We have an existing interface to support and so we do not want to change
     # exception names.
     "N818",
@@ -249,10 +258,7 @@ ignore = [
 # is sometimes annoyingly removed.
 unfixable = ["ERA001"]
 
-line-length = 79
-target-version = "py311"
-
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "tests/**" = [
     # Allow possible hardcoded passwords in tests.
     "S105",
@@ -289,22 +295,22 @@ dynamic = [
     "version",
 ]
 dependencies = [
-    "brisque",
     "flask",
     "ImageHash",
     "numpy",
-    "opencv-python",
     "Pillow",
+    "piq",
     "pydantic-settings",
     "requests",
     "requests-mock",
-    "scipy<1.12.0", # We pin to an old version of scipy as brisque does not support newer versions. `brisque` appears to be unmaintained, so we may need to switch to an alternative, such as `piq`, which currently does not support Python 3.12.
+    "torchvision",
     'tzdata; sys_platform == "win32"',
     "vws-auth-tools",
     "Werkzeug",
 ]
 [project.optional-dependencies]
 dev = [
+    "actionlint-py==1.6.26.11",
     "check-manifest==0.49",
     "dirty-equals==0.7.1.post0",
     "doc8==1.1.1",
@@ -312,15 +318,15 @@ dev = [
     "dodgy==0.2.1",
     "enum-tools[sphinx]==0.11",
     "freezegun==1.4.0",
-    "furo==2023.9.10",
+    "furo==2024.1.29",
     "mypy==1.8.0",
-    "pdm==2.12.2",
+    "pdm==2.12.3",
     "pip_check_reqs==2.5.3",
     "pydocstyle==6.3",
     "pyenchant==3.2.2",
     "pylint==3.0.3",
     "pyproject-fmt==1.7.0",
-    "pyright==1.1.348",
+    "pyright==1.1.349",
     "pyroma==4.2",
     "pytest==8.0.0",
     "pytest-cov==4.1",
@@ -329,21 +335,21 @@ dev = [
     "python-dotenv==1.0.1",
     "PyYAML==6.0.1",
     "requests-mock-flask==2023.5.14",
-    "ruff==0.1.14",
+    "ruff==0.2.0",
     "Sphinx==7.2.6",
-    "sphinx-autodoc-typehints==1.25.2",
+    "sphinx-autodoc-typehints==1.25.3",
     "sphinx-prompt==1.8",
     "Sphinx-Substitution-Extensions==2022.2.16",
     "sphinx-toolbox==3.5",
     "sphinx_paramlinks==0.6",
     "sphinxcontrib-httpdomain==1.8.1",
     "sphinxcontrib-spelling==8",
-    "sybil==6.0.2",
+    "sybil==6.0.3",
     "tenacity==8.2.3",
     "types-Pillow==10.2.0.20240125",
     "types-PyYAML==6.0.12.12",
     "types-requests==2.31.0.20240125",
-    "urllib3==2.1.0",
+    "urllib3==2.2.0",
     "vulture==2.11",
     "vws-python==2023.12.27",
     "VWS-Test-Fixtures==2023.3.5",

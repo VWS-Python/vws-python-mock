@@ -9,6 +9,17 @@ jobs:
     name: Publish a release
     runs-on: ubuntu-latest
 
+    # Specifying an environment is strongly recommended by PyPI.
+    # See https://github.com/pypa/gh-action-pypi-publish/tree/release/v1/?tab=readme-ov-file#trusted-publishing.
+    environment: release
+
+    permissions:
+      # This is needed for PyPI publishing.
+      # See https://github.com/pypa/gh-action-pypi-publish/tree/release/v1/?tab=readme-ov-file#trusted-publishing.
+      id-token: write
+      # This is needed for https://github.com/stefanzweifel/git-auto-commit-action.
+      contents: write
+
     strategy:
       matrix:
         python-version: ["3.12"]
@@ -65,14 +76,15 @@ jobs:
         run: |
           # Checkout the latest tag - the one we just created.
           git fetch --tags
-          git checkout $(git describe --tags $(git rev-list --tags --max-count=1))
+          git checkout "$(git describe --tags "$(git rev-list --tags --max-count=1)")"
           python -m pip install build
           python -m build --sdist --wheel --outdir dist/ .
 
+      # We use PyPI trusted publishing rather than a PyPI API token.
+      # See https://github.com/pypa/gh-action-pypi-publish/tree/release/v1/?tab=readme-ov-file#trusted-publishing.
       - name: Publish distribution 📦 to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
           verbose: true
 
       - name: Login to DockerHub
@@ -90,9 +102,10 @@ jobs:
       - name: Build and push target manager Docker image
         uses: docker/build-push-action@v5.1.0
         with:
-          file: src/mock_vws/_flask_server/dockerfiles/target_manager/Dockerfile
+          file: src/mock_vws/_flask_server/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
+          target: target-manager
           tags: |
             adamtheturtle/vuforia-target-manager-mock:latest
             adamtheturtle/vuforia-target-manager-mock:${{ steps.calver.outputs.release }}
@@ -100,9 +113,10 @@ jobs:
       - name: Build and push VWS Docker image
         uses: docker/build-push-action@v5.1.0
         with:
-          file: src/mock_vws/_flask_server/dockerfiles/vws/Dockerfile
+          file: src/mock_vws/_flask_server/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
+          target: vws
           tags: |
             adamtheturtle/vuforia-vws-mock:latest
             adamtheturtle/vuforia-vws-mock:${{ steps.calver.outputs.release }}
@@ -110,9 +124,10 @@ jobs:
       - name: Build and push VWQ Docker image
         uses: docker/build-push-action@v5.1.0
         with:
-          file: src/mock_vws/_flask_server/dockerfiles/vwq/Dockerfile
+          file: src/mock_vws/_flask_server/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
+          target: vwq
           tags: |
             adamtheturtle/vuforia-vwq-mock:latest
             adamtheturtle/vuforia-vwq-mock:${{ steps.calver.outputs.release }}

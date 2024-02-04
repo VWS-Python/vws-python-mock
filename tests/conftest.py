@@ -14,7 +14,6 @@ from vws import VWS, CloudRecoService
 if TYPE_CHECKING:
     import io
 
-    from _pytest.fixtures import SubRequest
     from mock_vws.database import VuforiaDatabase
 
     from tests.mock_vws.utils import Endpoint
@@ -91,7 +90,7 @@ def target_id(
         "query",
     ],
 )
-def endpoint(request: SubRequest) -> Endpoint:
+def endpoint(request: pytest.FixtureRequest) -> Endpoint:
     """
     Return details of an endpoint for the Target API or the Query API.
     """
@@ -119,7 +118,7 @@ def endpoint(request: SubRequest) -> Endpoint:
         ),
     ],
 )
-def not_base64_encoded_processable(request: SubRequest) -> str:
+def not_base64_encoded_processable(request: pytest.FixtureRequest) -> str:
     """
     Return a string which is not decodable as base64 data, but Vuforia will
     respond as if this is valid base64 data.
@@ -142,7 +141,7 @@ def not_base64_encoded_processable(request: SubRequest) -> str:
         pytest.param('"', id="Not a base64 character."),
     ],
 )
-def not_base64_encoded_not_processable(request: SubRequest) -> str:
+def not_base64_encoded_not_processable(request: pytest.FixtureRequest) -> str:
     """
     Return a string which is not decodable as base64 data, and Vuforia will
     return an ``UNPROCESSABLE_ENTITY`` response when this is given.

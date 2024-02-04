@@ -66,7 +66,7 @@ class Endpoint:
 
 def make_image_file(
     file_format: str,
-    color_space: Literal["L", "RGB", "CMYK"],
+    color_space: Literal["RGB", "CMYK"],
     width: int,
     height: int,
 ) -> io.BytesIO:
@@ -78,7 +78,7 @@ def make_image_file(
     Args:
         file_format: See
             https://pillow.readthedocs.io/en/3.1.x/handbook/image-file-formats.html
-        color_space: One of "L", "RGB", or "CMYK". "L" means greyscale.
+        color_space: One of "RGB", or "CMYK".
         width: The width, in pixels of the image.
         height: The width, in pixels of the image.
 
@@ -89,18 +89,13 @@ def make_image_file(
     image = Image.new(color_space, (width, height))
     for row_index in range(height):
         for column_index in range(width):
-            if color_space == "L":
-                grey = random.choice(seq=range(255))
-                image.putpixel(xy=(column_index, row_index), value=grey)
-            else:
-                assert color_space in {"CMYK", "RGB"}
-                red = random.choice(seq=range(255))
-                green = random.choice(seq=range(255))
-                blue = random.choice(seq=range(255))
-                image.putpixel(
-                    xy=(column_index, row_index),
-                    value=(red, green, blue),
-                )
+            red = random.choice(seq=range(255))
+            green = random.choice(seq=range(255))
+            blue = random.choice(seq=range(255))
+            image.putpixel(
+                xy=(column_index, row_index),
+                value=(red, green, blue),
+            )
 
     image.save(image_buffer, file_format)
     image_buffer.seek(0)

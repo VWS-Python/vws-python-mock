@@ -152,7 +152,6 @@ def validate_name_does_not_exist_new_target(
         request_path=request_path,
         databases=databases,
     )
-    assert isinstance(database, VuforiaDatabase)
 
     matching_name_targets = [
         target
@@ -211,7 +210,6 @@ def validate_name_does_not_exist_existing_target(
         request_path=request_path,
         databases=databases,
     )
-    assert isinstance(database, VuforiaDatabase)
 
     matching_name_targets = [
         target

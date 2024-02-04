@@ -55,7 +55,7 @@ class _ImageMatcherChoice(StrEnum):
         """Get the image matcher."""
         matcher = {
             _ImageMatcherChoice.EXACT: ExactMatcher(),
-            _ImageMatcherChoice.AVERAGE_HASH: AverageHashMatcher(threshold=10),
+            _ImageMatcherChoice.AVERAGE_HASH: AverageHashMatcher(),
         }[self]
         assert isinstance(matcher, ImageMatcher)
         return matcher
@@ -92,8 +92,9 @@ def get_all_databases() -> set[VuforiaDatabase]:
 def set_terminate_wsgi_input() -> None:
     """
     We set ``wsgi.input_terminated`` to ``True`` when going through
-    ``requests``, so that requests have the given ``Content-Length`` headers
-    and the given data in ``request.headers`` and ``request.data``.
+    ``requests`` in our tests, so that requests have the given
+    ``Content-Length`` headers and the given data in ``request.headers`` and
+    ``request.data``.
 
     We do not set this at all when running an application as standalone.
     This is because when running the Flask application, if this is set,
@@ -105,10 +106,10 @@ def set_terminate_wsgi_input() -> None:
     """
     try:
         set_terminate_wsgi_input_true = (
-            VWS_FLASK_APP.config["TERMINATE_WSGI_INPUT"] is True
+            VWS_FLASK_APP.config["VWS_MOCK_TERMINATE_WSGI_INPUT"] is True
         )
     except KeyError:
-        return
+        set_terminate_wsgi_input_true = False
 
     if set_terminate_wsgi_input_true:
         request.environ["wsgi.input_terminated"] = True
@@ -162,8 +163,6 @@ def add_target() -> Response:
         request_path=request.path,
         databases=databases,
     )
-
-    assert isinstance(database, VuforiaDatabase)
 
     # We do not use ``request.get_json(force=True)`` because this only works
     # when the content type is given as ``application/json``.
@@ -236,7 +235,6 @@ def get_target(target_id: str) -> Response:
         databases=databases,
     )
 
-    assert isinstance(database, VuforiaDatabase)
     (target,) = (
         target for target in database.targets if target.target_id == target_id
     )
@@ -292,7 +290,6 @@ def delete_target(target_id: str) -> Response:
         databases=databases,
     )
 
-    assert isinstance(database, VuforiaDatabase)
     (target,) = (
         target for target in database.targets if target.target_id == target_id
     )
@@ -345,7 +342,6 @@ def database_summary() -> Response:
         databases=databases,
     )
 
-    assert isinstance(database, VuforiaDatabase)
     body = {
         "result_code": ResultCodes.SUCCESS.value,
         "transaction_id": uuid.uuid4().hex,
@@ -399,7 +395,6 @@ def target_summary(target_id: str) -> Response:
         databases=databases,
     )
 
-    assert isinstance(database, VuforiaDatabase)
     (target,) = (
         target for target in database.targets if target.target_id == target_id
     )
@@ -453,7 +448,6 @@ def get_duplicates(target_id: str) -> Response:
     )
     image_match_checker = settings.duplicates_image_matcher.to_image_matcher()
 
-    assert isinstance(database, VuforiaDatabase)
     (target,) = (
         target for target in database.targets if target.target_id == target_id
     )
@@ -511,7 +505,6 @@ def target_list() -> Response:
         request_path=request.path,
         databases=databases,
     )
-    assert isinstance(database, VuforiaDatabase)
     results = [target.target_id for target in database.not_deleted_targets]
 
     body = {
@@ -558,7 +551,6 @@ def update_target(target_id: str) -> Response:
         databases=databases,
     )
 
-    assert isinstance(database, VuforiaDatabase)
     (target,) = (
         target for target in database.targets if target.target_id == target_id
     )

@@ -30,8 +30,6 @@ from vws.exceptions.vws_exceptions import (
 if TYPE_CHECKING:
     from collections.abc import Generator
 
-    from _pytest.config.argparsing import Parser
-    from _pytest.fixtures import SubRequest
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -122,7 +120,7 @@ def _enable_use_docker_in_memory(
     monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None, None, None]:
     # We set ``wsgi.input_terminated`` to ``True`` so that when going through
-    # ``requests``, the Flask applications
+    # ``requests`` in our tests, the Flask applications
     # have the given ``Content-Length`` headers and the given data in
     # ``request.headers`` and ``request.data``.
     #
@@ -133,8 +131,8 @@ def _enable_use_docker_in_memory(
     # Therefore, when running the real Flask application, the behavior is not
     # the same as the real Vuforia.
     # This is documented as a difference in the documentation for this package.
-    VWS_FLASK_APP.config["TERMINATE_WSGI_INPUT"] = True
-    CLOUDRECO_FLASK_APP.config["TERMINATE_WSGI_INPUT"] = True
+    VWS_FLASK_APP.config["VWS_MOCK_TERMINATE_WSGI_INPUT"] = True
+    CLOUDRECO_FLASK_APP.config["VWS_MOCK_TERMINATE_WSGI_INPUT"] = True
 
     target_manager_base_url = "http://example.com"
     monkeypatch.setenv(
@@ -197,7 +195,7 @@ class VuforiaBackend(Enum):
     DOCKER_IN_MEMORY = "In Memory version of Docker application"
 
 
-def pytest_addoption(parser: Parser) -> None:
+def pytest_addoption(parser: pytest.Parser) -> None:
     """
     Add options to the pytest command line for skipping tests with particular
     backends.
@@ -241,7 +239,7 @@ def pytest_collection_modifyitems(
     ids=[backend.value for backend in list(VuforiaBackend)],
 )
 def verify_mock_vuforia(
-    request: SubRequest,
+    request: pytest.FixtureRequest,
     vuforia_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
     monkeypatch: pytest.MonkeyPatch,

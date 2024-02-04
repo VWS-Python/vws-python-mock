@@ -23,6 +23,8 @@ if TYPE_CHECKING:
     import io
     from collections.abc import Iterator
 
+    from docker.models.images import Image  # type: ignore[import-untyped]
+
 
 # We do not cover this function because hitting particular branches depends on
 # timing.
@@ -85,10 +87,17 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
         yield network
     finally:
         network.reload()
+        images_to_remove: set[Image] = set()
         for container in network.containers:
+            assert isinstance(container, Container)
             network.disconnect(container=container)
             container.stop()
-            container.remove()
+            container.remove(v=True, force=True)
+            images_to_remove.add(container.image)
+
+        # This does leave behind untagged images.
+        for image in images_to_remove:
+            image.remove(force=True)
         network.remove()
 
 
@@ -104,12 +113,7 @@ def test_build_and_run(
     repository_root = Path(__file__).parent.parent.parent
     client = docker.from_env()
 
-    dockerfile_dir = repository_root / "src/mock_vws/_flask_server/dockerfiles"
-    target_manager_dockerfile = (
-        dockerfile_dir / "target_manager" / "Dockerfile"
-    )
-    vws_dockerfile = dockerfile_dir / "vws" / "Dockerfile"
-    vwq_dockerfile = dockerfile_dir / "vwq" / "Dockerfile"
+    dockerfile = repository_root / "src/mock_vws/_flask_server/Dockerfile"
 
     random = uuid.uuid4().hex
     target_manager_tag = f"vws-mock-target-manager:latest-{random}"
@@ -117,10 +121,12 @@ def test_build_and_run(
     vwq_tag = f"vws-mock-vwq:latest-{random}"
 
     try:
-        target_manager_build_result = client.images.build(
+        target_manager_image, _ = client.images.build(
             path=str(repository_root),
-            dockerfile=str(target_manager_dockerfile),
+            dockerfile=str(dockerfile),
             tag=target_manager_tag,
+            target="target-manager",
+            rm=True,
         )
     except BuildError as exc:
         full_log = "\n".join(
@@ -135,23 +141,21 @@ def test_build_and_run(
         reason = "We do not currently support using Windows containers."
         pytest.skip(reason)
 
-    assert isinstance(target_manager_build_result, tuple)
-    target_manager_image, _ = target_manager_build_result
-
-    vws_build_result = client.images.build(
+    vwq_image, _ = client.images.build(
         path=str(repository_root),
-        dockerfile=str(vws_dockerfile),
-        tag=vws_tag,
-    )
-    assert isinstance(vws_build_result, tuple)
-    vws_image, _ = vws_build_result
-    vwq_build_result = client.images.build(
-        path=str(repository_root),
-        dockerfile=str(vwq_dockerfile),
+        dockerfile=str(dockerfile),
         tag=vwq_tag,
+        target="vwq",
+        rm=True,
     )
-    assert isinstance(vwq_build_result, tuple)
-    vwq_image, _ = vwq_build_result
+
+    vws_image, _ = client.images.build(
+        path=str(repository_root),
+        dockerfile=str(dockerfile),
+        tag=vws_tag,
+        target="vws",
+        rm=True,
+    )
 
     database = VuforiaDatabase()
     target_manager_container_name = "vws-mock-target-manager-" + random

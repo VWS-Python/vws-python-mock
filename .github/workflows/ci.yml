@@ -73,6 +73,7 @@ jobs:
           - tests/mock_vws/test_invalid_given_id.py
           - tests/mock_vws/test_invalid_json.py
           - tests/mock_vws/test_target_list.py
+          - tests/mock_vws/test_target_raters.py
           - tests/mock_vws/test_target_summary.py
           - tests/mock_vws/test_unexpected_json.py
           - tests/mock_vws/test_update_target.py::TestActiveFlag
@@ -113,7 +114,7 @@ jobs:
         id: pip-cache
         run: |
           python -m pip cache dir
-          echo "dir=$(python -m pip cache dir)" >> $GITHUB_OUTPUT
+          echo "dir=$(python -m pip cache dir)" >> "$GITHUB_OUTPUT"
 
       - uses: actions/cache@v4
         with:
@@ -140,6 +141,20 @@ jobs:
           # issues - we have seen packages from this cache be cause trouble with
           # pip-extra-reqs.
           python -m pip install --ignore-installed --upgrade --editable .[dev]
+
+      # We have seen issues with running out of disk space on test_docker
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          # All of these default to true (meaning they are removed).
+          docker-images: false
+          large-packages: false
+          swap-storage: false
+          tool-cache: false
+
+          android: true
+          dotnet: true
+          haskell: true
 
       - name: "Run tests"
         run: |
@@ -175,7 +190,7 @@ jobs:
           echo ${{ github.event_name }}
 
       - name: "Upload coverage to Codecov"
-        uses: "codecov/codecov-action@v3"
+        uses: "codecov/codecov-action@v4"
         with:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
