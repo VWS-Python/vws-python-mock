@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from mock_vws.target_raters import TargetTrackingRater
 
 
-_AVERAGE_HASH_MATCHER = AverageHashMatcher(threshold=10)
+_AVERAGE_HASH_MATCHER = AverageHashMatcher()
 _BRISQUE_TRACKING_RATER = BrisqueTargetTrackingRater()
 
 

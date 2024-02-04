@@ -99,13 +99,6 @@ class ExactMatcher:
 class AverageHashMatcher:
     """A matcher which returns whether two images are similar."""
 
-    def __init__(self, threshold: int) -> None:
-        """
-        Args:
-            threshold: The threshold for the average hash matcher.
-        """
-        self._threshold = threshold
-
     def __call__(
         self,
         first_image_content: bytes,

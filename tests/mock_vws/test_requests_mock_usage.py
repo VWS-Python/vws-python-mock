@@ -533,7 +533,7 @@ class TestQueryImageMatchers:
         pil_image.save(re_exported_image, format="PNG")
 
         with MockVWS(
-            query_match_checker=AverageHashMatcher(threshold=10),
+            query_match_checker=AverageHashMatcher(),
         ) as mock:
             mock.add_database(database=database)
             target_id = vws_client.add_target(
@@ -664,7 +664,7 @@ class TestDuplicatesImageMatchers:
         pil_image.save(re_exported_image, format="PNG")
 
         with MockVWS(
-            duplicate_match_checker=AverageHashMatcher(threshold=10),
+            duplicate_match_checker=AverageHashMatcher(),
         ) as mock:
             mock.add_database(database=database)
             target_id = vws_client.add_target(
