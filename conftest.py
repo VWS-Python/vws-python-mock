@@ -8,9 +8,8 @@ from sybil.parsers.rest import (
     DocTestParser,
     PythonCodeBlockParser,
 )
-from vws.exceptions.vws_exceptions import (
-    TooManyRequests,
-)
+from vws.exceptions.custom_exceptions import ServerError
+from vws.exceptions.vws_exceptions import TooManyRequests
 
 pytest_collect_file = Sybil(
     parsers=[
@@ -29,4 +28,5 @@ def pytest_set_filtered_exceptions() -> tuple[type[Exception], ...]:
     This is for ``pytest-retry``.
     The configuration for retries is in ``pyproject.toml``.
     """
-    return (TooManyRequests,)
+    # This matches the exceptions in ``vuforia_backands.py``
+    return (TooManyRequests, ServerError)
