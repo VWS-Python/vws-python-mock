@@ -103,6 +103,7 @@ travis
 txt
 unlinks
 unmocked
+untagged
 url
 usefixtures
 validator
