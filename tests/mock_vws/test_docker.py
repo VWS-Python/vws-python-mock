@@ -23,6 +23,8 @@ if TYPE_CHECKING:
     import io
     from collections.abc import Iterator
 
+    from docker.models.images import Image  # type: ignore[import-untyped]
+
 
 # We do not cover this function because hitting particular branches depends on
 # timing.
@@ -85,11 +87,16 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
         yield network
     finally:
         network.reload()
+        images_to_remove: set[Image] = set()
         for container in network.containers:
             assert isinstance(container, Container)
             network.disconnect(container=container)
             container.stop()
-            container.remove()
+            container.remove(v=True, force=True)
+            images_to_remove.add(container.image)
+
+        for image in images_to_remove:
+            image.remove(force=True)
         network.remove()
 
 
