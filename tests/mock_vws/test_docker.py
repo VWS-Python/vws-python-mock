@@ -23,6 +23,8 @@ if TYPE_CHECKING:
     import io
     from collections.abc import Iterator
 
+    from docker.models.images import Image  # type: ignore[import-untyped]
+
 
 # We do not cover this function because hitting particular branches depends on
 # timing.
@@ -85,10 +87,17 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
         yield network
     finally:
         network.reload()
+        images_to_remove: set[Image] = set()
         for container in network.containers:
+            assert isinstance(container, Container)
             network.disconnect(container=container)
             container.stop()
-            container.remove()
+            container.remove(v=True, force=True)
+            images_to_remove.add(container.image)
+
+        # This does leave behind untagged images.
+        for image in images_to_remove:
+            image.remove(force=True)
         network.remove()
 
 
@@ -117,6 +126,7 @@ def test_build_and_run(
             dockerfile=str(dockerfile),
             tag=target_manager_tag,
             target="target-manager",
+            rm=True,
         )
     except BuildError as exc:
         full_log = "\n".join(
@@ -131,17 +141,20 @@ def test_build_and_run(
         reason = "We do not currently support using Windows containers."
         pytest.skip(reason)
 
-    vws_image, _ = client.images.build(
-        path=str(repository_root),
-        dockerfile=str(dockerfile),
-        tag=vws_tag,
-        target="vws",
-    )
     vwq_image, _ = client.images.build(
         path=str(repository_root),
         dockerfile=str(dockerfile),
         tag=vwq_tag,
         target="vwq",
+        rm=True,
+    )
+
+    vws_image, _ = client.images.build(
+        path=str(repository_root),
+        dockerfile=str(dockerfile),
+        tag=vws_tag,
+        target="vws",
+        rm=True,
     )
 
     database = VuforiaDatabase()
