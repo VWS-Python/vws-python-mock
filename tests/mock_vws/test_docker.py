@@ -86,6 +86,7 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
     finally:
         network.reload()
         for container in network.containers:
+            assert isinstance(container, Container)
             network.disconnect(container=container)
             container.stop()
             container.remove()
