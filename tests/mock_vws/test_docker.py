@@ -95,6 +95,7 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
             container.remove(v=True, force=True)
             images_to_remove.add(container.image)
 
+        # This does leave behind untagged images.
         for image in images_to_remove:
             image.remove(force=True)
         network.remove()
@@ -140,18 +141,19 @@ def test_build_and_run(
         reason = "We do not currently support using Windows containers."
         pytest.skip(reason)
 
-    vws_image, _ = client.images.build(
-        path=str(repository_root),
-        dockerfile=str(dockerfile),
-        tag=vws_tag,
-        target="vws",
-        rm=True,
-    )
     vwq_image, _ = client.images.build(
         path=str(repository_root),
         dockerfile=str(dockerfile),
         tag=vwq_tag,
         target="vwq",
+        rm=True,
+    )
+
+    vws_image, _ = client.images.build(
+        path=str(repository_root),
+        dockerfile=str(dockerfile),
+        tag=vws_tag,
+        target="vws",
         rm=True,
     )
 
