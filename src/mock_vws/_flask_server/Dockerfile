@@ -4,9 +4,14 @@ RUN apt update && apt install -y gcc g++ libgl1-mesa-glx libglib2.0-0
 # not care enough about having the version correct inside the Docker container
 # to install it.
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0
-COPY . /app
+# Avoid using root user.
+# This avoids having to use ``--root-user-action=ignore`` with pip.
+RUN useradd -ms /bin/bash myuser
+USER myuser
+COPY --chown=myuser:myuser . /app
 WORKDIR /app
-RUN pip install --root-user-action=ignore --upgrade pip .
+RUN pip install --upgrade pip setuptools wheel
+RUN pip install --upgrade .
 EXPOSE 5000
 ENTRYPOINT ["python"]
 
