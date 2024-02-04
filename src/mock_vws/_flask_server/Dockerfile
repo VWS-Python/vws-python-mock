@@ -9,8 +9,7 @@ RUN useradd -ms /bin/bash myuser
 USER myuser
 COPY --chown=myuser:myuser . /app
 WORKDIR /app
-RUN pip install --upgrade pip setuptools wheel
-RUN pip install --upgrade .
+RUN pip install --no-cache-dir --upgrade .
 EXPOSE 5000
 ENTRYPOINT ["python"]
 
