@@ -22,6 +22,7 @@ from tenacity import retry
 from tenacity.retry import retry_if_exception_type
 from tenacity.wait import wait_fixed
 from vws import VWS
+from vws.exceptions.custom_exceptions import ServerError
 from vws.exceptions.vws_exceptions import (
     TargetStatusNotSuccess,
     TooManyRequests,
@@ -37,7 +38,11 @@ LOGGER.setLevel(logging.DEBUG)
 # We rely on pytest-retry for exceptions *during* tests.
 # We use tenacity for exceptions *before* tests.
 _RETRY_ON_TOO_MANY_REQUESTS = retry(
-    retry=retry_if_exception_type(exception_types=(TooManyRequests,)),
+    retry=retry_if_exception_type(
+        # This matches the exceptions in ``conftest.py`` under
+        # ``pytest_set_filtered_exceptions``.
+        exception_types=(TooManyRequests, ServerError),
+    ),
     wait=wait_fixed(wait=10),
     reraise=True,
 )

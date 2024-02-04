@@ -43,6 +43,13 @@ jobs:
           # pip-extra-reqs.
           python -m pip install --ignore-installed --upgrade --editable .[dev]
 
+      # We choose not to use a Python wrapper or alternative to hadolint as none
+      # appear to be well maintained, and they require more setup than we would
+      # want.
+      - uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: src/mock_vws/_flask_server/Dockerfile
+
       - name: "Lint"
         run: |
           make lint
