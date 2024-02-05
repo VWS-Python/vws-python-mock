@@ -19,6 +19,7 @@ from vws_auth_tools import authorization_header, rfc_1123_date
 
 from tests.mock_vws.utils.assertions import (
     assert_valid_date_header,
+    assert_valid_transaction_id,
     assert_vwq_failure,
     assert_vws_failure,
 )
@@ -35,7 +36,10 @@ class TestInvalidJSON:
     """
 
     @staticmethod
-    @pytest.mark.parametrize("date_skew_minutes", [0, 10])
+    # We use a skew of 70 because the maximum allowed skew for services is 5
+    # minutes, and for query is 65 minutes.
+    # 70 is comfortably larger than the max of these two.
+    @pytest.mark.parametrize("date_skew_minutes", [0, 70])
     def test_invalid_json(
         endpoint: Endpoint,
         date_skew_minutes: int,
@@ -96,10 +100,25 @@ class TestInvalidJSON:
             )
             return
 
-        assert response.status_code == HTTPStatus.BAD_REQUEST
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
         if netloc == "cloudreco.vuforia.com":
+            if date_is_skewed:
+                assert response.json().keys() == {
+                    "transaction_id",
+                    "result_code",
+                }
+                assert response.json()["result_code"] == "RequestTimeTooSkewed"
+                assert_valid_transaction_id(response=response)
+                assert_vwq_failure(
+                    response=response,
+                    status_code=HTTPStatus.FORBIDDEN,
+                    content_type="application/json",
+                    cache_control=None,
+                    www_authenticate=None,
+                    connection="keep-alive",
+                )
+                return
             assert_vwq_failure(
                 response=response,
                 status_code=HTTPStatus.BAD_REQUEST,
@@ -112,5 +131,6 @@ class TestInvalidJSON:
             assert response.text == expected_text
             return
 
+        assert response.status_code == HTTPStatus.BAD_REQUEST
         assert not response.text
         assert "Content-Type" not in response.headers

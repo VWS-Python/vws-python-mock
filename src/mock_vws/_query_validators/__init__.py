@@ -88,6 +88,9 @@ def run_query_validators(
         databases=databases,
     )
     validate_accept_header(request_headers=request_headers)
+    validate_date_header_given(request_headers=request_headers)
+    validate_date_format(request_headers=request_headers)
+    validate_date_in_range(request_headers=request_headers)
     validate_content_type_header(
         request_headers=request_headers,
         request_body=request_body,
@@ -124,6 +127,3 @@ def run_query_validators(
         request_headers=request_headers,
         request_body=request_body,
     )
-    validate_date_header_given(request_headers=request_headers)
-    validate_date_format(request_headers=request_headers)
-    validate_date_in_range(request_headers=request_headers)
