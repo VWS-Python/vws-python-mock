@@ -103,17 +103,32 @@ class TestInvalidJSON:
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
         if netloc == "cloudreco.vuforia.com":
-            assert response.json().keys() == {"transaction_id", "result_code"}
-            assert response.json()["result_code"] == "RequestTimeTooSkewed"
-            assert_valid_transaction_id(response=response)
+            if date_is_skewed:
+                assert response.json().keys() == {
+                    "transaction_id",
+                    "result_code",
+                }
+                assert response.json()["result_code"] == "RequestTimeTooSkewed"
+                assert_valid_transaction_id(response=response)
+                assert_vwq_failure(
+                    response=response,
+                    status_code=HTTPStatus.FORBIDDEN,
+                    content_type="application/json",
+                    cache_control=None,
+                    www_authenticate=None,
+                    connection="keep-alive",
+                )
+                return
             assert_vwq_failure(
                 response=response,
-                status_code=HTTPStatus.FORBIDDEN,
+                status_code=HTTPStatus.BAD_REQUEST,
                 content_type="application/json",
                 cache_control=None,
                 www_authenticate=None,
                 connection="keep-alive",
             )
+            expected_text = "No image."
+            assert response.text == expected_text
             return
 
         assert response.status_code == HTTPStatus.BAD_REQUEST
