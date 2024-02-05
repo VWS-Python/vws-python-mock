@@ -329,7 +329,7 @@ dev = [
     "pyroma==4.2",
     "pytest==7.4.4",
     "pytest-cov==4.1",
-    "pytest-retry==1.6.1",
+    "pytest-retry==1.6.2",
     "pytest-xdist==3.5.0",
     "python-dotenv==1.0.1",
     "PyYAML==6.0.1",
