@@ -196,10 +196,10 @@ def add_target() -> Response:
 
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        "connection": "keep-alive",
-        "content-type": "application/json",
+        "Connection": "keep-alive",
+        "Content-Type": "application/json",
         "server": "envoy",
-        "date": date,
+        "Date": date,
         "x-envoy-upstream-service-time": "5",
         "strict-transport-security": "max-age=31536000",
         "x-aws-region": "us-east-2, us-west-2",
@@ -251,10 +251,10 @@ def get_target(target_id: str) -> Response:
 
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        "connection": "keep-alive",
-        "content-type": "application/json",
+        "Connection": "keep-alive",
+        "Content-Type": "application/json",
         "server": "envoy",
-        "date": date,
+        "Date": date,
         "x-envoy-upstream-service-time": "5",
         "strict-transport-security": "max-age=31536000",
         "x-aws-region": "us-east-2, us-west-2",
@@ -310,10 +310,10 @@ def delete_target(target_id: str) -> Response:
     }
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        "connection": "keep-alive",
-        "content-type": "application/json",
+        "Connection": "keep-alive",
+        "Content-Type": "application/json",
         "server": "envoy",
-        "date": date,
+        "Date": date,
         "x-envoy-upstream-service-time": "5",
         "strict-transport-security": "max-age=31536000",
         "x-aws-region": "us-east-2, us-west-2",
@@ -363,10 +363,10 @@ def database_summary() -> Response:
     }
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        "connection": "keep-alive",
-        "content-type": "application/json",
+        "Connection": "keep-alive",
+        "Content-Type": "application/json",
         "server": "envoy",
-        "date": date,
+        "Date": date,
         "x-envoy-upstream-service-time": "5",
         "strict-transport-security": "max-age=31536000",
         "x-aws-region": "us-east-2, us-west-2",
@@ -414,10 +414,10 @@ def target_summary(target_id: str) -> Response:
     }
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        "connection": "keep-alive",
-        "content-type": "application/json",
+        "Connection": "keep-alive",
+        "Content-Type": "application/json",
         "server": "envoy",
-        "date": date,
+        "Date": date,
         "x-envoy-upstream-service-time": "5",
         "strict-transport-security": "max-age=31536000",
         "x-aws-region": "us-east-2, us-west-2",
@@ -474,10 +474,10 @@ def get_duplicates(target_id: str) -> Response:
 
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        "connection": "keep-alive",
-        "content-type": "application/json",
+        "Connection": "keep-alive",
+        "Content-Type": "application/json",
         "server": "envoy",
-        "date": date,
+        "Date": date,
         "x-envoy-upstream-service-time": "5",
         "strict-transport-security": "max-age=31536000",
         "x-aws-region": "us-east-2, us-west-2",
@@ -515,10 +515,10 @@ def target_list() -> Response:
     }
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        "connection": "keep-alive",
-        "content-type": "application/json",
+        "Connection": "keep-alive",
+        "Content-Type": "application/json",
         "server": "envoy",
-        "date": date,
+        "Date": date,
         "x-envoy-upstream-service-time": "5",
         "strict-transport-security": "max-age=31536000",
         "x-aws-region": "us-east-2, us-west-2",
@@ -603,10 +603,10 @@ def update_target(target_id: str) -> Response:
 
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        "connection": "keep-alive",
-        "content-type": "application/json",
+        "Connection": "keep-alive",
+        "Content-Type": "application/json",
         "server": "envoy",
-        "date": date,
+        "Date": date,
         "x-envoy-upstream-service-time": "5",
         "strict-transport-security": "max-age=31536000",
         "x-aws-region": "us-east-2, us-west-2",
