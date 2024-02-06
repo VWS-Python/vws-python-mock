@@ -3,6 +3,7 @@ Tests for the `Authorization` header.
 """
 from __future__ import annotations
 
+import json
 import uuid
 from http import HTTPStatus
 from typing import TYPE_CHECKING
@@ -271,11 +272,14 @@ class TestBadKey:
             connection="keep-alive",
         )
 
-        assert response.json().keys() == {"transaction_id", "result_code"}
+        assert json.loads(response.text).keys() == {
+            "transaction_id",
+            "result_code",
+        }
         assert_valid_transaction_id(response=response)
         assert_valid_date_header(response=response)
-        result_code = response.json()["result_code"]
-        transaction_id = response.json()["transaction_id"]
+        result_code = json.loads(response.text)["result_code"]
+        transaction_id = json.loads(response.text)["transaction_id"]
         assert result_code == ResultCodes.AUTHENTICATION_FAILURE.value
         # The separators are inconsistent and we test this.
         expected_text = (
@@ -330,11 +334,14 @@ class TestBadKey:
             connection="keep-alive",
         )
 
-        assert response.json().keys() == {"transaction_id", "result_code"}
+        assert json.loads(response.text).keys() == {
+            "transaction_id",
+            "result_code",
+        }
         assert_valid_transaction_id(response=response)
         assert_valid_date_header(response=response)
-        result_code = response.json()["result_code"]
-        transaction_id = response.json()["transaction_id"]
+        result_code = json.loads(response.text)["result_code"]
+        transaction_id = json.loads(response.text)["transaction_id"]
         assert result_code == ResultCodes.AUTHENTICATION_FAILURE.value
         # The separators are inconsistent and we test this.
         expected_text = (
