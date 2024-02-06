@@ -153,7 +153,7 @@ def assert_vws_response(
     assert {str.lower(key) for key in response.headers} == response_header_keys
     assert response.headers["Content-Length"] == str(len(response.text))
     assert response.headers["Content-Type"] == "application/json"
-    assert response.headers["Server"] == "envoy"
+    assert response.headers["server"] == "envoy"
     assert response.headers["x-content-type-options"] == "nosniff"
     assert "-" in response.headers["x-aws-region"]
     assert response.headers["strict-transport-security"] == "max-age=31536000"
