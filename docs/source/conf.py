@@ -36,7 +36,7 @@ project_copyright = f"{year}, {author}"
 # built documents.
 #
 # Use ``importlib.metadata.version`` as per
-# https://github.com/pypa/setuptools_scm#usage-from-sphinx.
+# https://setuptools-scm.readthedocs.io/en/latest/usage/#usage-from-sphinx.
 version = importlib.metadata.version(distribution_name=project)
 _month, _day, _year, *_ = version.split(".")
 release = f"{_month}.{_day}.{_year}"
@@ -60,6 +60,9 @@ intersphinx_mapping = {
 }
 nitpicky = True
 warning_is_error = True
+nitpick_ignore = [
+    ("py:exc", "requests.exceptions.MissingSchema"),
+]
 
 html_theme = "furo"
 html_title = project
