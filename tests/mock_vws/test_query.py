@@ -1835,7 +1835,7 @@ class TestDeleted:
     """
 
     @staticmethod
-    def test_deleted(
+    def test_deleted_active(
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
