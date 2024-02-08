@@ -69,7 +69,7 @@ def get_query_match_response_text(
         The response text for a query endpoint request.
     """
     email_message = EmailMessage()
-    email_message["content-type"] = request_headers["Content-Type"]
+    email_message["Content-Type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
 

@@ -33,7 +33,7 @@ def validate_max_num_results(
         MaxNumResultsOutOfRange: The ``max_num_results`` given is not in range.
     """
     email_message = EmailMessage()
-    email_message["content-type"] = request_headers["Content-Type"]
+    email_message["Content-Type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
     parser = TypedMultiPartParser()

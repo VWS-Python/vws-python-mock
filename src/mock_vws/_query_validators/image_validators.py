@@ -33,7 +33,7 @@ def validate_image_field_given(
         ImageNotGiven: The image field is not given.
     """
     email_message = EmailMessage()
-    email_message["content-type"] = request_headers["Content-Type"]
+    email_message["Content-Type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
     parser = TypedMultiPartParser()
@@ -64,7 +64,7 @@ def validate_image_file_size(
         RequestEntityTooLarge: The image file size is too large.
     """
     email_message = EmailMessage()
-    email_message["content-type"] = request_headers["Content-Type"]
+    email_message["Content-Type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
     parser = TypedMultiPartParser()
@@ -105,7 +105,7 @@ def validate_image_dimensions(
             height limits.
     """
     email_message = EmailMessage()
-    email_message["content-type"] = request_headers["Content-Type"]
+    email_message["Content-Type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
     parser = TypedMultiPartParser()
@@ -142,7 +142,7 @@ def validate_image_format(
         BadImage: The image is given and is not either a PNG or a JPEG.
     """
     email_message = EmailMessage()
-    email_message["content-type"] = request_headers["Content-Type"]
+    email_message["Content-Type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
     parser = TypedMultiPartParser()
@@ -176,7 +176,7 @@ def validate_image_is_image(
         BadImage: Image data is given and it is not an image file.
     """
     email_message = EmailMessage()
-    email_message["content-type"] = request_headers["Content-Type"]
+    email_message["Content-Type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
     parser = TypedMultiPartParser()

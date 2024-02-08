@@ -27,7 +27,7 @@ def validate_extra_fields(
         UnknownParameters: Extra fields are given.
     """
     email_message = EmailMessage()
-    email_message["content-type"] = request_headers["Content-Type"]
+    email_message["Content-Type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
     parser = TypedMultiPartParser()

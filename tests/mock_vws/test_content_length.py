@@ -78,11 +78,11 @@ class TestIncorrect:
         assert response.text == expected_response_text
         expected_headers = CaseInsensitiveDict(
             data={
-                "content-length": str(len(response.text)),
-                "content-type": "text/html",
-                "connection": "close",
+                "Content-Length": str(len(response.text)),
+                "Content-Type": "text/html",
+                "Connection": "close",
                 "server": "awselb/2.0",
-                "date": response.headers["date"],
+                "Date": response.headers["Date"],
             },
         )
         assert response.headers == expected_headers
@@ -121,11 +121,11 @@ class TestIncorrect:
         # We have seen both of these response texts.
         assert response.text in {"stream timeout", ""}
         expected_headers = {
-            "content-length": str(len(response.text)),
-            "connection": "close",
-            "content-type": "text/plain",
+            "Content-Length": str(len(response.text)),
+            "Connection": "close",
+            "Content-Type": "text/plain",
             "server": "envoy",
-            "date": response.headers["date"],
+            "Date": response.headers["Date"],
         }
         assert response.headers == CaseInsensitiveDict(
             data=expected_headers,
