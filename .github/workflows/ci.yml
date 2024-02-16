@@ -118,9 +118,9 @@ jobs:
 
       - uses: actions/cache@v4
         env:
-          UV_CACHE_DIR: /home/runner/.cache/uv
+          UV_CACHE_DIR: ${{ steps.pip-cache.outputs.dir }}
         with:
-          path: "${{ env.UV_CACHE_DIR }}"
+          path: ${{ steps.pip-cache.outputs.dir }}
           key: ${{ runner.os }}-uv-${{ hashFiles('pyproject.toml') }}
           restore-keys: |
             ${{ runner.os }}-uv-
@@ -138,7 +138,7 @@ jobs:
 
       - name: "Install dependencies"
         env:
-          UV_CACHE_DIR: /home/runner/.cache/uv
+          UV_CACHE_DIR: ${{ steps.pip-cache.outputs.dir }}
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           uv venv /home/runner/.venv
