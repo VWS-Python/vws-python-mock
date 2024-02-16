@@ -1,32 +1,14 @@
 """Matchers for query and duplicate requests."""
 
 import io
-from functools import cache
-from typing import Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-import imagehash
+import piq  # type: ignore[import-untyped]
 from PIL import Image
+from torchvision.transforms import functional  # type: ignore[import-untyped]
 
-
-@cache
-def _average_hash_match(
-    first_image_content: bytes,
-    second_image_content: bytes,
-) -> bool:
-    """
-    Whether one image's content matches another's closely enough.
-
-    Args:
-        first_image_content: One image's content.
-        second_image_content: Another image's content.
-    """
-    first_image_file = io.BytesIO(initial_bytes=first_image_content)
-    first_image = Image.open(fp=first_image_file)
-    second_image_file = io.BytesIO(initial_bytes=second_image_content)
-    second_image = Image.open(fp=second_image_file)
-    first_image_hash = imagehash.average_hash(first_image)
-    second_image_hash = imagehash.average_hash(second_image)
-    return bool(first_image_hash == second_image_hash)
+if TYPE_CHECKING:
+    import torch
 
 
 @runtime_checkable
@@ -68,15 +50,8 @@ class ExactMatcher:
         return bool(first_image_content == second_image_content)
 
 
-class AverageHashMatcher:
-    """A matcher which returns whether two images are similar."""
-
-    def __init__(self, threshold: int) -> None:
-        """
-        Args:
-            threshold: The threshold for the average hash matcher.
-        """
-        self._threshold = threshold
+class StructuralSimilarityMatcher:
+    """A matcher which returns whether two images are similar using SSIM."""
 
     def __call__(
         self,
@@ -84,13 +59,40 @@ class AverageHashMatcher:
         second_image_content: bytes,
     ) -> bool:
         """
-        Whether one image's content matches another's using an average hash.
+        Whether one image's content matches another's using a SSIM.
 
         Args:
             first_image_content: One image's content.
             second_image_content: Another image's content.
         """
-        return _average_hash_match(
-            first_image_content=first_image_content,
-            second_image_content=second_image_content,
+        first_image_file = io.BytesIO(initial_bytes=first_image_content)
+        first_image = Image.open(fp=first_image_file)
+        second_image_file = io.BytesIO(initial_bytes=second_image_content)
+        second_image = Image.open(fp=second_image_file)
+        # Images must be the same size, and they must be larger than the
+        # default SSIM window size of 11x11.
+        target_size = (256, 256)
+        first_image = first_image.resize(size=target_size)
+        second_image = second_image.resize(size=target_size)
+
+        # See https://github.com/pytorch/vision/pull/8251 for precise type.
+        first_image_tensor = functional.to_tensor(pic=first_image)  # pyright: ignore[reportUnknownMemberType]
+        second_image_tensor = functional.to_tensor(pic=second_image)  # pyright: ignore[reportUnknownMemberType]
+
+        first_image_tensor_batch_dimension = first_image_tensor.unsqueeze(0)
+        second_image_tensor_batch_dimension = second_image_tensor.unsqueeze(0)
+
+        # See https://github.com/photosynthesis-team/piq/pull/377
+        # for fixing the type hint in ``piq``.
+        ssim_value: torch.Tensor = piq.ssim(  # pyright: ignore[reportAssignmentType]
+            x=first_image_tensor_batch_dimension,
+            y=second_image_tensor_batch_dimension,
+            data_range=1.0,
         )
+        ssim_score = ssim_value.item()
+
+        # Normalize SSIM score from -1 to 1 scale to 0 to 10 scale.
+        # This maps -1 to 0 and 1 to 10.
+        normalized_score = (ssim_score + 1) * 5
+        minimum_acceptable_ssim_score = 7
+        return bool(normalized_score > minimum_acceptable_ssim_score)

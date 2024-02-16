@@ -14,12 +14,13 @@ from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
 if TYPE_CHECKING:
+    import requests
     from mock_vws._constants import ResultCodes
-    from requests import Response
+    from vws.exceptions.response import Response
 
 
 def assert_vws_failure(
-    response: Response,
+    response: requests.Response | Response,
     status_code: int,
     result_code: ResultCodes,
 ) -> None:
@@ -35,7 +36,10 @@ def assert_vws_failure(
         AssertionError: The response is not in the expected VWS error format
             for the given codes.
     """
-    assert response.json().keys() == {"transaction_id", "result_code"}
+    assert json.loads(response.text).keys() == {
+        "transaction_id",
+        "result_code",
+    }
     assert_vws_response(
         response=response,
         status_code=status_code,
@@ -43,7 +47,7 @@ def assert_vws_failure(
     )
 
 
-def assert_valid_date_header(response: Response) -> None:
+def assert_valid_date_header(response: requests.Response | Response) -> None:
     """
     Assert that a response includes a `Date` header which is within two minutes
     of "now".
@@ -74,7 +78,9 @@ def assert_valid_date_header(response: Response) -> None:
     assert time_difference < datetime.timedelta(minutes=2)
 
 
-def assert_valid_transaction_id(response: Response) -> None:
+def assert_valid_transaction_id(
+    response: requests.Response | Response,
+) -> None:
     """
     Assert that a response includes a valid transaction ID.
 
@@ -84,13 +90,13 @@ def assert_valid_transaction_id(response: Response) -> None:
     Raises:
         AssertionError: The response does not include a valid transaction ID.
     """
-    transaction_id = response.json()["transaction_id"]
+    transaction_id = json.loads(response.text)["transaction_id"]
     expected_transaction_id_length = 32
     assert len(transaction_id) == expected_transaction_id_length
     assert all(char in hexdigits for char in transaction_id)
 
 
-def assert_json_separators(response: Response) -> None:
+def assert_json_separators(response: requests.Response | Response) -> None:
     """
     Assert that a JSON response is formatted correctly.
 
@@ -101,13 +107,13 @@ def assert_json_separators(response: Response) -> None:
         AssertionError: The response JSON is not formatted correctly.
     """
     assert response.text == json.dumps(
-        obj=response.json(),
+        obj=json.loads(response.text),
         separators=(",", ":"),
     )
 
 
 def assert_vws_response(
-    response: Response,
+    response: requests.Response | Response,
     status_code: int,
     result_code: ResultCodes,
 ) -> None:
@@ -131,7 +137,7 @@ def assert_vws_response(
             given codes.
     """
     assert response.status_code == status_code
-    response_result_code = response.json()["result_code"]
+    response_result_code = json.loads(response.text)["result_code"]
     assert response_result_code == result_code.value
     response_header_keys = {
         "connection",
@@ -147,7 +153,7 @@ def assert_vws_response(
     assert {str.lower(key) for key in response.headers} == response_header_keys
     assert response.headers["Content-Length"] == str(len(response.text))
     assert response.headers["Content-Type"] == "application/json"
-    assert response.headers["Server"] == "envoy"
+    assert response.headers["server"] == "envoy"
     assert response.headers["x-content-type-options"] == "nosniff"
     assert "-" in response.headers["x-aws-region"]
     assert response.headers["strict-transport-security"] == "max-age=31536000"
@@ -158,7 +164,7 @@ def assert_vws_response(
     assert_valid_date_header(response=response)
 
 
-def assert_query_success(response: Response) -> None:
+def assert_query_success(response: requests.Response) -> None:
     """
     Assert that the given response is a success response for performing an
     image recognition query.
@@ -168,14 +174,18 @@ def assert_query_success(response: Response) -> None:
             for performing an image recognition query.
     """
     assert response.status_code == HTTPStatus.OK
-    assert response.json().keys() == {"result_code", "results", "query_id"}
+    assert json.loads(response.text).keys() == {
+        "result_code",
+        "results",
+        "query_id",
+    }
 
-    query_id = response.json()["query_id"]
+    query_id = json.loads(response.text)["query_id"]
     expected_query_id_length = 32
     assert len(query_id) == expected_query_id_length
     assert all(char in hexdigits for char in query_id)
 
-    assert response.json()["result_code"] == "Success"
+    assert json.loads(response.text)["result_code"] == "Success"
     assert_valid_date_header(response=response)
     copied_response_headers = dict(copy.deepcopy(response.headers))
     copied_response_headers.pop("Date")
@@ -208,7 +218,7 @@ def assert_query_success(response: Response) -> None:
 
 
 def assert_vwq_failure(
-    response: Response,
+    response: requests.Response | Response,
     status_code: int,
     content_type: str | None,
     cache_control: str | None,

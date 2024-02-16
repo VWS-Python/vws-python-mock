@@ -18,6 +18,7 @@ bytesio
 changelog
 chunked
 cmyk
+config
 connectionerror
 customizable
 dataclass
@@ -80,7 +81,13 @@ recognitions
 refactoring
 regex
 reimplementation
+reportAssignmentType
+reportAttributeAccessIssue
 reportGeneralTypeIssues
+reportMissingTypeStubs
+reportUnknownArgumentType
+reportUnknownMemberType
+reportUnknownVariableType
 repr
 reqheader
 reqjson
@@ -97,6 +104,7 @@ travis
 txt
 unlinks
 unmocked
+untagged
 url
 usefixtures
 validator

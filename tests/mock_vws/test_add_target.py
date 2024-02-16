@@ -68,7 +68,7 @@ def add_target_to_vws(
 
     headers = {
         "Authorization": authorization_string,
-        "date": date,
+        "Date": date,
         "Content-Type": content_type,
     }
 
@@ -95,11 +95,11 @@ def _assert_oops_response(response: requests.Response) -> None:
 
     expected_headers = CaseInsensitiveDict(
         data={
-            "connection": "keep-alive",
-            "content-type": "text/html; charset=UTF-8",
-            "date": response.headers["date"],
+            "Connection": "keep-alive",
+            "Content-Type": "text/html; charset=UTF-8",
+            "Date": response.headers["Date"],
             "server": "envoy",
-            "content-length": "1190",
+            "Content-Length": "1190",
             "x-envoy-upstream-service-time": IsInstance(expected_type=str),
             "strict-transport-security": "max-age=31536000",
             "x-aws-region": IsInstance(expected_type=str),

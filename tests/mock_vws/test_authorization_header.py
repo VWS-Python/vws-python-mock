@@ -3,6 +3,7 @@ Tests for the `Authorization` header.
 """
 from __future__ import annotations
 
+import json
 import uuid
 from http import HTTPStatus
 from typing import TYPE_CHECKING
@@ -23,7 +24,7 @@ from tests.mock_vws.utils.assertions import (
     assert_vwq_failure,
     assert_vws_failure,
 )
-from tests.mock_vws.utils.too_many_requests import handle_too_many_requests
+from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
 if TYPE_CHECKING:
     import io
@@ -55,7 +56,7 @@ class TestAuthorizationHeader:
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
-        handle_too_many_requests(response=response)
+        handle_server_errors(response=response)
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
@@ -105,7 +106,7 @@ class TestMalformed:
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
-        handle_too_many_requests(response=response)
+        handle_server_errors(response=response)
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
@@ -145,7 +146,7 @@ class TestMalformed:
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
-        handle_too_many_requests(response=response)
+        handle_server_errors(response=response)
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
@@ -184,7 +185,7 @@ class TestMalformed:
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
-        handle_too_many_requests(response=response)
+        handle_server_errors(response=response)
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
@@ -259,11 +260,14 @@ class TestBadKey:
             connection="keep-alive",
         )
 
-        assert response.json().keys() == {"transaction_id", "result_code"}
+        assert json.loads(response.text).keys() == {
+            "transaction_id",
+            "result_code",
+        }
         assert_valid_transaction_id(response=response)
         assert_valid_date_header(response=response)
-        result_code = response.json()["result_code"]
-        transaction_id = response.json()["transaction_id"]
+        result_code = json.loads(response.text)["result_code"]
+        transaction_id = json.loads(response.text)["transaction_id"]
         assert result_code == ResultCodes.AUTHENTICATION_FAILURE.value
         # The separators are inconsistent and we test this.
         expected_text = (
@@ -318,11 +322,14 @@ class TestBadKey:
             connection="keep-alive",
         )
 
-        assert response.json().keys() == {"transaction_id", "result_code"}
+        assert json.loads(response.text).keys() == {
+            "transaction_id",
+            "result_code",
+        }
         assert_valid_transaction_id(response=response)
         assert_valid_date_header(response=response)
-        result_code = response.json()["result_code"]
-        transaction_id = response.json()["transaction_id"]
+        result_code = json.loads(response.text)["result_code"]
+        transaction_id = json.loads(response.text)["transaction_id"]
         assert result_code == ResultCodes.AUTHENTICATION_FAILURE.value
         # The separators are inconsistent and we test this.
         expected_text = (

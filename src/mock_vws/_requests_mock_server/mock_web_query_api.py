@@ -24,8 +24,8 @@ from mock_vws._query_validators.exceptions import (
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from requests_mock.request import _RequestObjectProxy
-    from requests_mock.response import _Context
+    from requests_mock.request import Request
+    from requests_mock.response import Context
 
     from mock_vws.image_matchers import ImageMatcher
     from mock_vws.target_manager import TargetManager
@@ -96,11 +96,7 @@ class MockVuforiaWebQueryAPI:
         self._query_match_checker = query_match_checker
 
     @route(path_pattern="/v1/query", http_methods={POST})
-    def query(
-        self,
-        request: _RequestObjectProxy,
-        context: _Context,
-    ) -> str:
+    def query(self, request: Request, context: Context) -> str:
         """
         Perform an image recognition query.
         """

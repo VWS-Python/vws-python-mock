@@ -17,6 +17,7 @@ from urllib3.filepost import encode_multipart_formdata
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from tests.mock_vws.utils import Endpoint
+from tests.mock_vws.utils.retries import RETRY_ON_TOO_MANY_REQUESTS
 
 if TYPE_CHECKING:
     import io
@@ -26,6 +27,19 @@ if TYPE_CHECKING:
 
 VWS_HOST = "https://vws.vuforia.com"
 VWQ_HOST = "https://cloudreco.vuforia.com"
+
+
+@RETRY_ON_TOO_MANY_REQUESTS
+def _wait_for_target_processed(vws_client: VWS, target_id: str) -> None:
+    """
+    Wait for a target to be processed.
+
+    We retry here because pytest-retry does not retry on exceptions raised in
+    fixtures.
+
+    See https://github.com/str0zzapreti/pytest-retry/issues/33.
+    """
+    vws_client.wait_for_target_processed(target_id=target_id)
 
 
 @pytest.fixture()
@@ -95,7 +109,7 @@ def delete_target(
     """
     Return details of the endpoint for deleting a target.
     """
-    vws_client.wait_for_target_processed(target_id=target_id)
+    _wait_for_target_processed(vws_client=vws_client, target_id=target_id)
     date = rfc_1123_date()
     request_path = f"/targets/{target_id}"
     method = DELETE
@@ -191,7 +205,7 @@ def get_duplicates(
     Return details of the endpoint for getting potential duplicates of a
     target.
     """
-    vws_client.wait_for_target_processed(target_id=target_id)
+    _wait_for_target_processed(vws_client=vws_client, target_id=target_id)
     date = rfc_1123_date()
     request_path = f"/duplicates/{target_id}"
     method = GET
@@ -242,7 +256,7 @@ def get_target(
     """
     Return details of the endpoint for getting details of a target.
     """
-    vws_client.wait_for_target_processed(target_id=target_id)
+    _wait_for_target_processed(vws_client=vws_client, target_id=target_id)
     date = rfc_1123_date()
     request_path = f"/targets/{target_id}"
     method = GET
@@ -339,7 +353,7 @@ def target_summary(
     """
     Return details of the endpoint for getting a summary report of a target.
     """
-    vws_client.wait_for_target_processed(target_id=target_id)
+    _wait_for_target_processed(vws_client=vws_client, target_id=target_id)
     date = rfc_1123_date()
     request_path = f"/summary/{target_id}"
     method = GET
@@ -390,7 +404,7 @@ def update_target(
     """
     Return details of the endpoint for updating a target.
     """
-    vws_client.wait_for_target_processed(target_id=target_id)
+    _wait_for_target_processed(vws_client=vws_client, target_id=target_id)
     data: dict[str, Any] = {}
     request_path = f"/targets/{target_id}"
     content = bytes(json.dumps(data), encoding="utf-8")

@@ -29,9 +29,9 @@ from mock_vws._services_validators.exceptions import (
 )
 from mock_vws.database import VuforiaDatabase
 from mock_vws.image_matchers import (
-    AverageHashMatcher,
     ExactMatcher,
     ImageMatcher,
+    StructuralSimilarityMatcher,
 )
 from mock_vws.target import Target
 from mock_vws.target_raters import (
@@ -49,13 +49,14 @@ class _ImageMatcherChoice(StrEnum):
     """Image matcher choices."""
 
     EXACT = auto()
-    AVERAGE_HASH = auto()
+    STRUCTURAL_SIMILARITY = auto()
 
     def to_image_matcher(self) -> ImageMatcher:
         """Get the image matcher."""
+        ssim_matcher = StructuralSimilarityMatcher()
         matcher = {
             _ImageMatcherChoice.EXACT: ExactMatcher(),
-            _ImageMatcherChoice.AVERAGE_HASH: AverageHashMatcher(threshold=10),
+            _ImageMatcherChoice.STRUCTURAL_SIMILARITY: ssim_matcher,
         }[self]
         assert isinstance(matcher, ImageMatcher)
         return matcher
@@ -69,7 +70,7 @@ class VWSSettings(BaseSettings):
     vws_host: str = ""
     duplicates_image_matcher: (
         _ImageMatcherChoice
-    ) = _ImageMatcherChoice.AVERAGE_HASH
+    ) = _ImageMatcherChoice.STRUCTURAL_SIMILARITY
 
 
 def get_all_databases() -> set[VuforiaDatabase]:
@@ -92,8 +93,9 @@ def get_all_databases() -> set[VuforiaDatabase]:
 def set_terminate_wsgi_input() -> None:
     """
     We set ``wsgi.input_terminated`` to ``True`` when going through
-    ``requests``, so that requests have the given ``Content-Length`` headers
-    and the given data in ``request.headers`` and ``request.data``.
+    ``requests`` in our tests, so that requests have the given
+    ``Content-Length`` headers and the given data in ``request.headers`` and
+    ``request.data``.
 
     We do not set this at all when running an application as standalone.
     This is because when running the Flask application, if this is set,
@@ -103,7 +105,14 @@ def set_terminate_wsgi_input() -> None:
     same as the real Vuforia.
     This is documented as a difference in the documentation for this package.
     """
-    if VWS_FLASK_APP.config.get("TERMINATE_WSGI_INPUT") is True:
+    try:
+        set_terminate_wsgi_input_true = (
+            VWS_FLASK_APP.config["VWS_MOCK_TERMINATE_WSGI_INPUT"] is True
+        )
+    except KeyError:
+        set_terminate_wsgi_input_true = False
+
+    if set_terminate_wsgi_input_true:
         request.environ["wsgi.input_terminated"] = True
 
 
@@ -156,8 +165,6 @@ def add_target() -> Response:
         databases=databases,
     )
 
-    assert isinstance(database, VuforiaDatabase)
-
     # We do not use ``request.get_json(force=True)`` because this only works
     # when the content type is given as ``application/json``.
     request_json = json.loads(request.data)
@@ -189,10 +196,10 @@ def add_target() -> Response:
 
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        "connection": "keep-alive",
-        "content-type": "application/json",
+        "Connection": "keep-alive",
+        "Content-Type": "application/json",
         "server": "envoy",
-        "date": date,
+        "Date": date,
         "x-envoy-upstream-service-time": "5",
         "strict-transport-security": "max-age=31536000",
         "x-aws-region": "us-east-2, us-west-2",
@@ -229,7 +236,6 @@ def get_target(target_id: str) -> Response:
         databases=databases,
     )
 
-    assert isinstance(database, VuforiaDatabase)
     (target,) = (
         target for target in database.targets if target.target_id == target_id
     )
@@ -245,10 +251,10 @@ def get_target(target_id: str) -> Response:
 
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        "connection": "keep-alive",
-        "content-type": "application/json",
+        "Connection": "keep-alive",
+        "Content-Type": "application/json",
         "server": "envoy",
-        "date": date,
+        "Date": date,
         "x-envoy-upstream-service-time": "5",
         "strict-transport-security": "max-age=31536000",
         "x-aws-region": "us-east-2, us-west-2",
@@ -285,7 +291,6 @@ def delete_target(target_id: str) -> Response:
         databases=databases,
     )
 
-    assert isinstance(database, VuforiaDatabase)
     (target,) = (
         target for target in database.targets if target.target_id == target_id
     )
@@ -305,10 +310,10 @@ def delete_target(target_id: str) -> Response:
     }
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        "connection": "keep-alive",
-        "content-type": "application/json",
+        "Connection": "keep-alive",
+        "Content-Type": "application/json",
         "server": "envoy",
-        "date": date,
+        "Date": date,
         "x-envoy-upstream-service-time": "5",
         "strict-transport-security": "max-age=31536000",
         "x-aws-region": "us-east-2, us-west-2",
@@ -338,7 +343,6 @@ def database_summary() -> Response:
         databases=databases,
     )
 
-    assert isinstance(database, VuforiaDatabase)
     body = {
         "result_code": ResultCodes.SUCCESS.value,
         "transaction_id": uuid.uuid4().hex,
@@ -359,10 +363,10 @@ def database_summary() -> Response:
     }
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        "connection": "keep-alive",
-        "content-type": "application/json",
+        "Connection": "keep-alive",
+        "Content-Type": "application/json",
         "server": "envoy",
-        "date": date,
+        "Date": date,
         "x-envoy-upstream-service-time": "5",
         "strict-transport-security": "max-age=31536000",
         "x-aws-region": "us-east-2, us-west-2",
@@ -392,7 +396,6 @@ def target_summary(target_id: str) -> Response:
         databases=databases,
     )
 
-    assert isinstance(database, VuforiaDatabase)
     (target,) = (
         target for target in database.targets if target.target_id == target_id
     )
@@ -411,10 +414,10 @@ def target_summary(target_id: str) -> Response:
     }
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        "connection": "keep-alive",
-        "content-type": "application/json",
+        "Connection": "keep-alive",
+        "Content-Type": "application/json",
         "server": "envoy",
-        "date": date,
+        "Date": date,
         "x-envoy-upstream-service-time": "5",
         "strict-transport-security": "max-age=31536000",
         "x-aws-region": "us-east-2, us-west-2",
@@ -446,7 +449,6 @@ def get_duplicates(target_id: str) -> Response:
     )
     image_match_checker = settings.duplicates_image_matcher.to_image_matcher()
 
-    assert isinstance(database, VuforiaDatabase)
     (target,) = (
         target for target in database.targets if target.target_id == target_id
     )
@@ -472,10 +474,10 @@ def get_duplicates(target_id: str) -> Response:
 
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        "connection": "keep-alive",
-        "content-type": "application/json",
+        "Connection": "keep-alive",
+        "Content-Type": "application/json",
         "server": "envoy",
-        "date": date,
+        "Date": date,
         "x-envoy-upstream-service-time": "5",
         "strict-transport-security": "max-age=31536000",
         "x-aws-region": "us-east-2, us-west-2",
@@ -504,7 +506,6 @@ def target_list() -> Response:
         request_path=request.path,
         databases=databases,
     )
-    assert isinstance(database, VuforiaDatabase)
     results = [target.target_id for target in database.not_deleted_targets]
 
     body = {
@@ -514,10 +515,10 @@ def target_list() -> Response:
     }
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        "connection": "keep-alive",
-        "content-type": "application/json",
+        "Connection": "keep-alive",
+        "Content-Type": "application/json",
         "server": "envoy",
-        "date": date,
+        "Date": date,
         "x-envoy-upstream-service-time": "5",
         "strict-transport-security": "max-age=31536000",
         "x-aws-region": "us-east-2, us-west-2",
@@ -551,7 +552,6 @@ def update_target(target_id: str) -> Response:
         databases=databases,
     )
 
-    assert isinstance(database, VuforiaDatabase)
     (target,) = (
         target for target in database.targets if target.target_id == target_id
     )
@@ -559,7 +559,7 @@ def update_target(target_id: str) -> Response:
     if target.status != TargetStatuses.SUCCESS.value:
         raise TargetStatusNotSuccess
 
-    update_values = {}
+    update_values: dict[str, str | int | float | bool | None] = {}
     if "width" in request_json:
         update_values["width"] = request_json["width"]
 
@@ -603,10 +603,10 @@ def update_target(target_id: str) -> Response:
 
     date = email.utils.formatdate(None, localtime=False, usegmt=True)
     headers = {
-        "connection": "keep-alive",
-        "content-type": "application/json",
+        "Connection": "keep-alive",
+        "Content-Type": "application/json",
         "server": "envoy",
-        "date": date,
+        "Date": date,
         "x-envoy-upstream-service-time": "5",
         "strict-transport-security": "max-age=31536000",
         "x-aws-region": "us-east-2, us-west-2",

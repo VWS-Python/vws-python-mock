@@ -19,10 +19,11 @@ from vws_auth_tools import authorization_header, rfc_1123_date
 
 from tests.mock_vws.utils.assertions import (
     assert_valid_date_header,
+    assert_valid_transaction_id,
     assert_vwq_failure,
     assert_vws_failure,
 )
-from tests.mock_vws.utils.too_many_requests import handle_too_many_requests
+from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
 if TYPE_CHECKING:
     from tests.mock_vws.utils import Endpoint
@@ -67,7 +68,7 @@ class TestInvalidJSON:
         endpoint.prepared_request.prepare_content_length(body=content)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
-        handle_too_many_requests(response=response)
+        handle_server_errors(response=response)
 
         takes_json_data = (
             endpoint.auth_header_content_type == "application/json"
@@ -83,7 +84,6 @@ class TestInvalidJSON:
             )
             return
 
-        assert response.status_code == HTTPStatus.BAD_REQUEST
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
         if netloc == "cloudreco.vuforia.com":
@@ -99,18 +99,22 @@ class TestInvalidJSON:
             assert response.text == expected_text
             return
 
+        assert response.status_code == HTTPStatus.BAD_REQUEST
         assert not response.text
         assert "Content-Type" not in response.headers
 
     @staticmethod
-    def test_invalid_json_with_skewed_time(endpoint: Endpoint) -> None:
+    def test_invalid_json_skewed_time(endpoint: Endpoint) -> None:
         """
         Giving invalid JSON to endpoints returns error responses.
         """
+        # We use a skew of 70 because the maximum allowed skew for services is 5
+        # minutes, and for query is 65 minutes.
+        # 70 is comfortably larger than the max of these two.
+        date_skew_minutes = 70
         content = b"a"
         gmt = ZoneInfo("GMT")
         now = datetime.now(tz=gmt)
-        date_skew_minutes = 10
         time_to_freeze = now + timedelta(minutes=date_skew_minutes)
         with freeze_time(time_to_freeze):
             date = rfc_1123_date()
@@ -136,7 +140,7 @@ class TestInvalidJSON:
         endpoint.prepared_request.prepare_content_length(body=content)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
-        handle_too_many_requests(response=response)
+        handle_server_errors(response=response)
 
         takes_json_data = (
             endpoint.auth_header_content_type == "application/json"
@@ -152,21 +156,25 @@ class TestInvalidJSON:
             )
             return
 
-        assert response.status_code == HTTPStatus.BAD_REQUEST
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
         if netloc == "cloudreco.vuforia.com":
+            assert response.json().keys() == {
+                "transaction_id",
+                "result_code",
+            }
+            assert response.json()["result_code"] == "RequestTimeTooSkewed"
+            assert_valid_transaction_id(response=response)
             assert_vwq_failure(
                 response=response,
-                status_code=HTTPStatus.BAD_REQUEST,
+                status_code=HTTPStatus.FORBIDDEN,
                 content_type="application/json",
                 cache_control=None,
                 www_authenticate=None,
                 connection="keep-alive",
             )
-            expected_text = "No image."
-            assert response.text == expected_text
             return
 
+        assert response.status_code == HTTPStatus.BAD_REQUEST
         assert not response.text
         assert "Content-Type" not in response.headers

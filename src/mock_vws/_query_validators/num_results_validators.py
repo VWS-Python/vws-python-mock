@@ -6,8 +6,7 @@ import io
 import logging
 from email.message import EmailMessage
 
-import multipart
-
+from mock_vws._query_tools import TypedMultiPartParser
 from mock_vws._query_validators.exceptions import (
     InvalidMaxNumResults,
     MaxNumResultsOutOfRange,
@@ -33,19 +32,17 @@ def validate_max_num_results(
             less than or equal to the max integer in Java.
         MaxNumResultsOutOfRange: The ``max_num_results`` given is not in range.
     """
-    body_file = io.BytesIO(request_body)
-
     email_message = EmailMessage()
-    email_message["content-type"] = request_headers["Content-Type"]
+    email_message["Content-Type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
-    parsed = multipart.MultipartParser(stream=body_file, boundary=boundary)
-
-    parsed_max_num_results = parsed.get("max_num_results")
-    if parsed_max_num_results is None:
-        max_num_results = "1"
-    else:
-        max_num_results = parsed_max_num_results.value
+    parser = TypedMultiPartParser()
+    fields, _ = parser.parse(
+        stream=io.BytesIO(request_body),
+        boundary=boundary.encode("utf-8"),
+        content_length=len(request_body),
+    )
+    max_num_results = str(fields.get("max_num_results", "1"))
 
     try:
         max_num_results_int = int(max_num_results)

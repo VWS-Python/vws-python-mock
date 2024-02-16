@@ -6,8 +6,7 @@ import io
 import logging
 from email.message import EmailMessage
 
-import multipart
-
+from mock_vws._query_tools import TypedMultiPartParser
 from mock_vws._query_validators.exceptions import InvalidIncludeTargetData
 
 _LOGGER = logging.getLogger(__name__)
@@ -29,20 +28,18 @@ def validate_include_target_data(
         InvalidIncludeTargetData: The ``include_target_data`` field is not an
             accepted value.
     """
-    body_file = io.BytesIO(request_body)
-
     email_message = EmailMessage()
-    email_message["content-type"] = request_headers["Content-Type"]
+    email_message["Content-Type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
-    parsed = multipart.MultipartParser(stream=body_file, boundary=boundary)
-
-    parsed_include_target_data = parsed.get("include_target_data")
-    if parsed_include_target_data is None:
-        include_target_data = "top"
-    else:
-        include_target_data = parsed_include_target_data.value
-
+    parser = TypedMultiPartParser()
+    fields, _ = parser.parse(
+        stream=io.BytesIO(request_body),
+        boundary=boundary.encode("utf-8"),
+        content_length=len(request_body),
+    )
+    include_target_data = str(fields.get("include_target_data", "top"))
+    assert isinstance(include_target_data, str)
     allowed_included_target_data = {"top", "all", "none"}
     if include_target_data.lower() in allowed_included_target_data:
         return

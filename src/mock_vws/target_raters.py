@@ -6,10 +6,9 @@ import math
 import random
 from typing import Protocol, runtime_checkable
 
-import brisque
-import cv2
-import numpy as np
+import piq  # type: ignore[import-untyped]
 from PIL import Image
+from torchvision.transforms import functional  # type: ignore[import-untyped]
 
 
 @functools.cache
@@ -26,19 +25,14 @@ def _get_brisque_target_tracking_rating(image_content: bytes) -> int:
     """
     image_file = io.BytesIO(initial_bytes=image_content)
     image = Image.open(fp=image_file)
-    image_array = np.asarray(a=image)
-    brisque_obj = brisque.BRISQUE(url=False)
-    # We avoid a barrage of warnings from the BRISQUE library.
-    with np.errstate(divide="ignore", invalid="ignore"):
-        try:
-            score = brisque_obj.score(img=image_array)
-        except (cv2.error, ValueError):
-            return 0
-    if math.isnan(score):
+    # See https://github.com/pytorch/vision/pull/8251 for precise type.
+    image_tensor = functional.to_tensor(pic=image) * 255  # pyright: ignore[reportUnknownMemberType]
+    image_tensor = image_tensor.unsqueeze(0)
+    try:
+        brisque_score = piq.brisque(x=image_tensor, data_range=255)
+    except AssertionError:
         return 0
-    brisque_max_score = 100
-    tracking_rating_max = 5
-    return int(score / (brisque_max_score / tracking_rating_max))
+    return math.ceil(int(brisque_score.item()) / 20)
 
 
 @runtime_checkable

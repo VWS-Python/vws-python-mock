@@ -29,10 +29,7 @@ _EXAMPLE_URL_FOR_TARGET_MANAGER = "http://" + uuid.uuid4().hex + ".com"
 
 
 @pytest.fixture(autouse=True)
-def _enable_requests_mock(
-    monkeypatch: pytest.MonkeyPatch,
-    requests_mock: Mocker,
-) -> None:
+def _(monkeypatch: pytest.MonkeyPatch, requests_mock: Mocker) -> None:
     """
     Enable a mock service backed by the Flask applications.
     """
@@ -288,13 +285,15 @@ class TestQueryImageMatchers:
         assert not different_image_result
 
     @staticmethod
-    def test_average_hash_matcher(
+    def test_structural_similarity_matcher(
         high_quality_image: io.BytesIO,
         different_high_quality_image: io.BytesIO,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        """The average hash matcher matches similar images."""
-        monkeypatch.setenv(name="QUERY_IMAGE_MATCHER", value="average_hash")
+        """The structural similarity matcher matches similar images."""
+        monkeypatch.setenv(
+            name="QUERY_IMAGE_MATCHER", value="structural_similarity"
+        )
         database = VuforiaDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -310,6 +309,8 @@ class TestQueryImageMatchers:
         pil_image.save(re_exported_image, format="PNG")
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+
+        assert re_exported_image.getvalue() != high_quality_image.getvalue()
 
         target_id = vws_client.add_target(
             name="example",
@@ -387,14 +388,14 @@ class TestDuplicatesImageMatchers:
         assert duplicates == [duplicate_target_id]
 
     @staticmethod
-    def test_average_hash_matcher(
+    def test_structural_similarity_matcher(
         high_quality_image: io.BytesIO,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        """The average hash matcher matches similar images."""
+        """The structural similarity matcher matches similar images."""
         monkeypatch.setenv(
             name="DUPLICATES_IMAGE_MATCHER",
-            value="average_hash",
+            value="structural_similarity",
         )
         database = VuforiaDatabase()
         vws_client = VWS(

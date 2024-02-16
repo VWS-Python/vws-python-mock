@@ -6,6 +6,10 @@ SHELL := /bin/bash -euxo pipefail
 custom-linters:
 	pytest ci/custom_linters.py
 
+.PHONY: actionlint
+actionlint:
+	actionlint
+
 .PHONY: mypy
 mypy:
 	mypy .
@@ -62,11 +66,11 @@ linkcheck:
 
 .PHONY: pyproject-fmt
 pyproject-fmt:
-	pyproject-fmt --keep-full-version --check --indent=4 pyproject.toml
+	pyproject-fmt --check pyproject.toml
 
 .PHONY: fix-pyproject-fmt
 fix-pyproject-fmt:
-	pyproject-fmt --keep-full-version --indent=4 pyproject.toml
+	pyproject-fmt pyproject.toml
 
 .PHONY: spelling
 spelling:

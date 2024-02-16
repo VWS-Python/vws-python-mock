@@ -76,6 +76,7 @@ jobs:
           - tests/mock_vws/test_invalid_json.py::TestInvalidJSON::test_invalid_json
           - tests/mock_vws/test_invalid_json.py::TestInvalidJSON::test_invalid_json_with_skewed_time
           - tests/mock_vws/test_target_list.py
+          - tests/mock_vws/test_target_raters.py
           - tests/mock_vws/test_target_summary.py
           - tests/mock_vws/test_unexpected_json.py
           - tests/mock_vws/test_update_target.py::TestActiveFlag
@@ -116,14 +117,16 @@ jobs:
         id: pip-cache
         run: |
           python -m pip cache dir
-          echo "dir=$(python -m pip cache dir)" >> $GITHUB_OUTPUT
+          echo "dir=$(python -m pip cache dir)" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
+        env:
+          UV_CACHE_DIR: ${{ steps.pip-cache.outputs.dir }}
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
-          key: ${{ runner.os }}-pip-${{ hashFiles('pyproject.toml') }}
+          key: ${{ runner.os }}-uv-${{ hashFiles('pyproject.toml') }}
           restore-keys: |
-            ${{ runner.os }}-pip-
+            ${{ runner.os }}-uv-
 
       - name: "Set secrets file"
         run: |
@@ -137,15 +140,32 @@ jobs:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.PASSPHRASE_FOR_VUFORIA_SECRETS }}
 
       - name: "Install dependencies"
+        env:
+          UV_CACHE_DIR: ${{ steps.pip-cache.outputs.dir }}
         run: |
-          python -m pip install --upgrade pip setuptools wheel
-          # We use '--ignore-installed' to avoid GitHub's cache which can cause
-          # issues - we have seen packages from this cache be cause trouble with
-          # pip-extra-reqs.
-          python -m pip install --ignore-installed --upgrade --editable .[dev]
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv venv /home/runner/.venv
+          source /home/runner/.venv/bin/activate
+          uv pip install --upgrade --editable .[dev]
+
+      # We have seen issues with running out of disk space on test_docker
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        if: matrix.ci_pattern == 'tests/mock_vws/test_docker.py'
+        with:
+          # All of these default to true (meaning they are removed).
+          docker-images: false
+          large-packages: false
+          swap-storage: false
+          tool-cache: false
+
+          android: true
+          dotnet: true
+          haskell: true
 
       - name: "Run tests"
         run: |
+          source /home/runner/.venv/bin/activate
           pytest \
             -s \
             -vvv \
@@ -178,7 +198,7 @@ jobs:
           echo ${{ github.event_name }}
 
       - name: "Upload coverage to Codecov"
-        uses: "codecov/codecov-action@v3"
+        uses: "codecov/codecov-action@v4"
         with:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}

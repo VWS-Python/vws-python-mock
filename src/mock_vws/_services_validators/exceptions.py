@@ -45,12 +45,12 @@ class UnknownTarget(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            "connection": "keep-alive",
-            "content-type": "application/json",
+            "Connection": "keep-alive",
+            "Content-Type": "application/json",
             "server": "envoy",
-            "date": date,
+            "Date": date,
             "x-envoy-upstream-service-time": "5",
-            "content-length": str(len(self.response_text)),
+            "Content-Length": str(len(self.response_text)),
             "strict-transport-security": "max-age=31536000",
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",
@@ -80,12 +80,12 @@ class ProjectInactive(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            "connection": "keep-alive",
-            "content-type": "application/json",
+            "Connection": "keep-alive",
+            "Content-Type": "application/json",
             "server": "envoy",
-            "date": date,
+            "Date": date,
             "x-envoy-upstream-service-time": "5",
-            "content-length": str(len(self.response_text)),
+            "Content-Length": str(len(self.response_text)),
             "strict-transport-security": "max-age=31536000",
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",
@@ -115,12 +115,12 @@ class AuthenticationFailure(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            "connection": "keep-alive",
-            "content-type": "application/json",
+            "Connection": "keep-alive",
+            "Content-Type": "application/json",
             "server": "envoy",
-            "date": date,
+            "Date": date,
             "x-envoy-upstream-service-time": "5",
-            "content-length": str(len(self.response_text)),
+            "Content-Length": str(len(self.response_text)),
             "strict-transport-security": "max-age=31536000",
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",
@@ -149,12 +149,12 @@ class Fail(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            "connection": "keep-alive",
-            "content-type": "application/json",
+            "Connection": "keep-alive",
+            "Content-Type": "application/json",
             "server": "envoy",
-            "date": date,
+            "Date": date,
             "x-envoy-upstream-service-time": "5",
-            "content-length": str(len(self.response_text)),
+            "Content-Length": str(len(self.response_text)),
             "strict-transport-security": "max-age=31536000",
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",
@@ -184,12 +184,12 @@ class MetadataTooLarge(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            "connection": "keep-alive",
-            "content-type": "application/json",
+            "Connection": "keep-alive",
+            "Content-Type": "application/json",
             "server": "envoy",
-            "date": date,
+            "Date": date,
             "x-envoy-upstream-service-time": "5",
-            "content-length": str(len(self.response_text)),
+            "Content-Length": str(len(self.response_text)),
             "strict-transport-security": "max-age=31536000",
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",
@@ -219,12 +219,12 @@ class TargetNameExist(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            "connection": "keep-alive",
-            "content-type": "application/json",
+            "Connection": "keep-alive",
+            "Content-Type": "application/json",
             "server": "envoy",
-            "date": date,
+            "Date": date,
             "x-envoy-upstream-service-time": "5",
-            "content-length": str(len(self.response_text)),
+            "Content-Length": str(len(self.response_text)),
             "strict-transport-security": "max-age=31536000",
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",
@@ -256,12 +256,12 @@ class OopsErrorOccurredResponse(ValidatorException):
         self.response_text = text
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            "connection": "keep-alive",
-            "content-type": "text/html; charset=UTF-8",
+            "Connection": "keep-alive",
+            "Content-Type": "text/html; charset=UTF-8",
             "server": "envoy",
-            "date": date,
+            "Date": date,
             "x-envoy-upstream-service-time": "5",
-            "content-length": str(len(self.response_text)),
+            "Content-Length": str(len(self.response_text)),
             "strict-transport-security": "max-age=31536000",
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",
@@ -291,12 +291,12 @@ class BadImage(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            "connection": "keep-alive",
-            "content-type": "application/json",
+            "Connection": "keep-alive",
+            "Content-Type": "application/json",
             "server": "envoy",
-            "date": date,
+            "Date": date,
             "x-envoy-upstream-service-time": "5",
-            "content-length": str(len(self.response_text)),
+            "Content-Length": str(len(self.response_text)),
             "strict-transport-security": "max-age=31536000",
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",
@@ -326,12 +326,12 @@ class ImageTooLarge(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            "connection": "keep-alive",
-            "content-type": "application/json",
+            "Connection": "keep-alive",
+            "Content-Type": "application/json",
             "server": "envoy",
-            "date": date,
+            "Date": date,
             "x-envoy-upstream-service-time": "5",
-            "content-length": str(len(self.response_text)),
+            "Content-Length": str(len(self.response_text)),
             "strict-transport-security": "max-age=31536000",
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",
@@ -361,12 +361,12 @@ class RequestTimeTooSkewed(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            "connection": "keep-alive",
-            "content-type": "application/json",
+            "Connection": "keep-alive",
+            "Content-Type": "application/json",
             "server": "envoy",
-            "date": date,
+            "Date": date,
             "x-envoy-upstream-service-time": "5",
-            "content-length": str(len(self.response_text)),
+            "Content-Length": str(len(self.response_text)),
             "strict-transport-security": "max-age=31536000",
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",
@@ -392,11 +392,11 @@ class ContentLengthHeaderTooLarge(ValidatorException):
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.response_text = "stream timeout"
         self.headers = {
-            "content-length": str(len(self.response_text)),
-            "date": date,
+            "Content-Length": str(len(self.response_text)),
+            "Date": date,
             "server": "envoy",
-            "content-type": "text/plain",
-            "connection": "close",
+            "Content-Type": "text/plain",
+            "Connection": "close",
         }
 
 
@@ -427,11 +427,11 @@ class ContentLengthHeaderNotInt(ValidatorException):
         )
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            "connection": "close",
-            "content-length": str(len(self.response_text)),
-            "date": date,
+            "Connection": "close",
+            "Content-Length": str(len(self.response_text)),
+            "Date": date,
             "server": "awselb/2.0",
-            "content-type": "text/html",
+            "Content-Type": "text/html",
         }
 
 
@@ -454,9 +454,9 @@ class UnnecessaryRequestBody(ValidatorException):
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
             "server": "envoy",
-            "date": date,
+            "Date": date,
             "x-envoy-upstream-service-time": "5",
-            "content-length": str(len(self.response_text)),
+            "Content-Length": str(len(self.response_text)),
         }
 
 
@@ -483,12 +483,12 @@ class TargetStatusNotSuccess(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            "connection": "keep-alive",
-            "content-type": "application/json",
+            "Connection": "keep-alive",
+            "Content-Type": "application/json",
             "server": "envoy",
-            "date": date,
+            "Date": date,
             "x-envoy-upstream-service-time": "5",
-            "content-length": str(len(self.response_text)),
+            "Content-Length": str(len(self.response_text)),
             "strict-transport-security": "max-age=31536000",
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",
@@ -517,12 +517,12 @@ class TargetStatusProcessing(ValidatorException):
         self.response_text = json_dump(body)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         self.headers = {
-            "connection": "keep-alive",
-            "content-type": "application/json",
+            "Connection": "keep-alive",
+            "Content-Type": "application/json",
             "server": "envoy",
-            "date": date,
+            "Date": date,
             "x-envoy-upstream-service-time": "5",
-            "content-length": str(len(self.response_text)),
+            "Content-Length": str(len(self.response_text)),
             "strict-transport-security": "max-age=31536000",
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",

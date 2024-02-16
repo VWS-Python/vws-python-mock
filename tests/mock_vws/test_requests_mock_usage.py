@@ -14,7 +14,7 @@ import requests
 from freezegun import freeze_time
 from mock_vws import MockVWS
 from mock_vws.database import VuforiaDatabase
-from mock_vws.image_matchers import AverageHashMatcher, ExactMatcher
+from mock_vws.image_matchers import ExactMatcher, StructuralSimilarityMatcher
 from mock_vws.target import Target
 from PIL import Image
 from requests.exceptions import MissingSchema
@@ -513,11 +513,11 @@ class TestQueryImageMatchers:
             assert len(different_image_result) == 1
 
     @staticmethod
-    def test_average_hash_matcher(
+    def test_structural_similarity_matcher(
         high_quality_image: io.BytesIO,
         different_high_quality_image: io.BytesIO,
     ) -> None:
-        """The average hash matcher matches similar images."""
+        """The structural similarity matcher matches similar images."""
         database = VuforiaDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -533,7 +533,7 @@ class TestQueryImageMatchers:
         pil_image.save(re_exported_image, format="PNG")
 
         with MockVWS(
-            query_match_checker=AverageHashMatcher(threshold=10),
+            query_match_checker=StructuralSimilarityMatcher(),
         ) as mock:
             mock.add_database(database=database)
             target_id = vws_client.add_target(
@@ -651,8 +651,10 @@ class TestDuplicatesImageMatchers:
             assert duplicates == [not_duplicate_target_id]
 
     @staticmethod
-    def test_average_hash_matcher(high_quality_image: io.BytesIO) -> None:
-        """The average hash matcher matches similar images."""
+    def test_structural_similarity_matcher(
+        high_quality_image: io.BytesIO,
+    ) -> None:
+        """The structural similarity matcher matches similar images."""
         database = VuforiaDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -664,7 +666,7 @@ class TestDuplicatesImageMatchers:
         pil_image.save(re_exported_image, format="PNG")
 
         with MockVWS(
-            duplicate_match_checker=AverageHashMatcher(threshold=10),
+            duplicate_match_checker=StructuralSimilarityMatcher(),
         ) as mock:
             mock.add_database(database=database)
             target_id = vws_client.add_target(

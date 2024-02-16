@@ -9,19 +9,42 @@ import datetime
 import io
 import uuid
 from email.message import EmailMessage
-from typing import TYPE_CHECKING, Any
+from typing import IO, TYPE_CHECKING, Any
 from zoneinfo import ZoneInfo
 
-import multipart
+from werkzeug.formparser import MultiPartParser
 
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_client_keys
 from mock_vws._mock_common import json_dump
-from mock_vws.database import VuforiaDatabase
 
 if TYPE_CHECKING:
+    from werkzeug.datastructures import FileStorage, MultiDict
+
+    from mock_vws.database import VuforiaDatabase
     from mock_vws.image_matchers import ImageMatcher
+
+
+class TypedMultiPartParser(MultiPartParser):
+    """
+    A MultiPartParser which returns types for fields.
+
+    This is a workaround for https://github.com/pallets/werkzeug/pull/2841.
+    """
+
+    def parse(
+        self,
+        stream: IO[bytes],
+        boundary: bytes,
+        content_length: int | None,
+    ) -> tuple[MultiDict[str, str], MultiDict[str, FileStorage]]:
+        # Once this Pyright issue is fixed, we can remove this whole class.
+        return super().parse(  # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType]
+            stream=stream,
+            boundary=boundary,
+            content_length=content_length,
+        )
 
 
 def get_query_match_response_text(
@@ -45,30 +68,23 @@ def get_query_match_response_text(
     Returns:
         The response text for a query endpoint request.
     """
-    body_file = io.BytesIO(request_body)
-
     email_message = EmailMessage()
-    email_message["content-type"] = request_headers["Content-Type"]
+    email_message["Content-Type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
 
-    parsed = multipart.MultipartParser(stream=body_file, boundary=boundary)
+    parser = TypedMultiPartParser()
+    fields, files = parser.parse(
+        stream=io.BytesIO(request_body),
+        boundary=boundary.encode("utf-8"),
+        content_length=len(request_body),
+    )
 
-    parsed_max_num_results = parsed.get("max_num_results")
-    if parsed_max_num_results is None:
-        max_num_results = "1"
-    else:
-        max_num_results = parsed_max_num_results.value
+    max_num_results = str(fields.get("max_num_results", "1"))
+    include_target_data = str(fields.get("include_target_data", "top")).lower()
 
-    parsed_include_target_data = parsed.get("include_target_data")
-    if parsed_include_target_data is None:
-        include_target_data = "top"
-    else:
-        include_target_data = parsed_include_target_data.value.lower()
-
-    image_part = parsed.get("image")
-    assert image_part is not None
-    image_value = image_part.raw
+    image_part = files["image"]
+    image_value = bytes(image_part.stream.read())
     gmt = ZoneInfo("GMT")
     datetime.datetime.now(tz=gmt)
 
@@ -79,8 +95,6 @@ def get_query_match_response_text(
         request_path=request_path,
         databases=databases,
     )
-
-    assert isinstance(database, VuforiaDatabase)
 
     matching_targets = [
         target

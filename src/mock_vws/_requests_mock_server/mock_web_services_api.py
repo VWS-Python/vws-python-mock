@@ -28,14 +28,13 @@ from mock_vws._services_validators.exceptions import (
     TargetStatusProcessing,
     ValidatorException,
 )
-from mock_vws.database import VuforiaDatabase
 from mock_vws.target import Target
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from requests_mock.request import _RequestObjectProxy
-    from requests_mock.response import _Context
+    from requests_mock.request import Request
+    from requests_mock.response import Context
 
     from mock_vws.image_matchers import ImageMatcher
     from mock_vws.target_manager import TargetManager
@@ -121,11 +120,7 @@ class MockVuforiaWebServicesAPI:
         path_pattern="/targets",
         http_methods={POST},
     )
-    def add_target(
-        self,
-        request: _RequestObjectProxy,
-        context: _Context,
-    ) -> str:
+    def add_target(self, request: Request, context: Context) -> str:
         """
         Add a target.
 
@@ -152,8 +147,6 @@ class MockVuforiaWebServicesAPI:
             request_path=request.path,
             databases=self._target_manager.databases,
         )
-
-        assert isinstance(database, VuforiaDatabase)
 
         given_active_flag = request.json().get("active_flag")
         active_flag = {
@@ -184,11 +177,11 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
-            "connection": "keep-alive",
-            "content-type": "application/json",
+            "Connection": "keep-alive",
+            "Content-Type": "application/json",
             "server": "envoy",
-            "date": date,
-            "content-length": str(len(body_json)),
+            "Date": date,
+            "Content-Length": str(len(body_json)),
             "x-envoy-upstream-service-time": "5",
             "strict-transport-security": "max-age=31536000",
             "x-aws-region": "us-east-2, us-west-2",
@@ -200,11 +193,7 @@ class MockVuforiaWebServicesAPI:
         path_pattern=f"/targets/{_TARGET_ID_PATTERN}",
         http_methods={DELETE},
     )
-    def delete_target(
-        self,
-        request: _RequestObjectProxy,
-        context: _Context,
-    ) -> str:
+    def delete_target(self, request: Request, context: Context) -> str:
         """
         Delete a target.
 
@@ -233,7 +222,6 @@ class MockVuforiaWebServicesAPI:
             databases=self._target_manager.databases,
         )
 
-        assert isinstance(database, VuforiaDatabase)
         target_id = request.path.split("/")[-1]
         target = database.get_target(target_id=target_id)
 
@@ -255,10 +243,10 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
-            "connection": "keep-alive",
-            "content-length": str(len(body_json)),
-            "content-type": "application/json",
-            "date": date,
+            "Connection": "keep-alive",
+            "Content-Length": str(len(body_json)),
+            "Content-Type": "application/json",
+            "Date": date,
             "server": "envoy",
             "x-envoy-upstream-service-time": "5",
             "strict-transport-security": "max-age=31536000",
@@ -268,11 +256,7 @@ class MockVuforiaWebServicesAPI:
         return body_json
 
     @route(path_pattern="/summary", http_methods={GET})
-    def database_summary(
-        self,
-        request: _RequestObjectProxy,
-        context: _Context,
-    ) -> str:
+    def database_summary(self, request: Request, context: Context) -> str:
         """
         Get a database summary report.
 
@@ -302,7 +286,6 @@ class MockVuforiaWebServicesAPI:
             databases=self._target_manager.databases,
         )
 
-        assert isinstance(database, VuforiaDatabase)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         body = {
             "result_code": ResultCodes.SUCCESS.value,
@@ -322,10 +305,10 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
-            "connection": "keep-alive",
-            "content-length": str(len(body_json)),
-            "content-type": "application/json",
-            "date": date,
+            "Connection": "keep-alive",
+            "Content-Length": str(len(body_json)),
+            "Content-Type": "application/json",
+            "Date": date,
             "server": "envoy",
             "x-envoy-upstream-service-time": "5",
             "strict-transport-security": "max-age=31536000",
@@ -335,11 +318,7 @@ class MockVuforiaWebServicesAPI:
         return body_json
 
     @route(path_pattern="/targets", http_methods={GET})
-    def target_list(
-        self,
-        request: _RequestObjectProxy,
-        context: _Context,
-    ) -> str:
+    def target_list(self, request: Request, context: Context) -> str:
         """
         Get a list of all targets.
 
@@ -367,7 +346,6 @@ class MockVuforiaWebServicesAPI:
             databases=self._target_manager.databases,
         )
 
-        assert isinstance(database, VuforiaDatabase)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
 
         response_results = [
@@ -380,10 +358,10 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
-            "connection": "keep-alive",
-            "content-length": str(len(body_json)),
-            "content-type": "application/json",
-            "date": date,
+            "Connection": "keep-alive",
+            "Content-Length": str(len(body_json)),
+            "Content-Type": "application/json",
+            "Date": date,
             "server": "envoy",
             "x-envoy-upstream-service-time": "5",
             "strict-transport-security": "max-age=31536000",
@@ -393,11 +371,7 @@ class MockVuforiaWebServicesAPI:
         return body_json
 
     @route(path_pattern=f"/targets/{_TARGET_ID_PATTERN}", http_methods={GET})
-    def get_target(
-        self,
-        request: _RequestObjectProxy,
-        context: _Context,
-    ) -> str:
+    def get_target(self, request: Request, context: Context) -> str:
         """
         Get details of a target.
 
@@ -424,7 +398,6 @@ class MockVuforiaWebServicesAPI:
             request_path=request.path,
             databases=self._target_manager.databases,
         )
-        assert isinstance(database, VuforiaDatabase)
         target_id = request.path.split("/")[-1]
         target = database.get_target(target_id=target_id)
 
@@ -446,10 +419,10 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
-            "connection": "keep-alive",
-            "content-length": str(len(body_json)),
-            "content-type": "application/json",
-            "date": date,
+            "Connection": "keep-alive",
+            "Content-Length": str(len(body_json)),
+            "Content-Type": "application/json",
+            "Date": date,
             "server": "envoy",
             "x-envoy-upstream-service-time": "5",
             "strict-transport-security": "max-age=31536000",
@@ -462,11 +435,7 @@ class MockVuforiaWebServicesAPI:
         path_pattern=f"/duplicates/{_TARGET_ID_PATTERN}",
         http_methods={GET},
     )
-    def get_duplicates(
-        self,
-        request: _RequestObjectProxy,
-        context: _Context,
-    ) -> str:
+    def get_duplicates(self, request: Request, context: Context) -> str:
         """
         Get targets which may be considered duplicates of a given target.
 
@@ -493,7 +462,6 @@ class MockVuforiaWebServicesAPI:
             request_path=request.path,
             databases=self._target_manager.databases,
         )
-        assert isinstance(database, VuforiaDatabase)
         target_id = request.path.split("/")[-1]
         target = database.get_target(target_id=target_id)
 
@@ -520,10 +488,10 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
-            "connection": "keep-alive",
-            "content-length": str(len(body_json)),
-            "content-type": "application/json",
-            "date": date,
+            "Connection": "keep-alive",
+            "Content-Length": str(len(body_json)),
+            "Content-Type": "application/json",
+            "Date": date,
             "server": "envoy",
             "x-envoy-upstream-service-time": "5",
             "strict-transport-security": "max-age=31536000",
@@ -537,11 +505,7 @@ class MockVuforiaWebServicesAPI:
         path_pattern=f"/targets/{_TARGET_ID_PATTERN}",
         http_methods={PUT},
     )
-    def update_target(
-        self,
-        request: _RequestObjectProxy,
-        context: _Context,
-    ) -> str:
+    def update_target(self, request: Request, context: Context) -> str:
         """
         Update a target.
 
@@ -568,8 +532,6 @@ class MockVuforiaWebServicesAPI:
             request_path=request.path,
             databases=self._target_manager.databases,
         )
-
-        assert isinstance(database, VuforiaDatabase)
 
         target_id = request.path.split("/")[-1]
         target = database.get_target(target_id=target_id)
@@ -632,11 +594,11 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
-            "connection": "keep-alive",
-            "content-type": "application/json",
+            "Connection": "keep-alive",
+            "Content-Type": "application/json",
             "server": "envoy",
-            "date": date,
-            "content-length": str(len(body_json)),
+            "Date": date,
+            "Content-Length": str(len(body_json)),
             "x-envoy-upstream-service-time": "5",
             "strict-transport-security": "max-age=31536000",
             "x-aws-region": "us-east-2, us-west-2",
@@ -645,11 +607,7 @@ class MockVuforiaWebServicesAPI:
         return body_json
 
     @route(path_pattern=f"/summary/{_TARGET_ID_PATTERN}", http_methods={GET})
-    def target_summary(
-        self,
-        request: _RequestObjectProxy,
-        context: _Context,
-    ) -> str:
+    def target_summary(self, request: Request, context: Context) -> str:
         """
         Get a summary report for a target.
 
@@ -676,11 +634,9 @@ class MockVuforiaWebServicesAPI:
             request_path=request.path,
             databases=self._target_manager.databases,
         )
-        assert isinstance(database, VuforiaDatabase)
         target_id = request.path.split("/")[-1]
         target = database.get_target(target_id=target_id)
 
-        assert isinstance(database, VuforiaDatabase)
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
         body = {
             "status": target.status,
@@ -697,10 +653,10 @@ class MockVuforiaWebServicesAPI:
         }
         body_json = json_dump(body)
         context.headers = {
-            "connection": "keep-alive",
-            "content-length": str(len(body_json)),
-            "content-type": "application/json",
-            "date": date,
+            "Connection": "keep-alive",
+            "Content-Length": str(len(body_json)),
+            "Content-Type": "application/json",
+            "Date": date,
             "server": "envoy",
             "x-envoy-upstream-service-time": "5",
             "strict-transport-security": "max-age=31536000",

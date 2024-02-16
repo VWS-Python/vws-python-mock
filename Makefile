@@ -13,6 +13,7 @@ update-secrets:
 
 .PHONY: lint
 lint: \
+    actionlint \
     check-manifest \
     doc8 \
     linkcheck \
