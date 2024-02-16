@@ -8,8 +8,16 @@ ENV SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0
 RUN useradd -ms /bin/bash myuser
 USER myuser
 COPY --chown=myuser:myuser . /app
+
+# See https://pythonspeed.com/articles/activate-virtualenv-dockerfile/
+# For why we use this method of activating the virtual environment.
+ENV VIRTUAL_ENV=/app/docker_venvs/.venv
+RUN python3 -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
 WORKDIR /app
-RUN pip install --no-cache-dir --upgrade .
+RUN pip install --no-cache-dir uv==0.1.2 && \
+    uv pip install --no-cache-dir --upgrade --editable .
 EXPOSE 5000
 ENTRYPOINT ["python"]
 
