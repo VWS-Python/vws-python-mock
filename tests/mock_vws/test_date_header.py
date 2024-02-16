@@ -272,7 +272,7 @@ class TestSkewedTime:
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
-        handle_too_many_requests(response=response)
+        handle_server_errors(response=response)
 
         # Even with the query endpoint, we get a JSON response.
         if netloc == "cloudreco.vuforia.com":
@@ -393,7 +393,7 @@ class TestSkewedTime:
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
-        handle_too_many_requests(response=response)
+        handle_server_errors(response=response)
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc

@@ -108,9 +108,9 @@ class TestInvalidJSON:
         """
         Giving invalid JSON to endpoints returns error responses.
         """
-        # We use a skew of 70 because the maximum allowed skew for services is 5
-        # minutes, and for query is 65 minutes.
-        # 70 is comfortably larger than the max of these two.
+        # We use a skew of 70 because the maximum allowed skew for services is
+        # 5 minutes, and for query is 65 minutes. 70 is comfortably larger than
+        # the max of these two.
         date_skew_minutes = 70
         content = b"a"
         gmt = ZoneInfo("GMT")
