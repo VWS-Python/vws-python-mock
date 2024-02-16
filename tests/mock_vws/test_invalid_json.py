@@ -104,7 +104,7 @@ class TestInvalidJSON:
         assert "Content-Type" not in response.headers
 
     @staticmethod
-    def test_invalid_json_skewed_time(endpoint: Endpoint) -> None:
+    def test_invalid_json_with_skewed_time(endpoint: Endpoint) -> None:
         """
         Giving invalid JSON to endpoints returns error responses.
         """
