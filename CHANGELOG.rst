@@ -4,6 +4,9 @@ Changelog
 Next
 ----
 
+2024.02.16
+------------
+
 - Add a structural similarity image matcher.
 
 2018.12.01.0
