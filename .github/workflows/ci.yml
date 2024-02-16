@@ -112,22 +112,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      # See https://github.com/actions/cache/blob/main/examples.md#python---pip
-      - name: Get pip cache dir
-        id: pip-cache
-        run: |
-          python -m pip cache dir
-          echo "dir=$(python -m pip cache dir)" >> "$GITHUB_OUTPUT"
-
-      - uses: actions/cache@v4
-        env:
-          UV_CACHE_DIR: ${{ steps.pip-cache.outputs.dir }}
-        with:
-          path: ${{ steps.pip-cache.outputs.dir }}
-          key: ${{ runner.os }}-uv-${{ hashFiles('pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-uv-
-
       - name: "Set secrets file"
         run: |
           # See the "CI Setup" document for details of how this was set up.
@@ -139,9 +123,8 @@ jobs:
           ENCRYPTED_FILE: secrets.tar.gpg
           LARGE_SECRET_PASSPHRASE: ${{ secrets.PASSPHRASE_FOR_VUFORIA_SECRETS }}
 
+      # We do not use the cache action as uv is faster than the cache action.
       - name: "Install dependencies"
-        env:
-          UV_CACHE_DIR: ${{ steps.pip-cache.outputs.dir }}
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           uv venv /home/runner/.venv
