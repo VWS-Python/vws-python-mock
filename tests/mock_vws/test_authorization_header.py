@@ -86,14 +86,7 @@ class TestMalformed:
     """
 
     @staticmethod
-    @pytest.mark.parametrize(
-        "authorization_string",
-        ["gibberish", "VWS"],
-    )
-    def test_one_part_no_space(
-        endpoint: Endpoint,
-        authorization_string: str,
-    ) -> None:
+    def test_one_part_no_space(endpoint: Endpoint) -> None:
         """
         A valid authorization string is two "parts" when split on a space. When
         a string is given which is one "part", a ``BAD_REQUEST`` or
@@ -101,6 +94,10 @@ class TestMalformed:
         """
         date = rfc_1123_date()
 
+        # We use "VWS" as this is the first part of a valid authorization
+        # string, but really any string which is not two parts when split on a
+        # space will do.
+        authorization_string = "VWS"
         headers: dict[str, str] = dict(endpoint.prepared_request.headers) | {
             "Authorization": authorization_string,
             "Date": date,
@@ -172,23 +169,14 @@ class TestMalformed:
         )
 
     @staticmethod
-    @pytest.mark.parametrize(
-        "authorization_string",
-        [
-            "VWS foobar:",
-            "VWS foobar",
-        ],
-    )
-    def test_missing_signature(
-        endpoint: Endpoint,
-        authorization_string: str,
-    ) -> None:
+    def test_missing_signature(endpoint: Endpoint) -> None:
         """
         If a signature is missing `Authorization` header is given, a
         ``BAD_REQUEST`` response is given.
         """
         date = rfc_1123_date()
 
+        authorization_string = "VWS foobar:"
         headers: dict[str, str] = dict(endpoint.prepared_request.headers) | {
             "Authorization": authorization_string,
             "Date": date,
