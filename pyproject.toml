@@ -314,7 +314,6 @@ dev = [
     "dirty-equals==0.7.1.post0",
     "doc8==1.1.1",
     "docker==7.0.0",
-    "dodgy==0.2.1",
     "enum-tools[sphinx]==0.11",
     "freezegun==1.4.0",
     "furo==2024.1.29",
