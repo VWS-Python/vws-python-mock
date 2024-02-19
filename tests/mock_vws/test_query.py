@@ -42,6 +42,7 @@ from tests.mock_vws.utils.assertions import (
     assert_valid_transaction_id,
     assert_vwq_failure,
 )
+from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
 if TYPE_CHECKING:
     from mock_vws.database import VuforiaDatabase
@@ -123,13 +124,16 @@ def query(
     }
 
     vwq_host = "https://cloudreco.vuforia.com"
-    return requests.request(
+    response = requests.request(
         method=method,
         url=urljoin(base=vwq_host, url=request_path),
         headers=headers,
         data=content,
         timeout=30,
     )
+
+    handle_server_errors(response=response)
+    return response
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -233,6 +237,8 @@ class TestContentType:
             timeout=30,
         )
 
+        handle_server_errors(response=response)
+
         assert response.text == resp_text
         assert_vwq_failure(
             response=response,
@@ -291,6 +297,7 @@ class TestContentType:
             timeout=30,
         )
 
+        handle_server_errors(response=response)
         assert not response.text
         assert_vwq_failure(
             response=response,
@@ -352,6 +359,8 @@ class TestContentType:
             timeout=30,
         )
 
+        handle_server_errors(response=response)
+
         expected_text = (
             "java.io.IOException: RESTEASY007550: "
             "Unable to get boundary for multipart"
@@ -408,6 +417,8 @@ class TestContentType:
             timeout=30,
         )
 
+        handle_server_errors(response=response)
+
         expected_text = "No image."
         assert response.text == expected_text
         assert_vwq_failure(
@@ -462,6 +473,7 @@ class TestContentType:
             timeout=30,
         )
 
+        handle_server_errors(response=response)
         assert_query_success(response=response)
         assert response.json()["results"] == []
 
@@ -1150,6 +1162,7 @@ class TestAcceptHeader:
             timeout=30,
         )
 
+        handle_server_errors(response=response)
         assert_query_success(response=response)
         assert response.json()["results"] == []
 
@@ -1196,6 +1209,8 @@ class TestAcceptHeader:
             data=content,
             timeout=30,
         )
+
+        handle_server_errors(response=response)
 
         assert_vwq_failure(
             response=response,
@@ -1927,6 +1942,7 @@ class TestDateFormats:
             timeout=30,
         )
 
+        handle_server_errors(response=response)
         assert_query_success(response=response)
         assert response.json()["results"] == []
 

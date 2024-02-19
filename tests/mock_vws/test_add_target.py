@@ -17,6 +17,7 @@ from dirty_equals import IsInstance
 from mock_vws._constants import ResultCodes
 from requests.structures import CaseInsensitiveDict
 from requests_mock import POST
+from vws.exceptions.custom_exceptions import ServerError
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from tests.mock_vws.utils import make_image_file
@@ -25,12 +26,14 @@ from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
     assert_vws_response,
 )
+from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
 if TYPE_CHECKING:
     import io
 
     from mock_vws.database import VuforiaDatabase
     from vws import VWS
+    from vws.exceptions.response import Response
 
 _MAX_METADATA_BYTES: Final[int] = 1024 * 1024 - 1
 
@@ -72,7 +75,7 @@ def add_target_to_vws(
         "Content-Type": content_type,
     }
 
-    return requests.request(
+    response = requests.request(
         method=POST,
         url=urljoin(base="https://vws.vuforia.com/", url=request_path),
         headers=headers,
@@ -80,8 +83,11 @@ def add_target_to_vws(
         timeout=30,
     )
 
+    handle_server_errors(response=response)
+    return response
 
-def _assert_oops_response(response: requests.Response) -> None:
+
+def _assert_oops_response(response: Response, status_code: int) -> None:
     """
     Assert that the response is in the format of Vuforia's "Oops, an error
     occurred" HTML response.
@@ -89,6 +95,7 @@ def _assert_oops_response(response: requests.Response) -> None:
     Raises:
         AssertionError: The given response is not expected format.
     """
+    assert response.status_code == status_code
     assert_valid_date_header(response=response)
     assert "Oops, an error occurred" in response.text
     assert "This exception has been logged with id" in response.text
@@ -400,15 +407,15 @@ class TestTargetName:
             "image": image_data_encoded,
         }
 
-        response = add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
-        )
-
-        assert response.status_code == status_code
-
-        if status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            _assert_oops_response(response=response)
+        try:
+            response = add_target_to_vws(
+                vuforia_database=vuforia_database,
+                data=data,
+            )
+        except ServerError as exc:
+            _assert_oops_response(
+                response=exc.response, status_code=status_code
+            )
             return
 
         assert_vws_failure(
