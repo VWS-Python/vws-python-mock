@@ -59,6 +59,19 @@ def fixture_inactive_vws_client(inactive_database: VuforiaDatabase) -> VWS:
 
 
 @pytest.fixture()
+def inactive_cloud_reco_client(
+    inactive_database: VuforiaDatabase,
+) -> CloudRecoService:
+    """
+    A query client for an inactive VWS database.
+    """
+    return CloudRecoService(
+        client_access_key=inactive_database.client_access_key,
+        client_secret_key=inactive_database.client_secret_key,
+    )
+
+
+@pytest.fixture()
 def target_id(
     image_file_success_state_low_rating: io.BytesIO,
     vws_client: VWS,

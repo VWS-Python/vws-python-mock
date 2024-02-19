@@ -224,6 +224,7 @@ def assert_vwq_failure(
     cache_control: str | None,
     www_authenticate: str | None,
     connection: str,
+    result_code: ResultCodes | None,
 ) -> None:
     """
     Assert that a VWQ failure response is as expected.
@@ -235,6 +236,7 @@ def assert_vwq_failure(
         cache_control: The expected Cache-Control header.
         www_authenticate: The expected WWW-Authenticate header.
         connection: The expected Connection header.
+        result_code: The expected result code of the response.
 
     Raises:
         AssertionError: The response is not in the expected VWQ error format
@@ -280,3 +282,21 @@ def assert_vwq_failure(
         pass
     assert_valid_date_header(response=response)
     assert response.headers["Server"] == "nginx"
+
+    if result_code is not None:
+        response_json = json.loads(response.text)
+        assert isinstance(response_json, dict)
+        assert response_json.keys() == {
+            "transaction_id",
+            "result_code",
+        }
+        assert response_json["result_code"] == result_code.value
+        assert_valid_transaction_id(response=response)
+        # The separators are inconsistent and we test this.
+        expected_text = (
+            '{"transaction_id": '
+            f'"{response_json["transaction_id"]}",'
+            f'"result_code":"{result_code.value}"'
+            "}"
+        )
+        assert response.text == expected_text
