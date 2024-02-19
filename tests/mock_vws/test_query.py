@@ -11,6 +11,7 @@ import calendar
 import copy
 import datetime
 import io
+import json
 import sys
 import textwrap
 import time
@@ -22,10 +23,15 @@ from zoneinfo import ZoneInfo
 
 import pytest
 import requests
-from mock_vws._constants import ResultCodes
 from PIL import Image
 from requests_mock import POST
 from urllib3.filepost import encode_multipart_formdata
+from vws.exceptions.cloud_reco_exceptions import (
+    BadImage,
+    InactiveProject,
+    MaxNumResultsOutOfRange,
+)
+from vws.exceptions.custom_exceptions import RequestEntityTooLarge
 from vws.reports import TargetStatuses
 from vws_auth_tools import authorization_header, rfc_1123_date
 
@@ -469,19 +475,14 @@ class TestSuccess:
     @staticmethod
     def test_no_results(
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        cloud_reco_client: CloudRecoService,
     ) -> None:
         """
         When there are no matching images in the database, an empty list of
         results is returned.
         """
-        image_content = high_quality_image.getvalue()
-        body = {"image": ("image.jpeg", image_content, "image/jpeg")}
-
-        response = query(vuforia_database=vuforia_database, body=body)
-
-        assert_query_success(response=response)
-        assert response.json()["results"] == []
+        results = cloud_reco_client.query(image=high_quality_image)
+        assert results == []
 
     @staticmethod
     def test_match_exact(
@@ -608,9 +609,9 @@ class TestSuccess:
     @staticmethod
     def test_not_base64_encoded_processable(
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
         vws_client: VWS,
         not_base64_encoded_processable: str,
+        cloud_reco_client: CloudRecoService,
     ) -> None:
         """
         Vuforia accepts some metadata strings which are not valid base64.
@@ -624,11 +625,8 @@ class TestSuccess:
         * If the metadata is three greater than a multiple of 4, the result is
           padded, then decoded, then encoded.
         """
-        image_content = high_quality_image.getvalue()
-        name = "example_name"
-
         target_id = vws_client.add_target(
-            name=name,
+            name="example_name",
             width=1,
             image=high_quality_image,
             active_flag=True,
@@ -637,13 +635,11 @@ class TestSuccess:
 
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        body = {"image": ("image.jpeg", image_content, "image/jpeg")}
+        query_results = cloud_reco_client.query(image=high_quality_image)
 
-        response = query(vuforia_database=vuforia_database, body=body)
-
-        assert_query_success(response=response)
-        (result,) = response.json()["results"]
-        query_metadata = result["target_data"]["application_metadata"]
+        (result,) = query_results
+        assert result.target_data is not None
+        query_metadata = result.target_data.application_metadata
         mod_4_to_expected_metadata_original = {
             1: not_base64_encoded_processable[:-1],
             2: not_base64_encoded_processable + "==",
@@ -839,8 +835,8 @@ class TestMaxNumResults:
     @pytest.mark.parametrize("num_results", [-1, 0, 51])
     def test_out_of_range(
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
         num_results: int,
+        cloud_reco_client: CloudRecoService,
     ) -> None:
         """
         An error is returned if ``max_num_results`` is given as an integer out
@@ -851,21 +847,21 @@ class TestMaxNumResults:
         states that this must be between 1 and 10, but in practice, 50 is the
         maximum.
         """
-        image_content = high_quality_image.getvalue()
-        body = {
-            "image": ("image.jpeg", image_content, "image/jpeg"),
-            "max_num_results": (None, num_results, "text/plain"),
-        }
-
-        response = query(vuforia_database=vuforia_database, body=body)
+        with pytest.raises(
+            expected_exception=MaxNumResultsOutOfRange,
+        ) as exc_info:
+            cloud_reco_client.query(
+                image=high_quality_image,
+                max_num_results=num_results,
+            )
 
         expected_text = (
             f"Integer out of range ({num_results}) in form data part "
             "'max_result'. Accepted range is from 1 to 50 (inclusive)."
         )
-        assert response.text == expected_text
+        assert exc_info.value.response.text == expected_text
         assert_vwq_failure(
-            response=response,
+            response=exc_info.value.response,
             content_type="application/json",
             status_code=HTTPStatus.BAD_REQUEST,
             cache_control=None,
@@ -1220,13 +1216,12 @@ class TestActiveFlag:
     @staticmethod
     def test_inactive(
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
         vws_client: VWS,
+        cloud_reco_client: CloudRecoService,
     ) -> None:
         """
         Images which are not active are not matched.
         """
-        image_content = high_quality_image.getvalue()
         target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
             width=1,
@@ -1236,12 +1231,8 @@ class TestActiveFlag:
         )
 
         vws_client.wait_for_target_processed(target_id=target_id)
-
-        body = {"image": ("image.jpeg", image_content, "image/jpeg")}
-        response = query(vuforia_database=vuforia_database, body=body)
-
-        assert_query_success(response=response)
-        assert response.json()["results"] == []
+        results = cloud_reco_client.query(image=high_quality_image)
+        assert results == []
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -1252,31 +1243,27 @@ class TestBadImage:
 
     @staticmethod
     def test_corrupted(
-        vuforia_database: VuforiaDatabase,
         corrupted_image_file: io.BytesIO,
+        cloud_reco_client: CloudRecoService,
     ) -> None:
         """
         No error is returned when a corrupted image is given.
         """
-        corrupted_data = corrupted_image_file.getvalue()
-
-        body = {"image": ("image.jpeg", corrupted_data, "image/jpeg")}
-
-        response = query(vuforia_database=vuforia_database, body=body)
-
-        assert_query_success(response=response)
-        assert response.json()["results"] == []
+        results = cloud_reco_client.query(image=corrupted_image_file)
+        assert results == []
 
     @staticmethod
-    def test_not_image(vuforia_database: VuforiaDatabase) -> None:
+    def test_not_image(cloud_reco_client: CloudRecoService) -> None:
         """
-        No error is returned when a corrupted image is given.
+        An ``UNPROCESSABLE_ENTITY`` response is returned when a non-image is
+        given.
         """
         not_image_data = b"not_image_data"
 
-        body = {"image": ("image.jpeg", not_image_data, "image/jpeg")}
+        with pytest.raises(BadImage) as exc_info:
+            cloud_reco_client.query(image=io.BytesIO(not_image_data))
 
-        response = query(vuforia_database=vuforia_database, body=body)
+        response = exc_info.value.response
 
         assert_vwq_failure(
             response=response,
@@ -1286,17 +1273,16 @@ class TestBadImage:
             www_authenticate=None,
             connection="keep-alive",
         )
-        assert response.json().keys() == {"transaction_id", "result_code"}
+        response_json = json.loads(response.text)
+        assert isinstance(response_json, dict)
+        assert response_json.keys() == {"transaction_id", "result_code"}
         assert_valid_transaction_id(response=response)
         assert_valid_date_header(response=response)
-        result_code = response.json()["result_code"]
-        transaction_id = response.json()["transaction_id"]
-        assert result_code == ResultCodes.BAD_IMAGE.value
         # The separators are inconsistent and we test this.
         expected_text = (
             '{"transaction_id": '
-            f'"{transaction_id}",'
-            f'"result_code":"{result_code}"'
+            f'"{response_json["transaction_id"]}",'
+            f'"result_code":"BadImage"'
             "}"
         )
         assert response.text == expected_text
@@ -1317,7 +1303,7 @@ class TestMaximumImageFileSize:
         ),
     )
     def test_png(
-        vuforia_database: VuforiaDatabase,
+        cloud_reco_client: CloudRecoService,
     ) -> None:  # pragma: no cover
         """
         According to
@@ -1338,7 +1324,6 @@ class TestMaximumImageFileSize:
         )
 
         image_content = png_not_too_large.getvalue()
-        body = {"image": ("image.jpeg", image_content, "image/jpeg")}
 
         image_content_size = len(image_content)
         # We check that the image we created is just slightly smaller than the
@@ -1349,10 +1334,8 @@ class TestMaximumImageFileSize:
         assert image_content_size < max_bytes
         assert (image_content_size * 1.05) > max_bytes
 
-        response = query(vuforia_database=vuforia_database, body=body)
-
-        assert_query_success(response=response)
-        assert response.json()["results"] == []
+        results = cloud_reco_client.query(image=png_not_too_large)
+        assert results == []
 
         width += 1
         height += 1
@@ -1364,7 +1347,6 @@ class TestMaximumImageFileSize:
         )
 
         image_content = png_too_large.getvalue()
-        body = {"image": ("image.jpeg", image_content, "image/jpeg")}
         image_content_size = len(image_content)
         # We check that the image we created is just slightly larger than the
         # maximum file size.
@@ -1374,10 +1356,10 @@ class TestMaximumImageFileSize:
         assert image_content_size > max_bytes
         assert (image_content_size * 0.95) < max_bytes
 
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        with pytest.raises(RequestEntityTooLarge) as exc_info:
+            cloud_reco_client.query(image=png_too_large)
+
+        response = exc_info.value.response
 
         assert_vwq_failure(
             response=response,
@@ -1398,7 +1380,7 @@ class TestMaximumImageFileSize:
         ),
     )
     def test_jpeg(
-        vuforia_database: VuforiaDatabase,
+        cloud_reco_client: CloudRecoService,
     ) -> None:  # pragma: no cover
         """
         According to
@@ -1420,7 +1402,6 @@ class TestMaximumImageFileSize:
         )
 
         image_content = jpeg_not_too_large.getvalue()
-        body = {"image": ("image.jpeg", image_content, "image/jpeg")}
 
         image_content_size = len(image_content)
         # We check that the image we created is just slightly smaller than the
@@ -1431,10 +1412,8 @@ class TestMaximumImageFileSize:
         assert image_content_size < max_bytes
         assert (image_content_size * 1.05) > max_bytes
 
-        response = query(vuforia_database=vuforia_database, body=body)
-
-        assert_query_success(response=response)
-        assert response.json()["results"] == []
+        results = cloud_reco_client.query(image=jpeg_not_too_large)
+        assert results == []
 
         width = height = 1866
         jpeg_too_large = make_image_file(
@@ -1445,7 +1424,6 @@ class TestMaximumImageFileSize:
         )
 
         image_content = jpeg_too_large.getvalue()
-        body = {"image": ("image.jpeg", image_content, "image/jpeg")}
         image_content_size = len(image_content)
         # We check that the image we created is just slightly larger than the
         # maximum file size.
@@ -1455,10 +1433,10 @@ class TestMaximumImageFileSize:
         assert image_content_size > max_bytes
         assert (image_content_size * 0.95) < max_bytes
 
-        response = query(
-            vuforia_database=vuforia_database,
-            body=body,
-        )
+        with pytest.raises(RequestEntityTooLarge) as exc_info:
+            cloud_reco_client.query(image=jpeg_too_large)
+
+        response = exc_info.value.response
 
         assert_vwq_failure(
             response=response,
@@ -1479,7 +1457,9 @@ class TestMaximumImageDimensions:
     """
 
     @staticmethod
-    def test_max_height(vuforia_database: VuforiaDatabase) -> None:
+    def test_max_height(
+        cloud_reco_client: CloudRecoService,
+    ) -> None:
         """
         An error is returned when an image with a height greater than 30000 is
         given.
@@ -1493,14 +1473,8 @@ class TestMaximumImageDimensions:
             height=max_height,
         )
 
-        image_content = png_not_too_tall.getvalue()
-
-        body = {"image": ("image.jpeg", image_content, "image/jpeg")}
-
-        response = query(vuforia_database=vuforia_database, body=body)
-
-        assert_query_success(response=response)
-        assert response.json()["results"] == []
+        results = cloud_reco_client.query(image=png_not_too_tall)
+        assert results == []
 
         png_too_tall = make_image_file(
             file_format="PNG",
@@ -1509,11 +1483,10 @@ class TestMaximumImageDimensions:
             height=max_height + 1,
         )
 
-        image_content = png_too_tall.getvalue()
+        with pytest.raises(BadImage) as exc_info:
+            cloud_reco_client.query(image=png_too_tall)
 
-        body = {"image": ("image.jpeg", image_content, "image/jpeg")}
-
-        response = query(vuforia_database=vuforia_database, body=body)
+        response = exc_info.value.response
 
         assert_vwq_failure(
             response=response,
@@ -1523,23 +1496,24 @@ class TestMaximumImageDimensions:
             www_authenticate=None,
             connection="keep-alive",
         )
-        assert response.json().keys() == {"transaction_id", "result_code"}
+
+        response_json = json.loads(response.text)
+        assert isinstance(response_json, dict)
+
+        assert response_json.keys() == {"transaction_id", "result_code"}
         assert_valid_transaction_id(response=response)
         assert_valid_date_header(response=response)
-        result_code = response.json()["result_code"]
-        transaction_id = response.json()["transaction_id"]
-        assert result_code == ResultCodes.BAD_IMAGE.value
         # The separators are inconsistent and we test this.
         expected_text = (
             '{"transaction_id": '
-            f'"{transaction_id}",'
-            f'"result_code":"{result_code}"'
+            f'"{response_json["transaction_id"]}",'
+            f'"result_code":"BadImage"'
             "}"
         )
         assert response.text == expected_text
 
     @staticmethod
-    def test_max_width(vuforia_database: VuforiaDatabase) -> None:
+    def test_max_width(cloud_reco_client: CloudRecoService) -> None:
         """
         An error is returned when an image with a width greater than 30000 is
         given.
@@ -1553,14 +1527,8 @@ class TestMaximumImageDimensions:
             height=height,
         )
 
-        image_content = png_not_too_wide.getvalue()
-
-        body = {"image": ("image.jpeg", image_content, "image/jpeg")}
-
-        response = query(vuforia_database=vuforia_database, body=body)
-
-        assert_query_success(response=response)
-        assert response.json()["results"] == []
+        result = cloud_reco_client.query(image=png_not_too_wide)
+        assert result == []
 
         png_too_wide = make_image_file(
             file_format="PNG",
@@ -1569,11 +1537,10 @@ class TestMaximumImageDimensions:
             height=height,
         )
 
-        image_content = png_too_wide.getvalue()
+        with pytest.raises(BadImage) as exc_info:
+            result = cloud_reco_client.query(image=png_too_wide)
 
-        body = {"image": ("image.jpeg", image_content, "image/jpeg")}
-
-        response = query(vuforia_database=vuforia_database, body=body)
+        response = exc_info.value.response
 
         assert_vwq_failure(
             response=response,
@@ -1583,23 +1550,23 @@ class TestMaximumImageDimensions:
             www_authenticate=None,
             connection="keep-alive",
         )
-        assert response.json().keys() == {"transaction_id", "result_code"}
+
+        response_json = json.loads(response.text)
+        assert isinstance(response_json, dict)
+        assert response_json.keys() == {"transaction_id", "result_code"}
         assert_valid_transaction_id(response=response)
         assert_valid_date_header(response=response)
-        result_code = response.json()["result_code"]
-        transaction_id = response.json()["transaction_id"]
-        assert result_code == ResultCodes.BAD_IMAGE.value
         # The separators are inconsistent and we test this.
         expected_text = (
             '{"transaction_id": '
-            f'"{transaction_id}",'
-            f'"result_code":"{result_code}"'
+            f'"{response_json["transaction_id"]}",'
+            f'"result_code":"BadImage"'
             "}"
         )
         assert response.text == expected_text
 
     @staticmethod
-    def test_max_pixels(vuforia_database: VuforiaDatabase) -> None:
+    def test_max_pixels(cloud_reco_client: CloudRecoService) -> None:
         """
         No error is returned for an 835 x 835 image.
         """
@@ -1612,14 +1579,8 @@ class TestMaximumImageDimensions:
             height=max_height,
         )
 
-        image_content = png_not_too_wide.getvalue()
-
-        body = {"image": ("image.jpeg", image_content, "image/jpeg")}
-
-        response = query(vuforia_database=vuforia_database, body=body)
-
-        assert_query_success(response=response)
-        assert response.json()["results"] == []
+        result = cloud_reco_client.query(image=png_not_too_wide)
+        assert result == []
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -1632,8 +1593,8 @@ class TestImageFormats:
     @pytest.mark.parametrize("file_format", ["png", "jpeg"])
     def test_supported(
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
         file_format: str,
+        cloud_reco_client: CloudRecoService,
     ) -> None:
         """
         PNG and JPEG formats are supported.
@@ -1642,18 +1603,13 @@ class TestImageFormats:
         pil_image = Image.open(high_quality_image)
         pil_image.save(image_buffer, file_format)
         image_content = image_buffer.getvalue()
-
-        body = {"image": ("image.jpeg", image_content, "image/jpeg")}
-
-        response = query(vuforia_database=vuforia_database, body=body)
-
-        assert_query_success(response=response)
-        assert response.json()["results"] == []
+        results = cloud_reco_client.query(image=io.BytesIO(image_content))
+        assert results == []
 
     @staticmethod
     def test_unsupported(
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        cloud_reco_client: CloudRecoService,
     ) -> None:
         """
         File formats which are not PNG or JPEG are not supported.
@@ -1664,9 +1620,10 @@ class TestImageFormats:
         pil_image.save(image_buffer, file_format)
         image_content = image_buffer.getvalue()
 
-        body = {"image": ("image.jpeg", image_content, "image/jpeg")}
+        with pytest.raises(BadImage) as exc_info:
+            cloud_reco_client.query(image=io.BytesIO(image_content))
 
-        response = query(vuforia_database=vuforia_database, body=body)
+        response = exc_info.value.response
 
         assert_vwq_failure(
             response=response,
@@ -1676,17 +1633,16 @@ class TestImageFormats:
             www_authenticate=None,
             connection="keep-alive",
         )
-        assert response.json().keys() == {"transaction_id", "result_code"}
+        response_json = json.loads(response.text)
+        assert isinstance(response_json, dict)
+        assert response_json.keys() == {"transaction_id", "result_code"}
         assert_valid_transaction_id(response=response)
         assert_valid_date_header(response=response)
-        result_code = response.json()["result_code"]
-        transaction_id = response.json()["transaction_id"]
-        assert result_code == ResultCodes.BAD_IMAGE.value
         # The separators are inconsistent and we test this.
         expected_text = (
             '{"transaction_id": '
-            f'"{transaction_id}",'
-            f'"result_code":"{result_code}"'
+            f'"{response_json["transaction_id"]}",'
+            f'"result_code":"BadImage"'
             "}"
         )
         assert response.text == expected_text
@@ -1748,15 +1704,14 @@ class TestUpdate:
     def test_updated_target(
         high_quality_image: io.BytesIO,
         different_high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
         vws_client: VWS,
+        cloud_reco_client: CloudRecoService,
     ) -> None:
         """
         After a target is updated, only the new image can be matched.
         The match result includes the updated name, timestamp and application
         metadata.
         """
-        image_content = high_quality_image.getvalue()
         metadata = b"example_metadata"
         metadata_encoded = base64.b64encode(metadata).decode("ascii")
         name = "example_name"
@@ -1772,18 +1727,14 @@ class TestUpdate:
 
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        new_image_content = different_high_quality_image.getvalue()
-
         new_name = name + "2"
         new_metadata = metadata + b"2"
         new_metadata_encoded = base64.b64encode(new_metadata).decode("ascii")
 
-        body = {"image": ("image.jpeg", image_content, "image/jpeg")}
-        response = query(vuforia_database=vuforia_database, body=body)
-        (result,) = response.json()["results"]
-        target_data = result["target_data"]
-        target_timestamp = target_data["target_timestamp"]
-        original_target_timestamp = int(target_timestamp)
+        results = cloud_reco_client.query(image=high_quality_image)
+        (result,) = results
+        assert result.target_data is not None
+        original_target_timestamp = result.target_data.target_timestamp
 
         vws_client.update_target(
             target_id=target_id,
@@ -1796,36 +1747,26 @@ class TestUpdate:
 
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        body = {"image": ("image.jpeg", new_image_content, "image/jpeg")}
-        response = query(vuforia_database=vuforia_database, body=body)
+        results = cloud_reco_client.query(image=different_high_quality_image)
 
-        assert_query_success(response=response)
-        (result,) = response.json()["results"]
-        assert result.keys() == {"target_id", "target_data"}
-        assert result["target_id"] == target_id
-        target_data = result["target_data"]
-        assert target_data.keys() == {
-            "application_metadata",
-            "name",
-            "target_timestamp",
-        }
-        assert target_data["application_metadata"] == new_metadata_encoded
-        assert target_data["name"] == new_name
-        target_timestamp = target_data["target_timestamp"]
-        assert isinstance(target_timestamp, int)
+        (result,) = results
+        assert result.target_data is not None
+        assert result.target_data.application_metadata == new_metadata_encoded
+        assert result.target_data.name == new_name
+        target_timestamp = result.target_data.target_timestamp
         # In the future we might want to test that
         # target_timestamp > original_target_timestamp
         # However, this requires us to set the mock processing time at > 1
         # second.
         assert target_timestamp >= original_target_timestamp
-        time_difference = abs(approximate_target_updated - target_timestamp)
+        time_difference = abs(
+            approximate_target_updated - target_timestamp.timestamp()
+        )
         max_time_difference = 5
         assert time_difference < max_time_difference
 
-        body = {"image": ("image.jpeg", image_content, "image/jpeg")}
-        response = query(vuforia_database=vuforia_database, body=body)
-        assert_query_success(response=response)
-        assert response.json()["results"] == []
+        results = cloud_reco_client.query(image=high_quality_image)
+        assert results == []
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -1837,13 +1778,12 @@ class TestDeleted:
     @staticmethod
     def test_deleted_active(
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
         vws_client: VWS,
+        cloud_reco_client: CloudRecoService,
     ) -> None:
         """
         Deleted targets are not matched.
         """
-        image_content = high_quality_image.getvalue()
         target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
             width=1,
@@ -1854,22 +1794,19 @@ class TestDeleted:
         vws_client.wait_for_target_processed(target_id=target_id)
         vws_client.delete_target(target_id=target_id)
 
-        body = {"image": ("image.jpeg", image_content, "image/jpeg")}
-
-        response = query(vuforia_database=vuforia_database, body=body)
-        assert response.json()["results"] == []
+        results = cloud_reco_client.query(image=high_quality_image)
+        assert results == []
 
     @staticmethod
     def test_deleted_inactive(
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
         vws_client: VWS,
+        cloud_reco_client: CloudRecoService,
     ) -> None:
         """
         No error is returned when querying for an image of recently deleted,
         inactive target.
         """
-        image_content = high_quality_image.getvalue()
         target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
             width=1,
@@ -1879,13 +1816,8 @@ class TestDeleted:
         )
         vws_client.wait_for_target_processed(target_id=target_id)
         vws_client.delete_target(target_id=target_id)
-
-        body = {"image": ("image.jpeg", image_content, "image/jpeg")}
-
-        response = query(vuforia_database=vuforia_database, body=body)
-
-        assert_query_success(response=response)
-        assert response.json()["results"] == []
+        results = cloud_reco_client.query(image=high_quality_image)
+        assert results == []
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -1897,13 +1829,12 @@ class TestTargetStatusFailed:
     @staticmethod
     def test_status_failed(
         image_file_failed_state: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
         vws_client: VWS,
+        cloud_reco_client: CloudRecoService,
     ) -> None:
         """
         Targets with the status "failed" are not found in query results.
         """
-        image_content = image_file_failed_state.getvalue()
         target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
             width=1,
@@ -1913,11 +1844,8 @@ class TestTargetStatusFailed:
         )
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        body = {"image": ("image.jpeg", image_content, "image/jpeg")}
-
-        response = query(vuforia_database=vuforia_database, body=body)
-        assert_query_success(response=response)
-        assert response.json()["results"] == []
+        results = cloud_reco_client.query(image=image_file_failed_state)
+        assert results == []
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -2011,16 +1939,16 @@ class TestInactiveProject:
 
     @staticmethod
     def test_inactive_project(
-        inactive_database: VuforiaDatabase,
         high_quality_image: io.BytesIO,
+        inactive_cloud_reco_client: CloudRecoService,
     ) -> None:
         """
         If the project is inactive, a FORBIDDEN response is returned.
         """
-        image_content = high_quality_image.getvalue()
-        body = {"image": ("image.jpeg", image_content, "image/jpeg")}
+        with pytest.raises(InactiveProject) as exc_info:
+            inactive_cloud_reco_client.query(image=high_quality_image)
 
-        response = query(vuforia_database=inactive_database, body=body)
+        response = exc_info.value.response
 
         assert_vwq_failure(
             response=response,
@@ -2030,17 +1958,18 @@ class TestInactiveProject:
             www_authenticate=None,
             connection="keep-alive",
         )
-        assert response.json().keys() == {"transaction_id", "result_code"}
+
+        response_json = json.loads(response.text)
+        assert isinstance(response_json, dict)
+
+        assert response_json.keys() == {"transaction_id", "result_code"}
         assert_valid_transaction_id(response=response)
         assert_valid_date_header(response=response)
-        result_code = response.json()["result_code"]
-        transaction_id = response.json()["transaction_id"]
-        assert result_code == ResultCodes.INACTIVE_PROJECT.value
         # The separators are inconsistent and we test this.
         expected_text = (
             '{"transaction_id": '
-            f'"{transaction_id}",'
-            f'"result_code":"{result_code}"'
+            f'"{response_json["transaction_id"]}",'
+            f'"result_code":"InactiveProject"'
             "}"
         )
         assert response.text == expected_text
