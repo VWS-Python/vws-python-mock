@@ -24,6 +24,7 @@ from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
     assert_vws_response,
 )
+from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
 _MAX_METADATA_BYTES: Final[int] = 1024 * 1024 - 1
 
@@ -74,13 +75,16 @@ def update_target(
         "Content-Type": content_type,
     }
 
-    return requests.request(
+    response = requests.request(
         method=PUT,
         url=urljoin("https://vws.vuforia.com/", request_path),
         headers=headers,
         data=content,
         timeout=30,
     )
+
+    handle_server_errors(response=response)
+    return response
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
