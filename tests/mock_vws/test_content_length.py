@@ -162,6 +162,7 @@ class TestIncorrect:
                 cache_control=None,
                 www_authenticate="VWS",
                 connection="keep-alive",
+                result_code=None,
             )
             return
 

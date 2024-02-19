@@ -82,6 +82,7 @@ class TestUnexpectedJSON:
                 cache_control=None,
                 www_authenticate=None,
                 connection="keep-alive",
+                result_code=None,
             )
             return
 

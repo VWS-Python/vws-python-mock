@@ -19,7 +19,6 @@ from vws_auth_tools import authorization_header, rfc_1123_date
 
 from tests.mock_vws.utils.assertions import (
     assert_query_success,
-    assert_valid_transaction_id,
     assert_vwq_failure,
     assert_vws_failure,
     assert_vws_response,
@@ -81,6 +80,7 @@ class TestMissing:
                 cache_control=None,
                 www_authenticate=None,
                 connection="keep-alive",
+                result_code=None,
             )
             return
 
@@ -146,6 +146,7 @@ class TestFormat:
                 cache_control=None,
                 www_authenticate="KWS",
                 connection="keep-alive",
+                result_code=None,
             )
             return
 
@@ -210,9 +211,6 @@ class TestSkewedTime:
 
         # Even with the query endpoint, we get a JSON response.
         if netloc == "cloudreco.vuforia.com":
-            assert response.json().keys() == {"transaction_id", "result_code"}
-            assert response.json()["result_code"] == "RequestTimeTooSkewed"
-            assert_valid_transaction_id(response=response)
             assert_vwq_failure(
                 response=response,
                 status_code=HTTPStatus.FORBIDDEN,
@@ -220,6 +218,7 @@ class TestSkewedTime:
                 cache_control=None,
                 www_authenticate=None,
                 connection="keep-alive",
+                result_code=ResultCodes.REQUEST_TIME_TOO_SKEWED,
             )
             return
 
@@ -276,9 +275,6 @@ class TestSkewedTime:
 
         # Even with the query endpoint, we get a JSON response.
         if netloc == "cloudreco.vuforia.com":
-            assert response.json().keys() == {"transaction_id", "result_code"}
-            assert response.json()["result_code"] == "RequestTimeTooSkewed"
-            assert_valid_transaction_id(response=response)
             assert_vwq_failure(
                 response=response,
                 status_code=HTTPStatus.FORBIDDEN,
@@ -286,6 +282,7 @@ class TestSkewedTime:
                 cache_control=None,
                 www_authenticate=None,
                 connection="keep-alive",
+                result_code=ResultCodes.REQUEST_TIME_TOO_SKEWED,
             )
             return
 

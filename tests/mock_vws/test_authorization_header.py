@@ -3,7 +3,6 @@ Tests for the `Authorization` header.
 """
 from __future__ import annotations
 
-import json
 import uuid
 from http import HTTPStatus
 from typing import TYPE_CHECKING
@@ -19,8 +18,6 @@ from vws.exceptions.vws_exceptions import AuthenticationFailure, Fail
 from vws_auth_tools import rfc_1123_date
 
 from tests.mock_vws.utils.assertions import (
-    assert_valid_date_header,
-    assert_valid_transaction_id,
     assert_vwq_failure,
     assert_vws_failure,
 )
@@ -68,6 +65,7 @@ class TestAuthorizationHeader:
                 cache_control=None,
                 www_authenticate="KWS",
                 connection="keep-alive",
+                result_code=None,
             )
             assert response.text == "Authorization header missing."
             return
@@ -118,6 +116,7 @@ class TestMalformed:
                 cache_control=None,
                 www_authenticate="KWS",
                 connection="keep-alive",
+                result_code=None,
             )
             assert response.text == "Malformed authorization header."
             return
@@ -158,6 +157,7 @@ class TestMalformed:
                 cache_control=None,
                 www_authenticate="KWS",
                 connection="keep-alive",
+                result_code=None,
             )
             assert response.text == "Malformed authorization header."
             return
@@ -197,6 +197,7 @@ class TestMalformed:
                 cache_control=None,
                 www_authenticate="KWS",
                 connection="keep-alive",
+                result_code=None,
             )
             assert response.text == "Malformed authorization header."
             return
@@ -258,25 +259,8 @@ class TestBadKey:
             cache_control=None,
             www_authenticate="VWS",
             connection="keep-alive",
+            result_code=ResultCodes.AUTHENTICATION_FAILURE,
         )
-
-        assert json.loads(response.text).keys() == {
-            "transaction_id",
-            "result_code",
-        }
-        assert_valid_transaction_id(response=response)
-        assert_valid_date_header(response=response)
-        result_code = json.loads(response.text)["result_code"]
-        transaction_id = json.loads(response.text)["transaction_id"]
-        assert result_code == ResultCodes.AUTHENTICATION_FAILURE.value
-        # The separators are inconsistent and we test this.
-        expected_text = (
-            '{"transaction_id":'
-            f'"{transaction_id}",'
-            f'"result_code":"{result_code}"'
-            "}"
-        )
-        assert response.text == expected_text
 
     @staticmethod
     def test_bad_secret_key_services(
@@ -320,22 +304,5 @@ class TestBadKey:
             cache_control=None,
             www_authenticate="VWS",
             connection="keep-alive",
+            result_code=ResultCodes.AUTHENTICATION_FAILURE,
         )
-
-        assert json.loads(response.text).keys() == {
-            "transaction_id",
-            "result_code",
-        }
-        assert_valid_transaction_id(response=response)
-        assert_valid_date_header(response=response)
-        result_code = json.loads(response.text)["result_code"]
-        transaction_id = json.loads(response.text)["transaction_id"]
-        assert result_code == ResultCodes.AUTHENTICATION_FAILURE.value
-        # The separators are inconsistent and we test this.
-        expected_text = (
-            '{"transaction_id":'
-            f'"{transaction_id}",'
-            f'"result_code":"{result_code}"'
-            "}"
-        )
-        assert response.text == expected_text

@@ -11,12 +11,10 @@ import calendar
 import copy
 import datetime
 import io
-import json
 import sys
 import textwrap
 import time
 import uuid
-from mock_vws._constants import ResultCodes
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urljoin
@@ -24,6 +22,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 import requests
+from mock_vws._constants import ResultCodes
 from PIL import Image
 from requests_mock import POST
 from urllib3.filepost import encode_multipart_formdata
@@ -39,8 +38,6 @@ from vws_auth_tools import authorization_header, rfc_1123_date
 from tests.mock_vws.utils import make_image_file
 from tests.mock_vws.utils.assertions import (
     assert_query_success,
-    assert_valid_date_header,
-    assert_valid_transaction_id,
     assert_vwq_failure,
 )
 
@@ -242,6 +239,7 @@ class TestContentType:
             cache_control=resp_cache_control,
             www_authenticate=None,
             connection="keep-alive",
+            result_code=None,
         )
 
     @staticmethod
@@ -300,6 +298,7 @@ class TestContentType:
             cache_control=None,
             www_authenticate=None,
             connection="keep-alive",
+            result_code=None,
         )
 
     @staticmethod
@@ -365,6 +364,7 @@ class TestContentType:
             cache_control=None,
             www_authenticate=None,
             connection="keep-alive",
+            result_code=None,
         )
 
     @staticmethod
@@ -418,6 +418,7 @@ class TestContentType:
             cache_control=None,
             www_authenticate=None,
             connection="keep-alive",
+            result_code=None,
         )
 
     @staticmethod
@@ -676,6 +677,7 @@ class TestIncorrectFields:
             cache_control=None,
             www_authenticate=None,
             connection="keep-alive",
+            result_code=None,
         )
 
     @staticmethod
@@ -702,6 +704,7 @@ class TestIncorrectFields:
             cache_control=None,
             www_authenticate=None,
             connection="keep-alive",
+            result_code=None,
         )
 
     @staticmethod
@@ -728,6 +731,7 @@ class TestIncorrectFields:
             cache_control=None,
             www_authenticate=None,
             connection="keep-alive",
+            result_code=None,
         )
 
 
@@ -868,6 +872,7 @@ class TestMaxNumResults:
             cache_control=None,
             www_authenticate=None,
             connection="keep-alive",
+            result_code=None,
         )
 
     @staticmethod
@@ -907,6 +912,7 @@ class TestMaxNumResults:
             cache_control=None,
             www_authenticate=None,
             connection="keep-alive",
+            result_code=None,
         )
 
 
@@ -1091,6 +1097,7 @@ class TestIncludeTargetData:
             cache_control=None,
             www_authenticate=None,
             connection="keep-alive",
+            result_code=None,
         )
 
 
@@ -1205,6 +1212,7 @@ class TestAcceptHeader:
             cache_control=None,
             www_authenticate=None,
             connection="keep-alive",
+            result_code=None,
         )
 
 
@@ -1273,20 +1281,8 @@ class TestBadImage:
             cache_control=None,
             www_authenticate=None,
             connection="keep-alive",
+            result_code=ResultCodes.BAD_IMAGE,
         )
-        response_json = json.loads(response.text)
-        assert isinstance(response_json, dict)
-        assert response_json.keys() == {"transaction_id", "result_code"}
-        assert_valid_transaction_id(response=response)
-        assert_valid_date_header(response=response)
-        # The separators are inconsistent and we test this.
-        expected_text = (
-            '{"transaction_id": '
-            f'"{response_json["transaction_id"]}",'
-            f'"result_code":"BadImage"'
-            "}"
-        )
-        assert response.text == expected_text
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -1369,6 +1365,7 @@ class TestMaximumImageFileSize:
             cache_control=None,
             www_authenticate=None,
             connection="Close",
+            result_code=None,
         )
         assert response.text == _NGINX_REQUEST_ENTITY_TOO_LARGE_ERROR
 
@@ -1446,6 +1443,7 @@ class TestMaximumImageFileSize:
             cache_control=None,
             www_authenticate=None,
             connection="Close",
+            result_code=None,
         )
 
         assert response.text == _NGINX_REQUEST_ENTITY_TOO_LARGE_ERROR
@@ -1496,22 +1494,8 @@ class TestMaximumImageDimensions:
             cache_control=None,
             www_authenticate=None,
             connection="keep-alive",
+            result_code=ResultCodes.BAD_IMAGE,
         )
-
-        response_json = json.loads(response.text)
-        assert isinstance(response_json, dict)
-
-        assert response_json.keys() == {"transaction_id", "result_code"}
-        assert_valid_transaction_id(response=response)
-        assert_valid_date_header(response=response)
-        # The separators are inconsistent and we test this.
-        expected_text = (
-            '{"transaction_id": '
-            f'"{response_json["transaction_id"]}",'
-            f'"result_code":"BadImage"'
-            "}"
-        )
-        assert response.text == expected_text
 
     @staticmethod
     def test_max_width(cloud_reco_client: CloudRecoService) -> None:
@@ -1550,21 +1534,8 @@ class TestMaximumImageDimensions:
             cache_control=None,
             www_authenticate=None,
             connection="keep-alive",
+            result_code=ResultCodes.BAD_IMAGE,
         )
-
-        response_json = json.loads(response.text)
-        assert isinstance(response_json, dict)
-        assert response_json.keys() == {"transaction_id", "result_code"}
-        assert_valid_transaction_id(response=response)
-        assert_valid_date_header(response=response)
-        # The separators are inconsistent and we test this.
-        expected_text = (
-            '{"transaction_id": '
-            f'"{response_json["transaction_id"]}",'
-            f'"result_code":"BadImage"'
-            "}"
-        )
-        assert response.text == expected_text
 
     @staticmethod
     def test_max_pixels(cloud_reco_client: CloudRecoService) -> None:
@@ -1633,20 +1604,8 @@ class TestImageFormats:
             cache_control=None,
             www_authenticate=None,
             connection="keep-alive",
-            result_code=
+            result_code=ResultCodes.BAD_IMAGE,
         )
-        response_json = json.loads(response.text)
-        assert isinstance(response_json, dict)
-        assert response_json.keys() == {"transaction_id", "result_code"}
-        assert_valid_transaction_id(response=response)
-        assert_valid_date_header(response=response)
-        expected_text = (gg
-            '{"transaction_id": '
-            f'"{response_json["transaction_id"]}",'
-            f'"result_code":"BadImage"'
-            "}"
-        )
-        assert response.text == expected_text
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -1958,19 +1917,5 @@ class TestInactiveProject:
             cache_control=None,
             www_authenticate=None,
             connection="keep-alive",
+            result_code=ResultCodes.INACTIVE_PROJECT,
         )
-
-        response_json = json.loads(response.text)
-        assert isinstance(response_json, dict)
-
-        assert response_json.keys() == {"transaction_id", "result_code"}
-        assert_valid_transaction_id(response=response)
-        assert_valid_date_header(response=response)
-        # The separators are inconsistent and we test this.
-        expected_text = (
-            '{"transaction_id": '
-            f'"{response_json["transaction_id"]}",'
-            f'"result_code":"InactiveProject"'
-            "}"
-        )
-        assert response.text == expected_text
