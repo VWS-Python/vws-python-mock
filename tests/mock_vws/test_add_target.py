@@ -87,7 +87,7 @@ def add_target_to_vws(
     return response
 
 
-def _assert_oops_response(response: Response, status_code: int) -> None:
+def _assert_oops_response(response: Response) -> None:
     """
     Assert that the response is in the format of Vuforia's "Oops, an error
     occurred" HTML response.
@@ -95,7 +95,6 @@ def _assert_oops_response(response: Response, status_code: int) -> None:
     Raises:
         AssertionError: The given response is not expected format.
     """
-    assert response.status_code == status_code
     assert_valid_date_header(response=response)
     assert "Oops, an error occurred" in response.text
     assert "This exception has been logged with id" in response.text
@@ -407,16 +406,21 @@ class TestTargetName:
             "image": image_data_encoded,
         }
 
-        try:
-            response = add_target_to_vws(
-                vuforia_database=vuforia_database,
-                data=data,
-            )
-        except ServerError as exc:
-            _assert_oops_response(
-                response=exc.response, status_code=status_code
-            )
+        if status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+            with pytest.raises(ServerError) as exc:
+                add_target_to_vws(
+                    vuforia_database=vuforia_database,
+                    data=data,
+                )
+
+            assert exc.value.response.status_code == status_code
+            _assert_oops_response(response=exc.value.response)
             return
+
+        response = add_target_to_vws(
+            vuforia_database=vuforia_database,
+            data=data,
+        )
 
         assert_vws_failure(
             response=response,
