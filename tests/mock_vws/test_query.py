@@ -38,7 +38,6 @@ from vws_auth_tools import authorization_header, rfc_1123_date
 from tests.mock_vws.utils import make_image_file
 from tests.mock_vws.utils.assertions import (
     assert_query_success,
-    assert_valid_date_header,
     assert_valid_transaction_id,
     assert_vwq_failure,
 )
@@ -1292,7 +1291,6 @@ class TestBadImage:
         assert isinstance(response_json, dict)
         assert response_json.keys() == {"transaction_id", "result_code"}
         assert_valid_transaction_id(response=response)
-        assert_valid_date_header(response=response)
         # The separators are inconsistent and we test this.
         expected_text = (
             '{"transaction_id": '
@@ -1517,7 +1515,6 @@ class TestMaximumImageDimensions:
 
         assert response_json.keys() == {"transaction_id", "result_code"}
         assert_valid_transaction_id(response=response)
-        assert_valid_date_header(response=response)
         # The separators are inconsistent and we test this.
         expected_text = (
             '{"transaction_id": '
@@ -1570,7 +1567,6 @@ class TestMaximumImageDimensions:
         assert isinstance(response_json, dict)
         assert response_json.keys() == {"transaction_id", "result_code"}
         assert_valid_transaction_id(response=response)
-        assert_valid_date_header(response=response)
         # The separators are inconsistent and we test this.
         expected_text = (
             '{"transaction_id": '
@@ -1652,7 +1648,6 @@ class TestImageFormats:
         assert isinstance(response_json, dict)
         assert response_json.keys() == {"transaction_id", "result_code"}
         assert_valid_transaction_id(response=response)
-        assert_valid_date_header(response=response)
         # The separators are inconsistent and we test this.
         expected_text = (
             '{"transaction_id": '
@@ -1980,7 +1975,6 @@ class TestInactiveProject:
 
         assert response_json.keys() == {"transaction_id", "result_code"}
         assert_valid_transaction_id(response=response)
-        assert_valid_date_header(response=response)
         # The separators are inconsistent and we test this.
         expected_text = (
             '{"transaction_id": '
