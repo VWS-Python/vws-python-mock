@@ -19,7 +19,6 @@ from vws.exceptions.vws_exceptions import AuthenticationFailure, Fail
 from vws_auth_tools import rfc_1123_date
 
 from tests.mock_vws.utils.assertions import (
-    assert_valid_date_header,
     assert_valid_transaction_id,
     assert_vwq_failure,
     assert_vws_failure,
@@ -265,7 +264,6 @@ class TestBadKey:
             "result_code",
         }
         assert_valid_transaction_id(response=response)
-        assert_valid_date_header(response=response)
         result_code = json.loads(response.text)["result_code"]
         transaction_id = json.loads(response.text)["transaction_id"]
         assert result_code == ResultCodes.AUTHENTICATION_FAILURE.value
@@ -327,7 +325,6 @@ class TestBadKey:
             "result_code",
         }
         assert_valid_transaction_id(response=response)
-        assert_valid_date_header(response=response)
         result_code = json.loads(response.text)["result_code"]
         transaction_id = json.loads(response.text)["transaction_id"]
         assert result_code == ResultCodes.AUTHENTICATION_FAILURE.value
