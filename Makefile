@@ -15,11 +15,10 @@ update-secrets:
 lint: \
     actionlint \
     check-manifest \
+    deptry \
     doc8 \
     linkcheck \
     mypy \
-    pip-extra-reqs \
-    pip-missing-reqs \
     pyproject-fmt \
     pyright \
     pyright-verifytypes \
