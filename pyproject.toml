@@ -335,7 +335,7 @@ dev = [
     "ruff==0.2.2",
     "Sphinx==7.2.6",
     "sphinx-prompt==1.8",
-    "Sphinx-Substitution-Extensions==2022.2.16",
+    "Sphinx-Substitution-Extensions==2024.2.25",
     "sphinx-toolbox==3.5",
     "sphinx_paramlinks==0.6",
     "sphinxcontrib-httpdomain==1.8.1",
