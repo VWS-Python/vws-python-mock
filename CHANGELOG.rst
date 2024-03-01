@@ -4,6 +4,8 @@ Changelog
 Next
 ----
 
+- Add a mock for the VuMark Generation Web API.
+
 2024.02.16
 ------------
 
