@@ -8,7 +8,6 @@ from urllib.parse import urljoin
 import pytest
 import requests
 from mock_vws.database import VuforiaDatabase
-from requests_mock import PUT
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 
@@ -25,10 +24,9 @@ class TestVuMarkInstanceGeneration:
     ) -> None:
         date = rfc_1123_date()
         target_id = "TODO"
-        url = f"https://vws.vuforia.com/targets/{target_id}/instances"
-        # TODO: Fill this in
-        response = requests.post(url=url)
-        response_json = json.loads(s=response.text)
+        request_path = f"/targets/{target_id}/instances"
+        content_type = "image/png"
+        method = "POST"
 
         data = {
             # TODO: Fill this in
@@ -36,11 +34,10 @@ class TestVuMarkInstanceGeneration:
         }
         content = bytes(json.dumps(data), encoding="utf-8")
 
-        assert isinstance(response_json, dict)
         authorization_string = authorization_header(
             access_key=vuforia_database.server_access_key,
             secret_key=vuforia_database.server_secret_key,
-            method=PUT,
+            method=method,
             content=content,
             content_type=content_type,
             date=date,
@@ -54,12 +51,15 @@ class TestVuMarkInstanceGeneration:
         }
 
         response = requests.request(
-            method=PUT,
+            method=method,
             url=urljoin("https://vws.vuforia.com/", request_path),
             headers=headers,
             data=content,
             timeout=30,
         )
+
+        response_json = json.loads(s=response.text)
+        assert isinstance(response_json, dict)
 
     def test_target_does_not_exist(self) -> None:
         url = "https://vws.vuforia.com/targets/{target_id}/instances"
