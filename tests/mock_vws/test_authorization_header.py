@@ -1,6 +1,7 @@
 """
 Tests for the `Authorization` header.
 """
+
 from __future__ import annotations
 
 import json

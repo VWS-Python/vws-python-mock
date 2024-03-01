@@ -2,6 +2,7 @@
 Tests for passing invalid target IDs to endpoints which
 require a target ID to be given.
 """
+
 from __future__ import annotations
 
 from http import HTTPStatus

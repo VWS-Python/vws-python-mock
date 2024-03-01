@@ -3,6 +3,7 @@ Tests for getting a target record.
 
 https://library.vuforia.com/web-api/cloud-targets-web-services-api#target-record
 """
+
 from __future__ import annotations
 
 import uuid
