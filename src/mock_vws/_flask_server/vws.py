@@ -68,9 +68,9 @@ class VWSSettings(BaseSettings):
     target_manager_base_url: str
     processing_time_seconds: float = 2
     vws_host: str = ""
-    duplicates_image_matcher: (
-        _ImageMatcherChoice
-    ) = _ImageMatcherChoice.STRUCTURAL_SIMILARITY
+    duplicates_image_matcher: _ImageMatcherChoice = (
+        _ImageMatcherChoice.STRUCTURAL_SIMILARITY
+    )
 
 
 def get_all_databases() -> set[VuforiaDatabase]:

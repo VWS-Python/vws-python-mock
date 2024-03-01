@@ -1,6 +1,7 @@
 """
 Helpers for testing the usage of the mocks.
 """
+
 from __future__ import annotations
 
 import datetime

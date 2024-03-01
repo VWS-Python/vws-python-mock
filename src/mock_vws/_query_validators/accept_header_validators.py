@@ -2,7 +2,6 @@
 Validators for the ``Accept`` header.
 """
 
-
 import logging
 
 from mock_vws._query_validators.exceptions import InvalidAcceptHeader

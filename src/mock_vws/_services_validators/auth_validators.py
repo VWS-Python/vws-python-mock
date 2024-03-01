@@ -1,6 +1,7 @@
 """
 Authorization header validators to use in the mock.
 """
+
 from __future__ import annotations
 
 import logging

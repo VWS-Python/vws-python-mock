@@ -1,6 +1,7 @@
 """
 Fixtures which prepare requests.
 """
+
 from __future__ import annotations
 
 import base64

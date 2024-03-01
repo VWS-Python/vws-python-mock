@@ -2,7 +2,6 @@
 Validators for the project state.
 """
 
-
 import logging
 
 from mock_vws._database_matchers import get_database_matching_client_keys

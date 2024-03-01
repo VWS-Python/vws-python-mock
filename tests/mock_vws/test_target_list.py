@@ -1,6 +1,7 @@
 """
 Tests for the mock of the target list endpoint.
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

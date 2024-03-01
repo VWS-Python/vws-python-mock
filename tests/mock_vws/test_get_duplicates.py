@@ -1,6 +1,7 @@
 """
 Tests for the mock of the get duplicates endpoint.
 """
+
 from __future__ import annotations
 
 import copy

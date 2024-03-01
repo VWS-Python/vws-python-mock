@@ -2,7 +2,6 @@
 Validators for the ``Content-Type`` header.
 """
 
-
 import logging
 from email.message import EmailMessage
 

@@ -2,7 +2,6 @@
 Content-Type header validators to use in the mock.
 """
 
-
 import logging
 
 from requests_mock import POST, PUT

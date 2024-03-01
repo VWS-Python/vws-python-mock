@@ -2,7 +2,6 @@
 Content-Length header validators to use in the mock.
 """
 
-
 import logging
 
 from mock_vws._query_validators.exceptions import (
