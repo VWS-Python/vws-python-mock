@@ -8,9 +8,8 @@ https://library.vuforia.com/web-api/vuforia-query-web-api
 from __future__ import annotations
 
 import email.utils
+from http import HTTPMethod
 from typing import TYPE_CHECKING
-
-from requests_mock import POST
 
 from mock_vws._mock_common import Route
 from mock_vws._query_tools import (
@@ -95,7 +94,7 @@ class MockVuforiaWebQueryAPI:
         self._target_manager = target_manager
         self._query_match_checker = query_match_checker
 
-    @route(path_pattern="/v1/query", http_methods={POST})
+    @route(path_pattern="/v1/query", http_methods={HTTPMethod.POST})
     def query(self, request: Request, context: Context) -> str:
         """
         Perform an image recognition query.
