@@ -6,9 +6,7 @@ import json
 import logging
 import re
 from dataclasses import dataclass
-from http import HTTPStatus
-
-from requests_mock import DELETE, GET, POST, PUT
+from http import HTTPMethod, HTTPStatus
 
 from .exceptions import Fail
 
@@ -30,7 +28,7 @@ class _Route:
     """
 
     path_pattern: str
-    http_methods: set[str]
+    http_methods: set[HTTPMethod]
     mandatory_keys: set[str]
     optional_keys: set[str]
 
@@ -55,56 +53,56 @@ def validate_keys(
     target_id_pattern = "[A-Za-z0-9]+"
     add_target = _Route(
         path_pattern="/targets",
-        http_methods={POST},
+        http_methods={HTTPMethod.POST},
         mandatory_keys={"image", "width", "name"},
         optional_keys={"active_flag", "application_metadata"},
     )
 
     delete_target = _Route(
         path_pattern=f"/targets/{target_id_pattern}",
-        http_methods={DELETE},
+        http_methods={HTTPMethod.DELETE},
         mandatory_keys=set(),
         optional_keys=set(),
     )
 
     database_summary = _Route(
         path_pattern="/summary",
-        http_methods={GET},
+        http_methods={HTTPMethod.GET},
         mandatory_keys=set(),
         optional_keys=set(),
     )
 
     target_list = _Route(
         path_pattern="/targets",
-        http_methods={GET},
+        http_methods={HTTPMethod.GET},
         mandatory_keys=set(),
         optional_keys=set(),
     )
 
     get_target = _Route(
         path_pattern=f"/targets/{target_id_pattern}",
-        http_methods={GET},
+        http_methods={HTTPMethod.GET},
         mandatory_keys=set(),
         optional_keys=set(),
     )
 
     target_summary = _Route(
         path_pattern=f"/summary/{target_id_pattern}",
-        http_methods={GET},
+        http_methods={HTTPMethod.GET},
         mandatory_keys=set(),
         optional_keys=set(),
     )
 
     get_duplicates = _Route(
         path_pattern=f"/duplicates/{target_id_pattern}",
-        http_methods={GET},
+        http_methods={HTTPMethod.GET},
         mandatory_keys=set(),
         optional_keys=set(),
     )
 
     update_target = _Route(
         path_pattern=f"/targets/{target_id_pattern}",
-        http_methods={PUT},
+        http_methods={HTTPMethod.PUT},
         mandatory_keys=set(),
         optional_keys={
             "active_flag",
@@ -117,7 +115,7 @@ def validate_keys(
 
     target_summary = _Route(
         path_pattern=f"/summary/{target_id_pattern}",
-        http_methods={GET},
+        http_methods={HTTPMethod.GET},
         mandatory_keys=set(),
         optional_keys=set(),
     )

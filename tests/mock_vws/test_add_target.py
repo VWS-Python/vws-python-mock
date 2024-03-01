@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import base64
 import json
-from http import HTTPStatus
+from http import HTTPMethod, HTTPStatus
 from string import hexdigits
 from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import urljoin
@@ -16,7 +16,6 @@ import requests
 from dirty_equals import IsInstance
 from mock_vws._constants import ResultCodes
 from requests.structures import CaseInsensitiveDict
-from requests_mock import POST
 from vws.exceptions.custom_exceptions import ServerError
 from vws_auth_tools import authorization_header, rfc_1123_date
 
@@ -62,7 +61,7 @@ def add_target_to_vws(
     authorization_string = authorization_header(
         access_key=vuforia_database.server_access_key,
         secret_key=vuforia_database.server_secret_key,
-        method=POST,
+        method=HTTPMethod.POST,
         content=content,
         content_type=content_type,
         date=date,
@@ -76,7 +75,7 @@ def add_target_to_vws(
     }
 
     response = requests.request(
-        method=POST,
+        method=HTTPMethod.POST,
         url=urljoin(base="https://vws.vuforia.com/", url=request_path),
         headers=headers,
         data=content,
