@@ -16,7 +16,7 @@ import sys
 import textwrap
 import time
 import uuid
-from http import HTTPStatus
+from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urljoin
 from zoneinfo import ZoneInfo
@@ -24,7 +24,6 @@ from zoneinfo import ZoneInfo
 import pytest
 import requests
 from PIL import Image
-from requests_mock import POST
 from urllib3.filepost import encode_multipart_formdata
 from vws.exceptions.cloud_reco_exceptions import (
     BadImage,
@@ -101,7 +100,7 @@ def query(
     date = rfc_1123_date()
     request_path = "/v1/query"
     content, content_type_header = encode_multipart_formdata(fields=body)
-    method = POST
+    method = HTTPMethod.POST
 
     access_key = vuforia_database.client_access_key
     secret_key = vuforia_database.client_secret_key
@@ -208,7 +207,7 @@ class TestContentType:
         request_path = "/v1/query"
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
         content, _ = encode_multipart_formdata(fields=body)
-        method = POST
+        method = HTTPMethod.POST
 
         access_key = vuforia_database.client_access_key
         secret_key = vuforia_database.client_secret_key
@@ -263,7 +262,7 @@ class TestContentType:
         request_path = "/v1/query"
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
         content, content_type_header = encode_multipart_formdata(fields=body)
-        method = POST
+        method = HTTPMethod.POST
 
         content_type = "text/html"
 
@@ -329,7 +328,7 @@ class TestContentType:
         request_path = "/v1/query"
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
         content, _ = encode_multipart_formdata(fields=body)
-        method = POST
+        method = HTTPMethod.POST
 
         access_key = vuforia_database.client_access_key
         secret_key = vuforia_database.client_secret_key
@@ -387,7 +386,7 @@ class TestContentType:
         request_path = "/v1/query"
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
         content, _ = encode_multipart_formdata(fields=body)
-        method = POST
+        method = HTTPMethod.POST
 
         access_key = vuforia_database.client_access_key
         secret_key = vuforia_database.client_secret_key
@@ -443,7 +442,7 @@ class TestContentType:
         request_path = "/v1/query"
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
         content, content_type_header = encode_multipart_formdata(fields=body)
-        method = POST
+        method = HTTPMethod.POST
 
         access_key = vuforia_database.client_access_key
         secret_key = vuforia_database.client_secret_key
@@ -1133,7 +1132,7 @@ class TestAcceptHeader:
         request_path = "/v1/query"
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
         content, content_type_header = encode_multipart_formdata(fields=body)
-        method = POST
+        method = HTTPMethod.POST
 
         access_key = vuforia_database.client_access_key
         secret_key = vuforia_database.client_secret_key
@@ -1179,7 +1178,7 @@ class TestAcceptHeader:
         request_path = "/v1/query"
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
         content, content_type_header = encode_multipart_formdata(fields=body)
-        method = POST
+        method = HTTPMethod.POST
 
         access_key = vuforia_database.client_access_key
         secret_key = vuforia_database.client_secret_key
@@ -1909,7 +1908,7 @@ class TestDateFormats:
         date = now.strftime(datetime_format)
         request_path = "/v1/query"
         content, content_type_header = encode_multipart_formdata(fields=body)
-        method = POST
+        method = HTTPMethod.POST
 
         access_key = vuforia_database.client_access_key
         secret_key = vuforia_database.client_secret_key

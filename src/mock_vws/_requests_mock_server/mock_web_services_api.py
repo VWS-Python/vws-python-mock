@@ -12,11 +12,9 @@ import dataclasses
 import datetime
 import email.utils
 import uuid
-from http import HTTPStatus
+from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
-
-from requests_mock import DELETE, GET, POST, PUT
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
@@ -48,7 +46,7 @@ _ROUTES: set[Route] = set()
 
 def route(
     path_pattern: str,
-    http_methods: set[str],
+    http_methods: set[HTTPMethod],
 ) -> Callable[[Callable[..., str]], Callable[..., str]]:
     """
     Register a decorated method so that it can be recognized as a route.
@@ -118,7 +116,7 @@ class MockVuforiaWebServicesAPI:
 
     @route(
         path_pattern="/targets",
-        http_methods={POST},
+        http_methods={HTTPMethod.POST},
     )
     def add_target(self, request: Request, context: Context) -> str:
         """
@@ -191,7 +189,7 @@ class MockVuforiaWebServicesAPI:
 
     @route(
         path_pattern=f"/targets/{_TARGET_ID_PATTERN}",
-        http_methods={DELETE},
+        http_methods={HTTPMethod.DELETE},
     )
     def delete_target(self, request: Request, context: Context) -> str:
         """
@@ -255,7 +253,7 @@ class MockVuforiaWebServicesAPI:
         }
         return body_json
 
-    @route(path_pattern="/summary", http_methods={GET})
+    @route(path_pattern="/summary", http_methods={HTTPMethod.GET})
     def database_summary(self, request: Request, context: Context) -> str:
         """
         Get a database summary report.
@@ -317,7 +315,7 @@ class MockVuforiaWebServicesAPI:
         }
         return body_json
 
-    @route(path_pattern="/targets", http_methods={GET})
+    @route(path_pattern="/targets", http_methods={HTTPMethod.GET})
     def target_list(self, request: Request, context: Context) -> str:
         """
         Get a list of all targets.
@@ -370,7 +368,10 @@ class MockVuforiaWebServicesAPI:
         }
         return body_json
 
-    @route(path_pattern=f"/targets/{_TARGET_ID_PATTERN}", http_methods={GET})
+    @route(
+        path_pattern=f"/targets/{_TARGET_ID_PATTERN}",
+        http_methods={HTTPMethod.GET},
+    )
     def get_target(self, request: Request, context: Context) -> str:
         """
         Get details of a target.
@@ -433,7 +434,7 @@ class MockVuforiaWebServicesAPI:
 
     @route(
         path_pattern=f"/duplicates/{_TARGET_ID_PATTERN}",
-        http_methods={GET},
+        http_methods={HTTPMethod.GET},
     )
     def get_duplicates(self, request: Request, context: Context) -> str:
         """
@@ -503,7 +504,7 @@ class MockVuforiaWebServicesAPI:
 
     @route(
         path_pattern=f"/targets/{_TARGET_ID_PATTERN}",
-        http_methods={PUT},
+        http_methods={HTTPMethod.PUT},
     )
     def update_target(self, request: Request, context: Context) -> str:
         """
@@ -606,7 +607,10 @@ class MockVuforiaWebServicesAPI:
         }
         return body_json
 
-    @route(path_pattern=f"/summary/{_TARGET_ID_PATTERN}", http_methods={GET})
+    @route(
+        path_pattern=f"/summary/{_TARGET_ID_PATTERN}",
+        http_methods={HTTPMethod.GET},
+    )
     def target_summary(self, request: Request, context: Context) -> str:
         """
         Get a summary report for a target.

@@ -7,14 +7,13 @@ from __future__ import annotations
 import base64
 import json
 import uuid
-from http import HTTPStatus
+from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import urljoin
 
 import pytest
 import requests
 from mock_vws._constants import ResultCodes
-from requests_mock import PUT
 from vws.exceptions.vws_exceptions import BadImage, ProjectInactive
 from vws.reports import TargetStatuses
 from vws_auth_tools import authorization_header, rfc_1123_date
@@ -62,7 +61,7 @@ def update_target(
     authorization_string = authorization_header(
         access_key=vuforia_database.server_access_key,
         secret_key=vuforia_database.server_secret_key,
-        method=PUT,
+        method=HTTPMethod.PUT,
         content=content,
         content_type=content_type,
         date=date,
@@ -76,7 +75,7 @@ def update_target(
     }
 
     response = requests.request(
-        method=PUT,
+        method=HTTPMethod.PUT,
         url=urljoin("https://vws.vuforia.com/", request_path),
         headers=headers,
         data=content,

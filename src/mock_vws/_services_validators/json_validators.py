@@ -4,10 +4,8 @@ Validators for given JSON.
 
 import json
 import logging
-from http import HTTPStatus
+from http import HTTPMethod, HTTPStatus
 from json.decoder import JSONDecodeError
-
-from requests_mock import POST, PUT
 
 from mock_vws._services_validators.exceptions import (
     Fail,
@@ -34,7 +32,7 @@ def validate_body_given(request_body: bytes, request_method: str) -> None:
     if not request_body:
         return
 
-    if request_method not in {POST, PUT}:
+    if request_method not in {HTTPMethod.POST, HTTPMethod.PUT}:
         _LOGGER.warning(
             msg=(
                 "A request body was given for an endpoint which does not "

@@ -6,14 +6,13 @@ from __future__ import annotations
 
 import base64
 import json
-from http import HTTPStatus
+from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urljoin
 
 import pytest
 import requests
 from mock_vws._constants import ResultCodes
-from requests_mock import DELETE, GET, POST, PUT
 from urllib3.filepost import encode_multipart_formdata
 from vws_auth_tools import authorization_header, rfc_1123_date
 
@@ -61,7 +60,7 @@ def add_target(
     }
     request_path = "/targets"
     content_type = "application/json"
-    method = POST
+    method = HTTPMethod.POST
 
     content = bytes(json.dumps(data), encoding="utf-8")
 
@@ -113,7 +112,7 @@ def delete_target(
     _wait_for_target_processed(vws_client=vws_client, target_id=target_id)
     date = rfc_1123_date()
     request_path = f"/targets/{target_id}"
-    method = DELETE
+    method = HTTPMethod.DELETE
     content = b""
 
     access_key = vuforia_database.server_access_key
@@ -157,7 +156,7 @@ def database_summary(vuforia_database: VuforiaDatabase) -> Endpoint:
     """
     date = rfc_1123_date()
     request_path = "/summary"
-    method = GET
+    method = HTTPMethod.GET
 
     content = b""
 
@@ -209,7 +208,7 @@ def get_duplicates(
     _wait_for_target_processed(vws_client=vws_client, target_id=target_id)
     date = rfc_1123_date()
     request_path = f"/duplicates/{target_id}"
-    method = GET
+    method = HTTPMethod.GET
 
     content = b""
 
@@ -260,7 +259,7 @@ def get_target(
     _wait_for_target_processed(vws_client=vws_client, target_id=target_id)
     date = rfc_1123_date()
     request_path = f"/targets/{target_id}"
-    method = GET
+    method = HTTPMethod.GET
 
     content = b""
 
@@ -306,7 +305,7 @@ def target_list(vuforia_database: VuforiaDatabase) -> Endpoint:
     """
     date = rfc_1123_date()
     request_path = "/targets"
-    method = GET
+    method = HTTPMethod.GET
 
     content = b""
 
@@ -357,7 +356,7 @@ def target_summary(
     _wait_for_target_processed(vws_client=vws_client, target_id=target_id)
     date = rfc_1123_date()
     request_path = f"/summary/{target_id}"
-    method = GET
+    method = HTTPMethod.GET
 
     content = b""
 
@@ -412,7 +411,7 @@ def update_target(
     content_type = "application/json"
 
     date = rfc_1123_date()
-    method = PUT
+    method = HTTPMethod.PUT
 
     access_key = vuforia_database.server_access_key
     secret_key = vuforia_database.server_secret_key
@@ -462,7 +461,7 @@ def query(
     date = rfc_1123_date()
     request_path = "/v1/query"
     files = {"image": ("image.jpeg", image_content, "image/jpeg")}
-    method = POST
+    method = HTTPMethod.POST
 
     content, content_type_header = encode_multipart_formdata(fields=files)
 
