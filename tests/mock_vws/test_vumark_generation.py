@@ -3,6 +3,7 @@ Tests for generating VuMark instances.
 """
 
 import json
+from urllib.parse import urljoin
 
 import pytest
 import requests
@@ -46,6 +47,20 @@ class TestVuMarkInstanceGeneration:
             request_path=request_path,
         )
 
+        headers = {
+            "Authorization": authorization_string,
+            "Date": date,
+            "Content-Type": content_type,
+        }
+
+        response = requests.request(
+            method=PUT,
+            url=urljoin("https://vws.vuforia.com/", request_path),
+            headers=headers,
+            data=content,
+            timeout=30,
+        )
+
     def test_target_does_not_exist(self) -> None:
         url = "https://vws.vuforia.com/targets/{target_id}/instances"
 
@@ -67,12 +82,19 @@ class TestVuMarkInstanceGeneration:
     def test_invalid_accept_header(self) -> None:
         pass
 
+    def test_instance_id_not_given(self) -> None:
+        pass
+
+    def test_extra_fields_given(self) -> None:
+        pass
+
 
 # TODO: Fill in tests
 # TODO: Look at query / cloud target validators for tests
 # TODO: Make a VuMark instance database
 # TODO: Make a VuMark instance in the database
 # TODO: Add VuMark database credentials to secrets
+# TODO: Docker container for VuMark
 # TODO: Add new secrets to GitHub Actions
 # TODO: Then create a library for the VuMark database
 # TODO: Then update tests to use the library
