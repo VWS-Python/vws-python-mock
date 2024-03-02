@@ -3,6 +3,7 @@ Tests for generating VuMark instances.
 """
 
 import json
+from http import HTTPMethod
 from urllib.parse import urljoin
 
 import pytest
@@ -26,7 +27,7 @@ class TestVuMarkInstanceGeneration:
         target_id = "TODO"
         request_path = f"/targets/{target_id}/instances"
         content_type = "image/png"
-        method = "POST"
+        method = HTTPMethod.POST
 
         data = {
             # TODO: Fill this in
