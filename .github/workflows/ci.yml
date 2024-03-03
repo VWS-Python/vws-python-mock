@@ -134,9 +134,7 @@ jobs:
       - name: "Install dependencies"
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
-          uv venv /home/runner/.venv
-          source /home/runner/.venv/bin/activate
-          uv pip install --upgrade --editable .[dev]
+          uv pip install --system --upgrade --editable .[dev]
 
       # We have seen issues with running out of disk space on test_docker
       - name: Free Disk Space (Ubuntu)
@@ -155,7 +153,6 @@ jobs:
 
       - name: "Run tests"
         run: |
-          source /home/runner/.venv/bin/activate
           pytest \
             -s \
             -vvv \
