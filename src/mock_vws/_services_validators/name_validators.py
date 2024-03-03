@@ -4,7 +4,7 @@ Validators for target names.
 
 import json
 import logging
-from http import HTTPStatus
+from http import HTTPMethod, HTTPStatus
 
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._services_validators.exceptions import (
@@ -49,7 +49,7 @@ def validate_name_characters_in_range(
     if all(ord(character) <= max_character_ord for character in name):
         return
 
-    if (request_method, request_path) == ("POST", "/targets"):
+    if (request_method, request_path) == (HTTPMethod.POST, "/targets"):
         _LOGGER.warning(msg="Characters are out of range.")
         raise OopsErrorOccurredResponse
 
