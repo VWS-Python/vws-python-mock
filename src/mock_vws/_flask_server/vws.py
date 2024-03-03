@@ -11,7 +11,7 @@ import json
 import logging
 import uuid
 from enum import StrEnum, auto
-from http import HTTPStatus
+from http import HTTPMethod, HTTPStatus
 
 import requests
 from flask import Flask, Response, request
@@ -147,7 +147,7 @@ def handle_exceptions(exc: ValidatorException) -> Response:
     return response
 
 
-@VWS_FLASK_APP.route("/targets", methods=["POST"])
+@VWS_FLASK_APP.route("/targets", methods=[HTTPMethod.POST])
 def add_target() -> Response:
     """
     Add a target.
@@ -219,7 +219,7 @@ def add_target() -> Response:
     )
 
 
-@VWS_FLASK_APP.route("/targets/<string:target_id>", methods=["GET"])
+@VWS_FLASK_APP.route("/targets/<string:target_id>", methods=[HTTPMethod.GET])
 def get_target(target_id: str) -> Response:
     """
     Get details of a target.
@@ -273,7 +273,9 @@ def get_target(target_id: str) -> Response:
     )
 
 
-@VWS_FLASK_APP.route("/targets/<string:target_id>", methods=["DELETE"])
+@VWS_FLASK_APP.route(
+    "/targets/<string:target_id>", methods=[HTTPMethod.DELETE]
+)
 def delete_target(target_id: str) -> Response:
     """
     Delete a target.
@@ -326,7 +328,7 @@ def delete_target(target_id: str) -> Response:
     )
 
 
-@VWS_FLASK_APP.route("/summary", methods=["GET"])
+@VWS_FLASK_APP.route("/summary", methods=[HTTPMethod.GET])
 def database_summary() -> Response:
     """
     Get a database summary report.
@@ -379,7 +381,7 @@ def database_summary() -> Response:
     )
 
 
-@VWS_FLASK_APP.route("/summary/<string:target_id>", methods=["GET"])
+@VWS_FLASK_APP.route("/summary/<string:target_id>", methods=[HTTPMethod.GET])
 def target_summary(target_id: str) -> Response:
     """
     Get a summary report for a target.
@@ -430,7 +432,9 @@ def target_summary(target_id: str) -> Response:
     )
 
 
-@VWS_FLASK_APP.route("/duplicates/<string:target_id>", methods=["GET"])
+@VWS_FLASK_APP.route(
+    "/duplicates/<string:target_id>", methods=[HTTPMethod.GET]
+)
 def get_duplicates(target_id: str) -> Response:
     """
     Get targets which may be considered duplicates of a given target.
@@ -490,7 +494,7 @@ def get_duplicates(target_id: str) -> Response:
     )
 
 
-@VWS_FLASK_APP.route("/targets", methods=["GET"])
+@VWS_FLASK_APP.route("/targets", methods=[HTTPMethod.GET])
 def target_list() -> Response:
     """
     Get a list of all targets.
@@ -531,7 +535,7 @@ def target_list() -> Response:
     )
 
 
-@VWS_FLASK_APP.route("/targets/<string:target_id>", methods=["PUT"])
+@VWS_FLASK_APP.route("/targets/<string:target_id>", methods=[HTTPMethod.PUT])
 def update_target(target_id: str) -> Response:
     """
     Update a target.

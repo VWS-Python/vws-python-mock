@@ -7,7 +7,7 @@ https://library.vuforia.com/web-api/vuforia-query-web-api
 
 import email.utils
 from enum import StrEnum, auto
-from http import HTTPStatus
+from http import HTTPMethod, HTTPStatus
 
 import requests
 from flask import Flask, Response, request
@@ -116,7 +116,7 @@ def handle_exceptions(exc: ValidatorException) -> Response:
     return response
 
 
-@CLOUDRECO_FLASK_APP.route("/v1/query", methods=["POST"])
+@CLOUDRECO_FLASK_APP.route("/v1/query", methods=[HTTPMethod.POST])
 def query() -> Response:
     """
     Perform an image recognition query.

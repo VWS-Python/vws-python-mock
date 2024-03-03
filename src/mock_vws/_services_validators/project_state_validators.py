@@ -3,6 +3,7 @@ Validators for the project state.
 """
 
 import logging
+from http import HTTPMethod
 
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._services_validators.exceptions import ProjectInactive
@@ -44,7 +45,7 @@ def validate_project_state(
     if database.state != States.PROJECT_INACTIVE:
         return
 
-    if request_method == "GET" and "duplicates" not in request_path:
+    if request_method == HTTPMethod.GET and "duplicates" not in request_path:
         return
 
     _LOGGER.warning(msg="The project is inactive.")
