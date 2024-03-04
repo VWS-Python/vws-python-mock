@@ -34,18 +34,6 @@
         'pylint.extensions.typing',
 	]
 
-    # Allow loading of arbitrary C extensions. Extensions are imported into the
-    # active Python interpreter and may run arbitrary code.
-    extension-pkg-whitelist = [
-        'cv2',
-    ]
-
-    [tool.pylint.typecheck]
-    # List of members which are set dynamically and missed by pylint inference
-    # system, and so shouldn't trigger E1101 when accessed. Python regular
-    # expressions are accepted.
-    generated-members = ["cv2.*"]
-
     [tool.pylint.'MESSAGES CONTROL']
 
     # Enable the message, report, category or checker with the given id(s). You can
