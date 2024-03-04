@@ -109,6 +109,9 @@ def get_query_match_response_text(
         target
         for target in matching_targets
         if target.active_flag
+        # In the real Vuforia, targets which have just
+        # been deleted may still get recognized.
+        # We document this difference in ``differences-to-vws.rst``.
         and not target.delete_date
         and target.status == TargetStatuses.SUCCESS.value
     ]
