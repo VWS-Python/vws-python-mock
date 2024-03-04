@@ -37,6 +37,12 @@ The criteria for these images is not defined by the Vuforia documentation.
 The mock is more forgiving than the real Vuforia Web Services.
 Therefore, an image given a 'success' status by the mock may not be given a 'success' status by the real Vuforia Web Services.
 
+Matching recently deleted targets
+---------------------------------
+
+Vuforia may match targets which have been deleted within the last few seconds.
+In the mock, targets are not matched after they have been deleted.
+
 Accepted date formats for the Query API
 ---------------------------------------
 
