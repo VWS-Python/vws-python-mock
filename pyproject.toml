@@ -320,7 +320,7 @@ dev = [
     "python-dotenv==1.0.1",
     "PyYAML==6.0.1",
     "requests-mock-flask==2023.5.14",
-    "ruff==0.3.0",
+    "ruff==0.3.1",
     "Sphinx==7.2.6",
     "sphinx-prompt==1.8",
     "Sphinx-Substitution-Extensions==2024.2.25",
