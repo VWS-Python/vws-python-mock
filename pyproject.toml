@@ -332,7 +332,7 @@ dev = [
     "tenacity==8.2.3",
     "types-Pillow==10.2.0.20240311",
     "types-PyYAML==6.0.12.20240311",
-    "types-requests==2.31.0.20240218",
+    "types-requests==2.31.0.20240311",
     "urllib3==2.2.1",
     "uv==0.1.17",
     "vulture==2.11",
