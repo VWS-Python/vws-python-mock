@@ -334,7 +334,7 @@ dev = [
     "types-PyYAML==6.0.12.12",
     "types-requests==2.31.0.20240218",
     "urllib3==2.2.1",
-    "uv==0.1.16",
+    "uv==0.1.17",
     "vulture==2.11",
     "vws-python==2024.2.19",
     "VWS-Test-Fixtures==2023.3.5",
