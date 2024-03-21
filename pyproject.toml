@@ -291,7 +291,6 @@ dependencies = [
     "requests-mock",
     "torch",
     "torchvision",
-    'tzdata; sys_platform == "win32"',
     "vws-auth-tools",
     "Werkzeug",
 ]
