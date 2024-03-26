@@ -334,7 +334,6 @@ dev = [
     "types-PyYAML==6.0.12.20240311",
     "types-requests==2.31.0.20240311",
     "urllib3==2.2.1",
-    "uv==0.1.24",
     "vulture==2.11",
     "vws-python==2024.2.19",
     "VWS-Test-Fixtures==2023.3.5",
@@ -363,3 +362,11 @@ typeCheckingMode = "strict"
 # We have too many errors because of
 # docker-py not being typed.
 ignore = ["tests/mock_vws/test_docker.py"]
+
+[tool.deptry]
+pep621_dev_dependency_groups = ["dev"]
+
+[tool.deptry.per_rule_ignores]
+# tzdata is needed on Windows for zoneinfo to work.
+# See https://docs.python.org/3/library/zoneinfo.html#data-sources.
+DEP002 = ["tzdata"]
