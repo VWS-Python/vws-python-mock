@@ -32,8 +32,6 @@ fix-ruff:
 	ruff check --fix .
 	ruff format .
 
-TEMPFILE:= $(shell mktemp)
-
 .PHONY: deptry
 deptry:
 	deptry src/
