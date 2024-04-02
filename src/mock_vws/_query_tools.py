@@ -9,7 +9,7 @@ import datetime
 import io
 import uuid
 from email.message import EmailMessage
-from typing import IO, TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any
 from zoneinfo import ZoneInfo
 
 from werkzeug.formparser import MultiPartParser
@@ -20,31 +20,8 @@ from mock_vws._database_matchers import get_database_matching_client_keys
 from mock_vws._mock_common import json_dump
 
 if TYPE_CHECKING:
-    from werkzeug.datastructures import FileStorage, MultiDict
-
     from mock_vws.database import VuforiaDatabase
     from mock_vws.image_matchers import ImageMatcher
-
-
-class TypedMultiPartParser(MultiPartParser):
-    """
-    A MultiPartParser which returns types for fields.
-
-    This is a workaround for https://github.com/pallets/werkzeug/pull/2841.
-    """
-
-    def parse(
-        self,
-        stream: IO[bytes],
-        boundary: bytes,
-        content_length: int | None,
-    ) -> tuple[MultiDict[str, str], MultiDict[str, FileStorage]]:
-        # Once this Pyright issue is fixed, we can remove this whole class.
-        return super().parse(  # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType]
-            stream=stream,
-            boundary=boundary,
-            content_length=content_length,
-        )
 
 
 def get_query_match_response_text(
@@ -73,7 +50,7 @@ def get_query_match_response_text(
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
 
-    parser = TypedMultiPartParser()
+    parser = MultiPartParser()
     fields, files = parser.parse(
         stream=io.BytesIO(request_body),
         boundary=boundary.encode("utf-8"),
