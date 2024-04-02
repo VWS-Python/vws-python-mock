@@ -6,7 +6,8 @@ import io
 import logging
 from email.message import EmailMessage
 
-from mock_vws._query_tools import TypedMultiPartParser
+from werkzeug.formparser import MultiPartParser
+
 from mock_vws._query_validators.exceptions import UnknownParameters
 
 _LOGGER = logging.getLogger(__name__)
@@ -30,7 +31,7 @@ def validate_extra_fields(
     email_message["Content-Type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
-    parser = TypedMultiPartParser()
+    parser = MultiPartParser()
     fields, files = parser.parse(
         stream=io.BytesIO(request_body),
         boundary=boundary.encode("utf-8"),

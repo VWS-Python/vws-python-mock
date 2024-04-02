@@ -7,8 +7,8 @@ import logging
 from email.message import EmailMessage
 
 from PIL import Image
+from werkzeug.formparser import MultiPartParser
 
-from mock_vws._query_tools import TypedMultiPartParser
 from mock_vws._query_validators.exceptions import (
     BadImage,
     ImageNotGiven,
@@ -36,7 +36,7 @@ def validate_image_field_given(
     email_message["Content-Type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
-    parser = TypedMultiPartParser()
+    parser = MultiPartParser()
     _, files = parser.parse(
         stream=io.BytesIO(request_body),
         boundary=boundary.encode("utf-8"),
@@ -67,7 +67,7 @@ def validate_image_file_size(
     email_message["Content-Type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
-    parser = TypedMultiPartParser()
+    parser = MultiPartParser()
     _, files = parser.parse(
         stream=io.BytesIO(request_body),
         boundary=boundary.encode("utf-8"),
@@ -108,7 +108,7 @@ def validate_image_dimensions(
     email_message["Content-Type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
-    parser = TypedMultiPartParser()
+    parser = MultiPartParser()
     _, files = parser.parse(
         stream=io.BytesIO(request_body),
         boundary=boundary.encode("utf-8"),
@@ -145,7 +145,7 @@ def validate_image_format(
     email_message["Content-Type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
-    parser = TypedMultiPartParser()
+    parser = MultiPartParser()
     _, files = parser.parse(
         stream=io.BytesIO(request_body),
         boundary=boundary.encode("utf-8"),
@@ -179,7 +179,7 @@ def validate_image_is_image(
     email_message["Content-Type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
-    parser = TypedMultiPartParser()
+    parser = MultiPartParser()
     _, files = parser.parse(
         stream=io.BytesIO(request_body),
         boundary=boundary.encode("utf-8"),
