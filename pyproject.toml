@@ -224,8 +224,6 @@ ignore = [
     # narrowing - see
     # https://mypy.readthedocs.io/en/stable/type_narrowing.html#type-narrowing-expressions.
     "S101",
-    # Allow `random` as we are not implementing something which needs cryptographic safety.
-    "S311",
 ]
 
 # Do not automatically remove commented out code.
