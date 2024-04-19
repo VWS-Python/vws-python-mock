@@ -8,11 +8,10 @@ import pytest
 import yaml
 
 
-def _ci_patterns() -> set[str]:
+def _ci_patterns(repository_root: Path) -> set[str]:
     """
     Return the CI patterns given in the CI configuration file.
     """
-    repository_root = Path(__file__).parent.parent
     ci_file = repository_root / ".github" / "workflows" / "ci.yml"
     github_workflow_config = yaml.safe_load(ci_file.read_text())
     matrix = github_workflow_config["jobs"]["build"]["strategy"]["matrix"]
@@ -50,12 +49,12 @@ def _tests_from_pattern(
     return tests
 
 
-def test_ci_patterns_valid() -> None:
+def test_ci_patterns_valid(request: pytest.FixtureRequest) -> None:
     """
     All of the CI patterns in the CI configuration match at least one test in
     the test suite.
     """
-    ci_patterns = _ci_patterns()
+    ci_patterns = _ci_patterns(repository_root=request.config.rootpath)
 
     for ci_pattern in ci_patterns:
         collect_only_result = pytest.main(
@@ -82,13 +81,14 @@ def test_ci_patterns_valid() -> None:
 
 def test_tests_collected_once(
     capsys: pytest.CaptureFixture[str],
+    request: pytest.FixtureRequest,
 ) -> None:
     """
     Each test in the test suite is collected exactly once.
 
     This does not necessarily mean that they are run - they may be skipped.
     """
-    ci_patterns = _ci_patterns()
+    ci_patterns = _ci_patterns(repository_root=request.config.rootpath)
     tests_to_patterns: dict[str, set[str]] = {}
 
     for pattern in ci_patterns:

@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import uuid
 from http import HTTPStatus
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 import docker  # type: ignore[import-untyped]
@@ -105,12 +104,13 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
 def test_build_and_run(
     high_quality_image: io.BytesIO,
     custom_bridge_network: Network,
+    request: pytest.FixtureRequest,
 ) -> None:
     """
     It is possible to build Docker images which combine to make a working mock
     application.
     """
-    repository_root = Path(__file__).parent.parent.parent
+    repository_root = request.config.rootpath
     client = docker.from_env()
 
     dockerfile = repository_root / "src/mock_vws/_flask_server/Dockerfile"
