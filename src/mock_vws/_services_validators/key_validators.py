@@ -8,7 +8,7 @@ import re
 from dataclasses import dataclass
 from http import HTTPMethod, HTTPStatus
 
-from .exceptions import Fail
+from .exceptions import FailError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -47,7 +47,7 @@ def validate_keys(
         request_method: The HTTP method of the request.
 
     Raises:
-        Fail: Any given keys are not allowed, or if any required keys are
+        FailError: Any given keys are not allowed, or if any required keys are
             missing.
     """
     target_id_pattern = "[A-Za-z0-9]+"
@@ -155,4 +155,4 @@ def validate_keys(
         return
 
     _LOGGER.warning(msg="Invalid keys given to endpoint.")
-    raise Fail(status_code=HTTPStatus.BAD_REQUEST)
+    raise FailError(status_code=HTTPStatus.BAD_REQUEST)

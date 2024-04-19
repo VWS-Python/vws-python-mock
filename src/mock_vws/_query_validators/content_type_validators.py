@@ -6,10 +6,10 @@ import logging
 from email.message import EmailMessage
 
 from mock_vws._query_validators.exceptions import (
-    ImageNotGiven,
-    NoBoundaryFound,
-    NoContentType,
-    UnsupportedMediaType,
+    ImageNotGivenError,
+    NoBoundaryFoundError,
+    NoContentTypeError,
+    UnsupportedMediaTypeError,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -27,17 +27,18 @@ def validate_content_type_header(
         request_body: The body of the request.
 
     Raises:
-        UnsupportedMediaType: The ``Content-Type`` header main part is not
+        UnsupportedMediaTypeError: The ``Content-Type`` header main part is not
             'multipart/form-data'.
-        NoBoundaryFound: The ``Content-Type`` header does not contain a
+        NoBoundaryFoundError: The ``Content-Type`` header does not contain a
             boundary.
-        ImageNotGiven: The boundary is not in the request body.
-        NoContentType: The content type header is either empty or not given.
+        ImageNotGivenError: The boundary is not in the request body.
+        NoContentTypeError: The content type header is either empty or not
+            given.
     """
     content_type_header = request_headers.get("Content-Type", "")
     if not content_type_header:
         _LOGGER.warning(msg="The content type header is empty.")
-        raise NoContentType
+        raise NoContentTypeError
 
     email_message = EmailMessage()
     email_message["Content-Type"] = request_headers["Content-Type"]
@@ -47,15 +48,15 @@ def validate_content_type_header(
                 "The content type header main part is not multipart/form-data."
             ),
         )
-        raise UnsupportedMediaType
+        raise UnsupportedMediaTypeError
 
     boundary = email_message.get_boundary()
     if boundary is None:
         _LOGGER.warning(
             msg="The content type header does not contain a boundary.",
         )
-        raise NoBoundaryFound
+        raise NoBoundaryFoundError
 
     if boundary.encode() not in request_body:
         _LOGGER.warning(msg="The boundary is not in the request body.")
-        raise ImageNotGiven
+        raise ImageNotGivenError

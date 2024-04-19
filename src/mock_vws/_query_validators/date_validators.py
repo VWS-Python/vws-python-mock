@@ -8,9 +8,9 @@ import logging
 from zoneinfo import ZoneInfo
 
 from mock_vws._query_validators.exceptions import (
-    DateFormatNotValid,
-    DateHeaderNotGiven,
-    RequestTimeTooSkewed,
+    DateFormatNotValidError,
+    DateHeaderNotGivenError,
+    RequestTimeTooSkewedError,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -24,13 +24,13 @@ def validate_date_header_given(request_headers: dict[str, str]) -> None:
         request_headers: The headers sent with the request.
 
     Raises:
-        DateHeaderNotGiven: The date is not given.
+        DateHeaderNotGivenError: The date is not given.
     """
     if "Date" in request_headers:
         return
 
     _LOGGER.warning(msg="The date header is not given.")
-    raise DateHeaderNotGiven
+    raise DateHeaderNotGivenError
 
 
 def _accepted_date_formats() -> set[str]:
@@ -60,7 +60,7 @@ def validate_date_format(request_headers: dict[str, str]) -> None:
         request_headers: The headers sent with the request.
 
     Raises:
-        DateFormatNotValid: The date is in the wrong format.
+        DateFormatNotValidError: The date is in the wrong format.
     """
     date_header = request_headers["Date"]
 
@@ -70,7 +70,7 @@ def validate_date_format(request_headers: dict[str, str]) -> None:
             return
 
     _LOGGER.warning(msg="The date header is in the wrong format.")
-    raise DateFormatNotValid
+    raise DateFormatNotValidError
 
 
 def validate_date_in_range(request_headers: dict[str, str]) -> None:
@@ -81,7 +81,7 @@ def validate_date_in_range(request_headers: dict[str, str]) -> None:
         request_headers: The headers sent with the request.
 
     Raises:
-        RequestTimeTooSkewed: The date is out of range.
+        RequestTimeTooSkewedError: The date is out of range.
     """
     date_header = request_headers["Date"]
 
@@ -105,4 +105,4 @@ def validate_date_in_range(request_headers: dict[str, str]) -> None:
         return
 
     _LOGGER.warning(msg="The date header is out of range.")
-    raise RequestTimeTooSkewed
+    raise RequestTimeTooSkewedError

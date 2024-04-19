@@ -6,7 +6,7 @@ import logging
 from http import HTTPMethod
 
 from mock_vws._database_matchers import get_database_matching_server_keys
-from mock_vws._services_validators.exceptions import ProjectInactive
+from mock_vws._services_validators.exceptions import ProjectInactiveError
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
 
@@ -31,8 +31,8 @@ def validate_project_state(
         databases: All Vuforia databases.
 
     Raises:
-        ProjectInactive: The project is inactive and this endpoint does not
-            work with inactive projects.
+        ProjectInactiveError: The project is inactive and this endpoint does
+            not work with inactive projects.
     """
     database = get_database_matching_server_keys(
         request_headers=request_headers,
@@ -49,4 +49,4 @@ def validate_project_state(
         return
 
     _LOGGER.warning(msg="The project is inactive.")
-    raise ProjectInactive
+    raise ProjectInactiveError

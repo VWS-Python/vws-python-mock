@@ -8,8 +8,8 @@ from http import HTTPMethod, HTTPStatus
 from json.decoder import JSONDecodeError
 
 from mock_vws._services_validators.exceptions import (
-    Fail,
-    UnnecessaryRequestBody,
+    FailError,
+    UnnecessaryRequestBodyError,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -25,9 +25,9 @@ def validate_body_given(request_body: bytes, request_method: str) -> None:
         request_method: The HTTP method of the request.
 
     Raises:
-        UnnecessaryRequestBody: A request body was given for an endpoint which
-            does not require one.
-        Fail: The request body includes invalid JSON.
+        UnnecessaryRequestBodyError: A request body was given for an endpoint
+            which does not require one.
+        FailError: The request body includes invalid JSON.
     """
     if not request_body:
         return
@@ -39,7 +39,7 @@ def validate_body_given(request_body: bytes, request_method: str) -> None:
                 "require one."
             ),
         )
-        raise UnnecessaryRequestBody
+        raise UnnecessaryRequestBodyError
 
 
 def validate_json(request_body: bytes) -> None:
@@ -50,7 +50,7 @@ def validate_json(request_body: bytes) -> None:
         request_body: The body of the request.
 
     Raises:
-        Fail: The request body includes invalid JSON.
+        FailError: The request body includes invalid JSON.
     """
     if not request_body:
         return
@@ -59,4 +59,4 @@ def validate_json(request_body: bytes) -> None:
         json.loads(request_body.decode())
     except JSONDecodeError as exc:
         _LOGGER.warning(msg="The request body is not valid JSON.")
-        raise Fail(status_code=HTTPStatus.BAD_REQUEST) from exc
+        raise FailError(status_code=HTTPStatus.BAD_REQUEST) from exc

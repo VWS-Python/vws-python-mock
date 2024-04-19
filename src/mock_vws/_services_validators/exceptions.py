@@ -22,7 +22,7 @@ class ValidatorError(Exception):
     headers: dict[str, str]
 
 
-class UnknownTarget(ValidatorError):
+class UnknownTargetError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
     'UnknownTarget'.
@@ -57,7 +57,7 @@ class UnknownTarget(ValidatorError):
         }
 
 
-class ProjectInactive(ValidatorError):
+class ProjectInactiveError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
     'ProjectInactive'.
@@ -92,7 +92,7 @@ class ProjectInactive(ValidatorError):
         }
 
 
-class AuthenticationFailure(ValidatorError):
+class AuthenticationFailureError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
     'AuthenticationFailure'.
@@ -127,7 +127,7 @@ class AuthenticationFailure(ValidatorError):
         }
 
 
-class Fail(ValidatorError):
+class FailError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code 'Fail'.
     """
@@ -161,7 +161,7 @@ class Fail(ValidatorError):
         }
 
 
-class MetadataTooLarge(ValidatorError):
+class MetadataTooLargeError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
     'MetadataTooLarge'.
@@ -196,7 +196,7 @@ class MetadataTooLarge(ValidatorError):
         }
 
 
-class TargetNameExist(ValidatorError):
+class TargetNameExistError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
     'TargetNameExist'.
@@ -231,7 +231,7 @@ class TargetNameExist(ValidatorError):
         }
 
 
-class OopsErrorOccurredResponse(ValidatorError):
+class OopsErrorOccurredResponseError(ValidatorError):
     """
     Exception raised when VWS returns an HTML page which says "Oops, an error
     occurred".
@@ -268,7 +268,7 @@ class OopsErrorOccurredResponse(ValidatorError):
         }
 
 
-class BadImage(ValidatorError):
+class BadImageError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
     'BadImage'.
@@ -303,7 +303,7 @@ class BadImage(ValidatorError):
         }
 
 
-class ImageTooLarge(ValidatorError):
+class ImageTooLargeError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
     'ImageTooLarge'.
@@ -338,7 +338,7 @@ class ImageTooLarge(ValidatorError):
         }
 
 
-class RequestTimeTooSkewed(ValidatorError):
+class RequestTimeTooSkewedError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
     'RequestTimeTooSkewed'.
@@ -373,7 +373,7 @@ class RequestTimeTooSkewed(ValidatorError):
         }
 
 
-class ContentLengthHeaderTooLarge(ValidatorError):
+class ContentLengthHeaderTooLargeError(ValidatorError):
     """
     Exception raised when the given content length header is too large.
     """
@@ -400,7 +400,7 @@ class ContentLengthHeaderTooLarge(ValidatorError):
         }
 
 
-class ContentLengthHeaderNotInt(ValidatorError):
+class ContentLengthHeaderNotIntError(ValidatorError):
     """
     Exception raised when the given content length header is not an integer.
     """
@@ -435,7 +435,7 @@ class ContentLengthHeaderNotInt(ValidatorError):
         }
 
 
-class UnnecessaryRequestBody(ValidatorError):
+class UnnecessaryRequestBodyError(ValidatorError):
     """
     Exception raised when a request body is given but not necessary.
     """
@@ -460,7 +460,7 @@ class UnnecessaryRequestBody(ValidatorError):
         }
 
 
-class TargetStatusNotSuccess(ValidatorError):
+class TargetStatusNotSuccessError(ValidatorError):
     """
     Exception raised when trying to update a target that does not have a
     success status.
@@ -495,7 +495,7 @@ class TargetStatusNotSuccess(ValidatorError):
         }
 
 
-class TargetStatusProcessing(ValidatorError):
+class TargetStatusProcessingError(ValidatorError):
     """
     Exception raised when trying to delete a target which is processing.
     """
