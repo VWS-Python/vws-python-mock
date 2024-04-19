@@ -13,7 +13,6 @@ import pytest
 import requests
 from docker.errors import BuildError, NotFound  # type: ignore[import-untyped]
 from docker.models.containers import Container  # type: ignore[import-untyped]
-from docker.models.networks import Network  # type: ignore[import-untyped]
 from mock_vws.database import VuforiaDatabase
 from tenacity import retry
 from tenacity.retry import retry_if_exception_type
@@ -26,6 +25,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
 
     from docker.models.images import Image  # type: ignore[import-untyped]
+    from docker.models.networks import Network  # type: ignore[import-untyped]
 
 
 # We do not cover this function because hitting particular branches depends on
@@ -81,7 +81,6 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
             driver="nat",
         )
 
-    assert isinstance(network, Network)
     try:
         yield network
     finally:
@@ -138,8 +137,9 @@ def test_build_and_run(
             "no matching manifest for windows/amd64" not in exc.msg
         ):  # pragma: no cover
             raise AssertionError(full_log) from exc
-        reason = "We do not currently support using Windows containers."
-        pytest.skip(reason)
+        pytest.skip(
+            reason="We do not currently support using Windows containers."
+        )
 
     vwq_image, _ = client.images.build(
         path=str(repository_root),
@@ -191,13 +191,9 @@ def test_build_and_run(
         },
     )
 
-    assert isinstance(target_manager_container, Container)
-    assert isinstance(vws_container, Container)
-    assert isinstance(vwq_container, Container)
     for container in (target_manager_container, vws_container, vwq_container):
         container.reload()
 
-    assert isinstance(target_manager_container.attrs, dict)
     target_manager_port_attrs = target_manager_container.attrs[
         "NetworkSettings"
     ]["Ports"]
@@ -209,12 +205,10 @@ def test_build_and_run(
         "HostPort"
     ]
 
-    assert isinstance(vws_container.attrs, dict)
     vws_port_attrs = vws_container.attrs["NetworkSettings"]["Ports"]
     vws_host_ip = vws_port_attrs["5000/tcp"][0]["HostIp"]
     vws_host_port = vws_port_attrs["5000/tcp"][0]["HostPort"]
 
-    assert isinstance(vwq_container.attrs, dict)
     vwq_port_attrs = vwq_container.attrs["NetworkSettings"]["Ports"]
     vwq_host_ip = vwq_port_attrs["5000/tcp"][0]["HostIp"]
     vwq_host_port = vwq_port_attrs["5000/tcp"][0]["HostPort"]
