@@ -3,7 +3,7 @@ Utilities for tests.
 """
 
 import io
-import random
+import secrets
 from typing import Literal
 
 import requests
@@ -89,9 +89,9 @@ def make_image_file(
     image = Image.new(color_space, (width, height))
     for row_index in range(height):
         for column_index in range(width):
-            red = random.choice(seq=range(255))
-            green = random.choice(seq=range(255))
-            blue = random.choice(seq=range(255))
+            red = secrets.choice(seq=range(255))
+            green = secrets.choice(seq=range(255))
+            blue = secrets.choice(seq=range(255))
             image.putpixel(
                 xy=(column_index, row_index),
                 value=(red, green, blue),
