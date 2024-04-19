@@ -1773,7 +1773,7 @@ class TestUpdate:
         # second.
         assert target_timestamp >= original_target_timestamp
         time_difference = abs(
-            approximate_target_updated - target_timestamp.timestamp()
+            approximate_target_updated - target_timestamp.timestamp(),
         )
         max_time_difference = 5
         assert time_difference < max_time_difference

@@ -274,7 +274,8 @@ def get_target(target_id: str) -> Response:
 
 
 @VWS_FLASK_APP.route(
-    "/targets/<string:target_id>", methods=[HTTPMethod.DELETE]
+    "/targets/<string:target_id>",
+    methods=[HTTPMethod.DELETE],
 )
 def delete_target(target_id: str) -> Response:
     """
@@ -433,7 +434,8 @@ def target_summary(target_id: str) -> Response:
 
 
 @VWS_FLASK_APP.route(
-    "/duplicates/<string:target_id>", methods=[HTTPMethod.GET]
+    "/duplicates/<string:target_id>",
+    methods=[HTTPMethod.GET],
 )
 def get_duplicates(target_id: str) -> Response:
     """
