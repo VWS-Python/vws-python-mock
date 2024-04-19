@@ -9,9 +9,9 @@ from typing import TYPE_CHECKING
 
 from mock_vws._database_matchers import get_database_matching_client_keys
 from mock_vws._query_validators.exceptions import (
-    AuthenticationFailure,
-    AuthHeaderMissing,
-    MalformedAuthHeader,
+    AuthenticationFailureError,
+    AuthHeaderMissingError,
+    MalformedAuthHeaderError,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -28,13 +28,13 @@ def validate_auth_header_exists(request_headers: dict[str, str]) -> None:
         request_headers: The headers sent with the request.
 
     Raises:
-        AuthHeaderMissing: There is no "Authorization" header.
+        AuthHeaderMissingError: There is no "Authorization" header.
     """
     if "Authorization" in request_headers:
         return
 
     _LOGGER.warning(msg="There is no authorization header.")
-    raise AuthHeaderMissing
+    raise AuthHeaderMissingError
 
 
 def validate_auth_header_number_of_parts(
@@ -47,7 +47,8 @@ def validate_auth_header_number_of_parts(
         request_headers: The headers sent with the request.
 
     Raises:
-        MalformedAuthHeader: The "Authorization" header is not as expected.
+        MalformedAuthHeaderError: The "Authorization" header is not as
+            expected.
     """
     header = request_headers["Authorization"]
     parts = header.split(" ")
@@ -56,7 +57,7 @@ def validate_auth_header_number_of_parts(
         return
 
     _LOGGER.warning(msg="The authorization header is malformed.")
-    raise MalformedAuthHeader
+    raise MalformedAuthHeaderError
 
 
 def validate_client_key_exists(
@@ -71,7 +72,7 @@ def validate_client_key_exists(
         databases: All Vuforia databases.
 
     Raises:
-        AuthenticationFailure: The client key is unknown.
+        AuthenticationFailureError: The client key is unknown.
     """
     header = request_headers["Authorization"]
     first_part, _ = header.split(":")
@@ -81,7 +82,7 @@ def validate_client_key_exists(
             return
 
     _LOGGER.warning(msg="The client key is unknown.")
-    raise AuthenticationFailure
+    raise AuthenticationFailureError
 
 
 def validate_auth_header_has_signature(
@@ -94,14 +95,14 @@ def validate_auth_header_has_signature(
         request_headers: The headers sent with the request.
 
     Raises:
-        MalformedAuthHeader: The "Authorization" header has no signature.
+        MalformedAuthHeaderError: The "Authorization" header has no signature.
     """
     header = request_headers["Authorization"]
     if header.count(":") == 1 and header.split(":")[1]:
         return
 
     _LOGGER.warning(msg="The authorization header has no signature.")
-    raise MalformedAuthHeader
+    raise MalformedAuthHeaderError
 
 
 def validate_authorization(
@@ -122,7 +123,8 @@ def validate_authorization(
         databases: All Vuforia databases.
 
     Raises:
-        AuthenticationFailure: The "Authorization" header is not as expected.
+        AuthenticationFailureError: The "Authorization" header is not as
+            expected.
     """
     try:
         get_database_matching_client_keys(
@@ -136,4 +138,4 @@ def validate_authorization(
         _LOGGER.warning(
             msg="The authorization header does not match any databases.",
         )
-        raise AuthenticationFailure from ValueError
+        raise AuthenticationFailureError from ValueError

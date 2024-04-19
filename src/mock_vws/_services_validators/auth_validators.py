@@ -10,8 +10,8 @@ from typing import TYPE_CHECKING
 
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._services_validators.exceptions import (
-    AuthenticationFailure,
-    Fail,
+    AuthenticationFailureError,
+    FailError,
 )
 
 if TYPE_CHECKING:
@@ -29,11 +29,11 @@ def validate_auth_header_exists(request_headers: dict[str, str]) -> None:
         request_headers: The headers sent with the request.
 
     Raises:
-        AuthenticationFailure: There is no "Authorization" header.
+        AuthenticationFailureError: There is no "Authorization" header.
     """
     if "Authorization" not in request_headers:
         _LOGGER.warning(msg="There is no authorization header.")
-        raise AuthenticationFailure
+        raise AuthenticationFailureError
 
 
 def validate_access_key_exists(
@@ -48,7 +48,7 @@ def validate_access_key_exists(
         databases: All Vuforia databases.
 
     Raises:
-        Fail: The access key does not match a given database.
+        FailError: The access key does not match a given database.
     """
     header = request_headers["Authorization"]
     first_part, _ = header.split(":")
@@ -61,7 +61,7 @@ def validate_access_key_exists(
         'The access key "%s" does not match a known database.',
         access_key,
     )
-    raise Fail(status_code=HTTPStatus.BAD_REQUEST)
+    raise FailError(status_code=HTTPStatus.BAD_REQUEST)
 
 
 def validate_auth_header_has_signature(
@@ -74,7 +74,7 @@ def validate_auth_header_has_signature(
         request_headers: The headers sent with the request.
 
     Raises:
-        Fail: The "Authorization" header does not include a signature.
+        FailError: The "Authorization" header does not include a signature.
     """
     header = request_headers["Authorization"]
     if header.count(":") == 1 and header.split(":")[1]:
@@ -83,7 +83,7 @@ def validate_auth_header_has_signature(
     _LOGGER.warning(
         msg="The authorization header does not include a signature.",
     )
-    raise Fail(status_code=HTTPStatus.BAD_REQUEST)
+    raise FailError(status_code=HTTPStatus.BAD_REQUEST)
 
 
 def validate_authorization(
@@ -104,7 +104,7 @@ def validate_authorization(
         databases: All Vuforia databases.
 
     Raises:
-        AuthenticationFailure: No database matches the given authorization
+        AuthenticationFailureError: No database matches the given authorization
             header.
     """
     try:
@@ -119,4 +119,4 @@ def validate_authorization(
         _LOGGER.warning(
             msg="No database matches the given authorization header.",
         )
-        raise AuthenticationFailure from ValueError
+        raise AuthenticationFailureError from ValueError

@@ -21,10 +21,10 @@ from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._mock_common import Route, json_dump
 from mock_vws._services_validators import run_services_validators
 from mock_vws._services_validators.exceptions import (
-    Fail,
-    TargetStatusNotSuccess,
-    TargetStatusProcessing,
-    ValidatorException,
+    FailError,
+    TargetStatusNotSuccessError,
+    TargetStatusProcessingError,
+    ValidatorError,
 )
 from mock_vws.target import Target
 
@@ -133,7 +133,7 @@ class MockVuforiaWebServicesAPI:
                 request_path=request.path,
                 databases=self._target_manager.databases,
             )
-        except ValidatorException as exc:
+        except ValidatorError as exc:
             context.headers = exc.headers
             context.status_code = exc.status_code
             return exc.response_text
@@ -206,7 +206,7 @@ class MockVuforiaWebServicesAPI:
                 request_path=request.path,
                 databases=self._target_manager.databases,
             )
-        except ValidatorException as exc:
+        except ValidatorError as exc:
             context.headers = exc.headers
             context.status_code = exc.status_code
             return exc.response_text
@@ -224,7 +224,7 @@ class MockVuforiaWebServicesAPI:
         target = database.get_target(target_id=target_id)
 
         if target.status == TargetStatuses.PROCESSING.value:
-            target_processing_exception = TargetStatusProcessing()
+            target_processing_exception = TargetStatusProcessingError()
             context.headers = target_processing_exception.headers
             context.status_code = target_processing_exception.status_code
             return target_processing_exception.response_text
@@ -269,7 +269,7 @@ class MockVuforiaWebServicesAPI:
                 request_path=request.path,
                 databases=self._target_manager.databases,
             )
-        except ValidatorException as exc:
+        except ValidatorError as exc:
             context.headers = exc.headers
             context.status_code = exc.status_code
             return exc.response_text
@@ -331,7 +331,7 @@ class MockVuforiaWebServicesAPI:
                 request_path=request.path,
                 databases=self._target_manager.databases,
             )
-        except ValidatorException as exc:
+        except ValidatorError as exc:
             context.headers = exc.headers
             context.status_code = exc.status_code
             return exc.response_text
@@ -387,7 +387,7 @@ class MockVuforiaWebServicesAPI:
                 request_path=request.path,
                 databases=self._target_manager.databases,
             )
-        except ValidatorException as exc:
+        except ValidatorError as exc:
             context.headers = exc.headers
             context.status_code = exc.status_code
             return exc.response_text
@@ -451,7 +451,7 @@ class MockVuforiaWebServicesAPI:
                 request_path=request.path,
                 databases=self._target_manager.databases,
             )
-        except ValidatorException as exc:
+        except ValidatorError as exc:
             context.headers = exc.headers
             context.status_code = exc.status_code
             return exc.response_text
@@ -521,7 +521,7 @@ class MockVuforiaWebServicesAPI:
                 request_path=request.path,
                 databases=self._target_manager.databases,
             )
-        except ValidatorException as exc:
+        except ValidatorError as exc:
             context.headers = exc.headers
             context.status_code = exc.status_code
             return exc.response_text
@@ -541,7 +541,7 @@ class MockVuforiaWebServicesAPI:
         date = email.utils.formatdate(None, localtime=False, usegmt=True)
 
         if target.status != TargetStatuses.SUCCESS.value:
-            exception = TargetStatusNotSuccess()
+            exception = TargetStatusNotSuccessError()
             context.headers = exception.headers
             context.status_code = exception.status_code
             return exception.response_text
@@ -559,7 +559,7 @@ class MockVuforiaWebServicesAPI:
             image_value = base64.b64decode(request.json()["image"])
 
         if "active_flag" in request.json() and active_flag is None:
-            fail_exception = Fail(status_code=HTTPStatus.BAD_REQUEST)
+            fail_exception = FailError(status_code=HTTPStatus.BAD_REQUEST)
             context.headers = fail_exception.headers
             context.status_code = fail_exception.status_code
             return fail_exception.response_text
@@ -568,7 +568,7 @@ class MockVuforiaWebServicesAPI:
             "application_metadata" in request.json()
             and application_metadata is None
         ):
-            fail_exception = Fail(status_code=HTTPStatus.BAD_REQUEST)
+            fail_exception = FailError(status_code=HTTPStatus.BAD_REQUEST)
             context.headers = fail_exception.headers
             context.status_code = fail_exception.status_code
             return fail_exception.response_text
@@ -626,7 +626,7 @@ class MockVuforiaWebServicesAPI:
                 request_path=request.path,
                 databases=self._target_manager.databases,
             )
-        except ValidatorException as exc:
+        except ValidatorError as exc:
             context.headers = exc.headers
             context.status_code = exc.status_code
             return exc.response_text

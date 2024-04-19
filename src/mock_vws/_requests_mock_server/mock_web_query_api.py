@@ -17,7 +17,7 @@ from mock_vws._query_tools import (
 )
 from mock_vws._query_validators import run_query_validators
 from mock_vws._query_validators.exceptions import (
-    ValidatorException,
+    ValidatorError,
 )
 
 if TYPE_CHECKING:
@@ -107,7 +107,7 @@ class MockVuforiaWebQueryAPI:
                 request_method=request.method,
                 databases=self._target_manager.databases,
             )
-        except ValidatorException as exc:
+        except ValidatorError as exc:
             context.headers = exc.headers
             context.status_code = exc.status_code
             return exc.response_text

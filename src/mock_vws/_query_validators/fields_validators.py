@@ -8,7 +8,7 @@ from email.message import EmailMessage
 
 from werkzeug.formparser import MultiPartParser
 
-from mock_vws._query_validators.exceptions import UnknownParameters
+from mock_vws._query_validators.exceptions import UnknownParametersError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ def validate_extra_fields(
         request_body: The body of the request.
 
     Raises:
-        UnknownParameters: Extra fields are given.
+        UnknownParametersError: Extra fields are given.
     """
     email_message = EmailMessage()
     email_message["Content-Type"] = request_headers["Content-Type"]
@@ -44,4 +44,4 @@ def validate_extra_fields(
         return
 
     _LOGGER.warning(msg="Unknown parameters are given.")
-    raise UnknownParameters
+    raise UnknownParametersError

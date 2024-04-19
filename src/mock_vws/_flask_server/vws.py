@@ -22,10 +22,10 @@ from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._mock_common import json_dump
 from mock_vws._services_validators import run_services_validators
 from mock_vws._services_validators.exceptions import (
-    Fail,
-    TargetStatusNotSuccess,
-    TargetStatusProcessing,
-    ValidatorException,
+    FailError,
+    TargetStatusNotSuccessError,
+    TargetStatusProcessingError,
+    ValidatorError,
 )
 from mock_vws.database import VuforiaDatabase
 from mock_vws.image_matchers import (
@@ -131,8 +131,8 @@ def validate_request() -> None:
     )
 
 
-@VWS_FLASK_APP.errorhandler(ValidatorException)
-def handle_exceptions(exc: ValidatorException) -> Response:
+@VWS_FLASK_APP.errorhandler(ValidatorError)
+def handle_exceptions(exc: ValidatorError) -> Response:
     """
     Return the error response associated with the given exception.
     """
@@ -299,7 +299,7 @@ def delete_target(target_id: str) -> Response:
     )
 
     if target.status == TargetStatuses.PROCESSING.value:
-        raise TargetStatusProcessing
+        raise TargetStatusProcessingError
 
     databases_url = f"{settings.target_manager_base_url}/databases"
     requests.delete(
@@ -563,7 +563,7 @@ def update_target(target_id: str) -> Response:
     )
 
     if target.status != TargetStatuses.SUCCESS.value:
-        raise TargetStatusNotSuccess
+        raise TargetStatusNotSuccessError
 
     update_values: dict[str, str | int | float | bool | None] = {}
     if "width" in request_json:
@@ -578,7 +578,7 @@ def update_target(target_id: str) -> Response:
                     "This is not allowed. "
                 ),
             )
-            raise Fail(status_code=HTTPStatus.BAD_REQUEST)
+            raise FailError(status_code=HTTPStatus.BAD_REQUEST)
         update_values["active_flag"] = active_flag
 
     if "application_metadata" in request_json:
@@ -590,7 +590,7 @@ def update_target(target_id: str) -> Response:
                     "This is not allowed."
                 ),
             )
-            raise Fail(status_code=HTTPStatus.BAD_REQUEST)
+            raise FailError(status_code=HTTPStatus.BAD_REQUEST)
         update_values["application_metadata"] = application_metadata
 
     if "name" in request_json:
