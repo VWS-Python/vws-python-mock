@@ -204,8 +204,8 @@ def test_build_and_run(
     target_manager_port_attrs = target_manager_container.attrs[
         "NetworkSettings"
     ]["Ports"]
-    task_manager_host_ip = target_manager_port_attrs["5000/tcp"][0]["HostIp"]
-    task_manager_host_port = target_manager_port_attrs["5000/tcp"][0][
+    target_manager_host_ip = target_manager_port_attrs["5000/tcp"][0]["HostIp"]
+    target_manager_host_port = target_manager_port_attrs["5000/tcp"][0][
         "HostPort"
     ]
 
@@ -221,15 +221,15 @@ def test_build_and_run(
 
     base_vws_url = f"http://{vws_host_ip}:{vws_host_port}"
     base_vwq_url = f"http://{vwq_host_ip}:{vwq_host_port}"
-    base_task_manager_url = (
-        f"http://{task_manager_host_ip}:{task_manager_host_port}"
+    base_target_manager_url = (
+        f"http://{target_manager_host_ip}:{target_manager_host_port}"
     )
 
-    for base_url in (base_vws_url, base_vwq_url, base_task_manager_url):
+    for base_url in (base_vws_url, base_vwq_url, base_target_manager_url):
         wait_for_flask_app_to_start(base_url=base_url)
 
     response = requests.post(
-        url=f"{base_task_manager_url}/databases",
+        url=f"{base_target_manager_url}/databases",
         json=database.to_dict(),
         timeout=30,
     )
