@@ -18,7 +18,7 @@ from mock_vws._query_tools import (
 )
 from mock_vws._query_validators import run_query_validators
 from mock_vws._query_validators.exceptions import (
-    ValidatorException,
+    ValidatorError,
 )
 from mock_vws.database import VuforiaDatabase
 from mock_vws.image_matchers import (
@@ -100,8 +100,8 @@ def set_terminate_wsgi_input() -> None:
         request.environ["wsgi.input_terminated"] = True
 
 
-@CLOUDRECO_FLASK_APP.errorhandler(ValidatorException)
-def handle_exceptions(exc: ValidatorException) -> Response:
+@CLOUDRECO_FLASK_APP.errorhandler(ValidatorError)
+def handle_exceptions(exc: ValidatorError) -> Response:
     """
     Return the error response associated with the given exception.
     """

@@ -25,7 +25,7 @@ from mock_vws._services_validators.exceptions import (
     Fail,
     TargetStatusNotSuccess,
     TargetStatusProcessing,
-    ValidatorException,
+    ValidatorError,
 )
 from mock_vws.database import VuforiaDatabase
 from mock_vws.image_matchers import (
@@ -131,8 +131,8 @@ def validate_request() -> None:
     )
 
 
-@VWS_FLASK_APP.errorhandler(ValidatorException)
-def handle_exceptions(exc: ValidatorException) -> Response:
+@VWS_FLASK_APP.errorhandler(ValidatorError)
+def handle_exceptions(exc: ValidatorError) -> Response:
     """
     Return the error response associated with the given exception.
     """

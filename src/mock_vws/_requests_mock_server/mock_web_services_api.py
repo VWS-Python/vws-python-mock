@@ -24,7 +24,7 @@ from mock_vws._services_validators.exceptions import (
     Fail,
     TargetStatusNotSuccess,
     TargetStatusProcessing,
-    ValidatorException,
+    ValidatorError,
 )
 from mock_vws.target import Target
 
@@ -133,7 +133,7 @@ class MockVuforiaWebServicesAPI:
                 request_path=request.path,
                 databases=self._target_manager.databases,
             )
-        except ValidatorException as exc:
+        except ValidatorError as exc:
             context.headers = exc.headers
             context.status_code = exc.status_code
             return exc.response_text
@@ -206,7 +206,7 @@ class MockVuforiaWebServicesAPI:
                 request_path=request.path,
                 databases=self._target_manager.databases,
             )
-        except ValidatorException as exc:
+        except ValidatorError as exc:
             context.headers = exc.headers
             context.status_code = exc.status_code
             return exc.response_text
@@ -269,7 +269,7 @@ class MockVuforiaWebServicesAPI:
                 request_path=request.path,
                 databases=self._target_manager.databases,
             )
-        except ValidatorException as exc:
+        except ValidatorError as exc:
             context.headers = exc.headers
             context.status_code = exc.status_code
             return exc.response_text
@@ -331,7 +331,7 @@ class MockVuforiaWebServicesAPI:
                 request_path=request.path,
                 databases=self._target_manager.databases,
             )
-        except ValidatorException as exc:
+        except ValidatorError as exc:
             context.headers = exc.headers
             context.status_code = exc.status_code
             return exc.response_text
@@ -387,7 +387,7 @@ class MockVuforiaWebServicesAPI:
                 request_path=request.path,
                 databases=self._target_manager.databases,
             )
-        except ValidatorException as exc:
+        except ValidatorError as exc:
             context.headers = exc.headers
             context.status_code = exc.status_code
             return exc.response_text
@@ -451,7 +451,7 @@ class MockVuforiaWebServicesAPI:
                 request_path=request.path,
                 databases=self._target_manager.databases,
             )
-        except ValidatorException as exc:
+        except ValidatorError as exc:
             context.headers = exc.headers
             context.status_code = exc.status_code
             return exc.response_text
@@ -521,7 +521,7 @@ class MockVuforiaWebServicesAPI:
                 request_path=request.path,
                 databases=self._target_manager.databases,
             )
-        except ValidatorException as exc:
+        except ValidatorError as exc:
             context.headers = exc.headers
             context.status_code = exc.status_code
             return exc.response_text
@@ -626,7 +626,7 @@ class MockVuforiaWebServicesAPI:
                 request_path=request.path,
                 databases=self._target_manager.databases,
             )
-        except ValidatorException as exc:
+        except ValidatorError as exc:
             context.headers = exc.headers
             context.status_code = exc.status_code
             return exc.response_text

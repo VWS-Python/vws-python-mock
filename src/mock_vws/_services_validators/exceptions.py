@@ -12,7 +12,7 @@ from mock_vws._constants import ResultCodes
 from mock_vws._mock_common import json_dump
 
 
-class ValidatorException(Exception):
+class ValidatorError(Exception):
     """
     A base class for exceptions thrown from mock Vuforia services endpoints.
     """
@@ -22,7 +22,7 @@ class ValidatorException(Exception):
     headers: dict[str, str]
 
 
-class UnknownTarget(ValidatorException):
+class UnknownTarget(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
     'UnknownTarget'.
@@ -57,7 +57,7 @@ class UnknownTarget(ValidatorException):
         }
 
 
-class ProjectInactive(ValidatorException):
+class ProjectInactive(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
     'ProjectInactive'.
@@ -92,7 +92,7 @@ class ProjectInactive(ValidatorException):
         }
 
 
-class AuthenticationFailure(ValidatorException):
+class AuthenticationFailure(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
     'AuthenticationFailure'.
@@ -127,7 +127,7 @@ class AuthenticationFailure(ValidatorException):
         }
 
 
-class Fail(ValidatorException):
+class Fail(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code 'Fail'.
     """
@@ -161,7 +161,7 @@ class Fail(ValidatorException):
         }
 
 
-class MetadataTooLarge(ValidatorException):
+class MetadataTooLarge(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
     'MetadataTooLarge'.
@@ -196,7 +196,7 @@ class MetadataTooLarge(ValidatorException):
         }
 
 
-class TargetNameExist(ValidatorException):
+class TargetNameExist(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
     'TargetNameExist'.
@@ -231,7 +231,7 @@ class TargetNameExist(ValidatorException):
         }
 
 
-class OopsErrorOccurredResponse(ValidatorException):
+class OopsErrorOccurredResponse(ValidatorError):
     """
     Exception raised when VWS returns an HTML page which says "Oops, an error
     occurred".
@@ -268,7 +268,7 @@ class OopsErrorOccurredResponse(ValidatorException):
         }
 
 
-class BadImage(ValidatorException):
+class BadImage(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
     'BadImage'.
@@ -303,7 +303,7 @@ class BadImage(ValidatorException):
         }
 
 
-class ImageTooLarge(ValidatorException):
+class ImageTooLarge(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
     'ImageTooLarge'.
@@ -338,7 +338,7 @@ class ImageTooLarge(ValidatorException):
         }
 
 
-class RequestTimeTooSkewed(ValidatorException):
+class RequestTimeTooSkewed(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
     'RequestTimeTooSkewed'.
@@ -373,7 +373,7 @@ class RequestTimeTooSkewed(ValidatorException):
         }
 
 
-class ContentLengthHeaderTooLarge(ValidatorException):
+class ContentLengthHeaderTooLarge(ValidatorError):
     """
     Exception raised when the given content length header is too large.
     """
@@ -400,7 +400,7 @@ class ContentLengthHeaderTooLarge(ValidatorException):
         }
 
 
-class ContentLengthHeaderNotInt(ValidatorException):
+class ContentLengthHeaderNotInt(ValidatorError):
     """
     Exception raised when the given content length header is not an integer.
     """
@@ -435,7 +435,7 @@ class ContentLengthHeaderNotInt(ValidatorException):
         }
 
 
-class UnnecessaryRequestBody(ValidatorException):
+class UnnecessaryRequestBody(ValidatorError):
     """
     Exception raised when a request body is given but not necessary.
     """
@@ -460,7 +460,7 @@ class UnnecessaryRequestBody(ValidatorException):
         }
 
 
-class TargetStatusNotSuccess(ValidatorException):
+class TargetStatusNotSuccess(ValidatorError):
     """
     Exception raised when trying to update a target that does not have a
     success status.
@@ -495,7 +495,7 @@ class TargetStatusNotSuccess(ValidatorException):
         }
 
 
-class TargetStatusProcessing(ValidatorException):
+class TargetStatusProcessing(ValidatorError):
     """
     Exception raised when trying to delete a target which is processing.
     """
