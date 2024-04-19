@@ -26,7 +26,7 @@ def validate_content_type_header_given(
             request requires one.
     """
     request_needs_content_type = bool(
-        request_method in {HTTPMethod.POST, HTTPMethod.PUT}
+        request_method in {HTTPMethod.POST, HTTPMethod.PUT},
     )
     if request_headers.get("Content-Type") or not request_needs_content_type:
         return
