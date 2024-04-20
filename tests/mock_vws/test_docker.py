@@ -8,11 +8,12 @@ import uuid
 from http import HTTPStatus
 from typing import TYPE_CHECKING
 
-import docker  # type: ignore[import-untyped]
+import docker
 import pytest
 import requests
-from docker.errors import BuildError, NotFound  # type: ignore[import-untyped]
-from docker.models.containers import Container  # type: ignore[import-untyped]
+from docker.errors import BuildError, NotFound
+from docker.models.containers import Container
+from docker.models.networks import Network
 from mock_vws.database import VuforiaDatabase
 from tenacity import retry
 from tenacity.retry import retry_if_exception_type
@@ -24,8 +25,7 @@ if TYPE_CHECKING:
     import io
     from collections.abc import Iterator
 
-    from docker.models.images import Image  # type: ignore[import-untyped]
-    from docker.models.networks import Network  # type: ignore[import-untyped]
+    from docker.models.images import Image
 
 
 # We do not cover this function because hitting particular branches depends on
@@ -69,17 +69,19 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
     """
     client = docker.from_env()
     try:
-        network = client.networks.create(
+        network = client.networks.create(  # type: ignore[no-untyped-call]
             name="test-vws-bridge-" + uuid.uuid4().hex,
             driver="bridge",
         )
     except NotFound:
         # On Windows the "bridge" network driver is not available and we use
         # the "nat" driver instead.
-        network = client.networks.create(
+        network = client.networks.create(  # type: ignore[no-untyped-call]
             name="test-vws-bridge-" + uuid.uuid4().hex,
             driver="nat",
         )
+
+    assert isinstance(network, Network)
 
     try:
         yield network
@@ -88,15 +90,15 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
         images_to_remove: set[Image] = set()
         for container in network.containers:
             assert isinstance(container, Container)
-            network.disconnect(container=container)
-            container.stop()
-            container.remove(v=True, force=True)
+            network.disconnect(container=container)  # type: ignore[no-untyped-call]
+            container.stop()  # type: ignore[no-untyped-call]
+            container.remove(v=True, force=True)  # type: ignore[no-untyped-call]
             images_to_remove.add(container.image)
 
         # This does leave behind untagged images.
         for image in images_to_remove:
             image.remove(force=True)
-        network.remove()
+        network.remove()  # type: ignore[no-untyped-call]
 
 
 @pytest.mark.requires_docker_build()
@@ -120,7 +122,7 @@ def test_build_and_run(
     vwq_tag = f"vws-mock-vwq:latest-{random}"
 
     try:
-        target_manager_image, _ = client.images.build(
+        target_manager_image, _ = client.images.build(  # type: ignore[no-untyped-call]
             path=str(repository_root),
             dockerfile=str(dockerfile),
             tag=target_manager_tag,
@@ -129,7 +131,7 @@ def test_build_and_run(
         )
     except BuildError as exc:
         full_log = "\n".join(
-            [item["stream"] for item in exc.build_log if "stream" in item],
+            [item["stream"] for item in exc.build_log if "stream" in item],  # type: ignore[index]
         )
         # If this assertion fails, it may be useful to look at the other
         # properties of ``exc``.
@@ -141,7 +143,7 @@ def test_build_and_run(
             reason="We do not currently support using Windows containers."
         )
 
-    vwq_image, _ = client.images.build(
+    vwq_image, _ = client.images.build(  # type: ignore[no-untyped-call]
         path=str(repository_root),
         dockerfile=str(dockerfile),
         tag=vwq_tag,
@@ -149,7 +151,7 @@ def test_build_and_run(
         rm=True,
     )
 
-    vws_image, _ = client.images.build(
+    vws_image, _ = client.images.build(  # type: ignore[no-untyped-call]
         path=str(repository_root),
         dockerfile=str(dockerfile),
         tag=vws_tag,
@@ -191,6 +193,9 @@ def test_build_and_run(
         },
     )
 
+    assert isinstance(target_manager_container, Container)
+    assert isinstance(vws_container, Container)
+    assert isinstance(vwq_container, Container)
     for container in (target_manager_container, vws_container, vwq_container):
         container.reload()
 
