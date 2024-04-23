@@ -315,7 +315,7 @@ dev = [
     "sphinx_paramlinks==0.6",
     "sphinxcontrib-httpdomain==1.8.1",
     "sphinxcontrib-spelling==8",
-    "sybil==6.0.3",
+    "sybil==6.1.0",
     "tenacity==8.2.3",
     "torch==2.2.2",
     "types-docker==7.0.0.20240413", # This is very incomplete, so we still do not check ``test_docker.py`` with pyright.
