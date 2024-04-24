@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import base64
 import json
-from http import HTTPStatus
+from http import HTTPMethod, HTTPStatus
 from string import hexdigits
 from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import urljoin
@@ -16,7 +16,7 @@ import requests
 from dirty_equals import IsInstance
 from mock_vws._constants import ResultCodes
 from requests.structures import CaseInsensitiveDict
-from requests_mock import POST
+from vws.exceptions.custom_exceptions import ServerError
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from tests.mock_vws.utils import make_image_file
@@ -25,12 +25,14 @@ from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
     assert_vws_response,
 )
+from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
 if TYPE_CHECKING:
     import io
 
     from mock_vws.database import VuforiaDatabase
     from vws import VWS
+    from vws.exceptions.response import Response
 
 _MAX_METADATA_BYTES: Final[int] = 1024 * 1024 - 1
 
@@ -59,7 +61,7 @@ def add_target_to_vws(
     authorization_string = authorization_header(
         access_key=vuforia_database.server_access_key,
         secret_key=vuforia_database.server_secret_key,
-        method=POST,
+        method=HTTPMethod.POST,
         content=content,
         content_type=content_type,
         date=date,
@@ -72,16 +74,19 @@ def add_target_to_vws(
         "Content-Type": content_type,
     }
 
-    return requests.request(
-        method=POST,
+    response = requests.request(
+        method=HTTPMethod.POST,
         url=urljoin(base="https://vws.vuforia.com/", url=request_path),
         headers=headers,
         data=content,
         timeout=30,
     )
 
+    handle_server_errors(response=response)
+    return response
 
-def _assert_oops_response(response: requests.Response) -> None:
+
+def _assert_oops_response(response: Response) -> None:
     """
     Assert that the response is in the format of Vuforia's "Oops, an error
     occurred" HTML response.
@@ -400,16 +405,21 @@ class TestTargetName:
             "image": image_data_encoded,
         }
 
+        if status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
+            with pytest.raises(ServerError) as exc:
+                add_target_to_vws(
+                    vuforia_database=vuforia_database,
+                    data=data,
+                )
+
+            assert exc.value.response.status_code == status_code
+            _assert_oops_response(response=exc.value.response)
+            return
+
         response = add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
         )
-
-        assert response.status_code == status_code
-
-        if status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            _assert_oops_response(response=response)
-            return
 
         assert_vws_failure(
             response=response,

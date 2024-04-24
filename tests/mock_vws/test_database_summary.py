@@ -1,6 +1,7 @@
 """
 Tests for the mock of the database summary endpoint.
 """
+
 from __future__ import annotations
 
 import logging

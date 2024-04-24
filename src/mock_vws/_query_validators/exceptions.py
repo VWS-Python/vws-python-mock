@@ -11,7 +11,7 @@ from mock_vws._constants import ResultCodes
 from mock_vws._mock_common import json_dump
 
 
-class ValidatorException(Exception):
+class ValidatorError(Exception):
     """
     A base class for exceptions thrown from mock Vuforia cloud recognition
     client endpoints.
@@ -22,7 +22,7 @@ class ValidatorException(Exception):
     headers: dict[str, str]
 
 
-class DateHeaderNotGiven(ValidatorException):
+class DateHeaderNotGivenError(ValidatorError):
     """
     Exception raised when a date header is not given.
     """
@@ -48,7 +48,7 @@ class DateHeaderNotGiven(ValidatorException):
         }
 
 
-class DateFormatNotValid(ValidatorException):
+class DateFormatNotValidError(ValidatorError):
     """
     Exception raised when the date format is not valid.
     """
@@ -75,7 +75,7 @@ class DateFormatNotValid(ValidatorException):
         }
 
 
-class RequestTimeTooSkewed(ValidatorException):
+class RequestTimeTooSkewedError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
     'RequestTimeTooSkewed'.
@@ -106,7 +106,7 @@ class RequestTimeTooSkewed(ValidatorException):
         }
 
 
-class BadImage(ValidatorException):
+class BadImageError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
     'BadImage'.
@@ -144,7 +144,7 @@ class BadImage(ValidatorException):
         }
 
 
-class AuthenticationFailure(ValidatorException):
+class AuthenticationFailureError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
     'AuthenticationFailure'.
@@ -182,7 +182,7 @@ class AuthenticationFailure(ValidatorException):
         }
 
 
-class AuthenticationFailureGoodFormatting(ValidatorException):
+class AuthenticationFailureGoodFormattingError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
     'AuthenticationFailure' with a standard JSON formatting.
@@ -215,7 +215,7 @@ class AuthenticationFailureGoodFormatting(ValidatorException):
         }
 
 
-class ImageNotGiven(ValidatorException):
+class ImageNotGivenError(ValidatorError):
     """
     Exception raised when an image is not given.
     """
@@ -242,7 +242,7 @@ class ImageNotGiven(ValidatorException):
         }
 
 
-class AuthHeaderMissing(ValidatorException):
+class AuthHeaderMissingError(ValidatorError):
     """
     Exception raised when an auth header is not given.
     """
@@ -270,7 +270,7 @@ class AuthHeaderMissing(ValidatorException):
         }
 
 
-class MalformedAuthHeader(ValidatorException):
+class MalformedAuthHeaderError(ValidatorError):
     """
     Exception raised when an auth header is not given.
     """
@@ -299,7 +299,7 @@ class MalformedAuthHeader(ValidatorException):
         }
 
 
-class UnknownParameters(ValidatorException):
+class UnknownParametersError(ValidatorError):
     """
     Exception raised when unknown parameters are given.
     """
@@ -326,7 +326,7 @@ class UnknownParameters(ValidatorException):
         }
 
 
-class InactiveProject(ValidatorException):
+class InactiveProjectError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
     'InactiveProject'.
@@ -363,7 +363,7 @@ class InactiveProject(ValidatorException):
         }
 
 
-class InvalidMaxNumResults(ValidatorException):
+class InvalidMaxNumResultsError(ValidatorError):
     """
     Exception raised when an invalid value is given as the
     "max_num_results" field.
@@ -395,7 +395,7 @@ class InvalidMaxNumResults(ValidatorException):
         }
 
 
-class MaxNumResultsOutOfRange(ValidatorException):
+class MaxNumResultsOutOfRangeError(ValidatorError):
     """
     Exception raised when an integer value is given as the "max_num_results"
     field which is out of range.
@@ -427,7 +427,7 @@ class MaxNumResultsOutOfRange(ValidatorException):
         }
 
 
-class InvalidIncludeTargetData(ValidatorException):
+class InvalidIncludeTargetDataError(ValidatorError):
     """
     Exception raised when an invalid value is given as the
     "include_target_data" field.
@@ -461,7 +461,7 @@ class InvalidIncludeTargetData(ValidatorException):
         }
 
 
-class UnsupportedMediaType(ValidatorException):
+class UnsupportedMediaTypeError(ValidatorError):
     """
     Exception raised when no boundary is found for multipart data.
     """
@@ -487,7 +487,7 @@ class UnsupportedMediaType(ValidatorException):
         }
 
 
-class InvalidAcceptHeader(ValidatorException):
+class InvalidAcceptHeaderError(ValidatorError):
     """
     Exception raised when there is an invalid accept header given.
     """
@@ -513,7 +513,7 @@ class InvalidAcceptHeader(ValidatorException):
         }
 
 
-class NoBoundaryFound(ValidatorException):
+class NoBoundaryFoundError(ValidatorError):
     """
     Exception raised when an invalid media type is given.
     """
@@ -543,7 +543,7 @@ class NoBoundaryFound(ValidatorException):
         }
 
 
-class ContentLengthHeaderTooLarge(ValidatorException):
+class ContentLengthHeaderTooLargeError(ValidatorError):
     """
     Exception raised when the given content length header is too large.
     """
@@ -566,7 +566,7 @@ class ContentLengthHeaderTooLarge(ValidatorException):
         }
 
 
-class ContentLengthHeaderNotInt(ValidatorException):
+class ContentLengthHeaderNotIntError(ValidatorError):
     """
     Exception raised when the given content length header is not an integer.
     """
@@ -588,7 +588,7 @@ class ContentLengthHeaderNotInt(ValidatorException):
         }
 
 
-class RequestEntityTooLarge(ValidatorException):
+class RequestEntityTooLargeError(ValidatorError):
     """
     Exception raised when the given image file size is too large.
     """
@@ -627,7 +627,7 @@ class RequestEntityTooLarge(ValidatorException):
         }
 
 
-class NoContentType(ValidatorException):
+class NoContentTypeError(ValidatorError):
     """
     Exception raised when a content type is either not given or is empty.
     """

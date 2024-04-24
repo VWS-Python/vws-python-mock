@@ -12,9 +12,9 @@ from PIL import Image
 
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._services_validators.exceptions import (
-    BadImage,
-    Fail,
-    ImageTooLarge,
+    BadImageError,
+    FailError,
+    ImageTooLargeError,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ def validate_image_format(request_body: bytes) -> None:
         request_body: The body of the request.
 
     Raises:
-        BadImage:  The image is given and is not either a PNG or a JPEG.
+        BadImageError:  The image is given and is not either a PNG or a JPEG.
     """
     if not request_body:
         return
@@ -47,7 +47,7 @@ def validate_image_format(request_body: bytes) -> None:
         return
 
     _LOGGER.warning(msg="The image is not a PNG or JPEG.")
-    raise BadImage
+    raise BadImageError
 
 
 def validate_image_color_space(request_body: bytes) -> None:
@@ -58,7 +58,7 @@ def validate_image_color_space(request_body: bytes) -> None:
         request_body: The body of the request.
 
     Raises:
-        BadImage: The image is given and is not in either the RGB or
+        BadImageError: The image is given and is not in either the RGB or
             greyscale color space.
     """
     if not request_body:
@@ -80,7 +80,7 @@ def validate_image_color_space(request_body: bytes) -> None:
     _LOGGER.warning(
         msg="The image is not in the RGB or greyscale color space.",
     )
-    raise BadImage
+    raise BadImageError
 
 
 def validate_image_size(request_body: bytes) -> None:
@@ -91,7 +91,7 @@ def validate_image_size(request_body: bytes) -> None:
         request_body: The body of the request.
 
     Raises:
-        ImageTooLarge:  The image is given and is not under a certain file
+        ImageTooLargeError:  The image is given and is not under a certain file
             size threshold.
     """
     if not request_body:
@@ -110,7 +110,7 @@ def validate_image_size(request_body: bytes) -> None:
         return
 
     _LOGGER.warning(msg="The image is too large.")
-    raise ImageTooLarge
+    raise ImageTooLargeError
 
 
 def validate_image_is_image(request_body: bytes) -> None:
@@ -121,7 +121,7 @@ def validate_image_is_image(request_body: bytes) -> None:
         request_body: The body of the request.
 
     Raises:
-        BadImage: Image data is given and it is not an image file.
+        BadImageError: Image data is given and it is not an image file.
     """
     if not request_body:
         return
@@ -138,7 +138,7 @@ def validate_image_is_image(request_body: bytes) -> None:
     try:
         Image.open(image_file)
     except OSError as exc:
-        raise BadImage from exc
+        raise BadImageError from exc
 
 
 def validate_image_encoding(request_body: bytes) -> None:
@@ -149,7 +149,7 @@ def validate_image_encoding(request_body: bytes) -> None:
         request_body: The body of the request.
 
     Raises:
-        Fail: Image data is given and it cannot be base64 decoded.
+        FailError: Image data is given and it cannot be base64 decoded.
     """
     if not request_body:
         return
@@ -164,7 +164,7 @@ def validate_image_encoding(request_body: bytes) -> None:
         decode_base64(encoded_data=image)
     except binascii.Error as exc:
         _LOGGER.warning('Image data cannot be base64 decoded: "%s"', exc)
-        raise Fail(status_code=HTTPStatus.UNPROCESSABLE_ENTITY) from exc
+        raise FailError(status_code=HTTPStatus.UNPROCESSABLE_ENTITY) from exc
 
 
 def validate_image_data_type(request_body: bytes) -> None:
@@ -175,7 +175,7 @@ def validate_image_data_type(request_body: bytes) -> None:
         request_body: The body of the request.
 
     Raises:
-        Fail: Image data is given and it is not a string.
+        FailError: Image data is given and it is not a string.
     """
     if not request_body:
         return
@@ -190,4 +190,4 @@ def validate_image_data_type(request_body: bytes) -> None:
         return
 
     _LOGGER.warning('Image data is not a string: "%s"', image)
-    raise Fail(status_code=HTTPStatus.BAD_REQUEST)
+    raise FailError(status_code=HTTPStatus.BAD_REQUEST)

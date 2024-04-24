@@ -1,6 +1,7 @@
 """
 A fake implementation of a target for the Vuforia Web Services API.
 """
+
 from __future__ import annotations
 
 import base64

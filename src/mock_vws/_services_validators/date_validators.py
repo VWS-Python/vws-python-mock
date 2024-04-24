@@ -7,7 +7,10 @@ import logging
 from http import HTTPStatus
 from zoneinfo import ZoneInfo
 
-from mock_vws._services_validators.exceptions import Fail, RequestTimeTooSkewed
+from mock_vws._services_validators.exceptions import (
+    FailError,
+    RequestTimeTooSkewedError,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -20,13 +23,13 @@ def validate_date_header_given(request_headers: dict[str, str]) -> None:
         request_headers: The headers sent with the request.
 
     Raises:
-        Fail: The date is not given.
+        FailError: The date is not given.
     """
     if "Date" in request_headers:
         return
 
     _LOGGER.warning(msg="The date header is not given.")
-    raise Fail(status_code=HTTPStatus.BAD_REQUEST)
+    raise FailError(status_code=HTTPStatus.BAD_REQUEST)
 
 
 def validate_date_format(request_headers: dict[str, str]) -> None:
@@ -37,7 +40,7 @@ def validate_date_format(request_headers: dict[str, str]) -> None:
         request_headers: The headers sent with the request.
 
     Raises:
-        Fail: The date is in the wrong format.
+        FailError: The date is in the wrong format.
     """
     date_header = request_headers["Date"]
     date_format = "%a, %d %b %Y %H:%M:%S GMT"
@@ -45,7 +48,7 @@ def validate_date_format(request_headers: dict[str, str]) -> None:
         datetime.datetime.strptime(date_header, date_format).astimezone()
     except ValueError as exc:
         _LOGGER.warning(msg="The date header is in the wrong format.")
-        raise Fail(status_code=HTTPStatus.BAD_REQUEST) from exc
+        raise FailError(status_code=HTTPStatus.BAD_REQUEST) from exc
 
 
 def validate_date_in_range(request_headers: dict[str, str]) -> None:
@@ -56,7 +59,7 @@ def validate_date_in_range(request_headers: dict[str, str]) -> None:
         request_headers: The headers sent with the request.
 
     Raises:
-        RequestTimeTooSkewed: The date is out of range.
+        RequestTimeTooSkewedError: The date is out of range.
     """
     gmt = ZoneInfo("GMT")
     date_from_header = datetime.datetime.strptime(
@@ -71,4 +74,4 @@ def validate_date_in_range(request_headers: dict[str, str]) -> None:
 
     if abs(time_difference) >= maximum_time_difference:
         _LOGGER.warning(msg="The date header is out of range.")
-        raise RequestTimeTooSkewed
+        raise RequestTimeTooSkewedError

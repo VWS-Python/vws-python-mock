@@ -15,7 +15,7 @@ import sys
 import textwrap
 import time
 import uuid
-from http import HTTPStatus
+from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urljoin
 from zoneinfo import ZoneInfo
@@ -24,7 +24,10 @@ import pytest
 import requests
 from mock_vws._constants import ResultCodes
 from PIL import Image
-from requests_mock import POST
+from tenacity import Retrying
+from tenacity.retry import retry_if_exception_type
+from tenacity.stop import stop_after_delay
+from tenacity.wait import wait_fixed
 from urllib3.filepost import encode_multipart_formdata
 from vws.exceptions.cloud_reco_exceptions import (
     BadImage,
@@ -38,8 +41,13 @@ from vws_auth_tools import authorization_header, rfc_1123_date
 from tests.mock_vws.utils import make_image_file
 from tests.mock_vws.utils.assertions import (
     assert_query_success,
+<<<<<<< HEAD
+=======
+    assert_valid_transaction_id,
+>>>>>>> origin/main
     assert_vwq_failure,
 )
+from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
 if TYPE_CHECKING:
     from mock_vws.database import VuforiaDatabase
@@ -99,7 +107,7 @@ def query(
     date = rfc_1123_date()
     request_path = "/v1/query"
     content, content_type_header = encode_multipart_formdata(fields=body)
-    method = POST
+    method = HTTPMethod.POST
 
     access_key = vuforia_database.client_access_key
     secret_key = vuforia_database.client_secret_key
@@ -121,13 +129,16 @@ def query(
     }
 
     vwq_host = "https://cloudreco.vuforia.com"
-    return requests.request(
+    response = requests.request(
         method=method,
         url=urljoin(base=vwq_host, url=request_path),
         headers=headers,
         data=content,
         timeout=30,
     )
+
+    handle_server_errors(response=response)
+    return response
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -203,7 +214,7 @@ class TestContentType:
         request_path = "/v1/query"
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
         content, _ = encode_multipart_formdata(fields=body)
-        method = POST
+        method = HTTPMethod.POST
 
         access_key = vuforia_database.client_access_key
         secret_key = vuforia_database.client_secret_key
@@ -231,6 +242,8 @@ class TestContentType:
             timeout=30,
         )
 
+        handle_server_errors(response=response)
+
         assert response.text == resp_text
         assert_vwq_failure(
             response=response,
@@ -257,7 +270,7 @@ class TestContentType:
         request_path = "/v1/query"
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
         content, content_type_header = encode_multipart_formdata(fields=body)
-        method = POST
+        method = HTTPMethod.POST
 
         content_type = "text/html"
 
@@ -290,6 +303,7 @@ class TestContentType:
             timeout=30,
         )
 
+        handle_server_errors(response=response)
         assert not response.text
         assert_vwq_failure(
             response=response,
@@ -323,7 +337,7 @@ class TestContentType:
         request_path = "/v1/query"
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
         content, _ = encode_multipart_formdata(fields=body)
-        method = POST
+        method = HTTPMethod.POST
 
         access_key = vuforia_database.client_access_key
         secret_key = vuforia_database.client_secret_key
@@ -351,6 +365,8 @@ class TestContentType:
             data=content,
             timeout=30,
         )
+
+        handle_server_errors(response=response)
 
         expected_text = (
             "java.io.IOException: RESTEASY007550: "
@@ -380,7 +396,7 @@ class TestContentType:
         request_path = "/v1/query"
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
         content, _ = encode_multipart_formdata(fields=body)
-        method = POST
+        method = HTTPMethod.POST
 
         access_key = vuforia_database.client_access_key
         secret_key = vuforia_database.client_secret_key
@@ -409,6 +425,8 @@ class TestContentType:
             timeout=30,
         )
 
+        handle_server_errors(response=response)
+
         expected_text = "No image."
         assert response.text == expected_text
         assert_vwq_failure(
@@ -435,7 +453,7 @@ class TestContentType:
         request_path = "/v1/query"
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
         content, content_type_header = encode_multipart_formdata(fields=body)
-        method = POST
+        method = HTTPMethod.POST
 
         access_key = vuforia_database.client_access_key
         secret_key = vuforia_database.client_secret_key
@@ -464,6 +482,7 @@ class TestContentType:
             timeout=30,
         )
 
+        handle_server_errors(response=response)
         assert_query_success(response=response)
         assert response.json()["results"] == []
 
@@ -1130,7 +1149,7 @@ class TestAcceptHeader:
         request_path = "/v1/query"
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
         content, content_type_header = encode_multipart_formdata(fields=body)
-        method = POST
+        method = HTTPMethod.POST
 
         access_key = vuforia_database.client_access_key
         secret_key = vuforia_database.client_secret_key
@@ -1158,6 +1177,7 @@ class TestAcceptHeader:
             timeout=30,
         )
 
+        handle_server_errors(response=response)
         assert_query_success(response=response)
         assert response.json()["results"] == []
 
@@ -1175,7 +1195,7 @@ class TestAcceptHeader:
         request_path = "/v1/query"
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
         content, content_type_header = encode_multipart_formdata(fields=body)
-        method = POST
+        method = HTTPMethod.POST
 
         access_key = vuforia_database.client_access_key
         secret_key = vuforia_database.client_secret_key
@@ -1204,6 +1224,8 @@ class TestAcceptHeader:
             data=content,
             timeout=30,
         )
+
+        handle_server_errors(response=response)
 
         assert_vwq_failure(
             response=response,
@@ -1283,6 +1305,21 @@ class TestBadImage:
             connection="keep-alive",
             result_code=ResultCodes.BAD_IMAGE,
         )
+<<<<<<< HEAD
+=======
+        response_json = json.loads(response.text)
+        assert isinstance(response_json, dict)
+        assert response_json.keys() == {"transaction_id", "result_code"}
+        assert_valid_transaction_id(response=response)
+        # The separators are inconsistent and we test this.
+        expected_text = (
+            '{"transaction_id": '
+            f'"{response_json["transaction_id"]}",'
+            f'"result_code":"BadImage"'
+            "}"
+        )
+        assert response.text == expected_text
+>>>>>>> origin/main
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -1497,6 +1534,23 @@ class TestMaximumImageDimensions:
             result_code=ResultCodes.BAD_IMAGE,
         )
 
+<<<<<<< HEAD
+=======
+        response_json = json.loads(response.text)
+        assert isinstance(response_json, dict)
+
+        assert response_json.keys() == {"transaction_id", "result_code"}
+        assert_valid_transaction_id(response=response)
+        # The separators are inconsistent and we test this.
+        expected_text = (
+            '{"transaction_id": '
+            f'"{response_json["transaction_id"]}",'
+            f'"result_code":"BadImage"'
+            "}"
+        )
+        assert response.text == expected_text
+
+>>>>>>> origin/main
     @staticmethod
     def test_max_width(cloud_reco_client: CloudRecoService) -> None:
         """
@@ -1537,6 +1591,22 @@ class TestMaximumImageDimensions:
             result_code=ResultCodes.BAD_IMAGE,
         )
 
+<<<<<<< HEAD
+=======
+        response_json = json.loads(response.text)
+        assert isinstance(response_json, dict)
+        assert response_json.keys() == {"transaction_id", "result_code"}
+        assert_valid_transaction_id(response=response)
+        # The separators are inconsistent and we test this.
+        expected_text = (
+            '{"transaction_id": '
+            f'"{response_json["transaction_id"]}",'
+            f'"result_code":"BadImage"'
+            "}"
+        )
+        assert response.text == expected_text
+
+>>>>>>> origin/main
     @staticmethod
     def test_max_pixels(cloud_reco_client: CloudRecoService) -> None:
         """
@@ -1606,6 +1676,21 @@ class TestImageFormats:
             connection="keep-alive",
             result_code=ResultCodes.BAD_IMAGE,
         )
+<<<<<<< HEAD
+=======
+        response_json = json.loads(response.text)
+        assert isinstance(response_json, dict)
+        assert response_json.keys() == {"transaction_id", "result_code"}
+        assert_valid_transaction_id(response=response)
+        # The separators are inconsistent and we test this.
+        expected_text = (
+            '{"transaction_id": '
+            f'"{response_json["transaction_id"]}",'
+            f'"result_code":"BadImage"'
+            "}"
+        )
+        assert response.text == expected_text
+>>>>>>> origin/main
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -1720,7 +1805,7 @@ class TestUpdate:
         # second.
         assert target_timestamp >= original_target_timestamp
         time_difference = abs(
-            approximate_target_updated - target_timestamp.timestamp()
+            approximate_target_updated - target_timestamp.timestamp(),
         )
         max_time_difference = 5
         assert time_difference < max_time_difference
@@ -1754,8 +1839,24 @@ class TestDeleted:
         vws_client.wait_for_target_processed(target_id=target_id)
         vws_client.delete_target(target_id=target_id)
 
-        results = cloud_reco_client.query(image=high_quality_image)
-        assert results == []
+        # There is a race condition here.
+        # In the real Vuforia, it takes some time for the target deletion
+        # to be reflected in the query endpoint.
+        #
+        # This difference is documented in ``differences-to-vws.rst``.
+        #
+        # We retry to allow for this difference.
+        for attempt in Retrying(
+            wait=wait_fixed(0.1),
+            stop=stop_after_delay(max_delay=3),
+            retry=retry_if_exception_type(
+                exception_types=(AssertionError,),
+            ),
+            reraise=True,
+        ):
+            with attempt:
+                results = cloud_reco_client.query(image=high_quality_image)
+                assert results == []
 
     @staticmethod
     def test_deleted_inactive(
@@ -1859,7 +1960,7 @@ class TestDateFormats:
         date = now.strftime(datetime_format)
         request_path = "/v1/query"
         content, content_type_header = encode_multipart_formdata(fields=body)
-        method = POST
+        method = HTTPMethod.POST
 
         access_key = vuforia_database.client_access_key
         secret_key = vuforia_database.client_secret_key
@@ -1887,6 +1988,7 @@ class TestDateFormats:
             timeout=30,
         )
 
+        handle_server_errors(response=response)
         assert_query_success(response=response)
         assert response.json()["results"] == []
 
@@ -1919,3 +2021,20 @@ class TestInactiveProject:
             connection="keep-alive",
             result_code=ResultCodes.INACTIVE_PROJECT,
         )
+<<<<<<< HEAD
+=======
+
+        response_json = json.loads(response.text)
+        assert isinstance(response_json, dict)
+
+        assert response_json.keys() == {"transaction_id", "result_code"}
+        assert_valid_transaction_id(response=response)
+        # The separators are inconsistent and we test this.
+        expected_text = (
+            '{"transaction_id": '
+            f'"{response_json["transaction_id"]}",'
+            f'"result_code":"InactiveProject"'
+            "}"
+        )
+        assert response.text == expected_text
+>>>>>>> origin/main

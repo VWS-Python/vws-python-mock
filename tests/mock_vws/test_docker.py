@@ -6,15 +6,14 @@ from __future__ import annotations
 
 import uuid
 from http import HTTPStatus
-from pathlib import Path
 from typing import TYPE_CHECKING
 
-import docker  # type: ignore[import-untyped]
+import docker
 import pytest
 import requests
-from docker.errors import BuildError, NotFound  # type: ignore[import-untyped]
-from docker.models.containers import Container  # type: ignore[import-untyped]
-from docker.models.networks import Network  # type: ignore[import-untyped]
+from docker.errors import BuildError, NotFound
+from docker.models.containers import Container
+from docker.models.networks import Network
 from mock_vws.database import VuforiaDatabase
 from tenacity import retry
 from tenacity.retry import retry_if_exception_type
@@ -26,7 +25,7 @@ if TYPE_CHECKING:
     import io
     from collections.abc import Iterator
 
-    from docker.models.images import Image  # type: ignore[import-untyped]
+    from docker.models.images import Image
 
 
 # We do not cover this function because hitting particular branches depends on
@@ -70,19 +69,20 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
     """
     client = docker.from_env()
     try:
-        network = client.networks.create(
+        network = client.networks.create(  # type: ignore[no-untyped-call]
             name="test-vws-bridge-" + uuid.uuid4().hex,
             driver="bridge",
         )
     except NotFound:
         # On Windows the "bridge" network driver is not available and we use
         # the "nat" driver instead.
-        network = client.networks.create(
+        network = client.networks.create(  # type: ignore[no-untyped-call]
             name="test-vws-bridge-" + uuid.uuid4().hex,
             driver="nat",
         )
 
     assert isinstance(network, Network)
+
     try:
         yield network
     finally:
@@ -90,27 +90,28 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
         images_to_remove: set[Image] = set()
         for container in network.containers:
             assert isinstance(container, Container)
-            network.disconnect(container=container)
-            container.stop()
-            container.remove(v=True, force=True)
+            network.disconnect(container=container)  # type: ignore[no-untyped-call]
+            container.stop()  # type: ignore[no-untyped-call]
+            container.remove(v=True, force=True)  # type: ignore[no-untyped-call]
             images_to_remove.add(container.image)
 
         # This does leave behind untagged images.
         for image in images_to_remove:
             image.remove(force=True)
-        network.remove()
+        network.remove()  # type: ignore[no-untyped-call]
 
 
 @pytest.mark.requires_docker_build()
 def test_build_and_run(
     high_quality_image: io.BytesIO,
     custom_bridge_network: Network,
+    request: pytest.FixtureRequest,
 ) -> None:
     """
     It is possible to build Docker images which combine to make a working mock
     application.
     """
-    repository_root = Path(__file__).parent.parent.parent
+    repository_root = request.config.rootpath
     client = docker.from_env()
 
     dockerfile = repository_root / "src/mock_vws/_flask_server/Dockerfile"
@@ -121,7 +122,7 @@ def test_build_and_run(
     vwq_tag = f"vws-mock-vwq:latest-{random}"
 
     try:
-        target_manager_image, _ = client.images.build(
+        target_manager_image, _ = client.images.build(  # type: ignore[no-untyped-call]
             path=str(repository_root),
             dockerfile=str(dockerfile),
             tag=target_manager_tag,
@@ -130,7 +131,7 @@ def test_build_and_run(
         )
     except BuildError as exc:
         full_log = "\n".join(
-            [item["stream"] for item in exc.build_log if "stream" in item],
+            [item["stream"] for item in exc.build_log if "stream" in item],  # type: ignore[index]
         )
         # If this assertion fails, it may be useful to look at the other
         # properties of ``exc``.
@@ -138,10 +139,11 @@ def test_build_and_run(
             "no matching manifest for windows/amd64" not in exc.msg
         ):  # pragma: no cover
             raise AssertionError(full_log) from exc
-        reason = "We do not currently support using Windows containers."
-        pytest.skip(reason)
+        pytest.skip(
+            reason="We do not currently support using Windows containers."
+        )
 
-    vwq_image, _ = client.images.build(
+    vwq_image, _ = client.images.build(  # type: ignore[no-untyped-call]
         path=str(repository_root),
         dockerfile=str(dockerfile),
         tag=vwq_tag,
@@ -149,7 +151,7 @@ def test_build_and_run(
         rm=True,
     )
 
-    vws_image, _ = client.images.build(
+    vws_image, _ = client.images.build(  # type: ignore[no-untyped-call]
         path=str(repository_root),
         dockerfile=str(dockerfile),
         tag=vws_tag,
@@ -197,39 +199,36 @@ def test_build_and_run(
     for container in (target_manager_container, vws_container, vwq_container):
         container.reload()
 
-    assert isinstance(target_manager_container.attrs, dict)
     target_manager_port_attrs = target_manager_container.attrs[
         "NetworkSettings"
     ]["Ports"]
     target_manager_port_attrs = target_manager_container.attrs[
         "NetworkSettings"
     ]["Ports"]
-    task_manager_host_ip = target_manager_port_attrs["5000/tcp"][0]["HostIp"]
-    task_manager_host_port = target_manager_port_attrs["5000/tcp"][0][
+    target_manager_host_ip = target_manager_port_attrs["5000/tcp"][0]["HostIp"]
+    target_manager_host_port = target_manager_port_attrs["5000/tcp"][0][
         "HostPort"
     ]
 
-    assert isinstance(vws_container.attrs, dict)
     vws_port_attrs = vws_container.attrs["NetworkSettings"]["Ports"]
     vws_host_ip = vws_port_attrs["5000/tcp"][0]["HostIp"]
     vws_host_port = vws_port_attrs["5000/tcp"][0]["HostPort"]
 
-    assert isinstance(vwq_container.attrs, dict)
     vwq_port_attrs = vwq_container.attrs["NetworkSettings"]["Ports"]
     vwq_host_ip = vwq_port_attrs["5000/tcp"][0]["HostIp"]
     vwq_host_port = vwq_port_attrs["5000/tcp"][0]["HostPort"]
 
     base_vws_url = f"http://{vws_host_ip}:{vws_host_port}"
     base_vwq_url = f"http://{vwq_host_ip}:{vwq_host_port}"
-    base_task_manager_url = (
-        f"http://{task_manager_host_ip}:{task_manager_host_port}"
+    base_target_manager_url = (
+        f"http://{target_manager_host_ip}:{target_manager_host_port}"
     )
 
-    for base_url in (base_vws_url, base_vwq_url, base_task_manager_url):
+    for base_url in (base_vws_url, base_vwq_url, base_target_manager_url):
         wait_for_flask_app_to_start(base_url=base_url)
 
     response = requests.post(
-        url=f"{base_task_manager_url}/databases",
+        url=f"{base_target_manager_url}/databases",
         json=database.to_dict(),
         timeout=30,
     )

@@ -24,21 +24,17 @@ doc8:
 
 .PHONY: ruff
 ruff:
-	ruff .
+	ruff check .
 	ruff format --check .
 
 .PHONY: fix-ruff
 fix-ruff:
-	ruff --fix .
+	ruff check --fix .
 	ruff format .
 
-.PHONY: pip-extra-reqs
-pip-extra-reqs:
-	pip-extra-reqs --skip-incompatible --requirements-file=<(uv pip compile --no-deps pyproject.toml) src/
-
-.PHONY: pip-missing-reqs
-pip-missing-reqs:
-	pip-missing-reqs --requirements-file=<(uv pip compile --no-deps pyproject.toml) src/
+.PHONY: deptry
+deptry:
+	deptry src/
 
 .PHONY: pylint
 pylint:

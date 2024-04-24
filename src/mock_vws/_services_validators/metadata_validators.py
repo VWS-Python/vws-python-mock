@@ -8,7 +8,10 @@ import logging
 from http import HTTPStatus
 
 from mock_vws._base64_decoding import decode_base64
-from mock_vws._services_validators.exceptions import Fail, MetadataTooLarge
+from mock_vws._services_validators.exceptions import (
+    FailError,
+    MetadataTooLargeError,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -22,7 +25,8 @@ def validate_metadata_size(request_body: bytes) -> None:
         request_body: The body of the request.
 
     Raises:
-        MetadataTooLarge: Application metadata is given and it is too large.
+        MetadataTooLargeError: Application metadata is given and it is too
+            large.
     """
     if not request_body:
         return
@@ -39,7 +43,7 @@ def validate_metadata_size(request_body: bytes) -> None:
         return
 
     _LOGGER.warning(msg="The application metadata is too large.")
-    raise MetadataTooLarge
+    raise MetadataTooLargeError
 
 
 def validate_metadata_encoding(request_body: bytes) -> None:
@@ -50,7 +54,7 @@ def validate_metadata_encoding(request_body: bytes) -> None:
         request_body: The body of the request.
 
     Raises:
-        Fail: Application metadata is given and it cannot be base64
+        FailError: Application metadata is given and it cannot be base64
             decoded.
     """
     if not request_body:
@@ -70,7 +74,7 @@ def validate_metadata_encoding(request_body: bytes) -> None:
         decode_base64(encoded_data=application_metadata)
     except binascii.Error as exc:
         _LOGGER.warning(msg="The application metadata is not base64 encoded.")
-        raise Fail(status_code=HTTPStatus.UNPROCESSABLE_ENTITY) from exc
+        raise FailError(status_code=HTTPStatus.UNPROCESSABLE_ENTITY) from exc
 
 
 def validate_metadata_type(request_body: bytes) -> None:
@@ -81,7 +85,8 @@ def validate_metadata_type(request_body: bytes) -> None:
         request_body: The body of the request.
 
     Raises:
-        Fail: Application metadata is given and it is not a string or NULL.
+        FailError: Application metadata is given and it is not a string or
+            NULL.
     """
     if not request_body:
         return
@@ -97,4 +102,4 @@ def validate_metadata_type(request_body: bytes) -> None:
         return
 
     _LOGGER.warning(msg="The application metadata is not a string or NULL.")
-    raise Fail(status_code=HTTPStatus.BAD_REQUEST)
+    raise FailError(status_code=HTTPStatus.BAD_REQUEST)

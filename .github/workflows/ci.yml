@@ -80,7 +80,11 @@ jobs:
           - tests/mock_vws/test_target_summary.py
           - tests/mock_vws/test_unexpected_json.py
           - tests/mock_vws/test_update_target.py::TestActiveFlag
-          - tests/mock_vws/test_update_target.py::TestApplicationMetadata
+          - tests/mock_vws/test_update_target.py::TestApplicationMetadata::test_base64_encoded
+          - tests/mock_vws/test_update_target.py::TestApplicationMetadata::test_invalid_type
+          - tests/mock_vws/test_update_target.py::TestApplicationMetadata::test_not_base64_encoded_processable
+          - tests/mock_vws/test_update_target.py::TestApplicationMetadata::test_not_base64_encoded_not_processable
+          - tests/mock_vws/test_update_target.py::TestApplicationMetadata::test_metadata_too_large
           - tests/mock_vws/test_update_target.py::TestImage::test_image_valid
           - tests/mock_vws/test_update_target.py::TestImage::test_bad_image_format_or_color_space
           - tests/mock_vws/test_update_target.py::TestImage::test_corrupted
@@ -90,7 +94,10 @@ jobs:
           - tests/mock_vws/test_update_target.py::TestImage::test_not_image
           - tests/mock_vws/test_update_target.py::TestImage::test_invalid_type
           - tests/mock_vws/test_update_target.py::TestImage::test_rating_can_change
-          - tests/mock_vws/test_update_target.py::TestTargetName
+          - tests/mock_vws/test_update_target.py::TestTargetName::test_name_valid
+          - tests/mock_vws/test_update_target.py::TestTargetName::test_name_invalid
+          - tests/mock_vws/test_update_target.py::TestTargetName::test_existing_target_name
+          - tests/mock_vws/test_update_target.py::TestTargetName::test_same_name_given
           - tests/mock_vws/test_update_target.py::TestUnexpectedData
           - tests/mock_vws/test_update_target.py::TestUpdate
           - tests/mock_vws/test_update_target.py::TestWidth
@@ -127,9 +134,7 @@ jobs:
       - name: "Install dependencies"
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
-          uv venv /home/runner/.venv
-          source /home/runner/.venv/bin/activate
-          uv pip install --upgrade --editable .[dev]
+          uv pip install --system --upgrade --editable .[dev]
 
       # We have seen issues with running out of disk space on test_docker
       - name: Free Disk Space (Ubuntu)
@@ -148,7 +153,6 @@ jobs:
 
       - name: "Run tests"
         run: |
-          source /home/runner/.venv/bin/activate
           pytest \
             -s \
             -vvv \

@@ -1,6 +1,7 @@
 """
 Tests for deleting targets.
 """
+
 from __future__ import annotations
 
 from http import HTTPStatus

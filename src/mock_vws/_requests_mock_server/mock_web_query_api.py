@@ -8,9 +8,8 @@ https://library.vuforia.com/web-api/vuforia-query-web-api
 from __future__ import annotations
 
 import email.utils
+from http import HTTPMethod
 from typing import TYPE_CHECKING
-
-from requests_mock import POST
 
 from mock_vws._mock_common import Route
 from mock_vws._query_tools import (
@@ -18,7 +17,7 @@ from mock_vws._query_tools import (
 )
 from mock_vws._query_validators import run_query_validators
 from mock_vws._query_validators.exceptions import (
-    ValidatorException,
+    ValidatorError,
 )
 
 if TYPE_CHECKING:
@@ -95,7 +94,7 @@ class MockVuforiaWebQueryAPI:
         self._target_manager = target_manager
         self._query_match_checker = query_match_checker
 
-    @route(path_pattern="/v1/query", http_methods={POST})
+    @route(path_pattern="/v1/query", http_methods={HTTPMethod.POST})
     def query(self, request: Request, context: Context) -> str:
         """
         Perform an image recognition query.
@@ -108,7 +107,7 @@ class MockVuforiaWebQueryAPI:
                 request_method=request.method,
                 databases=self._target_manager.databases,
             )
-        except ValidatorException as exc:
+        except ValidatorError as exc:
             context.headers = exc.headers
             context.status_code = exc.status_code
             return exc.response_text

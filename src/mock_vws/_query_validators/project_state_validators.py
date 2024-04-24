@@ -2,11 +2,10 @@
 Validators for the project state.
 """
 
-
 import logging
 
 from mock_vws._database_matchers import get_database_matching_client_keys
-from mock_vws._query_validators.exceptions import InactiveProject
+from mock_vws._query_validators.exceptions import InactiveProjectError
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
 
@@ -31,7 +30,7 @@ def validate_project_state(
         databases: All Vuforia databases.
 
     Raises:
-        InactiveProject: The project is inactive.
+        InactiveProjectError: The project is inactive.
     """
     database = get_database_matching_client_keys(
         request_headers=request_headers,
@@ -45,4 +44,4 @@ def validate_project_state(
         return
 
     _LOGGER.warning(msg="The project is inactive.")
-    raise InactiveProject
+    raise InactiveProjectError

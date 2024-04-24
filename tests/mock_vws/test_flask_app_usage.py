@@ -1,6 +1,7 @@
 """
 Tests for the usage of the mock Flask application.
 """
+
 from __future__ import annotations
 
 import io
@@ -292,7 +293,8 @@ class TestQueryImageMatchers:
     ) -> None:
         """The structural similarity matcher matches similar images."""
         monkeypatch.setenv(
-            name="QUERY_IMAGE_MATCHER", value="structural_similarity"
+            name="QUERY_IMAGE_MATCHER",
+            value="structural_similarity",
         )
         database = VuforiaDatabase()
         vws_client = VWS(

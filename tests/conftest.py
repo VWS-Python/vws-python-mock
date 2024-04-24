@@ -1,6 +1,7 @@
 """
 Configuration, plugins and fixtures for `pytest`.
 """
+
 from __future__ import annotations
 
 import base64

@@ -11,7 +11,7 @@ import json
 import logging
 import uuid
 from enum import StrEnum, auto
-from http import HTTPStatus
+from http import HTTPMethod, HTTPStatus
 
 import requests
 from flask import Flask, Response, request
@@ -22,10 +22,10 @@ from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._mock_common import json_dump
 from mock_vws._services_validators import run_services_validators
 from mock_vws._services_validators.exceptions import (
-    Fail,
-    TargetStatusNotSuccess,
-    TargetStatusProcessing,
-    ValidatorException,
+    FailError,
+    TargetStatusNotSuccessError,
+    TargetStatusProcessingError,
+    ValidatorError,
 )
 from mock_vws.database import VuforiaDatabase
 from mock_vws.image_matchers import (
@@ -68,9 +68,9 @@ class VWSSettings(BaseSettings):
     target_manager_base_url: str
     processing_time_seconds: float = 2
     vws_host: str = ""
-    duplicates_image_matcher: (
-        _ImageMatcherChoice
-    ) = _ImageMatcherChoice.STRUCTURAL_SIMILARITY
+    duplicates_image_matcher: _ImageMatcherChoice = (
+        _ImageMatcherChoice.STRUCTURAL_SIMILARITY
+    )
 
 
 def get_all_databases() -> set[VuforiaDatabase]:
@@ -131,8 +131,8 @@ def validate_request() -> None:
     )
 
 
-@VWS_FLASK_APP.errorhandler(ValidatorException)
-def handle_exceptions(exc: ValidatorException) -> Response:
+@VWS_FLASK_APP.errorhandler(ValidatorError)
+def handle_exceptions(exc: ValidatorError) -> Response:
     """
     Return the error response associated with the given exception.
     """
@@ -147,7 +147,7 @@ def handle_exceptions(exc: ValidatorException) -> Response:
     return response
 
 
-@VWS_FLASK_APP.route("/targets", methods=["POST"])
+@VWS_FLASK_APP.route("/targets", methods=[HTTPMethod.POST])
 def add_target() -> Response:
     """
     Add a target.
@@ -219,7 +219,7 @@ def add_target() -> Response:
     )
 
 
-@VWS_FLASK_APP.route("/targets/<string:target_id>", methods=["GET"])
+@VWS_FLASK_APP.route("/targets/<string:target_id>", methods=[HTTPMethod.GET])
 def get_target(target_id: str) -> Response:
     """
     Get details of a target.
@@ -273,7 +273,10 @@ def get_target(target_id: str) -> Response:
     )
 
 
-@VWS_FLASK_APP.route("/targets/<string:target_id>", methods=["DELETE"])
+@VWS_FLASK_APP.route(
+    "/targets/<string:target_id>",
+    methods=[HTTPMethod.DELETE],
+)
 def delete_target(target_id: str) -> Response:
     """
     Delete a target.
@@ -296,7 +299,7 @@ def delete_target(target_id: str) -> Response:
     )
 
     if target.status == TargetStatuses.PROCESSING.value:
-        raise TargetStatusProcessing
+        raise TargetStatusProcessingError
 
     databases_url = f"{settings.target_manager_base_url}/databases"
     requests.delete(
@@ -326,7 +329,7 @@ def delete_target(target_id: str) -> Response:
     )
 
 
-@VWS_FLASK_APP.route("/summary", methods=["GET"])
+@VWS_FLASK_APP.route("/summary", methods=[HTTPMethod.GET])
 def database_summary() -> Response:
     """
     Get a database summary report.
@@ -379,7 +382,7 @@ def database_summary() -> Response:
     )
 
 
-@VWS_FLASK_APP.route("/summary/<string:target_id>", methods=["GET"])
+@VWS_FLASK_APP.route("/summary/<string:target_id>", methods=[HTTPMethod.GET])
 def target_summary(target_id: str) -> Response:
     """
     Get a summary report for a target.
@@ -430,7 +433,10 @@ def target_summary(target_id: str) -> Response:
     )
 
 
-@VWS_FLASK_APP.route("/duplicates/<string:target_id>", methods=["GET"])
+@VWS_FLASK_APP.route(
+    "/duplicates/<string:target_id>",
+    methods=[HTTPMethod.GET],
+)
 def get_duplicates(target_id: str) -> Response:
     """
     Get targets which may be considered duplicates of a given target.
@@ -490,7 +496,7 @@ def get_duplicates(target_id: str) -> Response:
     )
 
 
-@VWS_FLASK_APP.route("/targets", methods=["GET"])
+@VWS_FLASK_APP.route("/targets", methods=[HTTPMethod.GET])
 def target_list() -> Response:
     """
     Get a list of all targets.
@@ -531,7 +537,7 @@ def target_list() -> Response:
     )
 
 
-@VWS_FLASK_APP.route("/targets/<string:target_id>", methods=["PUT"])
+@VWS_FLASK_APP.route("/targets/<string:target_id>", methods=[HTTPMethod.PUT])
 def update_target(target_id: str) -> Response:
     """
     Update a target.
@@ -557,7 +563,7 @@ def update_target(target_id: str) -> Response:
     )
 
     if target.status != TargetStatuses.SUCCESS.value:
-        raise TargetStatusNotSuccess
+        raise TargetStatusNotSuccessError
 
     update_values: dict[str, str | int | float | bool | None] = {}
     if "width" in request_json:
@@ -572,7 +578,7 @@ def update_target(target_id: str) -> Response:
                     "This is not allowed. "
                 ),
             )
-            raise Fail(status_code=HTTPStatus.BAD_REQUEST)
+            raise FailError(status_code=HTTPStatus.BAD_REQUEST)
         update_values["active_flag"] = active_flag
 
     if "application_metadata" in request_json:
@@ -584,7 +590,7 @@ def update_target(target_id: str) -> Response:
                     "This is not allowed."
                 ),
             )
-            raise Fail(status_code=HTTPStatus.BAD_REQUEST)
+            raise FailError(status_code=HTTPStatus.BAD_REQUEST)
         update_values["application_metadata"] = application_metadata
 
     if "name" in request_json:

@@ -3,7 +3,7 @@
 import functools
 import io
 import math
-import random
+import secrets
 from typing import Protocol, runtime_checkable
 
 import piq  # type: ignore[import-untyped]
@@ -62,7 +62,7 @@ class RandomTargetTrackingRater:
             image_content: A target's image's content.
         """
         assert image_content
-        return random.randint(0, 5)
+        return secrets.randbelow(exclusive_upper_bound=6)
 
 
 class HardcodedTargetTrackingRater:

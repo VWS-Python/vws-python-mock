@@ -1,6 +1,7 @@
 """
 Tests for the `Authorization` header.
 """
+
 from __future__ import annotations
 
 import uuid
@@ -18,6 +19,10 @@ from vws.exceptions.vws_exceptions import AuthenticationFailure, Fail
 from vws_auth_tools import rfc_1123_date
 
 from tests.mock_vws.utils.assertions import (
+<<<<<<< HEAD
+=======
+    assert_valid_transaction_id,
+>>>>>>> origin/main
     assert_vwq_failure,
     assert_vws_failure,
 )
@@ -262,6 +267,26 @@ class TestBadKey:
             result_code=ResultCodes.AUTHENTICATION_FAILURE,
         )
 
+<<<<<<< HEAD
+=======
+        assert json.loads(response.text).keys() == {
+            "transaction_id",
+            "result_code",
+        }
+        assert_valid_transaction_id(response=response)
+        result_code = json.loads(response.text)["result_code"]
+        transaction_id = json.loads(response.text)["transaction_id"]
+        assert result_code == ResultCodes.AUTHENTICATION_FAILURE.value
+        # The separators are inconsistent and we test this.
+        expected_text = (
+            '{"transaction_id":'
+            f'"{transaction_id}",'
+            f'"result_code":"{result_code}"'
+            "}"
+        )
+        assert response.text == expected_text
+
+>>>>>>> origin/main
     @staticmethod
     def test_bad_secret_key_services(
         vuforia_database: VuforiaDatabase,
@@ -306,3 +331,23 @@ class TestBadKey:
             connection="keep-alive",
             result_code=ResultCodes.AUTHENTICATION_FAILURE,
         )
+<<<<<<< HEAD
+=======
+
+        assert json.loads(response.text).keys() == {
+            "transaction_id",
+            "result_code",
+        }
+        assert_valid_transaction_id(response=response)
+        result_code = json.loads(response.text)["result_code"]
+        transaction_id = json.loads(response.text)["transaction_id"]
+        assert result_code == ResultCodes.AUTHENTICATION_FAILURE.value
+        # The separators are inconsistent and we test this.
+        expected_text = (
+            '{"transaction_id":'
+            f'"{transaction_id}",'
+            f'"result_code":"{result_code}"'
+            "}"
+        )
+        assert response.text == expected_text
+>>>>>>> origin/main

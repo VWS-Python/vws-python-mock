@@ -7,12 +7,12 @@ import logging
 from email.message import EmailMessage
 
 from PIL import Image
+from werkzeug.formparser import MultiPartParser
 
-from mock_vws._query_tools import TypedMultiPartParser
 from mock_vws._query_validators.exceptions import (
-    BadImage,
-    ImageNotGiven,
-    RequestEntityTooLarge,
+    BadImageError,
+    ImageNotGivenError,
+    RequestEntityTooLargeError,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -30,13 +30,13 @@ def validate_image_field_given(
         request_body: The body of the request.
 
     Raises:
-        ImageNotGiven: The image field is not given.
+        ImageNotGivenError: The image field is not given.
     """
     email_message = EmailMessage()
     email_message["Content-Type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
-    parser = TypedMultiPartParser()
+    parser = MultiPartParser()
     _, files = parser.parse(
         stream=io.BytesIO(request_body),
         boundary=boundary.encode("utf-8"),
@@ -46,7 +46,7 @@ def validate_image_field_given(
         return
 
     _LOGGER.warning(msg="The image field is not given.")
-    raise ImageNotGiven
+    raise ImageNotGivenError
 
 
 def validate_image_file_size(
@@ -61,13 +61,13 @@ def validate_image_file_size(
         request_body: The body of the request.
 
     Raises:
-        RequestEntityTooLarge: The image file size is too large.
+        RequestEntityTooLargeError: The image file size is too large.
     """
     email_message = EmailMessage()
     email_message["Content-Type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
-    parser = TypedMultiPartParser()
+    parser = MultiPartParser()
     _, files = parser.parse(
         stream=io.BytesIO(request_body),
         boundary=boundary.encode("utf-8"),
@@ -86,7 +86,7 @@ def validate_image_file_size(
     # See https://github.com/urllib3/urllib3/issues/2733.
     if len(image_value) > max_bytes:  # pragma: no cover
         _LOGGER.warning(msg="The image file size is too large.")
-        raise RequestEntityTooLarge
+        raise RequestEntityTooLargeError
 
 
 def validate_image_dimensions(
@@ -101,14 +101,14 @@ def validate_image_dimensions(
         request_body: The body of the request.
 
     Raises:
-        BadImage: The image is given and is not within the maximum width and
-            height limits.
+        BadImageError: The image is given and is not within the maximum width
+            and height limits.
     """
     email_message = EmailMessage()
     email_message["Content-Type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
-    parser = TypedMultiPartParser()
+    parser = MultiPartParser()
     _, files = parser.parse(
         stream=io.BytesIO(request_body),
         boundary=boundary.encode("utf-8"),
@@ -124,7 +124,7 @@ def validate_image_dimensions(
         return
 
     _LOGGER.warning(msg="The image dimensions are too large.")
-    raise BadImage
+    raise BadImageError
 
 
 def validate_image_format(
@@ -139,13 +139,13 @@ def validate_image_format(
         request_body: The body of the request.
 
     Raises:
-        BadImage: The image is given and is not either a PNG or a JPEG.
+        BadImageError: The image is given and is not either a PNG or a JPEG.
     """
     email_message = EmailMessage()
     email_message["Content-Type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
-    parser = TypedMultiPartParser()
+    parser = MultiPartParser()
     _, files = parser.parse(
         stream=io.BytesIO(request_body),
         boundary=boundary.encode("utf-8"),
@@ -158,7 +158,7 @@ def validate_image_format(
         return
 
     _LOGGER.warning(msg="The image format is not PNG or JPEG.")
-    raise BadImage
+    raise BadImageError
 
 
 def validate_image_is_image(
@@ -173,13 +173,13 @@ def validate_image_is_image(
         request_body: The body of the request.
 
     Raises:
-        BadImage: Image data is given and it is not an image file.
+        BadImageError: Image data is given and it is not an image file.
     """
     email_message = EmailMessage()
     email_message["Content-Type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
     assert isinstance(boundary, str)
-    parser = TypedMultiPartParser()
+    parser = MultiPartParser()
     _, files = parser.parse(
         stream=io.BytesIO(request_body),
         boundary=boundary.encode("utf-8"),
@@ -192,4 +192,4 @@ def validate_image_is_image(
         Image.open(image_file)
     except OSError as exc:
         _LOGGER.warning(msg="The image is not an image file.")
-        raise BadImage from exc
+        raise BadImageError from exc

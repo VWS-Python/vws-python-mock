@@ -1,6 +1,7 @@
 """
 Tests for target quality raters.
 """
+
 import io
 
 import pytest
