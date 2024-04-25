@@ -293,7 +293,7 @@ dev = [
     "enum-tools[sphinx]==0.12.0",
     "freezegun==1.5.0",
     "furo==2024.1.29",
-    "mypy==1.9.0",
+    "mypy==1.10.0",
     "pydocstyle==6.3",
     "pyenchant==3.2.2",
     "pylint==3.1.0",
