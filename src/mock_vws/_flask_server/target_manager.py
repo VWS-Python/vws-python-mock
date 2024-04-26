@@ -31,15 +31,12 @@ TARGET_MANAGER = TargetManager()
 class _TargetRaterChoice(StrEnum):
     """Target rater choices."""
 
-    BRISQUE = auto()
     PERFECT = auto()
     RANDOM = auto()
 
     def to_target_rater(self) -> TargetTrackingRater:
         """Get the target rater."""
         match self:
-            case self.BRISQUE:
-                return BrisqueTargetTrackingRater()
             case self.PERFECT:
                 HardcodedTargetTrackingRater(rating=5)
             case self.RANDOM:
