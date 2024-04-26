@@ -51,11 +51,11 @@ class _ImageMatcherChoice(StrEnum):
 
     def to_image_matcher(self) -> ImageMatcher:
         """Get the image matcher."""
-        matcher = {
-            _ImageMatcherChoice.EXACT: ExactMatcher(),
-        }[self]
-        assert isinstance(matcher, ImageMatcher)
-        return matcher
+        match self:
+            case self.EXACT:
+                return ExactMatcher()
+
+        raise ValueError  # pragma: no cover
 
 
 class VWSSettings(BaseSettings):

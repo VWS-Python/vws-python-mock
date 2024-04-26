@@ -37,12 +37,15 @@ class _TargetRaterChoice(StrEnum):
 
     def to_target_rater(self) -> TargetTrackingRater:
         """Get the target rater."""
-        rater = {
-            _TargetRaterChoice.PERFECT: HardcodedTargetTrackingRater(rating=5),
-            _TargetRaterChoice.RANDOM: RandomTargetTrackingRater(),
-        }[self]
-        assert isinstance(rater, TargetTrackingRater)
-        return rater
+        match self:
+            case self.BRISQUE:
+                return BrisqueTargetTrackingRater()
+            case self.PERFECT:
+                HardcodedTargetTrackingRater(rating=5)
+            case self.RANDOM:
+                return RandomTargetTrackingRater()
+
+        raise ValueError  # pragma: no cover
 
 
 class TargetManagerSettings(BaseSettings):
