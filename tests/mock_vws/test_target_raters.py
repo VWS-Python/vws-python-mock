@@ -2,11 +2,8 @@
 Tests for target quality raters.
 """
 
-import io
-
 import pytest
 from mock_vws.target_raters import (
-    BrisqueTargetTrackingRater,
     HardcodedTargetTrackingRater,
     RandomTargetTrackingRater,
 )
@@ -41,42 +38,3 @@ def test_hardcoded_target_tracking_rater(rating: int) -> None:
     image_content = b"content"
     ratings = [rater(image_content=image_content) for _ in range(50)]
     assert all(given_rating == rating for given_rating in ratings)
-
-
-class TestBrisqueTargetTrackingRater:
-    """
-    Tests for the BRISQUE target tracking rater.
-    """
-
-    @staticmethod
-    def test_low_quality_image(corrupted_image_file: io.BytesIO) -> None:
-        """
-        Test that a low quality image returns a low rating.
-        """
-        rater = BrisqueTargetTrackingRater()
-        image_content = corrupted_image_file.getvalue()
-        rating = rater(image_content=image_content)
-        # In the real Vuforia, this image may rate as -2.
-        assert rating == 0
-
-    @staticmethod
-    def test_high_quality_image(high_quality_image: io.BytesIO) -> None:
-        """
-        Test that a high quality image returns a high rating.
-        """
-        rater = BrisqueTargetTrackingRater()
-        image_content = high_quality_image.getvalue()
-        rating = rater(image_content=image_content)
-        assert rating > 1
-
-    @staticmethod
-    def test_different_high_quality_image(
-        different_high_quality_image: io.BytesIO,
-    ) -> None:
-        """
-        Test that a high quality image returns a high rating.
-        """
-        rater = BrisqueTargetTrackingRater()
-        image_content = different_high_quality_image.getvalue()
-        rating = rater(image_content=image_content)
-        assert rating > 1

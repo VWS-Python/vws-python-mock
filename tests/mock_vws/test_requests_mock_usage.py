@@ -15,7 +15,7 @@ import requests
 from freezegun import freeze_time
 from mock_vws import MockVWS
 from mock_vws.database import VuforiaDatabase
-from mock_vws.image_matchers import ExactMatcher, StructuralSimilarityMatcher
+from mock_vws.image_matchers import ExactMatcher
 from mock_vws.target import Target
 from PIL import Image
 from requests.exceptions import MissingSchema
@@ -513,52 +513,6 @@ class TestQueryImageMatchers:
             )
             assert len(different_image_result) == 1
 
-    @staticmethod
-    def test_structural_similarity_matcher(
-        high_quality_image: io.BytesIO,
-        different_high_quality_image: io.BytesIO,
-    ) -> None:
-        """The structural similarity matcher matches similar images."""
-        database = VuforiaDatabase()
-        vws_client = VWS(
-            server_access_key=database.server_access_key,
-            server_secret_key=database.server_secret_key,
-        )
-        cloud_reco_client = CloudRecoService(
-            client_access_key=database.client_access_key,
-            client_secret_key=database.client_secret_key,
-        )
-
-        pil_image = Image.open(fp=high_quality_image)
-        re_exported_image = io.BytesIO()
-        pil_image.save(re_exported_image, format="PNG")
-
-        with MockVWS(
-            query_match_checker=StructuralSimilarityMatcher(),
-        ) as mock:
-            mock.add_database(database=database)
-            target_id = vws_client.add_target(
-                name="example",
-                width=1,
-                image=high_quality_image,
-                application_metadata=None,
-                active_flag=True,
-            )
-            vws_client.wait_for_target_processed(target_id=target_id)
-            same_image_result = cloud_reco_client.query(
-                image=high_quality_image,
-            )
-            assert len(same_image_result) == 1
-            similar_image_result = cloud_reco_client.query(
-                image=re_exported_image,
-            )
-            assert len(similar_image_result) == 1
-
-            different_image_result = cloud_reco_client.query(
-                image=different_high_quality_image,
-            )
-            assert not different_image_result
-
 
 class TestDuplicatesImageMatchers:
     """Tests for duplicates image matchers."""
@@ -650,41 +604,3 @@ class TestDuplicatesImageMatchers:
             )
             duplicates = vws_client.get_duplicate_targets(target_id=target_id)
             assert duplicates == [not_duplicate_target_id]
-
-    @staticmethod
-    def test_structural_similarity_matcher(
-        high_quality_image: io.BytesIO,
-    ) -> None:
-        """The structural similarity matcher matches similar images."""
-        database = VuforiaDatabase()
-        vws_client = VWS(
-            server_access_key=database.server_access_key,
-            server_secret_key=database.server_secret_key,
-        )
-
-        pil_image = Image.open(fp=high_quality_image)
-        re_exported_image = io.BytesIO()
-        pil_image.save(re_exported_image, format="PNG")
-
-        with MockVWS(
-            duplicate_match_checker=StructuralSimilarityMatcher(),
-        ) as mock:
-            mock.add_database(database=database)
-            target_id = vws_client.add_target(
-                name="example",
-                width=1,
-                image=high_quality_image,
-                application_metadata=None,
-                active_flag=True,
-            )
-            duplicate_target_id = vws_client.add_target(
-                name="example_1",
-                width=1,
-                image=re_exported_image,
-                application_metadata=None,
-                active_flag=True,
-            )
-            vws_client.wait_for_target_processed(target_id=target_id)
-            vws_client.wait_for_target_processed(target_id=duplicate_target_id)
-            duplicates = vws_client.get_duplicate_targets(target_id=target_id)
-            assert duplicates == [duplicate_target_id]

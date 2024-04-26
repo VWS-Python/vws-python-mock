@@ -29,8 +29,6 @@ Image matchers
 
 .. autoclass:: mock_vws.image_matchers.ExactMatcher
 
-.. autoclass:: mock_vws.image_matchers.StructuralSimilarityMatcher
-
 Target raters
 -------------
 

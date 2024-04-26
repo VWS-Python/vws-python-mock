@@ -13,11 +13,11 @@ import requests
 from requests_mock.mocker import Mocker
 
 from mock_vws.image_matchers import (
+    ExactMatcher,
     ImageMatcher,
-    StructuralSimilarityMatcher,
 )
 from mock_vws.target_manager import TargetManager
-from mock_vws.target_raters import BrisqueTargetTrackingRater
+from mock_vws.target_raters import RandomTargetTrackingRater
 
 from .mock_web_query_api import MockVuforiaWebQueryAPI
 from .mock_web_services_api import MockVuforiaWebServicesAPI
@@ -27,8 +27,8 @@ if TYPE_CHECKING:
     from mock_vws.target_raters import TargetTrackingRater
 
 
-_STRUCTURAL_SIMILARITY_MATCHER = StructuralSimilarityMatcher()
-_BRISQUE_TRACKING_RATER = BrisqueTargetTrackingRater()
+_EXACT_MATCHER = ExactMatcher()
+_RANDOM_TARGET_TRACKING_RATER = RandomTargetTrackingRater()
 
 
 class MockVWS(ContextDecorator):
@@ -40,10 +40,12 @@ class MockVWS(ContextDecorator):
         self,
         base_vws_url: str = "https://vws.vuforia.com",
         base_vwq_url: str = "https://cloudreco.vuforia.com",
-        duplicate_match_checker: ImageMatcher = _STRUCTURAL_SIMILARITY_MATCHER,
-        query_match_checker: ImageMatcher = _STRUCTURAL_SIMILARITY_MATCHER,
+        duplicate_match_checker: ImageMatcher = _EXACT_MATCHER,
+        query_match_checker: ImageMatcher = _EXACT_MATCHER,
         processing_time_seconds: float = 2,
-        target_tracking_rater: TargetTrackingRater = _BRISQUE_TRACKING_RATER,
+        target_tracking_rater: TargetTrackingRater = (
+            _RANDOM_TARGET_TRACKING_RATER
+        ),
         *,
         real_http: bool = False,
     ) -> None:

@@ -18,7 +18,6 @@ from mock_vws.states import States
 from mock_vws.target import Target
 from mock_vws.target_manager import TargetManager
 from mock_vws.target_raters import (
-    BrisqueTargetTrackingRater,
     HardcodedTargetTrackingRater,
     RandomTargetTrackingRater,
     TargetTrackingRater,
@@ -39,7 +38,6 @@ class _TargetRaterChoice(StrEnum):
     def to_target_rater(self) -> TargetTrackingRater:
         """Get the target rater."""
         rater = {
-            _TargetRaterChoice.BRISQUE: BrisqueTargetTrackingRater(),
             _TargetRaterChoice.PERFECT: HardcodedTargetTrackingRater(rating=5),
             _TargetRaterChoice.RANDOM: RandomTargetTrackingRater(),
         }[self]
@@ -51,7 +49,7 @@ class TargetManagerSettings(BaseSettings):
     """Settings for the Target Manager Flask app."""
 
     target_manager_host: str = ""
-    target_rater: _TargetRaterChoice = _TargetRaterChoice.BRISQUE
+    target_rater: _TargetRaterChoice = _TargetRaterChoice.RANDOM
 
 
 @TARGET_MANAGER_FLASK_APP.route(
