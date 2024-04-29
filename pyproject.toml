@@ -292,7 +292,7 @@ dev = [
     "docker==7.0.0",
     "enum-tools[sphinx]==0.12.0",
     "freezegun==1.5.0",
-    "furo==2024.1.29",
+    "furo==2024.4.27",
     "mypy==1.10.0",
     "pydocstyle==6.3",
     "pyenchant==3.2.2",
