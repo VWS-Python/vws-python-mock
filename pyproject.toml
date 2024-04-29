@@ -300,7 +300,7 @@ dev = [
     "pyproject-fmt==1.8.0",
     "pyright==1.1.360",
     "pyroma==4.2",
-    "pytest==8.1.1",
+    "pytest==8.2.0",
     "pytest-cov==5.0.0",
     "pytest-retry==1.6.2",
     "pytest-xdist==3.6.1",
