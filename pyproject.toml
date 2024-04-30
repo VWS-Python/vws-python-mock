@@ -318,7 +318,7 @@ dev = [
     "sybil==6.1.0",
     "tenacity==8.2.3",
     "torch==2.3.0",
-    "types-docker==7.0.0.20240424", # This is very incomplete, so we still do not check ``test_docker.py`` with pyright.
+    "types-docker==7.0.0.20240430", # This is very incomplete, so we still do not check ``test_docker.py`` with pyright.
     "types-Pillow==10.2.0.20240423",
     "types-PyYAML==6.0.12.20240311",
     "types-requests==2.31.0.20240406",
