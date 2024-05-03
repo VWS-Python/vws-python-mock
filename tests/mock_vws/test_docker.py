@@ -122,7 +122,7 @@ def test_build_and_run(
     vwq_tag = f"vws-mock-vwq:latest-{random}"
 
     try:
-        target_manager_image, _ = client.images.build(  # type: ignore[no-untyped-call]
+        target_manager_image, _ = client.images.build(
             path=str(repository_root),
             dockerfile=str(dockerfile),
             tag=target_manager_tag,
@@ -143,7 +143,7 @@ def test_build_and_run(
             reason="We do not currently support using Windows containers."
         )
 
-    vwq_image, _ = client.images.build(  # type: ignore[no-untyped-call]
+    vwq_image, _ = client.images.build(
         path=str(repository_root),
         dockerfile=str(dockerfile),
         tag=vwq_tag,
@@ -151,7 +151,7 @@ def test_build_and_run(
         rm=True,
     )
 
-    vws_image, _ = client.images.build(  # type: ignore[no-untyped-call]
+    vws_image, _ = client.images.build(
         path=str(repository_root),
         dockerfile=str(dockerfile),
         tag=vws_tag,
