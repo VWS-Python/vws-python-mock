@@ -69,14 +69,14 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
     """
     client = docker.from_env()
     try:
-        network = client.networks.create(  # type: ignore[no-untyped-call]
+        network = client.networks.create(
             name="test-vws-bridge-" + uuid.uuid4().hex,
             driver="bridge",
         )
     except NotFound:
         # On Windows the "bridge" network driver is not available and we use
         # the "nat" driver instead.
-        network = client.networks.create(  # type: ignore[no-untyped-call]
+        network = client.networks.create(
             name="test-vws-bridge-" + uuid.uuid4().hex,
             driver="nat",
         )
@@ -90,7 +90,7 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
         images_to_remove: set[Image] = set()
         for container in network.containers:
             assert isinstance(container, Container)
-            network.disconnect(container=container)  # type: ignore[no-untyped-call]
+            network.disconnect(container=container)
             container.stop()  # type: ignore[no-untyped-call]
             container.remove(v=True, force=True)  # type: ignore[no-untyped-call]
             images_to_remove.add(container.image)
@@ -98,7 +98,7 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
         # This does leave behind untagged images.
         for image in images_to_remove:
             image.remove(force=True)
-        network.remove()  # type: ignore[no-untyped-call]
+        network.remove()
 
 
 @pytest.mark.requires_docker_build()
