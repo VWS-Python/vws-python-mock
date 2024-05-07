@@ -25,7 +25,6 @@ def _get_brisque_target_tracking_rating(image_content: bytes) -> int:
     """
     image_file = io.BytesIO(initial_bytes=image_content)
     image = Image.open(fp=image_file)
-    # See https://github.com/pytorch/vision/pull/8251 for precise type.
     image_tensor = functional.to_tensor(pic=image) * 255  # pyright: ignore[reportUnknownMemberType]
     image_tensor = image_tensor.unsqueeze(0)
     try:
