@@ -13,6 +13,7 @@ import pytest
 import requests
 from docker.errors import BuildError, NotFound
 from docker.models.containers import Container
+from docker.models.images import Image
 from docker.models.networks import Network
 from mock_vws.database import VuforiaDatabase
 from tenacity import retry
@@ -24,8 +25,6 @@ from vws import VWS, CloudRecoService
 if TYPE_CHECKING:
     import io
     from collections.abc import Iterator
-
-    from docker.models.images import Image
 
 
 # We do not cover this function because hitting particular branches depends on
@@ -67,16 +66,16 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
     Yields:
         A custom bridge network.
     """
-    client = docker.from_env()
+    client = docker.from_env()  # pyright: ignore[reportUnknownMemberType]
     try:
-        network = client.networks.create(
+        network = client.networks.create(  # pyright: ignore[reportUnknownMemberType]
             name="test-vws-bridge-" + uuid.uuid4().hex,
             driver="bridge",
         )
     except NotFound:
         # On Windows the "bridge" network driver is not available and we use
         # the "nat" driver instead.
-        network = client.networks.create(
+        network = client.networks.create(  # pyright: ignore[reportUnknownMemberType]
             name="test-vws-bridge-" + uuid.uuid4().hex,
             driver="nat",
         )
@@ -89,10 +88,10 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
         network.reload()
         images_to_remove: set[Image] = set()
         for container in network.containers:
-            assert isinstance(container, Container)
-            network.disconnect(container=container)
-            container.stop()
-            container.remove(v=True, force=True)
+            network.disconnect(container=container)  # pyright: ignore[reportUnknownMemberType]
+            container.stop()  # pyright: ignore[reportUnknownMemberType]
+            container.remove(v=True, force=True)  # pyright: ignore[reportUnknownMemberType]
+            assert isinstance(container.image, Image)  # pyright: ignore[reportUnknownMemberType]
             images_to_remove.add(container.image)
 
         # This does leave behind untagged images.
@@ -112,7 +111,7 @@ def test_build_and_run(
     application.
     """
     repository_root = request.config.rootpath
-    client = docker.from_env()
+    client = docker.from_env()  # pyright: ignore[reportUnknownMemberType]
 
     dockerfile = repository_root / "src/mock_vws/_flask_server/Dockerfile"
 
@@ -122,7 +121,7 @@ def test_build_and_run(
     vwq_tag = f"vws-mock-vwq:latest-{random}"
 
     try:
-        target_manager_image, _ = client.images.build(
+        target_manager_image, _ = client.images.build(  # pyright: ignore[reportUnknownMemberType]
             path=str(repository_root),
             dockerfile=str(dockerfile),
             tag=target_manager_tag,
@@ -143,7 +142,7 @@ def test_build_and_run(
             reason="We do not currently support using Windows containers."
         )
 
-    vwq_image, _ = client.images.build(
+    vwq_image, _ = client.images.build(  # pyright: ignore[reportUnknownMemberType]
         path=str(repository_root),
         dockerfile=str(dockerfile),
         tag=vwq_tag,
@@ -151,7 +150,7 @@ def test_build_and_run(
         rm=True,
     )
 
-    vws_image, _ = client.images.build(
+    vws_image, _ = client.images.build(  # pyright: ignore[reportUnknownMemberType]
         path=str(repository_root),
         dockerfile=str(dockerfile),
         tag=vws_tag,
@@ -165,14 +164,14 @@ def test_build_and_run(
         f"http://{target_manager_container_name}:5000"
     )
 
-    target_manager_container = client.containers.run(
+    target_manager_container = client.containers.run(  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
         image=target_manager_image,
         detach=True,
         name=target_manager_container_name,
         publish_all_ports=True,
         network=custom_bridge_network.name,
     )
-    vws_container = client.containers.run(
+    vws_container = client.containers.run(  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
         image=vws_image,
         detach=True,
         name="vws-mock-vws-" + random,
@@ -182,7 +181,7 @@ def test_build_and_run(
             "TARGET_MANAGER_BASE_URL": target_manager_internal_base_url,
         },
     )
-    vwq_container = client.containers.run(
+    vwq_container = client.containers.run(  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
         image=vwq_image,
         detach=True,
         name="vws-mock-vwq-" + random,
