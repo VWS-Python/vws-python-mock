@@ -27,7 +27,6 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
 
 
-
 # We do not cover this function because hitting particular branches depends on
 # timing.
 @retry(
