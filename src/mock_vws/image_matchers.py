@@ -75,7 +75,6 @@ class StructuralSimilarityMatcher:
         first_image = first_image.resize(size=target_size)
         second_image = second_image.resize(size=target_size)
 
-        # See https://github.com/pytorch/vision/pull/8251 for precise type.
         first_image_tensor = functional.to_tensor(pic=first_image)  # pyright: ignore[reportUnknownMemberType]
         second_image_tensor = functional.to_tensor(pic=second_image)  # pyright: ignore[reportUnknownMemberType]
 
