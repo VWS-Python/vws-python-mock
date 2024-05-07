@@ -91,8 +91,8 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
         for container in network.containers:
             assert isinstance(container, Container)
             network.disconnect(container=container)
-            container.stop()  # type: ignore[no-untyped-call]
-            container.remove(v=True, force=True)  # type: ignore[no-untyped-call]
+            container.stop()
+            container.remove(v=True, force=True)
             images_to_remove.add(container.image)
 
         # This does leave behind untagged images.
