@@ -315,7 +315,7 @@ dev = [
     "sphinx_paramlinks==0.6",
     "sphinxcontrib-httpdomain==1.8.1",
     "sphinxcontrib-spelling==8",
-    "sybil==6.1.0",
+    "sybil==6.1.1",
     "tenacity==8.3.0",
     "torch==2.3.0",
     "types-docker==7.0.0.20240507",
