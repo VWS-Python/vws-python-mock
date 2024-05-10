@@ -58,7 +58,6 @@ class Endpoint:
         headers = prepared_request.headers
         content_type = headers.get("Content-Type", "")
         content_type = content_type.split(";")[0]
-        assert isinstance(content_type, str)
         self.auth_header_content_type: str = content_type
         self.access_key = access_key
         self.secret_key = secret_key

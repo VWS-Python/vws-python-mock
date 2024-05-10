@@ -32,7 +32,7 @@ def validate_include_target_data(
     email_message = EmailMessage()
     email_message["Content-Type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
-    assert isinstance(boundary, str)
+    assert boundary is not None
     parser = MultiPartParser()
     fields, _ = parser.parse(
         stream=io.BytesIO(request_body),
@@ -40,12 +40,10 @@ def validate_include_target_data(
         content_length=len(request_body),
     )
     include_target_data = str(fields.get("include_target_data", "top"))
-    assert isinstance(include_target_data, str)
     allowed_included_target_data = {"top", "all", "none"}
     if include_target_data.lower() in allowed_included_target_data:
         return
 
-    assert isinstance(include_target_data, str)
     _LOGGER.warning(
         msg="The include_target_data field is not an accepted value.",
     )
