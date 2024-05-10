@@ -48,7 +48,7 @@ def get_query_match_response_text(
     email_message = EmailMessage()
     email_message["Content-Type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
-    assert isinstance(boundary, str)
+    assert boundary is not None
 
     parser = MultiPartParser()
     fields, files = parser.parse(

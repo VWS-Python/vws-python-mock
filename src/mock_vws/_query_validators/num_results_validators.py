@@ -37,7 +37,7 @@ def validate_max_num_results(
     email_message = EmailMessage()
     email_message["Content-Type"] = request_headers["Content-Type"]
     boundary = email_message.get_boundary()
-    assert isinstance(boundary, str)
+    assert boundary is not None
     parser = MultiPartParser()
     fields, _ = parser.parse(
         stream=io.BytesIO(request_body),

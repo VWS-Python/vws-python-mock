@@ -93,7 +93,7 @@ def validate_date_in_range(request_headers: dict[str, str]) -> None:
                 date_format,
             ).astimezone()
 
-    assert isinstance(date, datetime.datetime)
+    assert date is not None
     gmt = ZoneInfo("GMT")
     now = datetime.datetime.now(tz=gmt)
     date_from_header = date.replace(tzinfo=gmt)
