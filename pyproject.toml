@@ -297,7 +297,7 @@ dev = [
     "pydocstyle==6.3",
     "pyenchant==3.2.2",
     "pylint==3.2.0",
-    "pyproject-fmt==1.8.0",
+    "pyproject-fmt==2.1.0",
     "pyright==1.1.362",
     "pyroma==4.2",
     "pytest==8.2.0",
