@@ -42,12 +42,6 @@ Run lint tools either by committing, or with:
 
    pre-commit run
 
-To fix some lint errors, run the following:
-
-.. prompt:: bash
-
-   make fix-lint
-
 .. _Homebrew: https://brew.sh
 
 Running Tests
