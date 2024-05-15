@@ -27,20 +27,23 @@ and on Ubuntu with ``apt``:
 
    apt-get install -y enchant
 
+Install ``pre-commit`` hooks:
+
+.. prompt:: bash
+
+   pre-commit install
+   pre-commit install --hook-type pre-push
+
 Linting
 -------
 
-Run lint tools:
+Run lint tools either by committing, or with:
 
 .. prompt:: bash
 
-   make lint
-
-To fix some lint errors, run the following:
-
-.. prompt:: bash
-
-   make fix-lint
+   pre-commit run --all-files --hook-stage commit --verbose
+   pre-commit run --all-files --hook-stage push --verbose
+   pre-commit run --all-files --hook-stage manual --verbose
 
 .. _Homebrew: https://brew.sh
 
