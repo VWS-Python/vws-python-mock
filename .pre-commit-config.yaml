@@ -5,6 +5,8 @@ repos:
     rev: v3.2.0
     hooks:
     -   id: trailing-whitespace
+        exclude: ^src/mock_vws/resources/
+
     -   id: end-of-file-fixer
     -   id: check-yaml
     -   id: check-added-large-files
