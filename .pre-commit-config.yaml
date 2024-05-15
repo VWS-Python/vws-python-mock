@@ -50,3 +50,4 @@ repos:
         entry: pyroma --min 10 .
         language: system
         pass_filenames: false
+        files: pyproject.toml

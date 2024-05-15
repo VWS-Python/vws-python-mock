@@ -294,6 +294,7 @@ dev = [
     "freezegun==1.5.1",
     "furo==2024.5.6",
     "mypy==1.10.0",
+    "pre-commit==3.7.1",
     "pydocstyle==6.3",
     "pyenchant==3.2.2",
     "pylint==3.2.0",
@@ -327,7 +328,6 @@ dev = [
     "vws-python==2024.2.19",
     "VWS-Test-Fixtures==2023.3.5",
     "vws-web-tools==2023.12.26",
-    "pre-commit==3.7.1",
 ]
 [project.urls]
 Documentation = "https://vws-python-mock.readthedocs.io"
