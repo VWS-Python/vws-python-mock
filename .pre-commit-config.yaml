@@ -35,3 +35,18 @@ repos:
         entry: pyright .
         language: system
         pass_filenames: false
+    -   id: pyright-verifytypes
+        name: pyright-verifytypes
+        entry: pyright --verifytypes mock_vws
+        language: system
+        pass_filenames: false
+    -   id: vulture
+        name: vulture
+        entry: vulture --min-confidence 100 --exclude .eggs .
+        language: system
+        pass_filenames: false
+    -   id: pyroma
+        name: pyroma
+        entry: pyroma --min 10 .
+        language: system
+        pass_filenames: false

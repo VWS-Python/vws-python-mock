@@ -24,22 +24,6 @@ deptry:
 pylint:
 	pylint *.py src/ tests/ docs/ ci/
 
-.PHONY: pyroma
-pyroma:
-	pyroma --min 10 .
-
-.PHONY: pyright
-pyright:
-	pyright .
-
-.PHONY: pyright-verifytypes
-pyright-verifytypes:
-	pyright --verifytypes mock_vws
-
-.PHONY: vulture
-vulture:
-	vulture --min-confidence 100 --exclude _vendor --exclude .eggs .
-
 .PHONY: linkcheck
 linkcheck:
 	$(MAKE) -C docs/ linkcheck SPHINXOPTS=$(SPHINXOPTS)
