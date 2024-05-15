@@ -18,14 +18,6 @@ fix-ruff:
 	ruff check --fix .
 	ruff format .
 
-.PHONY: deptry
-deptry:
-	deptry src/
-
-.PHONY: pylint
-pylint:
-	pylint *.py src/ tests/ docs/ ci/
-
 .PHONY: linkcheck
 linkcheck:
 	$(MAKE) -C docs/ linkcheck SPHINXOPTS=$(SPHINXOPTS)

@@ -41,7 +41,9 @@ Run lint tools either by committing, or with:
 
 .. prompt:: bash
 
-   pre-commit run
+   pre-commit run --all-files --hook-stage commit --verbose
+   pre-commit run --all-files --hook-stage push --verbose
+   pre-commit run --all-files --hook-stage manual --verbose
 
 .. _Homebrew: https://brew.sh
 

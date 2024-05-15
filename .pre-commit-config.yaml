@@ -61,3 +61,14 @@ repos:
         language: system
         pass_filenames: false
         types: [toml]
+    -   id: deptry
+        name: deptry
+        entry: deptry src/
+        language: system
+        pass_filenames: false
+    -   id: pylint
+        name: pylint
+        entry: pylint *.py src/ tests/ docs/ ci/
+        language: system
+        stages: [manual]
+        pass_filenames: false
