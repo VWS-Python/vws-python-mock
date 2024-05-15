@@ -43,4 +43,6 @@ jobs:
 
       - name: "Lint"
         run: |
-          make lint
+          pre-commit run --all-files --hook-stage commit --verbose
+          pre-commit run --all-files --hook-stage push --verbose
+          pre-commit run --all-files --hook-stage manual --verbose
