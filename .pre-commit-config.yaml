@@ -15,3 +15,23 @@ repos:
         entry: pytest ci/custom_linters.py
         language: system
         pass_filenames: false
+    -   id: actionlint
+        name: actionlint
+        entry: actionlint
+        language: system
+        pass_filenames: false
+    -   id: mypy
+        name: mypy
+        entry: mypy .
+        language: system
+        pass_filenames: false
+    -   id: check-manifest
+        name: check-manifest
+        entry: check-manifest .
+        language: system
+        pass_filenames: false
+    -   id: pyright
+        name: pyright
+        entry: pyright .
+        language: system
+        pass_filenames: false

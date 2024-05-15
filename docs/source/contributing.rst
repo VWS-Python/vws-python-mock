@@ -27,14 +27,20 @@ and on Ubuntu with ``apt``:
 
    apt-get install -y enchant
 
-Linting
--------
-
-Run lint tools:
+Install pre-commit hooks:
 
 .. prompt:: bash
 
-   make lint
+   pre-commit install
+
+Linting
+-------
+
+Run lint tools either by committing, or with:
+
+.. prompt:: bash
+
+   pre-commit run
 
 To fix some lint errors, run the following:
 

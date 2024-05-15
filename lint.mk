@@ -2,22 +2,6 @@
 
 SHELL := /bin/bash -euxo pipefail
 
-.PHONY: custom-linters
-custom-linters:
-	pytest ci/custom_linters.py
-
-.PHONY: actionlint
-actionlint:
-	actionlint
-
-.PHONY: mypy
-mypy:
-	mypy .
-
-.PHONY: check-manifest
-check-manifest:
-	check-manifest .
-
 .PHONY: doc8
 doc8:
 	doc8 .
