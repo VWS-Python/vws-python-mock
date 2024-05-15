@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from typing import TypedDict
+from typing import Self, TypedDict
 
 from mock_vws._constants import TargetStatuses
 from mock_vws.states import States
@@ -99,7 +99,7 @@ class VuforiaDatabase:
         return target
 
     @classmethod
-    def from_dict(cls, database_dict: DatabaseDict) -> VuforiaDatabase:
+    def from_dict(cls, database_dict: DatabaseDict) -> Self:
         """
         Load a database from a dictionary.
         """

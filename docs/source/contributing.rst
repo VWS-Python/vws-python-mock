@@ -27,7 +27,7 @@ and on Ubuntu with ``apt``:
 
    apt-get install -y enchant
 
-Install pre-commit hooks:
+Install ``pre-commit`` hooks:
 
 .. prompt:: bash
 

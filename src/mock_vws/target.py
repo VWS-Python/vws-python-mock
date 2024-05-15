@@ -10,7 +10,7 @@ import io
 import statistics
 import uuid
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, TypedDict
+from typing import TYPE_CHECKING, Self, TypedDict
 from zoneinfo import ZoneInfo
 
 from PIL import Image, ImageStat
@@ -153,7 +153,7 @@ class Target:
         return self._post_processing_target_rating
 
     @classmethod
-    def from_dict(cls, target_dict: TargetDict) -> Target:
+    def from_dict(cls, target_dict: TargetDict) -> Self:
         """
         Load a target from a dictionary.
         """

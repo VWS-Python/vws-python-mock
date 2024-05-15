@@ -68,17 +68,20 @@ repos:
         language: system
         pass_filenames: false
         types: [toml]
+
     -   id: deptry
         name: deptry
         entry: deptry src/
         language: system
         pass_filenames: false
+
     -   id: pylint
         name: pylint
         entry: pylint *.py src/ tests/ docs/ ci/
         language: system
         stages: [manual]
         pass_filenames: false
+
     -   id: hadolint-docker
         name: Lint Dockerfiles
         description: Runs hadolint Docker image to lint Dockerfiles
@@ -89,43 +92,51 @@ repos:
         # appear to be well maintained, and they require more setup than we would
         # want.
         entry: ghcr.io/hadolint/hadolint hadolint
+
     -   id: ruff-check
         name: Ruff check
         entry: ruff check
         language: system
         types: [python]
+
     -   id: ruff-format-check
         name: Ruff format check
         entry: ruff format --check
         language: system
         types: [python]
+
     -   id: ruff-check-fix
         name: Ruff check fix
         entry: ruff check --fix
         language: system
         types: [python]
+
     -   id: ruff-format-fix
         name: Ruff format
         entry: ruff format
         language: system
         types: [python]
+
     -   id: doc8
         name: doc8
         entry: doc8
         language: system
         types: [rst]
+
     -   id: pyproject-fmt-check
         name: pyproject-fmt check
         entry: pyproject-fmt --check
         language: system
         types: [toml]
         files: pyproject.toml
+
     -   id: pyproject-fmt-fix
         name: pyproject-fmt
         entry: pyproject-fmt
         language: system
         types: [toml]
         files: pyproject.toml
+
     -   id: linkcheck
         name: linkcheck
         entry: make -C docs/ linkcheck SPHINXOPTS=-W
@@ -133,6 +144,7 @@ repos:
         types: [rst]
         stages: [manual]
         pass_filenames: false
+
     -   id: spelling
         name: spelling
         entry: make -C docs/ spelling SPHINXOPTS=-W
@@ -140,6 +152,7 @@ repos:
         types: [rst]
         stages: [manual]
         pass_filenames: false
+
     -   id: docs
         name: Build Documentation
         entry: make docs
