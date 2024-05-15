@@ -32,6 +32,7 @@ Install pre-commit hooks:
 .. prompt:: bash
 
    pre-commit install
+   pre-commit install --hook-type pre-push
 
 Linting
 -------

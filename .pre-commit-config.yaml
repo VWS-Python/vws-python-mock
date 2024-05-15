@@ -13,7 +13,7 @@ repos:
     -   id: custom-linters
         name: custom-linters
         entry: pytest ci/custom_linters.py
-        stages: [push, pre-push]
+        stages: [push]
         language: system
         pass_filenames: false
     -   id: actionlint
@@ -23,21 +23,25 @@ repos:
         pass_filenames: false
     -   id: mypy
         name: mypy
+        stages: [push]
         entry: mypy .
         language: system
         pass_filenames: false
     -   id: check-manifest
         name: check-manifest
+        stages: [push]
         entry: check-manifest .
         language: system
         pass_filenames: false
     -   id: pyright
         name: pyright
+        stages: [push]
         entry: pyright .
         language: system
         pass_filenames: false
     -   id: pyright-verifytypes
         name: pyright-verifytypes
+        stages: [push]
         entry: pyright --verifytypes mock_vws
         language: system
         pass_filenames: false
