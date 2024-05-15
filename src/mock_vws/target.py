@@ -183,7 +183,7 @@ class Target:
         target_tracking_rater = HardcodedTargetTrackingRater(
             rating=target_dict["tracking_rating"],
         )
-        return Target(
+        return cls(
             target_id=target_id,
             name=name,
             active_flag=active_flag,

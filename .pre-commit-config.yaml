@@ -17,12 +17,14 @@ repos:
         language: system
         types: [yaml, python]
         pass_filenames: false
+
     -   id: actionlint
         name: actionlint
         entry: actionlint
         language: system
         pass_filenames: false
         types: [yaml]
+
     -   id: mypy
         name: mypy
         stages: [push]
@@ -30,12 +32,14 @@ repos:
         language: system
         types: [python, toml]
         pass_filenames: false
+
     -   id: check-manifest
         name: check-manifest
         stages: [push]
         entry: check-manifest .
         language: system
         pass_filenames: false
+
     -   id: pyright
         name: pyright
         stages: [push]
@@ -43,6 +47,7 @@ repos:
         language: system
         types: [python, toml]
         pass_filenames: false
+
     -   id: pyright-verifytypes
         name: pyright-verifytypes
         stages: [push]
@@ -50,12 +55,13 @@ repos:
         language: system
         pass_filenames: false
         types: [python]
+
     -   id: vulture
         name: vulture
-        entry: vulture --min-confidence 100 --exclude .eggs .
+        entry: vulture --min-confidence 100 --exclude .eggs
         language: system
-        pass_filenames: false
         types: [python]
+
     -   id: pyroma
         name: pyroma
         entry: pyroma --min 10 .
