@@ -13,7 +13,6 @@ import pytest
 import requests
 from docker.errors import BuildError, NotFound
 from docker.models.containers import Container
-from docker.models.images import Image
 from docker.models.networks import Network
 from mock_vws.database import VuforiaDatabase
 from tenacity import retry
@@ -25,6 +24,8 @@ from vws import VWS, CloudRecoService
 if TYPE_CHECKING:
     import io
     from collections.abc import Iterator
+
+    from docker.models.images import Image
 
 
 # We do not cover this function because hitting particular branches depends on
@@ -91,7 +92,7 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
             network.disconnect(container=container)  # pyright: ignore[reportUnknownMemberType]
             container.stop()  # pyright: ignore[reportUnknownMemberType]
             container.remove(v=True, force=True)  # pyright: ignore[reportUnknownMemberType]
-            assert isinstance(container.image, Image)  # pyright: ignore[reportUnknownMemberType]
+            assert container.image is not None
             images_to_remove.add(container.image)
 
         # This does leave behind untagged images.
