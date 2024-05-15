@@ -91,7 +91,7 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
             network.disconnect(container=container)  # pyright: ignore[reportUnknownMemberType]
             container.stop()  # pyright: ignore[reportUnknownMemberType]
             container.remove(v=True, force=True)  # pyright: ignore[reportUnknownMemberType]
-            assert isinstance(container.image, Image)  # pyright: ignore[reportUnknownMemberType]
+            assert container.image is not None
             images_to_remove.add(container.image)
 
         # This does leave behind untagged images.
