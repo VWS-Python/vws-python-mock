@@ -82,3 +82,8 @@ repos:
         # appear to be well maintained, and they require more setup than we would
         # want.
         entry: ghcr.io/hadolint/hadolint hadolint
+    -   id: ruff-check
+        name: Ruff check
+        entry: ruff check
+        language: system
+        types: [python]
