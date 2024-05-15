@@ -72,3 +72,13 @@ repos:
         language: system
         stages: [manual]
         pass_filenames: false
+    -   id: hadolint-docker
+        name: Lint Dockerfiles
+        description: Runs hadolint Docker image to lint Dockerfiles
+        language: docker_image
+        types: [dockerfile]
+        stages: [manual] # Requires Docker to be running
+        # We choose not to use a Python wrapper or alternative to hadolint as none
+        # appear to be well maintained, and they require more setup than we would
+        # want.
+        entry: ghcr.io/hadolint/hadolint hadolint
