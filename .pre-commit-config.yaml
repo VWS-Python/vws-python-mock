@@ -87,3 +87,23 @@ repos:
         entry: ruff check
         language: system
         types: [python]
+    -   id: ruff-format-check
+        name: Ruff format check
+        entry: ruff format --check
+        language: system
+        types: [python]
+    -   id: ruff-check-fix
+        name: Ruff check fix
+        entry: ruff check --fix
+        language: system
+        types: [python]
+    -   id: ruff-format-fix
+        name: Ruff format
+        entry: ruff format
+        language: system
+        types: [python]
+    -   id: doc8
+        name: doc8
+        entry: doc8
+        language: system
+        types: [rst]
