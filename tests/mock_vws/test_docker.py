@@ -143,6 +143,7 @@ def test_build_and_run(
             reason="We do not currently support using Windows containers."
         )
 
+    # Comment just for test
     vwq_image, _ = client.images.build(  # pyright: ignore[reportUnknownMemberType]
         path=str(repository_root),
         dockerfile=str(dockerfile),
