@@ -1,5 +1,5 @@
-Contributing
-============
+Contributing to |project|
+=========================
 
 Contributions to this repository must pass tests and linting.
 
@@ -12,7 +12,7 @@ Install Python dependencies in a virtual environment.
 
 .. prompt:: bash
 
-   pip install --editable .[dev]
+   pip install --editable '.[dev]'
 
 Spell checking requires ``enchant``.
 This can be installed on macOS, for example, with `Homebrew`_:
