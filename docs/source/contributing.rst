@@ -1,5 +1,5 @@
-Contributing
-============
+Contributing to |project|
+=========================
 
 Contributions to this repository must pass tests and linting.
 
