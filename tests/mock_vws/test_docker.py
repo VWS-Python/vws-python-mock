@@ -131,7 +131,7 @@ def test_build_and_run(
         )
     except BuildError as exc:
         full_log = "\n".join(
-            [item["stream"] for item in exc.build_log if "stream" in item],  # type: ignore[index]
+            [item["stream"] for item in exc.build_log if "stream" in item],
         )
         # If this assertion fails, it may be useful to look at the other
         # properties of ``exc``.
