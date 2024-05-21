@@ -129,15 +129,15 @@ line-length = 79
 lint.select = [
     "ALL",
 ]
-# Do not automatically remove commented out code.
-# We comment out code during development, and with VSCode auto-save, this code
-# is sometimes annoyingly removed.
-
 lint.per-file-ignores."tests/**" = [
     # Allow possible hardcoded passwords in tests.
     "S105",
     "S106",
 ]
+
+# Do not automatically remove commented out code.
+# We comment out code during development, and with VSCode auto-save, this code
+# is sometimes annoyingly removed.
 lint.unfixable = [
     "ERA001",
 ]
