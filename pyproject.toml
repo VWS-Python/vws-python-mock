@@ -63,7 +63,7 @@ optional-dependencies.dev = [
     "pydocstyle==6.3",
     "pyenchant==3.2.2",
     "pylint==3.2.2",
-    "pyproject-fmt==2.1.1",
+    "pyproject-fmt==2.1.3",
     "pyright==1.1.363",
     "pyroma==4.2",
     "pytest==8.2.1",
@@ -129,15 +129,6 @@ line-length = 79
 lint.select = [
     "ALL",
 ]
-lint.per-file-ignores."tests/**" = [
-    # Allow possible hardcoded passwords in tests.
-    "S105",
-    "S106",
-]
-lint.unfixable = [
-    "ERA001",
-]
-lint.pydocstyle.convention = "google"
 lint.ignore = [
     # We do not annotate the type of 'self', or 'cls'.
     "ANN101",
@@ -160,9 +151,20 @@ lint.ignore = [
     # https://mypy.readthedocs.io/en/stable/type_narrowing.html#type-narrowing-expressions.
     "S101",
 ]
+
+lint.per-file-ignores."tests/**" = [
+    # Allow possible hardcoded passwords in tests.
+    "S105",
+    "S106",
+]
+
 # Do not automatically remove commented out code.
 # We comment out code during development, and with VSCode auto-save, this code
 # is sometimes annoyingly removed.
+lint.unfixable = [
+    "ERA001",
+]
+lint.pydocstyle.convention = "google"
 
 [tool.pylint]
 
