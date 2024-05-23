@@ -67,7 +67,7 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
     Yields:
         A custom bridge network.
     """
-    client = docker.from_env()  # pyright: ignore[reportUnknownMemberType]
+    client = docker.from_env()
     try:
         network = client.networks.create(  # pyright: ignore[reportUnknownMemberType]
             name="test-vws-bridge-" + uuid.uuid4().hex,
@@ -112,7 +112,7 @@ def test_build_and_run(
     application.
     """
     repository_root = request.config.rootpath
-    client = docker.from_env()  # pyright: ignore[reportUnknownMemberType]
+    client = docker.from_env()
 
     dockerfile = repository_root / "src/mock_vws/_flask_server/Dockerfile"
 
