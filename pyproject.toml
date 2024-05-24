@@ -54,7 +54,7 @@ optional-dependencies.dev = [
     "deptry==0.16.1",
     "dirty-equals==0.7.1.post0",
     "doc8==1.1.1",
-    "docker==7.0.0",
+    "docker==7.1.0",
     "enum-tools[sphinx]==0.12.0",
     "freezegun==1.5.1",
     "furo==2024.5.6",
