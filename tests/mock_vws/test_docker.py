@@ -89,7 +89,7 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
         network.reload()
         images_to_remove: set[Image] = set()
         for container in network.containers:
-            network.disconnect(container=container)  # pyright: ignore[reportUnknownMemberType]
+            network.disconnect(container=container)
             container.stop()  # pyright: ignore[reportUnknownMemberType]
             container.remove(v=True, force=True)  # pyright: ignore[reportUnknownMemberType]
             assert container.image is not None
