@@ -17,7 +17,7 @@ repos:
         entry: pytest ci/custom_linters.py
         stages: [push]
         language: system
-        types: [yaml, python]
+        types_or: [yaml, python]
         pass_filenames: false
 
     -   id: actionlint
@@ -25,14 +25,14 @@ repos:
         entry: actionlint
         language: system
         pass_filenames: false
-        types: [yaml]
+        types_or: [yaml]
 
     -   id: mypy
         name: mypy
         stages: [push]
         entry: mypy .
         language: system
-        types: [python, toml]
+        types_or: [python, toml]
         pass_filenames: false
 
     -   id: check-manifest
@@ -47,7 +47,7 @@ repos:
         stages: [push]
         entry: pyright .
         language: system
-        types: [python, toml]
+        types_or: [python, toml]
         pass_filenames: false
 
     -   id: pyright-verifytypes
@@ -56,20 +56,20 @@ repos:
         entry: pyright --verifytypes mock_vws
         language: system
         pass_filenames: false
-        types: [python]
+        types_or: [python]
 
     -   id: vulture
         name: vulture
         entry: vulture --min-confidence 100 --exclude .eggs
         language: system
-        types: [python]
+        types_or: [python]
 
     -   id: pyroma
         name: pyroma
         entry: pyroma --min 10 .
         language: system
         pass_filenames: false
-        types: [toml]
+        types_or: [toml]
 
     -   id: deptry
         name: deptry
@@ -88,7 +88,7 @@ repos:
         name: Lint Dockerfiles
         description: Runs hadolint Docker image to lint Dockerfiles
         language: docker_image
-        types: [dockerfile]
+        types_or: [dockerfile]
         stages: [manual] # Requires Docker to be running
         # We choose not to use a Python wrapper or alternative to hadolint as none
         # appear to be well maintained, and they require more setup than we would
@@ -99,32 +99,32 @@ repos:
         name: Ruff check fix
         entry: ruff check --fix
         language: system
-        types: [python]
+        types_or: [python]
 
     -   id: ruff-format-fix
         name: Ruff format
         entry: ruff format
         language: system
-        types: [python]
+        types_or: [python]
 
     -   id: doc8
         name: doc8
         entry: doc8
         language: system
-        types: [rst]
+        types_or: [rst]
 
     -   id: pyproject-fmt-fix
         name: pyproject-fmt
         entry: pyproject-fmt
         language: system
-        types: [toml]
+        types_or: [toml]
         files: pyproject.toml
 
     -   id: linkcheck
         name: linkcheck
         entry: make -C docs/ linkcheck SPHINXOPTS=-W
         language: system
-        types: [rst]
+        types_or: [rst]
         stages: [manual]
         pass_filenames: false
 
@@ -132,7 +132,7 @@ repos:
         name: spelling
         entry: make -C docs/ spelling SPHINXOPTS=-W
         language: system
-        types: [rst]
+        types_or: [rst]
         stages: [manual]
         pass_filenames: false
 
