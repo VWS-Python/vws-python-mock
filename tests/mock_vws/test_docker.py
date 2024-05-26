@@ -13,7 +13,6 @@ import pytest
 import requests
 from docker.errors import BuildError, NotFound
 from docker.models.containers import Container
-from docker.models.networks import Network
 from mock_vws.database import VuforiaDatabase
 from tenacity import retry
 from tenacity.retry import retry_if_exception_type
@@ -26,6 +25,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
 
     from docker.models.images import Image
+    from docker.models.networks import Network
 
 
 # We do not cover this function because hitting particular branches depends on
@@ -80,8 +80,6 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
             name="test-vws-bridge-" + uuid.uuid4().hex,
             driver="nat",
         )
-
-    assert isinstance(network, Network)
 
     try:
         yield network
