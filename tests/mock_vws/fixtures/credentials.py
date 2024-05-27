@@ -27,6 +27,8 @@ class _VuforiaDatabaseSettings(BaseSettings):
 
 
 class _InactiveVuforiaDatabaseSettings(_VuforiaDatabaseSettings):
+    """Settings for an inactive Vuforia database."""
+
     model_config = SettingsConfigDict(
         env_prefix="INACTIVE_VUFORIA_",
         env_file=Path("vuforia_secrets.env"),

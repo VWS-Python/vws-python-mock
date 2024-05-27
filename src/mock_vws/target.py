@@ -128,6 +128,7 @@ class Target:
 
     @property
     def _post_processing_target_rating(self) -> int:
+        """The rating of the target after processing."""
         return self.target_tracking_rater(image_content=self.image_value)
 
     @property
