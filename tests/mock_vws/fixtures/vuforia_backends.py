@@ -70,6 +70,7 @@ def _enable_use_real_vuforia(
     inactive_database: VuforiaDatabase,
     monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None, None, None]:
+    """Test against the real Vuforia."""
     assert monkeypatch
     assert inactive_database
     _delete_all_targets(database_keys=working_database)
@@ -81,6 +82,7 @@ def _enable_use_mock_vuforia(
     inactive_database: VuforiaDatabase,
     monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None, None, None]:
+    """Test against the in-memory mock Vuforia."""
     assert monkeypatch
     working_database = VuforiaDatabase(
         database_name=working_database.database_name,
@@ -110,6 +112,7 @@ def _enable_use_docker_in_memory(
     inactive_database: VuforiaDatabase,
     monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None, None, None]:
+    """Test against mock Vuforia created to be run in a container."""
     # We set ``wsgi.input_terminated`` to ``True`` so that when going through
     # ``requests`` in our tests, the Flask applications
     # have the given ``Content-Length`` headers and the given data in

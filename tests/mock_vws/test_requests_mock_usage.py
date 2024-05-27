@@ -32,6 +32,7 @@ def _not_exact_matcher(
     first_image_content: bytes,
     second_image_content: bytes,
 ) -> bool:
+    """A matcher which returns True if the images are not the same."""
     return first_image_content != second_image_content
 
 
