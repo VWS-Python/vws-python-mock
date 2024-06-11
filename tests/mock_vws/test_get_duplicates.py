@@ -165,7 +165,7 @@ class TestActiveFlag:
         Targets with `active_flag` set to `False` can have duplicates.
         Targets with `active_flag` set to `False` are not found as duplicates.
 
-        https://library.vuforia.com/web-api/cloud-targets-web-services-api#check
+        https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#check
         says:
 
         '''

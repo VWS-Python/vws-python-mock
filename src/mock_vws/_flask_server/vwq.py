@@ -2,7 +2,7 @@
 A fake implementation of the Vuforia Web Query API using Flask.
 
 See
-https://library.vuforia.com/web-api/vuforia-query-web-api
+https://developer.vuforia.com/library/web-api/vuforia-query-web-api
 """
 
 import email.utils

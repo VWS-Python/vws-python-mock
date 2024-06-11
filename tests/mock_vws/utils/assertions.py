@@ -120,7 +120,7 @@ def assert_vws_response(
     """
     Assert that a VWS response is as expected, at least in part.
 
-    https://library.vuforia.com/web-api/cloud-targets-web-services-api#result-codes
+    https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#result-codes
     implies that the expected status code can be worked out from the result
     code. However, this is not the case as the real results differ from the
     documentation.

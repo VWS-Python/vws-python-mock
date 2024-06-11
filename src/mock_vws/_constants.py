@@ -10,7 +10,7 @@ class ResultCodes(Enum):
     Constants representing various VWS result codes.
 
     See
-    https://library.vuforia.com/web-api/cloud-targets-web-services-api#result-codes.
+    https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#result-codes.
 
     Some codes here are not documented in the above link.
     """
@@ -42,7 +42,7 @@ class TargetStatuses(Enum):
     Constants representing VWS target statuses.
 
     See the 'status' field in
-    https://library.vuforia.com/web-api/cloud-targets-web-services-api#target-record
+    https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#target-record
     """
 
     PROCESSING = "processing"
