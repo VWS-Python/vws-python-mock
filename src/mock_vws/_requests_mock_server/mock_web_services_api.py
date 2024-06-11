@@ -2,7 +2,7 @@
 A fake implementation of the Vuforia Web Services API.
 
 See
-https://library.vuforia.com/web-api/cloud-targets-web-services-api
+https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api
 """
 
 from __future__ import annotations
@@ -123,7 +123,7 @@ class MockVuforiaWebServicesAPI:
         Add a target.
 
         Fake implementation of
-        https://library.vuforia.com/web-api/cloud-targets-web-services-api#add
+        https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#add
         """
         try:
             run_services_validators(
@@ -196,7 +196,7 @@ class MockVuforiaWebServicesAPI:
         Delete a target.
 
         Fake implementation of
-        https://library.vuforia.com/web-api/cloud-targets-web-services-api#delete
+        https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#delete
         """
         try:
             run_services_validators(
@@ -259,7 +259,7 @@ class MockVuforiaWebServicesAPI:
         Get a database summary report.
 
         Fake implementation of
-        https://library.vuforia.com/web-api/cloud-targets-web-services-api#summary-report
+        https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#summary-report
         """
         try:
             run_services_validators(
@@ -321,7 +321,7 @@ class MockVuforiaWebServicesAPI:
         Get a list of all targets.
 
         Fake implementation of
-        https://library.vuforia.com/web-api/cloud-targets-web-services-api#details-list
+        https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#details-list
         """
         try:
             run_services_validators(
@@ -377,7 +377,7 @@ class MockVuforiaWebServicesAPI:
         Get details of a target.
 
         Fake implementation of
-        https://library.vuforia.com/web-api/cloud-targets-web-services-api#target-record
+        https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#target-record
         """
         try:
             run_services_validators(
@@ -441,7 +441,7 @@ class MockVuforiaWebServicesAPI:
         Get targets which may be considered duplicates of a given target.
 
         Fake implementation of
-        https://library.vuforia.com/web-api/cloud-targets-web-services-api#check
+        https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#check
         """
         try:
             run_services_validators(
@@ -511,7 +511,7 @@ class MockVuforiaWebServicesAPI:
         Update a target.
 
         Fake implementation of
-        https://library.vuforia.com/web-api/cloud-targets-web-services-api#update
+        https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#update
         """
         try:
             run_services_validators(
@@ -616,7 +616,7 @@ class MockVuforiaWebServicesAPI:
         Get a summary report for a target.
 
         Fake implementation of
-        https://library.vuforia.com/web-api/cloud-targets-web-services-api#retrieve-report
+        https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#retrieve-report
         """
         try:
             run_services_validators(

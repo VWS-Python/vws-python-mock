@@ -172,7 +172,7 @@ The ``request_count`` in a database summary is always ``0``.
 The documentation for the target summary report says "Note: tracking_rating and ``reco_rating`` are provided only when status = success.".
 However, ``reco_rating`` is never provided and ``tracking_rating`` is provided even when the status is "failed".
 
-.. _Vuforia Query Web API: https://library.vuforia.com/web-api/vuforia-query-web-api
+.. _Vuforia Query Web API: https://developer.vuforia.com/library/web-api/vuforia-query-web-api
 
 Release Process
 ---------------
