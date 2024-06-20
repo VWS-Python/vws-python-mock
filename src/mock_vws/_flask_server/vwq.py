@@ -39,13 +39,13 @@ class _ImageMatcherChoice(StrEnum):
 
     def to_image_matcher(self) -> ImageMatcher:
         """Get the image matcher."""
-        ssim_matcher = StructuralSimilarityMatcher()
-        matcher = {
-            _ImageMatcherChoice.EXACT: ExactMatcher(),
-            _ImageMatcherChoice.STRUCTURAL_SIMILARITY: ssim_matcher,
-        }[self]
-        assert isinstance(matcher, ImageMatcher)
-        return matcher
+        match self:
+            case self.EXACT:
+                return ExactMatcher()
+            case self.STRUCTURAL_SIMILARITY:
+                return StructuralSimilarityMatcher()
+
+        raise ValueError  # pragma: no cover
 
 
 class VWQSettings(BaseSettings):
