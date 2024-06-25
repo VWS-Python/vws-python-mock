@@ -68,18 +68,13 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
         A custom bridge network.
     """
     client = docker.from_env()
+    name = "test-vws-bridge-" + uuid.uuid4().hex
     try:
-        network = client.networks.create(  # pyright: ignore[reportUnknownMemberType]
-            name="test-vws-bridge-" + uuid.uuid4().hex,
-            driver="bridge",
-        )
+        network = client.networks.create(name=name, driver="bridge")
     except NotFound:
         # On Windows the "bridge" network driver is not available and we use
         # the "nat" driver instead.
-        network = client.networks.create(  # pyright: ignore[reportUnknownMemberType]
-            name="test-vws-bridge-" + uuid.uuid4().hex,
-            driver="nat",
-        )
+        network = client.networks.create(name=name, driver="nat")
 
     try:
         yield network
