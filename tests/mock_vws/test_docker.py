@@ -12,7 +12,6 @@ import docker
 import pytest
 import requests
 from docker.errors import BuildError, NotFound
-from docker.models.containers import Container
 from mock_vws.database import VuforiaDatabase
 from tenacity import retry
 from tenacity.retry import retry_if_exception_type
@@ -115,7 +114,7 @@ def test_build_and_run(
     vwq_tag = f"vws-mock-vwq:latest-{random}"
 
     try:
-        target_manager_image, _ = client.images.build(  # pyright: ignore[reportUnknownMemberType]
+        target_manager_image, _ = client.images.build(
             path=str(repository_root),
             dockerfile=str(dockerfile),
             tag=target_manager_tag,
@@ -136,7 +135,7 @@ def test_build_and_run(
             reason="We do not currently support using Windows containers."
         )
 
-    vwq_image, _ = client.images.build(  # pyright: ignore[reportUnknownMemberType]
+    vwq_image, _ = client.images.build(
         path=str(repository_root),
         dockerfile=str(dockerfile),
         tag=vwq_tag,
@@ -144,7 +143,7 @@ def test_build_and_run(
         rm=True,
     )
 
-    vws_image, _ = client.images.build(  # pyright: ignore[reportUnknownMemberType]
+    vws_image, _ = client.images.build(
         path=str(repository_root),
         dockerfile=str(dockerfile),
         tag=vws_tag,
@@ -158,14 +157,14 @@ def test_build_and_run(
         f"http://{target_manager_container_name}:5000"
     )
 
-    target_manager_container = client.containers.run(  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
+    target_manager_container = client.containers.run(  # pyright: ignore[reportUnknownMemberType]
         image=target_manager_image,
         detach=True,
         name=target_manager_container_name,
         publish_all_ports=True,
         network=custom_bridge_network.name,
     )
-    vws_container = client.containers.run(  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
+    vws_container = client.containers.run(  # pyright: ignore[reportUnknownMemberType]
         image=vws_image,
         detach=True,
         name="vws-mock-vws-" + random,
@@ -175,7 +174,7 @@ def test_build_and_run(
             "TARGET_MANAGER_BASE_URL": target_manager_internal_base_url,
         },
     )
-    vwq_container = client.containers.run(  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
+    vwq_container = client.containers.run(  # pyright: ignore[reportUnknownMemberType]
         image=vwq_image,
         detach=True,
         name="vws-mock-vwq-" + random,
@@ -186,9 +185,6 @@ def test_build_and_run(
         },
     )
 
-    assert isinstance(target_manager_container, Container)
-    assert isinstance(vws_container, Container)
-    assert isinstance(vwq_container, Container)
     for container in (target_manager_container, vws_container, vwq_container):
         container.reload()
 
