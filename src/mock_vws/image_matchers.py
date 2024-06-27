@@ -1,14 +1,13 @@
 """Matchers for query and duplicate requests."""
 
 import io
-from typing import TYPE_CHECKING, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
-import piq  # type: ignore[import-untyped]
 from PIL import Image
+from torchmetrics.image import (
+    StructuralSimilarityIndexMeasure,
+)
 from torchvision.transforms import functional  # type: ignore[import-untyped]
-
-if TYPE_CHECKING:
-    import torch
 
 
 @runtime_checkable
@@ -81,12 +80,10 @@ class StructuralSimilarityMatcher:
         first_image_tensor_batch_dimension = first_image_tensor.unsqueeze(0)
         second_image_tensor_batch_dimension = second_image_tensor.unsqueeze(0)
 
-        # See https://github.com/photosynthesis-team/piq/pull/377
-        # for fixing the type hint in ``piq``.
-        ssim_value: torch.Tensor = piq.ssim(  # pyright: ignore[reportAssignmentType]
-            x=first_image_tensor_batch_dimension,
-            y=second_image_tensor_batch_dimension,
-            data_range=1.0,
+        ssim = StructuralSimilarityIndexMeasure(data_range=1.0)
+        ssim_value = ssim(
+            first_image_tensor_batch_dimension,
+            second_image_tensor_batch_dimension,
         )
         ssim_score = ssim_value.item()
 
