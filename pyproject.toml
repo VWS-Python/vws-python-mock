@@ -42,6 +42,7 @@ dependencies = [
     "pydantic-settings",
     "requests",
     "requests-mock",
+    "torchmetrics",
     "torchvision",
     "tzdata; sys_platform=='win32'",
     "vws-auth-tools",
