@@ -8,7 +8,7 @@ from typing import Protocol, runtime_checkable
 
 import piq  # type: ignore[import-untyped]
 from PIL import Image
-from torchvision.transforms import functional  # type: ignore[import-untyped]
+from torchvision import transforms  # type: ignore[import-untyped]
 
 
 @functools.cache
@@ -25,7 +25,8 @@ def _get_brisque_target_tracking_rating(image_content: bytes) -> int:
     """
     image_file = io.BytesIO(initial_bytes=image_content)
     image = Image.open(fp=image_file)
-    image_tensor = functional.to_tensor(pic=image) * 255  # pyright: ignore[reportUnknownMemberType]
+    transform = transforms.ToTensor()
+    image_tensor = transform(pic=image)
     image_tensor = image_tensor.unsqueeze(0)
     try:
         brisque_score = piq.brisque(x=image_tensor, data_range=255)

@@ -7,7 +7,7 @@ from PIL import Image
 from torchmetrics.image import (
     StructuralSimilarityIndexMeasure,
 )
-from torchvision.transforms import functional  # type: ignore[import-untyped]
+from torchvision import transforms  # type: ignore[import-untyped]
 
 
 @runtime_checkable
@@ -74,8 +74,10 @@ class StructuralSimilarityMatcher:
         first_image = first_image.resize(size=target_size)
         second_image = second_image.resize(size=target_size)
 
-        first_image_tensor = functional.to_tensor(pic=first_image)  # pyright: ignore[reportUnknownMemberType]
-        second_image_tensor = functional.to_tensor(pic=second_image)  # pyright: ignore[reportUnknownMemberType]
+        transform = transforms.ToTensor()
+
+        first_image_tensor = transform(pic=first_image)
+        second_image_tensor = transform(pic=second_image)
 
         first_image_tensor_batch_dimension = first_image_tensor.unsqueeze(0)
         second_image_tensor_batch_dimension = second_image_tensor.unsqueeze(0)
