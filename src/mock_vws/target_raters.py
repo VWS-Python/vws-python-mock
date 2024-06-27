@@ -8,7 +8,7 @@ from typing import Protocol, runtime_checkable
 
 import piq  # type: ignore[import-untyped]
 from PIL import Image
-from torchvision import transforms
+from torchvision import transforms  # type: ignore[import-untyped]
 
 
 @functools.cache
