@@ -157,7 +157,7 @@ def test_build_and_run(
         f"http://{target_manager_container_name}:5000"
     )
 
-    target_manager_container = client.containers.run(  # pyright: ignore[reportUnknownMemberType]
+    target_manager_container = client.containers.run(
         image=target_manager_image,
         detach=True,
         name=target_manager_container_name,
@@ -165,7 +165,7 @@ def test_build_and_run(
         network=custom_bridge_network.name,
         version=target_manager_tag,
     )
-    vws_container = client.containers.run(  # pyright: ignore[reportUnknownMemberType]
+    vws_container = client.containers.run(
         image=vws_image,
         detach=True,
         name="vws-mock-vws-" + random,
@@ -176,7 +176,7 @@ def test_build_and_run(
         },
         version=vws_tag,
     )
-    vwq_container = client.containers.run(  # pyright: ignore[reportUnknownMemberType]
+    vwq_container = client.containers.run(
         image=vwq_image,
         detach=True,
         name="vws-mock-vwq-" + random,
