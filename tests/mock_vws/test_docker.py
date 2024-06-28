@@ -163,7 +163,7 @@ def test_build_and_run(
         name=target_manager_container_name,
         publish_all_ports=True,
         network=custom_bridge_network.name,
-        version=target_manager_image.tags[0],
+        version="auto",
     )
     vws_container = client.containers.run(
         image=vws_image,
@@ -174,7 +174,7 @@ def test_build_and_run(
         environment={
             "TARGET_MANAGER_BASE_URL": target_manager_internal_base_url,
         },
-        version=vws_image.tags[0],
+        version="auto",
     )
     vwq_container = client.containers.run(
         image=vwq_image,
@@ -185,7 +185,7 @@ def test_build_and_run(
         environment={
             "TARGET_MANAGER_BASE_URL": target_manager_internal_base_url,
         },
-        version=vwq_image.tags[0],
+        version="auto",
     )
 
     for container in (target_manager_container, vws_container, vwq_container):
