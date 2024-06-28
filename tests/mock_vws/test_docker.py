@@ -163,6 +163,7 @@ def test_build_and_run(
         name=target_manager_container_name,
         publish_all_ports=True,
         network=custom_bridge_network.name,
+        version=target_manager_tag,
     )
     vws_container = client.containers.run(  # pyright: ignore[reportUnknownMemberType]
         image=vws_image,
@@ -173,6 +174,7 @@ def test_build_and_run(
         environment={
             "TARGET_MANAGER_BASE_URL": target_manager_internal_base_url,
         },
+        version=vws_tag,
     )
     vwq_container = client.containers.run(  # pyright: ignore[reportUnknownMemberType]
         image=vwq_image,
@@ -183,6 +185,7 @@ def test_build_and_run(
         environment={
             "TARGET_MANAGER_BASE_URL": target_manager_internal_base_url,
         },
+        version=vwq_tag,
     )
 
     for container in (target_manager_container, vws_container, vwq_container):
