@@ -4,8 +4,7 @@ Changelog
 Next
 ----
 
-2024.07.02
-------------
+- Fix installation on Windows now that ``numpy`` 2.0.0 has been released.
 
 2024.02.16
 ------------
