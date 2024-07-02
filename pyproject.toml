@@ -37,6 +37,10 @@ dynamic = [
 ]
 dependencies = [
     "flask",
+    # Pin numpy to avoid:
+    # https://github.com/pytorch/pytorch/issues/128860
+    # When we remove this, also remove the deptry ignore.
+    "numpy<2.0.0; sys_platform=='win32'",
     "pillow",
     "piq",
     "pydantic-settings",
@@ -305,10 +309,13 @@ pep621_dev_dependency_groups = [
 ]
 
 [tool.deptry.per_rule_ignores]
-# tzdata is needed on Windows for zoneinfo to work.
-# See https://docs.python.org/3/library/zoneinfo.html#data-sources.
 DEP002 = [
+    # tzdata is needed on Windows for zoneinfo to work.
+    # See https://docs.python.org/3/library/zoneinfo.html#data-sources.
     "tzdata",
+    # numpy is pinned to avoid:
+    # https://github.com/pytorch/pytorch/issues/128860.
+    "numpy",
 ]
 
 [tool.pyproject-fmt]
