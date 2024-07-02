@@ -30,7 +30,7 @@ def _get_brisque_target_tracking_rating(image_content: bytes) -> int:
     image_tensor = image_tensor.unsqueeze(0)
     try:
         brisque_score = piq.brisque(x=image_tensor, data_range=255)
-    except AssertionError:
+    except (AssertionError, IndexError):
         return 0
     return math.ceil(int(brisque_score.item()) / 20)
 
