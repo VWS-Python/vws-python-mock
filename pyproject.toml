@@ -40,7 +40,7 @@ dependencies = [
     # Pin numpy to avoid:
     # https://github.com/pytorch/pytorch/issues/128860
     # When we remove this, also remove the deptry ignore.
-    "numpy<2.0.0; sys_platform=='win32'",
+    "numpy<3.0.0; sys_platform=='win32'",
     "pillow",
     "piq",
     "pydantic-settings",
