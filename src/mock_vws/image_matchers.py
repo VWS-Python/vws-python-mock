@@ -77,15 +77,29 @@ class StructuralSimilarityMatcher:
 
         first_image_np = np.array(first_image, dtype=np.float32)
         first_image_tensor = torch.tensor(first_image_np).float() / 255
+        first_image_tensor = first_image_tensor.view(
+            first_image.size[1],
+            first_image.size[0],
+            len(first_image.getbands()),
+        )
 
         second_image_np = np.array(second_image, dtype=np.float32)
         second_image_tensor = torch.tensor(second_image_np).float() / 255
+        second_image_tensor = second_image_tensor.view(
+            second_image.size[1],
+            second_image.size[0],
+            len(second_image.getbands()),
+        )
 
         first_image_tensor_batch_dimension = first_image_tensor.permute(
-            2, 0, 1
+            2,
+            0,
+            1,
         ).unsqueeze(0)
         second_image_tensor_batch_dimension = second_image_tensor.permute(
-            2, 0, 1
+            2,
+            0,
+            1,
         ).unsqueeze(0)
 
         ssim = StructuralSimilarityIndexMeasure(data_range=1.0)
