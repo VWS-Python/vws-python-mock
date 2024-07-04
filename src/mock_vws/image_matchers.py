@@ -3,11 +3,12 @@
 import io
 from typing import Protocol, runtime_checkable
 
+import numpy as np
+import torch
 from PIL import Image
 from torchmetrics.image import (
     StructuralSimilarityIndexMeasure,
 )
-from torchvision import transforms  # type: ignore[import-untyped]
 
 
 @runtime_checkable
@@ -74,13 +75,18 @@ class StructuralSimilarityMatcher:
         first_image = first_image.resize(size=target_size)
         second_image = second_image.resize(size=target_size)
 
-        transform = transforms.ToTensor()
+        first_image_np = np.array(first_image, dtype=np.float32)
+        first_image_tensor = torch.tensor(first_image_np).float() / 255
 
-        first_image_tensor = transform(pic=first_image)
-        second_image_tensor = transform(pic=second_image)
+        second_image_np = np.array(second_image, dtype=np.float32)
+        second_image_tensor = torch.tensor(second_image_np).float() / 255
 
-        first_image_tensor_batch_dimension = first_image_tensor.unsqueeze(0)
-        second_image_tensor_batch_dimension = second_image_tensor.unsqueeze(0)
+        first_image_tensor_batch_dimension = first_image_tensor.permute(
+            2, 0, 1
+        ).unsqueeze(0)
+        second_image_tensor_batch_dimension = second_image_tensor.permute(
+            2, 0, 1
+        ).unsqueeze(0)
 
         ssim = StructuralSimilarityIndexMeasure(data_range=1.0)
         ssim_value = ssim(

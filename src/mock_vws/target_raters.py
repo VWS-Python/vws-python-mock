@@ -6,9 +6,10 @@ import math
 import secrets
 from typing import Protocol, runtime_checkable
 
+import numpy as np
 import piq  # type: ignore[import-untyped]
+import torch
 from PIL import Image
-from torchvision import transforms  # type: ignore[import-untyped]
 
 
 @functools.cache
@@ -25,9 +26,9 @@ def _get_brisque_target_tracking_rating(image_content: bytes) -> int:
     """
     image_file = io.BytesIO(initial_bytes=image_content)
     image = Image.open(fp=image_file)
-    transform = transforms.ToTensor()
-    image_tensor = transform(pic=image)
-    image_tensor = image_tensor.unsqueeze(0)
+    image_np = np.array(image, dtype=np.float32)
+    image_tensor = torch.tensor(image_np).float() / 255
+    image_tensor = image_tensor.permute(2, 0, 1).unsqueeze(0)
     try:
         brisque_score = piq.brisque(x=image_tensor, data_range=255)
     except (AssertionError, IndexError):
