@@ -39,15 +39,14 @@ dependencies = [
     "flask",
     # Pin numpy to avoid:
     # https://github.com/pytorch/pytorch/issues/128860
-    # When we remove this, also remove the deptry ignore.
-    "numpy<2.0.0; sys_platform=='win32'",
+    "numpy<2.0.0",
     "pillow",
     "piq",
     "pydantic-settings",
     "requests",
     "requests-mock",
+    "torch",
     "torchmetrics",
-    "torchvision",
     "tzdata; sys_platform=='win32'",
     "vws-auth-tools",
     "werkzeug",
@@ -313,9 +312,6 @@ DEP002 = [
     # tzdata is needed on Windows for zoneinfo to work.
     # See https://docs.python.org/3/library/zoneinfo.html#data-sources.
     "tzdata",
-    # numpy is pinned to avoid:
-    # https://github.com/pytorch/pytorch/issues/128860.
-    "numpy",
 ]
 
 [tool.pyproject-fmt]
