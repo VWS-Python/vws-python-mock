@@ -56,11 +56,11 @@ class TestInvalidJSON:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers = endpoint.prepared_request.headers.copy()
-        headers.update({"Authorization": authorization_string, "Date": date})
+        endpoint.prepared_request.headers.update(
+            {"Authorization": authorization_string, "Date": date}
+        )
 
         endpoint.prepared_request.body = content
-        endpoint.prepared_request.headers = headers
         endpoint.prepared_request.prepare_content_length(body=content)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
@@ -125,11 +125,11 @@ class TestInvalidJSON:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers = endpoint.prepared_request.headers.copy()
-        headers.update({"Authorization": authorization_string, "Date": date})
+        endpoint.prepared_request.headers.update(
+            {"Authorization": authorization_string, "Date": date},
+        )
 
         endpoint.prepared_request.body = content
-        endpoint.prepared_request.headers = headers
         endpoint.prepared_request.prepare_content_length(body=content)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
