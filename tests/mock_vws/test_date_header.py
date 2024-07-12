@@ -45,8 +45,6 @@ class TestMissing:
         """
         A `BAD_REQUEST` response is returned when no `Date` header is given.
         """
-        endpoint_headers = dict(endpoint.prepared_request.headers)
-
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
             secret_key=endpoint.secret_key,
@@ -57,9 +55,8 @@ class TestMissing:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers: dict[str, str] = endpoint_headers | {
-            "Authorization": authorization_string,
-        }
+        headers = endpoint.prepared_request.headers.copy()
+        headers.update({"Authorization": authorization_string})
         headers.pop("Date", None)
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
