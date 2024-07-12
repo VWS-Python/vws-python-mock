@@ -56,11 +56,13 @@ class TestUnexpectedJSON:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers = headers | {
-            "Authorization": authorization_string,
-            "Date": date,
-            "Content-Type": content_type,
-        }
+        headers.update(
+            {
+                "Authorization": authorization_string,
+                "Date": date,
+                "Content-Type": content_type,
+            },
+        )
 
         endpoint.prepared_request.body = content
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)

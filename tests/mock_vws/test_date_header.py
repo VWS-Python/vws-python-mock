@@ -118,10 +118,12 @@ class TestFormat:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers = headers | {
-            "Authorization": authorization_string,
-            "Date": date_incorrect_format,
-        }
+        headers.update(
+            {
+                "Authorization": authorization_string,
+                "Date": date_incorrect_format,
+            },
+        )
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
@@ -177,8 +179,6 @@ class TestSkewedTime:
         with freeze_time(datetime.now(tz=gmt) + time_difference_from_now):
             date = rfc_1123_date()
 
-        headers = endpoint.prepared_request.headers.copy()
-
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
             secret_key=endpoint.secret_key,
@@ -189,10 +189,8 @@ class TestSkewedTime:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers = headers | {
-            "Authorization": authorization_string,
-            "Date": date,
-        }
+        headers = endpoint.prepared_request.headers.copy()
+        headers.update({"Authorization": authorization_string, "Date": date})
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
@@ -241,8 +239,6 @@ class TestSkewedTime:
         with freeze_time(datetime.now(tz=gmt) - time_difference_from_now):
             date = rfc_1123_date()
 
-        headers = endpoint.prepared_request.headers.copy()
-
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
             secret_key=endpoint.secret_key,
@@ -253,10 +249,8 @@ class TestSkewedTime:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers = headers | {
-            "Authorization": authorization_string,
-            "Date": date,
-        }
+        headers = endpoint.prepared_request.headers.copy()
+        headers.update({"Authorization": authorization_string, "Date": date})
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
@@ -316,10 +310,7 @@ class TestSkewedTime:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers = headers | {
-            "Authorization": authorization_string,
-            "Date": date,
-        }
+        headers.update({"Authorization": authorization_string, "Date": date})
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
@@ -358,8 +349,6 @@ class TestSkewedTime:
         with freeze_time(datetime.now(tz=gmt) - time_difference_from_now):
             date = rfc_1123_date()
 
-        headers = endpoint.prepared_request.headers.copy()
-
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
             secret_key=endpoint.secret_key,
@@ -370,10 +359,8 @@ class TestSkewedTime:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers = headers | {
-            "Authorization": authorization_string,
-            "Date": date,
-        }
+        headers = endpoint.prepared_request.headers.copy()
+        headers.update({"Authorization": authorization_string, "Date": date})
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()

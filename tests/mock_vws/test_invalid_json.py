@@ -47,7 +47,6 @@ class TestInvalidJSON:
         with freeze_time(time_to_freeze):
             date = rfc_1123_date()
 
-        headers = endpoint.prepared_request.headers.copy()
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
             secret_key=endpoint.secret_key,
@@ -58,10 +57,8 @@ class TestInvalidJSON:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers = headers | {
-            "Authorization": authorization_string,
-            "Date": date,
-        }
+        headers = endpoint.prepared_request.headers.copy()
+        headers.update({"Authorization": authorization_string, "Date": date})
 
         endpoint.prepared_request.body = content
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
@@ -119,7 +116,6 @@ class TestInvalidJSON:
         with freeze_time(time_to_freeze):
             date = rfc_1123_date()
 
-        headers = endpoint.prepared_request.headers.copy()
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
             secret_key=endpoint.secret_key,
@@ -130,10 +126,8 @@ class TestInvalidJSON:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers = headers | {
-            "Authorization": authorization_string,
-            "Date": date,
-        }
+        headers = endpoint.prepared_request.headers.copy()
+        headers.update({"Authorization": authorization_string, "Date": date})
 
         endpoint.prepared_request.body = content
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
