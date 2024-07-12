@@ -46,12 +46,9 @@ class TestAuthorizationHeader:
         is given.
         """
         date = rfc_1123_date()
-        headers = endpoint.prepared_request.headers.copy()
-        headers.update({"Date": date})
+        endpoint.prepared_request.headers.update({"Date": date})
+        endpoint.prepared_request.headers.pop("Authorization", None)
 
-        headers.pop("Authorization", None)
-
-        endpoint.prepared_request.headers = headers
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
         handle_server_errors(response=response)
@@ -96,10 +93,10 @@ class TestMalformed:
         # string, but really any string which is not two parts when split on a
         # space will do.
         authorization_string = "VWS"
-        headers = endpoint.prepared_request.headers.copy()
-        headers.update({"Authorization": authorization_string, "Date": date})
+        endpoint.prepared_request.headers.update(
+            {"Authorization": authorization_string, "Date": date},
+        )
 
-        endpoint.prepared_request.headers = headers
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
         handle_server_errors(response=response)
@@ -134,10 +131,10 @@ class TestMalformed:
         authorization_string = "VWS "
         date = rfc_1123_date()
 
-        headers = endpoint.prepared_request.headers.copy()
-        headers.update({"Authorization": authorization_string, "Date": date})
+        endpoint.prepared_request.headers.update(
+            {"Authorization": authorization_string, "Date": date},
+        )
 
-        endpoint.prepared_request.headers = headers
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
         handle_server_errors(response=response)
@@ -171,10 +168,10 @@ class TestMalformed:
         date = rfc_1123_date()
 
         authorization_string = "VWS foobar:"
-        headers = endpoint.prepared_request.headers.copy()
-        headers.update({"Authorization": authorization_string, "Date": date})
+        endpoint.prepared_request.headers.update(
+            {"Authorization": authorization_string, "Date": date},
+        )
 
-        endpoint.prepared_request.headers = headers
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
         handle_server_errors(response=response)

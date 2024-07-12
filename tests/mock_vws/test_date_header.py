@@ -54,10 +54,10 @@ class TestMissing:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers = endpoint.prepared_request.headers.copy()
-        headers.update({"Authorization": authorization_string})
-        headers.pop("Date", None)
-        endpoint.prepared_request.headers = headers
+        endpoint.prepared_request.headers.update(
+            {"Authorization": authorization_string}
+        )
+        endpoint.prepared_request.headers.pop("Date", None)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
         handle_server_errors(response=response)
@@ -105,8 +105,6 @@ class TestFormat:
             now = datetime.now(tz=gmt)
             date_incorrect_format = now.strftime("%a %b %d %H:%M:%S")
 
-        headers = endpoint.prepared_request.headers.copy()
-
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
             secret_key=endpoint.secret_key,
@@ -117,14 +115,13 @@ class TestFormat:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers.update(
+        endpoint.prepared_request.headers.update(
             {
                 "Authorization": authorization_string,
                 "Date": date_incorrect_format,
             },
         )
 
-        endpoint.prepared_request.headers = headers
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
         handle_server_errors(response=response)
@@ -188,10 +185,10 @@ class TestSkewedTime:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers = endpoint.prepared_request.headers.copy()
-        headers.update({"Authorization": authorization_string, "Date": date})
+        endpoint.prepared_request.headers.update(
+            {"Authorization": authorization_string, "Date": date}
+        )
 
-        endpoint.prepared_request.headers = headers
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
         handle_server_errors(response=response)
@@ -248,10 +245,10 @@ class TestSkewedTime:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers = endpoint.prepared_request.headers.copy()
-        headers.update({"Authorization": authorization_string, "Date": date})
+        endpoint.prepared_request.headers.update(
+            {"Authorization": authorization_string, "Date": date},
+        )
 
-        endpoint.prepared_request.headers = headers
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
         handle_server_errors(response=response)
@@ -297,8 +294,6 @@ class TestSkewedTime:
         with freeze_time(datetime.now(tz=gmt) + time_difference_from_now):
             date = rfc_1123_date()
 
-        headers = endpoint.prepared_request.headers.copy()
-
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
             secret_key=endpoint.secret_key,
@@ -309,9 +304,10 @@ class TestSkewedTime:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers.update({"Authorization": authorization_string, "Date": date})
+        endpoint.prepared_request.headers.update(
+            {"Authorization": authorization_string, "Date": date},
+        )
 
-        endpoint.prepared_request.headers = headers
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
         handle_server_errors(response=response)
@@ -358,10 +354,10 @@ class TestSkewedTime:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers = endpoint.prepared_request.headers.copy()
-        headers.update({"Authorization": authorization_string, "Date": date})
+        endpoint.prepared_request.headers.update(
+            {"Authorization": authorization_string, "Date": date},
+        )
 
-        endpoint.prepared_request.headers = headers
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
         handle_server_errors(response=response)
