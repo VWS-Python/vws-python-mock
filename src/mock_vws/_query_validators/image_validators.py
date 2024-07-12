@@ -34,8 +34,7 @@ def validate_image_field_given(
     """
     email_message = EmailMessage()
     email_message["Content-Type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary()
-    assert boundary is not None
+    boundary = email_message.get_boundary(failobj="")
     parser = MultiPartParser()
     _, files = parser.parse(
         stream=io.BytesIO(request_body),
@@ -65,8 +64,7 @@ def validate_image_file_size(
     """
     email_message = EmailMessage()
     email_message["Content-Type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary()
-    assert boundary is not None
+    boundary = email_message.get_boundary(failobj="")
     parser = MultiPartParser()
     _, files = parser.parse(
         stream=io.BytesIO(request_body),
@@ -106,8 +104,7 @@ def validate_image_dimensions(
     """
     email_message = EmailMessage()
     email_message["Content-Type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary()
-    assert boundary is not None
+    boundary = email_message.get_boundary(failobj="")
     parser = MultiPartParser()
     _, files = parser.parse(
         stream=io.BytesIO(request_body),
@@ -143,8 +140,7 @@ def validate_image_format(
     """
     email_message = EmailMessage()
     email_message["Content-Type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary()
-    assert boundary is not None
+    boundary = email_message.get_boundary(failobj="")
     parser = MultiPartParser()
     _, files = parser.parse(
         stream=io.BytesIO(request_body),
@@ -177,8 +173,7 @@ def validate_image_is_image(
     """
     email_message = EmailMessage()
     email_message["Content-Type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary()
-    assert boundary is not None
+    boundary = email_message.get_boundary(failobj="")
     parser = MultiPartParser()
     _, files = parser.parse(
         stream=io.BytesIO(request_body),
