@@ -41,12 +41,12 @@ class TestIncorrect:
         A ``BAD_REQUEST`` error is given when the given ``Content-Length`` is
         not an integer.
         """
-        endpoint_headers = dict(endpoint.prepared_request.headers)
-        if not endpoint_headers.get("Content-Type"):
+        headers = endpoint.prepared_request.headers.copy()
+        if not headers.get("Content-Type"):
             return
 
         content_length = "0.4"
-        headers = endpoint_headers | {"Content-Length": content_length}
+        headers.update({"Content-Length": content_length})
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
