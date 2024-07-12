@@ -39,7 +39,7 @@ def validate_include_target_data(
         boundary=boundary.encode("utf-8"),
         content_length=len(request_body),
     )
-    include_target_data = str(fields.get("include_target_data", "top"))
+    include_target_data = fields.get("include_target_data", "top")
     allowed_included_target_data = {"top", "all", "none"}
     if include_target_data.lower() in allowed_included_target_data:
         return

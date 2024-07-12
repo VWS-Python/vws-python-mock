@@ -44,7 +44,7 @@ def validate_max_num_results(
         boundary=boundary.encode("utf-8"),
         content_length=len(request_body),
     )
-    max_num_results = str(fields.get("max_num_results", "1"))
+    max_num_results = fields.get("max_num_results", "1")
 
     try:
         max_num_results_int = int(max_num_results)
