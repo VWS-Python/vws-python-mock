@@ -22,14 +22,14 @@ EXPOSE 5000
 ENTRYPOINT ["python"]
 HEALTHCHECK --interval=1s --timeout=10s --start-period=5s --retries=3 CMD ["python", "/app/src/mock_vws/_flask_server/healthcheck.py"]
 
-FROM base as vws
+FROM base AS vws
 ENV VWS_HOST=0.0.0.0
 CMD ["src/mock_vws/_flask_server/vws.py"]
 
-FROM base as vwq
+FROM base AS vwq
 ENV VWQ_HOST=0.0.0.0
 CMD ["src/mock_vws/_flask_server/vwq.py"]
 
-FROM base as target-manager
+FROM base AS target-manager
 ENV TARGET_MANAGER_HOST=0.0.0.0
 CMD ["src/mock_vws/_flask_server/target_manager.py"]
