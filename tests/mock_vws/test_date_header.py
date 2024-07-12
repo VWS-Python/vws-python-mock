@@ -106,7 +106,7 @@ class TestFormat:
             now = datetime.now(tz=gmt)
             date_incorrect_format = now.strftime("%a %b %d %H:%M:%S")
 
-        endpoint_headers = dict(endpoint.prepared_request.headers)
+        headers = endpoint.prepared_request.headers.copy()
 
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
@@ -118,7 +118,7 @@ class TestFormat:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers: dict[str, str] = endpoint_headers | {
+        headers = headers | {
             "Authorization": authorization_string,
             "Date": date_incorrect_format,
         }
@@ -177,7 +177,7 @@ class TestSkewedTime:
         with freeze_time(datetime.now(tz=gmt) + time_difference_from_now):
             date = rfc_1123_date()
 
-        endpoint_headers = dict(endpoint.prepared_request.headers)
+        headers = endpoint.prepared_request.headers.copy()
 
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
@@ -189,7 +189,7 @@ class TestSkewedTime:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers = endpoint_headers | {
+        headers = headers | {
             "Authorization": authorization_string,
             "Date": date,
         }
@@ -241,7 +241,7 @@ class TestSkewedTime:
         with freeze_time(datetime.now(tz=gmt) - time_difference_from_now):
             date = rfc_1123_date()
 
-        endpoint_headers = dict(endpoint.prepared_request.headers)
+        headers = endpoint.prepared_request.headers.copy()
 
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
@@ -253,7 +253,7 @@ class TestSkewedTime:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers = endpoint_headers | {
+        headers = headers | {
             "Authorization": authorization_string,
             "Date": date,
         }
@@ -304,7 +304,7 @@ class TestSkewedTime:
         with freeze_time(datetime.now(tz=gmt) + time_difference_from_now):
             date = rfc_1123_date()
 
-        endpoint_headers = dict(endpoint.prepared_request.headers)
+        headers = endpoint.prepared_request.headers.copy()
 
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
@@ -316,7 +316,7 @@ class TestSkewedTime:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers: dict[str, str] = endpoint_headers | {
+        headers = headers | {
             "Authorization": authorization_string,
             "Date": date,
         }
@@ -358,7 +358,7 @@ class TestSkewedTime:
         with freeze_time(datetime.now(tz=gmt) - time_difference_from_now):
             date = rfc_1123_date()
 
-        endpoint_headers = dict(endpoint.prepared_request.headers)
+        headers = endpoint.prepared_request.headers.copy()
 
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
@@ -370,7 +370,7 @@ class TestSkewedTime:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers: dict[str, str] = endpoint_headers | {
+        headers = headers | {
             "Authorization": authorization_string,
             "Date": date,
         }

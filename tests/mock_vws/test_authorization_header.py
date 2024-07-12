@@ -47,9 +47,8 @@ class TestAuthorizationHeader:
         is given.
         """
         date = rfc_1123_date()
-        headers: dict[str, str] = dict(endpoint.prepared_request.headers) | {
-            "Date": date,
-        }
+        headers = endpoint.prepared_request.headers.copy()
+        headers.update({"Date": date})
 
         headers.pop("Authorization", None)
 
@@ -98,10 +97,8 @@ class TestMalformed:
         # string, but really any string which is not two parts when split on a
         # space will do.
         authorization_string = "VWS"
-        headers: dict[str, str] = dict(endpoint.prepared_request.headers) | {
-            "Authorization": authorization_string,
-            "Date": date,
-        }
+        headers = endpoint.prepared_request.headers.copy()
+        headers.update({"Authorization": authorization_string, "Date": date})
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
@@ -138,10 +135,8 @@ class TestMalformed:
         authorization_string = "VWS "
         date = rfc_1123_date()
 
-        headers: dict[str, str] = dict(endpoint.prepared_request.headers) | {
-            "Authorization": authorization_string,
-            "Date": date,
-        }
+        headers = endpoint.prepared_request.headers.copy()
+        headers.update({"Authorization": authorization_string, "Date": date})
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
@@ -177,10 +172,8 @@ class TestMalformed:
         date = rfc_1123_date()
 
         authorization_string = "VWS foobar:"
-        headers: dict[str, str] = dict(endpoint.prepared_request.headers) | {
-            "Authorization": authorization_string,
-            "Date": date,
-        }
+        headers = endpoint.prepared_request.headers.copy()
+        headers.update({"Authorization": authorization_string, "Date": date})
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()

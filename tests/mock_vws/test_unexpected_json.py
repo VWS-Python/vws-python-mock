@@ -44,7 +44,7 @@ class TestUnexpectedJSON:
         content_type = "application/json"
         date = rfc_1123_date()
 
-        endpoint_headers = dict(endpoint.prepared_request.headers)
+        headers = endpoint.prepared_request.headers.copy()
 
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
@@ -56,7 +56,7 @@ class TestUnexpectedJSON:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers = endpoint_headers | {
+        headers = headers | {
             "Authorization": authorization_string,
             "Date": date,
             "Content-Type": content_type,

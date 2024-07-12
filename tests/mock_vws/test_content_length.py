@@ -141,12 +141,12 @@ class TestIncorrect:
         An ``UNAUTHORIZED`` response is given if the given content length is
         too small.
         """
-        endpoint_headers = dict(endpoint.prepared_request.headers)
-        if not endpoint_headers.get("Content-Type"):
+        headers = endpoint.prepared_request.headers.copy()
+        if not headers.get("Content-Type"):
             return
 
-        content_length = str(int(endpoint_headers["Content-Length"]) - 1)
-        headers = endpoint_headers | {"Content-Length": content_length}
+        content_length = str(int(headers["Content-Length"]) - 1)
+        headers.update({"Content-Length": content_length})
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
