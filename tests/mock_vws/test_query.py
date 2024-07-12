@@ -23,6 +23,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 import requests
+from dirty_equals import IsInstance
 from PIL import Image
 from tenacity import Retrying
 from tenacity.retry import retry_if_exception_type
@@ -531,18 +532,15 @@ class TestSuccess:
 
         assert_query_success(response=response)
         (result,) = response.json()["results"]
-        assert result.keys() == {"target_id", "target_data"}
-        assert result["target_id"] == target_id
-        target_data = result["target_data"]
-        assert target_data.keys() == {
-            "application_metadata",
-            "name",
-            "target_timestamp",
+        assert result == {
+            "target_id": target_id,
+            "target_data": {
+                "application_metadata": metadata_encoded,
+                "name": name,
+                "target_timestamp": IsInstance(expected_type=int),
+            },
         }
-        assert target_data["application_metadata"] == metadata_encoded
-        assert target_data["name"] == name
-        target_timestamp = target_data["target_timestamp"]
-        assert isinstance(target_timestamp, int)
+        target_timestamp = int(result["target_data"]["target_timestamp"])
         time_difference = abs(approximate_target_created - target_timestamp)
         max_time_difference = 5
         assert time_difference < max_time_difference
