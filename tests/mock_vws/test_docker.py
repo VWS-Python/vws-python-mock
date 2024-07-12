@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 # timing.
 @retry(
     wait=wait_fixed(wait=0.5),
-    stop=stop_after_delay(max_delay=10),
+    stop=stop_after_delay(max_delay=20),
     retry=retry_if_exception_type(
         exception_types=(requests.exceptions.ConnectionError, ValueError),
     ),
