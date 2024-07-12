@@ -49,7 +49,7 @@ class TestUnexpectedJSON:
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
             secret_key=endpoint.secret_key,
-            method=str(endpoint.prepared_request.method),
+            method=endpoint.prepared_request.method or "",
             content=content,
             content_type=content_type,
             date=date,
