@@ -31,7 +31,7 @@ def validate_active_flag(request_body: bytes) -> None:
 
     active_flag = json.loads(request_text).get("active_flag")
 
-    if active_flag is None or isinstance(active_flag, bool):
+    if active_flag in {True, False, None}:
         return
 
     _LOGGER.warning(
