@@ -94,14 +94,14 @@ class TestIncorrect:
         """
         An error is given if the given content length is too large.
         """
-        endpoint_headers = dict(endpoint.prepared_request.headers)
-        if not endpoint_headers.get("Content-Type"):
+        headers = endpoint.prepared_request.headers.copy()
+        if not headers.get("Content-Type"):
             pytest.skip("No Content-Type header for this request")
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
-        content_length = str(int(endpoint_headers["Content-Length"]) + 1)
-        headers = endpoint_headers | {"Content-Length": content_length}
+        content_length = str(int(headers["Content-Length"]) + 1)
+        headers.update({"Content-Length": content_length})
 
         endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
         session = requests.Session()
