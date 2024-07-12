@@ -14,7 +14,6 @@ import pytest
 import requests
 from freezegun import freeze_time
 from mock_vws._constants import ResultCodes
-from requests.structures import CaseInsensitiveDict
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from tests.mock_vws.utils.assertions import (
@@ -58,7 +57,7 @@ class TestMissing:
         headers = endpoint.prepared_request.headers.copy()
         headers.update({"Authorization": authorization_string})
         headers.pop("Date", None)
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        endpoint.prepared_request.headers = headers
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
         handle_server_errors(response=response)
@@ -125,7 +124,7 @@ class TestFormat:
             },
         )
 
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        endpoint.prepared_request.headers = headers
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
         handle_server_errors(response=response)
@@ -192,7 +191,7 @@ class TestSkewedTime:
         headers = endpoint.prepared_request.headers.copy()
         headers.update({"Authorization": authorization_string, "Date": date})
 
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        endpoint.prepared_request.headers = headers
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
         handle_server_errors(response=response)
@@ -252,7 +251,7 @@ class TestSkewedTime:
         headers = endpoint.prepared_request.headers.copy()
         headers.update({"Authorization": authorization_string, "Date": date})
 
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        endpoint.prepared_request.headers = headers
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
         handle_server_errors(response=response)
@@ -312,7 +311,7 @@ class TestSkewedTime:
 
         headers.update({"Authorization": authorization_string, "Date": date})
 
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        endpoint.prepared_request.headers = headers
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
         handle_server_errors(response=response)
@@ -362,7 +361,7 @@ class TestSkewedTime:
         headers = endpoint.prepared_request.headers.copy()
         headers.update({"Authorization": authorization_string, "Date": date})
 
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        endpoint.prepared_request.headers = headers
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
         handle_server_errors(response=response)

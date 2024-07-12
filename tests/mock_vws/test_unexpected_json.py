@@ -11,7 +11,6 @@ from urllib.parse import urlparse
 
 import pytest
 import requests
-from requests.structures import CaseInsensitiveDict
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from tests.mock_vws.utils.assertions import assert_vwq_failure
@@ -65,7 +64,7 @@ class TestUnexpectedJSON:
         )
 
         endpoint.prepared_request.body = content
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        endpoint.prepared_request.headers = headers
         endpoint.prepared_request.prepare_content_length(body=content)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)

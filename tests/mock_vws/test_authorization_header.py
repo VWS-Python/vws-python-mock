@@ -13,7 +13,6 @@ from urllib.parse import urlparse
 import pytest
 import requests
 from mock_vws._constants import ResultCodes
-from requests.structures import CaseInsensitiveDict
 from vws import VWS, CloudRecoService
 from vws.exceptions import cloud_reco_exceptions
 from vws.exceptions.vws_exceptions import AuthenticationFailure, Fail
@@ -52,7 +51,7 @@ class TestAuthorizationHeader:
 
         headers.pop("Authorization", None)
 
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        endpoint.prepared_request.headers = headers
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
         handle_server_errors(response=response)
@@ -100,7 +99,7 @@ class TestMalformed:
         headers = endpoint.prepared_request.headers.copy()
         headers.update({"Authorization": authorization_string, "Date": date})
 
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        endpoint.prepared_request.headers = headers
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
         handle_server_errors(response=response)
@@ -138,7 +137,7 @@ class TestMalformed:
         headers = endpoint.prepared_request.headers.copy()
         headers.update({"Authorization": authorization_string, "Date": date})
 
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        endpoint.prepared_request.headers = headers
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
         handle_server_errors(response=response)
@@ -175,7 +174,7 @@ class TestMalformed:
         headers = endpoint.prepared_request.headers.copy()
         headers.update({"Authorization": authorization_string, "Date": date})
 
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        endpoint.prepared_request.headers = headers
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
         handle_server_errors(response=response)

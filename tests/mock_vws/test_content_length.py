@@ -47,7 +47,7 @@ class TestIncorrect:
 
         content_length = "0.4"
         headers.update({"Content-Length": content_length})
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        endpoint.prepared_request.headers = headers
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
         handle_server_errors(response=response)
@@ -103,7 +103,7 @@ class TestIncorrect:
         content_length = str(int(headers["Content-Length"]) + 1)
         headers.update({"Content-Length": content_length})
 
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        endpoint.prepared_request.headers = headers
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
         # We do not use ``handle_server_errors`` here because we do not want to
@@ -148,7 +148,7 @@ class TestIncorrect:
         content_length = str(int(headers["Content-Length"]) - 1)
         headers.update({"Content-Length": content_length})
 
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        endpoint.prepared_request.headers = headers
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
         handle_server_errors(response=response)
