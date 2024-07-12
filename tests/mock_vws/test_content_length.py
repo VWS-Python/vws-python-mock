@@ -41,13 +41,13 @@ class TestIncorrect:
         A ``BAD_REQUEST`` error is given when the given ``Content-Length`` is
         not an integer.
         """
-        endpoint_headers = dict(endpoint.prepared_request.headers)
-        if not endpoint_headers.get("Content-Type"):
+        headers = endpoint.prepared_request.headers.copy()
+        if not headers.get("Content-Type"):
             return
 
         content_length = "0.4"
-        headers = endpoint_headers | {"Content-Length": content_length}
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        headers.update({"Content-Length": content_length})
+        endpoint.prepared_request.headers = headers
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
         handle_server_errors(response=response)
@@ -94,16 +94,16 @@ class TestIncorrect:
         """
         An error is given if the given content length is too large.
         """
-        endpoint_headers = dict(endpoint.prepared_request.headers)
-        if not endpoint_headers.get("Content-Type"):
+        headers = endpoint.prepared_request.headers.copy()
+        if not headers.get("Content-Type"):
             pytest.skip("No Content-Type header for this request")
 
         url = str(endpoint.prepared_request.url)
         netloc = urlparse(url).netloc
-        content_length = str(int(endpoint_headers["Content-Length"]) + 1)
-        headers = endpoint_headers | {"Content-Length": content_length}
+        content_length = str(int(headers["Content-Length"]) + 1)
+        headers.update({"Content-Length": content_length})
 
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        endpoint.prepared_request.headers = headers
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
         # We do not use ``handle_server_errors`` here because we do not want to
@@ -141,14 +141,14 @@ class TestIncorrect:
         An ``UNAUTHORIZED`` response is given if the given content length is
         too small.
         """
-        endpoint_headers = dict(endpoint.prepared_request.headers)
-        if not endpoint_headers.get("Content-Type"):
+        headers = endpoint.prepared_request.headers.copy()
+        if not headers.get("Content-Type"):
             return
 
-        content_length = str(int(endpoint_headers["Content-Length"]) - 1)
-        headers = endpoint_headers | {"Content-Length": content_length}
+        content_length = str(int(headers["Content-Length"]) - 1)
+        headers.update({"Content-Length": content_length})
 
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        endpoint.prepared_request.headers = headers
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
         handle_server_errors(response=response)

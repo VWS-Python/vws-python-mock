@@ -14,7 +14,6 @@ import pytest
 import requests
 from freezegun import freeze_time
 from mock_vws._constants import ResultCodes
-from requests.structures import CaseInsensitiveDict
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from tests.mock_vws.utils.assertions import (
@@ -47,7 +46,6 @@ class TestInvalidJSON:
         with freeze_time(time_to_freeze):
             date = rfc_1123_date()
 
-        endpoint_headers = dict(endpoint.prepared_request.headers)
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
             secret_key=endpoint.secret_key,
@@ -58,13 +56,11 @@ class TestInvalidJSON:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers = endpoint_headers | {
-            "Authorization": authorization_string,
-            "Date": date,
-        }
+        headers = endpoint.prepared_request.headers.copy()
+        headers.update({"Authorization": authorization_string, "Date": date})
 
         endpoint.prepared_request.body = content
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        endpoint.prepared_request.headers = headers
         endpoint.prepared_request.prepare_content_length(body=content)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
@@ -119,7 +115,6 @@ class TestInvalidJSON:
         with freeze_time(time_to_freeze):
             date = rfc_1123_date()
 
-        endpoint_headers = dict(endpoint.prepared_request.headers)
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
             secret_key=endpoint.secret_key,
@@ -130,13 +125,11 @@ class TestInvalidJSON:
             request_path=endpoint.prepared_request.path_url,
         )
 
-        headers = endpoint_headers | {
-            "Authorization": authorization_string,
-            "Date": date,
-        }
+        headers = endpoint.prepared_request.headers.copy()
+        headers.update({"Authorization": authorization_string, "Date": date})
 
         endpoint.prepared_request.body = content
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        endpoint.prepared_request.headers = headers
         endpoint.prepared_request.prepare_content_length(body=content)
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)

@@ -13,7 +13,6 @@ from urllib.parse import urlparse
 import pytest
 import requests
 from mock_vws._constants import ResultCodes
-from requests.structures import CaseInsensitiveDict
 from vws import VWS, CloudRecoService
 from vws.exceptions import cloud_reco_exceptions
 from vws.exceptions.vws_exceptions import AuthenticationFailure, Fail
@@ -47,13 +46,12 @@ class TestAuthorizationHeader:
         is given.
         """
         date = rfc_1123_date()
-        headers: dict[str, str] = dict(endpoint.prepared_request.headers) | {
-            "Date": date,
-        }
+        headers = endpoint.prepared_request.headers.copy()
+        headers.update({"Date": date})
 
         headers.pop("Authorization", None)
 
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        endpoint.prepared_request.headers = headers
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
         handle_server_errors(response=response)
@@ -98,12 +96,10 @@ class TestMalformed:
         # string, but really any string which is not two parts when split on a
         # space will do.
         authorization_string = "VWS"
-        headers: dict[str, str] = dict(endpoint.prepared_request.headers) | {
-            "Authorization": authorization_string,
-            "Date": date,
-        }
+        headers = endpoint.prepared_request.headers.copy()
+        headers.update({"Authorization": authorization_string, "Date": date})
 
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        endpoint.prepared_request.headers = headers
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
         handle_server_errors(response=response)
@@ -138,12 +134,10 @@ class TestMalformed:
         authorization_string = "VWS "
         date = rfc_1123_date()
 
-        headers: dict[str, str] = dict(endpoint.prepared_request.headers) | {
-            "Authorization": authorization_string,
-            "Date": date,
-        }
+        headers = endpoint.prepared_request.headers.copy()
+        headers.update({"Authorization": authorization_string, "Date": date})
 
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        endpoint.prepared_request.headers = headers
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
         handle_server_errors(response=response)
@@ -177,12 +171,10 @@ class TestMalformed:
         date = rfc_1123_date()
 
         authorization_string = "VWS foobar:"
-        headers: dict[str, str] = dict(endpoint.prepared_request.headers) | {
-            "Authorization": authorization_string,
-            "Date": date,
-        }
+        headers = endpoint.prepared_request.headers.copy()
+        headers.update({"Authorization": authorization_string, "Date": date})
 
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
+        endpoint.prepared_request.headers = headers
         session = requests.Session()
         response = session.send(request=endpoint.prepared_request)
         handle_server_errors(response=response)
