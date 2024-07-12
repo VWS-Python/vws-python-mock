@@ -46,14 +46,12 @@ class TestMissing:
         A `BAD_REQUEST` response is returned when no `Date` header is given.
         """
         endpoint_headers = dict(endpoint.prepared_request.headers)
-        content = endpoint.prepared_request.body or b""
-        assert isinstance(content, bytes)
 
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
             secret_key=endpoint.secret_key,
-            method=str(endpoint.prepared_request.method),
-            content=content,
+            method=endpoint.prepared_request.method or "",
+            content=endpoint.prepared_request.body,
             content_type=endpoint.auth_header_content_type,
             date="",
             request_path=endpoint.prepared_request.path_url,
@@ -112,14 +110,12 @@ class TestFormat:
             date_incorrect_format = now.strftime("%a %b %d %H:%M:%S")
 
         endpoint_headers = dict(endpoint.prepared_request.headers)
-        content = endpoint.prepared_request.body or b""
-        assert isinstance(content, bytes)
 
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
             secret_key=endpoint.secret_key,
-            method=str(endpoint.prepared_request.method),
-            content=content,
+            method=endpoint.prepared_request.method or "",
+            content=endpoint.prepared_request.body,
             content_type=endpoint.auth_header_content_type,
             date=date_incorrect_format,
             request_path=endpoint.prepared_request.path_url,
@@ -185,14 +181,12 @@ class TestSkewedTime:
             date = rfc_1123_date()
 
         endpoint_headers = dict(endpoint.prepared_request.headers)
-        content = endpoint.prepared_request.body or b""
-        assert isinstance(content, bytes)
 
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
             secret_key=endpoint.secret_key,
-            method=str(endpoint.prepared_request.method),
-            content=content,
+            method=endpoint.prepared_request.method or "",
+            content=endpoint.prepared_request.body,
             content_type=endpoint.auth_header_content_type,
             date=date,
             request_path=endpoint.prepared_request.path_url,
@@ -251,14 +245,12 @@ class TestSkewedTime:
             date = rfc_1123_date()
 
         endpoint_headers = dict(endpoint.prepared_request.headers)
-        content = endpoint.prepared_request.body or b""
-        assert isinstance(content, bytes)
 
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
             secret_key=endpoint.secret_key,
-            method=str(endpoint.prepared_request.method),
-            content=content,
+            method=endpoint.prepared_request.method or "",
+            content=endpoint.prepared_request.body,
             content_type=endpoint.auth_header_content_type,
             date=date,
             request_path=endpoint.prepared_request.path_url,
@@ -316,14 +308,12 @@ class TestSkewedTime:
             date = rfc_1123_date()
 
         endpoint_headers = dict(endpoint.prepared_request.headers)
-        content = endpoint.prepared_request.body or b""
-        assert isinstance(content, bytes)
 
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
             secret_key=endpoint.secret_key,
-            method=str(endpoint.prepared_request.method),
-            content=content,
+            method=endpoint.prepared_request.method or "",
+            content=endpoint.prepared_request.body,
             content_type=endpoint.auth_header_content_type,
             date=date,
             request_path=endpoint.prepared_request.path_url,
@@ -372,14 +362,12 @@ class TestSkewedTime:
             date = rfc_1123_date()
 
         endpoint_headers = dict(endpoint.prepared_request.headers)
-        content = endpoint.prepared_request.body or b""
-        assert isinstance(content, bytes)
 
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
             secret_key=endpoint.secret_key,
-            method=str(endpoint.prepared_request.method),
-            content=content,
+            method=endpoint.prepared_request.method or "",
+            content=endpoint.prepared_request.body,
             content_type=endpoint.auth_header_content_type,
             date=date,
             request_path=endpoint.prepared_request.path_url,

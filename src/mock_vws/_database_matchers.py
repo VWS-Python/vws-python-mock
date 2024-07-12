@@ -40,7 +40,6 @@ def get_database_matching_client_keys(
     """
     content_type = request_headers.get("Content-Type", "").split(";")[0]
     auth_header = request_headers.get("Authorization")
-    content = request_body or b""
     date = request_headers.get("Date", "")
 
     for database in databases:
@@ -48,7 +47,7 @@ def get_database_matching_client_keys(
             access_key=database.client_access_key,
             secret_key=database.client_secret_key,
             method=request_method,
-            content=content,
+            content=request_body,
             content_type=content_type,
             date=date,
             request_path=request_path,
@@ -85,7 +84,6 @@ def get_database_matching_server_keys(
     """
     content_type = request_headers.get("Content-Type", "").split(";")[0]
     auth_header = request_headers.get("Authorization")
-    content = request_body or b""
     date = request_headers.get("Date", "")
 
     for database in databases:
@@ -93,7 +91,7 @@ def get_database_matching_server_keys(
             access_key=database.server_access_key,
             secret_key=database.server_secret_key,
             method=request_method,
-            content=content,
+            content=request_body,
             content_type=content_type,
             date=date,
             request_path=request_path,
