@@ -23,12 +23,11 @@ if TYPE_CHECKING:
     import io
     from collections.abc import Iterator
 
+    from docker.models.containers import Container
     from docker.models.images import Image
     from docker.models.networks import Network
 
 
-# We do not cover this function because hitting particular branches depends on
-# timing.
 @retry(
     wait=wait_fixed(wait=0.5),
     stop=stop_after_delay(max_delay=20),
@@ -37,21 +36,18 @@ if TYPE_CHECKING:
     ),
     reraise=True,
 )
-def wait_for_flask_app_to_start(base_url: str) -> None:  # pragma: no cover
+def wait_for_health_check(container: Container) -> None:
     """
-    Wait for a server to start.
-
-    Args:
-        base_url: The base URL of the Flask app to wait for.
+    Wait for a container to pass its health check.
     """
-    url = f"{base_url}/{uuid.uuid4().hex}"
-    response = requests.get(url=url, timeout=30)
-    if response.status_code not in {
-        HTTPStatus.NOT_FOUND,
-        HTTPStatus.UNAUTHORIZED,
-        HTTPStatus.FORBIDDEN,
-    }:
-        error_message = f"Could not connect to {url}"
+    container.reload()
+    health_status = container.attrs["State"]["Health"]["Status"]
+    # In theory this might not be hit by coverage.
+    # Let's keep it required by coverage for now.
+    if health_status != "healthy":
+        error_message = (
+            f"Container {container.name} is not healthy: {health_status}"
+        )
         raise ValueError(error_message)
 
 
@@ -186,6 +182,7 @@ def test_build_and_run(
     )
 
     for container in (target_manager_container, vws_container, vwq_container):
+        wait_for_health_check(container=container)
         container.reload()
 
     target_manager_port_attrs = target_manager_container.attrs[
@@ -212,9 +209,6 @@ def test_build_and_run(
     base_target_manager_url = (
         f"http://{target_manager_host_ip}:{target_manager_host_port}"
     )
-
-    for base_url in (base_vws_url, base_vwq_url, base_target_manager_url):
-        wait_for_flask_app_to_start(base_url=base_url)
 
     response = requests.post(
         url=f"{base_target_manager_url}/databases",

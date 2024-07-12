@@ -20,6 +20,7 @@ RUN pip install --no-cache-dir uv==0.1.44 && \
     uv pip install --no-cache-dir --upgrade --editable .
 EXPOSE 5000
 ENTRYPOINT ["python"]
+HEALTHCHECK --interval=1s --timeout=10s --start-period=5s --retries=3 CMD ["python", "/app/src/mock_vws/_flask_server/healthcheck.py"]
 
 FROM base as vws
 ENV VWS_HOST=0.0.0.0
