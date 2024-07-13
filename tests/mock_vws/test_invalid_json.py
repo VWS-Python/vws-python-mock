@@ -43,7 +43,7 @@ class TestInvalidJSON:
         gmt = ZoneInfo("GMT")
         now = datetime.now(tz=gmt)
         time_to_freeze = now
-        with freeze_time(time_to_freeze):
+        with freeze_time(time_to_freeze=time_to_freeze):
             date = rfc_1123_date()
 
         authorization_string = authorization_header(
@@ -112,7 +112,7 @@ class TestInvalidJSON:
         gmt = ZoneInfo("GMT")
         now = datetime.now(tz=gmt)
         time_to_freeze = now + timedelta(minutes=date_skew_minutes)
-        with freeze_time(time_to_freeze):
+        with freeze_time(time_to_freeze=time_to_freeze):
             date = rfc_1123_date()
 
         authorization_string = authorization_header(
