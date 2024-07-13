@@ -166,7 +166,7 @@ class TestContentTypes:
         Any non-empty ``Content-Type`` header is allowed.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
 
         data = {
             "name": "example",
@@ -192,7 +192,7 @@ class TestContentTypes:
         header is given.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
 
         data = {
             "name": "example",
@@ -230,7 +230,7 @@ class TestMissingData:
         `name`, `width` and `image` are all required.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
 
         data = {
             "name": "example_name",
@@ -272,7 +272,7 @@ class TestWidth:
         The width must be a number greater than zero.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
 
         data = {
             "name": "example_name",
@@ -300,7 +300,7 @@ class TestWidth:
         Positive numbers are valid widths.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
 
         data = {
             "name": "example",
@@ -348,7 +348,7 @@ class TestTargetName:
         Names between 1 and 64 characters in length are valid.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
 
         data = {
             "name": name,
@@ -398,7 +398,7 @@ class TestTargetName:
         in a particular range.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
 
         data = {
             "name": name,
@@ -437,7 +437,7 @@ class TestTargetName:
         Only one target can have a given name.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
 
         data = {
             "name": "example_name",
@@ -471,7 +471,7 @@ class TestTargetName:
         A target can be added with the name of a deleted target.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
 
         data = {
             "name": "example_name",
@@ -516,7 +516,7 @@ class TestImage:
         """
         image_file = image_files_failed_state
         image_data = image_file.read()
-        image_data_encoded = base64.b64encode(image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
 
         data = {
             "name": "example",
@@ -543,7 +543,7 @@ class TestImage:
         greyscale or RGB color space.
         """
         image_data = bad_image_file.read()
-        image_data_encoded = base64.b64encode(image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
 
         data = {
             "name": "example_name",
@@ -571,7 +571,7 @@ class TestImage:
         No error is returned when the given image is corrupted.
         """
         image_data = corrupted_image_file.getvalue()
-        image_data_encoded = base64.b64encode(image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
 
         data = {
             "name": "example_name",
@@ -604,7 +604,7 @@ class TestImage:
         )
 
         image_data = png_not_too_large.read()
-        image_data_encoded = base64.b64encode(image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
         image_content_size = len(image_data)
         # We check that the image we created is just slightly smaller than the
         # maximum file size.
@@ -637,7 +637,7 @@ class TestImage:
         )
 
         image_data = png_too_large.read()
-        image_data_encoded = base64.b64encode(image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
         image_content_size = len(image_data)
         # We check that the image we created is just slightly smaller than the
         # maximum file size.
@@ -728,7 +728,7 @@ class TestImage:
         returned.
         """
         not_image_data = b"not_image_data"
-        image_data_encoded = base64.b64encode(not_image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=not_image_data).decode("ascii")
 
         data = {
             "name": "example_name",
@@ -791,7 +791,7 @@ class TestActiveFlag:
         Boolean values and NULL are valid active flags.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
         content_type = "application/json"
 
         data = {
@@ -819,7 +819,7 @@ class TestActiveFlag:
         """
         active_flag = "string"
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
         content_type = "application/json"
 
         data = {
@@ -851,7 +851,7 @@ class TestActiveFlag:
         The active flag defaults to True if it is not set.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
 
         data = {
             "name": "my_example_name",
@@ -878,7 +878,7 @@ class TestActiveFlag:
         The active flag defaults to True if it is set to NULL.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
 
         data = {
             "name": "my_example_name",
@@ -912,7 +912,7 @@ class TestUnexpectedData:
         A `BAD_REQUEST` response is returned when unexpected data is given.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
 
         data = {
             "name": "example_name",
@@ -957,8 +957,8 @@ class TestApplicationMetadata:
         A base64 encoded string is valid application metadata.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode("ascii")
-        metadata_encoded = base64.b64encode(metadata).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
+        metadata_encoded = base64.b64encode(s=metadata).decode("ascii")
 
         data = {
             "name": "example_name",
@@ -983,7 +983,7 @@ class TestApplicationMetadata:
         NULL is valid application metadata.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
 
         request_data = {
             "name": "example_name",
@@ -1009,7 +1009,7 @@ class TestApplicationMetadata:
         metadata.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
 
         data = {
             "name": "example_name",
@@ -1040,7 +1040,7 @@ class TestApplicationMetadata:
         application metadata.
         """
         image_content = high_quality_image.getvalue()
-        image_data_encoded = base64.b64encode(image_content).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_content).decode("ascii")
 
         data = {
             "name": "example_name",
@@ -1067,7 +1067,7 @@ class TestApplicationMetadata:
         as application metadata.
         """
         image_content = high_quality_image.getvalue()
-        image_data_encoded = base64.b64encode(image_content).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_content).decode("ascii")
 
         data = {
             "name": "example_name",
@@ -1097,9 +1097,9 @@ class TestApplicationMetadata:
         for application metadata.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
         metadata = b"a" * (_MAX_METADATA_BYTES + 1)
-        metadata_encoded = base64.b64encode(metadata).decode("ascii")
+        metadata_encoded = base64.b64encode(s=metadata).decode("ascii")
 
         data = {
             "name": "example_name",
@@ -1135,7 +1135,7 @@ class TestInactiveProject:
         If the project is inactive, a FORBIDDEN response is returned.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
 
         data = {
             "name": "example",

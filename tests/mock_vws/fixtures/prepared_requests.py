@@ -51,7 +51,7 @@ def add_target(
     Return details of the endpoint for adding a target.
     """
     image_data = image_file_failed_state.read()
-    image_data_encoded = base64.b64encode(image_data).decode("ascii")
+    image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
     date = rfc_1123_date()
     data: dict[str, Any] = {
         "name": "example_name",
