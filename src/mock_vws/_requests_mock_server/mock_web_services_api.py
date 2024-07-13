@@ -158,7 +158,7 @@ class MockVuforiaWebServicesAPI:
         new_target = Target(
             name=request.json()["name"],
             width=request.json()["width"],
-            image_value=base64.b64decode(request.json()["image"]),
+            image_value=base64.b64decode(s=request.json()["image"]),
             active_flag=active_flag,
             processing_time_seconds=self._processing_time_seconds,
             application_metadata=application_metadata,
@@ -584,7 +584,7 @@ class MockVuforiaWebServicesAPI:
 
         image_value = target.image_value
         if "image" in request.json():
-            image_value = base64.b64decode(request.json()["image"])
+            image_value = base64.b64decode(s=request.json()["image"])
 
         if "active_flag" in request.json() and active_flag is None:
             fail_exception = FailError(status_code=HTTPStatus.BAD_REQUEST)

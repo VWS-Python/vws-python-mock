@@ -179,7 +179,7 @@ def add_target() -> Response:
     new_target = Target(
         name=name,
         width=request_json["width"],
-        image_value=base64.b64decode(request_json["image"]),
+        image_value=base64.b64decode(s=request_json["image"]),
         active_flag=active_flag,
         processing_time_seconds=settings.processing_time_seconds,
         application_metadata=request_json.get("application_metadata"),

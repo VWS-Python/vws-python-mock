@@ -163,7 +163,7 @@ class Target:
         active_flag = target_dict["active_flag"]
         width = target_dict["width"]
         image_base64 = target_dict["image_base64"]
-        image_value = base64.b64decode(image_base64)
+        image_value = base64.b64decode(s=image_base64)
         processing_time_seconds = target_dict["processing_time_seconds"]
         application_metadata = target_dict["application_metadata"]
         target_id = target_dict["target_id"]
