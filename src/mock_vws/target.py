@@ -204,7 +204,7 @@ class Target:
         """
         delete_date: str | None = None
         if self.delete_date:
-            delete_date = datetime.datetime.isoformat(self.delete_date)
+            delete_date = self.delete_date.isoformat()
 
         image_base64 = base64.encodebytes(s=self.image_value).decode()
 
