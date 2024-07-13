@@ -501,29 +501,24 @@ class TestImage:
     @staticmethod
     def test_bad_image_format_or_color_space(
         bad_image_file: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         An `UNPROCESSABLE_ENTITY` response is returned if an image which is not
         a JPEG or PNG file is given, or if the given image is not in the
         greyscale or RGB color space.
         """
-        image_data = bad_image_file.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
-
-        data = {
-            "name": "example_name",
-            "width": 1,
-            "image": image_data_encoded,
-        }
-
-        response = _add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
-        )
+        with pytest.raises(expected_exception=BadImage) as exc:
+            vws_client.add_target(
+                name="example_name",
+                width=1,
+                image=bad_image_file,
+                application_metadata=None,
+                active_flag=True,
+            )
 
         assert_vws_failure(
-            response=response,
+            response=exc.value.response,
             status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             result_code=ResultCodes.BAD_IMAGE,
         )
