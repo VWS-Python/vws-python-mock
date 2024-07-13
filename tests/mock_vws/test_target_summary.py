@@ -39,7 +39,7 @@ class TestTargetSummary:
         A target summary is returned.
         """
         name = uuid.uuid4().hex
-        gmt = ZoneInfo("GMT")
+        gmt = ZoneInfo(key="GMT")
         date_before_add_target = datetime.datetime.now(tz=gmt).date()
 
         target_id = vws_client.add_target(

@@ -40,7 +40,7 @@ class TestInvalidJSON:
         Giving invalid JSON to endpoints returns error responses.
         """
         content = b"a"
-        gmt = ZoneInfo("GMT")
+        gmt = ZoneInfo(key="GMT")
         now = datetime.now(tz=gmt)
         time_to_freeze = now
         with freeze_time(time_to_freeze=time_to_freeze):
@@ -109,7 +109,7 @@ class TestInvalidJSON:
         # the max of these two.
         date_skew_minutes = 70
         content = b"a"
-        gmt = ZoneInfo("GMT")
+        gmt = ZoneInfo(key="GMT")
         now = datetime.now(tz=gmt)
         time_to_freeze = now + timedelta(minutes=date_skew_minutes)
         with freeze_time(time_to_freeze=time_to_freeze):

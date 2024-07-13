@@ -1928,7 +1928,7 @@ class TestDateFormats:
         if include_tz:
             datetime_format += " GMT"
 
-        gmt = ZoneInfo("GMT")
+        gmt = ZoneInfo(key="GMT")
         now = datetime.datetime.now(tz=gmt)
         date = now.strftime(datetime_format)
         request_path = "/v1/query"

@@ -261,7 +261,7 @@ def update_target(database_name: str, target_id: str) -> Response:
     if "image" in request_json:
         image_value = base64.b64decode(s=request_json["image"])
 
-    gmt = ZoneInfo("GMT")
+    gmt = ZoneInfo(key="GMT")
     last_modified_date = datetime.datetime.now(tz=gmt)
 
     new_target = dataclasses.replace(

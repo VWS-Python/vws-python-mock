@@ -61,7 +61,7 @@ def validate_date_in_range(request_headers: dict[str, str]) -> None:
     Raises:
         RequestTimeTooSkewedError: The date is out of range.
     """
-    gmt = ZoneInfo("GMT")
+    gmt = ZoneInfo(key="GMT")
     date_from_header = datetime.datetime.strptime(
         request_headers["Date"],
         "%a, %d %b %Y %H:%M:%S GMT",

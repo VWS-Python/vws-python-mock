@@ -62,7 +62,7 @@ def get_query_match_response_text(
 
     image_part = files["image"]
     image_value = image_part.stream.read()
-    gmt = ZoneInfo("GMT")
+    gmt = ZoneInfo(key="GMT")
     datetime.datetime.now(tz=gmt)
 
     database = get_database_matching_client_keys(
