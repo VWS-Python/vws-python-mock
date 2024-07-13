@@ -37,7 +37,8 @@ if TYPE_CHECKING:
 _MAX_METADATA_BYTES: Final[int] = 1024 * 1024 - 1
 
 
-def add_target_to_vws(
+def _add_target_to_vws(
+    *,
     vuforia_database: VuforiaDatabase,
     data: dict[str, Any],
     content_type: str = "application/json",
@@ -173,7 +174,7 @@ class TestContentTypes:
             "image": image_data_encoded,
         }
 
-        response = add_target_to_vws(
+        response = _add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
             content_type=content_type,
@@ -199,7 +200,7 @@ class TestContentTypes:
             "image": image_data_encoded,
         }
 
-        response = add_target_to_vws(
+        response = _add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
             content_type="",
@@ -238,7 +239,7 @@ class TestMissingData:
         }
         data.pop(data_to_remove)
 
-        response = add_target_to_vws(
+        response = _add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
         )
@@ -279,7 +280,7 @@ class TestWidth:
             "image": image_data_encoded,
         }
 
-        response = add_target_to_vws(
+        response = _add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
         )
@@ -307,7 +308,7 @@ class TestWidth:
             "image": image_data_encoded,
         }
 
-        response = add_target_to_vws(
+        response = _add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
             content_type="application/json",
@@ -355,7 +356,7 @@ class TestTargetName:
             "image": image_data_encoded,
         }
 
-        response = add_target_to_vws(
+        response = _add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
             content_type="application/json",
@@ -407,7 +408,7 @@ class TestTargetName:
 
         if status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             with pytest.raises(ServerError) as exc:
-                add_target_to_vws(
+                _add_target_to_vws(
                     vuforia_database=vuforia_database,
                     data=data,
                 )
@@ -416,7 +417,7 @@ class TestTargetName:
             _assert_oops_response(response=exc.value.response)
             return
 
-        response = add_target_to_vws(
+        response = _add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
         )
@@ -444,12 +445,12 @@ class TestTargetName:
             "image": image_data_encoded,
         }
 
-        add_target_to_vws(
+        _add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
         )
 
-        response = add_target_to_vws(
+        response = _add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
         )
@@ -478,7 +479,7 @@ class TestTargetName:
             "image": image_data_encoded,
         }
 
-        response = add_target_to_vws(
+        response = _add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
         )
@@ -488,7 +489,7 @@ class TestTargetName:
         vws_client.wait_for_target_processed(target_id=target_id)
         vws_client.delete_target(target_id=target_id)
 
-        response = add_target_to_vws(
+        response = _add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
         )
@@ -523,7 +524,7 @@ class TestImage:
             "image": image_data_encoded,
         }
 
-        response = add_target_to_vws(
+        response = _add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
             content_type="application/json",
@@ -550,7 +551,7 @@ class TestImage:
             "image": image_data_encoded,
         }
 
-        response = add_target_to_vws(
+        response = _add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
         )
@@ -578,7 +579,7 @@ class TestImage:
             "image": image_data_encoded,
         }
 
-        response = add_target_to_vws(
+        response = _add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
         )
@@ -619,7 +620,7 @@ class TestImage:
             "image": image_data_encoded,
         }
 
-        response = add_target_to_vws(
+        response = _add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
         )
@@ -652,7 +653,7 @@ class TestImage:
             "image": image_data_encoded,
         }
 
-        response = add_target_to_vws(
+        response = _add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
         )
@@ -680,7 +681,7 @@ class TestImage:
             "image": not_base64_encoded_processable,
         }
 
-        response = add_target_to_vws(
+        response = _add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
         )
@@ -707,7 +708,7 @@ class TestImage:
             "image": not_base64_encoded_not_processable,
         }
 
-        response = add_target_to_vws(
+        response = _add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
         )
@@ -735,7 +736,7 @@ class TestImage:
             "image": image_data_encoded,
         }
 
-        response = add_target_to_vws(
+        response = _add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
         )
@@ -761,7 +762,7 @@ class TestImage:
             "image": invalid_type_image,
         }
 
-        response = add_target_to_vws(
+        response = _add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
         )
@@ -800,7 +801,7 @@ class TestActiveFlag:
             "active_flag": active_flag,
         }
 
-        response = add_target_to_vws(
+        response = _add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
             content_type=content_type,
@@ -828,7 +829,7 @@ class TestActiveFlag:
             "active_flag": active_flag,
         }
 
-        response = add_target_to_vws(
+        response = _add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
             content_type=content_type,
@@ -858,7 +859,7 @@ class TestActiveFlag:
             "image": image_data_encoded,
         }
 
-        response = add_target_to_vws(
+        response = _add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
         )
@@ -886,7 +887,7 @@ class TestActiveFlag:
             "active_flag": None,
         }
 
-        response = add_target_to_vws(
+        response = _add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
         )
@@ -920,7 +921,7 @@ class TestUnexpectedData:
             "extra_thing": 1,
         }
 
-        response = add_target_to_vws(
+        response = _add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
         )
@@ -966,7 +967,7 @@ class TestApplicationMetadata:
             "application_metadata": metadata_encoded,
         }
 
-        response = add_target_to_vws(
+        response = _add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
         )
@@ -991,7 +992,7 @@ class TestApplicationMetadata:
             "application_metadata": None,
         }
 
-        response = add_target_to_vws(
+        response = _add_target_to_vws(
             vuforia_database=vuforia_database,
             data=request_data,
         )
@@ -1017,7 +1018,7 @@ class TestApplicationMetadata:
             "application_metadata": 1,
         }
 
-        response = add_target_to_vws(
+        response = _add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
         )
@@ -1048,7 +1049,7 @@ class TestApplicationMetadata:
             "application_metadata": not_base64_encoded_processable,
         }
 
-        response = add_target_to_vws(
+        response = _add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
         )
@@ -1075,7 +1076,7 @@ class TestApplicationMetadata:
             "application_metadata": not_base64_encoded_not_processable,
         }
 
-        response = add_target_to_vws(
+        response = _add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
         )
@@ -1107,7 +1108,7 @@ class TestApplicationMetadata:
             "application_metadata": metadata_encoded,
         }
 
-        response = add_target_to_vws(
+        response = _add_target_to_vws(
             vuforia_database=vuforia_database,
             data=data,
         )
@@ -1142,7 +1143,7 @@ class TestInactiveProject:
             "image": image_data_encoded,
         }
 
-        response = add_target_to_vws(
+        response = _add_target_to_vws(
             vuforia_database=inactive_database,
             data=data,
             content_type="application/json",

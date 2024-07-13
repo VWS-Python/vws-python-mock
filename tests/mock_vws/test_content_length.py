@@ -67,7 +67,7 @@ class TestIncorrect:
 
         assert_valid_date_header(response=response)
         expected_response_text = textwrap.dedent(
-            """\
+            text="""\
             <html>\r
             <head><title>400 Bad Request</title></head>\r
             <body>\r

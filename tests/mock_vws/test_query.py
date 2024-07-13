@@ -54,7 +54,7 @@ if TYPE_CHECKING:
 VWQ_HOST = "https://cloudreco.vuforia.com"
 
 _JETTY_CONTENT_TYPE_ERROR = textwrap.dedent(
-    """\
+    text="""\
     <html>
     <head>
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
@@ -75,7 +75,7 @@ _JETTY_CONTENT_TYPE_ERROR = textwrap.dedent(
 )
 
 _NGINX_REQUEST_ENTITY_TOO_LARGE_ERROR = textwrap.dedent(
-    """\
+    text="""\
     <html>\r
     <head><title>413 Request Entity Too Large</title></head>\r
     <body>\r
@@ -87,7 +87,8 @@ _NGINX_REQUEST_ENTITY_TOO_LARGE_ERROR = textwrap.dedent(
 )
 
 
-def query(
+def _query(
+    *,
     vuforia_database: VuforiaDatabase,
     body: dict[str, Any],
 ) -> requests.Response:
@@ -528,7 +529,7 @@ class TestSuccess:
 
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
 
-        response = query(vuforia_database=vuforia_database, body=body)
+        response = _query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
         (result,) = response.json()["results"]
@@ -677,7 +678,7 @@ class TestIncorrectFields:
         """
         If an image is not given, a ``BAD_REQUEST`` response is returned.
         """
-        response = query(vuforia_database=vuforia_database, body={})
+        response = _query(vuforia_database=vuforia_database, body={})
 
         assert response.text == "No image."
         assert_vwq_failure(
@@ -703,7 +704,7 @@ class TestIncorrectFields:
             "extra_field": (None, 1, "text/plain"),
         }
 
-        response = query(vuforia_database=vuforia_database, body=body)
+        response = _query(vuforia_database=vuforia_database, body=body)
 
         assert response.text == "Unknown parameters in the request."
         assert_vwq_failure(
@@ -729,7 +730,7 @@ class TestIncorrectFields:
             "extra_field": (None, 1, "text/plain"),
         }
 
-        response = query(vuforia_database=vuforia_database, body=body)
+        response = _query(vuforia_database=vuforia_database, body=body)
 
         assert response.text == "Unknown parameters in the request."
         assert_vwq_failure(
@@ -780,7 +781,7 @@ class TestMaxNumResults:
             "image": ("image.jpeg", image_content, "image/jpeg"),
         }
 
-        response = query(vuforia_database=vuforia_database, body=body)
+        response = _query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
         assert len(response.json()["results"]) == 1
@@ -811,7 +812,7 @@ class TestMaxNumResults:
             "max_num_results": (None, num_results, "text/plain"),
         }
 
-        response = query(vuforia_database=vuforia_database, body=body)
+        response = _query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
         assert response.json()["results"] == []
@@ -838,7 +839,7 @@ class TestMaxNumResults:
             "max_num_results": (None, max_num_results, "text/plain"),
         }
 
-        response = query(vuforia_database=vuforia_database, body=body)
+        response = _query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
         assert len(response.json()["results"]) == max_num_results
@@ -903,7 +904,7 @@ class TestMaxNumResults:
             "image": ("image.jpeg", image_content, "image/jpeg"),
             "max_num_results": (None, num_results, "text/plain"),
         }
-        response = query(vuforia_database=vuforia_database, body=body)
+        response = _query(vuforia_database=vuforia_database, body=body)
 
         expected_text = (
             f"Invalid value '{num_results.decode()}' in form data part "
@@ -970,7 +971,7 @@ class TestIncludeTargetData:
             "max_num_results": (None, 2, "text/plain"),
         }
 
-        response = query(vuforia_database=vuforia_database, body=body)
+        response = _query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
         result_1, result_2 = response.json()["results"]
@@ -1001,7 +1002,7 @@ class TestIncludeTargetData:
             "max_num_results": (None, 2, "text/plain"),
         }
 
-        response = query(vuforia_database=vuforia_database, body=body)
+        response = _query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
         result_1, result_2 = response.json()["results"]
@@ -1032,7 +1033,7 @@ class TestIncludeTargetData:
             "max_num_results": (None, 2, "text/plain"),
         }
 
-        response = query(vuforia_database=vuforia_database, body=body)
+        response = _query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
         result_1, result_2 = response.json()["results"]
@@ -1063,7 +1064,7 @@ class TestIncludeTargetData:
             "max_num_results": (None, 2, "text/plain"),
         }
 
-        response = query(vuforia_database=vuforia_database, body=body)
+        response = _query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
         result_1, result_2 = response.json()["results"]
@@ -1086,7 +1087,7 @@ class TestIncludeTargetData:
             "image": ("image.jpeg", image_content, "image/jpeg"),
             "include_target_data": (None, include_target_data, "text/plain"),
         }
-        response = query(vuforia_database=vuforia_database, body=body)
+        response = _query(vuforia_database=vuforia_database, body=body)
 
         expected_text = (
             f"Invalid value '{include_target_data}' in form data "
