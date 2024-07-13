@@ -5,6 +5,7 @@ Tests for the mock of the add target endpoint.
 from __future__ import annotations
 
 import base64
+import io
 import json
 from http import HTTPMethod, HTTPStatus
 from string import hexdigits
@@ -18,6 +19,7 @@ from mock_vws._constants import ResultCodes
 from requests.structures import CaseInsensitiveDict
 from vws.exceptions.custom_exceptions import OopsAnErrorOccurredPossiblyBadName
 from vws.exceptions.vws_exceptions import (
+    BadImage,
     Fail,
     ImageTooLarge,
     MetadataTooLarge,
@@ -34,8 +36,6 @@ from tests.mock_vws.utils.assertions import (
 from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
 if TYPE_CHECKING:
-    import io
-
     from mock_vws.database import VuforiaDatabase
     from vws import VWS
     from vws.exceptions.response import Response
@@ -687,29 +687,22 @@ class TestImage:
         )
 
     @staticmethod
-    def test_not_image(
-        vuforia_database: VuforiaDatabase,
-    ) -> None:
+    def test_not_image(vws_client: VWS) -> None:
         """
         If the given image is not an image file then a `BadImage` result is
         returned.
         """
-        not_image_data = b"not_image_data"
-        image_data_encoded = base64.b64encode(s=not_image_data).decode("ascii")
-
-        data = {
-            "name": "example_name",
-            "width": 1,
-            "image": image_data_encoded,
-        }
-
-        response = _add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
-        )
+        with pytest.raises(expected_exception=BadImage) as exc:
+            vws_client.add_target(
+                name="example_name",
+                width=1,
+                image=io.BytesIO(initial_bytes=b"not_image_data"),
+                application_metadata=None,
+                active_flag=True,
+            )
 
         assert_vws_failure(
-            response=response,
+            response=exc.value.response,
             status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             result_code=ResultCodes.BAD_IMAGE,
         )
