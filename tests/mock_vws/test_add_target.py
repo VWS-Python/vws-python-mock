@@ -449,37 +449,28 @@ class TestTargetName:
     @staticmethod
     def test_deleted_existing_target_name(
         image_file_failed_state: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
         vws_client: VWS,
     ) -> None:
         """
         A target can be added with the name of a deleted target.
         """
-        image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
-
-        data = {
-            "name": "example_name",
-            "width": 1,
-            "image": image_data_encoded,
-        }
-
-        response = _add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
+        target_id = vws_client.add_target(
+            name="example_name",
+            width=1,
+            image=image_file_failed_state,
+            application_metadata=None,
+            active_flag=True,
         )
-
-        target_id = response.json()["target_id"]
 
         vws_client.wait_for_target_processed(target_id=target_id)
         vws_client.delete_target(target_id=target_id)
-
-        response = _add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
+        vws_client.add_target(
+            name="example_name",
+            width=1,
+            image=image_file_failed_state,
+            application_metadata=None,
+            active_flag=True,
         )
-
-        assert_success(response=response)
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
