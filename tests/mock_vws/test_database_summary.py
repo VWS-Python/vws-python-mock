@@ -19,11 +19,12 @@ from vws.exceptions.vws_exceptions import Fail
 if TYPE_CHECKING:
     import io
 
-LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER = logging.getLogger(name=__name__)
+LOGGER.setLevel(level=logging.DEBUG)
 
 
 def _wait_for_image_numbers(
+    *,
     vws_client: VWS,
     active_images: int,
     inactive_images: int,
@@ -85,7 +86,7 @@ def _wait_for_image_numbers(
                     f"Expected {value} `{key}`s. "
                     f"Found {relevant_images_in_summary} `{key}`s."
                 )
-                LOGGER.debug(message)
+                LOGGER.debug(msg=message)
 
                 time.sleep(sleep_seconds)
 

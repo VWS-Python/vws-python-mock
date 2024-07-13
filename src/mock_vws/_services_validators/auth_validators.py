@@ -18,10 +18,10 @@ if TYPE_CHECKING:
     from mock_vws.database import VuforiaDatabase
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(name=__name__)
 
 
-def validate_auth_header_exists(request_headers: dict[str, str]) -> None:
+def validate_auth_header_exists(*, request_headers: dict[str, str]) -> None:
     """
     Validate that there is an authorization header given to a VWS endpoint.
 
@@ -37,6 +37,7 @@ def validate_auth_header_exists(request_headers: dict[str, str]) -> None:
 
 
 def validate_access_key_exists(
+    *,
     request_headers: dict[str, str],
     databases: set[VuforiaDatabase],
 ) -> None:
@@ -65,6 +66,7 @@ def validate_access_key_exists(
 
 
 def validate_auth_header_has_signature(
+    *,
     request_headers: dict[str, str],
 ) -> None:
     """
@@ -87,6 +89,7 @@ def validate_auth_header_has_signature(
 
 
 def validate_authorization(
+    *,
     request_path: str,
     request_headers: dict[str, str],
     request_body: bytes,
@@ -115,8 +118,8 @@ def validate_authorization(
             request_path=request_path,
             databases=databases,
         )
-    except ValueError:
+    except ValueError as exc:
         _LOGGER.warning(
             msg="No database matches the given authorization header.",
         )
-        raise AuthenticationFailureError from ValueError
+        raise AuthenticationFailureError from exc

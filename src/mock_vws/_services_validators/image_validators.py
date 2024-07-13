@@ -17,7 +17,7 @@ from mock_vws._services_validators.exceptions import (
     ImageTooLargeError,
 )
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(name=__name__)
 
 
 def validate_image_format(*, request_body: bytes) -> None:

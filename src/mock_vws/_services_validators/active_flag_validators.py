@@ -8,7 +8,7 @@ from http import HTTPStatus
 
 from mock_vws._services_validators.exceptions import FailError
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(name=__name__)
 
 
 def validate_active_flag(*, request_body: bytes) -> None:

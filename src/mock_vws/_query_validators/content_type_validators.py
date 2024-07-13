@@ -12,7 +12,7 @@ from mock_vws._query_validators.exceptions import (
     UnsupportedMediaTypeError,
 )
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(name=__name__)
 
 
 def validate_content_type_header(

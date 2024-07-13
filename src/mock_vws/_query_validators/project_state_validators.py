@@ -9,7 +9,7 @@ from mock_vws._query_validators.exceptions import InactiveProjectError
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(name=__name__)
 
 
 def validate_project_state(

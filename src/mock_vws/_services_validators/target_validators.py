@@ -8,10 +8,11 @@ from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._services_validators.exceptions import UnknownTargetError
 from mock_vws.database import VuforiaDatabase
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(name=__name__)
 
 
 def validate_target_id_exists(
+    *,
     request_path: str,
     request_headers: dict[str, str],
     request_body: bytes,

@@ -15,10 +15,11 @@ from mock_vws._query_validators.exceptions import (
     RequestEntityTooLargeError,
 )
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(name=__name__)
 
 
 def validate_image_field_given(
+    *,
     request_headers: dict[str, str],
     request_body: bytes,
 ) -> None:
@@ -49,6 +50,7 @@ def validate_image_field_given(
 
 
 def validate_image_file_size(
+    *,
     request_headers: dict[str, str],
     request_body: bytes,
 ) -> None:
@@ -88,6 +90,7 @@ def validate_image_file_size(
 
 
 def validate_image_dimensions(
+    *,
     request_headers: dict[str, str],
     request_body: bytes,
 ) -> None:
@@ -125,6 +128,7 @@ def validate_image_dimensions(
 
 
 def validate_image_format(
+    *,
     request_headers: dict[str, str],
     request_body: bytes,
 ) -> None:

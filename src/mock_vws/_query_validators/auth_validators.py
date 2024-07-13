@@ -14,7 +14,7 @@ from mock_vws._query_validators.exceptions import (
     MalformedAuthHeaderError,
 )
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(name=__name__)
 
 if TYPE_CHECKING:
     from mock_vws.database import VuforiaDatabase

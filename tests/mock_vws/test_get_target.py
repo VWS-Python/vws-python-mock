@@ -121,11 +121,12 @@ class TestGetRecord:
 
 
 def _get_target_tracking_rating(
+    *,
     vws_client: VWS,
     image_file: io.BytesIO,
 ) -> int:
     """
-    Get the tracking rating of a target.
+    Get the tracking rating of a target with the given image.
     """
     target_id = vws_client.add_target(
         name=f"example_{uuid.uuid4().hex}",

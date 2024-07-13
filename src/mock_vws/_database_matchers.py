@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 
 
 def get_database_matching_client_keys(
+    *,
     request_headers: dict[str, str],
     request_body: bytes | None,
     request_method: str,
@@ -59,6 +60,7 @@ def get_database_matching_client_keys(
 
 
 def get_database_matching_server_keys(
+    *,
     request_headers: dict[str, str],
     request_body: bytes | None,
     request_method: str,

@@ -10,10 +10,11 @@ from werkzeug.formparser import MultiPartParser
 
 from mock_vws._query_validators.exceptions import UnknownParametersError
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(name=__name__)
 
 
 def validate_extra_fields(
+    *,
     request_headers: dict[str, str],
     request_body: bytes,
 ) -> None:
