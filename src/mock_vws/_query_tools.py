@@ -60,7 +60,7 @@ def get_query_match_response_text(
     include_target_data = fields.get("include_target_data", "top").lower()
 
     image_part = files["image"]
-    image_value = bytes(image_part.stream.read())
+    image_value = image_part.stream.read()
     gmt = ZoneInfo("GMT")
     datetime.datetime.now(tz=gmt)
 
