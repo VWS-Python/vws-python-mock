@@ -306,7 +306,7 @@ class TestWidth:
         """
         vws_client.add_target(
             name="example",
-            width=-0.01,
+            width=0.01,
             image=image_file_failed_state,
             application_metadata=None,
             active_flag=True,
