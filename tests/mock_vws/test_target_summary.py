@@ -173,7 +173,7 @@ class TestInactiveProject:
         """
         The project's active state does not affect getting a target.
         """
-        with pytest.raises(UnknownTarget):
+        with pytest.raises(expected_exception=UnknownTarget):
             inactive_vws_client.get_target_summary_report(
                 target_id=uuid.uuid4().hex,
             )

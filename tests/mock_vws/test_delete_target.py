@@ -38,7 +38,7 @@ class TestDelete:
         There is a race condition here - if the target goes into a success or
         fail state before the deletion attempt.
         """
-        with pytest.raises(TargetStatusProcessing) as exc:
+        with pytest.raises(expected_exception=TargetStatusProcessing) as exc:
             vws_client.delete_target(target_id=target_id)
 
         assert_vws_failure(
@@ -55,7 +55,7 @@ class TestDelete:
         vws_client.wait_for_target_processed(target_id=target_id)
         vws_client.delete_target(target_id=target_id)
 
-        with pytest.raises(UnknownTarget):
+        with pytest.raises(expected_exception=UnknownTarget):
             vws_client.get_target_record(target_id=target_id)
 
 
@@ -71,7 +71,7 @@ class TestInactiveProject:
         If the project is inactive, a FORBIDDEN response is returned.
         """
         target_id = "abc12345a"
-        with pytest.raises(ProjectInactive) as exc:
+        with pytest.raises(expected_exception=ProjectInactive) as exc:
             inactive_vws_client.delete_target(target_id=target_id)
 
         assert_vws_failure(
