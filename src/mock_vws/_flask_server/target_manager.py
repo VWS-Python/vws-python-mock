@@ -121,7 +121,7 @@ def create_database() -> Response:
     :status 201: The database has been successfully created.
     """
     random_database = VuforiaDatabase()
-    request_json = json.loads(request.data)
+    request_json = json.loads(s=request.data)
     server_access_key = request_json.get(
         "server_access_key",
         random_database.server_access_key,
@@ -184,7 +184,7 @@ def create_target(database_name: str) -> Response:
         for database in TARGET_MANAGER.databases
         if database.database_name == database_name
     )
-    request_json = json.loads(request.data)
+    request_json = json.loads(s=request.data)
     image_base64 = request_json["image_base64"]
     image_bytes = base64.b64decode(s=image_base64)
     settings = TargetManagerSettings.model_validate(obj={})
@@ -247,7 +247,7 @@ def update_target(database_name: str, target_id: str) -> Response:
     )
     target = database.get_target(target_id=target_id)
 
-    request_json = json.loads(request.data)
+    request_json = json.loads(s=request.data)
     width = request_json.get("width", target.width)
     name = request_json.get("name", target.name)
     active_flag = request_json.get("active_flag", target.active_flag)
@@ -257,7 +257,7 @@ def update_target(database_name: str, target_id: str) -> Response:
     )
 
     image_value = target.image_value
-    request_json = json.loads(request.data)
+    request_json = json.loads(s=request.data)
     if "image" in request_json:
         image_value = base64.b64decode(s=request_json["image"])
 

@@ -38,7 +38,11 @@ class DateHeaderNotGivenError(ValidatorError):
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
         self.response_text = "Date header required."
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Content-Type": "text/plain;charset=iso-8859-1",
             "Connection": "keep-alive",
@@ -64,7 +68,11 @@ class DateFormatNotValidError(ValidatorError):
         super().__init__()
         self.status_code = HTTPStatus.UNAUTHORIZED
         self.response_text = "Malformed date header."
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Content-Type": "text/plain;charset=iso-8859-1",
             "Connection": "keep-alive",
@@ -95,8 +103,12 @@ class RequestTimeTooSkewedError(ValidatorError):
             "transaction_id": uuid.uuid4().hex,
             "result_code": ResultCodes.REQUEST_TIME_TOO_SKEWED.value,
         }
-        self.response_text = json_dump(body)
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        self.response_text = json_dump(body=body)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Content-Type": "application/json",
             "Connection": "keep-alive",
@@ -134,7 +146,11 @@ class BadImageError(ValidatorError):
             "}"
         )
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Content-Type": "application/json",
             "Connection": "keep-alive",
@@ -171,7 +187,11 @@ class AuthenticationFailureError(ValidatorError):
             f'"result_code":"{result_code}"'
             "}"
         )
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Content-Type": "application/json",
             "Connection": "keep-alive",
@@ -203,8 +223,12 @@ class AuthenticationFailureGoodFormattingError(ValidatorError):
             "transaction_id": uuid.uuid4().hex,
             "result_code": ResultCodes.AUTHENTICATION_FAILURE.value,
         }
-        self.response_text = json_dump(body)
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        self.response_text = json_dump(body=body)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Content-Type": "application/json",
             "Connection": "keep-alive",
@@ -232,7 +256,11 @@ class ImageNotGivenError(ValidatorError):
         self.status_code = HTTPStatus.BAD_REQUEST
         self.response_text = "No image."
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Content-Type": "application/json",
             "Connection": "keep-alive",
@@ -259,7 +287,11 @@ class AuthHeaderMissingError(ValidatorError):
         self.status_code = HTTPStatus.UNAUTHORIZED
         self.response_text = "Authorization header missing."
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Content-Type": "text/plain;charset=iso-8859-1",
             "Connection": "keep-alive",
@@ -288,7 +320,11 @@ class MalformedAuthHeaderError(ValidatorError):
         self.status_code = HTTPStatus.UNAUTHORIZED
         self.response_text = "Malformed authorization header."
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Content-Type": "text/plain;charset=iso-8859-1",
             "Connection": "keep-alive",
@@ -316,7 +352,11 @@ class UnknownParametersError(ValidatorError):
         self.status_code = HTTPStatus.BAD_REQUEST
         self.response_text = "Unknown parameters in the request."
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Content-Type": "application/json",
             "Connection": "keep-alive",
@@ -353,7 +393,11 @@ class InactiveProjectError(ValidatorError):
             "}"
         )
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Content-Type": "application/json",
             "Connection": "keep-alive",
@@ -385,7 +429,11 @@ class InvalidMaxNumResultsError(ValidatorError):
         )
         self.response_text = invalid_value_message
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Content-Type": "application/json",
             "Connection": "keep-alive",
@@ -417,7 +465,11 @@ class MaxNumResultsOutOfRangeError(ValidatorError):
         )
         self.response_text = integer_out_of_range_message
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Content-Type": "application/json",
             "Connection": "keep-alive",
@@ -451,7 +503,11 @@ class InvalidIncludeTargetDataError(ValidatorError):
         )
         self.response_text = unexpected_target_data_message
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Content-Type": "application/json",
             "Connection": "keep-alive",
@@ -478,7 +534,11 @@ class UnsupportedMediaTypeError(ValidatorError):
         self.status_code = HTTPStatus.UNSUPPORTED_MEDIA_TYPE
         self.response_text = ""
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Connection": "keep-alive",
             "Server": "nginx",
@@ -504,7 +564,11 @@ class InvalidAcceptHeaderError(ValidatorError):
         self.status_code = HTTPStatus.NOT_ACCEPTABLE
         self.response_text = ""
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Connection": "keep-alive",
             "Server": "nginx",
@@ -533,7 +597,11 @@ class NoBoundaryFoundError(ValidatorError):
             "Unable to get boundary for multipart"
         )
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Content-Type": "text/html;charset=utf-8",
             "Connection": "keep-alive",
@@ -617,7 +685,11 @@ class RequestEntityTooLargeError(ValidatorError):
             </html>\r
             """,
         )
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Connection": "Close",
             "Date": date,
@@ -642,7 +714,11 @@ class NoContentTypeError(ValidatorError):
         """
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         jetty_content_type_error = textwrap.dedent(
             """\
             <html>

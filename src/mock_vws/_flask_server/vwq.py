@@ -133,7 +133,7 @@ def query() -> Response:
         request_path=request.path,
         databases=databases,
     )
-    date = email.utils.formatdate(None, localtime=False, usegmt=True)
+    date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
 
     response_text = get_query_match_response_text(
         request_headers=dict(request.headers),

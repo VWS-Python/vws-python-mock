@@ -33,7 +33,7 @@ def validate_target_id_exists(
         UnknownTargetError: There are no matching targets for a given target
             ID.
     """
-    split_path = request_path.split("/")
+    split_path = request_path.split(sep="/")
 
     request_path_no_target_id_length = 2
     if len(split_path) == request_path_no_target_id_length:

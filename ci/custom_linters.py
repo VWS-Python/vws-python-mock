@@ -8,7 +8,7 @@ import pytest
 import yaml
 
 
-def _ci_patterns(repository_root: Path) -> set[str]:
+def _ci_patterns(*, repository_root: Path) -> set[str]:
     """
     Return the CI patterns given in the CI configuration file.
     """
@@ -22,6 +22,7 @@ def _ci_patterns(repository_root: Path) -> set[str]:
 
 
 def _tests_from_pattern(
+    *,
     ci_pattern: str,
     capsys: pytest.CaptureFixture[str],
 ) -> set[str]:

@@ -36,7 +36,7 @@ def assert_vws_failure(
         AssertionError: The response is not in the expected VWS error format
             for the given codes.
     """
-    assert json.loads(response.text).keys() == {
+    assert json.loads(s=response.text).keys() == {
         "transaction_id",
         "result_code",
     }
@@ -60,7 +60,7 @@ def assert_valid_date_header(response: requests.Response | Response) -> None:
             within one minute of "now".
     """
     date_response = response.headers["Date"]
-    date_from_response = email.utils.parsedate(date_response)
+    date_from_response = email.utils.parsedate(data=date_response)
     assert date_from_response is not None
     year, month, day, hour, minute, second, _, _, _ = date_from_response
     gmt = ZoneInfo("GMT")
@@ -90,7 +90,7 @@ def assert_valid_transaction_id(
     Raises:
         AssertionError: The response does not include a valid transaction ID.
     """
-    transaction_id = json.loads(response.text)["transaction_id"]
+    transaction_id = json.loads(s=response.text)["transaction_id"]
     expected_transaction_id_length = 32
     assert len(transaction_id) == expected_transaction_id_length
     assert all(char in hexdigits for char in transaction_id)
@@ -107,7 +107,7 @@ def assert_json_separators(response: requests.Response | Response) -> None:
         AssertionError: The response JSON is not formatted correctly.
     """
     assert response.text == json.dumps(
-        obj=json.loads(response.text),
+        obj=json.loads(s=response.text),
         separators=(",", ":"),
     )
 
@@ -137,7 +137,7 @@ def assert_vws_response(
             given codes.
     """
     assert response.status_code == status_code
-    response_result_code = json.loads(response.text)["result_code"]
+    response_result_code = json.loads(s=response.text)["result_code"]
     assert response_result_code == result_code.value
     response_header_keys = {
         "connection",
@@ -174,18 +174,18 @@ def assert_query_success(response: requests.Response) -> None:
             for performing an image recognition query.
     """
     assert response.status_code == HTTPStatus.OK
-    assert json.loads(response.text).keys() == {
+    assert json.loads(s=response.text).keys() == {
         "result_code",
         "results",
         "query_id",
     }
 
-    query_id = json.loads(response.text)["query_id"]
+    query_id = json.loads(s=response.text)["query_id"]
     expected_query_id_length = 32
     assert len(query_id) == expected_query_id_length
     assert all(char in hexdigits for char in query_id)
 
-    assert json.loads(response.text)["result_code"] == "Success"
+    assert json.loads(s=response.text)["result_code"] == "Success"
     assert_valid_date_header(response=response)
     copied_response_headers = response.headers.copy()
     copied_response_headers.pop("Date")

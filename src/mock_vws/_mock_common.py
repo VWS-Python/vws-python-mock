@@ -24,7 +24,7 @@ class Route:
     http_methods: frozenset[str]
 
 
-def json_dump(body: dict[str, Any]) -> str:
+def json_dump(*, body: dict[str, Any]) -> str:
     """
     Returns:
         JSON dump of data in the same way that Vuforia dumps data.

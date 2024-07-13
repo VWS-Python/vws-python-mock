@@ -167,7 +167,7 @@ def add_target() -> Response:
 
     # We do not use ``request.get_json(force=True)`` because this only works
     # when the content type is given as ``application/json``.
-    request_json = json.loads(request.data)
+    request_json = json.loads(s=request.data)
     name = request_json["name"]
     active_flag = request_json.get("active_flag")
     if active_flag is None:
@@ -194,7 +194,7 @@ def add_target() -> Response:
         timeout=timeout_seconds,
     )
 
-    date = email.utils.formatdate(None, localtime=False, usegmt=True)
+    date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
     headers = {
         "Connection": "keep-alive",
         "Content-Type": "application/json",
@@ -214,7 +214,7 @@ def add_target() -> Response:
 
     return Response(
         status=HTTPStatus.CREATED,
-        response=json_dump(body),
+        response=json_dump(body=body),
         headers=headers,
     )
 
@@ -249,7 +249,7 @@ def get_target(target_id: str) -> Response:
         "reco_rating": target.reco_rating,
     }
 
-    date = email.utils.formatdate(None, localtime=False, usegmt=True)
+    date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
     headers = {
         "Connection": "keep-alive",
         "Content-Type": "application/json",
@@ -268,7 +268,7 @@ def get_target(target_id: str) -> Response:
     }
     return Response(
         status=HTTPStatus.OK,
-        response=json_dump(body),
+        response=json_dump(body=body),
         headers=headers,
     )
 
@@ -311,7 +311,7 @@ def delete_target(target_id: str) -> Response:
         "transaction_id": uuid.uuid4().hex,
         "result_code": ResultCodes.SUCCESS.value,
     }
-    date = email.utils.formatdate(None, localtime=False, usegmt=True)
+    date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
     headers = {
         "Connection": "keep-alive",
         "Content-Type": "application/json",
@@ -324,7 +324,7 @@ def delete_target(target_id: str) -> Response:
     }
     return Response(
         status=HTTPStatus.OK,
-        response=json_dump(body),
+        response=json_dump(body=body),
         headers=headers,
     )
 
@@ -364,7 +364,7 @@ def database_summary() -> Response:
         # This was not always the case.
         "request_usage": 0,
     }
-    date = email.utils.formatdate(None, localtime=False, usegmt=True)
+    date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
     headers = {
         "Connection": "keep-alive",
         "Content-Type": "application/json",
@@ -377,7 +377,7 @@ def database_summary() -> Response:
     }
     return Response(
         status=HTTPStatus.OK,
-        response=json_dump(body),
+        response=json_dump(body=body),
         headers=headers,
     )
 
@@ -415,7 +415,7 @@ def target_summary(target_id: str) -> Response:
         "current_month_recos": target.current_month_recos,
         "previous_month_recos": target.previous_month_recos,
     }
-    date = email.utils.formatdate(None, localtime=False, usegmt=True)
+    date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
     headers = {
         "Connection": "keep-alive",
         "Content-Type": "application/json",
@@ -428,7 +428,7 @@ def target_summary(target_id: str) -> Response:
     }
     return Response(
         status=HTTPStatus.OK,
-        response=json_dump(body),
+        response=json_dump(body=body),
         headers=headers,
     )
 
@@ -478,7 +478,7 @@ def get_duplicates(target_id: str) -> Response:
         "similar_targets": similar_targets,
     }
 
-    date = email.utils.formatdate(None, localtime=False, usegmt=True)
+    date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
     headers = {
         "Connection": "keep-alive",
         "Content-Type": "application/json",
@@ -491,7 +491,7 @@ def get_duplicates(target_id: str) -> Response:
     }
     return Response(
         status=HTTPStatus.OK,
-        response=json_dump(body),
+        response=json_dump(body=body),
         headers=headers,
     )
 
@@ -519,7 +519,7 @@ def target_list() -> Response:
         "result_code": ResultCodes.SUCCESS.value,
         "results": results,
     }
-    date = email.utils.formatdate(None, localtime=False, usegmt=True)
+    date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
     headers = {
         "Connection": "keep-alive",
         "Content-Type": "application/json",
@@ -532,7 +532,7 @@ def target_list() -> Response:
     }
     return Response(
         status=HTTPStatus.OK,
-        response=json_dump(body),
+        response=json_dump(body=body),
         headers=headers,
     )
 
@@ -548,7 +548,7 @@ def update_target(target_id: str) -> Response:
     settings = VWSSettings.model_validate(obj={})
     # We do not use ``request.get_json(force=True)`` because this only works
     # when the content type is given as ``application/json``.
-    request_json = json.loads(request.data)
+    request_json = json.loads(s=request.data)
     databases = get_all_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
@@ -607,7 +607,7 @@ def update_target(target_id: str) -> Response:
     )
     requests.put(url=put_url, json=update_values, timeout=30)
 
-    date = email.utils.formatdate(None, localtime=False, usegmt=True)
+    date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
     headers = {
         "Connection": "keep-alive",
         "Content-Type": "application/json",
@@ -624,7 +624,7 @@ def update_target(target_id: str) -> Response:
     }
     return Response(
         status=HTTPStatus.OK,
-        response=json_dump(body),
+        response=json_dump(body=body),
         headers=headers,
     )
 

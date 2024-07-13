@@ -365,14 +365,14 @@ class TestDateHeader:
         """
         new_year = 2012
         new_time = datetime.datetime(new_year, 1, 1, tzinfo=datetime.UTC)
-        with MockVWS(), freeze_time(new_time):
+        with MockVWS(), freeze_time(time_to_freeze=new_time):
             response = requests.get(
                 url="https://vws.vuforia.com/summary",
                 timeout=30,
             )
 
         date_response = response.headers["Date"]
-        date_from_response = email.utils.parsedate(date_response)
+        date_from_response = email.utils.parsedate(data=date_response)
         assert date_from_response is not None
         year = date_from_response[0]
         assert year == new_year
