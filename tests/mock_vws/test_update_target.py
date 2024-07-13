@@ -5,6 +5,7 @@ Tests for the mock of the update target endpoint.
 from __future__ import annotations
 
 import base64
+import io
 import json
 import uuid
 from http import HTTPMethod, HTTPStatus
@@ -28,8 +29,6 @@ from tests.mock_vws.utils.too_many_requests import handle_server_errors
 _MAX_METADATA_BYTES: Final[int] = 1024 * 1024 - 1
 
 if TYPE_CHECKING:
-    import io
-
     from mock_vws.database import VuforiaDatabase
     from vws import VWS
 
@@ -857,28 +856,21 @@ class TestImage:
         )
 
     @staticmethod
-    def test_not_image(
-        vuforia_database: VuforiaDatabase,
-        target_id: str,
-        vws_client: VWS,
-    ) -> None:
+    def test_not_image(target_id: str, vws_client: VWS) -> None:
         """
         If the given image is not an image file then a `BadImage` result is
         returned.
         """
-        not_image_data = b"not_image_data"
-        image_data_encoded = base64.b64encode(s=not_image_data).decode("ascii")
-
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        response = _update_target(
-            vuforia_database=vuforia_database,
-            data={"image": image_data_encoded},
-            target_id=target_id,
-        )
+        with pytest.raises(expected_exception=BadImage) as exc:
+            vws_client.update_target(
+                target_id=target_id,
+                image=io.BytesIO(initial_bytes=b"not_image_data"),
+            )
 
         assert_vws_failure(
-            response=response,
+            response=exc.value.response,
             status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             result_code=ResultCodes.BAD_IMAGE,
         )
