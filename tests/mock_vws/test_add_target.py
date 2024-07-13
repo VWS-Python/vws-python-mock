@@ -17,7 +17,7 @@ from dirty_equals import IsInstance
 from mock_vws._constants import ResultCodes
 from requests.structures import CaseInsensitiveDict
 from vws.exceptions.custom_exceptions import OopsAnErrorOccurredPossiblyBadName
-from vws.exceptions.vws_exceptions import Fail
+from vws.exceptions.vws_exceptions import Fail, ProjectInactive
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from tests.mock_vws.utils import make_image_file
@@ -1109,29 +1109,23 @@ class TestInactiveProject:
 
     @staticmethod
     def test_inactive_project(
-        inactive_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
+        inactive_vws_client: VWS,
     ) -> None:
         """
         If the project is inactive, a FORBIDDEN response is returned.
         """
-        image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
-
-        data = {
-            "name": "example",
-            "width": 1,
-            "image": image_data_encoded,
-        }
-
-        response = _add_target_to_vws(
-            vuforia_database=inactive_database,
-            data=data,
-            content_type="application/json",
-        )
+        with pytest.raises(expected_exception=ProjectInactive) as exc:
+            inactive_vws_client.add_target(
+                name="example",
+                width=1,
+                image=image_file_failed_state,
+                application_metadata=None,
+                active_flag=True,
+            )
 
         assert_vws_failure(
-            response=response,
+            response=exc.value.response,
             status_code=HTTPStatus.FORBIDDEN,
             result_code=ResultCodes.PROJECT_INACTIVE,
         )
