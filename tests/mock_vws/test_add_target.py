@@ -16,7 +16,8 @@ import requests
 from dirty_equals import IsInstance
 from mock_vws._constants import ResultCodes
 from requests.structures import CaseInsensitiveDict
-from vws.exceptions.custom_exceptions import ServerError
+from vws.exceptions.custom_exceptions import OopsAnErrorOccurredPossiblyBadName
+from vws.exceptions.vws_exceptions import Fail
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from tests.mock_vws.utils import make_image_file
@@ -293,28 +294,19 @@ class TestWidth:
 
     @staticmethod
     def test_width_valid(
-        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
         Positive numbers are valid widths.
         """
-        image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
-
-        data = {
-            "name": "example",
-            "width": 0.01,
-            "image": image_data_encoded,
-        }
-
-        response = _add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
-            content_type="application/json",
+        vws_client.add_target(
+            name="example",
+            width=-0.01,
+            image=image_file_failed_state,
+            application_metadata=None,
+            active_flag=True,
         )
-
-        assert_success(response=response)
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -342,27 +334,18 @@ class TestTargetName:
     def test_name_valid(
         name: str,
         image_file_failed_state: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         Names between 1 and 64 characters in length are valid.
         """
-        image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
-
-        data = {
-            "name": name,
-            "width": 1,
-            "image": image_data_encoded,
-        }
-
-        response = _add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
-            content_type="application/json",
+        vws_client.add_target(
+            name=name,
+            width=1,
+            image=image_file_failed_state,
+            application_metadata=None,
+            active_flag=True,
         )
-
-        assert_success(response=response)
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -390,40 +373,38 @@ class TestTargetName:
     def test_name_invalid(
         name: str,
         image_file_failed_state: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
         status_code: int,
+        vws_client: VWS,
     ) -> None:
         """
         A target's name must be a string of length 0 < N < 65, with characters
         in a particular range.
         """
-        image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
-
-        data = {
-            "name": name,
-            "width": 1,
-            "image": image_data_encoded,
-        }
-
         if status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            with pytest.raises(ServerError) as exc:
-                _add_target_to_vws(
-                    vuforia_database=vuforia_database,
-                    data=data,
+            with pytest.raises(
+                expected_exception=OopsAnErrorOccurredPossiblyBadName,
+            ) as exc:
+                vws_client.add_target(
+                    name=name,
+                    width=1,
+                    image=image_file_failed_state,
+                    application_metadata=None,
+                    active_flag=True,
                 )
-
             assert exc.value.response.status_code == status_code
             _assert_oops_response(response=exc.value.response)
             return
 
-        response = _add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
-        )
-
+        with pytest.raises(expected_exception=Fail) as exc:
+            vws_client.add_target(
+                name=name,
+                width=1,
+                image=image_file_failed_state,
+                application_metadata=None,
+                active_flag=True,
+            )
         assert_vws_failure(
-            response=response,
+            response=exc.value.response,
             status_code=status_code,
             result_code=ResultCodes.FAIL,
         )
