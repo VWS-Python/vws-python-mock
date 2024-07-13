@@ -68,7 +68,7 @@ class TestUnexpectedJSON:
         handle_server_errors(response=response)
 
         url = endpoint.prepared_request.url or ""
-        netloc = urlparse(url).netloc
+        netloc = urlparse(url=url).netloc
         if netloc == "cloudreco.vuforia.com":
             # The multipart/formdata boundary is no longer in the given
             # content.

@@ -54,7 +54,7 @@ class TestAuthorizationHeader:
         handle_server_errors(response=response)
 
         url = endpoint.prepared_request.url or ""
-        netloc = urlparse(url).netloc
+        netloc = urlparse(url=url).netloc
         if netloc == "cloudreco.vuforia.com":
             assert_vwq_failure(
                 response=response,
@@ -102,7 +102,7 @@ class TestMalformed:
         handle_server_errors(response=response)
 
         url = endpoint.prepared_request.url or ""
-        netloc = urlparse(url).netloc
+        netloc = urlparse(url=url).netloc
         if netloc == "cloudreco.vuforia.com":
             assert_vwq_failure(
                 response=response,
@@ -140,7 +140,7 @@ class TestMalformed:
         handle_server_errors(response=response)
 
         url = endpoint.prepared_request.url or ""
-        netloc = urlparse(url).netloc
+        netloc = urlparse(url=url).netloc
         if netloc == "cloudreco.vuforia.com":
             assert_vwq_failure(
                 response=response,
@@ -177,7 +177,7 @@ class TestMalformed:
         handle_server_errors(response=response)
 
         url = endpoint.prepared_request.url or ""
-        netloc = urlparse(url).netloc
+        netloc = urlparse(url=url).netloc
         if netloc == "cloudreco.vuforia.com":
             assert_vwq_failure(
                 response=response,

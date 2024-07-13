@@ -63,7 +63,7 @@ class TestMissing:
         handle_server_errors(response=response)
 
         url = endpoint.prepared_request.url or ""
-        netloc = urlparse(url).netloc
+        netloc = urlparse(url=url).netloc
 
         if netloc == "cloudreco.vuforia.com":
             expected_content_type = "text/plain;charset=iso-8859-1"
@@ -127,7 +127,7 @@ class TestFormat:
         handle_server_errors(response=response)
 
         url = endpoint.prepared_request.url or ""
-        netloc = urlparse(url).netloc
+        netloc = urlparse(url=url).netloc
         if netloc == "cloudreco.vuforia.com":
             assert response.text == "Malformed date header."
             assert_vwq_failure(
@@ -165,7 +165,7 @@ class TestSkewedTime:
         consistent, some leeway is given.
         """
         url = endpoint.prepared_request.url or ""
-        netloc = urlparse(url).netloc
+        netloc = urlparse(url=url).netloc
         skew = {
             "vws.vuforia.com": _VWS_MAX_TIME_SKEW,
             "cloudreco.vuforia.com": _VWQ_MAX_TIME_SKEW,
@@ -227,7 +227,7 @@ class TestSkewedTime:
         consistent, some leeway is given.
         """
         url = endpoint.prepared_request.url or ""
-        netloc = urlparse(url).netloc
+        netloc = urlparse(url=url).netloc
         skew = {
             "vws.vuforia.com": _VWS_MAX_TIME_SKEW,
             "cloudreco.vuforia.com": _VWQ_MAX_TIME_SKEW,
@@ -288,7 +288,7 @@ class TestSkewedTime:
         consistent, some leeway is given.
         """
         url = endpoint.prepared_request.url or ""
-        netloc = urlparse(url).netloc
+        netloc = urlparse(url=url).netloc
         skew = {
             "vws.vuforia.com": _VWS_MAX_TIME_SKEW,
             "cloudreco.vuforia.com": _VWQ_MAX_TIME_SKEW,
@@ -319,7 +319,7 @@ class TestSkewedTime:
         handle_server_errors(response=response)
 
         url = endpoint.prepared_request.url or ""
-        netloc = urlparse(url).netloc
+        netloc = urlparse(url=url).netloc
         if netloc == "cloudreco.vuforia.com":
             assert_query_success(response=response)
             return
@@ -340,7 +340,7 @@ class TestSkewedTime:
         consistent, some leeway is given.
         """
         url = endpoint.prepared_request.url or ""
-        netloc = urlparse(url).netloc
+        netloc = urlparse(url=url).netloc
         skew = {
             "vws.vuforia.com": _VWS_MAX_TIME_SKEW,
             "cloudreco.vuforia.com": _VWQ_MAX_TIME_SKEW,
@@ -371,7 +371,7 @@ class TestSkewedTime:
         handle_server_errors(response=response)
 
         url = endpoint.prepared_request.url or ""
-        netloc = urlparse(url).netloc
+        netloc = urlparse(url=url).netloc
         if netloc == "cloudreco.vuforia.com":
             assert_query_success(response=response)
             return

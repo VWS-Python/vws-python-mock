@@ -54,7 +54,7 @@ class TestIncorrect:
         assert response.status_code == HTTPStatus.BAD_REQUEST
 
         url = endpoint.prepared_request.url or ""
-        netloc = urlparse(url).netloc
+        netloc = urlparse(url=url).netloc
         if netloc == "cloudreco.vuforia.com":
             assert not response.text
             assert response.headers == CaseInsensitiveDict(
@@ -98,7 +98,7 @@ class TestIncorrect:
             pytest.skip("No Content-Type header for this request")
 
         url = endpoint.prepared_request.url or ""
-        netloc = urlparse(url).netloc
+        netloc = urlparse(url=url).netloc
         content_length = str(
             int(endpoint.prepared_request.headers["Content-Length"]) + 1
         )
@@ -158,7 +158,7 @@ class TestIncorrect:
         handle_server_errors(response=response)
 
         url = endpoint.prepared_request.url or ""
-        netloc = urlparse(url).netloc
+        netloc = urlparse(url=url).netloc
         if netloc == "cloudreco.vuforia.com":
             assert_vwq_failure(
                 response=response,
