@@ -601,7 +601,7 @@ class MockVuforiaWebServicesAPI:
             context.status_code = fail_exception.status_code
             return fail_exception.response_text
 
-        gmt = ZoneInfo("GMT")
+        gmt = ZoneInfo(key="GMT")
         last_modified_date = datetime.datetime.now(tz=gmt)
 
         new_target = dataclasses.replace(

@@ -5,12 +5,10 @@ Tools for making Vuforia queries.
 from __future__ import annotations
 
 import base64
-import datetime
 import io
 import uuid
 from email.message import EmailMessage
 from typing import TYPE_CHECKING, Any
-from zoneinfo import ZoneInfo
 
 from werkzeug.formparser import MultiPartParser
 
@@ -25,6 +23,7 @@ if TYPE_CHECKING:
 
 
 def get_query_match_response_text(
+    *,
     request_headers: dict[str, str],
     request_body: bytes,
     request_method: str,
@@ -61,8 +60,6 @@ def get_query_match_response_text(
 
     image_part = files["image"]
     image_value = image_part.stream.read()
-    gmt = ZoneInfo("GMT")
-    datetime.datetime.now(tz=gmt)
 
     database = get_database_matching_client_keys(
         request_headers=request_headers,

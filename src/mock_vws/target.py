@@ -51,7 +51,7 @@ def _time_now() -> datetime.datetime:
     """
     Return the current time in the GMT time zone.
     """
-    gmt = ZoneInfo("GMT")
+    gmt = ZoneInfo(key="GMT")
     return datetime.datetime.now(tz=gmt)
 
 
@@ -158,7 +158,7 @@ class Target:
         """
         Load a target from a dictionary.
         """
-        timezone = ZoneInfo("GMT")
+        timezone = ZoneInfo(key="GMT")
         name = target_dict["name"]
         active_flag = target_dict["active_flag"]
         width = target_dict["width"]

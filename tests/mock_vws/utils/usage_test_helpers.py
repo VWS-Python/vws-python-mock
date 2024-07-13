@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 
 
 def processing_time_seconds(
+    *,
     vuforia_database: VuforiaDatabase,
     image: io.BytesIO,
 ) -> float:
@@ -42,6 +43,5 @@ def processing_time_seconds(
     ):
         pass
 
-    return (
-        datetime.datetime.now(tz=datetime.UTC) - start_time
-    ).total_seconds()
+    processing_time = datetime.datetime.now(tz=datetime.UTC) - start_time
+    return processing_time.total_seconds()

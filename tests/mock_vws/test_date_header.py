@@ -100,7 +100,7 @@ class TestFormat:
 
         An `UNAUTHORIZED` response is returned to the VWQ API.
         """
-        gmt = ZoneInfo("GMT")
+        gmt = ZoneInfo(key="GMT")
         with freeze_time(time_to_freeze=datetime.now(tz=gmt)):
             now = datetime.now(tz=gmt)
             date_incorrect_format = now.strftime("%a %b %d %H:%M:%S")
@@ -171,7 +171,7 @@ class TestSkewedTime:
             "cloudreco.vuforia.com": _VWQ_MAX_TIME_SKEW,
         }[netloc]
         time_difference_from_now = skew + _LEEWAY
-        gmt = ZoneInfo("GMT")
+        gmt = ZoneInfo(key="GMT")
         with freeze_time(
             time_to_freeze=datetime.now(tz=gmt) + time_difference_from_now
         ):
@@ -233,7 +233,7 @@ class TestSkewedTime:
             "cloudreco.vuforia.com": _VWQ_MAX_TIME_SKEW,
         }[netloc]
         time_difference_from_now = skew + _LEEWAY
-        gmt = ZoneInfo("GMT")
+        gmt = ZoneInfo(key="GMT")
         with freeze_time(
             time_to_freeze=datetime.now(tz=gmt) - time_difference_from_now
         ):
@@ -294,7 +294,7 @@ class TestSkewedTime:
             "cloudreco.vuforia.com": _VWQ_MAX_TIME_SKEW,
         }[netloc]
         time_difference_from_now = skew - _LEEWAY
-        gmt = ZoneInfo("GMT")
+        gmt = ZoneInfo(key="GMT")
         with freeze_time(
             time_to_freeze=datetime.now(tz=gmt) + time_difference_from_now
         ):
@@ -346,7 +346,7 @@ class TestSkewedTime:
             "cloudreco.vuforia.com": _VWQ_MAX_TIME_SKEW,
         }[netloc]
         time_difference_from_now = skew - _LEEWAY
-        gmt = ZoneInfo("GMT")
+        gmt = ZoneInfo(key="GMT")
         with freeze_time(
             time_to_freeze=datetime.now(tz=gmt) - time_difference_from_now
         ):

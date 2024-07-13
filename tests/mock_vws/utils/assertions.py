@@ -67,7 +67,7 @@ def assert_valid_date_header(
     date_from_response = email.utils.parsedate(data=date_response)
     assert date_from_response is not None
     year, month, day, hour, minute, second, _, _, _ = date_from_response
-    gmt = ZoneInfo("GMT")
+    gmt = ZoneInfo(key="GMT")
     datetime_from_response = datetime.datetime(
         year=year,
         month=month,
