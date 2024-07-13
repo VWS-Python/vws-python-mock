@@ -15,7 +15,11 @@ from urllib.parse import urljoin
 import pytest
 import requests
 from mock_vws._constants import ResultCodes
-from vws.exceptions.vws_exceptions import BadImage, ProjectInactive
+from vws.exceptions.vws_exceptions import (
+    BadImage,
+    ImageTooLarge,
+    ProjectInactive,
+)
 from vws.reports import TargetStatuses
 from vws_auth_tools import authorization_header, rfc_1123_date
 
@@ -725,11 +729,7 @@ class TestImage:
         )
 
     @staticmethod
-    def test_image_too_large(
-        vuforia_database: VuforiaDatabase,
-        target_id: str,
-        vws_client: VWS,
-    ) -> None:
+    def test_image_too_large(target_id: str, vws_client: VWS) -> None:
         """
         An `ImageTooLarge` result is returned if the image is above a certain
         threshold.
@@ -745,8 +745,7 @@ class TestImage:
 
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        image_data = png_not_too_large.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
+        image_data = png_not_too_large.getvalue()
         image_content_size = len(image_data)
         # We check that the image we created is just slightly smaller than the
         # maximum file size.
@@ -756,17 +755,7 @@ class TestImage:
         assert image_content_size < max_bytes
         assert (image_content_size * 1.05) > max_bytes
 
-        response = _update_target(
-            vuforia_database=vuforia_database,
-            data={"image": image_data_encoded},
-            target_id=target_id,
-        )
-
-        assert_vws_response(
-            response=response,
-            status_code=HTTPStatus.OK,
-            result_code=ResultCodes.SUCCESS,
-        )
+        vws_client.update_target(target_id=target_id, image=png_not_too_large)
 
         vws_client.wait_for_target_processed(target_id=target_id)
 
@@ -779,8 +768,7 @@ class TestImage:
             height=height,
         )
 
-        image_data = png_too_large.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
+        image_data = png_too_large.getvalue()
         image_content_size = len(image_data)
         # We check that the image we created is just slightly smaller than the
         # maximum file size.
@@ -790,14 +778,11 @@ class TestImage:
         assert image_content_size < max_bytes
         assert (image_content_size * 1.05) > max_bytes
 
-        response = _update_target(
-            vuforia_database=vuforia_database,
-            data={"image": image_data_encoded},
-            target_id=target_id,
-        )
+        with pytest.raises(expected_exception=ImageTooLarge) as exc:
+            vws_client.update_target(target_id=target_id, image=png_too_large)
 
         assert_vws_failure(
-            response=response,
+            response=exc.value.response,
             status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             result_code=ResultCodes.IMAGE_TOO_LARGE,
         )
@@ -930,10 +915,7 @@ class TestImage:
         original_tracking_rating = target_details.target_record.tracking_rating
         assert original_tracking_rating in range(6)
 
-        vws_client.update_target(
-            target_id=target_id,
-            image=high_quality_image,
-        )
+        vws_client.update_target(target_id=target_id, image=high_quality_image)
 
         vws_client.wait_for_target_processed(target_id=target_id)
         target_details = vws_client.get_target_record(target_id=target_id)
