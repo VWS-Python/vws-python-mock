@@ -21,6 +21,7 @@ from vws.exceptions.vws_exceptions import (
     ImageTooLarge,
     MetadataTooLarge,
     ProjectInactive,
+    TargetNameExist,
 )
 from vws.reports import TargetStatuses
 from vws_auth_tools import authorization_header, rfc_1123_date
@@ -570,7 +571,6 @@ class TestTargetName:
     @staticmethod
     def test_existing_target_name(
         image_file_success_state_low_rating: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
         vws_client: VWS,
     ) -> None:
         """
@@ -598,14 +598,14 @@ class TestTargetName:
         vws_client.wait_for_target_processed(target_id=first_target_id)
         vws_client.wait_for_target_processed(target_id=second_target_id)
 
-        response = _update_target(
-            vuforia_database=vuforia_database,
-            data={"name": first_target_name},
-            target_id=second_target_id,
-        )
+        with pytest.raises(expected_exception=TargetNameExist) as exc:
+            vws_client.update_target(
+                target_id=second_target_id,
+                name=first_target_name,
+            )
 
         assert_vws_failure(
-            response=response,
+            response=exc.value.response,
             status_code=HTTPStatus.FORBIDDEN,
             result_code=ResultCodes.TARGET_NAME_EXIST,
         )
