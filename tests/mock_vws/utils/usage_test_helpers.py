@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 
 
 def processing_time_seconds(
+    *,
     vuforia_database: VuforiaDatabase,
     image: io.BytesIO,
 ) -> float:

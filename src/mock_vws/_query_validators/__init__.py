@@ -42,6 +42,7 @@ if TYPE_CHECKING:
 
 
 def run_query_validators(
+    *,
     request_path: str,
     request_headers: dict[str, str],
     request_body: bytes,
