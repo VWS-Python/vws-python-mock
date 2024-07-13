@@ -51,8 +51,7 @@ def request_unmocked_address() -> None:
     sock.bind(("", 0))
     port = sock.getsockname()[1]
     sock.close()
-    address = f"http://localhost:{port}"
-    requests.get(address, timeout=30)
+    requests.get(url=f"http://localhost:{port}", timeout=30)
 
 
 def request_mocked_address() -> None:
