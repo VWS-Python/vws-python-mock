@@ -484,29 +484,19 @@ class TestImage:
 
     @staticmethod
     def test_image_valid(
-        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         image_files_failed_state: io.BytesIO,
     ) -> None:
         """
         JPEG and PNG files in the RGB and greyscale color spaces are allowed.
         """
-        image_file = image_files_failed_state
-        image_data = image_file.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
-
-        data = {
-            "name": "example",
-            "width": 1,
-            "image": image_data_encoded,
-        }
-
-        response = _add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
-            content_type="application/json",
+        vws_client.add_target(
+            name="example_name",
+            width=1,
+            image=image_files_failed_state,
+            application_metadata=None,
+            active_flag=True,
         )
-
-        assert_success(response=response)
 
     @staticmethod
     def test_bad_image_format_or_color_space(
