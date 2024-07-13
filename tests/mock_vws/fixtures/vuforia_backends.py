@@ -154,10 +154,7 @@ def _enable_use_docker_in_memory(
         )
 
         databases_url = target_manager_base_url + "/databases"
-        databases = requests.get(
-            url=databases_url,
-            timeout=30,
-        ).json()
+        databases = requests.get(url=databases_url, timeout=30).json()
         for database in databases:
             database_name = database["database_name"]
             requests.delete(
