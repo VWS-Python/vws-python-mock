@@ -383,7 +383,7 @@ class TestTargetName:
         if status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             with pytest.raises(
                 expected_exception=OopsAnErrorOccurredPossiblyBadName,
-            ) as exc:
+            ) as oops_exc:
                 vws_client.add_target(
                     name=name,
                     width=1,
@@ -391,8 +391,8 @@ class TestTargetName:
                     application_metadata=None,
                     active_flag=True,
                 )
-            assert exc.value.response.status_code == status_code
-            _assert_oops_response(response=exc.value.response)
+            assert oops_exc.value.response.status_code == status_code
+            _assert_oops_response(response=oops_exc.value.response)
             return
 
         with pytest.raises(expected_exception=Fail) as exc:
