@@ -675,7 +675,7 @@ class RequestEntityTooLargeError(ValidatorError):
         super().__init__()
         self.status_code = HTTPStatus.REQUEST_ENTITY_TOO_LARGE
         self.response_text = textwrap.dedent(
-            """\
+            text="""\
             <html>\r
             <head><title>413 Request Entity Too Large</title></head>\r
             <body>\r
@@ -720,7 +720,7 @@ class NoContentTypeError(ValidatorError):
             usegmt=True,
         )
         jetty_content_type_error = textwrap.dedent(
-            """\
+            text="""\
             <html>
             <head>
             <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>

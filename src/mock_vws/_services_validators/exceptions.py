@@ -144,7 +144,7 @@ class FailError(ValidatorError):
     Exception raised when Vuforia returns a response with a result code 'Fail'.
     """
 
-    def __init__(self, status_code: HTTPStatus) -> None:
+    def __init__(self, *, status_code: HTTPStatus) -> None:
         """
         Attributes:
             status_code: The status code to use in a response if this is
@@ -460,7 +460,7 @@ class ContentLengthHeaderNotIntError(ValidatorError):
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
         self.response_text = textwrap.dedent(
-            """\
+            text="""\
             <html>\r
             <head><title>400 Bad Request</title></head>\r
             <body>\r

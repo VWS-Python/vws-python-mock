@@ -54,7 +54,7 @@ if TYPE_CHECKING:
 VWQ_HOST = "https://cloudreco.vuforia.com"
 
 _JETTY_CONTENT_TYPE_ERROR = textwrap.dedent(
-    """\
+    text="""\
     <html>
     <head>
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
@@ -75,7 +75,7 @@ _JETTY_CONTENT_TYPE_ERROR = textwrap.dedent(
 )
 
 _NGINX_REQUEST_ENTITY_TOO_LARGE_ERROR = textwrap.dedent(
-    """\
+    text="""\
     <html>\r
     <head><title>413 Request Entity Too Large</title></head>\r
     <body>\r
@@ -88,6 +88,7 @@ _NGINX_REQUEST_ENTITY_TOO_LARGE_ERROR = textwrap.dedent(
 
 
 def query(
+    *,
     vuforia_database: VuforiaDatabase,
     body: dict[str, Any],
 ) -> requests.Response:
