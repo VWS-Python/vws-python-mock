@@ -95,7 +95,7 @@ class MockVuforiaWebQueryAPI:
         self._query_match_checker = query_match_checker
 
     @route(path_pattern="/v1/query", http_methods={HTTPMethod.POST})
-    def query(self, *, request: Request, context: Context) -> str:
+    def query(self, request: Request, context: Context) -> str:
         """
         Perform an image recognition query.
         """
