@@ -42,6 +42,5 @@ def processing_time_seconds(
     ):
         pass
 
-    return (
-        datetime.datetime.now(tz=datetime.UTC) - start_time
-    ).total_seconds()
+    processing_time = datetime.datetime.now(tz=datetime.UTC) - start_time
+    return processing_time.total_seconds()
