@@ -34,7 +34,8 @@ if TYPE_CHECKING:
     from vws import VWS
 
 
-def update_target(
+def _update_target(
+    *,
     vuforia_database: VuforiaDatabase,
     data: dict[str, Any],
     target_id: str,
@@ -121,7 +122,7 @@ class TestUpdate:
             application_metadata=None,
         )
 
-        response = update_target(
+        response = _update_target(
             vuforia_database=vuforia_database,
             data={"name": "Adam"},
             target_id=target_id,
@@ -153,7 +154,7 @@ class TestUpdate:
             application_metadata=None,
         )
 
-        response = update_target(
+        response = _update_target(
             vuforia_database=vuforia_database,
             data={"name": "Adam"},
             target_id=target_id,
@@ -177,7 +178,7 @@ class TestUpdate:
         """
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        response = update_target(
+        response = _update_target(
             vuforia_database=vuforia_database,
             data={},
             target_id=target_id,
@@ -218,7 +219,7 @@ class TestUnexpectedData:
         """
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        response = update_target(
+        response = _update_target(
             vuforia_database=vuforia_database,
             data={"extra_thing": 1},
             target_id=target_id,
@@ -257,7 +258,7 @@ class TestWidth:
         target_details = vws_client.get_target_record(target_id=target_id)
         original_width = target_details.target_record.width
 
-        response = update_target(
+        response = _update_target(
             vuforia_database=vuforia_database,
             data={"width": width},
             target_id=target_id,
@@ -334,7 +335,7 @@ class TestActiveFlag:
         """
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        response = update_target(
+        response = _update_target(
             vuforia_database=vuforia_database,
             data={"active_flag": desired_active_flag},
             target_id=target_id,
@@ -390,7 +391,7 @@ class TestApplicationMetadata:
         """
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        response = update_target(
+        response = _update_target(
             vuforia_database=vuforia_database,
             data={"application_metadata": invalid_metadata},
             target_id=target_id,
@@ -415,7 +416,7 @@ class TestApplicationMetadata:
         """
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        response = update_target(
+        response = _update_target(
             vuforia_database=vuforia_database,
             data={"application_metadata": not_base64_encoded_processable},
             target_id=target_id,
@@ -440,7 +441,7 @@ class TestApplicationMetadata:
         """
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        response = update_target(
+        response = _update_target(
             vuforia_database=vuforia_database,
             data={"application_metadata": not_base64_encoded_not_processable},
             target_id=target_id,
@@ -466,7 +467,7 @@ class TestApplicationMetadata:
         metadata_encoded = base64.b64encode(metadata).decode("ascii")
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        response = update_target(
+        response = _update_target(
             vuforia_database=vuforia_database,
             data={"application_metadata": metadata_encoded},
             target_id=target_id,
@@ -562,7 +563,7 @@ class TestTargetName:
         """
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        response = update_target(
+        response = _update_target(
             vuforia_database=vuforia_database,
             data={"name": name},
             target_id=target_id,
@@ -605,7 +606,7 @@ class TestTargetName:
         vws_client.wait_for_target_processed(target_id=first_target_id)
         vws_client.wait_for_target_processed(target_id=second_target_id)
 
-        response = update_target(
+        response = _update_target(
             vuforia_database=vuforia_database,
             data={"name": first_target_name},
             target_id=second_target_id,
@@ -638,7 +639,7 @@ class TestTargetName:
 
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        response = update_target(
+        response = _update_target(
             vuforia_database=vuforia_database,
             data={"name": name},
             target_id=target_id,
@@ -679,7 +680,7 @@ class TestImage:
 
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        response = update_target(
+        response = _update_target(
             vuforia_database=vuforia_database,
             data={"image": image_data_encoded},
             target_id=target_id,
@@ -756,7 +757,7 @@ class TestImage:
         assert image_content_size < max_bytes
         assert (image_content_size * 1.05) > max_bytes
 
-        response = update_target(
+        response = _update_target(
             vuforia_database=vuforia_database,
             data={"image": image_data_encoded},
             target_id=target_id,
@@ -790,7 +791,7 @@ class TestImage:
         assert image_content_size < max_bytes
         assert (image_content_size * 1.05) > max_bytes
 
-        response = update_target(
+        response = _update_target(
             vuforia_database=vuforia_database,
             data={"image": image_data_encoded},
             target_id=target_id,
@@ -817,7 +818,7 @@ class TestImage:
         """
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        response = update_target(
+        response = _update_target(
             vuforia_database=vuforia_database,
             data={"image": not_base64_encoded_processable},
             target_id=target_id,
@@ -843,7 +844,7 @@ class TestImage:
         """
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        response = update_target(
+        response = _update_target(
             vuforia_database=vuforia_database,
             data={"image": not_base64_encoded_not_processable},
             target_id=target_id,
@@ -870,7 +871,7 @@ class TestImage:
 
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        response = update_target(
+        response = _update_target(
             vuforia_database=vuforia_database,
             data={"image": image_data_encoded},
             target_id=target_id,
@@ -895,7 +896,7 @@ class TestImage:
         """
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        response = update_target(
+        response = _update_target(
             vuforia_database=vuforia_database,
             data={"image": invalid_type_image},
             target_id=target_id,
@@ -941,7 +942,7 @@ class TestImage:
         original_tracking_rating = target_details.target_record.tracking_rating
         assert original_tracking_rating in range(6)
 
-        update_target(
+        _update_target(
             vuforia_database=vuforia_database,
             data={"image": good_image_data_encoded},
             target_id=target_id,
