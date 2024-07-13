@@ -20,6 +20,7 @@ if TYPE_CHECKING:
 
 
 def assert_vws_failure(
+    *,
     response: requests.Response | Response,
     status_code: int,
     result_code: ResultCodes,
@@ -47,7 +48,10 @@ def assert_vws_failure(
     )
 
 
-def assert_valid_date_header(response: requests.Response | Response) -> None:
+def assert_valid_date_header(
+    *,
+    response: requests.Response | Response,
+) -> None:
     """
     Assert that a response includes a `Date` header which is within two minutes
     of "now".
@@ -79,6 +83,7 @@ def assert_valid_date_header(response: requests.Response | Response) -> None:
 
 
 def assert_valid_transaction_id(
+    *,
     response: requests.Response | Response,
 ) -> None:
     """
@@ -96,7 +101,7 @@ def assert_valid_transaction_id(
     assert all(char in hexdigits for char in transaction_id)
 
 
-def assert_json_separators(response: requests.Response | Response) -> None:
+def assert_json_separators(*, response: requests.Response | Response) -> None:
     """
     Assert that a JSON response is formatted correctly.
 
@@ -113,6 +118,7 @@ def assert_json_separators(response: requests.Response | Response) -> None:
 
 
 def assert_vws_response(
+    *,
     response: requests.Response | Response,
     status_code: int,
     result_code: ResultCodes,
@@ -164,7 +170,7 @@ def assert_vws_response(
     assert_valid_date_header(response=response)
 
 
-def assert_query_success(response: requests.Response) -> None:
+def assert_query_success(*, response: requests.Response) -> None:
     """
     Assert that the given response is a success response for performing an
     image recognition query.
@@ -218,6 +224,7 @@ def assert_query_success(response: requests.Response) -> None:
 
 
 def assert_vwq_failure(
+    *,
     response: requests.Response | Response,
     status_code: int,
     content_type: str | None,
