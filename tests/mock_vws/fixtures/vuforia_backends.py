@@ -35,7 +35,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 @RETRY_ON_TOO_MANY_REQUESTS
-def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
+def _delete_all_targets(*, database_keys: VuforiaDatabase) -> None:
     """
     Delete all targets.
 
@@ -66,6 +66,7 @@ def _delete_all_targets(database_keys: VuforiaDatabase) -> None:
 
 
 def _enable_use_real_vuforia(
+    *,
     working_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
     monkeypatch: pytest.MonkeyPatch,
@@ -78,6 +79,7 @@ def _enable_use_real_vuforia(
 
 
 def _enable_use_mock_vuforia(
+    *,
     working_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
     monkeypatch: pytest.MonkeyPatch,
@@ -108,6 +110,7 @@ def _enable_use_mock_vuforia(
 
 
 def _enable_use_docker_in_memory(
+    *,
     working_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
     monkeypatch: pytest.MonkeyPatch,
