@@ -277,7 +277,7 @@ class TestTargets:
         target_dict = target.to_dict()
 
         # The dictionary is JSON dump-able
-        assert json.dumps(target_dict)
+        assert json.dumps(obj=target_dict)
 
         new_target = Target.from_dict(target_dict=target_dict)
         assert new_target == target
@@ -312,7 +312,7 @@ class TestTargets:
         target_dict = target.to_dict()
 
         # The dictionary is JSON dump-able
-        assert json.dumps(target_dict)
+        assert json.dumps(obj=target_dict)
 
         new_target = Target.from_dict(target_dict=target_dict)
         assert new_target.delete_date == target.delete_date
@@ -347,7 +347,7 @@ class TestDatabaseToDict:
 
         database_dict = database.to_dict()
         # The dictionary is JSON dump-able
-        assert json.dumps(database_dict)
+        assert json.dumps(obj=database_dict)
 
         new_database = VuforiaDatabase.from_dict(database_dict=database_dict)
         assert new_database == database

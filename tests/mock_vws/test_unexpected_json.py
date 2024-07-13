@@ -39,7 +39,7 @@ class TestUnexpectedJSON:
             == "application/json"
         ):
             return
-        content = bytes(json.dumps({"key": "value"}), encoding="utf-8")
+        content = bytes(json.dumps(obj={"key": "value"}), encoding="utf-8")
         content_type = "application/json"
         date = rfc_1123_date()
 
