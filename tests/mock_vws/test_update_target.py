@@ -613,7 +613,6 @@ class TestTargetName:
     @staticmethod
     def test_same_name_given(
         image_file_success_state_low_rating: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
         vws_client: VWS,
     ) -> None:
         """
@@ -630,19 +629,7 @@ class TestTargetName:
         )
 
         vws_client.wait_for_target_processed(target_id=target_id)
-
-        response = _update_target(
-            vuforia_database=vuforia_database,
-            data={"name": name},
-            target_id=target_id,
-        )
-
-        assert_vws_failure(
-            response=response,
-            status_code=HTTPStatus.OK,
-            result_code=ResultCodes.SUCCESS,
-        )
-
+        vws_client.update_target(target_id=target_id, name=name)
         target_details = vws_client.get_target_record(target_id=target_id)
         assert target_details.target_record.name == name
 
@@ -658,7 +645,6 @@ class TestImage:
 
     @staticmethod
     def test_image_valid(
-        vuforia_database: VuforiaDatabase,
         image_files_failed_state: io.BytesIO,
         target_id: str,
         vws_client: VWS,
@@ -666,22 +652,11 @@ class TestImage:
         """
         JPEG and PNG files in the RGB and greyscale color spaces are allowed.
         """
-        image_file = image_files_failed_state
-        image_data = image_file.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
-
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        response = _update_target(
-            vuforia_database=vuforia_database,
-            data={"image": image_data_encoded},
+        vws_client.update_target(
             target_id=target_id,
-        )
-
-        assert_vws_response(
-            response=response,
-            status_code=HTTPStatus.OK,
-            result_code=ResultCodes.SUCCESS,
+            image=image_files_failed_state,
         )
 
     @staticmethod
@@ -696,7 +671,7 @@ class TestImage:
         RGB color space.
         """
         vws_client.wait_for_target_processed(target_id=target_id)
-        with pytest.raises(BadImage) as exc:
+        with pytest.raises(expected_exception=BadImage) as exc:
             vws_client.update_target(target_id=target_id, image=bad_image_file)
 
         status_code = exc.value.response.status_code
