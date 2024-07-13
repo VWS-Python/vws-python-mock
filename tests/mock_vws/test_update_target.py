@@ -17,6 +17,7 @@ import requests
 from mock_vws._constants import ResultCodes
 from vws.exceptions.vws_exceptions import (
     BadImage,
+    Fail,
     ImageTooLarge,
     MetadataTooLarge,
     ProjectInactive,
@@ -426,7 +427,6 @@ class TestApplicationMetadata:
 
     @staticmethod
     def test_not_base64_encoded_not_processable(
-        vuforia_database: VuforiaDatabase,
         vws_client: VWS,
         target_id: str,
         not_base64_encoded_not_processable: str,
@@ -437,14 +437,14 @@ class TestApplicationMetadata:
         """
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        response = _update_target(
-            vuforia_database=vuforia_database,
-            data={"application_metadata": not_base64_encoded_not_processable},
-            target_id=target_id,
-        )
+        with pytest.raises(expected_exception=Fail) as exc:
+            vws_client.update_target(
+                target_id=target_id,
+                application_metadata=not_base64_encoded_not_processable,
+            )
 
         assert_vws_failure(
-            response=response,
+            response=exc.value.response,
             status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             result_code=ResultCodes.FAIL,
         )
