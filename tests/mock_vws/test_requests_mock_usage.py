@@ -81,7 +81,7 @@ class TestRealHTTP:
         non-Vuforia addresses, but not to mocked Vuforia endpoints.
         """
         with MockVWS():
-            with pytest.raises(NoMockAddress):
+            with pytest.raises(expected_exception=NoMockAddress):
                 request_unmocked_address()
 
             # No exception is raised when making a request to a mocked
@@ -89,7 +89,9 @@ class TestRealHTTP:
             request_mocked_address()
 
         # The mocking stops when the context manager stops.
-        with pytest.raises(requests.exceptions.ConnectionError):
+        with pytest.raises(
+            expected_exception=requests.exceptions.ConnectionError
+        ):
             request_unmocked_address()
 
     @staticmethod
@@ -100,7 +102,9 @@ class TestRealHTTP:
         """
         with (
             MockVWS(real_http=True),
-            pytest.raises(requests.exceptions.ConnectionError),
+            pytest.raises(
+                expected_exception=requests.exceptions.ConnectionError
+            ),
         ):
             request_unmocked_address()
 
@@ -186,7 +190,7 @@ class TestCustomBaseURLs:
             base_vws_url="https://vuforia.vws.example.com",
             real_http=False,
         ):
-            with pytest.raises(NoMockAddress):
+            with pytest.raises(expected_exception=NoMockAddress):
                 requests.get(url="https://vws.vuforia.com/summary", timeout=30)
 
             requests.get(
@@ -207,7 +211,7 @@ class TestCustomBaseURLs:
             base_vwq_url="https://vuforia.vwq.example.com",
             real_http=False,
         ):
-            with pytest.raises(NoMockAddress):
+            with pytest.raises(expected_exception=NoMockAddress):
                 requests.post(
                     url="https://cloudreco.vuforia.com/v1/query",
                     timeout=30,
@@ -227,7 +231,7 @@ class TestCustomBaseURLs:
         """
         An error if raised if a URL is given with no scheme.
         """
-        with pytest.raises(MissingSchema) as vws_exc:
+        with pytest.raises(expected_exception=MissingSchema) as vws_exc:
             MockVWS(base_vws_url="vuforia.vws.example.com")
 
         expected = (
@@ -235,7 +239,7 @@ class TestCustomBaseURLs:
             'Perhaps you meant "https://vuforia.vws.example.com".'
         )
         assert str(vws_exc.value) == expected
-        with pytest.raises(MissingSchema) as vwq_exc:
+        with pytest.raises(expected_exception=MissingSchema) as vwq_exc:
             MockVWS(base_vwq_url="vuforia.vwq.example.com")
         expected = (
             'Invalid URL "vuforia.vwq.example.com": No scheme supplied. '
