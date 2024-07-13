@@ -662,7 +662,7 @@ class TestSuccess:
             len(not_base64_encoded_processable) % 4
         ]
         expected_metadata = base64.b64encode(
-            base64.b64decode(expected_metadata_original),
+            base64.b64decode(s=expected_metadata_original),
         )
         assert query_metadata == expected_metadata.decode()
 

@@ -141,7 +141,7 @@ def not_base64_encoded_processable(request: pytest.FixtureRequest) -> str:
     not_base64_encoded_string: str = request.param
 
     with pytest.raises(binascii.Error):
-        base64.b64decode(not_base64_encoded_string, validate=True)
+        base64.b64decode(s=not_base64_encoded_string, validate=True)
 
     return not_base64_encoded_string
 
@@ -163,6 +163,6 @@ def not_base64_encoded_not_processable(request: pytest.FixtureRequest) -> str:
     not_base64_encoded_string: str = request.param
 
     with pytest.raises(binascii.Error):
-        base64.b64decode(not_base64_encoded_string, validate=True)
+        base64.b64decode(s=not_base64_encoded_string, validate=True)
 
     return not_base64_encoded_string

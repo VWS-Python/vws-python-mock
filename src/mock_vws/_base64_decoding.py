@@ -32,4 +32,4 @@ def decode_base64(encoded_data: str) -> bytes:
     modified_encoded_data = mod_four_result_to_modified_encoded_data[
         len(encoded_data) % 4
     ]
-    return base64.b64decode(modified_encoded_data)
+    return base64.b64decode(s=modified_encoded_data)
