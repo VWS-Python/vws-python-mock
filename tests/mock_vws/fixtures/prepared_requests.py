@@ -62,7 +62,7 @@ def add_target(
     content_type = "application/json"
     method = HTTPMethod.POST
 
-    content = bytes(json.dumps(data), encoding="utf-8")
+    content = json.dumps(obj=data)
 
     access_key = vuforia_database.server_access_key
     secret_key = vuforia_database.server_secret_key
@@ -407,7 +407,7 @@ def update_target(
     _wait_for_target_processed(vws_client=vws_client, target_id=target_id)
     data: dict[str, Any] = {}
     request_path = f"/targets/{target_id}"
-    content = bytes(json.dumps(data), encoding="utf-8")
+    content = json.dumps(obj=data)
     content_type = "application/json"
 
     date = rfc_1123_date()

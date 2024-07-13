@@ -57,7 +57,7 @@ def _update_target(
     date = rfc_1123_date()
     request_path = "/targets/" + target_id
 
-    content = bytes(json.dumps(data), encoding="utf-8")
+    content = json.dumps(obj=data)
 
     authorization_string = authorization_header(
         access_key=vuforia_database.server_access_key,

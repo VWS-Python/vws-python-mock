@@ -57,7 +57,7 @@ def _add_target_to_vws(
     date = rfc_1123_date()
     request_path = "/targets"
 
-    content = bytes(json.dumps(data), encoding="utf-8")
+    content = json.dumps(obj=data)
 
     authorization_string = authorization_header(
         access_key=vuforia_database.server_access_key,
