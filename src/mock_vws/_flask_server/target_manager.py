@@ -166,7 +166,7 @@ def create_database() -> Response:
         )
 
     return Response(
-        response=json.dumps(database.to_dict()),
+        response=json.dumps(obj=database.to_dict()),
         status=HTTPStatus.CREATED,
     )
 
@@ -203,7 +203,7 @@ def create_target(database_name: str) -> Response:
     database.targets.add(target)
 
     return Response(
-        response=json.dumps(target.to_dict()),
+        response=json.dumps(obj=target.to_dict()),
         status=HTTPStatus.CREATED,
     )
 
@@ -227,7 +227,7 @@ def delete_target(database_name: str, target_id: str) -> Response:
     database.targets.remove(target)
     database.targets.add(new_target)
     return Response(
-        response=json.dumps(new_target.to_dict()),
+        response=json.dumps(obj=new_target.to_dict()),
         status=HTTPStatus.OK,
     )
 
@@ -278,7 +278,7 @@ def update_target(database_name: str, target_id: str) -> Response:
     database.targets.add(new_target)
 
     return Response(
-        response=json.dumps(new_target.to_dict()),
+        response=json.dumps(obj=new_target.to_dict()),
         status=HTTPStatus.OK,
     )
 
