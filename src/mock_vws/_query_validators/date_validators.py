@@ -84,8 +84,9 @@ def validate_date_in_range(request_headers: dict[str, str]) -> None:
         RequestTimeTooSkewedError: The date is out of range.
     """
     date_header = request_headers["Date"]
+    gmt = ZoneInfo("GMT")
 
-    date = None
+    date = datetime.datetime.fromtimestamp(0, tz=gmt)
     for date_format in _accepted_date_formats():
         with contextlib.suppress(ValueError):
             date = datetime.datetime.strptime(
@@ -93,8 +94,6 @@ def validate_date_in_range(request_headers: dict[str, str]) -> None:
                 date_format,
             ).astimezone()
 
-    assert date is not None
-    gmt = ZoneInfo("GMT")
     now = datetime.datetime.now(tz=gmt)
     date_from_header = date.replace(tzinfo=gmt)
     time_difference = now - date_from_header
