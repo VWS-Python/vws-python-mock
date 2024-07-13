@@ -827,7 +827,7 @@ class TestMaxNumResults:
         A maximum of ``max_num_results`` results are returned.
         """
         image_content = high_quality_image.getvalue()
-        add_and_wait_for_targets(
+        _add_and_wait_for_targets(
             image=high_quality_image,
             vws_client=vws_client,
             num_targets=3,
@@ -922,7 +922,8 @@ class TestMaxNumResults:
         )
 
 
-def add_and_wait_for_targets(
+def _add_and_wait_for_targets(
+    *,
     image: io.BytesIO,
     vws_client: VWS,
     num_targets: int,
@@ -960,7 +961,7 @@ class TestIncludeTargetData:
         """
         The default ``include_target_data`` is 'top'.
         """
-        add_and_wait_for_targets(
+        _add_and_wait_for_targets(
             image=high_quality_image,
             vws_client=vws_client,
             num_targets=2,
@@ -990,7 +991,7 @@ class TestIncludeTargetData:
         When ``include_target_data`` is set to "top" (case insensitive), only
         the first result includes target data.
         """
-        add_and_wait_for_targets(
+        _add_and_wait_for_targets(
             image=high_quality_image,
             vws_client=vws_client,
             num_targets=2,
@@ -1021,7 +1022,7 @@ class TestIncludeTargetData:
         When ``include_target_data`` is set to "none" (case insensitive), no
         results include target data.
         """
-        add_and_wait_for_targets(
+        _add_and_wait_for_targets(
             image=high_quality_image,
             vws_client=vws_client,
             num_targets=2,
@@ -1052,7 +1053,7 @@ class TestIncludeTargetData:
         When ``include_target_data`` is set to "all" (case insensitive), all
         results include target data.
         """
-        add_and_wait_for_targets(
+        _add_and_wait_for_targets(
             image=high_quality_image,
             vws_client=vws_client,
             num_targets=2,
