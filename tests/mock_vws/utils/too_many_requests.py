@@ -10,7 +10,7 @@ from vws.exceptions.response import Response
 from vws.exceptions.vws_exceptions import TooManyRequests
 
 
-def handle_server_errors(response: requests.Response) -> None:
+def handle_server_errors(*, response: requests.Response) -> None:
     """
     Raise errors if the response is a 429 or 5xx.
     This is useful for retrying tests based on the exceptions they raise.
