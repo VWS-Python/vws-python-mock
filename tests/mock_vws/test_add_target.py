@@ -17,7 +17,11 @@ from dirty_equals import IsInstance
 from mock_vws._constants import ResultCodes
 from requests.structures import CaseInsensitiveDict
 from vws.exceptions.custom_exceptions import OopsAnErrorOccurredPossiblyBadName
-from vws.exceptions.vws_exceptions import Fail, ProjectInactive
+from vws.exceptions.vws_exceptions import (
+    Fail,
+    MetadataTooLarge,
+    ProjectInactive,
+)
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from tests.mock_vws.utils import make_image_file
@@ -1070,32 +1074,27 @@ class TestApplicationMetadata:
 
     @staticmethod
     def test_metadata_too_large(
-        vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
+        vws_client: VWS,
     ) -> None:
         """
         A base64 encoded string of greater than 1024 * 1024 bytes is too large
         for application metadata.
         """
-        image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
         metadata = b"a" * (_MAX_METADATA_BYTES + 1)
         metadata_encoded = base64.b64encode(s=metadata).decode("ascii")
 
-        data = {
-            "name": "example_name",
-            "width": 1,
-            "image": image_data_encoded,
-            "application_metadata": metadata_encoded,
-        }
-
-        response = _add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
-        )
+        with pytest.raises(expected_exception=MetadataTooLarge) as exc:
+            vws_client.add_target(
+                name="example",
+                width=1,
+                image=image_file_failed_state,
+                application_metadata=metadata_encoded,
+                active_flag=True,
+            )
 
         assert_vws_failure(
-            response=response,
+            response=exc.value.response,
             status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             result_code=ResultCodes.METADATA_TOO_LARGE,
         )

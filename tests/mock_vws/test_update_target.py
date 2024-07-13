@@ -408,7 +408,6 @@ class TestApplicationMetadata:
 
     @staticmethod
     def test_not_base64_encoded_processable(
-        vuforia_database: VuforiaDatabase,
         vws_client: VWS,
         target_id: str,
         not_base64_encoded_processable: str,
@@ -419,16 +418,9 @@ class TestApplicationMetadata:
         """
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        response = _update_target(
-            vuforia_database=vuforia_database,
-            data={"application_metadata": not_base64_encoded_processable},
+        vws_client.update_target(
             target_id=target_id,
-        )
-
-        assert_vws_response(
-            response=response,
-            status_code=HTTPStatus.OK,
-            result_code=ResultCodes.SUCCESS,
+            application_metadata=not_base64_encoded_processable,
         )
 
     @staticmethod
