@@ -821,7 +821,7 @@ class TestMaxNumResults:
     def test_valid_works(
         high_quality_image: io.BytesIO,
         vws_client: VWS,
-        vwq_client: CloudRecoService,
+        cloud_reco_client: CloudRecoService,
     ) -> None:
         """
         A maximum of ``max_num_results`` results are returned.
@@ -834,7 +834,7 @@ class TestMaxNumResults:
 
         max_num_results = 2
 
-        result = vwq_client.query(
+        result = cloud_reco_client.query(
             image=high_quality_image,
             max_num_results=max_num_results,
         )
