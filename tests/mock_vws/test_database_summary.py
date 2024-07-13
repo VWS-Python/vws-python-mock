@@ -384,7 +384,7 @@ class TestRequestUsage:
         report = vws_client.get_database_summary_report()
         original_request_usage = report.request_usage
 
-        with pytest.raises(Fail) as exc:
+        with pytest.raises(expected_exception=Fail) as exc:
             vws_client.add_target(
                 name="example",
                 width=-1,

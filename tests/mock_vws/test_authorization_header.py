@@ -216,7 +216,7 @@ class TestBadKey:
             server_secret_key=vuforia_database.server_secret_key,
         )
 
-        with pytest.raises(Fail) as exc:
+        with pytest.raises(expected_exception=Fail) as exc:
             vws_client.get_target_record(target_id=uuid.uuid4().hex)
 
         assert exc.value.response.status_code == HTTPStatus.BAD_REQUEST
@@ -235,7 +235,9 @@ class TestBadKey:
             client_secret_key=vuforia_database.client_secret_key,
         )
 
-        with pytest.raises(cloud_reco_exceptions.AuthenticationFailure) as exc:
+        with pytest.raises(
+            expected_exception=cloud_reco_exceptions.AuthenticationFailure
+        ) as exc:
             cloud_reco_client.query(image=high_quality_image)
 
         response = exc.value.response
@@ -279,7 +281,7 @@ class TestBadKey:
             server_secret_key="example",
         )
 
-        with pytest.raises(AuthenticationFailure):
+        with pytest.raises(expected_exception=AuthenticationFailure):
             vws_client.get_target_record(target_id=uuid.uuid4().hex)
 
     @staticmethod
@@ -296,7 +298,9 @@ class TestBadKey:
             client_secret_key="example",
         )
 
-        with pytest.raises(cloud_reco_exceptions.AuthenticationFailure) as exc:
+        with pytest.raises(
+            expected_exception=cloud_reco_exceptions.AuthenticationFailure
+        ) as exc:
             cloud_reco_client.query(image=high_quality_image)
 
         response = exc.value.response

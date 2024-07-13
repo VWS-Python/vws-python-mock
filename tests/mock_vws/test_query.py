@@ -820,29 +820,25 @@ class TestMaxNumResults:
     @staticmethod
     def test_valid_works(
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
         vws_client: VWS,
+        cloud_reco_client: CloudRecoService,
     ) -> None:
         """
         A maximum of ``max_num_results`` results are returned.
         """
-        image_content = high_quality_image.getvalue()
-        add_and_wait_for_targets(
+        _add_and_wait_for_targets(
             image=high_quality_image,
             vws_client=vws_client,
             num_targets=3,
         )
 
         max_num_results = 2
-        body = {
-            "image": ("image.jpeg", image_content, "image/jpeg"),
-            "max_num_results": (None, max_num_results, "text/plain"),
-        }
 
-        response = _query(vuforia_database=vuforia_database, body=body)
-
-        assert_query_success(response=response)
-        assert len(response.json()["results"]) == max_num_results
+        result = cloud_reco_client.query(
+            image=high_quality_image,
+            max_num_results=max_num_results,
+        )
+        assert len(result) == max_num_results
 
     @staticmethod
     @pytest.mark.parametrize("num_results", [-1, 0, 51])
@@ -922,7 +918,8 @@ class TestMaxNumResults:
         )
 
 
-def add_and_wait_for_targets(
+def _add_and_wait_for_targets(
+    *,
     image: io.BytesIO,
     vws_client: VWS,
     num_targets: int,
@@ -960,7 +957,7 @@ class TestIncludeTargetData:
         """
         The default ``include_target_data`` is 'top'.
         """
-        add_and_wait_for_targets(
+        _add_and_wait_for_targets(
             image=high_quality_image,
             vws_client=vws_client,
             num_targets=2,
@@ -990,7 +987,7 @@ class TestIncludeTargetData:
         When ``include_target_data`` is set to "top" (case insensitive), only
         the first result includes target data.
         """
-        add_and_wait_for_targets(
+        _add_and_wait_for_targets(
             image=high_quality_image,
             vws_client=vws_client,
             num_targets=2,
@@ -1021,7 +1018,7 @@ class TestIncludeTargetData:
         When ``include_target_data`` is set to "none" (case insensitive), no
         results include target data.
         """
-        add_and_wait_for_targets(
+        _add_and_wait_for_targets(
             image=high_quality_image,
             vws_client=vws_client,
             num_targets=2,
@@ -1052,7 +1049,7 @@ class TestIncludeTargetData:
         When ``include_target_data`` is set to "all" (case insensitive), all
         results include target data.
         """
-        add_and_wait_for_targets(
+        _add_and_wait_for_targets(
             image=high_quality_image,
             vws_client=vws_client,
             num_targets=2,
@@ -1276,7 +1273,7 @@ class TestBadImage:
         """
         not_image_data = b"not_image_data"
 
-        with pytest.raises(BadImage) as exc_info:
+        with pytest.raises(expected_exception=BadImage) as exc_info:
             cloud_reco_client.query(
                 image=io.BytesIO(initial_bytes=not_image_data)
             )
@@ -1373,7 +1370,9 @@ class TestMaximumImageFileSize:
         assert image_content_size > max_bytes
         assert (image_content_size * 0.95) < max_bytes
 
-        with pytest.raises(RequestEntityTooLarge) as exc_info:
+        with pytest.raises(
+            expected_exception=RequestEntityTooLarge
+        ) as exc_info:
             cloud_reco_client.query(image=png_too_large)
 
         response = exc_info.value.response
@@ -1450,7 +1449,9 @@ class TestMaximumImageFileSize:
         assert image_content_size > max_bytes
         assert (image_content_size * 0.95) < max_bytes
 
-        with pytest.raises(RequestEntityTooLarge) as exc_info:
+        with pytest.raises(
+            expected_exception=RequestEntityTooLarge
+        ) as exc_info:
             cloud_reco_client.query(image=jpeg_too_large)
 
         response = exc_info.value.response
@@ -1500,7 +1501,7 @@ class TestMaximumImageDimensions:
             height=max_height + 1,
         )
 
-        with pytest.raises(BadImage) as exc_info:
+        with pytest.raises(expected_exception=BadImage) as exc_info:
             cloud_reco_client.query(image=png_too_tall)
 
         response = exc_info.value.response
@@ -1553,7 +1554,7 @@ class TestMaximumImageDimensions:
             height=height,
         )
 
-        with pytest.raises(BadImage) as exc_info:
+        with pytest.raises(expected_exception=BadImage) as exc_info:
             result = cloud_reco_client.query(image=png_too_wide)
 
         response = exc_info.value.response
@@ -1637,7 +1638,7 @@ class TestImageFormats:
         pil_image.save(image_buffer, file_format)
         image_content = image_buffer.getvalue()
 
-        with pytest.raises(BadImage) as exc_info:
+        with pytest.raises(expected_exception=BadImage) as exc_info:
             cloud_reco_client.query(
                 image=io.BytesIO(initial_bytes=image_content)
             )
@@ -1980,7 +1981,7 @@ class TestInactiveProject:
         """
         If the project is inactive, a FORBIDDEN response is returned.
         """
-        with pytest.raises(InactiveProject) as exc_info:
+        with pytest.raises(expected_exception=InactiveProject) as exc_info:
             inactive_cloud_reco_client.query(image=high_quality_image)
 
         response = exc_info.value.response

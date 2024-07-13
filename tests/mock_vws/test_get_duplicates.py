@@ -269,7 +269,7 @@ class TestInactiveProject:
         """
         If the project is inactive, a FORBIDDEN response is returned.
         """
-        with pytest.raises(ProjectInactive):
+        with pytest.raises(expected_exception=ProjectInactive):
             inactive_vws_client.get_duplicate_targets(
                 target_id=uuid.uuid4().hex,
             )

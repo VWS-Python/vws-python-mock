@@ -5,6 +5,7 @@ Tests for the mock of the update target endpoint.
 from __future__ import annotations
 
 import base64
+import io
 import json
 import uuid
 from http import HTTPMethod, HTTPStatus
@@ -14,7 +15,14 @@ from urllib.parse import urljoin
 import pytest
 import requests
 from mock_vws._constants import ResultCodes
-from vws.exceptions.vws_exceptions import BadImage, ProjectInactive
+from vws.exceptions.vws_exceptions import (
+    BadImage,
+    Fail,
+    ImageTooLarge,
+    MetadataTooLarge,
+    ProjectInactive,
+    TargetNameExist,
+)
 from vws.reports import TargetStatuses
 from vws_auth_tools import authorization_header, rfc_1123_date
 
@@ -28,8 +36,6 @@ from tests.mock_vws.utils.too_many_requests import handle_server_errors
 _MAX_METADATA_BYTES: Final[int] = 1024 * 1024 - 1
 
 if TYPE_CHECKING:
-    import io
-
     from mock_vws.database import VuforiaDatabase
     from vws import VWS
 
@@ -405,7 +411,6 @@ class TestApplicationMetadata:
 
     @staticmethod
     def test_not_base64_encoded_processable(
-        vuforia_database: VuforiaDatabase,
         vws_client: VWS,
         target_id: str,
         not_base64_encoded_processable: str,
@@ -416,21 +421,13 @@ class TestApplicationMetadata:
         """
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        response = _update_target(
-            vuforia_database=vuforia_database,
-            data={"application_metadata": not_base64_encoded_processable},
+        vws_client.update_target(
             target_id=target_id,
-        )
-
-        assert_vws_response(
-            response=response,
-            status_code=HTTPStatus.OK,
-            result_code=ResultCodes.SUCCESS,
+            application_metadata=not_base64_encoded_processable,
         )
 
     @staticmethod
     def test_not_base64_encoded_not_processable(
-        vuforia_database: VuforiaDatabase,
         vws_client: VWS,
         target_id: str,
         not_base64_encoded_not_processable: str,
@@ -441,24 +438,20 @@ class TestApplicationMetadata:
         """
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        response = _update_target(
-            vuforia_database=vuforia_database,
-            data={"application_metadata": not_base64_encoded_not_processable},
-            target_id=target_id,
-        )
+        with pytest.raises(expected_exception=Fail) as exc:
+            vws_client.update_target(
+                target_id=target_id,
+                application_metadata=not_base64_encoded_not_processable,
+            )
 
         assert_vws_failure(
-            response=response,
+            response=exc.value.response,
             status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             result_code=ResultCodes.FAIL,
         )
 
     @staticmethod
-    def test_metadata_too_large(
-        vuforia_database: VuforiaDatabase,
-        vws_client: VWS,
-        target_id: str,
-    ) -> None:
+    def test_metadata_too_large(vws_client: VWS, target_id: str) -> None:
         """
         A base64 encoded string of greater than 1024 * 1024 bytes is too large
         for application metadata.
@@ -467,14 +460,14 @@ class TestApplicationMetadata:
         metadata_encoded = base64.b64encode(s=metadata).decode("ascii")
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        response = _update_target(
-            vuforia_database=vuforia_database,
-            data={"application_metadata": metadata_encoded},
-            target_id=target_id,
-        )
+        with pytest.raises(expected_exception=MetadataTooLarge) as exc:
+            vws_client.update_target(
+                target_id=target_id,
+                application_metadata=metadata_encoded,
+            )
 
         assert_vws_failure(
-            response=response,
+            response=exc.value.response,
             status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             result_code=ResultCodes.METADATA_TOO_LARGE,
         )
@@ -578,7 +571,6 @@ class TestTargetName:
     @staticmethod
     def test_existing_target_name(
         image_file_success_state_low_rating: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
         vws_client: VWS,
     ) -> None:
         """
@@ -606,14 +598,14 @@ class TestTargetName:
         vws_client.wait_for_target_processed(target_id=first_target_id)
         vws_client.wait_for_target_processed(target_id=second_target_id)
 
-        response = _update_target(
-            vuforia_database=vuforia_database,
-            data={"name": first_target_name},
-            target_id=second_target_id,
-        )
+        with pytest.raises(expected_exception=TargetNameExist) as exc:
+            vws_client.update_target(
+                target_id=second_target_id,
+                name=first_target_name,
+            )
 
         assert_vws_failure(
-            response=response,
+            response=exc.value.response,
             status_code=HTTPStatus.FORBIDDEN,
             result_code=ResultCodes.TARGET_NAME_EXIST,
         )
@@ -621,7 +613,6 @@ class TestTargetName:
     @staticmethod
     def test_same_name_given(
         image_file_success_state_low_rating: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
         vws_client: VWS,
     ) -> None:
         """
@@ -638,19 +629,7 @@ class TestTargetName:
         )
 
         vws_client.wait_for_target_processed(target_id=target_id)
-
-        response = _update_target(
-            vuforia_database=vuforia_database,
-            data={"name": name},
-            target_id=target_id,
-        )
-
-        assert_vws_failure(
-            response=response,
-            status_code=HTTPStatus.OK,
-            result_code=ResultCodes.SUCCESS,
-        )
-
+        vws_client.update_target(target_id=target_id, name=name)
         target_details = vws_client.get_target_record(target_id=target_id)
         assert target_details.target_record.name == name
 
@@ -666,7 +645,6 @@ class TestImage:
 
     @staticmethod
     def test_image_valid(
-        vuforia_database: VuforiaDatabase,
         image_files_failed_state: io.BytesIO,
         target_id: str,
         vws_client: VWS,
@@ -674,22 +652,11 @@ class TestImage:
         """
         JPEG and PNG files in the RGB and greyscale color spaces are allowed.
         """
-        image_file = image_files_failed_state
-        image_data = image_file.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
-
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        response = _update_target(
-            vuforia_database=vuforia_database,
-            data={"image": image_data_encoded},
+        vws_client.update_target(
             target_id=target_id,
-        )
-
-        assert_vws_response(
-            response=response,
-            status_code=HTTPStatus.OK,
-            result_code=ResultCodes.SUCCESS,
+            image=image_files_failed_state,
         )
 
     @staticmethod
@@ -704,7 +671,7 @@ class TestImage:
         RGB color space.
         """
         vws_client.wait_for_target_processed(target_id=target_id)
-        with pytest.raises(BadImage) as exc:
+        with pytest.raises(expected_exception=BadImage) as exc:
             vws_client.update_target(target_id=target_id, image=bad_image_file)
 
         status_code = exc.value.response.status_code
@@ -726,11 +693,7 @@ class TestImage:
         )
 
     @staticmethod
-    def test_image_too_large(
-        vuforia_database: VuforiaDatabase,
-        target_id: str,
-        vws_client: VWS,
-    ) -> None:
+    def test_image_too_large(target_id: str, vws_client: VWS) -> None:
         """
         An `ImageTooLarge` result is returned if the image is above a certain
         threshold.
@@ -746,8 +709,7 @@ class TestImage:
 
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        image_data = png_not_too_large.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
+        image_data = png_not_too_large.getvalue()
         image_content_size = len(image_data)
         # We check that the image we created is just slightly smaller than the
         # maximum file size.
@@ -757,17 +719,7 @@ class TestImage:
         assert image_content_size < max_bytes
         assert (image_content_size * 1.05) > max_bytes
 
-        response = _update_target(
-            vuforia_database=vuforia_database,
-            data={"image": image_data_encoded},
-            target_id=target_id,
-        )
-
-        assert_vws_response(
-            response=response,
-            status_code=HTTPStatus.OK,
-            result_code=ResultCodes.SUCCESS,
-        )
+        vws_client.update_target(target_id=target_id, image=png_not_too_large)
 
         vws_client.wait_for_target_processed(target_id=target_id)
 
@@ -780,8 +732,7 @@ class TestImage:
             height=height,
         )
 
-        image_data = png_too_large.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
+        image_data = png_too_large.getvalue()
         image_content_size = len(image_data)
         # We check that the image we created is just slightly smaller than the
         # maximum file size.
@@ -791,14 +742,11 @@ class TestImage:
         assert image_content_size < max_bytes
         assert (image_content_size * 1.05) > max_bytes
 
-        response = _update_target(
-            vuforia_database=vuforia_database,
-            data={"image": image_data_encoded},
-            target_id=target_id,
-        )
+        with pytest.raises(expected_exception=ImageTooLarge) as exc:
+            vws_client.update_target(target_id=target_id, image=png_too_large)
 
         assert_vws_failure(
-            response=response,
+            response=exc.value.response,
             status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             result_code=ResultCodes.IMAGE_TOO_LARGE,
         )
@@ -857,28 +805,21 @@ class TestImage:
         )
 
     @staticmethod
-    def test_not_image(
-        vuforia_database: VuforiaDatabase,
-        target_id: str,
-        vws_client: VWS,
-    ) -> None:
+    def test_not_image(target_id: str, vws_client: VWS) -> None:
         """
         If the given image is not an image file then a `BadImage` result is
         returned.
         """
-        not_image_data = b"not_image_data"
-        image_data_encoded = base64.b64encode(s=not_image_data).decode("ascii")
-
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        response = _update_target(
-            vuforia_database=vuforia_database,
-            data={"image": image_data_encoded},
-            target_id=target_id,
-        )
+        with pytest.raises(expected_exception=BadImage) as exc:
+            vws_client.update_target(
+                target_id=target_id,
+                image=io.BytesIO(initial_bytes=b"not_image_data"),
+            )
 
         assert_vws_failure(
-            response=response,
+            response=exc.value.response,
             status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             result_code=ResultCodes.BAD_IMAGE,
         )
@@ -912,7 +853,6 @@ class TestImage:
     def test_rating_can_change(
         image_file_success_state_low_rating: io.BytesIO,
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
         vws_client: VWS,
     ) -> None:
         """
@@ -923,11 +863,6 @@ class TestImage:
         The mock randomly assigns a quality and makes sure that the new quality
         is different to the old quality.
         """
-        good_image = high_quality_image.read()
-        good_image_data_encoded = base64.b64encode(s=good_image).decode(
-            "ascii"
-        )
-
         target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
             width=1,
@@ -944,11 +879,7 @@ class TestImage:
         original_tracking_rating = target_details.target_record.tracking_rating
         assert original_tracking_rating in range(6)
 
-        _update_target(
-            vuforia_database=vuforia_database,
-            data={"image": good_image_data_encoded},
-            target_id=target_id,
-        )
+        vws_client.update_target(target_id=target_id, image=high_quality_image)
 
         vws_client.wait_for_target_processed(target_id=target_id)
         target_details = vws_client.get_target_record(target_id=target_id)
@@ -971,5 +902,5 @@ class TestInactiveProject:
         """
         If the project is inactive, a FORBIDDEN response is returned.
         """
-        with pytest.raises(ProjectInactive):
+        with pytest.raises(expected_exception=ProjectInactive):
             inactive_vws_client.update_target(target_id=uuid.uuid4().hex)
