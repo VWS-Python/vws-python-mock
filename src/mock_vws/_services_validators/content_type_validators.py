@@ -7,10 +7,11 @@ from http import HTTPMethod
 
 from mock_vws._services_validators.exceptions import AuthenticationFailureError
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(name=__name__)
 
 
 def validate_content_type_header_given(
+    *,
     request_headers: dict[str, str],
     request_method: str,
 ) -> None:

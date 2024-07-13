@@ -13,7 +13,7 @@ from mock_vws._query_validators.exceptions import (
     RequestTimeTooSkewedError,
 )
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(name=__name__)
 
 
 def validate_date_header_given(*, request_headers: dict[str, str]) -> None:

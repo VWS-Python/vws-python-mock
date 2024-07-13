@@ -10,7 +10,7 @@ from werkzeug.formparser import MultiPartParser
 
 from mock_vws._query_validators.exceptions import InvalidIncludeTargetDataError
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(name=__name__)
 
 
 def validate_include_target_data(

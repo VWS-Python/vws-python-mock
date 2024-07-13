@@ -13,10 +13,11 @@ from mock_vws._query_validators.exceptions import (
     MaxNumResultsOutOfRangeError,
 )
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(name=__name__)
 
 
 def validate_max_num_results(
+    *,
     request_headers: dict[str, str],
     request_body: bytes,
 ) -> None:

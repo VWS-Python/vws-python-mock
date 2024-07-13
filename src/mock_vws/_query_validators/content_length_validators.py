@@ -10,10 +10,11 @@ from mock_vws._query_validators.exceptions import (
     ContentLengthHeaderTooLargeError,
 )
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(name=__name__)
 
 
 def validate_content_length_header_is_int(
+    *,
     request_headers: dict[str, str],
 ) -> None:
     """
@@ -36,6 +37,7 @@ def validate_content_length_header_is_int(
 
 
 def validate_content_length_header_not_too_large(
+    *,
     request_headers: dict[str, str],
     request_body: bytes,
 ) -> None:
@@ -61,6 +63,7 @@ def validate_content_length_header_not_too_large(
 
 
 def validate_content_length_header_not_too_small(
+    *,
     request_headers: dict[str, str],
     request_body: bytes,
 ) -> None:

@@ -30,8 +30,8 @@ if TYPE_CHECKING:
     from collections.abc import Generator
 
 
-LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER = logging.getLogger(name=__name__)
+LOGGER.setLevel(level=logging.DEBUG)
 
 
 @RETRY_ON_TOO_MANY_REQUESTS

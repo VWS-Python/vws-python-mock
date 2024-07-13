@@ -14,7 +14,7 @@ from mock_vws._services_validators.exceptions import (
 )
 from mock_vws.database import VuforiaDatabase
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(name=__name__)
 
 
 def validate_name_characters_in_range(

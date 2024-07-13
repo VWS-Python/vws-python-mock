@@ -10,7 +10,7 @@ from http import HTTPMethod, HTTPStatus
 
 from .exceptions import FailError
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(name=__name__)
 
 
 @dataclass

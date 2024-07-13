@@ -12,7 +12,7 @@ from mock_vws._services_validators.exceptions import (
     UnnecessaryRequestBodyError,
 )
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(name=__name__)
 
 
 def validate_body_given(*, request_body: bytes, request_method: str) -> None:
