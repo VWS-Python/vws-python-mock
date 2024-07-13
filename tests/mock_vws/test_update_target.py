@@ -912,7 +912,6 @@ class TestImage:
     def test_rating_can_change(
         image_file_success_state_low_rating: io.BytesIO,
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
         vws_client: VWS,
     ) -> None:
         """
@@ -923,11 +922,6 @@ class TestImage:
         The mock randomly assigns a quality and makes sure that the new quality
         is different to the old quality.
         """
-        good_image = high_quality_image.read()
-        good_image_data_encoded = base64.b64encode(s=good_image).decode(
-            "ascii"
-        )
-
         target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
             width=1,
@@ -944,10 +938,9 @@ class TestImage:
         original_tracking_rating = target_details.target_record.tracking_rating
         assert original_tracking_rating in range(6)
 
-        _update_target(
-            vuforia_database=vuforia_database,
-            data={"image": good_image_data_encoded},
+        vws_client.update_target(
             target_id=target_id,
+            image=high_quality_image,
         )
 
         vws_client.wait_for_target_processed(target_id=target_id)
