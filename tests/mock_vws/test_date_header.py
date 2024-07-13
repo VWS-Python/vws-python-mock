@@ -101,7 +101,7 @@ class TestFormat:
         An `UNAUTHORIZED` response is returned to the VWQ API.
         """
         gmt = ZoneInfo("GMT")
-        with freeze_time(datetime.now(tz=gmt)):
+        with freeze_time(time_to_freeze=datetime.now(tz=gmt)):
             now = datetime.now(tz=gmt)
             date_incorrect_format = now.strftime("%a %b %d %H:%M:%S")
 
@@ -172,7 +172,9 @@ class TestSkewedTime:
         }[netloc]
         time_difference_from_now = skew + _LEEWAY
         gmt = ZoneInfo("GMT")
-        with freeze_time(datetime.now(tz=gmt) + time_difference_from_now):
+        with freeze_time(
+            time_to_freeze=datetime.now(tz=gmt) + time_difference_from_now
+        ):
             date = rfc_1123_date()
 
         authorization_string = authorization_header(
@@ -232,7 +234,9 @@ class TestSkewedTime:
         }[netloc]
         time_difference_from_now = skew + _LEEWAY
         gmt = ZoneInfo("GMT")
-        with freeze_time(datetime.now(tz=gmt) - time_difference_from_now):
+        with freeze_time(
+            time_to_freeze=datetime.now(tz=gmt) - time_difference_from_now
+        ):
             date = rfc_1123_date()
 
         authorization_string = authorization_header(
@@ -291,7 +295,9 @@ class TestSkewedTime:
         }[netloc]
         time_difference_from_now = skew - _LEEWAY
         gmt = ZoneInfo("GMT")
-        with freeze_time(datetime.now(tz=gmt) + time_difference_from_now):
+        with freeze_time(
+            time_to_freeze=datetime.now(tz=gmt) + time_difference_from_now
+        ):
             date = rfc_1123_date()
 
         authorization_string = authorization_header(
@@ -341,7 +347,9 @@ class TestSkewedTime:
         }[netloc]
         time_difference_from_now = skew - _LEEWAY
         gmt = ZoneInfo("GMT")
-        with freeze_time(datetime.now(tz=gmt) - time_difference_from_now):
+        with freeze_time(
+            time_to_freeze=datetime.now(tz=gmt) - time_difference_from_now
+        ):
             date = rfc_1123_date()
 
         authorization_string = authorization_header(

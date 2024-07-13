@@ -136,4 +136,4 @@ def get_query_match_response_text(
         "query_id": uuid.uuid4().hex,
     }
 
-    return json_dump(body)
+    return json_dump(body=body)

@@ -11,7 +11,7 @@ from mock_vws._services_validators.exceptions import FailError
 _LOGGER = logging.getLogger(__name__)
 
 
-def validate_active_flag(request_body: bytes) -> None:
+def validate_active_flag(*, request_body: bytes) -> None:
     """
     Validate the active flag data given to the endpoint.
 
@@ -26,10 +26,10 @@ def validate_active_flag(request_body: bytes) -> None:
         return
 
     request_text = request_body.decode()
-    if "active_flag" not in json.loads(request_text):
+    if "active_flag" not in json.loads(s=request_text):
         return
 
-    active_flag = json.loads(request_text).get("active_flag")
+    active_flag = json.loads(s=request_text).get("active_flag")
 
     if active_flag in {True, False, None}:
         return

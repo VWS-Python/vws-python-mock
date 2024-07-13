@@ -166,14 +166,18 @@ class MockVuforiaWebServicesAPI:
         )
         database.targets.add(new_target)
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         context.status_code = HTTPStatus.CREATED
         body = {
             "transaction_id": uuid.uuid4().hex,
             "result_code": ResultCodes.TARGET_CREATED.value,
             "target_id": new_target.target_id,
         }
-        body_json = json_dump(body)
+        body_json = json_dump(body=body)
         context.headers = {
             "Connection": "keep-alive",
             "Content-Type": "application/json",
@@ -220,7 +224,7 @@ class MockVuforiaWebServicesAPI:
             databases=self._target_manager.databases,
         )
 
-        target_id = request.path.split("/")[-1]
+        target_id = request.path.split(sep="/")[-1]
         target = database.get_target(target_id=target_id)
 
         if target.status == TargetStatuses.PROCESSING.value:
@@ -233,13 +237,17 @@ class MockVuforiaWebServicesAPI:
         new_target = dataclasses.replace(target, delete_date=now)
         database.targets.remove(target)
         database.targets.add(new_target)
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
 
         body = {
             "transaction_id": uuid.uuid4().hex,
             "result_code": ResultCodes.SUCCESS.value,
         }
-        body_json = json_dump(body)
+        body_json = json_dump(body=body)
         context.headers = {
             "Connection": "keep-alive",
             "Content-Length": str(len(body_json)),
@@ -284,7 +292,11 @@ class MockVuforiaWebServicesAPI:
             databases=self._target_manager.databases,
         )
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         body = {
             "result_code": ResultCodes.SUCCESS.value,
             "transaction_id": uuid.uuid4().hex,
@@ -301,7 +313,7 @@ class MockVuforiaWebServicesAPI:
             "request_quota": database.request_quota,
             "request_usage": 0,
         }
-        body_json = json_dump(body)
+        body_json = json_dump(body=body)
         context.headers = {
             "Connection": "keep-alive",
             "Content-Length": str(len(body_json)),
@@ -344,7 +356,11 @@ class MockVuforiaWebServicesAPI:
             databases=self._target_manager.databases,
         )
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
 
         response_results = [
             target.target_id for target in database.not_deleted_targets
@@ -354,7 +370,7 @@ class MockVuforiaWebServicesAPI:
             "result_code": ResultCodes.SUCCESS.value,
             "results": response_results,
         }
-        body_json = json_dump(body)
+        body_json = json_dump(body=body)
         context.headers = {
             "Connection": "keep-alive",
             "Content-Length": str(len(body_json)),
@@ -399,7 +415,7 @@ class MockVuforiaWebServicesAPI:
             request_path=request.path,
             databases=self._target_manager.databases,
         )
-        target_id = request.path.split("/")[-1]
+        target_id = request.path.split(sep="/")[-1]
         target = database.get_target(target_id=target_id)
 
         target_record = {
@@ -410,7 +426,11 @@ class MockVuforiaWebServicesAPI:
             "tracking_rating": target.tracking_rating,
             "reco_rating": target.reco_rating,
         }
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
 
         body = {
             "result_code": ResultCodes.SUCCESS.value,
@@ -418,7 +438,7 @@ class MockVuforiaWebServicesAPI:
             "target_record": target_record,
             "status": target.status,
         }
-        body_json = json_dump(body)
+        body_json = json_dump(body=body)
         context.headers = {
             "Connection": "keep-alive",
             "Content-Length": str(len(body_json)),
@@ -463,7 +483,7 @@ class MockVuforiaWebServicesAPI:
             request_path=request.path,
             databases=self._target_manager.databases,
         )
-        target_id = request.path.split("/")[-1]
+        target_id = request.path.split(sep="/")[-1]
         target = database.get_target(target_id=target_id)
 
         other_targets = database.targets - {target}
@@ -481,13 +501,17 @@ class MockVuforiaWebServicesAPI:
             and other.active_flag
         ]
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         body = {
             "transaction_id": uuid.uuid4().hex,
             "result_code": ResultCodes.SUCCESS.value,
             "similar_targets": similar_targets,
         }
-        body_json = json_dump(body)
+        body_json = json_dump(body=body)
         context.headers = {
             "Connection": "keep-alive",
             "Content-Length": str(len(body_json)),
@@ -534,11 +558,15 @@ class MockVuforiaWebServicesAPI:
             databases=self._target_manager.databases,
         )
 
-        target_id = request.path.split("/")[-1]
+        target_id = request.path.split(sep="/")[-1]
         target = database.get_target(target_id=target_id)
         body: dict[str, str] = {}
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
 
         if target.status != TargetStatuses.SUCCESS.value:
             exception = TargetStatusNotSuccessError()
@@ -593,7 +621,7 @@ class MockVuforiaWebServicesAPI:
             "result_code": ResultCodes.SUCCESS.value,
             "transaction_id": uuid.uuid4().hex,
         }
-        body_json = json_dump(body)
+        body_json = json_dump(body=body)
         context.headers = {
             "Connection": "keep-alive",
             "Content-Type": "application/json",
@@ -638,10 +666,14 @@ class MockVuforiaWebServicesAPI:
             request_path=request.path,
             databases=self._target_manager.databases,
         )
-        target_id = request.path.split("/")[-1]
+        target_id = request.path.split(sep="/")[-1]
         target = database.get_target(target_id=target_id)
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         body = {
             "status": target.status,
             "transaction_id": uuid.uuid4().hex,
@@ -655,7 +687,7 @@ class MockVuforiaWebServicesAPI:
             "current_month_recos": target.current_month_recos,
             "previous_month_recos": target.previous_month_recos,
         }
-        body_json = json_dump(body)
+        body_json = json_dump(body=body)
         context.headers = {
             "Connection": "keep-alive",
             "Content-Length": str(len(body_json)),

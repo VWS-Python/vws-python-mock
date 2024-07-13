@@ -20,7 +20,7 @@ from mock_vws._services_validators.exceptions import (
 _LOGGER = logging.getLogger(__name__)
 
 
-def validate_image_format(request_body: bytes) -> None:
+def validate_image_format(*, request_body: bytes) -> None:
     """
     Validate the format of the image given to a VWS endpoint.
 
@@ -34,7 +34,7 @@ def validate_image_format(request_body: bytes) -> None:
         return
 
     request_text = request_body.decode()
-    image = json.loads(request_text).get("image")
+    image = json.loads(s=request_text).get("image")
 
     if image is None:
         return
@@ -50,7 +50,7 @@ def validate_image_format(request_body: bytes) -> None:
     raise BadImageError
 
 
-def validate_image_color_space(request_body: bytes) -> None:
+def validate_image_color_space(*, request_body: bytes) -> None:
     """
     Validate the color space of the image given to a VWS endpoint.
 
@@ -65,7 +65,7 @@ def validate_image_color_space(request_body: bytes) -> None:
         return
 
     request_text = request_body.decode()
-    image = json.loads(request_text).get("image")
+    image = json.loads(s=request_text).get("image")
 
     if image is None:
         return
@@ -83,7 +83,7 @@ def validate_image_color_space(request_body: bytes) -> None:
     raise BadImageError
 
 
-def validate_image_size(request_body: bytes) -> None:
+def validate_image_size(*, request_body: bytes) -> None:
     """
     Validate the file size of the image given to a VWS endpoint.
 
@@ -98,7 +98,7 @@ def validate_image_size(request_body: bytes) -> None:
         return
 
     request_text = request_body.decode()
-    image = json.loads(request_text).get("image")
+    image = json.loads(s=request_text).get("image")
 
     if image is None:
         return
@@ -113,7 +113,7 @@ def validate_image_size(request_body: bytes) -> None:
     raise ImageTooLargeError
 
 
-def validate_image_is_image(request_body: bytes) -> None:
+def validate_image_is_image(*, request_body: bytes) -> None:
     """
     Validate that the given image data is actually an image file.
 
@@ -127,7 +127,7 @@ def validate_image_is_image(request_body: bytes) -> None:
         return
 
     request_text = request_body.decode()
-    image = json.loads(request_text).get("image")
+    image = json.loads(s=request_text).get("image")
 
     if image is None:
         return
@@ -141,7 +141,7 @@ def validate_image_is_image(request_body: bytes) -> None:
         raise BadImageError from exc
 
 
-def validate_image_encoding(request_body: bytes) -> None:
+def validate_image_encoding(*, request_body: bytes) -> None:
     """
     Validate that the given image data can be base64 decoded.
 
@@ -155,10 +155,10 @@ def validate_image_encoding(request_body: bytes) -> None:
         return
 
     request_text = request_body.decode()
-    if "image" not in json.loads(request_text):
+    if "image" not in json.loads(s=request_text):
         return
 
-    image = json.loads(request_text).get("image")
+    image = json.loads(s=request_text).get("image")
 
     try:
         decode_base64(encoded_data=image)
@@ -167,7 +167,7 @@ def validate_image_encoding(request_body: bytes) -> None:
         raise FailError(status_code=HTTPStatus.UNPROCESSABLE_ENTITY) from exc
 
 
-def validate_image_data_type(request_body: bytes) -> None:
+def validate_image_data_type(*, request_body: bytes) -> None:
     """
     Validate that the given image data is a string.
 
@@ -181,10 +181,10 @@ def validate_image_data_type(request_body: bytes) -> None:
         return
 
     request_text = request_body.decode()
-    if "image" not in json.loads(request_text):
+    if "image" not in json.loads(s=request_text):
         return
 
-    image = json.loads(request_text).get("image")
+    image = json.loads(s=request_text).get("image")
 
     if isinstance(image, str):
         return

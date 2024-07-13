@@ -34,6 +34,7 @@ class _Route:
 
 
 def validate_keys(
+    *,
     request_body: bytes,
     request_path: str,
     request_method: str,
@@ -146,7 +147,7 @@ def validate_keys(
         return
 
     request_text = request_body.decode()
-    request_json = json.loads(request_text)
+    request_json = json.loads(s=request_text)
     given_keys = set(request_json.keys())
     all_given_keys_allowed = given_keys.issubset(allowed_keys)
     all_mandatory_keys_given = mandatory_keys.issubset(given_keys)

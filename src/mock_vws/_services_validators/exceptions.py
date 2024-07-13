@@ -42,8 +42,12 @@ class UnknownTargetError(ValidatorError):
             "transaction_id": uuid.uuid4().hex,
             "result_code": ResultCodes.UNKNOWN_TARGET.value,
         }
-        self.response_text = json_dump(body)
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        self.response_text = json_dump(body=body)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Connection": "keep-alive",
             "Content-Type": "application/json",
@@ -77,8 +81,12 @@ class ProjectInactiveError(ValidatorError):
             "transaction_id": uuid.uuid4().hex,
             "result_code": ResultCodes.PROJECT_INACTIVE.value,
         }
-        self.response_text = json_dump(body)
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        self.response_text = json_dump(body=body)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Connection": "keep-alive",
             "Content-Type": "application/json",
@@ -112,8 +120,12 @@ class AuthenticationFailureError(ValidatorError):
             "transaction_id": uuid.uuid4().hex,
             "result_code": ResultCodes.AUTHENTICATION_FAILURE.value,
         }
-        self.response_text = json_dump(body)
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        self.response_text = json_dump(body=body)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Connection": "keep-alive",
             "Content-Type": "application/json",
@@ -146,8 +158,12 @@ class FailError(ValidatorError):
             "transaction_id": uuid.uuid4().hex,
             "result_code": ResultCodes.FAIL.value,
         }
-        self.response_text = json_dump(body)
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        self.response_text = json_dump(body=body)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Connection": "keep-alive",
             "Content-Type": "application/json",
@@ -181,8 +197,12 @@ class MetadataTooLargeError(ValidatorError):
             "transaction_id": uuid.uuid4().hex,
             "result_code": ResultCodes.METADATA_TOO_LARGE.value,
         }
-        self.response_text = json_dump(body)
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        self.response_text = json_dump(body=body)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Connection": "keep-alive",
             "Content-Type": "application/json",
@@ -216,8 +236,12 @@ class TargetNameExistError(ValidatorError):
             "transaction_id": uuid.uuid4().hex,
             "result_code": ResultCodes.TARGET_NAME_EXIST.value,
         }
-        self.response_text = json_dump(body)
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        self.response_text = json_dump(body=body)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Connection": "keep-alive",
             "Content-Type": "application/json",
@@ -254,7 +278,11 @@ class OopsErrorOccurredResponseError(ValidatorError):
         oops_resp_file = resources_dir / filename
         text = str(oops_resp_file.read_text())
         self.response_text = text
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Connection": "keep-alive",
             "Content-Type": "text/html; charset=UTF-8",
@@ -288,8 +316,12 @@ class BadImageError(ValidatorError):
             "transaction_id": uuid.uuid4().hex,
             "result_code": ResultCodes.BAD_IMAGE.value,
         }
-        self.response_text = json_dump(body)
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        self.response_text = json_dump(body=body)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Connection": "keep-alive",
             "Content-Type": "application/json",
@@ -323,8 +355,12 @@ class ImageTooLargeError(ValidatorError):
             "transaction_id": uuid.uuid4().hex,
             "result_code": ResultCodes.IMAGE_TOO_LARGE.value,
         }
-        self.response_text = json_dump(body)
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        self.response_text = json_dump(body=body)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Connection": "keep-alive",
             "Content-Type": "application/json",
@@ -358,8 +394,12 @@ class RequestTimeTooSkewedError(ValidatorError):
             "transaction_id": uuid.uuid4().hex,
             "result_code": ResultCodes.REQUEST_TIME_TOO_SKEWED.value,
         }
-        self.response_text = json_dump(body)
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        self.response_text = json_dump(body=body)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Connection": "keep-alive",
             "Content-Type": "application/json",
@@ -389,7 +429,11 @@ class ContentLengthHeaderTooLargeError(ValidatorError):
         """
         super().__init__()
         self.status_code = HTTPStatus.REQUEST_TIMEOUT
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.response_text = "stream timeout"
         self.headers = {
             "Content-Length": str(len(self.response_text)),
@@ -425,7 +469,11 @@ class ContentLengthHeaderNotIntError(ValidatorError):
             </html>\r
             """,
         )
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Connection": "close",
             "Content-Length": str(len(self.response_text)),
@@ -451,7 +499,11 @@ class UnnecessaryRequestBodyError(ValidatorError):
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
         self.response_text = ""
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "server": "envoy",
             "Date": date,
@@ -480,8 +532,12 @@ class TargetStatusNotSuccessError(ValidatorError):
             "transaction_id": uuid.uuid4().hex,
             "result_code": ResultCodes.TARGET_STATUS_NOT_SUCCESS.value,
         }
-        self.response_text = json_dump(body)
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        self.response_text = json_dump(body=body)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Connection": "keep-alive",
             "Content-Type": "application/json",
@@ -514,8 +570,12 @@ class TargetStatusProcessingError(ValidatorError):
             "transaction_id": uuid.uuid4().hex,
             "result_code": ResultCodes.TARGET_STATUS_PROCESSING.value,
         }
-        self.response_text = json_dump(body)
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        self.response_text = json_dump(body=body)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Connection": "keep-alive",
             "Content-Type": "application/json",

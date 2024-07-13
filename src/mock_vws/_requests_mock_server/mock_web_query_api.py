@@ -121,7 +121,11 @@ class MockVuforiaWebQueryAPI:
             query_match_checker=self._query_match_checker,
         )
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         context.headers = {
             "Connection": "keep-alive",
             "Content-Type": "application/json",

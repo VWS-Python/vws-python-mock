@@ -51,8 +51,8 @@ def validate_access_key_exists(
         FailError: The access key does not match a given database.
     """
     header = request_headers["Authorization"]
-    first_part, _ = header.split(":")
-    _, access_key = first_part.split(" ")
+    first_part, _ = header.split(sep=":")
+    _, access_key = first_part.split(sep=" ")
     for database in databases:
         if access_key == database.server_access_key:
             return
@@ -77,7 +77,7 @@ def validate_auth_header_has_signature(
         FailError: The "Authorization" header does not include a signature.
     """
     header = request_headers["Authorization"]
-    if header.count(":") == 1 and header.split(":")[1]:
+    if header.count(":") == 1 and header.split(sep=":")[1]:
         return
 
     _LOGGER.warning(

@@ -283,7 +283,7 @@ class TestContentType:
             request_path=request_path,
         )
 
-        _, boundary = content_type_header.split(";")
+        _, boundary = content_type_header.split(sep=";")
 
         content_type = "text/html; " + boundary
         headers = {
@@ -1288,7 +1288,7 @@ class TestBadImage:
             www_authenticate=None,
             connection="keep-alive",
         )
-        response_json = json.loads(response.text)
+        response_json = json.loads(s=response.text)
         assert isinstance(response_json, dict)
         assert response_json.keys() == {"transaction_id", "result_code"}
         assert_valid_transaction_id(response=response)
@@ -1511,7 +1511,7 @@ class TestMaximumImageDimensions:
             connection="keep-alive",
         )
 
-        response_json = json.loads(response.text)
+        response_json = json.loads(s=response.text)
         assert isinstance(response_json, dict)
 
         assert response_json.keys() == {"transaction_id", "result_code"}
@@ -1564,7 +1564,7 @@ class TestMaximumImageDimensions:
             connection="keep-alive",
         )
 
-        response_json = json.loads(response.text)
+        response_json = json.loads(s=response.text)
         assert isinstance(response_json, dict)
         assert response_json.keys() == {"transaction_id", "result_code"}
         assert_valid_transaction_id(response=response)
@@ -1645,7 +1645,7 @@ class TestImageFormats:
             www_authenticate=None,
             connection="keep-alive",
         )
-        response_json = json.loads(response.text)
+        response_json = json.loads(s=response.text)
         assert isinstance(response_json, dict)
         assert response_json.keys() == {"transaction_id", "result_code"}
         assert_valid_transaction_id(response=response)
@@ -1987,7 +1987,7 @@ class TestInactiveProject:
             connection="keep-alive",
         )
 
-        response_json = json.loads(response.text)
+        response_json = json.loads(s=response.text)
         assert isinstance(response_json, dict)
 
         assert response_json.keys() == {"transaction_id", "result_code"}

@@ -249,13 +249,13 @@ class TestBadKey:
             connection="keep-alive",
         )
 
-        assert json.loads(response.text).keys() == {
+        assert json.loads(s=response.text).keys() == {
             "transaction_id",
             "result_code",
         }
         assert_valid_transaction_id(response=response)
-        result_code = json.loads(response.text)["result_code"]
-        transaction_id = json.loads(response.text)["transaction_id"]
+        result_code = json.loads(s=response.text)["result_code"]
+        transaction_id = json.loads(s=response.text)["transaction_id"]
         assert result_code == ResultCodes.AUTHENTICATION_FAILURE.value
         # The separators are inconsistent and we test this.
         expected_text = (
@@ -310,13 +310,13 @@ class TestBadKey:
             connection="keep-alive",
         )
 
-        assert json.loads(response.text).keys() == {
+        assert json.loads(s=response.text).keys() == {
             "transaction_id",
             "result_code",
         }
         assert_valid_transaction_id(response=response)
-        result_code = json.loads(response.text)["result_code"]
-        transaction_id = json.loads(response.text)["transaction_id"]
+        result_code = json.loads(s=response.text)["result_code"]
+        transaction_id = json.loads(s=response.text)["transaction_id"]
         assert result_code == ResultCodes.AUTHENTICATION_FAILURE.value
         # The separators are inconsistent and we test this.
         expected_text = (

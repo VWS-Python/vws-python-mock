@@ -57,7 +57,7 @@ class Endpoint:
         self.successful_headers_result_code = successful_headers_result_code
         headers = prepared_request.headers
         content_type = headers.get("Content-Type", "")
-        content_type = content_type.split(";")[0]
+        content_type = content_type.split(sep=";")[0]
         self.auth_header_content_type: str = content_type
         self.access_key = access_key
         self.secret_key = secret_key

@@ -13,7 +13,7 @@ from PIL import Image
 
 
 @functools.cache
-def _get_brisque_target_tracking_rating(image_content: bytes) -> int:
+def _get_brisque_target_tracking_rating(*, image_content: bytes) -> int:
     """
     Get a target tracking rating based on a BRISQUE score.
 
