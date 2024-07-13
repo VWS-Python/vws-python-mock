@@ -122,9 +122,9 @@ class Target:
         time_since_change = now - self.last_modified_date
 
         if time_since_change <= processing_time:
-            return str(TargetStatuses.PROCESSING.value)
+            return TargetStatuses.PROCESSING.value
 
-        return str(self._post_processing_status.value)
+        return self._post_processing_status.value
 
     @property
     def _post_processing_target_rating(self) -> int:
