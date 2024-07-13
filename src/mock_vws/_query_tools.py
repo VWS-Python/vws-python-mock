@@ -25,6 +25,7 @@ if TYPE_CHECKING:
 
 
 def get_query_match_response_text(
+    *,
     request_headers: dict[str, str],
     request_body: bytes,
     request_method: str,
