@@ -884,30 +884,22 @@ class TestApplicationMetadata:
         ids=["Short", "Max length"],
     )
     def test_base64_encoded(
-        vuforia_database: VuforiaDatabase,
         image_file_failed_state: io.BytesIO,
         metadata: bytes,
+        vws_client: VWS,
     ) -> None:
         """
         A base64 encoded string is valid application metadata.
         """
-        image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
         metadata_encoded = base64.b64encode(s=metadata).decode("ascii")
 
-        data = {
-            "name": "example_name",
-            "width": 1,
-            "image": image_data_encoded,
-            "application_metadata": metadata_encoded,
-        }
-
-        response = _add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
+        vws_client.add_target(
+            name="example",
+            width=1,
+            image=image_file_failed_state,
+            application_metadata=metadata_encoded,
+            active_flag=True,
         )
-
-        assert_success(response=response)
 
     @staticmethod
     def test_null(
