@@ -371,7 +371,7 @@ class TestApplicationMetadata:
         """
         A base64 encoded string is valid application metadata.
         """
-        metadata_encoded = base64.b64encode(metadata).decode("ascii")
+        metadata_encoded = base64.b64encode(s=metadata).decode("ascii")
         vws_client.wait_for_target_processed(target_id=target_id)
         vws_client.update_target(
             target_id=target_id,
@@ -464,7 +464,7 @@ class TestApplicationMetadata:
         for application metadata.
         """
         metadata = b"a" * (_MAX_METADATA_BYTES + 1)
-        metadata_encoded = base64.b64encode(metadata).decode("ascii")
+        metadata_encoded = base64.b64encode(s=metadata).decode("ascii")
         vws_client.wait_for_target_processed(target_id=target_id)
 
         response = _update_target(
@@ -676,7 +676,7 @@ class TestImage:
         """
         image_file = image_files_failed_state
         image_data = image_file.read()
-        image_data_encoded = base64.b64encode(image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
 
         vws_client.wait_for_target_processed(target_id=target_id)
 
@@ -747,7 +747,7 @@ class TestImage:
         vws_client.wait_for_target_processed(target_id=target_id)
 
         image_data = png_not_too_large.read()
-        image_data_encoded = base64.b64encode(image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
         image_content_size = len(image_data)
         # We check that the image we created is just slightly smaller than the
         # maximum file size.
@@ -781,7 +781,7 @@ class TestImage:
         )
 
         image_data = png_too_large.read()
-        image_data_encoded = base64.b64encode(image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
         image_content_size = len(image_data)
         # We check that the image we created is just slightly smaller than the
         # maximum file size.
@@ -867,7 +867,7 @@ class TestImage:
         returned.
         """
         not_image_data = b"not_image_data"
-        image_data_encoded = base64.b64encode(not_image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=not_image_data).decode("ascii")
 
         vws_client.wait_for_target_processed(target_id=target_id)
 
@@ -924,7 +924,9 @@ class TestImage:
         is different to the old quality.
         """
         good_image = high_quality_image.read()
-        good_image_data_encoded = base64.b64encode(good_image).decode("ascii")
+        good_image_data_encoded = base64.b64encode(s=good_image).decode(
+            "ascii"
+        )
 
         target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
