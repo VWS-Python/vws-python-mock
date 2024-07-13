@@ -53,7 +53,7 @@ class TestIncorrect:
         handle_server_errors(response=response)
         assert response.status_code == HTTPStatus.BAD_REQUEST
 
-        url = str(endpoint.prepared_request.url)
+        url = endpoint.prepared_request.url or ""
         netloc = urlparse(url).netloc
         if netloc == "cloudreco.vuforia.com":
             assert not response.text
@@ -97,7 +97,7 @@ class TestIncorrect:
         if not endpoint.prepared_request.headers.get("Content-Type"):
             pytest.skip("No Content-Type header for this request")
 
-        url = str(endpoint.prepared_request.url)
+        url = endpoint.prepared_request.url or ""
         netloc = urlparse(url).netloc
         content_length = str(
             int(endpoint.prepared_request.headers["Content-Length"]) + 1
@@ -157,7 +157,7 @@ class TestIncorrect:
         response = session.send(request=endpoint.prepared_request)
         handle_server_errors(response=response)
 
-        url = str(endpoint.prepared_request.url)
+        url = endpoint.prepared_request.url or ""
         netloc = urlparse(url).netloc
         if netloc == "cloudreco.vuforia.com":
             assert_vwq_failure(

@@ -80,7 +80,7 @@ class TestInvalidJSON:
             )
             return
 
-        url = str(endpoint.prepared_request.url)
+        url = endpoint.prepared_request.url or ""
         netloc = urlparse(url).netloc
         if netloc == "cloudreco.vuforia.com":
             assert_vwq_failure(
@@ -149,7 +149,7 @@ class TestInvalidJSON:
             )
             return
 
-        url = str(endpoint.prepared_request.url)
+        url = endpoint.prepared_request.url or ""
         netloc = urlparse(url).netloc
         if netloc == "cloudreco.vuforia.com":
             assert response.json().keys() == {
