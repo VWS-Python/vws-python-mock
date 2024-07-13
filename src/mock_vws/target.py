@@ -206,7 +206,7 @@ class Target:
         if self.delete_date:
             delete_date = datetime.datetime.isoformat(self.delete_date)
 
-        image_base64 = base64.encodebytes(self.image_value).decode()
+        image_base64 = base64.encodebytes(s=self.image_value).decode()
 
         return {
             "name": self.name,
