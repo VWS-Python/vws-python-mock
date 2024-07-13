@@ -247,8 +247,10 @@ def verify_mock_vuforia(
     Yields:
         ``None``.
     """
-    backend = request.param
-    should_skip = request.config.getoption(f"--skip-{backend.name.lower()}")
+    backend: VuforiaBackend = request.param
+    should_skip = request.config.getoption(
+        name=f"--skip-{backend.name.lower()}",
+    )
     if should_skip:
         pytest.skip()
 
