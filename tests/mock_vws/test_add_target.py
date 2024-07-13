@@ -1016,30 +1016,21 @@ class TestApplicationMetadata:
 
     @staticmethod
     def test_not_base64_encoded_processable(
-        vuforia_database: VuforiaDatabase,
         high_quality_image: io.BytesIO,
         not_base64_encoded_processable: str,
+        vws_client: VWS,
     ) -> None:
         """
         Some strings which are not valid base64 encoded strings are allowed as
         application metadata.
         """
-        image_content = high_quality_image.getvalue()
-        image_data_encoded = base64.b64encode(s=image_content).decode("ascii")
-
-        data = {
-            "name": "example_name",
-            "width": 1,
-            "image": image_data_encoded,
-            "application_metadata": not_base64_encoded_processable,
-        }
-
-        response = _add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
+        vws_client.add_target(
+            name="example",
+            width=1,
+            image=high_quality_image,
+            application_metadata=not_base64_encoded_processable,
+            active_flag=True,
         )
-
-        assert_success(response=response)
 
     @staticmethod
     def test_not_base64_encoded_not_processable(
