@@ -820,13 +820,12 @@ class TestMaxNumResults:
     @staticmethod
     def test_valid_works(
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
         vws_client: VWS,
+        vwq_client: CloudRecoService,
     ) -> None:
         """
         A maximum of ``max_num_results`` results are returned.
         """
-        image_content = high_quality_image.getvalue()
         _add_and_wait_for_targets(
             image=high_quality_image,
             vws_client=vws_client,
@@ -834,15 +833,12 @@ class TestMaxNumResults:
         )
 
         max_num_results = 2
-        body = {
-            "image": ("image.jpeg", image_content, "image/jpeg"),
-            "max_num_results": (None, max_num_results, "text/plain"),
-        }
 
-        response = _query(vuforia_database=vuforia_database, body=body)
-
-        assert_query_success(response=response)
-        assert len(response.json()["results"]) == max_num_results
+        result = vwq_client.query(
+            image=high_quality_image,
+            max_num_results=max_num_results,
+        )
+        assert len(result) == max_num_results
 
     @staticmethod
     @pytest.mark.parametrize("num_results", [-1, 0, 51])
