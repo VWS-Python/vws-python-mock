@@ -88,11 +88,11 @@ class Target:
         How VWS determines this is unknown, but it relates to how suitable the
         target is for detection.
         """
-        image_file = io.BytesIO(self.image_value)
-        image = Image.open(image_file)
-        image_stat = ImageStat.Stat(image)
+        image_file = io.BytesIO(initial_bytes=self.image_value)
+        image = Image.open(fp=image_file)
+        image_stat = ImageStat.Stat(image_or_list=image)
 
-        average_std_dev = statistics.mean(image_stat.stddev)
+        average_std_dev = statistics.mean(data=image_stat.stddev)
 
         success_threshold = 5
 

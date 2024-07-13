@@ -40,8 +40,8 @@ def validate_image_format(*, request_body: bytes) -> None:
         return
 
     decoded = decode_base64(encoded_data=image)
-    image_file = io.BytesIO(decoded)
-    pil_image = Image.open(image_file)
+    image_file = io.BytesIO(initial_bytes=decoded)
+    pil_image = Image.open(fp=image_file)
 
     if pil_image.format in {"PNG", "JPEG"}:
         return
@@ -71,8 +71,8 @@ def validate_image_color_space(*, request_body: bytes) -> None:
         return
 
     decoded = decode_base64(encoded_data=image)
-    image_file = io.BytesIO(decoded)
-    pil_image = Image.open(image_file)
+    image_file = io.BytesIO(initial_bytes=decoded)
+    pil_image = Image.open(fp=image_file)
 
     if pil_image.mode in {"L", "RGB"}:
         return
@@ -133,10 +133,10 @@ def validate_image_is_image(*, request_body: bytes) -> None:
         return
 
     decoded = decode_base64(encoded_data=image)
-    image_file = io.BytesIO(decoded)
+    image_file = io.BytesIO(initial_bytes=decoded)
 
     try:
-        Image.open(image_file)
+        Image.open(fp=image_file)
     except OSError as exc:
         raise BadImageError from exc
 

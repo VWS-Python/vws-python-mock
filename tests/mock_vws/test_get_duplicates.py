@@ -81,7 +81,7 @@ class TestDuplicates:
         image_data = high_quality_image
         similar_image_data = copy.copy(image_data)
         similar_image_buffer = io.BytesIO()
-        pil_similar_image = Image.open(similar_image_data)
+        pil_similar_image = Image.open(fp=similar_image_data)
         # Re-save means similar but not identical.
         pil_similar_image.save(similar_image_buffer, format="JPEG")
         assert similar_image_buffer.getvalue() != image_data.getvalue()
