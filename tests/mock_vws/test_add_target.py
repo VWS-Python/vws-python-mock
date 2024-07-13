@@ -24,6 +24,7 @@ from vws.exceptions.vws_exceptions import (
     ImageTooLarge,
     MetadataTooLarge,
     ProjectInactive,
+    TargetNameExist,
 )
 from vws_auth_tools import authorization_header, rfc_1123_date
 
@@ -417,32 +418,30 @@ class TestTargetName:
     @staticmethod
     def test_existing_target_name(
         image_file_failed_state: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         Only one target can have a given name.
         """
-        image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
-
-        data = {
-            "name": "example_name",
-            "width": 1,
-            "image": image_data_encoded,
-        }
-
-        _add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
+        vws_client.add_target(
+            name="example_name",
+            width=1,
+            image=image_file_failed_state,
+            application_metadata=None,
+            active_flag=True,
         )
 
-        response = _add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
-        )
+        with pytest.raises(expected_exception=TargetNameExist) as exc:
+            vws_client.add_target(
+                name="example_name",
+                width=1,
+                image=image_file_failed_state,
+                application_metadata=None,
+                active_flag=True,
+            )
 
         assert_vws_failure(
-            response=response,
+            response=exc.value.response,
             status_code=HTTPStatus.FORBIDDEN,
             result_code=ResultCodes.TARGET_NAME_EXIST,
         )
