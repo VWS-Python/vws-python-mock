@@ -32,7 +32,7 @@ def validate_extra_fields(
     boundary = email_message.get_boundary(failobj="")
     parser = MultiPartParser()
     fields, files = parser.parse(
-        stream=io.BytesIO(request_body),
+        stream=io.BytesIO(initial_bytes=request_body),
         boundary=boundary.encode("utf-8"),
         content_length=len(request_body),
     )

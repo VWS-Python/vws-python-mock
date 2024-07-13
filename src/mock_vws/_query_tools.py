@@ -51,7 +51,7 @@ def get_query_match_response_text(
 
     parser = MultiPartParser()
     fields, files = parser.parse(
-        stream=io.BytesIO(request_body),
+        stream=io.BytesIO(initial_bytes=request_body),
         boundary=boundary.encode("utf-8"),
         content_length=len(request_body),
     )

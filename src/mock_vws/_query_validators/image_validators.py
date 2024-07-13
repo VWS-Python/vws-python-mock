@@ -37,7 +37,7 @@ def validate_image_field_given(
     boundary = email_message.get_boundary(failobj="")
     parser = MultiPartParser()
     _, files = parser.parse(
-        stream=io.BytesIO(request_body),
+        stream=io.BytesIO(initial_bytes=request_body),
         boundary=boundary.encode("utf-8"),
         content_length=len(request_body),
     )
@@ -67,7 +67,7 @@ def validate_image_file_size(
     boundary = email_message.get_boundary(failobj="")
     parser = MultiPartParser()
     _, files = parser.parse(
-        stream=io.BytesIO(request_body),
+        stream=io.BytesIO(initial_bytes=request_body),
         boundary=boundary.encode("utf-8"),
         content_length=len(request_body),
     )
@@ -107,14 +107,14 @@ def validate_image_dimensions(
     boundary = email_message.get_boundary(failobj="")
     parser = MultiPartParser()
     _, files = parser.parse(
-        stream=io.BytesIO(request_body),
+        stream=io.BytesIO(initial_bytes=request_body),
         boundary=boundary.encode("utf-8"),
         content_length=len(request_body),
     )
     image_part = files["image"]
     image_value = image_part.stream.read()
-    image_file = io.BytesIO(image_value)
-    pil_image = Image.open(image_file)
+    image_file = io.BytesIO(initial_bytes=image_value)
+    pil_image = Image.open(fp=image_file)
     max_width = 30000
     max_height = 30000
     if pil_image.height <= max_height and pil_image.width <= max_width:
@@ -143,12 +143,12 @@ def validate_image_format(
     boundary = email_message.get_boundary(failobj="")
     parser = MultiPartParser()
     _, files = parser.parse(
-        stream=io.BytesIO(request_body),
+        stream=io.BytesIO(initial_bytes=request_body),
         boundary=boundary.encode("utf-8"),
         content_length=len(request_body),
     )
     image_part = files["image"]
-    pil_image = Image.open(image_part.stream)
+    pil_image = Image.open(fp=image_part.stream)
 
     if pil_image.format in {"PNG", "JPEG"}:
         return
@@ -176,7 +176,7 @@ def validate_image_is_image(
     boundary = email_message.get_boundary(failobj="")
     parser = MultiPartParser()
     _, files = parser.parse(
-        stream=io.BytesIO(request_body),
+        stream=io.BytesIO(initial_bytes=request_body),
         boundary=boundary.encode("utf-8"),
         content_length=len(request_body),
     )
@@ -184,7 +184,7 @@ def validate_image_is_image(
     image_file = image_part.stream
 
     try:
-        Image.open(image_file)
+        Image.open(fp=image_file)
     except OSError as exc:
         _LOGGER.warning(msg="The image is not an image file.")
         raise BadImageError from exc
