@@ -32,7 +32,7 @@ def _wait_for_image_numbers(
     processing_images: int,
 ) -> None:
     """
-    Wait up to 500 seconds (arbitrary, though we saw timeouts with 300 seconds)
+    Wait up to 700 seconds (arbitrary, though we saw timeouts with 500 seconds)
     for the number of images in various categories to match the expected
     number.
 
@@ -60,7 +60,7 @@ def _wait_for_image_numbers(
         "processing_images": processing_images,
     }
 
-    maximum_wait_seconds = 500
+    maximum_wait_seconds = 700
     start_time = time.monotonic()
 
     # If we wait for all requirements to match at the same time,
@@ -97,14 +97,6 @@ def _wait_for_image_numbers(
 
         time.sleep(sleep_seconds)
 
-        # This break makes the entire test invalid.
-        # However, we have found that without this Vuforia is flaky.
-        # We have waited over 10 minutes for the summary to change and
-        # that is not sustainable in a test suite.
-        # That might be because we think some images will go into a particular
-        # state but they don't.
-        break
-
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestDatabaseSummary:
@@ -132,10 +124,7 @@ class TestDatabaseSummary:
         )
 
     @staticmethod
-    def test_active_images(
-        vws_client: VWS,
-        target_id: str,
-    ) -> None:
+    def test_active_images(vws_client: VWS, target_id: str) -> None:
         """
         The number of images in the active state is returned.
         """
