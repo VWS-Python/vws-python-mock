@@ -53,7 +53,7 @@ def _wait_for_image_numbers(
         ValueError: The numbers of images in various categories do not match
             within the time limit.
     """
-    requirements = {
+    expected = {
         "active_images": active_images,
         "inactive_images": inactive_images,
         "failed_images": failed_images,
@@ -72,36 +72,38 @@ def _wait_for_image_numbers(
     # request quota.
     sleep_seconds = 0.2
 
-    for key, value in requirements.items():
-        while True:
-            seconds_waited = time.monotonic() - start_time
-            if seconds_waited > maximum_wait_seconds:  # pragma: no cover
-                timeout_message = "Timed out waiting"
-                raise ValueError(timeout_message)
+    while True:
+        seconds_waited = time.monotonic() - start_time
+        if seconds_waited > maximum_wait_seconds:  # pragma: no cover
+            timeout_message = "Timed out waiting"
+            raise ValueError(timeout_message)
 
-            report = vws_client.get_database_summary_report()
-            key_to_relevant_images_in_summary = {
-                "active_images": report.active_images,
-                "inactive_images": report.inactive_images,
-                "failed_images": report.failed_images,
-                "processing_images": report.processing_images,
-            }
-            relevant_images_in_summary = key_to_relevant_images_in_summary[key]
-            if value != relevant_images_in_summary:  # pragma: no cover
-                message = (
-                    f"Expected {value} `{key}`s. "
-                    f"Found {relevant_images_in_summary} `{key}`s. "
-                    f"We have waited {int(seconds_waited)} second(s)."
-                )
-                LOGGER.debug(msg=message)
+        database_summary_report = vws_client.get_database_summary_report()
+        actual = {
+            "active_images": database_summary_report.active_images,
+            "inactive_images": database_summary_report.inactive_images,
+            "failed_images": database_summary_report.failed_images,
+            "processing_images": database_summary_report.processing_images,
+        }
+        if actual == expected:
+            return
 
-                time.sleep(sleep_seconds)
+        message = (
+            f"Expected {expected}. "
+            f"Found {actual}. "
+            f"We have waited {int(seconds_waited)} second(s)."
+        )
+        LOGGER.debug(msg=message)
 
-            # This makes the entire test invalid.
-            # However, we have found that without this Vuforia is flaky.
-            # We have waited over 10 minutes for the summary to change and
-            # that is not sustainable in a test suite.
-            break
+        time.sleep(sleep_seconds)
+
+        # This break makes the entire test invalid.
+        # However, we have found that without this Vuforia is flaky.
+        # We have waited over 10 minutes for the summary to change and
+        # that is not sustainable in a test suite.
+        # That might be because we think some images will go into a particular
+        # state but they don't.
+        break
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
