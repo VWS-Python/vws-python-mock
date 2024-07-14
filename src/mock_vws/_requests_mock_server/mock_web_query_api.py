@@ -5,11 +5,12 @@ See
 https://developer.vuforia.com/library/web-api/vuforia-query-web-api
 """
 
-from __future__ import annotations
-
 import email.utils
+from collections.abc import Callable
 from http import HTTPMethod
-from typing import TYPE_CHECKING
+
+from requests_mock.request import Request
+from requests_mock.response import Context
 
 from mock_vws._mock_common import Route
 from mock_vws._query_tools import (
@@ -19,15 +20,8 @@ from mock_vws._query_validators import run_query_validators
 from mock_vws._query_validators.exceptions import (
     ValidatorError,
 )
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
-    from requests_mock.request import Request
-    from requests_mock.response import Context
-
-    from mock_vws.image_matchers import ImageMatcher
-    from mock_vws.target_manager import TargetManager
+from mock_vws.image_matchers import ImageMatcher
+from mock_vws.target_manager import TargetManager
 
 _ROUTES: set[Route] = set()
 

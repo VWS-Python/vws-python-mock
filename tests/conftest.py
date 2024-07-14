@@ -2,22 +2,16 @@
 Configuration, plugins and fixtures for `pytest`.
 """
 
-from __future__ import annotations
-
 import base64
 import binascii
+import io
 import uuid
-from typing import TYPE_CHECKING
 
 import pytest
+from mock_vws.database import VuforiaDatabase
 from vws import VWS, CloudRecoService
 
-if TYPE_CHECKING:
-    import io
-
-    from mock_vws.database import VuforiaDatabase
-
-    from tests.mock_vws.utils import Endpoint
+from tests.mock_vws.utils import Endpoint
 
 pytest_plugins = [
     "tests.mock_vws.fixtures.prepared_requests",

@@ -2,8 +2,6 @@
 Tests for the usage of the mock for ``requests``.
 """
 
-from __future__ import annotations
-
 import datetime
 import email.utils
 import io

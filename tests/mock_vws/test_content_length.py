@@ -2,11 +2,8 @@
 Tests for the ``Content-Length`` header.
 """
 
-from __future__ import annotations
-
 import textwrap
 from http import HTTPStatus
-from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
 import pytest
@@ -14,15 +11,13 @@ import requests
 from mock_vws._constants import ResultCodes
 from requests.structures import CaseInsensitiveDict
 
+from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import (
     assert_valid_date_header,
     assert_vwq_failure,
     assert_vws_failure,
 )
 from tests.mock_vws.utils.too_many_requests import handle_server_errors
-
-if TYPE_CHECKING:
-    from tests.mock_vws.utils import Endpoint
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")

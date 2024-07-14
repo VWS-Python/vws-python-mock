@@ -3,22 +3,16 @@ Tests for passing invalid target IDs to endpoints which
 require a target ID to be given.
 """
 
-from __future__ import annotations
-
 from http import HTTPStatus
-from typing import TYPE_CHECKING
 
 import pytest
 import requests
 from mock_vws._constants import ResultCodes
+from vws import VWS
 
+from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import assert_vws_failure
 from tests.mock_vws.utils.too_many_requests import handle_server_errors
-
-if TYPE_CHECKING:
-    from vws import VWS
-
-    from tests.mock_vws.utils import Endpoint
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")

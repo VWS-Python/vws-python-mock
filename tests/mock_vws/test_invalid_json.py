@@ -2,11 +2,8 @@
 Tests for giving invalid JSON to endpoints.
 """
 
-from __future__ import annotations
-
 from datetime import datetime, timedelta
 from http import HTTPStatus
-from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
@@ -16,6 +13,7 @@ from freezegun import freeze_time
 from mock_vws._constants import ResultCodes
 from vws_auth_tools import authorization_header, rfc_1123_date
 
+from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import (
     assert_valid_date_header,
     assert_valid_transaction_id,
@@ -23,9 +21,6 @@ from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
 )
 from tests.mock_vws.utils.too_many_requests import handle_server_errors
-
-if TYPE_CHECKING:
-    from tests.mock_vws.utils import Endpoint
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
