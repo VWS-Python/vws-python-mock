@@ -124,10 +124,7 @@ class TestDatabaseSummary:
         )
 
     @staticmethod
-    def test_active_images(
-        vws_client: VWS,
-        target_id: str,
-    ) -> None:
+    def test_active_images(vws_client: VWS, target_id: str) -> None:
         """
         The number of images in the active state is returned.
         """
