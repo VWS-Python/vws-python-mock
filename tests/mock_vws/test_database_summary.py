@@ -80,7 +80,13 @@ def _wait_for_image_numbers(
                 raise ValueError(timeout_message)
 
             report = vws_client.get_database_summary_report()
-            relevant_images_in_summary = getattr(report, key)
+            key_to_relevant_images_in_summary = {
+                "active_images": report.active_images,
+                "inactive_images": report.inactive_images,
+                "failed_images": report.failed_images,
+                "processing_images": report.processing_images,
+            }
+            relevant_images_in_summary = key_to_relevant_images_in_summary[key]
             if value != relevant_images_in_summary:  # pragma: no cover
                 message = (
                     f"Expected {value} `{key}`s. "
