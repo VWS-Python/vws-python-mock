@@ -62,7 +62,17 @@ jobs:
           - tests/mock_vws/test_content_length.py::TestIncorrect::test_not_integer
           - tests/mock_vws/test_content_length.py::TestIncorrect::test_too_large
           - tests/mock_vws/test_content_length.py::TestIncorrect::test_too_small
-          - tests/mock_vws/test_database_summary.py
+          - tests/mock_vws/test_database_summary.py::TestDatabaseSummary::test_success
+          - tests/mock_vws/test_database_summary.py::TestDatabaseSummary::test_active_images
+          - tests/mock_vws/test_database_summary.py::TestDatabaseSummary::test_failed_images
+          - tests/mock_vws/test_database_summary.py::TestDatabaseSummary::test_inactive_images
+          - tests/mock_vws/test_database_summary.py::TestDatabaseSummary::test_inactive_failed
+          - tests/mock_vws/test_database_summary.py::TestDatabaseSummary::test_deleted
+          - tests/mock_vws/test_database_summary.py::TestProcessingImages
+          - tests/mock_vws/test_database_summary.py::TestQuotas
+          - tests/mock_vws/test_database_summary.py::TestRecos
+          - tests/mock_vws/test_database_summary.py::TestRequestUsage
+          - tests/mock_vws/test_database_summary.py::TestInactiveProject
           - tests/mock_vws/test_date_header.py::TestFormat
           - tests/mock_vws/test_date_header.py::TestMissing
           - tests/mock_vws/test_date_header.py::TestSkewedTime::test_date_out_of_range_after
