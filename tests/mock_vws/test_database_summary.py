@@ -84,7 +84,8 @@ def _wait_for_image_numbers(
             if value != relevant_images_in_summary:  # pragma: no cover
                 message = (
                     f"Expected {value} `{key}`s. "
-                    f"Found {relevant_images_in_summary} `{key}`s."
+                    f"Found {relevant_images_in_summary} `{key}`s. "
+                    f"We have waited {int(seconds_waited)} second(s)."
                 )
                 LOGGER.debug(msg=message)
 
