@@ -4,6 +4,9 @@ Changelog
 Next
 ----
 
+2024.07.15
+------------
+
 - Support passing data as strings.
 
 2024.07.02.1
