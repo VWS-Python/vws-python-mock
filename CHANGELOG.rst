@@ -4,6 +4,8 @@ Changelog
 Next
 ----
 
+- Support requests which have data sent as strings, not bytes.
+
 2024.07.02.1
 ------------
 

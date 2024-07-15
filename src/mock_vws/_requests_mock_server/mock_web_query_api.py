@@ -103,7 +103,7 @@ class MockVuforiaWebQueryAPI:
             run_query_validators(
                 request_path=request.path,
                 request_headers=request.headers,
-                request_body=request.body,
+                request_body=request.text.encode(encoding="utf-8"),
                 request_method=request.method,
                 databases=self._target_manager.databases,
             )
@@ -114,7 +114,7 @@ class MockVuforiaWebQueryAPI:
 
         response_text = get_query_match_response_text(
             request_headers=request.headers,
-            request_body=request.body,
+            request_body=request.text.encode(encoding="utf-8"),
             request_method=request.method,
             request_path=request.path,
             databases=self._target_manager.databases,
