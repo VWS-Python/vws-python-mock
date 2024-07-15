@@ -54,7 +54,7 @@ def validate_content_length_header_not_too_large(
     """
     given_content_length = request_headers["Content-Length"]
 
-    body_length = len(request_body if request_body else b"")
+    body_length = len(request_body)
     given_content_length_value = int(given_content_length)
     # We skip coverage here as running a test to cover this is very slow.
     if given_content_length_value > body_length:  # pragma: no cover
@@ -81,7 +81,7 @@ def validate_content_length_header_not_too_small(
     """
     given_content_length = request_headers["Content-Length"]
 
-    body_length = len(request_body if request_body else b"")
+    body_length = len(request_body)
     given_content_length_value = int(given_content_length)
 
     if given_content_length_value < body_length:

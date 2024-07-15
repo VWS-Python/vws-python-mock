@@ -81,6 +81,20 @@ def route(
     return decorator
 
 
+def _body_bytes(request: Request) -> bytes:
+    """
+    Return the body of a request as bytes.
+    """
+    if request.body is None:
+        return b""
+
+    if isinstance(request.body, str):
+        return request.body.encode(encoding="utf-8")
+
+    assert isinstance(request.body, bytes)
+    return request.body
+
+
 class MockVuforiaWebServicesAPI:
     """
     A fake implementation of the Vuforia Web Services API.
@@ -129,7 +143,7 @@ class MockVuforiaWebServicesAPI:
         try:
             run_services_validators(
                 request_headers=request.headers,
-                request_body=request.body,
+                request_body=_body_bytes(request=request),
                 request_method=request.method,
                 request_path=request.path,
                 databases=self._target_manager.databases,
@@ -141,7 +155,7 @@ class MockVuforiaWebServicesAPI:
 
         database = get_database_matching_server_keys(
             request_headers=request.headers,
-            request_body=request.body,
+            request_body=_body_bytes(request=request),
             request_method=request.method,
             request_path=request.path,
             databases=self._target_manager.databases,
@@ -206,7 +220,7 @@ class MockVuforiaWebServicesAPI:
         try:
             run_services_validators(
                 request_headers=request.headers,
-                request_body=request.body,
+                request_body=_body_bytes(request=request),
                 request_method=request.method,
                 request_path=request.path,
                 databases=self._target_manager.databases,
@@ -219,7 +233,7 @@ class MockVuforiaWebServicesAPI:
         body: dict[str, str] = {}
         database = get_database_matching_server_keys(
             request_headers=request.headers,
-            request_body=request.body,
+            request_body=_body_bytes(request=request),
             request_method=request.method,
             request_path=request.path,
             databases=self._target_manager.databases,
@@ -273,7 +287,7 @@ class MockVuforiaWebServicesAPI:
         try:
             run_services_validators(
                 request_headers=request.headers,
-                request_body=request.body,
+                request_body=_body_bytes(request=request),
                 request_method=request.method,
                 request_path=request.path,
                 databases=self._target_manager.databases,
@@ -287,7 +301,7 @@ class MockVuforiaWebServicesAPI:
 
         database = get_database_matching_server_keys(
             request_headers=request.headers,
-            request_body=request.body,
+            request_body=_body_bytes(request=request),
             request_method=request.method,
             request_path=request.path,
             databases=self._target_manager.databases,
@@ -339,7 +353,7 @@ class MockVuforiaWebServicesAPI:
         try:
             run_services_validators(
                 request_headers=request.headers,
-                request_body=request.body,
+                request_body=_body_bytes(request=request),
                 request_method=request.method,
                 request_path=request.path,
                 databases=self._target_manager.databases,
@@ -351,7 +365,7 @@ class MockVuforiaWebServicesAPI:
 
         database = get_database_matching_server_keys(
             request_headers=request.headers,
-            request_body=request.body,
+            request_body=_body_bytes(request=request),
             request_method=request.method,
             request_path=request.path,
             databases=self._target_manager.databases,
@@ -399,7 +413,7 @@ class MockVuforiaWebServicesAPI:
         try:
             run_services_validators(
                 request_headers=request.headers,
-                request_body=request.body,
+                request_body=_body_bytes(request=request),
                 request_method=request.method,
                 request_path=request.path,
                 databases=self._target_manager.databases,
@@ -411,7 +425,7 @@ class MockVuforiaWebServicesAPI:
 
         database = get_database_matching_server_keys(
             request_headers=request.headers,
-            request_body=request.body,
+            request_body=_body_bytes(request=request),
             request_method=request.method,
             request_path=request.path,
             databases=self._target_manager.databases,
@@ -467,7 +481,7 @@ class MockVuforiaWebServicesAPI:
         try:
             run_services_validators(
                 request_headers=request.headers,
-                request_body=request.body,
+                request_body=_body_bytes(request=request),
                 request_method=request.method,
                 request_path=request.path,
                 databases=self._target_manager.databases,
@@ -479,7 +493,7 @@ class MockVuforiaWebServicesAPI:
 
         database = get_database_matching_server_keys(
             request_headers=request.headers,
-            request_body=request.body,
+            request_body=_body_bytes(request=request),
             request_method=request.method,
             request_path=request.path,
             databases=self._target_manager.databases,
@@ -541,7 +555,7 @@ class MockVuforiaWebServicesAPI:
         try:
             run_services_validators(
                 request_headers=request.headers,
-                request_body=request.body,
+                request_body=_body_bytes(request=request),
                 request_method=request.method,
                 request_path=request.path,
                 databases=self._target_manager.databases,
@@ -553,7 +567,7 @@ class MockVuforiaWebServicesAPI:
 
         database = get_database_matching_server_keys(
             request_headers=request.headers,
-            request_body=request.body,
+            request_body=_body_bytes(request=request),
             request_method=request.method,
             request_path=request.path,
             databases=self._target_manager.databases,
@@ -650,7 +664,7 @@ class MockVuforiaWebServicesAPI:
         try:
             run_services_validators(
                 request_headers=request.headers,
-                request_body=request.body,
+                request_body=_body_bytes(request=request),
                 request_method=request.method,
                 request_path=request.path,
                 databases=self._target_manager.databases,
@@ -662,7 +676,7 @@ class MockVuforiaWebServicesAPI:
 
         database = get_database_matching_server_keys(
             request_headers=request.headers,
-            request_body=request.body,
+            request_body=_body_bytes(request=request),
             request_method=request.method,
             request_path=request.path,
             databases=self._target_manager.databases,

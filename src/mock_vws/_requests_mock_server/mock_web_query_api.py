@@ -69,6 +69,20 @@ def route(
     return decorator
 
 
+def _body_bytes(request: Request) -> bytes:
+    """
+    Return the body of a request as bytes.
+    """
+    if request.body is None:
+        return b""
+
+    if isinstance(request.body, str):
+        return request.body.encode(encoding="utf-8")
+
+    assert isinstance(request.body, bytes)
+    return request.body
+
+
 class MockVuforiaWebQueryAPI:
     """
     A fake implementation of the Vuforia Web Query API.
@@ -103,7 +117,7 @@ class MockVuforiaWebQueryAPI:
             run_query_validators(
                 request_path=request.path,
                 request_headers=request.headers,
-                request_body=request.body,
+                request_body=_body_bytes(request=request),
                 request_method=request.method,
                 databases=self._target_manager.databases,
             )
@@ -114,7 +128,7 @@ class MockVuforiaWebQueryAPI:
 
         response_text = get_query_match_response_text(
             request_headers=request.headers,
-            request_body=request.body,
+            request_body=_body_bytes(request=request),
             request_method=request.method,
             request_path=request.path,
             databases=self._target_manager.databases,
