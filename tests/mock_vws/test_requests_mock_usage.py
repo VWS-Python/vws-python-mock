@@ -9,6 +9,7 @@ import email.utils
 import io
 import json
 import socket
+from typing import TYPE_CHECKING
 
 import pytest
 import requests
@@ -26,6 +27,9 @@ from vws_auth_tools import rfc_1123_date
 from tests.mock_vws.utils.usage_test_helpers import (
     processing_time_seconds,
 )
+
+if TYPE_CHECKING:
+    from tests.mock_vws.utils import Endpoint
 
 
 def _not_exact_matcher(
@@ -692,3 +696,25 @@ class TestDuplicatesImageMatchers:
             vws_client.wait_for_target_processed(target_id=duplicate_target_id)
             duplicates = vws_client.get_duplicate_targets(target_id=target_id)
             assert duplicates == [duplicate_target_id]
+
+
+@pytest.mark.usefixtures("mock_only_vuforia")
+class TestDataTypes:
+    """
+    Tests for sending various data types.
+    """
+
+    @staticmethod
+    def test_vws(
+        endpoint: Endpoint,
+        vuforia_database: VuforiaDatabase,
+    ) -> None:
+        """
+        X
+        """
+        with MockVWS() as mock:
+            mock.add_database(database=vuforia_database)
+            session = requests.Session()
+            response = session.send(request=endpoint.prepared_request)
+
+            response.raise_for_status()

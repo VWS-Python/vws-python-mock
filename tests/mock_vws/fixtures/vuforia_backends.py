@@ -265,3 +265,44 @@ def verify_mock_vuforia(
         inactive_database=inactive_database,
         monkeypatch=monkeypatch,
     )
+
+
+@pytest.fixture(
+    params=list(set(VuforiaBackend) - {VuforiaBackend.REAL}),
+    ids=[
+        backend.value
+        for backend in list(set(VuforiaBackend) - {VuforiaBackend.REAL})
+    ],
+)
+def mock_only_vuforia(
+    request: pytest.FixtureRequest,
+    vuforia_database: VuforiaDatabase,
+    inactive_database: VuforiaDatabase,
+    monkeypatch: pytest.MonkeyPatch,
+) -> Generator[None, None, None]:
+    """
+    Test functions which use this fixture are run multiple times. Once with the
+    real Vuforia, and once with each mock.
+
+    This is useful for verifying the mocks.
+
+    Yields:
+        ``None``.
+    """
+    backend: VuforiaBackend = request.param
+    should_skip = request.config.getoption(
+        name=f"--skip-{backend.name.lower()}",
+    )
+    if should_skip:
+        pytest.skip()
+
+    enable_function = {
+        VuforiaBackend.MOCK: _enable_use_mock_vuforia,
+        VuforiaBackend.DOCKER_IN_MEMORY: _enable_use_docker_in_memory,
+    }[backend]
+
+    yield from enable_function(
+        working_database=vuforia_database,
+        inactive_database=inactive_database,
+        monkeypatch=monkeypatch,
+    )
