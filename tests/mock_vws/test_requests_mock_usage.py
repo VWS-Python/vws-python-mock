@@ -705,16 +705,11 @@ class TestDataTypes:
     """
 
     @staticmethod
-    def test_vws(
-        endpoint: Endpoint,
-        vuforia_database: VuforiaDatabase,
-    ) -> None:
+    def test_vws(endpoint: Endpoint) -> None:
         """
         X
         """
-        with MockVWS() as mock:
-            mock.add_database(database=vuforia_database)
-            session = requests.Session()
-            response = session.send(request=endpoint.prepared_request)
+        session = requests.Session()
+        response = session.send(request=endpoint.prepared_request)
 
-            response.raise_for_status()
+        response.raise_for_status()
