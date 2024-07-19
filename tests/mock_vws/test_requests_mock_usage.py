@@ -9,6 +9,8 @@ import email.utils
 import io
 import json
 import socket
+from typing import TYPE_CHECKING
+from urllib.parse import urlparse
 
 import pytest
 import requests
@@ -26,6 +28,9 @@ from vws_auth_tools import rfc_1123_date
 from tests.mock_vws.utils.usage_test_helpers import (
     processing_time_seconds,
 )
+
+if TYPE_CHECKING:
+    from tests.mock_vws.utils import Endpoint
 
 
 def _not_exact_matcher(
@@ -692,3 +697,33 @@ class TestDuplicatesImageMatchers:
             vws_client.wait_for_target_processed(target_id=duplicate_target_id)
             duplicates = vws_client.get_duplicate_targets(target_id=target_id)
             assert duplicates == [duplicate_target_id]
+
+
+# This is in the wrong file really as it hits both the in memory mock and the
+# Flask app.
+@pytest.mark.usefixtures("mock_only_vuforia")
+class TestDataTypes:
+    """
+    Tests for sending various data types.
+    """
+
+    @staticmethod
+    def test_text(endpoint: Endpoint) -> None:
+        """
+        It is possible to send strings to VWS endpoints.
+        """
+        session = requests.Session()
+        url = endpoint.prepared_request.url or ""
+        netloc = urlparse(url=url).netloc
+        if endpoint.prepared_request.body is None:
+            endpoint.prepared_request.body = b""
+
+        if netloc == "cloudreco.vuforia.com":
+            pytest.skip()
+
+        assert isinstance(endpoint.prepared_request.body, bytes)
+        endpoint.prepared_request.body = endpoint.prepared_request.body.decode(
+            encoding="utf-8",
+        )
+        response = session.send(request=endpoint.prepared_request)
+        response.raise_for_status()

@@ -73,14 +73,7 @@ def _body_bytes(request: Request) -> bytes:
     """
     Return the body of a request as bytes.
     """
-    if request.body is None:
-        return b""
-
-    if isinstance(request.body, str):
-        return request.body.encode(encoding="utf-8")
-
-    assert isinstance(request.body, bytes)
-    return request.body
+    return request.body or b""
 
 
 class MockVuforiaWebQueryAPI:
