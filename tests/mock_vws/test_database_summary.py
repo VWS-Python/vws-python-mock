@@ -4,8 +4,8 @@ Tests for the mock of the database summary endpoint.
 
 from __future__ import annotations
 
+import io
 import logging
-import time
 import uuid
 from http import HTTPStatus
 from typing import TYPE_CHECKING
@@ -13,6 +13,10 @@ from typing import TYPE_CHECKING
 import pytest
 from mock_vws import MockVWS
 from mock_vws.database import VuforiaDatabase
+from tenacity import Retrying
+from tenacity.retry import retry_if_exception_type
+from tenacity.stop import stop_after_delay
+from tenacity.wait import wait_fixed
 from vws import VWS, CloudRecoService
 from vws.exceptions.vws_exceptions import Fail
 
@@ -60,42 +64,27 @@ def _wait_for_image_numbers(
         "processing_images": processing_images,
     }
 
-    maximum_wait_seconds = 700
-    start_time = time.monotonic()
-
-    # If we wait for all requirements to match at the same time,
-    # we will often not reach that.
-    # We therefore wait for each requirement to match at least once.
-
-    # We wait 0.2 seconds rather than less than that to decrease the number
-    # of calls made to the API, to decrease the likelihood of hitting the
-    # request quota.
-    sleep_seconds = 0.2
-
-    while True:
-        seconds_waited = time.monotonic() - start_time
-        if seconds_waited > maximum_wait_seconds:  # pragma: no cover
-            timeout_message = "Timed out waiting"
-            raise ValueError(timeout_message)
-
-        database_summary_report = vws_client.get_database_summary_report()
-        actual = {
-            "active_images": database_summary_report.active_images,
-            "inactive_images": database_summary_report.inactive_images,
-            "failed_images": database_summary_report.failed_images,
-            "processing_images": database_summary_report.processing_images,
-        }
-        if actual == expected:
-            return
-
-        message = (
-            f"Expected {expected}. "
-            f"Found {actual}. "
-            f"We have waited {int(seconds_waited)} second(s)."
-        )
-        LOGGER.debug(msg=message)
-
-        time.sleep(sleep_seconds)
+    for attempt in Retrying(
+        # We wait 0.2 seconds rather than less than that to decrease the number
+        # of calls made to the API, to decrease the likelihood of hitting the
+        # request quota.
+        wait=wait_fixed(0.2),
+        stop=stop_after_delay(max_delay=700),
+        retry=retry_if_exception_type(
+            exception_types=(AssertionError,),
+        ),
+        reraise=True,
+    ):
+        with attempt:
+            database_summary_report = vws_client.get_database_summary_report()
+            actual = {
+                "active_images": database_summary_report.active_images,
+                "inactive_images": database_summary_report.inactive_images,
+                "failed_images": database_summary_report.failed_images,
+                "processing_images": database_summary_report.processing_images,
+            }
+            message = f"Expected {expected}. Found {actual}."
+            assert actual == expected, message
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
