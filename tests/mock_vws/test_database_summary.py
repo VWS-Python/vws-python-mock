@@ -83,8 +83,13 @@ def _wait_for_image_numbers(
                 "failed_images": database_summary_report.failed_images,
                 "processing_images": database_summary_report.processing_images,
             }
-            message = f"Expected {expected}. Found {actual}."
-            assert actual == expected, message
+            message = (
+                f"Expected {expected}. "
+                f"Found {actual}. "
+                f"Attempt {attempt.retry_state.attempt_number}"
+            )
+            LOGGER.debug(msg=message)
+            assert actual == expected
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
