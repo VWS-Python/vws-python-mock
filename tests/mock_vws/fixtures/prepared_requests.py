@@ -113,9 +113,7 @@ def delete_target(
     date = rfc_1123_date()
     request_path = f"/targets/{target_id}"
     method = HTTPMethod.DELETE
-    # This could be b"" or None, but we want to exercise handling
-    # all three of those types.
-    content = ""
+    content = b""
 
     access_key = vuforia_database.server_access_key
     secret_key = vuforia_database.server_secret_key
@@ -160,9 +158,7 @@ def database_summary(vuforia_database: VuforiaDatabase) -> Endpoint:
     request_path = "/summary"
     method = HTTPMethod.GET
 
-    # This could be b"" or "", but we want to exercise handling
-    # all three of those types.
-    content = None
+    content = b""
 
     access_key = vuforia_database.server_access_key
     secret_key = vuforia_database.server_secret_key

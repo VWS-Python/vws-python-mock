@@ -10,6 +10,7 @@ import io
 import json
 import socket
 from typing import TYPE_CHECKING
+from urllib.parse import urlparse
 
 import pytest
 import requests
@@ -698,6 +699,8 @@ class TestDuplicatesImageMatchers:
             assert duplicates == [duplicate_target_id]
 
 
+# This is in the wrong file really as it hits both the in memory mock and the
+# Flask app.
 @pytest.mark.usefixtures("mock_only_vuforia")
 class TestDataTypes:
     """
@@ -705,11 +708,22 @@ class TestDataTypes:
     """
 
     @staticmethod
-    def test_vws(endpoint: Endpoint) -> None:
+    def test_text(endpoint: Endpoint) -> None:
         """
-        X
+        It is possible to send strings to VWS endpoints.
         """
         session = requests.Session()
-        response = session.send(request=endpoint.prepared_request)
+        url = endpoint.prepared_request.url or ""
+        netloc = urlparse(url=url).netloc
+        if endpoint.prepared_request.body is None:
+            endpoint.prepared_request.body = b""
 
+        if netloc == "cloudreco.vuforia.com":
+            pytest.skip()
+
+        assert isinstance(endpoint.prepared_request.body, bytes)
+        endpoint.prepared_request.body = endpoint.prepared_request.body.decode(
+            encoding="utf-8",
+        )
+        response = session.send(request=endpoint.prepared_request)
         response.raise_for_status()

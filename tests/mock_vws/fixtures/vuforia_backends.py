@@ -282,9 +282,10 @@ def mock_only_vuforia(
 ) -> Generator[None, None, None]:
     """
     Test functions which use this fixture are run multiple times. Once with the
-    real Vuforia, and once with each mock.
+    each mock.
 
-    This is useful for verifying the mocks.
+    This is useful for testing the mock using fixtures which connect to
+    Vuforia.
 
     Yields:
         ``None``.
