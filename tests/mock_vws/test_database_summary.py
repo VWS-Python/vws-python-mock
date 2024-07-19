@@ -5,7 +5,6 @@ Tests for the mock of the database summary endpoint.
 from __future__ import annotations
 
 import logging
-import time
 import uuid
 from http import HTTPStatus
 from typing import TYPE_CHECKING
@@ -13,6 +12,10 @@ from typing import TYPE_CHECKING
 import pytest
 from mock_vws import MockVWS
 from mock_vws.database import VuforiaDatabase
+from tenacity import RetryCallState, retry
+from tenacity.retry import retry_if_exception_type
+from tenacity.stop import stop_after_delay
+from tenacity.wait import wait_fixed
 from vws import VWS, CloudRecoService
 from vws.exceptions.vws_exceptions import Fail
 
@@ -23,6 +26,28 @@ LOGGER = logging.getLogger(name=__name__)
 LOGGER.setLevel(level=logging.DEBUG)
 
 
+def _log_attempt_number(retry_state: RetryCallState) -> None:
+    """
+    Log the attempt number of a retry.
+    """
+    attempt_number: int = retry_state.attempt_number
+    message = f"Attempt number: {attempt_number}"
+    LOGGER.debug(msg=message)
+
+
+@retry(
+    # We wait 0.2 seconds rather than less than that to decrease the number
+    # of calls made to the API, to decrease the likelihood of hitting the
+    # request quota.
+    wait=wait_fixed(0.2),
+    # Wait up to 700 seconds (arbitrary, though we saw timeouts with 500
+    # seconds) for the number of images in various categories to match the
+    # expected number. This is necessary because the database summary endpoint
+    # lags behind the real data.
+    stop=stop_after_delay(max_delay=700),
+    retry=retry_if_exception_type(exception_types=(AssertionError,)),
+    before=_log_attempt_number,
+)
 def _wait_for_image_numbers(
     *,
     vws_client: VWS,
@@ -32,15 +57,8 @@ def _wait_for_image_numbers(
     processing_images: int,
 ) -> None:
     """
-    Wait up to 700 seconds (arbitrary, though we saw timeouts with 500 seconds)
-    for the number of images in various categories to match the expected
-    number.
-
-    This is necessary because the database summary endpoint lags behind the
-    real data.
-
-    This is susceptible to false positives because if, for example, we expect
-    no images, and the endpoint adds images with a delay, we will not know.
+    Wait for the number of images in various categories of the database summary
+    to match the expected given numbers.
 
     Args:
         vws_client: The client to use to connect to Vuforia.
@@ -53,6 +71,8 @@ def _wait_for_image_numbers(
         ValueError: The numbers of images in various categories do not match
             within the time limit.
     """
+    database_summary_report = vws_client.get_database_summary_report()
+
     expected = {
         "active_images": active_images,
         "inactive_images": inactive_images,
@@ -60,42 +80,16 @@ def _wait_for_image_numbers(
         "processing_images": processing_images,
     }
 
-    maximum_wait_seconds = 700
-    start_time = time.monotonic()
+    actual = {
+        "active_images": database_summary_report.active_images,
+        "inactive_images": database_summary_report.inactive_images,
+        "failed_images": database_summary_report.failed_images,
+        "processing_images": database_summary_report.processing_images,
+    }
 
-    # If we wait for all requirements to match at the same time,
-    # we will often not reach that.
-    # We therefore wait for each requirement to match at least once.
-
-    # We wait 0.2 seconds rather than less than that to decrease the number
-    # of calls made to the API, to decrease the likelihood of hitting the
-    # request quota.
-    sleep_seconds = 0.2
-
-    while True:
-        seconds_waited = time.monotonic() - start_time
-        if seconds_waited > maximum_wait_seconds:  # pragma: no cover
-            timeout_message = "Timed out waiting"
-            raise ValueError(timeout_message)
-
-        database_summary_report = vws_client.get_database_summary_report()
-        actual = {
-            "active_images": database_summary_report.active_images,
-            "inactive_images": database_summary_report.inactive_images,
-            "failed_images": database_summary_report.failed_images,
-            "processing_images": database_summary_report.processing_images,
-        }
-        if actual == expected:
-            return
-
-        message = (
-            f"Expected {expected}. "
-            f"Found {actual}. "
-            f"We have waited {int(seconds_waited)} second(s)."
-        )
-        LOGGER.debug(msg=message)
-
-        time.sleep(sleep_seconds)
+    msg = f"Expected: {expected}. Actual: {actual}"
+    LOGGER.debug(msg=msg)
+    assert actual == expected
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
