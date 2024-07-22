@@ -268,10 +268,12 @@ def verify_mock_vuforia(
 
 
 @pytest.fixture(
-    params=list(set(VuforiaBackend) - {VuforiaBackend.REAL}),
+    params=[item for item in VuforiaBackend if item != VuforiaBackend.REAL],
     ids=[
         backend.value
-        for backend in list(set(VuforiaBackend) - {VuforiaBackend.REAL})
+        for backend in [
+            item for item in VuforiaBackend if item != VuforiaBackend.REAL
+        ]
     ],
 )
 def mock_only_vuforia(
