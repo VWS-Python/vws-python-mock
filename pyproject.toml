@@ -39,7 +39,7 @@ dependencies = [
     "flask",
     # Pin numpy to avoid:
     # https://github.com/pytorch/pytorch/issues/128860
-    "numpy<2.0.0",
+    "numpy<3.0.0",
     "pillow",
     "piq",
     "pydantic-settings",
