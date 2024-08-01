@@ -2,158 +2,180 @@
 # See https://pre-commit.com/hooks.html for more hooks
 default_install_hook_types: [pre-commit, pre-push, commit-msg]
 repos:
--   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
-    hooks:
-    -   id: check-added-large-files
-    -   id: check-case-conflict
-    -   id: check-executables-have-shebangs
-    -   id: check-merge-conflict
-    -   id: check-shebang-scripts-are-executable
-    -   id: check-symlinks
-    -   id: check-toml
-    -   id: check-vcs-permalinks
-    -   id: check-yaml
-    -   id: end-of-file-fixer
-    -   id: file-contents-sorter
-        files: spelling_private_dict\.txt$
-    -   id: trailing-whitespace
-        exclude: ^src/mock_vws/resources/
--   repo: local
-    hooks:
-    -   id: custom-linters
-        name: custom-linters
-        entry: pytest ci/custom_linters.py
-        stages: [push]
-        language: system
-        types_or: [yaml, python]
-        pass_filenames: false
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.6.0
+  hooks:
+  - id: check-added-large-files
+  - id: check-case-conflict
+  - id: check-executables-have-shebangs
+  - id: check-merge-conflict
+  - id: check-shebang-scripts-are-executable
+  - id: check-symlinks
+  - id: check-toml
+  - id: check-vcs-permalinks
+  - id: check-yaml
+  - id: end-of-file-fixer
+  - id: file-contents-sorter
+    files: spelling_private_dict\.txt$
+  - id: trailing-whitespace
+    exclude: ^src/mock_vws/resources/
+- repo: local
+  hooks:
+  - id: custom-linters
+    name: custom-linters
+    entry: pytest ci/custom_linters.py
+    stages: [push]
+    language: system
+    types_or: [yaml, python]
+    pass_filenames: false
 
-    -   id: actionlint
-        name: actionlint
-        entry: actionlint
-        language: system
-        pass_filenames: false
-        types_or: [yaml]
+  - id: actionlint
+    name: actionlint
+    entry: actionlint
+    language: system
+    pass_filenames: false
+    types_or: [yaml]
 
-    -   id: mypy
-        name: mypy
-        stages: [push]
-        entry: mypy .
-        language: system
-        types_or: [python, toml]
-        pass_filenames: false
+  - id: mypy
+    name: mypy
+    stages: [push]
+    entry: mypy .
+    language: system
+    types_or: [python, toml]
+    pass_filenames: false
 
-    -   id: check-manifest
-        name: check-manifest
-        stages: [push]
-        entry: check-manifest .
-        language: system
-        pass_filenames: false
+  - id: check-manifest
+    name: check-manifest
+    stages: [push]
+    entry: check-manifest .
+    language: system
+    pass_filenames: false
 
-    -   id: pyright
-        name: pyright
-        stages: [push]
-        entry: pyright .
-        language: system
-        types_or: [python, toml]
-        pass_filenames: false
+  - id: pyright
+    name: pyright
+    stages: [push]
+    entry: pyright .
+    language: system
+    types_or: [python, toml]
+    pass_filenames: false
 
-    -   id: pyright-verifytypes
-        name: pyright-verifytypes
-        stages: [push]
-        entry: pyright --verifytypes mock_vws
-        language: system
-        pass_filenames: false
-        types_or: [python]
+  - id: pyright-verifytypes
+    name: pyright-verifytypes
+    stages: [push]
+    entry: pyright --verifytypes mock_vws
+    language: system
+    pass_filenames: false
+    types_or: [python]
 
-    -   id: vulture
-        name: vulture
-        entry: vulture --min-confidence 100 --exclude .eggs
-        language: system
-        types_or: [python]
+  - id: vulture
+    name: vulture
+    entry: vulture --min-confidence 100 --exclude .eggs
+    language: system
+    types_or: [python]
 
-    -   id: pyroma
-        name: pyroma
-        entry: pyroma --min 10 .
-        language: system
-        pass_filenames: false
-        types_or: [toml]
+  - id: pyroma
+    name: pyroma
+    entry: pyroma --min 10 .
+    language: system
+    pass_filenames: false
+    types_or: [toml]
 
-    -   id: deptry
-        name: deptry
-        entry: deptry src/
-        language: system
-        pass_filenames: false
+  - id: deptry
+    name: deptry
+    entry: deptry src/
+    language: system
+    pass_filenames: false
 
-    -   id: pylint
-        name: pylint
-        entry: pylint *.py src/ tests/ docs/ ci/
-        language: system
-        stages: [manual]
-        pass_filenames: false
+  - id: pylint
+    name: pylint
+    entry: pylint *.py src/ tests/ docs/ ci/
+    language: system
+    stages: [manual]
+    pass_filenames: false
 
-    -   id: hadolint-docker
-        name: Lint Dockerfiles
-        description: Runs hadolint Docker image to lint Dockerfiles
-        language: docker_image
-        types_or: [dockerfile]
-        stages: [manual] # Requires Docker to be running
+  - id: hadolint-docker
+    name: Lint Dockerfiles
+    description: Runs hadolint Docker image to lint Dockerfiles
+    language: docker_image
+    types_or: [dockerfile]
+    stages: [manual]     # Requires Docker to be running
         # We choose not to use a Python wrapper or alternative to hadolint as none
         # appear to be well maintained, and they require more setup than we would
         # want.
-        entry: ghcr.io/hadolint/hadolint hadolint
+    entry: ghcr.io/hadolint/hadolint hadolint
 
-    -   id: ruff-check-fix
-        name: Ruff check fix
-        entry: ruff check --fix
-        language: system
-        types_or: [python]
+  - id: ruff-check-fix
+    name: Ruff check fix
+    entry: ruff check --fix
+    language: system
+    types_or: [python]
 
-    -   id: ruff-format-fix
-        name: Ruff format
-        entry: ruff format
-        language: system
-        types_or: [python]
+  - id: ruff-format-fix
+    name: Ruff format
+    entry: ruff format
+    language: system
+    types_or: [python]
 
-    -   id: doc8
-        name: doc8
-        entry: doc8
-        language: system
-        types_or: [rst]
+  - id: doc8
+    name: doc8
+    entry: doc8
+    language: system
+    types_or: [rst]
 
-    -   id: interrogate
-        name: interrogate
-        entry: interrogate src/ tests/ ci/
-        language: system
-        types_or: [python]
+  - id: interrogate
+    name: interrogate
+    entry: interrogate src/ tests/ ci/
+    language: system
+    types_or: [python]
 
-    -   id: pyproject-fmt-fix
-        name: pyproject-fmt
-        entry: pyproject-fmt
-        language: system
-        types_or: [toml]
-        files: pyproject.toml
+  - id: pyproject-fmt-fix
+    name: pyproject-fmt
+    entry: pyproject-fmt
+    language: system
+    types_or: [toml]
+    files: pyproject.toml
 
-    -   id: linkcheck
-        name: linkcheck
-        entry: make -C docs/ linkcheck SPHINXOPTS=-W
-        language: system
-        types_or: [rst]
-        stages: [manual]
-        pass_filenames: false
+  - id: linkcheck
+    name: linkcheck
+    entry: make -C docs/ linkcheck SPHINXOPTS=-W
+    language: system
+    types_or: [rst]
+    stages: [manual]
+    pass_filenames: false
 
-    -   id: spelling
-        name: spelling
-        entry: make -C docs/ spelling SPHINXOPTS=-W
-        language: system
-        types_or: [rst]
-        stages: [manual]
-        pass_filenames: false
+  - id: spelling
+    name: spelling
+    entry: make -C docs/ spelling SPHINXOPTS=-W
+    language: system
+    types_or: [rst]
+    stages: [manual]
+    pass_filenames: false
 
-    -   id: docs
-        name: Build Documentation
-        entry: make docs
-        language: system
-        stages: [manual]
-        pass_filenames: false
+  - id: docs
+    name: Build Documentation
+    entry: make docs
+    language: system
+    stages: [manual]
+    pass_filenames: false
+# We use system Python, with required dependencies specified in pyproject.toml.
+# We therefore cannot use those dependencies in pre-commit CI.
+ci:
+  skip:
+  - custom-linters
+  - actionlint
+  - mypy
+  - check-manifest
+  - pyright
+  - pyright-verifytypes
+  - vulture
+  - pyroma
+  - deptry
+  - pylint
+  - ruff-check-fix
+  - ruff-format-fix
+  - doc8
+  - interrogate
+  - pyproject-fmt-fix
+  - linkcheck
+  - spelling
+  - docs
