@@ -20,22 +20,22 @@ The VWS and VWQ containers must point to the target manager container using the 
 Creating containers
 ^^^^^^^^^^^^^^^^^^^
 
-.. prompt:: bash
+.. code-block:: console
 
-   docker network create -d bridge vws-bridge-network
-   docker run \
+   $ docker network create -d bridge vws-bridge-network
+   $ docker run \
        --detach \
        --publish 5005:5000 \
        --name vuforia-target-manager-mock \
        --network vws-bridge-network \
        adamtheturtle/vuforia-target-manager-mock
-   docker run \
+   $ docker run \
        --detach \
        --publish 5006:5000 \
        -e TARGET_MANAGER_BACKEND=vuforia-target-manager-mock:5000 \
        --network vws-bridge-network \
        adamtheturtle/vuforia-vws-mock
-   docker run \
+   $ docker run \
        --detach \
        --publish 5007:5000 \
        -e TARGET_MANAGER_BACKEND=vuforia-target-manager-mock:5000 \
@@ -58,7 +58,7 @@ To add a database, make a request to the following endpoint against the target m
 
 For example, with the containers set up as in :ref:`creating-containers`, use ``curl``:
 
-.. prompt:: bash $ auto
+.. code-block:: console
 
    $ curl --request POST \
      --header "Content-Type: application/json" \
@@ -152,15 +152,15 @@ VWS container
 Building images from source
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. prompt:: bash
+.. code-block:: console
 
-   export REPOSITORY_ROOT=$PWD
-   export DOCKERFILE=$REPOSITORY_ROOT/src/mock_vws/_flask_server/Dockerfile
+   $ export REPOSITORY_ROOT=$PWD
+   $ export DOCKERFILE=$REPOSITORY_ROOT/src/mock_vws/_flask_server/Dockerfile
 
-   export TARGET_MANAGER_TAG=adamtheturtle/vuforia-target-manager-mock:latest
-   export VWS_TAG=adamtheturtle/vuforia-vws-mock:latest
-   export VWQ_TAG=adamtheturtle/vuforia-vwq-mock:latest
+   $ export TARGET_MANAGER_TAG=adamtheturtle/vuforia-target-manager-mock:latest
+   $ export VWS_TAG=adamtheturtle/vuforia-vws-mock:latest
+   $ export VWQ_TAG=adamtheturtle/vuforia-vwq-mock:latest
 
-   docker buildx build $REPOSITORY_ROOT --file $DOCKERFILE --target target-manager --tag $TARGET_MANAGER_TAG
-   docker buildx build $REPOSITORY_ROOT --file $DOCKERFILE --target vws --tag $VWS_TAG
-   docker buildx build $REPOSITORY_ROOT --file $DOCKERFILE --target vwq --tag $VWQ_TAG
+   $ docker buildx build $REPOSITORY_ROOT --file $DOCKERFILE --target target-manager --tag $TARGET_MANAGER_TAG
+   $ docker buildx build $REPOSITORY_ROOT --file $DOCKERFILE --target vws --tag $VWS_TAG
+   $ docker buildx build $REPOSITORY_ROOT --file $DOCKERFILE --target vwq --tag $VWQ_TAG

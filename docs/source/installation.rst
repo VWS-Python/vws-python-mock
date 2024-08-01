@@ -1,8 +1,8 @@
 Installation
 ------------
 
-.. prompt:: bash
+.. code-block:: console
 
-   pip3 install vws-python-mock
+   $ pip install vws-python-mock
 
 This requires Python |python-minimum-version|\+.

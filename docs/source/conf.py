@@ -16,7 +16,6 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon",
     "sphinx_paramlinks",
-    "sphinx-prompt",
     "sphinx_substitution_extensions",
     "sphinxcontrib.spelling",
     "sphinxcontrib.autohttp.flask",

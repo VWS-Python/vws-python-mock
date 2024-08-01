@@ -10,39 +10,39 @@ Install contribution dependencies
 
 Install Python dependencies in a virtual environment.
 
-.. prompt:: bash
+.. code-block:: console
 
-   pip install --editable '.[dev]'
+   $ pip install --editable '.[dev]'
 
 Spell checking requires ``enchant``.
 This can be installed on macOS, for example, with `Homebrew`_:
 
-.. prompt:: bash
+.. code-block:: console
 
-   brew install enchant
+   $ brew install enchant
 
 and on Ubuntu with ``apt``:
 
-.. prompt:: bash
+.. code-block:: console
 
-   apt-get install -y enchant
+   $ apt-get install -y enchant
 
 Install ``pre-commit`` hooks:
 
-.. prompt:: bash
+.. code-block:: console
 
-   pre-commit install
+   $ pre-commit install
 
 Linting
 -------
 
 Run lint tools either by committing, or with:
 
-.. prompt:: bash
+.. code-block:: console
 
-   pre-commit run --all-files --hook-stage commit --verbose
-   pre-commit run --all-files --hook-stage push --verbose
-   pre-commit run --all-files --hook-stage manual --verbose
+   $ pre-commit run --all-files --hook-stage commit --verbose
+   $ pre-commit run --all-files --hook-stage push --verbose
+   $ pre-commit run --all-files --hook-stage manual --verbose
 
 .. _Homebrew: https://brew.sh
 
@@ -51,9 +51,9 @@ Running Tests
 
 Create an environment variable file for secrets:
 
-.. prompt:: bash
+.. code-block:: console
 
-   cp vuforia_secrets.env.example vuforia_secrets.env
+   $ cp vuforia_secrets.env.example vuforia_secrets.env
 
 Some tests require Vuforia credentials.
 To run these tests, add the Vuforia credentials to the file :file:`vuforia_secrets.env`.
@@ -61,9 +61,9 @@ See :ref:`connecting-to-vuforia`.
 
 Then run ``pytest``:
 
-.. prompt:: bash
+.. code-block:: console
 
-   pytest
+   $ pytest
 
 .. _connecting-to-vuforia:
 
@@ -102,7 +102,7 @@ Skipping Some Tests
 
 Use the following custom ``pytest`` options to skip some tests:
 
-.. prompt:: bash
+.. code-block:: console
 
   --skip-real           Skip tests for Real Vuforia
   --skip-mock           Skip tests for In Memory Mock Vuforia
@@ -118,10 +118,10 @@ Documentation is built on Read the Docs.
 
 Run the following commands to build and view documentation locally:
 
-.. prompt:: bash
+.. code-block:: console
 
-   make docs
-   make open-docs
+   $ make docs
+   $ make open-docs
 
 Continuous Integration
 ----------------------
