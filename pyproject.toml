@@ -81,7 +81,6 @@ optional-dependencies.dev = [
     "ruff==0.5.5",
     "sphinx==7.4.7",
     "sphinx-paramlinks==0.6",
-    "sphinx-prompt==1.8",
     "sphinx-substitution-extensions==2024.2.25",
     "sphinx-toolbox==3.7.0",
     "sphinxcontrib-httpdomain==1.8.1",
