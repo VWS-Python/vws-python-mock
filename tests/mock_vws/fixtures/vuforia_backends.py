@@ -12,18 +12,18 @@ from typing import TYPE_CHECKING
 import pytest
 import requests
 import requests_mock
-from mock_vws import MockVWS
-from mock_vws._flask_server.target_manager import TARGET_MANAGER_FLASK_APP
-from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
-from mock_vws._flask_server.vws import VWS_FLASK_APP
-from mock_vws.database import VuforiaDatabase
-from mock_vws.states import States
 from requests_mock_flask import add_flask_app_to_mock
 from vws import VWS
 from vws.exceptions.vws_exceptions import (
     TargetStatusNotSuccess,
 )
 
+from mock_vws import MockVWS
+from mock_vws._flask_server.target_manager import TARGET_MANAGER_FLASK_APP
+from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
+from mock_vws._flask_server.vws import VWS_FLASK_APP
+from mock_vws.database import VuforiaDatabase
+from mock_vws.states import States
 from tests.mock_vws.utils.retries import RETRY_ON_TOO_MANY_REQUESTS
 
 if TYPE_CHECKING:

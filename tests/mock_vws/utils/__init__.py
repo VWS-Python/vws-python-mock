@@ -7,8 +7,9 @@ import secrets
 from typing import Literal
 
 import requests
-from mock_vws._constants import ResultCodes
 from PIL import Image
+
+from mock_vws._constants import ResultCodes
 
 
 class Endpoint:

@@ -16,8 +16,9 @@ from vws.reports import TargetStatuses
 if TYPE_CHECKING:
     import io
 
-    from mock_vws.database import VuforiaDatabase
     from vws import VWS, CloudRecoService
+
+    from mock_vws.database import VuforiaDatabase
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")

@@ -5,6 +5,7 @@ Tests for target quality raters.
 import io
 
 import pytest
+
 from mock_vws.target_raters import (
     BrisqueTargetTrackingRater,
     HardcodedTargetTrackingRater,

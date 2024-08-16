@@ -12,18 +12,19 @@ from urllib.parse import urljoin
 
 import pytest
 import requests
-from mock_vws._constants import ResultCodes
 from urllib3.filepost import encode_multipart_formdata
 from vws_auth_tools import authorization_header, rfc_1123_date
 
+from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.retries import RETRY_ON_TOO_MANY_REQUESTS
 
 if TYPE_CHECKING:
     import io
 
-    from mock_vws.database import VuforiaDatabase
     from vws import VWS
+
+    from mock_vws.database import VuforiaDatabase
 
 VWS_HOST = "https://vws.vuforia.com"
 VWQ_HOST = "https://cloudreco.vuforia.com"
@@ -42,7 +43,7 @@ def _wait_for_target_processed(vws_client: VWS, target_id: str) -> None:
     vws_client.wait_for_target_processed(target_id=target_id)
 
 
-@pytest.fixture()
+@pytest.fixture
 def add_target(
     vuforia_database: VuforiaDatabase,
     image_file_failed_state: io.BytesIO,
@@ -100,7 +101,7 @@ def add_target(
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def delete_target(
     vuforia_database: VuforiaDatabase,
     target_id: str,
@@ -149,7 +150,7 @@ def delete_target(
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def database_summary(vuforia_database: VuforiaDatabase) -> Endpoint:
     """
     Return details of the endpoint for getting details about the database.
@@ -195,7 +196,7 @@ def database_summary(vuforia_database: VuforiaDatabase) -> Endpoint:
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def get_duplicates(
     vuforia_database: VuforiaDatabase,
     target_id: str,
@@ -247,7 +248,7 @@ def get_duplicates(
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def get_target(
     vuforia_database: VuforiaDatabase,
     target_id: str,
@@ -298,7 +299,7 @@ def get_target(
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def target_list(vuforia_database: VuforiaDatabase) -> Endpoint:
     """
     Return details of the endpoint for getting a list of targets.
@@ -344,7 +345,7 @@ def target_list(vuforia_database: VuforiaDatabase) -> Endpoint:
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def target_summary(
     vuforia_database: VuforiaDatabase,
     target_id: str,
@@ -395,7 +396,7 @@ def target_summary(
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def update_target(
     vuforia_database: VuforiaDatabase,
     target_id: str,
@@ -449,7 +450,7 @@ def update_target(
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def query(
     vuforia_database: VuforiaDatabase,
     high_quality_image: io.BytesIO,

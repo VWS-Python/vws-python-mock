@@ -11,9 +11,9 @@ from urllib.parse import urlparse
 
 import pytest
 import requests
-from mock_vws._constants import ResultCodes
 from requests.structures import CaseInsensitiveDict
 
+from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils.assertions import (
     assert_valid_date_header,
     assert_vwq_failure,

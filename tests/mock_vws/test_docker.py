@@ -12,12 +12,13 @@ import docker
 import pytest
 import requests
 from docker.errors import BuildError, NotFound
-from mock_vws.database import VuforiaDatabase
 from tenacity import retry
 from tenacity.retry import retry_if_exception_type
 from tenacity.stop import stop_after_delay
 from tenacity.wait import wait_fixed
 from vws import VWS, CloudRecoService
+
+from mock_vws.database import VuforiaDatabase
 
 if TYPE_CHECKING:
     import io
@@ -89,7 +90,7 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
         network.remove()
 
 
-@pytest.mark.requires_docker_build()
+@pytest.mark.requires_docker_build
 def test_build_and_run(
     high_quality_image: io.BytesIO,
     custom_bridge_network: Network,
