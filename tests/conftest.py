@@ -16,7 +16,6 @@ if TYPE_CHECKING:
     import io
 
     from mock_vws.database import VuforiaDatabase
-
     from tests.mock_vws.utils import Endpoint
 
 pytest_plugins = [
@@ -37,7 +36,7 @@ def fixture_vws_client(vuforia_database: VuforiaDatabase) -> VWS:
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def cloud_reco_client(vuforia_database: VuforiaDatabase) -> CloudRecoService:
     """
     A query client for an active VWS database.
@@ -59,7 +58,7 @@ def fixture_inactive_vws_client(inactive_database: VuforiaDatabase) -> VWS:
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def inactive_cloud_reco_client(
     inactive_database: VuforiaDatabase,
 ) -> CloudRecoService:
@@ -72,7 +71,7 @@ def inactive_cloud_reco_client(
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def target_id(
     image_file_success_state_low_rating: io.BytesIO,
     vws_client: VWS,

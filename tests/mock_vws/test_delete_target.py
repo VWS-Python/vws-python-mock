@@ -8,13 +8,13 @@ from http import HTTPStatus
 from typing import TYPE_CHECKING
 
 import pytest
-from mock_vws._constants import ResultCodes
 from vws.exceptions.vws_exceptions import (
     ProjectInactive,
     TargetStatusProcessing,
     UnknownTarget,
 )
 
+from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils.assertions import assert_vws_failure
 
 if TYPE_CHECKING:

@@ -15,8 +15,9 @@ from zoneinfo import ZoneInfo
 
 if TYPE_CHECKING:
     import requests
-    from mock_vws._constants import ResultCodes
     from vws.exceptions.response import Response
+
+    from mock_vws._constants import ResultCodes
 
 
 def assert_vws_failure(

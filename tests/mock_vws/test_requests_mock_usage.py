@@ -15,16 +15,16 @@ from urllib.parse import urlparse
 import pytest
 import requests
 from freezegun import freeze_time
-from mock_vws import MockVWS
-from mock_vws.database import VuforiaDatabase
-from mock_vws.image_matchers import ExactMatcher, StructuralSimilarityMatcher
-from mock_vws.target import Target
 from PIL import Image
 from requests.exceptions import MissingSchema
 from requests_mock.exceptions import NoMockAddress
 from vws import VWS, CloudRecoService
 from vws_auth_tools import rfc_1123_date
 
+from mock_vws import MockVWS
+from mock_vws.database import VuforiaDatabase
+from mock_vws.image_matchers import ExactMatcher, StructuralSimilarityMatcher
+from mock_vws.target import Target
 from tests.mock_vws.utils.usage_test_helpers import (
     processing_time_seconds,
 )

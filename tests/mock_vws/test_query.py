@@ -48,8 +48,9 @@ from tests.mock_vws.utils.assertions import (
 from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
 if TYPE_CHECKING:
-    from mock_vws.database import VuforiaDatabase
     from vws import VWS, CloudRecoService
+
+    from mock_vws.database import VuforiaDatabase
 
 VWQ_HOST = "https://cloudreco.vuforia.com"
 

@@ -14,7 +14,6 @@ from urllib.parse import urljoin
 
 import pytest
 import requests
-from mock_vws._constants import ResultCodes
 from vws.exceptions.vws_exceptions import (
     BadImage,
     Fail,
@@ -26,6 +25,7 @@ from vws.exceptions.vws_exceptions import (
 from vws.reports import TargetStatuses
 from vws_auth_tools import authorization_header, rfc_1123_date
 
+from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import make_image_file
 from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
@@ -36,8 +36,9 @@ from tests.mock_vws.utils.too_many_requests import handle_server_errors
 _MAX_METADATA_BYTES: Final[int] = 1024 * 1024 - 1
 
 if TYPE_CHECKING:
-    from mock_vws.database import VuforiaDatabase
     from vws import VWS
+
+    from mock_vws.database import VuforiaDatabase
 
 
 def _update_target(

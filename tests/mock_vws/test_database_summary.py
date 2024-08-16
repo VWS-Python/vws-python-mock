@@ -10,14 +10,15 @@ from http import HTTPStatus
 from typing import TYPE_CHECKING
 
 import pytest
-from mock_vws import MockVWS
-from mock_vws.database import VuforiaDatabase
 from tenacity import RetryCallState, retry
 from tenacity.retry import retry_if_exception_type
 from tenacity.stop import stop_after_delay
 from tenacity.wait import wait_fixed
 from vws import VWS, CloudRecoService
 from vws.exceptions.vws_exceptions import Fail
+
+from mock_vws import MockVWS
+from mock_vws.database import VuforiaDatabase
 
 if TYPE_CHECKING:
     import io
