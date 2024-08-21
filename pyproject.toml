@@ -353,6 +353,7 @@ exclude_also = [
 strict = true
 plugins = [
     "pydantic.mypy",
+    "mypy_plugin.py",
 ]
 
 [tool.pyright]
