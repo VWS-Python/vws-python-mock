@@ -545,7 +545,7 @@ class TestTargetName:
         ],
     )
     def test_name_invalid(
-        name: str,
+        name: str | int | None,
         target_id: str,
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
