@@ -58,15 +58,14 @@ def _(monkeypatch: pytest.MonkeyPatch, requests_mock: Mocker) -> None:
     )
 
 
-# There is a race condition in this test type - if tests start to
-# fail, consider increasing the leeway.
-_PROCESSING_LEEWAY = 0.5
-
-
 class TestProcessingTime:
     """
     Tests for the time taken to process targets in the mock.
     """
+
+    # There is a race condition in this test type - if tests start to
+    # fail, consider increasing the leeway.
+    LEEWAY = 0.5
 
     def test_default(
         self,
@@ -85,11 +84,7 @@ class TestProcessingTime:
         )
 
         expected = 2
-        assert (
-            expected - _PROCESSING_LEEWAY
-            < time_taken
-            < expected + _PROCESSING_LEEWAY
-        )
+        assert expected - self.LEEWAY < time_taken < expected + self.LEEWAY
 
     def test_custom(
         self,
@@ -114,11 +109,7 @@ class TestProcessingTime:
         )
 
         expected = seconds
-        assert (
-            expected - _PROCESSING_LEEWAY
-            < time_taken
-            < expected + _PROCESSING_LEEWAY
-        )
+        assert expected - self.LEEWAY < time_taken < expected + self.LEEWAY
 
 
 class TestAddDatabase:
