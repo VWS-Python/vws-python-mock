@@ -41,7 +41,10 @@ def pytest_collection_modifyitems(
     """
     for item in items:
         if isinstance(item, pytest.Function):
-            if inspect.ismethod(item.obj):
+            if inspect.ismethod(item.obj) and isinstance(
+                item.parent,
+                pytest.Function,
+            ):
                 # If it's a method, we must handle the `self` argument
                 # correctly.
                 item.obj = typechecked(item.obj.__func__).__get__(
