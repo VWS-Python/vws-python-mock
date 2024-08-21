@@ -43,7 +43,7 @@ def pytest_collection_modifyitems(
         if isinstance(item, pytest.Function):
             if inspect.ismethod(item.obj) and isinstance(
                 item.parent,
-                pytest.Function,
+                pytest.Class,
             ):
                 # If it's a method, we must handle the `self` argument
                 # correctly.
