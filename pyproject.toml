@@ -97,6 +97,7 @@ optional-dependencies.dev = [
     "vws-python==2024.2.19",
     "vws-test-fixtures==2023.3.5",
     "vws-web-tools==2023.12.26",
+    "typeguard==4.3.0",
 ]
 urls.Documentation = "https://vws-python-mock.readthedocs.io"
 urls.Source = "https://github.com/VWS-Python/vws-python-mock"
@@ -322,6 +323,9 @@ keep_full_version = true
 
 xfail_strict = true
 log_cli = true
+typeguard-packages = """
+tests
+"""
 addopts = [
     "--strict-markers",
 ]
