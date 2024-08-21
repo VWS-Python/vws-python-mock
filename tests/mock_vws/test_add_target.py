@@ -378,7 +378,7 @@ class TestTargetName:
         ],
     )
     def test_name_invalid(
-        name: str,
+        name: str | int | None,
         image_file_failed_state: io.BytesIO,
         status_code: int,
         vws_client: VWS,
@@ -392,7 +392,7 @@ class TestTargetName:
                 expected_exception=OopsAnErrorOccurredPossiblyBadName,
             ) as oops_exc:
                 vws_client.add_target(
-                    name=name,
+                    name=name,  # type: ignore[arg-type]
                     width=1,
                     image=image_file_failed_state,
                     application_metadata=None,
@@ -404,7 +404,7 @@ class TestTargetName:
 
         with pytest.raises(expected_exception=Fail) as exc:
             vws_client.add_target(
-                name=name,
+                name=name,  # type: ignore[arg-type]
                 width=1,
                 image=image_file_failed_state,
                 application_metadata=None,
