@@ -78,7 +78,7 @@ optional-dependencies.dev = [
     "python-dotenv==1.0.1",
     "pyyaml==6.0.2",
     "requests-mock-flask==2023.5.14",
-    "ruff==0.6.1",
+    "ruff==0.6.2",
     "sphinx==8.0.2",
     "sphinx-copybutton==0.5.2",
     "sphinx-paramlinks==0.6",
