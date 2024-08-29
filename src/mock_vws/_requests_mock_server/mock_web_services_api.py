@@ -12,7 +12,7 @@ import email.utils
 import uuid
 from collections.abc import Callable
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, SupportsFloat
 from zoneinfo import ZoneInfo
 
 from mock_vws._constants import ResultCodes, TargetStatuses
@@ -103,7 +103,7 @@ class MockVuforiaWebServicesAPI:
         self,
         *,
         target_manager: TargetManager,
-        processing_time_seconds: float,
+        processing_time_seconds: SupportsFloat,
         duplicate_match_checker: ImageMatcher,
         target_tracking_rater: TargetTrackingRater,
     ) -> None:
