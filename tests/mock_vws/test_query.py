@@ -4,8 +4,6 @@ Tests for the mock of the query endpoint.
 https://developer.vuforia.com/library/web-api/vuforia-query-web-api.
 """
 
-from __future__ import annotations
-
 import base64
 import calendar
 import copy
@@ -17,7 +15,7 @@ import textwrap
 import time
 import uuid
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, Any
+from typing import Any
 from urllib.parse import urljoin
 from zoneinfo import ZoneInfo
 
@@ -30,6 +28,7 @@ from tenacity.retry import retry_if_exception_type
 from tenacity.stop import stop_after_delay
 from tenacity.wait import wait_fixed
 from urllib3.filepost import encode_multipart_formdata
+from vws import VWS, CloudRecoService
 from vws.exceptions.cloud_reco_exceptions import (
     BadImage,
     InactiveProject,
@@ -39,6 +38,7 @@ from vws.exceptions.custom_exceptions import RequestEntityTooLarge
 from vws.reports import TargetStatuses
 from vws_auth_tools import authorization_header, rfc_1123_date
 
+from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import make_image_file
 from tests.mock_vws.utils.assertions import (
     assert_query_success,
@@ -46,11 +46,6 @@ from tests.mock_vws.utils.assertions import (
     assert_vwq_failure,
 )
 from tests.mock_vws.utils.too_many_requests import handle_server_errors
-
-if TYPE_CHECKING:
-    from vws import VWS, CloudRecoService
-
-    from mock_vws.database import VuforiaDatabase
 
 VWQ_HOST = "https://cloudreco.vuforia.com"
 

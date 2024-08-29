@@ -2,21 +2,21 @@
 Tests for the mock of the add target endpoint.
 """
 
-from __future__ import annotations
-
 import base64
 import io
 import json
 from http import HTTPMethod, HTTPStatus
 from string import hexdigits
-from typing import TYPE_CHECKING, Any, Final
+from typing import Any, Final
 from urllib.parse import urljoin
 
 import pytest
 import requests
 from dirty_equals import IsInstance
 from requests.structures import CaseInsensitiveDict
+from vws import VWS
 from vws.exceptions.custom_exceptions import OopsAnErrorOccurredPossiblyBadName
+from vws.exceptions.response import Response
 from vws.exceptions.vws_exceptions import (
     BadImage,
     Fail,
@@ -28,6 +28,7 @@ from vws.exceptions.vws_exceptions import (
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes
+from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import make_image_file
 from tests.mock_vws.utils.assertions import (
     assert_valid_date_header,
@@ -35,12 +36,6 @@ from tests.mock_vws.utils.assertions import (
     assert_vws_response,
 )
 from tests.mock_vws.utils.too_many_requests import handle_server_errors
-
-if TYPE_CHECKING:
-    from vws import VWS
-    from vws.exceptions.response import Response
-
-    from mock_vws.database import VuforiaDatabase
 
 _MAX_METADATA_BYTES: Final[int] = 1024 * 1024 - 1
 

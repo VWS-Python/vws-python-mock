@@ -2,11 +2,8 @@
 Tests for the `Date` header.
 """
 
-from __future__ import annotations
-
 from datetime import datetime, timedelta
 from http import HTTPStatus
-from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
@@ -16,6 +13,7 @@ from freezegun import freeze_time
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes
+from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import (
     assert_query_success,
     assert_valid_transaction_id,
@@ -24,9 +22,6 @@ from tests.mock_vws.utils.assertions import (
     assert_vws_response,
 )
 from tests.mock_vws.utils.too_many_requests import handle_server_errors
-
-if TYPE_CHECKING:
-    from tests.mock_vws.utils import Endpoint
 
 _VWS_MAX_TIME_SKEW = timedelta(minutes=5)
 _VWQ_MAX_TIME_SKEW = timedelta(minutes=65)

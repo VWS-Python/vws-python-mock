@@ -2,14 +2,11 @@
 Tests for the usage of the mock for ``requests``.
 """
 
-from __future__ import annotations
-
 import datetime
 import email.utils
 import io
 import json
 import socket
-from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
 import pytest
@@ -25,12 +22,10 @@ from mock_vws import MockVWS
 from mock_vws.database import VuforiaDatabase
 from mock_vws.image_matchers import ExactMatcher, StructuralSimilarityMatcher
 from mock_vws.target import Target
+from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.usage_test_helpers import (
     processing_time_seconds,
 )
-
-if TYPE_CHECKING:
-    from tests.mock_vws.utils import Endpoint
 
 
 def _not_exact_matcher(
