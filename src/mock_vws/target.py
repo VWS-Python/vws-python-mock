@@ -29,7 +29,7 @@ class TargetDict(TypedDict):
     width: float
     image_base64: str
     active_flag: bool
-    processing_time_seconds: int | float
+    processing_time_seconds: SupportsFloat
     application_metadata: str | None
     target_id: str
     last_modified_date: str
