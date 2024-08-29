@@ -13,7 +13,7 @@ import json
 import uuid
 from collections.abc import Callable
 from http import HTTPMethod, HTTPStatus
-from typing import Any, SupportsFloat
+from typing import Any
 from zoneinfo import ZoneInfo
 
 from requests.models import PreparedRequest
@@ -101,7 +101,7 @@ class MockVuforiaWebServicesAPI:
         self,
         *,
         target_manager: TargetManager,
-        processing_time_seconds: SupportsFloat,
+        processing_time_seconds: float,
         duplicate_match_checker: ImageMatcher,
         target_tracking_rater: TargetTrackingRater,
     ) -> None:

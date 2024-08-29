@@ -90,7 +90,7 @@ class TestProcessingTime:
         """
         It is possible to set a custom processing time.
         """
-        seconds = 5
+        seconds = 5.0
         monkeypatch.setenv(
             name="PROCESSING_TIME_SECONDS",
             value=str(seconds),
