@@ -8,7 +8,6 @@ https://developer.vuforia.com/library/web-api/vuforia-query-web-api
 import email.utils
 from collections.abc import Callable
 from http import HTTPMethod
-from typing import TYPE_CHECKING
 
 from mock_vws._mock_common import Route
 from mock_vws._query_tools import (
@@ -20,11 +19,6 @@ from mock_vws._query_validators.exceptions import (
 )
 from mock_vws.image_matchers import ImageMatcher
 from mock_vws.target_manager import TargetManager
-
-if TYPE_CHECKING:
-    from requests_mock.request import Request
-    from requests_mock.response import Context
-
 
 _ROUTES: set[Route] = set()
 
@@ -77,7 +71,7 @@ class MockVuforiaWebQueryAPI:
     """
     A fake implementation of the Vuforia Web Query API.
 
-    This implementation is tied to the implementation of `requests_mock`.
+    This implementation is tied to the implementation of ``responses``.
     """
 
     def __init__(

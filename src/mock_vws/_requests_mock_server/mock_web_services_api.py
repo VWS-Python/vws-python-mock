@@ -12,7 +12,7 @@ import email.utils
 import uuid
 from collections.abc import Callable
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, SupportsFloat
+from typing import SupportsFloat
 from zoneinfo import ZoneInfo
 
 from mock_vws._constants import ResultCodes, TargetStatuses
@@ -29,11 +29,6 @@ from mock_vws.image_matchers import ImageMatcher
 from mock_vws.target import Target
 from mock_vws.target_manager import TargetManager
 from mock_vws.target_raters import TargetTrackingRater
-
-if TYPE_CHECKING:
-    from requests_mock.request import Request
-    from requests_mock.response import Context
-
 
 _TARGET_ID_PATTERN = "[A-Za-z0-9]+"
 
@@ -78,7 +73,7 @@ def route(
     return decorator
 
 
-def _body_bytes(request: "Request") -> bytes:
+def _body_bytes(request: Request) -> bytes:
     """
     Return the body of a request as bytes.
     """
@@ -96,7 +91,7 @@ class MockVuforiaWebServicesAPI:
     """
     A fake implementation of the Vuforia Web Services API.
 
-    This implementation is tied to the implementation of `requests_mock`.
+    This implementation is tied to the implementation of ``responses``.
     """
 
     def __init__(

@@ -8,8 +8,8 @@ from http import HTTPStatus
 
 import pytest
 import requests
+import responses
 from PIL import Image
-from requests_mock import Mocker
 from requests_mock_flask import add_flask_app_to_mock
 from vws import VWS, CloudRecoService
 
@@ -25,24 +25,25 @@ _EXAMPLE_URL_FOR_TARGET_MANAGER = "http://" + uuid.uuid4().hex + ".com"
 
 
 @pytest.fixture(autouse=True)
-def _(monkeypatch: pytest.MonkeyPatch, requests_mock: Mocker) -> None:
+@responses.activate
+def _(monkeypatch: pytest.MonkeyPatch) -> None:
     """
     Enable a mock service backed by the Flask applications.
     """
     add_flask_app_to_mock(
-        mock_obj=requests_mock,
+        mock_obj=responses,
         flask_app=VWS_FLASK_APP,
         base_url="https://vws.vuforia.com",
     )
 
     add_flask_app_to_mock(
-        mock_obj=requests_mock,
+        mock_obj=responses,
         flask_app=CLOUDRECO_FLASK_APP,
         base_url="https://cloudreco.vuforia.com",
     )
 
     add_flask_app_to_mock(
-        mock_obj=requests_mock,
+        mock_obj=responses,
         flask_app=TARGET_MANAGER_FLASK_APP,
         base_url=_EXAMPLE_URL_FOR_TARGET_MANAGER,
     )
