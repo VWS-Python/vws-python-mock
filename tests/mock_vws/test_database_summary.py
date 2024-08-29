@@ -2,12 +2,10 @@
 Tests for the mock of the database summary endpoint.
 """
 
-from __future__ import annotations
-
+import io
 import logging
 import uuid
 from http import HTTPStatus
-from typing import TYPE_CHECKING
 
 import pytest
 from tenacity import RetryCallState, retry
@@ -19,9 +17,6 @@ from vws.exceptions.vws_exceptions import Fail
 
 from mock_vws import MockVWS
 from mock_vws.database import VuforiaDatabase
-
-if TYPE_CHECKING:
-    import io
 
 LOGGER = logging.getLogger(name=__name__)
 LOGGER.setLevel(level=logging.DEBUG)

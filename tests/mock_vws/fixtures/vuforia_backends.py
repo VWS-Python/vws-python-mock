@@ -2,12 +2,10 @@
 Choose which backends to use for the tests.
 """
 
-from __future__ import annotations
-
 import contextlib
 import logging
+from collections.abc import Generator
 from enum import Enum
-from typing import TYPE_CHECKING
 
 import pytest
 import requests
@@ -25,10 +23,6 @@ from mock_vws._flask_server.vws import VWS_FLASK_APP
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
 from tests.mock_vws.utils.retries import RETRY_ON_TOO_MANY_REQUESTS
-
-if TYPE_CHECKING:
-    from collections.abc import Generator
-
 
 LOGGER = logging.getLogger(name=__name__)
 LOGGER.setLevel(level=logging.DEBUG)

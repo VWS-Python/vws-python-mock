@@ -2,12 +2,10 @@
 Tests for deleting targets.
 """
 
-from __future__ import annotations
-
 from http import HTTPStatus
-from typing import TYPE_CHECKING
 
 import pytest
+from vws import VWS
 from vws.exceptions.vws_exceptions import (
     ProjectInactive,
     TargetStatusProcessing,
@@ -16,9 +14,6 @@ from vws.exceptions.vws_exceptions import (
 
 from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils.assertions import assert_vws_failure
-
-if TYPE_CHECKING:
-    from vws import VWS
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")

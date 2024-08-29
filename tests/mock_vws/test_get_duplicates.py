@@ -2,20 +2,15 @@
 Tests for the mock of the get duplicates endpoint.
 """
 
-from __future__ import annotations
-
 import copy
 import io
 import uuid
-from typing import TYPE_CHECKING
 
 import pytest
 from PIL import Image
+from vws import VWS
 from vws.exceptions.vws_exceptions import ProjectInactive
 from vws.reports import TargetStatuses
-
-if TYPE_CHECKING:
-    from vws import VWS
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
