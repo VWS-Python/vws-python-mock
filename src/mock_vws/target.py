@@ -8,7 +8,7 @@ import io
 import statistics
 import uuid
 from dataclasses import dataclass, field
-from typing import Self, SupportsFloat, TypedDict
+from typing import Self, TypedDict
 from zoneinfo import ZoneInfo
 
 from PIL import Image, ImageStat
@@ -29,7 +29,7 @@ class TargetDict(TypedDict):
     width: float
     image_base64: str
     active_flag: bool
-    processing_time_seconds: SupportsFloat
+    processing_time_seconds: float
     application_metadata: str | None
     target_id: str
     last_modified_date: str
@@ -64,7 +64,7 @@ class Target:
     application_metadata: str | None
     image_value: bytes
     name: str
-    processing_time_seconds: SupportsFloat
+    processing_time_seconds: float
     width: float
     target_tracking_rater: TargetTrackingRater = field(compare=False)
     current_month_recos: int = 0
