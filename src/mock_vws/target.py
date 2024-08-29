@@ -8,7 +8,7 @@ import io
 import statistics
 import uuid
 from dataclasses import dataclass, field
-from typing import Self, TypedDict
+from typing import Self, SupportsFloat, TypedDict
 from zoneinfo import ZoneInfo
 
 from PIL import Image, ImageStat
@@ -29,7 +29,7 @@ class TargetDict(TypedDict):
     width: float
     image_base64: str
     active_flag: bool
-    processing_time_seconds: int | float
+    processing_time_seconds: SupportsFloat
     application_metadata: str | None
     target_id: str
     last_modified_date: str
@@ -64,7 +64,7 @@ class Target:
     application_metadata: str | None
     image_value: bytes
     name: str
-    processing_time_seconds: float
+    processing_time_seconds: SupportsFloat
     width: float
     target_tracking_rater: TargetTrackingRater = field(compare=False)
     current_month_recos: int = 0
@@ -112,7 +112,7 @@ class Target:
         target is for detection.
         """
         processing_time = datetime.timedelta(
-            seconds=self.processing_time_seconds,
+            seconds=float(self.processing_time_seconds),
         )
 
         timezone = self.upload_date.tzinfo
@@ -137,7 +137,7 @@ class Target:
         pre_rating_time = datetime.timedelta(
             # That this is half of the total processing time is unrealistic.
             # In VWS it is not a constant percentage.
-            seconds=self.processing_time_seconds / 2,
+            seconds=float(self.processing_time_seconds) / 2,
         )
 
         timezone = self.upload_date.tzinfo
