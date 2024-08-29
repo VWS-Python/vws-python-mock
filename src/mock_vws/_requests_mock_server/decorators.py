@@ -116,32 +116,32 @@ class MockVWS(ContextDecorator):
         Returns:
             ``self``.
         """
-        with Mocker(real_http=self._real_http) as mock:
-            for vws_route in self._mock_vws_api.routes:
-                url_pattern = urljoin(
-                    base=self._base_vws_url,
-                    url=f"{vws_route.path_pattern}$",
+        mock = Mocker(real_http=self._real_http)
+        for vws_route in self._mock_vws_api.routes:
+            url_pattern = urljoin(
+                base=self._base_vws_url,
+                url=f"{vws_route.path_pattern}$",
+            )
+
+            for vws_http_method in vws_route.http_methods:
+                mock.register_uri(
+                    method=vws_http_method,
+                    url=re.compile(url_pattern),
+                    text=getattr(self._mock_vws_api, vws_route.route_name),
                 )
 
-                for vws_http_method in vws_route.http_methods:
-                    mock.register_uri(
-                        method=vws_http_method,
-                        url=re.compile(url_pattern),
-                        text=getattr(self._mock_vws_api, vws_route.route_name),
-                    )
+        for vwq_route in self._mock_vwq_api.routes:
+            url_pattern = urljoin(
+                base=self._base_vwq_url,
+                url=f"{vwq_route.path_pattern}$",
+            )
 
-            for vwq_route in self._mock_vwq_api.routes:
-                url_pattern = urljoin(
-                    base=self._base_vwq_url,
-                    url=f"{vwq_route.path_pattern}$",
+            for vwq_http_method in vwq_route.http_methods:
+                mock.register_uri(
+                    method=vwq_http_method,
+                    url=re.compile(url_pattern),
+                    text=getattr(self._mock_vwq_api, vwq_route.route_name),
                 )
-
-                for vwq_http_method in vwq_route.http_methods:
-                    mock.register_uri(
-                        method=vwq_http_method,
-                        url=re.compile(url_pattern),
-                        text=getattr(self._mock_vwq_api, vwq_route.route_name),
-                    )
 
         self._mock = mock
         self._mock.start()
