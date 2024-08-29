@@ -28,11 +28,13 @@ if TYPE_CHECKING:
 
 _ROUTES: set[Route] = set()
 
+_ResponseType = str
+
 
 def route(
     path_pattern: str,
     http_methods: set[str],
-) -> Callable[[Callable[..., str]], Callable[..., str]]:
+) -> Callable[[Callable[..., _ResponseType]], Callable[..., _ResponseType]]:
     """
     Register a decorated method so that it can be recognized as a route.
 
@@ -45,7 +47,9 @@ def route(
         A decorator which takes methods and makes them recognizable as routes.
     """
 
-    def decorator(method: Callable[..., str]) -> Callable[..., str]:
+    def decorator(
+        method: Callable[..., _ResponseType],
+    ) -> Callable[..., _ResponseType]:
         """
         Register a decorated method so that it can be recognized as a route.
 
@@ -99,7 +103,7 @@ class MockVuforiaWebQueryAPI:
         self._query_match_checker = query_match_checker
 
     @route(path_pattern="/v1/query", http_methods={HTTPMethod.POST})
-    def query(self, request: "Request", context: "Context") -> str:
+    def query(self, request: "Request", context: "Context") -> _ResponseType:
         """
         Perform an image recognition query.
         """
