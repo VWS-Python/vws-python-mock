@@ -2,22 +2,18 @@
 Assertion helpers.
 """
 
-from __future__ import annotations
-
 import copy
 import datetime
 import email.utils
 import json
 from http import HTTPStatus
 from string import hexdigits
-from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
-if TYPE_CHECKING:
-    import requests
-    from vws.exceptions.response import Response
+import requests
+from vws.exceptions.response import Response
 
-    from mock_vws._constants import ResultCodes
+from mock_vws._constants import ResultCodes
 
 
 def assert_vws_failure(

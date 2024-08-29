@@ -2,24 +2,22 @@
 A fake implementation of a target for the Vuforia Web Services API.
 """
 
-from __future__ import annotations
-
 import base64
 import datetime
 import io
 import statistics
 import uuid
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Self, TypedDict
+from typing import Self, TypedDict
 from zoneinfo import ZoneInfo
 
 from PIL import Image, ImageStat
 
 from mock_vws._constants import TargetStatuses
-from mock_vws.target_raters import HardcodedTargetTrackingRater
-
-if TYPE_CHECKING:
-    from mock_vws.target_raters import TargetTrackingRater
+from mock_vws.target_raters import (
+    HardcodedTargetTrackingRater,
+    TargetTrackingRater,
+)
 
 
 class TargetDict(TypedDict):
