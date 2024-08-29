@@ -2,30 +2,27 @@
 Decorators for using the mock.
 """
 
-from __future__ import annotations
-
 import re
 from contextlib import ContextDecorator
-from typing import TYPE_CHECKING, Literal, Self, SupportsFloat
+from typing import Literal, Self, SupportsFloat
 from urllib.parse import urljoin, urlparse
 
 import requests
 from requests_mock.mocker import Mocker
 
+from mock_vws.database import VuforiaDatabase
 from mock_vws.image_matchers import (
     ImageMatcher,
     StructuralSimilarityMatcher,
 )
 from mock_vws.target_manager import TargetManager
-from mock_vws.target_raters import BrisqueTargetTrackingRater
+from mock_vws.target_raters import (
+    BrisqueTargetTrackingRater,
+    TargetTrackingRater,
+)
 
 from .mock_web_query_api import MockVuforiaWebQueryAPI
 from .mock_web_services_api import MockVuforiaWebServicesAPI
-
-if TYPE_CHECKING:
-    from mock_vws.database import VuforiaDatabase
-    from mock_vws.target_raters import TargetTrackingRater
-
 
 _STRUCTURAL_SIMILARITY_MATCHER = StructuralSimilarityMatcher()
 _BRISQUE_TRACKING_RATER = BrisqueTargetTrackingRater()

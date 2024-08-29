@@ -36,6 +36,7 @@ if TYPE_CHECKING:
     from requests_mock.request import Request
     from requests_mock.response import Context
 
+
 _TARGET_ID_PATTERN = "[A-Za-z0-9]+"
 
 

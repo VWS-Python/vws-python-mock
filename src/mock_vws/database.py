@@ -2,8 +2,6 @@
 Utilities for managing mock Vuforia databases.
 """
 
-from __future__ import annotations
-
 import uuid
 from dataclasses import dataclass, field
 from typing import Self, TypedDict
