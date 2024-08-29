@@ -9,11 +9,15 @@ import base64
 import dataclasses
 import datetime
 import email.utils
+import json
 import uuid
 from collections.abc import Callable
 from http import HTTPMethod, HTTPStatus
-from typing import SupportsFloat
+from typing import Any, SupportsFloat
 from zoneinfo import ZoneInfo
+
+from requests import Request, Response
+from requests.models import PreparedRequest
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
@@ -125,7 +129,7 @@ class MockVuforiaWebServicesAPI:
         path_pattern="/targets",
         http_methods={HTTPMethod.POST},
     )
-    def add_target(self, request: "Request", context: "Context") -> str:
+    def add_target(self, request: PreparedRequest) -> Response:
         """
         Add a target.
 
@@ -137,7 +141,7 @@ class MockVuforiaWebServicesAPI:
                 request_headers=request.headers,
                 request_body=_body_bytes(request=request),
                 request_method=request.method,
-                request_path=request.path,
+                request_path=request.path_url,
                 databases=self._target_manager.databases,
             )
         except ValidatorError as exc:
@@ -149,23 +153,23 @@ class MockVuforiaWebServicesAPI:
             request_headers=request.headers,
             request_body=_body_bytes(request=request),
             request_method=request.method,
-            request_path=request.path,
+            request_path=request.path_url,
             databases=self._target_manager.databases,
         )
 
-        given_active_flag = request.json().get("active_flag")
+        given_active_flag = request_json.get("active_flag")
         active_flag = {
             None: True,
             True: True,
             False: False,
         }[given_active_flag]
 
-        application_metadata = request.json().get("application_metadata")
+        application_metadata = request_json.get("application_metadata")
 
         new_target = Target(
-            name=request.json()["name"],
-            width=request.json()["width"],
-            image_value=base64.b64decode(s=request.json()["image"]),
+            name=request_json["name"],
+            width=request_json["width"],
+            image_value=base64.b64decode(s=request_json["image"]),
             active_flag=active_flag,
             processing_time_seconds=self._processing_time_seconds,
             application_metadata=application_metadata,
@@ -202,7 +206,7 @@ class MockVuforiaWebServicesAPI:
         path_pattern=f"/targets/{_TARGET_ID_PATTERN}",
         http_methods={HTTPMethod.DELETE},
     )
-    def delete_target(self, request: "Request", context: "Context") -> str:
+    def delete_target(self, request: PreparedRequest) -> Response:
         """
         Delete a target.
 
@@ -214,7 +218,7 @@ class MockVuforiaWebServicesAPI:
                 request_headers=request.headers,
                 request_body=_body_bytes(request=request),
                 request_method=request.method,
-                request_path=request.path,
+                request_path=request.path_url,
                 databases=self._target_manager.databases,
             )
         except ValidatorError as exc:
@@ -227,7 +231,7 @@ class MockVuforiaWebServicesAPI:
             request_headers=request.headers,
             request_body=_body_bytes(request=request),
             request_method=request.method,
-            request_path=request.path,
+            request_path=request.path_url,
             databases=self._target_manager.databases,
         )
 
@@ -269,19 +273,20 @@ class MockVuforiaWebServicesAPI:
         return body_json
 
     @route(path_pattern="/summary", http_methods={HTTPMethod.GET})
-    def database_summary(self, request: "Request", context: "Context") -> str:
+    def database_summary(self, request: "Request") -> str:
         """
         Get a database summary report.
 
         Fake implementation of
         https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#summary-report
         """
+        breakpoint()
         try:
             run_services_validators(
                 request_headers=request.headers,
                 request_body=_body_bytes(request=request),
                 request_method=request.method,
-                request_path=request.path,
+                request_path=request.path_url,
                 databases=self._target_manager.databases,
             )
         except ValidatorError as exc:
@@ -295,7 +300,7 @@ class MockVuforiaWebServicesAPI:
             request_headers=request.headers,
             request_body=_body_bytes(request=request),
             request_method=request.method,
-            request_path=request.path,
+            request_path=request.path_url,
             databases=self._target_manager.databases,
         )
 
@@ -335,7 +340,7 @@ class MockVuforiaWebServicesAPI:
         return body_json
 
     @route(path_pattern="/targets", http_methods={HTTPMethod.GET})
-    def target_list(self, request: "Request", context: "Context") -> str:
+    def target_list(self, request: PreparedRequest) -> Response:
         """
         Get a list of all targets.
 
@@ -347,7 +352,7 @@ class MockVuforiaWebServicesAPI:
                 request_headers=request.headers,
                 request_body=_body_bytes(request=request),
                 request_method=request.method,
-                request_path=request.path,
+                request_path=request.path_url,
                 databases=self._target_manager.databases,
             )
         except ValidatorError as exc:
@@ -359,7 +364,7 @@ class MockVuforiaWebServicesAPI:
             request_headers=request.headers,
             request_body=_body_bytes(request=request),
             request_method=request.method,
-            request_path=request.path,
+            request_path=request.path_url,
             databases=self._target_manager.databases,
         )
 
@@ -395,7 +400,7 @@ class MockVuforiaWebServicesAPI:
         path_pattern=f"/targets/{_TARGET_ID_PATTERN}",
         http_methods={HTTPMethod.GET},
     )
-    def get_target(self, request: "Request", context: "Context") -> str:
+    def get_target(self, request: PreparedRequest) -> Response:
         """
         Get details of a target.
 
@@ -407,7 +412,7 @@ class MockVuforiaWebServicesAPI:
                 request_headers=request.headers,
                 request_body=_body_bytes(request=request),
                 request_method=request.method,
-                request_path=request.path,
+                request_path=request.path_url,
                 databases=self._target_manager.databases,
             )
         except ValidatorError as exc:
@@ -419,7 +424,7 @@ class MockVuforiaWebServicesAPI:
             request_headers=request.headers,
             request_body=_body_bytes(request=request),
             request_method=request.method,
-            request_path=request.path,
+            request_path=request.path_url,
             databases=self._target_manager.databases,
         )
         target_id = request.path.split(sep="/")[-1]
@@ -463,7 +468,7 @@ class MockVuforiaWebServicesAPI:
         path_pattern=f"/duplicates/{_TARGET_ID_PATTERN}",
         http_methods={HTTPMethod.GET},
     )
-    def get_duplicates(self, request: "Request", context: "Context") -> str:
+    def get_duplicates(self, request: PreparedRequest) -> Response:
         """
         Get targets which may be considered duplicates of a given target.
 
@@ -475,7 +480,7 @@ class MockVuforiaWebServicesAPI:
                 request_headers=request.headers,
                 request_body=_body_bytes(request=request),
                 request_method=request.method,
-                request_path=request.path,
+                request_path=request.path_url,
                 databases=self._target_manager.databases,
             )
         except ValidatorError as exc:
@@ -487,7 +492,7 @@ class MockVuforiaWebServicesAPI:
             request_headers=request.headers,
             request_body=_body_bytes(request=request),
             request_method=request.method,
-            request_path=request.path,
+            request_path=request.path_url,
             databases=self._target_manager.databases,
         )
         target_id = request.path.split(sep="/")[-1]
@@ -537,7 +542,7 @@ class MockVuforiaWebServicesAPI:
         path_pattern=f"/targets/{_TARGET_ID_PATTERN}",
         http_methods={HTTPMethod.PUT},
     )
-    def update_target(self, request: "Request", context: "Context") -> str:
+    def update_target(self, request: PreparedRequest) -> Response:
         """
         Update a target.
 
@@ -548,12 +553,12 @@ class MockVuforiaWebServicesAPI:
             run_services_validators(
                 request_headers=request.headers,
                 request_body=_body_bytes(request=request),
-                request_method=request.method,
-                request_path=request.path,
+                request_method=request.method or "",
+                request_path=request.path_url,
                 databases=self._target_manager.databases,
             )
         except ValidatorError as exc:
-            context.headers = exc.headers
+            request.headers = exc.headers
             context.status_code = exc.status_code
             return exc.response_text
 
@@ -561,7 +566,7 @@ class MockVuforiaWebServicesAPI:
             request_headers=request.headers,
             request_body=_body_bytes(request=request),
             request_method=request.method,
-            request_path=request.path,
+            request_path=request.path_url,
             databases=self._target_manager.databases,
         )
 
@@ -581,26 +586,27 @@ class MockVuforiaWebServicesAPI:
             context.status_code = exception.status_code
             return exception.response_text
 
-        width = request.json().get("width", target.width)
-        name = request.json().get("name", target.name)
-        active_flag = request.json().get("active_flag", target.active_flag)
-        application_metadata = request.json().get(
+        request_json: dict[str, Any] = json.loads(s=request.body or b"")
+        width = request_json.get("width", target.width)
+        name = request_json.get("name", target.name)
+        active_flag = request_json.get("active_flag", target.active_flag)
+        application_metadata = request_json.get(
             "application_metadata",
             target.application_metadata,
         )
 
         image_value = target.image_value
-        if "image" in request.json():
-            image_value = base64.b64decode(s=request.json()["image"])
+        if "image" in request_json:
+            image_value = base64.b64decode(s=request_json["image"])
 
-        if "active_flag" in request.json() and active_flag is None:
+        if "active_flag" in request_json and active_flag is None:
             fail_exception = FailError(status_code=HTTPStatus.BAD_REQUEST)
             context.headers = fail_exception.headers
             context.status_code = fail_exception.status_code
             return fail_exception.response_text
 
         if (
-            "application_metadata" in request.json()
+            "application_metadata" in request_json
             and application_metadata is None
         ):
             fail_exception = FailError(status_code=HTTPStatus.BAD_REQUEST)
@@ -646,7 +652,7 @@ class MockVuforiaWebServicesAPI:
         path_pattern=f"/summary/{_TARGET_ID_PATTERN}",
         http_methods={HTTPMethod.GET},
     )
-    def target_summary(self, request: "Request", context: "Context") -> str:
+    def target_summary(self, request: PreparedRequest) -> Response:
         """
         Get a summary report for a target.
 
@@ -658,7 +664,7 @@ class MockVuforiaWebServicesAPI:
                 request_headers=request.headers,
                 request_body=_body_bytes(request=request),
                 request_method=request.method,
-                request_path=request.path,
+                request_path=request.path_url,
                 databases=self._target_manager.databases,
             )
         except ValidatorError as exc:
@@ -670,7 +676,7 @@ class MockVuforiaWebServicesAPI:
             request_headers=request.headers,
             request_body=_body_bytes(request=request),
             request_method=request.method,
-            request_path=request.path,
+            request_path=request.path_url,
             databases=self._target_manager.databases,
         )
         target_id = request.path.split(sep="/")[-1]

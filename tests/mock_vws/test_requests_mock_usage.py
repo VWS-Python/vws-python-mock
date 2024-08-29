@@ -80,7 +80,7 @@ class TestRealHTTP:
         By default, the mock stops any requests made with `requests` to
         non-Vuforia addresses, but not to mocked Vuforia endpoints.
         """
-        with MockVWS():
+        with MockVWS() as mock:
             with pytest.raises(
                 expected_exception=requests.exceptions.ConnectionError
             ):
