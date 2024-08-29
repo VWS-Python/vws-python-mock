@@ -2,11 +2,9 @@
 Authorization header validators to use in the mock.
 """
 
-from __future__ import annotations
-
 import logging
+from collections.abc import Mapping
 from http import HTTPStatus
-from typing import TYPE_CHECKING
 
 from beartype import beartype
 
@@ -15,16 +13,13 @@ from mock_vws._services_validators.exceptions import (
     AuthenticationFailureError,
     FailError,
 )
-
-if TYPE_CHECKING:
-    from mock_vws.database import VuforiaDatabase
-
+from mock_vws.database import VuforiaDatabase
 
 _LOGGER = logging.getLogger(name=__name__)
 
 
 @beartype
-def validate_auth_header_exists(*, request_headers: dict[str, str]) -> None:
+def validate_auth_header_exists(*, request_headers: Mapping[str, str]) -> None:
     """
     Validate that there is an authorization header given to a VWS endpoint.
 
@@ -42,7 +37,7 @@ def validate_auth_header_exists(*, request_headers: dict[str, str]) -> None:
 @beartype
 def validate_access_key_exists(
     *,
-    request_headers: dict[str, str],
+    request_headers: Mapping[str, str],
     databases: set[VuforiaDatabase],
 ) -> None:
     """
@@ -72,7 +67,7 @@ def validate_access_key_exists(
 @beartype
 def validate_auth_header_has_signature(
     *,
-    request_headers: dict[str, str],
+    request_headers: Mapping[str, str],
 ) -> None:
     """
     Validate the authorization header includes a signature.
@@ -97,7 +92,7 @@ def validate_auth_header_has_signature(
 def validate_authorization(
     *,
     request_path: str,
-    request_headers: dict[str, str],
+    request_headers: Mapping[str, str],
     request_body: bytes,
     request_method: str,
     databases: set[VuforiaDatabase],

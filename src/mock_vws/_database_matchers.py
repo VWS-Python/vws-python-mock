@@ -59,7 +59,7 @@ def get_database_matching_client_keys(
 @beartype
 def get_database_matching_server_keys(
     *,
-    request_headers: dict[str, str],
+    request_headers: Mapping[str, str],
     request_body: bytes | None,
     request_method: str,
     request_path: str,

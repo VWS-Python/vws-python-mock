@@ -12,11 +12,10 @@ import email.utils
 import uuid
 from collections.abc import Callable
 from http import HTTPMethod, HTTPStatus
+from typing import TYPE_CHECKING, SupportsFloat
 from zoneinfo import ZoneInfo
 
 from beartype import beartype
-from requests_mock.request import Request
-from requests_mock.response import Context
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
@@ -33,12 +32,17 @@ from mock_vws.target import Target
 from mock_vws.target_manager import TargetManager
 from mock_vws.target_raters import TargetTrackingRater
 
+if TYPE_CHECKING:
+    from requests_mock.request import Request
+    from requests_mock.response import Context
+
 _TARGET_ID_PATTERN = "[A-Za-z0-9]+"
 
 
 _ROUTES: set[Route] = set()
 
 
+@beartype
 def route(
     path_pattern: str,
     http_methods: set[HTTPMethod],
@@ -76,7 +80,8 @@ def route(
     return decorator
 
 
-def _body_bytes(request: Request) -> bytes:
+@beartype
+def _body_bytes(request: "Request") -> bytes:
     """
     Return the body of a request as bytes.
     """
@@ -90,6 +95,7 @@ def _body_bytes(request: Request) -> bytes:
     return request.body
 
 
+@beartype
 class MockVuforiaWebServicesAPI:
     """
     A fake implementation of the Vuforia Web Services API.
@@ -97,11 +103,12 @@ class MockVuforiaWebServicesAPI:
     This implementation is tied to the implementation of `requests_mock`.
     """
 
+    @beartype
     def __init__(
         self,
         *,
         target_manager: TargetManager,
-        processing_time_seconds: float,
+        processing_time_seconds: SupportsFloat,
         duplicate_match_checker: ImageMatcher,
         target_tracking_rater: TargetTrackingRater,
     ) -> None:
@@ -128,7 +135,8 @@ class MockVuforiaWebServicesAPI:
         path_pattern="/targets",
         http_methods={HTTPMethod.POST},
     )
-    def add_target(self, request: Request, context: Context) -> str:
+    @beartype
+    def add_target(self, request: "Request", context: "Context") -> str:
         """
         Add a target.
 
@@ -205,7 +213,8 @@ class MockVuforiaWebServicesAPI:
         path_pattern=f"/targets/{_TARGET_ID_PATTERN}",
         http_methods={HTTPMethod.DELETE},
     )
-    def delete_target(self, request: Request, context: Context) -> str:
+    @beartype
+    def delete_target(self, request: "Request", context: "Context") -> str:
         """
         Delete a target.
 
@@ -272,7 +281,8 @@ class MockVuforiaWebServicesAPI:
         return body_json
 
     @route(path_pattern="/summary", http_methods={HTTPMethod.GET})
-    def database_summary(self, request: Request, context: Context) -> str:
+    @beartype
+    def database_summary(self, request: "Request", context: "Context") -> str:
         """
         Get a database summary report.
 
@@ -338,7 +348,8 @@ class MockVuforiaWebServicesAPI:
         return body_json
 
     @route(path_pattern="/targets", http_methods={HTTPMethod.GET})
-    def target_list(self, request: Request, context: Context) -> str:
+    @beartype
+    def target_list(self, request: "Request", context: "Context") -> str:
         """
         Get a list of all targets.
 
@@ -399,7 +410,7 @@ class MockVuforiaWebServicesAPI:
         http_methods={HTTPMethod.GET},
     )
     @beartype
-    def get_target(self, request: Request, context: Context) -> str:
+    def get_target(self, request: "Request", context: "Context") -> str:
         """
         Get details of a target.
 
@@ -468,7 +479,7 @@ class MockVuforiaWebServicesAPI:
         http_methods={HTTPMethod.GET},
     )
     @beartype
-    def get_duplicates(self, request: Request, context: Context) -> str:
+    def get_duplicates(self, request: "Request", context: "Context") -> str:
         """
         Get targets which may be considered duplicates of a given target.
 
@@ -542,7 +553,8 @@ class MockVuforiaWebServicesAPI:
         path_pattern=f"/targets/{_TARGET_ID_PATTERN}",
         http_methods={HTTPMethod.PUT},
     )
-    def update_target(self, request: Request, context: Context) -> str:
+    @beartype
+    def update_target(self, request: "Request", context: "Context") -> str:
         """
         Update a target.
 
@@ -651,7 +663,8 @@ class MockVuforiaWebServicesAPI:
         path_pattern=f"/summary/{_TARGET_ID_PATTERN}",
         http_methods={HTTPMethod.GET},
     )
-    def target_summary(self, request: Request, context: Context) -> str:
+    @beartype
+    def target_summary(self, request: "Request", context: "Context") -> str:
         """
         Get a summary report for a target.
 

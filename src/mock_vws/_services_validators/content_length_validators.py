@@ -3,6 +3,7 @@ Content-Length header validators to use in the mock.
 """
 
 import logging
+from collections.abc import Mapping
 
 from beartype import beartype
 
@@ -18,7 +19,7 @@ _LOGGER = logging.getLogger(name=__name__)
 @beartype
 def validate_content_length_header_is_int(
     *,
-    request_headers: dict[str, str],
+    request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:
     """
@@ -45,7 +46,7 @@ def validate_content_length_header_is_int(
 @beartype
 def validate_content_length_header_not_too_large(
     *,
-    request_headers: dict[str, str],
+    request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:
     """
@@ -71,7 +72,7 @@ def validate_content_length_header_not_too_large(
 @beartype
 def validate_content_length_header_not_too_small(
     *,
-    request_headers: dict[str, str],
+    request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:
     """

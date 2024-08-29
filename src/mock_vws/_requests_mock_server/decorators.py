@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import re
 from contextlib import ContextDecorator
-from typing import TYPE_CHECKING, Literal, Self
+from typing import TYPE_CHECKING, Literal, Self, SupportsFloat
 from urllib.parse import urljoin, urlparse
 
 import requests
@@ -42,7 +42,7 @@ class MockVWS(ContextDecorator):
         base_vwq_url: str = "https://cloudreco.vuforia.com",
         duplicate_match_checker: ImageMatcher = _STRUCTURAL_SIMILARITY_MATCHER,
         query_match_checker: ImageMatcher = _STRUCTURAL_SIMILARITY_MATCHER,
-        processing_time_seconds: float = 2,
+        processing_time_seconds: SupportsFloat = 2,
         target_tracking_rater: TargetTrackingRater = _BRISQUE_TRACKING_RATER,
         *,
         real_http: bool = False,

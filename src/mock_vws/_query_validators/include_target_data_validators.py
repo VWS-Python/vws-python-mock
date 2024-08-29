@@ -4,6 +4,7 @@ Validators for the ``include_target_data`` field.
 
 import io
 import logging
+from collections.abc import Mapping
 from email.message import EmailMessage
 
 from beartype import beartype
@@ -16,7 +17,7 @@ _LOGGER = logging.getLogger(name=__name__)
 
 @beartype
 def validate_include_target_data(
-    request_headers: dict[str, str],
+    request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:
     """

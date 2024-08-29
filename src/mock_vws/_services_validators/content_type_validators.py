@@ -3,6 +3,7 @@ Content-Type header validators to use in the mock.
 """
 
 import logging
+from collections.abc import Mapping
 from http import HTTPMethod
 
 from beartype import beartype
@@ -15,7 +16,7 @@ _LOGGER = logging.getLogger(name=__name__)
 @beartype
 def validate_content_type_header_given(
     *,
-    request_headers: dict[str, str],
+    request_headers: Mapping[str, str],
     request_method: str,
 ) -> None:
     """
