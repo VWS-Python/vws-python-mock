@@ -4,11 +4,13 @@ Helpers for getting databases which match keys given in requests.
 
 from collections.abc import Iterable, Mapping
 
+from beartype import beartype
 from vws_auth_tools import authorization_header
 
 from mock_vws.database import VuforiaDatabase
 
 
+@beartype
 def get_database_matching_client_keys(
     *,
     request_headers: Mapping[str, str],
@@ -54,6 +56,7 @@ def get_database_matching_client_keys(
     raise ValueError
 
 
+@beartype
 def get_database_matching_server_keys(
     *,
     request_headers: dict[str, str],

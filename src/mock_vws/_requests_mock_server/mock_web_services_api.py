@@ -5,16 +5,18 @@ See
 https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api
 """
 
-from __future__ import annotations
-
 import base64
 import dataclasses
 import datetime
 import email.utils
 import uuid
+from collections.abc import Callable
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
+
+from beartype import beartype
+from requests_mock.request import Request
+from requests_mock.response import Context
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
@@ -26,17 +28,10 @@ from mock_vws._services_validators.exceptions import (
     TargetStatusProcessingError,
     ValidatorError,
 )
+from mock_vws.image_matchers import ImageMatcher
 from mock_vws.target import Target
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
-    from requests_mock.request import Request
-    from requests_mock.response import Context
-
-    from mock_vws.image_matchers import ImageMatcher
-    from mock_vws.target_manager import TargetManager
-    from mock_vws.target_raters import TargetTrackingRater
+from mock_vws.target_manager import TargetManager
+from mock_vws.target_raters import TargetTrackingRater
 
 _TARGET_ID_PATTERN = "[A-Za-z0-9]+"
 
@@ -403,6 +398,7 @@ class MockVuforiaWebServicesAPI:
         path_pattern=f"/targets/{_TARGET_ID_PATTERN}",
         http_methods={HTTPMethod.GET},
     )
+    @beartype
     def get_target(self, request: Request, context: Context) -> str:
         """
         Get details of a target.
@@ -471,6 +467,7 @@ class MockVuforiaWebServicesAPI:
         path_pattern=f"/duplicates/{_TARGET_ID_PATTERN}",
         http_methods={HTTPMethod.GET},
     )
+    @beartype
     def get_duplicates(self, request: Request, context: Context) -> str:
         """
         Get targets which may be considered duplicates of a given target.

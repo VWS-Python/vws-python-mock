@@ -93,6 +93,7 @@ class VuforiaDatabase:
             "targets": targets,
         }
 
+    @beartype
     def get_target(self, target_id: str) -> Target:
         """
         Return a target from the database with the given ID.

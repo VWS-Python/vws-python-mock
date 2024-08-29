@@ -12,6 +12,7 @@ from urllib.parse import urljoin
 
 import pytest
 import requests
+from beartype import beartype
 from urllib3.filepost import encode_multipart_formdata
 from vws_auth_tools import authorization_header, rfc_1123_date
 
@@ -197,6 +198,7 @@ def database_summary(vuforia_database: VuforiaDatabase) -> Endpoint:
 
 
 @pytest.fixture
+@beartype
 def get_duplicates(
     vuforia_database: VuforiaDatabase,
     target_id: str,
@@ -249,6 +251,7 @@ def get_duplicates(
 
 
 @pytest.fixture
+@beartype
 def get_target(
     vuforia_database: VuforiaDatabase,
     target_id: str,
