@@ -4,11 +4,14 @@ Validators for the ``Accept`` header.
 
 import logging
 
+from beartype import beartype
+
 from mock_vws._query_validators.exceptions import InvalidAcceptHeaderError
 
 _LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 def validate_accept_header(request_headers: dict[str, str]) -> None:
     """
     Validate the accept header.

@@ -4,6 +4,8 @@ Content-Length header validators to use in the mock.
 
 import logging
 
+from beartype import beartype
+
 from mock_vws._services_validators.exceptions import (
     AuthenticationFailureError,
     ContentLengthHeaderNotIntError,
@@ -13,6 +15,7 @@ from mock_vws._services_validators.exceptions import (
 _LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 def validate_content_length_header_is_int(
     *,
     request_headers: dict[str, str],
@@ -39,6 +42,7 @@ def validate_content_length_header_is_int(
         raise ContentLengthHeaderNotIntError from exc
 
 
+@beartype
 def validate_content_length_header_not_too_large(
     *,
     request_headers: dict[str, str],
@@ -64,6 +68,7 @@ def validate_content_length_header_not_too_large(
         raise ContentLengthHeaderTooLargeError
 
 
+@beartype
 def validate_content_length_header_not_too_small(
     *,
     request_headers: dict[str, str],

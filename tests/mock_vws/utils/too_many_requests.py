@@ -5,11 +5,13 @@ Helpers for handling too many requests errors.
 from http import HTTPStatus
 
 import requests
+from beartype import beartype
 from vws.exceptions.custom_exceptions import ServerError
 from vws.exceptions.response import Response
 from vws.exceptions.vws_exceptions import TooManyRequests
 
 
+@beartype
 def handle_server_errors(*, response: requests.Response) -> None:
     """
     Raise errors if the response is a 429 or 5xx.

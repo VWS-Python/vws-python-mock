@@ -8,6 +8,7 @@ import json
 import logging
 from http import HTTPStatus
 
+from beartype import beartype
 from PIL import Image
 
 from mock_vws._base64_decoding import decode_base64
@@ -20,6 +21,7 @@ from mock_vws._services_validators.exceptions import (
 _LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 def validate_image_format(*, request_body: bytes) -> None:
     """
     Validate the format of the image given to a VWS endpoint.
@@ -50,6 +52,7 @@ def validate_image_format(*, request_body: bytes) -> None:
     raise BadImageError
 
 
+@beartype
 def validate_image_color_space(*, request_body: bytes) -> None:
     """
     Validate the color space of the image given to a VWS endpoint.
@@ -83,6 +86,7 @@ def validate_image_color_space(*, request_body: bytes) -> None:
     raise BadImageError
 
 
+@beartype
 def validate_image_size(*, request_body: bytes) -> None:
     """
     Validate the file size of the image given to a VWS endpoint.
@@ -113,6 +117,7 @@ def validate_image_size(*, request_body: bytes) -> None:
     raise ImageTooLargeError
 
 
+@beartype
 def validate_image_is_image(*, request_body: bytes) -> None:
     """
     Validate that the given image data is actually an image file.
@@ -141,6 +146,7 @@ def validate_image_is_image(*, request_body: bytes) -> None:
         raise BadImageError from exc
 
 
+@beartype
 def validate_image_encoding(*, request_body: bytes) -> None:
     """
     Validate that the given image data can be base64 decoded.
@@ -167,6 +173,7 @@ def validate_image_encoding(*, request_body: bytes) -> None:
         raise FailError(status_code=HTTPStatus.UNPROCESSABLE_ENTITY) from exc
 
 
+@beartype
 def validate_image_data_type(*, request_body: bytes) -> None:
     """
     Validate that the given image data is a string.

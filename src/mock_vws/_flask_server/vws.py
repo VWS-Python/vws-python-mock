@@ -14,6 +14,7 @@ from enum import StrEnum, auto
 from http import HTTPMethod, HTTPStatus
 
 import requests
+from beartype import beartype
 from flask import Flask, Response, request
 from pydantic_settings import BaseSettings
 
@@ -117,6 +118,7 @@ def set_terminate_wsgi_input() -> None:
 
 
 @VWS_FLASK_APP.before_request
+@beartype
 def validate_request() -> None:
     """
     Run validators on the request.

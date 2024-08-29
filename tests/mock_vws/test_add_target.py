@@ -12,6 +12,7 @@ from urllib.parse import urljoin
 
 import pytest
 import requests
+from beartype import beartype
 from dirty_equals import IsInstance
 from requests.structures import CaseInsensitiveDict
 from vws import VWS
@@ -40,6 +41,7 @@ from tests.mock_vws.utils.too_many_requests import handle_server_errors
 _MAX_METADATA_BYTES: Final[int] = 1024 * 1024 - 1
 
 
+@beartype
 def _add_target_to_vws(
     *,
     vuforia_database: VuforiaDatabase,
@@ -90,6 +92,7 @@ def _add_target_to_vws(
     return response
 
 
+@beartype
 def _assert_oops_response(response: Response) -> None:
     """
     Assert that the response is in the format of Vuforia's "Oops, an error

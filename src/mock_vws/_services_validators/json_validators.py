@@ -7,6 +7,8 @@ import logging
 from http import HTTPMethod, HTTPStatus
 from json.decoder import JSONDecodeError
 
+from beartype import beartype
+
 from mock_vws._services_validators.exceptions import (
     FailError,
     UnnecessaryRequestBodyError,
@@ -15,6 +17,7 @@ from mock_vws._services_validators.exceptions import (
 _LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 def validate_body_given(*, request_body: bytes, request_method: str) -> None:
     """
     Validate that no JSON is given for requests other than ``POST`` and ``PUT``
@@ -42,6 +45,7 @@ def validate_body_given(*, request_body: bytes, request_method: str) -> None:
         raise UnnecessaryRequestBodyError
 
 
+@beartype
 def validate_json(*, request_body: bytes) -> None:
     """
     Validate that any given body is valid JSON.

@@ -13,6 +13,7 @@ from sybil.parsers.rest import (
 from tests.mock_vws.utils.retries import RETRY_EXCEPTIONS
 
 
+@beartype
 def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
     """
     Apply the beartype decorator to all collected test functions.
@@ -32,6 +33,7 @@ pytest_collect_file = Sybil(
 
 
 @pytest.hookimpl(optionalhook=True)
+@beartype
 def pytest_set_filtered_exceptions() -> tuple[type[Exception], ...]:
     """
     Return exceptions to retry on.

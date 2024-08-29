@@ -6,11 +6,14 @@ import json
 import logging
 from http import HTTPStatus
 
+from beartype import beartype
+
 from mock_vws._services_validators.exceptions import FailError
 
 _LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 def validate_width(*, request_body: bytes) -> None:
     """
     Validate the width argument given to a VWS endpoint.

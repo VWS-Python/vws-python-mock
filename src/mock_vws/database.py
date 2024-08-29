@@ -8,6 +8,8 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Self, TypedDict
 
+from beartype import beartype
+
 from mock_vws._constants import TargetStatuses
 from mock_vws.states import States
 from mock_vws.target import Target, TargetDict
@@ -27,6 +29,7 @@ class DatabaseDict(TypedDict):
     targets: list[TargetDict]
 
 
+@beartype
 def _random_hex() -> str:
     """
     Return a random hex value.
@@ -34,6 +37,7 @@ def _random_hex() -> str:
     return uuid.uuid4().hex
 
 
+@beartype
 @dataclass(eq=True, frozen=True)
 class VuforiaDatabase:
     """

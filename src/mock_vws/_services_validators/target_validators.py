@@ -4,6 +4,8 @@ Validators for given target IDs.
 
 import logging
 
+from beartype import beartype
+
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._services_validators.exceptions import UnknownTargetError
 from mock_vws.database import VuforiaDatabase
@@ -11,6 +13,7 @@ from mock_vws.database import VuforiaDatabase
 _LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 def validate_target_id_exists(
     *,
     request_path: str,

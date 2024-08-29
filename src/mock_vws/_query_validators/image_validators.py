@@ -6,6 +6,7 @@ import io
 import logging
 from email.message import EmailMessage
 
+from beartype import beartype
 from PIL import Image
 from werkzeug.formparser import MultiPartParser
 
@@ -18,6 +19,7 @@ from mock_vws._query_validators.exceptions import (
 _LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 def validate_image_field_given(
     *,
     request_headers: dict[str, str],
@@ -49,6 +51,7 @@ def validate_image_field_given(
     raise ImageNotGivenError
 
 
+@beartype
 def validate_image_file_size(
     *,
     request_headers: dict[str, str],
@@ -89,6 +92,7 @@ def validate_image_file_size(
         raise RequestEntityTooLargeError
 
 
+@beartype
 def validate_image_dimensions(
     *,
     request_headers: dict[str, str],
@@ -127,6 +131,7 @@ def validate_image_dimensions(
     raise BadImageError
 
 
+@beartype
 def validate_image_format(
     *,
     request_headers: dict[str, str],
@@ -161,6 +166,7 @@ def validate_image_format(
     raise BadImageError
 
 
+@beartype
 def validate_image_is_image(
     request_headers: dict[str, str],
     request_body: bytes,

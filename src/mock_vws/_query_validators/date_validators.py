@@ -7,6 +7,8 @@ import datetime
 import logging
 from zoneinfo import ZoneInfo
 
+from beartype import beartype
+
 from mock_vws._query_validators.exceptions import (
     DateFormatNotValidError,
     DateHeaderNotGivenError,
@@ -16,6 +18,7 @@ from mock_vws._query_validators.exceptions import (
 _LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 def validate_date_header_given(*, request_headers: dict[str, str]) -> None:
     """
     Validate the date header is given to the query endpoint.
@@ -52,6 +55,7 @@ def _accepted_date_formats() -> set[str]:
     )
 
 
+@beartype
 def validate_date_format(*, request_headers: dict[str, str]) -> None:
     """
     Validate the format of the date header given to the query endpoint.
@@ -73,6 +77,7 @@ def validate_date_format(*, request_headers: dict[str, str]) -> None:
     raise DateFormatNotValidError
 
 
+@beartype
 def validate_date_in_range(*, request_headers: dict[str, str]) -> None:
     """
     Validate date in the date header given to the query endpoint.

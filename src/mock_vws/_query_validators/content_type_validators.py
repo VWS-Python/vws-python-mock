@@ -5,6 +5,8 @@ Validators for the ``Content-Type`` header.
 import logging
 from email.message import EmailMessage
 
+from beartype import beartype
+
 from mock_vws._query_validators.exceptions import (
     ImageNotGivenError,
     NoBoundaryFoundError,
@@ -15,6 +17,7 @@ from mock_vws._query_validators.exceptions import (
 _LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 def validate_content_type_header(
     request_headers: dict[str, str],
     request_body: bytes,

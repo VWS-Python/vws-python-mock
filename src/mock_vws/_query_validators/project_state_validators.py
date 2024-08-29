@@ -4,6 +4,8 @@ Validators for the project state.
 
 import logging
 
+from beartype import beartype
+
 from mock_vws._database_matchers import get_database_matching_client_keys
 from mock_vws._query_validators.exceptions import InactiveProjectError
 from mock_vws.database import VuforiaDatabase
@@ -12,6 +14,7 @@ from mock_vws.states import States
 _LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 def validate_project_state(
     request_path: str,
     request_headers: dict[str, str],

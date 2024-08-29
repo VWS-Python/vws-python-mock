@@ -2,24 +2,22 @@
 Assertion helpers.
 """
 
-from __future__ import annotations
-
 import copy
 import datetime
 import email.utils
 import json
 from http import HTTPStatus
 from string import hexdigits
-from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
-if TYPE_CHECKING:
-    import requests
-    from vws.exceptions.response import Response
+import requests
+from beartype import beartype
+from vws.exceptions.response import Response
 
-    from mock_vws._constants import ResultCodes
+from mock_vws._constants import ResultCodes
 
 
+@beartype
 def assert_vws_failure(
     *,
     response: requests.Response | Response,
@@ -49,6 +47,7 @@ def assert_vws_failure(
     )
 
 
+@beartype
 def assert_valid_date_header(
     *,
     response: requests.Response | Response,
@@ -83,6 +82,7 @@ def assert_valid_date_header(
     assert time_difference < datetime.timedelta(minutes=2)
 
 
+@beartype
 def assert_valid_transaction_id(
     *,
     response: requests.Response | Response,
@@ -118,6 +118,7 @@ def assert_json_separators(*, response: requests.Response | Response) -> None:
     )
 
 
+@beartype
 def assert_vws_response(
     *,
     response: requests.Response | Response,
@@ -171,6 +172,7 @@ def assert_vws_response(
     assert_valid_date_header(response=response)
 
 
+@beartype
 def assert_query_success(*, response: requests.Response) -> None:
     """
     Assert that the given response is a success response for performing an
