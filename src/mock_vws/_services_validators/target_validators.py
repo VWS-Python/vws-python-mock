@@ -3,6 +3,7 @@ Validators for given target IDs.
 """
 
 import logging
+from collections.abc import Mapping
 
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._services_validators.exceptions import UnknownTargetError
@@ -14,7 +15,7 @@ _LOGGER = logging.getLogger(name=__name__)
 def validate_target_id_exists(
     *,
     request_path: str,
-    request_headers: dict[str, str],
+    request_headers: Mapping[str, str],
     request_body: bytes,
     request_method: str,
     databases: set[VuforiaDatabase],

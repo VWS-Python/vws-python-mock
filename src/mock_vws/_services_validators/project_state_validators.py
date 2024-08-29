@@ -3,6 +3,7 @@ Validators for the project state.
 """
 
 import logging
+from collections.abc import Mapping
 from http import HTTPMethod
 
 from mock_vws._database_matchers import get_database_matching_server_keys
@@ -16,7 +17,7 @@ _LOGGER = logging.getLogger(name=__name__)
 def validate_project_state(
     *,
     request_path: str,
-    request_headers: dict[str, str],
+    request_headers: Mapping[str, str],
     request_body: bytes,
     request_method: str,
     databases: set[VuforiaDatabase],
