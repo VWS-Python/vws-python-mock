@@ -5,13 +5,12 @@ See
 https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api
 """
 
-from __future__ import annotations
-
 import base64
 import dataclasses
 import datetime
 import email.utils
 import uuid
+from collections.abc import Callable
 from http import HTTPMethod, HTTPStatus
 from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
@@ -26,17 +25,15 @@ from mock_vws._services_validators.exceptions import (
     TargetStatusProcessingError,
     ValidatorError,
 )
+from mock_vws.image_matchers import ImageMatcher
 from mock_vws.target import Target
+from mock_vws.target_manager import TargetManager
+from mock_vws.target_raters import TargetTrackingRater
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
     from requests_mock.request import Request
     from requests_mock.response import Context
 
-    from mock_vws.image_matchers import ImageMatcher
-    from mock_vws.target_manager import TargetManager
-    from mock_vws.target_raters import TargetTrackingRater
 
 _TARGET_ID_PATTERN = "[A-Za-z0-9]+"
 
@@ -81,7 +78,7 @@ def route(
     return decorator
 
 
-def _body_bytes(request: Request) -> bytes:
+def _body_bytes(request: "Request") -> bytes:
     """
     Return the body of a request as bytes.
     """
@@ -133,7 +130,7 @@ class MockVuforiaWebServicesAPI:
         path_pattern="/targets",
         http_methods={HTTPMethod.POST},
     )
-    def add_target(self, request: Request, context: Context) -> str:
+    def add_target(self, request: "Request", context: "Context") -> str:
         """
         Add a target.
 
@@ -210,7 +207,7 @@ class MockVuforiaWebServicesAPI:
         path_pattern=f"/targets/{_TARGET_ID_PATTERN}",
         http_methods={HTTPMethod.DELETE},
     )
-    def delete_target(self, request: Request, context: Context) -> str:
+    def delete_target(self, request: "Request", context: "Context") -> str:
         """
         Delete a target.
 
@@ -277,7 +274,7 @@ class MockVuforiaWebServicesAPI:
         return body_json
 
     @route(path_pattern="/summary", http_methods={HTTPMethod.GET})
-    def database_summary(self, request: Request, context: Context) -> str:
+    def database_summary(self, request: "Request", context: "Context") -> str:
         """
         Get a database summary report.
 
@@ -343,7 +340,7 @@ class MockVuforiaWebServicesAPI:
         return body_json
 
     @route(path_pattern="/targets", http_methods={HTTPMethod.GET})
-    def target_list(self, request: Request, context: Context) -> str:
+    def target_list(self, request: "Request", context: "Context") -> str:
         """
         Get a list of all targets.
 
@@ -403,7 +400,7 @@ class MockVuforiaWebServicesAPI:
         path_pattern=f"/targets/{_TARGET_ID_PATTERN}",
         http_methods={HTTPMethod.GET},
     )
-    def get_target(self, request: Request, context: Context) -> str:
+    def get_target(self, request: "Request", context: "Context") -> str:
         """
         Get details of a target.
 
@@ -471,7 +468,7 @@ class MockVuforiaWebServicesAPI:
         path_pattern=f"/duplicates/{_TARGET_ID_PATTERN}",
         http_methods={HTTPMethod.GET},
     )
-    def get_duplicates(self, request: Request, context: Context) -> str:
+    def get_duplicates(self, request: "Request", context: "Context") -> str:
         """
         Get targets which may be considered duplicates of a given target.
 
@@ -545,7 +542,7 @@ class MockVuforiaWebServicesAPI:
         path_pattern=f"/targets/{_TARGET_ID_PATTERN}",
         http_methods={HTTPMethod.PUT},
     )
-    def update_target(self, request: Request, context: Context) -> str:
+    def update_target(self, request: "Request", context: "Context") -> str:
         """
         Update a target.
 
@@ -654,7 +651,7 @@ class MockVuforiaWebServicesAPI:
         path_pattern=f"/summary/{_TARGET_ID_PATTERN}",
         http_methods={HTTPMethod.GET},
     )
-    def target_summary(self, request: Request, context: Context) -> str:
+    def target_summary(self, request: "Request", context: "Context") -> str:
         """
         Get a summary report for a target.
 

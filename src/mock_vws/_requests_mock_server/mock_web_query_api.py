@@ -5,9 +5,8 @@ See
 https://developer.vuforia.com/library/web-api/vuforia-query-web-api
 """
 
-from __future__ import annotations
-
 import email.utils
+from collections.abc import Callable
 from http import HTTPMethod
 from typing import TYPE_CHECKING
 
@@ -19,15 +18,13 @@ from mock_vws._query_validators import run_query_validators
 from mock_vws._query_validators.exceptions import (
     ValidatorError,
 )
+from mock_vws.image_matchers import ImageMatcher
+from mock_vws.target_manager import TargetManager
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
     from requests_mock.request import Request
     from requests_mock.response import Context
 
-    from mock_vws.image_matchers import ImageMatcher
-    from mock_vws.target_manager import TargetManager
 
 _ROUTES: set[Route] = set()
 
@@ -69,7 +66,7 @@ def route(
     return decorator
 
 
-def _body_bytes(request: Request) -> bytes:
+def _body_bytes(request: "Request") -> bytes:
     """
     Return the body of a request as bytes.
     """
@@ -102,7 +99,7 @@ class MockVuforiaWebQueryAPI:
         self._query_match_checker = query_match_checker
 
     @route(path_pattern="/v1/query", http_methods={HTTPMethod.POST})
-    def query(self, request: Request, context: Context) -> str:
+    def query(self, request: "Request", context: "Context") -> str:
         """
         Perform an image recognition query.
         """

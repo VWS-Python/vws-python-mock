@@ -2,12 +2,7 @@
 A fake implementation of a Vuforia target manager.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from mock_vws.database import VuforiaDatabase
+from mock_vws.database import VuforiaDatabase
 
 
 class TargetManager:

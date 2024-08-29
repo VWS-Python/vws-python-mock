@@ -2,13 +2,11 @@
 Tools for making Vuforia queries.
 """
 
-from __future__ import annotations
-
 import base64
 import io
 import uuid
 from email.message import EmailMessage
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from werkzeug.formparser import MultiPartParser
 
@@ -16,10 +14,8 @@ from mock_vws._base64_decoding import decode_base64
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_client_keys
 from mock_vws._mock_common import json_dump
-
-if TYPE_CHECKING:
-    from mock_vws.database import VuforiaDatabase
-    from mock_vws.image_matchers import ImageMatcher
+from mock_vws.database import VuforiaDatabase
+from mock_vws.image_matchers import ImageMatcher
 
 
 def get_query_match_response_text(
