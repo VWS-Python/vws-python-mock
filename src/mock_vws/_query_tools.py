@@ -5,6 +5,7 @@ Tools for making Vuforia queries.
 import base64
 import io
 import uuid
+from collections.abc import Mapping
 from email.message import EmailMessage
 from typing import Any
 
@@ -20,7 +21,7 @@ from mock_vws.image_matchers import ImageMatcher
 
 def get_query_match_response_text(
     *,
-    request_headers: dict[str, str],
+    request_headers: Mapping[str, str],
     request_body: bytes,
     request_method: str,
     request_path: str,

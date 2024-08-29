@@ -3,6 +3,7 @@ Validators for the ``Content-Type`` header.
 """
 
 import logging
+from collections.abc import Mapping
 from email.message import EmailMessage
 
 from mock_vws._query_validators.exceptions import (
@@ -16,7 +17,7 @@ _LOGGER = logging.getLogger(name=__name__)
 
 
 def validate_content_type_header(
-    request_headers: dict[str, str],
+    request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:
     """

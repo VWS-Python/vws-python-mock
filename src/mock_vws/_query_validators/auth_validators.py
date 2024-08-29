@@ -3,6 +3,7 @@ Authorization validators to use in the mock query API.
 """
 
 import logging
+from collections.abc import Mapping
 
 from mock_vws._database_matchers import get_database_matching_client_keys
 from mock_vws._query_validators.exceptions import (
@@ -15,7 +16,7 @@ from mock_vws.database import VuforiaDatabase
 _LOGGER = logging.getLogger(name=__name__)
 
 
-def validate_auth_header_exists(*, request_headers: dict[str, str]) -> None:
+def validate_auth_header_exists(*, request_headers: Mapping[str, str]) -> None:
     """
     Validate that there is an authorization header given to the query endpoint.
 
@@ -34,7 +35,7 @@ def validate_auth_header_exists(*, request_headers: dict[str, str]) -> None:
 
 def validate_auth_header_number_of_parts(
     *,
-    request_headers: dict[str, str],
+    request_headers: Mapping[str, str],
 ) -> None:
     """
     Validate the authorization header includes text either side of a space.
@@ -58,7 +59,7 @@ def validate_auth_header_number_of_parts(
 
 def validate_client_key_exists(
     *,
-    request_headers: dict[str, str],
+    request_headers: Mapping[str, str],
     databases: set[VuforiaDatabase],
 ) -> None:
     """
@@ -83,7 +84,7 @@ def validate_client_key_exists(
 
 
 def validate_auth_header_has_signature(
-    request_headers: dict[str, str],
+    request_headers: Mapping[str, str],
 ) -> None:
     """
     Validate the authorization header includes a signature.
@@ -105,7 +106,7 @@ def validate_auth_header_has_signature(
 def validate_authorization(
     *,
     request_path: str,
-    request_headers: dict[str, str],
+    request_headers: Mapping[str, str],
     request_body: bytes,
     request_method: str,
     databases: set[VuforiaDatabase],

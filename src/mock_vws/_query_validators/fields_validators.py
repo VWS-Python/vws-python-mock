@@ -4,6 +4,7 @@ Validators for the fields given.
 
 import io
 import logging
+from collections.abc import Mapping
 from email.message import EmailMessage
 
 from werkzeug.formparser import MultiPartParser
@@ -15,7 +16,7 @@ _LOGGER = logging.getLogger(name=__name__)
 
 def validate_extra_fields(
     *,
-    request_headers: dict[str, str],
+    request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:
     """

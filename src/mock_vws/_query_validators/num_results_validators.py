@@ -4,6 +4,7 @@ Validators for the ``max_num_results`` fields.
 
 import io
 import logging
+from collections.abc import Mapping
 from email.message import EmailMessage
 
 from werkzeug.formparser import MultiPartParser
@@ -18,7 +19,7 @@ _LOGGER = logging.getLogger(name=__name__)
 
 def validate_max_num_results(
     *,
-    request_headers: dict[str, str],
+    request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:
     """

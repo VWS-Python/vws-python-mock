@@ -2,6 +2,8 @@
 Input validators to use in the mock query API.
 """
 
+from collections.abc import Mapping
+
 from mock_vws.database import VuforiaDatabase
 
 from .accept_header_validators import validate_accept_header
@@ -39,7 +41,7 @@ from .project_state_validators import validate_project_state
 def run_query_validators(
     *,
     request_path: str,
-    request_headers: dict[str, str],
+    request_headers: Mapping[str, str],
     request_body: bytes,
     request_method: str,
     databases: set[VuforiaDatabase],

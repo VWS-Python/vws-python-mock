@@ -2,6 +2,8 @@
 Input validators to use in the mock.
 """
 
+from collections.abc import Mapping
+
 from mock_vws.database import VuforiaDatabase
 
 from .active_flag_validators import validate_active_flag
@@ -51,7 +53,7 @@ from .width_validators import validate_width
 
 def run_services_validators(
     request_path: str,
-    request_headers: dict[str, str],
+    request_headers: Mapping[str, str],
     request_body: bytes,
     request_method: str,
     databases: set[VuforiaDatabase],

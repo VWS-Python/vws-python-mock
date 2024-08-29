@@ -3,13 +3,14 @@ Validators for the ``Accept`` header.
 """
 
 import logging
+from collections.abc import Mapping
 
 from mock_vws._query_validators.exceptions import InvalidAcceptHeaderError
 
 _LOGGER = logging.getLogger(name=__name__)
 
 
-def validate_accept_header(request_headers: dict[str, str]) -> None:
+def validate_accept_header(request_headers: Mapping[str, str]) -> None:
     """
     Validate the accept header.
 

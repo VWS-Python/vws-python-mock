@@ -4,6 +4,7 @@ Validators for target names.
 
 import json
 import logging
+from collections.abc import Mapping
 from http import HTTPMethod, HTTPStatus
 
 from mock_vws._database_matchers import get_database_matching_server_keys
@@ -116,7 +117,7 @@ def validate_name_does_not_exist_new_target(
     *,
     databases: set[VuforiaDatabase],
     request_body: bytes,
-    request_headers: dict[str, str],
+    request_headers: Mapping[str, str],
     request_method: str,
     request_path: str,
 ) -> None:
@@ -170,7 +171,7 @@ def validate_name_does_not_exist_new_target(
 
 def validate_name_does_not_exist_existing_target(
     *,
-    request_headers: dict[str, str],
+    request_headers: Mapping[str, str],
     request_body: bytes,
     request_method: str,
     request_path: str,
