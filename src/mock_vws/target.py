@@ -112,7 +112,7 @@ class Target:
         target is for detection.
         """
         processing_time = datetime.timedelta(
-            seconds=self.processing_time_seconds,
+            seconds=float(self.processing_time_seconds),
         )
 
         timezone = self.upload_date.tzinfo
@@ -137,7 +137,7 @@ class Target:
         pre_rating_time = datetime.timedelta(
             # That this is half of the total processing time is unrealistic.
             # In VWS it is not a constant percentage.
-            seconds=self.processing_time_seconds / 2,
+            seconds=float(self.processing_time_seconds) / 2,
         )
 
         timezone = self.upload_date.tzinfo
