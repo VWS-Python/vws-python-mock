@@ -38,11 +38,13 @@ _TARGET_ID_PATTERN = "[A-Za-z0-9]+"
 
 _ROUTES: set[Route] = set()
 
+_ResponseType = str
+
 
 def route(
     path_pattern: str,
     http_methods: set[HTTPMethod],
-) -> Callable[[Callable[..., str]], Callable[..., str]]:
+) -> Callable[[Callable[..., str]], Callable[..., _ResponseType]]:
     """
     Register a decorated method so that it can be recognized as a route.
 
@@ -55,7 +57,9 @@ def route(
         A decorator which takes methods and makes them recognizable as routes.
     """
 
-    def decorator(method: Callable[..., str]) -> Callable[..., str]:
+    def decorator(
+        method: Callable[..., _ResponseType],
+    ) -> Callable[..., _ResponseType]:
         """
         Register a decorated method so that it can be recognized as a route.
 
@@ -128,9 +132,7 @@ class MockVuforiaWebServicesAPI:
         path_pattern="/targets",
         http_methods={HTTPMethod.POST},
     )
-    def add_target(
-        self, request: PreparedRequest
-    ) -> tuple[int, dict[str, str], str]:
+    def add_target(self, request: PreparedRequest) -> _ResponseType:
         """
         Add a target.
 
@@ -206,9 +208,7 @@ class MockVuforiaWebServicesAPI:
         path_pattern=f"/targets/{_TARGET_ID_PATTERN}",
         http_methods={HTTPMethod.DELETE},
     )
-    def delete_target(
-        self, request: PreparedRequest
-    ) -> tuple[int, dict[str, str], str]:
+    def delete_target(self, request: PreparedRequest) -> _ResponseType:
         """
         Delete a target.
 
@@ -273,10 +273,7 @@ class MockVuforiaWebServicesAPI:
         return HTTPStatus.OK, headers, body_json
 
     @route(path_pattern="/summary", http_methods={HTTPMethod.GET})
-    def database_summary(
-        self,
-        request: PreparedRequest,
-    ) -> tuple[int, dict[str, str], str]:
+    def database_summary(self, request: PreparedRequest) -> _ResponseType:
         """
         Get a database summary report.
 
@@ -341,9 +338,7 @@ class MockVuforiaWebServicesAPI:
         return HTTPStatus.OK, headers, body_json
 
     @route(path_pattern="/targets", http_methods={HTTPMethod.GET})
-    def target_list(
-        self, request: PreparedRequest
-    ) -> tuple[int, dict[str, str], str]:
+    def target_list(self, request: PreparedRequest) -> _ResponseType:
         """
         Get a list of all targets.
 
@@ -401,9 +396,7 @@ class MockVuforiaWebServicesAPI:
         path_pattern=f"/targets/{_TARGET_ID_PATTERN}",
         http_methods={HTTPMethod.GET},
     )
-    def get_target(
-        self, request: PreparedRequest
-    ) -> tuple[int, dict[str, str], str]:
+    def get_target(self, request: PreparedRequest) -> _ResponseType:
         """
         Get details of a target.
 
@@ -469,9 +462,7 @@ class MockVuforiaWebServicesAPI:
         path_pattern=f"/duplicates/{_TARGET_ID_PATTERN}",
         http_methods={HTTPMethod.GET},
     )
-    def get_duplicates(
-        self, request: PreparedRequest
-    ) -> tuple[int, dict[str, str], str]:
+    def get_duplicates(self, request: PreparedRequest) -> _ResponseType:
         """
         Get targets which may be considered duplicates of a given target.
 
@@ -543,9 +534,7 @@ class MockVuforiaWebServicesAPI:
         path_pattern=f"/targets/{_TARGET_ID_PATTERN}",
         http_methods={HTTPMethod.PUT},
     )
-    def update_target(
-        self, request: PreparedRequest
-    ) -> tuple[int, dict[str, str], str]:
+    def update_target(self, request: PreparedRequest) -> _ResponseType:
         """
         Update a target.
 
@@ -653,9 +642,7 @@ class MockVuforiaWebServicesAPI:
         path_pattern=f"/summary/{_TARGET_ID_PATTERN}",
         http_methods={HTTPMethod.GET},
     )
-    def target_summary(
-        self, request: PreparedRequest
-    ) -> tuple[int, dict[str, str], str]:
+    def target_summary(self, request: PreparedRequest) -> _ResponseType:
         """
         Get a summary report for a target.
 
