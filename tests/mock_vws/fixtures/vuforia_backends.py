@@ -30,7 +30,6 @@ LOGGER.setLevel(level=logging.DEBUG)
 
 
 @RETRY_ON_TOO_MANY_REQUESTS
-@beartype
 def _delete_all_targets(*, database_keys: VuforiaDatabase) -> None:
     """
     Delete all targets.
@@ -229,6 +228,7 @@ def pytest_collection_modifyitems(
                 item.add_marker(skip_docker_build_tests_marker)
 
 
+@beartype
 @pytest.fixture(
     params=list(VuforiaBackend),
     ids=[backend.value for backend in list(VuforiaBackend)],
@@ -268,6 +268,7 @@ def verify_mock_vuforia(
     )
 
 
+@beartype
 @pytest.fixture(
     params=[item for item in VuforiaBackend if item != VuforiaBackend.REAL],
     ids=[
@@ -277,7 +278,6 @@ def verify_mock_vuforia(
         ]
     ],
 )
-@beartype
 def mock_only_vuforia(
     request: pytest.FixtureRequest,
     vuforia_database: VuforiaDatabase,

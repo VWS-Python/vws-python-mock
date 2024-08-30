@@ -38,8 +38,8 @@ class _InactiveVuforiaDatabaseSettings(_VuforiaDatabaseSettings):
     )
 
 
-@pytest.fixture
 @beartype
+@pytest.fixture
 def vuforia_database() -> VuforiaDatabase:
     """
     Return VWS credentials from environment variables.
@@ -55,6 +55,7 @@ def vuforia_database() -> VuforiaDatabase:
     )
 
 
+@beartype
 @pytest.fixture
 def inactive_database() -> VuforiaDatabase:
     """
