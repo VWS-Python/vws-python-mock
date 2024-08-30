@@ -131,7 +131,7 @@ def _enable_use_docker_in_memory(
         value=target_manager_base_url,
     )
 
-    with responses.RequestsMock() as mock:
+    with responses.RequestsMock(assert_all_requests_are_fired=False) as mock:
         add_flask_app_to_mock(
             mock_obj=mock,
             flask_app=VWS_FLASK_APP,
