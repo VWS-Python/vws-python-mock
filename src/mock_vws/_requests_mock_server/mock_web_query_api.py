@@ -7,7 +7,9 @@ https://developer.vuforia.com/library/web-api/vuforia-query-web-api
 
 import email.utils
 from collections.abc import Callable
-from http import HTTPMethod
+from http import HTTPMethod, HTTPStatus
+
+from requests.models import PreparedRequest
 
 from mock_vws._mock_common import Route
 from mock_vws._query_tools import (
@@ -22,7 +24,7 @@ from mock_vws.target_manager import TargetManager
 
 _ROUTES: set[Route] = set()
 
-_ResponseType = str
+_ResponseType = tuple[int, dict[str, str], str]
 
 
 def route(
@@ -64,11 +66,15 @@ def route(
     return decorator
 
 
-def _body_bytes(request: "Request") -> bytes:
+def _body_bytes(request: PreparedRequest) -> bytes:
     """
     Return the body of a request as bytes.
     """
-    return request.body or b""
+    if request.body is None:
+        return b""
+
+    assert isinstance(request.body, bytes)
+    return request.body
 
 
 class MockVuforiaWebQueryAPI:
@@ -97,28 +103,26 @@ class MockVuforiaWebQueryAPI:
         self._query_match_checker = query_match_checker
 
     @route(path_pattern="/v1/query", http_methods={HTTPMethod.POST})
-    def query(self, request: "Request", context: "Context") -> _ResponseType:
+    def query(self, request: PreparedRequest) -> _ResponseType:
         """
         Perform an image recognition query.
         """
         try:
             run_query_validators(
-                request_path=request.path,
+                request_path=request.path_url,
                 request_headers=request.headers,
                 request_body=_body_bytes(request=request),
-                request_method=request.method,
+                request_method=request.method or "",
                 databases=self._target_manager.databases,
             )
         except ValidatorError as exc:
-            context.headers = exc.headers
-            context.status_code = exc.status_code
-            return exc.response_text
+            return exc.status_code, exc.headers, exc.response_text
 
         response_text = get_query_match_response_text(
             request_headers=request.headers,
             request_body=_body_bytes(request=request),
-            request_method=request.method,
-            request_path=request.path,
+            request_method=request.method or "",
+            request_path=request.path_url,
             databases=self._target_manager.databases,
             query_match_checker=self._query_match_checker,
         )
@@ -128,11 +132,11 @@ class MockVuforiaWebQueryAPI:
             localtime=False,
             usegmt=True,
         )
-        context.headers = {
+        headers = {
             "Connection": "keep-alive",
             "Content-Type": "application/json",
             "Server": "nginx",
             "Date": date,
             "Content-Length": str(len(response_text)),
         }
-        return response_text
+        return HTTPStatus.OK, headers, response_text

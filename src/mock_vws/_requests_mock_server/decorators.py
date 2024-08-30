@@ -132,6 +132,7 @@ class MockVWS(ContextDecorator):
                     method=vws_http_method,
                     url=compiled_url_pattern,
                     callback=getattr(self._mock_vws_api, vws_route.route_name),
+                    content_type=None,
                 )
 
         for vwq_route in self._mock_vwq_api.routes:
@@ -147,6 +148,7 @@ class MockVWS(ContextDecorator):
                     method=vwq_http_method,
                     url=compiled_url_pattern,
                     callback=getattr(self._mock_vwq_api, vwq_route.route_name),
+                    content_type=None,
                 )
 
         if self._real_http:

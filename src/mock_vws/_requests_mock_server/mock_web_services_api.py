@@ -38,13 +38,13 @@ _TARGET_ID_PATTERN = "[A-Za-z0-9]+"
 
 _ROUTES: set[Route] = set()
 
-_ResponseType = str
+_ResponseType = tuple[int, dict[str, str], str]
 
 
 def route(
     path_pattern: str,
     http_methods: set[HTTPMethod],
-) -> Callable[[Callable[..., str]], Callable[..., _ResponseType]]:
+) -> Callable[[Callable[..., _ResponseType]], Callable[..., _ResponseType]]:
     """
     Register a decorated method so that it can be recognized as a route.
 
@@ -184,14 +184,14 @@ class MockVuforiaWebServicesAPI:
             localtime=False,
             usegmt=True,
         )
-        context.status_code = HTTPStatus.CREATED
+        status_code = HTTPStatus.CREATED
         body = {
             "transaction_id": uuid.uuid4().hex,
             "result_code": ResultCodes.TARGET_CREATED.value,
             "target_id": new_target.target_id,
         }
         body_json = json_dump(body=body)
-        context.headers = {
+        headers = {
             "Connection": "keep-alive",
             "Content-Type": "application/json",
             "server": "envoy",
@@ -202,7 +202,7 @@ class MockVuforiaWebServicesAPI:
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",
         }
-        return body_json
+        return status_code, headers, body_json
 
     @route(
         path_pattern=f"/targets/{_TARGET_ID_PATTERN}",
@@ -240,9 +240,11 @@ class MockVuforiaWebServicesAPI:
 
         if target.status == TargetStatuses.PROCESSING.value:
             target_processing_exception = TargetStatusProcessingError()
-            context.headers = target_processing_exception.headers
-            context.status_code = target_processing_exception.status_code
-            return target_processing_exception.response_text
+            return (
+                target_processing_exception.status_code,
+                target_processing_exception.headers,
+                target_processing_exception.response_text,
+            )
 
         now = datetime.datetime.now(tz=target.upload_date.tzinfo)
         new_target = dataclasses.replace(target, delete_date=now)
@@ -280,7 +282,6 @@ class MockVuforiaWebServicesAPI:
         Fake implementation of
         https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#summary-report
         """
-        breakpoint()
         try:
             run_services_validators(
                 request_headers=request.headers,
@@ -516,7 +517,7 @@ class MockVuforiaWebServicesAPI:
             "similar_targets": similar_targets,
         }
         body_json = json_dump(body=body)
-        context.headers = {
+        headers = {
             "Connection": "keep-alive",
             "Content-Length": str(len(body_json)),
             "Content-Type": "application/json",
@@ -528,7 +529,7 @@ class MockVuforiaWebServicesAPI:
             "x-content-type-options": "nosniff",
         }
 
-        return body_json
+        return HTTPStatus.OK, headers, body_json
 
     @route(
         path_pattern=f"/targets/{_TARGET_ID_PATTERN}",
@@ -572,9 +573,11 @@ class MockVuforiaWebServicesAPI:
 
         if target.status != TargetStatuses.SUCCESS.value:
             exception = TargetStatusNotSuccessError()
-            context.headers = exception.headers
-            context.status_code = exception.status_code
-            return exception.response_text
+            return (
+                exception.status_code,
+                exception.headers,
+                exception.response_text,
+            )
 
         request_json: dict[str, Any] = json.loads(s=request.body or b"")
         width = request_json.get("width", target.width)
@@ -591,18 +594,22 @@ class MockVuforiaWebServicesAPI:
 
         if "active_flag" in request_json and active_flag is None:
             fail_exception = FailError(status_code=HTTPStatus.BAD_REQUEST)
-            context.headers = fail_exception.headers
-            context.status_code = fail_exception.status_code
-            return fail_exception.response_text
+            return (
+                fail_exception.status_code,
+                fail_exception.headers,
+                fail_exception.response_text,
+            )
 
         if (
             "application_metadata" in request_json
             and application_metadata is None
         ):
             fail_exception = FailError(status_code=HTTPStatus.BAD_REQUEST)
-            context.headers = fail_exception.headers
-            context.status_code = fail_exception.status_code
-            return fail_exception.response_text
+            return (
+                fail_exception.status_code,
+                fail_exception.headers,
+                fail_exception.response_text,
+            )
 
         gmt = ZoneInfo(key="GMT")
         last_modified_date = datetime.datetime.now(tz=gmt)
@@ -636,7 +643,7 @@ class MockVuforiaWebServicesAPI:
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",
         }
-        return body_json
+        return HTTPStatus.OK, headers, body_json
 
     @route(
         path_pattern=f"/summary/{_TARGET_ID_PATTERN}",
@@ -658,9 +665,7 @@ class MockVuforiaWebServicesAPI:
                 databases=self._target_manager.databases,
             )
         except ValidatorError as exc:
-            context.headers = exc.headers
-            context.status_code = exc.status_code
-            return exc.response_text
+            return exc.status_code, exc.headers, exc.response_text
 
         database = get_database_matching_server_keys(
             request_headers=request.headers,
@@ -691,7 +696,7 @@ class MockVuforiaWebServicesAPI:
             "previous_month_recos": target.previous_month_recos,
         }
         body_json = json_dump(body=body)
-        context.headers = {
+        headers = {
             "Connection": "keep-alive",
             "Content-Length": str(len(body_json)),
             "Content-Type": "application/json",
@@ -703,4 +708,4 @@ class MockVuforiaWebServicesAPI:
             "x-content-type-options": "nosniff",
         }
 
-        return body_json
+        return HTTPStatus.OK, headers, body_json
