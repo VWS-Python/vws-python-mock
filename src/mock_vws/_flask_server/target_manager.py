@@ -24,7 +24,7 @@ from mock_vws.target_raters import (
     TargetTrackingRater,
 )
 
-TARGET_MANAGER_FLASK_APP = Flask(__name__)
+TARGET_MANAGER_FLASK_APP = Flask(import_name=__name__, static_folder=None)
 
 TARGET_MANAGER = TargetManager()
 
