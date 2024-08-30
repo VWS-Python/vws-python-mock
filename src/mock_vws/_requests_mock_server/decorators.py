@@ -152,12 +152,8 @@ class MockVWS(ContextDecorator):
                 )
 
         if self._real_http:
-            combined_pattern = "|".join(
-                f"(?:{pattern.pattern})" for pattern in compiled_url_patterns
-            )
-            negated_pattern = f"(?!{combined_pattern})."
-            compiled_negated_pattern = re.compile(pattern=negated_pattern)
-            mock.add_passthru(prefix=compiled_negated_pattern)
+            all_requests_pattern = re.compile(pattern=".*")
+            mock.add_passthru(prefix=all_requests_pattern)
 
         self._mock = mock
         self._mock.start()
