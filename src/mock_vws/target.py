@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from typing import Self, TypedDict
 from zoneinfo import ZoneInfo
 
-from beartype import beartype
+from beartype import BeartypeConf, beartype
 from PIL import Image, ImageStat
 
 from mock_vws._constants import TargetStatuses
@@ -56,7 +56,7 @@ def _time_now() -> datetime.datetime:
     return datetime.datetime.now(tz=gmt)
 
 
-@beartype
+@beartype(conf=BeartypeConf(is_pep484_tower=True))
 @dataclass(frozen=True, eq=True)
 class Target:
     """
