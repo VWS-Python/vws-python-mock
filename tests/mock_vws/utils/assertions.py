@@ -102,6 +102,7 @@ def assert_valid_transaction_id(
     assert all(char in hexdigits for char in transaction_id)
 
 
+@beartype
 def assert_json_separators(*, response: requests.Response | Response) -> None:
     """
     Assert that a JSON response is formatted correctly.

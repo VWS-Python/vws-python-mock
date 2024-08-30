@@ -8,6 +8,7 @@ import uuid
 from http import HTTPStatus
 
 import pytest
+from beartype import beartype
 from tenacity import RetryCallState, retry
 from tenacity.retry import retry_if_exception_type
 from tenacity.stop import stop_after_delay
@@ -22,6 +23,7 @@ LOGGER = logging.getLogger(name=__name__)
 LOGGER.setLevel(level=logging.DEBUG)
 
 
+@beartype
 def _log_attempt_number(retry_state: RetryCallState) -> None:
     """
     Log the attempt number of a retry.

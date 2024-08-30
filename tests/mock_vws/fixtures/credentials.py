@@ -5,6 +5,7 @@ Fixtures for credentials for Vuforia databases.
 from pathlib import Path
 
 import pytest
+from beartype import beartype
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from mock_vws.database import VuforiaDatabase
@@ -38,6 +39,7 @@ class _InactiveVuforiaDatabaseSettings(_VuforiaDatabaseSettings):
 
 
 @pytest.fixture
+@beartype
 def vuforia_database() -> VuforiaDatabase:
     """
     Return VWS credentials from environment variables.

@@ -76,6 +76,7 @@ class VuforiaDatabase:
     total_recos: int = 0
     target_quota: int = 1000
 
+    @beartype
     def to_dict(self) -> DatabaseDict:
         """
         Dump a target to a dictionary which can be loaded as JSON.
@@ -120,6 +121,7 @@ class VuforiaDatabase:
         )
 
     @property
+    @beartype
     def not_deleted_targets(self) -> set[Target]:
         """
         All targets which have not been deleted.
@@ -127,6 +129,7 @@ class VuforiaDatabase:
         return {target for target in self.targets if not target.delete_date}
 
     @property
+    @beartype
     def active_targets(self) -> set[Target]:
         """
         All active targets.
@@ -139,6 +142,7 @@ class VuforiaDatabase:
         }
 
     @property
+    @beartype
     def inactive_targets(self) -> set[Target]:
         """
         All inactive targets.
@@ -151,6 +155,7 @@ class VuforiaDatabase:
         }
 
     @property
+    @beartype
     def failed_targets(self) -> set[Target]:
         """
         All failed targets.
@@ -162,6 +167,7 @@ class VuforiaDatabase:
         }
 
     @property
+    @beartype
     def processing_targets(self) -> set[Target]:
         """
         All processing targets.
