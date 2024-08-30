@@ -38,7 +38,7 @@ from mock_vws.target_raters import (
     HardcodedTargetTrackingRater,
 )
 
-VWS_FLASK_APP = Flask(import_name=__name__)
+VWS_FLASK_APP = Flask(import_name=__name__, static_folder=None)
 VWS_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
 
 

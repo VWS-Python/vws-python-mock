@@ -27,7 +27,7 @@ from mock_vws.image_matchers import (
     StructuralSimilarityMatcher,
 )
 
-CLOUDRECO_FLASK_APP = Flask(import_name=__name__)
+CLOUDRECO_FLASK_APP = Flask(import_name=__name__, static_folder=None)
 CLOUDRECO_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
 
 
