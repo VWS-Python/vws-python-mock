@@ -4,6 +4,7 @@ Tests for the usage of the mock Flask application.
 
 import io
 import uuid
+from collections.abc import Iterator
 from http import HTTPStatus
 
 import pytest
@@ -25,33 +26,37 @@ _EXAMPLE_URL_FOR_TARGET_MANAGER = "http://" + uuid.uuid4().hex + ".com"
 
 
 @pytest.fixture(autouse=True)
-@responses.activate
-def _(monkeypatch: pytest.MonkeyPatch) -> None:
+def _(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     """
     Enable a mock service backed by the Flask applications.
     """
-    add_flask_app_to_mock(
-        mock_obj=responses,
-        flask_app=VWS_FLASK_APP,
-        base_url="https://vws.vuforia.com",
-    )
+    with responses.RequestsMock(
+        assert_all_requests_are_fired=False,
+    ) as mock_obj:
+        add_flask_app_to_mock(
+            mock_obj=mock_obj,
+            flask_app=VWS_FLASK_APP,
+            base_url="https://vws.vuforia.com",
+        )
 
-    add_flask_app_to_mock(
-        mock_obj=responses,
-        flask_app=CLOUDRECO_FLASK_APP,
-        base_url="https://cloudreco.vuforia.com",
-    )
+        add_flask_app_to_mock(
+            mock_obj=mock_obj,
+            flask_app=CLOUDRECO_FLASK_APP,
+            base_url="https://cloudreco.vuforia.com",
+        )
 
-    add_flask_app_to_mock(
-        mock_obj=responses,
-        flask_app=TARGET_MANAGER_FLASK_APP,
-        base_url=_EXAMPLE_URL_FOR_TARGET_MANAGER,
-    )
+        add_flask_app_to_mock(
+            mock_obj=mock_obj,
+            flask_app=TARGET_MANAGER_FLASK_APP,
+            base_url=_EXAMPLE_URL_FOR_TARGET_MANAGER,
+        )
 
-    monkeypatch.setenv(
-        name="TARGET_MANAGER_BASE_URL",
-        value=_EXAMPLE_URL_FOR_TARGET_MANAGER,
-    )
+        monkeypatch.setenv(
+            name="TARGET_MANAGER_BASE_URL",
+            value=_EXAMPLE_URL_FOR_TARGET_MANAGER,
+        )
+
+        yield
 
 
 class TestProcessingTime:
