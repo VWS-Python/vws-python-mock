@@ -4,11 +4,11 @@ Decorators for using the mock.
 
 import re
 from contextlib import ContextDecorator
-from typing import Literal, Self, SupportsFloat
+from typing import Literal, Self
 from urllib.parse import urljoin, urlparse
 
 import requests
-from requests_mock.mocker import Mocker
+from responses import RequestsMock
 
 from mock_vws.database import VuforiaDatabase
 from mock_vws.image_matchers import (
@@ -39,7 +39,7 @@ class MockVWS(ContextDecorator):
         base_vwq_url: str = "https://cloudreco.vuforia.com",
         duplicate_match_checker: ImageMatcher = _STRUCTURAL_SIMILARITY_MATCHER,
         query_match_checker: ImageMatcher = _STRUCTURAL_SIMILARITY_MATCHER,
-        processing_time_seconds: SupportsFloat = 2,
+        processing_time_seconds: float = 2.0,
         target_tracking_rater: TargetTrackingRater = _BRISQUE_TRACKING_RATER,
         *,
         real_http: bool = False,
@@ -69,7 +69,7 @@ class MockVWS(ContextDecorator):
         """
         super().__init__()
         self._real_http = real_http
-        self._mock: Mocker
+        self._mock: RequestsMock
         self._target_manager = TargetManager()
 
         self._base_vws_url = base_vws_url
@@ -116,32 +116,48 @@ class MockVWS(ContextDecorator):
         Returns:
             ``self``.
         """
-        with Mocker(real_http=self._real_http) as mock:
-            for vws_route in self._mock_vws_api.routes:
-                url_pattern = urljoin(
-                    base=self._base_vws_url,
-                    url=f"{vws_route.path_pattern}$",
+        compiled_url_patterns: set[re.Pattern[str]] = set()
+
+        mock = RequestsMock(assert_all_requests_are_fired=False)
+        for vws_route in self._mock_vws_api.routes:
+            url_pattern = urljoin(
+                base=self._base_vws_url,
+                url=f"{vws_route.path_pattern}$",
+            )
+            compiled_url_pattern = re.compile(pattern=url_pattern)
+            compiled_url_patterns.add(compiled_url_pattern)
+
+            for vws_http_method in vws_route.http_methods:
+                mock.add_callback(
+                    method=vws_http_method,
+                    url=compiled_url_pattern,
+                    callback=getattr(self._mock_vws_api, vws_route.route_name),
+                    content_type=None,
                 )
 
-                for vws_http_method in vws_route.http_methods:
-                    mock.register_uri(
-                        method=vws_http_method,
-                        url=re.compile(url_pattern),
-                        text=getattr(self._mock_vws_api, vws_route.route_name),
-                    )
+        for vwq_route in self._mock_vwq_api.routes:
+            url_pattern = urljoin(
+                base=self._base_vwq_url,
+                url=f"{vwq_route.path_pattern}$",
+            )
+            compiled_url_pattern = re.compile(pattern=url_pattern)
+            compiled_url_patterns.add(compiled_url_pattern)
 
-            for vwq_route in self._mock_vwq_api.routes:
-                url_pattern = urljoin(
-                    base=self._base_vwq_url,
-                    url=f"{vwq_route.path_pattern}$",
+            for vwq_http_method in vwq_route.http_methods:
+                mock.add_callback(
+                    method=vwq_http_method,
+                    url=compiled_url_pattern,
+                    callback=getattr(self._mock_vwq_api, vwq_route.route_name),
+                    content_type=None,
                 )
 
-                for vwq_http_method in vwq_route.http_methods:
-                    mock.register_uri(
-                        method=vwq_http_method,
-                        url=re.compile(url_pattern),
-                        text=getattr(self._mock_vwq_api, vwq_route.route_name),
-                    )
+        if self._real_http:
+            combined_pattern = "|".join(
+                f"(?:{pattern.pattern})" for pattern in compiled_url_patterns
+            )
+            negated_pattern = f"(?!{combined_pattern})."
+            compiled_negated_pattern = re.compile(pattern=negated_pattern)
+            mock.add_passthru(prefix=compiled_negated_pattern)
 
         self._mock = mock
         self._mock.start()

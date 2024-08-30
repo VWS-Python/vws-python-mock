@@ -81,7 +81,9 @@ class TestRealHTTP:
         non-Vuforia addresses, but not to mocked Vuforia endpoints.
         """
         with MockVWS():
-            with pytest.raises(expected_exception=NoMockAddress):
+            with pytest.raises(
+                expected_exception=requests.exceptions.ConnectionError
+            ):
                 request_unmocked_address()
 
             # No exception is raised when making a request to a mocked

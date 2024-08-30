@@ -12,7 +12,6 @@ import logging
 import uuid
 from enum import StrEnum, auto
 from http import HTTPMethod, HTTPStatus
-from typing import SupportsFloat
 
 import requests
 from beartype import beartype
@@ -68,7 +67,7 @@ class VWSSettings(BaseSettings):
     """Settings for the VWS Flask app."""
 
     target_manager_base_url: str
-    processing_time_seconds: SupportsFloat = 2
+    processing_time_seconds: float = 2.0
     vws_host: str = ""
     duplicates_image_matcher: _ImageMatcherChoice = (
         _ImageMatcherChoice.STRUCTURAL_SIMILARITY

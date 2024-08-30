@@ -45,7 +45,7 @@ dependencies = [
     "piq",
     "pydantic-settings",
     "requests",
-    "requests-mock",
+    "responses",
     "torch",
     "torchmetrics",
     "tzdata; sys_platform=='win32'",
