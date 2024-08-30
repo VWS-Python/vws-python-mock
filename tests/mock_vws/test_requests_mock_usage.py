@@ -14,7 +14,6 @@ import requests
 from freezegun import freeze_time
 from PIL import Image
 from requests.exceptions import MissingSchema
-from requests_mock.exceptions import NoMockAddress
 from vws import VWS, CloudRecoService
 from vws_auth_tools import rfc_1123_date
 
@@ -43,8 +42,8 @@ def request_unmocked_address() -> None:
     Raises:
         requests.exceptions.ConnectionError: This is expected as there is
             nothing to connect to.
-        requests_mock.exceptions.NoMockAddress: This request is being made in
-            the context of a `requests_mock` mock which does not mock local
+        requests.exceptions.ConnectionError: This request is being made in the
+            context of a ``responses`` mock which does not mock local
             addresses.
     """
     sock = socket.socket()
@@ -192,7 +191,9 @@ class TestCustomBaseURLs:
             base_vws_url="https://vuforia.vws.example.com",
             real_http=False,
         ):
-            with pytest.raises(expected_exception=NoMockAddress):
+            with pytest.raises(
+                expected_exception=requests.exceptions.ConnectionError
+            ):
                 requests.get(url="https://vws.vuforia.com/summary", timeout=30)
 
             requests.get(
@@ -213,7 +214,9 @@ class TestCustomBaseURLs:
             base_vwq_url="https://vuforia.vwq.example.com",
             real_http=False,
         ):
-            with pytest.raises(expected_exception=NoMockAddress):
+            with pytest.raises(
+                expected_exception=requests.exceptions.ConnectionError
+            ):
                 requests.post(
                     url="https://cloudreco.vuforia.com/v1/query",
                     timeout=30,
