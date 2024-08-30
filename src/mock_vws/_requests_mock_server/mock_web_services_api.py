@@ -16,7 +16,7 @@ from http import HTTPMethod, HTTPStatus
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from beartype import beartype
+from beartype import BeartypeConf, beartype
 from requests.models import PreparedRequest
 
 from mock_vws._constants import ResultCodes, TargetStatuses
@@ -104,7 +104,7 @@ class MockVuforiaWebServicesAPI:
     This implementation is tied to the implementation of ``responses``.
     """
 
-    @beartype
+    @beartype(conf=BeartypeConf(is_pep484_tower=True))
     def __init__(
         self,
         *,
