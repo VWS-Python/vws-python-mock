@@ -62,6 +62,7 @@ class TargetTrackingRater(Protocol):
 class RandomTargetTrackingRater:
     """A rater which returns a random number."""
 
+    @beartype
     def __call__(self, image_content: bytes) -> int:
         """
         A random target tracking rating.
@@ -76,6 +77,7 @@ class RandomTargetTrackingRater:
 class HardcodedTargetTrackingRater:
     """A rater which returns a hardcoded number."""
 
+    @beartype
     def __init__(self, rating: int) -> None:
         """
         Args:
@@ -83,6 +85,7 @@ class HardcodedTargetTrackingRater:
         """
         self._rating = rating
 
+    @beartype
     def __call__(self, image_content: bytes) -> int:
         """
         A random target tracking rating.
@@ -97,6 +100,7 @@ class HardcodedTargetTrackingRater:
 class BrisqueTargetTrackingRater:
     """A rater which returns a rating based on a BRISQUE score."""
 
+    @beartype
     def __call__(self, image_content: bytes) -> int:
         """
         A rating based on a BRISQUE score.

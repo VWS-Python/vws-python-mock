@@ -85,7 +85,6 @@ class TargetManager:
 
     @property
     @beartype
-    @beartype
     def databases(self) -> set[VuforiaDatabase]:
         """
         All cloud databases.

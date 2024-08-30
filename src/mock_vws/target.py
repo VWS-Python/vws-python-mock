@@ -39,6 +39,7 @@ class TargetDict(TypedDict):
     tracking_rating: int
 
 
+@beartype
 def _random_hex() -> str:
     """
     Return a random hex value.
@@ -46,6 +47,7 @@ def _random_hex() -> str:
     return uuid.uuid4().hex
 
 
+@beartype
 def _time_now() -> datetime.datetime:
     """
     Return the current time in the GMT time zone.

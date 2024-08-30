@@ -151,6 +151,7 @@ def handle_exceptions(exc: ValidatorError) -> Response:
 
 
 @VWS_FLASK_APP.route("/targets", methods=[HTTPMethod.POST])
+@beartype
 def add_target() -> Response:
     """
     Add a target.
@@ -334,6 +335,7 @@ def delete_target(target_id: str) -> Response:
 
 
 @VWS_FLASK_APP.route("/summary", methods=[HTTPMethod.GET])
+@beartype
 def database_summary() -> Response:
     """
     Get a database summary report.

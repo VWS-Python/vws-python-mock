@@ -59,6 +59,7 @@ def route(
         A decorator which takes methods and makes them recognizable as routes.
     """
 
+    @beartype
     def decorator(
         method: Callable[..., _ResponseType],
     ) -> Callable[..., _ResponseType]:
@@ -82,6 +83,7 @@ def route(
     return decorator
 
 
+@beartype
 def _body_bytes(request: PreparedRequest) -> bytes:
     """
     Return the body of a request as bytes.

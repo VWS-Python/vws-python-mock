@@ -8,6 +8,8 @@ import uuid
 from http import HTTPStatus
 from pathlib import Path
 
+from beartype import beartype
+
 from mock_vws._constants import ResultCodes
 from mock_vws._mock_common import json_dump
 
@@ -28,6 +30,7 @@ class UnknownTargetError(ValidatorError):
     'UnknownTarget'.
     """
 
+    @beartype
     def __init__(self) -> None:
         """
         Attributes:
@@ -67,6 +70,7 @@ class ProjectInactiveError(ValidatorError):
     'ProjectInactive'.
     """
 
+    @beartype
     def __init__(self) -> None:
         """
         Attributes:
@@ -106,6 +110,7 @@ class AuthenticationFailureError(ValidatorError):
     'AuthenticationFailure'.
     """
 
+    @beartype
     def __init__(self) -> None:
         """
         Attributes:
@@ -144,6 +149,7 @@ class FailError(ValidatorError):
     Exception raised when Vuforia returns a response with a result code 'Fail'.
     """
 
+    @beartype
     def __init__(self, *, status_code: HTTPStatus) -> None:
         """
         Attributes:
@@ -222,6 +228,7 @@ class TargetNameExistError(ValidatorError):
     'TargetNameExist'.
     """
 
+    @beartype
     def __init__(self) -> None:
         """
         Attributes:
@@ -263,6 +270,7 @@ class OopsErrorOccurredResponseError(ValidatorError):
     This has been seen to happen when the given name includes a bad character.
     """
 
+    @beartype
     def __init__(self) -> None:
         """
         Attributes:
@@ -302,6 +310,7 @@ class BadImageError(ValidatorError):
     'BadImage'.
     """
 
+    @beartype
     def __init__(self) -> None:
         """
         Attributes:
@@ -341,6 +350,7 @@ class ImageTooLargeError(ValidatorError):
     'ImageTooLarge'.
     """
 
+    @beartype
     def __init__(self) -> None:
         """
         Attributes:
@@ -380,6 +390,7 @@ class RequestTimeTooSkewedError(ValidatorError):
     'RequestTimeTooSkewed'.
     """
 
+    @beartype
     def __init__(self) -> None:
         """
         Attributes:
@@ -419,6 +430,7 @@ class ContentLengthHeaderTooLargeError(ValidatorError):
     """
 
     # We skip coverage here as running a test to cover this is very slow.
+    @beartype
     def __init__(self) -> None:  # pragma: no cover
         """
         Attributes:
@@ -449,6 +461,7 @@ class ContentLengthHeaderNotIntError(ValidatorError):
     Exception raised when the given content length header is not an integer.
     """
 
+    @beartype
     def __init__(self) -> None:
         """
         Attributes:
@@ -488,6 +501,7 @@ class UnnecessaryRequestBodyError(ValidatorError):
     Exception raised when a request body is given but not necessary.
     """
 
+    @beartype
     def __init__(self) -> None:
         """
         Attributes:
@@ -518,6 +532,7 @@ class TargetStatusNotSuccessError(ValidatorError):
     success status.
     """
 
+    @beartype
     def __init__(self) -> None:
         """
         Attributes:
@@ -556,6 +571,7 @@ class TargetStatusProcessingError(ValidatorError):
     Exception raised when trying to delete a target which is processing.
     """
 
+    @beartype
     def __init__(self) -> None:
         """
         Attributes:

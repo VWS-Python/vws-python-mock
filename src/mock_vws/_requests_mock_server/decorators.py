@@ -8,6 +8,7 @@ from typing import Literal, Self
 from urllib.parse import urljoin, urlparse
 
 import requests
+from beartype import beartype
 from responses import RequestsMock
 
 from mock_vws.database import VuforiaDatabase
@@ -28,6 +29,7 @@ _STRUCTURAL_SIMILARITY_MATCHER = StructuralSimilarityMatcher()
 _BRISQUE_TRACKING_RATER = BrisqueTargetTrackingRater()
 
 
+@beartype
 class MockVWS(ContextDecorator):
     """
     Route requests to Vuforia's Web Service APIs to fakes of those APIs.

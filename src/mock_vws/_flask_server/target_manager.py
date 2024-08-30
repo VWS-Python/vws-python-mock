@@ -59,6 +59,7 @@ class TargetManagerSettings(BaseSettings):
     "/databases/<string:database_name>",
     methods=[HTTPMethod.DELETE],
 )
+@beartype
 def delete_database(database_name: str) -> Response:
     """
     Delete a database.
@@ -92,6 +93,7 @@ def get_databases() -> Response:
 
 
 @TARGET_MANAGER_FLASK_APP.route("/databases", methods=[HTTPMethod.POST])
+@beartype
 def create_database() -> Response:
     """
     Create a new database.
@@ -177,6 +179,7 @@ def create_database() -> Response:
     "/databases/<string:database_name>/targets",
     methods=[HTTPMethod.POST],
 )
+@beartype
 def create_target(database_name: str) -> Response:
     """
     Create a new target in a given database.
@@ -212,8 +215,9 @@ def create_target(database_name: str) -> Response:
 
 @TARGET_MANAGER_FLASK_APP.route(
     "/databases/<string:database_name>/targets/<string:target_id>",
-    methods=[HTTPMethod.DELETE],
+    methods={HTTPMethod.DELETE},
 )
+@beartype
 def delete_target(database_name: str, target_id: str) -> Response:
     """
     Delete a target.

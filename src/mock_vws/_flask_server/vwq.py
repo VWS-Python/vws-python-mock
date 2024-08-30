@@ -76,6 +76,7 @@ def get_all_databases() -> set[VuforiaDatabase]:
 
 
 @CLOUDRECO_FLASK_APP.before_request
+@beartype
 def set_terminate_wsgi_input() -> None:
     """
     We set ``wsgi.input_terminated`` to ``True`` when going through
