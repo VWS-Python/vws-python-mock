@@ -32,6 +32,7 @@ CLOUDRECO_FLASK_APP = Flask(import_name=__name__, static_folder=None)
 CLOUDRECO_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
 
 
+@beartype
 class _ImageMatcherChoice(StrEnum):
     """Image matcher choices."""
 
@@ -49,6 +50,7 @@ class _ImageMatcherChoice(StrEnum):
         return matcher
 
 
+@beartype
 class VWQSettings(BaseSettings):
     """Settings for the VWQ Flask app."""
 

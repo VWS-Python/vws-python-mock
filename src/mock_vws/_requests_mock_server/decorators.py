@@ -8,7 +8,7 @@ from typing import Literal, Self
 from urllib.parse import urljoin, urlparse
 
 import requests
-from beartype import beartype
+from beartype import BeartypeConf, beartype
 from responses import RequestsMock
 
 from mock_vws.database import VuforiaDatabase
@@ -29,7 +29,7 @@ _STRUCTURAL_SIMILARITY_MATCHER = StructuralSimilarityMatcher()
 _BRISQUE_TRACKING_RATER = BrisqueTargetTrackingRater()
 
 
-@beartype
+@beartype(conf=BeartypeConf(is_pep484_tower=True))
 class MockVWS(ContextDecorator):
     """
     Route requests to Vuforia's Web Service APIs to fakes of those APIs.
@@ -88,7 +88,7 @@ class MockVWS(ContextDecorator):
 
         self._mock_vws_api = MockVuforiaWebServicesAPI(
             target_manager=self._target_manager,
-            processing_time_seconds=processing_time_seconds,
+            processing_time_seconds=float(processing_time_seconds),
             duplicate_match_checker=duplicate_match_checker,
             target_tracking_rater=target_tracking_rater,
         )

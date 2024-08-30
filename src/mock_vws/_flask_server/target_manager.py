@@ -30,6 +30,7 @@ TARGET_MANAGER_FLASK_APP = Flask(import_name=__name__, static_folder=None)
 TARGET_MANAGER = TargetManager()
 
 
+@beartype
 class _TargetRaterChoice(StrEnum):
     """Target rater choices."""
 
@@ -48,6 +49,7 @@ class _TargetRaterChoice(StrEnum):
         return rater
 
 
+@beartype
 class TargetManagerSettings(BaseSettings):
     """Settings for the Target Manager Flask app."""
 

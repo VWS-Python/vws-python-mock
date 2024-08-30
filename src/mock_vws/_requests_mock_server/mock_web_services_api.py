@@ -98,7 +98,7 @@ def _body_bytes(request: PreparedRequest) -> bytes:
     return request.body
 
 
-@beartype
+@beartype(conf=BeartypeConf(is_pep484_tower=True))
 class MockVuforiaWebServicesAPI:
     """
     A fake implementation of the Vuforia Web Services API.
@@ -106,7 +106,6 @@ class MockVuforiaWebServicesAPI:
     This implementation is tied to the implementation of ``responses``.
     """
 
-    @beartype(conf=BeartypeConf(is_pep484_tower=True))
     def __init__(
         self,
         *,

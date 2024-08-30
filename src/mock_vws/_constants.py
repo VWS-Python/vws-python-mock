@@ -4,7 +4,10 @@ Constants used to make the VWS mock.
 
 from enum import Enum
 
+from beartype import beartype
 
+
+@beartype
 class ResultCodes(Enum):
     """
     Constants representing various VWS result codes.
@@ -37,6 +40,7 @@ class ResultCodes(Enum):
     TOO_MANY_REQUESTS = "TooManyRequests"
 
 
+@beartype
 class TargetStatuses(Enum):
     """
     Constants representing VWS target statuses.

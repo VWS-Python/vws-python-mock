@@ -46,6 +46,7 @@ VWS_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
 _LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 class _ImageMatcherChoice(StrEnum):
     """Image matcher choices."""
 
@@ -63,6 +64,7 @@ class _ImageMatcherChoice(StrEnum):
         return matcher
 
 
+@beartype
 class VWSSettings(BaseSettings):
     """Settings for the VWS Flask app."""
 

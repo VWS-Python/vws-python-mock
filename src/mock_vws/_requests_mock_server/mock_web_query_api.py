@@ -9,6 +9,7 @@ import email.utils
 from collections.abc import Callable
 from http import HTTPMethod, HTTPStatus
 
+from beartype import beartype
 from requests.models import PreparedRequest
 
 from mock_vws._mock_common import Route
@@ -27,6 +28,7 @@ _ROUTES: set[Route] = set()
 _ResponseType = tuple[int, dict[str, str], str]
 
 
+@beartype
 def route(
     path_pattern: str,
     http_methods: set[str],
@@ -66,6 +68,7 @@ def route(
     return decorator
 
 
+@beartype
 def _body_bytes(request: PreparedRequest) -> bytes:
     """
     Return the body of a request as bytes.
@@ -77,6 +80,7 @@ def _body_bytes(request: PreparedRequest) -> bytes:
     return request.body
 
 
+@beartype
 class MockVuforiaWebQueryAPI:
     """
     A fake implementation of the Vuforia Web Query API.
