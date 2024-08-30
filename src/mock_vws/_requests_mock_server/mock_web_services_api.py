@@ -9,11 +9,14 @@ import base64
 import dataclasses
 import datetime
 import email.utils
+import json
 import uuid
 from collections.abc import Callable
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING
+from typing import Any
 from zoneinfo import ZoneInfo
+
+from requests.models import PreparedRequest
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
@@ -30,23 +33,18 @@ from mock_vws.target import Target
 from mock_vws.target_manager import TargetManager
 from mock_vws.target_raters import TargetTrackingRater
 
-if TYPE_CHECKING:
-    from requests_mock.request import Request
-    from requests_mock.response import Context
-
-
 _TARGET_ID_PATTERN = "[A-Za-z0-9]+"
 
 
 _ROUTES: set[Route] = set()
 
-_ResponseType = str
+_ResponseType = tuple[int, dict[str, str], str]
 
 
 def route(
     path_pattern: str,
     http_methods: set[HTTPMethod],
-) -> Callable[[Callable[..., str]], Callable[..., _ResponseType]]:
+) -> Callable[[Callable[..., _ResponseType]], Callable[..., _ResponseType]]:
     """
     Register a decorated method so that it can be recognized as a route.
 
@@ -82,7 +80,7 @@ def route(
     return decorator
 
 
-def _body_bytes(request: "Request") -> bytes:
+def _body_bytes(request: PreparedRequest) -> bytes:
     """
     Return the body of a request as bytes.
     """
@@ -100,7 +98,7 @@ class MockVuforiaWebServicesAPI:
     """
     A fake implementation of the Vuforia Web Services API.
 
-    This implementation is tied to the implementation of `requests_mock`.
+    This implementation is tied to the implementation of ``responses``.
     """
 
     def __init__(
@@ -134,9 +132,7 @@ class MockVuforiaWebServicesAPI:
         path_pattern="/targets",
         http_methods={HTTPMethod.POST},
     )
-    def add_target(
-        self, request: "Request", context: "Context"
-    ) -> _ResponseType:
+    def add_target(self, request: PreparedRequest) -> _ResponseType:
         """
         Add a target.
 
@@ -147,36 +143,35 @@ class MockVuforiaWebServicesAPI:
             run_services_validators(
                 request_headers=request.headers,
                 request_body=_body_bytes(request=request),
-                request_method=request.method,
-                request_path=request.path,
+                request_method=request.method or "",
+                request_path=request.path_url,
                 databases=self._target_manager.databases,
             )
         except ValidatorError as exc:
-            context.headers = exc.headers
-            context.status_code = exc.status_code
-            return exc.response_text
+            return exc.status_code, exc.headers, exc.response_text
 
         database = get_database_matching_server_keys(
             request_headers=request.headers,
             request_body=_body_bytes(request=request),
-            request_method=request.method,
-            request_path=request.path,
+            request_method=request.method or "",
+            request_path=request.path_url,
             databases=self._target_manager.databases,
         )
 
-        given_active_flag = request.json().get("active_flag")
+        request_json: dict[str, Any] = json.loads(s=request.body or b"")
+        given_active_flag = request_json.get("active_flag")
         active_flag = {
             None: True,
             True: True,
             False: False,
         }[given_active_flag]
 
-        application_metadata = request.json().get("application_metadata")
+        application_metadata = request_json.get("application_metadata")
 
         new_target = Target(
-            name=request.json()["name"],
-            width=request.json()["width"],
-            image_value=base64.b64decode(s=request.json()["image"]),
+            name=request_json["name"],
+            width=request_json["width"],
+            image_value=base64.b64decode(s=request_json["image"]),
             active_flag=active_flag,
             processing_time_seconds=self._processing_time_seconds,
             application_metadata=application_metadata,
@@ -189,14 +184,14 @@ class MockVuforiaWebServicesAPI:
             localtime=False,
             usegmt=True,
         )
-        context.status_code = HTTPStatus.CREATED
+        status_code = HTTPStatus.CREATED
         body = {
             "transaction_id": uuid.uuid4().hex,
             "result_code": ResultCodes.TARGET_CREATED.value,
             "target_id": new_target.target_id,
         }
         body_json = json_dump(body=body)
-        context.headers = {
+        headers = {
             "Connection": "keep-alive",
             "Content-Type": "application/json",
             "server": "envoy",
@@ -207,15 +202,13 @@ class MockVuforiaWebServicesAPI:
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",
         }
-        return body_json
+        return status_code, headers, body_json
 
     @route(
         path_pattern=f"/targets/{_TARGET_ID_PATTERN}",
         http_methods={HTTPMethod.DELETE},
     )
-    def delete_target(
-        self, request: "Request", context: "Context"
-    ) -> _ResponseType:
+    def delete_target(self, request: PreparedRequest) -> _ResponseType:
         """
         Delete a target.
 
@@ -226,32 +219,32 @@ class MockVuforiaWebServicesAPI:
             run_services_validators(
                 request_headers=request.headers,
                 request_body=_body_bytes(request=request),
-                request_method=request.method,
-                request_path=request.path,
+                request_method=request.method or "",
+                request_path=request.path_url,
                 databases=self._target_manager.databases,
             )
         except ValidatorError as exc:
-            context.headers = exc.headers
-            context.status_code = exc.status_code
-            return exc.response_text
+            return exc.status_code, exc.headers, exc.response_text
 
         body: dict[str, str] = {}
         database = get_database_matching_server_keys(
             request_headers=request.headers,
             request_body=_body_bytes(request=request),
-            request_method=request.method,
-            request_path=request.path,
+            request_method=request.method or "",
+            request_path=request.path_url,
             databases=self._target_manager.databases,
         )
 
-        target_id = request.path.split(sep="/")[-1]
+        target_id = request.path_url.split(sep="/")[-1]
         target = database.get_target(target_id=target_id)
 
         if target.status == TargetStatuses.PROCESSING.value:
             target_processing_exception = TargetStatusProcessingError()
-            context.headers = target_processing_exception.headers
-            context.status_code = target_processing_exception.status_code
-            return target_processing_exception.response_text
+            return (
+                target_processing_exception.status_code,
+                target_processing_exception.headers,
+                target_processing_exception.response_text,
+            )
 
         now = datetime.datetime.now(tz=target.upload_date.tzinfo)
         new_target = dataclasses.replace(target, delete_date=now)
@@ -268,7 +261,7 @@ class MockVuforiaWebServicesAPI:
             "result_code": ResultCodes.SUCCESS.value,
         }
         body_json = json_dump(body=body)
-        context.headers = {
+        headers = {
             "Connection": "keep-alive",
             "Content-Length": str(len(body_json)),
             "Content-Type": "application/json",
@@ -279,12 +272,10 @@ class MockVuforiaWebServicesAPI:
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",
         }
-        return body_json
+        return HTTPStatus.OK, headers, body_json
 
     @route(path_pattern="/summary", http_methods={HTTPMethod.GET})
-    def database_summary(
-        self, request: "Request", context: "Context"
-    ) -> _ResponseType:
+    def database_summary(self, request: PreparedRequest) -> _ResponseType:
         """
         Get a database summary report.
 
@@ -295,22 +286,20 @@ class MockVuforiaWebServicesAPI:
             run_services_validators(
                 request_headers=request.headers,
                 request_body=_body_bytes(request=request),
-                request_method=request.method,
-                request_path=request.path,
+                request_method=request.method or "",
+                request_path=request.path_url,
                 databases=self._target_manager.databases,
             )
         except ValidatorError as exc:
-            context.headers = exc.headers
-            context.status_code = exc.status_code
-            return exc.response_text
+            return exc.status_code, exc.headers, exc.response_text
 
         body: dict[str, str | int] = {}
 
         database = get_database_matching_server_keys(
             request_headers=request.headers,
             request_body=_body_bytes(request=request),
-            request_method=request.method,
-            request_path=request.path,
+            request_method=request.method or "",
+            request_path=request.path_url,
             databases=self._target_manager.databases,
         )
 
@@ -336,7 +325,7 @@ class MockVuforiaWebServicesAPI:
             "request_usage": 0,
         }
         body_json = json_dump(body=body)
-        context.headers = {
+        headers = {
             "Connection": "keep-alive",
             "Content-Length": str(len(body_json)),
             "Content-Type": "application/json",
@@ -347,12 +336,10 @@ class MockVuforiaWebServicesAPI:
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",
         }
-        return body_json
+        return HTTPStatus.OK, headers, body_json
 
     @route(path_pattern="/targets", http_methods={HTTPMethod.GET})
-    def target_list(
-        self, request: "Request", context: "Context"
-    ) -> _ResponseType:
+    def target_list(self, request: PreparedRequest) -> _ResponseType:
         """
         Get a list of all targets.
 
@@ -363,20 +350,18 @@ class MockVuforiaWebServicesAPI:
             run_services_validators(
                 request_headers=request.headers,
                 request_body=_body_bytes(request=request),
-                request_method=request.method,
-                request_path=request.path,
+                request_method=request.method or "",
+                request_path=request.path_url,
                 databases=self._target_manager.databases,
             )
         except ValidatorError as exc:
-            context.headers = exc.headers
-            context.status_code = exc.status_code
-            return exc.response_text
+            return exc.status_code, exc.headers, exc.response_text
 
         database = get_database_matching_server_keys(
             request_headers=request.headers,
             request_body=_body_bytes(request=request),
-            request_method=request.method,
-            request_path=request.path,
+            request_method=request.method or "",
+            request_path=request.path_url,
             databases=self._target_manager.databases,
         )
 
@@ -395,7 +380,7 @@ class MockVuforiaWebServicesAPI:
             "results": response_results,
         }
         body_json = json_dump(body=body)
-        context.headers = {
+        headers = {
             "Connection": "keep-alive",
             "Content-Length": str(len(body_json)),
             "Content-Type": "application/json",
@@ -406,15 +391,13 @@ class MockVuforiaWebServicesAPI:
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",
         }
-        return body_json
+        return HTTPStatus.OK, headers, body_json
 
     @route(
         path_pattern=f"/targets/{_TARGET_ID_PATTERN}",
         http_methods={HTTPMethod.GET},
     )
-    def get_target(
-        self, request: "Request", context: "Context"
-    ) -> _ResponseType:
+    def get_target(self, request: PreparedRequest) -> _ResponseType:
         """
         Get details of a target.
 
@@ -425,23 +408,21 @@ class MockVuforiaWebServicesAPI:
             run_services_validators(
                 request_headers=request.headers,
                 request_body=_body_bytes(request=request),
-                request_method=request.method,
-                request_path=request.path,
+                request_method=request.method or "",
+                request_path=request.path_url,
                 databases=self._target_manager.databases,
             )
         except ValidatorError as exc:
-            context.headers = exc.headers
-            context.status_code = exc.status_code
-            return exc.response_text
+            return exc.status_code, exc.headers, exc.response_text
 
         database = get_database_matching_server_keys(
             request_headers=request.headers,
             request_body=_body_bytes(request=request),
-            request_method=request.method,
-            request_path=request.path,
+            request_method=request.method or "",
+            request_path=request.path_url,
             databases=self._target_manager.databases,
         )
-        target_id = request.path.split(sep="/")[-1]
+        target_id = request.path_url.split(sep="/")[-1]
         target = database.get_target(target_id=target_id)
 
         target_record = {
@@ -465,7 +446,7 @@ class MockVuforiaWebServicesAPI:
             "status": target.status,
         }
         body_json = json_dump(body=body)
-        context.headers = {
+        headers = {
             "Connection": "keep-alive",
             "Content-Length": str(len(body_json)),
             "Content-Type": "application/json",
@@ -476,15 +457,13 @@ class MockVuforiaWebServicesAPI:
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",
         }
-        return body_json
+        return HTTPStatus.OK, headers, body_json
 
     @route(
         path_pattern=f"/duplicates/{_TARGET_ID_PATTERN}",
         http_methods={HTTPMethod.GET},
     )
-    def get_duplicates(
-        self, request: "Request", context: "Context"
-    ) -> _ResponseType:
+    def get_duplicates(self, request: PreparedRequest) -> _ResponseType:
         """
         Get targets which may be considered duplicates of a given target.
 
@@ -495,23 +474,21 @@ class MockVuforiaWebServicesAPI:
             run_services_validators(
                 request_headers=request.headers,
                 request_body=_body_bytes(request=request),
-                request_method=request.method,
-                request_path=request.path,
+                request_method=request.method or "",
+                request_path=request.path_url,
                 databases=self._target_manager.databases,
             )
         except ValidatorError as exc:
-            context.headers = exc.headers
-            context.status_code = exc.status_code
-            return exc.response_text
+            return exc.status_code, exc.headers, exc.response_text
 
         database = get_database_matching_server_keys(
             request_headers=request.headers,
             request_body=_body_bytes(request=request),
-            request_method=request.method,
-            request_path=request.path,
+            request_method=request.method or "",
+            request_path=request.path_url,
             databases=self._target_manager.databases,
         )
-        target_id = request.path.split(sep="/")[-1]
+        target_id = request.path_url.split(sep="/")[-1]
         target = database.get_target(target_id=target_id)
 
         other_targets = database.targets - {target}
@@ -540,7 +517,7 @@ class MockVuforiaWebServicesAPI:
             "similar_targets": similar_targets,
         }
         body_json = json_dump(body=body)
-        context.headers = {
+        headers = {
             "Connection": "keep-alive",
             "Content-Length": str(len(body_json)),
             "Content-Type": "application/json",
@@ -552,15 +529,13 @@ class MockVuforiaWebServicesAPI:
             "x-content-type-options": "nosniff",
         }
 
-        return body_json
+        return HTTPStatus.OK, headers, body_json
 
     @route(
         path_pattern=f"/targets/{_TARGET_ID_PATTERN}",
         http_methods={HTTPMethod.PUT},
     )
-    def update_target(
-        self, request: "Request", context: "Context"
-    ) -> _ResponseType:
+    def update_target(self, request: PreparedRequest) -> _ResponseType:
         """
         Update a target.
 
@@ -571,24 +546,22 @@ class MockVuforiaWebServicesAPI:
             run_services_validators(
                 request_headers=request.headers,
                 request_body=_body_bytes(request=request),
-                request_method=request.method,
-                request_path=request.path,
+                request_method=request.method or "",
+                request_path=request.path_url,
                 databases=self._target_manager.databases,
             )
         except ValidatorError as exc:
-            context.headers = exc.headers
-            context.status_code = exc.status_code
-            return exc.response_text
+            return exc.status_code, exc.headers, exc.response_text
 
         database = get_database_matching_server_keys(
             request_headers=request.headers,
             request_body=_body_bytes(request=request),
-            request_method=request.method,
-            request_path=request.path,
+            request_method=request.method or "",
+            request_path=request.path_url,
             databases=self._target_manager.databases,
         )
 
-        target_id = request.path.split(sep="/")[-1]
+        target_id = request.path_url.split(sep="/")[-1]
         target = database.get_target(target_id=target_id)
         body: dict[str, str] = {}
 
@@ -600,36 +573,43 @@ class MockVuforiaWebServicesAPI:
 
         if target.status != TargetStatuses.SUCCESS.value:
             exception = TargetStatusNotSuccessError()
-            context.headers = exception.headers
-            context.status_code = exception.status_code
-            return exception.response_text
+            return (
+                exception.status_code,
+                exception.headers,
+                exception.response_text,
+            )
 
-        width = request.json().get("width", target.width)
-        name = request.json().get("name", target.name)
-        active_flag = request.json().get("active_flag", target.active_flag)
-        application_metadata = request.json().get(
+        request_json: dict[str, Any] = json.loads(s=request.body or b"")
+        width = request_json.get("width", target.width)
+        name = request_json.get("name", target.name)
+        active_flag = request_json.get("active_flag", target.active_flag)
+        application_metadata = request_json.get(
             "application_metadata",
             target.application_metadata,
         )
 
         image_value = target.image_value
-        if "image" in request.json():
-            image_value = base64.b64decode(s=request.json()["image"])
+        if "image" in request_json:
+            image_value = base64.b64decode(s=request_json["image"])
 
-        if "active_flag" in request.json() and active_flag is None:
+        if "active_flag" in request_json and active_flag is None:
             fail_exception = FailError(status_code=HTTPStatus.BAD_REQUEST)
-            context.headers = fail_exception.headers
-            context.status_code = fail_exception.status_code
-            return fail_exception.response_text
+            return (
+                fail_exception.status_code,
+                fail_exception.headers,
+                fail_exception.response_text,
+            )
 
         if (
-            "application_metadata" in request.json()
+            "application_metadata" in request_json
             and application_metadata is None
         ):
             fail_exception = FailError(status_code=HTTPStatus.BAD_REQUEST)
-            context.headers = fail_exception.headers
-            context.status_code = fail_exception.status_code
-            return fail_exception.response_text
+            return (
+                fail_exception.status_code,
+                fail_exception.headers,
+                fail_exception.response_text,
+            )
 
         gmt = ZoneInfo(key="GMT")
         last_modified_date = datetime.datetime.now(tz=gmt)
@@ -652,7 +632,7 @@ class MockVuforiaWebServicesAPI:
             "transaction_id": uuid.uuid4().hex,
         }
         body_json = json_dump(body=body)
-        context.headers = {
+        headers = {
             "Connection": "keep-alive",
             "Content-Type": "application/json",
             "server": "envoy",
@@ -663,15 +643,13 @@ class MockVuforiaWebServicesAPI:
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",
         }
-        return body_json
+        return HTTPStatus.OK, headers, body_json
 
     @route(
         path_pattern=f"/summary/{_TARGET_ID_PATTERN}",
         http_methods={HTTPMethod.GET},
     )
-    def target_summary(
-        self, request: "Request", context: "Context"
-    ) -> _ResponseType:
+    def target_summary(self, request: PreparedRequest) -> _ResponseType:
         """
         Get a summary report for a target.
 
@@ -682,23 +660,21 @@ class MockVuforiaWebServicesAPI:
             run_services_validators(
                 request_headers=request.headers,
                 request_body=_body_bytes(request=request),
-                request_method=request.method,
-                request_path=request.path,
+                request_method=request.method or "",
+                request_path=request.path_url,
                 databases=self._target_manager.databases,
             )
         except ValidatorError as exc:
-            context.headers = exc.headers
-            context.status_code = exc.status_code
-            return exc.response_text
+            return exc.status_code, exc.headers, exc.response_text
 
         database = get_database_matching_server_keys(
             request_headers=request.headers,
             request_body=_body_bytes(request=request),
-            request_method=request.method,
-            request_path=request.path,
+            request_method=request.method or "",
+            request_path=request.path_url,
             databases=self._target_manager.databases,
         )
-        target_id = request.path.split(sep="/")[-1]
+        target_id = request.path_url.split(sep="/")[-1]
         target = database.get_target(target_id=target_id)
 
         date = email.utils.formatdate(
@@ -720,7 +696,7 @@ class MockVuforiaWebServicesAPI:
             "previous_month_recos": target.previous_month_recos,
         }
         body_json = json_dump(body=body)
-        context.headers = {
+        headers = {
             "Connection": "keep-alive",
             "Content-Length": str(len(body_json)),
             "Content-Type": "application/json",
@@ -732,4 +708,4 @@ class MockVuforiaWebServicesAPI:
             "x-content-type-options": "nosniff",
         }
 
-        return body_json
+        return HTTPStatus.OK, headers, body_json

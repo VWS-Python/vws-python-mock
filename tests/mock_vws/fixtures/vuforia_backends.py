@@ -9,7 +9,7 @@ from enum import Enum
 
 import pytest
 import requests
-import requests_mock
+import responses
 from requests_mock_flask import add_flask_app_to_mock
 from vws import VWS
 from vws.exceptions.vws_exceptions import (
@@ -131,7 +131,7 @@ def _enable_use_docker_in_memory(
         value=target_manager_base_url,
     )
 
-    with requests_mock.Mocker(real_http=False) as mock:
+    with responses.RequestsMock(assert_all_requests_are_fired=False) as mock:
         add_flask_app_to_mock(
             mock_obj=mock,
             flask_app=VWS_FLASK_APP,

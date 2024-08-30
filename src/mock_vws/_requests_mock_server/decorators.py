@@ -8,7 +8,7 @@ from typing import Literal, Self
 from urllib.parse import urljoin, urlparse
 
 import requests
-from requests_mock.mocker import Mocker
+from responses import RequestsMock
 
 from mock_vws.database import VuforiaDatabase
 from mock_vws.image_matchers import (
@@ -69,7 +69,7 @@ class MockVWS(ContextDecorator):
         """
         super().__init__()
         self._real_http = real_http
-        self._mock: Mocker
+        self._mock: RequestsMock
         self._target_manager = TargetManager()
 
         self._base_vws_url = base_vws_url
@@ -116,18 +116,23 @@ class MockVWS(ContextDecorator):
         Returns:
             ``self``.
         """
-        mock = Mocker(real_http=self._real_http)
+        compiled_url_patterns: set[re.Pattern[str]] = set()
+
+        mock = RequestsMock(assert_all_requests_are_fired=False)
         for vws_route in self._mock_vws_api.routes:
             url_pattern = urljoin(
                 base=self._base_vws_url,
                 url=f"{vws_route.path_pattern}$",
             )
+            compiled_url_pattern = re.compile(pattern=url_pattern)
+            compiled_url_patterns.add(compiled_url_pattern)
 
             for vws_http_method in vws_route.http_methods:
-                mock.register_uri(
+                mock.add_callback(
                     method=vws_http_method,
-                    url=re.compile(url_pattern),
-                    text=getattr(self._mock_vws_api, vws_route.route_name),
+                    url=compiled_url_pattern,
+                    callback=getattr(self._mock_vws_api, vws_route.route_name),
+                    content_type=None,
                 )
 
         for vwq_route in self._mock_vwq_api.routes:
@@ -135,13 +140,20 @@ class MockVWS(ContextDecorator):
                 base=self._base_vwq_url,
                 url=f"{vwq_route.path_pattern}$",
             )
+            compiled_url_pattern = re.compile(pattern=url_pattern)
+            compiled_url_patterns.add(compiled_url_pattern)
 
             for vwq_http_method in vwq_route.http_methods:
-                mock.register_uri(
+                mock.add_callback(
                     method=vwq_http_method,
-                    url=re.compile(url_pattern),
-                    text=getattr(self._mock_vwq_api, vwq_route.route_name),
+                    url=compiled_url_pattern,
+                    callback=getattr(self._mock_vwq_api, vwq_route.route_name),
+                    content_type=None,
                 )
+
+        if self._real_http:
+            all_requests_pattern = re.compile(pattern=".*")
+            mock.add_passthru(prefix=all_requests_pattern)
 
         self._mock = mock
         self._mock.start()

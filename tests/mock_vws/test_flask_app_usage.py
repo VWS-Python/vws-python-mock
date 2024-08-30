@@ -4,12 +4,13 @@ Tests for the usage of the mock Flask application.
 
 import io
 import uuid
+from collections.abc import Iterator
 from http import HTTPStatus
 
 import pytest
 import requests
+import responses
 from PIL import Image
-from requests_mock import Mocker
 from requests_mock_flask import add_flask_app_to_mock
 from vws import VWS, CloudRecoService
 
@@ -25,32 +26,37 @@ _EXAMPLE_URL_FOR_TARGET_MANAGER = "http://" + uuid.uuid4().hex + ".com"
 
 
 @pytest.fixture(autouse=True)
-def _(monkeypatch: pytest.MonkeyPatch, requests_mock: Mocker) -> None:
+def _(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     """
     Enable a mock service backed by the Flask applications.
     """
-    add_flask_app_to_mock(
-        mock_obj=requests_mock,
-        flask_app=VWS_FLASK_APP,
-        base_url="https://vws.vuforia.com",
-    )
+    with responses.RequestsMock(
+        assert_all_requests_are_fired=False,
+    ) as mock_obj:
+        add_flask_app_to_mock(
+            mock_obj=mock_obj,
+            flask_app=VWS_FLASK_APP,
+            base_url="https://vws.vuforia.com",
+        )
 
-    add_flask_app_to_mock(
-        mock_obj=requests_mock,
-        flask_app=CLOUDRECO_FLASK_APP,
-        base_url="https://cloudreco.vuforia.com",
-    )
+        add_flask_app_to_mock(
+            mock_obj=mock_obj,
+            flask_app=CLOUDRECO_FLASK_APP,
+            base_url="https://cloudreco.vuforia.com",
+        )
 
-    add_flask_app_to_mock(
-        mock_obj=requests_mock,
-        flask_app=TARGET_MANAGER_FLASK_APP,
-        base_url=_EXAMPLE_URL_FOR_TARGET_MANAGER,
-    )
+        add_flask_app_to_mock(
+            mock_obj=mock_obj,
+            flask_app=TARGET_MANAGER_FLASK_APP,
+            base_url=_EXAMPLE_URL_FOR_TARGET_MANAGER,
+        )
 
-    monkeypatch.setenv(
-        name="TARGET_MANAGER_BASE_URL",
-        value=_EXAMPLE_URL_FOR_TARGET_MANAGER,
-    )
+        monkeypatch.setenv(
+            name="TARGET_MANAGER_BASE_URL",
+            value=_EXAMPLE_URL_FOR_TARGET_MANAGER,
+        )
+
+        yield
 
 
 class TestProcessingTime:
