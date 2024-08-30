@@ -7,6 +7,8 @@ import json
 import logging
 from http import HTTPStatus
 
+from beartype import beartype
+
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._services_validators.exceptions import (
     FailError,
@@ -16,6 +18,7 @@ from mock_vws._services_validators.exceptions import (
 _LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 def validate_metadata_size(*, request_body: bytes) -> None:
     """
     Validate that the given application metadata is a string or 1024 * 1024
@@ -46,6 +49,7 @@ def validate_metadata_size(*, request_body: bytes) -> None:
     raise MetadataTooLargeError
 
 
+@beartype
 def validate_metadata_encoding(*, request_body: bytes) -> None:
     """
     Validate that the given application metadata can be base64 decoded.
@@ -77,6 +81,7 @@ def validate_metadata_encoding(*, request_body: bytes) -> None:
         raise FailError(status_code=HTTPStatus.UNPROCESSABLE_ENTITY) from exc
 
 
+@beartype
 def validate_metadata_type(*, request_body: bytes) -> None:
     """
     Validate that the given application metadata is a string or NULL.

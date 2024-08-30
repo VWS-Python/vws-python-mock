@@ -10,6 +10,7 @@ from enum import Enum
 import pytest
 import requests
 import responses
+from beartype import beartype
 from requests_mock_flask import add_flask_app_to_mock
 from vws import VWS
 from vws.exceptions.vws_exceptions import (
@@ -59,6 +60,7 @@ def _delete_all_targets(*, database_keys: VuforiaDatabase) -> None:
         vws_client.delete_target(target_id=target)
 
 
+@beartype
 def _enable_use_real_vuforia(
     *,
     working_database: VuforiaDatabase,
@@ -72,6 +74,7 @@ def _enable_use_real_vuforia(
     yield
 
 
+@beartype
 def _enable_use_mock_vuforia(
     *,
     working_database: VuforiaDatabase,
@@ -103,6 +106,7 @@ def _enable_use_mock_vuforia(
         yield
 
 
+@beartype
 def _enable_use_docker_in_memory(
     *,
     working_database: VuforiaDatabase,
@@ -183,6 +187,7 @@ class VuforiaBackend(Enum):
     DOCKER_IN_MEMORY = "In Memory version of Docker application"
 
 
+@beartype
 def pytest_addoption(parser: pytest.Parser) -> None:
     """
     Add options to the pytest command line for skipping tests with particular
@@ -204,6 +209,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     )
 
 
+@beartype
 def pytest_collection_modifyitems(
     config: pytest.Config,
     items: list[pytest.Function],
@@ -222,6 +228,7 @@ def pytest_collection_modifyitems(
                 item.add_marker(skip_docker_build_tests_marker)
 
 
+@beartype
 @pytest.fixture(
     params=list(VuforiaBackend),
     ids=[backend.value for backend in list(VuforiaBackend)],
@@ -261,6 +268,7 @@ def verify_mock_vuforia(
     )
 
 
+@beartype
 @pytest.fixture(
     params=[item for item in VuforiaBackend if item != VuforiaBackend.REAL],
     ids=[

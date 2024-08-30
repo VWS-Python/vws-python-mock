@@ -10,6 +10,7 @@ from enum import StrEnum, auto
 from http import HTTPMethod, HTTPStatus
 from zoneinfo import ZoneInfo
 
+from beartype import beartype
 from flask import Flask, Response, request
 from pydantic_settings import BaseSettings
 
@@ -78,6 +79,7 @@ def delete_database(database_name: str) -> Response:
 
 
 @TARGET_MANAGER_FLASK_APP.route("/databases", methods=[HTTPMethod.GET])
+@beartype
 def get_databases() -> Response:
     """
     Return a list of all databases.

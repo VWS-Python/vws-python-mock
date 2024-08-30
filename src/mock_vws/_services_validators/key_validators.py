@@ -8,6 +8,8 @@ import re
 from dataclasses import dataclass
 from http import HTTPMethod, HTTPStatus
 
+from beartype import beartype
+
 from .exceptions import FailError
 
 _LOGGER = logging.getLogger(name=__name__)
@@ -33,6 +35,7 @@ class _Route:
     optional_keys: set[str]
 
 
+@beartype
 def validate_keys(
     *,
     request_body: bytes,

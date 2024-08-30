@@ -10,6 +10,7 @@ from http import HTTPStatus
 import pytest
 import requests
 import responses
+from beartype import beartype
 from PIL import Image
 from requests_mock_flask import add_flask_app_to_mock
 from vws import VWS, CloudRecoService
@@ -25,6 +26,7 @@ from tests.mock_vws.utils.usage_test_helpers import (
 _EXAMPLE_URL_FOR_TARGET_MANAGER = "http://" + uuid.uuid4().hex + ".com"
 
 
+@beartype
 @pytest.fixture(autouse=True)
 def _(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     """

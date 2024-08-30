@@ -5,6 +5,7 @@ Fixtures for credentials for Vuforia databases.
 from pathlib import Path
 
 import pytest
+from beartype import beartype
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from mock_vws.database import VuforiaDatabase
@@ -37,6 +38,7 @@ class _InactiveVuforiaDatabaseSettings(_VuforiaDatabaseSettings):
     )
 
 
+@beartype
 @pytest.fixture
 def vuforia_database() -> VuforiaDatabase:
     """
@@ -53,6 +55,7 @@ def vuforia_database() -> VuforiaDatabase:
     )
 
 
+@beartype
 @pytest.fixture
 def inactive_database() -> VuforiaDatabase:
     """

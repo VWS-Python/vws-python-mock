@@ -6,8 +6,10 @@ from pathlib import Path
 
 import pytest
 import yaml
+from beartype import beartype
 
 
+@beartype
 def _ci_patterns(*, repository_root: Path) -> set[str]:
     """
     Return the CI patterns given in the CI configuration file.
@@ -21,6 +23,7 @@ def _ci_patterns(*, repository_root: Path) -> set[str]:
     return ci_patterns
 
 
+@beartype
 def _tests_from_pattern(
     *,
     ci_pattern: str,

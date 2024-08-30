@@ -8,6 +8,7 @@ import io
 import uuid
 
 import pytest
+from beartype import beartype
 from vws import VWS, CloudRecoService
 
 from mock_vws.database import VuforiaDatabase
@@ -20,6 +21,7 @@ pytest_plugins = [
 ]
 
 
+@beartype
 @pytest.fixture(name="vws_client")
 def fixture_vws_client(vuforia_database: VuforiaDatabase) -> VWS:
     """
@@ -31,6 +33,7 @@ def fixture_vws_client(vuforia_database: VuforiaDatabase) -> VWS:
     )
 
 
+@beartype
 @pytest.fixture
 def cloud_reco_client(vuforia_database: VuforiaDatabase) -> CloudRecoService:
     """
@@ -42,6 +45,7 @@ def cloud_reco_client(vuforia_database: VuforiaDatabase) -> CloudRecoService:
     )
 
 
+@beartype
 @pytest.fixture(name="inactive_vws_client")
 def fixture_inactive_vws_client(inactive_database: VuforiaDatabase) -> VWS:
     """
@@ -53,6 +57,7 @@ def fixture_inactive_vws_client(inactive_database: VuforiaDatabase) -> VWS:
     )
 
 
+@beartype
 @pytest.fixture
 def inactive_cloud_reco_client(
     inactive_database: VuforiaDatabase,
@@ -66,6 +71,7 @@ def inactive_cloud_reco_client(
     )
 
 
+@beartype
 @pytest.fixture
 def target_id(
     image_file_success_state_low_rating: io.BytesIO,
@@ -85,6 +91,7 @@ def target_id(
     )
 
 
+@beartype
 @pytest.fixture(
     params=[
         "add_target",
@@ -106,6 +113,7 @@ def endpoint(request: pytest.FixtureRequest) -> Endpoint:
     return endpoint_fixture
 
 
+@beartype
 @pytest.fixture(
     params=[
         pytest.param(
@@ -140,6 +148,7 @@ def not_base64_encoded_processable(request: pytest.FixtureRequest) -> str:
     return not_base64_encoded_string
 
 
+@beartype
 @pytest.fixture(
     params=[
         pytest.param(

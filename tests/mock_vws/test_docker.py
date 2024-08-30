@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 import docker
 import pytest
 import requests
+from beartype import beartype
 from docker.errors import BuildError, NotFound
 from docker.models.containers import Container
 from docker.models.networks import Network
@@ -34,6 +35,7 @@ if TYPE_CHECKING:
     ),
     reraise=True,
 )
+@beartype
 def wait_for_health_check(container: Container) -> None:
     """
     Wait for a container to pass its health check.
@@ -49,6 +51,7 @@ def wait_for_health_check(container: Container) -> None:
         raise ValueError(error_message)
 
 
+@beartype
 @pytest.fixture(name="custom_bridge_network")
 def fixture_custom_bridge_network() -> Iterator[Network]:
     """

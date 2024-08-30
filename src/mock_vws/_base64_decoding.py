@@ -6,7 +6,10 @@ import base64
 import binascii
 import string
 
+from beartype import beartype
 
+
+@beartype
 def decode_base64(encoded_data: str) -> bytes:
     """
     Decode base64 somewhat like Vuforia does.

@@ -6,6 +6,8 @@ import json
 from dataclasses import dataclass
 from typing import Any
 
+from beartype import beartype
+
 
 @dataclass(frozen=True)
 class Route:
@@ -24,6 +26,7 @@ class Route:
     http_methods: frozenset[str]
 
 
+@beartype
 def json_dump(*, body: dict[str, Any]) -> str:
     """
     Returns:

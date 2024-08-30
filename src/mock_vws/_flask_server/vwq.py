@@ -10,6 +10,7 @@ from enum import StrEnum, auto
 from http import HTTPMethod, HTTPStatus
 
 import requests
+from beartype import beartype
 from flask import Flask, Response, request
 from pydantic_settings import BaseSettings
 
@@ -58,6 +59,7 @@ class VWQSettings(BaseSettings):
     )
 
 
+@beartype
 def get_all_databases() -> set[VuforiaDatabase]:
     """
     Get all database objects from the target manager back-end.

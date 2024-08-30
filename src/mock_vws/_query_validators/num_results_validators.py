@@ -7,6 +7,7 @@ import logging
 from collections.abc import Mapping
 from email.message import EmailMessage
 
+from beartype import beartype
 from werkzeug.formparser import MultiPartParser
 
 from mock_vws._query_validators.exceptions import (
@@ -17,6 +18,7 @@ from mock_vws._query_validators.exceptions import (
 _LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 def validate_max_num_results(
     *,
     request_headers: Mapping[str, str],

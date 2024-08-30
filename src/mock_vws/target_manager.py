@@ -2,20 +2,25 @@
 A fake implementation of a Vuforia target manager.
 """
 
+from beartype import beartype
+
 from mock_vws.database import VuforiaDatabase
 
 
+@beartype
 class TargetManager:
     """
     A target manager as per https://developer.vuforia.com/target-manager.
     """
 
+    @beartype
     def __init__(self) -> None:
         """
         Create a target manager with no databases.
         """
         self._databases: set[VuforiaDatabase] = set()
 
+    @beartype
     def remove_database(self, database: VuforiaDatabase) -> None:
         """
         Remove a cloud database.
@@ -28,6 +33,7 @@ class TargetManager:
         """
         self._databases.remove(database)
 
+    @beartype
     def add_database(self, database: VuforiaDatabase) -> None:
         """
         Add a cloud database.
@@ -78,6 +84,8 @@ class TargetManager:
         self._databases.add(database)
 
     @property
+    @beartype
+    @beartype
     def databases(self) -> set[VuforiaDatabase]:
         """
         All cloud databases.

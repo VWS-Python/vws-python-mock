@@ -5,6 +5,7 @@ from typing import Protocol, runtime_checkable
 
 import numpy as np
 import torch
+from beartype import beartype
 from PIL import Image
 from torchmetrics.image import (
     StructuralSimilarityIndexMeasure,
@@ -35,6 +36,7 @@ class ImageMatcher(Protocol):
 class ExactMatcher:
     """A matcher which returns whether two images are exactly equal."""
 
+    @beartype
     def __call__(
         self,
         first_image_content: bytes,
@@ -53,6 +55,7 @@ class ExactMatcher:
 class StructuralSimilarityMatcher:
     """A matcher which returns whether two images are similar using SSIM."""
 
+    @beartype
     def __call__(
         self,
         first_image_content: bytes,

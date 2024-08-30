@@ -9,10 +9,12 @@ from typing import Protocol, runtime_checkable
 import numpy as np
 import piq  # type: ignore[import-untyped]
 import torch
+from beartype import beartype
 from PIL import Image
 
 
 @functools.cache
+@beartype
 def _get_brisque_target_tracking_rating(*, image_content: bytes) -> int:
     """
     Get a target tracking rating based on a BRISQUE score.

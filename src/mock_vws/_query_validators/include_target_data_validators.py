@@ -7,6 +7,7 @@ import logging
 from collections.abc import Mapping
 from email.message import EmailMessage
 
+from beartype import beartype
 from werkzeug.formparser import MultiPartParser
 
 from mock_vws._query_validators.exceptions import InvalidIncludeTargetDataError
@@ -14,6 +15,7 @@ from mock_vws._query_validators.exceptions import InvalidIncludeTargetDataError
 _LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 def validate_include_target_data(
     request_headers: Mapping[str, str],
     request_body: bytes,

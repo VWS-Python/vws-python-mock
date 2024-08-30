@@ -9,6 +9,7 @@ from collections.abc import Mapping
 from email.message import EmailMessage
 from typing import Any
 
+from beartype import beartype
 from werkzeug.formparser import MultiPartParser
 
 from mock_vws._base64_decoding import decode_base64
@@ -19,6 +20,7 @@ from mock_vws.database import VuforiaDatabase
 from mock_vws.image_matchers import ImageMatcher
 
 
+@beartype
 def get_query_match_response_text(
     *,
     request_headers: Mapping[str, str],

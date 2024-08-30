@@ -6,11 +6,14 @@ import json
 import logging
 from http import HTTPStatus
 
+from beartype import beartype
+
 from mock_vws._services_validators.exceptions import FailError
 
 _LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 def validate_active_flag(*, request_body: bytes) -> None:
     """
     Validate the active flag data given to the endpoint.

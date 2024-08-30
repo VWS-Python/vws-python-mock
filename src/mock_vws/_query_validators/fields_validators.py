@@ -7,6 +7,7 @@ import logging
 from collections.abc import Mapping
 from email.message import EmailMessage
 
+from beartype import beartype
 from werkzeug.formparser import MultiPartParser
 
 from mock_vws._query_validators.exceptions import UnknownParametersError
@@ -14,6 +15,7 @@ from mock_vws._query_validators.exceptions import UnknownParametersError
 _LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 def validate_extra_fields(
     *,
     request_headers: Mapping[str, str],

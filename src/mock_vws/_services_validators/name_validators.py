@@ -7,6 +7,8 @@ import logging
 from collections.abc import Mapping
 from http import HTTPMethod, HTTPStatus
 
+from beartype import beartype
+
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._services_validators.exceptions import (
     FailError,
@@ -18,6 +20,7 @@ from mock_vws.database import VuforiaDatabase
 _LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 def validate_name_characters_in_range(
     *,
     request_body: bytes,
@@ -59,6 +62,7 @@ def validate_name_characters_in_range(
     raise TargetNameExistError
 
 
+@beartype
 def validate_name_type(*, request_body: bytes) -> None:
     """
     Validate the type of the name argument given to a VWS endpoint.
@@ -85,6 +89,7 @@ def validate_name_type(*, request_body: bytes) -> None:
     raise FailError(status_code=HTTPStatus.BAD_REQUEST)
 
 
+@beartype
 def validate_name_length(*, request_body: bytes) -> None:
     """
     Validate the length of the name argument given to a VWS endpoint.
@@ -113,6 +118,7 @@ def validate_name_length(*, request_body: bytes) -> None:
     raise FailError(status_code=HTTPStatus.BAD_REQUEST)
 
 
+@beartype
 def validate_name_does_not_exist_new_target(
     *,
     databases: set[VuforiaDatabase],
@@ -169,6 +175,7 @@ def validate_name_does_not_exist_new_target(
     raise TargetNameExistError
 
 
+@beartype
 def validate_name_does_not_exist_existing_target(
     *,
     request_headers: Mapping[str, str],

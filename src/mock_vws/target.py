@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 from typing import Self, TypedDict
 from zoneinfo import ZoneInfo
 
+from beartype import beartype
 from PIL import Image, ImageStat
 
 from mock_vws._constants import TargetStatuses
@@ -77,6 +78,7 @@ class Target:
     upload_date: datetime.datetime = field(default_factory=_time_now)
 
     @property
+    @beartype
     def _post_processing_status(self) -> TargetStatuses:
         """
         Return the status of the target, or what it will be when processing is
@@ -100,6 +102,7 @@ class Target:
         return TargetStatuses.FAILED
 
     @property
+    @beartype
     def status(self) -> str:
         """
         Return the status of the target.
@@ -125,11 +128,13 @@ class Target:
         return self._post_processing_status.value
 
     @property
+    @beartype
     def _post_processing_target_rating(self) -> int:
         """The rating of the target after processing."""
         return self.target_tracking_rater(image_content=self.image_value)
 
     @property
+    @beartype
     def tracking_rating(self) -> int:
         """
         Return the tracking rating of the target recognition image.
@@ -211,7 +216,7 @@ class Target:
             "width": self.width,
             "image_base64": image_base64,
             "active_flag": self.active_flag,
-            "processing_time_seconds": self.processing_time_seconds,
+            "processing_time_seconds": float(self.processing_time_seconds),
             "application_metadata": self.application_metadata,
             "target_id": self.target_id,
             "last_modified_date": self.last_modified_date.isoformat(),

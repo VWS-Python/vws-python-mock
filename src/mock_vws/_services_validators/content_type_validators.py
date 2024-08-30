@@ -6,11 +6,14 @@ import logging
 from collections.abc import Mapping
 from http import HTTPMethod
 
+from beartype import beartype
+
 from mock_vws._services_validators.exceptions import AuthenticationFailureError
 
 _LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 def validate_content_type_header_given(
     *,
     request_headers: Mapping[str, str],

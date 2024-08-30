@@ -5,6 +5,8 @@ Authorization validators to use in the mock query API.
 import logging
 from collections.abc import Mapping
 
+from beartype import beartype
+
 from mock_vws._database_matchers import get_database_matching_client_keys
 from mock_vws._query_validators.exceptions import (
     AuthenticationFailureError,
@@ -16,6 +18,7 @@ from mock_vws.database import VuforiaDatabase
 _LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 def validate_auth_header_exists(*, request_headers: Mapping[str, str]) -> None:
     """
     Validate that there is an authorization header given to the query endpoint.
@@ -33,6 +36,7 @@ def validate_auth_header_exists(*, request_headers: Mapping[str, str]) -> None:
     raise AuthHeaderMissingError
 
 
+@beartype
 def validate_auth_header_number_of_parts(
     *,
     request_headers: Mapping[str, str],
@@ -57,6 +61,7 @@ def validate_auth_header_number_of_parts(
     raise MalformedAuthHeaderError
 
 
+@beartype
 def validate_client_key_exists(
     *,
     request_headers: Mapping[str, str],
@@ -83,6 +88,7 @@ def validate_client_key_exists(
     raise AuthenticationFailureError
 
 
+@beartype
 def validate_auth_header_has_signature(
     request_headers: Mapping[str, str],
 ) -> None:
@@ -103,6 +109,7 @@ def validate_auth_header_has_signature(
     raise MalformedAuthHeaderError
 
 
+@beartype
 def validate_authorization(
     *,
     request_path: str,

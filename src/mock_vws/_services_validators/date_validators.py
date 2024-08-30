@@ -8,6 +8,8 @@ from collections.abc import Mapping
 from http import HTTPStatus
 from zoneinfo import ZoneInfo
 
+from beartype import beartype
+
 from mock_vws._services_validators.exceptions import (
     FailError,
     RequestTimeTooSkewedError,
@@ -16,6 +18,7 @@ from mock_vws._services_validators.exceptions import (
 _LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 def validate_date_header_given(*, request_headers: Mapping[str, str]) -> None:
     """
     Validate the date header is given to a VWS endpoint.
@@ -33,6 +36,7 @@ def validate_date_header_given(*, request_headers: Mapping[str, str]) -> None:
     raise FailError(status_code=HTTPStatus.BAD_REQUEST)
 
 
+@beartype
 def validate_date_format(*, request_headers: Mapping[str, str]) -> None:
     """
     Validate the format of the date header given to a VWS endpoint.
@@ -52,6 +56,7 @@ def validate_date_format(*, request_headers: Mapping[str, str]) -> None:
         raise FailError(status_code=HTTPStatus.BAD_REQUEST) from exc
 
 
+@beartype
 def validate_date_in_range(*, request_headers: Mapping[str, str]) -> None:
     """
     Validate the date header given to a VWS endpoint is in range.

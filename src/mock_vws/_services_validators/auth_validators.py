@@ -6,6 +6,8 @@ import logging
 from collections.abc import Mapping
 from http import HTTPStatus
 
+from beartype import beartype
+
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._services_validators.exceptions import (
     AuthenticationFailureError,
@@ -16,6 +18,7 @@ from mock_vws.database import VuforiaDatabase
 _LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 def validate_auth_header_exists(*, request_headers: Mapping[str, str]) -> None:
     """
     Validate that there is an authorization header given to a VWS endpoint.
@@ -31,6 +34,7 @@ def validate_auth_header_exists(*, request_headers: Mapping[str, str]) -> None:
         raise AuthenticationFailureError
 
 
+@beartype
 def validate_access_key_exists(
     *,
     request_headers: Mapping[str, str],
@@ -60,6 +64,7 @@ def validate_access_key_exists(
     raise FailError(status_code=HTTPStatus.BAD_REQUEST)
 
 
+@beartype
 def validate_auth_header_has_signature(
     *,
     request_headers: Mapping[str, str],
@@ -83,6 +88,7 @@ def validate_auth_header_has_signature(
     raise FailError(status_code=HTTPStatus.BAD_REQUEST)
 
 
+@beartype
 def validate_authorization(
     *,
     request_path: str,

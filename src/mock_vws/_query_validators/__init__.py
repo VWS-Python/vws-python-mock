@@ -4,6 +4,8 @@ Input validators to use in the mock query API.
 
 from collections.abc import Mapping
 
+from beartype import beartype
+
 from mock_vws.database import VuforiaDatabase
 
 from .accept_header_validators import validate_accept_header
@@ -38,6 +40,7 @@ from .num_results_validators import validate_max_num_results
 from .project_state_validators import validate_project_state
 
 
+@beartype
 def run_query_validators(
     *,
     request_path: str,

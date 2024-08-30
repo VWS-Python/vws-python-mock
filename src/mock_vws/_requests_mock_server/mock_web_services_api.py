@@ -16,6 +16,7 @@ from http import HTTPMethod, HTTPStatus
 from typing import Any
 from zoneinfo import ZoneInfo
 
+from beartype import BeartypeConf, beartype
 from requests.models import PreparedRequest
 
 from mock_vws._constants import ResultCodes, TargetStatuses
@@ -41,6 +42,7 @@ _ROUTES: set[Route] = set()
 _ResponseType = tuple[int, dict[str, str], str]
 
 
+@beartype
 def route(
     path_pattern: str,
     http_methods: set[HTTPMethod],
@@ -94,6 +96,7 @@ def _body_bytes(request: PreparedRequest) -> bytes:
     return request.body
 
 
+@beartype
 class MockVuforiaWebServicesAPI:
     """
     A fake implementation of the Vuforia Web Services API.
@@ -101,6 +104,7 @@ class MockVuforiaWebServicesAPI:
     This implementation is tied to the implementation of ``responses``.
     """
 
+    @beartype(conf=BeartypeConf(is_pep484_tower=True))
     def __init__(
         self,
         *,

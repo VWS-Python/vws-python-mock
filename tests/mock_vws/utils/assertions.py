@@ -11,11 +11,13 @@ from string import hexdigits
 from zoneinfo import ZoneInfo
 
 import requests
+from beartype import beartype
 from vws.exceptions.response import Response
 
 from mock_vws._constants import ResultCodes
 
 
+@beartype
 def assert_vws_failure(
     *,
     response: requests.Response | Response,
@@ -45,6 +47,7 @@ def assert_vws_failure(
     )
 
 
+@beartype
 def assert_valid_date_header(
     *,
     response: requests.Response | Response,
@@ -79,6 +82,7 @@ def assert_valid_date_header(
     assert time_difference < datetime.timedelta(minutes=2)
 
 
+@beartype
 def assert_valid_transaction_id(
     *,
     response: requests.Response | Response,
@@ -98,6 +102,7 @@ def assert_valid_transaction_id(
     assert all(char in hexdigits for char in transaction_id)
 
 
+@beartype
 def assert_json_separators(*, response: requests.Response | Response) -> None:
     """
     Assert that a JSON response is formatted correctly.
@@ -114,6 +119,7 @@ def assert_json_separators(*, response: requests.Response | Response) -> None:
     )
 
 
+@beartype
 def assert_vws_response(
     *,
     response: requests.Response | Response,
@@ -167,6 +173,7 @@ def assert_vws_response(
     assert_valid_date_header(response=response)
 
 
+@beartype
 def assert_query_success(*, response: requests.Response) -> None:
     """
     Assert that the given response is a success response for performing an

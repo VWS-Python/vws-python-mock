@@ -11,6 +11,7 @@ from urllib.parse import urlparse
 
 import pytest
 import requests
+from beartype import beartype
 from freezegun import freeze_time
 from PIL import Image
 from requests.exceptions import MissingSchema
@@ -27,6 +28,7 @@ from tests.mock_vws.utils.usage_test_helpers import (
 )
 
 
+@beartype
 def _not_exact_matcher(
     first_image_content: bytes,
     second_image_content: bytes,
@@ -35,6 +37,7 @@ def _not_exact_matcher(
     return first_image_content != second_image_content
 
 
+@beartype
 def request_unmocked_address() -> None:
     """
     Make a request, using `requests` to an unmocked, free local address.
@@ -53,6 +56,7 @@ def request_unmocked_address() -> None:
     requests.get(url=f"http://localhost:{port}", timeout=30)
 
 
+@beartype
 def request_mocked_address() -> None:
     """
     Make a request, using `requests` to an address that is mocked by `MockVWS`.

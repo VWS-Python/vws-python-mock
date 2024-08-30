@@ -14,6 +14,7 @@ from enum import StrEnum, auto
 from http import HTTPMethod, HTTPStatus
 
 import requests
+from beartype import beartype
 from flask import Flask, Response, request
 from pydantic_settings import BaseSettings
 
@@ -73,6 +74,7 @@ class VWSSettings(BaseSettings):
     )
 
 
+@beartype
 def get_all_databases() -> set[VuforiaDatabase]:
     """
     Get all database objects from the task manager back-end.
@@ -117,6 +119,7 @@ def set_terminate_wsgi_input() -> None:
 
 
 @VWS_FLASK_APP.before_request
+@beartype
 def validate_request() -> None:
     """
     Run validators on the request.
@@ -220,6 +223,7 @@ def add_target() -> Response:
 
 
 @VWS_FLASK_APP.route("/targets/<string:target_id>", methods=[HTTPMethod.GET])
+@beartype
 def get_target(target_id: str) -> Response:
     """
     Get details of a target.
@@ -437,6 +441,7 @@ def target_summary(target_id: str) -> Response:
     "/duplicates/<string:target_id>",
     methods=[HTTPMethod.GET],
 )
+@beartype
 def get_duplicates(target_id: str) -> Response:
     """
     Get targets which may be considered duplicates of a given target.
