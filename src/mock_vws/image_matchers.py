@@ -33,10 +33,10 @@ class ImageMatcher(Protocol):
         ...  # pylint: disable=unnecessary-ellipsis
 
 
+@beartype
 class ExactMatcher:
     """A matcher which returns whether two images are exactly equal."""
 
-    @beartype
     def __call__(
         self,
         first_image_content: bytes,
@@ -52,10 +52,10 @@ class ExactMatcher:
         return bool(first_image_content == second_image_content)
 
 
+@beartype
 class StructuralSimilarityMatcher:
     """A matcher which returns whether two images are similar using SSIM."""
 
-    @beartype
     def __call__(
         self,
         first_image_content: bytes,

@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from typing import Self, TypedDict
 from zoneinfo import ZoneInfo
 
-from beartype import beartype
+from beartype import BeartypeConf, beartype
 from PIL import Image, ImageStat
 
 from mock_vws._constants import TargetStatuses
@@ -39,6 +39,7 @@ class TargetDict(TypedDict):
     tracking_rating: int
 
 
+@beartype
 def _random_hex() -> str:
     """
     Return a random hex value.
@@ -46,6 +47,7 @@ def _random_hex() -> str:
     return uuid.uuid4().hex
 
 
+@beartype
 def _time_now() -> datetime.datetime:
     """
     Return the current time in the GMT time zone.
@@ -54,6 +56,7 @@ def _time_now() -> datetime.datetime:
     return datetime.datetime.now(tz=gmt)
 
 
+@beartype(conf=BeartypeConf(is_pep484_tower=True))
 @dataclass(frozen=True, eq=True)
 class Target:
     """
@@ -78,7 +81,6 @@ class Target:
     upload_date: datetime.datetime = field(default_factory=_time_now)
 
     @property
-    @beartype
     def _post_processing_status(self) -> TargetStatuses:
         """
         Return the status of the target, or what it will be when processing is
@@ -102,7 +104,6 @@ class Target:
         return TargetStatuses.FAILED
 
     @property
-    @beartype
     def status(self) -> str:
         """
         Return the status of the target.
@@ -128,13 +129,11 @@ class Target:
         return self._post_processing_status.value
 
     @property
-    @beartype
     def _post_processing_target_rating(self) -> int:
         """The rating of the target after processing."""
         return self.target_tracking_rater(image_content=self.image_value)
 
     @property
-    @beartype
     def tracking_rating(self) -> int:
         """
         Return the tracking rating of the target recognition image.

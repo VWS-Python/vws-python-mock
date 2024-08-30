@@ -46,6 +46,7 @@ VWS_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
 _LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 class _ImageMatcherChoice(StrEnum):
     """Image matcher choices."""
 
@@ -63,6 +64,7 @@ class _ImageMatcherChoice(StrEnum):
         return matcher
 
 
+@beartype
 class VWSSettings(BaseSettings):
     """Settings for the VWS Flask app."""
 
@@ -151,6 +153,7 @@ def handle_exceptions(exc: ValidatorError) -> Response:
 
 
 @VWS_FLASK_APP.route("/targets", methods=[HTTPMethod.POST])
+@beartype
 def add_target() -> Response:
     """
     Add a target.
@@ -334,6 +337,7 @@ def delete_target(target_id: str) -> Response:
 
 
 @VWS_FLASK_APP.route("/summary", methods=[HTTPMethod.GET])
+@beartype
 def database_summary() -> Response:
     """
     Get a database summary report.

@@ -59,6 +59,7 @@ class TargetTrackingRater(Protocol):
         ...  # pylint: disable=unnecessary-ellipsis
 
 
+@beartype
 class RandomTargetTrackingRater:
     """A rater which returns a random number."""
 
@@ -73,6 +74,7 @@ class RandomTargetTrackingRater:
         return secrets.randbelow(exclusive_upper_bound=6)
 
 
+@beartype
 class HardcodedTargetTrackingRater:
     """A rater which returns a hardcoded number."""
 
@@ -94,6 +96,7 @@ class HardcodedTargetTrackingRater:
         return self._rating
 
 
+@beartype
 class BrisqueTargetTrackingRater:
     """A rater which returns a rating based on a BRISQUE score."""
 

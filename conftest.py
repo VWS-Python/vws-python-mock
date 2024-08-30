@@ -32,8 +32,8 @@ pytest_collect_file = Sybil(
 ).pytest()
 
 
-@pytest.hookimpl(optionalhook=True)
 @beartype
+@pytest.hookimpl(optionalhook=True)
 def pytest_set_filtered_exceptions() -> tuple[type[Exception], ...]:
     """
     Return exceptions to retry on.
