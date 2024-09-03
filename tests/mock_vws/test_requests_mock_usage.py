@@ -716,18 +716,22 @@ class TestDataTypes:
         """
         It is possible to send strings to VWS endpoints.
         """
-        session = requests.Session()
-        url = endpoint.prepared_request.url or ""
-        netloc = urlparse(url=url).netloc
-        if endpoint.prepared_request.body is None:
-            endpoint.prepared_request.body = b""
+        netloc = urlparse(url=endpoint.base_url).netloc
 
         if netloc == "cloudreco.vuforia.com":
             pytest.skip()
 
-        assert isinstance(endpoint.prepared_request.body, bytes)
-        endpoint.prepared_request.body = endpoint.prepared_request.body.decode(
-            encoding="utf-8",
+        assert isinstance(endpoint.data, bytes)
+        new_endpoint = Endpoint(
+            base_url=endpoint.base_url,
+            path_url=endpoint.path_url,
+            method=endpoint.method,
+            headers=endpoint.headers,
+            data=endpoint.data.decode(encoding="utf-8"),
+            successful_headers_result_code=endpoint.successful_headers_result_code,
+            successful_headers_status_code=endpoint.successful_headers_status_code,
+            access_key=endpoint.access_key,
+            secret_key=endpoint.secret_key,
         )
-        response = session.send(request=endpoint.prepared_request)
+        response = new_endpoint.send()
         response.raise_for_status()
