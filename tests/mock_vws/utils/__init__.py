@@ -17,13 +17,6 @@ class Endpoint:
     Details of endpoints to be called in tests.
     """
 
-    prepared_request: requests.PreparedRequest
-    successful_headers_result_code: ResultCodes
-    successful_headers_status_code: int
-    auth_header_content_type: str
-    access_key: str
-    secret_key: str
-
     def __init__(
         self,
         prepared_request: requests.PreparedRequest,
