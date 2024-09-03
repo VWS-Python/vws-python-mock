@@ -6,6 +6,7 @@ import contextlib
 import logging
 from collections.abc import Generator
 from enum import Enum
+from urllib.parse import urljoin
 
 import pytest
 import requests
@@ -154,12 +155,12 @@ def _enable_use_docker_in_memory(
             base_url=target_manager_base_url,
         )
 
-        databases_url = target_manager_base_url + "/databases"
+        databases_url = urljoin(base=target_manager_base_url, url="databases")
         databases = requests.get(url=databases_url, timeout=30).json()
         for database in databases:
             database_name = database["database_name"]
             requests.delete(
-                url=databases_url + "/" + database_name,
+                url=urljoin(base=databases_url, url=database_name),
                 timeout=30,
             )
 

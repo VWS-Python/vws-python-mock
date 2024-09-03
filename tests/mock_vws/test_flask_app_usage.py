@@ -6,6 +6,8 @@ import io
 import uuid
 from collections.abc import Iterator
 from http import HTTPStatus
+from typing import Final
+from urllib.parse import urljoin
 
 import pytest
 import requests
@@ -23,7 +25,7 @@ from tests.mock_vws.utils.usage_test_helpers import (
     processing_time_seconds,
 )
 
-_EXAMPLE_URL_FOR_TARGET_MANAGER = "http://" + uuid.uuid4().hex + ".com"
+_EXAMPLE_URL_FOR_TARGET_MANAGER: Final[str] = f"http://{uuid.uuid4().hex}.com"
 
 
 @beartype
@@ -78,7 +80,10 @@ class TestProcessingTime:
         By default, targets in the mock takes 2 seconds to be processed.
         """
         database = VuforiaDatabase()
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        databases_url = urljoin(
+            base=_EXAMPLE_URL_FOR_TARGET_MANAGER,
+            url="databases",
+        )
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         time_taken = processing_time_seconds(
@@ -103,7 +108,10 @@ class TestProcessingTime:
             value=str(seconds),
         )
         database = VuforiaDatabase()
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        databases_url = urljoin(
+            base=_EXAMPLE_URL_FOR_TARGET_MANAGER,
+            url="databases",
+        )
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         time_taken = processing_time_seconds(
@@ -160,7 +168,10 @@ class TestAddDatabase:
             'There is already a database with the name "5".'
         )
 
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        databases_url = urljoin(
+            base=_EXAMPLE_URL_FOR_TARGET_MANAGER,
+            url="databases",
+        )
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         for bad_database, expected_message in (
@@ -184,7 +195,10 @@ class TestAddDatabase:
         """
         It is possible to create a database without giving any data.
         """
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        databases_url = urljoin(
+            base=_EXAMPLE_URL_FOR_TARGET_MANAGER,
+            url="databases",
+        )
         response = requests.post(url=databases_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.CREATED
 
@@ -219,8 +233,10 @@ class TestDeleteDatabase:
         A 404 error is returned when trying to delete a database which does not
         exist.
         """
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
-        delete_url = databases_url + "/" + "foobar"
+        delete_url = urljoin(
+            base=_EXAMPLE_URL_FOR_TARGET_MANAGER,
+            url="databases/foobar",
+        )
         response = requests.delete(url=delete_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.NOT_FOUND
 
@@ -229,12 +245,18 @@ class TestDeleteDatabase:
         """
         It is possible to delete a database.
         """
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        databases_url = urljoin(
+            base=_EXAMPLE_URL_FOR_TARGET_MANAGER,
+            url="databases",
+        )
         response = requests.post(url=databases_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.CREATED
 
         data = response.json()
-        delete_url = databases_url + "/" + data["database_name"]
+        delete_url = urljoin(
+            base=_EXAMPLE_URL_FOR_TARGET_MANAGER,
+            url=f"databases/{data["database_name"]}",
+        )
         response = requests.delete(url=delete_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.OK
 
@@ -268,7 +290,10 @@ class TestQueryImageMatchers:
         re_exported_image = io.BytesIO()
         pil_image.save(fp=re_exported_image, format="PNG")
 
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        databases_url = urljoin(
+            base=_EXAMPLE_URL_FOR_TARGET_MANAGER,
+            url="databases",
+        )
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         target_id = vws_client.add_target(
@@ -312,7 +337,10 @@ class TestQueryImageMatchers:
         pil_image = Image.open(fp=high_quality_image)
         re_exported_image = io.BytesIO()
         pil_image.save(fp=re_exported_image, format="PNG")
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        databases_url = urljoin(
+            base=_EXAMPLE_URL_FOR_TARGET_MANAGER,
+            url="databases",
+        )
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         assert re_exported_image.getvalue() != high_quality_image.getvalue()
@@ -360,7 +388,10 @@ class TestDuplicatesImageMatchers:
         re_exported_image = io.BytesIO()
         pil_image.save(fp=re_exported_image, format="PNG")
 
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        databases_url = urljoin(
+            base=_EXAMPLE_URL_FOR_TARGET_MANAGER,
+            url="databases",
+        )
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         target_id = vws_client.add_target(
@@ -412,7 +443,10 @@ class TestDuplicatesImageMatchers:
         re_exported_image = io.BytesIO()
         pil_image.save(fp=re_exported_image, format="PNG")
 
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        databases_url = urljoin(
+            base=_EXAMPLE_URL_FOR_TARGET_MANAGER,
+            url="databases",
+        )
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         target_id = vws_client.add_target(

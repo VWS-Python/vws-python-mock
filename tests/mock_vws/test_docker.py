@@ -7,6 +7,7 @@ import uuid
 from collections.abc import Iterator
 from http import HTTPStatus
 from typing import TYPE_CHECKING
+from urllib.parse import urljoin
 
 import docker
 import pytest
@@ -212,7 +213,7 @@ def test_build_and_run(
     )
 
     response = requests.post(
-        url=f"{base_target_manager_url}/databases",
+        url=urljoin(base=base_target_manager_url, url="databases"),
         json=database.to_dict(),
         timeout=30,
     )
