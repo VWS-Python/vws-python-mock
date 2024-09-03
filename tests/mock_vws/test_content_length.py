@@ -8,7 +8,6 @@ from urllib.parse import urlparse
 
 import pytest
 import requests
-from requests.structures import CaseInsensitiveDict
 
 from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import Endpoint
@@ -52,12 +51,10 @@ class TestIncorrect:
         netloc = urlparse(url=url).netloc
         if netloc == "cloudreco.vuforia.com":
             assert not response.text
-            assert response.headers == CaseInsensitiveDict(
-                data={
-                    "Content-Length": str(len(response.text)),
-                    "Connection": "Close",
-                },
-            )
+            assert response.headers == {
+                "Content-Length": str(len(response.text)),
+                "Connection": "Close",
+            }
             return
 
         assert_valid_date_header(response=response)
@@ -72,15 +69,13 @@ class TestIncorrect:
             """,
         )
         assert response.text == expected_response_text
-        expected_headers = CaseInsensitiveDict(
-            data={
-                "Content-Length": str(len(response.text)),
-                "Content-Type": "text/html",
-                "Connection": "close",
-                "server": "awselb/2.0",
-                "Date": response.headers["Date"],
-            },
-        )
+        expected_headers = {
+            "Content-Length": str(len(response.text)),
+            "Content-Type": "text/html",
+            "Connection": "close",
+            "server": "awselb/2.0",
+            "Date": response.headers["Date"],
+        }
         assert response.headers == expected_headers
 
     @staticmethod
@@ -108,12 +103,10 @@ class TestIncorrect:
         if netloc == "cloudreco.vuforia.com":
             assert response.status_code == HTTPStatus.GATEWAY_TIMEOUT
             assert not response.text
-            assert response.headers == CaseInsensitiveDict(
-                data={
-                    "Content-Length": str(len(response.text)),
-                    "Connection": "keep-alive",
-                },
-            )
+            assert response.headers == {
+                "Content-Length": str(len(response.text)),
+                "Connection": "keep-alive",
+            }
             return
 
         handle_server_errors(response=response)
@@ -127,9 +120,7 @@ class TestIncorrect:
             "server": "envoy",
             "Date": response.headers["Date"],
         }
-        assert response.headers == CaseInsensitiveDict(
-            data=expected_headers,
-        )
+        assert response.headers == expected_headers
         assert response.status_code == HTTPStatus.REQUEST_TIMEOUT
 
     @staticmethod
