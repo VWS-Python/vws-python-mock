@@ -112,12 +112,12 @@ def assert_success(response: Response) -> None:
     )
     expected_keys = {"result_code", "transaction_id", "target_id"}
     response_json = json.loads(s=response.text)
-    assert isinstance(response_json, dict)
-    assert response_json.keys() == expected_keys
     target_id = response_json["target_id"]
     expected_target_id_length = 32
     assert len(target_id) == expected_target_id_length
     assert all(char in hexdigits for char in target_id)
+    assert isinstance(response_json, dict)
+    assert response_json.keys() == expected_keys
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
