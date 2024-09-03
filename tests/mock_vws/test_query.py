@@ -35,6 +35,7 @@ from vws.exceptions.cloud_reco_exceptions import (
     MaxNumResultsOutOfRangeError,
 )
 from vws.exceptions.custom_exceptions import RequestEntityTooLargeError
+from vws.exceptions.response import Response
 from vws.reports import TargetStatuses
 from vws_auth_tools import authorization_header, rfc_1123_date
 
@@ -87,7 +88,7 @@ def _query(
     *,
     vuforia_database: VuforiaDatabase,
     body: dict[str, Any],
-) -> requests.Response:
+) -> Response:
     """
     Make a request to the endpoint to make an image recognition query.
 
@@ -124,12 +125,20 @@ def _query(
     }
 
     vwq_host = "https://cloudreco.vuforia.com"
-    response = requests.request(
+    requests_response = requests.request(
         method=method,
         url=urljoin(base=vwq_host, url=request_path),
         headers=headers,
         data=content,
         timeout=30,
+    )
+
+    response = Response(
+        text=requests_response.text,
+        url=requests_response.url,
+        status_code=requests_response.status_code,
+        headers=dict(requests_response.headers),
+        request_body=requests_response.request.body,
     )
 
     handle_server_errors(response=response)
@@ -229,12 +238,20 @@ class TestContentType:
             "Content-Type": content_type,
         }
 
-        response = requests.request(
+        requests_response = requests.request(
             method=method,
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
             data=content,
             timeout=30,
+        )
+
+        response = Response(
+            text=requests_response.text,
+            url=requests_response.url,
+            status_code=requests_response.status_code,
+            headers=dict(requests_response.headers),
+            request_body=requests_response.request.body,
         )
 
         handle_server_errors(response=response)
@@ -289,12 +306,20 @@ class TestContentType:
             "Content-Type": content_type,
         }
 
-        response = requests.request(
+        requests_response = requests.request(
             method=method,
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
             data=content,
             timeout=30,
+        )
+
+        response = Response(
+            text=requests_response.text,
+            url=requests_response.url,
+            status_code=requests_response.status_code,
+            headers=dict(requests_response.headers),
+            request_body=requests_response.request.body,
         )
 
         handle_server_errors(response=response)
@@ -351,12 +376,20 @@ class TestContentType:
             "Content-Type": content_type,
         }
 
-        response = requests.request(
+        requests_response = requests.request(
             method=method,
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
             data=content,
             timeout=30,
+        )
+
+        response = Response(
+            text=requests_response.text,
+            url=requests_response.url,
+            status_code=requests_response.status_code,
+            headers=dict(requests_response.headers),
+            request_body=requests_response.request.body,
         )
 
         handle_server_errors(response=response)
@@ -409,12 +442,20 @@ class TestContentType:
             "Content-Type": "multipart/form-data; boundary=example_boundary",
         }
 
-        response = requests.request(
+        requests_response = requests.request(
             method=method,
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
             data=content,
             timeout=30,
+        )
+
+        response = Response(
+            text=requests_response.text,
+            url=requests_response.url,
+            status_code=requests_response.status_code,
+            headers=dict(requests_response.headers),
+            request_body=requests_response.request.body,
         )
 
         handle_server_errors(response=response)
@@ -465,7 +506,7 @@ class TestContentType:
             "Content-Type": content_type_header + "; extra=1",
         }
 
-        response = requests.request(
+        requests_response = requests.request(
             method=method,
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
@@ -473,9 +514,18 @@ class TestContentType:
             timeout=30,
         )
 
+        response = Response(
+            text=requests_response.text,
+            url=requests_response.url,
+            status_code=requests_response.status_code,
+            headers=dict(requests_response.headers),
+            request_body=requests_response.request.body,
+        )
+
         handle_server_errors(response=response)
         assert_query_success(response=response)
-        assert response.json()["results"] == []
+        response_json = json.loads(s=response.text)
+        assert response_json["results"] == []
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -528,7 +578,8 @@ class TestSuccess:
         response = _query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
-        (result,) = response.json()["results"]
+        response_json = json.loads(s=response.text)
+        (result,) = response_json["results"]
         assert result == {
             "target_id": target_id,
             "target_data": {
@@ -780,7 +831,8 @@ class TestMaxNumResults:
         response = _query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
-        assert len(response.json()["results"]) == 1
+        response_json = json.loads(s=response.text)
+        assert len(response_json["results"]) == 1
 
     @staticmethod
     @pytest.mark.parametrize("num_results", [1, b"1", 50])
@@ -811,7 +863,8 @@ class TestMaxNumResults:
         response = _query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
-        assert response.json()["results"] == []
+        response_json = json.loads(s=response.text)
+        assert response_json["results"] == []
 
     @staticmethod
     def test_valid_works(
@@ -967,7 +1020,8 @@ class TestIncludeTargetData:
         response = _query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
-        result_1, result_2 = response.json()["results"]
+        response_json = json.loads(s=response.text)
+        result_1, result_2 = response_json["results"]
         assert "target_data" in result_1
         assert "target_data" not in result_2
 
@@ -998,7 +1052,8 @@ class TestIncludeTargetData:
         response = _query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
-        result_1, result_2 = response.json()["results"]
+        response_json = json.loads(s=response.text)
+        result_1, result_2 = response_json["results"]
         assert "target_data" in result_1
         assert "target_data" not in result_2
 
@@ -1029,7 +1084,8 @@ class TestIncludeTargetData:
         response = _query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
-        result_1, result_2 = response.json()["results"]
+        response_json = json.loads(s=response.text)
+        result_1, result_2 = response_json["results"]
         assert "target_data" not in result_1
         assert "target_data" not in result_2
 
@@ -1060,7 +1116,8 @@ class TestIncludeTargetData:
         response = _query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
-        result_1, result_2 = response.json()["results"]
+        response_json = json.loads(s=response.text)
+        result_1, result_2 = response_json["results"]
         assert "target_data" in result_1
         assert "target_data" in result_2
 
@@ -1148,7 +1205,7 @@ class TestAcceptHeader:
             "Content-Type": content_type_header,
         } | extra_headers
 
-        response = requests.request(
+        requests_response = requests.request(
             method=method,
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
@@ -1156,9 +1213,18 @@ class TestAcceptHeader:
             timeout=30,
         )
 
+        response = Response(
+            text=requests_response.text,
+            url=requests_response.url,
+            status_code=requests_response.status_code,
+            headers=dict(requests_response.headers),
+            request_body=requests_response.request.body,
+        )
+
         handle_server_errors(response=response)
         assert_query_success(response=response)
-        assert response.json()["results"] == []
+        response_json = json.loads(s=response.text)
+        assert response_json["results"] == []
 
     @staticmethod
     def test_invalid(
@@ -1196,12 +1262,20 @@ class TestAcceptHeader:
             "Accept": "text/html",
         }
 
-        response = requests.request(
+        requests_response = requests.request(
             method=method,
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
             data=content,
             timeout=30,
+        )
+
+        response = Response(
+            text=requests_response.text,
+            url=requests_response.url,
+            status_code=requests_response.status_code,
+            headers=dict(requests_response.headers),
+            request_body=requests_response.request.body,
         )
 
         handle_server_errors(response=response)
@@ -1950,7 +2024,7 @@ class TestDateFormats:
             "Content-Type": content_type_header,
         }
 
-        response = requests.request(
+        requests_response = requests.request(
             method=method,
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
@@ -1958,9 +2032,18 @@ class TestDateFormats:
             timeout=30,
         )
 
+        response = Response(
+            text=requests_response.text,
+            url=requests_response.url,
+            status_code=requests_response.status_code,
+            headers=dict(requests_response.headers),
+            request_body=requests_response.request.body,
+        )
+
         handle_server_errors(response=response)
         assert_query_success(response=response)
-        assert response.json()["results"] == []
+        response_json = json.loads(s=response.text)
+        assert response_json["results"] == []
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")

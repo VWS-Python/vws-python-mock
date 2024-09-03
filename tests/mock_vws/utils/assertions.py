@@ -10,7 +10,6 @@ from http import HTTPStatus
 from string import hexdigits
 from zoneinfo import ZoneInfo
 
-import requests
 from beartype import beartype
 from vws.exceptions.response import Response
 
@@ -20,7 +19,7 @@ from mock_vws._constants import ResultCodes
 @beartype
 def assert_vws_failure(
     *,
-    response: requests.Response | Response,
+    response: Response,
     status_code: int,
     result_code: ResultCodes,
 ) -> None:
@@ -50,7 +49,7 @@ def assert_vws_failure(
 @beartype
 def assert_valid_date_header(
     *,
-    response: requests.Response | Response,
+    response: Response,
 ) -> None:
     """
     Assert that a response includes a `Date` header which is within two minutes
@@ -85,7 +84,7 @@ def assert_valid_date_header(
 @beartype
 def assert_valid_transaction_id(
     *,
-    response: requests.Response | Response,
+    response: Response,
 ) -> None:
     """
     Assert that a response includes a valid transaction ID.
@@ -103,7 +102,7 @@ def assert_valid_transaction_id(
 
 
 @beartype
-def assert_json_separators(*, response: requests.Response | Response) -> None:
+def assert_json_separators(*, response: Response) -> None:
     """
     Assert that a JSON response is formatted correctly.
 
@@ -122,7 +121,7 @@ def assert_json_separators(*, response: requests.Response | Response) -> None:
 @beartype
 def assert_vws_response(
     *,
-    response: requests.Response | Response,
+    response: Response,
     status_code: int,
     result_code: ResultCodes,
 ) -> None:
@@ -174,7 +173,7 @@ def assert_vws_response(
 
 
 @beartype
-def assert_query_success(*, response: requests.Response) -> None:
+def assert_query_success(*, response: Response) -> None:
     """
     Assert that the given response is a success response for performing an
     image recognition query.
@@ -208,7 +207,7 @@ def assert_query_success(*, response: requests.Response) -> None:
 
     expected_response_header_not_chunked = {
         "Connection": "keep-alive",
-        "Content-Length": str(response.raw.tell()),
+        "Content-Length": str(len(response.text)),
         "Content-Type": "application/json",
         "Server": "nginx",
     }
@@ -229,7 +228,7 @@ def assert_query_success(*, response: requests.Response) -> None:
 
 def assert_vwq_failure(
     *,
-    response: requests.Response | Response,
+    response: Response,
     status_code: int,
     content_type: str | None,
     cache_control: str | None,

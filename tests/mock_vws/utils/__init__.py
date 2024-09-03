@@ -11,6 +11,7 @@ from urllib.parse import urljoin
 import requests
 from PIL import Image
 from requests.structures import CaseInsensitiveDict
+from vws.exceptions.response import Response
 
 from mock_vws._constants import ResultCodes
 
@@ -53,7 +54,7 @@ class Endpoint:
     access_key: str
     secret_key: str
 
-    def send(self) -> requests.Response:
+    def send(self) -> Response:
         """
         Send the request.
         """
@@ -66,7 +67,14 @@ class Endpoint:
         prepared_request = request.prepare()
         prepared_request.headers = CaseInsensitiveDict(data=self.headers)
         session = requests.Session()
-        return session.send(request=prepared_request)
+        requests_response = session.send(request=prepared_request)
+        return Response(
+            text=requests_response.text,
+            url=requests_response.url,
+            status_code=requests_response.status_code,
+            headers=dict(requests_response.headers),
+            request_body=requests_response.request.body,
+        )
 
     @property
     def auth_header_content_type(self) -> str:
