@@ -139,7 +139,7 @@ def validate_keys(
         route
         for route in routes
         if re.match(
-            pattern=re.compile(f"{route.path_pattern}$"),
+            pattern=re.compile(pattern=f"{route.path_pattern}$"),
             string=request_path,
         )
         and request_method in route.http_methods

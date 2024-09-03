@@ -266,7 +266,7 @@ class TestQueryImageMatchers:
 
         pil_image = Image.open(fp=high_quality_image)
         re_exported_image = io.BytesIO()
-        pil_image.save(re_exported_image, format="PNG")
+        pil_image.save(fp=re_exported_image, format="PNG")
 
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
@@ -311,7 +311,7 @@ class TestQueryImageMatchers:
 
         pil_image = Image.open(fp=high_quality_image)
         re_exported_image = io.BytesIO()
-        pil_image.save(re_exported_image, format="PNG")
+        pil_image.save(fp=re_exported_image, format="PNG")
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
@@ -358,7 +358,7 @@ class TestDuplicatesImageMatchers:
 
         pil_image = Image.open(fp=high_quality_image)
         re_exported_image = io.BytesIO()
-        pil_image.save(re_exported_image, format="PNG")
+        pil_image.save(fp=re_exported_image, format="PNG")
 
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
@@ -410,7 +410,7 @@ class TestDuplicatesImageMatchers:
 
         pil_image = Image.open(fp=high_quality_image)
         re_exported_image = io.BytesIO()
-        pil_image.save(re_exported_image, format="PNG")
+        pil_image.save(fp=re_exported_image, format="PNG")
 
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)

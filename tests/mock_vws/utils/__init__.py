@@ -86,7 +86,7 @@ def make_image_file(
         An image file in the given format and color space.
     """
     image_buffer = io.BytesIO()
-    image = Image.new(color_space, (width, height))
+    image = Image.new(mode=color_space, size=(width, height))
     for row_index in range(height):
         for column_index in range(width):
             red = secrets.choice(seq=range(255))
@@ -97,6 +97,6 @@ def make_image_file(
                 value=(red, green, blue),
             )
 
-    image.save(image_buffer, file_format)
+    image.save(fp=image_buffer, format=file_format)
     image_buffer.seek(0)
     return image_buffer

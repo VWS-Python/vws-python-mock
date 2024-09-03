@@ -74,7 +74,7 @@ class TestDuplicates:
         Target IDs of similar targets are returned.
         """
         image_data = high_quality_image
-        similar_image_data = copy.copy(image_data)
+        similar_image_data = copy.copy(x=image_data)
         similar_image_buffer = io.BytesIO()
         pil_similar_image = Image.open(fp=similar_image_data)
         # Re-save means similar but not identical.

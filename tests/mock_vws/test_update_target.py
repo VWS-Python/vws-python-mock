@@ -79,7 +79,7 @@ def _update_target(
 
     response = requests.request(
         method=HTTPMethod.PUT,
-        url=urljoin("https://vws.vuforia.com/", request_path),
+        url=urljoin(base="https://vws.vuforia.com/", url=request_path),
         headers=headers,
         data=content,
         timeout=30,

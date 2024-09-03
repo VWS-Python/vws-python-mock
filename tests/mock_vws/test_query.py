@@ -603,7 +603,7 @@ class TestSuccess:
         vws_client.wait_for_target_processed(target_id=target_id_not_matching)
 
         similar_image_buffer = io.BytesIO()
-        similar_image_data = copy.copy(high_quality_image)
+        similar_image_data = copy.copy(x=high_quality_image)
         pil_similar_image = Image.open(fp=similar_image_data)
         # Re-save means similar but not identical.
         pil_similar_image.save(similar_image_buffer, format="JPEG")
@@ -1613,7 +1613,7 @@ class TestImageFormats:
         """
         image_buffer = io.BytesIO()
         pil_image = Image.open(fp=high_quality_image)
-        pil_image.save(image_buffer, file_format)
+        pil_image.save(fp=image_buffer, format=file_format)
         image_content = image_buffer.getvalue()
         results = cloud_reco_client.query(
             image=io.BytesIO(initial_bytes=image_content)
@@ -1631,7 +1631,7 @@ class TestImageFormats:
         file_format = "tiff"
         image_buffer = io.BytesIO()
         pil_image = Image.open(fp=high_quality_image)
-        pil_image.save(image_buffer, file_format)
+        pil_image.save(fp=image_buffer, format=file_format)
         image_content = image_buffer.getvalue()
 
         with pytest.raises(expected_exception=BadImage) as exc_info:
