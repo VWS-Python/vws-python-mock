@@ -39,7 +39,7 @@ def validate_active_flag(*, request_body: bytes) -> None:
 
     _LOGGER.warning(
         msg=(
-            'The value of "active_flag" is not a Boolean or NULL.'
+            'The value of "active_flag" is not a Boolean or NULL. '
             "This is not allowed."
         ),
     )
