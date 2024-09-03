@@ -13,7 +13,7 @@ from PIL import Image
 from mock_vws._constants import ResultCodes
 
 
-@dataclass
+@dataclass(frozen=True)
 class Endpoint:
     """
     Details of endpoints to be called in tests.
