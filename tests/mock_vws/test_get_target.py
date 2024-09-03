@@ -9,7 +9,7 @@ import uuid
 
 import pytest
 from vws import VWS
-from vws.exceptions.vws_exceptions import UnknownTarget
+from vws.exceptions.vws_exceptions import UnknownTargetError
 from vws.reports import TargetRecord, TargetStatuses
 
 
@@ -182,5 +182,5 @@ class TestInactiveProject:
         """
         The project's active state does not affect getting a target.
         """
-        with pytest.raises(expected_exception=UnknownTarget):
+        with pytest.raises(expected_exception=UnknownTargetError):
             inactive_vws_client.get_target_record(target_id=uuid.uuid4().hex)

@@ -12,7 +12,7 @@ import pytest
 import requests
 from vws import VWS, CloudRecoService
 from vws.exceptions import cloud_reco_exceptions
-from vws.exceptions.vws_exceptions import AuthenticationFailure, Fail
+from vws.exceptions.vws_exceptions import AuthenticationFailureError, FailError
 from vws_auth_tools import rfc_1123_date
 
 from mock_vws._constants import ResultCodes
@@ -209,7 +209,7 @@ class TestBadKey:
             server_secret_key=vuforia_database.server_secret_key,
         )
 
-        with pytest.raises(expected_exception=Fail) as exc:
+        with pytest.raises(expected_exception=FailError) as exc:
             vws_client.get_target_record(target_id=uuid.uuid4().hex)
 
         assert exc.value.response.status_code == HTTPStatus.BAD_REQUEST
@@ -229,7 +229,7 @@ class TestBadKey:
         )
 
         with pytest.raises(
-            expected_exception=cloud_reco_exceptions.AuthenticationFailure
+            expected_exception=cloud_reco_exceptions.AuthenticationFailureError
         ) as exc:
             cloud_reco_client.query(image=high_quality_image)
 
@@ -267,14 +267,14 @@ class TestBadKey:
     ) -> None:
         """
         If the server secret key given is incorrect, an
-        ``AuthenticationFailure`` response is returned.
+        ``AuthenticationFailureError`` response is returned.
         """
         vws_client = VWS(
             server_access_key=vuforia_database.server_access_key,
             server_secret_key="example",
         )
 
-        with pytest.raises(expected_exception=AuthenticationFailure):
+        with pytest.raises(expected_exception=AuthenticationFailureError):
             vws_client.get_target_record(target_id=uuid.uuid4().hex)
 
     @staticmethod
@@ -292,7 +292,7 @@ class TestBadKey:
         )
 
         with pytest.raises(
-            expected_exception=cloud_reco_exceptions.AuthenticationFailure
+            expected_exception=cloud_reco_exceptions.AuthenticationFailureError
         ) as exc:
             cloud_reco_client.query(image=high_quality_image)
 

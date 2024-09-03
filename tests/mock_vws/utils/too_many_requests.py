@@ -8,7 +8,7 @@ import requests
 from beartype import beartype
 from vws.exceptions.custom_exceptions import ServerError
 from vws.exceptions.response import Response
-from vws.exceptions.vws_exceptions import TooManyRequests
+from vws.exceptions.vws_exceptions import TooManyRequestsError
 
 
 @beartype
@@ -18,7 +18,8 @@ def handle_server_errors(*, response: requests.Response) -> None:
     This is useful for retrying tests based on the exceptions they raise.
 
     Raises:
-        vws.exceptions.vws_exceptions.TooManyRequests: The response is a 429.
+        vws.exceptions.vws_exceptions.TooManyRequestsError: The response is a
+            429.
         vws.exceptions.custom_exceptions.ServerError: The response is a 5xx.
     """
     vws_response = Response(
@@ -35,7 +36,7 @@ def handle_server_errors(*, response: requests.Response) -> None:
     ):  # pragma: no cover
         # The Vuforia API returns a 429 response with no JSON body.
         # We raise this here to prompt a retry at a higher level.
-        raise TooManyRequests(response=vws_response)
+        raise TooManyRequestsError(response=vws_response)
 
     # We do not cover this because in some test runs we will not hit the
     # error.

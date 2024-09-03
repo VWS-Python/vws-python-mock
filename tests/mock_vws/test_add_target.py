@@ -8,35 +8,33 @@ import json
 from http import HTTPMethod, HTTPStatus
 from string import hexdigits
 from typing import Any, Final
-from urllib.parse import urljoin
 
 import pytest
-import requests
 from beartype import beartype
 from dirty_equals import IsInstance
 from requests.structures import CaseInsensitiveDict
 from vws import VWS
-from vws.exceptions.custom_exceptions import OopsAnErrorOccurredPossiblyBadName
+from vws.exceptions.custom_exceptions import (
+    OopsAnErrorOccurredPossiblyBadNameError,
+)
 from vws.exceptions.response import Response
 from vws.exceptions.vws_exceptions import (
-    BadImage,
-    Fail,
-    ImageTooLarge,
-    MetadataTooLarge,
-    ProjectInactive,
-    TargetNameExist,
+    AuthenticationFailureError,
+    BadImageError,
+    FailError,
+    ImageTooLargeError,
+    MetadataTooLargeError,
+    ProjectInactiveError,
+    TargetNameExistError,
 )
-from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes
-from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import make_image_file
 from tests.mock_vws.utils.assertions import (
     assert_valid_date_header,
     assert_vws_failure,
     assert_vws_response,
 )
-from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
 _MAX_METADATA_BYTES: Final[int] = 1024 * 1024 - 1
 
@@ -44,52 +42,29 @@ _MAX_METADATA_BYTES: Final[int] = 1024 * 1024 - 1
 @beartype
 def _add_target_to_vws(
     *,
-    vuforia_database: VuforiaDatabase,
+    vws_client: VWS,
     data: dict[str, Any],
     content_type: str = "application/json",
-) -> requests.Response:
+) -> Response:
     """
     Return a response from a request to the endpoint to add a target.
 
     Args:
-        vuforia_database: The credentials to use to connect to Vuforia.
+        vws_client: The client to use to connect to Vuforia.
         data: The data to send, in JSON format, to the endpoint.
         content_type: The `Content-Type` header to use.
 
     Returns:
         The response returned by the API.
     """
-    date = rfc_1123_date()
-    request_path = "/targets"
-
     content = json.dumps(obj=data).encode(encoding="utf-8")
-
-    authorization_string = authorization_header(
-        access_key=vuforia_database.server_access_key,
-        secret_key=vuforia_database.server_secret_key,
+    return vws_client.make_request(
         method=HTTPMethod.POST,
-        content=content,
-        content_type=content_type,
-        date=date,
-        request_path=request_path,
-    )
-
-    headers = {
-        "Authorization": authorization_string,
-        "Date": date,
-        "Content-Type": content_type,
-    }
-
-    response = requests.request(
-        method=HTTPMethod.POST,
-        url=urljoin(base="https://vws.vuforia.com/", url=request_path),
-        headers=headers,
         data=content,
-        timeout=30,
+        request_path="/targets",
+        expected_result_code=ResultCodes.TARGET_CREATED.value,
+        content_type=content_type,
     )
-
-    handle_server_errors(response=response)
-    return response
 
 
 @beartype
@@ -121,7 +96,7 @@ def _assert_oops_response(response: Response) -> None:
     assert response.headers == expected_headers
 
 
-def assert_success(response: requests.Response) -> None:
+def assert_success(response: Response) -> None:
     """
     Assert that the given response is a success response for adding a
     target.
@@ -136,11 +111,13 @@ def assert_success(response: requests.Response) -> None:
         result_code=ResultCodes.TARGET_CREATED,
     )
     expected_keys = {"result_code", "transaction_id", "target_id"}
-    assert response.json().keys() == expected_keys
-    target_id = response.json()["target_id"]
+    response_json = json.loads(s=response.text)
+    target_id = response_json["target_id"]
     expected_target_id_length = 32
     assert len(target_id) == expected_target_id_length
     assert all(char in hexdigits for char in target_id)
+    assert isinstance(response_json, dict)
+    assert response_json.keys() == expected_keys
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -164,7 +141,7 @@ class TestContentTypes:
         ],
     )
     def test_content_types(
-        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         image_file_failed_state: io.BytesIO,
         content_type: str,
     ) -> None:
@@ -181,7 +158,7 @@ class TestContentTypes:
         }
 
         response = _add_target_to_vws(
-            vuforia_database=vuforia_database,
+            vws_client=vws_client,
             data=data,
             content_type=content_type,
         )
@@ -190,7 +167,7 @@ class TestContentTypes:
 
     @staticmethod
     def test_empty_content_type(
-        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -206,14 +183,17 @@ class TestContentTypes:
             "image": image_data_encoded,
         }
 
-        response = _add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
-            content_type="",
-        )
+        with pytest.raises(
+            expected_exception=AuthenticationFailureError,
+        ) as exc:
+            _add_target_to_vws(
+                vws_client=vws_client,
+                data=data,
+                content_type="",
+            )
 
         assert_vws_failure(
-            response=response,
+            response=exc.value.response,
             status_code=HTTPStatus.UNAUTHORIZED,
             result_code=ResultCodes.AUTHENTICATION_FAILURE,
         )
@@ -228,7 +208,7 @@ class TestMissingData:
     @staticmethod
     @pytest.mark.parametrize("data_to_remove", ["name", "width", "image"])
     def test_missing_data(
-        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         image_file_failed_state: io.BytesIO,
         data_to_remove: str,
     ) -> None:
@@ -236,7 +216,9 @@ class TestMissingData:
         `name`, `width` and `image` are all required.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode(
+            encoding="ascii",
+        )
 
         data = {
             "name": "example_name",
@@ -245,13 +227,11 @@ class TestMissingData:
         }
         data.pop(data_to_remove)
 
-        response = _add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
-        )
+        with pytest.raises(expected_exception=FailError) as exc:
+            _add_target_to_vws(vws_client=vws_client, data=data)
 
         assert_vws_failure(
-            response=response,
+            response=exc.value.response,
             status_code=HTTPStatus.BAD_REQUEST,
             result_code=ResultCodes.FAIL,
         )
@@ -270,7 +250,7 @@ class TestWidth:
         ids=["Negative", "Wrong Type", "None", "Zero"],
     )
     def test_width_invalid(
-        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         image_file_failed_state: io.BytesIO,
         width: int | str | None,
     ) -> None:
@@ -286,13 +266,11 @@ class TestWidth:
             "image": image_data_encoded,
         }
 
-        response = _add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
-        )
+        with pytest.raises(expected_exception=FailError) as exc:
+            _add_target_to_vws(vws_client=vws_client, data=data)
 
         assert_vws_failure(
-            response=response,
+            response=exc.value.response,
             status_code=HTTPStatus.BAD_REQUEST,
             result_code=ResultCodes.FAIL,
         )
@@ -385,29 +363,30 @@ class TestTargetName:
         A target's name must be a string of length 0 < N < 65, with characters
         in a particular range.
         """
+        image_data = image_file_failed_state.read()
+        image_data_encoded = base64.b64encode(s=image_data).decode(
+            encoding="ascii",
+        )
+        data = {
+            "name": name,
+            "width": 1,
+            "image": image_data_encoded,
+            "application_metadata": None,
+            "active_flag": True,
+        }
+
         if status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             with pytest.raises(
-                expected_exception=OopsAnErrorOccurredPossiblyBadName,
+                expected_exception=OopsAnErrorOccurredPossiblyBadNameError,
             ) as oops_exc:
-                vws_client.add_target(
-                    name=name,  # type: ignore[arg-type]
-                    width=1,
-                    image=image_file_failed_state,
-                    application_metadata=None,
-                    active_flag=True,
-                )
+                _add_target_to_vws(vws_client=vws_client, data=data)
             assert oops_exc.value.response.status_code == status_code
             _assert_oops_response(response=oops_exc.value.response)
             return
 
-        with pytest.raises(expected_exception=Fail) as exc:
-            vws_client.add_target(
-                name=name,  # type: ignore[arg-type]
-                width=1,
-                image=image_file_failed_state,
-                application_metadata=None,
-                active_flag=True,
-            )
+        with pytest.raises(expected_exception=FailError) as exc:
+            _add_target_to_vws(vws_client=vws_client, data=data)
+
         assert_vws_failure(
             response=exc.value.response,
             status_code=status_code,
@@ -430,7 +409,7 @@ class TestTargetName:
             active_flag=True,
         )
 
-        with pytest.raises(expected_exception=TargetNameExist) as exc:
+        with pytest.raises(expected_exception=TargetNameExistError) as exc:
             vws_client.add_target(
                 name="example_name",
                 width=1,
@@ -507,7 +486,7 @@ class TestImage:
         a JPEG or PNG file is given, or if the given image is not in the
         greyscale or RGB color space.
         """
-        with pytest.raises(expected_exception=BadImage) as exc:
+        with pytest.raises(expected_exception=BadImageError) as exc:
             vws_client.add_target(
                 name="example_name",
                 width=1,
@@ -541,8 +520,8 @@ class TestImage:
     @staticmethod
     def test_image_file_size_too_large(vws_client: VWS) -> None:
         """
-        An ``ImageTooLarge`` result is returned if the image file size is above
-        a certain threshold.
+        An ``ImageTooLargeError`` result is returned if the image file size is
+        above a certain threshold.
         """
         max_bytes = 2.3 * 1024 * 1024
         width = height = 886
@@ -590,7 +569,7 @@ class TestImage:
         assert image_content_size < max_bytes
         assert (image_content_size * 1.05) > max_bytes
 
-        with pytest.raises(expected_exception=ImageTooLarge) as exc:
+        with pytest.raises(expected_exception=ImageTooLargeError) as exc:
             vws_client.add_target(
                 name="example_name_2",
                 width=1,
@@ -607,7 +586,7 @@ class TestImage:
 
     @staticmethod
     def test_not_base64_encoded_processable(
-        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         not_base64_encoded_processable: str,
     ) -> None:
         """
@@ -622,20 +601,18 @@ class TestImage:
             "image": not_base64_encoded_processable,
         }
 
-        response = _add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
-        )
+        with pytest.raises(expected_exception=BadImageError) as exc:
+            _add_target_to_vws(vws_client=vws_client, data=data)
 
         assert_vws_failure(
-            response=response,
+            response=exc.value.response,
             status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             result_code=ResultCodes.BAD_IMAGE,
         )
 
     @staticmethod
     def test_not_base64_encoded_not_processable(
-        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         not_base64_encoded_not_processable: str,
     ) -> None:
         """
@@ -649,13 +626,11 @@ class TestImage:
             "image": not_base64_encoded_not_processable,
         }
 
-        response = _add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
-        )
+        with pytest.raises(expected_exception=FailError) as exc:
+            _add_target_to_vws(vws_client=vws_client, data=data)
 
         assert_vws_failure(
-            response=response,
+            response=exc.value.response,
             status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             result_code=ResultCodes.FAIL,
         )
@@ -663,10 +638,10 @@ class TestImage:
     @staticmethod
     def test_not_image(vws_client: VWS) -> None:
         """
-        If the given image is not an image file then a `BadImage` result is
-        returned.
+        If the given image is not an image file then a `BadImageError` result
+        is returned.
         """
-        with pytest.raises(expected_exception=BadImage) as exc:
+        with pytest.raises(expected_exception=BadImageError) as exc:
             vws_client.add_target(
                 name="example_name",
                 width=1,
@@ -685,7 +660,7 @@ class TestImage:
     @pytest.mark.parametrize("invalid_type_image", [1, None])
     def test_invalid_type(
         invalid_type_image: int | None,
-        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         If the given image is not a string, a `Fail` result is returned.
@@ -696,13 +671,11 @@ class TestImage:
             "image": invalid_type_image,
         }
 
-        response = _add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
-        )
+        with pytest.raises(expected_exception=FailError) as exc:
+            _add_target_to_vws(vws_client=vws_client, data=data)
 
         assert_vws_failure(
-            response=response,
+            response=exc.value.response,
             status_code=HTTPStatus.BAD_REQUEST,
             result_code=ResultCodes.FAIL,
         )
@@ -719,13 +692,15 @@ class TestActiveFlag:
     def test_valid(
         active_flag: bool | None,
         image_file_failed_state: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         Boolean values and NULL are valid active flags.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode(
+            encoding="ascii",
+        )
         content_type = "application/json"
 
         data = {
@@ -736,7 +711,7 @@ class TestActiveFlag:
         }
 
         response = _add_target_to_vws(
-            vuforia_database=vuforia_database,
+            vws_client=vws_client,
             data=data,
             content_type=content_type,
         )
@@ -746,7 +721,7 @@ class TestActiveFlag:
     @staticmethod
     def test_invalid(
         image_file_failed_state: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """
         Values which are not Boolean values or NULL are not valid active flags.
@@ -763,21 +738,21 @@ class TestActiveFlag:
             "active_flag": active_flag,
         }
 
-        response = _add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
-            content_type=content_type,
-        )
+        with pytest.raises(expected_exception=FailError) as exc:
+            _add_target_to_vws(
+                vws_client=vws_client,
+                data=data,
+                content_type=content_type,
+            )
 
         assert_vws_failure(
-            response=response,
+            response=exc.value.response,
             status_code=HTTPStatus.BAD_REQUEST,
             result_code=ResultCodes.FAIL,
         )
 
     @staticmethod
     def test_not_set(
-        vuforia_database: VuforiaDatabase,
         vws_client: VWS,
         image_file_failed_state: io.BytesIO,
     ) -> None:
@@ -793,18 +768,14 @@ class TestActiveFlag:
             "image": image_data_encoded,
         }
 
-        response = _add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
-        )
-
-        target_id = response.json()["target_id"]
+        response = _add_target_to_vws(vws_client=vws_client, data=data)
+        response_json = json.loads(s=response.text)
+        target_id = response_json["target_id"]
         target_details = vws_client.get_target_record(target_id=target_id)
         assert target_details.target_record.active_flag is True
 
     @staticmethod
     def test_set_to_none(
-        vuforia_database: VuforiaDatabase,
         vws_client: VWS,
         image_file_failed_state: io.BytesIO,
     ) -> None:
@@ -821,12 +792,10 @@ class TestActiveFlag:
             "active_flag": None,
         }
 
-        response = _add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
-        )
+        response = _add_target_to_vws(vws_client=vws_client, data=data)
 
-        target_id = response.json()["target_id"]
+        response_json = json.loads(s=response.text)
+        target_id = response_json["target_id"]
         target_details = vws_client.get_target_record(target_id=target_id)
         assert target_details.target_record.active_flag is True
 
@@ -839,7 +808,7 @@ class TestUnexpectedData:
 
     @staticmethod
     def test_invalid_extra_data(
-        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -855,13 +824,11 @@ class TestUnexpectedData:
             "extra_thing": 1,
         }
 
-        response = _add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
-        )
+        with pytest.raises(expected_exception=FailError) as exc:
+            _add_target_to_vws(vws_client=vws_client, data=data)
 
         assert_vws_failure(
-            response=response,
+            response=exc.value.response,
             status_code=HTTPStatus.BAD_REQUEST,
             result_code=ResultCodes.FAIL,
         )
@@ -902,7 +869,7 @@ class TestApplicationMetadata:
 
     @staticmethod
     def test_null(
-        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -919,7 +886,7 @@ class TestApplicationMetadata:
         }
 
         response = _add_target_to_vws(
-            vuforia_database=vuforia_database,
+            vws_client=vws_client,
             data=request_data,
         )
 
@@ -927,7 +894,7 @@ class TestApplicationMetadata:
 
     @staticmethod
     def test_invalid_type(
-        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
@@ -944,13 +911,11 @@ class TestApplicationMetadata:
             "application_metadata": 1,
         }
 
-        response = _add_target_to_vws(
-            vuforia_database=vuforia_database,
-            data=data,
-        )
+        with pytest.raises(expected_exception=FailError) as exc:
+            _add_target_to_vws(vws_client=vws_client, data=data)
 
         assert_vws_failure(
-            response=response,
+            response=exc.value.response,
             status_code=HTTPStatus.BAD_REQUEST,
             result_code=ResultCodes.FAIL,
         )
@@ -983,7 +948,7 @@ class TestApplicationMetadata:
         Some strings which are not valid base64 encoded strings are not allowed
         as application metadata.
         """
-        with pytest.raises(expected_exception=Fail) as exc:
+        with pytest.raises(expected_exception=FailError) as exc:
             vws_client.add_target(
                 name="example",
                 width=1,
@@ -1010,7 +975,7 @@ class TestApplicationMetadata:
         metadata = b"a" * (_MAX_METADATA_BYTES + 1)
         metadata_encoded = base64.b64encode(s=metadata).decode("ascii")
 
-        with pytest.raises(expected_exception=MetadataTooLarge) as exc:
+        with pytest.raises(expected_exception=MetadataTooLargeError) as exc:
             vws_client.add_target(
                 name="example",
                 width=1,
@@ -1040,7 +1005,7 @@ class TestInactiveProject:
         """
         If the project is inactive, a FORBIDDEN response is returned.
         """
-        with pytest.raises(expected_exception=ProjectInactive) as exc:
+        with pytest.raises(expected_exception=ProjectInactiveError) as exc:
             inactive_vws_client.add_target(
                 name="example",
                 width=1,
