@@ -1292,7 +1292,7 @@ class TestBadImage:
         expected_text = (
             '{"transaction_id": '
             f'"{response_json["transaction_id"]}",'
-            f'"result_code":"BadImageError"'
+            f'"result_code":"BadImage"'
             "}"
         )
         assert response.text == expected_text
@@ -1520,7 +1520,7 @@ class TestMaximumImageDimensions:
         expected_text = (
             '{"transaction_id": '
             f'"{response_json["transaction_id"]}",'
-            f'"result_code":"BadImageError"'
+            f'"result_code":"BadImage"'
             "}"
         )
         assert response.text == expected_text
@@ -1572,7 +1572,7 @@ class TestMaximumImageDimensions:
         expected_text = (
             '{"transaction_id": '
             f'"{response_json["transaction_id"]}",'
-            f'"result_code":"BadImageError"'
+            f'"result_code":"BadImage"'
             "}"
         )
         assert response.text == expected_text
@@ -1657,7 +1657,7 @@ class TestImageFormats:
         expected_text = (
             '{"transaction_id": '
             f'"{response_json["transaction_id"]}",'
-            f'"result_code":"BadImageError"'
+            f'"result_code":"BadImage"'
             "}"
         )
         assert response.text == expected_text
@@ -2002,7 +2002,7 @@ class TestInactiveProject:
         expected_text = (
             '{"transaction_id": '
             f'"{response_json["transaction_id"]}",'
-            f'"result_code":"InactiveProjectError"'
+            f'"result_code":"InactiveProject"'
             "}"
         )
         assert response.text == expected_text
