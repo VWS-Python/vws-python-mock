@@ -158,7 +158,7 @@ class TestRecognitionCounts:
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
-class TestInactiveProjectError:
+class TestInactiveProject:
     """
     Tests for inactive projects.
     """

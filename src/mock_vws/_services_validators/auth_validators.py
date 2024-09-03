@@ -10,7 +10,7 @@ from beartype import beartype
 
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._services_validators.exceptions import (
-    AuthenticationFailureErrorError,
+    AuthenticationFailureError,
     FailError,
 )
 from mock_vws.database import VuforiaDatabase
@@ -27,11 +27,11 @@ def validate_auth_header_exists(*, request_headers: Mapping[str, str]) -> None:
         request_headers: The headers sent with the request.
 
     Raises:
-        AuthenticationFailureErrorError: There is no "Authorization" header.
+        AuthenticationFailureError: There is no "Authorization" header.
     """
     if "Authorization" not in request_headers:
         _LOGGER.warning(msg="There is no authorization header.")
-        raise AuthenticationFailureErrorError
+        raise AuthenticationFailureError
 
 
 @beartype
@@ -108,8 +108,8 @@ def validate_authorization(
         databases: All Vuforia databases.
 
     Raises:
-        AuthenticationFailureErrorError: No database matches the given
-            authorization header.
+        AuthenticationFailureError: No database matches the given authorization
+            header.
     """
     try:
         get_database_matching_server_keys(
@@ -123,4 +123,4 @@ def validate_authorization(
         _LOGGER.warning(
             msg="No database matches the given authorization header.",
         )
-        raise AuthenticationFailureErrorError from exc
+        raise AuthenticationFailureError from exc

@@ -12,9 +12,9 @@ from PIL import Image
 from werkzeug.formparser import MultiPartParser
 
 from mock_vws._query_validators.exceptions import (
-    BadImageErrorError,
+    BadImageError,
     ImageNotGivenError,
-    RequestEntityTooLargeErrorError,
+    RequestEntityTooLargeError,
 )
 
 _LOGGER = logging.getLogger(name=__name__)
@@ -66,7 +66,7 @@ def validate_image_file_size(
         request_body: The body of the request.
 
     Raises:
-        RequestEntityTooLargeErrorError: The image file size is too large.
+        RequestEntityTooLargeError: The image file size is too large.
     """
     email_message = EmailMessage()
     email_message["Content-Type"] = request_headers["Content-Type"]
@@ -90,7 +90,7 @@ def validate_image_file_size(
     # See https://github.com/urllib3/urllib3/issues/2733.
     if len(image_value) > max_bytes:  # pragma: no cover
         _LOGGER.warning(msg="The image file size is too large.")
-        raise RequestEntityTooLargeErrorError
+        raise RequestEntityTooLargeError
 
 
 @beartype
@@ -107,8 +107,8 @@ def validate_image_dimensions(
         request_body: The body of the request.
 
     Raises:
-        BadImageErrorError: The image is given and is not within the maximum
-            width and height limits.
+        BadImageError: The image is given and is not within the maximum width
+            and height limits.
     """
     email_message = EmailMessage()
     email_message["Content-Type"] = request_headers["Content-Type"]
@@ -129,7 +129,7 @@ def validate_image_dimensions(
         return
 
     _LOGGER.warning(msg="The image dimensions are too large.")
-    raise BadImageErrorError
+    raise BadImageError
 
 
 @beartype
@@ -146,8 +146,7 @@ def validate_image_format(
         request_body: The body of the request.
 
     Raises:
-        BadImageErrorError: The image is given and is not either a PNG or a
-            JPEG.
+        BadImageError: The image is given and is not either a PNG or a JPEG.
     """
     email_message = EmailMessage()
     email_message["Content-Type"] = request_headers["Content-Type"]
@@ -165,7 +164,7 @@ def validate_image_format(
         return
 
     _LOGGER.warning(msg="The image format is not PNG or JPEG.")
-    raise BadImageErrorError
+    raise BadImageError
 
 
 @beartype
@@ -181,7 +180,7 @@ def validate_image_is_image(
         request_body: The body of the request.
 
     Raises:
-        BadImageErrorError: Image data is given and it is not an image file.
+        BadImageError: Image data is given and it is not an image file.
     """
     email_message = EmailMessage()
     email_message["Content-Type"] = request_headers["Content-Type"]
@@ -199,4 +198,4 @@ def validate_image_is_image(
         Image.open(fp=image_file)
     except OSError as exc:
         _LOGGER.warning(msg="The image is not an image file.")
-        raise BadImageErrorError from exc
+        raise BadImageError from exc

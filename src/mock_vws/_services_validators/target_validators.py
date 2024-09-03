@@ -8,7 +8,7 @@ from collections.abc import Mapping
 from beartype import beartype
 
 from mock_vws._database_matchers import get_database_matching_server_keys
-from mock_vws._services_validators.exceptions import UnknownTargetErrorError
+from mock_vws._services_validators.exceptions import UnknownTargetError
 from mock_vws.database import VuforiaDatabase
 
 _LOGGER = logging.getLogger(name=__name__)
@@ -35,8 +35,8 @@ def validate_target_id_exists(
         databases: All Vuforia databases.
 
     Raises:
-        UnknownTargetErrorError: There are no matching targets for a given
-            target ID.
+        UnknownTargetError: There are no matching targets for a given target
+            ID.
     """
     split_path = request_path.split(sep="/")
 
@@ -61,4 +61,4 @@ def validate_target_id_exists(
         )
     except ValueError as exc:
         _LOGGER.warning('The target ID "%s" does not exist.', target_id)
-        raise UnknownTargetErrorError from exc
+        raise UnknownTargetError from exc

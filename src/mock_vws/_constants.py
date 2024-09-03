@@ -20,24 +20,24 @@ class ResultCodes(Enum):
 
     SUCCESS = "Success"
     TARGET_CREATED = "TargetCreated"
-    AUTHENTICATION_FAILURE = "AuthenticationFailureError"
+    AUTHENTICATION_FAILURE = "AuthenticationFailure"
     REQUEST_TIME_TOO_SKEWED = "RequestTimeTooSkewed"
-    TARGET_NAME_EXIST = "TargetNameExistError"
-    UNKNOWN_TARGET = "UnknownTargetError"
-    BAD_IMAGE = "BadImageError"
-    IMAGE_TOO_LARGE = "ImageTooLargeError"
-    METADATA_TOO_LARGE = "MetadataTooLargeError"
+    TARGET_NAME_EXIST = "TargetNameExist"
+    UNKNOWN_TARGET = "UnknownTarget"
+    BAD_IMAGE = "BadImage"
+    IMAGE_TOO_LARGE = "ImageTooLarge"
+    METADATA_TOO_LARGE = "MetadataTooLarge"
     # The documentation says "Start date is after the end date" but, at the
     # time of writing, I do not know how to trigger that, therefore this is not
     # tested.
     DATE_RANGE_ERROR = "DateRangeError"
     FAIL = "Fail"
-    TARGET_STATUS_PROCESSING = "TargetStatusProcessingError"
+    TARGET_STATUS_PROCESSING = "TargetStatusProcessing"
     REQUEST_QUOTA_REACHED = "RequestQuotaReached"
-    TARGET_STATUS_NOT_SUCCESS = "TargetStatusNotSuccessError"
-    PROJECT_INACTIVE = "ProjectInactiveError"
-    INACTIVE_PROJECT = "InactiveProjectError"
-    TOO_MANY_REQUESTS = "TooManyRequestsError"
+    TARGET_STATUS_NOT_SUCCESS = "TargetStatusNotSuccess"
+    PROJECT_INACTIVE = "ProjectInactive"
+    INACTIVE_PROJECT = "InactiveProject"
+    TOO_MANY_REQUESTS = "TooManyRequests"
 
 
 @beartype

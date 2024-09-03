@@ -125,10 +125,10 @@ class RequestTimeTooSkewedError(ValidatorError):
 
 
 @beartype
-class BadImageErrorError(ValidatorError):
+class BadImageError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
-    'BadImageError'.
+    'BadImage'.
     """
 
     def __init__(self) -> None:
@@ -168,10 +168,10 @@ class BadImageErrorError(ValidatorError):
 
 
 @beartype
-class AuthenticationFailureErrorError(ValidatorError):
+class AuthenticationFailureError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
-    'AuthenticationFailureError'.
+    'AuthenticationFailure'.
     """
 
     def __init__(self) -> None:
@@ -211,10 +211,10 @@ class AuthenticationFailureErrorError(ValidatorError):
 
 
 @beartype
-class AuthenticationFailureErrorGoodFormattingError(ValidatorError):
+class AuthenticationFailureGoodFormattingError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
-    'AuthenticationFailureError' with a standard JSON formatting.
+    'AuthenticationFailure' with a standard JSON formatting.
     """
 
     def __init__(self) -> None:
@@ -380,10 +380,10 @@ class UnknownParametersError(ValidatorError):
 
 
 @beartype
-class InactiveProjectErrorError(ValidatorError):
+class InactiveProjectError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
-    'InactiveProjectError'.
+    'InactiveProject'.
     """
 
     def __init__(self) -> None:
@@ -459,7 +459,7 @@ class InvalidMaxNumResultsError(ValidatorError):
 
 
 @beartype
-class MaxNumResultsOutOfRangeErrorError(ValidatorError):
+class MaxNumResultsOutOfRangeError(ValidatorError):
     """
     Exception raised when an integer value is given as the "max_num_results"
     field which is out of range.
@@ -679,7 +679,7 @@ class ContentLengthHeaderNotIntError(ValidatorError):
 
 
 @beartype
-class RequestEntityTooLargeErrorError(ValidatorError):
+class RequestEntityTooLargeError(ValidatorError):
     """
     Exception raised when the given image file size is too large.
     """

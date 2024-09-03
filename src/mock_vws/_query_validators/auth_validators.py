@@ -9,7 +9,7 @@ from beartype import beartype
 
 from mock_vws._database_matchers import get_database_matching_client_keys
 from mock_vws._query_validators.exceptions import (
-    AuthenticationFailureErrorError,
+    AuthenticationFailureError,
     AuthHeaderMissingError,
     MalformedAuthHeaderError,
 )
@@ -75,7 +75,7 @@ def validate_client_key_exists(
         databases: All Vuforia databases.
 
     Raises:
-        AuthenticationFailureErrorError: The client key is unknown.
+        AuthenticationFailureError: The client key is unknown.
     """
     header = request_headers["Authorization"]
     first_part, _ = header.split(sep=":")
@@ -85,7 +85,7 @@ def validate_client_key_exists(
             return
 
     _LOGGER.warning(msg="The client key is unknown.")
-    raise AuthenticationFailureErrorError
+    raise AuthenticationFailureError
 
 
 @beartype
@@ -129,7 +129,7 @@ def validate_authorization(
         databases: All Vuforia databases.
 
     Raises:
-        AuthenticationFailureErrorError: The "Authorization" header is not as
+        AuthenticationFailureError: The "Authorization" header is not as
             expected.
     """
     try:
@@ -144,4 +144,4 @@ def validate_authorization(
         _LOGGER.warning(
             msg="The authorization header does not match any databases.",
         )
-        raise AuthenticationFailureErrorError from exc
+        raise AuthenticationFailureError from exc

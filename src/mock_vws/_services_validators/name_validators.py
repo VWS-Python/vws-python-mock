@@ -13,7 +13,7 @@ from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._services_validators.exceptions import (
     FailError,
     OopsErrorOccurredResponseError,
-    TargetNameExistErrorError,
+    TargetNameExistError,
 )
 from mock_vws.database import VuforiaDatabase
 
@@ -38,8 +38,8 @@ def validate_name_characters_in_range(
     Raises:
         OopsErrorOccurredResponseError: Characters are out of range and the
             request is trying to make a new target.
-        TargetNameExistErrorError: Characters are out of range and the request
-            is for another endpoint.
+        TargetNameExistError: Characters are out of range and the request is
+            for another endpoint.
     """
     if not request_body:
         return
@@ -59,7 +59,7 @@ def validate_name_characters_in_range(
         raise OopsErrorOccurredResponseError
 
     _LOGGER.warning(msg="Characters are out of range.")
-    raise TargetNameExistErrorError
+    raise TargetNameExistError
 
 
 @beartype
@@ -138,7 +138,7 @@ def validate_name_does_not_exist_new_target(
         request_path: The path to the endpoint.
 
     Raises:
-        TargetNameExistErrorError: The target name already exists.
+        TargetNameExistError: The target name already exists.
     """
     if not request_body:
         return
@@ -172,7 +172,7 @@ def validate_name_does_not_exist_new_target(
         return
 
     _LOGGER.warning(msg="Target name already exists.")
-    raise TargetNameExistErrorError
+    raise TargetNameExistError
 
 
 @beartype
@@ -196,8 +196,8 @@ def validate_name_does_not_exist_existing_target(
         request_path: The path to the endpoint.
 
     Raises:
-        TargetNameExistErrorError: The target name is not the same as the name
-            of the target being updated but it is the same as another target.
+        TargetNameExistError: The target name is not the same as the name of
+            the target being updated but it is the same as another target.
     """
     if not request_body:
         return
@@ -236,4 +236,4 @@ def validate_name_does_not_exist_existing_target(
         return
 
     _LOGGER.warning(msg="Name already exists for another target.")
-    raise TargetNameExistErrorError
+    raise TargetNameExistError

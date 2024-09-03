@@ -26,10 +26,10 @@ class ValidatorError(Exception):
 
 
 @beartype
-class UnknownTargetErrorError(ValidatorError):
+class UnknownTargetError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
-    'UnknownTargetError'.
+    'UnknownTarget'.
     """
 
     def __init__(self) -> None:
@@ -66,10 +66,10 @@ class UnknownTargetErrorError(ValidatorError):
 
 
 @beartype
-class ProjectInactiveErrorError(ValidatorError):
+class ProjectInactiveError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
-    'ProjectInactiveError'.
+    'ProjectInactive'.
     """
 
     def __init__(self) -> None:
@@ -106,10 +106,10 @@ class ProjectInactiveErrorError(ValidatorError):
 
 
 @beartype
-class AuthenticationFailureErrorError(ValidatorError):
+class AuthenticationFailureError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
-    'AuthenticationFailureError'.
+    'AuthenticationFailure'.
     """
 
     def __init__(self) -> None:
@@ -185,10 +185,10 @@ class FailError(ValidatorError):
 
 
 @beartype
-class MetadataTooLargeErrorError(ValidatorError):
+class MetadataTooLargeError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
-    'MetadataTooLargeError'.
+    'MetadataTooLarge'.
     """
 
     def __init__(self) -> None:
@@ -225,10 +225,10 @@ class MetadataTooLargeErrorError(ValidatorError):
 
 
 @beartype
-class TargetNameExistErrorError(ValidatorError):
+class TargetNameExistError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
-    'TargetNameExistError'.
+    'TargetNameExist'.
     """
 
     def __init__(self) -> None:
@@ -307,10 +307,10 @@ class OopsErrorOccurredResponseError(ValidatorError):
 
 
 @beartype
-class BadImageErrorError(ValidatorError):
+class BadImageError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
-    'BadImageError'.
+    'BadImage'.
     """
 
     def __init__(self) -> None:
@@ -347,10 +347,10 @@ class BadImageErrorError(ValidatorError):
 
 
 @beartype
-class ImageTooLargeErrorError(ValidatorError):
+class ImageTooLargeError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
-    'ImageTooLargeError'.
+    'ImageTooLarge'.
     """
 
     def __init__(self) -> None:
@@ -529,7 +529,7 @@ class UnnecessaryRequestBodyError(ValidatorError):
 
 
 @beartype
-class TargetStatusNotSuccessErrorError(ValidatorError):
+class TargetStatusNotSuccessError(ValidatorError):
     """
     Exception raised when trying to update a target that does not have a
     success status.
@@ -569,7 +569,7 @@ class TargetStatusNotSuccessErrorError(ValidatorError):
 
 
 @beartype
-class TargetStatusProcessingErrorError(ValidatorError):
+class TargetStatusProcessingError(ValidatorError):
     """
     Exception raised when trying to delete a target which is processing.
     """

@@ -8,9 +8,7 @@ from http import HTTPMethod
 
 from beartype import beartype
 
-from mock_vws._services_validators.exceptions import (
-    AuthenticationFailureErrorError,
-)
+from mock_vws._services_validators.exceptions import AuthenticationFailureError
 
 _LOGGER = logging.getLogger(name=__name__)
 
@@ -29,8 +27,8 @@ def validate_content_type_header_given(
         request_method: The HTTP method of the request.
 
     Raises:
-        AuthenticationFailureErrorError: No ``Content-Type`` header is given
-            and the request requires one.
+        AuthenticationFailureError: No ``Content-Type`` header is given and the
+            request requires one.
     """
     request_needs_content_type = bool(
         request_method in {HTTPMethod.POST, HTTPMethod.PUT},
@@ -39,4 +37,4 @@ def validate_content_type_header_given(
         return
 
     _LOGGER.warning(msg="No Content-Type header is given.")
-    raise AuthenticationFailureErrorError
+    raise AuthenticationFailureError

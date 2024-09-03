@@ -1245,7 +1245,7 @@ class TestActiveFlag:
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
-class TestBadImageError:
+class TestBadImage:
     """
     Tests for bad images.
     """
@@ -1964,7 +1964,7 @@ class TestDateFormats:
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
-class TestInactiveProjectError:
+class TestInactiveProject:
     """
     Tests for inactive projects.
     """

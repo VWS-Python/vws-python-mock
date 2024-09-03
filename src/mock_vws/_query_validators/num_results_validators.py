@@ -12,7 +12,7 @@ from werkzeug.formparser import MultiPartParser
 
 from mock_vws._query_validators.exceptions import (
     InvalidMaxNumResultsError,
-    MaxNumResultsOutOfRangeErrorError,
+    MaxNumResultsOutOfRangeError,
 )
 
 _LOGGER = logging.getLogger(name=__name__)
@@ -35,8 +35,8 @@ def validate_max_num_results(
     Raises:
         InvalidMaxNumResultsError: The ``max_num_results`` given is not an
             integer less than or equal to the max integer in Java.
-        MaxNumResultsOutOfRangeErrorError: The ``max_num_results`` given is
-            not in range.
+        MaxNumResultsOutOfRangeError: The ``max_num_results`` given is not in
+            range.
     """
     email_message = EmailMessage()
     email_message["Content-Type"] = request_headers["Content-Type"]
@@ -63,4 +63,4 @@ def validate_max_num_results(
     max_allowed_results = 50
     if max_num_results_int < 1 or max_num_results_int > max_allowed_results:
         _LOGGER.warning(msg="The max_num_results field is out of range.")
-        raise MaxNumResultsOutOfRangeErrorError(given_value=max_num_results)
+        raise MaxNumResultsOutOfRangeError(given_value=max_num_results)

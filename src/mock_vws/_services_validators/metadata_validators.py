@@ -12,7 +12,7 @@ from beartype import beartype
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._services_validators.exceptions import (
     FailError,
-    MetadataTooLargeErrorError,
+    MetadataTooLargeError,
 )
 
 _LOGGER = logging.getLogger(name=__name__)
@@ -28,7 +28,7 @@ def validate_metadata_size(*, request_body: bytes) -> None:
         request_body: The body of the request.
 
     Raises:
-        MetadataTooLargeErrorError: Application metadata is given and it is too
+        MetadataTooLargeError: Application metadata is given and it is too
             large.
     """
     if not request_body:
@@ -46,7 +46,7 @@ def validate_metadata_size(*, request_body: bytes) -> None:
         return
 
     _LOGGER.warning(msg="The application metadata is too large.")
-    raise MetadataTooLargeErrorError
+    raise MetadataTooLargeError
 
 
 @beartype
