@@ -24,8 +24,8 @@ from mock_vws._mock_common import json_dump
 from mock_vws._services_validators import run_services_validators
 from mock_vws._services_validators.exceptions import (
     FailError,
-    TargetStatusNotSuccessError,
-    TargetStatusProcessingError,
+    TargetStatusNotSuccessErrorError,
+    TargetStatusProcessingErrorError,
     ValidatorError,
 )
 from mock_vws.database import VuforiaDatabase
@@ -306,7 +306,7 @@ def delete_target(target_id: str) -> Response:
     )
 
     if target.status == TargetStatuses.PROCESSING.value:
-        raise TargetStatusProcessingError
+        raise TargetStatusProcessingErrorError
 
     databases_url = f"{settings.target_manager_base_url}/databases"
     requests.delete(
@@ -572,7 +572,7 @@ def update_target(target_id: str) -> Response:
     )
 
     if target.status != TargetStatuses.SUCCESS.value:
-        raise TargetStatusNotSuccessError
+        raise TargetStatusNotSuccessErrorError
 
     update_values: dict[str, str | int | float | bool | None] = {}
     if "width" in request_json:

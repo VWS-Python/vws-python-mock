@@ -16,15 +16,17 @@ from beartype import beartype
 from dirty_equals import IsInstance
 from requests.structures import CaseInsensitiveDict
 from vws import VWS
-from vws.exceptions.custom_exceptions import OopsAnErrorOccurredPossiblyBadName
+from vws.exceptions.custom_exceptions import (
+    OopsAnErrorOccurredPossiblyBadNameError,
+)
 from vws.exceptions.response import Response
 from vws.exceptions.vws_exceptions import (
-    BadImage,
-    Fail,
-    ImageTooLarge,
-    MetadataTooLarge,
-    ProjectInactive,
-    TargetNameExist,
+    BadImageError,
+    FailError,
+    ImageTooLargeError,
+    MetadataTooLargeError,
+    ProjectInactiveError,
+    TargetNameExistError,
 )
 from vws_auth_tools import authorization_header, rfc_1123_date
 
@@ -387,7 +389,7 @@ class TestTargetName:
         """
         if status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             with pytest.raises(
-                expected_exception=OopsAnErrorOccurredPossiblyBadName,
+                expected_exception=OopsAnErrorOccurredPossiblyBadNameError,
             ) as oops_exc:
                 vws_client.add_target(
                     name=name,  # type: ignore[arg-type]
@@ -400,7 +402,7 @@ class TestTargetName:
             _assert_oops_response(response=oops_exc.value.response)
             return
 
-        with pytest.raises(expected_exception=Fail) as exc:
+        with pytest.raises(expected_exception=FailError) as exc:
             vws_client.add_target(
                 name=name,  # type: ignore[arg-type]
                 width=1,
@@ -430,7 +432,7 @@ class TestTargetName:
             active_flag=True,
         )
 
-        with pytest.raises(expected_exception=TargetNameExist) as exc:
+        with pytest.raises(expected_exception=TargetNameExistError) as exc:
             vws_client.add_target(
                 name="example_name",
                 width=1,
@@ -507,7 +509,7 @@ class TestImage:
         a JPEG or PNG file is given, or if the given image is not in the
         greyscale or RGB color space.
         """
-        with pytest.raises(expected_exception=BadImage) as exc:
+        with pytest.raises(expected_exception=BadImageError) as exc:
             vws_client.add_target(
                 name="example_name",
                 width=1,
@@ -541,8 +543,8 @@ class TestImage:
     @staticmethod
     def test_image_file_size_too_large(vws_client: VWS) -> None:
         """
-        An ``ImageTooLarge`` result is returned if the image file size is above
-        a certain threshold.
+        An ``ImageTooLargeError`` result is returned if the image file size is
+        above a certain threshold.
         """
         max_bytes = 2.3 * 1024 * 1024
         width = height = 886
@@ -590,7 +592,7 @@ class TestImage:
         assert image_content_size < max_bytes
         assert (image_content_size * 1.05) > max_bytes
 
-        with pytest.raises(expected_exception=ImageTooLarge) as exc:
+        with pytest.raises(expected_exception=ImageTooLargeError) as exc:
             vws_client.add_target(
                 name="example_name_2",
                 width=1,
@@ -663,10 +665,10 @@ class TestImage:
     @staticmethod
     def test_not_image(vws_client: VWS) -> None:
         """
-        If the given image is not an image file then a `BadImage` result is
-        returned.
+        If the given image is not an image file then a `BadImageError` result
+        is returned.
         """
-        with pytest.raises(expected_exception=BadImage) as exc:
+        with pytest.raises(expected_exception=BadImageError) as exc:
             vws_client.add_target(
                 name="example_name",
                 width=1,
@@ -983,7 +985,7 @@ class TestApplicationMetadata:
         Some strings which are not valid base64 encoded strings are not allowed
         as application metadata.
         """
-        with pytest.raises(expected_exception=Fail) as exc:
+        with pytest.raises(expected_exception=FailError) as exc:
             vws_client.add_target(
                 name="example",
                 width=1,
@@ -1010,7 +1012,7 @@ class TestApplicationMetadata:
         metadata = b"a" * (_MAX_METADATA_BYTES + 1)
         metadata_encoded = base64.b64encode(s=metadata).decode("ascii")
 
-        with pytest.raises(expected_exception=MetadataTooLarge) as exc:
+        with pytest.raises(expected_exception=MetadataTooLargeError) as exc:
             vws_client.add_target(
                 name="example",
                 width=1,
@@ -1027,7 +1029,7 @@ class TestApplicationMetadata:
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
-class TestInactiveProject:
+class TestInactiveProjectError:
     """
     Tests for inactive projects.
     """
@@ -1040,7 +1042,7 @@ class TestInactiveProject:
         """
         If the project is inactive, a FORBIDDEN response is returned.
         """
-        with pytest.raises(expected_exception=ProjectInactive) as exc:
+        with pytest.raises(expected_exception=ProjectInactiveError) as exc:
             inactive_vws_client.add_target(
                 name="example",
                 width=1,

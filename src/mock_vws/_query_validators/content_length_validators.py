@@ -8,7 +8,7 @@ from collections.abc import Mapping
 from beartype import beartype
 
 from mock_vws._query_validators.exceptions import (
-    AuthenticationFailureGoodFormattingError,
+    AuthenticationFailureErrorGoodFormattingError,
     ContentLengthHeaderNotIntError,
     ContentLengthHeaderTooLargeError,
 )
@@ -81,7 +81,7 @@ def validate_content_length_header_not_too_small(
         request_body: The body of the request.
 
     Raises:
-        AuthenticationFailureGoodFormattingError: The given content length
+        AuthenticationFailureErrorGoodFormattingError: The given content length
             header says that the content length is smaller than the body
             length.
     """
@@ -92,4 +92,4 @@ def validate_content_length_header_not_too_small(
 
     if given_content_length_value < body_length:
         _LOGGER.warning(msg="The Content-Length header is too small.")
-        raise AuthenticationFailureGoodFormattingError
+        raise AuthenticationFailureErrorGoodFormattingError

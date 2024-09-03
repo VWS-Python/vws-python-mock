@@ -96,7 +96,7 @@ These are:
 * ``ProjectSuspended``
 * ``RequestQuotaReached``
 * ``TargetQuotaReached``
-* ``TooManyRequests``
+* ``TooManyRequestsError``
 
 ``Content-Length`` headers
 --------------------------

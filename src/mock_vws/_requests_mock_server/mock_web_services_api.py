@@ -25,8 +25,8 @@ from mock_vws._mock_common import Route, json_dump
 from mock_vws._services_validators import run_services_validators
 from mock_vws._services_validators.exceptions import (
     FailError,
-    TargetStatusNotSuccessError,
-    TargetStatusProcessingError,
+    TargetStatusNotSuccessErrorError,
+    TargetStatusProcessingErrorError,
     ValidatorError,
 )
 from mock_vws.image_matchers import ImageMatcher
@@ -244,7 +244,7 @@ class MockVuforiaWebServicesAPI:
         target = database.get_target(target_id=target_id)
 
         if target.status == TargetStatuses.PROCESSING.value:
-            target_processing_exception = TargetStatusProcessingError()
+            target_processing_exception = TargetStatusProcessingErrorError()
             return (
                 target_processing_exception.status_code,
                 target_processing_exception.headers,
@@ -577,7 +577,7 @@ class MockVuforiaWebServicesAPI:
         )
 
         if target.status != TargetStatuses.SUCCESS.value:
-            exception = TargetStatusNotSuccessError()
+            exception = TargetStatusNotSuccessErrorError()
             return (
                 exception.status_code,
                 exception.headers,

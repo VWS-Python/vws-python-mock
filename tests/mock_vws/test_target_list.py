@@ -36,7 +36,7 @@ class TestTargetList:
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
-class TestInactiveProject:
+class TestInactiveProjectError:
     """
     Tests for inactive projects.
     """

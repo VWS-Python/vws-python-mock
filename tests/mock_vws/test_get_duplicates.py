@@ -9,7 +9,7 @@ import uuid
 import pytest
 from PIL import Image
 from vws import VWS
-from vws.exceptions.vws_exceptions import ProjectInactive
+from vws.exceptions.vws_exceptions import ProjectInactiveError
 from vws.reports import TargetStatuses
 
 
@@ -254,7 +254,7 @@ class TestProcessing:
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
-class TestInactiveProject:
+class TestInactiveProjectError:
     """
     Tests for inactive projects.
     """
@@ -264,7 +264,7 @@ class TestInactiveProject:
         """
         If the project is inactive, a FORBIDDEN response is returned.
         """
-        with pytest.raises(expected_exception=ProjectInactive):
+        with pytest.raises(expected_exception=ProjectInactiveError):
             inactive_vws_client.get_duplicate_targets(
                 target_id=uuid.uuid4().hex,
             )

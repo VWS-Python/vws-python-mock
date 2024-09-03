@@ -14,7 +14,7 @@ from tenacity.retry import retry_if_exception_type
 from tenacity.stop import stop_after_delay
 from tenacity.wait import wait_fixed
 from vws import VWS, CloudRecoService
-from vws.exceptions.vws_exceptions import Fail
+from vws.exceptions.vws_exceptions import FailError
 
 from mock_vws import MockVWS
 from mock_vws.database import VuforiaDatabase
@@ -375,7 +375,7 @@ class TestRequestUsage:
         report = vws_client.get_database_summary_report()
         original_request_usage = report.request_usage
 
-        with pytest.raises(expected_exception=Fail) as exc:
+        with pytest.raises(expected_exception=FailError) as exc:
             vws_client.add_target(
                 name="example",
                 width=-1,
@@ -410,7 +410,7 @@ class TestRequestUsage:
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
-class TestInactiveProject:
+class TestInactiveProjectError:
     """
     Tests for inactive projects.
     """

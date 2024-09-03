@@ -14,7 +14,7 @@ from beartype import beartype
 from requests_mock_flask import add_flask_app_to_mock
 from vws import VWS
 from vws.exceptions.vws_exceptions import (
-    TargetStatusNotSuccess,
+    TargetStatusNotSuccessError,
 )
 
 from mock_vws import MockVWS
@@ -54,7 +54,7 @@ def _delete_all_targets(*, database_keys: VuforiaDatabase) -> None:
         )
         # Even deleted targets can be matched by a query for a few seconds so
         # we change the target to inactive before deleting it.
-        with contextlib.suppress(TargetStatusNotSuccess):
+        with contextlib.suppress(TargetStatusNotSuccessError):
             vws_client.update_target(target_id=target, active_flag=False)
         vws_client.wait_for_target_processed(target_id=target)
         vws_client.delete_target(target_id=target)

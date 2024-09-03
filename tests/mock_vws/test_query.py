@@ -30,11 +30,11 @@ from tenacity.wait import wait_fixed
 from urllib3.filepost import encode_multipart_formdata
 from vws import VWS, CloudRecoService
 from vws.exceptions.cloud_reco_exceptions import (
-    BadImage,
-    InactiveProject,
-    MaxNumResultsOutOfRange,
+    BadImageError,
+    InactiveProjectError,
+    MaxNumResultsOutOfRangeError,
 )
-from vws.exceptions.custom_exceptions import RequestEntityTooLarge
+from vws.exceptions.custom_exceptions import RequestEntityTooLargeError
 from vws.reports import TargetStatuses
 from vws_auth_tools import authorization_header, rfc_1123_date
 
@@ -853,7 +853,7 @@ class TestMaxNumResults:
         maximum.
         """
         with pytest.raises(
-            expected_exception=MaxNumResultsOutOfRange,
+            expected_exception=MaxNumResultsOutOfRangeError,
         ) as exc_info:
             cloud_reco_client.query(
                 image=high_quality_image,
@@ -1245,7 +1245,7 @@ class TestActiveFlag:
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
-class TestBadImage:
+class TestBadImageError:
     """
     Tests for bad images.
     """
@@ -1269,7 +1269,7 @@ class TestBadImage:
         """
         not_image_data = b"not_image_data"
 
-        with pytest.raises(expected_exception=BadImage) as exc_info:
+        with pytest.raises(expected_exception=BadImageError) as exc_info:
             cloud_reco_client.query(
                 image=io.BytesIO(initial_bytes=not_image_data)
             )
@@ -1292,7 +1292,7 @@ class TestBadImage:
         expected_text = (
             '{"transaction_id": '
             f'"{response_json["transaction_id"]}",'
-            f'"result_code":"BadImage"'
+            f'"result_code":"BadImageError"'
             "}"
         )
         assert response.text == expected_text
@@ -1367,7 +1367,7 @@ class TestMaximumImageFileSize:
         assert (image_content_size * 0.95) < max_bytes
 
         with pytest.raises(
-            expected_exception=RequestEntityTooLarge
+            expected_exception=RequestEntityTooLargeError
         ) as exc_info:
             cloud_reco_client.query(image=png_too_large)
 
@@ -1446,7 +1446,7 @@ class TestMaximumImageFileSize:
         assert (image_content_size * 0.95) < max_bytes
 
         with pytest.raises(
-            expected_exception=RequestEntityTooLarge
+            expected_exception=RequestEntityTooLargeError
         ) as exc_info:
             cloud_reco_client.query(image=jpeg_too_large)
 
@@ -1497,7 +1497,7 @@ class TestMaximumImageDimensions:
             height=max_height + 1,
         )
 
-        with pytest.raises(expected_exception=BadImage) as exc_info:
+        with pytest.raises(expected_exception=BadImageError) as exc_info:
             cloud_reco_client.query(image=png_too_tall)
 
         response = exc_info.value.response
@@ -1520,7 +1520,7 @@ class TestMaximumImageDimensions:
         expected_text = (
             '{"transaction_id": '
             f'"{response_json["transaction_id"]}",'
-            f'"result_code":"BadImage"'
+            f'"result_code":"BadImageError"'
             "}"
         )
         assert response.text == expected_text
@@ -1550,7 +1550,7 @@ class TestMaximumImageDimensions:
             height=height,
         )
 
-        with pytest.raises(expected_exception=BadImage) as exc_info:
+        with pytest.raises(expected_exception=BadImageError) as exc_info:
             result = cloud_reco_client.query(image=png_too_wide)
 
         response = exc_info.value.response
@@ -1572,7 +1572,7 @@ class TestMaximumImageDimensions:
         expected_text = (
             '{"transaction_id": '
             f'"{response_json["transaction_id"]}",'
-            f'"result_code":"BadImage"'
+            f'"result_code":"BadImageError"'
             "}"
         )
         assert response.text == expected_text
@@ -1634,7 +1634,7 @@ class TestImageFormats:
         pil_image.save(image_buffer, file_format)
         image_content = image_buffer.getvalue()
 
-        with pytest.raises(expected_exception=BadImage) as exc_info:
+        with pytest.raises(expected_exception=BadImageError) as exc_info:
             cloud_reco_client.query(
                 image=io.BytesIO(initial_bytes=image_content)
             )
@@ -1657,7 +1657,7 @@ class TestImageFormats:
         expected_text = (
             '{"transaction_id": '
             f'"{response_json["transaction_id"]}",'
-            f'"result_code":"BadImage"'
+            f'"result_code":"BadImageError"'
             "}"
         )
         assert response.text == expected_text
@@ -1964,7 +1964,7 @@ class TestDateFormats:
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
-class TestInactiveProject:
+class TestInactiveProjectError:
     """
     Tests for inactive projects.
     """
@@ -1977,7 +1977,9 @@ class TestInactiveProject:
         """
         If the project is inactive, a FORBIDDEN response is returned.
         """
-        with pytest.raises(expected_exception=InactiveProject) as exc_info:
+        with pytest.raises(
+            expected_exception=InactiveProjectError
+        ) as exc_info:
             inactive_cloud_reco_client.query(image=high_quality_image)
 
         response = exc_info.value.response
@@ -2000,7 +2002,7 @@ class TestInactiveProject:
         expected_text = (
             '{"transaction_id": '
             f'"{response_json["transaction_id"]}",'
-            f'"result_code":"InactiveProject"'
+            f'"result_code":"InactiveProjectError"'
             "}"
         )
         assert response.text == expected_text

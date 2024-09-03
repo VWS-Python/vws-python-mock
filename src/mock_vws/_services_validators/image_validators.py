@@ -13,9 +13,9 @@ from PIL import Image
 
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._services_validators.exceptions import (
-    BadImageError,
+    BadImageErrorError,
     FailError,
-    ImageTooLargeError,
+    ImageTooLargeErrorError,
 )
 
 _LOGGER = logging.getLogger(name=__name__)
@@ -30,7 +30,8 @@ def validate_image_format(*, request_body: bytes) -> None:
         request_body: The body of the request.
 
     Raises:
-        BadImageError:  The image is given and is not either a PNG or a JPEG.
+        BadImageErrorError:  The image is given and is not either a PNG or a
+            JPEG.
     """
     if not request_body:
         return
@@ -49,7 +50,7 @@ def validate_image_format(*, request_body: bytes) -> None:
         return
 
     _LOGGER.warning(msg="The image is not a PNG or JPEG.")
-    raise BadImageError
+    raise BadImageErrorError
 
 
 @beartype
@@ -61,7 +62,7 @@ def validate_image_color_space(*, request_body: bytes) -> None:
         request_body: The body of the request.
 
     Raises:
-        BadImageError: The image is given and is not in either the RGB or
+        BadImageErrorError: The image is given and is not in either the RGB or
             greyscale color space.
     """
     if not request_body:
@@ -83,7 +84,7 @@ def validate_image_color_space(*, request_body: bytes) -> None:
     _LOGGER.warning(
         msg="The image is not in the RGB or greyscale color space.",
     )
-    raise BadImageError
+    raise BadImageErrorError
 
 
 @beartype
@@ -95,8 +96,8 @@ def validate_image_size(*, request_body: bytes) -> None:
         request_body: The body of the request.
 
     Raises:
-        ImageTooLargeError:  The image is given and is not under a certain file
-            size threshold.
+        ImageTooLargeErrorError:  The image is given and is not under a
+            certain file size threshold.
     """
     if not request_body:
         return
@@ -114,7 +115,7 @@ def validate_image_size(*, request_body: bytes) -> None:
         return
 
     _LOGGER.warning(msg="The image is too large.")
-    raise ImageTooLargeError
+    raise ImageTooLargeErrorError
 
 
 @beartype
@@ -126,7 +127,7 @@ def validate_image_is_image(*, request_body: bytes) -> None:
         request_body: The body of the request.
 
     Raises:
-        BadImageError: Image data is given and it is not an image file.
+        BadImageErrorError: Image data is given and it is not an image file.
     """
     if not request_body:
         return
@@ -143,7 +144,7 @@ def validate_image_is_image(*, request_body: bytes) -> None:
     try:
         Image.open(fp=image_file)
     except OSError as exc:
-        raise BadImageError from exc
+        raise BadImageErrorError from exc
 
 
 @beartype

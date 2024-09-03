@@ -14,12 +14,12 @@ import pytest
 import requests
 from vws import VWS
 from vws.exceptions.vws_exceptions import (
-    BadImage,
-    Fail,
-    ImageTooLarge,
-    MetadataTooLarge,
-    ProjectInactive,
-    TargetNameExist,
+    BadImageError,
+    FailError,
+    ImageTooLargeError,
+    MetadataTooLargeError,
+    ProjectInactiveError,
+    TargetNameExistError,
 )
 from vws.reports import TargetStatuses
 from vws_auth_tools import authorization_header, rfc_1123_date
@@ -434,7 +434,7 @@ class TestApplicationMetadata:
         """
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        with pytest.raises(expected_exception=Fail) as exc:
+        with pytest.raises(expected_exception=FailError) as exc:
             vws_client.update_target(
                 target_id=target_id,
                 application_metadata=not_base64_encoded_not_processable,
@@ -456,7 +456,7 @@ class TestApplicationMetadata:
         metadata_encoded = base64.b64encode(s=metadata).decode("ascii")
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        with pytest.raises(expected_exception=MetadataTooLarge) as exc:
+        with pytest.raises(expected_exception=MetadataTooLargeError) as exc:
             vws_client.update_target(
                 target_id=target_id,
                 application_metadata=metadata_encoded,
@@ -594,7 +594,7 @@ class TestTargetName:
         vws_client.wait_for_target_processed(target_id=first_target_id)
         vws_client.wait_for_target_processed(target_id=second_target_id)
 
-        with pytest.raises(expected_exception=TargetNameExist) as exc:
+        with pytest.raises(expected_exception=TargetNameExistError) as exc:
             vws_client.update_target(
                 target_id=second_target_id,
                 name=first_target_name,
@@ -667,7 +667,7 @@ class TestImage:
         RGB color space.
         """
         vws_client.wait_for_target_processed(target_id=target_id)
-        with pytest.raises(expected_exception=BadImage) as exc:
+        with pytest.raises(expected_exception=BadImageError) as exc:
             vws_client.update_target(target_id=target_id, image=bad_image_file)
 
         status_code = exc.value.response.status_code
@@ -691,8 +691,8 @@ class TestImage:
     @staticmethod
     def test_image_too_large(target_id: str, vws_client: VWS) -> None:
         """
-        An `ImageTooLarge` result is returned if the image is above a certain
-        threshold.
+        An `ImageTooLargeError` result is returned if the image is above a
+        certain threshold.
         """
         max_bytes = 2.3 * 1024 * 1024
         width = height = 886
@@ -738,7 +738,7 @@ class TestImage:
         assert image_content_size < max_bytes
         assert (image_content_size * 1.05) > max_bytes
 
-        with pytest.raises(expected_exception=ImageTooLarge) as exc:
+        with pytest.raises(expected_exception=ImageTooLargeError) as exc:
             vws_client.update_target(target_id=target_id, image=png_too_large)
 
         assert_vws_failure(
@@ -803,12 +803,12 @@ class TestImage:
     @staticmethod
     def test_not_image(target_id: str, vws_client: VWS) -> None:
         """
-        If the given image is not an image file then a `BadImage` result is
-        returned.
+        If the given image is not an image file then a `BadImageError` result
+        is returned.
         """
         vws_client.wait_for_target_processed(target_id=target_id)
 
-        with pytest.raises(expected_exception=BadImage) as exc:
+        with pytest.raises(expected_exception=BadImageError) as exc:
             vws_client.update_target(
                 target_id=target_id,
                 image=io.BytesIO(initial_bytes=b"not_image_data"),
@@ -888,7 +888,7 @@ class TestImage:
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
-class TestInactiveProject:
+class TestInactiveProjectError:
     """
     Tests for inactive projects.
     """
@@ -898,5 +898,5 @@ class TestInactiveProject:
         """
         If the project is inactive, a FORBIDDEN response is returned.
         """
-        with pytest.raises(expected_exception=ProjectInactive):
+        with pytest.raises(expected_exception=ProjectInactiveError):
             inactive_vws_client.update_target(target_id=uuid.uuid4().hex)

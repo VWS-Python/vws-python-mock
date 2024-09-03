@@ -9,7 +9,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 from vws import VWS, CloudRecoService
-from vws.exceptions.vws_exceptions import UnknownTarget
+from vws.exceptions.vws_exceptions import UnknownTargetError
 from vws.reports import TargetStatuses
 
 from mock_vws.database import VuforiaDatabase
@@ -158,7 +158,7 @@ class TestRecognitionCounts:
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
-class TestInactiveProject:
+class TestInactiveProjectError:
     """
     Tests for inactive projects.
     """
@@ -168,7 +168,7 @@ class TestInactiveProject:
         """
         The project's active state does not affect getting a target.
         """
-        with pytest.raises(expected_exception=UnknownTarget):
+        with pytest.raises(expected_exception=UnknownTargetError):
             inactive_vws_client.get_target_summary_report(
                 target_id=uuid.uuid4().hex,
             )

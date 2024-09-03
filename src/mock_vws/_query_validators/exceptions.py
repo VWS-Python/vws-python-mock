@@ -125,10 +125,10 @@ class RequestTimeTooSkewedError(ValidatorError):
 
 
 @beartype
-class BadImageError(ValidatorError):
+class BadImageErrorError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
-    'BadImage'.
+    'BadImageError'.
     """
 
     def __init__(self) -> None:
@@ -168,10 +168,10 @@ class BadImageError(ValidatorError):
 
 
 @beartype
-class AuthenticationFailureError(ValidatorError):
+class AuthenticationFailureErrorError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
-    'AuthenticationFailure'.
+    'AuthenticationFailureError'.
     """
 
     def __init__(self) -> None:
@@ -211,10 +211,10 @@ class AuthenticationFailureError(ValidatorError):
 
 
 @beartype
-class AuthenticationFailureGoodFormattingError(ValidatorError):
+class AuthenticationFailureErrorGoodFormattingError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
-    'AuthenticationFailure' with a standard JSON formatting.
+    'AuthenticationFailureError' with a standard JSON formatting.
     """
 
     def __init__(self) -> None:
@@ -380,10 +380,10 @@ class UnknownParametersError(ValidatorError):
 
 
 @beartype
-class InactiveProjectError(ValidatorError):
+class InactiveProjectErrorError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
-    'InactiveProject'.
+    'InactiveProjectError'.
     """
 
     def __init__(self) -> None:
@@ -459,7 +459,7 @@ class InvalidMaxNumResultsError(ValidatorError):
 
 
 @beartype
-class MaxNumResultsOutOfRangeError(ValidatorError):
+class MaxNumResultsOutOfRangeErrorError(ValidatorError):
     """
     Exception raised when an integer value is given as the "max_num_results"
     field which is out of range.
@@ -679,7 +679,7 @@ class ContentLengthHeaderNotIntError(ValidatorError):
 
 
 @beartype
-class RequestEntityTooLargeError(ValidatorError):
+class RequestEntityTooLargeErrorError(ValidatorError):
     """
     Exception raised when the given image file size is too large.
     """

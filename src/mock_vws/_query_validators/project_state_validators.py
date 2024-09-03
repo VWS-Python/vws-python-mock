@@ -8,7 +8,7 @@ from collections.abc import Mapping
 from beartype import beartype
 
 from mock_vws._database_matchers import get_database_matching_client_keys
-from mock_vws._query_validators.exceptions import InactiveProjectError
+from mock_vws._query_validators.exceptions import InactiveProjectErrorError
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
 
@@ -34,7 +34,7 @@ def validate_project_state(
         databases: All Vuforia databases.
 
     Raises:
-        InactiveProjectError: The project is inactive.
+        InactiveProjectErrorError: The project is inactive.
     """
     database = get_database_matching_client_keys(
         request_headers=request_headers,
@@ -48,4 +48,4 @@ def validate_project_state(
         return
 
     _LOGGER.warning(msg="The project is inactive.")
-    raise InactiveProjectError
+    raise InactiveProjectErrorError
