@@ -90,7 +90,7 @@ class TestIncorrect:
         An error is given if the given content length is too large.
         """
         if not endpoint.prepared_request.headers.get("Content-Type"):
-            pytest.skip("No Content-Type header for this request")
+            pytest.skip(reason="No Content-Type header for this request")
 
         url = endpoint.prepared_request.url or ""
         netloc = urlparse(url=url).netloc

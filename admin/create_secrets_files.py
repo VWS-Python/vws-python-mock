@@ -48,7 +48,9 @@ while files_to_create:
         driver = webdriver.Chrome()
     file = files_to_create[-1]
     sys.stdout.write(f"Creating database {file.name}\n")
-    time = datetime.datetime.now(tz=datetime.UTC).strftime("%Y-%m-%d-%H-%M-%S")
+    time = datetime.datetime.now(tz=datetime.UTC).strftime(
+        format="%Y-%m-%d-%H-%M-%S",
+    )
     license_name = f"my-license-{time}"
     database_name = f"my-database-{time}"
 
@@ -85,7 +87,7 @@ while files_to_create:
         driver = None
 
     file_contents = textwrap.dedent(
-        f"""\
+        text=f"""\
         VUFORIA_TARGET_MANAGER_DATABASE_NAME={database_details["database_name"]}
         VUFORIA_SERVER_ACCESS_KEY={database_details["server_access_key"]}
         VUFORIA_SERVER_SECRET_KEY={database_details["server_secret_key"]}

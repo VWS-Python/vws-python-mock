@@ -44,7 +44,7 @@ def validate_max_num_results(
     parser = MultiPartParser()
     fields, _ = parser.parse(
         stream=io.BytesIO(initial_bytes=request_body),
-        boundary=boundary.encode("utf-8"),
+        boundary=boundary.encode(encoding="utf-8"),
         content_length=len(request_body),
     )
     max_num_results = fields.get("max_num_results", "1")

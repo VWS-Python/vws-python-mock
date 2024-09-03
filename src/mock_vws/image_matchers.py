@@ -98,12 +98,12 @@ class StructuralSimilarityMatcher:
             2,
             0,
             1,
-        ).unsqueeze(0)
+        ).unsqueeze(dim=0)
         second_image_tensor_batch_dimension = second_image_tensor.permute(
             2,
             0,
             1,
-        ).unsqueeze(0)
+        ).unsqueeze(dim=0)
 
         ssim = StructuralSimilarityIndexMeasure(data_range=1.0)
         ssim_value = ssim(
