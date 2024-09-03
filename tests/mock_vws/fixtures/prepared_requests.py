@@ -7,10 +7,8 @@ import io
 import json
 from http import HTTPMethod, HTTPStatus
 from typing import Any
-from urllib.parse import urljoin
 
 import pytest
-import requests
 from beartype import beartype
 from urllib3.filepost import encode_multipart_formdata
 from vws import VWS
@@ -76,22 +74,18 @@ def add_target(
     headers = {
         "Authorization": authorization_string,
         "Date": date,
+        "Content-Length": str(len(content)),
         "Content-Type": content_type,
     }
-
-    request = requests.Request(
-        method=method,
-        url=urljoin(base=VWS_HOST, url=request_path),
-        headers=headers,
-        data=content,
-    )
-
-    prepared_request = request.prepare()
 
     return Endpoint(
         successful_headers_status_code=HTTPStatus.CREATED,
         successful_headers_result_code=ResultCodes.TARGET_CREATED,
-        prepared_request=prepared_request,
+        base_url=VWS_HOST,
+        path_url=request_path,
+        method=method,
+        headers=headers,
+        data=content,
         access_key=access_key,
         secret_key=secret_key,
     )
@@ -128,20 +122,17 @@ def delete_target(
     headers = {
         "Authorization": authorization_string,
         "Date": date,
+        "Content-Length": str(len(content)),
     }
 
-    request = requests.Request(
+    return Endpoint(
+        base_url=VWS_HOST,
+        path_url=request_path,
         method=method,
-        url=urljoin(base=VWS_HOST, url=request_path),
         headers=headers,
         data=content,
-    )
-
-    prepared_request = request.prepare()
-    return Endpoint(
         successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=ResultCodes.SUCCESS,
-        prepared_request=prepared_request,
         access_key=access_key,
         secret_key=secret_key,
     )
@@ -173,22 +164,18 @@ def database_summary(vuforia_database: VuforiaDatabase) -> Endpoint:
 
     headers = {
         "Authorization": authorization_string,
+        "Content-Length": str(len(content)),
         "Date": date,
     }
 
-    request = requests.Request(
+    return Endpoint(
+        base_url=VWS_HOST,
+        path_url=request_path,
         method=method,
-        url=urljoin(base=VWS_HOST, url=request_path),
         headers=headers,
         data=content,
-    )
-
-    prepared_request = request.prepare()
-
-    return Endpoint(
         successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=ResultCodes.SUCCESS,
-        prepared_request=prepared_request,
         access_key=access_key,
         secret_key=secret_key,
     )
@@ -226,22 +213,18 @@ def get_duplicates(
 
     headers = {
         "Authorization": authorization_string,
+        "Content-Length": str(len(content)),
         "Date": date,
     }
 
-    request = requests.Request(
+    return Endpoint(
+        base_url=VWS_HOST,
+        path_url=request_path,
         method=method,
-        url=urljoin(base=VWS_HOST, url=request_path),
         headers=headers,
         data=content,
-    )
-
-    prepared_request = request.prepare()
-
-    return Endpoint(
         successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=ResultCodes.SUCCESS,
-        prepared_request=prepared_request,
         access_key=access_key,
         secret_key=secret_key,
     )
@@ -278,22 +261,18 @@ def get_target(
 
     headers = {
         "Authorization": authorization_string,
+        "Content-Length": str(len(content)),
         "Date": date,
     }
-
-    request = requests.Request(
-        method=method,
-        url=urljoin(base=VWS_HOST, url=request_path),
-        headers=headers,
-        data=content,
-    )
-
-    prepared_request = request.prepare()
 
     return Endpoint(
         successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=ResultCodes.SUCCESS,
-        prepared_request=prepared_request,
+        base_url=VWS_HOST,
+        path_url=request_path,
+        method=method,
+        headers=headers,
+        data=content,
         access_key=access_key,
         secret_key=secret_key,
     )
@@ -325,22 +304,18 @@ def target_list(vuforia_database: VuforiaDatabase) -> Endpoint:
 
     headers = {
         "Authorization": authorization_string,
+        "Content-Length": str(len(content)),
         "Date": date,
     }
-
-    request = requests.Request(
-        method=method,
-        url=urljoin(base=VWS_HOST, url=request_path),
-        headers=headers,
-        data=content,
-    )
-
-    prepared_request = request.prepare()
 
     return Endpoint(
         successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=ResultCodes.SUCCESS,
-        prepared_request=prepared_request,
+        base_url=VWS_HOST,
+        path_url=request_path,
+        method=method,
+        headers=headers,
+        data=content,
         access_key=access_key,
         secret_key=secret_key,
     )
@@ -377,22 +352,18 @@ def target_summary(
 
     headers = {
         "Authorization": authorization_string,
+        "Content-Length": str(len(content)),
         "Date": date,
     }
-
-    request = requests.Request(
-        method=method,
-        url=urljoin(base=VWS_HOST, url=request_path),
-        headers=headers,
-        data=content,
-    )
-
-    prepared_request = request.prepare()
 
     return Endpoint(
         successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=ResultCodes.SUCCESS,
-        prepared_request=prepared_request,
+        base_url=VWS_HOST,
+        path_url=request_path,
+        method=method,
+        headers=headers,
+        data=content,
         access_key=access_key,
         secret_key=secret_key,
     )
@@ -431,23 +402,19 @@ def update_target(
 
     headers = {
         "Authorization": authorization_string,
-        "Date": date,
+        "Content-Length": str(len(content)),
         "Content-Type": content_type,
+        "Date": date,
     }
-
-    request = requests.Request(
-        method=method,
-        url=urljoin(base=VWS_HOST, url=request_path),
-        headers=headers,
-        data=content,
-    )
-
-    prepared_request = request.prepare()
 
     return Endpoint(
         successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=ResultCodes.SUCCESS,
-        prepared_request=prepared_request,
+        base_url=VWS_HOST,
+        path_url=request_path,
+        method=method,
+        headers=headers,
+        data=content,
         access_key=access_key,
         secret_key=secret_key,
     )
@@ -485,23 +452,19 @@ def query(
 
     headers = {
         "Authorization": authorization_string,
+        "Content-Length": str(len(content)),
         "Date": date,
         "Content-Type": content_type_header,
     }
 
-    request = requests.Request(
-        method=method,
-        url=urljoin(base=VWQ_HOST, url=request_path),
-        headers=headers,
-        data=content,
-    )
-
-    prepared_request = request.prepare()
-
     return Endpoint(
         successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=ResultCodes.SUCCESS,
-        prepared_request=prepared_request,
+        base_url=VWQ_HOST,
+        path_url=request_path,
+        method=method,
+        headers=headers,
+        data=content,
         access_key=access_key,
         secret_key=secret_key,
     )

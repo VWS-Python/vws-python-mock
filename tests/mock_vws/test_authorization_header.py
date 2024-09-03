@@ -9,7 +9,6 @@ from http import HTTPStatus
 from urllib.parse import urlparse
 
 import pytest
-import requests
 from vws import VWS, CloudRecoService
 from vws.exceptions import cloud_reco_exceptions
 from vws.exceptions.vws_exceptions import AuthenticationFailureError, FailError
@@ -39,15 +38,29 @@ class TestAuthorizationHeader:
         is given.
         """
         date = rfc_1123_date()
-        endpoint.prepared_request.headers.update({"Date": date})
-        endpoint.prepared_request.headers.pop("Authorization", None)
+        new_headers = {
+            **endpoint.headers,
+            "Date": date,
+        }
+        new_headers.pop("Authorization", None)
 
-        session = requests.Session()
-        response = session.send(request=endpoint.prepared_request)
+        new_endpoint = Endpoint(
+            base_url=endpoint.base_url,
+            path_url=endpoint.path_url,
+            method=endpoint.method,
+            headers=new_headers,
+            data=endpoint.data,
+            successful_headers_result_code=endpoint.successful_headers_result_code,
+            successful_headers_status_code=endpoint.successful_headers_status_code,
+            access_key=endpoint.access_key,
+            secret_key=endpoint.secret_key,
+        )
+
+        response = new_endpoint.send()
+
         handle_server_errors(response=response)
 
-        url = endpoint.prepared_request.url or ""
-        netloc = urlparse(url=url).netloc
+        netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":
             assert_vwq_failure(
                 response=response,
@@ -86,16 +99,28 @@ class TestMalformed:
         # string, but really any string which is not two parts when split on a
         # space will do.
         authorization_string = "VWS"
-        endpoint.prepared_request.headers.update(
-            {"Authorization": authorization_string, "Date": date},
+        new_headers = {
+            **endpoint.headers,
+            "Authorization": authorization_string,
+            "Date": date,
+        }
+
+        new_endpoint = Endpoint(
+            base_url=endpoint.base_url,
+            path_url=endpoint.path_url,
+            method=endpoint.method,
+            headers=new_headers,
+            data=endpoint.data,
+            successful_headers_result_code=endpoint.successful_headers_result_code,
+            successful_headers_status_code=endpoint.successful_headers_status_code,
+            access_key=endpoint.access_key,
+            secret_key=endpoint.secret_key,
         )
 
-        session = requests.Session()
-        response = session.send(request=endpoint.prepared_request)
+        response = new_endpoint.send()
         handle_server_errors(response=response)
 
-        url = endpoint.prepared_request.url or ""
-        netloc = urlparse(url=url).netloc
+        netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":
             assert_vwq_failure(
                 response=response,
@@ -123,17 +148,28 @@ class TestMalformed:
         """
         authorization_string = "VWS "
         date = rfc_1123_date()
+        new_headers = {
+            **endpoint.headers,
+            "Authorization": authorization_string,
+            "Date": date,
+        }
 
-        endpoint.prepared_request.headers.update(
-            {"Authorization": authorization_string, "Date": date},
+        new_endpoint = Endpoint(
+            base_url=endpoint.base_url,
+            path_url=endpoint.path_url,
+            method=endpoint.method,
+            headers=new_headers,
+            data=endpoint.data,
+            successful_headers_result_code=endpoint.successful_headers_result_code,
+            successful_headers_status_code=endpoint.successful_headers_status_code,
+            access_key=endpoint.access_key,
+            secret_key=endpoint.secret_key,
         )
 
-        session = requests.Session()
-        response = session.send(request=endpoint.prepared_request)
+        response = new_endpoint.send()
         handle_server_errors(response=response)
 
-        url = endpoint.prepared_request.url or ""
-        netloc = urlparse(url=url).netloc
+        netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":
             assert_vwq_failure(
                 response=response,
@@ -161,16 +197,29 @@ class TestMalformed:
         date = rfc_1123_date()
 
         authorization_string = "VWS foobar:"
-        endpoint.prepared_request.headers.update(
-            {"Authorization": authorization_string, "Date": date},
+        new_headers = {
+            **endpoint.headers,
+            "Authorization": authorization_string,
+            "Date": date,
+        }
+
+        new_endpoint = Endpoint(
+            base_url=endpoint.base_url,
+            path_url=endpoint.path_url,
+            method=endpoint.method,
+            headers=new_headers,
+            data=endpoint.data,
+            successful_headers_result_code=endpoint.successful_headers_result_code,
+            successful_headers_status_code=endpoint.successful_headers_status_code,
+            access_key=endpoint.access_key,
+            secret_key=endpoint.secret_key,
         )
 
-        session = requests.Session()
-        response = session.send(request=endpoint.prepared_request)
+        response = new_endpoint.send()
+
         handle_server_errors(response=response)
 
-        url = endpoint.prepared_request.url or ""
-        netloc = urlparse(url=url).netloc
+        netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":
             assert_vwq_failure(
                 response=response,

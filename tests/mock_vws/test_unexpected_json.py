@@ -7,7 +7,6 @@ from http import HTTPStatus
 from urllib.parse import urlparse
 
 import pytest
-import requests
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from tests.mock_vws.utils import Endpoint
@@ -28,7 +27,7 @@ class TestUnexpectedJSON:
         responses.
         """
         if (
-            endpoint.prepared_request.headers.get(
+            endpoint.headers.get(
                 "Content-Type",
             )
             == "application/json"
@@ -41,29 +40,37 @@ class TestUnexpectedJSON:
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
             secret_key=endpoint.secret_key,
-            method=endpoint.prepared_request.method or "",
+            method=endpoint.method,
             content=content,
             content_type=content_type,
             date=date,
-            request_path=endpoint.prepared_request.path_url,
+            request_path=endpoint.path_url,
         )
 
-        endpoint.prepared_request.headers.update(
-            {
-                "Authorization": authorization_string,
-                "Date": date,
-                "Content-Type": content_type,
-            },
+        new_headers = {
+            **endpoint.headers,
+            "Authorization": authorization_string,
+            "Date": date,
+            "Content-Type": content_type,
+            "Content-Length": str(len(content)),
+        }
+
+        new_endpoint = Endpoint(
+            base_url=endpoint.base_url,
+            path_url=endpoint.path_url,
+            method=endpoint.method,
+            headers=new_headers,
+            data=content,
+            successful_headers_result_code=endpoint.successful_headers_result_code,
+            successful_headers_status_code=endpoint.successful_headers_status_code,
+            access_key=endpoint.access_key,
+            secret_key=endpoint.secret_key,
         )
 
-        endpoint.prepared_request.body = content
-        endpoint.prepared_request.prepare_content_length(body=content)
-        session = requests.Session()
-        response = session.send(request=endpoint.prepared_request)
+        response = new_endpoint.send()
         handle_server_errors(response=response)
 
-        url = endpoint.prepared_request.url or ""
-        netloc = urlparse(url=url).netloc
+        netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":
             # The multipart/formdata boundary is no longer in the given
             # content.

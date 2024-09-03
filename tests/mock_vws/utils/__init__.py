@@ -6,9 +6,11 @@ import io
 import secrets
 from dataclasses import dataclass
 from typing import Literal
+from urllib.parse import urljoin
 
 import requests
 from PIL import Image
+from requests.structures import CaseInsensitiveDict
 
 from mock_vws._constants import ResultCodes
 
@@ -26,6 +28,8 @@ class Endpoint:
             example path is requested with the method.
         access_key: The access key used in the prepared request.
         secret_key: The secret key used in the prepared request.
+        path_url: The path of the endpoint.
+        base_url: The base URL of the endpoint.
 
     Attributes:
         prepared_request: A request to make which would be successful.
@@ -35,21 +39,41 @@ class Endpoint:
             example path is requested with the method.
         access_key: The access key used in the prepared request.
         secret_key: The secret key used in the prepared request.
+        path_url: The path of the endpoint.
+        base_url: The base URL of the endpoint.
     """
 
-    prepared_request: requests.PreparedRequest
+    base_url: str
+    path_url: str
+    method: str
+    headers: dict[str, str]
+    data: bytes | str
     successful_headers_result_code: ResultCodes
     successful_headers_status_code: int
     access_key: str
     secret_key: str
+
+    def send(self) -> requests.Response:
+        """
+        Send the request.
+        """
+        request = requests.Request(
+            method=self.method,
+            url=urljoin(base=self.base_url, url=self.path_url),
+            headers=self.headers,
+            data=self.data,
+        )
+        prepared_request = request.prepare()
+        prepared_request.headers = CaseInsensitiveDict(data=self.headers)
+        session = requests.Session()
+        return session.send(request=prepared_request)
 
     @property
     def auth_header_content_type(self) -> str:
         """
         The content type to use for the `Authorization` header.
         """
-        headers = self.prepared_request.headers
-        full_content_type = headers.get("Content-Type", "")
+        full_content_type = self.headers.get("Content-Type", "")
         return full_content_type.split(sep=";")[0]
 
 
