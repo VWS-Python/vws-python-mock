@@ -12,7 +12,6 @@ from typing import Any, Final
 import pytest
 from beartype import beartype
 from dirty_equals import IsInstance
-from requests.structures import CaseInsensitiveDict
 from vws import VWS
 from vws.exceptions.custom_exceptions import (
     OopsAnErrorOccurredPossiblyBadNameError,
@@ -80,19 +79,17 @@ def _assert_oops_response(response: Response) -> None:
     assert "Oops, an error occurred" in response.text
     assert "This exception has been logged with id" in response.text
 
-    expected_headers = CaseInsensitiveDict(
-        data={
-            "Connection": "keep-alive",
-            "Content-Type": "text/html; charset=UTF-8",
-            "Date": response.headers["Date"],
-            "server": "envoy",
-            "Content-Length": "1190",
-            "x-envoy-upstream-service-time": IsInstance(expected_type=str),
-            "strict-transport-security": "max-age=31536000",
-            "x-aws-region": IsInstance(expected_type=str),
-            "x-content-type-options": "nosniff",
-        },
-    )
+    expected_headers = {
+        "Connection": "keep-alive",
+        "Content-Type": "text/html; charset=UTF-8",
+        "Date": response.headers["Date"],
+        "server": "envoy",
+        "Content-Length": "1190",
+        "x-envoy-upstream-service-time": IsInstance(expected_type=str),
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": IsInstance(expected_type=str),
+        "x-content-type-options": "nosniff",
+    }
     assert response.headers == expected_headers
 
 
