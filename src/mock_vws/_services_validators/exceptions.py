@@ -493,7 +493,7 @@ class ContentLengthHeaderNotIntError(ValidatorError):
             "Connection": "close",
             "Content-Length": str(len(self.response_text)),
             "Date": date,
-            "server": "awselb/2.0",
+            "Server": "awselb/2.0",
             "Content-Type": "text/html",
         }
 

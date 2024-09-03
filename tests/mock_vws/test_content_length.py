@@ -86,7 +86,7 @@ class TestIncorrect:
             "Content-Length": str(len(response.text)),
             "Content-Type": "text/html",
             "Connection": "close",
-            "server": "awselb/2.0",
+            "Server": "awselb/2.0",
             "Date": response.headers["Date"],
         }
         assert response.headers == expected_headers
