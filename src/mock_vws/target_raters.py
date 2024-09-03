@@ -35,7 +35,7 @@ def _get_brisque_target_tracking_rating(*, image_content: bytes) -> int:
         image.size[0],
         len(image.getbands()),
     )
-    image_tensor = image_tensor.permute(2, 0, 1).unsqueeze(0)
+    image_tensor = image_tensor.permute(2, 0, 1).unsqueeze(dim=0)
     try:
         brisque_score = piq.brisque(x=image_tensor, data_range=255)
     except (AssertionError, IndexError):

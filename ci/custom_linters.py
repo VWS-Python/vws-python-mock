@@ -15,7 +15,7 @@ def _ci_patterns(*, repository_root: Path) -> set[str]:
     Return the CI patterns given in the CI configuration file.
     """
     ci_file = repository_root / ".github" / "workflows" / "ci.yml"
-    github_workflow_config = yaml.safe_load(ci_file.read_text())
+    github_workflow_config = yaml.safe_load(stream=ci_file.read_text())
     matrix = github_workflow_config["jobs"]["build"]["strategy"]["matrix"]
     ci_pattern_list = matrix["ci_pattern"]
     ci_patterns = set(ci_pattern_list)
