@@ -42,7 +42,7 @@ def validate_image_field_given(
     parser = MultiPartParser()
     _, files = parser.parse(
         stream=io.BytesIO(initial_bytes=request_body),
-        boundary=boundary.encode("utf-8"),
+        boundary=boundary.encode(encoding="utf-8"),
         content_length=len(request_body),
     )
     if files.get("image") is not None:
@@ -74,7 +74,7 @@ def validate_image_file_size(
     parser = MultiPartParser()
     _, files = parser.parse(
         stream=io.BytesIO(initial_bytes=request_body),
-        boundary=boundary.encode("utf-8"),
+        boundary=boundary.encode(encoding="utf-8"),
         content_length=len(request_body),
     )
     image_part = files["image"]
@@ -116,7 +116,7 @@ def validate_image_dimensions(
     parser = MultiPartParser()
     _, files = parser.parse(
         stream=io.BytesIO(initial_bytes=request_body),
-        boundary=boundary.encode("utf-8"),
+        boundary=boundary.encode(encoding="utf-8"),
         content_length=len(request_body),
     )
     image_part = files["image"]
@@ -154,7 +154,7 @@ def validate_image_format(
     parser = MultiPartParser()
     _, files = parser.parse(
         stream=io.BytesIO(initial_bytes=request_body),
-        boundary=boundary.encode("utf-8"),
+        boundary=boundary.encode(encoding="utf-8"),
         content_length=len(request_body),
     )
     image_part = files["image"]
@@ -188,7 +188,7 @@ def validate_image_is_image(
     parser = MultiPartParser()
     _, files = parser.parse(
         stream=io.BytesIO(initial_bytes=request_body),
-        boundary=boundary.encode("utf-8"),
+        boundary=boundary.encode(encoding="utf-8"),
         content_length=len(request_body),
     )
     image_part = files["image"]

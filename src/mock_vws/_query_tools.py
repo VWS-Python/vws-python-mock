@@ -50,7 +50,7 @@ def get_query_match_response_text(
     parser = MultiPartParser()
     fields, files = parser.parse(
         stream=io.BytesIO(initial_bytes=request_body),
-        boundary=boundary.encode("utf-8"),
+        boundary=boundary.encode(encoding="utf-8"),
         content_length=len(request_body),
     )
 
@@ -103,8 +103,8 @@ def get_query_match_response_text(
             application_metadata = None
         else:
             application_metadata = base64.b64encode(
-                decode_base64(encoded_data=target.application_metadata),
-            ).decode("ascii")
+                s=decode_base64(encoded_data=target.application_metadata),
+            ).decode(encoding="ascii")
         target_data = {
             "target_timestamp": int(target_timestamp),
             "name": target.name,
