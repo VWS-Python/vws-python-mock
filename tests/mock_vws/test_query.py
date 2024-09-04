@@ -525,7 +525,6 @@ class TestContentType:
         handle_server_errors(response=response)
         assert_query_success(response=response)
         response_json = json.loads(s=response.text)
-        assert isinstance(response_json, dict)
         assert response_json["results"] == []
 
 
@@ -865,7 +864,6 @@ class TestMaxNumResults:
 
         assert_query_success(response=response)
         response_json = json.loads(s=response.text)
-        assert isinstance(response_json, dict)
         assert response_json["results"] == []
 
     @staticmethod
@@ -1226,7 +1224,6 @@ class TestAcceptHeader:
         handle_server_errors(response=response)
         assert_query_success(response=response)
         response_json = json.loads(s=response.text)
-        assert isinstance(response_json, dict)
         assert response_json["results"] == []
 
     @staticmethod
@@ -2046,7 +2043,6 @@ class TestDateFormats:
         handle_server_errors(response=response)
         assert_query_success(response=response)
         response_json = json.loads(s=response.text)
-        assert isinstance(response_json, dict)
         assert response_json["results"] == []
 
 
