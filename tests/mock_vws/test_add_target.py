@@ -146,7 +146,9 @@ class TestContentTypes:
         Any non-empty ``Content-Type`` header is allowed.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode(
+            encoding="ascii"
+        )
 
         data = {
             "name": "example",
@@ -172,7 +174,9 @@ class TestContentTypes:
         header is given.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode(
+            encoding="ascii"
+        )
 
         data = {
             "name": "example",
@@ -255,7 +259,9 @@ class TestWidth:
         The width must be a number greater than zero.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode(
+            encoding="ascii"
+        )
 
         data = {
             "name": "example_name",
@@ -725,7 +731,9 @@ class TestActiveFlag:
         """
         active_flag = "string"
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode(
+            encoding="ascii"
+        )
         content_type = "application/json"
 
         data = {
@@ -757,7 +765,9 @@ class TestActiveFlag:
         The active flag defaults to True if it is not set.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode(
+            encoding="ascii"
+        )
 
         data = {
             "name": "my_example_name",
@@ -780,7 +790,9 @@ class TestActiveFlag:
         The active flag defaults to True if it is set to NULL.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode(
+            encoding="ascii"
+        )
 
         data = {
             "name": "my_example_name",
@@ -812,7 +824,9 @@ class TestUnexpectedData:
         A `BAD_REQUEST` response is returned when unexpected data is given.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode(
+            encoding="ascii"
+        )
 
         data = {
             "name": "example_name",
@@ -854,7 +868,9 @@ class TestApplicationMetadata:
         """
         A base64 encoded string is valid application metadata.
         """
-        metadata_encoded = base64.b64encode(s=metadata).decode("ascii")
+        metadata_encoded = base64.b64encode(s=metadata).decode(
+            encoding="ascii"
+        )
 
         vws_client.add_target(
             name="example",
@@ -873,7 +889,9 @@ class TestApplicationMetadata:
         NULL is valid application metadata.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode(
+            encoding="ascii"
+        )
 
         request_data = {
             "name": "example_name",
@@ -899,7 +917,9 @@ class TestApplicationMetadata:
         metadata.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode(
+            encoding="ascii"
+        )
 
         data = {
             "name": "example_name",
@@ -970,7 +990,9 @@ class TestApplicationMetadata:
         for application metadata.
         """
         metadata = b"a" * (_MAX_METADATA_BYTES + 1)
-        metadata_encoded = base64.b64encode(s=metadata).decode("ascii")
+        metadata_encoded = base64.b64encode(s=metadata).decode(
+            encoding="ascii"
+        )
 
         with pytest.raises(expected_exception=MetadataTooLargeError) as exc:
             vws_client.add_target(

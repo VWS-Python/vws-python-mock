@@ -558,7 +558,9 @@ class TestSuccess:
         """
         image_file = high_quality_image
         image_content = image_file.getvalue()
-        metadata_encoded = base64.b64encode(s=b"example").decode("ascii")
+        metadata_encoded = base64.b64encode(s=b"example").decode(
+            encoding="ascii"
+        )
         name = "example_name"
 
         target_id = vws_client.add_target(
@@ -604,7 +606,9 @@ class TestSuccess:
         results are returned.
         """
         image_file = image_file_success_state_low_rating
-        metadata_encoded = base64.b64encode(s=b"example").decode("ascii")
+        metadata_encoded = base64.b64encode(s=b"example").decode(
+            encoding="ascii"
+        )
         name = "example_name"
 
         target_id = vws_client.add_target(
@@ -630,7 +634,9 @@ class TestSuccess:
         If a similar image to one that was added is queried for, target data is
         shown.
         """
-        metadata_encoded = base64.b64encode(s=b"example").decode("ascii")
+        metadata_encoded = base64.b64encode(s=b"example").decode(
+            encoding="ascii"
+        )
         name_matching = "example_name_matching"
         name_not_matching = "example_name_not_matching"
 
@@ -1801,7 +1807,9 @@ class TestUpdate:
         metadata.
         """
         metadata = b"example_metadata"
-        metadata_encoded = base64.b64encode(s=metadata).decode("ascii")
+        metadata_encoded = base64.b64encode(s=metadata).decode(
+            encoding="ascii"
+        )
         name = "example_name"
         target_id = vws_client.add_target(
             name=name,
@@ -1817,7 +1825,9 @@ class TestUpdate:
 
         new_name = name + "2"
         new_metadata = metadata + b"2"
-        new_metadata_encoded = base64.b64encode(s=new_metadata).decode("ascii")
+        new_metadata_encoded = base64.b64encode(s=new_metadata).decode(
+            encoding="ascii"
+        )
 
         results = cloud_reco_client.query(image=high_quality_image)
         (result,) = results

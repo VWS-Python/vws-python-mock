@@ -353,7 +353,9 @@ class TestApplicationMetadata:
         """
         A base64 encoded string is valid application metadata.
         """
-        metadata_encoded = base64.b64encode(s=metadata).decode("ascii")
+        metadata_encoded = base64.b64encode(s=metadata).decode(
+            encoding="ascii"
+        )
         vws_client.wait_for_target_processed(target_id=target_id)
         vws_client.update_target(
             target_id=target_id,
@@ -433,7 +435,9 @@ class TestApplicationMetadata:
         for application metadata.
         """
         metadata = b"a" * (_MAX_METADATA_BYTES + 1)
-        metadata_encoded = base64.b64encode(s=metadata).decode("ascii")
+        metadata_encoded = base64.b64encode(s=metadata).decode(
+            encoding="ascii"
+        )
         vws_client.wait_for_target_processed(target_id=target_id)
 
         with pytest.raises(expected_exception=MetadataTooLargeError) as exc:
