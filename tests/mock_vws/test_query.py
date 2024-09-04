@@ -476,7 +476,6 @@ class TestContentType:
         handle_server_errors(response=response)
         assert_query_success(response=response)
         response_json = json.loads(s=response.text)
-        assert isinstance(response_json, dict)
         assert response_json["results"] == []
 
 
@@ -816,7 +815,6 @@ class TestMaxNumResults:
 
         assert_query_success(response=response)
         response_json = json.loads(s=response.text)
-        assert isinstance(response_json, dict)
         assert response_json["results"] == []
 
     @staticmethod
@@ -1169,7 +1167,6 @@ class TestAcceptHeader:
         handle_server_errors(response=response)
         assert_query_success(response=response)
         response_json = json.loads(s=response.text)
-        assert isinstance(response_json, dict)
         assert response_json["results"] == []
 
     @staticmethod
@@ -1525,7 +1522,6 @@ class TestMaximumImageDimensions:
 
         response_json = json.loads(s=response.text)
         assert isinstance(response_json, dict)
-
         assert response_json.keys() == {"transaction_id", "result_code"}
         assert_valid_transaction_id(response=response)
         # The separators are inconsistent and we test this.
@@ -1973,7 +1969,6 @@ class TestDateFormats:
         handle_server_errors(response=response)
         assert_query_success(response=response)
         response_json = json.loads(s=response.text)
-        assert isinstance(response_json, dict)
         assert response_json["results"] == []
 
 
