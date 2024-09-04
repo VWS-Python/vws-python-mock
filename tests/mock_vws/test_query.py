@@ -133,16 +133,15 @@ def _query(
         timeout=30,
     )
 
-    response = Response(
+    vws_response = Response(
         text=requests_response.text,
         url=requests_response.url,
         status_code=requests_response.status_code,
         headers=dict(requests_response.headers),
         request_body=requests_response.request.body,
     )
-
-    handle_server_errors(response=response)
-    return response
+    handle_server_errors(response=vws_response)
+    return vws_response
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -246,19 +245,18 @@ class TestContentType:
             timeout=30,
         )
 
-        response = Response(
+        vws_response = Response(
             text=requests_response.text,
             url=requests_response.url,
             status_code=requests_response.status_code,
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
         )
+        handle_server_errors(response=vws_response)
 
-        handle_server_errors(response=response)
-
-        assert response.text == resp_text
+        assert requests_response.text == resp_text
         assert_vwq_failure(
-            response=response,
+            response=vws_response,
             status_code=resp_status_code,
             content_type=resp_content_type,
             cache_control=resp_cache_control,
@@ -314,18 +312,17 @@ class TestContentType:
             timeout=30,
         )
 
-        response = Response(
+        vws_response = Response(
             text=requests_response.text,
             url=requests_response.url,
             status_code=requests_response.status_code,
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
         )
-
-        handle_server_errors(response=response)
-        assert not response.text
+        handle_server_errors(response=vws_response)
+        assert not requests_response.text
         assert_vwq_failure(
-            response=response,
+            response=vws_response,
             status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
             content_type=None,
             cache_control=None,
@@ -384,23 +381,22 @@ class TestContentType:
             timeout=30,
         )
 
-        response = Response(
+        vws_response = Response(
             text=requests_response.text,
             url=requests_response.url,
             status_code=requests_response.status_code,
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
         )
-
-        handle_server_errors(response=response)
+        handle_server_errors(response=vws_response)
 
         expected_text = (
             "java.io.IOException: RESTEASY007550: "
             "Unable to get boundary for multipart"
         )
-        assert response.text == expected_text
+        assert requests_response.text == expected_text
         assert_vwq_failure(
-            response=response,
+            response=vws_response,
             status_code=HTTPStatus.BAD_REQUEST,
             content_type="text/html;charset=utf-8",
             cache_control=None,
@@ -450,20 +446,19 @@ class TestContentType:
             timeout=30,
         )
 
-        response = Response(
+        vws_response = Response(
             text=requests_response.text,
             url=requests_response.url,
             status_code=requests_response.status_code,
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
         )
-
-        handle_server_errors(response=response)
+        handle_server_errors(response=vws_response)
 
         expected_text = "No image."
-        assert response.text == expected_text
+        assert requests_response.text == expected_text
         assert_vwq_failure(
-            response=response,
+            response=vws_response,
             status_code=HTTPStatus.BAD_REQUEST,
             content_type="application/json",
             cache_control=None,
@@ -514,17 +509,16 @@ class TestContentType:
             timeout=30,
         )
 
-        response = Response(
+        vws_response = Response(
             text=requests_response.text,
             url=requests_response.url,
             status_code=requests_response.status_code,
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
         )
-
-        handle_server_errors(response=response)
-        assert_query_success(response=response)
-        response_json = json.loads(s=response.text)
+        handle_server_errors(response=vws_response)
+        assert_query_success(response=vws_response)
+        response_json = json.loads(s=requests_response.text)
         assert response_json["results"] == []
 
 
@@ -1213,17 +1207,16 @@ class TestAcceptHeader:
             timeout=30,
         )
 
-        response = Response(
+        vws_response = Response(
             text=requests_response.text,
             url=requests_response.url,
             status_code=requests_response.status_code,
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
         )
-
-        handle_server_errors(response=response)
-        assert_query_success(response=response)
-        response_json = json.loads(s=response.text)
+        handle_server_errors(response=vws_response)
+        assert_query_success(response=vws_response)
+        response_json = json.loads(s=requests_response.text)
         assert response_json["results"] == []
 
     @staticmethod
@@ -1270,18 +1263,17 @@ class TestAcceptHeader:
             timeout=30,
         )
 
-        response = Response(
+        vws_response = Response(
             text=requests_response.text,
             url=requests_response.url,
             status_code=requests_response.status_code,
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
         )
-
-        handle_server_errors(response=response)
+        handle_server_errors(response=vws_response)
 
         assert_vwq_failure(
-            response=response,
+            response=vws_response,
             status_code=HTTPStatus.NOT_ACCEPTABLE,
             content_type=None,
             cache_control=None,
@@ -2031,17 +2023,16 @@ class TestDateFormats:
             timeout=30,
         )
 
-        response = Response(
+        vws_response = Response(
             text=requests_response.text,
             url=requests_response.url,
             status_code=requests_response.status_code,
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
         )
-
-        handle_server_errors(response=response)
-        assert_query_success(response=response)
-        response_json = json.loads(s=response.text)
+        handle_server_errors(response=vws_response)
+        assert_query_success(response=vws_response)
+        response_json = json.loads(s=requests_response.text)
         assert response_json["results"] == []
 
 
