@@ -16,7 +16,6 @@ from vws import VWS
 from vws.exceptions.custom_exceptions import (
     OopsAnErrorOccurredPossiblyBadNameError,
 )
-from vws.exceptions.response import Response
 from vws.exceptions.vws_exceptions import (
     AuthenticationFailureError,
     BadImageError,
@@ -26,6 +25,7 @@ from vws.exceptions.vws_exceptions import (
     ProjectInactiveError,
     TargetNameExistError,
 )
+from vws.types import Response
 
 from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import make_image_file
