@@ -2,6 +2,7 @@
 Tests for giving invalid JSON to endpoints.
 """
 
+import json
 from datetime import datetime, timedelta
 from http import HTTPStatus
 from urllib.parse import urlparse
@@ -170,11 +171,13 @@ class TestInvalidJSON:
 
         netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":
-            assert response.json().keys() == {
+            response_json = json.loads(s=response.text)
+            assert isinstance(response_json, dict)
+            assert response_json.keys() == {
                 "transaction_id",
                 "result_code",
             }
-            assert response.json()["result_code"] == "RequestTimeTooSkewed"
+            assert response_json["result_code"] == "RequestTimeTooSkewed"
             assert_valid_transaction_id(response=response)
             assert_vwq_failure(
                 response=response,

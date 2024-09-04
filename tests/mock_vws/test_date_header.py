@@ -2,6 +2,7 @@
 Tests for the `Date` header.
 """
 
+import json
 from datetime import datetime, timedelta
 from http import HTTPStatus
 from urllib.parse import urlparse
@@ -225,8 +226,10 @@ class TestSkewedTime:
 
         # Even with the query endpoint, we get a JSON response.
         if netloc == "cloudreco.vuforia.com":
-            assert response.json().keys() == {"transaction_id", "result_code"}
-            assert response.json()["result_code"] == "RequestTimeTooSkewed"
+            response_json = json.loads(s=response.text)
+            assert isinstance(response_json, dict)
+            assert response_json.keys() == {"transaction_id", "result_code"}
+            assert response_json["result_code"] == "RequestTimeTooSkewed"
             assert_valid_transaction_id(response=response)
             assert_vwq_failure(
                 response=response,
@@ -300,8 +303,10 @@ class TestSkewedTime:
 
         # Even with the query endpoint, we get a JSON response.
         if netloc == "cloudreco.vuforia.com":
-            assert response.json().keys() == {"transaction_id", "result_code"}
-            assert response.json()["result_code"] == "RequestTimeTooSkewed"
+            response_json = json.loads(s=response.text)
+            assert isinstance(response_json, dict)
+            assert response_json.keys() == {"transaction_id", "result_code"}
+            assert response_json["result_code"] == "RequestTimeTooSkewed"
             assert_valid_transaction_id(response=response)
             assert_vwq_failure(
                 response=response,
