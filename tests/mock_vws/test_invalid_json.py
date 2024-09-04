@@ -172,12 +172,12 @@ class TestInvalidJSON:
         netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":
             response_json = json.loads(s=response.text)
-            assert response_json["result_code"] == "RequestTimeTooSkewed"
             assert isinstance(response_json, dict)
             assert response_json.keys() == {
                 "transaction_id",
                 "result_code",
             }
+            assert response_json["result_code"] == "RequestTimeTooSkewed"
             assert_valid_transaction_id(response=response)
             assert_vwq_failure(
                 response=response,

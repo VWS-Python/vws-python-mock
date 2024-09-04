@@ -1587,7 +1587,6 @@ class TestMaximumImageDimensions:
 
         response_json = json.loads(s=response.text)
         assert isinstance(response_json, dict)
-
         assert response_json.keys() == {"transaction_id", "result_code"}
         assert_valid_transaction_id(response=response)
         # The separators are inconsistent and we test this.
