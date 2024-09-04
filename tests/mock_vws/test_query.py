@@ -139,7 +139,7 @@ def _query(
         status_code=requests_response.status_code,
         headers=dict(requests_response.headers),
         request_body=requests_response.request.body,
-        raw=requests_response.raw,
+        tell_position=requests_response.raw.tell(),
     )
     handle_server_errors(response=vws_response)
     return vws_response
@@ -252,7 +252,7 @@ class TestContentType:
             status_code=requests_response.status_code,
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
-            raw=requests_response.raw,
+            tell_position=requests_response.raw.tell(),
         )
         handle_server_errors(response=vws_response)
 
@@ -320,7 +320,7 @@ class TestContentType:
             status_code=requests_response.status_code,
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
-            raw=requests_response.raw,
+            tell_position=requests_response.raw.tell(),
         )
         handle_server_errors(response=vws_response)
         assert not requests_response.text
@@ -390,7 +390,7 @@ class TestContentType:
             status_code=requests_response.status_code,
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
-            raw=requests_response.raw,
+            tell_position=requests_response.raw.tell(),
         )
         handle_server_errors(response=vws_response)
 
@@ -456,7 +456,7 @@ class TestContentType:
             status_code=requests_response.status_code,
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
-            raw=requests_response.raw,
+            tell_position=requests_response.raw.tell(),
         )
         handle_server_errors(response=vws_response)
 
@@ -520,7 +520,7 @@ class TestContentType:
             status_code=requests_response.status_code,
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
-            raw=requests_response.raw,
+            tell_position=requests_response.raw.tell(),
         )
         handle_server_errors(response=vws_response)
         assert_query_success(response=vws_response)
@@ -1219,7 +1219,7 @@ class TestAcceptHeader:
             status_code=requests_response.status_code,
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
-            raw=requests_response.raw,
+            tell_position=requests_response.raw.tell(),
         )
         handle_server_errors(response=vws_response)
         assert_query_success(response=vws_response)
@@ -1276,7 +1276,7 @@ class TestAcceptHeader:
             status_code=requests_response.status_code,
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
-            raw=requests_response.raw,
+            tell_position=requests_response.raw.tell(),
         )
         handle_server_errors(response=vws_response)
 
@@ -2037,7 +2037,7 @@ class TestDateFormats:
             status_code=requests_response.status_code,
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
-            raw=requests_response.raw,
+            tell_position=requests_response.raw.tell(),
         )
         handle_server_errors(response=vws_response)
         assert_query_success(response=vws_response)

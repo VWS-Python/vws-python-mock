@@ -207,7 +207,7 @@ def assert_query_success(*, response: Response) -> None:
 
     expected_response_header_not_chunked = {
         "Connection": "keep-alive",
-        "Content-Length": str(len(response.text)),
+        "Content-Length": str(response.tell_position),
         "Content-Type": "application/json",
         "Server": "nginx",
     }

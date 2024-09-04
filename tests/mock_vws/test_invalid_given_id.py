@@ -7,7 +7,6 @@ from http import HTTPStatus
 
 import pytest
 from vws import VWS
-from vws.types import Response
 
 from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import Endpoint
@@ -39,15 +38,8 @@ class TestInvalidGivenID:
         vws_client.delete_target(target_id=target_id)
 
         response = endpoint.send()
-        vws_response = Response(
-            text=response.text,
-            url=response.url,
-            status_code=response.status_code,
-            headers=dict(response.headers),
-            request_body=response.request_body,
-            raw=response.raw,
-        )
-        handle_server_errors(response=vws_response)
+
+        handle_server_errors(response=response)
 
         assert_vws_failure(
             response=response,
