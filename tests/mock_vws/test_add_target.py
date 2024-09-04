@@ -125,8 +125,8 @@ class TestContentTypes:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "content_type",
-        [
+        argnames="content_type",
+        argvalues=[
             # This is the documented required content type:
             "application/json",
             # Other content types also work.
@@ -146,7 +146,9 @@ class TestContentTypes:
         Any non-empty ``Content-Type`` header is allowed.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode(
+            encoding="ascii"
+        )
 
         data = {
             "name": "example",
@@ -172,7 +174,9 @@ class TestContentTypes:
         header is given.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode(
+            encoding="ascii"
+        )
 
         data = {
             "name": "example",
@@ -203,7 +207,10 @@ class TestMissingData:
     """
 
     @staticmethod
-    @pytest.mark.parametrize("data_to_remove", ["name", "width", "image"])
+    @pytest.mark.parametrize(
+        argnames="data_to_remove",
+        argvalues=["name", "width", "image"],
+    )
     def test_missing_data(
         vws_client: VWS,
         image_file_failed_state: io.BytesIO,
@@ -242,8 +249,8 @@ class TestWidth:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "width",
-        [-1, "10", None, 0],
+        argnames="width",
+        argvalues=[-1, "10", None, 0],
         ids=["Negative", "Wrong Type", "None", "Zero"],
     )
     def test_width_invalid(
@@ -255,7 +262,9 @@ class TestWidth:
         The width must be a number greater than zero.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode(
+            encoding="ascii"
+        )
 
         data = {
             "name": "example_name",
@@ -300,8 +309,8 @@ class TestTargetName:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "name",
-        [
+        argnames="name",
+        argvalues=[
             "á",
             # We test just below the max character value.
             # This is because targets with the max character value in their
@@ -654,7 +663,10 @@ class TestImage:
         )
 
     @staticmethod
-    @pytest.mark.parametrize("invalid_type_image", [1, None])
+    @pytest.mark.parametrize(
+        argnames="invalid_type_image",
+        argvalues=[1, None],
+    )
     def test_invalid_type(
         invalid_type_image: int | None,
         vws_client: VWS,
@@ -685,7 +697,10 @@ class TestActiveFlag:
     """
 
     @staticmethod
-    @pytest.mark.parametrize("active_flag", [True, False, None])
+    @pytest.mark.parametrize(
+        argnames="active_flag",
+        argvalues=[True, False, None],
+    )
     def test_valid(
         active_flag: bool | None,
         image_file_failed_state: io.BytesIO,
@@ -725,7 +740,9 @@ class TestActiveFlag:
         """
         active_flag = "string"
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode(
+            encoding="ascii"
+        )
         content_type = "application/json"
 
         data = {
@@ -757,7 +774,9 @@ class TestActiveFlag:
         The active flag defaults to True if it is not set.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode(
+            encoding="ascii"
+        )
 
         data = {
             "name": "my_example_name",
@@ -780,7 +799,9 @@ class TestActiveFlag:
         The active flag defaults to True if it is set to NULL.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode(
+            encoding="ascii"
+        )
 
         data = {
             "name": "my_example_name",
@@ -812,7 +833,9 @@ class TestUnexpectedData:
         A `BAD_REQUEST` response is returned when unexpected data is given.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode(
+            encoding="ascii"
+        )
 
         data = {
             "name": "example_name",
@@ -839,8 +862,8 @@ class TestApplicationMetadata:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "metadata",
-        [
+        argnames="metadata",
+        argvalues=[
             b"a",
             b"a" * _MAX_METADATA_BYTES,
         ],
@@ -854,7 +877,9 @@ class TestApplicationMetadata:
         """
         A base64 encoded string is valid application metadata.
         """
-        metadata_encoded = base64.b64encode(s=metadata).decode("ascii")
+        metadata_encoded = base64.b64encode(s=metadata).decode(
+            encoding="ascii"
+        )
 
         vws_client.add_target(
             name="example",
@@ -873,7 +898,9 @@ class TestApplicationMetadata:
         NULL is valid application metadata.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode(
+            encoding="ascii"
+        )
 
         request_data = {
             "name": "example_name",
@@ -899,7 +926,9 @@ class TestApplicationMetadata:
         metadata.
         """
         image_data = image_file_failed_state.read()
-        image_data_encoded = base64.b64encode(s=image_data).decode("ascii")
+        image_data_encoded = base64.b64encode(s=image_data).decode(
+            encoding="ascii"
+        )
 
         data = {
             "name": "example_name",
@@ -970,7 +999,9 @@ class TestApplicationMetadata:
         for application metadata.
         """
         metadata = b"a" * (_MAX_METADATA_BYTES + 1)
-        metadata_encoded = base64.b64encode(s=metadata).decode("ascii")
+        metadata_encoded = base64.b64encode(s=metadata).decode(
+            encoding="ascii"
+        )
 
         with pytest.raises(expected_exception=MetadataTooLargeError) as exc:
             vws_client.add_target(

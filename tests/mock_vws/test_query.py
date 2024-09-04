@@ -335,8 +335,8 @@ class TestContentType:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "content_type",
-        [
+        argnames="content_type",
+        argvalues=[
             "multipart/form-data",
             "multipart/form-data; extra",
             "multipart/form-data; extra=1",
@@ -558,7 +558,9 @@ class TestSuccess:
         """
         image_file = high_quality_image
         image_content = image_file.getvalue()
-        metadata_encoded = base64.b64encode(s=b"example").decode("ascii")
+        metadata_encoded = base64.b64encode(s=b"example").decode(
+            encoding="ascii"
+        )
         name = "example_name"
 
         target_id = vws_client.add_target(
@@ -604,7 +606,9 @@ class TestSuccess:
         results are returned.
         """
         image_file = image_file_success_state_low_rating
-        metadata_encoded = base64.b64encode(s=b"example").decode("ascii")
+        metadata_encoded = base64.b64encode(s=b"example").decode(
+            encoding="ascii"
+        )
         name = "example_name"
 
         target_id = vws_client.add_target(
@@ -630,7 +634,9 @@ class TestSuccess:
         If a similar image to one that was added is queried for, target data is
         shown.
         """
-        metadata_encoded = base64.b64encode(s=b"example").decode("ascii")
+        metadata_encoded = base64.b64encode(s=b"example").decode(
+            encoding="ascii"
+        )
         name_matching = "example_name_matching"
         name_not_matching = "example_name_not_matching"
 
@@ -835,7 +841,7 @@ class TestMaxNumResults:
         assert len(response_json["results"]) == 1
 
     @staticmethod
-    @pytest.mark.parametrize("num_results", [1, b"1", 50])
+    @pytest.mark.parametrize(argnames="num_results", argvalues=[1, b"1", 50])
     def test_valid_accepted(
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
@@ -890,7 +896,7 @@ class TestMaxNumResults:
         assert len(result) == max_num_results
 
     @staticmethod
-    @pytest.mark.parametrize("num_results", [-1, 0, 51])
+    @pytest.mark.parametrize(argnames="num_results", argvalues=[-1, 0, 51])
     def test_out_of_range(
         high_quality_image: io.BytesIO,
         num_results: int,
@@ -929,8 +935,8 @@ class TestMaxNumResults:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "num_results",
-        [b"0.1", b"1.1", b"a", b"2147483648"],
+        argnames="num_results",
+        argvalues=[b"0.1", b"1.1", b"a", b"2147483648"],
     )
     def test_invalid_type(
         high_quality_image: io.BytesIO,
@@ -1026,7 +1032,10 @@ class TestIncludeTargetData:
         assert "target_data" not in result_2
 
     @staticmethod
-    @pytest.mark.parametrize("include_target_data", ["top", "TOP"])
+    @pytest.mark.parametrize(
+        argnames="include_target_data",
+        argvalues=["top", "TOP"],
+    )
     def test_top(
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
@@ -1058,7 +1067,10 @@ class TestIncludeTargetData:
         assert "target_data" not in result_2
 
     @staticmethod
-    @pytest.mark.parametrize("include_target_data", ["none", "NONE"])
+    @pytest.mark.parametrize(
+        argnames="include_target_data",
+        argvalues=["none", "NONE"],
+    )
     def test_none(
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
@@ -1090,7 +1102,10 @@ class TestIncludeTargetData:
         assert "target_data" not in result_2
 
     @staticmethod
-    @pytest.mark.parametrize("include_target_data", ["all", "ALL"])
+    @pytest.mark.parametrize(
+        argnames="include_target_data",
+        argvalues=["all", "ALL"],
+    )
     def test_all(
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
@@ -1122,7 +1137,10 @@ class TestIncludeTargetData:
         assert "target_data" in result_2
 
     @staticmethod
-    @pytest.mark.parametrize("include_target_data", ["a", True, 0])
+    @pytest.mark.parametrize(
+        argnames="include_target_data",
+        argvalues=["a", True, 0],
+    )
     def test_invalid_value(
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
@@ -1164,8 +1182,8 @@ class TestAcceptHeader:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "extra_headers",
-        [
+        argnames="extra_headers",
+        argvalues=[
             {
                 "Accept": "application/json",
             },
@@ -1675,7 +1693,7 @@ class TestImageFormats:
     """
 
     @staticmethod
-    @pytest.mark.parametrize("file_format", ["png", "jpeg"])
+    @pytest.mark.parametrize(argnames="file_format", argvalues=["png", "jpeg"])
     def test_supported(
         high_quality_image: io.BytesIO,
         file_format: str,
@@ -1743,7 +1761,7 @@ class TestProcessing:
     """
 
     @staticmethod
-    @pytest.mark.parametrize("active_flag", [True, False])
+    @pytest.mark.parametrize(argnames="active_flag", argvalues=[True, False])
     def test_processing(
         high_quality_image: io.BytesIO,
         vws_client: VWS,
@@ -1801,7 +1819,9 @@ class TestUpdate:
         metadata.
         """
         metadata = b"example_metadata"
-        metadata_encoded = base64.b64encode(s=metadata).decode("ascii")
+        metadata_encoded = base64.b64encode(s=metadata).decode(
+            encoding="ascii"
+        )
         name = "example_name"
         target_id = vws_client.add_target(
             name=name,
@@ -1817,7 +1837,9 @@ class TestUpdate:
 
         new_name = name + "2"
         new_metadata = metadata + b"2"
-        new_metadata_encoded = base64.b64encode(s=new_metadata).decode("ascii")
+        new_metadata_encoded = base64.b64encode(s=new_metadata).decode(
+            encoding="ascii"
+        )
 
         results = cloud_reco_client.query(image=high_quality_image)
         (result,) = results
@@ -1970,15 +1992,15 @@ class TestDateFormats:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "datetime_format",
-        [
+        argnames="datetime_format",
+        argvalues=[
             "%a, %b %d %H:%M:%S %Y",
             "%a %b %d %H:%M:%S %Y",
             "%a, %d %b %Y %H:%M:%S",
             "%a %d %b %Y %H:%M:%S",
         ],
     )
-    @pytest.mark.parametrize("include_tz", [True, False])
+    @pytest.mark.parametrize(argnames="include_tz", argvalues=[True, False])
     def test_date_formats(
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
