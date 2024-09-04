@@ -125,8 +125,8 @@ class TestContentTypes:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "content_type",
-        [
+        argnames="content_type",
+        argvalues=[
             # This is the documented required content type:
             "application/json",
             # Other content types also work.
@@ -207,7 +207,10 @@ class TestMissingData:
     """
 
     @staticmethod
-    @pytest.mark.parametrize("data_to_remove", ["name", "width", "image"])
+    @pytest.mark.parametrize(
+        argnames="data_to_remove",
+        argvalues=["name", "width", "image"],
+    )
     def test_missing_data(
         vws_client: VWS,
         image_file_failed_state: io.BytesIO,
@@ -246,8 +249,8 @@ class TestWidth:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "width",
-        [-1, "10", None, 0],
+        argnames="width",
+        argvalues=[-1, "10", None, 0],
         ids=["Negative", "Wrong Type", "None", "Zero"],
     )
     def test_width_invalid(
@@ -306,8 +309,8 @@ class TestTargetName:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "name",
-        [
+        argnames="name",
+        argvalues=[
             "á",
             # We test just below the max character value.
             # This is because targets with the max character value in their
@@ -660,7 +663,10 @@ class TestImage:
         )
 
     @staticmethod
-    @pytest.mark.parametrize("invalid_type_image", [1, None])
+    @pytest.mark.parametrize(
+        argnames="invalid_type_image",
+        argvalues=[1, None],
+    )
     def test_invalid_type(
         invalid_type_image: int | None,
         vws_client: VWS,
@@ -691,7 +697,10 @@ class TestActiveFlag:
     """
 
     @staticmethod
-    @pytest.mark.parametrize("active_flag", [True, False, None])
+    @pytest.mark.parametrize(
+        argnames="active_flag",
+        argvalues=[True, False, None],
+    )
     def test_valid(
         active_flag: bool | None,
         image_file_failed_state: io.BytesIO,
@@ -853,8 +862,8 @@ class TestApplicationMetadata:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "metadata",
-        [
+        argnames="metadata",
+        argvalues=[
             b"a",
             b"a" * _MAX_METADATA_BYTES,
         ],

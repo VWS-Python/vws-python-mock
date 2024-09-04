@@ -22,7 +22,7 @@ class TestTargetSummary:
     """
 
     @staticmethod
-    @pytest.mark.parametrize("active_flag", [True, False])
+    @pytest.mark.parametrize(argnames="active_flag", argvalues=[True, False])
     def test_target_summary(
         vws_client: VWS,
         vuforia_database: VuforiaDatabase,

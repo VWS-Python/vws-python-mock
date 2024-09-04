@@ -72,8 +72,8 @@ class TestUpdate:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "content_type",
-        [
+        argnames="content_type",
+        argvalues=[
             # This is the documented required content type:
             "application/json",
             # Other content types also work.
@@ -222,8 +222,8 @@ class TestWidth:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "width",
-        [-1, "10", None, 0],
+        argnames="width",
+        argvalues=[-1, "10", None, 0],
         ids=["Negative", "Wrong Type", "None", "Zero"],
     )
     def test_width_invalid(
@@ -275,8 +275,14 @@ class TestActiveFlag:
     """
 
     @staticmethod
-    @pytest.mark.parametrize("initial_active_flag", [True, False])
-    @pytest.mark.parametrize("desired_active_flag", [True, False])
+    @pytest.mark.parametrize(
+        argnames="initial_active_flag",
+        argvalues=[True, False],
+    )
+    @pytest.mark.parametrize(
+        argnames="desired_active_flag",
+        argvalues=[True, False],
+    )
     def test_active_flag(
         vws_client: VWS,
         image_file_success_state_low_rating: io.BytesIO,
@@ -305,7 +311,10 @@ class TestActiveFlag:
         assert target_details.target_record.active_flag == desired_active_flag
 
     @staticmethod
-    @pytest.mark.parametrize("desired_active_flag", ["string", None])
+    @pytest.mark.parametrize(
+        argnames="desired_active_flag",
+        argvalues=["string", None],
+    )
     def test_invalid(
         vws_client: VWS,
         target_id: str,
@@ -338,8 +347,8 @@ class TestApplicationMetadata:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "metadata",
-        [
+        argnames="metadata",
+        argvalues=[
             b"a",
             b"a" * _MAX_METADATA_BYTES,
         ],
@@ -363,7 +372,7 @@ class TestApplicationMetadata:
         )
 
     @staticmethod
-    @pytest.mark.parametrize("invalid_metadata", [1, None])
+    @pytest.mark.parametrize(argnames="invalid_metadata", argvalues=[1, None])
     def test_invalid_type(
         vws_client: VWS,
         target_id: str,
@@ -464,8 +473,8 @@ class TestTargetName:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "name",
-        [
+        argnames="name",
+        argvalues=[
             "á",
             # We test just below the max character value.
             # This is because targets with the max character value in their
@@ -805,7 +814,10 @@ class TestImage:
         )
 
     @staticmethod
-    @pytest.mark.parametrize("invalid_type_image", [1, None])
+    @pytest.mark.parametrize(
+        argnames="invalid_type_image",
+        argvalues=[1, None],
+    )
     def test_invalid_type(
         invalid_type_image: int | None,
         target_id: str,
