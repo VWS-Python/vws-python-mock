@@ -7,7 +7,6 @@ from http import HTTPStatus
 from urllib.parse import urlparse
 
 import pytest
-from vws.types import Response
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from tests.mock_vws.utils import Endpoint
@@ -69,15 +68,8 @@ class TestUnexpectedJSON:
         )
 
         response = new_endpoint.send()
-        vws_response = Response(
-            text=response.text,
-            url=response.url,
-            status_code=response.status_code,
-            headers=dict(response.headers),
-            request_body=response.request.body,
-            raw=response.raw,
-        )
-        handle_server_errors(response=vws_response)
+
+        handle_server_errors(response=response)
 
         netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":

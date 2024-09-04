@@ -88,7 +88,7 @@ def _query(
     *,
     vuforia_database: VuforiaDatabase,
     body: dict[str, Any],
-) -> requests.Response:
+) -> Response:
     """
     Make a request to the endpoint to make an image recognition query.
 
@@ -125,7 +125,7 @@ def _query(
     }
 
     vwq_host = "https://cloudreco.vuforia.com"
-    response = requests.request(
+    requests_response = requests.request(
         method=method,
         url=urljoin(base=vwq_host, url=request_path),
         headers=headers,
@@ -134,15 +134,15 @@ def _query(
     )
 
     vws_response = Response(
-        text=response.text,
-        url=response.url,
-        status_code=response.status_code,
-        headers=dict(response.headers),
-        request_body=response.request.body,
-        raw=response.raw,
+        text=requests_response.text,
+        url=requests_response.url,
+        status_code=requests_response.status_code,
+        headers=dict(requests_response.headers),
+        request_body=requests_response.request.body,
+        tell_position=requests_response.raw.tell(),
     )
     handle_server_errors(response=vws_response)
-    return response
+    return vws_response
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -238,7 +238,7 @@ class TestContentType:
             "Content-Type": content_type,
         }
 
-        response = requests.request(
+        requests_response = requests.request(
             method=method,
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
@@ -247,18 +247,18 @@ class TestContentType:
         )
 
         vws_response = Response(
-            text=response.text,
-            url=response.url,
-            status_code=response.status_code,
-            headers=dict(response.headers),
-            request_body=response.request.body,
-            raw=response.raw,
+            text=requests_response.text,
+            url=requests_response.url,
+            status_code=requests_response.status_code,
+            headers=dict(requests_response.headers),
+            request_body=requests_response.request.body,
+            tell_position=requests_response.raw.tell(),
         )
         handle_server_errors(response=vws_response)
 
-        assert response.text == resp_text
+        assert requests_response.text == resp_text
         assert_vwq_failure(
-            response=response,
+            response=vws_response,
             status_code=resp_status_code,
             content_type=resp_content_type,
             cache_control=resp_cache_control,
@@ -306,7 +306,7 @@ class TestContentType:
             "Content-Type": content_type,
         }
 
-        response = requests.request(
+        requests_response = requests.request(
             method=method,
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
@@ -315,17 +315,17 @@ class TestContentType:
         )
 
         vws_response = Response(
-            text=response.text,
-            url=response.url,
-            status_code=response.status_code,
-            headers=dict(response.headers),
-            request_body=response.request.body,
-            raw=response.raw,
+            text=requests_response.text,
+            url=requests_response.url,
+            status_code=requests_response.status_code,
+            headers=dict(requests_response.headers),
+            request_body=requests_response.request.body,
+            tell_position=requests_response.raw.tell(),
         )
         handle_server_errors(response=vws_response)
-        assert not response.text
+        assert not requests_response.text
         assert_vwq_failure(
-            response=response,
+            response=vws_response,
             status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
             content_type=None,
             cache_control=None,
@@ -376,7 +376,7 @@ class TestContentType:
             "Content-Type": content_type,
         }
 
-        response = requests.request(
+        requests_response = requests.request(
             method=method,
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
@@ -385,12 +385,12 @@ class TestContentType:
         )
 
         vws_response = Response(
-            text=response.text,
-            url=response.url,
-            status_code=response.status_code,
-            headers=dict(response.headers),
-            request_body=response.request.body,
-            raw=response.raw,
+            text=requests_response.text,
+            url=requests_response.url,
+            status_code=requests_response.status_code,
+            headers=dict(requests_response.headers),
+            request_body=requests_response.request.body,
+            tell_position=requests_response.raw.tell(),
         )
         handle_server_errors(response=vws_response)
 
@@ -398,9 +398,9 @@ class TestContentType:
             "java.io.IOException: RESTEASY007550: "
             "Unable to get boundary for multipart"
         )
-        assert response.text == expected_text
+        assert requests_response.text == expected_text
         assert_vwq_failure(
-            response=response,
+            response=vws_response,
             status_code=HTTPStatus.BAD_REQUEST,
             content_type="text/html;charset=utf-8",
             cache_control=None,
@@ -442,7 +442,7 @@ class TestContentType:
             "Content-Type": "multipart/form-data; boundary=example_boundary",
         }
 
-        response = requests.request(
+        requests_response = requests.request(
             method=method,
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
@@ -451,19 +451,19 @@ class TestContentType:
         )
 
         vws_response = Response(
-            text=response.text,
-            url=response.url,
-            status_code=response.status_code,
-            headers=dict(response.headers),
-            request_body=response.request.body,
-            raw=response.raw,
+            text=requests_response.text,
+            url=requests_response.url,
+            status_code=requests_response.status_code,
+            headers=dict(requests_response.headers),
+            request_body=requests_response.request.body,
+            tell_position=requests_response.raw.tell(),
         )
         handle_server_errors(response=vws_response)
 
         expected_text = "No image."
-        assert response.text == expected_text
+        assert requests_response.text == expected_text
         assert_vwq_failure(
-            response=response,
+            response=vws_response,
             status_code=HTTPStatus.BAD_REQUEST,
             content_type="application/json",
             cache_control=None,
@@ -506,7 +506,7 @@ class TestContentType:
             "Content-Type": content_type_header + "; extra=1",
         }
 
-        response = requests.request(
+        requests_response = requests.request(
             method=method,
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
@@ -515,16 +515,16 @@ class TestContentType:
         )
 
         vws_response = Response(
-            text=response.text,
-            url=response.url,
-            status_code=response.status_code,
-            headers=dict(response.headers),
-            request_body=response.request.body,
-            raw=response.raw,
+            text=requests_response.text,
+            url=requests_response.url,
+            status_code=requests_response.status_code,
+            headers=dict(requests_response.headers),
+            request_body=requests_response.request.body,
+            tell_position=requests_response.raw.tell(),
         )
         handle_server_errors(response=vws_response)
-        assert_query_success(response=response)
-        response_json = json.loads(s=response.text)
+        assert_query_success(response=vws_response)
+        response_json = json.loads(s=requests_response.text)
         assert response_json["results"] == []
 
 
@@ -1205,7 +1205,7 @@ class TestAcceptHeader:
             "Content-Type": content_type_header,
         } | extra_headers
 
-        response = requests.request(
+        requests_response = requests.request(
             method=method,
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
@@ -1214,16 +1214,16 @@ class TestAcceptHeader:
         )
 
         vws_response = Response(
-            text=response.text,
-            url=response.url,
-            status_code=response.status_code,
-            headers=dict(response.headers),
-            request_body=response.request.body,
-            raw=response.raw,
+            text=requests_response.text,
+            url=requests_response.url,
+            status_code=requests_response.status_code,
+            headers=dict(requests_response.headers),
+            request_body=requests_response.request.body,
+            tell_position=requests_response.raw.tell(),
         )
         handle_server_errors(response=vws_response)
-        assert_query_success(response=response)
-        response_json = json.loads(s=response.text)
+        assert_query_success(response=vws_response)
+        response_json = json.loads(s=requests_response.text)
         assert response_json["results"] == []
 
     @staticmethod
@@ -1262,7 +1262,7 @@ class TestAcceptHeader:
             "Accept": "text/html",
         }
 
-        response = requests.request(
+        requests_response = requests.request(
             method=method,
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
@@ -1271,17 +1271,17 @@ class TestAcceptHeader:
         )
 
         vws_response = Response(
-            text=response.text,
-            url=response.url,
-            status_code=response.status_code,
-            headers=dict(response.headers),
-            request_body=response.request.body,
-            raw=response.raw,
+            text=requests_response.text,
+            url=requests_response.url,
+            status_code=requests_response.status_code,
+            headers=dict(requests_response.headers),
+            request_body=requests_response.request.body,
+            tell_position=requests_response.raw.tell(),
         )
         handle_server_errors(response=vws_response)
 
         assert_vwq_failure(
-            response=response,
+            response=vws_response,
             status_code=HTTPStatus.NOT_ACCEPTABLE,
             content_type=None,
             cache_control=None,
@@ -2023,7 +2023,7 @@ class TestDateFormats:
             "Content-Type": content_type_header,
         }
 
-        response = requests.request(
+        requests_response = requests.request(
             method=method,
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
@@ -2032,16 +2032,16 @@ class TestDateFormats:
         )
 
         vws_response = Response(
-            text=response.text,
-            url=response.url,
-            status_code=response.status_code,
-            headers=dict(response.headers),
-            request_body=response.request.body,
-            raw=response.raw,
+            text=requests_response.text,
+            url=requests_response.url,
+            status_code=requests_response.status_code,
+            headers=dict(requests_response.headers),
+            request_body=requests_response.request.body,
+            tell_position=requests_response.raw.tell(),
         )
         handle_server_errors(response=vws_response)
-        assert_query_success(response=response)
-        response_json = json.loads(s=response.text)
+        assert_query_success(response=vws_response)
+        response_json = json.loads(s=requests_response.text)
         assert response_json["results"] == []
 
 

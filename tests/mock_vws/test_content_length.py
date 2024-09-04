@@ -7,7 +7,6 @@ from http import HTTPStatus
 from urllib.parse import urlparse
 
 import pytest
-from vws.types import Response
 
 from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import Endpoint
@@ -58,16 +57,7 @@ class TestIncorrect:
         )
 
         response = new_endpoint.send()
-
-        vws_response = Response(
-            text=response.text,
-            url=response.url,
-            status_code=response.status_code,
-            headers=dict(response.headers),
-            request_body=response.request.body,
-            raw=response.raw,
-        )
-        handle_server_errors(response=vws_response)
+        handle_server_errors(response=response)
         assert response.status_code == HTTPStatus.BAD_REQUEST
 
         netloc = urlparse(url=endpoint.base_url).netloc
@@ -95,7 +85,7 @@ class TestIncorrect:
             "Content-Length": str(len(response.text)),
             "Content-Type": "text/html",
             "Connection": "close",
-            "server": "awselb/2.0",
+            "Server": "awselb/2.0",
             "Date": response.headers["Date"],
         }
         assert response.headers == expected_headers
@@ -142,15 +132,7 @@ class TestIncorrect:
             }
             return
 
-        vws_response = Response(
-            text=response.text,
-            url=response.url,
-            status_code=response.status_code,
-            headers=dict(response.headers),
-            request_body=response.request.body,
-            raw=response.raw,
-        )
-        handle_server_errors(response=vws_response)
+        handle_server_errors(response=response)
         assert_valid_date_header(response=response)
         # We have seen both of these response texts.
         assert response.text in {"stream timeout", ""}
@@ -194,15 +176,8 @@ class TestIncorrect:
         )
 
         response = new_endpoint.send()
-        vws_response = Response(
-            text=response.text,
-            url=response.url,
-            status_code=response.status_code,
-            headers=dict(response.headers),
-            request_body=response.request.body,
-            raw=response.raw,
-        )
-        handle_server_errors(response=vws_response)
+
+        handle_server_errors(response=response)
 
         netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":
