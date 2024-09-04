@@ -11,7 +11,7 @@ from urllib.parse import urljoin
 import requests
 from PIL import Image
 from requests.structures import CaseInsensitiveDict
-from vws.exceptions.response import Response
+from vws.types import Response
 
 from mock_vws._constants import ResultCodes
 
@@ -74,6 +74,7 @@ class Endpoint:
             status_code=requests_response.status_code,
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
+            raw=requests_response.raw,
         )
 
     @property

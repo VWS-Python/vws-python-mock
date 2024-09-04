@@ -7,7 +7,7 @@ from http import HTTPStatus
 from urllib.parse import urlparse
 
 import pytest
-from vws.exceptions.response import Response
+from vws.types import Response
 
 from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import Endpoint
@@ -65,6 +65,7 @@ class TestIncorrect:
             status_code=response.status_code,
             headers=dict(response.headers),
             request_body=response.request_body,
+            raw=response.raw,
         )
         handle_server_errors(response=vws_response)
         assert response.status_code == HTTPStatus.BAD_REQUEST
@@ -147,6 +148,7 @@ class TestIncorrect:
             status_code=response.status_code,
             headers=dict(response.headers),
             request_body=response.request_body,
+            raw=response.raw,
         )
         handle_server_errors(response=vws_response)
         assert_valid_date_header(response=response)
@@ -198,6 +200,7 @@ class TestIncorrect:
             status_code=response.status_code,
             headers=dict(response.headers),
             request_body=response.request_body,
+            raw=response.raw,
         )
         handle_server_errors(response=vws_response)
 

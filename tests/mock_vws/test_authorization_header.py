@@ -11,8 +11,8 @@ from urllib.parse import urlparse
 import pytest
 from vws import VWS, CloudRecoService
 from vws.exceptions import cloud_reco_exceptions
-from vws.exceptions.response import Response
 from vws.exceptions.vws_exceptions import AuthenticationFailureError, FailError
+from vws.types import Response
 from vws_auth_tools import rfc_1123_date
 
 from mock_vws._constants import ResultCodes
@@ -65,6 +65,7 @@ class TestAuthorizationHeader:
             status_code=response.status_code,
             headers=dict(response.headers),
             request_body=response.request_body,
+            raw=response.raw,
         )
         handle_server_errors(response=vws_response)
 
@@ -132,6 +133,7 @@ class TestMalformed:
             status_code=response.status_code,
             headers=dict(response.headers),
             request_body=response.request_body,
+            raw=response.raw,
         )
         handle_server_errors(response=vws_response)
 
@@ -188,6 +190,7 @@ class TestMalformed:
             status_code=response.status_code,
             headers=dict(response.headers),
             request_body=response.request_body,
+            raw=response.raw,
         )
         handle_server_errors(response=vws_response)
 
@@ -244,6 +247,7 @@ class TestMalformed:
             status_code=response.status_code,
             headers=dict(response.headers),
             request_body=response.request_body,
+            raw=response.raw,
         )
 
         handle_server_errors(response=vws_response)

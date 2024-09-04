@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 from freezegun import freeze_time
-from vws.exceptions.response import Response
+from vws.types import Response
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes
@@ -79,6 +79,7 @@ class TestInvalidJSON:
             status_code=response.status_code,
             headers=dict(response.headers),
             request_body=response.request_body,
+            raw=response.raw,
         )
         handle_server_errors(response=vws_response)
 
@@ -167,6 +168,7 @@ class TestInvalidJSON:
             status_code=response.status_code,
             headers=dict(response.headers),
             request_body=response.request_body,
+            raw=response.raw,
         )
         handle_server_errors(response=vws_response)
 

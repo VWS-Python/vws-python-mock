@@ -11,7 +11,7 @@ from string import hexdigits
 from zoneinfo import ZoneInfo
 
 from beartype import beartype
-from vws.exceptions.response import Response
+from vws.types import Response
 
 from mock_vws._constants import ResultCodes
 

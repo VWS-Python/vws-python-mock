@@ -7,7 +7,7 @@ from http import HTTPStatus
 
 import pytest
 from vws import VWS
-from vws.exceptions.response import Response
+from vws.types import Response
 
 from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import Endpoint
@@ -45,6 +45,7 @@ class TestInvalidGivenID:
             status_code=response.status_code,
             headers=dict(response.headers),
             request_body=response.request_body,
+            raw=response.raw,
         )
         handle_server_errors(response=vws_response)
 
