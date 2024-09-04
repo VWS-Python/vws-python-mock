@@ -35,8 +35,8 @@ from vws.exceptions.cloud_reco_exceptions import (
     MaxNumResultsOutOfRangeError,
 )
 from vws.exceptions.custom_exceptions import RequestEntityTooLargeError
-from vws.exceptions.response import Response
 from vws.reports import TargetStatuses
+from vws.types import Response
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws.database import VuforiaDatabase
@@ -139,6 +139,7 @@ def _query(
         status_code=response.status_code,
         headers=dict(response.headers),
         request_body=response.request.body,
+        raw=response.raw,
     )
     handle_server_errors(response=vws_response)
     return response
@@ -251,6 +252,7 @@ class TestContentType:
             status_code=response.status_code,
             headers=dict(response.headers),
             request_body=response.request.body,
+            raw=response.raw,
         )
         handle_server_errors(response=vws_response)
 
@@ -318,6 +320,7 @@ class TestContentType:
             status_code=response.status_code,
             headers=dict(response.headers),
             request_body=response.request.body,
+            raw=response.raw,
         )
         handle_server_errors(response=vws_response)
         assert not response.text
@@ -387,6 +390,7 @@ class TestContentType:
             status_code=response.status_code,
             headers=dict(response.headers),
             request_body=response.request.body,
+            raw=response.raw,
         )
         handle_server_errors(response=vws_response)
 
@@ -452,6 +456,7 @@ class TestContentType:
             status_code=response.status_code,
             headers=dict(response.headers),
             request_body=response.request.body,
+            raw=response.raw,
         )
         handle_server_errors(response=vws_response)
 
@@ -515,6 +520,7 @@ class TestContentType:
             status_code=response.status_code,
             headers=dict(response.headers),
             request_body=response.request.body,
+            raw=response.raw,
         )
         handle_server_errors(response=vws_response)
         assert_query_success(response=response)
@@ -1213,6 +1219,7 @@ class TestAcceptHeader:
             status_code=response.status_code,
             headers=dict(response.headers),
             request_body=response.request.body,
+            raw=response.raw,
         )
         handle_server_errors(response=vws_response)
         assert_query_success(response=response)
@@ -1269,6 +1276,7 @@ class TestAcceptHeader:
             status_code=response.status_code,
             headers=dict(response.headers),
             request_body=response.request.body,
+            raw=response.raw,
         )
         handle_server_errors(response=vws_response)
 
@@ -2029,6 +2037,7 @@ class TestDateFormats:
             status_code=response.status_code,
             headers=dict(response.headers),
             request_body=response.request.body,
+            raw=response.raw,
         )
         handle_server_errors(response=vws_response)
         assert_query_success(response=response)

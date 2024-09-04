@@ -12,7 +12,7 @@ from zoneinfo import ZoneInfo
 
 import requests
 from beartype import beartype
-from vws.exceptions.response import Response
+from vws.types import Response
 
 from mock_vws._constants import ResultCodes
 

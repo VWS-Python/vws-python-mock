@@ -12,7 +12,6 @@ from typing import Any, Final
 import pytest
 from vws import VWS
 from vws.exceptions.base_exceptions import VWSError
-from vws.exceptions.response import Response
 from vws.exceptions.vws_exceptions import (
     AuthenticationFailureError,
     BadImageError,
@@ -24,6 +23,7 @@ from vws.exceptions.vws_exceptions import (
     TargetStatusNotSuccessError,
 )
 from vws.reports import TargetStatuses
+from vws.types import Response
 
 from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import make_image_file

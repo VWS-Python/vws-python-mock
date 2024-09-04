@@ -7,7 +7,7 @@ from http import HTTPStatus
 from urllib.parse import urlparse
 
 import pytest
-from vws.exceptions.response import Response
+from vws.types import Response
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from tests.mock_vws.utils import Endpoint
@@ -75,6 +75,7 @@ class TestUnexpectedJSON:
             status_code=response.status_code,
             headers=dict(response.headers),
             request_body=response.request.body,
+            raw=response.raw,
         )
         handle_server_errors(response=vws_response)
 
