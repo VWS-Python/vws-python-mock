@@ -14,11 +14,10 @@ import requests
 from beartype import beartype
 from freezegun import freeze_time
 from PIL import Image
-from requests.exceptions import MissingSchema
 from vws import VWS, CloudRecoService
 from vws_auth_tools import rfc_1123_date
 
-from mock_vws import MockVWS
+from mock_vws import MissingSchemeError, MockVWS
 from mock_vws.database import VuforiaDatabase
 from mock_vws.image_matchers import ExactMatcher, StructuralSimilarityMatcher
 from mock_vws.target import Target
@@ -240,7 +239,7 @@ class TestCustomBaseURLs:
         """
         An error if raised if a URL is given with no scheme.
         """
-        with pytest.raises(expected_exception=MissingSchema) as vws_exc:
+        with pytest.raises(expected_exception=MissingSchemeError) as vws_exc:
             MockVWS(base_vws_url="vuforia.vws.example.com")
 
         expected = (
@@ -248,7 +247,7 @@ class TestCustomBaseURLs:
             'Perhaps you meant "https://vuforia.vws.example.com".'
         )
         assert str(vws_exc.value) == expected
-        with pytest.raises(expected_exception=MissingSchema) as vwq_exc:
+        with pytest.raises(expected_exception=MissingSchemeError) as vwq_exc:
             MockVWS(base_vwq_url="vuforia.vwq.example.com")
         expected = (
             'Invalid URL "vuforia.vwq.example.com": No scheme supplied. '
