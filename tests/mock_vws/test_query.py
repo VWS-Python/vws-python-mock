@@ -35,6 +35,7 @@ from vws.exceptions.cloud_reco_exceptions import (
     MaxNumResultsOutOfRangeError,
 )
 from vws.exceptions.custom_exceptions import RequestEntityTooLargeError
+from vws.exceptions.response import Response
 from vws.reports import TargetStatuses
 from vws_auth_tools import authorization_header, rfc_1123_date
 
@@ -132,7 +133,14 @@ def _query(
         timeout=30,
     )
 
-    handle_server_errors(response=response)
+    vws_response = Response(
+        text=response.text,
+        url=response.url,
+        status_code=response.status_code,
+        headers=dict(response.headers),
+        request_body=response.request.body,
+    )
+    handle_server_errors(response=vws_response)
     return response
 
 
@@ -237,7 +245,14 @@ class TestContentType:
             timeout=30,
         )
 
-        handle_server_errors(response=response)
+        vws_response = Response(
+            text=response.text,
+            url=response.url,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            request_body=response.request.body,
+        )
+        handle_server_errors(response=vws_response)
 
         assert response.text == resp_text
         assert_vwq_failure(
@@ -297,7 +312,14 @@ class TestContentType:
             timeout=30,
         )
 
-        handle_server_errors(response=response)
+        vws_response = Response(
+            text=response.text,
+            url=response.url,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            request_body=response.request.body,
+        )
+        handle_server_errors(response=vws_response)
         assert not response.text
         assert_vwq_failure(
             response=response,
@@ -359,7 +381,14 @@ class TestContentType:
             timeout=30,
         )
 
-        handle_server_errors(response=response)
+        vws_response = Response(
+            text=response.text,
+            url=response.url,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            request_body=response.request.body,
+        )
+        handle_server_errors(response=vws_response)
 
         expected_text = (
             "java.io.IOException: RESTEASY007550: "
@@ -417,7 +446,14 @@ class TestContentType:
             timeout=30,
         )
 
-        handle_server_errors(response=response)
+        vws_response = Response(
+            text=response.text,
+            url=response.url,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            request_body=response.request.body,
+        )
+        handle_server_errors(response=vws_response)
 
         expected_text = "No image."
         assert response.text == expected_text
@@ -473,7 +509,14 @@ class TestContentType:
             timeout=30,
         )
 
-        handle_server_errors(response=response)
+        vws_response = Response(
+            text=response.text,
+            url=response.url,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            request_body=response.request.body,
+        )
+        handle_server_errors(response=vws_response)
         assert_query_success(response=response)
         response_json = json.loads(s=response.text)
         assert response_json["results"] == []
@@ -1164,7 +1207,14 @@ class TestAcceptHeader:
             timeout=30,
         )
 
-        handle_server_errors(response=response)
+        vws_response = Response(
+            text=response.text,
+            url=response.url,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            request_body=response.request.body,
+        )
+        handle_server_errors(response=vws_response)
         assert_query_success(response=response)
         response_json = json.loads(s=response.text)
         assert response_json["results"] == []
@@ -1213,7 +1263,14 @@ class TestAcceptHeader:
             timeout=30,
         )
 
-        handle_server_errors(response=response)
+        vws_response = Response(
+            text=response.text,
+            url=response.url,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            request_body=response.request.body,
+        )
+        handle_server_errors(response=vws_response)
 
         assert_vwq_failure(
             response=response,
@@ -1966,7 +2023,14 @@ class TestDateFormats:
             timeout=30,
         )
 
-        handle_server_errors(response=response)
+        vws_response = Response(
+            text=response.text,
+            url=response.url,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            request_body=response.request.body,
+        )
+        handle_server_errors(response=vws_response)
         assert_query_success(response=response)
         response_json = json.loads(s=response.text)
         assert response_json["results"] == []
