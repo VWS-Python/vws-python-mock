@@ -7,7 +7,6 @@ from contextlib import ContextDecorator
 from typing import Literal, Self
 from urllib.parse import urljoin, urlparse
 
-import requests
 from beartype import BeartypeConf, beartype
 from responses import RequestsMock
 
@@ -27,6 +26,27 @@ from .mock_web_services_api import MockVuforiaWebServicesAPI
 
 _STRUCTURAL_SIMILARITY_MATCHER = StructuralSimilarityMatcher()
 _BRISQUE_TRACKING_RATER = BrisqueTargetTrackingRater()
+
+
+class MissingSchemeError(Exception):
+    """
+    Raised when a URL is missing a schema.
+    """
+
+    def __init__(self, url: str) -> None:
+        """
+        Args:
+            url: The URL which is missing a scheme.
+        """
+        super().__init__()
+        self.url = url
+
+    def __str__(self) -> str:
+        """Give a string representation of this error with a suggestion."""
+        return (
+            f'Invalid URL "{self.url}": No scheme supplied. '
+            f'Perhaps you meant "https://{self.url}".'
+        )
 
 
 @beartype(conf=BeartypeConf(is_pep484_tower=True))
@@ -66,8 +86,7 @@ class MockVWS(ContextDecorator):
             target_tracking_rater: A callable for rating targets for tracking.
 
         Raises:
-            requests.exceptions.MissingSchema: There is no schema in a given
-                URL.
+            MissingSchemeError: There is no scheme in a given URL.
         """
         super().__init__()
         self._real_http = real_http
@@ -76,15 +95,10 @@ class MockVWS(ContextDecorator):
 
         self._base_vws_url = base_vws_url
         self._base_vwq_url = base_vwq_url
-        missing_scheme_error = (
-            'Invalid URL "{url}": No scheme supplied. '
-            'Perhaps you meant "https://{url}".'
-        )
         for url in (base_vwq_url, base_vws_url):
             parse_result = urlparse(url=url)
             if not parse_result.scheme:
-                error = missing_scheme_error.format(url=url)
-                raise requests.exceptions.MissingSchema(error)
+                raise MissingSchemeError(url=url)
 
         self._mock_vws_api = MockVuforiaWebServicesAPI(
             target_manager=self._target_manager,

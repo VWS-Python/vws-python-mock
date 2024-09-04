@@ -64,9 +64,6 @@ intersphinx_mapping = {
 }
 nitpicky = True
 warning_is_error = True
-nitpick_ignore = [
-    ("py:exc", "requests.exceptions.MissingSchema"),
-]
 
 html_theme = "furo"
 html_title = project
