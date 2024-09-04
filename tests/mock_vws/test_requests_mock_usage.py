@@ -734,4 +734,4 @@ class TestDataTypes:
             secret_key=endpoint.secret_key,
         )
         response = new_endpoint.send()
-        response.raise_for_status()
+        assert response.status_code == endpoint.successful_headers_status_code

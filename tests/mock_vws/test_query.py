@@ -475,7 +475,9 @@ class TestContentType:
 
         handle_server_errors(response=response)
         assert_query_success(response=response)
-        assert response.json()["results"] == []
+        response_json = json.loads(s=response.text)
+        assert isinstance(response_json, dict)
+        assert response_json["results"] == []
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -528,7 +530,8 @@ class TestSuccess:
         response = _query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
-        (result,) = response.json()["results"]
+        response_json = json.loads(s=response.text)
+        (result,) = response_json["results"]
         assert result == {
             "target_id": target_id,
             "target_data": {
@@ -780,7 +783,8 @@ class TestMaxNumResults:
         response = _query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
-        assert len(response.json()["results"]) == 1
+        response_json = json.loads(s=response.text)
+        assert len(response_json["results"]) == 1
 
     @staticmethod
     @pytest.mark.parametrize("num_results", [1, b"1", 50])
@@ -811,7 +815,9 @@ class TestMaxNumResults:
         response = _query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
-        assert response.json()["results"] == []
+        response_json = json.loads(s=response.text)
+        assert isinstance(response_json, dict)
+        assert response_json["results"] == []
 
     @staticmethod
     def test_valid_works(
@@ -967,7 +973,8 @@ class TestIncludeTargetData:
         response = _query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
-        result_1, result_2 = response.json()["results"]
+        response_json = json.loads(s=response.text)
+        result_1, result_2 = response_json["results"]
         assert "target_data" in result_1
         assert "target_data" not in result_2
 
@@ -998,7 +1005,8 @@ class TestIncludeTargetData:
         response = _query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
-        result_1, result_2 = response.json()["results"]
+        response_json = json.loads(s=response.text)
+        result_1, result_2 = response_json["results"]
         assert "target_data" in result_1
         assert "target_data" not in result_2
 
@@ -1029,7 +1037,8 @@ class TestIncludeTargetData:
         response = _query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
-        result_1, result_2 = response.json()["results"]
+        response_json = json.loads(s=response.text)
+        result_1, result_2 = response_json["results"]
         assert "target_data" not in result_1
         assert "target_data" not in result_2
 
@@ -1060,7 +1069,8 @@ class TestIncludeTargetData:
         response = _query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
-        result_1, result_2 = response.json()["results"]
+        response_json = json.loads(s=response.text)
+        result_1, result_2 = response_json["results"]
         assert "target_data" in result_1
         assert "target_data" in result_2
 
@@ -1158,7 +1168,9 @@ class TestAcceptHeader:
 
         handle_server_errors(response=response)
         assert_query_success(response=response)
-        assert response.json()["results"] == []
+        response_json = json.loads(s=response.text)
+        assert isinstance(response_json, dict)
+        assert response_json["results"] == []
 
     @staticmethod
     def test_invalid(
@@ -1960,7 +1972,9 @@ class TestDateFormats:
 
         handle_server_errors(response=response)
         assert_query_success(response=response)
-        assert response.json()["results"] == []
+        response_json = json.loads(s=response.text)
+        assert isinstance(response_json, dict)
+        assert response_json["results"] == []
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")

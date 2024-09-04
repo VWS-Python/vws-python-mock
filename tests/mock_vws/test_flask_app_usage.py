@@ -3,6 +3,7 @@ Tests for the usage of the mock Flask application.
 """
 
 import io
+import json
 import uuid
 from collections.abc import Iterator
 from http import HTTPStatus
@@ -188,7 +189,7 @@ class TestAddDatabase:
         response = requests.post(url=databases_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.CREATED
 
-        data = response.json()
+        data = json.loads(s=response.text)
 
         assert data["targets"] == []
         assert data["state_name"] == "WORKING"
@@ -233,7 +234,7 @@ class TestDeleteDatabase:
         response = requests.post(url=databases_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.CREATED
 
-        data = response.json()
+        data = json.loads(s=response.text)
         delete_url = databases_url + "/" + data["database_name"]
         response = requests.delete(url=delete_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.OK
