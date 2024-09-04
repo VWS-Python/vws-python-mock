@@ -11,6 +11,7 @@ from urllib.parse import urlparse
 import pytest
 from vws import VWS, CloudRecoService
 from vws.exceptions import cloud_reco_exceptions
+from vws.exceptions.response import Response
 from vws.exceptions.vws_exceptions import AuthenticationFailureError, FailError
 from vws_auth_tools import rfc_1123_date
 
@@ -58,7 +59,14 @@ class TestAuthorizationHeader:
 
         response = new_endpoint.send()
 
-        handle_server_errors(response=response)
+        vws_response = Response(
+            text=response.text,
+            url=response.url,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            request_body=response.request.body,
+        )
+        handle_server_errors(response=vws_response)
 
         netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":
@@ -118,7 +126,14 @@ class TestMalformed:
         )
 
         response = new_endpoint.send()
-        handle_server_errors(response=response)
+        vws_response = Response(
+            text=response.text,
+            url=response.url,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            request_body=response.request.body,
+        )
+        handle_server_errors(response=vws_response)
 
         netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":
@@ -167,7 +182,14 @@ class TestMalformed:
         )
 
         response = new_endpoint.send()
-        handle_server_errors(response=response)
+        vws_response = Response(
+            text=response.text,
+            url=response.url,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            request_body=response.request.body,
+        )
+        handle_server_errors(response=vws_response)
 
         netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":
@@ -216,8 +238,15 @@ class TestMalformed:
         )
 
         response = new_endpoint.send()
+        vws_response = Response(
+            text=response.text,
+            url=response.url,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            request_body=response.request.body,
+        )
 
-        handle_server_errors(response=response)
+        handle_server_errors(response=vws_response)
 
         netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":

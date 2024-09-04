@@ -10,6 +10,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 from freezegun import freeze_time
+from vws.exceptions.response import Response
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes
@@ -69,7 +70,14 @@ class TestMissing:
 
         response = new_endpoint.send()
 
-        handle_server_errors(response=response)
+        vws_response = Response(
+            text=response.text,
+            url=response.url,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            request_body=response.request.body,
+        )
+        handle_server_errors(response=vws_response)
 
         netloc = urlparse(url=endpoint.base_url).netloc
 
@@ -141,7 +149,14 @@ class TestFormat:
             secret_key=endpoint.secret_key,
         )
         response = new_endpoint.send()
-        handle_server_errors(response=response)
+        vws_response = Response(
+            text=response.text,
+            url=response.url,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            request_body=response.request.body,
+        )
+        handle_server_errors(response=vws_response)
 
         netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":
@@ -222,7 +237,14 @@ class TestSkewedTime:
 
         response = new_endpoint.send()
 
-        handle_server_errors(response=response)
+        vws_response = Response(
+            text=response.text,
+            url=response.url,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            request_body=response.request.body,
+        )
+        handle_server_errors(response=vws_response)
 
         # Even with the query endpoint, we get a JSON response.
         if netloc == "cloudreco.vuforia.com":
@@ -299,7 +321,14 @@ class TestSkewedTime:
 
         response = new_endpoint.send()
 
-        handle_server_errors(response=response)
+        vws_response = Response(
+            text=response.text,
+            url=response.url,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            request_body=response.request.body,
+        )
+        handle_server_errors(response=vws_response)
 
         # Even with the query endpoint, we get a JSON response.
         if netloc == "cloudreco.vuforia.com":
@@ -374,7 +403,14 @@ class TestSkewedTime:
         )
 
         response = new_endpoint.send()
-        handle_server_errors(response=response)
+        vws_response = Response(
+            text=response.text,
+            url=response.url,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            request_body=response.request.body,
+        )
+        handle_server_errors(response=vws_response)
 
         netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":
@@ -438,7 +474,14 @@ class TestSkewedTime:
 
         response = new_endpoint.send()
 
-        handle_server_errors(response=response)
+        vws_response = Response(
+            text=response.text,
+            url=response.url,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            request_body=response.request.body,
+        )
+        handle_server_errors(response=vws_response)
 
         netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":

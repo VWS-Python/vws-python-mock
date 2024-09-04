@@ -7,6 +7,7 @@ from http import HTTPStatus
 from urllib.parse import urlparse
 
 import pytest
+from vws.exceptions.response import Response
 
 from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import Endpoint
@@ -58,7 +59,14 @@ class TestIncorrect:
 
         response = new_endpoint.send()
 
-        handle_server_errors(response=response)
+        vws_response = Response(
+            text=response.text,
+            url=response.url,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            request_body=response.request.body,
+        )
+        handle_server_errors(response=vws_response)
         assert response.status_code == HTTPStatus.BAD_REQUEST
 
         netloc = urlparse(url=endpoint.base_url).netloc
@@ -133,7 +141,14 @@ class TestIncorrect:
             }
             return
 
-        handle_server_errors(response=response)
+        vws_response = Response(
+            text=response.text,
+            url=response.url,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            request_body=response.request.body,
+        )
+        handle_server_errors(response=vws_response)
         assert_valid_date_header(response=response)
         # We have seen both of these response texts.
         assert response.text in {"stream timeout", ""}
@@ -177,7 +192,14 @@ class TestIncorrect:
         )
 
         response = new_endpoint.send()
-        handle_server_errors(response=response)
+        vws_response = Response(
+            text=response.text,
+            url=response.url,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            request_body=response.request.body,
+        )
+        handle_server_errors(response=vws_response)
 
         netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":

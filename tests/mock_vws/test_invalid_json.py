@@ -10,6 +10,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 from freezegun import freeze_time
+from vws.exceptions.response import Response
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes
@@ -72,7 +73,14 @@ class TestInvalidJSON:
 
         response = new_endpoint.send()
 
-        handle_server_errors(response=response)
+        vws_response = Response(
+            text=response.text,
+            url=response.url,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            request_body=response.request.body,
+        )
+        handle_server_errors(response=vws_response)
 
         takes_json_data = (
             endpoint.auth_header_content_type == "application/json"
@@ -153,7 +161,14 @@ class TestInvalidJSON:
 
         response = new_endpoint.send()
 
-        handle_server_errors(response=response)
+        vws_response = Response(
+            text=response.text,
+            url=response.url,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            request_body=response.request.body,
+        )
+        handle_server_errors(response=vws_response)
 
         takes_json_data = (
             endpoint.auth_header_content_type == "application/json"
