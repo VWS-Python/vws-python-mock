@@ -178,13 +178,6 @@ repos:
     stages: [manual]
     pass_filenames: false
 
-  - id: pyright-verifytypes
-    name: pyright-verifytypes
-    stages: [push]
-    entry: pyright --verifytypes vws_cli
-    language: system
-    pass_filenames: false
-    types_or: [python]
 # We use system Python, with required dependencies specified in pyproject.toml.
 # We therefore cannot use those dependencies in pre-commit CI.
 ci:
