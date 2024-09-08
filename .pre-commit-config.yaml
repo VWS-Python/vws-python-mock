@@ -19,6 +19,11 @@ repos:
     files: spelling_private_dict\.txt$
   - id: trailing-whitespace
     exclude: ^src/mock_vws/resources/
+- repo: https://github.com/shellcheck-py/shellcheck-py
+  rev: v0.10.0.1
+  hooks:
+  - id: shellcheck
+    args: ["--shell", "bash"]
 - repo: local
   hooks:
   - id: custom-linters
