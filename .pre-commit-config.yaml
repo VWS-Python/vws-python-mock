@@ -52,7 +52,7 @@ repos:
   - id: check-manifest
     name: check-manifest
     stages: [push]
-    entry: python -m check-manifest .
+    entry: python -m check_manifest .
     language: system
     pass_filenames: false
 
@@ -107,7 +107,7 @@ repos:
         # We choose not to use a Python wrapper or alternative to hadolint as none
         # appear to be well maintained, and they require more setup than we would
         # want.
-    entry: python -m ghcr.io/hadolint/hadolint hadolint
+    entry: ghcr.io/hadolint/hadolint hadolint
 
   - id: ruff-check
     name: Ruff check
