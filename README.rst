@@ -15,7 +15,7 @@ Using the mock redirects requests to Vuforia made with `requests`_ to an in-memo
 
 This requires Python 3.12+.
 
-.. code-block:: sh
+.. code-block:: shell
 
     pip install vws-python-mock
 
