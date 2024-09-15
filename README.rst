@@ -21,6 +21,8 @@ This requires Python 3.12+.
 
 .. code-block:: python
 
+    """Make a request to the Vuforia Web Services API mock."""
+
     import requests
 
     from mock_vws import MockVWS

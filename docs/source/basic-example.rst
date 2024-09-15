@@ -2,6 +2,8 @@ Using the mock redirects requests to Vuforia made with `requests`_ to an in-memo
 
 .. code-block:: python
 
+    """Make a request to the Vuforia Web Services API mock."""
+
     import requests
     from mock_vws import MockVWS
     from mock_vws.database import VuforiaDatabase
