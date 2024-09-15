@@ -22,6 +22,7 @@ This requires Python 3.12+.
 .. code-block:: python
 
     import requests
+
     from mock_vws import MockVWS
     from mock_vws.database import VuforiaDatabase
 
@@ -29,7 +30,7 @@ This requires Python 3.12+.
         database = VuforiaDatabase()
         mock.add_database(database=database)
         # This will use the Vuforia mock.
-        requests.get('https://vws.vuforia.com/summary')
+        requests.get("https://vws.vuforia.com/summary", timeout=30)
 
 By default, an exception will be raised if any requests to unmocked addresses are made.
 
