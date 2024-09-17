@@ -33,6 +33,8 @@ class ResultCodes(Enum):
     DATE_RANGE_ERROR = "DateRangeError"
     FAIL = "Fail"
     TARGET_STATUS_PROCESSING = "TargetStatusProcessing"
+    # While we sometimes hit this, we don't want to keep a database that is
+    # constantly in this state.
     REQUEST_QUOTA_REACHED = "RequestQuotaReached"
     TARGET_STATUS_NOT_SUCCESS = "TargetStatusNotSuccess"
     PROJECT_INACTIVE = "ProjectInactive"

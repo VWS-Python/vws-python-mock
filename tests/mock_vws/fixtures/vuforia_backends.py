@@ -230,10 +230,11 @@ def pytest_collection_modifyitems(
 
 @beartype
 @pytest.fixture(
+    name="verify_mock_vuforia",
     params=list(VuforiaBackend),
     ids=[backend.value for backend in list(VuforiaBackend)],
 )
-def verify_mock_vuforia(
+def fixture_verify_mock_vuforia(
     request: pytest.FixtureRequest,
     vuforia_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
