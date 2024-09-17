@@ -145,7 +145,7 @@ class TestContentTypes:
         """
         Any non-empty ``Content-Type`` header is allowed.
         """
-        image_data = image_file_failed_state.read()
+        image_data = image_file_failed_state.getvalue()
         image_data_encoded = base64.b64encode(s=image_data).decode(
             encoding="ascii"
         )
@@ -173,7 +173,7 @@ class TestContentTypes:
         An ``UNAUTHORIZED`` response is given if an empty ``Content-Type``
         header is given.
         """
-        image_data = image_file_failed_state.read()
+        image_data = image_file_failed_state.getvalue()
         image_data_encoded = base64.b64encode(s=image_data).decode(
             encoding="ascii"
         )
@@ -219,7 +219,7 @@ class TestMissingData:
         """
         `name`, `width` and `image` are all required.
         """
-        image_data = image_file_failed_state.read()
+        image_data = image_file_failed_state.getvalue()
         image_data_encoded = base64.b64encode(s=image_data).decode(
             encoding="ascii",
         )
@@ -261,7 +261,7 @@ class TestWidth:
         """
         The width must be a number greater than zero.
         """
-        image_data = image_file_failed_state.read()
+        image_data = image_file_failed_state.getvalue()
         image_data_encoded = base64.b64encode(s=image_data).decode(
             encoding="ascii"
         )
@@ -369,7 +369,7 @@ class TestTargetName:
         A target's name must be a string of length 0 < N < 65, with characters
         in a particular range.
         """
-        image_data = image_file_failed_state.read()
+        image_data = image_file_failed_state.getvalue()
         image_data_encoded = base64.b64encode(s=image_data).decode(
             encoding="ascii",
         )
@@ -709,7 +709,7 @@ class TestActiveFlag:
         """
         Boolean values and NULL are valid active flags.
         """
-        image_data = image_file_failed_state.read()
+        image_data = image_file_failed_state.getvalue()
         image_data_encoded = base64.b64encode(s=image_data).decode(
             encoding="ascii",
         )
@@ -739,7 +739,7 @@ class TestActiveFlag:
         Values which are not Boolean values or NULL are not valid active flags.
         """
         active_flag = "string"
-        image_data = image_file_failed_state.read()
+        image_data = image_file_failed_state.getvalue()
         image_data_encoded = base64.b64encode(s=image_data).decode(
             encoding="ascii"
         )
@@ -773,7 +773,7 @@ class TestActiveFlag:
         """
         The active flag defaults to True if it is not set.
         """
-        image_data = image_file_failed_state.read()
+        image_data = image_file_failed_state.getvalue()
         image_data_encoded = base64.b64encode(s=image_data).decode(
             encoding="ascii"
         )
@@ -798,7 +798,7 @@ class TestActiveFlag:
         """
         The active flag defaults to True if it is set to NULL.
         """
-        image_data = image_file_failed_state.read()
+        image_data = image_file_failed_state.getvalue()
         image_data_encoded = base64.b64encode(s=image_data).decode(
             encoding="ascii"
         )
@@ -832,7 +832,7 @@ class TestUnexpectedData:
         """
         A `BAD_REQUEST` response is returned when unexpected data is given.
         """
-        image_data = image_file_failed_state.read()
+        image_data = image_file_failed_state.getvalue()
         image_data_encoded = base64.b64encode(s=image_data).decode(
             encoding="ascii"
         )
@@ -897,7 +897,7 @@ class TestApplicationMetadata:
         """
         NULL is valid application metadata.
         """
-        image_data = image_file_failed_state.read()
+        image_data = image_file_failed_state.getvalue()
         image_data_encoded = base64.b64encode(s=image_data).decode(
             encoding="ascii"
         )
@@ -925,7 +925,7 @@ class TestApplicationMetadata:
         Values which are not a string or NULL are not valid application
         metadata.
         """
-        image_data = image_file_failed_state.read()
+        image_data = image_file_failed_state.getvalue()
         image_data_encoded = base64.b64encode(s=image_data).decode(
             encoding="ascii"
         )
