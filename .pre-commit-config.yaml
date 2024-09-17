@@ -28,7 +28,7 @@ repos:
   hooks:
   - id: custom-linters
     name: custom-linters
-    entry: python -m pytest ci/custom_linters.py
+    entry: python -m pytest ci/test_custom_linters.py
     stages: [push]
     language: system
     types_or: [yaml, python]
@@ -88,9 +88,10 @@ repos:
 
   - id: vulture
     name: vulture
-    entry: python -m vulture --min-confidence 100
+    entry: python -m vulture .
     language: system
     types_or: [python]
+    pass_filenames: false
 
   - id: pyroma
     name: pyroma
@@ -107,7 +108,7 @@ repos:
 
   - id: pylint
     name: pylint
-    entry: python -m pylint *.py src/ tests/ docs/ ci/
+    entry: python -m pylint *.py src/ tests/ docs/ ci/ admin/
     language: system
     stages: [manual]
     pass_filenames: false
@@ -162,7 +163,7 @@ repos:
 
   - id: interrogate
     name: interrogate
-    entry: python -m interrogate src/ tests/ ci/
+    entry: python -m interrogate
     language: system
     types_or: [python]
     exclude_types: [executable]
