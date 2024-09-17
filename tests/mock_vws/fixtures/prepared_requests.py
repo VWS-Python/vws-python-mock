@@ -45,7 +45,7 @@ def add_target(
     """
     Return details of the endpoint for adding a target.
     """
-    image_data = image_file_failed_state.read()
+    image_data = image_file_failed_state.getvalue()
     image_data_encoded = base64.b64encode(s=image_data).decode(
         encoding="ascii"
     )
@@ -431,7 +431,7 @@ def query(
     """
     Return details of the endpoint for making an image recognition query.
     """
-    image_content = high_quality_image.read()
+    image_content = high_quality_image.getvalue()
     date = rfc_1123_date()
     request_path = "/v1/query"
     files = {"image": ("image.jpeg", image_content, "image/jpeg")}
