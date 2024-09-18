@@ -93,6 +93,13 @@ repos:
     types_or: [python]
     pass_filenames: false
 
+  - id: vulture-docs
+    name: vulture docs
+    entry: doccmd --language=python --command="vulture"
+    language: system
+    types_or: [python]
+    pass_filenames: false
+
   - id: pyroma
     name: pyroma
     entry: python -m pyroma --min 10 .
@@ -231,3 +238,4 @@ ci:
   - ruff-format-fix-docs
   - spelling
   - vulture
+  - vulture-docs
