@@ -154,13 +154,13 @@ Building images from source
 
 .. code-block:: console
 
-   $ export REPOSITORY_ROOT=$PWD
-   $ export DOCKERFILE=$REPOSITORY_ROOT/src/mock_vws/_flask_server/Dockerfile
+   $ export REPOSITORY_ROOT="$PWD"
+   $ export DOCKERFILE="$REPOSITORY_ROOT/src/mock_vws/_flask_server/Dockerfile"
 
    $ export TARGET_MANAGER_TAG=adamtheturtle/vuforia-target-manager-mock:latest
    $ export VWS_TAG=adamtheturtle/vuforia-vws-mock:latest
    $ export VWQ_TAG=adamtheturtle/vuforia-vwq-mock:latest
 
-   $ docker buildx build $REPOSITORY_ROOT --file $DOCKERFILE --target target-manager --tag $TARGET_MANAGER_TAG
-   $ docker buildx build $REPOSITORY_ROOT --file $DOCKERFILE --target vws --tag $VWS_TAG
-   $ docker buildx build $REPOSITORY_ROOT --file $DOCKERFILE --target vwq --tag $VWQ_TAG
+   $ docker buildx build "$REPOSITORY_ROOT" --file "$DOCKERFILE" --target target-manager --tag "$TARGET_MANAGER_TAG"
+   $ docker buildx build "$REPOSITORY_ROOT" --file "$DOCKERFILE" --target vws --tag "$VWS_TAG"
+   $ docker buildx build "$REPOSITORY_ROOT" --file "$DOCKERFILE" --target vwq --tag "$VWQ_TAG"
