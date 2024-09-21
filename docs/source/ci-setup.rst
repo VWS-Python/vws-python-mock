@@ -22,7 +22,7 @@ Create environment variable files for secrets:
    $ mkdir -p ci_secrets
    $ cp vuforia_secrets.env.example ci_secrets/vuforia_secrets_1.env
    $ cp vuforia_secrets.env.example ci_secrets/vuforia_secrets_2.env
-   ...
+   $ ...
 
 Add Vuforia credentials for different target databases to the new files in the ``ci_secrets/`` directory.
 Add at least as many credentials files as there are builds in the GitHub test matrix.
@@ -35,7 +35,7 @@ Add the encrypted secrets files to the repository:
 
 .. code-block:: console
 
-   $ PASSPHRASE_FOR_VUFORIA_SECRETS=<CHOSEN_SECRET> make update-secrets
+   $ PASSPHRASE_FOR_VUFORIA_SECRETS="<CHOSEN_SECRET>" make update-secrets
    $ git add secrets.tar.gpg
    $ git commit -m "Update secret archive"
    $ git push
