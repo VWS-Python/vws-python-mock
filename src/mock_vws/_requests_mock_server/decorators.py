@@ -57,13 +57,13 @@ class MockVWS(ContextDecorator):
 
     def __init__(
         self,
+        *,
         base_vws_url: str = "https://vws.vuforia.com",
         base_vwq_url: str = "https://cloudreco.vuforia.com",
         duplicate_match_checker: ImageMatcher = _STRUCTURAL_SIMILARITY_MATCHER,
         query_match_checker: ImageMatcher = _STRUCTURAL_SIMILARITY_MATCHER,
         processing_time_seconds: float = 2.0,
         target_tracking_rater: TargetTrackingRater = _BRISQUE_TRACKING_RATER,
-        *,
         real_http: bool = False,
     ) -> None:
         """

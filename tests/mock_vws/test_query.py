@@ -202,6 +202,7 @@ class TestContentType:
         ],
     )
     def test_incorrect_no_boundary(
+        *,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         content_type: str,
