@@ -66,7 +66,7 @@ def _enable_use_real_vuforia(
     working_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
     monkeypatch: pytest.MonkeyPatch,
-) -> Generator[None, None, None]:
+) -> Generator[None]:
     """Test against the real Vuforia."""
     assert monkeypatch
     assert inactive_database
@@ -80,7 +80,7 @@ def _enable_use_mock_vuforia(
     working_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
     monkeypatch: pytest.MonkeyPatch,
-) -> Generator[None, None, None]:
+) -> Generator[None]:
     """Test against the in-memory mock Vuforia."""
     assert monkeypatch
     working_database = VuforiaDatabase(
@@ -112,7 +112,7 @@ def _enable_use_docker_in_memory(
     working_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
     monkeypatch: pytest.MonkeyPatch,
-) -> Generator[None, None, None]:
+) -> Generator[None]:
     """Test against mock Vuforia created to be run in a container."""
     # We set ``wsgi.input_terminated`` to ``True`` so that when going through
     # ``requests`` in our tests, the Flask applications
@@ -239,7 +239,7 @@ def fixture_verify_mock_vuforia(
     vuforia_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
     monkeypatch: pytest.MonkeyPatch,
-) -> Generator[None, None, None]:
+) -> Generator[None]:
     """
     Test functions which use this fixture are run multiple times. Once with the
     real Vuforia, and once with each mock.
@@ -284,7 +284,7 @@ def mock_only_vuforia(
     vuforia_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
     monkeypatch: pytest.MonkeyPatch,
-) -> Generator[None, None, None]:
+) -> Generator[None]:
     """
     Test functions which use this fixture are run multiple times. Once with the
     each mock.
