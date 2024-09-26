@@ -141,9 +141,6 @@ lint.select = [
     "ALL",
 ]
 lint.ignore = [
-    # We do not annotate the type of 'self', or 'cls'.
-    "ANN101",
-    "ANN102",
     # Ruff warns that this conflicts with the formatter.
     "COM812",
     # Allow our chosen docstring line-style - no one-line summary.
