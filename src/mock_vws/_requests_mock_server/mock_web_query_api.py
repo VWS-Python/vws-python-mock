@@ -6,7 +6,7 @@ https://developer.vuforia.com/library/web-api/vuforia-query-web-api
 """
 
 import email.utils
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from http import HTTPMethod, HTTPStatus
 
 from beartype import beartype
@@ -31,7 +31,7 @@ _ResponseType = tuple[int, dict[str, str], str]
 @beartype
 def route(
     path_pattern: str,
-    http_methods: set[str],
+    http_methods: Iterable[str],
 ) -> Callable[[Callable[..., _ResponseType]], Callable[..., _ResponseType]]:
     """
     Register a decorated method so that it can be recognized as a route.
