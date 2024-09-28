@@ -50,7 +50,7 @@ def add_target(
         encoding="ascii"
     )
     date = rfc_1123_date()
-    data: dict[str, Any] = {
+    data = {
         "name": "example_name",
         "width": 1,
         "image": image_data_encoded,
