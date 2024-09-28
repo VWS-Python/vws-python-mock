@@ -55,13 +55,12 @@ def route(
             The given `method` with multiple changes, including added
             validators.
         """
-        _ROUTES.add(
-            Route(
-                route_name=method.__name__,
-                path_pattern=path_pattern,
-                http_methods=frozenset(http_methods),
-            ),
+        new_route = Route(
+            route_name=method.__name__,
+            path_pattern=path_pattern,
+            http_methods=frozenset(http_methods),
         )
+        _ROUTES.add(new_route)
 
         return method
 
