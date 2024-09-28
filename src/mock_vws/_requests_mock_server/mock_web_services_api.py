@@ -376,7 +376,7 @@ class MockVuforiaWebServicesAPI:
         response_results = [
             target.target_id for target in database.not_deleted_targets
         ]
-        body: dict[str, str | list[str]] = {
+        body = {
             "transaction_id": uuid.uuid4().hex,
             "result_code": ResultCodes.SUCCESS.value,
             "results": response_results,
