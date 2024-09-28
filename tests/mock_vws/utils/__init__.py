@@ -4,6 +4,7 @@ Utilities for tests.
 
 import io
 import secrets
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Literal
 from urllib.parse import urljoin
@@ -47,7 +48,7 @@ class Endpoint:
     base_url: str
     path_url: str
     method: str
-    headers: dict[str, str]
+    headers: Mapping[str, str]
     data: bytes | str
     successful_headers_result_code: ResultCodes
     successful_headers_status_code: int

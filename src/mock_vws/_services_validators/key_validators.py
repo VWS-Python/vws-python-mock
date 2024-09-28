@@ -5,6 +5,7 @@ Validators for JSON keys.
 import json
 import logging
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass
 from http import HTTPMethod, HTTPStatus
 
@@ -30,9 +31,9 @@ class _Route:
     """
 
     path_pattern: str
-    http_methods: set[HTTPMethod]
-    mandatory_keys: set[str]
-    optional_keys: set[str]
+    http_methods: Iterable[HTTPMethod]
+    mandatory_keys: Iterable[str]
+    optional_keys: Iterable[str]
 
 
 @beartype
@@ -142,12 +143,12 @@ def validate_keys(
             pattern=re.compile(pattern=f"{route.path_pattern}$"),
             string=request_path,
         )
-        and request_method in route.http_methods
+        and request_method in set(route.http_methods)
     )
 
     mandatory_keys = matching_route.mandatory_keys
     optional_keys = matching_route.optional_keys
-    allowed_keys = mandatory_keys.union(optional_keys)
+    allowed_keys = {*mandatory_keys, *optional_keys}
 
     if not request_body and not allowed_keys:
         return
@@ -156,7 +157,7 @@ def validate_keys(
     request_json = json.loads(s=request_text)
     given_keys = set(request_json.keys())
     all_given_keys_allowed = given_keys.issubset(allowed_keys)
-    all_mandatory_keys_given = mandatory_keys.issubset(given_keys)
+    all_mandatory_keys_given = set(mandatory_keys).issubset(set(given_keys))
 
     if all_given_keys_allowed and all_mandatory_keys_given:
         return
