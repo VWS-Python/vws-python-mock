@@ -469,7 +469,7 @@ def get_duplicates(target_id: str) -> Response:
     )
     other_targets = database.targets - {target}
 
-    similar_targets: list[str] = [
+    similar_targets = [
         other.target_id
         for other in other_targets
         if image_match_checker(
