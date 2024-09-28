@@ -3,6 +3,7 @@ Utilities for managing mock Vuforia databases.
 """
 
 import uuid
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import Self, TypedDict
 
@@ -25,7 +26,7 @@ class DatabaseDict(TypedDict):
     client_access_key: str
     client_secret_key: str
     state_name: str
-    targets: list[TargetDict]
+    targets: Iterable[TargetDict]
 
 
 @beartype
