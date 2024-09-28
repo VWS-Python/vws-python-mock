@@ -498,7 +498,7 @@ class MockVuforiaWebServicesAPI:
 
         other_targets = database.targets - {target}
 
-        similar_targets: list[str] = [
+        similar_targets = [
             other.target_id
             for other in other_targets
             if self._duplicate_match_checker(
