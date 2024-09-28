@@ -3,7 +3,7 @@ Authorization header validators to use in the mock.
 """
 
 import logging
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from http import HTTPStatus
 
 from beartype import beartype
@@ -38,7 +38,7 @@ def validate_auth_header_exists(*, request_headers: Mapping[str, str]) -> None:
 def validate_access_key_exists(
     *,
     request_headers: Mapping[str, str],
-    databases: set[VuforiaDatabase],
+    databases: Iterable[VuforiaDatabase],
 ) -> None:
     """
     Validate the authorization header includes an access key for a database.
@@ -95,7 +95,7 @@ def validate_authorization(
     request_headers: Mapping[str, str],
     request_body: bytes,
     request_method: str,
-    databases: set[VuforiaDatabase],
+    databases: Iterable[VuforiaDatabase],
 ) -> None:
     """
     Validate the authorization header given to a VWS endpoint.

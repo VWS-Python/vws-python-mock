@@ -3,7 +3,7 @@ Validators for given target IDs.
 """
 
 import logging
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 
 from beartype import beartype
 
@@ -21,7 +21,7 @@ def validate_target_id_exists(
     request_headers: Mapping[str, str],
     request_body: bytes,
     request_method: str,
-    databases: set[VuforiaDatabase],
+    databases: Iterable[VuforiaDatabase],
 ) -> None:
     """
     Validate that if a target ID is given, it exists in the database matching
