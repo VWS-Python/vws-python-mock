@@ -11,7 +11,7 @@ import datetime
 import email.utils
 import json
 import uuid
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Mapping
 from http import HTTPMethod, HTTPStatus
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -39,7 +39,7 @@ _TARGET_ID_PATTERN = "[A-Za-z0-9]+"
 
 _ROUTES: set[Route] = set()
 
-_ResponseType = tuple[int, dict[str, str], str]
+_ResponseType = tuple[int, Mapping[str, str], str]
 
 
 @beartype
@@ -231,7 +231,6 @@ class MockVuforiaWebServicesAPI:
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
 
-        body: dict[str, str] = {}
         database = get_database_matching_server_keys(
             request_headers=request.headers,
             request_body=_body_bytes(request=request),
@@ -297,8 +296,6 @@ class MockVuforiaWebServicesAPI:
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
-
-        body: dict[str, str | int] = {}
 
         database = get_database_matching_server_keys(
             request_headers=request.headers,
@@ -568,7 +565,6 @@ class MockVuforiaWebServicesAPI:
 
         target_id = request.path_url.split(sep="/")[-1]
         target = database.get_target(target_id=target_id)
-        body: dict[str, str] = {}
 
         date = email.utils.formatdate(
             timeval=None,
