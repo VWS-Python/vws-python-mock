@@ -127,7 +127,7 @@ class MockVuforiaWebServicesAPI:
             routes: The `Route`s to be used in the mock.
         """
         self._target_manager = target_manager
-        self.routes: set[Route] = _ROUTES
+        self.routes = _ROUTES
         self._processing_time_seconds = processing_time_seconds
         self._duplicate_match_checker = duplicate_match_checker
         self._target_tracking_rater = target_tracking_rater
