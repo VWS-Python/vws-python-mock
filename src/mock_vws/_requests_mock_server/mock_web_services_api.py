@@ -11,7 +11,7 @@ import datetime
 import email.utils
 import json
 import uuid
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from http import HTTPMethod, HTTPStatus
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -45,7 +45,7 @@ _ResponseType = tuple[int, dict[str, str], str]
 @beartype
 def route(
     path_pattern: str,
-    http_methods: set[HTTPMethod],
+    http_methods: Iterable[HTTPMethod],
 ) -> Callable[[Callable[..., _ResponseType]], Callable[..., _ResponseType]]:
     """
     Register a decorated method so that it can be recognized as a route.

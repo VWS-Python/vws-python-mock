@@ -3,10 +3,14 @@ Custom lint tests.
 """
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 import yaml
 from beartype import beartype
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 
 @beartype
@@ -34,7 +38,7 @@ def _tests_from_pattern(
     """
     # Clear the captured output.
     capsys.readouterr()
-    tests: set[str] = set()
+    tests: Iterable[str] = set()
     pytest.main(
         args=[
             "-q",
@@ -49,8 +53,8 @@ def _tests_from_pattern(
         # We filter empty lines and lines which look like
         # "9 tests collected in 0.01s".
         if line and "collected in" not in line:
-            tests.add(line)
-    return tests
+            tests = {*tests, line}
+    return set(tests)
 
 
 def test_ci_patterns_valid(request: pytest.FixtureRequest) -> None:
