@@ -3,6 +3,7 @@ Utilities for managing mock Vuforia databases.
 """
 
 import uuid
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import Self, TypedDict
 
@@ -67,7 +68,7 @@ class VuforiaDatabase:
     # ``frozen=True`` while still being able to keep the interface we want.
     # In particular, we might want to inspect the ``database`` object's targets
     # as they change via API requests.
-    targets: set[Target] = field(default_factory=set, hash=False)
+    targets: Iterable[Target] = field(default_factory=set, hash=False)
     state: States = States.WORKING
 
     request_quota: int = 100000

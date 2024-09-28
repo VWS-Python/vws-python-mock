@@ -181,7 +181,13 @@ class MockVuforiaWebServicesAPI:
             application_metadata=application_metadata,
             target_tracking_rater=self._target_tracking_rater,
         )
-        database.targets.add(new_target)
+        new_database_targets = {*database.targets, new_target}
+        new_database = dataclasses.replace(
+            database,
+            targets=new_database_targets,
+        )
+        self._target_manager.remove_database(database=database)
+        self._target_manager.add_database(database=new_database)
 
         date = email.utils.formatdate(
             timeval=None,
@@ -251,8 +257,19 @@ class MockVuforiaWebServicesAPI:
 
         now = datetime.datetime.now(tz=target.upload_date.tzinfo)
         new_target = dataclasses.replace(target, delete_date=now)
-        database.targets.remove(target)
-        database.targets.add(new_target)
+        new_database_targets = {
+            database_target
+            for database_target in database.targets
+            if database_target != target
+        }
+        new_database_targets = {*new_database_targets, new_target}
+        new_database = dataclasses.replace(
+            database,
+            targets=new_database_targets,
+        )
+        self._target_manager.remove_database(database=database)
+        self._target_manager.add_database(database=new_database)
+
         date = email.utils.formatdate(
             timeval=None,
             localtime=False,
@@ -492,7 +509,7 @@ class MockVuforiaWebServicesAPI:
         target_id = request.path_url.split(sep="/")[-1]
         target = database.get_target(target_id=target_id)
 
-        other_targets = database.targets - {target}
+        other_targets = set(database.targets) - {target}
 
         similar_targets = [
             other.target_id
@@ -624,8 +641,15 @@ class MockVuforiaWebServicesAPI:
             last_modified_date=last_modified_date,
         )
 
-        database.targets.remove(target)
-        database.targets.add(new_target)
+        new_targets = {
+            database_target
+            for database_target in database.targets
+            if database_target != target
+        }
+        new_targets = {*new_targets, new_target}
+        new_database = dataclasses.replace(database, targets=new_targets)
+        self._target_manager.remove_database(database=database)
+        self._target_manager.add_database(database=new_database)
 
         body = {
             "result_code": ResultCodes.SUCCESS.value,

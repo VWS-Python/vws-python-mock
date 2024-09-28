@@ -207,7 +207,10 @@ def create_target(database_name: str) -> Response:
         target_id=request_json["target_id"],
         target_tracking_rater=target_tracking_rater,
     )
-    database.targets.add(target)
+    new_database_targets = {*database.targets, target}
+    new_database = dataclasses.replace(database, targets=new_database_targets)
+    TARGET_MANAGER.remove_database(database=database)
+    TARGET_MANAGER.add_database(database=new_database)
 
     return Response(
         response=json.dumps(obj=target.to_dict()),
@@ -232,8 +235,15 @@ def delete_target(database_name: str, target_id: str) -> Response:
     target = database.get_target(target_id=target_id)
     now = datetime.datetime.now(tz=target.upload_date.tzinfo)
     new_target = dataclasses.replace(target, delete_date=now)
-    database.targets.remove(target)
-    database.targets.add(new_target)
+    new_database_targets = {
+        database_target
+        for database_target in database.targets
+        if database_target != target
+    }
+    new_database_targets = {*new_database_targets, new_target}
+    new_database = dataclasses.replace(database, targets=new_database_targets)
+    TARGET_MANAGER.remove_database(database=database)
+    TARGET_MANAGER.add_database(database=new_database)
     return Response(
         response=json.dumps(obj=new_target.to_dict()),
         status=HTTPStatus.OK,
@@ -282,8 +292,15 @@ def update_target(database_name: str, target_id: str) -> Response:
         last_modified_date=last_modified_date,
     )
 
-    database.targets.remove(target)
-    database.targets.add(new_target)
+    new_database_targets = {
+        database_target
+        for database_target in database.targets
+        if database_target != target
+    }
+    new_database_targets = {*new_database_targets, new_target}
+    new_database = dataclasses.replace(database, targets=new_database_targets)
+    TARGET_MANAGER.remove_database(database=database)
+    TARGET_MANAGER.add_database(database=new_database)
 
     return Response(
         response=json.dumps(obj=new_target.to_dict()),
