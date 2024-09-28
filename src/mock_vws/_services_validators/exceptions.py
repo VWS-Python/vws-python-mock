@@ -5,6 +5,7 @@ Exceptions to raise from validators.
 import email.utils
 import textwrap
 import uuid
+from collections.abc import Mapping
 from http import HTTPStatus
 from pathlib import Path
 
@@ -22,7 +23,7 @@ class ValidatorError(Exception):
 
     status_code: HTTPStatus
     response_text: str
-    headers: dict[str, str]
+    headers: Mapping[str, str]
 
 
 @beartype

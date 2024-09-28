@@ -6,7 +6,7 @@ https://developer.vuforia.com/library/web-api/vuforia-query-web-api
 """
 
 import email.utils
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Mapping
 from http import HTTPMethod, HTTPStatus
 
 from beartype import beartype
@@ -25,7 +25,7 @@ from mock_vws.target_manager import TargetManager
 
 _ROUTES: set[Route] = set()
 
-_ResponseType = tuple[int, dict[str, str], str]
+_ResponseType = tuple[int, Mapping[str, str], str]
 
 
 @beartype
