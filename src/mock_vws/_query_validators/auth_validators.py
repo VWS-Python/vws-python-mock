@@ -3,7 +3,7 @@ Authorization validators to use in the mock query API.
 """
 
 import logging
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 
 from beartype import beartype
 
@@ -65,7 +65,7 @@ def validate_auth_header_number_of_parts(
 def validate_client_key_exists(
     *,
     request_headers: Mapping[str, str],
-    databases: set[VuforiaDatabase],
+    databases: Iterable[VuforiaDatabase],
 ) -> None:
     """
     Validate the authorization header includes a client key for a database.
@@ -116,7 +116,7 @@ def validate_authorization(
     request_headers: Mapping[str, str],
     request_body: bytes,
     request_method: str,
-    databases: set[VuforiaDatabase],
+    databases: Iterable[VuforiaDatabase],
 ) -> None:
     """
     Validate the authorization header given to the query endpoint.
