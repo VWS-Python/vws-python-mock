@@ -101,7 +101,7 @@ class MockVuforiaWebQueryAPI:
         Attributes:
             routes: The `Route`s to be used in the mock.
         """
-        self.routes: set[Route] = _ROUTES
+        self.routes = _ROUTES
         self._target_manager = target_manager
         self._query_match_checker = query_match_checker
 
