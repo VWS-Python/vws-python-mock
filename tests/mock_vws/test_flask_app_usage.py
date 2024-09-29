@@ -439,11 +439,17 @@ class TestDuplicatesImageMatchers:
 class TestTargetRaters:
     """Tests for using target raters."""
 
-    def test_brisque(self) -> None:
+    def test_default(self) -> None:
+        """By default, the BRISQUE target rater is used."""
+
+    def test_brisque(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """It is possible to use the BRISQUE target rater."""
+        monkeypatch.setenv(name="TARGET_RATER", value="brisque")
 
-    def test_perfect(self) -> None:
+    def test_perfect(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """It is possible to use the perfect target rater."""
+        monkeypatch.setenv(name="TARGET_RATER", value="perfect")
 
-    def test_random(self) -> None:
+    def test_random(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """It is possible to use the random target rater."""
+        monkeypatch.setenv(name="TARGET_RATER", value="random")
