@@ -439,8 +439,8 @@ class TestDuplicatesImageMatchers:
 class TestTargetRaters:
     """Tests for using target raters."""
 
+    @staticmethod
     def test_default(
-        self,
         corrupted_image_file: io.BytesIO,
         high_quality_image: io.BytesIO,
     ) -> None:
@@ -488,8 +488,8 @@ class TestTargetRaters:
         assert corrupted_image_rating <= 0
         assert high_quality_image_rating > 1
 
+    @staticmethod
     def test_brisque(
-        self,
         monkeypatch: pytest.MonkeyPatch,
         corrupted_image_file: io.BytesIO,
         high_quality_image: io.BytesIO,
@@ -540,8 +540,8 @@ class TestTargetRaters:
         assert corrupted_image_rating <= 0
         assert high_quality_image_rating > 1
 
+    @staticmethod
     def test_perfect(
-        self,
         monkeypatch: pytest.MonkeyPatch,
         high_quality_image: io.BytesIO,
     ) -> None:
@@ -579,8 +579,8 @@ class TestTargetRaters:
 
         assert ratings_set == {5}
 
+    @staticmethod
     def test_random(
-        self,
         monkeypatch: pytest.MonkeyPatch,
         high_quality_image: io.BytesIO,
     ) -> None:
