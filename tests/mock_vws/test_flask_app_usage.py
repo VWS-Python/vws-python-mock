@@ -625,34 +625,3 @@ class TestTargetRaters:
         assert lowest_rating >= minimum_rating
         assert highest_rating <= maximum_rating
         assert lowest_rating != highest_rating
-
-    def test_invalid_value(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-        high_quality_image: io.BytesIO,
-    ) -> None:
-        """An error is raised if an invalid target rater is given."""
-        monkeypatch.setenv(name="TARGET_RATER", value=uuid.uuid4().hex)
-        database = VuforiaDatabase()
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
-        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
-
-        vws_client = VWS(
-            server_access_key=database.server_access_key,
-            server_secret_key=database.server_secret_key,
-        )
-
-        target_id = vws_client.add_target(
-            name=uuid.uuid4().hex,
-            width=1,
-            image=high_quality_image,
-            application_metadata=None,
-            active_flag=True,
-        )
-
-        vws_client.wait_for_target_processed(target_id=target_id)
-
-        rating = vws_client.get_target_record(
-            target_id=target_id
-        ).target_record.tracking_rating
-        breakpoint()
