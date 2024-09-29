@@ -439,8 +439,54 @@ class TestDuplicatesImageMatchers:
 class TestTargetRaters:
     """Tests for using target raters."""
 
-    def test_default(self) -> None:
+    def test_default(
+        self,
+        corrupted_image_file: io.BytesIO,
+        high_quality_image: io.BytesIO,
+    ) -> None:
         """By default, the BRISQUE target rater is used."""
+        database = VuforiaDatabase()
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+
+        vws_client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+
+        corrupted_image_target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=corrupted_image_file,
+            application_metadata=None,
+            active_flag=True,
+        )
+
+        high_quality_image_target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=high_quality_image,
+            application_metadata=None,
+            active_flag=True,
+        )
+
+        for target_id in (
+            corrupted_image_target_id,
+            high_quality_image_target_id,
+        ):
+            vws_client.wait_for_target_processed(target_id=target_id)
+
+        corrupted_image_rating = vws_client.get_target_record(
+            target_id=corrupted_image_target_id,
+        ).target_record.tracking_rating
+
+        high_quality_image_rating = vws_client.get_target_record(
+            target_id=high_quality_image_target_id,
+        ).target_record.tracking_rating
+
+        # In the real Vuforia, this image may rate as -2.
+        assert corrupted_image_rating <= 0
+        assert high_quality_image_rating > 1
 
     def test_brisque(
         self,
