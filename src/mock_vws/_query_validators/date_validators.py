@@ -5,7 +5,10 @@ Validators of the date header to use in the mock query API.
 import contextlib
 import datetime
 import logging
+from collections.abc import Mapping
 from zoneinfo import ZoneInfo
+
+from beartype import beartype
 
 from mock_vws._query_validators.exceptions import (
     DateFormatNotValidError,
@@ -13,10 +16,11 @@ from mock_vws._query_validators.exceptions import (
     RequestTimeTooSkewedError,
 )
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(name=__name__)
 
 
-def validate_date_header_given(request_headers: dict[str, str]) -> None:
+@beartype
+def validate_date_header_given(*, request_headers: Mapping[str, str]) -> None:
     """
     Validate the date header is given to the query endpoint.
 
@@ -52,7 +56,8 @@ def _accepted_date_formats() -> set[str]:
     )
 
 
-def validate_date_format(request_headers: dict[str, str]) -> None:
+@beartype
+def validate_date_format(*, request_headers: Mapping[str, str]) -> None:
     """
     Validate the format of the date header given to the query endpoint.
 
@@ -73,7 +78,8 @@ def validate_date_format(request_headers: dict[str, str]) -> None:
     raise DateFormatNotValidError
 
 
-def validate_date_in_range(request_headers: dict[str, str]) -> None:
+@beartype
+def validate_date_in_range(*, request_headers: Mapping[str, str]) -> None:
     """
     Validate date in the date header given to the query endpoint.
 
@@ -84,8 +90,9 @@ def validate_date_in_range(request_headers: dict[str, str]) -> None:
         RequestTimeTooSkewedError: The date is out of range.
     """
     date_header = request_headers["Date"]
+    gmt = ZoneInfo(key="GMT")
 
-    date = None
+    date = datetime.datetime.fromtimestamp(0, tz=gmt)
     for date_format in _accepted_date_formats():
         with contextlib.suppress(ValueError):
             date = datetime.datetime.strptime(
@@ -93,8 +100,6 @@ def validate_date_in_range(request_headers: dict[str, str]) -> None:
                 date_format,
             ).astimezone()
 
-    assert isinstance(date, datetime.datetime)
-    gmt = ZoneInfo("GMT")
     now = datetime.datetime.now(tz=gmt)
     date_from_header = date.replace(tzinfo=gmt)
     time_difference = now - date_from_header

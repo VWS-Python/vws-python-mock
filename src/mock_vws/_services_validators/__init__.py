@@ -2,9 +2,9 @@
 Input validators to use in the mock.
 """
 
-from __future__ import annotations
+from collections.abc import Iterable, Mapping
 
-from typing import TYPE_CHECKING
+from mock_vws.database import VuforiaDatabase
 
 from .active_flag_validators import validate_active_flag
 from .auth_validators import (
@@ -50,16 +50,13 @@ from .project_state_validators import validate_project_state
 from .target_validators import validate_target_id_exists
 from .width_validators import validate_width
 
-if TYPE_CHECKING:
-    from mock_vws.database import VuforiaDatabase
-
 
 def run_services_validators(
     request_path: str,
-    request_headers: dict[str, str],
+    request_headers: Mapping[str, str],
     request_body: bytes,
     request_method: str,
-    databases: set[VuforiaDatabase],
+    databases: Iterable[VuforiaDatabase],
 ) -> None:
     """
     Run all validators.

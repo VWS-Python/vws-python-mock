@@ -8,6 +8,7 @@ import json
 import logging
 from http import HTTPStatus
 
+from beartype import beartype
 from PIL import Image
 
 from mock_vws._base64_decoding import decode_base64
@@ -17,10 +18,11 @@ from mock_vws._services_validators.exceptions import (
     ImageTooLargeError,
 )
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(name=__name__)
 
 
-def validate_image_format(request_body: bytes) -> None:
+@beartype
+def validate_image_format(*, request_body: bytes) -> None:
     """
     Validate the format of the image given to a VWS endpoint.
 
@@ -34,14 +36,14 @@ def validate_image_format(request_body: bytes) -> None:
         return
 
     request_text = request_body.decode()
-    image = json.loads(request_text).get("image")
+    image = json.loads(s=request_text).get("image")
 
     if image is None:
         return
 
     decoded = decode_base64(encoded_data=image)
-    image_file = io.BytesIO(decoded)
-    pil_image = Image.open(image_file)
+    image_file = io.BytesIO(initial_bytes=decoded)
+    pil_image = Image.open(fp=image_file)
 
     if pil_image.format in {"PNG", "JPEG"}:
         return
@@ -50,7 +52,8 @@ def validate_image_format(request_body: bytes) -> None:
     raise BadImageError
 
 
-def validate_image_color_space(request_body: bytes) -> None:
+@beartype
+def validate_image_color_space(*, request_body: bytes) -> None:
     """
     Validate the color space of the image given to a VWS endpoint.
 
@@ -65,14 +68,14 @@ def validate_image_color_space(request_body: bytes) -> None:
         return
 
     request_text = request_body.decode()
-    image = json.loads(request_text).get("image")
+    image = json.loads(s=request_text).get("image")
 
     if image is None:
         return
 
     decoded = decode_base64(encoded_data=image)
-    image_file = io.BytesIO(decoded)
-    pil_image = Image.open(image_file)
+    image_file = io.BytesIO(initial_bytes=decoded)
+    pil_image = Image.open(fp=image_file)
 
     if pil_image.mode in {"L", "RGB"}:
         return
@@ -83,7 +86,8 @@ def validate_image_color_space(request_body: bytes) -> None:
     raise BadImageError
 
 
-def validate_image_size(request_body: bytes) -> None:
+@beartype
+def validate_image_size(*, request_body: bytes) -> None:
     """
     Validate the file size of the image given to a VWS endpoint.
 
@@ -98,7 +102,7 @@ def validate_image_size(request_body: bytes) -> None:
         return
 
     request_text = request_body.decode()
-    image = json.loads(request_text).get("image")
+    image = json.loads(s=request_text).get("image")
 
     if image is None:
         return
@@ -113,7 +117,8 @@ def validate_image_size(request_body: bytes) -> None:
     raise ImageTooLargeError
 
 
-def validate_image_is_image(request_body: bytes) -> None:
+@beartype
+def validate_image_is_image(*, request_body: bytes) -> None:
     """
     Validate that the given image data is actually an image file.
 
@@ -127,21 +132,22 @@ def validate_image_is_image(request_body: bytes) -> None:
         return
 
     request_text = request_body.decode()
-    image = json.loads(request_text).get("image")
+    image = json.loads(s=request_text).get("image")
 
     if image is None:
         return
 
     decoded = decode_base64(encoded_data=image)
-    image_file = io.BytesIO(decoded)
+    image_file = io.BytesIO(initial_bytes=decoded)
 
     try:
-        Image.open(image_file)
+        Image.open(fp=image_file)
     except OSError as exc:
         raise BadImageError from exc
 
 
-def validate_image_encoding(request_body: bytes) -> None:
+@beartype
+def validate_image_encoding(*, request_body: bytes) -> None:
     """
     Validate that the given image data can be base64 decoded.
 
@@ -155,10 +161,10 @@ def validate_image_encoding(request_body: bytes) -> None:
         return
 
     request_text = request_body.decode()
-    if "image" not in json.loads(request_text):
+    if "image" not in json.loads(s=request_text):
         return
 
-    image = json.loads(request_text).get("image")
+    image = json.loads(s=request_text).get("image")
 
     try:
         decode_base64(encoded_data=image)
@@ -167,7 +173,8 @@ def validate_image_encoding(request_body: bytes) -> None:
         raise FailError(status_code=HTTPStatus.UNPROCESSABLE_ENTITY) from exc
 
 
-def validate_image_data_type(request_body: bytes) -> None:
+@beartype
+def validate_image_data_type(*, request_body: bytes) -> None:
     """
     Validate that the given image data is a string.
 
@@ -181,10 +188,10 @@ def validate_image_data_type(request_body: bytes) -> None:
         return
 
     request_text = request_body.decode()
-    if "image" not in json.loads(request_text):
+    if "image" not in json.loads(s=request_text):
         return
 
-    image = json.loads(request_text).get("image")
+    image = json.loads(s=request_text).get("image")
 
     if isinstance(image, str):
         return

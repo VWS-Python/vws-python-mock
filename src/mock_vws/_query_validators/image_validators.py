@@ -4,8 +4,10 @@ Input validators for the image field use in the mock query API.
 
 import io
 import logging
+from collections.abc import Mapping
 from email.message import EmailMessage
 
+from beartype import beartype
 from PIL import Image
 from werkzeug.formparser import MultiPartParser
 
@@ -15,11 +17,13 @@ from mock_vws._query_validators.exceptions import (
     RequestEntityTooLargeError,
 )
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 def validate_image_field_given(
-    request_headers: dict[str, str],
+    *,
+    request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:
     """
@@ -34,12 +38,11 @@ def validate_image_field_given(
     """
     email_message = EmailMessage()
     email_message["Content-Type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary()
-    assert isinstance(boundary, str)
+    boundary = email_message.get_boundary(failobj="")
     parser = MultiPartParser()
     _, files = parser.parse(
-        stream=io.BytesIO(request_body),
-        boundary=boundary.encode("utf-8"),
+        stream=io.BytesIO(initial_bytes=request_body),
+        boundary=boundary.encode(encoding="utf-8"),
         content_length=len(request_body),
     )
     if files.get("image") is not None:
@@ -49,8 +52,10 @@ def validate_image_field_given(
     raise ImageNotGivenError
 
 
+@beartype
 def validate_image_file_size(
-    request_headers: dict[str, str],
+    *,
+    request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:
     """
@@ -65,19 +70,18 @@ def validate_image_file_size(
     """
     email_message = EmailMessage()
     email_message["Content-Type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary()
-    assert isinstance(boundary, str)
+    boundary = email_message.get_boundary(failobj="")
     parser = MultiPartParser()
     _, files = parser.parse(
-        stream=io.BytesIO(request_body),
-        boundary=boundary.encode("utf-8"),
+        stream=io.BytesIO(initial_bytes=request_body),
+        boundary=boundary.encode(encoding="utf-8"),
         content_length=len(request_body),
     )
     image_part = files["image"]
     image_value = image_part.stream.read()
 
     # This is the documented maximum size of a PNG as per.
-    # https://library.vuforia.com/web-api/vuforia-query-web-api.
+    # https://developer.vuforia.com/library/web-api/vuforia-query-web-api.
     # However, the tests show that this maximum size also applies to JPEG
     # files.
     max_bytes = 2 * 1024 * 1024
@@ -89,8 +93,10 @@ def validate_image_file_size(
         raise RequestEntityTooLargeError
 
 
+@beartype
 def validate_image_dimensions(
-    request_headers: dict[str, str],
+    *,
+    request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:
     """
@@ -106,18 +112,17 @@ def validate_image_dimensions(
     """
     email_message = EmailMessage()
     email_message["Content-Type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary()
-    assert isinstance(boundary, str)
+    boundary = email_message.get_boundary(failobj="")
     parser = MultiPartParser()
     _, files = parser.parse(
-        stream=io.BytesIO(request_body),
-        boundary=boundary.encode("utf-8"),
+        stream=io.BytesIO(initial_bytes=request_body),
+        boundary=boundary.encode(encoding="utf-8"),
         content_length=len(request_body),
     )
     image_part = files["image"]
     image_value = image_part.stream.read()
-    image_file = io.BytesIO(image_value)
-    pil_image = Image.open(image_file)
+    image_file = io.BytesIO(initial_bytes=image_value)
+    pil_image = Image.open(fp=image_file)
     max_width = 30000
     max_height = 30000
     if pil_image.height <= max_height and pil_image.width <= max_width:
@@ -127,8 +132,10 @@ def validate_image_dimensions(
     raise BadImageError
 
 
+@beartype
 def validate_image_format(
-    request_headers: dict[str, str],
+    *,
+    request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:
     """
@@ -143,16 +150,15 @@ def validate_image_format(
     """
     email_message = EmailMessage()
     email_message["Content-Type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary()
-    assert isinstance(boundary, str)
+    boundary = email_message.get_boundary(failobj="")
     parser = MultiPartParser()
     _, files = parser.parse(
-        stream=io.BytesIO(request_body),
-        boundary=boundary.encode("utf-8"),
+        stream=io.BytesIO(initial_bytes=request_body),
+        boundary=boundary.encode(encoding="utf-8"),
         content_length=len(request_body),
     )
     image_part = files["image"]
-    pil_image = Image.open(image_part.stream)
+    pil_image = Image.open(fp=image_part.stream)
 
     if pil_image.format in {"PNG", "JPEG"}:
         return
@@ -161,8 +167,9 @@ def validate_image_format(
     raise BadImageError
 
 
+@beartype
 def validate_image_is_image(
-    request_headers: dict[str, str],
+    request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:
     """
@@ -177,19 +184,18 @@ def validate_image_is_image(
     """
     email_message = EmailMessage()
     email_message["Content-Type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary()
-    assert isinstance(boundary, str)
+    boundary = email_message.get_boundary(failobj="")
     parser = MultiPartParser()
     _, files = parser.parse(
-        stream=io.BytesIO(request_body),
-        boundary=boundary.encode("utf-8"),
+        stream=io.BytesIO(initial_bytes=request_body),
+        boundary=boundary.encode(encoding="utf-8"),
         content_length=len(request_body),
     )
     image_part = files["image"]
     image_file = image_part.stream
 
     try:
-        Image.open(image_file)
+        Image.open(fp=image_file)
     except OSError as exc:
         _LOGGER.warning(msg="The image is not an image file.")
         raise BadImageError from exc

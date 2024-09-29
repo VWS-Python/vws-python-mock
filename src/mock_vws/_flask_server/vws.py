@@ -2,7 +2,7 @@
 A fake implementation of the Vuforia Web Services API.
 
 See
-https://library.vuforia.com/web-api/cloud-targets-web-services-api
+https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api
 """
 
 import base64
@@ -14,6 +14,7 @@ from enum import StrEnum, auto
 from http import HTTPMethod, HTTPStatus
 
 import requests
+from beartype import beartype
 from flask import Flask, Response, request
 from pydantic_settings import BaseSettings
 
@@ -38,13 +39,14 @@ from mock_vws.target_raters import (
     HardcodedTargetTrackingRater,
 )
 
-VWS_FLASK_APP = Flask(import_name=__name__)
+VWS_FLASK_APP = Flask(import_name=__name__, static_folder=None)
 VWS_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 class _ImageMatcherChoice(StrEnum):
     """Image matcher choices."""
 
@@ -62,17 +64,19 @@ class _ImageMatcherChoice(StrEnum):
         raise ValueError  # pragma: no cover
 
 
+@beartype
 class VWSSettings(BaseSettings):
     """Settings for the VWS Flask app."""
 
     target_manager_base_url: str
-    processing_time_seconds: float = 2
+    processing_time_seconds: float = 2.0
     vws_host: str = ""
     duplicates_image_matcher: _ImageMatcherChoice = (
         _ImageMatcherChoice.STRUCTURAL_SIMILARITY
     )
 
 
+@beartype
 def get_all_databases() -> set[VuforiaDatabase]:
     """
     Get all database objects from the task manager back-end.
@@ -117,6 +121,7 @@ def set_terminate_wsgi_input() -> None:
 
 
 @VWS_FLASK_APP.before_request
+@beartype
 def validate_request() -> None:
     """
     Run validators on the request.
@@ -148,12 +153,13 @@ def handle_exceptions(exc: ValidatorError) -> Response:
 
 
 @VWS_FLASK_APP.route("/targets", methods=[HTTPMethod.POST])
+@beartype
 def add_target() -> Response:
     """
     Add a target.
 
     Fake implementation of
-    https://library.vuforia.com/web-api/cloud-targets-web-services-api#add
+    https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#add
     """
     settings = VWSSettings.model_validate(obj={})
     databases = get_all_databases()
@@ -167,7 +173,7 @@ def add_target() -> Response:
 
     # We do not use ``request.get_json(force=True)`` because this only works
     # when the content type is given as ``application/json``.
-    request_json = json.loads(request.data)
+    request_json = json.loads(s=request.data)
     name = request_json["name"]
     active_flag = request_json.get("active_flag")
     if active_flag is None:
@@ -179,7 +185,7 @@ def add_target() -> Response:
     new_target = Target(
         name=name,
         width=request_json["width"],
-        image_value=base64.b64decode(request_json["image"]),
+        image_value=base64.b64decode(s=request_json["image"]),
         active_flag=active_flag,
         processing_time_seconds=settings.processing_time_seconds,
         application_metadata=request_json.get("application_metadata"),
@@ -194,7 +200,7 @@ def add_target() -> Response:
         timeout=timeout_seconds,
     )
 
-    date = email.utils.formatdate(None, localtime=False, usegmt=True)
+    date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
     headers = {
         "Connection": "keep-alive",
         "Content-Type": "application/json",
@@ -214,18 +220,19 @@ def add_target() -> Response:
 
     return Response(
         status=HTTPStatus.CREATED,
-        response=json_dump(body),
+        response=json_dump(body=body),
         headers=headers,
     )
 
 
 @VWS_FLASK_APP.route("/targets/<string:target_id>", methods=[HTTPMethod.GET])
+@beartype
 def get_target(target_id: str) -> Response:
     """
     Get details of a target.
 
     Fake implementation of
-    https://library.vuforia.com/web-api/cloud-targets-web-services-api#target-record
+    https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#target-record
     """
     databases = get_all_databases()
     database = get_database_matching_server_keys(
@@ -249,7 +256,7 @@ def get_target(target_id: str) -> Response:
         "reco_rating": target.reco_rating,
     }
 
-    date = email.utils.formatdate(None, localtime=False, usegmt=True)
+    date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
     headers = {
         "Connection": "keep-alive",
         "Content-Type": "application/json",
@@ -268,7 +275,7 @@ def get_target(target_id: str) -> Response:
     }
     return Response(
         status=HTTPStatus.OK,
-        response=json_dump(body),
+        response=json_dump(body=body),
         headers=headers,
     )
 
@@ -282,7 +289,7 @@ def delete_target(target_id: str) -> Response:
     Delete a target.
 
     Fake implementation of
-    https://library.vuforia.com/web-api/cloud-targets-web-services-api#delete
+    https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#delete
     """
     settings = VWSSettings.model_validate(obj={})
     databases = get_all_databases()
@@ -311,7 +318,7 @@ def delete_target(target_id: str) -> Response:
         "transaction_id": uuid.uuid4().hex,
         "result_code": ResultCodes.SUCCESS.value,
     }
-    date = email.utils.formatdate(None, localtime=False, usegmt=True)
+    date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
     headers = {
         "Connection": "keep-alive",
         "Content-Type": "application/json",
@@ -324,18 +331,19 @@ def delete_target(target_id: str) -> Response:
     }
     return Response(
         status=HTTPStatus.OK,
-        response=json_dump(body),
+        response=json_dump(body=body),
         headers=headers,
     )
 
 
 @VWS_FLASK_APP.route("/summary", methods=[HTTPMethod.GET])
+@beartype
 def database_summary() -> Response:
     """
     Get a database summary report.
 
     Fake implementation of
-    https://library.vuforia.com/web-api/cloud-targets-web-services-api#summary-report
+    https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#summary-report
     """
     databases = get_all_databases()
     database = get_database_matching_server_keys(
@@ -364,7 +372,7 @@ def database_summary() -> Response:
         # This was not always the case.
         "request_usage": 0,
     }
-    date = email.utils.formatdate(None, localtime=False, usegmt=True)
+    date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
     headers = {
         "Connection": "keep-alive",
         "Content-Type": "application/json",
@@ -377,7 +385,7 @@ def database_summary() -> Response:
     }
     return Response(
         status=HTTPStatus.OK,
-        response=json_dump(body),
+        response=json_dump(body=body),
         headers=headers,
     )
 
@@ -388,7 +396,7 @@ def target_summary(target_id: str) -> Response:
     Get a summary report for a target.
 
     Fake implementation of
-    https://library.vuforia.com/web-api/cloud-targets-web-services-api#retrieve-report
+    https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#retrieve-report
     """
     databases = get_all_databases()
     database = get_database_matching_server_keys(
@@ -415,7 +423,7 @@ def target_summary(target_id: str) -> Response:
         "current_month_recos": target.current_month_recos,
         "previous_month_recos": target.previous_month_recos,
     }
-    date = email.utils.formatdate(None, localtime=False, usegmt=True)
+    date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
     headers = {
         "Connection": "keep-alive",
         "Content-Type": "application/json",
@@ -428,7 +436,7 @@ def target_summary(target_id: str) -> Response:
     }
     return Response(
         status=HTTPStatus.OK,
-        response=json_dump(body),
+        response=json_dump(body=body),
         headers=headers,
     )
 
@@ -437,12 +445,13 @@ def target_summary(target_id: str) -> Response:
     "/duplicates/<string:target_id>",
     methods=[HTTPMethod.GET],
 )
+@beartype
 def get_duplicates(target_id: str) -> Response:
     """
     Get targets which may be considered duplicates of a given target.
 
     Fake implementation of
-    https://library.vuforia.com/web-api/cloud-targets-web-services-api#check
+    https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#check
     """
     databases = get_all_databases()
     settings = VWSSettings.model_validate(obj={})
@@ -460,7 +469,7 @@ def get_duplicates(target_id: str) -> Response:
     )
     other_targets = database.targets - {target}
 
-    similar_targets: list[str] = [
+    similar_targets = [
         other.target_id
         for other in other_targets
         if image_match_checker(
@@ -478,7 +487,7 @@ def get_duplicates(target_id: str) -> Response:
         "similar_targets": similar_targets,
     }
 
-    date = email.utils.formatdate(None, localtime=False, usegmt=True)
+    date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
     headers = {
         "Connection": "keep-alive",
         "Content-Type": "application/json",
@@ -491,7 +500,7 @@ def get_duplicates(target_id: str) -> Response:
     }
     return Response(
         status=HTTPStatus.OK,
-        response=json_dump(body),
+        response=json_dump(body=body),
         headers=headers,
     )
 
@@ -502,7 +511,7 @@ def target_list() -> Response:
     Get a list of all targets.
 
     Fake implementation of
-    https://library.vuforia.com/web-api/cloud-targets-web-services-api#details-list
+    https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#details-list
     """
     databases = get_all_databases()
     database = get_database_matching_server_keys(
@@ -519,7 +528,7 @@ def target_list() -> Response:
         "result_code": ResultCodes.SUCCESS.value,
         "results": results,
     }
-    date = email.utils.formatdate(None, localtime=False, usegmt=True)
+    date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
     headers = {
         "Connection": "keep-alive",
         "Content-Type": "application/json",
@@ -532,7 +541,7 @@ def target_list() -> Response:
     }
     return Response(
         status=HTTPStatus.OK,
-        response=json_dump(body),
+        response=json_dump(body=body),
         headers=headers,
     )
 
@@ -543,12 +552,12 @@ def update_target(target_id: str) -> Response:
     Update a target.
 
     Fake implementation of
-    https://library.vuforia.com/web-api/cloud-targets-web-services-api#update
+    https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#update
     """
     settings = VWSSettings.model_validate(obj={})
     # We do not use ``request.get_json(force=True)`` because this only works
     # when the content type is given as ``application/json``.
-    request_json = json.loads(request.data)
+    request_json = json.loads(s=request.data)
     databases = get_all_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
@@ -607,7 +616,7 @@ def update_target(target_id: str) -> Response:
     )
     requests.put(url=put_url, json=update_values, timeout=30)
 
-    date = email.utils.formatdate(None, localtime=False, usegmt=True)
+    date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
     headers = {
         "Connection": "keep-alive",
         "Content-Type": "application/json",
@@ -624,7 +633,7 @@ def update_target(target_id: str) -> Response:
     }
     return Response(
         status=HTTPStatus.OK,
-        response=json_dump(body),
+        response=json_dump(body=body),
         headers=headers,
     )
 

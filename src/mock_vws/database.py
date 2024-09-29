@@ -2,17 +2,19 @@
 Utilities for managing mock Vuforia databases.
 """
 
-from __future__ import annotations
-
 import uuid
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import TypedDict
+from typing import Self, TypedDict
+
+from beartype import beartype
 
 from mock_vws._constants import TargetStatuses
 from mock_vws.states import States
 from mock_vws.target import Target, TargetDict
 
 
+@beartype
 class DatabaseDict(TypedDict):
     """
     A dictionary type which represents a database.
@@ -24,9 +26,10 @@ class DatabaseDict(TypedDict):
     client_access_key: str
     client_secret_key: str
     state_name: str
-    targets: list[TargetDict]
+    targets: Iterable[TargetDict]
 
 
+@beartype
 def _random_hex() -> str:
     """
     Return a random hex value.
@@ -34,6 +37,7 @@ def _random_hex() -> str:
     return uuid.uuid4().hex
 
 
+@beartype
 @dataclass(eq=True, frozen=True)
 class VuforiaDatabase:
     """
@@ -99,7 +103,7 @@ class VuforiaDatabase:
         return target
 
     @classmethod
-    def from_dict(cls, database_dict: DatabaseDict) -> VuforiaDatabase:
+    def from_dict(cls, database_dict: DatabaseDict) -> Self:
         """
         Load a database from a dictionary.
         """

@@ -34,13 +34,11 @@ jobs:
           curl -LsSf https://astral.sh/uv/install.sh | sh
           uv pip install --system --upgrade --editable .[dev]
 
-      # We choose not to use a Python wrapper or alternative to hadolint as none
-      # appear to be well maintained, and they require more setup than we would
-      # want.
-      - uses: hadolint/hadolint-action@v3.1.0
-        with:
-          dockerfile: src/mock_vws/_flask_server/Dockerfile
-
       - name: "Lint"
         run: |
-          make lint
+          pre-commit run --all-files --hook-stage commit --verbose
+          pre-commit run --all-files --hook-stage push --verbose
+          pre-commit run --all-files --hook-stage manual --verbose
+
+      - uses: pre-commit-ci/lite-action@v1.0.3
+        if: always()

@@ -1,7 +1,5 @@
 SHELL := /bin/bash -euxo pipefail
 
-include lint.mk
-
 # Treat Sphinx warnings as errors
 SPHINXOPTS := -W
 
@@ -10,29 +8,6 @@ update-secrets:
     # After updating secrets, commit the new secrets.tar.gpg file.
 	tar cvf secrets.tar ci_secrets/
 	gpg --yes --batch --passphrase=${PASSPHRASE_FOR_VUFORIA_SECRETS} --symmetric --cipher-algo AES256 secrets.tar
-
-.PHONY: lint
-lint: \
-    actionlint \
-    check-manifest \
-    deptry \
-    doc8 \
-    linkcheck \
-    mypy \
-    pyproject-fmt \
-    pyright \
-    pyright-verifytypes \
-    pyroma \
-    ruff \
-    spelling \
-    vulture \
-    pylint \
-    custom-linters
-
-.PHONY: fix-lint
-fix-lint: \
-    fix-pyproject-fmt \
-    fix-ruff
 
 .PHONY: docs
 docs:

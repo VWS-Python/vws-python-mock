@@ -3,8 +3,6 @@
 Configuration for Sphinx.
 """
 
-# pylint: disable=invalid-name
-
 import datetime
 import importlib.metadata
 
@@ -12,11 +10,11 @@ project = "VWS-Python-Mock"
 author = "Adam Dangoor"
 
 extensions = [
+    "sphinx_copybutton",
     "sphinx.ext.autodoc",
     "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon",
     "sphinx_paramlinks",
-    "sphinx-prompt",
     "sphinx_substitution_extensions",
     "sphinxcontrib.spelling",
     "sphinxcontrib.autohttp.flask",
@@ -31,6 +29,10 @@ master_doc = "index"
 year = datetime.datetime.now(tz=datetime.UTC).year
 project_copyright = f"{year}, {author}"
 
+# Exclude the prompt from copied code with sphinx_copybutton.
+# https://sphinx-copybutton.readthedocs.io/en/latest/use.html#automatic-exclusion-of-prompts-from-the-copies.
+copybutton_exclude = ".linenos, .gp"
+
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
@@ -38,7 +40,7 @@ project_copyright = f"{year}, {author}"
 # Use ``importlib.metadata.version`` as per
 # https://setuptools-scm.readthedocs.io/en/latest/usage/#usage-from-sphinx.
 version = importlib.metadata.version(distribution_name=project)
-_month, _day, _year, *_ = version.split(".")
+_month, _day, _year, *_ = version.split(sep=".")
 release = f"{_month}.{_day}.{_year}"
 
 language = "en"
@@ -60,9 +62,6 @@ intersphinx_mapping = {
 }
 nitpicky = True
 warning_is_error = True
-nitpick_ignore = [
-    ("py:exc", "requests.exceptions.MissingSchema"),
-]
 
 html_theme = "furo"
 html_title = project

@@ -10,6 +10,7 @@ from enum import StrEnum, auto
 from http import HTTPMethod, HTTPStatus
 from zoneinfo import ZoneInfo
 
+from beartype import beartype
 from flask import Flask, Response, request
 from pydantic_settings import BaseSettings
 
@@ -24,11 +25,12 @@ from mock_vws.target_raters import (
     TargetTrackingRater,
 )
 
-TARGET_MANAGER_FLASK_APP = Flask(__name__)
+TARGET_MANAGER_FLASK_APP = Flask(import_name=__name__, static_folder=None)
 
 TARGET_MANAGER = TargetManager()
 
 
+@beartype
 class _TargetRaterChoice(StrEnum):
     """Target rater choices."""
 
@@ -49,6 +51,7 @@ class _TargetRaterChoice(StrEnum):
         raise ValueError  # pragma: no cover
 
 
+@beartype
 class TargetManagerSettings(BaseSettings):
     """Settings for the Target Manager Flask app."""
 
@@ -60,6 +63,7 @@ class TargetManagerSettings(BaseSettings):
     "/databases/<string:database_name>",
     methods=[HTTPMethod.DELETE],
 )
+@beartype
 def delete_database(database_name: str) -> Response:
     """
     Delete a database.
@@ -80,6 +84,7 @@ def delete_database(database_name: str) -> Response:
 
 
 @TARGET_MANAGER_FLASK_APP.route("/databases", methods=[HTTPMethod.GET])
+@beartype
 def get_databases() -> Response:
     """
     Return a list of all databases.
@@ -92,6 +97,7 @@ def get_databases() -> Response:
 
 
 @TARGET_MANAGER_FLASK_APP.route("/databases", methods=[HTTPMethod.POST])
+@beartype
 def create_database() -> Response:
     """
     Create a new database.
@@ -123,7 +129,7 @@ def create_database() -> Response:
     :status 201: The database has been successfully created.
     """
     random_database = VuforiaDatabase()
-    request_json = json.loads(request.data)
+    request_json = json.loads(s=request.data)
     server_access_key = request_json.get(
         "server_access_key",
         random_database.server_access_key,
@@ -168,7 +174,7 @@ def create_database() -> Response:
         )
 
     return Response(
-        response=json.dumps(database.to_dict()),
+        response=json.dumps(obj=database.to_dict()),
         status=HTTPStatus.CREATED,
     )
 
@@ -177,6 +183,7 @@ def create_database() -> Response:
     "/databases/<string:database_name>/targets",
     methods=[HTTPMethod.POST],
 )
+@beartype
 def create_target(database_name: str) -> Response:
     """
     Create a new target in a given database.
@@ -186,7 +193,7 @@ def create_target(database_name: str) -> Response:
         for database in TARGET_MANAGER.databases
         if database.database_name == database_name
     )
-    request_json = json.loads(request.data)
+    request_json = json.loads(s=request.data)
     image_base64 = request_json["image_base64"]
     image_bytes = base64.b64decode(s=image_base64)
     settings = TargetManagerSettings.model_validate(obj={})
@@ -205,15 +212,16 @@ def create_target(database_name: str) -> Response:
     database.targets.add(target)
 
     return Response(
-        response=json.dumps(target.to_dict()),
+        response=json.dumps(obj=target.to_dict()),
         status=HTTPStatus.CREATED,
     )
 
 
 @TARGET_MANAGER_FLASK_APP.route(
     "/databases/<string:database_name>/targets/<string:target_id>",
-    methods=[HTTPMethod.DELETE],
+    methods={HTTPMethod.DELETE},
 )
+@beartype
 def delete_target(database_name: str, target_id: str) -> Response:
     """
     Delete a target.
@@ -229,7 +237,7 @@ def delete_target(database_name: str, target_id: str) -> Response:
     database.targets.remove(target)
     database.targets.add(new_target)
     return Response(
-        response=json.dumps(new_target.to_dict()),
+        response=json.dumps(obj=new_target.to_dict()),
         status=HTTPStatus.OK,
     )
 
@@ -249,7 +257,7 @@ def update_target(database_name: str, target_id: str) -> Response:
     )
     target = database.get_target(target_id=target_id)
 
-    request_json = json.loads(request.data)
+    request_json = json.loads(s=request.data)
     width = request_json.get("width", target.width)
     name = request_json.get("name", target.name)
     active_flag = request_json.get("active_flag", target.active_flag)
@@ -259,11 +267,11 @@ def update_target(database_name: str, target_id: str) -> Response:
     )
 
     image_value = target.image_value
-    request_json = json.loads(request.data)
+    request_json = json.loads(s=request.data)
     if "image" in request_json:
         image_value = base64.b64decode(s=request_json["image"])
 
-    gmt = ZoneInfo("GMT")
+    gmt = ZoneInfo(key="GMT")
     last_modified_date = datetime.datetime.now(tz=gmt)
 
     new_target = dataclasses.replace(
@@ -280,7 +288,7 @@ def update_target(database_name: str, target_id: str) -> Response:
     database.targets.add(new_target)
 
     return Response(
-        response=json.dumps(new_target.to_dict()),
+        response=json.dumps(obj=new_target.to_dict()),
         status=HTTPStatus.OK,
     )
 

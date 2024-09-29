@@ -3,6 +3,9 @@ Content-Length header validators to use in the mock.
 """
 
 import logging
+from collections.abc import Mapping
+
+from beartype import beartype
 
 from mock_vws._query_validators.exceptions import (
     AuthenticationFailureGoodFormattingError,
@@ -10,11 +13,13 @@ from mock_vws._query_validators.exceptions import (
     ContentLengthHeaderTooLargeError,
 )
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 def validate_content_length_header_is_int(
-    request_headers: dict[str, str],
+    *,
+    request_headers: Mapping[str, str],
 ) -> None:
     """
     Validate the ``Content-Length`` header is an integer.
@@ -35,8 +40,10 @@ def validate_content_length_header_is_int(
         raise ContentLengthHeaderNotIntError from exc
 
 
+@beartype
 def validate_content_length_header_not_too_large(
-    request_headers: dict[str, str],
+    *,
+    request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:
     """
@@ -52,7 +59,7 @@ def validate_content_length_header_not_too_large(
     """
     given_content_length = request_headers["Content-Length"]
 
-    body_length = len(request_body if request_body else b"")
+    body_length = len(request_body)
     given_content_length_value = int(given_content_length)
     # We skip coverage here as running a test to cover this is very slow.
     if given_content_length_value > body_length:  # pragma: no cover
@@ -60,8 +67,10 @@ def validate_content_length_header_not_too_large(
         raise ContentLengthHeaderTooLargeError
 
 
+@beartype
 def validate_content_length_header_not_too_small(
-    request_headers: dict[str, str],
+    *,
+    request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:
     """
@@ -78,7 +87,7 @@ def validate_content_length_header_not_too_small(
     """
     given_content_length = request_headers["Content-Length"]
 
-    body_length = len(request_body if request_body else b"")
+    body_length = len(request_body)
     given_content_length_value = int(given_content_length)
 
     if given_content_length_value < body_length:

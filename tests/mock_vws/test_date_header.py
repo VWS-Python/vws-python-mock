@@ -2,21 +2,18 @@
 Tests for the `Date` header.
 """
 
-from __future__ import annotations
-
+import json
 from datetime import datetime, timedelta
 from http import HTTPStatus
-from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
 import pytest
-import requests
 from freezegun import freeze_time
-from mock_vws._constants import ResultCodes
-from requests.structures import CaseInsensitiveDict
 from vws_auth_tools import authorization_header, rfc_1123_date
 
+from mock_vws._constants import ResultCodes
+from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import (
     assert_query_success,
     assert_valid_transaction_id,
@@ -25,9 +22,6 @@ from tests.mock_vws.utils.assertions import (
     assert_vws_response,
 )
 from tests.mock_vws.utils.too_many_requests import handle_server_errors
-
-if TYPE_CHECKING:
-    from tests.mock_vws.utils import Endpoint
 
 _VWS_MAX_TIME_SKEW = timedelta(minutes=5)
 _VWQ_MAX_TIME_SKEW = timedelta(minutes=65)
@@ -45,31 +39,39 @@ class TestMissing:
         """
         A `BAD_REQUEST` response is returned when no `Date` header is given.
         """
-        endpoint_headers = dict(endpoint.prepared_request.headers)
-        content = endpoint.prepared_request.body or b""
-        assert isinstance(content, bytes)
-
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
             secret_key=endpoint.secret_key,
-            method=str(endpoint.prepared_request.method),
-            content=content,
+            method=endpoint.method,
+            content=endpoint.data,
             content_type=endpoint.auth_header_content_type,
             date="",
-            request_path=endpoint.prepared_request.path_url,
+            request_path=endpoint.path_url,
         )
 
-        headers: dict[str, str] = endpoint_headers | {
+        new_headers = {
+            **endpoint.headers,
             "Authorization": authorization_string,
         }
-        headers.pop("Date", None)
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
-        session = requests.Session()
-        response = session.send(request=endpoint.prepared_request)
+        new_headers.pop("Date", None)
+
+        new_endpoint = Endpoint(
+            base_url=endpoint.base_url,
+            path_url=endpoint.path_url,
+            method=endpoint.method,
+            headers=new_headers,
+            data=endpoint.data,
+            successful_headers_result_code=endpoint.successful_headers_result_code,
+            successful_headers_status_code=endpoint.successful_headers_status_code,
+            access_key=endpoint.access_key,
+            secret_key=endpoint.secret_key,
+        )
+
+        response = new_endpoint.send()
+
         handle_server_errors(response=response)
 
-        url = str(endpoint.prepared_request.url)
-        netloc = urlparse(url).netloc
+        netloc = urlparse(url=endpoint.base_url).netloc
 
         if netloc == "cloudreco.vuforia.com":
             expected_content_type = "text/plain;charset=iso-8859-1"
@@ -106,37 +108,43 @@ class TestFormat:
 
         An `UNAUTHORIZED` response is returned to the VWQ API.
         """
-        gmt = ZoneInfo("GMT")
-        with freeze_time(datetime.now(tz=gmt)):
+        gmt = ZoneInfo(key="GMT")
+        with freeze_time(time_to_freeze=datetime.now(tz=gmt)):
             now = datetime.now(tz=gmt)
             date_incorrect_format = now.strftime("%a %b %d %H:%M:%S")
-
-        endpoint_headers = dict(endpoint.prepared_request.headers)
-        content = endpoint.prepared_request.body or b""
-        assert isinstance(content, bytes)
 
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
             secret_key=endpoint.secret_key,
-            method=str(endpoint.prepared_request.method),
-            content=content,
+            method=endpoint.method,
+            content=endpoint.data,
             content_type=endpoint.auth_header_content_type,
             date=date_incorrect_format,
-            request_path=endpoint.prepared_request.path_url,
+            request_path=endpoint.path_url,
         )
 
-        headers: dict[str, str] = endpoint_headers | {
+        new_headers = {
+            **endpoint.headers,
             "Authorization": authorization_string,
             "Date": date_incorrect_format,
         }
 
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
-        session = requests.Session()
-        response = session.send(request=endpoint.prepared_request)
+        new_endpoint = Endpoint(
+            base_url=endpoint.base_url,
+            path_url=endpoint.path_url,
+            method=endpoint.method,
+            headers=new_headers,
+            data=endpoint.data,
+            successful_headers_result_code=endpoint.successful_headers_result_code,
+            successful_headers_status_code=endpoint.successful_headers_status_code,
+            access_key=endpoint.access_key,
+            secret_key=endpoint.secret_key,
+        )
+        response = new_endpoint.send()
+
         handle_server_errors(response=response)
 
-        url = str(endpoint.prepared_request.url)
-        netloc = urlparse(url).netloc
+        netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":
             assert response.text == "Malformed date header."
             assert_vwq_failure(
@@ -173,45 +181,56 @@ class TestSkewedTime:
         Because there is a small delay in sending requests and Vuforia isn't
         consistent, some leeway is given.
         """
-        url = str(endpoint.prepared_request.url)
-        netloc = urlparse(url).netloc
+        netloc = urlparse(url=endpoint.base_url).netloc
         skew = {
             "vws.vuforia.com": _VWS_MAX_TIME_SKEW,
             "cloudreco.vuforia.com": _VWQ_MAX_TIME_SKEW,
         }[netloc]
         time_difference_from_now = skew + _LEEWAY
-        gmt = ZoneInfo("GMT")
-        with freeze_time(datetime.now(tz=gmt) + time_difference_from_now):
+        gmt = ZoneInfo(key="GMT")
+        with freeze_time(
+            time_to_freeze=datetime.now(tz=gmt) + time_difference_from_now
+        ):
             date = rfc_1123_date()
-
-        endpoint_headers = dict(endpoint.prepared_request.headers)
-        content = endpoint.prepared_request.body or b""
-        assert isinstance(content, bytes)
 
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
             secret_key=endpoint.secret_key,
-            method=str(endpoint.prepared_request.method),
-            content=content,
+            method=endpoint.method,
+            content=endpoint.data,
             content_type=endpoint.auth_header_content_type,
             date=date,
-            request_path=endpoint.prepared_request.path_url,
+            request_path=endpoint.path_url,
         )
 
-        headers = endpoint_headers | {
+        new_headers = {
+            **endpoint.headers,
             "Authorization": authorization_string,
             "Date": date,
         }
 
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
-        session = requests.Session()
-        response = session.send(request=endpoint.prepared_request)
+        new_endpoint = Endpoint(
+            base_url=endpoint.base_url,
+            path_url=endpoint.path_url,
+            method=endpoint.method,
+            headers=new_headers,
+            data=endpoint.data,
+            successful_headers_result_code=endpoint.successful_headers_result_code,
+            successful_headers_status_code=endpoint.successful_headers_status_code,
+            access_key=endpoint.access_key,
+            secret_key=endpoint.secret_key,
+        )
+
+        response = new_endpoint.send()
+
         handle_server_errors(response=response)
 
         # Even with the query endpoint, we get a JSON response.
         if netloc == "cloudreco.vuforia.com":
-            assert response.json().keys() == {"transaction_id", "result_code"}
-            assert response.json()["result_code"] == "RequestTimeTooSkewed"
+            response_json = json.loads(s=response.text)
+            assert isinstance(response_json, dict)
+            assert response_json.keys() == {"transaction_id", "result_code"}
+            assert response_json["result_code"] == "RequestTimeTooSkewed"
             assert_valid_transaction_id(response=response)
             assert_vwq_failure(
                 response=response,
@@ -239,45 +258,56 @@ class TestSkewedTime:
         Because there is a small delay in sending requests and Vuforia isn't
         consistent, some leeway is given.
         """
-        url = str(endpoint.prepared_request.url)
-        netloc = urlparse(url).netloc
+        netloc = urlparse(url=endpoint.base_url).netloc
         skew = {
             "vws.vuforia.com": _VWS_MAX_TIME_SKEW,
             "cloudreco.vuforia.com": _VWQ_MAX_TIME_SKEW,
         }[netloc]
         time_difference_from_now = skew + _LEEWAY
-        gmt = ZoneInfo("GMT")
-        with freeze_time(datetime.now(tz=gmt) - time_difference_from_now):
+        gmt = ZoneInfo(key="GMT")
+        with freeze_time(
+            time_to_freeze=datetime.now(tz=gmt) - time_difference_from_now
+        ):
             date = rfc_1123_date()
-
-        endpoint_headers = dict(endpoint.prepared_request.headers)
-        content = endpoint.prepared_request.body or b""
-        assert isinstance(content, bytes)
 
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
             secret_key=endpoint.secret_key,
-            method=str(endpoint.prepared_request.method),
-            content=content,
+            method=endpoint.method,
+            content=endpoint.data,
             content_type=endpoint.auth_header_content_type,
             date=date,
-            request_path=endpoint.prepared_request.path_url,
+            request_path=endpoint.path_url,
         )
 
-        headers = endpoint_headers | {
+        new_headers = {
+            **endpoint.headers,
             "Authorization": authorization_string,
             "Date": date,
         }
 
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
-        session = requests.Session()
-        response = session.send(request=endpoint.prepared_request)
+        new_endpoint = Endpoint(
+            base_url=endpoint.base_url,
+            path_url=endpoint.path_url,
+            method=endpoint.method,
+            headers=new_headers,
+            data=endpoint.data,
+            successful_headers_result_code=endpoint.successful_headers_result_code,
+            successful_headers_status_code=endpoint.successful_headers_status_code,
+            access_key=endpoint.access_key,
+            secret_key=endpoint.secret_key,
+        )
+
+        response = new_endpoint.send()
+
         handle_server_errors(response=response)
 
         # Even with the query endpoint, we get a JSON response.
         if netloc == "cloudreco.vuforia.com":
-            assert response.json().keys() == {"transaction_id", "result_code"}
-            assert response.json()["result_code"] == "RequestTimeTooSkewed"
+            response_json = json.loads(s=response.text)
+            assert isinstance(response_json, dict)
+            assert response_json.keys() == {"transaction_id", "result_code"}
+            assert response_json["result_code"] == "RequestTimeTooSkewed"
             assert_valid_transaction_id(response=response)
             assert_vwq_failure(
                 response=response,
@@ -304,43 +334,51 @@ class TestSkewedTime:
         Because there is a small delay in sending requests and Vuforia isn't
         consistent, some leeway is given.
         """
-        url = str(endpoint.prepared_request.url)
-        netloc = urlparse(url).netloc
+        netloc = urlparse(url=endpoint.base_url).netloc
         skew = {
             "vws.vuforia.com": _VWS_MAX_TIME_SKEW,
             "cloudreco.vuforia.com": _VWQ_MAX_TIME_SKEW,
         }[netloc]
         time_difference_from_now = skew - _LEEWAY
-        gmt = ZoneInfo("GMT")
-        with freeze_time(datetime.now(tz=gmt) + time_difference_from_now):
+        gmt = ZoneInfo(key="GMT")
+        with freeze_time(
+            time_to_freeze=datetime.now(tz=gmt) + time_difference_from_now
+        ):
             date = rfc_1123_date()
-
-        endpoint_headers = dict(endpoint.prepared_request.headers)
-        content = endpoint.prepared_request.body or b""
-        assert isinstance(content, bytes)
 
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
             secret_key=endpoint.secret_key,
-            method=str(endpoint.prepared_request.method),
-            content=content,
+            method=endpoint.method,
+            content=endpoint.data,
             content_type=endpoint.auth_header_content_type,
             date=date,
-            request_path=endpoint.prepared_request.path_url,
+            request_path=endpoint.path_url,
         )
 
-        headers: dict[str, str] = endpoint_headers | {
+        new_headers = {
+            **endpoint.headers,
             "Authorization": authorization_string,
             "Date": date,
         }
 
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
-        session = requests.Session()
-        response = session.send(request=endpoint.prepared_request)
+        new_endpoint = Endpoint(
+            base_url=endpoint.base_url,
+            path_url=endpoint.path_url,
+            method=endpoint.method,
+            headers=new_headers,
+            data=endpoint.data,
+            successful_headers_result_code=endpoint.successful_headers_result_code,
+            successful_headers_status_code=endpoint.successful_headers_status_code,
+            access_key=endpoint.access_key,
+            secret_key=endpoint.secret_key,
+        )
+
+        response = new_endpoint.send()
+
         handle_server_errors(response=response)
 
-        url = str(endpoint.prepared_request.url)
-        netloc = urlparse(url).netloc
+        netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":
             assert_query_success(response=response)
             return
@@ -360,43 +398,51 @@ class TestSkewedTime:
         Because there is a small delay in sending requests and Vuforia isn't
         consistent, some leeway is given.
         """
-        url = str(endpoint.prepared_request.url)
-        netloc = urlparse(url).netloc
+        netloc = urlparse(url=endpoint.base_url).netloc
         skew = {
             "vws.vuforia.com": _VWS_MAX_TIME_SKEW,
             "cloudreco.vuforia.com": _VWQ_MAX_TIME_SKEW,
         }[netloc]
         time_difference_from_now = skew - _LEEWAY
-        gmt = ZoneInfo("GMT")
-        with freeze_time(datetime.now(tz=gmt) - time_difference_from_now):
+        gmt = ZoneInfo(key="GMT")
+        with freeze_time(
+            time_to_freeze=datetime.now(tz=gmt) - time_difference_from_now
+        ):
             date = rfc_1123_date()
-
-        endpoint_headers = dict(endpoint.prepared_request.headers)
-        content = endpoint.prepared_request.body or b""
-        assert isinstance(content, bytes)
 
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
             secret_key=endpoint.secret_key,
-            method=str(endpoint.prepared_request.method),
-            content=content,
+            method=endpoint.method,
+            content=endpoint.data,
             content_type=endpoint.auth_header_content_type,
             date=date,
-            request_path=endpoint.prepared_request.path_url,
+            request_path=endpoint.path_url,
         )
 
-        headers: dict[str, str] = endpoint_headers | {
+        new_headers = {
+            **endpoint.headers,
             "Authorization": authorization_string,
             "Date": date,
         }
 
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
-        session = requests.Session()
-        response = session.send(request=endpoint.prepared_request)
+        new_endpoint = Endpoint(
+            base_url=endpoint.base_url,
+            path_url=endpoint.path_url,
+            method=endpoint.method,
+            headers=new_headers,
+            data=endpoint.data,
+            successful_headers_result_code=endpoint.successful_headers_result_code,
+            successful_headers_status_code=endpoint.successful_headers_status_code,
+            access_key=endpoint.access_key,
+            secret_key=endpoint.secret_key,
+        )
+
+        response = new_endpoint.send()
+
         handle_server_errors(response=response)
 
-        url = str(endpoint.prepared_request.url)
-        netloc = urlparse(url).netloc
+        netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":
             assert_query_success(response=response)
             return

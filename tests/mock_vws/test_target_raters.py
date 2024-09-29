@@ -5,6 +5,7 @@ Tests for target quality raters.
 import io
 
 import pytest
+
 from mock_vws.target_raters import (
     BrisqueTargetTrackingRater,
     HardcodedTargetTrackingRater,
@@ -32,7 +33,7 @@ def test_random_target_tracking_rater() -> None:
     assert lowest_rating != highest_rating
 
 
-@pytest.mark.parametrize("rating", range(-10, 10))
+@pytest.mark.parametrize(argnames="rating", argvalues=range(-10, 10))
 def test_hardcoded_target_tracking_rater(rating: int) -> None:
     """
     Test that the hardcoded target tracking rater returns the hardcoded number.

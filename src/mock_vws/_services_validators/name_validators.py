@@ -4,7 +4,10 @@ Validators for target names.
 
 import json
 import logging
+from collections.abc import Iterable, Mapping
 from http import HTTPMethod, HTTPStatus
+
+from beartype import beartype
 
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._services_validators.exceptions import (
@@ -14,10 +17,12 @@ from mock_vws._services_validators.exceptions import (
 )
 from mock_vws.database import VuforiaDatabase
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 def validate_name_characters_in_range(
+    *,
     request_body: bytes,
     request_method: str,
     request_path: str,
@@ -40,10 +45,10 @@ def validate_name_characters_in_range(
         return
 
     request_text = request_body.decode()
-    if "name" not in json.loads(request_text):
+    if "name" not in json.loads(s=request_text):
         return
 
-    name = json.loads(request_text)["name"]
+    name = json.loads(s=request_text)["name"]
 
     max_character_ord = 65535
     if all(ord(character) <= max_character_ord for character in name):
@@ -57,7 +62,8 @@ def validate_name_characters_in_range(
     raise TargetNameExistError
 
 
-def validate_name_type(request_body: bytes) -> None:
+@beartype
+def validate_name_type(*, request_body: bytes) -> None:
     """
     Validate the type of the name argument given to a VWS endpoint.
 
@@ -71,10 +77,10 @@ def validate_name_type(request_body: bytes) -> None:
         return
 
     request_text = request_body.decode()
-    if "name" not in json.loads(request_text):
+    if "name" not in json.loads(s=request_text):
         return
 
-    name = json.loads(request_text)["name"]
+    name = json.loads(s=request_text)["name"]
 
     if isinstance(name, str):
         return
@@ -83,7 +89,8 @@ def validate_name_type(request_body: bytes) -> None:
     raise FailError(status_code=HTTPStatus.BAD_REQUEST)
 
 
-def validate_name_length(request_body: bytes) -> None:
+@beartype
+def validate_name_length(*, request_body: bytes) -> None:
     """
     Validate the length of the name argument given to a VWS endpoint.
 
@@ -98,10 +105,10 @@ def validate_name_length(request_body: bytes) -> None:
         return
 
     request_text = request_body.decode()
-    if "name" not in json.loads(request_text):
+    if "name" not in json.loads(s=request_text):
         return
 
-    name = json.loads(request_text)["name"]
+    name = json.loads(s=request_text)["name"]
 
     max_length = 64
     if name and len(name) <= max_length:
@@ -111,10 +118,12 @@ def validate_name_length(request_body: bytes) -> None:
     raise FailError(status_code=HTTPStatus.BAD_REQUEST)
 
 
+@beartype
 def validate_name_does_not_exist_new_target(
-    databases: set[VuforiaDatabase],
+    *,
+    databases: Iterable[VuforiaDatabase],
     request_body: bytes,
-    request_headers: dict[str, str],
+    request_headers: Mapping[str, str],
     request_method: str,
     request_path: str,
 ) -> None:
@@ -135,16 +144,16 @@ def validate_name_does_not_exist_new_target(
         return
 
     request_text = request_body.decode()
-    if "name" not in json.loads(request_text):
+    if "name" not in json.loads(s=request_text):
         return
 
-    split_path = request_path.split("/")
+    split_path = request_path.split(sep="/")
 
     split_path_no_target_id_length = 2
     if len(split_path) != split_path_no_target_id_length:
         return
 
-    name = json.loads(request_text)["name"]
+    name = json.loads(s=request_text)["name"]
     database = get_database_matching_server_keys(
         request_headers=request_headers,
         request_body=request_body,
@@ -166,12 +175,14 @@ def validate_name_does_not_exist_new_target(
     raise TargetNameExistError
 
 
+@beartype
 def validate_name_does_not_exist_existing_target(
-    request_headers: dict[str, str],
+    *,
+    request_headers: Mapping[str, str],
     request_body: bytes,
     request_method: str,
     request_path: str,
-    databases: set[VuforiaDatabase],
+    databases: Iterable[VuforiaDatabase],
 ) -> None:
     """
     Validate that the name does not exist for any existing target apart from
@@ -192,17 +203,17 @@ def validate_name_does_not_exist_existing_target(
         return
 
     request_text = request_body.decode()
-    if "name" not in json.loads(request_text):
+    if "name" not in json.loads(s=request_text):
         return
 
-    split_path = request_path.split("/")
+    split_path = request_path.split(sep="/")
     split_path_no_target_id_length = 2
     if len(split_path) == split_path_no_target_id_length:
         return
 
     target_id = split_path[-1]
 
-    name = json.loads(request_text)["name"]
+    name = json.loads(s=request_text)["name"]
     database = get_database_matching_server_keys(
         request_headers=request_headers,
         request_body=request_body,
@@ -224,5 +235,5 @@ def validate_name_does_not_exist_existing_target(
     if matching_name_target.target_id == target_id:
         return
 
-    _LOGGER.warning("Name already exists for another target.")
+    _LOGGER.warning(msg="Name already exists for another target.")
     raise TargetNameExistError

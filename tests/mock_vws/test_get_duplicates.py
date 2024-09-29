@@ -2,20 +2,15 @@
 Tests for the mock of the get duplicates endpoint.
 """
 
-from __future__ import annotations
-
 import copy
 import io
 import uuid
-from typing import TYPE_CHECKING
 
 import pytest
 from PIL import Image
-from vws.exceptions.vws_exceptions import ProjectInactive
+from vws import VWS
+from vws.exceptions.vws_exceptions import ProjectInactiveError
 from vws.reports import TargetStatuses
-
-if TYPE_CHECKING:
-    from vws import VWS
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -79,9 +74,9 @@ class TestDuplicates:
         Target IDs of similar targets are returned.
         """
         image_data = high_quality_image
-        similar_image_data = copy.copy(image_data)
+        similar_image_data = copy.copy(x=image_data)
         similar_image_buffer = io.BytesIO()
-        pil_similar_image = Image.open(similar_image_data)
+        pil_similar_image = Image.open(fp=similar_image_data)
         # Re-save means similar but not identical.
         pil_similar_image.save(similar_image_buffer, format="JPEG")
         assert similar_image_buffer.getvalue() != image_data.getvalue()
@@ -165,7 +160,7 @@ class TestActiveFlag:
         Targets with `active_flag` set to `False` can have duplicates.
         Targets with `active_flag` set to `False` are not found as duplicates.
 
-        https://library.vuforia.com/web-api/cloud-targets-web-services-api#check
+        https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#check
         says:
 
         '''
@@ -269,7 +264,7 @@ class TestInactiveProject:
         """
         If the project is inactive, a FORBIDDEN response is returned.
         """
-        with pytest.raises(ProjectInactive):
+        with pytest.raises(expected_exception=ProjectInactiveError):
             inactive_vws_client.get_duplicate_targets(
                 target_id=uuid.uuid4().hex,
             )

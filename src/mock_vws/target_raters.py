@@ -6,13 +6,16 @@ import math
 import secrets
 from typing import Protocol, runtime_checkable
 
+import numpy as np
 import piq  # type: ignore[import-untyped]
+import torch
+from beartype import beartype
 from PIL import Image
-from torchvision.transforms import functional  # type: ignore[import-untyped]
 
 
 @functools.cache
-def _get_brisque_target_tracking_rating(image_content: bytes) -> int:
+@beartype
+def _get_brisque_target_tracking_rating(*, image_content: bytes) -> int:
     """
     Get a target tracking rating based on a BRISQUE score.
 
@@ -25,12 +28,17 @@ def _get_brisque_target_tracking_rating(image_content: bytes) -> int:
     """
     image_file = io.BytesIO(initial_bytes=image_content)
     image = Image.open(fp=image_file)
-    # See https://github.com/pytorch/vision/pull/8251 for precise type.
-    image_tensor = functional.to_tensor(pic=image) * 255  # pyright: ignore[reportUnknownMemberType]
-    image_tensor = image_tensor.unsqueeze(0)
+    image_np = np.array(image, dtype=np.float32)
+    image_tensor = torch.tensor(image_np).float() / 255
+    image_tensor = image_tensor.view(
+        image.size[1],
+        image.size[0],
+        len(image.getbands()),
+    )
+    image_tensor = image_tensor.permute(2, 0, 1).unsqueeze(dim=0)
     try:
         brisque_score = piq.brisque(x=image_tensor, data_range=255)
-    except AssertionError:
+    except (AssertionError, IndexError):
         return 0
     return math.ceil(int(brisque_score.item()) / 20)
 
@@ -51,6 +59,7 @@ class TargetTrackingRater(Protocol):
         ...  # pylint: disable=unnecessary-ellipsis
 
 
+@beartype
 class RandomTargetTrackingRater:
     """A rater which returns a random number."""
 
@@ -65,6 +74,7 @@ class RandomTargetTrackingRater:
         return secrets.randbelow(exclusive_upper_bound=6)
 
 
+@beartype
 class HardcodedTargetTrackingRater:
     """A rater which returns a hardcoded number."""
 
@@ -86,6 +96,7 @@ class HardcodedTargetTrackingRater:
         return self._rating
 
 
+@beartype
 class BrisqueTargetTrackingRater:
     """A rater which returns a rating based on a BRISQUE score."""
 

@@ -5,10 +5,10 @@ from tenacity.retry import retry_if_exception_type
 from tenacity.wait import wait_fixed
 from vws.exceptions.custom_exceptions import ServerError
 from vws.exceptions.vws_exceptions import (
-    TooManyRequests,
+    TooManyRequestsError,
 )
 
-RETRY_EXCEPTIONS = (TooManyRequests, ServerError)
+RETRY_EXCEPTIONS = (TooManyRequestsError, ServerError)
 
 # We rely on pytest-retry for exceptions *during* tests.
 # We use tenacity for exceptions *before* tests.

@@ -5,12 +5,16 @@ Exceptions to raise from validators.
 import email.utils
 import textwrap
 import uuid
+from collections.abc import Mapping
 from http import HTTPStatus
+
+from beartype import beartype
 
 from mock_vws._constants import ResultCodes
 from mock_vws._mock_common import json_dump
 
 
+@beartype
 class ValidatorError(Exception):
     """
     A base class for exceptions thrown from mock Vuforia cloud recognition
@@ -19,9 +23,10 @@ class ValidatorError(Exception):
 
     status_code: HTTPStatus
     response_text: str
-    headers: dict[str, str]
+    headers: Mapping[str, str]
 
 
+@beartype
 class DateHeaderNotGivenError(ValidatorError):
     """
     Exception raised when a date header is not given.
@@ -38,7 +43,11 @@ class DateHeaderNotGivenError(ValidatorError):
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
         self.response_text = "Date header required."
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Content-Type": "text/plain;charset=iso-8859-1",
             "Connection": "keep-alive",
@@ -48,6 +57,7 @@ class DateHeaderNotGivenError(ValidatorError):
         }
 
 
+@beartype
 class DateFormatNotValidError(ValidatorError):
     """
     Exception raised when the date format is not valid.
@@ -64,7 +74,11 @@ class DateFormatNotValidError(ValidatorError):
         super().__init__()
         self.status_code = HTTPStatus.UNAUTHORIZED
         self.response_text = "Malformed date header."
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Content-Type": "text/plain;charset=iso-8859-1",
             "Connection": "keep-alive",
@@ -75,6 +89,7 @@ class DateFormatNotValidError(ValidatorError):
         }
 
 
+@beartype
 class RequestTimeTooSkewedError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
@@ -95,8 +110,12 @@ class RequestTimeTooSkewedError(ValidatorError):
             "transaction_id": uuid.uuid4().hex,
             "result_code": ResultCodes.REQUEST_TIME_TOO_SKEWED.value,
         }
-        self.response_text = json_dump(body)
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        self.response_text = json_dump(body=body)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Content-Type": "application/json",
             "Connection": "keep-alive",
@@ -106,6 +125,7 @@ class RequestTimeTooSkewedError(ValidatorError):
         }
 
 
+@beartype
 class BadImageError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
@@ -134,7 +154,11 @@ class BadImageError(ValidatorError):
             "}"
         )
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Content-Type": "application/json",
             "Connection": "keep-alive",
@@ -144,6 +168,7 @@ class BadImageError(ValidatorError):
         }
 
 
+@beartype
 class AuthenticationFailureError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
@@ -171,7 +196,11 @@ class AuthenticationFailureError(ValidatorError):
             f'"result_code":"{result_code}"'
             "}"
         )
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Content-Type": "application/json",
             "Connection": "keep-alive",
@@ -182,6 +211,7 @@ class AuthenticationFailureError(ValidatorError):
         }
 
 
+@beartype
 class AuthenticationFailureGoodFormattingError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
@@ -203,8 +233,12 @@ class AuthenticationFailureGoodFormattingError(ValidatorError):
             "transaction_id": uuid.uuid4().hex,
             "result_code": ResultCodes.AUTHENTICATION_FAILURE.value,
         }
-        self.response_text = json_dump(body)
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        self.response_text = json_dump(body=body)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Content-Type": "application/json",
             "Connection": "keep-alive",
@@ -215,6 +249,7 @@ class AuthenticationFailureGoodFormattingError(ValidatorError):
         }
 
 
+@beartype
 class ImageNotGivenError(ValidatorError):
     """
     Exception raised when an image is not given.
@@ -232,7 +267,11 @@ class ImageNotGivenError(ValidatorError):
         self.status_code = HTTPStatus.BAD_REQUEST
         self.response_text = "No image."
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Content-Type": "application/json",
             "Connection": "keep-alive",
@@ -242,6 +281,7 @@ class ImageNotGivenError(ValidatorError):
         }
 
 
+@beartype
 class AuthHeaderMissingError(ValidatorError):
     """
     Exception raised when an auth header is not given.
@@ -259,7 +299,11 @@ class AuthHeaderMissingError(ValidatorError):
         self.status_code = HTTPStatus.UNAUTHORIZED
         self.response_text = "Authorization header missing."
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Content-Type": "text/plain;charset=iso-8859-1",
             "Connection": "keep-alive",
@@ -270,6 +314,7 @@ class AuthHeaderMissingError(ValidatorError):
         }
 
 
+@beartype
 class MalformedAuthHeaderError(ValidatorError):
     """
     Exception raised when an auth header is not given.
@@ -288,7 +333,11 @@ class MalformedAuthHeaderError(ValidatorError):
         self.status_code = HTTPStatus.UNAUTHORIZED
         self.response_text = "Malformed authorization header."
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Content-Type": "text/plain;charset=iso-8859-1",
             "Connection": "keep-alive",
@@ -299,6 +348,7 @@ class MalformedAuthHeaderError(ValidatorError):
         }
 
 
+@beartype
 class UnknownParametersError(ValidatorError):
     """
     Exception raised when unknown parameters are given.
@@ -316,7 +366,11 @@ class UnknownParametersError(ValidatorError):
         self.status_code = HTTPStatus.BAD_REQUEST
         self.response_text = "Unknown parameters in the request."
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Content-Type": "application/json",
             "Connection": "keep-alive",
@@ -326,6 +380,7 @@ class UnknownParametersError(ValidatorError):
         }
 
 
+@beartype
 class InactiveProjectError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
@@ -353,7 +408,11 @@ class InactiveProjectError(ValidatorError):
             "}"
         )
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Content-Type": "application/json",
             "Connection": "keep-alive",
@@ -363,6 +422,7 @@ class InactiveProjectError(ValidatorError):
         }
 
 
+@beartype
 class InvalidMaxNumResultsError(ValidatorError):
     """
     Exception raised when an invalid value is given as the
@@ -385,7 +445,11 @@ class InvalidMaxNumResultsError(ValidatorError):
         )
         self.response_text = invalid_value_message
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Content-Type": "application/json",
             "Connection": "keep-alive",
@@ -395,6 +459,7 @@ class InvalidMaxNumResultsError(ValidatorError):
         }
 
 
+@beartype
 class MaxNumResultsOutOfRangeError(ValidatorError):
     """
     Exception raised when an integer value is given as the "max_num_results"
@@ -417,7 +482,11 @@ class MaxNumResultsOutOfRangeError(ValidatorError):
         )
         self.response_text = integer_out_of_range_message
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Content-Type": "application/json",
             "Connection": "keep-alive",
@@ -427,6 +496,7 @@ class MaxNumResultsOutOfRangeError(ValidatorError):
         }
 
 
+@beartype
 class InvalidIncludeTargetDataError(ValidatorError):
     """
     Exception raised when an invalid value is given as the
@@ -451,7 +521,11 @@ class InvalidIncludeTargetDataError(ValidatorError):
         )
         self.response_text = unexpected_target_data_message
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Content-Type": "application/json",
             "Connection": "keep-alive",
@@ -461,6 +535,7 @@ class InvalidIncludeTargetDataError(ValidatorError):
         }
 
 
+@beartype
 class UnsupportedMediaTypeError(ValidatorError):
     """
     Exception raised when no boundary is found for multipart data.
@@ -478,7 +553,11 @@ class UnsupportedMediaTypeError(ValidatorError):
         self.status_code = HTTPStatus.UNSUPPORTED_MEDIA_TYPE
         self.response_text = ""
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Connection": "keep-alive",
             "Server": "nginx",
@@ -487,6 +566,7 @@ class UnsupportedMediaTypeError(ValidatorError):
         }
 
 
+@beartype
 class InvalidAcceptHeaderError(ValidatorError):
     """
     Exception raised when there is an invalid accept header given.
@@ -504,7 +584,11 @@ class InvalidAcceptHeaderError(ValidatorError):
         self.status_code = HTTPStatus.NOT_ACCEPTABLE
         self.response_text = ""
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Connection": "keep-alive",
             "Server": "nginx",
@@ -513,6 +597,7 @@ class InvalidAcceptHeaderError(ValidatorError):
         }
 
 
+@beartype
 class NoBoundaryFoundError(ValidatorError):
     """
     Exception raised when an invalid media type is given.
@@ -533,7 +618,11 @@ class NoBoundaryFoundError(ValidatorError):
             "Unable to get boundary for multipart"
         )
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Content-Type": "text/html;charset=utf-8",
             "Connection": "keep-alive",
@@ -543,6 +632,7 @@ class NoBoundaryFoundError(ValidatorError):
         }
 
 
+@beartype
 class ContentLengthHeaderTooLargeError(ValidatorError):
     """
     Exception raised when the given content length header is too large.
@@ -566,6 +656,7 @@ class ContentLengthHeaderTooLargeError(ValidatorError):
         }
 
 
+@beartype
 class ContentLengthHeaderNotIntError(ValidatorError):
     """
     Exception raised when the given content length header is not an integer.
@@ -588,6 +679,7 @@ class ContentLengthHeaderNotIntError(ValidatorError):
         }
 
 
+@beartype
 class RequestEntityTooLargeError(ValidatorError):
     """
     Exception raised when the given image file size is too large.
@@ -607,7 +699,7 @@ class RequestEntityTooLargeError(ValidatorError):
         super().__init__()
         self.status_code = HTTPStatus.REQUEST_ENTITY_TOO_LARGE
         self.response_text = textwrap.dedent(
-            """\
+            text="""\
             <html>\r
             <head><title>413 Request Entity Too Large</title></head>\r
             <body>\r
@@ -617,7 +709,11 @@ class RequestEntityTooLargeError(ValidatorError):
             </html>\r
             """,
         )
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         self.headers = {
             "Connection": "Close",
             "Date": date,
@@ -627,6 +723,7 @@ class RequestEntityTooLargeError(ValidatorError):
         }
 
 
+@beartype
 class NoContentTypeError(ValidatorError):
     """
     Exception raised when a content type is either not given or is empty.
@@ -642,9 +739,13 @@ class NoContentTypeError(ValidatorError):
         """
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
         jetty_content_type_error = textwrap.dedent(
-            """\
+            text="""\
             <html>
             <head>
             <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>

@@ -3,15 +3,20 @@ Content-Type header validators to use in the mock.
 """
 
 import logging
+from collections.abc import Mapping
 from http import HTTPMethod
+
+from beartype import beartype
 
 from mock_vws._services_validators.exceptions import AuthenticationFailureError
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 def validate_content_type_header_given(
-    request_headers: dict[str, str],
+    *,
+    request_headers: Mapping[str, str],
     request_method: str,
 ) -> None:
     """

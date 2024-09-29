@@ -1,22 +1,16 @@
 """
 Tests for getting a target record.
 
-https://library.vuforia.com/web-api/cloud-targets-web-services-api#target-record
+https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#target-record
 """
 
-from __future__ import annotations
-
+import io
 import uuid
-from typing import TYPE_CHECKING
 
 import pytest
-from vws.exceptions.vws_exceptions import UnknownTarget
+from vws import VWS
+from vws.exceptions.vws_exceptions import UnknownTargetError
 from vws.reports import TargetRecord, TargetStatuses
-
-if TYPE_CHECKING:
-    import io
-
-    from vws import VWS
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -121,11 +115,12 @@ class TestGetRecord:
 
 
 def _get_target_tracking_rating(
+    *,
     vws_client: VWS,
     image_file: io.BytesIO,
 ) -> int:
     """
-    Get the tracking rating of a target.
+    Get the tracking rating of a target with the given image.
     """
     target_id = vws_client.add_target(
         name=f"example_{uuid.uuid4().hex}",
@@ -187,5 +182,5 @@ class TestInactiveProject:
         """
         The project's active state does not affect getting a target.
         """
-        with pytest.raises(UnknownTarget):
+        with pytest.raises(expected_exception=UnknownTargetError):
             inactive_vws_client.get_target_record(target_id=uuid.uuid4().hex)

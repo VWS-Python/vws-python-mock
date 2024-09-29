@@ -2,24 +2,23 @@
 A fake implementation of a target for the Vuforia Web Services API.
 """
 
-from __future__ import annotations
-
 import base64
 import datetime
 import io
 import statistics
 import uuid
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, TypedDict
+from typing import Self, TypedDict
 from zoneinfo import ZoneInfo
 
+from beartype import BeartypeConf, beartype
 from PIL import Image, ImageStat
 
 from mock_vws._constants import TargetStatuses
-from mock_vws.target_raters import HardcodedTargetTrackingRater
-
-if TYPE_CHECKING:
-    from mock_vws.target_raters import TargetTrackingRater
+from mock_vws.target_raters import (
+    HardcodedTargetTrackingRater,
+    TargetTrackingRater,
+)
 
 
 class TargetDict(TypedDict):
@@ -31,7 +30,7 @@ class TargetDict(TypedDict):
     width: float
     image_base64: str
     active_flag: bool
-    processing_time_seconds: int | float
+    processing_time_seconds: float
     application_metadata: str | None
     target_id: str
     last_modified_date: str
@@ -40,6 +39,7 @@ class TargetDict(TypedDict):
     tracking_rating: int
 
 
+@beartype
 def _random_hex() -> str:
     """
     Return a random hex value.
@@ -47,14 +47,16 @@ def _random_hex() -> str:
     return uuid.uuid4().hex
 
 
+@beartype
 def _time_now() -> datetime.datetime:
     """
     Return the current time in the GMT time zone.
     """
-    gmt = ZoneInfo("GMT")
+    gmt = ZoneInfo(key="GMT")
     return datetime.datetime.now(tz=gmt)
 
 
+@beartype(conf=BeartypeConf(is_pep484_tower=True))
 @dataclass(frozen=True, eq=True)
 class Target:
     """
@@ -88,11 +90,11 @@ class Target:
         How VWS determines this is unknown, but it relates to how suitable the
         target is for detection.
         """
-        image_file = io.BytesIO(self.image_value)
-        image = Image.open(image_file)
-        image_stat = ImageStat.Stat(image)
+        image_file = io.BytesIO(initial_bytes=self.image_value)
+        image = Image.open(fp=image_file)
+        image_stat = ImageStat.Stat(image_or_list=image)
 
-        average_std_dev = statistics.mean(image_stat.stddev)
+        average_std_dev = statistics.mean(data=image_stat.stddev)
 
         success_threshold = 5
 
@@ -114,7 +116,7 @@ class Target:
         target is for detection.
         """
         processing_time = datetime.timedelta(
-            seconds=self.processing_time_seconds,
+            seconds=float(self.processing_time_seconds),
         )
 
         timezone = self.upload_date.tzinfo
@@ -122,12 +124,13 @@ class Target:
         time_since_change = now - self.last_modified_date
 
         if time_since_change <= processing_time:
-            return str(TargetStatuses.PROCESSING.value)
+            return TargetStatuses.PROCESSING.value
 
-        return str(self._post_processing_status.value)
+        return self._post_processing_status.value
 
     @property
     def _post_processing_target_rating(self) -> int:
+        """The rating of the target after processing."""
         return self.target_tracking_rater(image_content=self.image_value)
 
     @property
@@ -138,7 +141,7 @@ class Target:
         pre_rating_time = datetime.timedelta(
             # That this is half of the total processing time is unrealistic.
             # In VWS it is not a constant percentage.
-            seconds=self.processing_time_seconds / 2,
+            seconds=float(self.processing_time_seconds) / 2,
         )
 
         timezone = self.upload_date.tzinfo
@@ -153,16 +156,16 @@ class Target:
         return self._post_processing_target_rating
 
     @classmethod
-    def from_dict(cls, target_dict: TargetDict) -> Target:
+    def from_dict(cls, target_dict: TargetDict) -> Self:
         """
         Load a target from a dictionary.
         """
-        timezone = ZoneInfo("GMT")
+        timezone = ZoneInfo(key="GMT")
         name = target_dict["name"]
         active_flag = target_dict["active_flag"]
         width = target_dict["width"]
         image_base64 = target_dict["image_base64"]
-        image_value = base64.b64decode(image_base64)
+        image_value = base64.b64decode(s=image_base64)
         processing_time_seconds = target_dict["processing_time_seconds"]
         application_metadata = target_dict["application_metadata"]
         target_id = target_dict["target_id"]
@@ -183,7 +186,7 @@ class Target:
         target_tracking_rater = HardcodedTargetTrackingRater(
             rating=target_dict["tracking_rating"],
         )
-        return Target(
+        return cls(
             target_id=target_id,
             name=name,
             active_flag=active_flag,
@@ -203,16 +206,16 @@ class Target:
         """
         delete_date: str | None = None
         if self.delete_date:
-            delete_date = datetime.datetime.isoformat(self.delete_date)
+            delete_date = self.delete_date.isoformat()
 
-        image_base64 = base64.encodebytes(self.image_value).decode()
+        image_base64 = base64.encodebytes(s=self.image_value).decode()
 
         return {
             "name": self.name,
             "width": self.width,
             "image_base64": image_base64,
             "active_flag": self.active_flag,
-            "processing_time_seconds": self.processing_time_seconds,
+            "processing_time_seconds": float(self.processing_time_seconds),
             "application_metadata": self.application_metadata,
             "target_id": self.target_id,
             "last_modified_date": self.last_modified_date.isoformat(),

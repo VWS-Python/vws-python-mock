@@ -1,4 +1,4 @@
-FROM python:3.12-slim as base
+FROM python:3.12-slim AS base
 # We set this pretend version as we do not have Git in our path, and we do
 # not care enough about having the version correct inside the Docker container
 # to install it.
@@ -16,19 +16,20 @@ RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 WORKDIR /app
-RUN pip install --no-cache-dir uv==0.1.2 && \
+RUN pip install --no-cache-dir uv==0.1.44 && \
     uv pip install --no-cache-dir --upgrade --editable .
 EXPOSE 5000
 ENTRYPOINT ["python"]
+HEALTHCHECK --interval=1s --timeout=10s --start-period=5s --retries=3 CMD ["python", "/app/src/mock_vws/_flask_server/healthcheck.py"]
 
-FROM base as vws
+FROM base AS vws
 ENV VWS_HOST=0.0.0.0
 CMD ["src/mock_vws/_flask_server/vws.py"]
 
-FROM base as vwq
+FROM base AS vwq
 ENV VWQ_HOST=0.0.0.0
 CMD ["src/mock_vws/_flask_server/vwq.py"]
 
-FROM base as target-manager
+FROM base AS target-manager
 ENV TARGET_MANAGER_HOST=0.0.0.0
 CMD ["src/mock_vws/_flask_server/target_manager.py"]

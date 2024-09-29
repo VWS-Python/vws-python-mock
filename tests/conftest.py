@@ -2,22 +2,17 @@
 Configuration, plugins and fixtures for `pytest`.
 """
 
-from __future__ import annotations
-
 import base64
 import binascii
+import io
 import uuid
-from typing import TYPE_CHECKING
 
 import pytest
+from beartype import beartype
 from vws import VWS, CloudRecoService
 
-if TYPE_CHECKING:
-    import io
-
-    from mock_vws.database import VuforiaDatabase
-
-    from tests.mock_vws.utils import Endpoint
+from mock_vws.database import VuforiaDatabase
+from tests.mock_vws.utils import Endpoint
 
 pytest_plugins = [
     "tests.mock_vws.fixtures.prepared_requests",
@@ -26,6 +21,7 @@ pytest_plugins = [
 ]
 
 
+@beartype
 @pytest.fixture(name="vws_client")
 def fixture_vws_client(vuforia_database: VuforiaDatabase) -> VWS:
     """
@@ -37,7 +33,8 @@ def fixture_vws_client(vuforia_database: VuforiaDatabase) -> VWS:
     )
 
 
-@pytest.fixture()
+@beartype
+@pytest.fixture
 def cloud_reco_client(vuforia_database: VuforiaDatabase) -> CloudRecoService:
     """
     A query client for an active VWS database.
@@ -48,6 +45,7 @@ def cloud_reco_client(vuforia_database: VuforiaDatabase) -> CloudRecoService:
     )
 
 
+@beartype
 @pytest.fixture(name="inactive_vws_client")
 def fixture_inactive_vws_client(inactive_database: VuforiaDatabase) -> VWS:
     """
@@ -59,7 +57,8 @@ def fixture_inactive_vws_client(inactive_database: VuforiaDatabase) -> VWS:
     )
 
 
-@pytest.fixture()
+@beartype
+@pytest.fixture
 def inactive_cloud_reco_client(
     inactive_database: VuforiaDatabase,
 ) -> CloudRecoService:
@@ -72,7 +71,8 @@ def inactive_cloud_reco_client(
     )
 
 
-@pytest.fixture()
+@beartype
+@pytest.fixture
 def target_id(
     image_file_success_state_low_rating: io.BytesIO,
     vws_client: VWS,
@@ -91,6 +91,7 @@ def target_id(
     )
 
 
+@beartype
 @pytest.fixture(
     params=[
         "add_target",
@@ -112,6 +113,7 @@ def endpoint(request: pytest.FixtureRequest) -> Endpoint:
     return endpoint_fixture
 
 
+@beartype
 @pytest.fixture(
     params=[
         pytest.param(
@@ -140,12 +142,13 @@ def not_base64_encoded_processable(request: pytest.FixtureRequest) -> str:
     """
     not_base64_encoded_string: str = request.param
 
-    with pytest.raises(binascii.Error):
-        base64.b64decode(not_base64_encoded_string, validate=True)
+    with pytest.raises(expected_exception=binascii.Error):
+        base64.b64decode(s=not_base64_encoded_string, validate=True)
 
     return not_base64_encoded_string
 
 
+@beartype
 @pytest.fixture(
     params=[
         pytest.param(
@@ -162,7 +165,7 @@ def not_base64_encoded_not_processable(request: pytest.FixtureRequest) -> str:
     """
     not_base64_encoded_string: str = request.param
 
-    with pytest.raises(binascii.Error):
-        base64.b64decode(not_base64_encoded_string, validate=True)
+    with pytest.raises(expected_exception=binascii.Error):
+        base64.b64decode(s=not_base64_encoded_string, validate=True)
 
     return not_base64_encoded_string

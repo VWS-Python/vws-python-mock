@@ -2,28 +2,52 @@
 Tests for the mock of the database summary endpoint.
 """
 
-from __future__ import annotations
-
+import io
 import logging
-import time
 import uuid
 from http import HTTPStatus
-from typing import TYPE_CHECKING
 
 import pytest
+from beartype import beartype
+from tenacity import RetryCallState, retry
+from tenacity.retry import retry_if_exception_type
+from tenacity.stop import stop_after_delay
+from tenacity.wait import wait_fixed
+from vws import VWS, CloudRecoService
+from vws.exceptions.vws_exceptions import FailError
+
 from mock_vws import MockVWS
 from mock_vws.database import VuforiaDatabase
-from vws import VWS, CloudRecoService
-from vws.exceptions.vws_exceptions import Fail
 
-if TYPE_CHECKING:
-    import io
-
-LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER = logging.getLogger(name=__name__)
+LOGGER.setLevel(level=logging.DEBUG)
 
 
+@beartype
+def _log_attempt_number(retry_state: RetryCallState) -> None:
+    """
+    Log the attempt number of a retry.
+    """
+    attempt_number: int = retry_state.attempt_number
+    message = f"Attempt number: {attempt_number}"
+    LOGGER.debug(msg=message)
+
+
+@retry(
+    # We wait 0.2 seconds rather than less than that to decrease the number
+    # of calls made to the API, to decrease the likelihood of hitting the
+    # request quota.
+    wait=wait_fixed(0.2),
+    # Wait up to 700 seconds (arbitrary, though we saw timeouts with 500
+    # seconds) for the number of images in various categories to match the
+    # expected number. This is necessary because the database summary endpoint
+    # lags behind the real data.
+    stop=stop_after_delay(max_delay=700),
+    retry=retry_if_exception_type(exception_types=(AssertionError,)),
+    before=_log_attempt_number,
+)
 def _wait_for_image_numbers(
+    *,
     vws_client: VWS,
     active_images: int,
     inactive_images: int,
@@ -31,15 +55,8 @@ def _wait_for_image_numbers(
     processing_images: int,
 ) -> None:
     """
-    Wait up to 500 seconds (arbitrary, though we saw timeouts with 300 seconds)
-    for the number of images in various categories to match the expected
-    number.
-
-    This is necessary because the database summary endpoint lags behind the
-    real data.
-
-    This is susceptible to false positives because if, for example, we expect
-    no images, and the endpoint adds images with a delay, we will not know.
+    Wait for the number of images in various categories of the database summary
+    to match the expected given numbers.
 
     Args:
         vws_client: The client to use to connect to Vuforia.
@@ -52,48 +69,25 @@ def _wait_for_image_numbers(
         ValueError: The numbers of images in various categories do not match
             within the time limit.
     """
-    requirements = {
+    database_summary_report = vws_client.get_database_summary_report()
+
+    expected = {
         "active_images": active_images,
         "inactive_images": inactive_images,
         "failed_images": failed_images,
         "processing_images": processing_images,
     }
 
-    maximum_wait_seconds = 500
-    start_time = time.monotonic()
+    actual = {
+        "active_images": database_summary_report.active_images,
+        "inactive_images": database_summary_report.inactive_images,
+        "failed_images": database_summary_report.failed_images,
+        "processing_images": database_summary_report.processing_images,
+    }
 
-    # If we wait for all requirements to match at the same time,
-    # we will often not reach that.
-    # We therefore wait for each requirement to match at least once.
-
-    # We wait 0.2 seconds rather than less than that to decrease the number
-    # of calls made to the API, to decrease the likelihood of hitting the
-    # request quota.
-    sleep_seconds = 0.2
-
-    for key, value in requirements.items():
-        while True:
-            seconds_waited = time.monotonic() - start_time
-            if seconds_waited > maximum_wait_seconds:  # pragma: no cover
-                timeout_message = "Timed out waiting"
-                raise ValueError(timeout_message)
-
-            report = vws_client.get_database_summary_report()
-            relevant_images_in_summary = getattr(report, key)
-            if value != relevant_images_in_summary:  # pragma: no cover
-                message = (
-                    f"Expected {value} `{key}`s. "
-                    f"Found {relevant_images_in_summary} `{key}`s."
-                )
-                LOGGER.debug(message)
-
-                time.sleep(sleep_seconds)
-
-            # This makes the entire test invalid.
-            # However, we have found that without this Vuforia is flaky.
-            # We have waited over 10 minutes for the summary to change and
-            # that is not sustainable in a test suite.
-            break
+    msg = f"Expected: {expected}. Actual: {actual}"
+    LOGGER.debug(msg=msg)
+    assert actual == expected
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -122,10 +116,7 @@ class TestDatabaseSummary:
         )
 
     @staticmethod
-    def test_active_images(
-        vws_client: VWS,
-        target_id: str,
-    ) -> None:
+    def test_active_images(vws_client: VWS, target_id: str) -> None:
         """
         The number of images in the active state is returned.
         """
@@ -384,7 +375,7 @@ class TestRequestUsage:
         report = vws_client.get_database_summary_report()
         original_request_usage = report.request_usage
 
-        with pytest.raises(Fail) as exc:
+        with pytest.raises(expected_exception=FailError) as exc:
             vws_client.add_target(
                 name="example",
                 width=-1,

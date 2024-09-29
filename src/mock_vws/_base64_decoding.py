@@ -6,7 +6,10 @@ import base64
 import binascii
 import string
 
+from beartype import beartype
 
+
+@beartype
 def decode_base64(encoded_data: str) -> bytes:
     """
     Decode base64 somewhat like Vuforia does.
@@ -32,4 +35,4 @@ def decode_base64(encoded_data: str) -> bytes:
     modified_encoded_data = mod_four_result_to_modified_encoded_data[
         len(encoded_data) % 4
     ]
-    return base64.b64decode(modified_encoded_data)
+    return base64.b64decode(s=modified_encoded_data)

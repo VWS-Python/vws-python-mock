@@ -1,14 +1,15 @@
 """Matchers for query and duplicate requests."""
 
 import io
-from typing import TYPE_CHECKING, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
-import piq  # type: ignore[import-untyped]
+import numpy as np
+import torch
+from beartype import beartype
 from PIL import Image
-from torchvision.transforms import functional  # type: ignore[import-untyped]
-
-if TYPE_CHECKING:
-    import torch
+from torchmetrics.image import (
+    StructuralSimilarityIndexMeasure,
+)
 
 
 @runtime_checkable
@@ -32,6 +33,7 @@ class ImageMatcher(Protocol):
         ...  # pylint: disable=unnecessary-ellipsis
 
 
+@beartype
 class ExactMatcher:
     """A matcher which returns whether two images are exactly equal."""
 
@@ -50,6 +52,7 @@ class ExactMatcher:
         return bool(first_image_content == second_image_content)
 
 
+@beartype
 class StructuralSimilarityMatcher:
     """A matcher which returns whether two images are similar using SSIM."""
 
@@ -75,19 +78,37 @@ class StructuralSimilarityMatcher:
         first_image = first_image.resize(size=target_size)
         second_image = second_image.resize(size=target_size)
 
-        # See https://github.com/pytorch/vision/pull/8251 for precise type.
-        first_image_tensor = functional.to_tensor(pic=first_image)  # pyright: ignore[reportUnknownMemberType]
-        second_image_tensor = functional.to_tensor(pic=second_image)  # pyright: ignore[reportUnknownMemberType]
+        first_image_np = np.array(first_image, dtype=np.float32)
+        first_image_tensor = torch.tensor(first_image_np).float() / 255
+        first_image_tensor = first_image_tensor.view(
+            first_image.size[1],
+            first_image.size[0],
+            len(first_image.getbands()),
+        )
 
-        first_image_tensor_batch_dimension = first_image_tensor.unsqueeze(0)
-        second_image_tensor_batch_dimension = second_image_tensor.unsqueeze(0)
+        second_image_np = np.array(second_image, dtype=np.float32)
+        second_image_tensor = torch.tensor(second_image_np).float() / 255
+        second_image_tensor = second_image_tensor.view(
+            second_image.size[1],
+            second_image.size[0],
+            len(second_image.getbands()),
+        )
 
-        # See https://github.com/photosynthesis-team/piq/pull/377
-        # for fixing the type hint in ``piq``.
-        ssim_value: torch.Tensor = piq.ssim(  # pyright: ignore[reportAssignmentType]
-            x=first_image_tensor_batch_dimension,
-            y=second_image_tensor_batch_dimension,
-            data_range=1.0,
+        first_image_tensor_batch_dimension = first_image_tensor.permute(
+            2,
+            0,
+            1,
+        ).unsqueeze(dim=0)
+        second_image_tensor_batch_dimension = second_image_tensor.permute(
+            2,
+            0,
+            1,
+        ).unsqueeze(dim=0)
+
+        ssim = StructuralSimilarityIndexMeasure(data_range=1.0)
+        ssim_value = ssim(
+            first_image_tensor_batch_dimension,
+            second_image_tensor_batch_dimension,
         )
         ssim_score = ssim_value.item()
 

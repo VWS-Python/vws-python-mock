@@ -4,17 +4,20 @@ Validators for the ``include_target_data`` field.
 
 import io
 import logging
+from collections.abc import Mapping
 from email.message import EmailMessage
 
+from beartype import beartype
 from werkzeug.formparser import MultiPartParser
 
 from mock_vws._query_validators.exceptions import InvalidIncludeTargetDataError
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 def validate_include_target_data(
-    request_headers: dict[str, str],
+    request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:
     """
@@ -31,21 +34,18 @@ def validate_include_target_data(
     """
     email_message = EmailMessage()
     email_message["Content-Type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary()
-    assert isinstance(boundary, str)
+    boundary = email_message.get_boundary(failobj="")
     parser = MultiPartParser()
     fields, _ = parser.parse(
-        stream=io.BytesIO(request_body),
-        boundary=boundary.encode("utf-8"),
+        stream=io.BytesIO(initial_bytes=request_body),
+        boundary=boundary.encode(encoding="utf-8"),
         content_length=len(request_body),
     )
-    include_target_data = str(fields.get("include_target_data", "top"))
-    assert isinstance(include_target_data, str)
+    include_target_data = fields.get("include_target_data", "top")
     allowed_included_target_data = {"top", "all", "none"}
     if include_target_data.lower() in allowed_included_target_data:
         return
 
-    assert isinstance(include_target_data, str)
     _LOGGER.warning(
         msg="The include_target_data field is not an accepted value.",
     )

@@ -7,16 +7,19 @@ import json
 import logging
 from http import HTTPStatus
 
+from beartype import beartype
+
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._services_validators.exceptions import (
     FailError,
     MetadataTooLargeError,
 )
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(name=__name__)
 
 
-def validate_metadata_size(request_body: bytes) -> None:
+@beartype
+def validate_metadata_size(*, request_body: bytes) -> None:
     """
     Validate that the given application metadata is a string or 1024 * 1024
     bytes or fewer.
@@ -32,7 +35,7 @@ def validate_metadata_size(request_body: bytes) -> None:
         return
 
     request_text = request_body.decode()
-    request_json = json.loads(request_text)
+    request_json = json.loads(s=request_text)
     application_metadata = request_json.get("application_metadata")
     if application_metadata is None:
         return
@@ -46,7 +49,8 @@ def validate_metadata_size(request_body: bytes) -> None:
     raise MetadataTooLargeError
 
 
-def validate_metadata_encoding(request_body: bytes) -> None:
+@beartype
+def validate_metadata_encoding(*, request_body: bytes) -> None:
     """
     Validate that the given application metadata can be base64 decoded.
 
@@ -61,7 +65,7 @@ def validate_metadata_encoding(request_body: bytes) -> None:
         return
 
     request_text = request_body.decode()
-    request_json = json.loads(request_text)
+    request_json = json.loads(s=request_text)
     if "application_metadata" not in request_json:
         return
 
@@ -77,7 +81,8 @@ def validate_metadata_encoding(request_body: bytes) -> None:
         raise FailError(status_code=HTTPStatus.UNPROCESSABLE_ENTITY) from exc
 
 
-def validate_metadata_type(request_body: bytes) -> None:
+@beartype
+def validate_metadata_type(*, request_body: bytes) -> None:
     """
     Validate that the given application metadata is a string or NULL.
 
@@ -92,7 +97,7 @@ def validate_metadata_type(request_body: bytes) -> None:
         return
 
     request_text = request_body.decode()
-    request_json = json.loads(request_text)
+    request_json = json.loads(s=request_text)
     if "application_metadata" not in request_json:
         return
 

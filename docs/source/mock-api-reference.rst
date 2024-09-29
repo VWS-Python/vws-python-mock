@@ -7,6 +7,10 @@ API Reference
    :members:
    :undoc-members:
 
+.. autoclass:: mock_vws.MissingSchemeError
+   :members:
+   :undoc-members:
+
 .. Many parts of the VuforiaDatabase API are used for the Flask target
 .. database app, but Python users are not expected to use them.
 .. Therefore, they are not documented.

@@ -1,10 +1,8 @@
 """
 Tests for the mock of the query endpoint.
 
-https://library.vuforia.com/web-api/vuforia-query-web-api.
+https://developer.vuforia.com/library/web-api/vuforia-query-web-api.
 """
-
-from __future__ import annotations
 
 import base64
 import calendar
@@ -23,21 +21,25 @@ from zoneinfo import ZoneInfo
 
 import pytest
 import requests
+from dirty_equals import IsInstance
 from PIL import Image
 from tenacity import Retrying
 from tenacity.retry import retry_if_exception_type
 from tenacity.stop import stop_after_delay
 from tenacity.wait import wait_fixed
 from urllib3.filepost import encode_multipart_formdata
+from vws import VWS, CloudRecoService
 from vws.exceptions.cloud_reco_exceptions import (
-    BadImage,
-    InactiveProject,
-    MaxNumResultsOutOfRange,
+    BadImageError,
+    InactiveProjectError,
+    MaxNumResultsOutOfRangeError,
 )
-from vws.exceptions.custom_exceptions import RequestEntityTooLarge
+from vws.exceptions.custom_exceptions import RequestEntityTooLargeError
 from vws.reports import TargetStatuses
+from vws.types import Response
 from vws_auth_tools import authorization_header, rfc_1123_date
 
+from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import make_image_file
 from tests.mock_vws.utils.assertions import (
     assert_query_success,
@@ -47,13 +49,12 @@ from tests.mock_vws.utils.assertions import (
 from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
 if TYPE_CHECKING:
-    from mock_vws.database import VuforiaDatabase
-    from vws import VWS, CloudRecoService
+    from collections.abc import Iterable
 
 VWQ_HOST = "https://cloudreco.vuforia.com"
 
 _JETTY_CONTENT_TYPE_ERROR = textwrap.dedent(
-    """\
+    text="""\
     <html>
     <head>
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
@@ -74,7 +75,7 @@ _JETTY_CONTENT_TYPE_ERROR = textwrap.dedent(
 )
 
 _NGINX_REQUEST_ENTITY_TOO_LARGE_ERROR = textwrap.dedent(
-    """\
+    text="""\
     <html>\r
     <head><title>413 Request Entity Too Large</title></head>\r
     <body>\r
@@ -86,10 +87,11 @@ _NGINX_REQUEST_ENTITY_TOO_LARGE_ERROR = textwrap.dedent(
 )
 
 
-def query(
+def _query(
+    *,
     vuforia_database: VuforiaDatabase,
     body: dict[str, Any],
-) -> requests.Response:
+) -> Response:
     """
     Make a request to the endpoint to make an image recognition query.
 
@@ -126,7 +128,7 @@ def query(
     }
 
     vwq_host = "https://cloudreco.vuforia.com"
-    response = requests.request(
+    requests_response = requests.request(
         method=method,
         url=urljoin(base=vwq_host, url=request_path),
         headers=headers,
@@ -134,8 +136,16 @@ def query(
         timeout=30,
     )
 
-    handle_server_errors(response=response)
-    return response
+    vws_response = Response(
+        text=requests_response.text,
+        url=requests_response.url,
+        status_code=requests_response.status_code,
+        headers=dict(requests_response.headers),
+        request_body=requests_response.request.body,
+        tell_position=requests_response.raw.tell(),
+    )
+    handle_server_errors(response=vws_response)
+    return vws_response
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -195,6 +205,7 @@ class TestContentType:
         ],
     )
     def test_incorrect_no_boundary(
+        *,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         content_type: str,
@@ -231,7 +242,7 @@ class TestContentType:
             "Content-Type": content_type,
         }
 
-        response = requests.request(
+        requests_response = requests.request(
             method=method,
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
@@ -239,11 +250,19 @@ class TestContentType:
             timeout=30,
         )
 
-        handle_server_errors(response=response)
+        vws_response = Response(
+            text=requests_response.text,
+            url=requests_response.url,
+            status_code=requests_response.status_code,
+            headers=dict(requests_response.headers),
+            request_body=requests_response.request.body,
+            tell_position=requests_response.raw.tell(),
+        )
+        handle_server_errors(response=vws_response)
 
-        assert response.text == resp_text
+        assert requests_response.text == resp_text
         assert_vwq_failure(
-            response=response,
+            response=vws_response,
             status_code=resp_status_code,
             content_type=resp_content_type,
             cache_control=resp_cache_control,
@@ -282,7 +301,7 @@ class TestContentType:
             request_path=request_path,
         )
 
-        _, boundary = content_type_header.split(";")
+        _, boundary = content_type_header.split(sep=";")
 
         content_type = "text/html; " + boundary
         headers = {
@@ -291,7 +310,7 @@ class TestContentType:
             "Content-Type": content_type,
         }
 
-        response = requests.request(
+        requests_response = requests.request(
             method=method,
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
@@ -299,10 +318,18 @@ class TestContentType:
             timeout=30,
         )
 
-        handle_server_errors(response=response)
-        assert not response.text
+        vws_response = Response(
+            text=requests_response.text,
+            url=requests_response.url,
+            status_code=requests_response.status_code,
+            headers=dict(requests_response.headers),
+            request_body=requests_response.request.body,
+            tell_position=requests_response.raw.tell(),
+        )
+        handle_server_errors(response=vws_response)
+        assert not requests_response.text
         assert_vwq_failure(
-            response=response,
+            response=vws_response,
             status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
             content_type=None,
             cache_control=None,
@@ -312,8 +339,8 @@ class TestContentType:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "content_type",
-        [
+        argnames="content_type",
+        argvalues=[
             "multipart/form-data",
             "multipart/form-data; extra",
             "multipart/form-data; extra=1",
@@ -353,7 +380,7 @@ class TestContentType:
             "Content-Type": content_type,
         }
 
-        response = requests.request(
+        requests_response = requests.request(
             method=method,
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
@@ -361,15 +388,23 @@ class TestContentType:
             timeout=30,
         )
 
-        handle_server_errors(response=response)
+        vws_response = Response(
+            text=requests_response.text,
+            url=requests_response.url,
+            status_code=requests_response.status_code,
+            headers=dict(requests_response.headers),
+            request_body=requests_response.request.body,
+            tell_position=requests_response.raw.tell(),
+        )
+        handle_server_errors(response=vws_response)
 
         expected_text = (
             "java.io.IOException: RESTEASY007550: "
             "Unable to get boundary for multipart"
         )
-        assert response.text == expected_text
+        assert requests_response.text == expected_text
         assert_vwq_failure(
-            response=response,
+            response=vws_response,
             status_code=HTTPStatus.BAD_REQUEST,
             content_type="text/html;charset=utf-8",
             cache_control=None,
@@ -411,7 +446,7 @@ class TestContentType:
             "Content-Type": "multipart/form-data; boundary=example_boundary",
         }
 
-        response = requests.request(
+        requests_response = requests.request(
             method=method,
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
@@ -419,12 +454,20 @@ class TestContentType:
             timeout=30,
         )
 
-        handle_server_errors(response=response)
+        vws_response = Response(
+            text=requests_response.text,
+            url=requests_response.url,
+            status_code=requests_response.status_code,
+            headers=dict(requests_response.headers),
+            request_body=requests_response.request.body,
+            tell_position=requests_response.raw.tell(),
+        )
+        handle_server_errors(response=vws_response)
 
         expected_text = "No image."
-        assert response.text == expected_text
+        assert requests_response.text == expected_text
         assert_vwq_failure(
-            response=response,
+            response=vws_response,
             status_code=HTTPStatus.BAD_REQUEST,
             content_type="application/json",
             cache_control=None,
@@ -467,7 +510,7 @@ class TestContentType:
             "Content-Type": content_type_header + "; extra=1",
         }
 
-        response = requests.request(
+        requests_response = requests.request(
             method=method,
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
@@ -475,9 +518,18 @@ class TestContentType:
             timeout=30,
         )
 
-        handle_server_errors(response=response)
-        assert_query_success(response=response)
-        assert response.json()["results"] == []
+        vws_response = Response(
+            text=requests_response.text,
+            url=requests_response.url,
+            status_code=requests_response.status_code,
+            headers=dict(requests_response.headers),
+            request_body=requests_response.request.body,
+            tell_position=requests_response.raw.tell(),
+        )
+        handle_server_errors(response=vws_response)
+        assert_query_success(response=vws_response)
+        response_json = json.loads(s=requests_response.text)
+        assert response_json["results"] == []
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -510,7 +562,9 @@ class TestSuccess:
         """
         image_file = high_quality_image
         image_content = image_file.getvalue()
-        metadata_encoded = base64.b64encode(b"example").decode("ascii")
+        metadata_encoded = base64.b64encode(s=b"example").decode(
+            encoding="ascii"
+        )
         name = "example_name"
 
         target_id = vws_client.add_target(
@@ -527,22 +581,20 @@ class TestSuccess:
 
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}
 
-        response = query(vuforia_database=vuforia_database, body=body)
+        response = _query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
-        (result,) = response.json()["results"]
-        assert result.keys() == {"target_id", "target_data"}
-        assert result["target_id"] == target_id
-        target_data = result["target_data"]
-        assert target_data.keys() == {
-            "application_metadata",
-            "name",
-            "target_timestamp",
+        response_json = json.loads(s=response.text)
+        (result,) = response_json["results"]
+        assert result == {
+            "target_id": target_id,
+            "target_data": {
+                "application_metadata": metadata_encoded,
+                "name": name,
+                "target_timestamp": IsInstance(expected_type=int),
+            },
         }
-        assert target_data["application_metadata"] == metadata_encoded
-        assert target_data["name"] == name
-        target_timestamp = target_data["target_timestamp"]
-        assert isinstance(target_timestamp, int)
+        target_timestamp = int(result["target_data"]["target_timestamp"])
         time_difference = abs(approximate_target_created - target_timestamp)
         max_time_difference = 5
         assert time_difference < max_time_difference
@@ -558,7 +610,9 @@ class TestSuccess:
         results are returned.
         """
         image_file = image_file_success_state_low_rating
-        metadata_encoded = base64.b64encode(b"example").decode("ascii")
+        metadata_encoded = base64.b64encode(s=b"example").decode(
+            encoding="ascii"
+        )
         name = "example_name"
 
         target_id = vws_client.add_target(
@@ -584,7 +638,9 @@ class TestSuccess:
         If a similar image to one that was added is queried for, target data is
         shown.
         """
-        metadata_encoded = base64.b64encode(b"example").decode("ascii")
+        metadata_encoded = base64.b64encode(s=b"example").decode(
+            encoding="ascii"
+        )
         name_matching = "example_name_matching"
         name_not_matching = "example_name_not_matching"
 
@@ -608,8 +664,8 @@ class TestSuccess:
         vws_client.wait_for_target_processed(target_id=target_id_not_matching)
 
         similar_image_buffer = io.BytesIO()
-        similar_image_data = copy.copy(high_quality_image)
-        pil_similar_image = Image.open(similar_image_data)
+        similar_image_data = copy.copy(x=high_quality_image)
+        pil_similar_image = Image.open(fp=similar_image_data)
         # Re-save means similar but not identical.
         pil_similar_image.save(similar_image_buffer, format="JPEG")
 
@@ -663,7 +719,7 @@ class TestSuccess:
             len(not_base64_encoded_processable) % 4
         ]
         expected_metadata = base64.b64encode(
-            base64.b64decode(expected_metadata_original),
+            s=base64.b64decode(s=expected_metadata_original),
         )
         assert query_metadata == expected_metadata.decode()
 
@@ -679,7 +735,7 @@ class TestIncorrectFields:
         """
         If an image is not given, a ``BAD_REQUEST`` response is returned.
         """
-        response = query(vuforia_database=vuforia_database, body={})
+        response = _query(vuforia_database=vuforia_database, body={})
 
         assert response.text == "No image."
         assert_vwq_failure(
@@ -705,7 +761,7 @@ class TestIncorrectFields:
             "extra_field": (None, 1, "text/plain"),
         }
 
-        response = query(vuforia_database=vuforia_database, body=body)
+        response = _query(vuforia_database=vuforia_database, body=body)
 
         assert response.text == "Unknown parameters in the request."
         assert_vwq_failure(
@@ -731,7 +787,7 @@ class TestIncorrectFields:
             "extra_field": (None, 1, "text/plain"),
         }
 
-        response = query(vuforia_database=vuforia_database, body=body)
+        response = _query(vuforia_database=vuforia_database, body=body)
 
         assert response.text == "Unknown parameters in the request."
         assert_vwq_failure(
@@ -782,13 +838,14 @@ class TestMaxNumResults:
             "image": ("image.jpeg", image_content, "image/jpeg"),
         }
 
-        response = query(vuforia_database=vuforia_database, body=body)
+        response = _query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
-        assert len(response.json()["results"]) == 1
+        response_json = json.loads(s=response.text)
+        assert len(response_json["results"]) == 1
 
     @staticmethod
-    @pytest.mark.parametrize("num_results", [1, b"1", 50])
+    @pytest.mark.parametrize(argnames="num_results", argvalues=[1, b"1", 50])
     def test_valid_accepted(
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
@@ -803,7 +860,7 @@ class TestMaxNumResults:
         This is because uploading 50 images would be very slow.
 
         The documentation at
-        https://library.vuforia.com/web-api/vuforia-query-web-api
+        https://developer.vuforia.com/library/web-api/vuforia-query-web-api
         states that this must be between 1 and 10, but in practice, 50 is the
         maximum.
         """
@@ -813,40 +870,37 @@ class TestMaxNumResults:
             "max_num_results": (None, num_results, "text/plain"),
         }
 
-        response = query(vuforia_database=vuforia_database, body=body)
+        response = _query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
-        assert response.json()["results"] == []
+        response_json = json.loads(s=response.text)
+        assert response_json["results"] == []
 
     @staticmethod
     def test_valid_works(
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
         vws_client: VWS,
+        cloud_reco_client: CloudRecoService,
     ) -> None:
         """
         A maximum of ``max_num_results`` results are returned.
         """
-        image_content = high_quality_image.getvalue()
-        add_and_wait_for_targets(
+        _add_and_wait_for_targets(
             image=high_quality_image,
             vws_client=vws_client,
             num_targets=3,
         )
 
         max_num_results = 2
-        body = {
-            "image": ("image.jpeg", image_content, "image/jpeg"),
-            "max_num_results": (None, max_num_results, "text/plain"),
-        }
 
-        response = query(vuforia_database=vuforia_database, body=body)
-
-        assert_query_success(response=response)
-        assert len(response.json()["results"]) == max_num_results
+        result = cloud_reco_client.query(
+            image=high_quality_image,
+            max_num_results=max_num_results,
+        )
+        assert len(result) == max_num_results
 
     @staticmethod
-    @pytest.mark.parametrize("num_results", [-1, 0, 51])
+    @pytest.mark.parametrize(argnames="num_results", argvalues=[-1, 0, 51])
     def test_out_of_range(
         high_quality_image: io.BytesIO,
         num_results: int,
@@ -857,12 +911,12 @@ class TestMaxNumResults:
         of the range (1, 50).
 
         The documentation at
-        https://library.vuforia.com/web-api/vuforia-query-web-api.
+        https://developer.vuforia.com/library/web-api/vuforia-query-web-api.
         states that this must be between 1 and 10, but in practice, 50 is the
         maximum.
         """
         with pytest.raises(
-            expected_exception=MaxNumResultsOutOfRange,
+            expected_exception=MaxNumResultsOutOfRangeError,
         ) as exc_info:
             cloud_reco_client.query(
                 image=high_quality_image,
@@ -885,8 +939,8 @@ class TestMaxNumResults:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "num_results",
-        [b"0.1", b"1.1", b"a", b"2147483648"],
+        argnames="num_results",
+        argvalues=[b"0.1", b"1.1", b"a", b"2147483648"],
     )
     def test_invalid_type(
         high_quality_image: io.BytesIO,
@@ -905,7 +959,7 @@ class TestMaxNumResults:
             "image": ("image.jpeg", image_content, "image/jpeg"),
             "max_num_results": (None, num_results, "text/plain"),
         }
-        response = query(vuforia_database=vuforia_database, body=body)
+        response = _query(vuforia_database=vuforia_database, body=body)
 
         expected_text = (
             f"Invalid value '{num_results.decode()}' in form data part "
@@ -923,7 +977,8 @@ class TestMaxNumResults:
         )
 
 
-def add_and_wait_for_targets(
+def _add_and_wait_for_targets(
+    *,
     image: io.BytesIO,
     vws_client: VWS,
     num_targets: int,
@@ -931,7 +986,7 @@ def add_and_wait_for_targets(
     """
     Add targets with the given image.
     """
-    target_ids: set[str] = set()
+    target_ids: Iterable[str] = set()
     for _ in range(num_targets):
         target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
@@ -940,7 +995,7 @@ def add_and_wait_for_targets(
             active_flag=True,
             application_metadata=None,
         )
-        target_ids.add(target_id)
+        target_ids = {*target_ids, target_id}
 
     for created_target_id in target_ids:
         vws_client.wait_for_target_processed(target_id=created_target_id)
@@ -961,7 +1016,7 @@ class TestIncludeTargetData:
         """
         The default ``include_target_data`` is 'top'.
         """
-        add_and_wait_for_targets(
+        _add_and_wait_for_targets(
             image=high_quality_image,
             vws_client=vws_client,
             num_targets=2,
@@ -972,15 +1027,19 @@ class TestIncludeTargetData:
             "max_num_results": (None, 2, "text/plain"),
         }
 
-        response = query(vuforia_database=vuforia_database, body=body)
+        response = _query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
-        result_1, result_2 = response.json()["results"]
+        response_json = json.loads(s=response.text)
+        result_1, result_2 = response_json["results"]
         assert "target_data" in result_1
         assert "target_data" not in result_2
 
     @staticmethod
-    @pytest.mark.parametrize("include_target_data", ["top", "TOP"])
+    @pytest.mark.parametrize(
+        argnames="include_target_data",
+        argvalues=["top", "TOP"],
+    )
     def test_top(
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
@@ -991,7 +1050,7 @@ class TestIncludeTargetData:
         When ``include_target_data`` is set to "top" (case insensitive), only
         the first result includes target data.
         """
-        add_and_wait_for_targets(
+        _add_and_wait_for_targets(
             image=high_quality_image,
             vws_client=vws_client,
             num_targets=2,
@@ -1003,15 +1062,19 @@ class TestIncludeTargetData:
             "max_num_results": (None, 2, "text/plain"),
         }
 
-        response = query(vuforia_database=vuforia_database, body=body)
+        response = _query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
-        result_1, result_2 = response.json()["results"]
+        response_json = json.loads(s=response.text)
+        result_1, result_2 = response_json["results"]
         assert "target_data" in result_1
         assert "target_data" not in result_2
 
     @staticmethod
-    @pytest.mark.parametrize("include_target_data", ["none", "NONE"])
+    @pytest.mark.parametrize(
+        argnames="include_target_data",
+        argvalues=["none", "NONE"],
+    )
     def test_none(
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
@@ -1022,7 +1085,7 @@ class TestIncludeTargetData:
         When ``include_target_data`` is set to "none" (case insensitive), no
         results include target data.
         """
-        add_and_wait_for_targets(
+        _add_and_wait_for_targets(
             image=high_quality_image,
             vws_client=vws_client,
             num_targets=2,
@@ -1034,15 +1097,19 @@ class TestIncludeTargetData:
             "max_num_results": (None, 2, "text/plain"),
         }
 
-        response = query(vuforia_database=vuforia_database, body=body)
+        response = _query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
-        result_1, result_2 = response.json()["results"]
+        response_json = json.loads(s=response.text)
+        result_1, result_2 = response_json["results"]
         assert "target_data" not in result_1
         assert "target_data" not in result_2
 
     @staticmethod
-    @pytest.mark.parametrize("include_target_data", ["all", "ALL"])
+    @pytest.mark.parametrize(
+        argnames="include_target_data",
+        argvalues=["all", "ALL"],
+    )
     def test_all(
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
@@ -1053,7 +1120,7 @@ class TestIncludeTargetData:
         When ``include_target_data`` is set to "all" (case insensitive), all
         results include target data.
         """
-        add_and_wait_for_targets(
+        _add_and_wait_for_targets(
             image=high_quality_image,
             vws_client=vws_client,
             num_targets=2,
@@ -1065,15 +1132,19 @@ class TestIncludeTargetData:
             "max_num_results": (None, 2, "text/plain"),
         }
 
-        response = query(vuforia_database=vuforia_database, body=body)
+        response = _query(vuforia_database=vuforia_database, body=body)
 
         assert_query_success(response=response)
-        result_1, result_2 = response.json()["results"]
+        response_json = json.loads(s=response.text)
+        result_1, result_2 = response_json["results"]
         assert "target_data" in result_1
         assert "target_data" in result_2
 
     @staticmethod
-    @pytest.mark.parametrize("include_target_data", ["a", True, 0])
+    @pytest.mark.parametrize(
+        argnames="include_target_data",
+        argvalues=["a", True, 0],
+    )
     def test_invalid_value(
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
@@ -1088,7 +1159,7 @@ class TestIncludeTargetData:
             "image": ("image.jpeg", image_content, "image/jpeg"),
             "include_target_data": (None, include_target_data, "text/plain"),
         }
-        response = query(vuforia_database=vuforia_database, body=body)
+        response = _query(vuforia_database=vuforia_database, body=body)
 
         expected_text = (
             f"Invalid value '{include_target_data}' in form data "
@@ -1115,8 +1186,8 @@ class TestAcceptHeader:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "extra_headers",
-        [
+        argnames="extra_headers",
+        argvalues=[
             {
                 "Accept": "application/json",
             },
@@ -1156,7 +1227,7 @@ class TestAcceptHeader:
             "Content-Type": content_type_header,
         } | extra_headers
 
-        response = requests.request(
+        requests_response = requests.request(
             method=method,
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
@@ -1164,9 +1235,18 @@ class TestAcceptHeader:
             timeout=30,
         )
 
-        handle_server_errors(response=response)
-        assert_query_success(response=response)
-        assert response.json()["results"] == []
+        vws_response = Response(
+            text=requests_response.text,
+            url=requests_response.url,
+            status_code=requests_response.status_code,
+            headers=dict(requests_response.headers),
+            request_body=requests_response.request.body,
+            tell_position=requests_response.raw.tell(),
+        )
+        handle_server_errors(response=vws_response)
+        assert_query_success(response=vws_response)
+        response_json = json.loads(s=requests_response.text)
+        assert response_json["results"] == []
 
     @staticmethod
     def test_invalid(
@@ -1204,7 +1284,7 @@ class TestAcceptHeader:
             "Accept": "text/html",
         }
 
-        response = requests.request(
+        requests_response = requests.request(
             method=method,
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
@@ -1212,10 +1292,18 @@ class TestAcceptHeader:
             timeout=30,
         )
 
-        handle_server_errors(response=response)
+        vws_response = Response(
+            text=requests_response.text,
+            url=requests_response.url,
+            status_code=requests_response.status_code,
+            headers=dict(requests_response.headers),
+            request_body=requests_response.request.body,
+            tell_position=requests_response.raw.tell(),
+        )
+        handle_server_errors(response=vws_response)
 
         assert_vwq_failure(
-            response=response,
+            response=vws_response,
             status_code=HTTPStatus.NOT_ACCEPTABLE,
             content_type=None,
             cache_control=None,
@@ -1277,8 +1365,10 @@ class TestBadImage:
         """
         not_image_data = b"not_image_data"
 
-        with pytest.raises(BadImage) as exc_info:
-            cloud_reco_client.query(image=io.BytesIO(not_image_data))
+        with pytest.raises(expected_exception=BadImageError) as exc_info:
+            cloud_reco_client.query(
+                image=io.BytesIO(initial_bytes=not_image_data)
+            )
 
         response = exc_info.value.response
 
@@ -1290,7 +1380,7 @@ class TestBadImage:
             www_authenticate=None,
             connection="keep-alive",
         )
-        response_json = json.loads(response.text)
+        response_json = json.loads(s=response.text)
         assert isinstance(response_json, dict)
         assert response_json.keys() == {"transaction_id", "result_code"}
         assert_valid_transaction_id(response=response)
@@ -1323,7 +1413,7 @@ class TestMaximumImageFileSize:
     ) -> None:  # pragma: no cover
         """
         According to
-        https://library.vuforia.com/web-api/vuforia-query-web-api.
+        https://developer.vuforia.com/library/web-api/vuforia-query-web-api.
         the maximum file size is "2MiB for PNG".
 
         Above this limit, a ``REQUEST_ENTITY_TOO_LARGE`` response is returned.
@@ -1372,7 +1462,9 @@ class TestMaximumImageFileSize:
         assert image_content_size > max_bytes
         assert (image_content_size * 0.95) < max_bytes
 
-        with pytest.raises(RequestEntityTooLarge) as exc_info:
+        with pytest.raises(
+            expected_exception=RequestEntityTooLargeError
+        ) as exc_info:
             cloud_reco_client.query(image=png_too_large)
 
         response = exc_info.value.response
@@ -1400,7 +1492,7 @@ class TestMaximumImageFileSize:
     ) -> None:  # pragma: no cover
         """
         According to
-        https://library.vuforia.com/web-api/vuforia-query-web-api.
+        https://developer.vuforia.com/library/web-api/vuforia-query-web-api.
         the maximum file size is "512 KiB for JPEG".
         However, this test shows that the maximum size for JPEG is 2 MiB.
 
@@ -1449,7 +1541,9 @@ class TestMaximumImageFileSize:
         assert image_content_size > max_bytes
         assert (image_content_size * 0.95) < max_bytes
 
-        with pytest.raises(RequestEntityTooLarge) as exc_info:
+        with pytest.raises(
+            expected_exception=RequestEntityTooLargeError
+        ) as exc_info:
             cloud_reco_client.query(image=jpeg_too_large)
 
         response = exc_info.value.response
@@ -1499,7 +1593,7 @@ class TestMaximumImageDimensions:
             height=max_height + 1,
         )
 
-        with pytest.raises(BadImage) as exc_info:
+        with pytest.raises(expected_exception=BadImageError) as exc_info:
             cloud_reco_client.query(image=png_too_tall)
 
         response = exc_info.value.response
@@ -1513,9 +1607,8 @@ class TestMaximumImageDimensions:
             connection="keep-alive",
         )
 
-        response_json = json.loads(response.text)
+        response_json = json.loads(s=response.text)
         assert isinstance(response_json, dict)
-
         assert response_json.keys() == {"transaction_id", "result_code"}
         assert_valid_transaction_id(response=response)
         # The separators are inconsistent and we test this.
@@ -1552,7 +1645,7 @@ class TestMaximumImageDimensions:
             height=height,
         )
 
-        with pytest.raises(BadImage) as exc_info:
+        with pytest.raises(expected_exception=BadImageError) as exc_info:
             result = cloud_reco_client.query(image=png_too_wide)
 
         response = exc_info.value.response
@@ -1566,7 +1659,7 @@ class TestMaximumImageDimensions:
             connection="keep-alive",
         )
 
-        response_json = json.loads(response.text)
+        response_json = json.loads(s=response.text)
         assert isinstance(response_json, dict)
         assert response_json.keys() == {"transaction_id", "result_code"}
         assert_valid_transaction_id(response=response)
@@ -1604,7 +1697,7 @@ class TestImageFormats:
     """
 
     @staticmethod
-    @pytest.mark.parametrize("file_format", ["png", "jpeg"])
+    @pytest.mark.parametrize(argnames="file_format", argvalues=["png", "jpeg"])
     def test_supported(
         high_quality_image: io.BytesIO,
         file_format: str,
@@ -1614,10 +1707,12 @@ class TestImageFormats:
         PNG and JPEG formats are supported.
         """
         image_buffer = io.BytesIO()
-        pil_image = Image.open(high_quality_image)
-        pil_image.save(image_buffer, file_format)
+        pil_image = Image.open(fp=high_quality_image)
+        pil_image.save(fp=image_buffer, format=file_format)
         image_content = image_buffer.getvalue()
-        results = cloud_reco_client.query(image=io.BytesIO(image_content))
+        results = cloud_reco_client.query(
+            image=io.BytesIO(initial_bytes=image_content)
+        )
         assert results == []
 
     @staticmethod
@@ -1630,12 +1725,14 @@ class TestImageFormats:
         """
         file_format = "tiff"
         image_buffer = io.BytesIO()
-        pil_image = Image.open(high_quality_image)
-        pil_image.save(image_buffer, file_format)
+        pil_image = Image.open(fp=high_quality_image)
+        pil_image.save(fp=image_buffer, format=file_format)
         image_content = image_buffer.getvalue()
 
-        with pytest.raises(BadImage) as exc_info:
-            cloud_reco_client.query(image=io.BytesIO(image_content))
+        with pytest.raises(expected_exception=BadImageError) as exc_info:
+            cloud_reco_client.query(
+                image=io.BytesIO(initial_bytes=image_content)
+            )
 
         response = exc_info.value.response
 
@@ -1647,7 +1744,7 @@ class TestImageFormats:
             www_authenticate=None,
             connection="keep-alive",
         )
-        response_json = json.loads(response.text)
+        response_json = json.loads(s=response.text)
         assert isinstance(response_json, dict)
         assert response_json.keys() == {"transaction_id", "result_code"}
         assert_valid_transaction_id(response=response)
@@ -1668,7 +1765,7 @@ class TestProcessing:
     """
 
     @staticmethod
-    @pytest.mark.parametrize("active_flag", [True, False])
+    @pytest.mark.parametrize(argnames="active_flag", argvalues=[True, False])
     def test_processing(
         high_quality_image: io.BytesIO,
         vws_client: VWS,
@@ -1726,7 +1823,9 @@ class TestUpdate:
         metadata.
         """
         metadata = b"example_metadata"
-        metadata_encoded = base64.b64encode(metadata).decode("ascii")
+        metadata_encoded = base64.b64encode(s=metadata).decode(
+            encoding="ascii"
+        )
         name = "example_name"
         target_id = vws_client.add_target(
             name=name,
@@ -1742,7 +1841,9 @@ class TestUpdate:
 
         new_name = name + "2"
         new_metadata = metadata + b"2"
-        new_metadata_encoded = base64.b64encode(new_metadata).decode("ascii")
+        new_metadata_encoded = base64.b64encode(s=new_metadata).decode(
+            encoding="ascii"
+        )
 
         results = cloud_reco_client.query(image=high_quality_image)
         (result,) = results
@@ -1895,15 +1996,15 @@ class TestDateFormats:
 
     @staticmethod
     @pytest.mark.parametrize(
-        "datetime_format",
-        [
+        argnames="datetime_format",
+        argvalues=[
             "%a, %b %d %H:%M:%S %Y",
             "%a %b %d %H:%M:%S %Y",
             "%a, %d %b %Y %H:%M:%S",
             "%a %d %b %Y %H:%M:%S",
         ],
     )
-    @pytest.mark.parametrize("include_tz", [True, False])
+    @pytest.mark.parametrize(argnames="include_tz", argvalues=[True, False])
     def test_date_formats(
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
@@ -1923,7 +2024,7 @@ class TestDateFormats:
         if include_tz:
             datetime_format += " GMT"
 
-        gmt = ZoneInfo("GMT")
+        gmt = ZoneInfo(key="GMT")
         now = datetime.datetime.now(tz=gmt)
         date = now.strftime(datetime_format)
         request_path = "/v1/query"
@@ -1948,7 +2049,7 @@ class TestDateFormats:
             "Content-Type": content_type_header,
         }
 
-        response = requests.request(
+        requests_response = requests.request(
             method=method,
             url=urljoin(base=VWQ_HOST, url=request_path),
             headers=headers,
@@ -1956,9 +2057,18 @@ class TestDateFormats:
             timeout=30,
         )
 
-        handle_server_errors(response=response)
-        assert_query_success(response=response)
-        assert response.json()["results"] == []
+        vws_response = Response(
+            text=requests_response.text,
+            url=requests_response.url,
+            status_code=requests_response.status_code,
+            headers=dict(requests_response.headers),
+            request_body=requests_response.request.body,
+            tell_position=requests_response.raw.tell(),
+        )
+        handle_server_errors(response=vws_response)
+        assert_query_success(response=vws_response)
+        response_json = json.loads(s=requests_response.text)
+        assert response_json["results"] == []
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -1975,7 +2085,9 @@ class TestInactiveProject:
         """
         If the project is inactive, a FORBIDDEN response is returned.
         """
-        with pytest.raises(InactiveProject) as exc_info:
+        with pytest.raises(
+            expected_exception=InactiveProjectError
+        ) as exc_info:
             inactive_cloud_reco_client.query(image=high_quality_image)
 
         response = exc_info.value.response
@@ -1989,7 +2101,7 @@ class TestInactiveProject:
             connection="keep-alive",
         )
 
-        response_json = json.loads(response.text)
+        response_json = json.loads(s=response.text)
         assert isinstance(response_json, dict)
 
         assert response_json.keys() == {"transaction_id", "result_code"}

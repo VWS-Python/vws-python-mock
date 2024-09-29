@@ -5,9 +5,11 @@ Fixtures for credentials for Vuforia databases.
 from pathlib import Path
 
 import pytest
+from beartype import beartype
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
-from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class _VuforiaDatabaseSettings(BaseSettings):
@@ -27,6 +29,8 @@ class _VuforiaDatabaseSettings(BaseSettings):
 
 
 class _InactiveVuforiaDatabaseSettings(_VuforiaDatabaseSettings):
+    """Settings for an inactive Vuforia database."""
+
     model_config = SettingsConfigDict(
         env_prefix="INACTIVE_VUFORIA_",
         env_file=Path("vuforia_secrets.env"),
@@ -34,7 +38,8 @@ class _InactiveVuforiaDatabaseSettings(_VuforiaDatabaseSettings):
     )
 
 
-@pytest.fixture()
+@beartype
+@pytest.fixture
 def vuforia_database() -> VuforiaDatabase:
     """
     Return VWS credentials from environment variables.
@@ -50,7 +55,8 @@ def vuforia_database() -> VuforiaDatabase:
     )
 
 
-@pytest.fixture()
+@beartype
+@pytest.fixture
 def inactive_database() -> VuforiaDatabase:
     """
     Return VWS credentials for an inactive project from environment variables.

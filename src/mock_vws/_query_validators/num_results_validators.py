@@ -4,8 +4,10 @@ Validators for the ``max_num_results`` fields.
 
 import io
 import logging
+from collections.abc import Mapping
 from email.message import EmailMessage
 
+from beartype import beartype
 from werkzeug.formparser import MultiPartParser
 
 from mock_vws._query_validators.exceptions import (
@@ -13,11 +15,13 @@ from mock_vws._query_validators.exceptions import (
     MaxNumResultsOutOfRangeError,
 )
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 def validate_max_num_results(
-    request_headers: dict[str, str],
+    *,
+    request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:
     """
@@ -36,15 +40,14 @@ def validate_max_num_results(
     """
     email_message = EmailMessage()
     email_message["Content-Type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary()
-    assert isinstance(boundary, str)
+    boundary = email_message.get_boundary(failobj="")
     parser = MultiPartParser()
     fields, _ = parser.parse(
-        stream=io.BytesIO(request_body),
-        boundary=boundary.encode("utf-8"),
+        stream=io.BytesIO(initial_bytes=request_body),
+        boundary=boundary.encode(encoding="utf-8"),
         content_length=len(request_body),
     )
-    max_num_results = str(fields.get("max_num_results", "1"))
+    max_num_results = fields.get("max_num_results", "1")
 
     try:
         max_num_results_int = int(max_num_results)

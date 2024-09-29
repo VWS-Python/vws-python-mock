@@ -3,17 +3,23 @@ Custom lint tests.
 """
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 import yaml
+from beartype import beartype
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 
-def _ci_patterns(repository_root: Path) -> set[str]:
+@beartype
+def _ci_patterns(*, repository_root: Path) -> set[str]:
     """
     Return the CI patterns given in the CI configuration file.
     """
     ci_file = repository_root / ".github" / "workflows" / "ci.yml"
-    github_workflow_config = yaml.safe_load(ci_file.read_text())
+    github_workflow_config = yaml.safe_load(stream=ci_file.read_text())
     matrix = github_workflow_config["jobs"]["build"]["strategy"]["matrix"]
     ci_pattern_list = matrix["ci_pattern"]
     ci_patterns = set(ci_pattern_list)
@@ -21,7 +27,9 @@ def _ci_patterns(repository_root: Path) -> set[str]:
     return ci_patterns
 
 
+@beartype
 def _tests_from_pattern(
+    *,
     ci_pattern: str,
     capsys: pytest.CaptureFixture[str],
 ) -> set[str]:
@@ -30,7 +38,7 @@ def _tests_from_pattern(
     """
     # Clear the captured output.
     capsys.readouterr()
-    tests: set[str] = set()
+    tests: Iterable[str] = set()
     pytest.main(
         args=[
             "-q",
@@ -45,8 +53,8 @@ def _tests_from_pattern(
         # We filter empty lines and lines which look like
         # "9 tests collected in 0.01s".
         if line and "collected in" not in line:
-            tests.add(line)
-    return tests
+            tests = {*tests, line}
+    return set(tests)
 
 
 def test_ci_patterns_valid(request: pytest.FixtureRequest) -> None:

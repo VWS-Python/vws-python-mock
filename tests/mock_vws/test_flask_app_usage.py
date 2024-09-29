@@ -2,60 +2,64 @@
 Tests for the usage of the mock Flask application.
 """
 
-from __future__ import annotations
-
 import io
+import json
 import uuid
+from collections.abc import Iterator
 from http import HTTPStatus
-from typing import TYPE_CHECKING
 
 import pytest
 import requests
-from mock_vws._flask_server.target_manager import TARGET_MANAGER_FLASK_APP
-from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
-from mock_vws._flask_server.vws import VWS_FLASK_APP
-from mock_vws.database import VuforiaDatabase
+import responses
+from beartype import beartype
 from PIL import Image
 from requests_mock_flask import add_flask_app_to_mock
 from vws import VWS, CloudRecoService
 
+from mock_vws._flask_server.target_manager import TARGET_MANAGER_FLASK_APP
+from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
+from mock_vws._flask_server.vws import VWS_FLASK_APP
+from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils.usage_test_helpers import (
     processing_time_seconds,
 )
 
-if TYPE_CHECKING:
-    from requests_mock import Mocker
-
 _EXAMPLE_URL_FOR_TARGET_MANAGER = "http://" + uuid.uuid4().hex + ".com"
 
 
+@beartype
 @pytest.fixture(autouse=True)
-def _(monkeypatch: pytest.MonkeyPatch, requests_mock: Mocker) -> None:
+def _(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     """
     Enable a mock service backed by the Flask applications.
     """
-    add_flask_app_to_mock(
-        mock_obj=requests_mock,
-        flask_app=VWS_FLASK_APP,
-        base_url="https://vws.vuforia.com",
-    )
+    with responses.RequestsMock(
+        assert_all_requests_are_fired=False,
+    ) as mock_obj:
+        add_flask_app_to_mock(
+            mock_obj=mock_obj,
+            flask_app=VWS_FLASK_APP,
+            base_url="https://vws.vuforia.com",
+        )
 
-    add_flask_app_to_mock(
-        mock_obj=requests_mock,
-        flask_app=CLOUDRECO_FLASK_APP,
-        base_url="https://cloudreco.vuforia.com",
-    )
+        add_flask_app_to_mock(
+            mock_obj=mock_obj,
+            flask_app=CLOUDRECO_FLASK_APP,
+            base_url="https://cloudreco.vuforia.com",
+        )
 
-    add_flask_app_to_mock(
-        mock_obj=requests_mock,
-        flask_app=TARGET_MANAGER_FLASK_APP,
-        base_url=_EXAMPLE_URL_FOR_TARGET_MANAGER,
-    )
+        add_flask_app_to_mock(
+            mock_obj=mock_obj,
+            flask_app=TARGET_MANAGER_FLASK_APP,
+            base_url=_EXAMPLE_URL_FOR_TARGET_MANAGER,
+        )
 
-    monkeypatch.setenv(
-        name="TARGET_MANAGER_BASE_URL",
-        value=_EXAMPLE_URL_FOR_TARGET_MANAGER,
-    )
+        monkeypatch.setenv(
+            name="TARGET_MANAGER_BASE_URL",
+            value=_EXAMPLE_URL_FOR_TARGET_MANAGER,
+        )
+
+        yield
 
 
 class TestProcessingTime:
@@ -94,7 +98,7 @@ class TestProcessingTime:
         """
         It is possible to set a custom processing time.
         """
-        seconds = 5
+        seconds = 5.0
         monkeypatch.setenv(
             name="PROCESSING_TIME_SECONDS",
             value=str(seconds),
@@ -185,7 +189,7 @@ class TestAddDatabase:
         response = requests.post(url=databases_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.CREATED
 
-        data = response.json()
+        data = json.loads(s=response.text)
 
         assert data["targets"] == []
         assert data["state_name"] == "WORKING"
@@ -230,7 +234,7 @@ class TestDeleteDatabase:
         response = requests.post(url=databases_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.CREATED
 
-        data = response.json()
+        data = json.loads(s=response.text)
         delete_url = databases_url + "/" + data["database_name"]
         response = requests.delete(url=delete_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.OK
@@ -263,7 +267,7 @@ class TestQueryImageMatchers:
 
         pil_image = Image.open(fp=high_quality_image)
         re_exported_image = io.BytesIO()
-        pil_image.save(re_exported_image, format="PNG")
+        pil_image.save(fp=re_exported_image, format="PNG")
 
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
@@ -308,7 +312,7 @@ class TestQueryImageMatchers:
 
         pil_image = Image.open(fp=high_quality_image)
         re_exported_image = io.BytesIO()
-        pil_image.save(re_exported_image, format="PNG")
+        pil_image.save(fp=re_exported_image, format="PNG")
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
@@ -355,7 +359,7 @@ class TestDuplicatesImageMatchers:
 
         pil_image = Image.open(fp=high_quality_image)
         re_exported_image = io.BytesIO()
-        pil_image.save(re_exported_image, format="PNG")
+        pil_image.save(fp=re_exported_image, format="PNG")
 
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
@@ -407,7 +411,7 @@ class TestDuplicatesImageMatchers:
 
         pil_image = Image.open(fp=high_quality_image)
         re_exported_image = io.BytesIO()
-        pil_image.save(re_exported_image, format="PNG")
+        pil_image.save(fp=re_exported_image, format="PNG")
 
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)

@@ -2,22 +2,17 @@
 Tests for the mock of the target summary endpoint.
 """
 
-from __future__ import annotations
-
 import datetime
+import io
 import uuid
-from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
 import pytest
-from vws.exceptions.vws_exceptions import UnknownTarget
+from vws import VWS, CloudRecoService
+from vws.exceptions.vws_exceptions import UnknownTargetError
 from vws.reports import TargetStatuses
 
-if TYPE_CHECKING:
-    import io
-
-    from mock_vws.database import VuforiaDatabase
-    from vws import VWS, CloudRecoService
+from mock_vws.database import VuforiaDatabase
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -27,7 +22,7 @@ class TestTargetSummary:
     """
 
     @staticmethod
-    @pytest.mark.parametrize("active_flag", [True, False])
+    @pytest.mark.parametrize(argnames="active_flag", argvalues=[True, False])
     def test_target_summary(
         vws_client: VWS,
         vuforia_database: VuforiaDatabase,
@@ -39,7 +34,7 @@ class TestTargetSummary:
         A target summary is returned.
         """
         name = uuid.uuid4().hex
-        gmt = ZoneInfo("GMT")
+        gmt = ZoneInfo(key="GMT")
         date_before_add_target = datetime.datetime.now(tz=gmt).date()
 
         target_id = vws_client.add_target(
@@ -173,7 +168,7 @@ class TestInactiveProject:
         """
         The project's active state does not affect getting a target.
         """
-        with pytest.raises(UnknownTarget):
+        with pytest.raises(expected_exception=UnknownTargetError):
             inactive_vws_client.get_target_summary_report(
                 target_id=uuid.uuid4().hex,
             )

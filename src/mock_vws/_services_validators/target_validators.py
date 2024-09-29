@@ -3,20 +3,25 @@ Validators for given target IDs.
 """
 
 import logging
+from collections.abc import Iterable, Mapping
+
+from beartype import beartype
 
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._services_validators.exceptions import UnknownTargetError
 from mock_vws.database import VuforiaDatabase
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 def validate_target_id_exists(
+    *,
     request_path: str,
-    request_headers: dict[str, str],
+    request_headers: Mapping[str, str],
     request_body: bytes,
     request_method: str,
-    databases: set[VuforiaDatabase],
+    databases: Iterable[VuforiaDatabase],
 ) -> None:
     """
     Validate that if a target ID is given, it exists in the database matching
@@ -33,7 +38,7 @@ def validate_target_id_exists(
         UnknownTargetError: There are no matching targets for a given target
             ID.
     """
-    split_path = request_path.split("/")
+    split_path = request_path.split(sep="/")
 
     request_path_no_target_id_length = 2
     if len(split_path) == request_path_no_target_id_length:

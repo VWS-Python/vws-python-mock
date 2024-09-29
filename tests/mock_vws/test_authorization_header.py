@@ -2,36 +2,27 @@
 Tests for the `Authorization` header.
 """
 
-from __future__ import annotations
-
+import io
 import json
 import uuid
 from http import HTTPStatus
-from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
 import pytest
-import requests
-from mock_vws._constants import ResultCodes
-from requests.structures import CaseInsensitiveDict
 from vws import VWS, CloudRecoService
 from vws.exceptions import cloud_reco_exceptions
-from vws.exceptions.vws_exceptions import AuthenticationFailure, Fail
+from vws.exceptions.vws_exceptions import AuthenticationFailureError, FailError
 from vws_auth_tools import rfc_1123_date
 
+from mock_vws._constants import ResultCodes
+from mock_vws.database import VuforiaDatabase
+from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import (
     assert_valid_transaction_id,
     assert_vwq_failure,
     assert_vws_failure,
 )
 from tests.mock_vws.utils.too_many_requests import handle_server_errors
-
-if TYPE_CHECKING:
-    import io
-
-    from mock_vws.database import VuforiaDatabase
-
-    from tests.mock_vws.utils import Endpoint
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -47,19 +38,29 @@ class TestAuthorizationHeader:
         is given.
         """
         date = rfc_1123_date()
-        headers: dict[str, str] = dict(endpoint.prepared_request.headers) | {
+        new_headers = {
+            **endpoint.headers,
             "Date": date,
         }
+        new_headers.pop("Authorization", None)
 
-        headers.pop("Authorization", None)
+        new_endpoint = Endpoint(
+            base_url=endpoint.base_url,
+            path_url=endpoint.path_url,
+            method=endpoint.method,
+            headers=new_headers,
+            data=endpoint.data,
+            successful_headers_result_code=endpoint.successful_headers_result_code,
+            successful_headers_status_code=endpoint.successful_headers_status_code,
+            access_key=endpoint.access_key,
+            secret_key=endpoint.secret_key,
+        )
 
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
-        session = requests.Session()
-        response = session.send(request=endpoint.prepared_request)
+        response = new_endpoint.send()
+
         handle_server_errors(response=response)
 
-        url = str(endpoint.prepared_request.url)
-        netloc = urlparse(url).netloc
+        netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":
             assert_vwq_failure(
                 response=response,
@@ -98,18 +99,28 @@ class TestMalformed:
         # string, but really any string which is not two parts when split on a
         # space will do.
         authorization_string = "VWS"
-        headers: dict[str, str] = dict(endpoint.prepared_request.headers) | {
+        new_headers = {
+            **endpoint.headers,
             "Authorization": authorization_string,
             "Date": date,
         }
 
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
-        session = requests.Session()
-        response = session.send(request=endpoint.prepared_request)
+        new_endpoint = Endpoint(
+            base_url=endpoint.base_url,
+            path_url=endpoint.path_url,
+            method=endpoint.method,
+            headers=new_headers,
+            data=endpoint.data,
+            successful_headers_result_code=endpoint.successful_headers_result_code,
+            successful_headers_status_code=endpoint.successful_headers_status_code,
+            access_key=endpoint.access_key,
+            secret_key=endpoint.secret_key,
+        )
+
+        response = new_endpoint.send()
         handle_server_errors(response=response)
 
-        url = str(endpoint.prepared_request.url)
-        netloc = urlparse(url).netloc
+        netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":
             assert_vwq_failure(
                 response=response,
@@ -137,19 +148,28 @@ class TestMalformed:
         """
         authorization_string = "VWS "
         date = rfc_1123_date()
-
-        headers: dict[str, str] = dict(endpoint.prepared_request.headers) | {
+        new_headers = {
+            **endpoint.headers,
             "Authorization": authorization_string,
             "Date": date,
         }
 
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
-        session = requests.Session()
-        response = session.send(request=endpoint.prepared_request)
+        new_endpoint = Endpoint(
+            base_url=endpoint.base_url,
+            path_url=endpoint.path_url,
+            method=endpoint.method,
+            headers=new_headers,
+            data=endpoint.data,
+            successful_headers_result_code=endpoint.successful_headers_result_code,
+            successful_headers_status_code=endpoint.successful_headers_status_code,
+            access_key=endpoint.access_key,
+            secret_key=endpoint.secret_key,
+        )
+
+        response = new_endpoint.send()
         handle_server_errors(response=response)
 
-        url = str(endpoint.prepared_request.url)
-        netloc = urlparse(url).netloc
+        netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":
             assert_vwq_failure(
                 response=response,
@@ -177,18 +197,28 @@ class TestMalformed:
         date = rfc_1123_date()
 
         authorization_string = "VWS foobar:"
-        headers: dict[str, str] = dict(endpoint.prepared_request.headers) | {
+        new_headers = {
+            **endpoint.headers,
             "Authorization": authorization_string,
             "Date": date,
         }
 
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
-        session = requests.Session()
-        response = session.send(request=endpoint.prepared_request)
+        new_endpoint = Endpoint(
+            base_url=endpoint.base_url,
+            path_url=endpoint.path_url,
+            method=endpoint.method,
+            headers=new_headers,
+            data=endpoint.data,
+            successful_headers_result_code=endpoint.successful_headers_result_code,
+            successful_headers_status_code=endpoint.successful_headers_status_code,
+            access_key=endpoint.access_key,
+            secret_key=endpoint.secret_key,
+        )
+
+        response = new_endpoint.send()
         handle_server_errors(response=response)
 
-        url = str(endpoint.prepared_request.url)
-        netloc = urlparse(url).netloc
+        netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":
             assert_vwq_failure(
                 response=response,
@@ -227,7 +257,7 @@ class TestBadKey:
             server_secret_key=vuforia_database.server_secret_key,
         )
 
-        with pytest.raises(Fail) as exc:
+        with pytest.raises(expected_exception=FailError) as exc:
             vws_client.get_target_record(target_id=uuid.uuid4().hex)
 
         assert exc.value.response.status_code == HTTPStatus.BAD_REQUEST
@@ -246,7 +276,9 @@ class TestBadKey:
             client_secret_key=vuforia_database.client_secret_key,
         )
 
-        with pytest.raises(cloud_reco_exceptions.AuthenticationFailure) as exc:
+        with pytest.raises(
+            expected_exception=cloud_reco_exceptions.AuthenticationFailureError
+        ) as exc:
             cloud_reco_client.query(image=high_quality_image)
 
         response = exc.value.response
@@ -260,13 +292,13 @@ class TestBadKey:
             connection="keep-alive",
         )
 
-        assert json.loads(response.text).keys() == {
+        assert json.loads(s=response.text).keys() == {
             "transaction_id",
             "result_code",
         }
         assert_valid_transaction_id(response=response)
-        result_code = json.loads(response.text)["result_code"]
-        transaction_id = json.loads(response.text)["transaction_id"]
+        result_code = json.loads(s=response.text)["result_code"]
+        transaction_id = json.loads(s=response.text)["transaction_id"]
         assert result_code == ResultCodes.AUTHENTICATION_FAILURE.value
         # The separators are inconsistent and we test this.
         expected_text = (
@@ -283,14 +315,14 @@ class TestBadKey:
     ) -> None:
         """
         If the server secret key given is incorrect, an
-        ``AuthenticationFailure`` response is returned.
+        ``AuthenticationFailureError`` response is returned.
         """
         vws_client = VWS(
             server_access_key=vuforia_database.server_access_key,
             server_secret_key="example",
         )
 
-        with pytest.raises(AuthenticationFailure):
+        with pytest.raises(expected_exception=AuthenticationFailureError):
             vws_client.get_target_record(target_id=uuid.uuid4().hex)
 
     @staticmethod
@@ -307,7 +339,9 @@ class TestBadKey:
             client_secret_key="example",
         )
 
-        with pytest.raises(cloud_reco_exceptions.AuthenticationFailure) as exc:
+        with pytest.raises(
+            expected_exception=cloud_reco_exceptions.AuthenticationFailureError
+        ) as exc:
             cloud_reco_client.query(image=high_quality_image)
 
         response = exc.value.response
@@ -321,13 +355,13 @@ class TestBadKey:
             connection="keep-alive",
         )
 
-        assert json.loads(response.text).keys() == {
+        assert json.loads(s=response.text).keys() == {
             "transaction_id",
             "result_code",
         }
         assert_valid_transaction_id(response=response)
-        result_code = json.loads(response.text)["result_code"]
-        transaction_id = json.loads(response.text)["transaction_id"]
+        result_code = json.loads(s=response.text)["result_code"]
+        transaction_id = json.loads(s=response.text)["transaction_id"]
         assert result_code == ResultCodes.AUTHENTICATION_FAILURE.value
         # The separators are inconsistent and we test this.
         expected_text = (

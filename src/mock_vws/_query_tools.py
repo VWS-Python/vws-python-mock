@@ -2,34 +2,32 @@
 Tools for making Vuforia queries.
 """
 
-from __future__ import annotations
-
 import base64
-import datetime
 import io
 import uuid
+from collections.abc import Iterable, Mapping
 from email.message import EmailMessage
-from typing import TYPE_CHECKING, Any
-from zoneinfo import ZoneInfo
+from typing import Any
 
+from beartype import beartype
 from werkzeug.formparser import MultiPartParser
 
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_client_keys
 from mock_vws._mock_common import json_dump
-
-if TYPE_CHECKING:
-    from mock_vws.database import VuforiaDatabase
-    from mock_vws.image_matchers import ImageMatcher
+from mock_vws.database import VuforiaDatabase
+from mock_vws.image_matchers import ImageMatcher
 
 
+@beartype
 def get_query_match_response_text(
-    request_headers: dict[str, str],
+    *,
+    request_headers: Mapping[str, str],
     request_body: bytes,
     request_method: str,
     request_path: str,
-    databases: set[VuforiaDatabase],
+    databases: Iterable[VuforiaDatabase],
     query_match_checker: ImageMatcher,
 ) -> str:
     """
@@ -47,23 +45,20 @@ def get_query_match_response_text(
     """
     email_message = EmailMessage()
     email_message["Content-Type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary()
-    assert isinstance(boundary, str)
+    boundary = email_message.get_boundary(failobj="")
 
     parser = MultiPartParser()
     fields, files = parser.parse(
-        stream=io.BytesIO(request_body),
-        boundary=boundary.encode("utf-8"),
+        stream=io.BytesIO(initial_bytes=request_body),
+        boundary=boundary.encode(encoding="utf-8"),
         content_length=len(request_body),
     )
 
-    max_num_results = str(fields.get("max_num_results", "1"))
-    include_target_data = str(fields.get("include_target_data", "top")).lower()
+    max_num_results = fields.get("max_num_results", "1")
+    include_target_data = fields.get("include_target_data", "top").lower()
 
     image_part = files["image"]
-    image_value = bytes(image_part.stream.read())
-    gmt = ZoneInfo("GMT")
-    datetime.datetime.now(tz=gmt)
+    image_value = image_part.stream.read()
 
     database = get_database_matching_client_keys(
         request_headers=request_headers,
@@ -108,8 +103,8 @@ def get_query_match_response_text(
             application_metadata = None
         else:
             application_metadata = base64.b64encode(
-                decode_base64(encoded_data=target.application_metadata),
-            ).decode("ascii")
+                s=decode_base64(encoded_data=target.application_metadata),
+            ).decode(encoding="ascii")
         target_data = {
             "target_timestamp": int(target_timestamp),
             "name": target.name,
@@ -137,4 +132,4 @@ def get_query_match_response_text(
         "query_id": uuid.uuid4().hex,
     }
 
-    return json_dump(body)
+    return json_dump(body=body)

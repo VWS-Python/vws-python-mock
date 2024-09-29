@@ -4,6 +4,19 @@ Changelog
 Next
 ----
 
+2024.08.30
+------------
+
+2024.07.15
+------------
+
+- Support passing data as strings.
+
+2024.07.02.1
+------------
+
+- Fix installation on Windows now that ``numpy`` 2.0.0 has been released.
+
 2024.02.16
 ------------
 

@@ -2,20 +2,18 @@
 Helpers for getting databases which match keys given in requests.
 """
 
-from __future__ import annotations
+from collections.abc import Iterable, Mapping
 
-from typing import TYPE_CHECKING
-
+from beartype import beartype
 from vws_auth_tools import authorization_header
 
-if TYPE_CHECKING:
-    from collections.abc import Iterable
-
-    from mock_vws.database import VuforiaDatabase
+from mock_vws.database import VuforiaDatabase
 
 
+@beartype
 def get_database_matching_client_keys(
-    request_headers: dict[str, str],
+    *,
+    request_headers: Mapping[str, str],
     request_body: bytes | None,
     request_method: str,
     request_path: str,
@@ -38,9 +36,8 @@ def get_database_matching_client_keys(
     Raises:
         ValueError: No database matches the given request.
     """
-    content_type = request_headers.get("Content-Type", "").split(";")[0]
+    content_type = request_headers.get("Content-Type", "").split(sep=";")[0]
     auth_header = request_headers.get("Authorization")
-    content = request_body or b""
     date = request_headers.get("Date", "")
 
     for database in databases:
@@ -48,7 +45,7 @@ def get_database_matching_client_keys(
             access_key=database.client_access_key,
             secret_key=database.client_secret_key,
             method=request_method,
-            content=content,
+            content=request_body,
             content_type=content_type,
             date=date,
             request_path=request_path,
@@ -59,8 +56,10 @@ def get_database_matching_client_keys(
     raise ValueError
 
 
+@beartype
 def get_database_matching_server_keys(
-    request_headers: dict[str, str],
+    *,
+    request_headers: Mapping[str, str],
     request_body: bytes | None,
     request_method: str,
     request_path: str,
@@ -83,9 +82,8 @@ def get_database_matching_server_keys(
     Raises:
         ValueError: No database matches the given request.
     """
-    content_type = request_headers.get("Content-Type", "").split(";")[0]
+    content_type = request_headers.get("Content-Type", "").split(sep=";")[0]
     auth_header = request_headers.get("Authorization")
-    content = request_body or b""
     date = request_headers.get("Date", "")
 
     for database in databases:
@@ -93,7 +91,7 @@ def get_database_matching_server_keys(
             access_key=database.server_access_key,
             secret_key=database.server_secret_key,
             method=request_method,
-            content=content,
+            content=request_body,
             content_type=content_type,
             date=date,
             request_path=request_path,

@@ -3,8 +3,11 @@ Common utilities for creating mock routes.
 """
 
 import json
+from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any
+
+from beartype import beartype
 
 
 @dataclass(frozen=True)
@@ -21,10 +24,11 @@ class Route:
 
     route_name: str
     path_pattern: str
-    http_methods: frozenset[str]
+    http_methods: Iterable[str]
 
 
-def json_dump(body: dict[str, Any]) -> str:
+@beartype
+def json_dump(*, body: dict[str, Any]) -> str:
     """
     Returns:
         JSON dump of data in the same way that Vuforia dumps data.

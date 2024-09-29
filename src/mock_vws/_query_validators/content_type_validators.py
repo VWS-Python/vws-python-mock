@@ -3,7 +3,10 @@ Validators for the ``Content-Type`` header.
 """
 
 import logging
+from collections.abc import Mapping
 from email.message import EmailMessage
+
+from beartype import beartype
 
 from mock_vws._query_validators.exceptions import (
     ImageNotGivenError,
@@ -12,11 +15,12 @@ from mock_vws._query_validators.exceptions import (
     UnsupportedMediaTypeError,
 )
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 def validate_content_type_header(
-    request_headers: dict[str, str],
+    request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:
     """

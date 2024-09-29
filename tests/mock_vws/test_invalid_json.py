@@ -2,21 +2,18 @@
 Tests for giving invalid JSON to endpoints.
 """
 
-from __future__ import annotations
-
+import json
 from datetime import datetime, timedelta
 from http import HTTPStatus
-from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
 import pytest
-import requests
 from freezegun import freeze_time
-from mock_vws._constants import ResultCodes
-from requests.structures import CaseInsensitiveDict
 from vws_auth_tools import authorization_header, rfc_1123_date
 
+from mock_vws._constants import ResultCodes
+from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import (
     assert_valid_date_header,
     assert_valid_transaction_id,
@@ -24,9 +21,6 @@ from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
 )
 from tests.mock_vws.utils.too_many_requests import handle_server_errors
-
-if TYPE_CHECKING:
-    from tests.mock_vws.utils import Endpoint
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -41,33 +35,43 @@ class TestInvalidJSON:
         Giving invalid JSON to endpoints returns error responses.
         """
         content = b"a"
-        gmt = ZoneInfo("GMT")
+        gmt = ZoneInfo(key="GMT")
         now = datetime.now(tz=gmt)
         time_to_freeze = now
-        with freeze_time(time_to_freeze):
+        with freeze_time(time_to_freeze=time_to_freeze):
             date = rfc_1123_date()
 
-        endpoint_headers = dict(endpoint.prepared_request.headers)
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
             secret_key=endpoint.secret_key,
-            method=str(endpoint.prepared_request.method),
+            method=endpoint.method,
             content=content,
             content_type=endpoint.auth_header_content_type,
             date=date,
-            request_path=endpoint.prepared_request.path_url,
+            request_path=endpoint.path_url,
         )
 
-        headers = endpoint_headers | {
+        new_headers = {
+            **endpoint.headers,
             "Authorization": authorization_string,
             "Date": date,
+            "Content-Length": str(len(content)),
         }
 
-        endpoint.prepared_request.body = content
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
-        endpoint.prepared_request.prepare_content_length(body=content)
-        session = requests.Session()
-        response = session.send(request=endpoint.prepared_request)
+        new_endpoint = Endpoint(
+            base_url=endpoint.base_url,
+            path_url=endpoint.path_url,
+            method=endpoint.method,
+            headers=new_headers,
+            data=content,
+            successful_headers_result_code=endpoint.successful_headers_result_code,
+            successful_headers_status_code=endpoint.successful_headers_status_code,
+            access_key=endpoint.access_key,
+            secret_key=endpoint.secret_key,
+        )
+
+        response = new_endpoint.send()
+
         handle_server_errors(response=response)
 
         takes_json_data = (
@@ -84,8 +88,7 @@ class TestInvalidJSON:
             )
             return
 
-        url = str(endpoint.prepared_request.url)
-        netloc = urlparse(url).netloc
+        netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":
             assert_vwq_failure(
                 response=response,
@@ -113,33 +116,43 @@ class TestInvalidJSON:
         # the max of these two.
         date_skew_minutes = 70
         content = b"a"
-        gmt = ZoneInfo("GMT")
+        gmt = ZoneInfo(key="GMT")
         now = datetime.now(tz=gmt)
         time_to_freeze = now + timedelta(minutes=date_skew_minutes)
-        with freeze_time(time_to_freeze):
+        with freeze_time(time_to_freeze=time_to_freeze):
             date = rfc_1123_date()
 
-        endpoint_headers = dict(endpoint.prepared_request.headers)
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
             secret_key=endpoint.secret_key,
-            method=str(endpoint.prepared_request.method),
+            method=endpoint.method,
             content=content,
             content_type=endpoint.auth_header_content_type,
             date=date,
-            request_path=endpoint.prepared_request.path_url,
+            request_path=endpoint.path_url,
         )
 
-        headers = endpoint_headers | {
+        new_headers = {
+            **endpoint.headers,
             "Authorization": authorization_string,
+            "Content-Length": str(len(content)),
             "Date": date,
         }
 
-        endpoint.prepared_request.body = content
-        endpoint.prepared_request.headers = CaseInsensitiveDict(data=headers)
-        endpoint.prepared_request.prepare_content_length(body=content)
-        session = requests.Session()
-        response = session.send(request=endpoint.prepared_request)
+        new_endpoint = Endpoint(
+            base_url=endpoint.base_url,
+            path_url=endpoint.path_url,
+            method=endpoint.method,
+            headers=new_headers,
+            data=content,
+            successful_headers_result_code=endpoint.successful_headers_result_code,
+            successful_headers_status_code=endpoint.successful_headers_status_code,
+            access_key=endpoint.access_key,
+            secret_key=endpoint.secret_key,
+        )
+
+        response = new_endpoint.send()
+
         handle_server_errors(response=response)
 
         takes_json_data = (
@@ -156,14 +169,15 @@ class TestInvalidJSON:
             )
             return
 
-        url = str(endpoint.prepared_request.url)
-        netloc = urlparse(url).netloc
+        netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":
-            assert response.json().keys() == {
+            response_json = json.loads(s=response.text)
+            assert isinstance(response_json, dict)
+            assert response_json.keys() == {
                 "transaction_id",
                 "result_code",
             }
-            assert response.json()["result_code"] == "RequestTimeTooSkewed"
+            assert response_json["result_code"] == "RequestTimeTooSkewed"
             assert_valid_transaction_id(response=response)
             assert_vwq_failure(
                 response=response,

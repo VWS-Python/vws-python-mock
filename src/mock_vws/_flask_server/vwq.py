@@ -2,7 +2,7 @@
 A fake implementation of the Vuforia Web Query API using Flask.
 
 See
-https://library.vuforia.com/web-api/vuforia-query-web-api
+https://developer.vuforia.com/library/web-api/vuforia-query-web-api
 """
 
 import email.utils
@@ -10,6 +10,7 @@ from enum import StrEnum, auto
 from http import HTTPMethod, HTTPStatus
 
 import requests
+from beartype import beartype
 from flask import Flask, Response, request
 from pydantic_settings import BaseSettings
 
@@ -27,10 +28,11 @@ from mock_vws.image_matchers import (
     StructuralSimilarityMatcher,
 )
 
-CLOUDRECO_FLASK_APP = Flask(import_name=__name__)
+CLOUDRECO_FLASK_APP = Flask(import_name=__name__, static_folder=None)
 CLOUDRECO_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
 
 
+@beartype
 class _ImageMatcherChoice(StrEnum):
     """Image matcher choices."""
 
@@ -48,6 +50,7 @@ class _ImageMatcherChoice(StrEnum):
         raise ValueError  # pragma: no cover
 
 
+@beartype
 class VWQSettings(BaseSettings):
     """Settings for the VWQ Flask app."""
 
@@ -58,6 +61,7 @@ class VWQSettings(BaseSettings):
     )
 
 
+@beartype
 def get_all_databases() -> set[VuforiaDatabase]:
     """
     Get all database objects from the target manager back-end.
@@ -74,6 +78,7 @@ def get_all_databases() -> set[VuforiaDatabase]:
 
 
 @CLOUDRECO_FLASK_APP.before_request
+@beartype
 def set_terminate_wsgi_input() -> None:
     """
     We set ``wsgi.input_terminated`` to ``True`` when going through
@@ -133,7 +138,7 @@ def query() -> Response:
         request_path=request.path,
         databases=databases,
     )
-    date = email.utils.formatdate(None, localtime=False, usegmt=True)
+    date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
 
     response_text = get_query_match_response_text(
         request_headers=dict(request.headers),

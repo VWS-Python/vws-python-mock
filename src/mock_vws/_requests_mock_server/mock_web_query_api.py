@@ -2,14 +2,15 @@
 A fake implementation of the Vuforia Web Query API.
 
 See
-https://library.vuforia.com/web-api/vuforia-query-web-api
+https://developer.vuforia.com/library/web-api/vuforia-query-web-api
 """
 
-from __future__ import annotations
-
 import email.utils
-from http import HTTPMethod
-from typing import TYPE_CHECKING
+from collections.abc import Callable, Iterable, Mapping
+from http import HTTPMethod, HTTPStatus
+
+from beartype import beartype
+from requests.models import PreparedRequest
 
 from mock_vws._mock_common import Route
 from mock_vws._query_tools import (
@@ -19,23 +20,19 @@ from mock_vws._query_validators import run_query_validators
 from mock_vws._query_validators.exceptions import (
     ValidatorError,
 )
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
-    from requests_mock.request import Request
-    from requests_mock.response import Context
-
-    from mock_vws.image_matchers import ImageMatcher
-    from mock_vws.target_manager import TargetManager
+from mock_vws.image_matchers import ImageMatcher
+from mock_vws.target_manager import TargetManager
 
 _ROUTES: set[Route] = set()
 
+_ResponseType = tuple[int, Mapping[str, str], str]
 
+
+@beartype
 def route(
     path_pattern: str,
-    http_methods: set[str],
-) -> Callable[[Callable[..., str]], Callable[..., str]]:
+    http_methods: Iterable[str],
+) -> Callable[[Callable[..., _ResponseType]], Callable[..., _ResponseType]]:
     """
     Register a decorated method so that it can be recognized as a route.
 
@@ -48,7 +45,9 @@ def route(
         A decorator which takes methods and makes them recognizable as routes.
     """
 
-    def decorator(method: Callable[..., str]) -> Callable[..., str]:
+    def decorator(
+        method: Callable[..., _ResponseType],
+    ) -> Callable[..., _ResponseType]:
         """
         Register a decorated method so that it can be recognized as a route.
 
@@ -56,24 +55,36 @@ def route(
             The given `method` with multiple changes, including added
             validators.
         """
-        _ROUTES.add(
-            Route(
-                route_name=method.__name__,
-                path_pattern=path_pattern,
-                http_methods=frozenset(http_methods),
-            ),
+        new_route = Route(
+            route_name=method.__name__,
+            path_pattern=path_pattern,
+            http_methods=frozenset(http_methods),
         )
+        _ROUTES.add(new_route)
 
         return method
 
     return decorator
 
 
+@beartype
+def _body_bytes(request: PreparedRequest) -> bytes:
+    """
+    Return the body of a request as bytes.
+    """
+    if request.body is None:
+        return b""
+
+    assert isinstance(request.body, bytes)
+    return request.body
+
+
+@beartype
 class MockVuforiaWebQueryAPI:
     """
     A fake implementation of the Vuforia Web Query API.
 
-    This implementation is tied to the implementation of `requests_mock`.
+    This implementation is tied to the implementation of ``responses``.
     """
 
     def __init__(
@@ -90,43 +101,45 @@ class MockVuforiaWebQueryAPI:
         Attributes:
             routes: The `Route`s to be used in the mock.
         """
-        self.routes: set[Route] = _ROUTES
+        self.routes = _ROUTES
         self._target_manager = target_manager
         self._query_match_checker = query_match_checker
 
     @route(path_pattern="/v1/query", http_methods={HTTPMethod.POST})
-    def query(self, request: Request, context: Context) -> str:
+    def query(self, request: PreparedRequest) -> _ResponseType:
         """
         Perform an image recognition query.
         """
         try:
             run_query_validators(
-                request_path=request.path,
+                request_path=request.path_url,
                 request_headers=request.headers,
-                request_body=request.body,
-                request_method=request.method,
+                request_body=_body_bytes(request=request),
+                request_method=request.method or "",
                 databases=self._target_manager.databases,
             )
         except ValidatorError as exc:
-            context.headers = exc.headers
-            context.status_code = exc.status_code
-            return exc.response_text
+            return exc.status_code, exc.headers, exc.response_text
 
         response_text = get_query_match_response_text(
             request_headers=request.headers,
-            request_body=request.body,
-            request_method=request.method,
-            request_path=request.path,
+            request_body=_body_bytes(request=request),
+            request_method=request.method or "",
+            request_path=request.path_url,
             databases=self._target_manager.databases,
             query_match_checker=self._query_match_checker,
         )
 
-        date = email.utils.formatdate(None, localtime=False, usegmt=True)
-        context.headers = {
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
+        headers = {
             "Connection": "keep-alive",
             "Content-Type": "application/json",
             "Server": "nginx",
             "Date": date,
             "Content-Length": str(len(response_text)),
         }
-        return response_text
+        return HTTPStatus.OK, headers, response_text

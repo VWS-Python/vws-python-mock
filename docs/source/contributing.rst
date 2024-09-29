@@ -1,5 +1,5 @@
-Contributing
-============
+Contributing to |project|
+=========================
 
 Contributions to this repository must pass tests and linting.
 
@@ -10,37 +10,39 @@ Install contribution dependencies
 
 Install Python dependencies in a virtual environment.
 
-.. prompt:: bash
+.. code-block:: console
 
-   pip install --editable .[dev]
+   $ pip install --editable '.[dev]'
 
 Spell checking requires ``enchant``.
 This can be installed on macOS, for example, with `Homebrew`_:
 
-.. prompt:: bash
+.. code-block:: console
 
-   brew install enchant
+   $ brew install enchant
 
 and on Ubuntu with ``apt``:
 
-.. prompt:: bash
+.. code-block:: console
 
-   apt-get install -y enchant
+   $ apt-get install -y enchant
+
+Install ``pre-commit`` hooks:
+
+.. code-block:: console
+
+   $ pre-commit install
 
 Linting
 -------
 
-Run lint tools:
+Run lint tools either by committing, or with:
 
-.. prompt:: bash
+.. code-block:: console
 
-   make lint
-
-To fix some lint errors, run the following:
-
-.. prompt:: bash
-
-   make fix-lint
+   $ pre-commit run --all-files --hook-stage commit --verbose
+   $ pre-commit run --all-files --hook-stage push --verbose
+   $ pre-commit run --all-files --hook-stage manual --verbose
 
 .. _Homebrew: https://brew.sh
 
@@ -49,9 +51,9 @@ Running Tests
 
 Create an environment variable file for secrets:
 
-.. prompt:: bash
+.. code-block:: console
 
-   cp vuforia_secrets.env.example vuforia_secrets.env
+   $ cp vuforia_secrets.env.example vuforia_secrets.env
 
 Some tests require Vuforia credentials.
 To run these tests, add the Vuforia credentials to the file :file:`vuforia_secrets.env`.
@@ -59,9 +61,9 @@ See :ref:`connecting-to-vuforia`.
 
 Then run ``pytest``:
 
-.. prompt:: bash
+.. code-block:: console
 
-   pytest
+   $ pytest
 
 .. _connecting-to-vuforia:
 
@@ -100,14 +102,14 @@ Skipping Some Tests
 
 Use the following custom ``pytest`` options to skip some tests:
 
-.. prompt:: bash
+.. code-block:: text
 
-  --skip-real           Skip tests for Real Vuforia
-  --skip-mock           Skip tests for In Memory Mock Vuforia
-  --skip-docker_in_memory
-                        Skip tests for In Memory version of Docker application
-  --skip-docker_build_tests
-                        Skip tests for building Docker images
+   --skip-real           Skip tests for Real Vuforia
+   --skip-mock           Skip tests for In Memory Mock Vuforia
+   --skip-docker_in_memory
+                         Skip tests for In Memory version of Docker application
+   --skip-docker_build_tests
+                         Skip tests for building Docker images
 
 Documentation
 -------------
@@ -116,10 +118,10 @@ Documentation is built on Read the Docs.
 
 Run the following commands to build and view documentation locally:
 
-.. prompt:: bash
+.. code-block:: console
 
-   make docs
-   make open-docs
+   $ make docs
+   $ make open-docs
 
 Continuous Integration
 ----------------------
@@ -170,7 +172,7 @@ The ``request_count`` in a database summary is always ``0``.
 The documentation for the target summary report says "Note: tracking_rating and ``reco_rating`` are provided only when status = success.".
 However, ``reco_rating`` is never provided and ``tracking_rating`` is provided even when the status is "failed".
 
-.. _Vuforia Query Web API: https://library.vuforia.com/web-api/vuforia-query-web-api
+.. _Vuforia Query Web API: https://developer.vuforia.com/library/web-api/vuforia-query-web-api
 
 Release Process
 ---------------

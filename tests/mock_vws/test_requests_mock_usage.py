@@ -2,39 +2,41 @@
 Tests for the usage of the mock for ``requests``.
 """
 
-from __future__ import annotations
-
 import datetime
 import email.utils
 import io
 import json
 import socket
+from urllib.parse import urlparse
 
 import pytest
 import requests
+from beartype import beartype
 from freezegun import freeze_time
-from mock_vws import MockVWS
-from mock_vws.database import VuforiaDatabase
-from mock_vws.image_matchers import ExactMatcher, StructuralSimilarityMatcher
-from mock_vws.target import Target
 from PIL import Image
-from requests.exceptions import MissingSchema
-from requests_mock.exceptions import NoMockAddress
 from vws import VWS, CloudRecoService
 from vws_auth_tools import rfc_1123_date
 
+from mock_vws import MissingSchemeError, MockVWS
+from mock_vws.database import VuforiaDatabase
+from mock_vws.image_matchers import ExactMatcher, StructuralSimilarityMatcher
+from mock_vws.target import Target
+from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.usage_test_helpers import (
     processing_time_seconds,
 )
 
 
+@beartype
 def _not_exact_matcher(
     first_image_content: bytes,
     second_image_content: bytes,
 ) -> bool:
+    """A matcher which returns True if the images are not the same."""
     return first_image_content != second_image_content
 
 
+@beartype
 def request_unmocked_address() -> None:
     """
     Make a request, using `requests` to an unmocked, free local address.
@@ -42,18 +44,18 @@ def request_unmocked_address() -> None:
     Raises:
         requests.exceptions.ConnectionError: This is expected as there is
             nothing to connect to.
-        requests_mock.exceptions.NoMockAddress: This request is being made in
-            the context of a `requests_mock` mock which does not mock local
+        requests.exceptions.ConnectionError: This request is being made in the
+            context of a ``responses`` mock which does not mock local
             addresses.
     """
     sock = socket.socket()
     sock.bind(("", 0))
     port = sock.getsockname()[1]
     sock.close()
-    address = f"http://localhost:{port}"
-    requests.get(address, timeout=30)
+    requests.get(url=f"http://localhost:{port}", timeout=30)
 
 
+@beartype
 def request_mocked_address() -> None:
     """
     Make a request, using `requests` to an address that is mocked by `MockVWS`.
@@ -81,7 +83,9 @@ class TestRealHTTP:
         non-Vuforia addresses, but not to mocked Vuforia endpoints.
         """
         with MockVWS():
-            with pytest.raises(NoMockAddress):
+            with pytest.raises(
+                expected_exception=requests.exceptions.ConnectionError
+            ):
                 request_unmocked_address()
 
             # No exception is raised when making a request to a mocked
@@ -89,7 +93,9 @@ class TestRealHTTP:
             request_mocked_address()
 
         # The mocking stops when the context manager stops.
-        with pytest.raises(requests.exceptions.ConnectionError):
+        with pytest.raises(
+            expected_exception=requests.exceptions.ConnectionError
+        ):
             request_unmocked_address()
 
     @staticmethod
@@ -100,7 +106,9 @@ class TestRealHTTP:
         """
         with (
             MockVWS(real_http=True),
-            pytest.raises(requests.exceptions.ConnectionError),
+            pytest.raises(
+                expected_exception=requests.exceptions.ConnectionError
+            ),
         ):
             request_unmocked_address()
 
@@ -186,7 +194,9 @@ class TestCustomBaseURLs:
             base_vws_url="https://vuforia.vws.example.com",
             real_http=False,
         ):
-            with pytest.raises(NoMockAddress):
+            with pytest.raises(
+                expected_exception=requests.exceptions.ConnectionError
+            ):
                 requests.get(url="https://vws.vuforia.com/summary", timeout=30)
 
             requests.get(
@@ -207,7 +217,9 @@ class TestCustomBaseURLs:
             base_vwq_url="https://vuforia.vwq.example.com",
             real_http=False,
         ):
-            with pytest.raises(NoMockAddress):
+            with pytest.raises(
+                expected_exception=requests.exceptions.ConnectionError
+            ):
                 requests.post(
                     url="https://cloudreco.vuforia.com/v1/query",
                     timeout=30,
@@ -227,7 +239,7 @@ class TestCustomBaseURLs:
         """
         An error if raised if a URL is given with no scheme.
         """
-        with pytest.raises(MissingSchema) as vws_exc:
+        with pytest.raises(expected_exception=MissingSchemeError) as vws_exc:
             MockVWS(base_vws_url="vuforia.vws.example.com")
 
         expected = (
@@ -235,7 +247,7 @@ class TestCustomBaseURLs:
             'Perhaps you meant "https://vuforia.vws.example.com".'
         )
         assert str(vws_exc.value) == expected
-        with pytest.raises(MissingSchema) as vwq_exc:
+        with pytest.raises(expected_exception=MissingSchemeError) as vwq_exc:
             MockVWS(base_vwq_url="vuforia.vwq.example.com")
         expected = (
             'Invalid URL "vuforia.vwq.example.com": No scheme supplied. '
@@ -276,7 +288,7 @@ class TestTargets:
         target_dict = target.to_dict()
 
         # The dictionary is JSON dump-able
-        assert json.dumps(target_dict)
+        assert json.dumps(obj=target_dict)
 
         new_target = Target.from_dict(target_dict=target_dict)
         assert new_target == target
@@ -311,7 +323,7 @@ class TestTargets:
         target_dict = target.to_dict()
 
         # The dictionary is JSON dump-able
-        assert json.dumps(target_dict)
+        assert json.dumps(obj=target_dict)
 
         new_target = Target.from_dict(target_dict=target_dict)
         assert new_target.delete_date == target.delete_date
@@ -346,7 +358,7 @@ class TestDatabaseToDict:
 
         database_dict = database.to_dict()
         # The dictionary is JSON dump-able
-        assert json.dumps(database_dict)
+        assert json.dumps(obj=database_dict)
 
         new_database = VuforiaDatabase.from_dict(database_dict=database_dict)
         assert new_database == database
@@ -364,14 +376,14 @@ class TestDateHeader:
         """
         new_year = 2012
         new_time = datetime.datetime(new_year, 1, 1, tzinfo=datetime.UTC)
-        with MockVWS(), freeze_time(new_time):
+        with MockVWS(), freeze_time(time_to_freeze=new_time):
             response = requests.get(
                 url="https://vws.vuforia.com/summary",
                 timeout=30,
             )
 
         date_response = response.headers["Date"]
-        date_from_response = email.utils.parsedate(date_response)
+        date_from_response = email.utils.parsedate(data=date_response)
         assert date_from_response is not None
         year = date_from_response[0]
         assert year == new_year
@@ -456,7 +468,7 @@ class TestQueryImageMatchers:
 
         pil_image = Image.open(fp=high_quality_image)
         re_exported_image = io.BytesIO()
-        pil_image.save(re_exported_image, format="PNG")
+        pil_image.save(fp=re_exported_image, format="PNG")
 
         with MockVWS(query_match_checker=ExactMatcher()) as mock:
             mock.add_database(database=database)
@@ -492,7 +504,7 @@ class TestQueryImageMatchers:
 
         pil_image = Image.open(fp=high_quality_image)
         re_exported_image = io.BytesIO()
-        pil_image.save(re_exported_image, format="PNG")
+        pil_image.save(fp=re_exported_image, format="PNG")
 
         with MockVWS(query_match_checker=_not_exact_matcher) as mock:
             mock.add_database(database=database)
@@ -531,7 +543,7 @@ class TestQueryImageMatchers:
 
         pil_image = Image.open(fp=high_quality_image)
         re_exported_image = io.BytesIO()
-        pil_image.save(re_exported_image, format="PNG")
+        pil_image.save(fp=re_exported_image, format="PNG")
 
         with MockVWS(
             query_match_checker=StructuralSimilarityMatcher(),
@@ -574,7 +586,7 @@ class TestDuplicatesImageMatchers:
 
         pil_image = Image.open(fp=high_quality_image)
         re_exported_image = io.BytesIO()
-        pil_image.save(re_exported_image, format="PNG")
+        pil_image.save(fp=re_exported_image, format="PNG")
 
         with MockVWS(duplicate_match_checker=ExactMatcher()) as mock:
             mock.add_database(database=database)
@@ -618,7 +630,7 @@ class TestDuplicatesImageMatchers:
 
         pil_image = Image.open(fp=high_quality_image)
         re_exported_image = io.BytesIO()
-        pil_image.save(re_exported_image, format="PNG")
+        pil_image.save(fp=re_exported_image, format="PNG")
 
         with MockVWS(duplicate_match_checker=_not_exact_matcher) as mock:
             mock.add_database(database=database)
@@ -664,7 +676,7 @@ class TestDuplicatesImageMatchers:
 
         pil_image = Image.open(fp=high_quality_image)
         re_exported_image = io.BytesIO()
-        pil_image.save(re_exported_image, format="PNG")
+        pil_image.save(fp=re_exported_image, format="PNG")
 
         with MockVWS(
             duplicate_match_checker=StructuralSimilarityMatcher(),
@@ -688,3 +700,37 @@ class TestDuplicatesImageMatchers:
             vws_client.wait_for_target_processed(target_id=duplicate_target_id)
             duplicates = vws_client.get_duplicate_targets(target_id=target_id)
             assert duplicates == [duplicate_target_id]
+
+
+# This is in the wrong file really as it hits both the in memory mock and the
+# Flask app.
+@pytest.mark.usefixtures("mock_only_vuforia")
+class TestDataTypes:
+    """
+    Tests for sending various data types.
+    """
+
+    @staticmethod
+    def test_text(endpoint: Endpoint) -> None:
+        """
+        It is possible to send strings to VWS endpoints.
+        """
+        netloc = urlparse(url=endpoint.base_url).netloc
+
+        if netloc == "cloudreco.vuforia.com":
+            pytest.skip()
+
+        assert isinstance(endpoint.data, bytes)
+        new_endpoint = Endpoint(
+            base_url=endpoint.base_url,
+            path_url=endpoint.path_url,
+            method=endpoint.method,
+            headers=endpoint.headers,
+            data=endpoint.data.decode(encoding="utf-8"),
+            successful_headers_result_code=endpoint.successful_headers_result_code,
+            successful_headers_status_code=endpoint.successful_headers_status_code,
+            access_key=endpoint.access_key,
+            secret_key=endpoint.secret_key,
+        )
+        response = new_endpoint.send()
+        assert response.status_code == endpoint.successful_headers_status_code

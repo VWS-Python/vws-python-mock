@@ -43,11 +43,9 @@ jobs:
 
       - name: "Update changelog"
         uses: jacobtomlinson/gha-find-replace@v3
-        env:
-          NEXT_VERSION: ${{ steps.calver.outputs.release }}
         with:
           find: "Next\n----"
-          replace: "Next\n----\n\n${{ env.NEXT_VERSION }}\n------------"
+          replace: "Next\n----\n\n${{ steps.calver.outputs.release }}\n------------"
           include: "CHANGELOG.rst"
           regex: false
 
@@ -55,6 +53,7 @@ jobs:
         id: commit
         with:
           commit_message: Bump CHANGELOG
+          file_pattern: CHANGELOG.rst
 
       - name: Bump version and push tag
         id: tag_version
@@ -76,8 +75,8 @@ jobs:
         run: |
           # Checkout the latest tag - the one we just created.
           git fetch --tags
-          git checkout "$(git describe --tags "$(git rev-list --tags --max-count=1)")"
-          python -m pip install build
+          git checkout ${{ steps.tag_version.outputs.new_tag }}
+          python -m pip install build check-wheel-contents
           python -m build --sdist --wheel --outdir dist/ .
           check-wheel-contents dist/*.whl
 
@@ -101,7 +100,7 @@ jobs:
         uses: docker/setup-qemu-action@v3
 
       - name: Build and push target manager Docker image
-        uses: docker/build-push-action@v5.3.0
+        uses: docker/build-push-action@v6.7.0
         with:
           file: src/mock_vws/_flask_server/Dockerfile
           platforms: linux/amd64,linux/arm64
@@ -112,7 +111,7 @@ jobs:
             adamtheturtle/vuforia-target-manager-mock:${{ steps.calver.outputs.release }}
 
       - name: Build and push VWS Docker image
-        uses: docker/build-push-action@v5.3.0
+        uses: docker/build-push-action@v6.7.0
         with:
           file: src/mock_vws/_flask_server/Dockerfile
           platforms: linux/amd64,linux/arm64
@@ -123,7 +122,7 @@ jobs:
             adamtheturtle/vuforia-vws-mock:${{ steps.calver.outputs.release }}
 
       - name: Build and push VWQ Docker image
-        uses: docker/build-push-action@v5.3.0
+        uses: docker/build-push-action@v6.7.0
         with:
           file: src/mock_vws/_flask_server/Dockerfile
           platforms: linux/amd64,linux/arm64

@@ -2,21 +2,17 @@
 Helpers for testing the usage of the mocks.
 """
 
-from __future__ import annotations
-
 import datetime
-from typing import TYPE_CHECKING
+import io
 
 from vws import VWS
 from vws.reports import TargetStatuses
 
-if TYPE_CHECKING:
-    import io
-
-    from mock_vws.database import VuforiaDatabase
+from mock_vws.database import VuforiaDatabase
 
 
 def processing_time_seconds(
+    *,
     vuforia_database: VuforiaDatabase,
     image: io.BytesIO,
 ) -> float:
@@ -42,6 +38,5 @@ def processing_time_seconds(
     ):
         pass
 
-    return (
-        datetime.datetime.now(tz=datetime.UTC) - start_time
-    ).total_seconds()
+    processing_time = datetime.datetime.now(tz=datetime.UTC) - start_time
+    return processing_time.total_seconds()

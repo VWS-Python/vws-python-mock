@@ -7,15 +7,18 @@ import logging
 from http import HTTPMethod, HTTPStatus
 from json.decoder import JSONDecodeError
 
+from beartype import beartype
+
 from mock_vws._services_validators.exceptions import (
     FailError,
     UnnecessaryRequestBodyError,
 )
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(name=__name__)
 
 
-def validate_body_given(request_body: bytes, request_method: str) -> None:
+@beartype
+def validate_body_given(*, request_body: bytes, request_method: str) -> None:
     """
     Validate that no JSON is given for requests other than ``POST`` and ``PUT``
     requests.
@@ -42,7 +45,8 @@ def validate_body_given(request_body: bytes, request_method: str) -> None:
         raise UnnecessaryRequestBodyError
 
 
-def validate_json(request_body: bytes) -> None:
+@beartype
+def validate_json(*, request_body: bytes) -> None:
     """
     Validate that any given body is valid JSON.
 
@@ -56,7 +60,7 @@ def validate_json(request_body: bytes) -> None:
         return
 
     try:
-        json.loads(request_body.decode())
+        json.loads(s=request_body.decode())
     except JSONDecodeError as exc:
         _LOGGER.warning(msg="The request body is not valid JSON.")
         raise FailError(status_code=HTTPStatus.BAD_REQUEST) from exc

@@ -11,6 +11,7 @@ ascii
 auth
 backend
 backends
+beartype
 binascii
 bool
 boolean
