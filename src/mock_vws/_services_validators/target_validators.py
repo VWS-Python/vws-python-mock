@@ -53,12 +53,11 @@ def validate_target_id_exists(
         databases=databases,
     )
 
-    try:
-        (_,) = (
-            target
-            for target in database.not_deleted_targets
-            if target.target_id == target_id
-        )
-    except ValueError as exc:
+    matching_targets = [
+        target
+        for target in database.not_deleted_targets
+        if target.target_id == target_id
+    ]
+    if not matching_targets:
         _LOGGER.warning('The target ID "%s" does not exist.', target_id)
-        raise UnknownTargetError from exc
+        raise UnknownTargetError
