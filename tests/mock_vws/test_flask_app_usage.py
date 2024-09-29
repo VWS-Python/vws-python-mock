@@ -450,6 +450,49 @@ class TestTargetRaters:
         """It is possible to use the perfect target rater."""
         monkeypatch.setenv(name="TARGET_RATER", value="perfect")
 
-    def test_random(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_random(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        high_quality_image: io.BytesIO,
+    ) -> None:
         """It is possible to use the random target rater."""
         monkeypatch.setenv(name="TARGET_RATER", value="random")
+
+        database = VuforiaDatabase()
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+
+        vws_client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+
+        target_ids = [
+            vws_client.add_target(
+                name=uuid.uuid4().hex,
+                width=1,
+                image=high_quality_image,
+                application_metadata=None,
+                active_flag=True,
+            )
+            for _ in range(50)
+        ]
+
+        for target_id in target_ids:
+            vws_client.wait_for_target_processed(target_id=target_id)
+
+        ratings = [
+            vws_client.get_target_record(
+                target_id=target_id
+            ).target_record.tracking_rating
+            for target_id in target_ids
+        ]
+
+        sorted_ratings = sorted(ratings)
+        lowest_rating = sorted_ratings[0]
+        highest_rating = sorted_ratings[-1]
+        minimum_rating = 0
+        maximum_rating = 5
+        assert lowest_rating >= minimum_rating
+        assert highest_rating <= maximum_rating
+        assert lowest_rating != highest_rating
