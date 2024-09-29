@@ -434,3 +434,16 @@ class TestDuplicatesImageMatchers:
         vws_client.wait_for_target_processed(target_id=duplicate_target_id)
         duplicates = vws_client.get_duplicate_targets(target_id=target_id)
         assert duplicates == [duplicate_target_id]
+
+
+class TestTargetRaters:
+    """Tests for using target raters."""
+
+    def test_brisque(self) -> None:
+        """It is possible to use the BRISQUE target rater."""
+
+    def test_perfect(self) -> None:
+        """It is possible to use the perfect target rater."""
+
+    def test_random(self) -> None:
+        """It is possible to use the random target rater."""
