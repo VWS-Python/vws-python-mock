@@ -446,9 +446,44 @@ class TestTargetRaters:
         """It is possible to use the BRISQUE target rater."""
         monkeypatch.setenv(name="TARGET_RATER", value="brisque")
 
-    def test_perfect(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_perfect(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        high_quality_image: io.BytesIO,
+    ) -> None:
         """It is possible to use the perfect target rater."""
         monkeypatch.setenv(name="TARGET_RATER", value="perfect")
+        database = VuforiaDatabase()
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+
+        vws_client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+
+        target_ids = [
+            vws_client.add_target(
+                name=uuid.uuid4().hex,
+                width=1,
+                image=high_quality_image,
+                application_metadata=None,
+                active_flag=True,
+            )
+            for _ in range(50)
+        ]
+
+        for target_id in target_ids:
+            vws_client.wait_for_target_processed(target_id=target_id)
+
+        ratings_set = {
+            vws_client.get_target_record(
+                target_id=target_id
+            ).target_record.tracking_rating
+            for target_id in target_ids
+        }
+
+        assert ratings_set == {5}
 
     def test_random(
         self,
@@ -496,3 +531,6 @@ class TestTargetRaters:
         assert lowest_rating >= minimum_rating
         assert highest_rating <= maximum_rating
         assert lowest_rating != highest_rating
+
+    def test_invalid_value(self) -> None:
+        """An error is raised if an invalid target rater is given."""

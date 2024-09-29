@@ -44,7 +44,7 @@ class _TargetRaterChoice(StrEnum):
             case self.BRISQUE:
                 return BrisqueTargetTrackingRater()
             case self.PERFECT:
-                HardcodedTargetTrackingRater(rating=5)
+                return HardcodedTargetTrackingRater(rating=5)
             case self.RANDOM:
                 return RandomTargetTrackingRater()
 
