@@ -13,11 +13,11 @@ Mocking calls made to Vuforia with Python ``requests``
 
 Using the mock redirects requests to Vuforia made with `requests`_ to an in-memory implementation.
 
-This requires Python 3.12+.
-
 .. code-block:: shell
 
     pip install vws-python-mock
+
+This requires Python |minimum-python-version|\+.
 
 .. code-block:: python
 
@@ -63,3 +63,4 @@ This includes details on how to use the mock, options, and details of the differ
 .. |Documentation Status| image:: https://readthedocs.org/projects/vws-python-mock/badge/?version=latest
    :target: https://vws-python-mock.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
+.. |minimum-python-version| replace:: 3.12

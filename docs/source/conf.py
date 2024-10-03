@@ -6,6 +6,8 @@ Configuration for Sphinx.
 import datetime
 import importlib.metadata
 
+from packaging.specifiers import SpecifierSet
+
 project = "VWS-Python-Mock"
 author = "Adam Dangoor"
 
@@ -43,21 +45,24 @@ version = importlib.metadata.version(distribution_name=project)
 _month, _day, _year, *_ = version.split(sep=".")
 release = f"{_month}.{_day}.{_year}"
 
+
+project_metadata = importlib.metadata.metadata(distribution_name=project)
+requires_python = project_metadata["Requires-Python"]
+specifiers = SpecifierSet(specifiers=requires_python)
+(specifier,) = specifiers
+assert specifier.operator == ">="
+minimum_python_version = specifier.version
+
 language = "en"
 
 # The name of the syntax highlighting style to use.
 pygments_style = "sphinx"
 
-python_minimum_supported_version = "3.12"
-
 # Output file base name for HTML help builder.
 htmlhelp_basename = "VWSPYTHONMOCKdoc"
 autoclass_content = "init"
 intersphinx_mapping = {
-    "python": (
-        f"https://docs.python.org/{python_minimum_supported_version}",
-        None,
-    ),
+    "python": (f"https://docs.python.org/{minimum_python_version}", None),
     "docker": ("https://docker-py.readthedocs.io/en/stable", None),
 }
 nitpicky = True
@@ -80,9 +85,9 @@ spelling_word_list_filename = "../../spelling_private_dict.txt"
 autodoc_member_order = "bysource"
 
 rst_prolog = f"""
-.. |python-minimum-version| replace:: {python_minimum_supported_version}
 .. |project| replace:: {project}
 .. |release| replace:: {release}
+.. |minimum-python-version| replace:: {minimum_python_version}
 .. |github-owner| replace:: VWS-Python
 .. |github-repository| replace:: vws-python-mock
 """
