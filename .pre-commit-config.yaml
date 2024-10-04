@@ -1,3 +1,5 @@
+fail_fast: true
+
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
 default_install_hook_types: [pre-commit, pre-push, commit-msg]
@@ -49,6 +51,18 @@ repos:
   - id: shellcheck-docs
     name: shellcheck-docs
     entry: doccmd --language=shell --language=console --command="shellcheck --shell=bash"
+    language: system
+    types_or: [markdown, rst]
+
+  - id: shfmt
+    name: shfmt
+    entry: shfmt --write --space-redirects --indent=4
+    language: system
+    types_or: [shell]
+
+  - id: shfmt-docs
+    name: shfmt-docs
+    entry: doccmd --language=shell --language=console --skip-marker=shfmt --no-pad-file --command="shfmt --write --space-redirects --indent=4"
     language: system
     types_or: [markdown, rst]
 
@@ -249,6 +263,8 @@ ci:
   - ruff-format-fix-docs
   - shellcheck
   - shellcheck-docs
+  - shfmt
+  - shfmt-docs
   - spelling
   - vulture
   - vulture-docs

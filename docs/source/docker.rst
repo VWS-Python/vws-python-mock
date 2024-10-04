@@ -61,9 +61,9 @@ For example, with the containers set up as in :ref:`creating-containers`, use ``
 .. code-block:: console
 
    $ curl --request POST \
-     --header "Content-Type: application/json" \
-     --data '{}' \
-     '127.0.0.1:5005/databases'
+       --header "Content-Type: application/json" \
+       --data '{}' \
+       '127.0.0.1:5005/databases'
    {
        "client_access_key": "2d61c1d17bb94694bee77c1f1f41e5d9",
        "client_secret_key": "b73f8170cf7d42728fa8ce66221ad147",
