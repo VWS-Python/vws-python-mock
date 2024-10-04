@@ -75,23 +75,23 @@ class StructuralSimilarityMatcher:
         # Images must be the same size, and they must be larger than the
         # default SSIM window size of 11x11.
         target_size = (256, 256)
-        first_image = first_image.resize(size=target_size)
-        second_image = second_image.resize(size=target_size)
+        first_image_resized = first_image.resize(size=target_size)
+        second_image_resized = second_image.resize(size=target_size)
 
-        first_image_np = np.array(first_image, dtype=np.float32)
+        first_image_np = np.array(first_image_resized, dtype=np.float32)
         first_image_tensor = torch.tensor(first_image_np).float() / 255
         first_image_tensor = first_image_tensor.view(
-            first_image.size[1],
-            first_image.size[0],
-            len(first_image.getbands()),
+            first_image_resized.size[1],
+            first_image_resized.size[0],
+            len(first_image_resized.getbands()),
         )
 
-        second_image_np = np.array(second_image, dtype=np.float32)
+        second_image_np = np.array(second_image_resized, dtype=np.float32)
         second_image_tensor = torch.tensor(second_image_np).float() / 255
         second_image_tensor = second_image_tensor.view(
-            second_image.size[1],
-            second_image.size[0],
-            len(second_image.getbands()),
+            second_image_resized.size[1],
+            second_image_resized.size[0],
+            len(second_image_resized.getbands()),
         )
 
         first_image_tensor_batch_dimension = first_image_tensor.permute(
