@@ -1,3 +1,5 @@
+fail_fast: true
+
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
 default_install_hook_types: [pre-commit, pre-push, commit-msg]
@@ -56,7 +58,6 @@ repos:
     name: shfmt
     entry: shfmt --write --space-redirects --indent=4
     language: system
-    pass_filenames: false
     types_or: [shell]
 
   - id: shfmt-docs
