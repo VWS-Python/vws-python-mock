@@ -319,6 +319,7 @@ ignore = [
 [tool.deptry]
 pep621_dev_dependency_groups = [
     "dev",
+    "release",
 ]
 
 [tool.deptry.per_rule_ignores]
