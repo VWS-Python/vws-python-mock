@@ -105,6 +105,7 @@ optional-dependencies.dev = [
     "vws-test-fixtures==2023.3.5",
     "vws-web-tools==2023.12.26",
 ]
+optional-dependencies.release = [ "build", "check-wheel-contents" ]
 urls.Documentation = "https://vws-python-mock.readthedocs.io"
 urls.Source = "https://github.com/VWS-Python/vws-python-mock"
 
@@ -318,6 +319,7 @@ ignore = [
 [tool.deptry]
 pep621_dev_dependency_groups = [
     "dev",
+    "release",
 ]
 
 [tool.deptry.per_rule_ignores]

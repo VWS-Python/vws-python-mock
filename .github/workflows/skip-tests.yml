@@ -31,16 +31,8 @@ jobs:
           # See https://github.com/codecov/codecov-action/issues/190.
           fetch-depth: 2
 
-      - name: "Set up Python"
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      # We do not use the cache action as uv is faster than the cache action.
-      - name: "Install dependencies"
-        run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          uv pip install --system --upgrade --editable .[dev]
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
 
       - name: "Set secrets file"
         run: |
@@ -48,7 +40,7 @@ jobs:
 
       - name: "Run tests"
         run: |
-          pytest \
+          uv run --all-extras --python=${{ matrix.python-version }} pytest \
             --skip-docker_build_tests \
             --skip-docker_in_memory \
             --skip-mock \
