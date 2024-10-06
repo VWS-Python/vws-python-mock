@@ -105,8 +105,8 @@ optional-dependencies.dev = [
     "vws-test-fixtures==2023.3.5",
     "vws-web-tools==2023.12.26",
 ]
+optional-dependencies.release = [ "build", "check-wheel-contents" ]
 urls.Documentation = "https://vws-python-mock.readthedocs.io"
-optional-dependencies.release = ["build", "check-wheel-contents"]
 urls.Source = "https://github.com/VWS-Python/vws-python-mock"
 
 [tool.setuptools]
