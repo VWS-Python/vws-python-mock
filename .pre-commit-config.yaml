@@ -258,6 +258,7 @@ repos:
     language: python
     stages: [manual]
     pass_filenames: false
+    additional_dependencies: ["uv"]
 
 # We use system Python, with required dependencies specified in pyproject.toml.
 # We therefore cannot use those dependencies in pre-commit CI.
