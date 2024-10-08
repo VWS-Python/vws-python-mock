@@ -104,7 +104,7 @@ optional-dependencies.dev = [
     "vws-python==2024.9.21",
     "vws-test-fixtures==2023.3.5",
     "vws-web-tools==2024.10.6.1",
-    "docformatter --in-place==1.7.5",
+    "docformatter==1.7.5",
 ]
 optional-dependencies.release = [ "check-wheel-contents==0.6.0" ]
 urls.Documentation = "https://vws-python-mock.readthedocs.io"
