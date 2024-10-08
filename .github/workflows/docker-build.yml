@@ -45,5 +45,5 @@ jobs:
           file: src/mock_vws/_flask_server/Dockerfile
           push: false
           target: ${{ matrix.image.name }}
-          tags: |
+          tags: |-
             adamtheturtle/vuforia-${{ matrix.image.name }}-mock:latest

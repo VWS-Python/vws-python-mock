@@ -130,6 +130,6 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           target: vwq
-          tags: |
+          tags: |-
             adamtheturtle/vuforia-vwq-mock:latest
             adamtheturtle/vuforia-vwq-mock:${{ steps.calver.outputs.release }}
