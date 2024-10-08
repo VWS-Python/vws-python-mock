@@ -40,7 +40,7 @@ jobs:
 
       - name: "Run tests"
         run: |
-          uv run --all-extras --python=${{ matrix.python-version }} pytest \
+          uv run --extra=dev pytest \
             --skip-docker_build_tests \
             --skip-docker_in_memory \
             --skip-mock \
@@ -52,6 +52,8 @@ jobs:
             --cov=tests/ \
             --cov-report=xml \
             .
+        env:
+          UV_PYTHON: ${{ matrix.python-version }}
 
       - name: "Show coverage file"
         run: |
