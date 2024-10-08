@@ -155,7 +155,7 @@ jobs:
 
       - name: "Run tests"
         run: |
-          uv run --all-extras --python=${{ matrix.python-version }} pytest \
+          uv run --extra=dev pytest \
             -s \
             -vvv \
             --showlocals \
@@ -164,6 +164,8 @@ jobs:
             --cov=tests/ \
             --cov-report=xml \
             ${{ matrix.ci_pattern }}
+        env:
+          UV_PYTHON: ${{ matrix.python-version }}
 
       - name: "Show coverage file"
         run: |
