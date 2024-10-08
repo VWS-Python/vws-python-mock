@@ -244,14 +244,18 @@ class TestDeleteDatabase:
 
 
 class TestQueryImageMatchers:
-    """Tests for query image matchers."""
+    """
+    Tests for query image matchers.
+    """
 
     @staticmethod
     def test_exact_match(
         high_quality_image: io.BytesIO,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        """The exact matcher matches only exactly the same images."""
+        """
+        The exact matcher matches only exactly the same images.
+        """
         monkeypatch.setenv(name="QUERY_IMAGE_MATCHER", value="exact")
 
         database = VuforiaDatabase()
@@ -295,7 +299,9 @@ class TestQueryImageMatchers:
         different_high_quality_image: io.BytesIO,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        """The structural similarity matcher matches similar images."""
+        """
+        The structural similarity matcher matches similar images.
+        """
         monkeypatch.setenv(
             name="QUERY_IMAGE_MATCHER",
             value="structural_similarity",
@@ -342,14 +348,18 @@ class TestQueryImageMatchers:
 
 
 class TestDuplicatesImageMatchers:
-    """Tests for duplicates image matchers."""
+    """
+    Tests for duplicates image matchers.
+    """
 
     @staticmethod
     def test_exact_match(
         high_quality_image: io.BytesIO,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        """The exact matcher matches only exactly the same images."""
+        """
+        The exact matcher matches only exactly the same images.
+        """
         monkeypatch.setenv(name="DUPLICATES_IMAGE_MATCHER", value="exact")
         database = VuforiaDatabase()
         vws_client = VWS(
@@ -398,7 +408,9 @@ class TestDuplicatesImageMatchers:
         high_quality_image: io.BytesIO,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        """The structural similarity matcher matches similar images."""
+        """
+        The structural similarity matcher matches similar images.
+        """
         monkeypatch.setenv(
             name="DUPLICATES_IMAGE_MATCHER",
             value="structural_similarity",
@@ -437,14 +449,18 @@ class TestDuplicatesImageMatchers:
 
 
 class TestTargetRaters:
-    """Tests for using target raters."""
+    """
+    Tests for using target raters.
+    """
 
     @staticmethod
     def test_default(
         corrupted_image_file: io.BytesIO,
         high_quality_image: io.BytesIO,
     ) -> None:
-        """By default, the BRISQUE target rater is used."""
+        """
+        By default, the BRISQUE target rater is used.
+        """
         database = VuforiaDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
@@ -494,7 +510,9 @@ class TestTargetRaters:
         corrupted_image_file: io.BytesIO,
         high_quality_image: io.BytesIO,
     ) -> None:
-        """It is possible to use the BRISQUE target rater."""
+        """
+        It is possible to use the BRISQUE target rater.
+        """
         monkeypatch.setenv(name="TARGET_RATER", value="brisque")
 
         database = VuforiaDatabase()
@@ -545,7 +563,9 @@ class TestTargetRaters:
         monkeypatch: pytest.MonkeyPatch,
         high_quality_image: io.BytesIO,
     ) -> None:
-        """It is possible to use the perfect target rater."""
+        """
+        It is possible to use the perfect target rater.
+        """
         monkeypatch.setenv(name="TARGET_RATER", value="perfect")
         database = VuforiaDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
@@ -584,7 +604,9 @@ class TestTargetRaters:
         monkeypatch: pytest.MonkeyPatch,
         high_quality_image: io.BytesIO,
     ) -> None:
-        """It is possible to use the random target rater."""
+        """
+        It is possible to use the random target rater.
+        """
         monkeypatch.setenv(name="TARGET_RATER", value="random")
 
         database = VuforiaDatabase()

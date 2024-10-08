@@ -24,9 +24,8 @@ def validate_max_num_results(
     request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:
-    """
-    Validate the ``max_num_results`` field is either an integer within range or
-    not given.
+    """Validate the ``max_num_results`` field is either an integer within range
+    or not given.
 
     Args:
         request_headers: The headers sent with the request.

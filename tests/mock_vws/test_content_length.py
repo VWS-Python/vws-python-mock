@@ -20,8 +20,7 @@ from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestIncorrect:
-    """
-    Tests for the ``Content-Length`` header set incorrectly.
+    """Tests for the ``Content-Length`` header set incorrectly.
 
     We cannot test what happens if ``Content-Length`` is removed from a
     prepared request because ``requests-mock`` behaves differently to

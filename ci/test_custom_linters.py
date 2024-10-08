@@ -91,8 +91,7 @@ def test_tests_collected_once(
     capsys: pytest.CaptureFixture[str],
     request: pytest.FixtureRequest,
 ) -> None:
-    """
-    Each test in the test suite is collected exactly once.
+    """Each test in the test suite is collected exactly once.
 
     This does not necessarily mean that they are run - they may be skipped.
     """

@@ -1,5 +1,4 @@
-"""
-A fake implementation of the Vuforia Web Query API using Flask.
+"""A fake implementation of the Vuforia Web Query API using Flask.
 
 See
 https://developer.vuforia.com/library/web-api/vuforia-query-web-api
@@ -34,13 +33,17 @@ CLOUDRECO_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
 
 @beartype
 class _ImageMatcherChoice(StrEnum):
-    """Image matcher choices."""
+    """
+    Image matcher choices.
+    """
 
     EXACT = auto()
     STRUCTURAL_SIMILARITY = auto()
 
     def to_image_matcher(self) -> ImageMatcher:
-        """Get the image matcher."""
+        """
+        Get the image matcher.
+        """
         match self:
             case self.EXACT:
                 return ExactMatcher()
@@ -52,7 +55,9 @@ class _ImageMatcherChoice(StrEnum):
 
 @beartype
 class VWQSettings(BaseSettings):
-    """Settings for the VWQ Flask app."""
+    """
+    Settings for the VWQ Flask app.
+    """
 
     vwq_host: str = ""
     target_manager_base_url: str
@@ -80,10 +85,9 @@ def get_all_databases() -> set[VuforiaDatabase]:
 @CLOUDRECO_FLASK_APP.before_request
 @beartype
 def set_terminate_wsgi_input() -> None:
-    """
-    We set ``wsgi.input_terminated`` to ``True`` when going through
-    ``requests`` in our tests, so that requests have the given
-    ``Content-Length`` headers and the given data in ``request.headers`` and
+    """We set ``wsgi.input_terminated`` to ``True`` when going through
+    ``requests`` in our tests, so that requests have the given ``Content-
+    Length`` headers and the given data in ``request.headers`` and
     ``request.data``.
 
     We do not set this at all when running an application as standalone.

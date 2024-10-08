@@ -1,5 +1,4 @@
-"""
-Create licenses and target databases for the tests to run against.
+"""Create licenses and target databases for the tests to run against.
 
 Usage:
 
@@ -11,7 +10,6 @@ Usage:
     $ export EXISTING_SECRETS_FILE=/existing/file/with/inactive/db/creds
     # You may have to run this a few times, but it is idempotent.
     $ python admin/create_secrets_files.py
-
 """
 
 import datetime
@@ -27,7 +25,9 @@ from selenium.common.exceptions import TimeoutException
 
 
 def main() -> None:
-    """Create secrets files."""
+    """
+    Create secrets files.
+    """
     email_address = os.environ["VWS_EMAIL_ADDRESS"]
     password = os.environ["VWS_PASSWORD"]
     new_secrets_dir = Path(os.environ["NEW_SECRETS_DIR"]).expanduser()

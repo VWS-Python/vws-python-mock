@@ -1,4 +1,6 @@
-"""Helpers for retrying requests to VWS."""
+"""
+Helpers for retrying requests to VWS.
+"""
 
 from tenacity import retry
 from tenacity.retry import retry_if_exception_type

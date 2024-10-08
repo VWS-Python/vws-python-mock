@@ -19,9 +19,8 @@ _LOGGER = logging.getLogger(name=__name__)
 
 @beartype
 def validate_body_given(*, request_body: bytes, request_method: str) -> None:
-    """
-    Validate that no JSON is given for requests other than ``POST`` and ``PUT``
-    requests.
+    """Validate that no JSON is given for requests other than ``POST`` and
+    ``PUT`` requests.
 
     Args:
         request_body: The body of the request.
@@ -47,8 +46,7 @@ def validate_body_given(*, request_body: bytes, request_method: str) -> None:
 
 @beartype
 def validate_json(*, request_body: bytes) -> None:
-    """
-    Validate that any given body is valid JSON.
+    """Validate that any given body is valid JSON.
 
     Args:
         request_body: The body of the request.

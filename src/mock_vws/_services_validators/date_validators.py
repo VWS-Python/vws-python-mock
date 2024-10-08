@@ -20,8 +20,7 @@ _LOGGER = logging.getLogger(name=__name__)
 
 @beartype
 def validate_date_header_given(*, request_headers: Mapping[str, str]) -> None:
-    """
-    Validate the date header is given to a VWS endpoint.
+    """Validate the date header is given to a VWS endpoint.
 
     Args:
         request_headers: The headers sent with the request.
@@ -38,8 +37,7 @@ def validate_date_header_given(*, request_headers: Mapping[str, str]) -> None:
 
 @beartype
 def validate_date_format(*, request_headers: Mapping[str, str]) -> None:
-    """
-    Validate the format of the date header given to a VWS endpoint.
+    """Validate the format of the date header given to a VWS endpoint.
 
     Args:
         request_headers: The headers sent with the request.
@@ -58,8 +56,7 @@ def validate_date_format(*, request_headers: Mapping[str, str]) -> None:
 
 @beartype
 def validate_date_in_range(*, request_headers: Mapping[str, str]) -> None:
-    """
-    Validate the date header given to a VWS endpoint is in range.
+    """Validate the date header given to a VWS endpoint is in range.
 
     Args:
         request_headers: The headers sent with the request.

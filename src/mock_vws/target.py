@@ -82,13 +82,12 @@ class Target:
 
     @property
     def _post_processing_status(self) -> TargetStatuses:
-        """
-        Return the status of the target, or what it will be when processing is
-        finished.
+        """Return the status of the target, or what it will be when processing
+        is finished.
 
         The status depends on the standard deviation of the color bands.
-        How VWS determines this is unknown, but it relates to how suitable the
-        target is for detection.
+        How VWS determines this is unknown, but it relates to how
+        suitable the target is for detection.
         """
         image_file = io.BytesIO(initial_bytes=self.image_value)
         image = Image.open(fp=image_file)
@@ -105,15 +104,14 @@ class Target:
 
     @property
     def status(self) -> str:
-        """
-        Return the status of the target.
+        """Return the status of the target.
 
         For now this waits half a second (arbitrary) before changing the
         status from 'processing' to 'failed' or 'success'.
 
         The status depends on the standard deviation of the color bands.
-        How VWS determines this is unknown, but it relates to how suitable the
-        target is for detection.
+        How VWS determines this is unknown, but it relates to how
+        suitable the target is for detection.
         """
         processing_time = datetime.timedelta(
             seconds=float(self.processing_time_seconds),
@@ -130,7 +128,9 @@ class Target:
 
     @property
     def _post_processing_target_rating(self) -> int:
-        """The rating of the target after processing."""
+        """
+        The rating of the target after processing.
+        """
         return self.target_tracking_rater(image_content=self.image_value)
 
     @property

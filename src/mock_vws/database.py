@@ -40,8 +40,7 @@ def _random_hex() -> str:
 @beartype
 @dataclass(eq=True, frozen=True)
 class VuforiaDatabase:
-    """
-    Credentials for VWS APIs.
+    """Credentials for VWS APIs.
 
     Args:
         database_name: The name of a VWS target manager database name. Defaults

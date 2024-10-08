@@ -45,8 +45,7 @@ def _add_target_to_vws(
     data: dict[str, Any],
     content_type: str = "application/json",
 ) -> Response:
-    """
-    Return a response from a request to the endpoint to add a target.
+    """Return a response from a request to the endpoint to add a target.
 
     Args:
         vws_client: The client to use to connect to Vuforia.
@@ -68,8 +67,7 @@ def _add_target_to_vws(
 
 @beartype
 def _assert_oops_response(response: Response) -> None:
-    """
-    Assert that the response is in the format of Vuforia's "Oops, an error
+    """Assert that the response is in the format of Vuforia's "Oops, an error
     occurred" HTML response.
 
     Raises:
@@ -94,8 +92,7 @@ def _assert_oops_response(response: Response) -> None:
 
 
 def assert_success(response: Response) -> None:
-    """
-    Assert that the given response is a success response for adding a
+    """Assert that the given response is a success response for adding a
     target.
 
     Raises:
@@ -459,8 +456,7 @@ class TestTargetName:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestImage:
-    """
-    Tests for the image parameter.
+    """Tests for the image parameter.
 
     The specification for images is documented at
     https://library.vuforia.com/features/images/image-targets.html.
@@ -595,11 +591,11 @@ class TestImage:
         vws_client: VWS,
         not_base64_encoded_processable: str,
     ) -> None:
-        """
-        Some strings which are not valid base64 encoded strings are allowed as
-        an image without getting a "Fail" response.
-        This is because Vuforia treats them as valid base64, but then not a
-        valid image.
+        """Some strings which are not valid base64 encoded strings are allowed
+        as an image without getting a "Fail" response.
+
+        This is because Vuforia treats them as valid base64, but then
+        not a valid image.
         """
         data = {
             "name": "example_name",

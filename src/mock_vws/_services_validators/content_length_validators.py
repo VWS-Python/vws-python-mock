@@ -22,8 +22,7 @@ def validate_content_length_header_is_int(
     request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:
-    """
-    Validate the ``Content-Length`` header is an integer.
+    """Validate the ``Content-Length`` header is an integer.
 
     Args:
         request_headers: The headers sent with the request.
@@ -49,8 +48,7 @@ def validate_content_length_header_not_too_large(
     request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:
-    """
-    Validate the ``Content-Length`` header is not too large.
+    """Validate the ``Content-Length`` header is not too large.
 
     Args:
         request_headers: The headers sent with the request.
@@ -75,8 +73,7 @@ def validate_content_length_header_not_too_small(
     request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:
-    """
-    Validate the ``Content-Length`` header is not too small.
+    """Validate the ``Content-Length`` header is not too small.
 
     Args:
         request_headers: The headers sent with the request.

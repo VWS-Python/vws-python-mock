@@ -23,9 +23,8 @@ def validate_target_id_exists(
     request_method: str,
     databases: Iterable[VuforiaDatabase],
 ) -> None:
-    """
-    Validate that if a target ID is given, it exists in the database matching
-    the request.
+    """Validate that if a target ID is given, it exists in the database
+    matching the request.
 
     Args:
         request_path: The path of the request.

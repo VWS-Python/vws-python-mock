@@ -1,5 +1,4 @@
-"""
-A fake implementation of the Vuforia Web Query API.
+"""A fake implementation of the Vuforia Web Query API.
 
 See
 https://developer.vuforia.com/library/web-api/vuforia-query-web-api
@@ -33,8 +32,7 @@ def route(
     path_pattern: str,
     http_methods: Iterable[str],
 ) -> Callable[[Callable[..., _ResponseType]], Callable[..., _ResponseType]]:
-    """
-    Register a decorated method so that it can be recognized as a route.
+    """Register a decorated method so that it can be recognized as a route.
 
     Args:
         path_pattern: The end part of a URL pattern. E.g. `/targets` or
@@ -48,8 +46,7 @@ def route(
     def decorator(
         method: Callable[..., _ResponseType],
     ) -> Callable[..., _ResponseType]:
-        """
-        Register a decorated method so that it can be recognized as a route.
+        """Register a decorated method so that it can be recognized as a route.
 
         Returns:
             The given `method` with multiple changes, including added
@@ -81,8 +78,7 @@ def _body_bytes(request: PreparedRequest) -> bytes:
 
 @beartype
 class MockVuforiaWebQueryAPI:
-    """
-    A fake implementation of the Vuforia Web Query API.
+    """A fake implementation of the Vuforia Web Query API.
 
     This implementation is tied to the implementation of ``responses``.
     """

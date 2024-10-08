@@ -9,8 +9,7 @@ from beartype import beartype
 
 @beartype
 class ResultCodes(Enum):
-    """
-    Constants representing various VWS result codes.
+    """Constants representing various VWS result codes.
 
     See
     https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#result-codes.
@@ -44,8 +43,7 @@ class ResultCodes(Enum):
 
 @beartype
 class TargetStatuses(Enum):
-    """
-    Constants representing VWS target statuses.
+    """Constants representing VWS target statuses.
 
     See the 'status' field in
     https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#target-record

@@ -49,8 +49,7 @@ def run_query_validators(
     request_method: str,
     databases: Iterable[VuforiaDatabase],
 ) -> None:
-    """
-    Run all validators.
+    """Run all validators.
 
     Args:
         request_path: The path of the request.

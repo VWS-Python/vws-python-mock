@@ -25,8 +25,7 @@ class TargetManager:
         self._databases: Iterable[VuforiaDatabase] = set()
 
     def remove_database(self, database: VuforiaDatabase) -> None:
-        """
-        Remove a cloud database.
+        """Remove a cloud database.
 
         Args:
             database: The database to add.
@@ -37,8 +36,7 @@ class TargetManager:
         self._databases = {db for db in self._databases if db != database}
 
     def add_database(self, database: VuforiaDatabase) -> None:
-        """
-        Add a cloud database.
+        """Add a cloud database.
 
         Args:
             database: The database to add.

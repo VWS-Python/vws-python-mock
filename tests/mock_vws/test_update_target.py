@@ -42,8 +42,7 @@ def _update_target(
     target_id: str,
     content_type: str = "application/json",
 ) -> Response:
-    """
-    Make a request to the endpoint to update a target.
+    """Make a request to the endpoint to update a target.
 
     Args:
         vws_client: The client to use to connect to Vuforia.
@@ -489,8 +488,7 @@ class TestTargetName:
         target_id: str,
         vws_client: VWS,
     ) -> None:
-        """
-        A target's name must be a string of length 0 < N < 65.
+        """A target's name must be a string of length 0 < N < 65.
 
         We test characters out of range in another test as that gives a
         different error.
@@ -625,8 +623,7 @@ class TestTargetName:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestImage:
-    """
-    Tests for the image parameter.
+    """Tests for the image parameter.
 
     The specification for images is documented at
     https://library.vuforia.com/features/images/image-targets.html.
@@ -655,9 +652,9 @@ class TestImage:
         vws_client: VWS,
     ) -> None:
         """
-        A `BAD_IMAGE` response is returned if an image which is not a JPEG
-        or PNG file is given, or if the given image is not in the greyscale or
-        RGB color space.
+        A `BAD_IMAGE` response is returned if an image which is not a JPEG or
+        PNG file is given, or if the given image is not in the greyscale or RGB
+        color space.
         """
         vws_client.wait_for_target_processed(target_id=target_id)
         with pytest.raises(expected_exception=BadImageError) as exc:
@@ -746,11 +743,11 @@ class TestImage:
         target_id: str,
         not_base64_encoded_processable: str,
     ) -> None:
-        """
-        Some strings which are not valid base64 encoded strings are allowed as
-        an image without getting a "Fail" response.
-        This is because Vuforia treats them as valid base64, but then not a
-        valid image.
+        """Some strings which are not valid base64 encoded strings are allowed
+        as an image without getting a "Fail" response.
+
+        This is because Vuforia treats them as valid base64, but then
+        not a valid image.
         """
         vws_client.wait_for_target_processed(target_id=target_id)
 
@@ -847,12 +844,11 @@ class TestImage:
         high_quality_image: io.BytesIO,
         vws_client: VWS,
     ) -> None:
-        """
-        If the target is updated with an image of different quality, the
+        """If the target is updated with an image of different quality, the
         tracking rating can change.
 
-        "quality" refers to Vuforia's internal rating system.
-        The mock randomly assigns a quality and makes sure that the new quality
+        "quality" refers to Vuforia's internal rating system. The mock
+        randomly assigns a quality and makes sure that the new quality
         is different to the old quality.
         """
         target_id = vws_client.add_target(

@@ -1,5 +1,4 @@
-"""
-A fake implementation of the Vuforia Web Services API.
+"""A fake implementation of the Vuforia Web Services API.
 
 See
 https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api
@@ -47,8 +46,7 @@ def route(
     path_pattern: str,
     http_methods: Iterable[HTTPMethod],
 ) -> Callable[[Callable[..., _ResponseType]], Callable[..., _ResponseType]]:
-    """
-    Register a decorated method so that it can be recognized as a route.
+    """Register a decorated method so that it can be recognized as a route.
 
     Args:
         path_pattern: The end part of a URL pattern. E.g. `/targets` or
@@ -63,8 +61,7 @@ def route(
     def decorator(
         method: Callable[..., _ResponseType],
     ) -> Callable[..., _ResponseType]:
-        """
-        Register a decorated method so that it can be recognized as a route.
+        """Register a decorated method so that it can be recognized as a route.
 
         Returns:
             The given `method` with multiple changes, including added
@@ -99,8 +96,7 @@ def _body_bytes(request: PreparedRequest) -> bytes:
 
 @beartype(conf=BeartypeConf(is_pep484_tower=True))
 class MockVuforiaWebServicesAPI:
-    """
-    A fake implementation of the Vuforia Web Services API.
+    """A fake implementation of the Vuforia Web Services API.
 
     This implementation is tied to the implementation of ``responses``.
     """
@@ -137,8 +133,7 @@ class MockVuforiaWebServicesAPI:
         http_methods={HTTPMethod.POST},
     )
     def add_target(self, request: PreparedRequest) -> _ResponseType:
-        """
-        Add a target.
+        """Add a target.
 
         Fake implementation of
         https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#add
@@ -213,8 +208,7 @@ class MockVuforiaWebServicesAPI:
         http_methods={HTTPMethod.DELETE},
     )
     def delete_target(self, request: PreparedRequest) -> _ResponseType:
-        """
-        Delete a target.
+        """Delete a target.
 
         Fake implementation of
         https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#delete
@@ -279,8 +273,7 @@ class MockVuforiaWebServicesAPI:
 
     @route(path_pattern="/summary", http_methods={HTTPMethod.GET})
     def database_summary(self, request: PreparedRequest) -> _ResponseType:
-        """
-        Get a database summary report.
+        """Get a database summary report.
 
         Fake implementation of
         https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#summary-report
@@ -341,8 +334,7 @@ class MockVuforiaWebServicesAPI:
 
     @route(path_pattern="/targets", http_methods={HTTPMethod.GET})
     def target_list(self, request: PreparedRequest) -> _ResponseType:
-        """
-        Get a list of all targets.
+        """Get a list of all targets.
 
         Fake implementation of
         https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#details-list
@@ -399,8 +391,7 @@ class MockVuforiaWebServicesAPI:
         http_methods={HTTPMethod.GET},
     )
     def get_target(self, request: PreparedRequest) -> _ResponseType:
-        """
-        Get details of a target.
+        """Get details of a target.
 
         Fake implementation of
         https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#target-record
@@ -465,8 +456,7 @@ class MockVuforiaWebServicesAPI:
         http_methods={HTTPMethod.GET},
     )
     def get_duplicates(self, request: PreparedRequest) -> _ResponseType:
-        """
-        Get targets which may be considered duplicates of a given target.
+        """Get targets which may be considered duplicates of a given target.
 
         Fake implementation of
         https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#check
@@ -537,8 +527,7 @@ class MockVuforiaWebServicesAPI:
         http_methods={HTTPMethod.PUT},
     )
     def update_target(self, request: PreparedRequest) -> _ResponseType:
-        """
-        Update a target.
+        """Update a target.
 
         Fake implementation of
         https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#update
@@ -650,8 +639,7 @@ class MockVuforiaWebServicesAPI:
         http_methods={HTTPMethod.GET},
     )
     def target_summary(self, request: PreparedRequest) -> _ResponseType:
-        """
-        Get a summary report for a target.
+        """Get a summary report for a target.
 
         Fake implementation of
         https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#retrieve-report

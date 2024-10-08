@@ -18,8 +18,7 @@ _LOGGER = logging.getLogger(name=__name__)
 
 @dataclass
 class _Route:
-    """
-    A representation of a VWS route.
+    """A representation of a VWS route.
 
     Args:
         path_pattern: The end part of a URL pattern. E.g. `/targets` or
@@ -43,8 +42,7 @@ def validate_keys(
     request_path: str,
     request_method: str,
 ) -> None:
-    """
-    Validate the request keys given to a VWS endpoint.
+    """Validate the request keys given to a VWS endpoint.
 
     Args:
         request_body: The body of the request.

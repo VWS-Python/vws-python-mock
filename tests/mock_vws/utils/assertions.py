@@ -23,8 +23,7 @@ def assert_vws_failure(
     status_code: int,
     result_code: ResultCodes,
 ) -> None:
-    """
-    Assert that a VWS failure response is as expected.
+    """Assert that a VWS failure response is as expected.
 
     Args:
         response: The response returned by a request to VWS.
@@ -51,9 +50,8 @@ def assert_valid_date_header(
     *,
     response: Response,
 ) -> None:
-    """
-    Assert that a response includes a `Date` header which is within two minutes
-    of "now".
+    """Assert that a response includes a `Date` header which is within two
+    minutes of "now".
 
     Args:
         response: The response returned by a request to a Vuforia service.
@@ -86,8 +84,7 @@ def assert_valid_transaction_id(
     *,
     response: Response,
 ) -> None:
-    """
-    Assert that a response includes a valid transaction ID.
+    """Assert that a response includes a valid transaction ID.
 
     Args:
         response: The response returned by a request to a Vuforia service.
@@ -103,8 +100,7 @@ def assert_valid_transaction_id(
 
 @beartype
 def assert_json_separators(*, response: Response) -> None:
-    """
-    Assert that a JSON response is formatted correctly.
+    """Assert that a JSON response is formatted correctly.
 
     Args:
         response: The response returned by a request to a Vuforia service.
@@ -125,8 +121,7 @@ def assert_vws_response(
     status_code: int,
     result_code: ResultCodes,
 ) -> None:
-    """
-    Assert that a VWS response is as expected, at least in part.
+    """Assert that a VWS response is as expected, at least in part.
 
     https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#result-codes
     implies that the expected status code can be worked out from the result
@@ -174,8 +169,7 @@ def assert_vws_response(
 
 @beartype
 def assert_query_success(*, response: Response) -> None:
-    """
-    Assert that the given response is a success response for performing an
+    """Assert that the given response is a success response for performing an
     image recognition query.
 
     Raises:
@@ -235,8 +229,7 @@ def assert_vwq_failure(
     www_authenticate: str | None,
     connection: str,
 ) -> None:
-    """
-    Assert that a VWQ failure response is as expected.
+    """Assert that a VWQ failure response is as expected.
 
     Args:
         response: The response returned by a request to VWQ.
