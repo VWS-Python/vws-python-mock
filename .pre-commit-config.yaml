@@ -38,7 +38,7 @@ repos:
 
   - id: actionlint
     name: actionlint
-    entry: actionlint
+    entry: uv run --extra=dev actionlint
     language: python
     pass_filenames: false
     types_or: [yaml]
