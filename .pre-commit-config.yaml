@@ -26,6 +26,22 @@ repos:
         files: spelling_private_dict\.txt$
       - id: trailing-whitespace
         exclude: ^src/mock_vws/resources/
+  - repo: https://github.com/pre-commit/pygrep-hooks
+    rev: v1.10.0
+    hooks:
+      - id: rst-directive-colons
+      - id: rst-inline-touching-normal
+      - id: text-unicode-replacement-char
+      - id: rst-backticks
+  - repo: https://github.com/mrtazz/checkmake.git
+    rev: 0.2.2
+    hooks:
+      - id: checkmake
+        args: ["--config", ".checkmake-config.ini"]
+  - repo: https://github.com/google/yamlfmt
+    rev: v0.13.0
+    hooks:
+      - id: yamlfmt
   - repo: local
     hooks:
       - id: custom-linters
