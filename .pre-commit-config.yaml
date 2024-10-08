@@ -45,6 +45,13 @@ repos:
         types_or: [yaml]
         additional_dependencies: ["uv"]
 
+      - id: docformatter
+        name: docformatter
+        entry: uv run --extra=dev -m docformatter
+        language: python
+        types_or: [python]
+        additional_dependencies: ["uv"]
+
       - id: shellcheck
         name: shellcheck
         entry: uv run --extra=dev shellcheck --shell=bash --exclude=SC1017
@@ -286,7 +293,9 @@ ci:
     - ruff-check-fix-docs
     - ruff-format-fix
     - ruff-format-fix-docs
+    - docformatter
     - shellcheck
+    - docformatter
     - shellcheck-docs
     - shfmt
     - shfmt-docs
