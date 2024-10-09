@@ -461,3 +461,7 @@ ignore_decorators = [
     "@*APP.before_request",
     "@*APP.errorhandler",
 ]
+
+[tool.yamlfix]
+section_whitelines = 1
+whitelines = 1

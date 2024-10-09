@@ -4,6 +4,7 @@ fail_fast: true
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
 default_install_hook_types: [pre-commit, pre-push, commit-msg]
+
 repos:
   - repo: meta
     hooks:
@@ -43,7 +44,7 @@ repos:
         language: python
         types_or: [yaml, python]
         pass_filenames: false
-        additional_dependencies: ["uv"]
+        additional_dependencies: [uv]
 
       - id: actionlint
         name: actionlint
@@ -51,42 +52,44 @@ repos:
         language: python
         pass_filenames: false
         types_or: [yaml]
-        additional_dependencies: ["uv"]
+        additional_dependencies: [uv]
 
       - id: docformatter
         name: docformatter
         entry: uv run --extra=dev -m docformatter --in-place
         language: python
         types_or: [python]
-        additional_dependencies: ["uv"]
+        additional_dependencies: [uv]
 
       - id: shellcheck
         name: shellcheck
         entry: uv run --extra=dev shellcheck --shell=bash --exclude=SC1017
         language: python
         types_or: [shell]
-        additional_dependencies: ["uv"]
+        additional_dependencies: [uv]
 
       - id: shellcheck-docs
         name: shellcheck-docs
-        entry: uv run --extra=dev doccmd --language=shell --language=console --command="shellcheck --shell=bash --exclude=SC1017"
+        entry: uv run --extra=dev doccmd --language=shell --language=console --command="shellcheck
+          --shell=bash --exclude=SC1017"
         language: python
         types_or: [markdown, rst]
-        additional_dependencies: ["uv"]
+        additional_dependencies: [uv]
 
       - id: shfmt
         name: shfmt
         entry: shfmt --write --space-redirects --indent=4
         language: python
         types_or: [shell]
-        additional_dependencies: ["uv"]
+        additional_dependencies: [uv]
 
       - id: shfmt-docs
         name: shfmt-docs
-        entry: uv run --extra=dev doccmd --language=shell --language=console --skip-marker=shfmt --no-pad-file --command="shfmt --write --space-redirects --indent=4"
+        entry: uv run --extra=dev doccmd --language=shell --language=console --skip-marker=shfmt
+          --no-pad-file --command="shfmt --write --space-redirects --indent=4"
         language: python
         types_or: [markdown, rst]
-        additional_dependencies: ["uv"]
+        additional_dependencies: [uv]
 
       - id: mypy
         name: mypy
@@ -95,7 +98,7 @@ repos:
         language: python
         types_or: [python, toml]
         pass_filenames: false
-        additional_dependencies: ["uv"]
+        additional_dependencies: [uv]
 
       - id: mypy-docs
         name: mypy-docs
@@ -110,7 +113,7 @@ repos:
         entry: uv run --extra=dev -m check_manifest .
         language: python
         pass_filenames: false
-        additional_dependencies: ["uv"]
+        additional_dependencies: [uv]
 
       - id: pyright
         name: pyright
@@ -119,7 +122,7 @@ repos:
         language: python
         types_or: [python, toml]
         pass_filenames: false
-        additional_dependencies: ["uv"]
+        additional_dependencies: [uv]
 
       - id: pyright-docs
         name: pyright-docs
@@ -135,7 +138,7 @@ repos:
         language: python
         pass_filenames: false
         types_or: [python]
-        additional_dependencies: ["uv"]
+        additional_dependencies: [uv]
 
       - id: vulture
         name: vulture
@@ -143,7 +146,7 @@ repos:
         language: python
         types_or: [python]
         pass_filenames: false
-        additional_dependencies: ["uv"]
+        additional_dependencies: [uv]
 
       - id: vulture-docs
         name: vulture docs
@@ -151,7 +154,7 @@ repos:
         language: python
         types_or: [python]
         pass_filenames: false
-        additional_dependencies: ["uv"]
+        additional_dependencies: [uv]
 
       - id: pyroma
         name: pyroma
@@ -159,14 +162,14 @@ repos:
         language: python
         pass_filenames: false
         types_or: [toml]
-        additional_dependencies: ["uv"]
+        additional_dependencies: [uv]
 
       - id: deptry
         name: deptry
         entry: uv run --extra=dev -m deptry src/
         language: python
         pass_filenames: false
-        additional_dependencies: ["uv"]
+        additional_dependencies: [uv]
 
       - id: pylint
         name: pylint
@@ -174,7 +177,7 @@ repos:
         language: python
         stages: [manual]
         pass_filenames: false
-        additional_dependencies: ["uv"]
+        additional_dependencies: [uv]
 
       - id: pylint-docs
         name: pylint-docs
@@ -188,7 +191,7 @@ repos:
         description: Runs hadolint Docker image to lint Dockerfiles
         language: docker_image
         types_or: [dockerfile]
-        stages: [manual] # Requires Docker to be running
+        stages: [manual]  # Requires Docker to be running
         # We choose not to use a Python wrapper or alternative to hadolint as none
         # appear to be well maintained, and they require more setup than we would
         # want.
@@ -199,35 +202,36 @@ repos:
         entry: uv run --extra=dev -m ruff check --fix
         language: python
         types_or: [python]
-        additional_dependencies: ["uv"]
+        additional_dependencies: [uv]
 
       - id: ruff-check-fix-docs
         name: Ruff check fix docs
         entry: uv run --extra=dev doccmd --language=python --command="ruff check --fix"
         language: python
         types_or: [markdown, rst]
-        additional_dependencies: ["uv"]
+        additional_dependencies: [uv]
 
       - id: ruff-format-fix
         name: Ruff format
         entry: uv run --extra=dev -m ruff format
         language: python
         types_or: [python]
-        additional_dependencies: ["uv"]
+        additional_dependencies: [uv]
 
       - id: ruff-format-fix-docs
         name: Ruff format docs
-        entry: uv run --extra=dev doccmd --language=python --no-pad-file --command="ruff format"
+        entry: uv run --extra=dev doccmd --language=python --no-pad-file --command="ruff
+          format"
         language: python
         types_or: [markdown, rst]
-        additional_dependencies: ["uv"]
+        additional_dependencies: [uv]
 
       - id: doc8
         name: doc8
         entry: uv run --extra=dev -m doc8
         language: python
         types_or: [rst]
-        additional_dependencies: ["uv"]
+        additional_dependencies: [uv]
 
       - id: interrogate
         name: interrogate
@@ -241,7 +245,7 @@ repos:
         entry: uv run --extra=dev doccmd --language=python --command="interrogate"
         language: python
         types_or: [markdown, rst]
-        additional_dependencies: ["uv"]
+        additional_dependencies: [uv]
 
       - id: pyproject-fmt-fix
         name: pyproject-fmt
@@ -257,7 +261,7 @@ repos:
         types_or: [rst]
         stages: [manual]
         pass_filenames: false
-        additional_dependencies: ["uv"]
+        additional_dependencies: [uv]
 
       - id: spelling
         name: spelling
@@ -266,7 +270,7 @@ repos:
         types_or: [rst]
         stages: [manual]
         pass_filenames: false
-        additional_dependencies: ["uv"]
+        additional_dependencies: [uv]
 
       - id: docs
         name: Build Documentation
@@ -274,7 +278,14 @@ repos:
         language: python
         stages: [manual]
         pass_filenames: false
-        additional_dependencies: ["uv"]
+        additional_dependencies: [uv]
+
+      - id: yamlfix
+        name: pyproject-fmt
+        entry: uv run --extra=dev yamlfix
+        language: python
+        types_or: [yaml]
+        additional_dependencies: [uv]
 
 # We use system Python, with required dependencies specified in pyproject.toml.
 # We therefore cannot use those dependencies in pre-commit CI.

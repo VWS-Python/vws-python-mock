@@ -10,7 +10,7 @@ on:
   schedule:
     # * is a special character in YAML so you have to quote this string
     # Run at 1:00 every day
-    - cron: '0 1 * * *'
+    - cron: 0 1 * * *
   workflow_dispatch: {}
 
 # We share Vuforia credentials and therefore Vuforia databases across
@@ -26,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12"]
+        python-version: ['3.12']
         ci_pattern:
           - tests/mock_vws/test_query.py::TestContentType
           - tests/mock_vws/test_query.py::TestSuccess
@@ -127,7 +127,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v3
 
-      - name: "Set secrets file"
+      - name: Set secrets file
         run: |
           # See the "CI Setup" document for details of how this was set up.
           ci/decrypt_secret.sh
@@ -153,7 +153,7 @@ jobs:
           dotnet: true
           haskell: true
 
-      - name: "Run tests"
+      - name: Run tests
         run: |
           uv run --extra=dev pytest \
             -s \
@@ -167,7 +167,7 @@ jobs:
         env:
           UV_PYTHON: ${{ matrix.python-version }}
 
-      - name: "Show coverage file"
+      - name: Show coverage file
         run: |
           # Sometimes we have been sure that we have 100% coverage, but codecov
           # says otherwise.
@@ -184,12 +184,12 @@ jobs:
       #
       # To work around this, we do not upload coverage data on scheduled runs.
       # We print the event name here to help with debugging.
-      - name: "Show event name"
+      - name: Show event name
         run: |
           echo ${{ github.event_name }}
 
-      - name: "Upload coverage to Codecov"
-        uses: "codecov/codecov-action@v4"
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
         with:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
