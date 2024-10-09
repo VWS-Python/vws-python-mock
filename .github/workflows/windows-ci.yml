@@ -10,7 +10,7 @@ on:
   schedule:
     # * is a special character in YAML so you have to quote this string
     # Run at 1:00 every day
-    - cron: '0 1 * * *'
+    - cron: 0 1 * * *
   workflow_dispatch: {}
 
 jobs:
@@ -18,7 +18,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ["3.12"]
+        python-version: ['3.12']
         platform: [windows-latest]
 
     runs-on: ${{ matrix.platform }}
@@ -32,11 +32,11 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v3
 
-      - name: "Set secrets file"
+      - name: Set secrets file
         run: |
           cp ./vuforia_secrets.env.example ./vuforia_secrets.env
 
-      - name: "Run tests"
+      - name: Run tests
         run: |
           # We use pytest-xdist to make this run much faster.
           # The downside is that we cannot use -s / --capture=no.
@@ -44,7 +44,7 @@ jobs:
         env:
           UV_PYTHON: ${{ matrix.python-version }}
 
-      - name: "Show coverage file"
+      - name: Show coverage file
         run: |
           # Sometimes we have been sure that we have 100% coverage, but codecov
           # says otherwise.
@@ -61,12 +61,12 @@ jobs:
       #
       # To work around this, we do not upload coverage data on scheduled runs.
       # We print the event name here to help with debugging.
-      - name: "Show event name"
+      - name: Show event name
         run: |
           echo ${{ github.event_name }}
 
-      - name: "Upload coverage to Codecov"
-        uses: "codecov/codecov-action@v4"
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
         with:
           fail_ci_if_error: true
           # See https://community.codecov.com/t/upload-issues-unable-to-locate-build-via-github-actions-api/3954
