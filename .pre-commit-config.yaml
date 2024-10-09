@@ -66,9 +66,6 @@ repos:
         entry: uv run --extra=dev -m docformatter --in-place
         language: python
         types_or: [python]
-        # We exclude target_manager.py as it includes syntax for
-        # generating API documentation that ``docformatter`` does not like.
-        exclude: "src/mock_vws/_flask_server/target_manager.py"
         additional_dependencies: ["uv"]
 
       - id: shellcheck
