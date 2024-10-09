@@ -21,8 +21,7 @@ def validate_extra_fields(
     request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:
-    """
-    Validate that the no unknown fields are given.
+    """Validate that the no unknown fields are given.
 
     Args:
         request_headers: The headers sent with the request.

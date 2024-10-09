@@ -32,14 +32,15 @@ def _not_exact_matcher(
     first_image_content: bytes,
     second_image_content: bytes,
 ) -> bool:
-    """A matcher which returns True if the images are not the same."""
+    """
+    A matcher which returns True if the images are not the same.
+    """
     return first_image_content != second_image_content
 
 
 @beartype
 def request_unmocked_address() -> None:
-    """
-    Make a request, using `requests` to an unmocked, free local address.
+    """Make a request, using `requests` to an unmocked, free local address.
 
     Raises:
         requests.exceptions.ConnectionError: This is expected as there is
@@ -79,8 +80,8 @@ class TestRealHTTP:
     @staticmethod
     def test_default() -> None:
         """
-        By default, the mock stops any requests made with `requests` to
-        non-Vuforia addresses, but not to mocked Vuforia endpoints.
+        By default, the mock stops any requests made with `requests` to non-
+        Vuforia addresses, but not to mocked Vuforia endpoints.
         """
         with MockVWS():
             with pytest.raises(
@@ -451,11 +452,15 @@ class TestAddDatabase:
 
 
 class TestQueryImageMatchers:
-    """Tests for query image matchers."""
+    """
+    Tests for query image matchers.
+    """
 
     @staticmethod
     def test_exact_match(high_quality_image: io.BytesIO) -> None:
-        """The exact matcher matches only exactly the same images."""
+        """
+        The exact matcher matches only exactly the same images.
+        """
         database = VuforiaDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -491,7 +496,9 @@ class TestQueryImageMatchers:
 
     @staticmethod
     def test_custom_matcher(high_quality_image: io.BytesIO) -> None:
-        """It is possible to use a custom matcher."""
+        """
+        It is possible to use a custom matcher.
+        """
         database = VuforiaDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -530,7 +537,9 @@ class TestQueryImageMatchers:
         high_quality_image: io.BytesIO,
         different_high_quality_image: io.BytesIO,
     ) -> None:
-        """The structural similarity matcher matches similar images."""
+        """
+        The structural similarity matcher matches similar images.
+        """
         database = VuforiaDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -573,11 +582,15 @@ class TestQueryImageMatchers:
 
 
 class TestDuplicatesImageMatchers:
-    """Tests for duplicates image matchers."""
+    """
+    Tests for duplicates image matchers.
+    """
 
     @staticmethod
     def test_exact_match(high_quality_image: io.BytesIO) -> None:
-        """The exact matcher matches only exactly the same images."""
+        """
+        The exact matcher matches only exactly the same images.
+        """
         database = VuforiaDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -621,7 +634,9 @@ class TestDuplicatesImageMatchers:
 
     @staticmethod
     def test_custom_matcher(high_quality_image: io.BytesIO) -> None:
-        """It is possible to use a custom matcher."""
+        """
+        It is possible to use a custom matcher.
+        """
         database = VuforiaDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -667,7 +682,9 @@ class TestDuplicatesImageMatchers:
     def test_structural_similarity_matcher(
         high_quality_image: io.BytesIO,
     ) -> None:
-        """The structural similarity matcher matches similar images."""
+        """
+        The structural similarity matcher matches similar images.
+        """
         database = VuforiaDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,

@@ -23,8 +23,7 @@ def validate_content_type_header(
     request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:
-    """
-    Validate the ``Content-Type`` header.
+    """Validate the ``Content-Type`` header.
 
     Args:
         request_headers: The headers sent with the request.

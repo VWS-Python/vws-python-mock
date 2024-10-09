@@ -54,8 +54,7 @@ def wait_for_health_check(container: Container) -> None:
 @beartype
 @pytest.fixture(name="custom_bridge_network")
 def fixture_custom_bridge_network() -> Iterator[Network]:
-    """
-    Yield a custom bridge network which containers can connect to.
+    """Yield a custom bridge network which containers can connect to.
 
     This also cleans up all containers connected to the network and the network
     after the test.

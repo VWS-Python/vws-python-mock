@@ -81,9 +81,8 @@ class TestTargetSummary:
         image_fixture_name: str,
         expected_status: TargetStatuses,
     ) -> None:
-        """
-        After processing is completed, the tracking rating is in the range of
-        0 to 5.
+        """After processing is completed, the tracking rating is in the range
+        of 0 to 5.
 
         The documentation says:
 

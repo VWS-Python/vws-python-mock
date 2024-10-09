@@ -15,8 +15,7 @@ _LOGGER = logging.getLogger(name=__name__)
 
 @beartype
 def validate_active_flag(*, request_body: bytes) -> None:
-    """
-    Validate the active flag data given to the endpoint.
+    """Validate the active flag data given to the endpoint.
 
     Args:
         request_body: The body of the request.

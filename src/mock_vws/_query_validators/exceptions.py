@@ -425,8 +425,8 @@ class InactiveProjectError(ValidatorError):
 @beartype
 class InvalidMaxNumResultsError(ValidatorError):
     """
-    Exception raised when an invalid value is given as the
-    "max_num_results" field.
+    Exception raised when an invalid value is given as the "max_num_results"
+    field.
     """
 
     def __init__(self, given_value: str) -> None:

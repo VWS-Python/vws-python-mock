@@ -1,5 +1,4 @@
-"""
-Tests for getting a target record.
+"""Tests for getting a target record.
 
 https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#target-record
 """
@@ -84,13 +83,13 @@ class TestGetRecord:
         image_file_success_state_low_rating: io.BytesIO,
         vws_client: VWS,
     ) -> None:
-        """
-        When a random, large enough image is given, the status changes from
+        """When a random, large enough image is given, the status changes from
         'processing' to 'success' after some time.
 
-        The mock is much more lenient than the real implementation of VWS.
-        The test image does not prove that what is counted as a success in the
-        mock will be counted as a success in the real implementation.
+        The mock is much more lenient than the real implementation of
+        VWS. The test image does not prove that what is counted as a
+        success in the mock will be counted as a success in the real
+        implementation.
         """
         target_id = vws_client.add_target(
             name="example",

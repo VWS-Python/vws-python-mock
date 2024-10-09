@@ -13,7 +13,9 @@ from mock_vws.states import States
 
 
 class _VuforiaDatabaseSettings(BaseSettings):
-    """Settings for a Vuforia database."""
+    """
+    Settings for a Vuforia database.
+    """
 
     target_manager_database_name: str
     server_access_key: str
@@ -29,7 +31,9 @@ class _VuforiaDatabaseSettings(BaseSettings):
 
 
 class _InactiveVuforiaDatabaseSettings(_VuforiaDatabaseSettings):
-    """Settings for an inactive Vuforia database."""
+    """
+    Settings for an inactive Vuforia database.
+    """
 
     model_config = SettingsConfigDict(
         env_prefix="INACTIVE_VUFORIA_",

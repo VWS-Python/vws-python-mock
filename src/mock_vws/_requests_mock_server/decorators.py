@@ -45,7 +45,9 @@ class MissingSchemeError(Exception):
         self.url = url
 
     def __str__(self) -> str:
-        """Give a string representation of this error with a suggestion."""
+        """
+        Give a string representation of this error with a suggestion.
+        """
         return (
             f'Invalid URL "{self.url}": No scheme supplied. '
             f'Perhaps you meant "https://{self.url}".'
@@ -69,8 +71,7 @@ class MockVWS(ContextDecorator):
         target_tracking_rater: TargetTrackingRater = _BRISQUE_TRACKING_RATER,
         real_http: bool = False,
     ) -> None:
-        """
-        Route requests to Vuforia's Web Service APIs to fakes of those APIs.
+        """Route requests to Vuforia's Web Service APIs to fakes of those APIs.
 
         Args:
             real_http: Whether or not to forward requests to the real
@@ -116,8 +117,7 @@ class MockVWS(ContextDecorator):
         )
 
     def add_database(self, database: VuforiaDatabase) -> None:
-        """
-        Add a cloud database.
+        """Add a cloud database.
 
         Args:
             database: The database to add.
@@ -129,8 +129,7 @@ class MockVWS(ContextDecorator):
         self._target_manager.add_database(database=database)
 
     def __enter__(self) -> Self:
-        """
-        Start an instance of a Vuforia mock.
+        """Start an instance of a Vuforia mock.
 
         Returns:
             ``self``.
@@ -186,8 +185,7 @@ class MockVWS(ContextDecorator):
         return self
 
     def __exit__(self, *exc: object) -> Literal[False]:
-        """
-        Stop the Vuforia mock.
+        """Stop the Vuforia mock.
 
         Returns:
             False

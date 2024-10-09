@@ -156,8 +156,7 @@ class TestActiveFlag:
         high_quality_image: io.BytesIO,
         vws_client: VWS,
     ) -> None:
-        """
-        Targets with `active_flag` set to `False` can have duplicates.
+        """Targets with `active_flag` set to `False` can have duplicates.
         Targets with `active_flag` set to `False` are not found as duplicates.
 
         https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#check
@@ -211,8 +210,8 @@ class TestProcessing:
         high_quality_image: io.BytesIO,
         vws_client: VWS,
     ) -> None:
-        """
-        If a target is in the processing state, it can have duplicates.
+        """If a target is in the processing state, it can have duplicates.
+
         Targets can have duplicates in the processing state.
         """
         processed_target_id = vws_client.add_target(

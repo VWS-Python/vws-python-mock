@@ -19,8 +19,7 @@ from mock_vws._constants import ResultCodes
 
 @dataclass(frozen=True)
 class Endpoint:
-    """
-    Details of endpoints to be called in tests.
+    """Details of endpoints to be called in tests.
 
     Args:
         prepared_request: A request to make which would be successful.
@@ -93,8 +92,7 @@ def make_image_file(
     width: int,
     height: int,
 ) -> io.BytesIO:
-    """
-    Return an image file in the given format and color space.
+    """Return an image file in the given format and color space.
 
     The image file is filled with randomly colored pixels.
 

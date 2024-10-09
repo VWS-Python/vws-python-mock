@@ -60,6 +60,7 @@ optional-dependencies.dev = [
     "dirty-equals==0.8.0",
     "doc8==1.1.1",
     "doccmd==2024.10.8.12",
+    "docformatter==1.7.5",
     "docker==7.1.0",
     "enum-tools[sphinx]==0.12.0",
     "freezegun==1.5.1",
@@ -290,9 +291,14 @@ spelling-private-dict-file = 'spelling_private_dict.txt'
 # --spelling-private-dict-file option instead of raising a message.
 spelling-store-unknown-words = 'no'
 
+[tool.docformatter]
+make-summary-multi-line = true
+
 [tool.check-manifest]
 
 ignore = [
+    ".checkmake-config.ini",
+    ".yamlfmt",
     "*.enc",
     "admin/**",
     "readthedocs.yaml",

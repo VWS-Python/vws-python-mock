@@ -15,8 +15,7 @@ _LOGGER = logging.getLogger(name=__name__)
 
 @beartype
 def validate_width(*, request_body: bytes) -> None:
-    """
-    Validate the width argument given to a VWS endpoint.
+    """Validate the width argument given to a VWS endpoint.
 
     Args:
         request_body: The body of the request.

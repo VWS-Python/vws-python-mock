@@ -24,8 +24,7 @@ class TestDelete:
 
     @staticmethod
     def test_no_wait(target_id: str, vws_client: VWS) -> None:
-        """
-        When attempting to delete a target immediately after creating it, a
+        """When attempting to delete a target immediately after creating it, a
         `FORBIDDEN` response is returned.
 
         This is because the target goes into a processing state.

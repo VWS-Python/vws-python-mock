@@ -1,6 +1,6 @@
 """
-Tests for passing invalid target IDs to endpoints which
-require a target ID to be given.
+Tests for passing invalid target IDs to endpoints which require a target ID to
+be given.
 """
 
 from http import HTTPStatus
@@ -17,8 +17,8 @@ from tests.mock_vws.utils.too_many_requests import handle_server_errors
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestInvalidGivenID:
     """
-    Tests for giving an invalid ID to endpoints which require a target ID to
-    be given.
+    Tests for giving an invalid ID to endpoints which require a target ID to be
+    given.
     """
 
     @staticmethod

@@ -11,8 +11,7 @@ from beartype import beartype
 
 @beartype
 def decode_base64(encoded_data: str) -> bytes:
-    """
-    Decode base64 somewhat like Vuforia does.
+    """Decode base64 somewhat like Vuforia does.
 
     Raises:
         binascii.Error: Vuforia would consider this encoded data as an

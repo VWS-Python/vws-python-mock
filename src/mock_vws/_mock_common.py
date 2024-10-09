@@ -12,8 +12,7 @@ from beartype import beartype
 
 @dataclass(frozen=True)
 class Route:
-    """
-    A representation of a VWS route.
+    """A representation of a VWS route.
 
     Args:
         route_name: The name of the method.

@@ -25,8 +25,7 @@ def validate_project_state(
     request_method: str,
     databases: Iterable[VuforiaDatabase],
 ) -> None:
-    """
-    Validate the state of the project.
+    """Validate the state of the project.
 
     Args:
         request_path: The path of the request.

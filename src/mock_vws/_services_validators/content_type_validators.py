@@ -19,8 +19,8 @@ def validate_content_type_header_given(
     request_headers: Mapping[str, str],
     request_method: str,
 ) -> None:
-    """
-    Validate that there is a non-empty content type header given if required.
+    """Validate that there is a non-empty content type header given if
+    required.
 
     Args:
         request_headers: The headers sent with the request.

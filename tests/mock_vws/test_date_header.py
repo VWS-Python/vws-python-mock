@@ -96,14 +96,13 @@ class TestMissing:
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestFormat:
     """
-    Tests for what happens when the `Date` header is not in the
-    expected format.
+    Tests for what happens when the `Date` header is not in the expected
+    format.
     """
 
     @staticmethod
     def test_incorrect_date_format(endpoint: Endpoint) -> None:
-        """
-        A `BAD_REQUEST` response is returned when the date given in the date
+        """A `BAD_REQUEST` response is returned when the date given in the date
         header is not in the expected format (RFC 1123) to VWS API.
 
         An `UNAUTHORIZED` response is returned to the VWQ API.
@@ -167,19 +166,18 @@ class TestFormat:
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestSkewedTime:
     """
-    Tests for what happens when the `Date` header is given with an
-    unexpected time.
+    Tests for what happens when the `Date` header is given with an unexpected
+    time.
     """
 
     @staticmethod
     def test_date_out_of_range_after(endpoint: Endpoint) -> None:
-        """
-        If the date header is more than five minutes (target API) or 65 minutes
-        (query API) after the request is sent, a `FORBIDDEN` response
+        """If the date header is more than five minutes (target API) or 65
+        minutes (query API) after the request is sent, a `FORBIDDEN` response
         is returned.
 
-        Because there is a small delay in sending requests and Vuforia isn't
-        consistent, some leeway is given.
+        Because there is a small delay in sending requests and Vuforia
+        isn't consistent, some leeway is given.
         """
         netloc = urlparse(url=endpoint.base_url).netloc
         skew = {
@@ -250,13 +248,12 @@ class TestSkewedTime:
 
     @staticmethod
     def test_date_out_of_range_before(endpoint: Endpoint) -> None:
-        """
-        If the date header is more than five minutes (target API) or 65 minutes
-        (query API) before the request is sent, a `FORBIDDEN` response
+        """If the date header is more than five minutes (target API) or 65
+        minutes (query API) before the request is sent, a `FORBIDDEN` response
         is returned.
 
-        Because there is a small delay in sending requests and Vuforia isn't
-        consistent, some leeway is given.
+        Because there is a small delay in sending requests and Vuforia
+        isn't consistent, some leeway is given.
         """
         netloc = urlparse(url=endpoint.base_url).netloc
         skew = {
@@ -327,12 +324,11 @@ class TestSkewedTime:
 
     @staticmethod
     def test_date_in_range_after(endpoint: Endpoint) -> None:
-        """
-        If a date header is within five minutes after the request is sent, no
-        error is returned.
+        """If a date header is within five minutes after the request is sent,
+        no error is returned.
 
-        Because there is a small delay in sending requests and Vuforia isn't
-        consistent, some leeway is given.
+        Because there is a small delay in sending requests and Vuforia
+        isn't consistent, some leeway is given.
         """
         netloc = urlparse(url=endpoint.base_url).netloc
         skew = {
@@ -391,12 +387,11 @@ class TestSkewedTime:
 
     @staticmethod
     def test_date_in_range_before(endpoint: Endpoint) -> None:
-        """
-        If a date header is within five minutes before the request is sent, no
-        error is returned.
+        """If a date header is within five minutes before the request is sent,
+        no error is returned.
 
-        Because there is a small delay in sending requests and Vuforia isn't
-        consistent, some leeway is given.
+        Because there is a small delay in sending requests and Vuforia
+        isn't consistent, some leeway is given.
         """
         netloc = urlparse(url=endpoint.base_url).netloc
         skew = {

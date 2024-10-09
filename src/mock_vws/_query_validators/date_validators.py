@@ -21,8 +21,7 @@ _LOGGER = logging.getLogger(name=__name__)
 
 @beartype
 def validate_date_header_given(*, request_headers: Mapping[str, str]) -> None:
-    """
-    Validate the date header is given to the query endpoint.
+    """Validate the date header is given to the query endpoint.
 
     Args:
         request_headers: The headers sent with the request.
@@ -38,11 +37,10 @@ def validate_date_header_given(*, request_headers: Mapping[str, str]) -> None:
 
 
 def _accepted_date_formats() -> set[str]:
-    """
-    Return all known accepted date formats.
+    """Return all known accepted date formats.
 
-    We expect that more formats than this will be accepted.
-    These are the accepted ones we know of at the time of writing.
+    We expect that more formats than this will be accepted. These are
+    the accepted ones we know of at the time of writing.
     """
     known_accepted_formats = {
         "%a, %b %d %H:%M:%S %Y",
@@ -58,8 +56,7 @@ def _accepted_date_formats() -> set[str]:
 
 @beartype
 def validate_date_format(*, request_headers: Mapping[str, str]) -> None:
-    """
-    Validate the format of the date header given to the query endpoint.
+    """Validate the format of the date header given to the query endpoint.
 
     Args:
         request_headers: The headers sent with the request.
@@ -80,8 +77,7 @@ def validate_date_format(*, request_headers: Mapping[str, str]) -> None:
 
 @beartype
 def validate_date_in_range(*, request_headers: Mapping[str, str]) -> None:
-    """
-    Validate date in the date header given to the query endpoint.
+    """Validate date in the date header given to the query endpoint.
 
     Args:
         request_headers: The headers sent with the request.

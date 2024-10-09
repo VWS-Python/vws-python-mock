@@ -1,4 +1,6 @@
-"""Matchers for query and duplicate requests."""
+"""
+Matchers for query and duplicate requests.
+"""
 
 import io
 from typing import Protocol, runtime_checkable
@@ -14,15 +16,16 @@ from torchmetrics.image import (
 
 @runtime_checkable
 class ImageMatcher(Protocol):
-    """Protocol for a matcher for query and duplicate requests."""
+    """
+    Protocol for a matcher for query and duplicate requests.
+    """
 
     def __call__(
         self,
         first_image_content: bytes,
         second_image_content: bytes,
     ) -> bool:
-        """
-        Whether one image's content matches another's closely enough.
+        """Whether one image's content matches another's closely enough.
 
         Args:
             first_image_content: One image's content.
@@ -35,15 +38,16 @@ class ImageMatcher(Protocol):
 
 @beartype
 class ExactMatcher:
-    """A matcher which returns whether two images are exactly equal."""
+    """
+    A matcher which returns whether two images are exactly equal.
+    """
 
     def __call__(
         self,
         first_image_content: bytes,
         second_image_content: bytes,
     ) -> bool:
-        """
-        Whether one image's content matches another's exactly.
+        """Whether one image's content matches another's exactly.
 
         Args:
             first_image_content: One image's content.
@@ -54,15 +58,16 @@ class ExactMatcher:
 
 @beartype
 class StructuralSimilarityMatcher:
-    """A matcher which returns whether two images are similar using SSIM."""
+    """
+    A matcher which returns whether two images are similar using SSIM.
+    """
 
     def __call__(
         self,
         first_image_content: bytes,
         second_image_content: bytes,
     ) -> bool:
-        """
-        Whether one image's content matches another's using a SSIM.
+        """Whether one image's content matches another's using a SSIM.
 
         Args:
             first_image_content: One image's content.

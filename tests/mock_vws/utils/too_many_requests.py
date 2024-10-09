@@ -12,9 +12,8 @@ from vws.types import Response
 
 @beartype
 def handle_server_errors(*, response: Response) -> None:
-    """
-    Raise errors if the response is a 429 or 5xx.
-    This is useful for retrying tests based on the exceptions they raise.
+    """Raise errors if the response is a 429 or 5xx. This is useful for
+    retrying tests based on the exceptions they raise.
 
     Raises:
         vws.exceptions.vws_exceptions.TooManyRequestsError: The response is a

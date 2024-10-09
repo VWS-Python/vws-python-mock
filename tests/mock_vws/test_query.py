@@ -1,5 +1,4 @@
-"""
-Tests for the mock of the query endpoint.
+"""Tests for the mock of the query endpoint.
 
 https://developer.vuforia.com/library/web-api/vuforia-query-web-api.
 """
@@ -92,8 +91,7 @@ def _query(
     vuforia_database: VuforiaDatabase,
     body: dict[str, Any],
 ) -> Response:
-    """
-    Make a request to the endpoint to make an image recognition query.
+    """Make a request to the endpoint to make an image recognition query.
 
     Args:
         vuforia_database: The credentials to use to connect to
@@ -777,8 +775,7 @@ class TestIncorrectFields:
     def test_missing_image_and_extra_fields(
         vuforia_database: VuforiaDatabase,
     ) -> None:
-        """
-        If extra fields are given and no image field is given, a
+        """If extra fields are given and no image field is given, a
         ``BAD_REQUEST`` response is returned.
 
         The extra field error takes precedence.
@@ -851,11 +848,10 @@ class TestMaxNumResults:
         vuforia_database: VuforiaDatabase,
         num_results: int | bytes,
     ) -> None:
-        """
-        Numbers between 1 and 50 are valid inputs.
+        """Numbers between 1 and 50 are valid inputs.
 
-        We assert that the response is a success, but not that the maximum
-        number of results is enforced.
+        We assert that the response is a success, but not that the
+        maximum number of results is enforced.
 
         This is because uploading 50 images would be very slow.
 
@@ -906,9 +902,8 @@ class TestMaxNumResults:
         num_results: int,
         cloud_reco_client: CloudRecoService,
     ) -> None:
-        """
-        An error is returned if ``max_num_results`` is given as an integer out
-        of the range (1, 50).
+        """An error is returned if ``max_num_results`` is given as an integer
+        out of the range (1, 50).
 
         The documentation at
         https://developer.vuforia.com/library/web-api/vuforia-query-web-api.
@@ -947,12 +942,11 @@ class TestMaxNumResults:
         vuforia_database: VuforiaDatabase,
         num_results: bytes,
     ) -> None:
-        """
-        An error is returned if ``max_num_results`` is given as something other
-        than an integer.
+        """An error is returned if ``max_num_results`` is given as something
+        other than an integer.
 
-        Integers greater than 2147483647 are not considered integers because
-        they are bigger than Java's maximum integer.
+        Integers greater than 2147483647 are not considered integers
+        because they are bigger than Java's maximum integer.
         """
         image_content = high_quality_image.getvalue()
         body = {
@@ -1817,10 +1811,10 @@ class TestUpdate:
         vws_client: VWS,
         cloud_reco_client: CloudRecoService,
     ) -> None:
-        """
-        After a target is updated, only the new image can be matched.
-        The match result includes the updated name, timestamp and application
-        metadata.
+        """After a target is updated, only the new image can be matched.
+
+        The match result includes the updated name, timestamp and
+        application metadata.
         """
         metadata = b"example_metadata"
         metadata_encoded = base64.b64encode(s=metadata).decode(
@@ -1980,8 +1974,7 @@ class TestTargetStatusFailed:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestDateFormats:
-    """
-    Tests for various date formats.
+    """Tests for various date formats.
 
     The date format for the VWS API as per
     https://library.vuforia.com/articles/Training/Using-the-VWS-API.html must
@@ -2012,11 +2005,10 @@ class TestDateFormats:
         *,
         include_tz: bool,
     ) -> None:
-        """
-        Test various date formats which are known to be accepted.
+        """Test various date formats which are known to be accepted.
 
-        We expect that more formats than this will be accepted.
-        These are the accepted ones we know of at the time of writing.
+        We expect that more formats than this will be accepted. These
+        are the accepted ones we know of at the time of writing.
         """
         image_content = high_quality_image.getvalue()
         body = {"image": ("image.jpeg", image_content, "image/jpeg")}

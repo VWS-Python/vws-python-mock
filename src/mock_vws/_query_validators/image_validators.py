@@ -26,8 +26,7 @@ def validate_image_field_given(
     request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:
-    """
-    Validate that the image field is given.
+    """Validate that the image field is given.
 
     Args:
         request_headers: The headers sent with the request.
@@ -58,8 +57,7 @@ def validate_image_file_size(
     request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:
-    """
-    Validate the file size of the image given to the query endpoint.
+    """Validate the file size of the image given to the query endpoint.
 
     Args:
         request_headers: The headers sent with the request.
@@ -99,8 +97,7 @@ def validate_image_dimensions(
     request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:
-    """
-    Validate the dimensions the image given to the query endpoint.
+    """Validate the dimensions the image given to the query endpoint.
 
     Args:
         request_headers: The headers sent with the request.
@@ -138,8 +135,7 @@ def validate_image_format(
     request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:
-    """
-    Validate the format of the image given to the query endpoint.
+    """Validate the format of the image given to the query endpoint.
 
     Args:
         request_headers: The headers sent with the request.
@@ -172,8 +168,7 @@ def validate_image_is_image(
     request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:
-    """
-    Validate that the given image data is actually an image file.
+    """Validate that the given image data is actually an image file.
 
     Args:
         request_headers: The headers sent with the request.
