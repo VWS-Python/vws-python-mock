@@ -35,6 +35,11 @@ repos:
       - id: text-unicode-replacement-char
       - id: rst-backticks
 
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.10.0
+    hooks:
+      - id: hadolint
+
   - repo: local
     hooks:
       - id: custom-linters
@@ -186,17 +191,6 @@ repos:
         language: python
         stages: [manual]
         types_or: [markdown, rst, python, toml]
-
-      - id: hadolint-docker
-        name: Lint Dockerfiles
-        description: Runs hadolint Docker image to lint Dockerfiles
-        language: docker_image
-        types_or: [dockerfile]
-        stages: [manual]  # Requires Docker to be running
-        # We choose not to use a Python wrapper or alternative to hadolint as none
-        # appear to be well maintained, and they require more setup than we would
-        # want.
-        entry: ghcr.io/hadolint/hadolint hadolint
 
       - id: ruff-check-fix
         name: Ruff check fix
