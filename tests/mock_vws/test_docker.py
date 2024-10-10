@@ -12,7 +12,7 @@ import docker
 import pytest
 import requests
 from beartype import beartype
-from docker.errors import BuildError, NotFound
+from docker.errors import NotFound
 from docker.models.containers import Container
 from docker.models.networks import Network
 from tenacity import retry
@@ -109,27 +109,16 @@ def test_build_and_run(
     vws_tag = f"vws-mock-vws:latest-{random}"
     vwq_tag = f"vws-mock-vwq:latest-{random}"
 
-    try:
-        target_manager_image, _ = client.images.build(
-            path=str(repository_root),
-            dockerfile=str(dockerfile),
-            tag=target_manager_tag,
-            target="target-manager",
-            rm=True,
-        )
-    except BuildError as exc:
-        full_log = "\n".join(
-            [item["stream"] for item in exc.build_log if "stream" in item],
-        )
-        # If this assertion fails, it may be useful to look at the other
-        # properties of ``exc``.
-        if (
-            "no matching manifest for windows/amd64" not in exc.msg
-        ):  # pragma: no cover
-            raise AssertionError(full_log) from exc
-        pytest.skip(
-            reason="We do not currently support using Windows containers."
-        )
+    platform = "linux/amd64"
+
+    target_manager_image, _ = client.images.build(
+        path=str(repository_root),
+        dockerfile=str(dockerfile),
+        tag=target_manager_tag,
+        target="target-manager",
+        rm=True,
+        platform=platform,
+    )
 
     vwq_image, _ = client.images.build(
         path=str(repository_root),
@@ -137,6 +126,7 @@ def test_build_and_run(
         tag=vwq_tag,
         target="vwq",
         rm=True,
+        platform=platform,
     )
 
     vws_image, _ = client.images.build(
@@ -145,6 +135,7 @@ def test_build_and_run(
         tag=vws_tag,
         target="vws",
         rm=True,
+        platform=platform,
     )
 
     database = VuforiaDatabase()
@@ -159,6 +150,7 @@ def test_build_and_run(
         name=target_manager_container_name,
         publish_all_ports=True,
         network=custom_bridge_network.name,
+        platform=platform,
     )
     vws_container = client.containers.run(
         image=vws_image,
@@ -169,6 +161,7 @@ def test_build_and_run(
         environment={
             "TARGET_MANAGER_BASE_URL": target_manager_internal_base_url,
         },
+        platform=platform,
     )
     vwq_container = client.containers.run(
         image=vwq_image,
@@ -179,6 +172,7 @@ def test_build_and_run(
         environment={
             "TARGET_MANAGER_BASE_URL": target_manager_internal_base_url,
         },
+        platform=platform,
     )
 
     for container in (target_manager_container, vws_container, vwq_container):
