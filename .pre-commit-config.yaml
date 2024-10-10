@@ -35,6 +35,11 @@ repos:
       - id: text-unicode-replacement-char
       - id: rst-backticks
 
+  - repo: https://github.com/AleksaC/hadolint-py
+    rev: v2.12.1b3
+    hooks:
+      - id: hadolint
+
   - repo: local
     hooks:
       - id: custom-linters
@@ -70,8 +75,9 @@ repos:
 
       - id: shellcheck-docs
         name: shellcheck-docs
+        # We exclude SC2215 as it is a false positive for an unknown reason on Windows.
         entry: uv run --extra=dev doccmd --language=shell --language=console --command="shellcheck
-          --shell=bash --exclude=SC1017"
+          --shell=bash --exclude=SC1017 --exclude=SC2215"
         language: python
         types_or: [markdown, rst]
         additional_dependencies: [uv]
@@ -185,17 +191,6 @@ repos:
         language: python
         stages: [manual]
         types_or: [markdown, rst, python, toml]
-
-      - id: hadolint-docker
-        name: Lint Dockerfiles
-        description: Runs hadolint Docker image to lint Dockerfiles
-        language: docker_image
-        types_or: [dockerfile]
-        stages: [manual]  # Requires Docker to be running
-        # We choose not to use a Python wrapper or alternative to hadolint as none
-        # appear to be well maintained, and they require more setup than we would
-        # want.
-        entry: ghcr.io/hadolint/hadolint hadolint
 
       - id: ruff-check-fix
         name: Ruff check fix
