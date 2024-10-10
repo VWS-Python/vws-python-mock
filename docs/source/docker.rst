@@ -20,22 +20,25 @@ The VWS and VWQ containers must point to the target manager container using the 
 Creating containers
 ^^^^^^^^^^^^^^^^^^^
 
-.. code-block:: console
+.. code-block:: shell
 
-   $ docker network create -d bridge vws-bridge-network
-   $ docker run \
+   docker network create -d bridge vws-bridge-network
+
+   docker run \
        --detach \
        --publish 5005:5000 \
        --name vuforia-target-manager-mock \
        --network vws-bridge-network \
        adamtheturtle/vuforia-target-manager-mock
-   $ docker run \
+
+   docker run \
        --detach \
        --publish 5006:5000 \
        -e TARGET_MANAGER_BACKEND=vuforia-target-manager-mock:5000 \
        --network vws-bridge-network \
        adamtheturtle/vuforia-vws-mock
-   $ docker run \
+
+   docker run \
        --detach \
        --publish 5007:5000 \
        -e TARGET_MANAGER_BACKEND=vuforia-target-manager-mock:5000 \
