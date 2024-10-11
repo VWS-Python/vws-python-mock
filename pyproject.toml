@@ -93,7 +93,7 @@ optional-dependencies.dev = [
     "sphinx-copybutton==0.5.2",
     "sphinx-paramlinks==0.6",
     "sphinx-substitution-extensions==2024.8.6",
-    "sphinx-toolbox==3.8.0",
+    "sphinx-toolbox==3.8.1",
     "sphinxcontrib-httpdomain==1.8.1",
     "sphinxcontrib-spelling==8",
     "sybil==8.0.0",
