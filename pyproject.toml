@@ -375,6 +375,8 @@ exclude_also = [
 [tool.mypy]
 
 strict = true
+files = [ "." ]
+exclude = [ "build" ]
 plugins = [
     "pydantic.mypy",
 ]
