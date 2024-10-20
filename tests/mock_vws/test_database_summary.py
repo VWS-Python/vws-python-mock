@@ -14,7 +14,7 @@ from tenacity.retry import retry_if_exception_type
 from tenacity.stop import stop_after_delay
 from tenacity.wait import wait_fixed
 from vws import VWS, CloudRecoService
-from vws.exceptions.vws_exceptions import Fail
+from vws.exceptions.vws_exceptions import FailError
 
 from mock_vws import MockVWS
 from mock_vws.database import VuforiaDatabase
@@ -54,9 +54,8 @@ def _wait_for_image_numbers(
     failed_images: int,
     processing_images: int,
 ) -> None:
-    """
-    Wait for the number of images in various categories of the database summary
-    to match the expected given numbers.
+    """Wait for the number of images in various categories of the database
+    summary to match the expected given numbers.
 
     Args:
         vws_client: The client to use to connect to Vuforia.
@@ -238,14 +237,13 @@ class TestDatabaseSummary:
 
 
 class TestProcessingImages:
-    """
-    Tests for processing images.
+    """Tests for processing images.
 
-    These tests are run only on the mock, and not the real implementation.
-
-    This is because the real implementation is not reliable.
-    This is a documented difference between the mock and the real
+    These tests are run only on the mock, and not the real
     implementation.
+
+    This is because the real implementation is not reliable. This is a
+    documented difference between the mock and the real implementation.
     """
 
     @staticmethod
@@ -288,8 +286,8 @@ class TestQuotas:
 
     @staticmethod
     def test_quotas(vws_client: VWS) -> None:
-        """
-        Quotas are included in the database summary.
+        """Quotas are included in the database summary.
+
         These match the quotas given for a free license.
         """
         report = vws_client.get_database_summary_report()
@@ -313,12 +311,11 @@ class TestRecos:
         high_quality_image: io.BytesIO,
         vws_client: VWS,
     ) -> None:
-        """
-        The ``*_recos`` counts seem to be delayed by a significant amount of
+        """The ``*_recos`` counts seem to be delayed by a significant amount of
         time.
 
-        We therefore test that they exist, are integers and do not change
-        between quick requests.
+        We therefore test that they exist, are integers and do not
+        change between quick requests.
         """
         target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
@@ -375,7 +372,7 @@ class TestRequestUsage:
         report = vws_client.get_database_summary_report()
         original_request_usage = report.request_usage
 
-        with pytest.raises(expected_exception=Fail) as exc:
+        with pytest.raises(expected_exception=FailError) as exc:
             vws_client.add_target(
                 name="example",
                 width=-1,

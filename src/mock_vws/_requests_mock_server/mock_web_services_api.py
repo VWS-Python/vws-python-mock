@@ -1,5 +1,4 @@
-"""
-A fake implementation of the Vuforia Web Services API.
+"""A fake implementation of the Vuforia Web Services API.
 
 See
 https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api
@@ -11,7 +10,7 @@ import datetime
 import email.utils
 import json
 import uuid
-from collections.abc import Callable
+from collections.abc import Callable, Iterable, Mapping
 from http import HTTPMethod, HTTPStatus
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -39,16 +38,15 @@ _TARGET_ID_PATTERN = "[A-Za-z0-9]+"
 
 _ROUTES: set[Route] = set()
 
-_ResponseType = tuple[int, dict[str, str], str]
+_ResponseType = tuple[int, Mapping[str, str], str]
 
 
 @beartype
 def route(
     path_pattern: str,
-    http_methods: set[HTTPMethod],
+    http_methods: Iterable[HTTPMethod],
 ) -> Callable[[Callable[..., _ResponseType]], Callable[..., _ResponseType]]:
-    """
-    Register a decorated method so that it can be recognized as a route.
+    """Register a decorated method so that it can be recognized as a route.
 
     Args:
         path_pattern: The end part of a URL pattern. E.g. `/targets` or
@@ -59,29 +57,29 @@ def route(
         A decorator which takes methods and makes them recognizable as routes.
     """
 
+    @beartype
     def decorator(
         method: Callable[..., _ResponseType],
     ) -> Callable[..., _ResponseType]:
-        """
-        Register a decorated method so that it can be recognized as a route.
+        """Register a decorated method so that it can be recognized as a route.
 
         Returns:
             The given `method` with multiple changes, including added
             validators.
         """
-        _ROUTES.add(
-            Route(
-                route_name=method.__name__,
-                path_pattern=path_pattern,
-                http_methods=frozenset(http_methods),
-            ),
+        new_route = Route(
+            route_name=method.__name__,
+            path_pattern=path_pattern,
+            http_methods=frozenset(http_methods),
         )
+        _ROUTES.add(new_route)
 
         return method
 
     return decorator
 
 
+@beartype
 def _body_bytes(request: PreparedRequest) -> bytes:
     """
     Return the body of a request as bytes.
@@ -96,15 +94,13 @@ def _body_bytes(request: PreparedRequest) -> bytes:
     return request.body
 
 
-@beartype
+@beartype(conf=BeartypeConf(is_pep484_tower=True))
 class MockVuforiaWebServicesAPI:
-    """
-    A fake implementation of the Vuforia Web Services API.
+    """A fake implementation of the Vuforia Web Services API.
 
     This implementation is tied to the implementation of ``responses``.
     """
 
-    @beartype(conf=BeartypeConf(is_pep484_tower=True))
     def __init__(
         self,
         *,
@@ -127,7 +123,7 @@ class MockVuforiaWebServicesAPI:
             routes: The `Route`s to be used in the mock.
         """
         self._target_manager = target_manager
-        self.routes: set[Route] = _ROUTES
+        self.routes = _ROUTES
         self._processing_time_seconds = processing_time_seconds
         self._duplicate_match_checker = duplicate_match_checker
         self._target_tracking_rater = target_tracking_rater
@@ -137,8 +133,7 @@ class MockVuforiaWebServicesAPI:
         http_methods={HTTPMethod.POST},
     )
     def add_target(self, request: PreparedRequest) -> _ResponseType:
-        """
-        Add a target.
+        """Add a target.
 
         Fake implementation of
         https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#add
@@ -213,8 +208,7 @@ class MockVuforiaWebServicesAPI:
         http_methods={HTTPMethod.DELETE},
     )
     def delete_target(self, request: PreparedRequest) -> _ResponseType:
-        """
-        Delete a target.
+        """Delete a target.
 
         Fake implementation of
         https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#delete
@@ -230,7 +224,6 @@ class MockVuforiaWebServicesAPI:
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
 
-        body: dict[str, str] = {}
         database = get_database_matching_server_keys(
             request_headers=request.headers,
             request_body=_body_bytes(request=request),
@@ -280,8 +273,7 @@ class MockVuforiaWebServicesAPI:
 
     @route(path_pattern="/summary", http_methods={HTTPMethod.GET})
     def database_summary(self, request: PreparedRequest) -> _ResponseType:
-        """
-        Get a database summary report.
+        """Get a database summary report.
 
         Fake implementation of
         https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#summary-report
@@ -296,8 +288,6 @@ class MockVuforiaWebServicesAPI:
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
-
-        body: dict[str, str | int] = {}
 
         database = get_database_matching_server_keys(
             request_headers=request.headers,
@@ -344,8 +334,7 @@ class MockVuforiaWebServicesAPI:
 
     @route(path_pattern="/targets", http_methods={HTTPMethod.GET})
     def target_list(self, request: PreparedRequest) -> _ResponseType:
-        """
-        Get a list of all targets.
+        """Get a list of all targets.
 
         Fake implementation of
         https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#details-list
@@ -378,7 +367,7 @@ class MockVuforiaWebServicesAPI:
         response_results = [
             target.target_id for target in database.not_deleted_targets
         ]
-        body: dict[str, str | list[str]] = {
+        body = {
             "transaction_id": uuid.uuid4().hex,
             "result_code": ResultCodes.SUCCESS.value,
             "results": response_results,
@@ -402,8 +391,7 @@ class MockVuforiaWebServicesAPI:
         http_methods={HTTPMethod.GET},
     )
     def get_target(self, request: PreparedRequest) -> _ResponseType:
-        """
-        Get details of a target.
+        """Get details of a target.
 
         Fake implementation of
         https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#target-record
@@ -468,8 +456,7 @@ class MockVuforiaWebServicesAPI:
         http_methods={HTTPMethod.GET},
     )
     def get_duplicates(self, request: PreparedRequest) -> _ResponseType:
-        """
-        Get targets which may be considered duplicates of a given target.
+        """Get targets which may be considered duplicates of a given target.
 
         Fake implementation of
         https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#check
@@ -497,7 +484,7 @@ class MockVuforiaWebServicesAPI:
 
         other_targets = database.targets - {target}
 
-        similar_targets: list[str] = [
+        similar_targets = [
             other.target_id
             for other in other_targets
             if self._duplicate_match_checker(
@@ -540,8 +527,7 @@ class MockVuforiaWebServicesAPI:
         http_methods={HTTPMethod.PUT},
     )
     def update_target(self, request: PreparedRequest) -> _ResponseType:
-        """
-        Update a target.
+        """Update a target.
 
         Fake implementation of
         https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#update
@@ -567,7 +553,6 @@ class MockVuforiaWebServicesAPI:
 
         target_id = request.path_url.split(sep="/")[-1]
         target = database.get_target(target_id=target_id)
-        body: dict[str, str] = {}
 
         date = email.utils.formatdate(
             timeval=None,
@@ -654,8 +639,7 @@ class MockVuforiaWebServicesAPI:
         http_methods={HTTPMethod.GET},
     )
     def target_summary(self, request: PreparedRequest) -> _ResponseType:
-        """
-        Get a summary report for a target.
+        """Get a summary report for a target.
 
         Fake implementation of
         https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#retrieve-report

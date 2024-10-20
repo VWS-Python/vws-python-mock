@@ -1,4 +1,6 @@
-"""Setup for Sybil."""
+"""
+Setup for Sybil.
+"""
 
 from doctest import ELLIPSIS
 
@@ -32,11 +34,10 @@ pytest_collect_file = Sybil(
 ).pytest()
 
 
-@pytest.hookimpl(optionalhook=True)
 @beartype
+@pytest.hookimpl(optionalhook=True)
 def pytest_set_filtered_exceptions() -> tuple[type[Exception], ...]:
-    """
-    Return exceptions to retry on.
+    """Return exceptions to retry on.
 
     This is for ``pytest-retry``.
     The configuration for retries is in ``pyproject.toml``.

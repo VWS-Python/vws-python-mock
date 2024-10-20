@@ -4,7 +4,7 @@ Validators for target names.
 
 import json
 import logging
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from http import HTTPMethod, HTTPStatus
 
 from beartype import beartype
@@ -27,8 +27,7 @@ def validate_name_characters_in_range(
     request_method: str,
     request_path: str,
 ) -> None:
-    """
-    Validate the characters in the name argument given to a VWS endpoint.
+    """Validate the characters in the name argument given to a VWS endpoint.
 
     Args:
         request_body: The body of the request.
@@ -64,8 +63,7 @@ def validate_name_characters_in_range(
 
 @beartype
 def validate_name_type(*, request_body: bytes) -> None:
-    """
-    Validate the type of the name argument given to a VWS endpoint.
+    """Validate the type of the name argument given to a VWS endpoint.
 
     Args:
         request_body: The body of the request.
@@ -91,8 +89,7 @@ def validate_name_type(*, request_body: bytes) -> None:
 
 @beartype
 def validate_name_length(*, request_body: bytes) -> None:
-    """
-    Validate the length of the name argument given to a VWS endpoint.
+    """Validate the length of the name argument given to a VWS endpoint.
 
     Args:
         request_body: The body of the request.
@@ -121,14 +118,13 @@ def validate_name_length(*, request_body: bytes) -> None:
 @beartype
 def validate_name_does_not_exist_new_target(
     *,
-    databases: set[VuforiaDatabase],
+    databases: Iterable[VuforiaDatabase],
     request_body: bytes,
     request_headers: Mapping[str, str],
     request_method: str,
     request_path: str,
 ) -> None:
-    """
-    Validate that the name does not exist for any existing target.
+    """Validate that the name does not exist for any existing target.
 
     Args:
         databases: All Vuforia databases.
@@ -182,10 +178,9 @@ def validate_name_does_not_exist_existing_target(
     request_body: bytes,
     request_method: str,
     request_path: str,
-    databases: set[VuforiaDatabase],
+    databases: Iterable[VuforiaDatabase],
 ) -> None:
-    """
-    Validate that the name does not exist for any existing target apart from
+    """Validate that the name does not exist for any existing target apart from
     the one being updated.
 
     Args:

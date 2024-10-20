@@ -2,9 +2,14 @@
 A fake implementation of a Vuforia target manager.
 """
 
+from typing import TYPE_CHECKING
+
 from beartype import beartype
 
 from mock_vws.database import VuforiaDatabase
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 
 @beartype
@@ -13,17 +18,14 @@ class TargetManager:
     A target manager as per https://developer.vuforia.com/target-manager.
     """
 
-    @beartype
     def __init__(self) -> None:
         """
         Create a target manager with no databases.
         """
-        self._databases: set[VuforiaDatabase] = set()
+        self._databases: Iterable[VuforiaDatabase] = set()
 
-    @beartype
     def remove_database(self, database: VuforiaDatabase) -> None:
-        """
-        Remove a cloud database.
+        """Remove a cloud database.
 
         Args:
             database: The database to add.
@@ -31,12 +33,10 @@ class TargetManager:
         Raises:
             KeyError: The database is not in the target manager.
         """
-        self._databases.remove(database)
+        self._databases = {db for db in self._databases if db != database}
 
-    @beartype
     def add_database(self, database: VuforiaDatabase) -> None:
-        """
-        Add a cloud database.
+        """Add a cloud database.
 
         Args:
             database: The database to add.
@@ -81,13 +81,11 @@ class TargetManager:
                     message = message_fmt.format(key_name=key_name, value=new)
                     raise ValueError(message)
 
-        self._databases.add(database)
+        self._databases = {*self._databases, database}
 
     @property
-    @beartype
-    @beartype
     def databases(self) -> set[VuforiaDatabase]:
         """
         All cloud databases.
         """
-        return self._databases
+        return set(self._databases)

@@ -40,8 +40,8 @@ Run lint tools either by committing, or with:
 
 .. code-block:: console
 
-   $ pre-commit run --all-files --hook-stage commit --verbose
-   $ pre-commit run --all-files --hook-stage push --verbose
+   $ pre-commit run --all-files --hook-stage pre-commit --verbose
+   $ pre-commit run --all-files --hook-stage pre-push --verbose
    $ pre-commit run --all-files --hook-stage manual --verbose
 
 .. _Homebrew: https://brew.sh
@@ -102,14 +102,14 @@ Skipping Some Tests
 
 Use the following custom ``pytest`` options to skip some tests:
 
-.. code-block:: console
+.. code-block:: text
 
-  --skip-real           Skip tests for Real Vuforia
-  --skip-mock           Skip tests for In Memory Mock Vuforia
-  --skip-docker_in_memory
-                        Skip tests for In Memory version of Docker application
-  --skip-docker_build_tests
-                        Skip tests for building Docker images
+   --skip-real           Skip tests for Real Vuforia
+   --skip-mock           Skip tests for In Memory Mock Vuforia
+   --skip-docker_in_memory
+                         Skip tests for In Memory version of Docker application
+   --skip-docker_build_tests
+                         Skip tests for building Docker images
 
 Documentation
 -------------

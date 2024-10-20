@@ -10,7 +10,7 @@ on:
   schedule:
     # * is a special character in YAML so you have to quote this string
     # Run at 1:00 every day
-    - cron: '0 1 * * *'
+    - cron: 0 1 * * *
   workflow_dispatch: {}
 
 # We share Vuforia credentials and therefore Vuforia databases across
@@ -26,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12"]
+        python-version: ['3.12']
         ci_pattern:
           - tests/mock_vws/test_query.py::TestContentType
           - tests/mock_vws/test_query.py::TestSuccess
@@ -124,12 +124,10 @@ jobs:
           # See https://github.com/codecov/codecov-action/issues/190.
           fetch-depth: 2
 
-      - name: "Set up Python"
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
 
-      - name: "Set secrets file"
+      - name: Set secrets file
         run: |
           # See the "CI Setup" document for details of how this was set up.
           ci/decrypt_secret.sh
@@ -139,12 +137,6 @@ jobs:
           CI_PATTERN: ${{ matrix.ci_pattern }}
           ENCRYPTED_FILE: secrets.tar.gpg
           LARGE_SECRET_PASSPHRASE: ${{ secrets.PASSPHRASE_FOR_VUFORIA_SECRETS }}
-
-      # We do not use the cache action as uv is faster than the cache action.
-      - name: "Install dependencies"
-        run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          uv pip install --system --upgrade --editable .[dev]
 
       # We have seen issues with running out of disk space on test_docker
       - name: Free Disk Space (Ubuntu)
@@ -161,9 +153,9 @@ jobs:
           dotnet: true
           haskell: true
 
-      - name: "Run tests"
+      - name: Run tests
         run: |
-          pytest \
+          uv run --extra=dev pytest \
             -s \
             -vvv \
             --showlocals \
@@ -172,8 +164,10 @@ jobs:
             --cov=tests/ \
             --cov-report=xml \
             ${{ matrix.ci_pattern }}
+        env:
+          UV_PYTHON: ${{ matrix.python-version }}
 
-      - name: "Show coverage file"
+      - name: Show coverage file
         run: |
           # Sometimes we have been sure that we have 100% coverage, but codecov
           # says otherwise.
@@ -190,12 +184,12 @@ jobs:
       #
       # To work around this, we do not upload coverage data on scheduled runs.
       # We print the event name here to help with debugging.
-      - name: "Show event name"
+      - name: Show event name
         run: |
           echo ${{ github.event_name }}
 
-      - name: "Upload coverage to Codecov"
-        uses: "codecov/codecov-action@v4"
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
         with:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}

@@ -1,4 +1,6 @@
-"""Matchers for query and duplicate requests."""
+"""
+Matchers for query and duplicate requests.
+"""
 
 import io
 from typing import Protocol, runtime_checkable
@@ -14,15 +16,16 @@ from torchmetrics.image import (
 
 @runtime_checkable
 class ImageMatcher(Protocol):
-    """Protocol for a matcher for query and duplicate requests."""
+    """
+    Protocol for a matcher for query and duplicate requests.
+    """
 
     def __call__(
         self,
         first_image_content: bytes,
         second_image_content: bytes,
     ) -> bool:
-        """
-        Whether one image's content matches another's closely enough.
+        """Whether one image's content matches another's closely enough.
 
         Args:
             first_image_content: One image's content.
@@ -33,17 +36,18 @@ class ImageMatcher(Protocol):
         ...  # pylint: disable=unnecessary-ellipsis
 
 
+@beartype
 class ExactMatcher:
-    """A matcher which returns whether two images are exactly equal."""
+    """
+    A matcher which returns whether two images are exactly equal.
+    """
 
-    @beartype
     def __call__(
         self,
         first_image_content: bytes,
         second_image_content: bytes,
     ) -> bool:
-        """
-        Whether one image's content matches another's exactly.
+        """Whether one image's content matches another's exactly.
 
         Args:
             first_image_content: One image's content.
@@ -52,17 +56,18 @@ class ExactMatcher:
         return bool(first_image_content == second_image_content)
 
 
+@beartype
 class StructuralSimilarityMatcher:
-    """A matcher which returns whether two images are similar using SSIM."""
+    """
+    A matcher which returns whether two images are similar using SSIM.
+    """
 
-    @beartype
     def __call__(
         self,
         first_image_content: bytes,
         second_image_content: bytes,
     ) -> bool:
-        """
-        Whether one image's content matches another's using a SSIM.
+        """Whether one image's content matches another's using a SSIM.
 
         Args:
             first_image_content: One image's content.
@@ -75,35 +80,35 @@ class StructuralSimilarityMatcher:
         # Images must be the same size, and they must be larger than the
         # default SSIM window size of 11x11.
         target_size = (256, 256)
-        first_image = first_image.resize(size=target_size)
-        second_image = second_image.resize(size=target_size)
+        first_image_resized = first_image.resize(size=target_size)
+        second_image_resized = second_image.resize(size=target_size)
 
-        first_image_np = np.array(first_image, dtype=np.float32)
+        first_image_np = np.array(first_image_resized, dtype=np.float32)
         first_image_tensor = torch.tensor(first_image_np).float() / 255
         first_image_tensor = first_image_tensor.view(
-            first_image.size[1],
-            first_image.size[0],
-            len(first_image.getbands()),
+            first_image_resized.size[1],
+            first_image_resized.size[0],
+            len(first_image_resized.getbands()),
         )
 
-        second_image_np = np.array(second_image, dtype=np.float32)
+        second_image_np = np.array(second_image_resized, dtype=np.float32)
         second_image_tensor = torch.tensor(second_image_np).float() / 255
         second_image_tensor = second_image_tensor.view(
-            second_image.size[1],
-            second_image.size[0],
-            len(second_image.getbands()),
+            second_image_resized.size[1],
+            second_image_resized.size[0],
+            len(second_image_resized.getbands()),
         )
 
         first_image_tensor_batch_dimension = first_image_tensor.permute(
             2,
             0,
             1,
-        ).unsqueeze(0)
+        ).unsqueeze(dim=0)
         second_image_tensor_batch_dimension = second_image_tensor.permute(
             2,
             0,
             1,
-        ).unsqueeze(0)
+        ).unsqueeze(dim=0)
 
         ssim = StructuralSimilarityIndexMeasure(data_range=1.0)
         ssim_value = ssim(

@@ -10,9 +10,8 @@ from http import HTTPStatus
 from string import hexdigits
 from zoneinfo import ZoneInfo
 
-import requests
 from beartype import beartype
-from vws.exceptions.response import Response
+from vws.types import Response
 
 from mock_vws._constants import ResultCodes
 
@@ -20,12 +19,11 @@ from mock_vws._constants import ResultCodes
 @beartype
 def assert_vws_failure(
     *,
-    response: requests.Response | Response,
+    response: Response,
     status_code: int,
     result_code: ResultCodes,
 ) -> None:
-    """
-    Assert that a VWS failure response is as expected.
+    """Assert that a VWS failure response is as expected.
 
     Args:
         response: The response returned by a request to VWS.
@@ -50,11 +48,10 @@ def assert_vws_failure(
 @beartype
 def assert_valid_date_header(
     *,
-    response: requests.Response | Response,
+    response: Response,
 ) -> None:
-    """
-    Assert that a response includes a `Date` header which is within two minutes
-    of "now".
+    """Assert that a response includes a `Date` header which is within two
+    minutes of "now".
 
     Args:
         response: The response returned by a request to a Vuforia service.
@@ -85,10 +82,9 @@ def assert_valid_date_header(
 @beartype
 def assert_valid_transaction_id(
     *,
-    response: requests.Response | Response,
+    response: Response,
 ) -> None:
-    """
-    Assert that a response includes a valid transaction ID.
+    """Assert that a response includes a valid transaction ID.
 
     Args:
         response: The response returned by a request to a Vuforia service.
@@ -103,9 +99,8 @@ def assert_valid_transaction_id(
 
 
 @beartype
-def assert_json_separators(*, response: requests.Response | Response) -> None:
-    """
-    Assert that a JSON response is formatted correctly.
+def assert_json_separators(*, response: Response) -> None:
+    """Assert that a JSON response is formatted correctly.
 
     Args:
         response: The response returned by a request to a Vuforia service.
@@ -122,12 +117,11 @@ def assert_json_separators(*, response: requests.Response | Response) -> None:
 @beartype
 def assert_vws_response(
     *,
-    response: requests.Response | Response,
+    response: Response,
     status_code: int,
     result_code: ResultCodes,
 ) -> None:
-    """
-    Assert that a VWS response is as expected, at least in part.
+    """Assert that a VWS response is as expected, at least in part.
 
     https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#result-codes
     implies that the expected status code can be worked out from the result
@@ -174,9 +168,8 @@ def assert_vws_response(
 
 
 @beartype
-def assert_query_success(*, response: requests.Response) -> None:
-    """
-    Assert that the given response is a success response for performing an
+def assert_query_success(*, response: Response) -> None:
+    """Assert that the given response is a success response for performing an
     image recognition query.
 
     Raises:
@@ -208,7 +201,7 @@ def assert_query_success(*, response: requests.Response) -> None:
 
     expected_response_header_not_chunked = {
         "Connection": "keep-alive",
-        "Content-Length": str(response.raw.tell()),
+        "Content-Length": str(response.tell_position),
         "Content-Type": "application/json",
         "Server": "nginx",
     }
@@ -229,15 +222,14 @@ def assert_query_success(*, response: requests.Response) -> None:
 
 def assert_vwq_failure(
     *,
-    response: requests.Response | Response,
+    response: Response,
     status_code: int,
     content_type: str | None,
     cache_control: str | None,
     www_authenticate: str | None,
     connection: str,
 ) -> None:
-    """
-    Assert that a VWQ failure response is as expected.
+    """Assert that a VWQ failure response is as expected.
 
     Args:
         response: The response returned by a request to VWQ.
@@ -273,7 +265,7 @@ def assert_vwq_failure(
 
     # Sometimes the "transfer-encoding" is given.
     # It is not given by the mock.
-    response_header_keys_chunked = copy.copy(response_header_keys)
+    response_header_keys_chunked = copy.copy(x=response_header_keys)
     response_header_keys_chunked.remove("Content-Length")
     response_header_keys_chunked.add("transfer-encoding")
 

@@ -2,13 +2,13 @@
 Tests for giving invalid JSON to endpoints.
 """
 
+import json
 from datetime import datetime, timedelta
 from http import HTTPStatus
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
 import pytest
-import requests
 from freezegun import freeze_time
 from vws_auth_tools import authorization_header, rfc_1123_date
 
@@ -44,21 +44,34 @@ class TestInvalidJSON:
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
             secret_key=endpoint.secret_key,
-            method=endpoint.prepared_request.method or "",
+            method=endpoint.method,
             content=content,
             content_type=endpoint.auth_header_content_type,
             date=date,
-            request_path=endpoint.prepared_request.path_url,
+            request_path=endpoint.path_url,
         )
 
-        endpoint.prepared_request.headers.update(
-            {"Authorization": authorization_string, "Date": date}
+        new_headers = {
+            **endpoint.headers,
+            "Authorization": authorization_string,
+            "Date": date,
+            "Content-Length": str(len(content)),
+        }
+
+        new_endpoint = Endpoint(
+            base_url=endpoint.base_url,
+            path_url=endpoint.path_url,
+            method=endpoint.method,
+            headers=new_headers,
+            data=content,
+            successful_headers_result_code=endpoint.successful_headers_result_code,
+            successful_headers_status_code=endpoint.successful_headers_status_code,
+            access_key=endpoint.access_key,
+            secret_key=endpoint.secret_key,
         )
 
-        endpoint.prepared_request.body = content
-        endpoint.prepared_request.prepare_content_length(body=content)
-        session = requests.Session()
-        response = session.send(request=endpoint.prepared_request)
+        response = new_endpoint.send()
+
         handle_server_errors(response=response)
 
         takes_json_data = (
@@ -75,8 +88,7 @@ class TestInvalidJSON:
             )
             return
 
-        url = endpoint.prepared_request.url or ""
-        netloc = urlparse(url=url).netloc
+        netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":
             assert_vwq_failure(
                 response=response,
@@ -113,21 +125,34 @@ class TestInvalidJSON:
         authorization_string = authorization_header(
             access_key=endpoint.access_key,
             secret_key=endpoint.secret_key,
-            method=endpoint.prepared_request.method or "",
+            method=endpoint.method,
             content=content,
             content_type=endpoint.auth_header_content_type,
             date=date,
-            request_path=endpoint.prepared_request.path_url,
+            request_path=endpoint.path_url,
         )
 
-        endpoint.prepared_request.headers.update(
-            {"Authorization": authorization_string, "Date": date},
+        new_headers = {
+            **endpoint.headers,
+            "Authorization": authorization_string,
+            "Content-Length": str(len(content)),
+            "Date": date,
+        }
+
+        new_endpoint = Endpoint(
+            base_url=endpoint.base_url,
+            path_url=endpoint.path_url,
+            method=endpoint.method,
+            headers=new_headers,
+            data=content,
+            successful_headers_result_code=endpoint.successful_headers_result_code,
+            successful_headers_status_code=endpoint.successful_headers_status_code,
+            access_key=endpoint.access_key,
+            secret_key=endpoint.secret_key,
         )
 
-        endpoint.prepared_request.body = content
-        endpoint.prepared_request.prepare_content_length(body=content)
-        session = requests.Session()
-        response = session.send(request=endpoint.prepared_request)
+        response = new_endpoint.send()
+
         handle_server_errors(response=response)
 
         takes_json_data = (
@@ -144,14 +169,15 @@ class TestInvalidJSON:
             )
             return
 
-        url = endpoint.prepared_request.url or ""
-        netloc = urlparse(url=url).netloc
+        netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":
-            assert response.json().keys() == {
+            response_json = json.loads(s=response.text)
+            assert isinstance(response_json, dict)
+            assert response_json.keys() == {
                 "transaction_id",
                 "result_code",
             }
-            assert response.json()["result_code"] == "RequestTimeTooSkewed"
+            assert response_json["result_code"] == "RequestTimeTooSkewed"
             assert_valid_transaction_id(response=response)
             assert_vwq_failure(
                 response=response,

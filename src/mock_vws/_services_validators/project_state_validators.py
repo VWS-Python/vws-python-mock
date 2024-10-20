@@ -3,7 +3,7 @@ Validators for the project state.
 """
 
 import logging
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from http import HTTPMethod
 
 from beartype import beartype
@@ -23,10 +23,9 @@ def validate_project_state(
     request_headers: Mapping[str, str],
     request_body: bytes,
     request_method: str,
-    databases: set[VuforiaDatabase],
+    databases: Iterable[VuforiaDatabase],
 ) -> None:
-    """
-    Validate the state of the project.
+    """Validate the state of the project.
 
     Args:
         request_path: The path of the request.

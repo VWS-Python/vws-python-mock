@@ -2,7 +2,7 @@
 Input validators to use in the mock.
 """
 
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 
 from mock_vws.database import VuforiaDatabase
 
@@ -56,10 +56,9 @@ def run_services_validators(
     request_headers: Mapping[str, str],
     request_body: bytes,
     request_method: str,
-    databases: set[VuforiaDatabase],
+    databases: Iterable[VuforiaDatabase],
 ) -> None:
-    """
-    Run all validators.
+    """Run all validators.
 
     Args:
         request_path: The path of the request.

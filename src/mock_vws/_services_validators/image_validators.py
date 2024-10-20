@@ -23,8 +23,7 @@ _LOGGER = logging.getLogger(name=__name__)
 
 @beartype
 def validate_image_format(*, request_body: bytes) -> None:
-    """
-    Validate the format of the image given to a VWS endpoint.
+    """Validate the format of the image given to a VWS endpoint.
 
     Args:
         request_body: The body of the request.
@@ -54,8 +53,7 @@ def validate_image_format(*, request_body: bytes) -> None:
 
 @beartype
 def validate_image_color_space(*, request_body: bytes) -> None:
-    """
-    Validate the color space of the image given to a VWS endpoint.
+    """Validate the color space of the image given to a VWS endpoint.
 
     Args:
         request_body: The body of the request.
@@ -88,8 +86,7 @@ def validate_image_color_space(*, request_body: bytes) -> None:
 
 @beartype
 def validate_image_size(*, request_body: bytes) -> None:
-    """
-    Validate the file size of the image given to a VWS endpoint.
+    """Validate the file size of the image given to a VWS endpoint.
 
     Args:
         request_body: The body of the request.
@@ -119,8 +116,7 @@ def validate_image_size(*, request_body: bytes) -> None:
 
 @beartype
 def validate_image_is_image(*, request_body: bytes) -> None:
-    """
-    Validate that the given image data is actually an image file.
+    """Validate that the given image data is actually an image file.
 
     Args:
         request_body: The body of the request.
@@ -148,8 +144,7 @@ def validate_image_is_image(*, request_body: bytes) -> None:
 
 @beartype
 def validate_image_encoding(*, request_body: bytes) -> None:
-    """
-    Validate that the given image data can be base64 decoded.
+    """Validate that the given image data can be base64 decoded.
 
     Args:
         request_body: The body of the request.
@@ -175,8 +170,7 @@ def validate_image_encoding(*, request_body: bytes) -> None:
 
 @beartype
 def validate_image_data_type(*, request_body: bytes) -> None:
-    """
-    Validate that the given image data is a string.
+    """Validate that the given image data is a string.
 
     Args:
         request_body: The body of the request.

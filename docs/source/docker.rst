@@ -61,9 +61,9 @@ For example, with the containers set up as in :ref:`creating-containers`, use ``
 .. code-block:: console
 
    $ curl --request POST \
-     --header "Content-Type: application/json" \
-     --data '{}' \
-     '127.0.0.1:5005/databases'
+       --header "Content-Type: application/json" \
+       --data '{}' \
+       '127.0.0.1:5005/databases'
    {
        "client_access_key": "2d61c1d17bb94694bee77c1f1f41e5d9",
        "client_secret_key": "b73f8170cf7d42728fa8ce66221ad147",
@@ -154,13 +154,13 @@ Building images from source
 
 .. code-block:: console
 
-   $ export REPOSITORY_ROOT=$PWD
-   $ export DOCKERFILE=$REPOSITORY_ROOT/src/mock_vws/_flask_server/Dockerfile
+   $ export REPOSITORY_ROOT="$PWD"
+   $ export DOCKERFILE="$REPOSITORY_ROOT/src/mock_vws/_flask_server/Dockerfile"
 
    $ export TARGET_MANAGER_TAG=adamtheturtle/vuforia-target-manager-mock:latest
    $ export VWS_TAG=adamtheturtle/vuforia-vws-mock:latest
    $ export VWQ_TAG=adamtheturtle/vuforia-vwq-mock:latest
 
-   $ docker buildx build $REPOSITORY_ROOT --file $DOCKERFILE --target target-manager --tag $TARGET_MANAGER_TAG
-   $ docker buildx build $REPOSITORY_ROOT --file $DOCKERFILE --target vws --tag $VWS_TAG
-   $ docker buildx build $REPOSITORY_ROOT --file $DOCKERFILE --target vwq --tag $VWQ_TAG
+   $ docker buildx build "$REPOSITORY_ROOT" --file "$DOCKERFILE" --target target-manager --tag "$TARGET_MANAGER_TAG"
+   $ docker buildx build "$REPOSITORY_ROOT" --file "$DOCKERFILE" --target vws --tag "$VWS_TAG"
+   $ docker buildx build "$REPOSITORY_ROOT" --file "$DOCKERFILE" --target vwq --tag "$VWQ_TAG"

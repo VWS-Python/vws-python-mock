@@ -3,6 +3,7 @@ Utilities for managing mock Vuforia databases.
 """
 
 import uuid
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import Self, TypedDict
 
@@ -13,6 +14,7 @@ from mock_vws.states import States
 from mock_vws.target import Target, TargetDict
 
 
+@beartype
 class DatabaseDict(TypedDict):
     """
     A dictionary type which represents a database.
@@ -24,7 +26,7 @@ class DatabaseDict(TypedDict):
     client_access_key: str
     client_secret_key: str
     state_name: str
-    targets: list[TargetDict]
+    targets: Iterable[TargetDict]
 
 
 @beartype
@@ -38,8 +40,7 @@ def _random_hex() -> str:
 @beartype
 @dataclass(eq=True, frozen=True)
 class VuforiaDatabase:
-    """
-    Credentials for VWS APIs.
+    """Credentials for VWS APIs.
 
     Args:
         database_name: The name of a VWS target manager database name. Defaults
@@ -76,7 +77,6 @@ class VuforiaDatabase:
     total_recos: int = 0
     target_quota: int = 1000
 
-    @beartype
     def to_dict(self) -> DatabaseDict:
         """
         Dump a target to a dictionary which can be loaded as JSON.
@@ -92,7 +92,6 @@ class VuforiaDatabase:
             "targets": targets,
         }
 
-    @beartype
     def get_target(self, target_id: str) -> Target:
         """
         Return a target from the database with the given ID.
@@ -121,7 +120,6 @@ class VuforiaDatabase:
         )
 
     @property
-    @beartype
     def not_deleted_targets(self) -> set[Target]:
         """
         All targets which have not been deleted.
@@ -129,7 +127,6 @@ class VuforiaDatabase:
         return {target for target in self.targets if not target.delete_date}
 
     @property
-    @beartype
     def active_targets(self) -> set[Target]:
         """
         All active targets.
@@ -142,7 +139,6 @@ class VuforiaDatabase:
         }
 
     @property
-    @beartype
     def inactive_targets(self) -> set[Target]:
         """
         All inactive targets.
@@ -155,7 +151,6 @@ class VuforiaDatabase:
         }
 
     @property
-    @beartype
     def failed_targets(self) -> set[Target]:
         """
         All failed targets.
@@ -167,7 +162,6 @@ class VuforiaDatabase:
         }
 
     @property
-    @beartype
     def processing_targets(self) -> set[Target]:
         """
         All processing targets.

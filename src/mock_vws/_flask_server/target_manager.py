@@ -30,26 +30,36 @@ TARGET_MANAGER_FLASK_APP = Flask(import_name=__name__, static_folder=None)
 TARGET_MANAGER = TargetManager()
 
 
+@beartype
 class _TargetRaterChoice(StrEnum):
-    """Target rater choices."""
+    """
+    Target rater choices.
+    """
 
     BRISQUE = auto()
     PERFECT = auto()
     RANDOM = auto()
 
     def to_target_rater(self) -> TargetTrackingRater:
-        """Get the target rater."""
-        rater = {
-            _TargetRaterChoice.BRISQUE: BrisqueTargetTrackingRater(),
-            _TargetRaterChoice.PERFECT: HardcodedTargetTrackingRater(rating=5),
-            _TargetRaterChoice.RANDOM: RandomTargetTrackingRater(),
-        }[self]
-        assert isinstance(rater, TargetTrackingRater)
-        return rater
+        """
+        Get the target rater.
+        """
+        match self:
+            case self.BRISQUE:
+                return BrisqueTargetTrackingRater()
+            case self.PERFECT:
+                return HardcodedTargetTrackingRater(rating=5)
+            case self.RANDOM:
+                return RandomTargetTrackingRater()
+
+        raise ValueError  # pragma: no cover
 
 
+@beartype
 class TargetManagerSettings(BaseSettings):
-    """Settings for the Target Manager Flask app."""
+    """
+    Settings for the Target Manager Flask app.
+    """
 
     target_manager_host: str = ""
     target_rater: _TargetRaterChoice = _TargetRaterChoice.BRISQUE
@@ -59,9 +69,9 @@ class TargetManagerSettings(BaseSettings):
     "/databases/<string:database_name>",
     methods=[HTTPMethod.DELETE],
 )
+@beartype
 def delete_database(database_name: str) -> Response:
-    """
-    Delete a database.
+    """Delete a database.
 
     :status 200: The database has been deleted.
     """
@@ -92,32 +102,43 @@ def get_databases() -> Response:
 
 
 @TARGET_MANAGER_FLASK_APP.route("/databases", methods=[HTTPMethod.POST])
+@beartype
 def create_database() -> Response:
-    """
-    Create a new database.
+    """Create a new database.
 
     :reqheader Content-Type: application/json
     :resheader Content-Type: application/json
 
     :reqjson string client_access_key: (Optional) The client access key for the
       database.
+
     :reqjson string client_secret_key: (Optional) The client secret key for the
       database.
+
     :reqjson string database_name: (Optional) The name of the database.
+
     :reqjson string server_access_key: (Optional) The server access key for the
       database.
+
     :reqjson string server_secret_key: (Optional) The server secret key for the
       database.
+
     :reqjson string state_name: (Optional) The state of the database. This can
      be "WORKING" or "PROJECT_INACTIVE". This defaults to "WORKING".
 
     :resjson string client_access_key: The client access key for the database.
+
     :resjson string client_secret_key: The client secret key for the database.
+
     :resjson string database_name: The database name.
+
     :resjson string server_access_key: The server access key for the database.
+
     :resjson string server_secret_key: The server secret key for the database.
+
     :resjson string state_name: The database state. This will be "WORKING" or
       "PROJECT_INACTIVE".
+
     :reqjsonarr targets: The targets in the database.
 
     :status 201: The database has been successfully created.
@@ -177,6 +198,7 @@ def create_database() -> Response:
     "/databases/<string:database_name>/targets",
     methods=[HTTPMethod.POST],
 )
+@beartype
 def create_target(database_name: str) -> Response:
     """
     Create a new target in a given database.
@@ -212,8 +234,9 @@ def create_target(database_name: str) -> Response:
 
 @TARGET_MANAGER_FLASK_APP.route(
     "/databases/<string:database_name>/targets/<string:target_id>",
-    methods=[HTTPMethod.DELETE],
+    methods={HTTPMethod.DELETE},
 )
+@beartype
 def delete_target(database_name: str, target_id: str) -> Response:
     """
     Delete a target.

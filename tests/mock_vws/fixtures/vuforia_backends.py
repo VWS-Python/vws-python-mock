@@ -14,7 +14,7 @@ from beartype import beartype
 from requests_mock_flask import add_flask_app_to_mock
 from vws import VWS
 from vws.exceptions.vws_exceptions import (
-    TargetStatusNotSuccess,
+    TargetStatusNotSuccessError,
 )
 
 from mock_vws import MockVWS
@@ -31,8 +31,7 @@ LOGGER.setLevel(level=logging.DEBUG)
 
 @RETRY_ON_TOO_MANY_REQUESTS
 def _delete_all_targets(*, database_keys: VuforiaDatabase) -> None:
-    """
-    Delete all targets.
+    """Delete all targets.
 
     Args:
         database_keys: The credentials to the Vuforia target database to delete
@@ -54,7 +53,7 @@ def _delete_all_targets(*, database_keys: VuforiaDatabase) -> None:
         )
         # Even deleted targets can be matched by a query for a few seconds so
         # we change the target to inactive before deleting it.
-        with contextlib.suppress(TargetStatusNotSuccess):
+        with contextlib.suppress(TargetStatusNotSuccessError):
             vws_client.update_target(target_id=target, active_flag=False)
         vws_client.wait_for_target_processed(target_id=target)
         vws_client.delete_target(target_id=target)
@@ -66,8 +65,10 @@ def _enable_use_real_vuforia(
     working_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
     monkeypatch: pytest.MonkeyPatch,
-) -> Generator[None, None, None]:
-    """Test against the real Vuforia."""
+) -> Generator[None]:
+    """
+    Test against the real Vuforia.
+    """
     assert monkeypatch
     assert inactive_database
     _delete_all_targets(database_keys=working_database)
@@ -80,8 +81,10 @@ def _enable_use_mock_vuforia(
     working_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
     monkeypatch: pytest.MonkeyPatch,
-) -> Generator[None, None, None]:
-    """Test against the in-memory mock Vuforia."""
+) -> Generator[None]:
+    """
+    Test against the in-memory mock Vuforia.
+    """
     assert monkeypatch
     working_database = VuforiaDatabase(
         database_name=working_database.database_name,
@@ -112,8 +115,10 @@ def _enable_use_docker_in_memory(
     working_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
     monkeypatch: pytest.MonkeyPatch,
-) -> Generator[None, None, None]:
-    """Test against mock Vuforia created to be run in a container."""
+) -> Generator[None]:
+    """
+    Test against mock Vuforia created to be run in a container.
+    """
     # We set ``wsgi.input_terminated`` to ``True`` so that when going through
     # ``requests`` in our tests, the Flask applications
     # have the given ``Content-Length`` headers and the given data in
@@ -214,7 +219,9 @@ def pytest_collection_modifyitems(
     config: pytest.Config,
     items: list[pytest.Function],
 ) -> None:
-    """Skip Docker tests if requested."""
+    """
+    Skip Docker tests if requested.
+    """
     skip_docker_build_tests_option = "--skip-docker_build_tests"
     skip_docker_build_tests_marker = pytest.mark.skip(
         reason=(
@@ -230,18 +237,18 @@ def pytest_collection_modifyitems(
 
 @beartype
 @pytest.fixture(
+    name="verify_mock_vuforia",
     params=list(VuforiaBackend),
     ids=[backend.value for backend in list(VuforiaBackend)],
 )
-def verify_mock_vuforia(
+def fixture_verify_mock_vuforia(
     request: pytest.FixtureRequest,
     vuforia_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
     monkeypatch: pytest.MonkeyPatch,
-) -> Generator[None, None, None]:
-    """
-    Test functions which use this fixture are run multiple times. Once with the
-    real Vuforia, and once with each mock.
+) -> Generator[None]:
+    """Test functions which use this fixture are run multiple times. Once with
+    the real Vuforia, and once with each mock.
 
     This is useful for verifying the mocks.
 
@@ -283,10 +290,9 @@ def mock_only_vuforia(
     vuforia_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
     monkeypatch: pytest.MonkeyPatch,
-) -> Generator[None, None, None]:
-    """
-    Test functions which use this fixture are run multiple times. Once with the
-    each mock.
+) -> Generator[None]:
+    """Test functions which use this fixture are run multiple times. Once with
+    the each mock.
 
     This is useful for testing the mock using fixtures which connect to
     Vuforia.

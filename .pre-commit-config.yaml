@@ -1,181 +1,318 @@
+---
+fail_fast: true
+
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
 default_install_hook_types: [pre-commit, pre-push, commit-msg]
+
 repos:
-- repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.6.0
-  hooks:
-  - id: check-added-large-files
-  - id: check-case-conflict
-  - id: check-executables-have-shebangs
-  - id: check-merge-conflict
-  - id: check-shebang-scripts-are-executable
-  - id: check-symlinks
-  - id: check-toml
-  - id: check-vcs-permalinks
-  - id: check-yaml
-  - id: end-of-file-fixer
-  - id: file-contents-sorter
-    files: spelling_private_dict\.txt$
-  - id: trailing-whitespace
-    exclude: ^src/mock_vws/resources/
-- repo: local
-  hooks:
-  - id: custom-linters
-    name: custom-linters
-    entry: pytest ci/custom_linters.py
-    stages: [push]
-    language: system
-    types_or: [yaml, python]
-    pass_filenames: false
+  - repo: meta
+    hooks:
+      - id: check-useless-excludes
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-case-conflict
+      - id: check-executables-have-shebangs
+      - id: check-merge-conflict
+      - id: check-shebang-scripts-are-executable
+      - id: check-symlinks
+      - id: check-json
+      - id: check-toml
+      - id: check-vcs-permalinks
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: file-contents-sorter
+        files: spelling_private_dict\.txt$
+      - id: trailing-whitespace
+        exclude: ^src/mock_vws/resources/
+  - repo: https://github.com/pre-commit/pygrep-hooks
+    rev: v1.10.0
+    hooks:
+      - id: rst-directive-colons
+      - id: rst-inline-touching-normal
+      - id: text-unicode-replacement-char
+      - id: rst-backticks
 
-  - id: actionlint
-    name: actionlint
-    entry: actionlint
-    language: system
-    pass_filenames: false
-    types_or: [yaml]
+  - repo: https://github.com/AleksaC/hadolint-py
+    rev: v2.12.1b3
+    hooks:
+      - id: hadolint
 
-  - id: mypy
-    name: mypy
-    stages: [push]
-    entry: mypy .
-    language: system
-    types_or: [python, toml]
-    pass_filenames: false
+  - repo: local
+    hooks:
+      - id: custom-linters
+        name: custom-linters
+        entry: uv run --extra=dev -m pytest ci/test_custom_linters.py
+        stages: [pre-push]
+        language: python
+        types_or: [yaml, python]
+        pass_filenames: false
+        additional_dependencies: [uv]
 
-  - id: check-manifest
-    name: check-manifest
-    stages: [push]
-    entry: check-manifest .
-    language: system
-    pass_filenames: false
+      - id: actionlint
+        name: actionlint
+        entry: uv run --extra=dev actionlint
+        language: python
+        pass_filenames: false
+        types_or: [yaml]
+        additional_dependencies: [uv]
 
-  - id: pyright
-    name: pyright
-    stages: [push]
-    entry: pyright .
-    language: system
-    types_or: [python, toml]
-    pass_filenames: false
+      - id: docformatter
+        name: docformatter
+        entry: uv run --extra=dev -m docformatter --in-place
+        language: python
+        types_or: [python]
+        additional_dependencies: [uv]
 
-  - id: pyright-verifytypes
-    name: pyright-verifytypes
-    stages: [push]
-    entry: pyright --verifytypes mock_vws
-    language: system
-    pass_filenames: false
-    types_or: [python]
+      - id: shellcheck
+        name: shellcheck
+        entry: uv run --extra=dev shellcheck --shell=bash
+        language: python
+        types_or: [shell]
+        additional_dependencies: [uv]
 
-  - id: vulture
-    name: vulture
-    entry: vulture --min-confidence 100 --exclude .eggs
-    language: system
-    types_or: [python]
+      - id: shellcheck-docs
+        name: shellcheck-docs
+        # We exclude SC2215 as it is a false positive for an unknown reason on Windows.
+        entry: uv run --extra=dev doccmd --language=shell --language=console --command="shellcheck
+          --shell=bash --exclude=SC2215"
+        language: python
+        types_or: [markdown, rst]
+        additional_dependencies: [uv]
 
-  - id: pyroma
-    name: pyroma
-    entry: pyroma --min 10 .
-    language: system
-    pass_filenames: false
-    types_or: [toml]
+      - id: shfmt
+        name: shfmt
+        entry: shfmt --write --space-redirects --indent=4
+        language: python
+        types_or: [shell]
+        additional_dependencies: [uv]
 
-  - id: deptry
-    name: deptry
-    entry: deptry src/
-    language: system
-    pass_filenames: false
+      - id: shfmt-docs
+        name: shfmt-docs
+        entry: uv run --extra=dev doccmd --language=shell --language=console --skip-marker=shfmt
+          --no-pad-file --command="shfmt --write --space-redirects --indent=4"
+        language: python
+        types_or: [markdown, rst]
+        additional_dependencies: [uv]
 
-  - id: pylint
-    name: pylint
-    entry: pylint *.py src/ tests/ docs/ ci/
-    language: system
-    stages: [manual]
-    pass_filenames: false
+      - id: mypy
+        name: mypy
+        stages: [pre-push]
+        entry: uv run --extra=dev -m mypy
+        language: python
+        types_or: [python, toml]
+        pass_filenames: false
+        additional_dependencies: [uv]
 
-  - id: hadolint-docker
-    name: Lint Dockerfiles
-    description: Runs hadolint Docker image to lint Dockerfiles
-    language: docker_image
-    types_or: [dockerfile]
-    stages: [manual]     # Requires Docker to be running
-        # We choose not to use a Python wrapper or alternative to hadolint as none
-        # appear to be well maintained, and they require more setup than we would
-        # want.
-    entry: ghcr.io/hadolint/hadolint hadolint
+      - id: mypy-docs
+        name: mypy-docs
+        stages: [pre-push]
+        entry: uv run --extra=dev doccmd --language=python --command="mypy"
+        language: python
+        types_or: [markdown, rst, python, toml]
 
-  - id: ruff-check-fix
-    name: Ruff check fix
-    entry: ruff check --fix
-    language: system
-    types_or: [python]
+      - id: check-manifest
+        name: check-manifest
+        stages: [pre-push]
+        entry: uv run --extra=dev -m check_manifest
+        language: python
+        pass_filenames: false
+        additional_dependencies: [uv]
 
-  - id: ruff-format-fix
-    name: Ruff format
-    entry: ruff format
-    language: system
-    types_or: [python]
+      - id: pyright
+        name: pyright
+        stages: [pre-push]
+        entry: uv run --extra=dev -m pyright .
+        language: python
+        types_or: [python, toml]
+        pass_filenames: false
+        additional_dependencies: [uv]
 
-  - id: doc8
-    name: doc8
-    entry: doc8
-    language: system
-    types_or: [rst]
+      - id: pyright-docs
+        name: pyright-docs
+        stages: [pre-push]
+        entry: uv run --extra=dev doccmd --language=python --command="pyright"
+        language: python
+        types_or: [markdown, rst, python, toml]
 
-  - id: interrogate
-    name: interrogate
-    entry: interrogate src/ tests/ ci/
-    language: system
-    types_or: [python]
+      - id: pyright-verifytypes
+        name: pyright-verifytypes
+        stages: [pre-push]
+        entry: uv run --extra=dev -m pyright --verifytypes mock_vws
+        language: python
+        pass_filenames: false
+        types_or: [python]
+        additional_dependencies: [uv]
 
-  - id: pyproject-fmt-fix
-    name: pyproject-fmt
-    entry: pyproject-fmt
-    language: system
-    types_or: [toml]
-    files: pyproject.toml
+      - id: vulture
+        name: vulture
+        entry: uv run --extra=dev -m vulture .
+        language: python
+        types_or: [python]
+        pass_filenames: false
+        additional_dependencies: [uv]
 
-  - id: linkcheck
-    name: linkcheck
-    entry: make -C docs/ linkcheck SPHINXOPTS=-W
-    language: system
-    types_or: [rst]
-    stages: [manual]
-    pass_filenames: false
+      - id: vulture-docs
+        name: vulture docs
+        entry: uv run --extra=dev doccmd --language=python --command="vulture"
+        language: python
+        types_or: [python]
+        pass_filenames: false
+        additional_dependencies: [uv]
 
-  - id: spelling
-    name: spelling
-    entry: make -C docs/ spelling SPHINXOPTS=-W
-    language: system
-    types_or: [rst]
-    stages: [manual]
-    pass_filenames: false
+      - id: pyroma
+        name: pyroma
+        entry: uv run --extra=dev -m pyroma --min 10 .
+        language: python
+        pass_filenames: false
+        types_or: [toml]
+        additional_dependencies: [uv]
 
-  - id: docs
-    name: Build Documentation
-    entry: make docs
-    language: system
-    stages: [manual]
-    pass_filenames: false
+      - id: deptry
+        name: deptry
+        entry: uv run --extra=dev -m deptry src/
+        language: python
+        pass_filenames: false
+        additional_dependencies: [uv]
+
+      - id: pylint
+        name: pylint
+        entry: uv run --extra=dev -m pylint *.py src/ tests/ docs/ ci/ admin/
+        language: python
+        stages: [manual]
+        pass_filenames: false
+        additional_dependencies: [uv]
+
+      - id: pylint-docs
+        name: pylint-docs
+        entry: uv run --extra=dev doccmd --language=python --command="pylint"
+        language: python
+        stages: [manual]
+        types_or: [markdown, rst, python, toml]
+
+      - id: ruff-check-fix
+        name: Ruff check fix
+        entry: uv run --extra=dev -m ruff check --fix
+        language: python
+        types_or: [python]
+        additional_dependencies: [uv]
+
+      - id: ruff-check-fix-docs
+        name: Ruff check fix docs
+        entry: uv run --extra=dev doccmd --language=python --command="ruff check --fix"
+        language: python
+        types_or: [markdown, rst]
+        additional_dependencies: [uv]
+
+      - id: ruff-format-fix
+        name: Ruff format
+        entry: uv run --extra=dev -m ruff format
+        language: python
+        types_or: [python]
+        additional_dependencies: [uv]
+
+      - id: ruff-format-fix-docs
+        name: Ruff format docs
+        entry: uv run --extra=dev doccmd --language=python --no-pad-file --command="ruff
+          format"
+        language: python
+        types_or: [markdown, rst]
+        additional_dependencies: [uv]
+
+      - id: doc8
+        name: doc8
+        entry: uv run --extra=dev -m doc8
+        language: python
+        types_or: [rst]
+        additional_dependencies: [uv]
+
+      - id: interrogate
+        name: interrogate
+        entry: uv run --extra=dev -m interrogate
+        language: python
+        types_or: [python]
+        exclude_types: [executable]
+
+      - id: interrogate-docs
+        name: interrogate docs
+        entry: uv run --extra=dev doccmd --language=python --command="interrogate"
+        language: python
+        types_or: [markdown, rst]
+        additional_dependencies: [uv]
+
+      - id: pyproject-fmt-fix
+        name: pyproject-fmt
+        entry: uv run --extra=dev pyproject-fmt
+        language: python
+        types_or: [toml]
+        files: pyproject.toml
+
+      - id: linkcheck
+        name: linkcheck
+        entry: make -C docs/ linkcheck SPHINXOPTS=-W
+        language: python
+        types_or: [rst]
+        stages: [manual]
+        pass_filenames: false
+        additional_dependencies: [uv]
+
+      - id: spelling
+        name: spelling
+        entry: make -C docs/ spelling SPHINXOPTS=-W
+        language: python
+        types_or: [rst]
+        stages: [manual]
+        pass_filenames: false
+        additional_dependencies: [uv]
+
+      - id: docs
+        name: Build Documentation
+        entry: make docs
+        language: python
+        stages: [manual]
+        pass_filenames: false
+        additional_dependencies: [uv]
+
+      - id: yamlfix
+        name: pyproject-fmt
+        entry: uv run --extra=dev yamlfix
+        language: python
+        types_or: [yaml]
+        additional_dependencies: [uv]
+
 # We use system Python, with required dependencies specified in pyproject.toml.
 # We therefore cannot use those dependencies in pre-commit CI.
 ci:
   skip:
-  - custom-linters
-  - actionlint
-  - mypy
-  - check-manifest
-  - pyright
-  - pyright-verifytypes
-  - vulture
-  - pyroma
-  - deptry
-  - pylint
-  - ruff-check-fix
-  - ruff-format-fix
-  - doc8
-  - interrogate
-  - pyproject-fmt-fix
-  - linkcheck
-  - spelling
-  - docs
+    - actionlint
+    - check-manifest
+    - custom-linters
+    - deptry
+    - doc8
+    - docs
+    - interrogate
+    - interrogate-docs
+    - linkcheck
+    - mypy
+    - mypy-docs
+    - pylint
+    - pyproject-fmt-fix
+    - pyright
+    - pyright-docs
+    - pyright-verifytypes
+    - pyroma
+    - ruff-check-fix
+    - ruff-check-fix-docs
+    - ruff-format-fix
+    - ruff-format-fix-docs
+    - docformatter
+    - shellcheck
+    - shellcheck-docs
+    - shfmt
+    - shfmt-docs
+    - spelling
+    - vulture
+    - vulture-docs
+    - yamlfix

@@ -77,8 +77,7 @@ def target_id(
     image_file_success_state_low_rating: io.BytesIO,
     vws_client: VWS,
 ) -> str:
-    """
-    Return the target ID of a target in the database.
+    """Return the target ID of a target in the database.
 
     The target is one which will have a 'success' status when processed.
     """
@@ -135,9 +134,9 @@ def endpoint(request: pytest.FixtureRequest) -> Endpoint:
     ],
 )
 def not_base64_encoded_processable(request: pytest.FixtureRequest) -> str:
-    """
-    Return a string which is not decodable as base64 data, but Vuforia will
+    """Return a string which is not decodable as base64 data, but Vuforia will
     respond as if this is valid base64 data.
+
     ``UNPROCESSABLE_ENTITY`` when this is given.
     """
     not_base64_encoded_string: str = request.param

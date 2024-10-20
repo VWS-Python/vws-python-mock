@@ -1,5 +1,4 @@
-"""
-A fake implementation of the Vuforia Web Services API.
+"""A fake implementation of the Vuforia Web Services API.
 
 See
 https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api
@@ -46,25 +45,33 @@ VWS_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
 _LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 class _ImageMatcherChoice(StrEnum):
-    """Image matcher choices."""
+    """
+    Image matcher choices.
+    """
 
     EXACT = auto()
     STRUCTURAL_SIMILARITY = auto()
 
     def to_image_matcher(self) -> ImageMatcher:
-        """Get the image matcher."""
-        ssim_matcher = StructuralSimilarityMatcher()
-        matcher = {
-            _ImageMatcherChoice.EXACT: ExactMatcher(),
-            _ImageMatcherChoice.STRUCTURAL_SIMILARITY: ssim_matcher,
-        }[self]
-        assert isinstance(matcher, ImageMatcher)
-        return matcher
+        """
+        Get the image matcher.
+        """
+        match self:
+            case self.EXACT:
+                return ExactMatcher()
+            case self.STRUCTURAL_SIMILARITY:
+                return StructuralSimilarityMatcher()
+
+        raise ValueError  # pragma: no cover
 
 
+@beartype
 class VWSSettings(BaseSettings):
-    """Settings for the VWS Flask app."""
+    """
+    Settings for the VWS Flask app.
+    """
 
     target_manager_base_url: str
     processing_time_seconds: float = 2.0
@@ -93,10 +100,9 @@ def get_all_databases() -> set[VuforiaDatabase]:
 
 @VWS_FLASK_APP.before_request
 def set_terminate_wsgi_input() -> None:
-    """
-    We set ``wsgi.input_terminated`` to ``True`` when going through
-    ``requests`` in our tests, so that requests have the given
-    ``Content-Length`` headers and the given data in ``request.headers`` and
+    """We set ``wsgi.input_terminated`` to ``True`` when going through
+    ``requests`` in our tests, so that requests have the given ``Content-
+    Length`` headers and the given data in ``request.headers`` and
     ``request.data``.
 
     We do not set this at all when running an application as standalone.
@@ -151,9 +157,9 @@ def handle_exceptions(exc: ValidatorError) -> Response:
 
 
 @VWS_FLASK_APP.route("/targets", methods=[HTTPMethod.POST])
+@beartype
 def add_target() -> Response:
-    """
-    Add a target.
+    """Add a target.
 
     Fake implementation of
     https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#add
@@ -225,8 +231,7 @@ def add_target() -> Response:
 @VWS_FLASK_APP.route("/targets/<string:target_id>", methods=[HTTPMethod.GET])
 @beartype
 def get_target(target_id: str) -> Response:
-    """
-    Get details of a target.
+    """Get details of a target.
 
     Fake implementation of
     https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#target-record
@@ -282,8 +287,7 @@ def get_target(target_id: str) -> Response:
     methods=[HTTPMethod.DELETE],
 )
 def delete_target(target_id: str) -> Response:
-    """
-    Delete a target.
+    """Delete a target.
 
     Fake implementation of
     https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#delete
@@ -334,9 +338,9 @@ def delete_target(target_id: str) -> Response:
 
 
 @VWS_FLASK_APP.route("/summary", methods=[HTTPMethod.GET])
+@beartype
 def database_summary() -> Response:
-    """
-    Get a database summary report.
+    """Get a database summary report.
 
     Fake implementation of
     https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#summary-report
@@ -388,8 +392,7 @@ def database_summary() -> Response:
 
 @VWS_FLASK_APP.route("/summary/<string:target_id>", methods=[HTTPMethod.GET])
 def target_summary(target_id: str) -> Response:
-    """
-    Get a summary report for a target.
+    """Get a summary report for a target.
 
     Fake implementation of
     https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#retrieve-report
@@ -443,8 +446,7 @@ def target_summary(target_id: str) -> Response:
 )
 @beartype
 def get_duplicates(target_id: str) -> Response:
-    """
-    Get targets which may be considered duplicates of a given target.
+    """Get targets which may be considered duplicates of a given target.
 
     Fake implementation of
     https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#check
@@ -465,7 +467,7 @@ def get_duplicates(target_id: str) -> Response:
     )
     other_targets = database.targets - {target}
 
-    similar_targets: list[str] = [
+    similar_targets = [
         other.target_id
         for other in other_targets
         if image_match_checker(
@@ -503,8 +505,7 @@ def get_duplicates(target_id: str) -> Response:
 
 @VWS_FLASK_APP.route("/targets", methods=[HTTPMethod.GET])
 def target_list() -> Response:
-    """
-    Get a list of all targets.
+    """Get a list of all targets.
 
     Fake implementation of
     https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#details-list
@@ -544,8 +545,7 @@ def target_list() -> Response:
 
 @VWS_FLASK_APP.route("/targets/<string:target_id>", methods=[HTTPMethod.PUT])
 def update_target(target_id: str) -> Response:
-    """
-    Update a target.
+    """Update a target.
 
     Fake implementation of
     https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#update

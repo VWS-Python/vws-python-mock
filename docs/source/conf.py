@@ -3,10 +3,9 @@
 Configuration for Sphinx.
 """
 
-# pylint: disable=invalid-name
-
-import datetime
 import importlib.metadata
+
+from packaging.specifiers import SpecifierSet
 
 project = "VWS-Python-Mock"
 author = "Adam Dangoor"
@@ -28,8 +27,7 @@ templates_path = ["_templates"]
 source_suffix = ".rst"
 master_doc = "index"
 
-year = datetime.datetime.now(tz=datetime.UTC).year
-project_copyright = f"{year}, {author}"
+project_copyright = f"%Y, {author}"
 
 # Exclude the prompt from copied code with sphinx_copybutton.
 # https://sphinx-copybutton.readthedocs.io/en/latest/use.html#automatic-exclusion-of-prompts-from-the-copies.
@@ -42,31 +40,33 @@ copybutton_exclude = ".linenos, .gp"
 # Use ``importlib.metadata.version`` as per
 # https://setuptools-scm.readthedocs.io/en/latest/usage/#usage-from-sphinx.
 version = importlib.metadata.version(distribution_name=project)
-_month, _day, _year, *_ = version.split(sep=".")
-release = f"{_month}.{_day}.{_year}"
+# This method of getting the release from the version goes hand in hand with
+# the ``post-release`` versioning scheme chosen in the ``setuptools-scm``
+# configuration.
+release = version.split(".post")[0]
+
+
+project_metadata = importlib.metadata.metadata(distribution_name=project)
+requires_python = project_metadata["Requires-Python"]
+specifiers = SpecifierSet(specifiers=requires_python)
+(specifier,) = specifiers
+assert specifier.operator == ">="
+minimum_python_version = specifier.version
 
 language = "en"
 
 # The name of the syntax highlighting style to use.
 pygments_style = "sphinx"
 
-python_minimum_supported_version = "3.12"
-
 # Output file base name for HTML help builder.
 htmlhelp_basename = "VWSPYTHONMOCKdoc"
 autoclass_content = "init"
 intersphinx_mapping = {
-    "python": (
-        f"https://docs.python.org/{python_minimum_supported_version}",
-        None,
-    ),
+    "python": (f"https://docs.python.org/{minimum_python_version}", None),
     "docker": ("https://docker-py.readthedocs.io/en/stable", None),
 }
 nitpicky = True
 warning_is_error = True
-nitpick_ignore = [
-    ("py:exc", "requests.exceptions.MissingSchema"),
-]
 
 html_theme = "furo"
 html_title = project
@@ -85,9 +85,9 @@ spelling_word_list_filename = "../../spelling_private_dict.txt"
 autodoc_member_order = "bysource"
 
 rst_prolog = f"""
-.. |python-minimum-version| replace:: {python_minimum_supported_version}
 .. |project| replace:: {project}
 .. |release| replace:: {release}
+.. |minimum-python-version| replace:: {minimum_python_version}
 .. |github-owner| replace:: VWS-Python
 .. |github-repository| replace:: vws-python-mock
 """

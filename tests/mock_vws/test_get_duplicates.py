@@ -9,7 +9,7 @@ import uuid
 import pytest
 from PIL import Image
 from vws import VWS
-from vws.exceptions.vws_exceptions import ProjectInactive
+from vws.exceptions.vws_exceptions import ProjectInactiveError
 from vws.reports import TargetStatuses
 
 
@@ -74,7 +74,7 @@ class TestDuplicates:
         Target IDs of similar targets are returned.
         """
         image_data = high_quality_image
-        similar_image_data = copy.copy(image_data)
+        similar_image_data = copy.copy(x=image_data)
         similar_image_buffer = io.BytesIO()
         pil_similar_image = Image.open(fp=similar_image_data)
         # Re-save means similar but not identical.
@@ -156,8 +156,7 @@ class TestActiveFlag:
         high_quality_image: io.BytesIO,
         vws_client: VWS,
     ) -> None:
-        """
-        Targets with `active_flag` set to `False` can have duplicates.
+        """Targets with `active_flag` set to `False` can have duplicates.
         Targets with `active_flag` set to `False` are not found as duplicates.
 
         https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#check
@@ -211,8 +210,8 @@ class TestProcessing:
         high_quality_image: io.BytesIO,
         vws_client: VWS,
     ) -> None:
-        """
-        If a target is in the processing state, it can have duplicates.
+        """If a target is in the processing state, it can have duplicates.
+
         Targets can have duplicates in the processing state.
         """
         processed_target_id = vws_client.add_target(
@@ -264,7 +263,7 @@ class TestInactiveProject:
         """
         If the project is inactive, a FORBIDDEN response is returned.
         """
-        with pytest.raises(expected_exception=ProjectInactive):
+        with pytest.raises(expected_exception=ProjectInactiveError):
             inactive_vws_client.get_duplicate_targets(
                 target_id=uuid.uuid4().hex,
             )

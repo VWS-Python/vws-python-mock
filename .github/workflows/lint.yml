@@ -10,35 +10,32 @@ on:
   schedule:
     # * is a special character in YAML so you have to quote this string
     # Run at 1:00 every day
-    - cron: '0 1 * * *'
+    - cron: 0 1 * * *
   workflow_dispatch: {}
 
 jobs:
   build:
 
-    runs-on: ubuntu-latest
-
     strategy:
       matrix:
-        python-version: ["3.12"]
+        python-version: ['3.12']
+        platform: [ubuntu-latest, windows-latest]
+
+    runs-on: ${{ matrix.platform }}
+
     steps:
       - uses: actions/checkout@v4
-      - name: "Set up Python"
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
 
-      # We do not use the cache action as uv is faster than the cache action.
-      - name: "Install dependencies"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Lint
         run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          uv pip install --system --upgrade --editable .[dev]
+          uv run --extra=dev pre-commit run --all-files --hook-stage pre-commit --verbose
+          uv run --extra=dev pre-commit run --all-files --hook-stage pre-push --verbose
+          uv run --extra=dev pre-commit run --all-files --hook-stage manual --verbose
+        env:
+          UV_PYTHON: ${{ matrix.python-version }}
 
-      - name: "Lint"
-        run: |
-          pre-commit run --all-files --hook-stage commit --verbose
-          pre-commit run --all-files --hook-stage push --verbose
-          pre-commit run --all-files --hook-stage manual --verbose
-
-      - uses: pre-commit-ci/lite-action@v1.0.2
+      - uses: pre-commit-ci/lite-action@v1.1.0
         if: always()

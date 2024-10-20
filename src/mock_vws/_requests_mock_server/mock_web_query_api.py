@@ -1,14 +1,14 @@
-"""
-A fake implementation of the Vuforia Web Query API.
+"""A fake implementation of the Vuforia Web Query API.
 
 See
 https://developer.vuforia.com/library/web-api/vuforia-query-web-api
 """
 
 import email.utils
-from collections.abc import Callable
+from collections.abc import Callable, Iterable, Mapping
 from http import HTTPMethod, HTTPStatus
 
+from beartype import beartype
 from requests.models import PreparedRequest
 
 from mock_vws._mock_common import Route
@@ -24,15 +24,15 @@ from mock_vws.target_manager import TargetManager
 
 _ROUTES: set[Route] = set()
 
-_ResponseType = tuple[int, dict[str, str], str]
+_ResponseType = tuple[int, Mapping[str, str], str]
 
 
+@beartype
 def route(
     path_pattern: str,
-    http_methods: set[str],
+    http_methods: Iterable[str],
 ) -> Callable[[Callable[..., _ResponseType]], Callable[..., _ResponseType]]:
-    """
-    Register a decorated method so that it can be recognized as a route.
+    """Register a decorated method so that it can be recognized as a route.
 
     Args:
         path_pattern: The end part of a URL pattern. E.g. `/targets` or
@@ -46,26 +46,25 @@ def route(
     def decorator(
         method: Callable[..., _ResponseType],
     ) -> Callable[..., _ResponseType]:
-        """
-        Register a decorated method so that it can be recognized as a route.
+        """Register a decorated method so that it can be recognized as a route.
 
         Returns:
             The given `method` with multiple changes, including added
             validators.
         """
-        _ROUTES.add(
-            Route(
-                route_name=method.__name__,
-                path_pattern=path_pattern,
-                http_methods=frozenset(http_methods),
-            ),
+        new_route = Route(
+            route_name=method.__name__,
+            path_pattern=path_pattern,
+            http_methods=frozenset(http_methods),
         )
+        _ROUTES.add(new_route)
 
         return method
 
     return decorator
 
 
+@beartype
 def _body_bytes(request: PreparedRequest) -> bytes:
     """
     Return the body of a request as bytes.
@@ -77,9 +76,9 @@ def _body_bytes(request: PreparedRequest) -> bytes:
     return request.body
 
 
+@beartype
 class MockVuforiaWebQueryAPI:
-    """
-    A fake implementation of the Vuforia Web Query API.
+    """A fake implementation of the Vuforia Web Query API.
 
     This implementation is tied to the implementation of ``responses``.
     """
@@ -98,7 +97,7 @@ class MockVuforiaWebQueryAPI:
         Attributes:
             routes: The `Route`s to be used in the mock.
         """
-        self.routes: set[Route] = _ROUTES
+        self.routes = _ROUTES
         self._target_manager = target_manager
         self._query_match_checker = query_match_checker
 

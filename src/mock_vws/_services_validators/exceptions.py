@@ -5,13 +5,17 @@ Exceptions to raise from validators.
 import email.utils
 import textwrap
 import uuid
+from collections.abc import Mapping
 from http import HTTPStatus
 from pathlib import Path
+
+from beartype import beartype
 
 from mock_vws._constants import ResultCodes
 from mock_vws._mock_common import json_dump
 
 
+@beartype
 class ValidatorError(Exception):
     """
     A base class for exceptions thrown from mock Vuforia services endpoints.
@@ -19,9 +23,10 @@ class ValidatorError(Exception):
 
     status_code: HTTPStatus
     response_text: str
-    headers: dict[str, str]
+    headers: Mapping[str, str]
 
 
+@beartype
 class UnknownTargetError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
@@ -61,6 +66,7 @@ class UnknownTargetError(ValidatorError):
         }
 
 
+@beartype
 class ProjectInactiveError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
@@ -100,6 +106,7 @@ class ProjectInactiveError(ValidatorError):
         }
 
 
+@beartype
 class AuthenticationFailureError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
@@ -139,6 +146,7 @@ class AuthenticationFailureError(ValidatorError):
         }
 
 
+@beartype
 class FailError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code 'Fail'.
@@ -177,6 +185,7 @@ class FailError(ValidatorError):
         }
 
 
+@beartype
 class MetadataTooLargeError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
@@ -216,6 +225,7 @@ class MetadataTooLargeError(ValidatorError):
         }
 
 
+@beartype
 class TargetNameExistError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
@@ -255,12 +265,13 @@ class TargetNameExistError(ValidatorError):
         }
 
 
+@beartype
 class OopsErrorOccurredResponseError(ValidatorError):
-    """
-    Exception raised when VWS returns an HTML page which says "Oops, an error
-    occurred".
+    """Exception raised when VWS returns an HTML page which says "Oops, an
+    error occurred".
 
-    This has been seen to happen when the given name includes a bad character.
+    This has been seen to happen when the given name includes a bad
+    character.
     """
 
     def __init__(self) -> None:
@@ -296,6 +307,7 @@ class OopsErrorOccurredResponseError(ValidatorError):
         }
 
 
+@beartype
 class BadImageError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
@@ -335,6 +347,7 @@ class BadImageError(ValidatorError):
         }
 
 
+@beartype
 class ImageTooLargeError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
@@ -374,6 +387,7 @@ class ImageTooLargeError(ValidatorError):
         }
 
 
+@beartype
 class RequestTimeTooSkewedError(ValidatorError):
     """
     Exception raised when Vuforia returns a response with a result code
@@ -413,6 +427,7 @@ class RequestTimeTooSkewedError(ValidatorError):
         }
 
 
+@beartype
 class ContentLengthHeaderTooLargeError(ValidatorError):
     """
     Exception raised when the given content length header is too large.
@@ -444,6 +459,7 @@ class ContentLengthHeaderTooLargeError(ValidatorError):
         }
 
 
+@beartype
 class ContentLengthHeaderNotIntError(ValidatorError):
     """
     Exception raised when the given content length header is not an integer.
@@ -478,11 +494,12 @@ class ContentLengthHeaderNotIntError(ValidatorError):
             "Connection": "close",
             "Content-Length": str(len(self.response_text)),
             "Date": date,
-            "server": "awselb/2.0",
+            "Server": "awselb/2.0",
             "Content-Type": "text/html",
         }
 
 
+@beartype
 class UnnecessaryRequestBodyError(ValidatorError):
     """
     Exception raised when a request body is given but not necessary.
@@ -512,6 +529,7 @@ class UnnecessaryRequestBodyError(ValidatorError):
         }
 
 
+@beartype
 class TargetStatusNotSuccessError(ValidatorError):
     """
     Exception raised when trying to update a target that does not have a
@@ -551,6 +569,7 @@ class TargetStatusNotSuccessError(ValidatorError):
         }
 
 
+@beartype
 class TargetStatusProcessingError(ValidatorError):
     """
     Exception raised when trying to delete a target which is processing.

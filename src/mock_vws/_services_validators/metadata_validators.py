@@ -20,8 +20,7 @@ _LOGGER = logging.getLogger(name=__name__)
 
 @beartype
 def validate_metadata_size(*, request_body: bytes) -> None:
-    """
-    Validate that the given application metadata is a string or 1024 * 1024
+    """Validate that the given application metadata is a string or 1024 * 1024
     bytes or fewer.
 
     Args:
@@ -51,8 +50,7 @@ def validate_metadata_size(*, request_body: bytes) -> None:
 
 @beartype
 def validate_metadata_encoding(*, request_body: bytes) -> None:
-    """
-    Validate that the given application metadata can be base64 decoded.
+    """Validate that the given application metadata can be base64 decoded.
 
     Args:
         request_body: The body of the request.
@@ -83,8 +81,7 @@ def validate_metadata_encoding(*, request_body: bytes) -> None:
 
 @beartype
 def validate_metadata_type(*, request_body: bytes) -> None:
-    """
-    Validate that the given application metadata is a string or NULL.
+    """Validate that the given application metadata is a string or NULL.
 
     Args:
         request_body: The body of the request.

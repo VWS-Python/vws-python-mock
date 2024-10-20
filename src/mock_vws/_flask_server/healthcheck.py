@@ -7,7 +7,10 @@ import socket
 import sys
 from http import HTTPStatus
 
+from beartype import beartype
 
+
+@beartype
 def flask_app_healthy(port: int) -> bool:
     """
     Check if the Flask app is healthy.

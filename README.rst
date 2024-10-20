@@ -13,15 +13,18 @@ Mocking calls made to Vuforia with Python ``requests``
 
 Using the mock redirects requests to Vuforia made with `requests`_ to an in-memory implementation.
 
-This requires Python 3.12+.
-
-.. code:: sh
+.. code-block:: shell
 
     pip install vws-python-mock
 
+This requires Python |minimum-python-version|\+.
+
 .. code-block:: python
 
+    """Make a request to the Vuforia Web Services API mock."""
+
     import requests
+
     from mock_vws import MockVWS
     from mock_vws.database import VuforiaDatabase
 
@@ -29,7 +32,7 @@ This requires Python 3.12+.
         database = VuforiaDatabase()
         mock.add_database(database=database)
         # This will use the Vuforia mock.
-        requests.get('https://vws.vuforia.com/summary')
+        requests.get("https://vws.vuforia.com/summary", timeout=30)
 
 By default, an exception will be raised if any requests to unmocked addresses are made.
 
@@ -51,7 +54,7 @@ See the `full documentation <https://vws-python-mock.readthedocs.io/en/latest>`_
 This includes details on how to use the mock, options, and details of the differences between the mock and the real Vuforia Web Services.
 
 
-.. |Build Status| image:: https://github.com/VWS-Python/vws-python-mock/workflows/CI/badge.svg
+.. |Build Status| image:: https://github.com/VWS-Python/vws-python-mock/actions/workflows/ci.yml/badge.svg?branch=main
    :target: https://github.com/VWS-Python/vws-python-mock/actions
 .. |codecov| image:: https://codecov.io/gh/VWS-Python/vws-python-mock/branch/main/graph/badge.svg
    :target: https://codecov.io/gh/VWS-Python/vws-python-mock
@@ -60,3 +63,4 @@ This includes details on how to use the mock, options, and details of the differ
 .. |Documentation Status| image:: https://readthedocs.org/projects/vws-python-mock/badge/?version=latest
    :target: https://vws-python-mock.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
+.. |minimum-python-version| replace:: 3.12

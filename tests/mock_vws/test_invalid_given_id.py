@@ -1,12 +1,11 @@
 """
-Tests for passing invalid target IDs to endpoints which
-require a target ID to be given.
+Tests for passing invalid target IDs to endpoints which require a target ID to
+be given.
 """
 
 from http import HTTPStatus
 
 import pytest
-import requests
 from vws import VWS
 
 from mock_vws._constants import ResultCodes
@@ -18,8 +17,8 @@ from tests.mock_vws.utils.too_many_requests import handle_server_errors
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestInvalidGivenID:
     """
-    Tests for giving an invalid ID to endpoints which require a target ID to
-    be given.
+    Tests for giving an invalid ID to endpoints which require a target ID to be
+    given.
     """
 
     @staticmethod
@@ -32,14 +31,14 @@ class TestInvalidGivenID:
         A `NOT_FOUND` error is returned when an endpoint is given a target ID
         of a target which does not exist.
         """
-        if not endpoint.prepared_request.path_url.endswith(target_id):
+        if not endpoint.path_url.endswith(target_id):
             return
 
         vws_client.wait_for_target_processed(target_id=target_id)
         vws_client.delete_target(target_id=target_id)
 
-        session = requests.Session()
-        response = session.send(request=endpoint.prepared_request)
+        response = endpoint.send()
+
         handle_server_errors(response=response)
 
         assert_vws_failure(

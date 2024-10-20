@@ -3,6 +3,7 @@ Common utilities for creating mock routes.
 """
 
 import json
+from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any
 
@@ -11,8 +12,7 @@ from beartype import beartype
 
 @dataclass(frozen=True)
 class Route:
-    """
-    A representation of a VWS route.
+    """A representation of a VWS route.
 
     Args:
         route_name: The name of the method.
@@ -23,7 +23,7 @@ class Route:
 
     route_name: str
     path_pattern: str
-    http_methods: frozenset[str]
+    http_methods: Iterable[str]
 
 
 @beartype

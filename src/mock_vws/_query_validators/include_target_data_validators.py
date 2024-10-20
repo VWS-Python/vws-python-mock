@@ -20,9 +20,8 @@ def validate_include_target_data(
     request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:
-    """
-    Validate the ``include_target_data`` field is either an accepted value or
-    not given.
+    """Validate the ``include_target_data`` field is either an accepted value
+    or not given.
 
     Args:
         request_headers: The headers sent with the request.
@@ -38,7 +37,7 @@ def validate_include_target_data(
     parser = MultiPartParser()
     fields, _ = parser.parse(
         stream=io.BytesIO(initial_bytes=request_body),
-        boundary=boundary.encode("utf-8"),
+        boundary=boundary.encode(encoding="utf-8"),
         content_length=len(request_body),
     )
     include_target_data = fields.get("include_target_data", "top")

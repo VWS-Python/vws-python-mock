@@ -4,10 +4,12 @@ Constants used to make the VWS mock.
 
 from enum import Enum
 
+from beartype import beartype
 
+
+@beartype
 class ResultCodes(Enum):
-    """
-    Constants representing various VWS result codes.
+    """Constants representing various VWS result codes.
 
     See
     https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#result-codes.
@@ -30,6 +32,8 @@ class ResultCodes(Enum):
     DATE_RANGE_ERROR = "DateRangeError"
     FAIL = "Fail"
     TARGET_STATUS_PROCESSING = "TargetStatusProcessing"
+    # While we sometimes hit this, we don't want to keep a database that is
+    # constantly in this state.
     REQUEST_QUOTA_REACHED = "RequestQuotaReached"
     TARGET_STATUS_NOT_SUCCESS = "TargetStatusNotSuccess"
     PROJECT_INACTIVE = "ProjectInactive"
@@ -37,9 +41,9 @@ class ResultCodes(Enum):
     TOO_MANY_REQUESTS = "TooManyRequests"
 
 
+@beartype
 class TargetStatuses(Enum):
-    """
-    Constants representing VWS target statuses.
+    """Constants representing VWS target statuses.
 
     See the 'status' field in
     https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#target-record

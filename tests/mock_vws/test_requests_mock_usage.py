@@ -14,11 +14,10 @@ import requests
 from beartype import beartype
 from freezegun import freeze_time
 from PIL import Image
-from requests.exceptions import MissingSchema
 from vws import VWS, CloudRecoService
 from vws_auth_tools import rfc_1123_date
 
-from mock_vws import MockVWS
+from mock_vws import MissingSchemeError, MockVWS
 from mock_vws.database import VuforiaDatabase
 from mock_vws.image_matchers import ExactMatcher, StructuralSimilarityMatcher
 from mock_vws.target import Target
@@ -33,14 +32,15 @@ def _not_exact_matcher(
     first_image_content: bytes,
     second_image_content: bytes,
 ) -> bool:
-    """A matcher which returns True if the images are not the same."""
+    """
+    A matcher which returns True if the images are not the same.
+    """
     return first_image_content != second_image_content
 
 
 @beartype
 def request_unmocked_address() -> None:
-    """
-    Make a request, using `requests` to an unmocked, free local address.
+    """Make a request, using `requests` to an unmocked, free local address.
 
     Raises:
         requests.exceptions.ConnectionError: This is expected as there is
@@ -80,8 +80,8 @@ class TestRealHTTP:
     @staticmethod
     def test_default() -> None:
         """
-        By default, the mock stops any requests made with `requests` to
-        non-Vuforia addresses, but not to mocked Vuforia endpoints.
+        By default, the mock stops any requests made with `requests` to non-
+        Vuforia addresses, but not to mocked Vuforia endpoints.
         """
         with MockVWS():
             with pytest.raises(
@@ -240,7 +240,7 @@ class TestCustomBaseURLs:
         """
         An error if raised if a URL is given with no scheme.
         """
-        with pytest.raises(expected_exception=MissingSchema) as vws_exc:
+        with pytest.raises(expected_exception=MissingSchemeError) as vws_exc:
             MockVWS(base_vws_url="vuforia.vws.example.com")
 
         expected = (
@@ -248,7 +248,7 @@ class TestCustomBaseURLs:
             'Perhaps you meant "https://vuforia.vws.example.com".'
         )
         assert str(vws_exc.value) == expected
-        with pytest.raises(expected_exception=MissingSchema) as vwq_exc:
+        with pytest.raises(expected_exception=MissingSchemeError) as vwq_exc:
             MockVWS(base_vwq_url="vuforia.vwq.example.com")
         expected = (
             'Invalid URL "vuforia.vwq.example.com": No scheme supplied. '
@@ -452,11 +452,15 @@ class TestAddDatabase:
 
 
 class TestQueryImageMatchers:
-    """Tests for query image matchers."""
+    """
+    Tests for query image matchers.
+    """
 
     @staticmethod
     def test_exact_match(high_quality_image: io.BytesIO) -> None:
-        """The exact matcher matches only exactly the same images."""
+        """
+        The exact matcher matches only exactly the same images.
+        """
         database = VuforiaDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -469,7 +473,7 @@ class TestQueryImageMatchers:
 
         pil_image = Image.open(fp=high_quality_image)
         re_exported_image = io.BytesIO()
-        pil_image.save(re_exported_image, format="PNG")
+        pil_image.save(fp=re_exported_image, format="PNG")
 
         with MockVWS(query_match_checker=ExactMatcher()) as mock:
             mock.add_database(database=database)
@@ -492,7 +496,9 @@ class TestQueryImageMatchers:
 
     @staticmethod
     def test_custom_matcher(high_quality_image: io.BytesIO) -> None:
-        """It is possible to use a custom matcher."""
+        """
+        It is possible to use a custom matcher.
+        """
         database = VuforiaDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -505,7 +511,7 @@ class TestQueryImageMatchers:
 
         pil_image = Image.open(fp=high_quality_image)
         re_exported_image = io.BytesIO()
-        pil_image.save(re_exported_image, format="PNG")
+        pil_image.save(fp=re_exported_image, format="PNG")
 
         with MockVWS(query_match_checker=_not_exact_matcher) as mock:
             mock.add_database(database=database)
@@ -531,7 +537,9 @@ class TestQueryImageMatchers:
         high_quality_image: io.BytesIO,
         different_high_quality_image: io.BytesIO,
     ) -> None:
-        """The structural similarity matcher matches similar images."""
+        """
+        The structural similarity matcher matches similar images.
+        """
         database = VuforiaDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -544,7 +552,7 @@ class TestQueryImageMatchers:
 
         pil_image = Image.open(fp=high_quality_image)
         re_exported_image = io.BytesIO()
-        pil_image.save(re_exported_image, format="PNG")
+        pil_image.save(fp=re_exported_image, format="PNG")
 
         with MockVWS(
             query_match_checker=StructuralSimilarityMatcher(),
@@ -574,11 +582,15 @@ class TestQueryImageMatchers:
 
 
 class TestDuplicatesImageMatchers:
-    """Tests for duplicates image matchers."""
+    """
+    Tests for duplicates image matchers.
+    """
 
     @staticmethod
     def test_exact_match(high_quality_image: io.BytesIO) -> None:
-        """The exact matcher matches only exactly the same images."""
+        """
+        The exact matcher matches only exactly the same images.
+        """
         database = VuforiaDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -587,7 +599,7 @@ class TestDuplicatesImageMatchers:
 
         pil_image = Image.open(fp=high_quality_image)
         re_exported_image = io.BytesIO()
-        pil_image.save(re_exported_image, format="PNG")
+        pil_image.save(fp=re_exported_image, format="PNG")
 
         with MockVWS(duplicate_match_checker=ExactMatcher()) as mock:
             mock.add_database(database=database)
@@ -622,7 +634,9 @@ class TestDuplicatesImageMatchers:
 
     @staticmethod
     def test_custom_matcher(high_quality_image: io.BytesIO) -> None:
-        """It is possible to use a custom matcher."""
+        """
+        It is possible to use a custom matcher.
+        """
         database = VuforiaDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -631,7 +645,7 @@ class TestDuplicatesImageMatchers:
 
         pil_image = Image.open(fp=high_quality_image)
         re_exported_image = io.BytesIO()
-        pil_image.save(re_exported_image, format="PNG")
+        pil_image.save(fp=re_exported_image, format="PNG")
 
         with MockVWS(duplicate_match_checker=_not_exact_matcher) as mock:
             mock.add_database(database=database)
@@ -668,7 +682,9 @@ class TestDuplicatesImageMatchers:
     def test_structural_similarity_matcher(
         high_quality_image: io.BytesIO,
     ) -> None:
-        """The structural similarity matcher matches similar images."""
+        """
+        The structural similarity matcher matches similar images.
+        """
         database = VuforiaDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -677,7 +693,7 @@ class TestDuplicatesImageMatchers:
 
         pil_image = Image.open(fp=high_quality_image)
         re_exported_image = io.BytesIO()
-        pil_image.save(re_exported_image, format="PNG")
+        pil_image.save(fp=re_exported_image, format="PNG")
 
         with MockVWS(
             duplicate_match_checker=StructuralSimilarityMatcher(),
@@ -716,18 +732,22 @@ class TestDataTypes:
         """
         It is possible to send strings to VWS endpoints.
         """
-        session = requests.Session()
-        url = endpoint.prepared_request.url or ""
-        netloc = urlparse(url=url).netloc
-        if endpoint.prepared_request.body is None:
-            endpoint.prepared_request.body = b""
+        netloc = urlparse(url=endpoint.base_url).netloc
 
         if netloc == "cloudreco.vuforia.com":
             pytest.skip()
 
-        assert isinstance(endpoint.prepared_request.body, bytes)
-        endpoint.prepared_request.body = endpoint.prepared_request.body.decode(
-            encoding="utf-8",
+        assert isinstance(endpoint.data, bytes)
+        new_endpoint = Endpoint(
+            base_url=endpoint.base_url,
+            path_url=endpoint.path_url,
+            method=endpoint.method,
+            headers=endpoint.headers,
+            data=endpoint.data.decode(encoding="utf-8"),
+            successful_headers_result_code=endpoint.successful_headers_result_code,
+            successful_headers_status_code=endpoint.successful_headers_status_code,
+            access_key=endpoint.access_key,
+            secret_key=endpoint.secret_key,
         )
-        response = session.send(request=endpoint.prepared_request)
-        response.raise_for_status()
+        response = new_endpoint.send()
+        assert response.status_code == endpoint.successful_headers_status_code

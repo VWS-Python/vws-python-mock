@@ -7,8 +7,6 @@ from http import HTTPStatus
 from urllib.parse import urlparse
 
 import pytest
-import requests
-from requests.structures import CaseInsensitiveDict
 
 from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import Endpoint
@@ -22,8 +20,7 @@ from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestIncorrect:
-    """
-    Tests for the ``Content-Length`` header set incorrectly.
+    """Tests for the ``Content-Length`` header set incorrectly.
 
     We cannot test what happens if ``Content-Length`` is removed from a
     prepared request because ``requests-mock`` behaves differently to
@@ -36,28 +33,39 @@ class TestIncorrect:
         A ``BAD_REQUEST`` error is given when the given ``Content-Length`` is
         not an integer.
         """
-        if not endpoint.prepared_request.headers.get("Content-Type"):
+        if not endpoint.headers.get("Content-Type"):
             return
 
         content_length = "0.4"
-        endpoint.prepared_request.headers.update(
-            {"Content-Length": content_length},
+
+        new_headers = {
+            **endpoint.headers,
+            "Content-Length": content_length,
+        }
+
+        new_endpoint = Endpoint(
+            base_url=endpoint.base_url,
+            path_url=endpoint.path_url,
+            method=endpoint.method,
+            headers=new_headers,
+            data=endpoint.data,
+            successful_headers_result_code=endpoint.successful_headers_result_code,
+            successful_headers_status_code=endpoint.successful_headers_status_code,
+            access_key=endpoint.access_key,
+            secret_key=endpoint.secret_key,
         )
-        session = requests.Session()
-        response = session.send(request=endpoint.prepared_request)
+
+        response = new_endpoint.send()
         handle_server_errors(response=response)
         assert response.status_code == HTTPStatus.BAD_REQUEST
 
-        url = endpoint.prepared_request.url or ""
-        netloc = urlparse(url=url).netloc
+        netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":
             assert not response.text
-            assert response.headers == CaseInsensitiveDict(
-                data={
-                    "Content-Length": str(len(response.text)),
-                    "Connection": "Close",
-                },
-            )
+            assert response.headers == {
+                "Content-Length": str(len(response.text)),
+                "Connection": "Close",
+            }
             return
 
         assert_valid_date_header(response=response)
@@ -72,15 +80,13 @@ class TestIncorrect:
             """,
         )
         assert response.text == expected_response_text
-        expected_headers = CaseInsensitiveDict(
-            data={
-                "Content-Length": str(len(response.text)),
-                "Content-Type": "text/html",
-                "Connection": "close",
-                "server": "awselb/2.0",
-                "Date": response.headers["Date"],
-            },
-        )
+        expected_headers = {
+            "Content-Length": str(len(response.text)),
+            "Content-Type": "text/html",
+            "Connection": "close",
+            "Server": "awselb/2.0",
+            "Date": response.headers["Date"],
+        }
         assert response.headers == expected_headers
 
     @staticmethod
@@ -89,31 +95,40 @@ class TestIncorrect:
         """
         An error is given if the given content length is too large.
         """
-        if not endpoint.prepared_request.headers.get("Content-Type"):
-            pytest.skip("No Content-Type header for this request")
+        if not endpoint.headers.get("Content-Type"):
+            pytest.skip(reason="No Content-Type header for this request")
 
-        url = endpoint.prepared_request.url or ""
-        netloc = urlparse(url=url).netloc
-        content_length = str(
-            int(endpoint.prepared_request.headers["Content-Length"]) + 1
-        )
-        endpoint.prepared_request.headers.update(
-            {"Content-Length": content_length}
+        netloc = urlparse(url=endpoint.base_url).netloc
+        content_length = str(int(endpoint.headers["Content-Length"]) + 1)
+
+        new_headers = {
+            **endpoint.headers,
+            "Content-Length": content_length,
+        }
+
+        new_endpoint = Endpoint(
+            base_url=endpoint.base_url,
+            path_url=endpoint.path_url,
+            method=endpoint.method,
+            headers=new_headers,
+            data=endpoint.data,
+            successful_headers_result_code=endpoint.successful_headers_result_code,
+            successful_headers_status_code=endpoint.successful_headers_status_code,
+            access_key=endpoint.access_key,
+            secret_key=endpoint.secret_key,
         )
 
-        session = requests.Session()
-        response = session.send(request=endpoint.prepared_request)
+        response = new_endpoint.send()
+
         # We do not use ``handle_server_errors`` here because we do not want to
         # retry on the Gateway Timeout.
         if netloc == "cloudreco.vuforia.com":
             assert response.status_code == HTTPStatus.GATEWAY_TIMEOUT
             assert not response.text
-            assert response.headers == CaseInsensitiveDict(
-                data={
-                    "Content-Length": str(len(response.text)),
-                    "Connection": "keep-alive",
-                },
-            )
+            assert response.headers == {
+                "Content-Length": str(len(response.text)),
+                "Connection": "keep-alive",
+            }
             return
 
         handle_server_errors(response=response)
@@ -127,9 +142,7 @@ class TestIncorrect:
             "server": "envoy",
             "Date": response.headers["Date"],
         }
-        assert response.headers == CaseInsensitiveDict(
-            data=expected_headers,
-        )
+        assert response.headers == expected_headers
         assert response.status_code == HTTPStatus.REQUEST_TIMEOUT
 
     @staticmethod
@@ -138,22 +151,34 @@ class TestIncorrect:
         An ``UNAUTHORIZED`` response is given if the given content length is
         too small.
         """
-        if not endpoint.prepared_request.headers.get("Content-Type"):
+        if not endpoint.headers.get("Content-Type"):
             return
 
-        content_length = str(
-            int(endpoint.prepared_request.headers["Content-Length"]) - 1
-        )
-        endpoint.prepared_request.headers.update(
-            {"Content-Length": content_length}
+        real_content_length = len(endpoint.data)
+        content_length = real_content_length - 1
+
+        new_headers = {
+            **endpoint.headers,
+            "Content-Length": str(content_length),
+        }
+
+        new_endpoint = Endpoint(
+            base_url=endpoint.base_url,
+            path_url=endpoint.path_url,
+            method=endpoint.method,
+            headers=new_headers,
+            data=endpoint.data,
+            successful_headers_result_code=endpoint.successful_headers_result_code,
+            successful_headers_status_code=endpoint.successful_headers_status_code,
+            access_key=endpoint.access_key,
+            secret_key=endpoint.secret_key,
         )
 
-        session = requests.Session()
-        response = session.send(request=endpoint.prepared_request)
+        response = new_endpoint.send()
+
         handle_server_errors(response=response)
 
-        url = endpoint.prepared_request.url or ""
-        netloc = urlparse(url=url).netloc
+        netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":
             assert_vwq_failure(
                 response=response,

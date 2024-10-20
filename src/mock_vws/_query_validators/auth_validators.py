@@ -3,7 +3,7 @@ Authorization validators to use in the mock query API.
 """
 
 import logging
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 
 from beartype import beartype
 
@@ -20,8 +20,8 @@ _LOGGER = logging.getLogger(name=__name__)
 
 @beartype
 def validate_auth_header_exists(*, request_headers: Mapping[str, str]) -> None:
-    """
-    Validate that there is an authorization header given to the query endpoint.
+    """Validate that there is an authorization header given to the query
+    endpoint.
 
     Args:
         request_headers: The headers sent with the request.
@@ -41,8 +41,7 @@ def validate_auth_header_number_of_parts(
     *,
     request_headers: Mapping[str, str],
 ) -> None:
-    """
-    Validate the authorization header includes text either side of a space.
+    """Validate the authorization header includes text either side of a space.
 
     Args:
         request_headers: The headers sent with the request.
@@ -65,10 +64,9 @@ def validate_auth_header_number_of_parts(
 def validate_client_key_exists(
     *,
     request_headers: Mapping[str, str],
-    databases: set[VuforiaDatabase],
+    databases: Iterable[VuforiaDatabase],
 ) -> None:
-    """
-    Validate the authorization header includes a client key for a database.
+    """Validate the authorization header includes a client key for a database.
 
     Args:
         request_headers: The headers sent with the request.
@@ -92,8 +90,7 @@ def validate_client_key_exists(
 def validate_auth_header_has_signature(
     request_headers: Mapping[str, str],
 ) -> None:
-    """
-    Validate the authorization header includes a signature.
+    """Validate the authorization header includes a signature.
 
     Args:
         request_headers: The headers sent with the request.
@@ -116,10 +113,9 @@ def validate_authorization(
     request_headers: Mapping[str, str],
     request_body: bytes,
     request_method: str,
-    databases: set[VuforiaDatabase],
+    databases: Iterable[VuforiaDatabase],
 ) -> None:
-    """
-    Validate the authorization header given to the query endpoint.
+    """Validate the authorization header given to the query endpoint.
 
     Args:
         request_path: The path of the request.

@@ -4,7 +4,7 @@ Tests for running the mock server in Docker.
 
 import io
 import uuid
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from http import HTTPStatus
 from typing import TYPE_CHECKING
 
@@ -54,8 +54,7 @@ def wait_for_health_check(container: Container) -> None:
 @beartype
 @pytest.fixture(name="custom_bridge_network")
 def fixture_custom_bridge_network() -> Iterator[Network]:
-    """
-    Yield a custom bridge network which containers can connect to.
+    """Yield a custom bridge network which containers can connect to.
 
     This also cleans up all containers connected to the network and the network
     after the test.
@@ -76,13 +75,13 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
         yield network
     finally:
         network.reload()
-        images_to_remove: set[Image] = set()
+        images_to_remove: Iterable[Image] = set()
         for container in network.containers:
             network.disconnect(container=container)
             container.stop()
             container.remove(v=True, force=True)
             assert container.image is not None
-            images_to_remove.add(container.image)
+            images_to_remove = {*images_to_remove, container.image}
 
         # This does leave behind untagged images.
         for image in images_to_remove:

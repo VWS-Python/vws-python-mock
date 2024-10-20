@@ -9,7 +9,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 from vws import VWS, CloudRecoService
-from vws.exceptions.vws_exceptions import UnknownTarget
+from vws.exceptions.vws_exceptions import UnknownTargetError
 from vws.reports import TargetStatuses
 
 from mock_vws.database import VuforiaDatabase
@@ -22,7 +22,7 @@ class TestTargetSummary:
     """
 
     @staticmethod
-    @pytest.mark.parametrize("active_flag", [True, False])
+    @pytest.mark.parametrize(argnames="active_flag", argvalues=[True, False])
     def test_target_summary(
         vws_client: VWS,
         vuforia_database: VuforiaDatabase,
@@ -81,9 +81,8 @@ class TestTargetSummary:
         image_fixture_name: str,
         expected_status: TargetStatuses,
     ) -> None:
-        """
-        After processing is completed, the tracking rating is in the range of
-        0 to 5.
+        """After processing is completed, the tracking rating is in the range
+        of 0 to 5.
 
         The documentation says:
 
@@ -168,7 +167,7 @@ class TestInactiveProject:
         """
         The project's active state does not affect getting a target.
         """
-        with pytest.raises(expected_exception=UnknownTarget):
+        with pytest.raises(expected_exception=UnknownTargetError):
             inactive_vws_client.get_target_summary_report(
                 target_id=uuid.uuid4().hex,
             )
