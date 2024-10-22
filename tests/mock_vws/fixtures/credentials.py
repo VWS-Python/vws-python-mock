@@ -17,11 +17,11 @@ class _VuforiaDatabaseSettings(BaseSettings):
     Settings for a Vuforia database.
     """
 
-    target_manager_database_name: str
-    server_access_key: str
-    server_secret_key: str
-    client_access_key: str
-    client_secret_key: str
+    target_manager_database_name: str = ""
+    server_access_key: str = ""
+    server_secret_key: str = ""
+    client_access_key: str = ""
+    client_secret_key: str = ""
 
     model_config = SettingsConfigDict(
         env_prefix="VUFORIA_",
@@ -48,7 +48,7 @@ def vuforia_database() -> VuforiaDatabase:
     """
     Return VWS credentials from environment variables.
     """
-    settings = _VuforiaDatabaseSettings.model_validate(obj={})
+    settings = _VuforiaDatabaseSettings()
     return VuforiaDatabase(
         database_name=settings.target_manager_database_name,
         server_access_key=settings.server_access_key,
@@ -65,7 +65,7 @@ def inactive_database() -> VuforiaDatabase:
     """
     Return VWS credentials for an inactive project from environment variables.
     """
-    settings = _InactiveVuforiaDatabaseSettings.model_validate(obj={})
+    settings = _InactiveVuforiaDatabaseSettings()
     return VuforiaDatabase(
         database_name=settings.target_manager_database_name,
         server_access_key=settings.server_access_key,
