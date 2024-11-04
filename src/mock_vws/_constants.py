@@ -2,12 +2,13 @@
 Constants used to make the VWS mock.
 """
 
-from enum import Enum
+from enum import Enum, unique
 
 from beartype import beartype
 
 
 @beartype
+@unique
 class ResultCodes(Enum):
     """Constants representing various VWS result codes.
 
@@ -42,6 +43,7 @@ class ResultCodes(Enum):
 
 
 @beartype
+@unique
 class TargetStatuses(Enum):
     """Constants representing VWS target statuses.
 
