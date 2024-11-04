@@ -41,7 +41,7 @@ dependencies = [
     "numpy",
     "pillow",
     "piq",
-    "pydantic-settings<2.6.0",
+    "pydantic-settings>=2.6.1",
     "requests",
     "responses",
     "torch",
