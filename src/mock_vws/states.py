@@ -2,12 +2,13 @@
 Vuforia database states.
 """
 
-from enum import StrEnum, auto
+from enum import StrEnum, auto, unique
 
 from beartype import beartype
 
 
 @beartype
+@unique
 class States(StrEnum):
     """
     Constants representing various web service states.
