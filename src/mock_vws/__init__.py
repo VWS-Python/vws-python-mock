@@ -8,6 +8,6 @@ from mock_vws._requests_mock_server.decorators import (
 )
 
 __all__ = [
-    "MockVWS",
     "MissingSchemeError",
+    "MockVWS",
 ]
