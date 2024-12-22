@@ -12,7 +12,7 @@ import numpy as np
 import torch
 from beartype import beartype
 from PIL import Image
-from piq.brisque import brisque
+from piq.brisque import brisque  # pyright: ignore[reportMissingTypeStubs]
 
 
 @functools.cache
