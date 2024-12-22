@@ -9,10 +9,10 @@ import secrets
 from typing import Protocol, runtime_checkable
 
 import numpy as np
-import piq  # type: ignore[import-untyped]
 import torch
 from beartype import beartype
 from PIL import Image
+from piq.brisque import brisque  # pyright: ignore[reportMissingTypeStubs]
 
 
 @functools.cache
@@ -38,7 +38,7 @@ def _get_brisque_target_tracking_rating(*, image_content: bytes) -> int:
     )
     image_tensor = image_tensor.permute(2, 0, 1).unsqueeze(dim=0)
     try:
-        brisque_score = piq.brisque(x=image_tensor, data_range=255)
+        brisque_score = brisque(x=image_tensor, data_range=255)
     except (AssertionError, IndexError):
         return 0
     return math.ceil(int(brisque_score.item()) / 20)
