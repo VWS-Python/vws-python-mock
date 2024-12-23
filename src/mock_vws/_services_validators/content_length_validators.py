@@ -33,7 +33,10 @@ def validate_content_length_header_is_int(
             integer
     """
     body_length = len(request_body)
-    given_content_length = request_headers.get("Content-Length", body_length)
+    given_content_length = request_headers.get(
+        "Content-Length",
+        default=body_length,
+    )
 
     try:
         int(given_content_length)
@@ -59,7 +62,10 @@ def validate_content_length_header_not_too_large(
             that the content length is greater than the body length.
     """
     body_length = len(request_body)
-    given_content_length = request_headers.get("Content-Length", body_length)
+    given_content_length = request_headers.get(
+        "Content-Length",
+        default=body_length,
+    )
     given_content_length_value = int(given_content_length)
     # We skip coverage here as running a test to cover this is very slow.
     if given_content_length_value > body_length:  # pragma: no cover

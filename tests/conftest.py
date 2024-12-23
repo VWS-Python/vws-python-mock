@@ -108,7 +108,7 @@ def endpoint(request: pytest.FixtureRequest) -> Endpoint:
     """
     Return details of an endpoint for the Target API or the Query API.
     """
-    endpoint_fixture: Endpoint = request.getfixturevalue(request.param)
+    endpoint_fixture: Endpoint = request.getfixturevalue(argname=request.param)
     return endpoint_fixture
 
 

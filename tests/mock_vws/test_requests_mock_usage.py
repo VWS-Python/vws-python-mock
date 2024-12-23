@@ -376,7 +376,12 @@ class TestDateHeader:
         The date that the response is sent is in the response Date header.
         """
         new_year = 2012
-        new_time = datetime.datetime(new_year, 1, 1, tzinfo=datetime.UTC)
+        new_time = datetime.datetime(
+            year=new_year,
+            month=1,
+            day=1,
+            tzinfo=datetime.UTC,
+        )
         with MockVWS(), freeze_time(time_to_freeze=new_time):
             response = requests.get(
                 url="https://vws.vuforia.com/summary",
@@ -445,7 +450,7 @@ class TestAddDatabase:
                 (bad_database_name_db, database_name_conflict_error),
             ):
                 with pytest.raises(
-                    ValueError,
+                    expected_exception=ValueError,
                     match=expected_message + "$",
                 ):
                     mock.add_database(database=bad_database)
