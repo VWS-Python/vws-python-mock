@@ -111,8 +111,8 @@ def test_build_and_run(
 
     try:
         target_manager_image, _ = client.images.build(
-            path=str(repository_root),
-            dockerfile=str(dockerfile),
+            path=str(object=repository_root),
+            dockerfile=str(object=dockerfile),
             tag=target_manager_tag,
             target="target-manager",
             rm=True,
@@ -132,16 +132,16 @@ def test_build_and_run(
         )
 
     vwq_image, _ = client.images.build(
-        path=str(repository_root),
-        dockerfile=str(dockerfile),
+        path=str(object=repository_root),
+        dockerfile=str(object=dockerfile),
         tag=vwq_tag,
         target="vwq",
         rm=True,
     )
 
     vws_image, _ = client.images.build(
-        path=str(repository_root),
-        dockerfile=str(dockerfile),
+        path=str(object=repository_root),
+        dockerfile=str(object=dockerfile),
         tag=vws_tag,
         target="vws",
         rm=True,

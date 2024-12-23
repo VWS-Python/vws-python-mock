@@ -54,8 +54,11 @@ def get_query_match_response_text(
         content_length=len(request_body),
     )
 
-    max_num_results = fields.get("max_num_results", "1")
-    include_target_data = fields.get("include_target_data", "top").lower()
+    max_num_results = fields.get(key="max_num_results", default="1")
+    include_target_data = fields.get(
+        key="include_target_data",
+        default="top",
+    ).lower()
 
     image_part = files["image"]
     image_value = image_part.stream.read()

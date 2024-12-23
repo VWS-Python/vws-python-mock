@@ -66,7 +66,7 @@ class TargetManagerSettings(BaseSettings):
 
 
 @TARGET_MANAGER_FLASK_APP.route(
-    "/databases/<string:database_name>",
+    rule="/databases/<string:database_name>",
     methods=[HTTPMethod.DELETE],
 )
 @beartype
@@ -88,7 +88,7 @@ def delete_database(database_name: str) -> Response:
     return Response(response="", status=HTTPStatus.OK)
 
 
-@TARGET_MANAGER_FLASK_APP.route("/databases", methods=[HTTPMethod.GET])
+@TARGET_MANAGER_FLASK_APP.route(rule="/databases", methods=[HTTPMethod.GET])
 @beartype
 def get_databases() -> Response:
     """
@@ -101,7 +101,7 @@ def get_databases() -> Response:
     )
 
 
-@TARGET_MANAGER_FLASK_APP.route("/databases", methods=[HTTPMethod.POST])
+@TARGET_MANAGER_FLASK_APP.route(rule="/databases", methods=[HTTPMethod.POST])
 @beartype
 def create_database() -> Response:
     """Create a new database.
@@ -184,7 +184,7 @@ def create_database() -> Response:
         TARGET_MANAGER.add_database(database=database)
     except ValueError as exc:
         return Response(
-            response=str(exc),
+            response=str(object=exc),
             status=HTTPStatus.CONFLICT,
         )
 
@@ -195,7 +195,7 @@ def create_database() -> Response:
 
 
 @TARGET_MANAGER_FLASK_APP.route(
-    "/databases/<string:database_name>/targets",
+    rule="/databases/<string:database_name>/targets",
     methods=[HTTPMethod.POST],
 )
 @beartype
@@ -233,7 +233,7 @@ def create_target(database_name: str) -> Response:
 
 
 @TARGET_MANAGER_FLASK_APP.route(
-    "/databases/<string:database_name>/targets/<string:target_id>",
+    rule="/databases/<string:database_name>/targets/<string:target_id>",
     methods={HTTPMethod.DELETE},
 )
 @beartype
@@ -258,7 +258,7 @@ def delete_target(database_name: str, target_id: str) -> Response:
 
 
 @TARGET_MANAGER_FLASK_APP.route(
-    "/databases/<string:database_name>/targets/<string:target_id>",
+    rule="/databases/<string:database_name>/targets/<string:target_id>",
     methods=[HTTPMethod.PUT],
 )
 def update_target(database_name: str, target_id: str) -> Response:

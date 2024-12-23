@@ -195,7 +195,7 @@ class MockVuforiaWebServicesAPI:
             "Content-Type": "application/json",
             "server": "envoy",
             "Date": date,
-            "Content-Length": str(len(body_json)),
+            "Content-Length": str(object=len(body_json)),
             "x-envoy-upstream-service-time": "5",
             "strict-transport-security": "max-age=31536000",
             "x-aws-region": "us-east-2, us-west-2",
@@ -260,7 +260,7 @@ class MockVuforiaWebServicesAPI:
         body_json = json_dump(body=body)
         headers = {
             "Connection": "keep-alive",
-            "Content-Length": str(len(body_json)),
+            "Content-Length": str(object=len(body_json)),
             "Content-Type": "application/json",
             "Date": date,
             "server": "envoy",
@@ -321,7 +321,7 @@ class MockVuforiaWebServicesAPI:
         body_json = json_dump(body=body)
         headers = {
             "Connection": "keep-alive",
-            "Content-Length": str(len(body_json)),
+            "Content-Length": str(object=len(body_json)),
             "Content-Type": "application/json",
             "Date": date,
             "server": "envoy",
@@ -375,7 +375,7 @@ class MockVuforiaWebServicesAPI:
         body_json = json_dump(body=body)
         headers = {
             "Connection": "keep-alive",
-            "Content-Length": str(len(body_json)),
+            "Content-Length": str(object=len(body_json)),
             "Content-Type": "application/json",
             "Date": date,
             "server": "envoy",
@@ -440,7 +440,7 @@ class MockVuforiaWebServicesAPI:
         body_json = json_dump(body=body)
         headers = {
             "Connection": "keep-alive",
-            "Content-Length": str(len(body_json)),
+            "Content-Length": str(object=len(body_json)),
             "Content-Type": "application/json",
             "Date": date,
             "server": "envoy",
@@ -510,7 +510,7 @@ class MockVuforiaWebServicesAPI:
         body_json = json_dump(body=body)
         headers = {
             "Connection": "keep-alive",
-            "Content-Length": str(len(body_json)),
+            "Content-Length": str(object=len(body_json)),
             "Content-Type": "application/json",
             "Date": date,
             "server": "envoy",
@@ -626,7 +626,7 @@ class MockVuforiaWebServicesAPI:
             "Content-Type": "application/json",
             "server": "envoy",
             "Date": date,
-            "Content-Length": str(len(body_json)),
+            "Content-Length": str(object=len(body_json)),
             "x-envoy-upstream-service-time": "5",
             "strict-transport-security": "max-age=31536000",
             "x-aws-region": "us-east-2, us-west-2",
@@ -676,7 +676,7 @@ class MockVuforiaWebServicesAPI:
             "result_code": ResultCodes.SUCCESS.value,
             "database_name": database.database_name,
             "target_name": target.name,
-            "upload_date": target.upload_date.strftime("%Y-%m-%d"),
+            "upload_date": target.upload_date.strftime(format="%Y-%m-%d"),
             "active_flag": target.active_flag,
             "tracking_rating": target.tracking_rating,
             "total_recos": target.total_recos,
@@ -686,7 +686,7 @@ class MockVuforiaWebServicesAPI:
         body_json = json_dump(body=body)
         headers = {
             "Connection": "keep-alive",
-            "Content-Length": str(len(body_json)),
+            "Content-Length": str(object=len(body_json)),
             "Content-Type": "application/json",
             "Date": date,
             "server": "envoy",

@@ -78,7 +78,7 @@ class TestDuplicates:
         similar_image_buffer = io.BytesIO()
         pil_similar_image = Image.open(fp=similar_image_data)
         # Re-save means similar but not identical.
-        pil_similar_image.save(similar_image_buffer, format="JPEG")
+        pil_similar_image.save(fp=similar_image_buffer, format="JPEG")
         assert similar_image_buffer.getvalue() != image_data.getvalue()
 
         original_target_id = vws_client.add_target(

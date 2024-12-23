@@ -573,7 +573,7 @@ class TestSuccess:
             application_metadata=metadata_encoded,
         )
 
-        approximate_target_created = calendar.timegm(time.gmtime())
+        approximate_target_created = calendar.timegm(tuple=time.gmtime())
 
         vws_client.wait_for_target_processed(target_id=target_id)
 
@@ -665,7 +665,7 @@ class TestSuccess:
         similar_image_data = copy.copy(x=high_quality_image)
         pil_similar_image = Image.open(fp=similar_image_data)
         # Re-save means similar but not identical.
-        pil_similar_image.save(similar_image_buffer, format="JPEG")
+        pil_similar_image.save(fp=similar_image_buffer, format="JPEG")
 
         (matching_target,) = cloud_reco_client.query(
             image=similar_image_buffer,
@@ -1829,7 +1829,7 @@ class TestUpdate:
             application_metadata=metadata_encoded,
         )
 
-        calendar.timegm(time.gmtime())
+        calendar.timegm(tuple=time.gmtime())
 
         vws_client.wait_for_target_processed(target_id=target_id)
 
@@ -1851,7 +1851,7 @@ class TestUpdate:
             application_metadata=new_metadata_encoded,
         )
 
-        approximate_target_updated = calendar.timegm(time.gmtime())
+        approximate_target_updated = calendar.timegm(tuple=time.gmtime())
 
         vws_client.wait_for_target_processed(target_id=target_id)
 
@@ -1910,7 +1910,7 @@ class TestDeleted:
         #
         # We retry to allow for this difference.
         for attempt in Retrying(
-            wait=wait_fixed(0.1),
+            wait=wait_fixed(wait=0.1),
             stop=stop_after_delay(max_delay=3),
             retry=retry_if_exception_type(
                 exception_types=(AssertionError,),
@@ -2018,7 +2018,7 @@ class TestDateFormats:
 
         gmt = ZoneInfo(key="GMT")
         now = datetime.datetime.now(tz=gmt)
-        date = now.strftime(datetime_format)
+        date = now.strftime(format=datetime_format)
         request_path = "/v1/query"
         content, content_type_header = encode_multipart_formdata(fields=body)
         method = HTTPMethod.POST

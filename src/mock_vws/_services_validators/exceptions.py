@@ -59,7 +59,7 @@ class UnknownTargetError(ValidatorError):
             "server": "envoy",
             "Date": date,
             "x-envoy-upstream-service-time": "5",
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
             "strict-transport-security": "max-age=31536000",
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",
@@ -99,7 +99,7 @@ class ProjectInactiveError(ValidatorError):
             "server": "envoy",
             "Date": date,
             "x-envoy-upstream-service-time": "5",
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
             "strict-transport-security": "max-age=31536000",
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",
@@ -139,7 +139,7 @@ class AuthenticationFailureError(ValidatorError):
             "server": "envoy",
             "Date": date,
             "x-envoy-upstream-service-time": "5",
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
             "strict-transport-security": "max-age=31536000",
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",
@@ -178,7 +178,7 @@ class FailError(ValidatorError):
             "server": "envoy",
             "Date": date,
             "x-envoy-upstream-service-time": "5",
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
             "strict-transport-security": "max-age=31536000",
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",
@@ -218,7 +218,7 @@ class MetadataTooLargeError(ValidatorError):
             "server": "envoy",
             "Date": date,
             "x-envoy-upstream-service-time": "5",
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
             "strict-transport-security": "max-age=31536000",
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",
@@ -258,7 +258,7 @@ class TargetNameExistError(ValidatorError):
             "server": "envoy",
             "Date": date,
             "x-envoy-upstream-service-time": "5",
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
             "strict-transport-security": "max-age=31536000",
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",
@@ -287,7 +287,7 @@ class OopsErrorOccurredResponseError(ValidatorError):
         resources_dir = Path(__file__).parent.parent / "resources"
         filename = "oops_error_occurred_response.html"
         oops_resp_file = resources_dir / filename
-        text = str(oops_resp_file.read_text())
+        text = str(object=oops_resp_file.read_text())
         self.response_text = text
         date = email.utils.formatdate(
             timeval=None,
@@ -300,7 +300,7 @@ class OopsErrorOccurredResponseError(ValidatorError):
             "server": "envoy",
             "Date": date,
             "x-envoy-upstream-service-time": "5",
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
             "strict-transport-security": "max-age=31536000",
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",
@@ -340,7 +340,7 @@ class BadImageError(ValidatorError):
             "server": "envoy",
             "Date": date,
             "x-envoy-upstream-service-time": "5",
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
             "strict-transport-security": "max-age=31536000",
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",
@@ -380,7 +380,7 @@ class ImageTooLargeError(ValidatorError):
             "server": "envoy",
             "Date": date,
             "x-envoy-upstream-service-time": "5",
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
             "strict-transport-security": "max-age=31536000",
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",
@@ -420,7 +420,7 @@ class RequestTimeTooSkewedError(ValidatorError):
             "server": "envoy",
             "Date": date,
             "x-envoy-upstream-service-time": "5",
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
             "strict-transport-security": "max-age=31536000",
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",
@@ -451,7 +451,7 @@ class ContentLengthHeaderTooLargeError(ValidatorError):
         )
         self.response_text = "stream timeout"
         self.headers = {
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
             "Date": date,
             "server": "envoy",
             "Content-Type": "text/plain",
@@ -492,7 +492,7 @@ class ContentLengthHeaderNotIntError(ValidatorError):
         )
         self.headers = {
             "Connection": "close",
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
             "Date": date,
             "Server": "awselb/2.0",
             "Content-Type": "text/html",
@@ -525,7 +525,7 @@ class UnnecessaryRequestBodyError(ValidatorError):
             "server": "envoy",
             "Date": date,
             "x-envoy-upstream-service-time": "5",
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
         }
 
 
@@ -562,7 +562,7 @@ class TargetStatusNotSuccessError(ValidatorError):
             "server": "envoy",
             "Date": date,
             "x-envoy-upstream-service-time": "5",
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
             "strict-transport-security": "max-age=31536000",
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",
@@ -601,7 +601,7 @@ class TargetStatusProcessingError(ValidatorError):
             "server": "envoy",
             "Date": date,
             "x-envoy-upstream-service-time": "5",
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
             "strict-transport-security": "max-age=31536000",
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",

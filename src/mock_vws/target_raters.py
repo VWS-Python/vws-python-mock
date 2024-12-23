@@ -29,8 +29,8 @@ def _get_brisque_target_tracking_rating(*, image_content: bytes) -> int:
     """
     image_file = io.BytesIO(initial_bytes=image_content)
     image = Image.open(fp=image_file)
-    image_np = np.array(image, dtype=np.float32)
-    image_tensor = torch.tensor(image_np).float() / 255
+    image_np = np.array(object=image, dtype=np.float32)
+    image_tensor = torch.tensor(data=image_np).float() / 255
     image_tensor = image_tensor.view(
         image.size[1],
         image.size[0],

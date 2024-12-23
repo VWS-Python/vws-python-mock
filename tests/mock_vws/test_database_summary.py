@@ -37,7 +37,7 @@ def _log_attempt_number(retry_state: RetryCallState) -> None:
     # We wait 0.2 seconds rather than less than that to decrease the number
     # of calls made to the API, to decrease the likelihood of hitting the
     # request quota.
-    wait=wait_fixed(0.2),
+    wait=wait_fixed(wait=0.2),
     # Wait up to 700 seconds (arbitrary, though we saw timeouts with 500
     # seconds) for the number of images in various categories to match the
     # expected number. This is necessary because the database summary endpoint

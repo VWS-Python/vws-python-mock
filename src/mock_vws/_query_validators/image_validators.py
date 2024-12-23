@@ -44,7 +44,7 @@ def validate_image_field_given(
         boundary=boundary.encode(encoding="utf-8"),
         content_length=len(request_body),
     )
-    if files.get("image") is not None:
+    if files.get(key="image") is not None:
         return
 
     _LOGGER.warning(msg="The image field is not given.")
