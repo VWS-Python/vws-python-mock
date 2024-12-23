@@ -108,7 +108,7 @@ def main() -> None:
             """,
         )
 
-        file.write_text(file_contents)
+        file.write_text(data=file_contents)
         sys.stdout.write(f"Created database {file.name}\n")
         files_to_create.pop()
 

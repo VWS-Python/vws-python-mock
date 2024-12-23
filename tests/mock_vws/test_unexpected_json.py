@@ -52,7 +52,7 @@ class TestUnexpectedJSON:
             "Authorization": authorization_string,
             "Date": date,
             "Content-Type": content_type,
-            "Content-Length": str(len(content)),
+            "Content-Length": str(object=len(content)),
         }
 
         new_endpoint = Endpoint(

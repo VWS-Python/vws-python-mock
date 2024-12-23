@@ -232,7 +232,7 @@ def pytest_collection_modifyitems(
     if config.getoption(name=skip_docker_build_tests_option):
         for item in items:
             if "requires_docker_build" in item.keywords:
-                item.add_marker(skip_docker_build_tests_marker)
+                item.add_marker(marker=skip_docker_build_tests_marker)
 
 
 @beartype

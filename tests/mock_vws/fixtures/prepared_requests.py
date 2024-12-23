@@ -76,7 +76,7 @@ def add_target(
     headers = {
         "Authorization": authorization_string,
         "Date": date,
-        "Content-Length": str(len(content)),
+        "Content-Length": str(object=len(content)),
         "Content-Type": content_type,
     }
 
@@ -124,7 +124,7 @@ def delete_target(
     headers = {
         "Authorization": authorization_string,
         "Date": date,
-        "Content-Length": str(len(content)),
+        "Content-Length": str(object=len(content)),
     }
 
     return Endpoint(
@@ -166,7 +166,7 @@ def database_summary(vuforia_database: VuforiaDatabase) -> Endpoint:
 
     headers = {
         "Authorization": authorization_string,
-        "Content-Length": str(len(content)),
+        "Content-Length": str(object=len(content)),
         "Date": date,
     }
 
@@ -215,7 +215,7 @@ def get_duplicates(
 
     headers = {
         "Authorization": authorization_string,
-        "Content-Length": str(len(content)),
+        "Content-Length": str(object=len(content)),
         "Date": date,
     }
 
@@ -263,7 +263,7 @@ def get_target(
 
     headers = {
         "Authorization": authorization_string,
-        "Content-Length": str(len(content)),
+        "Content-Length": str(object=len(content)),
         "Date": date,
     }
 
@@ -306,7 +306,7 @@ def target_list(vuforia_database: VuforiaDatabase) -> Endpoint:
 
     headers = {
         "Authorization": authorization_string,
-        "Content-Length": str(len(content)),
+        "Content-Length": str(object=len(content)),
         "Date": date,
     }
 
@@ -354,7 +354,7 @@ def target_summary(
 
     headers = {
         "Authorization": authorization_string,
-        "Content-Length": str(len(content)),
+        "Content-Length": str(object=len(content)),
         "Date": date,
     }
 
@@ -404,7 +404,7 @@ def update_target(
 
     headers = {
         "Authorization": authorization_string,
-        "Content-Length": str(len(content)),
+        "Content-Length": str(object=len(content)),
         "Content-Type": content_type,
         "Date": date,
     }
@@ -454,7 +454,7 @@ def query(
 
     headers = {
         "Authorization": authorization_string,
-        "Content-Length": str(len(content)),
+        "Content-Length": str(object=len(content)),
         "Date": date,
         "Content-Type": content_type_header,
     }

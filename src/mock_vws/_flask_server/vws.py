@@ -283,7 +283,7 @@ def get_target(target_id: str) -> Response:
 
 
 @VWS_FLASK_APP.route(
-    "/targets/<string:target_id>",
+    rule="/targets/<string:target_id>",
     methods=[HTTPMethod.DELETE],
 )
 def delete_target(target_id: str) -> Response:
@@ -390,7 +390,10 @@ def database_summary() -> Response:
     )
 
 
-@VWS_FLASK_APP.route("/summary/<string:target_id>", methods=[HTTPMethod.GET])
+@VWS_FLASK_APP.route(
+    rule="/summary/<string:target_id>",
+    methods=[HTTPMethod.GET],
+)
 def target_summary(target_id: str) -> Response:
     """Get a summary report for a target.
 
@@ -441,7 +444,7 @@ def target_summary(target_id: str) -> Response:
 
 
 @VWS_FLASK_APP.route(
-    "/duplicates/<string:target_id>",
+    rule="/duplicates/<string:target_id>",
     methods=[HTTPMethod.GET],
 )
 @beartype

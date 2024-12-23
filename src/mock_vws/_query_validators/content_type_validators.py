@@ -38,7 +38,7 @@ def validate_content_type_header(
         NoContentTypeError: The content type header is either empty or not
             given.
     """
-    content_type_header = request_headers.get("Content-Type", "")
+    content_type_header = request_headers.get("Content-Type", default="")
     if not content_type_header:
         _LOGGER.warning(msg="The content type header is empty.")
         raise NoContentTypeError

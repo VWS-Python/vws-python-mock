@@ -154,7 +154,7 @@ def assert_vws_response(
         "x-envoy-upstream-service-time",
     }
     assert {str.lower(key) for key in response.headers} == response_header_keys
-    assert response.headers["Content-Length"] == str(len(response.text))
+    assert response.headers["Content-Length"] == str(object=len(response.text))
     assert response.headers["Content-Type"] == "application/json"
     assert response.headers["server"] == "envoy"
     assert response.headers["x-content-type-options"] == "nosniff"
@@ -201,7 +201,7 @@ def assert_query_success(*, response: Response) -> None:
 
     expected_response_header_not_chunked = {
         "Connection": "keep-alive",
-        "Content-Length": str(response.tell_position),
+        "Content-Length": str(object=response.tell_position),
         "Content-Type": "application/json",
         "Server": "nginx",
     }
@@ -276,7 +276,9 @@ def assert_vwq_failure(
     assert response.headers.get("transfer-encoding", "chunked") == "chunked"
     assert response.headers["Connection"] == connection
     if "Content-Length" in response.headers:  # pragma: no cover
-        assert response.headers["Content-Length"] == str(len(response.text))
+        assert response.headers["Content-Length"] == str(
+            object=len(response.text)
+        )
     # In some tests we see that sometimes there is no Content-Length header
     # here.
     else:  # pragma: no cover

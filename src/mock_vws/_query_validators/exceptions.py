@@ -53,7 +53,7 @@ class DateHeaderNotGivenError(ValidatorError):
             "Connection": "keep-alive",
             "Server": "nginx",
             "Date": date,
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
         }
 
 
@@ -85,7 +85,7 @@ class DateFormatNotValidError(ValidatorError):
             "Server": "nginx",
             "Date": date,
             "WWW-Authenticate": "KWS",
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
         }
 
 
@@ -121,7 +121,7 @@ class RequestTimeTooSkewedError(ValidatorError):
             "Connection": "keep-alive",
             "Server": "nginx",
             "Date": date,
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
         }
 
 
@@ -164,7 +164,7 @@ class BadImageError(ValidatorError):
             "Connection": "keep-alive",
             "Server": "nginx",
             "Date": date,
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
         }
 
 
@@ -207,7 +207,7 @@ class AuthenticationFailureError(ValidatorError):
             "Server": "nginx",
             "Date": date,
             "WWW-Authenticate": "VWS",
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
         }
 
 
@@ -245,7 +245,7 @@ class AuthenticationFailureGoodFormattingError(ValidatorError):
             "Server": "nginx",
             "Date": date,
             "WWW-Authenticate": "VWS",
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
         }
 
 
@@ -277,7 +277,7 @@ class ImageNotGivenError(ValidatorError):
             "Connection": "keep-alive",
             "Server": "nginx",
             "Date": date,
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
         }
 
 
@@ -310,7 +310,7 @@ class AuthHeaderMissingError(ValidatorError):
             "Server": "nginx",
             "Date": date,
             "WWW-Authenticate": "KWS",
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
         }
 
 
@@ -344,7 +344,7 @@ class MalformedAuthHeaderError(ValidatorError):
             "Server": "nginx",
             "Date": date,
             "WWW-Authenticate": "KWS",
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
         }
 
 
@@ -376,7 +376,7 @@ class UnknownParametersError(ValidatorError):
             "Connection": "keep-alive",
             "Server": "nginx",
             "Date": date,
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
         }
 
 
@@ -418,7 +418,7 @@ class InactiveProjectError(ValidatorError):
             "Connection": "keep-alive",
             "Server": "nginx",
             "Date": date,
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
         }
 
 
@@ -455,7 +455,7 @@ class InvalidMaxNumResultsError(ValidatorError):
             "Connection": "keep-alive",
             "Server": "nginx",
             "Date": date,
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
         }
 
 
@@ -492,7 +492,7 @@ class MaxNumResultsOutOfRangeError(ValidatorError):
             "Connection": "keep-alive",
             "Server": "nginx",
             "Date": date,
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
         }
 
 
@@ -531,7 +531,7 @@ class InvalidIncludeTargetDataError(ValidatorError):
             "Connection": "keep-alive",
             "Server": "nginx",
             "Date": date,
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
         }
 
 
@@ -562,7 +562,7 @@ class UnsupportedMediaTypeError(ValidatorError):
             "Connection": "keep-alive",
             "Server": "nginx",
             "Date": date,
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
         }
 
 
@@ -593,7 +593,7 @@ class InvalidAcceptHeaderError(ValidatorError):
             "Connection": "keep-alive",
             "Server": "nginx",
             "Date": date,
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
         }
 
 
@@ -628,7 +628,7 @@ class NoBoundaryFoundError(ValidatorError):
             "Connection": "keep-alive",
             "Server": "nginx",
             "Date": date,
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
         }
 
 
@@ -652,7 +652,7 @@ class ContentLengthHeaderTooLargeError(ValidatorError):
         self.response_text = ""
         self.headers = {
             "Connection": "keep-alive",
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
         }
 
 
@@ -675,7 +675,7 @@ class ContentLengthHeaderNotIntError(ValidatorError):
         self.response_text = ""
         self.headers = {
             "Connection": "Close",
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
         }
 
 
@@ -719,7 +719,7 @@ class RequestEntityTooLargeError(ValidatorError):
             "Date": date,
             "Server": "nginx",
             "Content-Type": "text/html",
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
         }
 
 
@@ -771,5 +771,5 @@ class NoContentTypeError(ValidatorError):
             "Server": "nginx",
             "Cache-Control": "must-revalidate,no-cache,no-store",
             "Date": date,
-            "Content-Length": str(len(self.response_text)),
+            "Content-Length": str(object=len(self.response_text)),
         }

@@ -136,6 +136,6 @@ class MockVuforiaWebQueryAPI:
             "Content-Type": "application/json",
             "Server": "nginx",
             "Date": date,
-            "Content-Length": str(len(response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
         return HTTPStatus.OK, headers, response_text

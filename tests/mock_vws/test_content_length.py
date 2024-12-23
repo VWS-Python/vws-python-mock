@@ -63,7 +63,7 @@ class TestIncorrect:
         if netloc == "cloudreco.vuforia.com":
             assert not response.text
             assert response.headers == {
-                "Content-Length": str(len(response.text)),
+                "Content-Length": str(object=len(response.text)),
                 "Connection": "Close",
             }
             return
@@ -81,7 +81,7 @@ class TestIncorrect:
         )
         assert response.text == expected_response_text
         expected_headers = {
-            "Content-Length": str(len(response.text)),
+            "Content-Length": str(object=len(response.text)),
             "Content-Type": "text/html",
             "Connection": "close",
             "Server": "awselb/2.0",
@@ -99,7 +99,9 @@ class TestIncorrect:
             pytest.skip(reason="No Content-Type header for this request")
 
         netloc = urlparse(url=endpoint.base_url).netloc
-        content_length = str(int(endpoint.headers["Content-Length"]) + 1)
+        content_length = str(
+            object=int(endpoint.headers["Content-Length"]) + 1
+        )
 
         new_headers = {
             **endpoint.headers,
@@ -126,7 +128,7 @@ class TestIncorrect:
             assert response.status_code == HTTPStatus.GATEWAY_TIMEOUT
             assert not response.text
             assert response.headers == {
-                "Content-Length": str(len(response.text)),
+                "Content-Length": str(object=len(response.text)),
                 "Connection": "keep-alive",
             }
             return
@@ -136,7 +138,7 @@ class TestIncorrect:
         # We have seen both of these response texts.
         assert response.text in {"stream timeout", ""}
         expected_headers = {
-            "Content-Length": str(len(response.text)),
+            "Content-Length": str(object=len(response.text)),
             "Connection": "close",
             "Content-Type": "text/plain",
             "server": "envoy",
@@ -159,7 +161,7 @@ class TestIncorrect:
 
         new_headers = {
             **endpoint.headers,
-            "Content-Length": str(content_length),
+            "Content-Length": str(object=content_length),
         }
 
         new_endpoint = Endpoint(

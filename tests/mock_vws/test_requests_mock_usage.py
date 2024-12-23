@@ -247,14 +247,14 @@ class TestCustomBaseURLs:
             'Invalid URL "vuforia.vws.example.com": No scheme supplied. '
             'Perhaps you meant "https://vuforia.vws.example.com".'
         )
-        assert str(vws_exc.value) == expected
+        assert str(object=vws_exc.value) == expected
         with pytest.raises(expected_exception=MissingSchemeError) as vwq_exc:
             MockVWS(base_vwq_url="vuforia.vwq.example.com")
         expected = (
             'Invalid URL "vuforia.vwq.example.com": No scheme supplied. '
             'Perhaps you meant "https://vuforia.vwq.example.com".'
         )
-        assert str(vwq_exc.value) == expected
+        assert str(object=vwq_exc.value) == expected
 
 
 class TestTargets:

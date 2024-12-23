@@ -55,7 +55,7 @@ class TestInvalidJSON:
             **endpoint.headers,
             "Authorization": authorization_string,
             "Date": date,
-            "Content-Length": str(len(content)),
+            "Content-Length": str(object=len(content)),
         }
 
         new_endpoint = Endpoint(
@@ -135,7 +135,7 @@ class TestInvalidJSON:
         new_headers = {
             **endpoint.headers,
             "Authorization": authorization_string,
-            "Content-Length": str(len(content)),
+            "Content-Length": str(object=len(content)),
             "Date": date,
         }
 

@@ -101,7 +101,7 @@ class TestProcessingTime:
         seconds = 5.0
         monkeypatch.setenv(
             name="PROCESSING_TIME_SECONDS",
-            value=str(seconds),
+            value=str(object=seconds),
         )
         database = VuforiaDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
