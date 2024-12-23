@@ -573,7 +573,7 @@ class TestSuccess:
             application_metadata=metadata_encoded,
         )
 
-        approximate_target_created = calendar.timegm(time.gmtime())
+        approximate_target_created = calendar.timegm(tuple=time.gmtime())
 
         vws_client.wait_for_target_processed(target_id=target_id)
 
@@ -1829,7 +1829,7 @@ class TestUpdate:
             application_metadata=metadata_encoded,
         )
 
-        calendar.timegm(time.gmtime())
+        calendar.timegm(tuple=time.gmtime())
 
         vws_client.wait_for_target_processed(target_id=target_id)
 
@@ -1851,7 +1851,7 @@ class TestUpdate:
             application_metadata=new_metadata_encoded,
         )
 
-        approximate_target_updated = calendar.timegm(time.gmtime())
+        approximate_target_updated = calendar.timegm(tuple=time.gmtime())
 
         vws_client.wait_for_target_processed(target_id=target_id)
 

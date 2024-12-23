@@ -88,7 +88,7 @@ def validate_date_in_range(*, request_headers: Mapping[str, str]) -> None:
     date_header = request_headers["Date"]
     gmt = ZoneInfo(key="GMT")
 
-    date = datetime.datetime.fromtimestamp(0, tz=gmt)
+    date = datetime.datetime.fromtimestamp(timestamp=0, tz=gmt)
     for date_format in _accepted_date_formats():
         with contextlib.suppress(ValueError):
             date = datetime.datetime.strptime(

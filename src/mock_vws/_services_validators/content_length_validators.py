@@ -84,7 +84,10 @@ def validate_content_length_header_not_too_small(
             the content length is smaller than the body length.
     """
     body_length = len(request_body)
-    given_content_length = request_headers.get("Content-Length", body_length)
+    given_content_length = request_headers.get(
+        "Content-Length",
+        default=body_length,
+    )
     given_content_length_value = int(given_content_length)
 
     if given_content_length_value < body_length:

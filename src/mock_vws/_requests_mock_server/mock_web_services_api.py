@@ -676,7 +676,7 @@ class MockVuforiaWebServicesAPI:
             "result_code": ResultCodes.SUCCESS.value,
             "database_name": database.database_name,
             "target_name": target.name,
-            "upload_date": target.upload_date.strftime("%Y-%m-%d"),
+            "upload_date": target.upload_date.strftime(format="%Y-%m-%d"),
             "active_flag": target.active_flag,
             "tracking_rating": target.tracking_rating,
             "total_recos": target.total_recos,

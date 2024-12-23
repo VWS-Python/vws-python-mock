@@ -109,7 +109,7 @@ def set_terminate_wsgi_input() -> None:
         request.environ["wsgi.input_terminated"] = True
 
 
-@CLOUDRECO_FLASK_APP.errorhandler(ValidatorError)
+@CLOUDRECO_FLASK_APP.errorhandler(code_or_exception=ValidatorError)
 def handle_exceptions(exc: ValidatorError) -> Response:
     """
     Return the error response associated with the given exception.
@@ -125,7 +125,7 @@ def handle_exceptions(exc: ValidatorError) -> Response:
     return response
 
 
-@CLOUDRECO_FLASK_APP.route("/v1/query", methods=[HTTPMethod.POST])
+@CLOUDRECO_FLASK_APP.route(rule="/v1/query", methods=[HTTPMethod.POST])
 def query() -> Response:
     """
     Perform an image recognition query.

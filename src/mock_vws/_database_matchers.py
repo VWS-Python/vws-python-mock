@@ -35,9 +35,11 @@ def get_database_matching_client_keys(
     Raises:
         ValueError: No database matches the given request.
     """
-    content_type = request_headers.get("Content-Type", "").split(sep=";")[0]
+    content_type = request_headers.get("Content-Type", default="").split(
+        sep=";"
+    )[0]
     auth_header = request_headers.get("Authorization")
-    date = request_headers.get("Date", "")
+    date = request_headers.get("Date", default="")
 
     for database in databases:
         expected_authorization_header = authorization_header(
@@ -80,9 +82,10 @@ def get_database_matching_server_keys(
     Raises:
         ValueError: No database matches the given request.
     """
-    content_type = request_headers.get("Content-Type", "").split(sep=";")[0]
+    content_type_header = request_headers.get("Content-Type", default="")
+    content_type = content_type_header.split(sep=";")[0]
     auth_header = request_headers.get("Authorization")
-    date = request_headers.get("Date", "")
+    date = request_headers.get("Date", default="")
 
     for database in databases:
         expected_authorization_header = authorization_header(

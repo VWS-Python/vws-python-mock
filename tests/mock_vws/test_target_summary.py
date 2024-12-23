@@ -94,7 +94,7 @@ class TestTargetSummary:
         It also shows that ``reco_rating`` is not provided even when the status
         is success.
         """
-        image_file = request.getfixturevalue(image_fixture_name)
+        image_file = request.getfixturevalue(argname=image_fixture_name)
 
         target_id = vws_client.add_target(
             name="example",

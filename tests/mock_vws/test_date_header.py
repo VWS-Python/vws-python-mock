@@ -110,7 +110,7 @@ class TestFormat:
         gmt = ZoneInfo(key="GMT")
         with freeze_time(time_to_freeze=datetime.now(tz=gmt)):
             now = datetime.now(tz=gmt)
-            date_incorrect_format = now.strftime("%a %b %d %H:%M:%S")
+            date_incorrect_format = now.strftime(format="%a %b %d %H:%M:%S")
 
         authorization_string = authorization_header(
             access_key=endpoint.access_key,

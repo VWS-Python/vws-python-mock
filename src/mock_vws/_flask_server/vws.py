@@ -140,7 +140,7 @@ def validate_request() -> None:
     )
 
 
-@VWS_FLASK_APP.errorhandler(ValidatorError)
+@VWS_FLASK_APP.errorhandler(code_or_exception=ValidatorError)
 def handle_exceptions(exc: ValidatorError) -> Response:
     """
     Return the error response associated with the given exception.
@@ -156,7 +156,7 @@ def handle_exceptions(exc: ValidatorError) -> Response:
     return response
 
 
-@VWS_FLASK_APP.route("/targets", methods=[HTTPMethod.POST])
+@VWS_FLASK_APP.route(rule="/targets", methods=[HTTPMethod.POST])
 @beartype
 def add_target() -> Response:
     """Add a target.
@@ -228,7 +228,9 @@ def add_target() -> Response:
     )
 
 
-@VWS_FLASK_APP.route("/targets/<string:target_id>", methods=[HTTPMethod.GET])
+@VWS_FLASK_APP.route(
+    rule="/targets/<string:target_id>", methods=[HTTPMethod.GET]
+)
 @beartype
 def get_target(target_id: str) -> Response:
     """Get details of a target.
@@ -337,7 +339,7 @@ def delete_target(target_id: str) -> Response:
     )
 
 
-@VWS_FLASK_APP.route("/summary", methods=[HTTPMethod.GET])
+@VWS_FLASK_APP.route(rule="/summary", methods=[HTTPMethod.GET])
 @beartype
 def database_summary() -> Response:
     """Get a database summary report.
@@ -418,7 +420,7 @@ def target_summary(target_id: str) -> Response:
         "result_code": ResultCodes.SUCCESS.value,
         "database_name": database.database_name,
         "target_name": target.name,
-        "upload_date": target.upload_date.strftime("%Y-%m-%d"),
+        "upload_date": target.upload_date.strftime(format="%Y-%m-%d"),
         "active_flag": target.active_flag,
         "tracking_rating": target.tracking_rating,
         "total_recos": target.total_recos,
@@ -506,7 +508,7 @@ def get_duplicates(target_id: str) -> Response:
     )
 
 
-@VWS_FLASK_APP.route("/targets", methods=[HTTPMethod.GET])
+@VWS_FLASK_APP.route(rule="/targets", methods=[HTTPMethod.GET])
 def target_list() -> Response:
     """Get a list of all targets.
 
@@ -546,7 +548,9 @@ def target_list() -> Response:
     )
 
 
-@VWS_FLASK_APP.route("/targets/<string:target_id>", methods=[HTTPMethod.PUT])
+@VWS_FLASK_APP.route(
+    rule="/targets/<string:target_id>", methods=[HTTPMethod.PUT]
+)
 def update_target(target_id: str) -> Response:
     """Update a target.
 
