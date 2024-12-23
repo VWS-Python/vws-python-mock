@@ -82,7 +82,7 @@ class Endpoint:
         """
         The content type to use for the `Authorization` header.
         """
-        full_content_type = self.headers.get("Content-Type", default="")
+        full_content_type = self.headers.get("Content-Type", "")
         return full_content_type.split(sep=";")[0]
 
 
