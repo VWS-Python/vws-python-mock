@@ -34,7 +34,9 @@ def main() -> None:
     existing_secrets_file = Path(
         os.environ["EXISTING_SECRETS_FILE"]
     ).expanduser()
-    assert existing_secrets_file.exists(), existing_secrets_file
+    if not existing_secrets_file.exists():
+        msg = f"Existing secrets file does not exist: {existing_secrets_file}"
+        raise FileNotFoundError(msg)
     load_dotenv(dotenv_path=existing_secrets_file)
     new_secrets_dir.mkdir(exist_ok=True)
 

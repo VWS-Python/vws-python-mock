@@ -73,7 +73,7 @@ class RandomTargetTrackingRater:
         Args:
             image_content: A target's image's content.
         """
-        assert image_content
+        del image_content
         return secrets.randbelow(exclusive_upper_bound=6)
 
 
@@ -96,7 +96,7 @@ class HardcodedTargetTrackingRater:
         Args:
             image_content: A target's image's content.
         """
-        assert image_content
+        del image_content
         return self._rating
 
 
