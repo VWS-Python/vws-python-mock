@@ -90,7 +90,6 @@ def _body_bytes(request: PreparedRequest) -> bytes:
     if isinstance(request.body, str):
         return request.body.encode(encoding="utf-8")
 
-    assert isinstance(request.body, bytes)
     return request.body
 
 
