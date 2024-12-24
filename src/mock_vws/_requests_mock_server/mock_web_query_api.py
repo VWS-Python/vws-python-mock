@@ -69,10 +69,9 @@ def _body_bytes(request: PreparedRequest) -> bytes:
     """
     Return the body of a request as bytes.
     """
-    if request.body is None:
+    if request.body is None or isinstance(request.body, str):
         return b""
 
-    assert isinstance(request.body, bytes)
     return request.body
 
 

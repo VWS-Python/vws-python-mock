@@ -165,10 +165,17 @@ lint.ignore = [
     # Also, allow 'assert' in other code as it is the standard for Python type hint
     # narrowing - see
     # https://mypy.readthedocs.io/en/stable/type_narrowing.html#type-narrowing-expressions.
+    # "S101",
+]
+
+lint.per-file-ignores."ci/test_custom_linters.py" = [
+    # Allow asserts in tests.
     "S101",
 ]
 
 lint.per-file-ignores."tests/**" = [
+    # Allow asserts in tests.
+    "S101",
     # Allow possible hardcoded passwords in tests.
     "S105",
     "S106",
