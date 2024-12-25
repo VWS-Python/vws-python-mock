@@ -32,7 +32,7 @@ This requires Python |minimum-python-version|\+.
         database = VuforiaDatabase()
         mock.add_database(database=database)
         # This will use the Vuforia mock.
-        requests.get("https://vws.vuforia.com/summary", timeout=30)
+        requests.get(url="https://vws.vuforia.com/summary", timeout=30)
 
 By default, an exception will be raised if any requests to unmocked addresses are made.
 
