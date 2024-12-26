@@ -396,6 +396,8 @@ plugins = [
 follow_untyped_imports = true
 
 [tool.pyright]
+
+enableTypeIgnoreComments = false
 reportUnnecessaryTypeIgnoreComment = true
 typeCheckingMode = "strict"
 
