@@ -63,4 +63,4 @@ This includes details on how to use the mock, options, and details of the differ
 .. |Documentation Status| image:: https://readthedocs.org/projects/vws-python-mock/badge/?version=latest
    :target: https://vws-python-mock.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
-.. |minimum-python-version| replace:: 3.12
+.. |minimum-python-version| replace:: 3.13
