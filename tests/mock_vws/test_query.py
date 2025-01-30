@@ -9,7 +9,6 @@ import copy
 import datetime
 import io
 import json
-import sys
 import textwrap
 import time
 import uuid
@@ -1395,16 +1394,7 @@ class TestMaximumImageFileSize:
     """
 
     @staticmethod
-    @pytest.mark.skipif(
-        sys.version_info > (3, 9),
-        reason=(
-            "There is a bug in urllib3: "
-            "https://github.com/urllib3/urllib3/issues/2733"
-        ),
-    )
-    def test_png(
-        cloud_reco_client: CloudRecoService,
-    ) -> None:  # pragma: no cover
+    def test_png(cloud_reco_client: CloudRecoService) -> None:
         """
         According to
         https://developer.vuforia.com/library/web-api/vuforia-query-web-api.
@@ -1474,16 +1464,7 @@ class TestMaximumImageFileSize:
         assert response.text == _NGINX_REQUEST_ENTITY_TOO_LARGE_ERROR
 
     @staticmethod
-    @pytest.mark.skipif(
-        sys.version_info > (3, 9),
-        reason=(
-            "There is a bug in urllib3: "
-            "https://github.com/urllib3/urllib3/issues/2733"
-        ),
-    )
-    def test_jpeg(
-        cloud_reco_client: CloudRecoService,
-    ) -> None:  # pragma: no cover
+    def test_jpeg(cloud_reco_client: CloudRecoService) -> None:
         """
         According to
         https://developer.vuforia.com/library/web-api/vuforia-query-web-api.
