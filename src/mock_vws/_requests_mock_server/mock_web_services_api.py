@@ -5,7 +5,7 @@ https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api
 """
 
 import base64
-import dataclasses
+import copy
 import datetime
 import email.utils
 import json
@@ -243,7 +243,7 @@ class MockVuforiaWebServicesAPI:
             )
 
         now = datetime.datetime.now(tz=target.upload_date.tzinfo)
-        new_target = dataclasses.replace(target, delete_date=now)
+        new_target = copy.replace(target, delete_date=now)
         database.targets.remove(target)
         database.targets.add(new_target)
         date = email.utils.formatdate(
@@ -602,7 +602,7 @@ class MockVuforiaWebServicesAPI:
         gmt = ZoneInfo(key="GMT")
         last_modified_date = datetime.datetime.now(tz=gmt)
 
-        new_target = dataclasses.replace(
+        new_target = copy.replace(
             target,
             name=name,
             width=width,
