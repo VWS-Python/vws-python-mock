@@ -3,7 +3,7 @@ Storage layer for the mock Vuforia Flask application.
 """
 
 import base64
-import dataclasses
+import copy
 import datetime
 import json
 from enum import StrEnum, auto
@@ -248,7 +248,7 @@ def delete_target(database_name: str, target_id: str) -> Response:
     )
     target = database.get_target(target_id=target_id)
     now = datetime.datetime.now(tz=target.upload_date.tzinfo)
-    new_target = dataclasses.replace(target, delete_date=now)
+    new_target = copy.replace(target, delete_date=now)
     database.targets.remove(target)
     database.targets.add(new_target)
     return Response(
@@ -289,7 +289,7 @@ def update_target(database_name: str, target_id: str) -> Response:
     gmt = ZoneInfo(key="GMT")
     last_modified_date = datetime.datetime.now(tz=gmt)
 
-    new_target = dataclasses.replace(
+    new_target = copy.replace(
         target,
         name=name,
         width=width,
