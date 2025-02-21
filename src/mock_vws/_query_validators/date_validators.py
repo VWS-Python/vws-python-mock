@@ -88,14 +88,16 @@ def validate_date_in_range(*, request_headers: Mapping[str, str]) -> None:
     date_header = request_headers["Date"]
     gmt = ZoneInfo(key="GMT")
 
-    date = datetime.datetime.fromtimestamp(timestamp=0, tz=gmt)
+    dates: list[datetime.datetime] = []
     for date_format in _accepted_date_formats():
         with contextlib.suppress(ValueError):
             date = datetime.datetime.strptime(
                 date_header,
                 date_format,
             ).astimezone()
+            dates.append(date)
 
+    date = dates[0]
     now = datetime.datetime.now(tz=gmt)
     date_from_header = date.replace(tzinfo=gmt)
     time_difference = now - date_from_header
