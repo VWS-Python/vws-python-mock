@@ -109,7 +109,7 @@ optional-dependencies.dev = [
     "yamlfix==1.17.0",
 ]
 optional-dependencies.release = [ "check-wheel-contents==0.6.1" ]
-urls.Documentation = "https://vws-python-mock.readthedocs.io"
+urls.Documentation = "https://vws-python.github.io/vws-python-mock/"
 urls.Source = "https://github.com/VWS-Python/vws-python-mock"
 
 [tool.setuptools]
@@ -314,7 +314,7 @@ ignore = [
     ".yamlfmt",
     "*.enc",
     "admin/**",
-    "readthedocs.yaml",
+
     "CHANGELOG.rst",
     "CODE_OF_CONDUCT.rst",
     "CONTRIBUTING.rst",

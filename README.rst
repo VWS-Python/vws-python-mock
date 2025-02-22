@@ -1,4 +1,4 @@
-|Build Status| |codecov| |PyPI| |Documentation Status|
+|Build Status| |codecov| |PyPI|
 
 VWS Mock
 ========
@@ -45,12 +45,12 @@ It is possible run a Mock VWS instance using Docker containers.
 
 This allows you to run tests against a mock VWS instance regardless of the language or tooling you are using.
 
-See the `the instructions <https://vws-python-mock.readthedocs.io/en/latest/docker.html>`__ for how to do this.
+See the `the instructions <https://vws-python.github.io/vws-python-mock/docker.html>`__ for how to do this.
 
 Full documentation
 ------------------
 
-See the `full documentation <https://vws-python-mock.readthedocs.io/en/latest>`__.
+See the `full documentation <https://vws-python.github.io/vws-python-mock/>`__.
 This includes details on how to use the mock, options, and details of the differences between the mock and the real Vuforia Web Services.
 
 
@@ -60,7 +60,4 @@ This includes details on how to use the mock, options, and details of the differ
    :target: https://codecov.io/gh/VWS-Python/vws-python-mock
 .. |PyPI| image:: https://badge.fury.io/py/VWS-Python-Mock.svg
     :target: https://badge.fury.io/py/VWS-Python-Mock
-.. |Documentation Status| image:: https://readthedocs.org/projects/vws-python-mock/badge/?version=latest
-   :target: https://vws-python-mock.readthedocs.io/en/latest/?badge=latest
-   :alt: Documentation Status
 .. |minimum-python-version| replace:: 3.13
