@@ -100,7 +100,7 @@ optional-dependencies.dev = [
     "tenacity==9.0.0",
     "types-docker==7.1.0.20241229",
     "types-pyyaml==6.0.12.20241230",
-    "types-requests==2.32.0.20250301",
+    "types-requests==2.32.0.20250306",
     "urllib3==2.3.0",
     "vulture==2.14",
     "vws-python==2024.9.21",
