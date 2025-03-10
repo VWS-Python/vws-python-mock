@@ -455,7 +455,7 @@ class TestTargetRaters:
 
     @staticmethod
     def test_default(
-        corrupted_image_file: io.BytesIO,
+        image_file_success_state_low_rating: io.BytesIO,
         high_quality_image: io.BytesIO,
     ) -> None:
         """
@@ -470,10 +470,10 @@ class TestTargetRaters:
             server_secret_key=database.server_secret_key,
         )
 
-        corrupted_image_target_id = vws_client.add_target(
+        low_rating_image_target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
             width=1,
-            image=corrupted_image_file,
+            image=image_file_success_state_low_rating,
             application_metadata=None,
             active_flag=True,
         )
@@ -487,27 +487,26 @@ class TestTargetRaters:
         )
 
         for target_id in (
-            corrupted_image_target_id,
+            low_rating_image_target_id,
             high_quality_image_target_id,
         ):
             vws_client.wait_for_target_processed(target_id=target_id)
 
-        corrupted_image_rating = vws_client.get_target_record(
-            target_id=corrupted_image_target_id,
+        low_rated_image_rating = vws_client.get_target_record(
+            target_id=low_rating_image_target_id,
         ).target_record.tracking_rating
 
         high_quality_image_rating = vws_client.get_target_record(
             target_id=high_quality_image_target_id,
         ).target_record.tracking_rating
 
-        # In the real Vuforia, this image may rate as -2.
-        assert corrupted_image_rating <= 0
+        assert low_rated_image_rating <= 0
         assert high_quality_image_rating > 1
 
     @staticmethod
     def test_brisque(
         monkeypatch: pytest.MonkeyPatch,
-        corrupted_image_file: io.BytesIO,
+        image_file_success_state_low_rating: io.BytesIO,
         high_quality_image: io.BytesIO,
     ) -> None:
         """
@@ -524,10 +523,10 @@ class TestTargetRaters:
             server_secret_key=database.server_secret_key,
         )
 
-        corrupted_image_target_id = vws_client.add_target(
+        low_rating_image_target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
             width=1,
-            image=corrupted_image_file,
+            image=image_file_success_state_low_rating,
             application_metadata=None,
             active_flag=True,
         )
@@ -541,21 +540,20 @@ class TestTargetRaters:
         )
 
         for target_id in (
-            corrupted_image_target_id,
+            low_rating_image_target_id,
             high_quality_image_target_id,
         ):
             vws_client.wait_for_target_processed(target_id=target_id)
 
-        corrupted_image_rating = vws_client.get_target_record(
-            target_id=corrupted_image_target_id,
+        low_rated_image_rating = vws_client.get_target_record(
+            target_id=low_rating_image_target_id,
         ).target_record.tracking_rating
 
         high_quality_image_rating = vws_client.get_target_record(
             target_id=high_quality_image_target_id,
         ).target_record.tracking_rating
 
-        # In the real Vuforia, this image may rate as -2.
-        assert corrupted_image_rating <= 0
+        assert low_rated_image_rating <= 0
         assert high_quality_image_rating > 1
 
     @staticmethod

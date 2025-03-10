@@ -50,14 +50,15 @@ class TestBrisqueTargetTrackingRater:
     """
 
     @staticmethod
-    def test_low_quality_image(corrupted_image_file: io.BytesIO) -> None:
+    def test_low_quality_image(
+        image_file_success_state_low_rating: io.BytesIO,
+    ) -> None:
         """
         Test that a low quality image returns a low rating.
         """
         rater = BrisqueTargetTrackingRater()
-        image_content = corrupted_image_file.getvalue()
+        image_content = image_file_success_state_low_rating.getvalue()
         rating = rater(image_content=image_content)
-        # In the real Vuforia, this image may rate as -2.
         assert rating == 0
 
     @staticmethod
