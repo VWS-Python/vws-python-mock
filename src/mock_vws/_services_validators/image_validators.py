@@ -36,6 +36,9 @@ def validate_image_integrity(*, request_body: bytes) -> None:
 
     request_text = request_body.decode()
     image = json.loads(s=request_text).get("image")
+    if image is None:
+        return
+
     decoded = decode_base64(encoded_data=image)
 
     image_file = io.BytesIO(initial_bytes=decoded)
