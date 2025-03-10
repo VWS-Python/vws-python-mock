@@ -11,10 +11,9 @@ from typing import Any, Final
 
 import pytest
 from beartype import beartype
-from dirty_equals import IsInstance
 from vws import VWS
 from vws.exceptions.custom_exceptions import (
-    OopsAnErrorOccurredPossiblyBadNameError,
+    ServerError,
 )
 from vws.exceptions.vws_exceptions import (
     AuthenticationFailureError,
@@ -30,7 +29,6 @@ from vws.types import Response
 from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import make_image_file
 from tests.mock_vws.utils.assertions import (
-    assert_valid_date_header,
     assert_vws_failure,
     assert_vws_response,
 )
@@ -63,32 +61,6 @@ def _add_target_to_vws(
         expected_result_code=ResultCodes.TARGET_CREATED.value,
         content_type=content_type,
     )
-
-
-@beartype
-def _assert_oops_response(response: Response) -> None:
-    """Assert that the response is in the format of Vuforia's "Oops, an error
-    occurred" HTML response.
-
-    Raises:
-        AssertionError: The given response is not expected format.
-    """
-    assert_valid_date_header(response=response)
-    assert "Oops, an error occurred" in response.text
-    assert "This exception has been logged with id" in response.text
-
-    expected_headers = {
-        "Connection": "keep-alive",
-        "Content-Type": "text/html; charset=UTF-8",
-        "Date": response.headers["Date"],
-        "server": "envoy",
-        "Content-Length": "1190",
-        "x-envoy-upstream-service-time": IsInstance(expected_type=str),
-        "strict-transport-security": "max-age=31536000",
-        "x-aws-region": IsInstance(expected_type=str),
-        "x-content-type-options": "nosniff",
-    }
-    assert response.headers == expected_headers
 
 
 def assert_success(response: Response) -> None:
@@ -379,16 +351,11 @@ class TestTargetName:
         }
 
         if status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
-            with pytest.raises(
-                expected_exception=OopsAnErrorOccurredPossiblyBadNameError,
-            ) as oops_exc:
+            with pytest.raises(expected_exception=ServerError) as exc:
                 _add_target_to_vws(vws_client=vws_client, data=data)
-            assert oops_exc.value.response.status_code == status_code
-            _assert_oops_response(response=oops_exc.value.response)
-            return
-
-        with pytest.raises(expected_exception=FailError) as exc:
-            _add_target_to_vws(vws_client=vws_client, data=data)
+        else:
+            with pytest.raises(expected_exception=FailError) as exc:
+                _add_target_to_vws(vws_client=vws_client, data=data)
 
         assert_vws_failure(
             response=exc.value.response,
