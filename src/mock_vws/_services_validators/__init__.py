@@ -29,6 +29,7 @@ from .image_validators import (
     validate_image_data_type,
     validate_image_encoding,
     validate_image_format,
+    validate_image_integrity,
     validate_image_is_image,
     validate_image_size,
 )
@@ -122,6 +123,7 @@ def run_services_validators(
     validate_image_format(request_body=request_body)
     validate_image_color_space(request_body=request_body)
     validate_image_size(request_body=request_body)
+    validate_image_integrity(request_body=request_body)
 
     validate_name_type(request_body=request_body)
     validate_name_length(request_body=request_body)

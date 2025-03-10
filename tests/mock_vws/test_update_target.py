@@ -670,12 +670,19 @@ class TestImage:
         target_id: str,
     ) -> None:
         """
-        No error is returned when the given image is corrupted.
+        An error is returned when the given image is corrupted.
         """
         vws_client.wait_for_target_processed(target_id=target_id)
-        vws_client.update_target(
-            target_id=target_id,
-            image=corrupted_image_file,
+        with pytest.raises(expected_exception=BadImageError) as exc:
+            vws_client.update_target(
+                target_id=target_id,
+                image=corrupted_image_file,
+            )
+
+        assert_vws_failure(
+            response=exc.value.response,
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
+            result_code=ResultCodes.BAD_IMAGE,
         )
 
     @staticmethod
