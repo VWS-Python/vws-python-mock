@@ -350,6 +350,8 @@ class TestTargetName:
             "active_flag": True,
         }
 
+        exc: pytest.ExceptionInfo[FailError | ServerError]
+
         if status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             with pytest.raises(expected_exception=ServerError) as exc:
                 _add_target_to_vws(vws_client=vws_client, data=data)
