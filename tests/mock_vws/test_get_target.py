@@ -146,7 +146,6 @@ class TestTargetTrackingRating:
         vws_client: VWS,
         high_quality_image: io.BytesIO,
         image_file_success_state_low_rating: io.BytesIO,
-        corrupted_image_file: io.BytesIO,
     ) -> None:
         """
         The target tracking rating is as expected.
@@ -159,14 +158,9 @@ class TestTargetTrackingRating:
             vws_client=vws_client,
             image_file=image_file_success_state_low_rating,
         )
-        corrupted_image_file_tracking_rating = _get_target_tracking_rating(
-            vws_client=vws_client,
-            image_file=corrupted_image_file,
-        )
         assert (
             high_quality_image_tracking_rating
             > low_quality_image_tracking_rating
-            >= corrupted_image_file_tracking_rating
         )
 
 
