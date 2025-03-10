@@ -12,7 +12,6 @@ from beartype import beartype
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._services_validators.exceptions import (
     FailError,
-    OopsErrorOccurredResponseError,
     TargetNameExistError,
 )
 from mock_vws.database import VuforiaDatabase
@@ -35,8 +34,8 @@ def validate_name_characters_in_range(
         request_path: The path to the endpoint.
 
     Raises:
-        OopsErrorOccurredResponseError: Characters are out of range and the
-            request is trying to make a new target.
+        FailError: Characters are out of range and the request is trying to
+            make a new target.
         TargetNameExistError: Characters are out of range and the request is
             for another endpoint.
     """
@@ -55,7 +54,7 @@ def validate_name_characters_in_range(
 
     if (request_method, request_path) == (HTTPMethod.POST, "/targets"):
         _LOGGER.warning(msg="Characters are out of range.")
-        raise OopsErrorOccurredResponseError
+        raise FailError(status_code=HTTPStatus.INTERNAL_SERVER_ERROR)
 
     _LOGGER.warning(msg="Characters are out of range.")
     raise TargetNameExistError
