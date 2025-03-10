@@ -22,6 +22,33 @@ _LOGGER = logging.getLogger(name=__name__)
 
 
 @beartype
+def validate_image_integrity(*, request_body: bytes) -> None:
+    """Validate the integrity of the image given to a VWS endpoint.
+
+    Args:
+        request_body: The body of the request.
+
+    Raises:
+        BadImageError: The image is given and is not a valid image file.
+    """
+    if not request_body:
+        return
+
+    request_text = request_body.decode()
+    image = json.loads(s=request_text).get("image")
+    decoded = decode_base64(encoded_data=image)
+
+    image_file = io.BytesIO(initial_bytes=decoded)
+    pil_image = Image.open(fp=image_file)
+
+    try:
+        pil_image.verify()
+    except SyntaxError as exc:
+        _LOGGER.warning(msg="The image is not a valid image file.")
+        raise BadImageError from exc
+
+
+@beartype
 def validate_image_format(*, request_body: bytes) -> None:
     """Validate the format of the image given to a VWS endpoint.
 
