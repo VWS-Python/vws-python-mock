@@ -7,7 +7,6 @@ import textwrap
 import uuid
 from collections.abc import Mapping
 from http import HTTPStatus
-from pathlib import Path
 
 from beartype import beartype
 
@@ -255,48 +254,6 @@ class TargetNameExistError(ValidatorError):
         self.headers = {
             "Connection": "keep-alive",
             "Content-Type": "application/json",
-            "server": "envoy",
-            "Date": date,
-            "x-envoy-upstream-service-time": "5",
-            "Content-Length": str(object=len(self.response_text)),
-            "strict-transport-security": "max-age=31536000",
-            "x-aws-region": "us-east-2, us-west-2",
-            "x-content-type-options": "nosniff",
-        }
-
-
-@beartype
-class OopsErrorOccurredResponseError(ValidatorError):
-    """Exception raised when VWS returns an HTML page which says "Oops, an
-    error occurred".
-
-    This has been seen to happen when the given name includes a bad
-    character.
-    """
-
-    def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this is
-                raised.
-        """
-        super().__init__()
-        self.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-        resources_dir = Path(__file__).parent.parent / "resources"
-        filename = "oops_error_occurred_response.html"
-        oops_resp_file = resources_dir / filename
-        text = str(object=oops_resp_file.read_text())
-        self.response_text = text
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
-        )
-        self.headers = {
-            "Connection": "keep-alive",
-            "Content-Type": "text/html; charset=UTF-8",
             "server": "envoy",
             "Date": date,
             "x-envoy-upstream-service-time": "5",
