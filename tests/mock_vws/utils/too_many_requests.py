@@ -7,7 +7,7 @@ from http import HTTPStatus
 from beartype import beartype
 from vws.exceptions.custom_exceptions import ServerError
 from vws.exceptions.vws_exceptions import TooManyRequestsError
-from vws.types import Response
+from vws.response import Response
 
 
 @beartype

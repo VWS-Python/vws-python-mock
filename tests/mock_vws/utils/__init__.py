@@ -12,7 +12,7 @@ from urllib.parse import urljoin
 import requests
 from PIL import Image
 from requests.structures import CaseInsensitiveDict
-from vws.types import Response
+from vws.response import Response
 
 from mock_vws._constants import ResultCodes
 
