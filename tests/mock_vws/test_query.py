@@ -34,7 +34,7 @@ from vws.exceptions.cloud_reco_exceptions import (
 )
 from vws.exceptions.custom_exceptions import RequestEntityTooLargeError
 from vws.reports import TargetStatuses
-from vws.types import Response
+from vws.response import Response
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws.database import VuforiaDatabase
