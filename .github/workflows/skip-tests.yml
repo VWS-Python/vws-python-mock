@@ -88,7 +88,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
         if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
 
-  completion:
+  completion-skip-tests:
     needs: build
     runs-on: ubuntu-latest
     if: always()  # Run even if one matrix job fails

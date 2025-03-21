@@ -48,7 +48,7 @@ jobs:
           tags: |-
             adamtheturtle/vuforia-${{ matrix.image.name }}-mock:latest
 
-  completion:
+  completion-docker:
     needs: build
     runs-on: ubuntu-latest
     if: always()  # Run even if one matrix job fails
