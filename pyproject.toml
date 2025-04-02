@@ -99,7 +99,7 @@ optional-dependencies.dev = [
     "sybil==9.1.0",
     "tenacity==9.0.0",
     "types-docker==7.1.0.20241229",
-    "types-pyyaml==6.0.12.20250326",
+    "types-pyyaml==6.0.12.20250402",
     "types-requests==2.32.0.20250328",
     "urllib3==2.3.0",
     "vulture==2.14",
