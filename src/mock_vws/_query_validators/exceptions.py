@@ -514,7 +514,7 @@ class InvalidIncludeTargetDataError(ValidatorError):
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
         unexpected_target_data_message = (
-            f"Invalid value '{given_value}' in form data part "
+            f"Invalid value '{given_value.lower()}' in form data part "
             "'include_target_data'. "
             "Expecting one of the (unquoted) string values 'all', 'none' or "
             "'top'."

@@ -1155,8 +1155,8 @@ class TestIncludeTargetData:
         response = _query(vuforia_database=vuforia_database, body=body)
 
         expected_text = (
-            f"Invalid value '{include_target_data}' in form data "
-            "part 'include_target_data'. "
+            f"Invalid value '{str(object=include_target_data).lower()}' in "
+            "form data part 'include_target_data'. "
             "Expecting one of the (unquoted) string values 'all', 'none' or "
             "'top'."
         )
