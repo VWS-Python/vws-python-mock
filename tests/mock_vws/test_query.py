@@ -55,21 +55,20 @@ _JETTY_CONTENT_TYPE_ERROR = textwrap.dedent(
     text="""\
     <html>
     <head>
-    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+    <meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-1"/>
     <title>Error 400 Bad Request</title>
     </head>
-    <body><h2>HTTP ERROR 400 Bad Request</h2>
+    <body>
     <table>
     <tr><th>URI:</th><td>/v1/query</td></tr>
     <tr><th>STATUS:</th><td>400</td></tr>
     <tr><th>MESSAGE:</th><td>Bad Request</td></tr>
-    <tr><th>SERVLET:</th><td>Resteasy</td></tr>
     </table>
-    <hr><a href="https://eclipse.org/jetty">Powered by Jetty:// 9.4.43.v20210629</a><hr/>
+    <hr/><a href="https://jetty.org/">Powered by Jetty:// 12.0.16</a><hr/>
 
     </body>
     </html>
-    """,  # noqa: E501
+    """,
 )
 
 _NGINX_REQUEST_ENTITY_TOO_LARGE_ERROR = textwrap.dedent(
