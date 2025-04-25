@@ -177,13 +177,10 @@ class TestContentType:
             ),
             (
                 "*/*",
-                HTTPStatus.BAD_REQUEST,
-                "text/html;charset=utf-8",
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                "application/json",
                 None,
-                (
-                    "java.io.IOException: RESTEASY007550: Unable to get "
-                    "boundary for multipart"
-                ),
+                "RESTEASY007550: Unable to get boundary for multipart",
             ),
             (
                 "text/*",
@@ -255,7 +252,9 @@ class TestContentType:
             request_body=requests_response.request.body,
             tell_position=requests_response.raw.tell(),
         )
-        handle_server_errors(response=vws_response)
+
+        if resp_status_code != HTTPStatus.INTERNAL_SERVER_ERROR:
+            handle_server_errors(response=vws_response)
 
         assert requests_response.text == resp_text
         assert_vwq_failure(
