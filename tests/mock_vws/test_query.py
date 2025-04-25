@@ -59,8 +59,9 @@ _JETTY_CONTENT_TYPE_ERROR = textwrap.dedent(
     <title>Error 400 Bad Request</title>
     </head>
     <body>
+    <h2>HTTP ERROR 400 Bad Request</h2>
     <table>
-    <tr><th>URI:</th><td>/v1/query</td></tr>
+    <tr><th>URI:</th><td>http://cloudreco.vuforia.com/v1/query</td></tr>
     <tr><th>STATUS:</th><td>400</td></tr>
     <tr><th>MESSAGE:</th><td>Bad Request</td></tr>
     </table>
