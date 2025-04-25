@@ -55,21 +55,21 @@ _JETTY_CONTENT_TYPE_ERROR = textwrap.dedent(
     text="""\
     <html>
     <head>
-    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+    <meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-1"/>
     <title>Error 400 Bad Request</title>
     </head>
-    <body><h2>HTTP ERROR 400 Bad Request</h2>
+    <body>
+    <h2>HTTP ERROR 400 Bad Request</h2>
     <table>
-    <tr><th>URI:</th><td>/v1/query</td></tr>
+    <tr><th>URI:</th><td>http://cloudreco.vuforia.com/v1/query</td></tr>
     <tr><th>STATUS:</th><td>400</td></tr>
     <tr><th>MESSAGE:</th><td>Bad Request</td></tr>
-    <tr><th>SERVLET:</th><td>Resteasy</td></tr>
     </table>
-    <hr><a href="https://eclipse.org/jetty">Powered by Jetty:// 9.4.43.v20210629</a><hr/>
+    <hr/><a href="https://jetty.org/">Powered by Jetty:// 12.0.16</a><hr/>
 
     </body>
     </html>
-    """,  # noqa: E501
+    """,
 )
 
 _NGINX_REQUEST_ENTITY_TOO_LARGE_ERROR = textwrap.dedent(
@@ -177,13 +177,10 @@ class TestContentType:
             ),
             (
                 "*/*",
-                HTTPStatus.BAD_REQUEST,
-                "text/html;charset=utf-8",
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                "application/json",
                 None,
-                (
-                    "java.io.IOException: RESTEASY007550: Unable to get "
-                    "boundary for multipart"
-                ),
+                "RESTEASY007550: Unable to get boundary for multipart",
             ),
             (
                 "text/*",
@@ -255,7 +252,9 @@ class TestContentType:
             request_body=requests_response.request.body,
             tell_position=requests_response.raw.tell(),
         )
-        handle_server_errors(response=vws_response)
+
+        if resp_status_code != HTTPStatus.INTERNAL_SERVER_ERROR:
+            handle_server_errors(response=vws_response)
 
         assert requests_response.text == resp_text
         assert_vwq_failure(
@@ -349,7 +348,7 @@ class TestContentType:
         content_type: str,
     ) -> None:
         """
-        If no boundary is given, a ``BAD_REQUEST`` is returned.
+        If no boundary is given, an ``INTERNAL_SERVER_ERROR`` is returned.
         """
         image_content = high_quality_image.getvalue()
         date = rfc_1123_date()
@@ -393,17 +392,12 @@ class TestContentType:
             request_body=requests_response.request.body,
             tell_position=requests_response.raw.tell(),
         )
-        handle_server_errors(response=vws_response)
-
-        expected_text = (
-            "java.io.IOException: RESTEASY007550: "
-            "Unable to get boundary for multipart"
-        )
+        expected_text = "RESTEASY007550: Unable to get boundary for multipart"
         assert requests_response.text == expected_text
         assert_vwq_failure(
             response=vws_response,
-            status_code=HTTPStatus.BAD_REQUEST,
-            content_type="text/html;charset=utf-8",
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            content_type="application/json",
             cache_control=None,
             www_authenticate=None,
             connection="keep-alive",
@@ -1155,8 +1149,8 @@ class TestIncludeTargetData:
         response = _query(vuforia_database=vuforia_database, body=body)
 
         expected_text = (
-            f"Invalid value '{include_target_data}' in form data "
-            "part 'include_target_data'. "
+            f"Invalid value '{str(object=include_target_data).lower()}' in "
+            "form data part 'include_target_data'. "
             "Expecting one of the (unquoted) string values 'all', 'none' or "
             "'top'."
         )

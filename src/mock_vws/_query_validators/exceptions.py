@@ -514,7 +514,7 @@ class InvalidIncludeTargetDataError(ValidatorError):
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
         unexpected_target_data_message = (
-            f"Invalid value '{given_value}' in form data part "
+            f"Invalid value '{given_value.lower()}' in form data part "
             "'include_target_data'. "
             "Expecting one of the (unquoted) string values 'all', 'none' or "
             "'top'."
@@ -612,10 +612,9 @@ class NoBoundaryFoundError(ValidatorError):
                 raised.
         """
         super().__init__()
-        self.status_code = HTTPStatus.BAD_REQUEST
+        self.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
         self.response_text = (
-            "java.io.IOException: RESTEASY007550: "
-            "Unable to get boundary for multipart"
+            "RESTEASY007550: Unable to get boundary for multipart"
         )
 
         date = email.utils.formatdate(
@@ -624,7 +623,7 @@ class NoBoundaryFoundError(ValidatorError):
             usegmt=True,
         )
         self.headers = {
-            "Content-Type": "text/html;charset=utf-8",
+            "Content-Type": "application/json",
             "Connection": "keep-alive",
             "Server": "nginx",
             "Date": date,
@@ -748,17 +747,17 @@ class NoContentTypeError(ValidatorError):
             text="""\
             <html>
             <head>
-            <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+            <meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-1"/>
             <title>Error 400 Bad Request</title>
             </head>
-            <body><h2>HTTP ERROR 400 Bad Request</h2>
+            <body>
+            <h2>HTTP ERROR 400 Bad Request</h2>
             <table>
-            <tr><th>URI:</th><td>/v1/query</td></tr>
+            <tr><th>URI:</th><td>http://cloudreco.vuforia.com/v1/query</td></tr>
             <tr><th>STATUS:</th><td>400</td></tr>
             <tr><th>MESSAGE:</th><td>Bad Request</td></tr>
-            <tr><th>SERVLET:</th><td>Resteasy</td></tr>
             </table>
-            <hr><a href="https://eclipse.org/jetty">Powered by Jetty:// 9.4.43.v20210629</a><hr/>
+            <hr/><a href="https://jetty.org/">Powered by Jetty:// 12.0.16</a><hr/>
 
             </body>
             </html>
