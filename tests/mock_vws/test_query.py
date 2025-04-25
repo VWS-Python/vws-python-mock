@@ -348,7 +348,7 @@ class TestContentType:
         content_type: str,
     ) -> None:
         """
-        If no boundary is given, a ``BAD_REQUEST`` is returned.
+        If no boundary is given, an ``INTERNAL_SERVER_ERROR`` is returned.
         """
         image_content = high_quality_image.getvalue()
         date = rfc_1123_date()
@@ -392,17 +392,12 @@ class TestContentType:
             request_body=requests_response.request.body,
             tell_position=requests_response.raw.tell(),
         )
-        handle_server_errors(response=vws_response)
-
-        expected_text = (
-            "java.io.IOException: RESTEASY007550: "
-            "Unable to get boundary for multipart"
-        )
+        expected_text = "RESTEASY007550: Unable to get boundary for multipart"
         assert requests_response.text == expected_text
         assert_vwq_failure(
             response=vws_response,
-            status_code=HTTPStatus.BAD_REQUEST,
-            content_type="text/html;charset=utf-8",
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            content_type="application/json",
             cache_control=None,
             www_authenticate=None,
             connection="keep-alive",
