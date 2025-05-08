@@ -57,7 +57,7 @@ optional-dependencies.dev = [
     "dirty-equals==0.9.0",
     "doc8==1.1.1",
     "doccmd==2025.4.8",
-    "docformatter==1.7.5",
+    "docformatter==1.7.6",
     "docker==7.1.0",
     "enum-tools[sphinx]==0.13.0",
     "freezegun==1.5.1",
