@@ -76,7 +76,7 @@ optional-dependencies.dev = [
     "pytest==8.3.5",
     "pytest-cov==6.1.1",
     "pytest-retry==1.7.0",
-    "pytest-xdist==3.6.1",
+    "pytest-xdist==3.7.0",
     "python-dotenv==1.1.0",
     "pyyaml==6.0.2",
     "requests-mock-flask==2025.1.13",
