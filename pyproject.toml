@@ -74,6 +74,7 @@ optional-dependencies.dev = [
     "pyright==1.1.402",
     "pyroma==4.2",
     "pytest==8.4.0",
+    "pytest-beartype",
     "pytest-cov==6.2.1",
     "pytest-retry==1.7.0",
     "pytest-xdist==3.7.0",
