@@ -9,7 +9,6 @@ from http import HTTPMethod, HTTPStatus
 from typing import Any
 
 import pytest
-from beartype import beartype
 from urllib3.filepost import encode_multipart_formdata
 from vws import VWS
 from vws_auth_tools import authorization_header, rfc_1123_date
@@ -36,7 +35,6 @@ def _wait_for_target_processed(vws_client: VWS, target_id: str) -> None:
     vws_client.wait_for_target_processed(target_id=target_id)
 
 
-@beartype
 @pytest.fixture
 def add_target(
     vuforia_database: VuforiaDatabase,
@@ -93,7 +91,6 @@ def add_target(
     )
 
 
-@beartype
 @pytest.fixture
 def delete_target(
     vuforia_database: VuforiaDatabase,
@@ -140,7 +137,6 @@ def delete_target(
     )
 
 
-@beartype
 @pytest.fixture
 def database_summary(vuforia_database: VuforiaDatabase) -> Endpoint:
     """
@@ -183,7 +179,6 @@ def database_summary(vuforia_database: VuforiaDatabase) -> Endpoint:
     )
 
 
-@beartype
 @pytest.fixture
 def get_duplicates(
     vuforia_database: VuforiaDatabase,
@@ -232,7 +227,6 @@ def get_duplicates(
     )
 
 
-@beartype
 @pytest.fixture
 def get_target(
     vuforia_database: VuforiaDatabase,
@@ -280,7 +274,6 @@ def get_target(
     )
 
 
-@beartype
 @pytest.fixture
 def target_list(vuforia_database: VuforiaDatabase) -> Endpoint:
     """
@@ -323,7 +316,6 @@ def target_list(vuforia_database: VuforiaDatabase) -> Endpoint:
     )
 
 
-@beartype
 @pytest.fixture
 def target_summary(
     vuforia_database: VuforiaDatabase,
@@ -371,7 +363,6 @@ def target_summary(
     )
 
 
-@beartype
 @pytest.fixture
 def update_target(
     vuforia_database: VuforiaDatabase,
@@ -422,7 +413,6 @@ def update_target(
     )
 
 
-@beartype
 @pytest.fixture
 def query(
     vuforia_database: VuforiaDatabase,
