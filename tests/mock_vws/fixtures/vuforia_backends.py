@@ -235,7 +235,6 @@ def pytest_collection_modifyitems(
                 item.add_marker(marker=skip_docker_build_tests_marker)
 
 
-@beartype
 @pytest.fixture(
     name="verify_mock_vuforia",
     params=list(VuforiaBackend),
@@ -275,7 +274,6 @@ def fixture_verify_mock_vuforia(
     )
 
 
-@beartype
 @pytest.fixture(
     params=[item for item in VuforiaBackend if item != VuforiaBackend.REAL],
     ids=[

@@ -51,7 +51,6 @@ def wait_for_health_check(container: Container) -> None:
         raise ValueError(error_message)
 
 
-@beartype
 @pytest.fixture(name="custom_bridge_network")
 def fixture_custom_bridge_network() -> Iterator[Network]:
     """Yield a custom bridge network which containers can connect to.
