@@ -1133,6 +1133,7 @@ class TestIncludeTargetData:
         argvalues=["a", True, 0],
     )
     def test_invalid_value(
+        *,
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         include_target_data: str | bool | int,

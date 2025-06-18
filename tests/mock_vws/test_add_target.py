@@ -674,6 +674,7 @@ class TestActiveFlag:
         argvalues=[True, False, None],
     )
     def test_valid(
+        *,
         active_flag: bool | None,
         image_file_failed_state: io.BytesIO,
         vws_client: VWS,
