@@ -100,7 +100,7 @@ optional-dependencies.dev = [
     "types-docker==7.1.0.20250523",
     "types-pyyaml==6.0.12.20250516",
     "types-requests==2.32.4.20250611",
-    "urllib3==2.4.0",
+    "urllib3==2.5.0",
     "vulture==2.14",
     "vws-python==2025.3.10.1",
     "vws-test-fixtures==2023.3.5",
