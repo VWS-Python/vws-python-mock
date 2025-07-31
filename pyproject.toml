@@ -60,7 +60,7 @@ optional-dependencies.dev = [
     "docformatter==1.7.7",
     "docker==7.1.0",
     "enum-tools[sphinx]==0.13.0",
-    "freezegun==1.5.3",
+    "freezegun==1.5.4",
     "furo==2025.7.19",
     "interrogate==1.7.0",
     "mypy[faster-cache]==1.17.0",
