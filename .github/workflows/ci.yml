@@ -119,7 +119,7 @@ jobs:
           - docs/source/basic-example.rst
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # See https://github.com/codecov/codecov-action/issues/190.
           fetch-depth: 2
