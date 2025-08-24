@@ -45,36 +45,55 @@ repos:
   - repo: meta
     hooks:
       - id: check-useless-excludes
+        stages: [pre-commit]
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
       - id: check-added-large-files
+        stages: [pre-commit]
       - id: check-case-conflict
+        stages: [pre-commit]
       - id: check-executables-have-shebangs
+        stages: [pre-commit]
       - id: check-merge-conflict
+        stages: [pre-commit]
       - id: check-shebang-scripts-are-executable
+        stages: [pre-commit]
       - id: check-symlinks
+        stages: [pre-commit]
       - id: check-json
+        stages: [pre-commit]
       - id: check-toml
+        stages: [pre-commit]
       - id: check-vcs-permalinks
+        stages: [pre-commit]
       - id: check-yaml
+        stages: [pre-commit]
       - id: end-of-file-fixer
+        stages: [pre-commit]
       - id: file-contents-sorter
         files: spelling_private_dict\.txt$
+        stages: [pre-commit]
       - id: trailing-whitespace
+        stages: [pre-commit]
   - repo: https://github.com/pre-commit/pygrep-hooks
     rev: v1.10.0
     hooks:
       - id: rst-directive-colons
+        stages: [pre-commit]
       - id: rst-inline-touching-normal
+        stages: [pre-commit]
       - id: text-unicode-replacement-char
+        stages: [pre-commit]
       - id: rst-backticks
 
+        stages: [pre-commit]
   - repo: https://github.com/AleksaC/hadolint-py
     rev: v2.12.1b3
     hooks:
       - id: hadolint
 
+        stages: [pre-commit]
   - repo: local
     hooks:
       - id: custom-linters
@@ -93,6 +112,7 @@ repos:
         pass_filenames: false
         types_or: [yaml]
         additional_dependencies: [uv==0.6.3]
+        stages: [pre-commit]
 
       - id: docformatter
         name: docformatter
@@ -100,6 +120,7 @@ repos:
         language: python
         types_or: [python]
         additional_dependencies: [uv==0.6.3]
+        stages: [pre-commit]
 
       - id: shellcheck
         name: shellcheck
@@ -107,6 +128,7 @@ repos:
         language: python
         types_or: [shell]
         additional_dependencies: [uv==0.6.3]
+        stages: [pre-commit]
 
       - id: shellcheck-docs
         name: shellcheck-docs
@@ -116,6 +138,7 @@ repos:
         language: python
         types_or: [markdown, rst]
         additional_dependencies: [uv==0.6.3]
+        stages: [pre-commit]
 
       - id: shfmt
         name: shfmt
@@ -123,6 +146,7 @@ repos:
         language: python
         types_or: [shell]
         additional_dependencies: [uv==0.6.3]
+        stages: [pre-commit]
 
       - id: shfmt-docs
         name: shfmt-docs
@@ -131,6 +155,7 @@ repos:
         language: python
         types_or: [markdown, rst]
         additional_dependencies: [uv==0.6.3]
+        stages: [pre-commit]
 
       - id: mypy
         name: mypy
@@ -188,6 +213,7 @@ repos:
         types_or: [python]
         pass_filenames: false
         additional_dependencies: [uv==0.6.3]
+        stages: [pre-commit]
 
       - id: vulture-docs
         name: vulture docs
@@ -196,6 +222,7 @@ repos:
         types_or: [python]
         pass_filenames: false
         additional_dependencies: [uv==0.6.3]
+        stages: [pre-commit]
 
       - id: pyroma
         name: pyroma
@@ -204,6 +231,7 @@ repos:
         pass_filenames: false
         types_or: [toml]
         additional_dependencies: [uv==0.6.3]
+        stages: [pre-commit]
 
       - id: deptry
         name: deptry
@@ -211,6 +239,7 @@ repos:
         language: python
         pass_filenames: false
         additional_dependencies: [uv==0.6.3]
+        stages: [pre-commit]
 
       - id: pylint
         name: pylint
@@ -233,6 +262,7 @@ repos:
         language: python
         types_or: [python]
         additional_dependencies: [uv==0.6.3]
+        stages: [pre-commit]
 
       - id: ruff-check-fix-docs
         name: Ruff check fix docs
@@ -240,6 +270,7 @@ repos:
         language: python
         types_or: [markdown, rst]
         additional_dependencies: [uv==0.6.3]
+        stages: [pre-commit]
 
       - id: ruff-format-fix
         name: Ruff format
@@ -247,6 +278,7 @@ repos:
         language: python
         types_or: [python]
         additional_dependencies: [uv==0.6.3]
+        stages: [pre-commit]
 
       - id: ruff-format-fix-docs
         name: Ruff format docs
@@ -255,6 +287,7 @@ repos:
         language: python
         types_or: [markdown, rst]
         additional_dependencies: [uv==0.6.3]
+        stages: [pre-commit]
 
       - id: doc8
         name: doc8
@@ -262,6 +295,7 @@ repos:
         language: python
         types_or: [rst]
         additional_dependencies: [uv==0.6.3]
+        stages: [pre-commit]
 
       - id: interrogate
         name: interrogate
@@ -269,6 +303,7 @@ repos:
         language: python
         types_or: [python]
         exclude_types: [executable]
+        stages: [pre-commit]
 
       - id: interrogate-docs
         name: interrogate docs
@@ -276,6 +311,7 @@ repos:
         language: python
         types_or: [markdown, rst]
         additional_dependencies: [uv==0.6.3]
+        stages: [pre-commit]
 
       - id: pyproject-fmt-fix
         name: pyproject-fmt
@@ -284,6 +320,7 @@ repos:
         types_or: [toml]
         files: pyproject.toml
 
+        stages: [pre-commit]
       - id: linkcheck
         name: linkcheck
         entry: make -C docs/ linkcheck SPHINXOPTS=-W
@@ -316,6 +353,7 @@ repos:
         language: python
         types_or: [yaml]
         additional_dependencies: [uv==0.6.3]
+        stages: [pre-commit]
 
       - id: sphinx-lint
         name: sphinx-lint
@@ -323,3 +361,4 @@ repos:
         language: python
         types_or: [rst]
         additional_dependencies: [uv==0.6.3]
+        stages: [pre-commit]
