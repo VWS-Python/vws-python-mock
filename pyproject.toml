@@ -16,7 +16,7 @@ keywords = [
     "vuforia",
     "vws",
 ]
-license = { file = "LICENSE" }
+license = "MIT"
 authors = [
     { name = "Adam Dangoor", email = "adamdangoor@gmail.com" },
 ]
@@ -25,7 +25,6 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Web Environment",
     "Framework :: Pytest",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: Microsoft :: Windows",
     "Operating System :: POSIX",
     "Programming Language :: Python :: 3 :: Only",
