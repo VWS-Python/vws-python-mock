@@ -7,7 +7,6 @@ https://developer.vuforia.com/library/web-api/vuforia-query-web-api
 import email.utils
 from collections.abc import Callable, Iterable, Mapping
 from http import HTTPMethod, HTTPStatus
-from types import MethodType
 
 from beartype import beartype
 from requests.models import PreparedRequest
@@ -53,9 +52,8 @@ def route(
             The given `method` with multiple changes, including added
             validators.
         """
-        route_name = method.__name__ if isinstance(method, MethodType) else ""
         new_route = Route(
-            route_name=route_name,
+            route_name=method.__name__,
             path_pattern=path_pattern,
             http_methods=frozenset(http_methods),
         )
