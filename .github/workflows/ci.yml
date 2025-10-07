@@ -167,19 +167,11 @@ jobs:
         env:
           UV_PYTHON: ${{ matrix.python-version }}
 
-      - name: Show coverage file
-        run: |
-          # Sometimes we have been sure that we have 100% coverage, but codecov
-          # says otherwise.
-          #
-          # We show the coverage file here to help with debugging.
-          # https://github.com/VWS-Python/vws-python-mock/issues/708
-          cat ./coverage.xml
-
       - name: Upload coverage data
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-data-${{ matrix.python-version }}-${{ matrix.ci_pattern }}
+          name: |
+            coverage-data-ci-${{ matrix.python-version }}-${{ matrix.ci_pattern}}
           path: .coverage.*
           include-hidden-files: true
           if-no-files-found: ignore
@@ -195,41 +187,3 @@ jobs:
             echo "One or more matrix jobs failed"
             exit 1
           fi
-
-  coverage:
-    name: Combine & check coverage
-    if: always()
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
-        with:
-          # Use latest Python, so it understands all syntax.
-          python-version: '3.13'
-
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: coverage-data-*
-          merge-multiple: true
-
-      - name: Combine coverage & fail if it's <100%
-        run: |
-          uv tool install 'coverage[toml]'
-
-          coverage combine
-          coverage html --skip-covered --skip-empty
-
-          # Report and write to summary.
-          coverage report --format=markdown >> "$GITHUB_STEP_SUMMARY"
-
-          # Report again and fail if under 100%.
-          coverage report --fail-under=100
-
-      - name: Upload HTML report if check failed
-        uses: actions/upload-artifact@v4
-        with:
-          name: html-report
-          path: htmlcov
-        if: ${{ failure() }}
