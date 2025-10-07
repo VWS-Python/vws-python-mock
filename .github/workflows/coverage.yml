@@ -2,18 +2,36 @@
 name: Coverage
 
 on:
-  workflow_run:
-    workflows: [CI, Skip tests, Windows CI]
-    types: [completed]
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    # Run at 1:00 every day
+    - cron: 0 1 * * *
+  workflow_dispatch: {}
 
 jobs:
   coverage:
     name: Combine & check coverage
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v5
+
+      - name: Wait for other workflows
+        uses: lewagon/wait-on-check-action@v1.3.4
+        with:
+          ref: ${{ github.ref }}
+          check-name: |
+            CI
+            Skip tests
+            Windows CI
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 10
+          allowed-conclusions: success
+
       - name: Install uv
         uses: astral-sh/setup-uv@v6
         with:
