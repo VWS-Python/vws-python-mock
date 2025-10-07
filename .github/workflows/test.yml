@@ -152,23 +152,25 @@ jobs:
 
       - name: Run tests
         run: |
-          uv run --extra=dev pytest \
-            -s \
-            -vvv \
-            --showlocals \
-            --exitfirst \
-            --cov-append \
-            --cov=src/ \
-            --cov=tests/ \
-            ${{ matrix.ci_pattern }}
+          uv run --extra=dev \
+              coverage run \
+              --parallel-mode \
+              --source=src/ \
+              --source=tests/ \
+              -m pytest \
+                  -s \
+                  -vvv \
+                  --showlocals \
+                  --exitfirst \
+                  ${{ matrix.ci_pattern }}
         env:
           UV_PYTHON: ${{ matrix.python-version }}
 
       - name: Upload coverage data
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-data-ci-${{ matrix.python-version }}-${{ matrix.ci_pattern
-            }}
+          name: |
+            coverage-data-ci-${{ matrix.python-version }}-${{ matrix.ci_pattern}}
           path: .coverage.*
           include-hidden-files: true
           if-no-files-found: error
@@ -196,18 +198,20 @@ jobs:
 
       - name: Run tests
         run: |
-          uv run --extra=dev pytest \
-            --skip-docker_build_tests \
-            --skip-docker_in_memory \
-            --skip-mock \
-            --skip-real \
-            --capture=no \
-            -vvv \
-            --exitfirst \
-            --cov-append \
-            --cov=src/ \
-            --cov=tests/ \
-            .
+          uv run --extra=dev \
+            coverage run \
+            --parallel-mode \
+            --source=src/ \
+            --source=tests/ \
+            -m pytest \
+                --skip-docker_build_tests \
+                --skip-docker_in_memory \
+                --skip-mock \
+                --skip-real \
+                --capture=no \
+                -vvv \
+                --exitfirst \
+                .
         env:
           UV_PYTHON: ${{ matrix.python-version }}
 
@@ -243,7 +247,17 @@ jobs:
         run: |
           # We use pytest-xdist to make this run much faster.
           # The downside is that we cannot use -s / --capture=no.
-          uv run --extra=dev pytest --skip-real -vvv --exitfirst -n auto --cov-append --cov=src/ --cov=tests/ .
+          uv run --extra=dev \
+            coverage run \
+            --parallel-mode \
+            --source=src/ \
+            --source=tests/ \
+            -m pytest \
+                --skip-real \
+                -vvv \
+                --exitfirst \
+                -n auto \
+                .
         env:
           UV_PYTHON: ${{ matrix.python-version }}
 
