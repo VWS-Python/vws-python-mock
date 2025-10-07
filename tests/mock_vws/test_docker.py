@@ -65,7 +65,9 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
     name = "test-vws-bridge-" + uuid.uuid4().hex
     try:
         network = client.networks.create(name=name, driver="bridge")
-    except NotFound:
+    # We skip coverage here because combining Windows and Linux coverage
+    # is challenging.
+    except NotFound:  # pragma: no cover
         # On Windows the "bridge" network driver is not available and we use
         # the "nat" driver instead.
         network = client.networks.create(name=name, driver="nat")
@@ -116,15 +118,15 @@ def test_build_and_run(
             target="target-manager",
             rm=True,
         )
-    except BuildError as exc:
+    # We skip coverage here because combining Windows and Linux coverage
+    # is challenging.
+    except BuildError as exc:  # pragma: no cover
         full_log = "\n".join(
             [item["stream"] for item in exc.build_log if "stream" in item],
         )
         # If this assertion fails, it may be useful to look at the other
         # properties of ``exc``.
-        if (
-            "no matching manifest for windows/amd64" not in exc.msg
-        ):  # pragma: no cover
+        if "no matching manifest for windows/amd64" not in exc.msg:
             raise AssertionError(full_log) from exc
         pytest.skip(
             reason="We do not currently support using Windows containers."

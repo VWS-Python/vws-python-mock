@@ -253,6 +253,12 @@ jobs:
         run: |
           # We use pytest-xdist to make this run much faster.
           # The downside is that we cannot use -s / --capture=no.
+          #
+          # We use coverage to collect coverage data but we currently
+          # do not upload / use it because combining Windows and Linux
+          # coverage is challenging.
+          #
+          # We therefore have a few ``# pragma: no cover`` statements.
           uv run --extra=dev \
             coverage run \
             --parallel-mode \
@@ -267,15 +273,6 @@ jobs:
         env:
           UV_PYTHON: ${{ matrix.python-version }}
 
-    #   - name: Upload coverage data
-    #     uses: actions/upload-artifact@v4
-    #     with:
-    #       name: coverage-data-windows-${{ matrix.python-version }}
-    #       path: .coverage.*
-    #       include-hidden-files: true
-    #       if-no-files-found: error
-
-  # Coverage combination and enforcement
   coverage:
     name: Combine & check coverage
     needs: [ci-tests, skip-tests, windows-tests]
