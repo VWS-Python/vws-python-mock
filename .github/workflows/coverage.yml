@@ -14,10 +14,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
         with:
-          # Use latest Python, so it understands all syntax.
-          python-version: '3.13'
+          enable-cache: true
+          cache-dependency-glob: '**/pyproject.toml'
 
       - uses: actions/download-artifact@v4
         with:
