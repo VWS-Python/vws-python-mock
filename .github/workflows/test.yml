@@ -12,13 +12,14 @@ on:
     - cron: 0 1 * * *
   workflow_dispatch: {}
 
+# We share Vuforia credentials and therefore Vuforia databases across
+# workflows. We therefore want to run only one workflow at a time.
+concurrency: vuforia_credentials
+
 jobs:
   # CI tests with matrix
   ci-tests:
     runs-on: ubuntu-latest
-    # We share Vuforia credentials and therefore Vuforia databases across
-    # workflows. We therefore want to run only one workflow at a time.
-    concurrency: vuforia_credentials
     strategy:
       fail-fast: false
       matrix:
