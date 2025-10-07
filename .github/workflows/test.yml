@@ -1,6 +1,5 @@
 ---
-
-name: CI
+name: Test
 
 on:
   push:
@@ -13,16 +12,13 @@ on:
     - cron: 0 1 * * *
   workflow_dispatch: {}
 
-# We share Vuforia credentials and therefore Vuforia databases across
-# workflows.
-# We therefore want to run only one workflow at a time.
-concurrency: vuforia_credentials
-
 jobs:
-  build:
-
+  # CI tests with matrix
+  ci-tests:
     runs-on: ubuntu-latest
-
+    # We share Vuforia credentials and therefore Vuforia databases across
+    # workflows. We therefore want to run only one workflow at a time.
+    concurrency: vuforia_credentials
     strategy:
       fail-fast: false
       matrix:
@@ -170,20 +166,156 @@ jobs:
       - name: Upload coverage data
         uses: actions/upload-artifact@v4
         with:
-          name: |
-            coverage-data-ci-${{ matrix.python-version }}-${{ matrix.ci_pattern}}
+          name: coverage-data-ci-${{ matrix.python-version }}-${{ matrix.ci_pattern
+            }}
           path: .coverage.*
           include-hidden-files: true
           if-no-files-found: ignore
 
-  completion-ci:
-    needs: build
+  # Skip tests
+  skip-tests:
     runs-on: ubuntu-latest
-    if: always()  # Run even if one matrix job fails
+    strategy:
+      matrix:
+        python-version: ['3.13']
+        platform: [ubuntu-latest]
+
     steps:
-      - name: Check matrix job status
+      - uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: '**/pyproject.toml'
+
+      - name: Set secrets file
+        run: |
+          cp ./vuforia_secrets.env.example ./vuforia_secrets.env
+
+      - name: Run tests
+        run: |
+          uv run --extra=dev pytest \
+            --skip-docker_build_tests \
+            --skip-docker_in_memory \
+            --skip-mock \
+            --skip-real \
+            --capture=no \
+            -vvv \
+            --exitfirst \
+            --cov=src/ \
+            --cov=tests/ \
+            --cov-report=xml \
+            .
+        env:
+          UV_PYTHON: ${{ matrix.python-version }}
+
+      - name: Upload coverage data
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-data-skip-tests-${{ matrix.python-version }}
+          path: .coverage.*
+          include-hidden-files: true
+          if-no-files-found: ignore
+
+  # Windows tests
+  windows-tests:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        python-version: ['3.13']
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: '**/pyproject.toml'
+
+      - name: Set secrets file
+        run: |
+          cp ./vuforia_secrets.env.example ./vuforia_secrets.env
+
+      - name: Run tests
+        run: |
+          # We use pytest-xdist to make this run much faster.
+          # The downside is that we cannot use -s / --capture=no.
+          uv run --extra=dev pytest --skip-real -vvv --exitfirst -n auto --cov=src/ --cov=tests/ --cov-report=xml .
+        env:
+          UV_PYTHON: ${{ matrix.python-version }}
+
+      - name: Upload coverage data
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-data-windows-${{ matrix.python-version }}
+          path: .coverage.*
+          include-hidden-files: true
+          if-no-files-found: ignore
+
+  # Coverage combination and enforcement
+  coverage:
+    name: Combine & check coverage
+    needs: [ci-tests, skip-tests, windows-tests]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: '**/pyproject.toml'
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-data-*
+          merge-multiple: true
+
+      - name: Combine coverage & fail if it's <100%
+        run: |
+          uv tool install 'coverage[toml]'
+
+          coverage combine
+          coverage html --skip-covered --skip-empty
+
+          # Report and write to summary.
+          coverage report --format=markdown >> "$GITHUB_STEP_SUMMARY"
+
+          # Report again and fail if under 100%.
+          coverage report --fail-under=100
+
+      - name: Upload HTML report if check failed
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-report
+          path: htmlcov
+        if: ${{ failure() }}
+
+  # Final completion check
+  completion:
+    needs: [ci-tests, skip-tests, windows-tests, coverage]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check all jobs status
         run: |-
-          if ! ${{ needs.build.result == 'success' }}; then
-            echo "One or more matrix jobs failed"
+          if ! ${{ needs.ci-tests.result == 'success' }}; then
+            echo "CI tests failed"
+            exit 1
+          fi
+          if ! ${{ needs.skip-tests.result == 'success' }}; then
+            echo "Skip tests failed"
+            exit 1
+          fi
+          if ! ${{ needs.windows-tests.result == 'success' }}; then
+            echo "Windows tests failed"
+            exit 1
+          fi
+          if ! ${{ needs.coverage.result == 'success' }}; then
+            echo "Coverage check failed"
             exit 1
           fi
