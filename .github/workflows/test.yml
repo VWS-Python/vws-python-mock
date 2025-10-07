@@ -171,7 +171,7 @@ jobs:
             }}
           path: .coverage.*
           include-hidden-files: true
-          if-no-files-found: ignore
+          if-no-files-found: error
 
   # Skip tests
   skip-tests:
@@ -217,7 +217,7 @@ jobs:
           name: coverage-data-skip-tests-${{ matrix.python-version }}
           path: .coverage.*
           include-hidden-files: true
-          if-no-files-found: ignore
+          if-no-files-found: error
 
   # Windows tests
   windows-tests:
@@ -253,7 +253,7 @@ jobs:
           name: coverage-data-windows-${{ matrix.python-version }}
           path: .coverage.*
           include-hidden-files: true
-          if-no-files-found: ignore
+          if-no-files-found: error
 
   # Coverage combination and enforcement
   coverage:
