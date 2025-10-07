@@ -27,9 +27,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
-        with:
-          # See https://github.com/codecov/codecov-action/issues/190.
-          fetch-depth: 2
 
       - name: Install uv
         uses: astral-sh/setup-uv@v6
@@ -58,35 +55,13 @@ jobs:
         env:
           UV_PYTHON: ${{ matrix.python-version }}
 
-      - name: Show coverage file
-        run: |
-          # Sometimes we have been sure that we have 100% coverage, but codecov
-          # says otherwise.
-          #
-          # We show the coverage file here to help with debugging.
-          # https://github.com/VWS-Python/vws-python-mock/issues/708
-          cat ./coverage.xml
-
-      # We run this job on every PR, on every merge to main, and nightly.
-      # This causes us to hit an issue with Codecov.
-      #
-      # We see "Too many uploads to this commit.".
-      # See https://community.codecov.io/t/too-many-uploads-to-this-commit/2574.
-      #
-      # To work around this, we do not upload coverage data on scheduled runs.
-      # We print the event name here to help with debugging.
-      - name: Show event name
-        run: |
-          echo ${{ github.event_name }}
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+      - name: Upload coverage data
+        uses: actions/upload-artifact@v4
         with:
-          fail_ci_if_error: true
-          # See https://community.codecov.com/t/upload-issues-unable-to-locate-build-via-github-actions-api/3954
-          # which tells us to use the token to avoid errors.
-          token: ${{ secrets.CODECOV_TOKEN }}
-        if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
+          name: coverage-data-skip-tests-${{ matrix.python-version }}
+          path: .coverage.*
+          include-hidden-files: true
+          if-no-files-found: ignore
 
   completion-skip-tests:
     needs: build
@@ -99,3 +74,41 @@ jobs:
             echo "One or more matrix jobs failed"
             exit 1
           fi
+
+  coverage-skip-tests:
+    name: Combine & check coverage (skip-tests)
+    if: always()
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          # Use latest Python, so it understands all syntax.
+          python-version: '3.13'
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-data-skip-tests-*
+          merge-multiple: true
+
+      - name: Combine coverage & fail if it's <100%
+        run: |
+          uv tool install 'coverage[toml]'
+
+          coverage combine
+          coverage html --skip-covered --skip-empty
+
+          # Report and write to summary.
+          coverage report --format=markdown >> "$GITHUB_STEP_SUMMARY"
+
+          # Report again and fail if under 100%.
+          coverage report --fail-under=100
+
+      - name: Upload HTML report if check failed
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-report-skip-tests
+          path: htmlcov
+        if: ${{ failure() }}
