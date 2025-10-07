@@ -244,6 +244,7 @@ jobs:
           cp ./vuforia_secrets.env.example ./vuforia_secrets.env
 
       - name: Run tests
+        shell: bash
         run: |
           # We use pytest-xdist to make this run much faster.
           # The downside is that we cannot use -s / --capture=no.
