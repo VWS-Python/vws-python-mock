@@ -54,7 +54,7 @@ See the `full documentation <https://vws-python.github.io/vws-python-mock/>`__.
 This includes details on how to use the mock, options, and details of the differences between the mock and the real Vuforia Web Services.
 
 
-.. |Build Status| image:: https://github.com/VWS-Python/vws-python-mock/actions/workflows/ci.yml/badge.svg?branch=main
+.. |Build Status| image:: https://github.com/VWS-Python/vws-python-mock/actions/workflows/test.yml/badge.svg?branch=main
    :target: https://github.com/VWS-Python/vws-python-mock/actions
 .. |PyPI| image:: https://badge.fury.io/py/VWS-Python-Mock.svg
     :target: https://badge.fury.io/py/VWS-Python-Mock
