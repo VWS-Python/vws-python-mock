@@ -153,16 +153,12 @@ jobs:
       - name: Run tests
         run: |
           uv run --extra=dev \
-              coverage run \
-              --parallel-mode \
-              --source=src/ \
-              --source=tests/ \
-              -m pytest \
-                  -s \
-                  -vvv \
-                  --showlocals \
-                  --exitfirst \
-                  ${{ matrix.ci_pattern }}
+            coverage run -m pytest \
+              -s \
+              -vvv \
+              --showlocals \
+              --exitfirst \
+              ${{ matrix.ci_pattern }}
         env:
           UV_PYTHON: ${{ matrix.python-version }}
 
@@ -204,19 +200,15 @@ jobs:
       - name: Run tests
         run: |
           uv run --extra=dev \
-            coverage run \
-            --parallel-mode \
-            --source=src/ \
-            --source=tests/ \
-            -m pytest \
-                --skip-docker_build_tests \
-                --skip-docker_in_memory \
-                --skip-mock \
-                --skip-real \
-                --capture=no \
-                -vvv \
-                --exitfirst \
-                .
+            coverage run -m pytest \
+              --skip-docker_build_tests \
+              --skip-docker_in_memory \
+              --skip-mock \
+              --skip-real \
+              --capture=no \
+              -vvv \
+              --exitfirst \
+              .
         env:
           UV_PYTHON: ${{ matrix.python-version }}
 
@@ -260,16 +252,12 @@ jobs:
           #
           # We therefore have a few ``# pragma: no cover`` statements.
           uv run --extra=dev \
-            coverage run \
-            --parallel-mode \
-            --source=src/ \
-            --source=tests/ \
-            -m pytest \
-                --skip-real \
-                -vvv \
-                --exitfirst \
-                -n auto \
-                .
+            coverage run -m pytest \
+              --skip-real \
+              -vvv \
+              --exitfirst \
+              -n auto \
+              .
         env:
           UV_PYTHON: ${{ matrix.python-version }}
 
@@ -305,7 +293,7 @@ jobs:
           coverage report --format=markdown >> "$GITHUB_STEP_SUMMARY"
 
           # Report again and fail if under 100%.
-          coverage report --fail-under=100
+          coverage report
 
       - name: Upload HTML report if check failed
         uses: actions/upload-artifact@v4
