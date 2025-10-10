@@ -365,6 +365,8 @@ branch = true
 omit = [
     "src/mock_vws/_flask_server/healthcheck.py",
 ]
+parallel = true
+source = [ "src/", "tests/" ]
 
 [tool.coverage.report]
 
@@ -372,6 +374,7 @@ exclude_also = [
     "if TYPE_CHECKING:",
     "class .*\\bProtocol\\):",
 ]
+fail_under = 100
 
 [tool.mypy]
 
