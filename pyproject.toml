@@ -89,7 +89,7 @@ optional-dependencies.dev = [
     "sphinx-lint==1.0.0",
     "sphinx-paramlinks==0.6",
     "sphinx-pyproject==0.3.0",
-    "sphinx-substitution-extensions==2025.6.6",
+    "sphinx-substitution-extensions==2025.10.24",
     "sphinx-toolbox==4.0.0",
     "sphinxcontrib-httpdomain==1.8.1",
     "sphinxcontrib-spelling==8.0.1",
