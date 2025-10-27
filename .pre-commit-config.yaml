@@ -133,8 +133,7 @@ repos:
       - id: shellcheck-docs
         name: shellcheck-docs
         # We exclude SC2215 as it is a false positive for an unknown reason on Windows.
-        entry:
-          uv run --extra=dev doccmd --language=shell --language=console --command="shellcheck
+        entry: uv run --extra=dev doccmd --language=shell --language=console --command="shellcheck
           --shell=bash --exclude=SC2215"
         language: python
         types_or: [markdown, rst]
@@ -151,8 +150,7 @@ repos:
 
       - id: shfmt-docs
         name: shfmt-docs
-        entry:
-          uv run --extra=dev doccmd --language=shell --language=console --skip-marker=shfmt
+        entry: uv run --extra=dev doccmd --language=shell --language=console --skip-marker=shfmt
           --no-pad-file --command="shfmt --write --space-redirects --indent=4"
         language: python
         types_or: [markdown, rst]
@@ -284,8 +282,7 @@ repos:
 
       - id: ruff-format-fix-docs
         name: Ruff format docs
-        entry:
-          uv run --extra=dev doccmd --language=python --no-pad-file --command="ruff
+        entry: uv run --extra=dev doccmd --language=python --no-pad-file --command="ruff
           format"
         language: python
         types_or: [markdown, rst]
@@ -326,7 +323,8 @@ repos:
         stages: [pre-commit]
       - id: linkcheck
         name: linkcheck
-        entry: uv run --extra=dev sphinx-build -M linkcheck docs/source docs/build -W
+        entry: uv run --extra=dev sphinx-build -M linkcheck docs/source docs/build
+          -W
         language: python
         types_or: [rst]
         stages: [manual]
@@ -335,7 +333,8 @@ repos:
 
       - id: spelling
         name: spelling
-        entry: uv run --extra=dev sphinx-build -M spelling docs/source docs/build -W
+        entry: uv run --extra=dev sphinx-build -M spelling docs/source docs/build
+          -W
         language: python
         types_or: [rst]
         stages: [manual]
