@@ -302,6 +302,7 @@ make-summary-multi-line = true
 
 ignore = [
     ".checkmake-config.ini",
+    ".prettierrc",
     ".yamlfmt",
     "*.enc",
     "admin/**",
