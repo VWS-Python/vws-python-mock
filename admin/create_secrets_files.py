@@ -12,7 +12,13 @@ Usage:
     $ python admin/create_secrets_files.py
     # After creating the secrets, update the encrypted archive:
     $ tar cvf secrets.tar ci_secrets/
-    $ gpg --yes --batch --passphrase="${PASSPHRASE_FOR_VUFORIA_SECRETS}" --symmetric --cipher-algo AES256 secrets.tar
+    $ gpg \
+        --yes \
+        --batch \
+        --passphrase="${PASSPHRASE_FOR_VUFORIA_SECRETS}" \
+        --symmetric \
+        --cipher-algo AES256 \
+        secrets.tar
 """
 
 import datetime
