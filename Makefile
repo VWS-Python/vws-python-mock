@@ -1,8 +1,4 @@
 SHELL := /bin/bash -euxo pipefail
-
-# Treat Sphinx warnings as errors
-SPHINXOPTS := -W
-
 .PHONY: update-secrets
 update-secrets:
     # After updating secrets, commit the new secrets.tar.gpg file.
@@ -11,7 +7,7 @@ update-secrets:
 
 .PHONY: docs
 docs:
-	make -C docs clean html SPHINXOPTS=$(SPHINXOPTS)
+	uv run --extra=dev sphinx-build -M html docs/source docs/build -W
 
 .PHONY: open-docs
 open-docs:
