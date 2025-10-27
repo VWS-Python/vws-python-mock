@@ -169,7 +169,7 @@ jobs:
           echo "name=coverage-data-ci-${{ matrix.python-version }}-${SANITIZED_PATTERN}" >> "$GITHUB_OUTPUT"
 
       - name: Upload coverage data
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ steps.sanitize.outputs.name }}
           path: .coverage.*
@@ -213,7 +213,7 @@ jobs:
           UV_PYTHON: ${{ matrix.python-version }}
 
       - name: Upload coverage data
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: coverage-data-skip-tests-${{ matrix.python-version }}
           path: .coverage.*
@@ -296,7 +296,7 @@ jobs:
           coverage report
 
       - name: Upload HTML report if check failed
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: html-report
           path: htmlcov
