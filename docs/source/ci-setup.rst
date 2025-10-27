@@ -35,7 +35,8 @@ Add the encrypted secrets files to the repository:
 
 .. code-block:: console
 
-   $ PASSPHRASE_FOR_VUFORIA_SECRETS="<CHOSEN_SECRET>" make update-secrets
+   $ tar cvf secrets.tar ci_secrets/
+   $ gpg --yes --batch --passphrase=${PASSPHRASE_FOR_VUFORIA_SECRETS} --symmetric --cipher-algo AES256 secrets.tar
    $ git add secrets.tar.gpg
    $ git commit -m "Update secret archive"
    $ git push

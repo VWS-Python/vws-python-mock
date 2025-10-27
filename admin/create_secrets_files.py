@@ -10,6 +10,9 @@ Usage:
     $ export EXISTING_SECRETS_FILE=/existing/file/with/inactive/db/creds
     # You may have to run this a few times, but it is idempotent.
     $ python admin/create_secrets_files.py
+    # After creating the secrets, update the encrypted archive:
+    $ tar cvf secrets.tar ci_secrets/
+    $ gpg --yes --batch --passphrase=${PASSPHRASE_FOR_VUFORIA_SECRETS} --symmetric --cipher-algo AES256 secrets.tar
 """
 
 import datetime
