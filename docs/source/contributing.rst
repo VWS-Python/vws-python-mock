@@ -91,8 +91,25 @@ To create an inactive project, delete the license key associated with a database
 Targets sometimes get stuck at the "Processing" stage meaning that they cannot be deleted.
 When this happens, create a new target database to use for testing.
 
-To create databases without using the browser, use :file:`admin/create_secrets_files.py`.
-See instructions in that file.
+To create databases without using the browser, use :file:`admin/create_secrets_files.py`:
+
+.. code-block:: bash
+
+      $ export VWS_EMAIL_ADDRESS=...
+      $ export VWS_PASSWORD=...
+      $ export NEW_SECRETS_DIR=...
+      $ export EXISTING_SECRETS_FILE=/existing/file/with/inactive/db/creds
+      # You may have to run this a few times, but it is idempotent.
+      $ python admin/create_secrets_files.py
+      # After creating the secrets, update the encrypted archive:
+      $ tar cvf secrets.tar "${NEW_SECRETS_DIR}"
+      $ gpg \
+         --yes \
+         --batch \
+         --passphrase="${PASSPHRASE_FOR_VUFORIA_SECRETS}" \
+         --symmetric \
+         --cipher-algo AES256 \
+         secrets.tar
 
 .. _Vuforia License Manager: https://developer.vuforia.com/vui/develop/licenses
 .. _Vuforia Target Manager: https://developer.vuforia.com/vui/develop/databases
@@ -120,8 +137,8 @@ Run the following commands to build and view documentation locally:
 
 .. code-block:: console
 
-   $ make docs
-   $ make open-docs
+   $ uv run --extra=dev sphinx-build -M html docs/source docs/build -W
+   $ python -c 'import os, webbrowser; webbrowser.open("file://" + os.path.abspath("docs/build/html/index.html"))'
 
 Continuous Integration
 ----------------------
