@@ -133,8 +133,8 @@ repos:
       - id: shellcheck-docs
         name: shellcheck-docs
         # We exclude SC2215 as it is a false positive for an unknown reason on Windows.
-        entry: uv run --extra=dev doccmd --no-write-to-file --language=shell --language=console
-          --command="shellcheck --shell=bash --exclude=SC2215"
+        entry: uv run --extra=dev doccmd --no-write-to-file --example-workers 0 --language=shell
+          --language=console --command="shellcheck --shell=bash --exclude=SC2215"
         language: python
         types_or: [markdown, rst]
         additional_dependencies: [uv==0.9.5]
@@ -169,7 +169,8 @@ repos:
       - id: mypy-docs
         name: mypy-docs
         stages: [pre-push]
-        entry: uv run --extra=dev doccmd --no-write-to-file --language=python --command="mypy"
+        entry: uv run --extra=dev doccmd --no-write-to-file --example-workers 0 --language=python
+          --command="mypy"
         language: python
         types_or: [markdown, rst]
 
@@ -193,7 +194,8 @@ repos:
       - id: pyright-docs
         name: pyright-docs
         stages: [pre-push]
-        entry: uv run --extra=dev doccmd --no-write-to-file --language=python --command="pyright"
+        entry: uv run --extra=dev doccmd --no-write-to-file --example-workers 0 --language=python
+          --command="pyright"
         language: python
         types_or: [markdown, rst]
 
@@ -217,7 +219,8 @@ repos:
 
       - id: vulture-docs
         name: vulture docs
-        entry: uv run --extra=dev doccmd --no-write-to-file --language=python --command="vulture"
+        entry: uv run --extra=dev doccmd --no-write-to-file --example-workers 0 --language=python
+          --command="vulture"
         language: python
         types_or: [python]
         pass_filenames: false
@@ -251,7 +254,8 @@ repos:
 
       - id: pylint-docs
         name: pylint-docs
-        entry: uv run --extra=dev doccmd --no-write-to-file --language=python --command="pylint"
+        entry: uv run --extra=dev doccmd --no-write-to-file --example-workers 0 --language=python
+          --command="pylint"
         language: python
         stages: [manual]
         types_or: [markdown, rst]
@@ -307,7 +311,8 @@ repos:
 
       - id: interrogate-docs
         name: interrogate docs
-        entry: uv run --extra=dev doccmd --no-write-to-file --language=python --command="interrogate"
+        entry: uv run --extra=dev doccmd --no-write-to-file --example-workers 0 --language=python
+          --command="interrogate"
         language: python
         types_or: [markdown, rst]
         additional_dependencies: [uv==0.9.5]
