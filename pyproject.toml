@@ -52,7 +52,7 @@ optional-dependencies.dev = [
     "actionlint-py==1.7.8.24",
     "check-manifest==0.51",
     "check-wheel-contents==0.6.3",
-    "coverage==7.11.3",
+    "coverage==7.12.0",
     "deptry==0.24.0",
     "dirty-equals==0.11",
     "doc8==1.1.1",
