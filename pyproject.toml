@@ -95,7 +95,7 @@ optional-dependencies.dev = [
     "sphinxcontrib-spelling==8.0.2",
     "sybil==9.2.0",
     "tenacity==9.1.2",
-    "types-docker==7.1.0.20251127",
+    "types-docker==7.1.0.20251129",
     "types-pyyaml==6.0.12.20250915",
     "types-requests==2.32.4.20250913",
     "urllib3==2.5.0",
