@@ -7,7 +7,7 @@ https://developer.vuforia.com/library/web-api/vuforia-query-web-api
 import email.utils
 from collections.abc import Callable, Iterable, Mapping
 from http import HTTPMethod, HTTPStatus
-from typing import ParamSpec, Protocol
+from typing import ParamSpec, Protocol, runtime_checkable
 
 from beartype import beartype
 from requests.models import PreparedRequest
@@ -29,6 +29,7 @@ _ResponseType = tuple[int, Mapping[str, str], str]
 _P = ParamSpec("_P")
 
 
+@runtime_checkable
 class _RouteMethod(Protocol[_P]):
     """
     Callable used for routing which also exposes ``__name__``.

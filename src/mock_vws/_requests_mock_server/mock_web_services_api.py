@@ -12,7 +12,7 @@ import json
 import uuid
 from collections.abc import Callable, Iterable, Mapping
 from http import HTTPMethod, HTTPStatus
-from typing import Any, ParamSpec, Protocol
+from typing import Any, ParamSpec, Protocol, runtime_checkable
 from zoneinfo import ZoneInfo
 
 from beartype import BeartypeConf, beartype
@@ -42,6 +42,7 @@ _ResponseType = tuple[int, Mapping[str, str], str]
 _P = ParamSpec("_P")
 
 
+@runtime_checkable
 class _RouteMethod(Protocol[_P]):
     """
     Callable used for routing which also exposes ``__name__``.
