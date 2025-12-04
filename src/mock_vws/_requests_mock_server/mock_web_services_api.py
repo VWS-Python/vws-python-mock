@@ -12,7 +12,7 @@ import json
 import uuid
 from collections.abc import Callable, Iterable, Mapping
 from http import HTTPMethod, HTTPStatus
-from typing import Any
+from typing import Any, ParamSpec, Protocol
 from zoneinfo import ZoneInfo
 
 from beartype import BeartypeConf, beartype
@@ -39,13 +39,28 @@ _TARGET_ID_PATTERN = "[A-Za-z0-9]+"
 _ROUTES: set[Route] = set()
 
 _ResponseType = tuple[int, Mapping[str, str], str]
+_P = ParamSpec("_P")
+
+
+class _RouteMethod(Protocol[_P]):
+    """
+    Callable used for routing which also exposes ``__name__``.
+    """
+
+    __name__: str
+
+    def __call__(self, *args: _P.args, **kwargs: _P.kwargs) -> _ResponseType:
+        """
+        Return a mock response.
+        """
+        ...  # pylint: disable=unnecessary-ellipsis
 
 
 @beartype
 def route(
     path_pattern: str,
     http_methods: Iterable[HTTPMethod],
-) -> Callable[[Callable[..., _ResponseType]], Callable[..., _ResponseType]]:
+) -> Callable[[_RouteMethod[_P]], _RouteMethod[_P]]:
     """Register a decorated method so that it can be recognized as a route.
 
     Args:
@@ -59,8 +74,8 @@ def route(
 
     @beartype
     def decorator(
-        method: Callable[..., _ResponseType],
-    ) -> Callable[..., _ResponseType]:
+        method: _RouteMethod[_P],
+    ) -> _RouteMethod[_P]:
         """Register a decorated method so that it can be recognized as a route.
 
         Returns:

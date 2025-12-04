@@ -7,6 +7,7 @@ https://developer.vuforia.com/library/web-api/vuforia-query-web-api
 import email.utils
 from collections.abc import Callable, Iterable, Mapping
 from http import HTTPMethod, HTTPStatus
+from typing import ParamSpec, Protocol
 
 from beartype import beartype
 from requests.models import PreparedRequest
@@ -25,13 +26,28 @@ from mock_vws.target_manager import TargetManager
 _ROUTES: set[Route] = set()
 
 _ResponseType = tuple[int, Mapping[str, str], str]
+_P = ParamSpec("_P")
+
+
+class _RouteMethod(Protocol[_P]):
+    """
+    Callable used for routing which also exposes ``__name__``.
+    """
+
+    __name__: str
+
+    def __call__(self, *args: _P.args, **kwargs: _P.kwargs) -> _ResponseType:
+        """
+        Return a mock response.
+        """
+        ...  # pylint: disable=unnecessary-ellipsis
 
 
 @beartype
 def route(
     path_pattern: str,
     http_methods: Iterable[str],
-) -> Callable[[Callable[..., _ResponseType]], Callable[..., _ResponseType]]:
+) -> Callable[[_RouteMethod[_P]], _RouteMethod[_P]]:
     """Register a decorated method so that it can be recognized as a route.
 
     Args:
@@ -44,8 +60,8 @@ def route(
     """
 
     def decorator(
-        method: Callable[..., _ResponseType],
-    ) -> Callable[..., _ResponseType]:
+        method: _RouteMethod[_P],
+    ) -> _RouteMethod[_P]:
         """Register a decorated method so that it can be recognized as a route.
 
         Returns:
