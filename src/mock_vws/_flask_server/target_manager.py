@@ -248,7 +248,11 @@ def delete_target(database_name: str, target_id: str) -> Response:
     )
     target = database.get_target(target_id=target_id)
     now = datetime.datetime.now(tz=target.upload_date.tzinfo)
-    new_target = copy.replace(target, delete_date=now)
+    # See https://github.com/facebook/pyrefly/issues/1897
+    new_target = copy.replace(
+        target,  # pyrefly: ignore[bad-argument-type]
+        delete_date=now,
+    )
     database.targets.remove(target)
     database.targets.add(new_target)
     return Response(
@@ -289,8 +293,9 @@ def update_target(database_name: str, target_id: str) -> Response:
     gmt = ZoneInfo(key="GMT")
     last_modified_date = datetime.datetime.now(tz=gmt)
 
+    # See https://github.com/facebook/pyrefly/issues/1897
     new_target = copy.replace(
-        target,
+        target,  # pyrefly: ignore[bad-argument-type]
         name=name,
         width=width,
         active_flag=active_flag,

@@ -70,6 +70,7 @@ optional-dependencies.dev = [
     "pylint[spelling]==4.0.4",
     "pylint-per-file-ignores==3.2.0",
     "pyproject-fmt==2.11.1",
+    "pyrefly==0.46.1",
     "pyright==1.1.407",
     "pyroma==5.0.1",
     "pytest==9.0.2",
@@ -388,6 +389,12 @@ plugins = [
     "mypy_strict_kwargs",
 ]
 follow_untyped_imports = true
+
+[tool.pyrefly]
+search_path = [
+    ".",
+    "src",
+]
 
 [tool.pyright]
 
