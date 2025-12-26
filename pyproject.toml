@@ -390,6 +390,12 @@ plugins = [
 ]
 follow_untyped_imports = true
 
+[tool.pyrefly]
+search_path = [
+    ".",
+    "src",
+]
+
 [tool.pyright]
 
 enableTypeIgnoreComments = false

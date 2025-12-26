@@ -259,7 +259,11 @@ class MockVuforiaWebServicesAPI:
             )
 
         now = datetime.datetime.now(tz=target.upload_date.tzinfo)
-        new_target = copy.replace(target, delete_date=now)
+        # See https://github.com/facebook/pyrefly/issues/1897
+        new_target = copy.replace(
+            target,  # pyrefly: ignore[bad-argument-type]
+            delete_date=now,
+        )
         database.targets.remove(target)
         database.targets.add(new_target)
         date = email.utils.formatdate(
@@ -618,8 +622,9 @@ class MockVuforiaWebServicesAPI:
         gmt = ZoneInfo(key="GMT")
         last_modified_date = datetime.datetime.now(tz=gmt)
 
+        # See https://github.com/facebook/pyrefly/issues/1897
         new_target = copy.replace(
-            target,
+            target,  # pyrefly: ignore[bad-argument-type]
             name=name,
             width=width,
             active_flag=active_flag,
