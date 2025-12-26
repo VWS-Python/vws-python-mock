@@ -74,6 +74,7 @@ plugins
 png
 pragma
 processable
+pyrefly
 pyright
 pytest
 readme
