@@ -17,6 +17,8 @@ on:
     - cron: 0 1 * * *
   workflow_dispatch: {}
 
+permissions: {}
+
 jobs:
   build:
     name: Build Docker images
@@ -32,6 +34,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+        with:
+          persist-credentials: false
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 

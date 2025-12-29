@@ -23,6 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
+          persist-credentials: false
           # Fetch all history including tags.
           # Needed to find the latest tag.
           #
