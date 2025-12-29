@@ -327,6 +327,7 @@ ignore = [
     "lint.mk",
     "src/mock_vws/_flask_server/Dockerfile",
     "secrets.tar.gpg",
+    "zizmor.yml",
 ]
 
 [tool.deptry]
