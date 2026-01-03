@@ -1,5 +1,4 @@
 ---
-
 name: Release
 
 on: workflow_dispatch
@@ -29,6 +28,7 @@ jobs:
           # Also, avoids
           # https://github.com/stefanzweifel/git-auto-commit-action/issues/99.
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
