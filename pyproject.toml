@@ -55,7 +55,7 @@ optional-dependencies.dev = [
     "coverage==7.13.1",
     "deptry==0.24.0",
     "dirty-equals==0.11",
-    "doc8==1.1.1",
+    "doc8==2.0.0",
     "doccmd==2026.1.18",
     "docformatter==1.7.7",
     "docker==7.1.0",
@@ -85,7 +85,7 @@ optional-dependencies.dev = [
     # use it to lint shell commands in GitHub workflow files.
     "shellcheck-py==0.11.0.1",
     "shfmt-py==3.12.0.2",
-    "sphinx==8.2.3",
+    "sphinx==9.1.0",
     "sphinx-copybutton==0.5.2",
     "sphinx-lint==1.0.2",
     "sphinx-paramlinks==0.6",
