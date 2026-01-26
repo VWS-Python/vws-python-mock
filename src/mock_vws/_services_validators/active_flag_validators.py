@@ -1,6 +1,4 @@
-"""
-Validators for the active flag.
-"""
+"""Validators for the active flag."""
 
 import json
 import logging

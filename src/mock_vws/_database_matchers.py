@@ -1,6 +1,4 @@
-"""
-Helpers for getting databases which match keys given in requests.
-"""
+"""Helpers for getting databases which match keys given in requests."""
 
 from collections.abc import Iterable, Mapping
 
@@ -19,7 +17,8 @@ def get_database_matching_client_keys(
     request_path: str,
     databases: Iterable[VuforiaDatabase],
 ) -> VuforiaDatabase:
-    """Return the first of the given databases which is being accessed by the
+    """Return the first of the given databases which is being accessed by
+    the
     given client request.
 
     Args:
@@ -67,7 +66,8 @@ def get_database_matching_server_keys(
     request_path: str,
     databases: Iterable[VuforiaDatabase],
 ) -> VuforiaDatabase:
-    """Return the first of the given databases which is being accessed by the
+    """Return the first of the given databases which is being accessed by
+    the
     given server request.
 
     Args:

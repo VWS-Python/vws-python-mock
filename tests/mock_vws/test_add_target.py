@@ -1,6 +1,4 @@
-"""
-Tests for the mock of the add target endpoint.
-"""
+"""Tests for the mock of the add target endpoint."""
 
 import base64
 import io
@@ -88,9 +86,7 @@ def assert_success(response: Response) -> None:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestContentTypes:
-    """
-    Tests for the `Content-Type` header.
-    """
+    """Tests for the `Content-Type` header."""
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -111,9 +107,7 @@ class TestContentTypes:
         image_file_failed_state: io.BytesIO,
         content_type: str,
     ) -> None:
-        """
-        Any non-empty ``Content-Type`` header is allowed.
-        """
+        """Any non-empty ``Content-Type`` header is allowed."""
         image_data = image_file_failed_state.getvalue()
         image_data_encoded = base64.b64encode(s=image_data).decode(
             encoding="ascii"
@@ -139,7 +133,8 @@ class TestContentTypes:
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
-        An ``UNAUTHORIZED`` response is given if an empty ``Content-Type``
+        An ``UNAUTHORIZED`` response is given if an empty ``Content-
+        Type``
         header is given.
         """
         image_data = image_file_failed_state.getvalue()
@@ -171,9 +166,7 @@ class TestContentTypes:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestMissingData:
-    """
-    Tests for giving incomplete data.
-    """
+    """Tests for giving incomplete data."""
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -185,9 +178,7 @@ class TestMissingData:
         image_file_failed_state: io.BytesIO,
         data_to_remove: str,
     ) -> None:
-        """
-        `name`, `width` and `image` are all required.
-        """
+        """`name`, `width` and `image` are all required."""
         image_data = image_file_failed_state.getvalue()
         image_data_encoded = base64.b64encode(s=image_data).decode(
             encoding="ascii",
@@ -212,9 +203,7 @@ class TestMissingData:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestWidth:
-    """
-    Tests for the target width field.
-    """
+    """Tests for the target width field."""
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -227,9 +216,7 @@ class TestWidth:
         image_file_failed_state: io.BytesIO,
         width: int | str | None,
     ) -> None:
-        """
-        The width must be a number greater than zero.
-        """
+        """The width must be a number greater than zero."""
         image_data = image_file_failed_state.getvalue()
         image_data_encoded = base64.b64encode(s=image_data).decode(
             encoding="ascii"
@@ -255,9 +242,7 @@ class TestWidth:
         vws_client: VWS,
         image_file_failed_state: io.BytesIO,
     ) -> None:
-        """
-        Positive numbers are valid widths.
-        """
+        """Positive numbers are valid widths."""
         vws_client.add_target(
             name="example",
             width=0.01,
@@ -269,9 +254,7 @@ class TestWidth:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestTargetName:
-    """
-    Tests for the target name field.
-    """
+    """Tests for the target name field."""
 
     _MAX_CHAR_VALUE = 65535
     _MAX_NAME_LENGTH = 64
@@ -294,9 +277,7 @@ class TestTargetName:
         image_file_failed_state: io.BytesIO,
         vws_client: VWS,
     ) -> None:
-        """
-        Names between 1 and 64 characters in length are valid.
-        """
+        """Names between 1 and 64 characters in length are valid."""
         vws_client.add_target(
             name=name,
             width=1,
@@ -335,7 +316,8 @@ class TestTargetName:
         vws_client: VWS,
     ) -> None:
         """
-        A target's name must be a string of length 0 < N < 65, with characters
+        A target's name must be a string of length 0 < N < 65, with
+        characters
         in a particular range.
         """
         image_data = image_file_failed_state.getvalue()
@@ -370,9 +352,7 @@ class TestTargetName:
         image_file_failed_state: io.BytesIO,
         vws_client: VWS,
     ) -> None:
-        """
-        Only one target can have a given name.
-        """
+        """Only one target can have a given name."""
         vws_client.add_target(
             name="example_name",
             width=1,
@@ -401,9 +381,7 @@ class TestTargetName:
         image_file_failed_state: io.BytesIO,
         vws_client: VWS,
     ) -> None:
-        """
-        A target can be added with the name of a deleted target.
-        """
+        """A target can be added with the name of a deleted target."""
         target_id = vws_client.add_target(
             name="example_name",
             width=1,
@@ -437,7 +415,8 @@ class TestImage:
         image_files_failed_state: io.BytesIO,
     ) -> None:
         """
-        JPEG and PNG files in the RGB and greyscale color spaces are allowed.
+        JPEG and PNG files in the RGB and greyscale color spaces are
+        allowed.
         """
         vws_client.add_target(
             name="example_name",
@@ -453,7 +432,8 @@ class TestImage:
         vws_client: VWS,
     ) -> None:
         """
-        An `UNPROCESSABLE_ENTITY` response is returned if an image which is not
+        An `UNPROCESSABLE_ENTITY` response is returned if an image which
+        is not
         a JPEG or PNG file is given, or if the given image is not in the
         greyscale or RGB color space.
         """
@@ -477,9 +457,7 @@ class TestImage:
         corrupted_image_file: io.BytesIO,
         vws_client: VWS,
     ) -> None:
-        """
-        An error is returned when the given image is corrupted.
-        """
+        """An error is returned when the given image is corrupted."""
         with pytest.raises(expected_exception=BadImageError) as exc:
             vws_client.add_target(
                 name="example_name",
@@ -498,7 +476,8 @@ class TestImage:
     @staticmethod
     def test_image_file_size_too_large(vws_client: VWS) -> None:
         """
-        An ``ImageTooLargeError`` result is returned if the image file size is
+        An ``ImageTooLargeError`` result is returned if the image file
+        size is
         above a certain threshold.
         """
         max_bytes = 2.3 * 1024 * 1024
@@ -567,7 +546,8 @@ class TestImage:
         vws_client: VWS,
         not_base64_encoded_processable: str,
     ) -> None:
-        """Some strings which are not valid base64 encoded strings are allowed
+        """Some strings which are not valid base64 encoded strings are
+        allowed
         as an image without getting a "Fail" response.
 
         This is because Vuforia treats them as valid base64, but then
@@ -595,7 +575,8 @@ class TestImage:
     ) -> None:
         """
         Some strings which are not valid base64 encoded strings are not
-        processable by Vuforia, and then when given as an image Vuforia returns
+        processable by Vuforia, and then when given as an image Vuforia
+        returns
         a "Fail" response.
         """
         data = {
@@ -616,7 +597,8 @@ class TestImage:
     @staticmethod
     def test_not_image(vws_client: VWS) -> None:
         """
-        If the given image is not an image file then a `BadImageError` result
+        If the given image is not an image file then a `BadImageError`
+        result
         is returned.
         """
         with pytest.raises(expected_exception=BadImageError) as exc:
@@ -643,9 +625,7 @@ class TestImage:
         invalid_type_image: int | None,
         vws_client: VWS,
     ) -> None:
-        """
-        If the given image is not a string, a `Fail` result is returned.
-        """
+        """If the given image is not a string, a `Fail` result is returned."""
         data = {
             "name": "example_name",
             "width": 1,
@@ -664,9 +644,7 @@ class TestImage:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestActiveFlag:
-    """
-    Tests for the active flag parameter.
-    """
+    """Tests for the active flag parameter."""
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -679,9 +657,7 @@ class TestActiveFlag:
         image_file_failed_state: io.BytesIO,
         vws_client: VWS,
     ) -> None:
-        """
-        Boolean values and NULL are valid active flags.
-        """
+        """Boolean values and NULL are valid active flags."""
         image_data = image_file_failed_state.getvalue()
         image_data_encoded = base64.b64encode(s=image_data).decode(
             encoding="ascii",
@@ -709,7 +685,8 @@ class TestActiveFlag:
         vws_client: VWS,
     ) -> None:
         """
-        Values which are not Boolean values or NULL are not valid active flags.
+        Values which are not Boolean values or NULL are not valid active
+        flags.
         """
         active_flag = "string"
         image_data = image_file_failed_state.getvalue()
@@ -743,9 +720,7 @@ class TestActiveFlag:
         vws_client: VWS,
         image_file_failed_state: io.BytesIO,
     ) -> None:
-        """
-        The active flag defaults to True if it is not set.
-        """
+        """The active flag defaults to True if it is not set."""
         image_data = image_file_failed_state.getvalue()
         image_data_encoded = base64.b64encode(s=image_data).decode(
             encoding="ascii"
@@ -768,9 +743,7 @@ class TestActiveFlag:
         vws_client: VWS,
         image_file_failed_state: io.BytesIO,
     ) -> None:
-        """
-        The active flag defaults to True if it is set to NULL.
-        """
+        """The active flag defaults to True if it is set to NULL."""
         image_data = image_file_failed_state.getvalue()
         image_data_encoded = base64.b64encode(s=image_data).decode(
             encoding="ascii"
@@ -794,7 +767,8 @@ class TestActiveFlag:
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestUnexpectedData:
     """
-    Tests for passing data which is not mandatory or allowed to the endpoint.
+    Tests for passing data which is not mandatory or allowed to the
+    endpoint.
     """
 
     @staticmethod
@@ -803,7 +777,8 @@ class TestUnexpectedData:
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
-        A `BAD_REQUEST` response is returned when unexpected data is given.
+        A `BAD_REQUEST` response is returned when unexpected data is
+        given.
         """
         image_data = image_file_failed_state.getvalue()
         image_data_encoded = base64.b64encode(s=image_data).decode(
@@ -829,9 +804,7 @@ class TestUnexpectedData:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestApplicationMetadata:
-    """
-    Tests for the application metadata parameter.
-    """
+    """Tests for the application metadata parameter."""
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -847,9 +820,7 @@ class TestApplicationMetadata:
         metadata: bytes,
         vws_client: VWS,
     ) -> None:
-        """
-        A base64 encoded string is valid application metadata.
-        """
+        """A base64 encoded string is valid application metadata."""
         metadata_encoded = base64.b64encode(s=metadata).decode(
             encoding="ascii"
         )
@@ -867,9 +838,7 @@ class TestApplicationMetadata:
         vws_client: VWS,
         image_file_failed_state: io.BytesIO,
     ) -> None:
-        """
-        NULL is valid application metadata.
-        """
+        """NULL is valid application metadata."""
         image_data = image_file_failed_state.getvalue()
         image_data_encoded = base64.b64encode(s=image_data).decode(
             encoding="ascii"
@@ -926,7 +895,8 @@ class TestApplicationMetadata:
         vws_client: VWS,
     ) -> None:
         """
-        Some strings which are not valid base64 encoded strings are allowed as
+        Some strings which are not valid base64 encoded strings are
+        allowed as
         application metadata.
         """
         vws_client.add_target(
@@ -944,7 +914,8 @@ class TestApplicationMetadata:
         vws_client: VWS,
     ) -> None:
         """
-        Some strings which are not valid base64 encoded strings are not allowed
+        Some strings which are not valid base64 encoded strings are not
+        allowed
         as application metadata.
         """
         with pytest.raises(expected_exception=FailError) as exc:
@@ -968,7 +939,8 @@ class TestApplicationMetadata:
         vws_client: VWS,
     ) -> None:
         """
-        A base64 encoded string of greater than 1024 * 1024 bytes is too large
+        A base64 encoded string of greater than 1024 * 1024 bytes is too
+        large
         for application metadata.
         """
         metadata = b"a" * (_MAX_METADATA_BYTES + 1)
@@ -994,9 +966,7 @@ class TestApplicationMetadata:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestInactiveProject:
-    """
-    Tests for inactive projects.
-    """
+    """Tests for inactive projects."""
 
     @staticmethod
     def test_inactive_project(
@@ -1004,7 +974,8 @@ class TestInactiveProject:
         inactive_vws_client: VWS,
     ) -> None:
         """
-        If the project is inactive, a FORBIDDEN response is returned.
+        If the project is inactive, a FORBIDDEN response is
+        returned.
         """
         with pytest.raises(expected_exception=ProjectInactiveError) as exc:
             inactive_vws_client.add_target(

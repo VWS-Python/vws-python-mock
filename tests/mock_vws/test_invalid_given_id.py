@@ -1,5 +1,6 @@
 """
-Tests for passing invalid target IDs to endpoints which require a target ID to
+Tests for passing invalid target IDs to endpoints which require a target
+ID to
 be given.
 """
 
@@ -17,7 +18,8 @@ from tests.mock_vws.utils.too_many_requests import handle_server_errors
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestInvalidGivenID:
     """
-    Tests for giving an invalid ID to endpoints which require a target ID to be
+    Tests for giving an invalid ID to endpoints which require a target
+    ID to be
     given.
     """
 
@@ -28,7 +30,8 @@ class TestInvalidGivenID:
         target_id: str,
     ) -> None:
         """
-        A `NOT_FOUND` error is returned when an endpoint is given a target ID
+        A `NOT_FOUND` error is returned when an endpoint is given a
+        target ID
         of a target which does not exist.
         """
         if not endpoint.path_url.endswith(target_id):

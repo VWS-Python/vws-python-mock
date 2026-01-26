@@ -1,6 +1,4 @@
-"""
-Authorization header validators to use in the mock.
-"""
+"""Authorization header validators to use in the mock."""
 
 import logging
 from collections.abc import Iterable, Mapping
@@ -20,7 +18,8 @@ _LOGGER = logging.getLogger(name=__name__)
 
 @beartype
 def validate_auth_header_exists(*, request_headers: Mapping[str, str]) -> None:
-    """Validate that there is an authorization header given to a VWS endpoint.
+    """Validate that there is an authorization header given to a VWS
+    endpoint.
 
     Args:
         request_headers: The headers sent with the request.
@@ -39,7 +38,8 @@ def validate_access_key_exists(
     request_headers: Mapping[str, str],
     databases: Iterable[VuforiaDatabase],
 ) -> None:
-    """Validate the authorization header includes an access key for a database.
+    """Validate the authorization header includes an access key for a
+    database.
 
     Args:
         request_headers: The headers sent with the request.

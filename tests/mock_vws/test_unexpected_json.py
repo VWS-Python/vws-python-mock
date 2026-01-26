@@ -1,6 +1,4 @@
-"""
-Tests for giving JSON data to endpoints which do not expect it.
-"""
+"""Tests for giving JSON data to endpoints which do not expect it."""
 
 import json
 from http import HTTPStatus
@@ -16,14 +14,13 @@ from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestUnexpectedJSON:
-    """
-    Tests for giving JSON to endpoints which do not expect it.
-    """
+    """Tests for giving JSON to endpoints which do not expect it."""
 
     @staticmethod
     def test_does_not_take_data(endpoint: Endpoint) -> None:
         """
-        Giving JSON to endpoints which do not take any JSON data returns error
+        Giving JSON to endpoints which do not take any JSON data returns
+        error
         responses.
         """
         if (

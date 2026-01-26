@@ -1,6 +1,4 @@
-"""
-Input validators for the image field use in the mock query API.
-"""
+"""Input validators for the image field use in the mock query API."""
 
 import io
 import logging

@@ -1,6 +1,4 @@
-"""
-Tests for the mock of the target summary endpoint.
-"""
+"""Tests for the mock of the target summary endpoint."""
 
 import datetime
 import io
@@ -17,9 +15,7 @@ from mock_vws.database import VuforiaDatabase
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestTargetSummary:
-    """
-    Tests for the target summary endpoint.
-    """
+    """Tests for the target summary endpoint."""
 
     @staticmethod
     @pytest.mark.parametrize(argnames="active_flag", argvalues=[True, False])
@@ -30,9 +26,7 @@ class TestTargetSummary:
         *,
         active_flag: bool,
     ) -> None:
-        """
-        A target summary is returned.
-        """
+        """A target summary is returned."""
         name = uuid.uuid4().hex
         gmt = ZoneInfo(key="GMT")
         date_before_add_target = datetime.datetime.now(tz=gmt).date()
@@ -81,7 +75,8 @@ class TestTargetSummary:
         image_fixture_name: str,
         expected_status: TargetStatuses,
     ) -> None:
-        """After processing is completed, the tracking rating is in the range
+        """After processing is completed, the tracking rating is in the
+        range
         of 0 to 5.
 
         The documentation says:
@@ -122,9 +117,7 @@ class TestTargetSummary:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestRecognitionCounts:
-    """
-    Tests for the recognition counts in the summary.
-    """
+    """Tests for the recognition counts in the summary."""
 
     @staticmethod
     def test_recognition(
@@ -132,9 +125,7 @@ class TestRecognitionCounts:
         cloud_reco_client: CloudRecoService,
         high_quality_image: io.BytesIO,
     ) -> None:
-        """
-        The recognition counts stay at 0 even after recognitions.
-        """
+        """The recognition counts stay at 0 even after recognitions."""
         target_id = vws_client.add_target(
             name="example",
             width=1,
@@ -158,15 +149,11 @@ class TestRecognitionCounts:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestInactiveProject:
-    """
-    Tests for inactive projects.
-    """
+    """Tests for inactive projects."""
 
     @staticmethod
     def test_inactive_project(inactive_vws_client: VWS) -> None:
-        """
-        The project's active state does not affect getting a target.
-        """
+        """The project's active state does not affect getting a target."""
         with pytest.raises(expected_exception=UnknownTargetError):
             inactive_vws_client.get_target_summary_report(
                 target_id=uuid.uuid4().hex,

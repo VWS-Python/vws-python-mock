@@ -1,6 +1,4 @@
-"""
-Tests for the `Authorization` header.
-"""
+"""Tests for the `Authorization` header."""
 
 import io
 import json
@@ -28,13 +26,15 @@ from tests.mock_vws.utils.too_many_requests import handle_server_errors
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestAuthorizationHeader:
     """
-    Tests for what happens when the `Authorization` header is not as expected.
+    Tests for what happens when the `Authorization` header is not as
+    expected.
     """
 
     @staticmethod
     def test_missing(endpoint: Endpoint) -> None:
         """
-        An `UNAUTHORIZED` response is returned when no `Authorization` header
+        An `UNAUTHORIZED` response is returned when no `Authorization`
+        header
         is given.
         """
         date = rfc_1123_date()
@@ -82,13 +82,12 @@ class TestAuthorizationHeader:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestMalformed:
-    """
-    Tests for passing a malformed ``Authorization`` header.
-    """
+    """Tests for passing a malformed ``Authorization`` header."""
 
     @staticmethod
     def test_one_part_no_space(endpoint: Endpoint) -> None:
-        """A valid authorization string is two "parts" when split on a space.
+        """A valid authorization string is two "parts" when split on a
+        space.
 
         When
         a string is given which is one "part", a ``BAD_REQUEST`` or
@@ -142,7 +141,8 @@ class TestMalformed:
 
     @staticmethod
     def test_one_part_with_space(endpoint: Endpoint) -> None:
-        """A valid authorization string is two "parts" when split on a space.
+        """A valid authorization string is two "parts" when split on a
+        space.
 
         When
         a string is given which is one "part", a ``BAD_REQUEST`` or
@@ -242,16 +242,15 @@ class TestMalformed:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestBadKey:
-    """
-    Tests for making requests with incorrect keys.
-    """
+    """Tests for making requests with incorrect keys."""
 
     @staticmethod
     def test_bad_access_key_services(
         vuforia_database: VuforiaDatabase,
     ) -> None:
         """
-        If the server access key given does not match any database, a ``Fail``
+        If the server access key given does not match any database, a
+        ``Fail``
         response is returned.
         """
         vws_client = VWS(

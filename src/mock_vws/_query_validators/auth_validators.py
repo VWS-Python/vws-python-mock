@@ -1,6 +1,4 @@
-"""
-Authorization validators to use in the mock query API.
-"""
+"""Authorization validators to use in the mock query API."""
 
 import logging
 from collections.abc import Iterable, Mapping
@@ -41,7 +39,8 @@ def validate_auth_header_number_of_parts(
     *,
     request_headers: Mapping[str, str],
 ) -> None:
-    """Validate the authorization header includes text either side of a space.
+    """Validate the authorization header includes text either side of a
+    space.
 
     Args:
         request_headers: The headers sent with the request.
@@ -66,7 +65,8 @@ def validate_client_key_exists(
     request_headers: Mapping[str, str],
     databases: Iterable[VuforiaDatabase],
 ) -> None:
-    """Validate the authorization header includes a client key for a database.
+    """Validate the authorization header includes a client key for a
+    database.
 
     Args:
         request_headers: The headers sent with the request.

@@ -1,6 +1,4 @@
-"""
-Vuforia database states.
-"""
+"""Vuforia database states."""
 
 from enum import StrEnum, auto, unique
 
@@ -10,9 +8,7 @@ from beartype import beartype
 @beartype
 @unique
 class States(StrEnum):
-    """
-    Constants representing various web service states.
-    """
+    """Constants representing various web service states."""
 
     WORKING = auto()
 

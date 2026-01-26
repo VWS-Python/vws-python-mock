@@ -44,16 +44,12 @@ _P = ParamSpec("_P")
 
 @runtime_checkable
 class _RouteMethod(Protocol[_P]):
-    """
-    Callable used for routing which also exposes ``__name__``.
-    """
+    """Callable used for routing which also exposes ``__name__``."""
 
     __name__: str
 
     def __call__(self, *args: _P.args, **kwargs: _P.kwargs) -> _ResponseType:
-        """
-        Return a mock response.
-        """
+        """Return a mock response."""
         ...  # pylint: disable=unnecessary-ellipsis
 
 
@@ -77,7 +73,8 @@ def route(
     def decorator(
         method: _RouteMethod[_P],
     ) -> _RouteMethod[_P]:
-        """Register a decorated method so that it can be recognized as a route.
+        """Register a decorated method so that it can be recognized as a
+        route.
 
         Returns:
             The given `method` with multiple changes, including added
@@ -97,9 +94,7 @@ def route(
 
 @beartype
 def _body_bytes(request: PreparedRequest) -> bytes:
-    """
-    Return the body of a request as bytes.
-    """
+    """Return the body of a request as bytes."""
     if request.body is None:
         return b""
 
@@ -130,9 +125,11 @@ class MockVuforiaWebServicesAPI:
             processing_time_seconds: The number of seconds to process each
               image for. In the real Vuforia Web Services, this is not
               deterministic.
-            duplicate_match_checker: A callable which takes two image values
+            duplicate_match_checker: A callable which takes two image
+        values
               and returns whether they are duplicates.
-            target_tracking_rater: A callable for rating targets for tracking.
+            target_tracking_rater: A callable for rating targets for
+        tracking.
 
         Attributes:
             routes: The `Route`s to be used in the mock.
@@ -475,7 +472,8 @@ class MockVuforiaWebServicesAPI:
         http_methods={HTTPMethod.GET},
     )
     def get_duplicates(self, request: PreparedRequest) -> _ResponseType:
-        """Get targets which may be considered duplicates of a given target.
+        """Get targets which may be considered duplicates of a given
+        target.
 
         Fake implementation of
         https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#check

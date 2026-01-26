@@ -14,18 +14,14 @@ from vws.reports import TargetRecord, TargetStatuses
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestGetRecord:
-    """
-    Tests for getting a target record.
-    """
+    """Tests for getting a target record."""
 
     @staticmethod
     def test_get_vws_target(
         vws_client: VWS,
         image_file_failed_state: io.BytesIO,
     ) -> None:
-        """
-        Details of a target are returned.
-        """
+        """Details of a target are returned."""
         name = "my_example_name"
         width = 1234
 
@@ -61,7 +57,8 @@ class TestGetRecord:
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """
-        When a 1x1 image is given, the status changes from 'processing' to
+        When a 1x1 image is given, the status changes from 'processing'
+        to
         'failed' after some time.
         """
         target_id = vws_client.add_target(
@@ -83,7 +80,8 @@ class TestGetRecord:
         image_file_success_state_low_rating: io.BytesIO,
         vws_client: VWS,
     ) -> None:
-        """When a random, large enough image is given, the status changes from
+        """When a random, large enough image is given, the status changes
+        from
         'processing' to 'success' after some time.
 
         The mock is much more lenient than the real implementation of
@@ -118,9 +116,7 @@ def _get_target_tracking_rating(
     vws_client: VWS,
     image_file: io.BytesIO,
 ) -> int:
-    """
-    Get the tracking rating of a target with the given image.
-    """
+    """Get the tracking rating of a target with the given image."""
     target_id = vws_client.add_target(
         name=f"example_{uuid.uuid4().hex}",
         width=1,
@@ -147,9 +143,7 @@ class TestTargetTrackingRating:
         high_quality_image: io.BytesIO,
         image_file_success_state_low_rating: io.BytesIO,
     ) -> None:
-        """
-        The target tracking rating is as expected.
-        """
+        """The target tracking rating is as expected."""
         high_quality_image_tracking_rating = _get_target_tracking_rating(
             vws_client=vws_client,
             image_file=high_quality_image,
@@ -166,14 +160,10 @@ class TestTargetTrackingRating:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestInactiveProject:
-    """
-    Tests for inactive projects.
-    """
+    """Tests for inactive projects."""
 
     @staticmethod
     def test_inactive_project(inactive_vws_client: VWS) -> None:
-        """
-        The project's active state does not affect getting a target.
-        """
+        """The project's active state does not affect getting a target."""
         with pytest.raises(expected_exception=UnknownTargetError):
             inactive_vws_client.get_target_record(target_id=uuid.uuid4().hex)

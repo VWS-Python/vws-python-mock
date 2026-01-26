@@ -33,17 +33,13 @@ CLOUDRECO_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
 
 @beartype
 class _ImageMatcherChoice(StrEnum):
-    """
-    Image matcher choices.
-    """
+    """Image matcher choices."""
 
     EXACT = auto()
     STRUCTURAL_SIMILARITY = auto()
 
     def to_image_matcher(self) -> ImageMatcher:
-        """
-        Get the image matcher.
-        """
+        """Get the image matcher."""
         match self:
             case self.EXACT:
                 return ExactMatcher()
@@ -55,9 +51,7 @@ class _ImageMatcherChoice(StrEnum):
 
 @beartype
 class VWQSettings(BaseSettings):
-    """
-    Settings for the VWQ Flask app.
-    """
+    """Settings for the VWQ Flask app."""
 
     vwq_host: str = ""
     target_manager_base_url: str
@@ -68,9 +62,7 @@ class VWQSettings(BaseSettings):
 
 @beartype
 def get_all_databases() -> set[VuforiaDatabase]:
-    """
-    Get all database objects from the target manager back-end.
-    """
+    """Get all database objects from the target manager back-end."""
     settings = VWQSettings.model_validate(obj={})
     response = requests.get(
         url=f"{settings.target_manager_base_url}/databases",
@@ -111,9 +103,7 @@ def set_terminate_wsgi_input() -> None:
 
 @CLOUDRECO_FLASK_APP.errorhandler(code_or_exception=ValidatorError)
 def handle_exceptions(exc: ValidatorError) -> Response:
-    """
-    Return the error response associated with the given exception.
-    """
+    """Return the error response associated with the given exception."""
     response = Response(
         status=exc.status_code.value,
         response=exc.response_text,
@@ -127,9 +117,7 @@ def handle_exceptions(exc: ValidatorError) -> Response:
 
 @CLOUDRECO_FLASK_APP.route(rule="/v1/query", methods=[HTTPMethod.POST])
 def query() -> Response:
-    """
-    Perform an image recognition query.
-    """
+    """Perform an image recognition query."""
     settings = VWQSettings.model_validate(obj={})
     query_match_checker = settings.query_image_matcher.to_image_matcher()
 

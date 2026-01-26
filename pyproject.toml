@@ -57,7 +57,6 @@ optional-dependencies.dev = [
     "dirty-equals==0.11",
     "doc8==1.1.1",
     "doccmd==2026.1.25",
-    "docformatter==1.7.7",
     "docker==7.1.0",
     "enum-tools[sphinx]==0.13.0",
     "freezegun==1.5.5",
@@ -66,6 +65,7 @@ optional-dependencies.dev = [
     "mypy[faster-cache]==1.19.1",
     "mypy-strict-kwargs==2026.1.12",
     "prek==0.3.0",
+    "pydocstringformatter==0.7.3",
     "pydocstyle==6.3",
     "pylint[spelling]==4.0.4",
     "pylint-per-file-ignores==3.2.0",
@@ -152,8 +152,8 @@ lint.select = [
 lint.ignore = [
     # Ruff warns that this conflicts with the formatter.
     "COM812",
-    # Allow our chosen docstring line-style - no one-line summary.
-    "D200",
+    # Allow our chosen docstring line-style - pydocstringformatter handles formatting
+    # but doesn't enforce D205 (blank line after summary) or D212 (summary on first line).
     "D205",
     "D212",
     "D415",
@@ -166,6 +166,14 @@ lint.ignore = [
 
 lint.per-file-ignores."ci/test_custom_linters.py" = [
     # Allow asserts in tests.
+    "S101",
+]
+
+lint.per-file-ignores."doccmd_*.py" = [
+    # Allow our chosen docstring line-style - pydocstringformatter handles
+    # formatting but docstrings in docs may not match this style.
+    "D200",
+    # Allow asserts in docs.
     "S101",
 ]
 
@@ -298,9 +306,6 @@ spelling-private-dict-file = 'spelling_private_dict.txt'
 # --spelling-private-dict-file option instead of raising a message.
 spelling-store-unknown-words = 'no'
 
-[tool.docformatter]
-make-summary-multi-line = true
-
 [tool.check-manifest]
 
 ignore = [
@@ -402,6 +407,12 @@ search_path = [
 enableTypeIgnoreComments = false
 reportUnnecessaryTypeIgnoreComment = true
 typeCheckingMode = "strict"
+
+[tool.pydocstringformatter]
+write = true
+split-summary-body = false
+max-line-length = 75
+linewrap-full-docstring = true
 
 [tool.interrogate]
 fail-under = 100

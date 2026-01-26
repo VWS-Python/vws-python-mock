@@ -1,6 +1,4 @@
-"""
-A mock implementation of Vuforia Web Services.
-"""
+"""A mock implementation of Vuforia Web Services."""
 
 import pytest
 

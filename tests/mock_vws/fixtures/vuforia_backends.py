@@ -1,6 +1,4 @@
-"""
-Choose which backends to use for the tests.
-"""
+"""Choose which backends to use for the tests."""
 
 import contextlib
 import logging
@@ -66,9 +64,7 @@ def _enable_use_real_vuforia(
     inactive_database: VuforiaDatabase,
     monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None]:
-    """
-    Test against the real Vuforia.
-    """
+    """Test against the real Vuforia."""
     assert monkeypatch
     assert inactive_database
     _delete_all_targets(database_keys=working_database)
@@ -82,9 +78,7 @@ def _enable_use_mock_vuforia(
     inactive_database: VuforiaDatabase,
     monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None]:
-    """
-    Test against the in-memory mock Vuforia.
-    """
+    """Test against the in-memory mock Vuforia."""
     assert monkeypatch
     working_database = VuforiaDatabase(
         database_name=working_database.database_name,
@@ -116,9 +110,7 @@ def _enable_use_docker_in_memory(
     inactive_database: VuforiaDatabase,
     monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None]:
-    """
-    Test against mock Vuforia created to be run in a container.
-    """
+    """Test against mock Vuforia created to be run in a container."""
     # We set ``wsgi.input_terminated`` to ``True`` so that when going through
     # ``requests`` in our tests, the Flask applications
     # have the given ``Content-Length`` headers and the given data in
@@ -183,9 +175,7 @@ def _enable_use_docker_in_memory(
 
 
 class VuforiaBackend(Enum):
-    """
-    Backends for tests.
-    """
+    """Backends for tests."""
 
     REAL = "Real Vuforia"
     MOCK = "In Memory Mock Vuforia"
@@ -195,7 +185,8 @@ class VuforiaBackend(Enum):
 @beartype
 def pytest_addoption(parser: pytest.Parser) -> None:
     """
-    Add options to the pytest command line for skipping tests with particular
+    Add options to the pytest command line for skipping tests with
+    particular
     backends.
     """
     for backend in VuforiaBackend:
@@ -219,9 +210,7 @@ def pytest_collection_modifyitems(
     config: pytest.Config,
     items: list[pytest.Function],
 ) -> None:
-    """
-    Skip Docker tests if requested.
-    """
+    """Skip Docker tests if requested."""
     skip_docker_build_tests_option = "--skip-docker_build_tests"
     skip_docker_build_tests_marker = pytest.mark.skip(
         reason=(
@@ -246,7 +235,8 @@ def fixture_verify_mock_vuforia(
     inactive_database: VuforiaDatabase,
     monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None]:
-    """Test functions which use this fixture are run multiple times. Once with
+    """Test functions which use this fixture are run multiple times. Once
+    with
     the real Vuforia, and once with each mock.
 
     This is useful for verifying the mocks.
@@ -289,7 +279,8 @@ def mock_only_vuforia(
     inactive_database: VuforiaDatabase,
     monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None]:
-    """Test functions which use this fixture are run multiple times. Once with
+    """Test functions which use this fixture are run multiple times. Once
+    with
     the each mock.
 
     This is useful for testing the mock using fixtures which connect to

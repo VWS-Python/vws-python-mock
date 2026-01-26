@@ -1,6 +1,4 @@
-"""
-Helpers for handling too many requests errors.
-"""
+"""Helpers for handling too many requests errors."""
 
 from http import HTTPStatus
 

@@ -1,6 +1,4 @@
-"""
-Tools for making Vuforia queries.
-"""
+"""Tools for making Vuforia queries."""
 
 import base64
 import io

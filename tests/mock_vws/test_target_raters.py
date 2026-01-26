@@ -1,6 +1,4 @@
-"""
-Tests for target quality raters.
-"""
+"""Tests for target quality raters."""
 
 import io
 
@@ -15,7 +13,8 @@ from mock_vws.target_raters import (
 
 def test_random_target_tracking_rater() -> None:
     """
-    Test that the random target tracking rater returns a random number.
+    Test that the random target tracking rater returns a random
+    number.
     """
     rater = RandomTargetTrackingRater()
     image_content = b"content"
@@ -36,7 +35,8 @@ def test_random_target_tracking_rater() -> None:
 @pytest.mark.parametrize(argnames="rating", argvalues=range(-10, 10))
 def test_hardcoded_target_tracking_rater(rating: int) -> None:
     """
-    Test that the hardcoded target tracking rater returns the hardcoded number.
+    Test that the hardcoded target tracking rater returns the hardcoded
+    number.
     """
     rater = HardcodedTargetTrackingRater(rating=rating)
     image_content = b"content"
@@ -45,17 +45,13 @@ def test_hardcoded_target_tracking_rater(rating: int) -> None:
 
 
 class TestBrisqueTargetTrackingRater:
-    """
-    Tests for the BRISQUE target tracking rater.
-    """
+    """Tests for the BRISQUE target tracking rater."""
 
     @staticmethod
     def test_low_quality_image(
         image_file_success_state_low_rating: io.BytesIO,
     ) -> None:
-        """
-        Test that a low quality image returns a low rating.
-        """
+        """Test that a low quality image returns a low rating."""
         rater = BrisqueTargetTrackingRater()
         image_content = image_file_success_state_low_rating.getvalue()
         rating = rater(image_content=image_content)
@@ -63,9 +59,7 @@ class TestBrisqueTargetTrackingRater:
 
     @staticmethod
     def test_high_quality_image(high_quality_image: io.BytesIO) -> None:
-        """
-        Test that a high quality image returns a high rating.
-        """
+        """Test that a high quality image returns a high rating."""
         rater = BrisqueTargetTrackingRater()
         image_content = high_quality_image.getvalue()
         rating = rater(image_content=image_content)
@@ -75,9 +69,7 @@ class TestBrisqueTargetTrackingRater:
     def test_different_high_quality_image(
         different_high_quality_image: io.BytesIO,
     ) -> None:
-        """
-        Test that a high quality image returns a high rating.
-        """
+        """Test that a high quality image returns a high rating."""
         rater = BrisqueTargetTrackingRater()
         image_content = different_high_quality_image.getvalue()
         rating = rater(image_content=image_content)

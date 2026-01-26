@@ -1,6 +1,4 @@
-"""
-Tests for the ``Content-Length`` header.
-"""
+"""Tests for the ``Content-Length`` header."""
 
 import textwrap
 from http import HTTPStatus
@@ -30,7 +28,8 @@ class TestIncorrect:
     @staticmethod
     def test_not_integer(endpoint: Endpoint) -> None:
         """
-        A ``BAD_REQUEST`` error is given when the given ``Content-Length`` is
+        A ``BAD_REQUEST`` error is given when the given ``Content-
+        Length`` is
         not an integer.
         """
         if not endpoint.headers.get("Content-Type"):
@@ -92,9 +91,7 @@ class TestIncorrect:
     @staticmethod
     @pytest.mark.skip(reason="It takes too long to run this test.")
     def test_too_large(endpoint: Endpoint) -> None:  # pragma: no cover
-        """
-        An error is given if the given content length is too large.
-        """
+        """An error is given if the given content length is too large."""
         if not endpoint.headers.get("Content-Type"):
             pytest.skip(reason="No Content-Type header for this request")
 
@@ -150,7 +147,8 @@ class TestIncorrect:
     @staticmethod
     def test_too_small(endpoint: Endpoint) -> None:
         """
-        An ``UNAUTHORIZED`` response is given if the given content length is
+        An ``UNAUTHORIZED`` response is given if the given content
+        length is
         too small.
         """
         if not endpoint.headers.get("Content-Type"):
