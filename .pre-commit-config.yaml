@@ -138,7 +138,7 @@ repos:
       - id: shellcheck-docs
         name: shellcheck-docs
         # We exclude SC2215 as it is a false positive for an unknown reason on Windows.
-        entry: uv run --extra=dev doccmd --no-write-to-file --example-workers 0 --language=shell
+        entry: uv run --extra=dev doccmd --no-write-to-file --language=shell
           --language=console --command="shellcheck --shell=bash --exclude=SC2215"
         language: python
         types_or: [markdown, rst]
@@ -171,10 +171,11 @@ repos:
         pass_filenames: false
         additional_dependencies: [uv==0.9.5]
 
+      # We do not use --example-workers 0 due to https://github.com/python/mypy/issues/18283
       - id: mypy-docs
         name: mypy-docs
         stages: [pre-push]
-        entry: uv run --extra=dev doccmd --no-write-to-file --example-workers 0 --language=python
+        entry: uv run --extra=dev doccmd --no-write-to-file --language=python
           --command="mypy"
         language: python
         types_or: [markdown, rst]
@@ -199,7 +200,7 @@ repos:
       - id: pyright-docs
         name: pyright-docs
         stages: [pre-push]
-        entry: uv run --extra=dev doccmd --no-write-to-file --example-workers 0 --language=python
+        entry: uv run --extra=dev doccmd --no-write-to-file --language=python
           --command="pyright"
         language: python
         types_or: [markdown, rst]
@@ -225,7 +226,7 @@ repos:
       - id: ty-docs
         name: ty-docs
         stages: [pre-push]
-        entry: uv run --extra=dev doccmd --no-write-to-file --example-workers 0 --language=python
+        entry: uv run --extra=dev doccmd --no-write-to-file --language=python
           --command="ty check"
         language: python
         types_or: [markdown, rst]
@@ -242,7 +243,7 @@ repos:
 
       - id: vulture-docs
         name: vulture docs
-        entry: uv run --extra=dev doccmd --no-write-to-file --example-workers 0 --language=python
+        entry: uv run --extra=dev doccmd --no-write-to-file --language=python
           --command="vulture"
         language: python
         types_or: [python]
@@ -277,7 +278,7 @@ repos:
 
       - id: pylint-docs
         name: pylint-docs
-        entry: uv run --extra=dev doccmd --no-write-to-file --example-workers 0 --language=python
+        entry: uv run --extra=dev doccmd --no-write-to-file --language=python
           --command="pylint"
         language: python
         stages: [manual]
@@ -334,7 +335,7 @@ repos:
 
       - id: interrogate-docs
         name: interrogate docs
-        entry: uv run --extra=dev doccmd --no-write-to-file --example-workers 0 --language=python
+        entry: uv run --extra=dev doccmd --no-write-to-file --language=python
           --command="interrogate"
         language: python
         types_or: [markdown, rst]
@@ -414,7 +415,7 @@ repos:
       - id: pyrefly-docs
         name: pyrefly-docs
         stages: [pre-push]
-        entry: uv run --extra=dev doccmd --no-write-to-file --example-workers 0 --language=python
+        entry: uv run --extra=dev doccmd --no-write-to-file --language=python
           --command="pyrefly check"
         language: python
         types_or: [markdown, rst]
