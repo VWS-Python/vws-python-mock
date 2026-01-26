@@ -1,6 +1,4 @@
-"""
-Validators for the project state.
-"""
+"""Validators for the project state."""
 
 import logging
 from collections.abc import Iterable, Mapping

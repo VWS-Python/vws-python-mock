@@ -1,6 +1,4 @@
-"""
-Content-Length header validators to use in the mock.
-"""
+"""Content-Length header validators to use in the mock."""
 
 import logging
 from collections.abc import Mapping

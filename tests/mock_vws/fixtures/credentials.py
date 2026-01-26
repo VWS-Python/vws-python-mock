@@ -1,6 +1,4 @@
-"""
-Fixtures for credentials for Vuforia databases.
-"""
+"""Fixtures for credentials for Vuforia databases."""
 
 from pathlib import Path
 
@@ -12,9 +10,7 @@ from mock_vws.states import States
 
 
 class _VuforiaDatabaseSettings(BaseSettings):
-    """
-    Settings for a Vuforia database.
-    """
+    """Settings for a Vuforia database."""
 
     target_manager_database_name: str
     server_access_key: str
@@ -30,9 +26,7 @@ class _VuforiaDatabaseSettings(BaseSettings):
 
 
 class _InactiveVuforiaDatabaseSettings(_VuforiaDatabaseSettings):
-    """
-    Settings for an inactive Vuforia database.
-    """
+    """Settings for an inactive Vuforia database."""
 
     model_config = SettingsConfigDict(
         env_prefix="INACTIVE_VUFORIA_",
@@ -43,9 +37,7 @@ class _InactiveVuforiaDatabaseSettings(_VuforiaDatabaseSettings):
 
 @pytest.fixture
 def vuforia_database() -> VuforiaDatabase:
-    """
-    Return VWS credentials from environment variables.
-    """
+    """Return VWS credentials from environment variables."""
     settings = _VuforiaDatabaseSettings.model_validate(obj={})
     return VuforiaDatabase(
         database_name=settings.target_manager_database_name,
@@ -60,7 +52,8 @@ def vuforia_database() -> VuforiaDatabase:
 @pytest.fixture
 def inactive_database() -> VuforiaDatabase:
     """
-    Return VWS credentials for an inactive project from environment variables.
+    Return VWS credentials for an inactive project from environment
+    variables.
     """
     settings = _InactiveVuforiaDatabaseSettings.model_validate(obj={})
     return VuforiaDatabase(

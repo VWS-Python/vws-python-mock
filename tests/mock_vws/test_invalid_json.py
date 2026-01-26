@@ -1,6 +1,4 @@
-"""
-Tests for giving invalid JSON to endpoints.
-"""
+"""Tests for giving invalid JSON to endpoints."""
 
 import json
 from datetime import datetime, timedelta
@@ -25,15 +23,11 @@ from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestInvalidJSON:
-    """
-    Tests for giving invalid JSON to endpoints.
-    """
+    """Tests for giving invalid JSON to endpoints."""
 
     @staticmethod
     def test_invalid_json(endpoint: Endpoint) -> None:
-        """
-        Giving invalid JSON to endpoints returns error responses.
-        """
+        """Giving invalid JSON to endpoints returns error responses."""
         content = b"a"
         gmt = ZoneInfo(key="GMT")
         now = datetime.now(tz=gmt)
@@ -108,9 +102,7 @@ class TestInvalidJSON:
 
     @staticmethod
     def test_invalid_json_with_skewed_time(endpoint: Endpoint) -> None:
-        """
-        Giving invalid JSON to endpoints returns error responses.
-        """
+        """Giving invalid JSON to endpoints returns error responses."""
         # We use a skew of 70 because the maximum allowed skew for services is
         # 5 minutes, and for query is 65 minutes. 70 is comfortably larger than
         # the max of these two.

@@ -1,6 +1,4 @@
-"""
-Health check for the Flask server.
-"""
+"""Health check for the Flask server."""
 
 import http.client
 import socket
@@ -12,9 +10,7 @@ from beartype import beartype
 
 @beartype
 def flask_app_healthy(port: int) -> bool:
-    """
-    Check if the Flask app is healthy.
-    """
+    """Check if the Flask app is healthy."""
     conn = http.client.HTTPConnection(host="localhost", port=port)
     try:
         conn.request(method="GET", url="/some-random-endpoint")

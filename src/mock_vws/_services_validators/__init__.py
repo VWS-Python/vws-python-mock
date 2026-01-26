@@ -1,6 +1,4 @@
-"""
-Input validators to use in the mock.
-"""
+"""Input validators to use in the mock."""
 
 from collections.abc import Iterable, Mapping
 

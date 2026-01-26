@@ -1,6 +1,4 @@
-"""
-Utilities for tests.
-"""
+"""Utilities for tests."""
 
 import io
 import secrets
@@ -55,9 +53,7 @@ class Endpoint:
     secret_key: str
 
     def send(self) -> Response:
-        """
-        Send the request.
-        """
+        """Send the request."""
         request = requests.Request(
             method=self.method,
             url=urljoin(base=self.base_url, url=self.path_url),
@@ -79,9 +75,7 @@ class Endpoint:
 
     @property
     def auth_header_content_type(self) -> str:
-        """
-        The content type to use for the `Authorization` header.
-        """
+        """The content type to use for the `Authorization` header."""
         full_content_type = dict(self.headers).get("Content-Type", "")
         return full_content_type.split(sep=";")[0]
 

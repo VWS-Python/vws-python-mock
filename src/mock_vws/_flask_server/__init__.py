@@ -1,3 +1,1 @@
-"""
-Flask server for the mock Vuforia web service.
-"""
+"""Flask server for the mock Vuforia web service."""

@@ -1,6 +1,4 @@
-"""
-Validators for the ``Accept`` header.
-"""
+"""Validators for the ``Accept`` header."""
 
 import logging
 from collections.abc import Mapping

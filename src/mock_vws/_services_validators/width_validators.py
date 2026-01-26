@@ -1,6 +1,4 @@
-"""
-Validators for the width field.
-"""
+"""Validators for the width field."""
 
 import json
 import logging

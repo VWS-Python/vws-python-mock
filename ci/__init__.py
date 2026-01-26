@@ -1,3 +1,1 @@
-"""
-CI helpers.
-"""
+"""CI helpers."""

@@ -1,6 +1,4 @@
-"""
-Validators for the ``Content-Type`` header.
-"""
+"""Validators for the ``Content-Type`` header."""
 
 import logging
 from collections.abc import Mapping

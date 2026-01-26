@@ -1,6 +1,4 @@
-"""
-A fake implementation of a Vuforia target manager.
-"""
+"""A fake implementation of a Vuforia target manager."""
 
 from typing import TYPE_CHECKING
 
@@ -15,13 +13,13 @@ if TYPE_CHECKING:
 @beartype
 class TargetManager:
     """
-    A target manager as per https://developer.vuforia.com/target-manager.
+    A target manager.
+
+    See https://developer.vuforia.com/target-manager.
     """
 
     def __init__(self) -> None:
-        """
-        Create a target manager with no databases.
-        """
+        """Create a target manager with no databases."""
         self._databases: Iterable[VuforiaDatabase] = set()
 
     def remove_database(self, database: VuforiaDatabase) -> None:
@@ -85,7 +83,5 @@ class TargetManager:
 
     @property
     def databases(self) -> set[VuforiaDatabase]:
-        """
-        All cloud databases.
-        """
+        """All cloud databases."""
         return set(self._databases)

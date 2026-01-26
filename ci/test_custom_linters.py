@@ -1,6 +1,4 @@
-"""
-Custom lint tests.
-"""
+"""Custom lint tests."""
 
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -15,9 +13,7 @@ if TYPE_CHECKING:
 
 @beartype
 def _ci_patterns(*, repository_root: Path) -> set[str]:
-    """
-    Return the CI patterns given in the CI configuration file.
-    """
+    """Return the CI patterns given in the CI configuration file."""
     ci_file = repository_root / ".github" / "workflows" / "test.yml"
     github_workflow_config = yaml.safe_load(stream=ci_file.read_text())
     matrix = github_workflow_config["jobs"]["ci-tests"]["strategy"]["matrix"]
@@ -33,9 +29,7 @@ def _tests_from_pattern(
     ci_pattern: str,
     capsys: pytest.CaptureFixture[str],
 ) -> set[str]:
-    """
-    From a CI pattern, get all tests ``pytest`` would collect.
-    """
+    """From a CI pattern, get all tests ``pytest`` would collect."""
     # Clear the captured output.
     capsys.readouterr()
     tests: Iterable[str] = set()
@@ -59,7 +53,8 @@ def _tests_from_pattern(
 
 def test_ci_patterns_valid(request: pytest.FixtureRequest) -> None:
     """
-    All of the CI patterns in the CI configuration match at least one test in
+    All of the CI patterns in the CI configuration match at least one
+    test in
     the test suite.
     """
     ci_patterns = _ci_patterns(repository_root=request.config.rootpath)

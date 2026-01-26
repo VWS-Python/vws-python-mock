@@ -1,6 +1,4 @@
-"""
-Helpers for handling Base64 like Vuforia does.
-"""
+"""Helpers for handling Base64 like Vuforia does."""
 
 import base64
 import binascii

@@ -1,6 +1,4 @@
-"""
-Storage layer for the mock Vuforia Flask application.
-"""
+"""Storage layer for the mock Vuforia Flask application."""
 
 import base64
 import copy
@@ -32,18 +30,14 @@ TARGET_MANAGER = TargetManager()
 
 @beartype
 class _TargetRaterChoice(StrEnum):
-    """
-    Target rater choices.
-    """
+    """Target rater choices."""
 
     BRISQUE = auto()
     PERFECT = auto()
     RANDOM = auto()
 
     def to_target_rater(self) -> TargetTrackingRater:
-        """
-        Get the target rater.
-        """
+        """Get the target rater."""
         match self:
             case self.BRISQUE:
                 return BrisqueTargetTrackingRater()
@@ -57,9 +51,7 @@ class _TargetRaterChoice(StrEnum):
 
 @beartype
 class TargetManagerSettings(BaseSettings):
-    """
-    Settings for the Target Manager Flask app.
-    """
+    """Settings for the Target Manager Flask app."""
 
     target_manager_host: str = ""
     target_rater: _TargetRaterChoice = _TargetRaterChoice.BRISQUE
@@ -91,9 +83,7 @@ def delete_database(database_name: str) -> Response:
 @TARGET_MANAGER_FLASK_APP.route(rule="/databases", methods=[HTTPMethod.GET])
 @beartype
 def get_databases() -> Response:
-    """
-    Return a list of all databases.
-    """
+    """Return a list of all databases."""
     databases = [database.to_dict() for database in TARGET_MANAGER.databases]
     return Response(
         response=json.dumps(obj=databases),
@@ -200,9 +190,7 @@ def create_database() -> Response:
 )
 @beartype
 def create_target(database_name: str) -> Response:
-    """
-    Create a new target in a given database.
-    """
+    """Create a new target in a given database."""
     (database,) = (
         database
         for database in TARGET_MANAGER.databases
@@ -238,9 +226,7 @@ def create_target(database_name: str) -> Response:
 )
 @beartype
 def delete_target(database_name: str, target_id: str) -> Response:
-    """
-    Delete a target.
-    """
+    """Delete a target."""
     (database,) = (
         database
         for database in TARGET_MANAGER.databases
@@ -266,9 +252,7 @@ def delete_target(database_name: str, target_id: str) -> Response:
     methods=[HTTPMethod.PUT],
 )
 def update_target(database_name: str, target_id: str) -> Response:
-    """
-    Update a target.
-    """
+    """Update a target."""
     (database,) = (
         database
         for database in TARGET_MANAGER.databases

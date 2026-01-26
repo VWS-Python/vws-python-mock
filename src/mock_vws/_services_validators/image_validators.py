@@ -1,6 +1,4 @@
-"""
-Image validators to use in the mock.
-"""
+"""Image validators to use in the mock."""
 
 import binascii
 import io

@@ -1,6 +1,4 @@
-"""
-Validators for given JSON.
-"""
+"""Validators for given JSON."""
 
 import json
 import logging

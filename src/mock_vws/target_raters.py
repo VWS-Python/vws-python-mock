@@ -1,6 +1,4 @@
-"""
-Raters for target quality.
-"""
+"""Raters for target quality."""
 
 import functools
 import io
@@ -46,9 +44,7 @@ def _get_brisque_target_tracking_rating(*, image_content: bytes) -> int:
 
 @runtime_checkable
 class TargetTrackingRater(Protocol):
-    """
-    Protocol for a rater of target quality.
-    """
+    """Protocol for a rater of target quality."""
 
     def __call__(self, image_content: bytes) -> int:
         """The target tracking rating.
@@ -63,9 +59,7 @@ class TargetTrackingRater(Protocol):
 
 @beartype
 class RandomTargetTrackingRater:
-    """
-    A rater which returns a random number.
-    """
+    """A rater which returns a random number."""
 
     def __call__(self, image_content: bytes) -> int:
         """A random target tracking rating.
@@ -79,9 +73,7 @@ class RandomTargetTrackingRater:
 
 @beartype
 class HardcodedTargetTrackingRater:
-    """
-    A rater which returns a hardcoded number.
-    """
+    """A rater which returns a hardcoded number."""
 
     def __init__(self, rating: int) -> None:
         """
@@ -102,9 +94,7 @@ class HardcodedTargetTrackingRater:
 
 @beartype
 class BrisqueTargetTrackingRater:
-    """
-    A rater which returns a rating based on a BRISQUE score.
-    """
+    """A rater which returns a rating based on a BRISQUE score."""
 
     def __call__(self, image_content: bytes) -> int:
         """A rating based on a BRISQUE score.

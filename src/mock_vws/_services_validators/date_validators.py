@@ -1,6 +1,4 @@
-"""
-Validators of the date header to use in the mock services API.
-"""
+"""Validators of the date header to use in the mock services API."""
 
 import datetime
 import logging

@@ -1,6 +1,4 @@
-"""
-Exceptions to raise from validators.
-"""
+"""Exceptions to raise from validators."""
 
 import email.utils
 import textwrap
@@ -17,7 +15,8 @@ from mock_vws._mock_common import json_dump
 @beartype
 class ValidatorError(Exception):
     """
-    A base class for exceptions thrown from mock Vuforia cloud recognition
+    A base class for exceptions thrown from mock Vuforia cloud
+    recognition
     client endpoints.
     """
 
@@ -28,16 +27,15 @@ class ValidatorError(Exception):
 
 @beartype
 class DateHeaderNotGivenError(ValidatorError):
-    """
-    Exception raised when a date header is not given.
-    """
+    """Exception raised when a date header is not given."""
 
     def __init__(self) -> None:
         """
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -59,16 +57,15 @@ class DateHeaderNotGivenError(ValidatorError):
 
 @beartype
 class DateFormatNotValidError(ValidatorError):
-    """
-    Exception raised when the date format is not valid.
-    """
+    """Exception raised when the date format is not valid."""
 
     def __init__(self) -> None:
         """
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -91,8 +88,7 @@ class DateFormatNotValidError(ValidatorError):
 
 @beartype
 class RequestTimeTooSkewedError(ValidatorError):
-    """
-    Exception raised when Vuforia returns a response with a result code
+    """Exception raised when Vuforia returns a response with a result code
     'RequestTimeTooSkewed'.
     """
 
@@ -101,7 +97,8 @@ class RequestTimeTooSkewedError(ValidatorError):
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -127,8 +124,7 @@ class RequestTimeTooSkewedError(ValidatorError):
 
 @beartype
 class BadImageError(ValidatorError):
-    """
-    Exception raised when Vuforia returns a response with a result code
+    """Exception raised when Vuforia returns a response with a result code
     'BadImage'.
     """
 
@@ -137,7 +133,8 @@ class BadImageError(ValidatorError):
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -170,8 +167,7 @@ class BadImageError(ValidatorError):
 
 @beartype
 class AuthenticationFailureError(ValidatorError):
-    """
-    Exception raised when Vuforia returns a response with a result code
+    """Exception raised when Vuforia returns a response with a result code
     'AuthenticationFailure'.
     """
 
@@ -180,7 +176,8 @@ class AuthenticationFailureError(ValidatorError):
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -213,8 +210,7 @@ class AuthenticationFailureError(ValidatorError):
 
 @beartype
 class AuthenticationFailureGoodFormattingError(ValidatorError):
-    """
-    Exception raised when Vuforia returns a response with a result code
+    """Exception raised when Vuforia returns a response with a result code
     'AuthenticationFailure' with a standard JSON formatting.
     """
 
@@ -223,7 +219,8 @@ class AuthenticationFailureGoodFormattingError(ValidatorError):
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -251,16 +248,15 @@ class AuthenticationFailureGoodFormattingError(ValidatorError):
 
 @beartype
 class ImageNotGivenError(ValidatorError):
-    """
-    Exception raised when an image is not given.
-    """
+    """Exception raised when an image is not given."""
 
     def __init__(self) -> None:
         """
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -283,16 +279,15 @@ class ImageNotGivenError(ValidatorError):
 
 @beartype
 class AuthHeaderMissingError(ValidatorError):
-    """
-    Exception raised when an auth header is not given.
-    """
+    """Exception raised when an auth header is not given."""
 
     def __init__(self) -> None:
         """
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -316,16 +311,15 @@ class AuthHeaderMissingError(ValidatorError):
 
 @beartype
 class MalformedAuthHeaderError(ValidatorError):
-    """
-    Exception raised when an auth header is not given.
-    """
+    """Exception raised when an auth header is not given."""
 
     def __init__(self) -> None:
         """
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
             www_authenticate: The WWW-Authenticate header value.
         """
@@ -350,16 +344,15 @@ class MalformedAuthHeaderError(ValidatorError):
 
 @beartype
 class UnknownParametersError(ValidatorError):
-    """
-    Exception raised when unknown parameters are given.
-    """
+    """Exception raised when unknown parameters are given."""
 
     def __init__(self) -> None:
         """
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -382,8 +375,7 @@ class UnknownParametersError(ValidatorError):
 
 @beartype
 class InactiveProjectError(ValidatorError):
-    """
-    Exception raised when Vuforia returns a response with a result code
+    """Exception raised when Vuforia returns a response with a result code
     'InactiveProject'.
     """
 
@@ -392,7 +384,8 @@ class InactiveProjectError(ValidatorError):
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -424,8 +417,8 @@ class InactiveProjectError(ValidatorError):
 
 @beartype
 class InvalidMaxNumResultsError(ValidatorError):
-    """
-    Exception raised when an invalid value is given as the "max_num_results"
+    """Exception raised when an invalid value is given as the
+    "max_num_results"
     field.
     """
 
@@ -434,7 +427,8 @@ class InvalidMaxNumResultsError(ValidatorError):
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -461,8 +455,8 @@ class InvalidMaxNumResultsError(ValidatorError):
 
 @beartype
 class MaxNumResultsOutOfRangeError(ValidatorError):
-    """
-    Exception raised when an integer value is given as the "max_num_results"
+    """Exception raised when an integer value is given as the
+    "max_num_results"
     field which is out of range.
     """
 
@@ -471,7 +465,8 @@ class MaxNumResultsOutOfRangeError(ValidatorError):
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -498,8 +493,7 @@ class MaxNumResultsOutOfRangeError(ValidatorError):
 
 @beartype
 class InvalidIncludeTargetDataError(ValidatorError):
-    """
-    Exception raised when an invalid value is given as the
+    """Exception raised when an invalid value is given as the
     "include_target_data" field.
     """
 
@@ -508,7 +502,8 @@ class InvalidIncludeTargetDataError(ValidatorError):
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -537,16 +532,15 @@ class InvalidIncludeTargetDataError(ValidatorError):
 
 @beartype
 class UnsupportedMediaTypeError(ValidatorError):
-    """
-    Exception raised when no boundary is found for multipart data.
-    """
+    """Exception raised when no boundary is found for multipart data."""
 
     def __init__(self) -> None:
         """
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -568,16 +562,15 @@ class UnsupportedMediaTypeError(ValidatorError):
 
 @beartype
 class InvalidAcceptHeaderError(ValidatorError):
-    """
-    Exception raised when there is an invalid accept header given.
-    """
+    """Exception raised when there is an invalid accept header given."""
 
     def __init__(self) -> None:
         """
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -599,16 +592,15 @@ class InvalidAcceptHeaderError(ValidatorError):
 
 @beartype
 class NoBoundaryFoundError(ValidatorError):
-    """
-    Exception raised when an invalid media type is given.
-    """
+    """Exception raised when an invalid media type is given."""
 
     def __init__(self) -> None:
         """
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -634,7 +626,8 @@ class NoBoundaryFoundError(ValidatorError):
 @beartype
 class ContentLengthHeaderTooLargeError(ValidatorError):
     """
-    Exception raised when the given content length header is too large.
+    Exception raised when the given content length header is too
+    large.
     """
 
     # We skip coverage here as running a test to cover this is very slow.
@@ -643,7 +636,8 @@ class ContentLengthHeaderTooLargeError(ValidatorError):
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -658,7 +652,8 @@ class ContentLengthHeaderTooLargeError(ValidatorError):
 @beartype
 class ContentLengthHeaderNotIntError(ValidatorError):
     """
-    Exception raised when the given content length header is not an integer.
+    Exception raised when the given content length header is not an
+    integer.
     """
 
     def __init__(self) -> None:
@@ -666,7 +661,8 @@ class ContentLengthHeaderNotIntError(ValidatorError):
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -680,9 +676,7 @@ class ContentLengthHeaderNotIntError(ValidatorError):
 
 @beartype
 class RequestEntityTooLargeError(ValidatorError):
-    """
-    Exception raised when the given image file size is too large.
-    """
+    """Exception raised when the given image file size is too large."""
 
     # Ignore coverage on this as there is a bug in urllib3 which means that we
     # do not trigger this exception.
@@ -692,7 +686,8 @@ class RequestEntityTooLargeError(ValidatorError):
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -725,7 +720,8 @@ class RequestEntityTooLargeError(ValidatorError):
 @beartype
 class NoContentTypeError(ValidatorError):
     """
-    Exception raised when a content type is either not given or is empty.
+    Exception raised when a content type is either not given or is
+    empty.
     """
 
     def __init__(self) -> None:
@@ -733,7 +729,8 @@ class NoContentTypeError(ValidatorError):
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()

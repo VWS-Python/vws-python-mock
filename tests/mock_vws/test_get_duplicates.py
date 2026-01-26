@@ -1,6 +1,4 @@
-"""
-Tests for the mock of the get duplicates endpoint.
-"""
+"""Tests for the mock of the get duplicates endpoint."""
 
 import copy
 import io
@@ -15,9 +13,7 @@ from vws.reports import TargetStatuses
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestDuplicates:
-    """
-    Tests for the mock of the target duplicates endpoint.
-    """
+    """Tests for the mock of the target duplicates endpoint."""
 
     @staticmethod
     def test_duplicates(
@@ -25,9 +21,7 @@ class TestDuplicates:
         image_file_success_state_low_rating: io.BytesIO,
         vws_client: VWS,
     ) -> None:
-        """
-        Target IDs of the exact same targets are returned.
-        """
+        """Target IDs of the exact same targets are returned."""
         image_data = high_quality_image
         different_image_data = image_file_success_state_low_rating
 
@@ -70,9 +64,7 @@ class TestDuplicates:
         high_quality_image: io.BytesIO,
         vws_client: VWS,
     ) -> None:
-        """
-        Target IDs of similar targets are returned.
-        """
+        """Target IDs of similar targets are returned."""
         image_data = high_quality_image
         similar_image_data = copy.copy(x=image_data)
         similar_image_buffer = io.BytesIO()
@@ -111,9 +103,7 @@ class TestDuplicates:
         image_file_failed_state: io.BytesIO,
         vws_client: VWS,
     ) -> None:
-        """
-        Targets are not duplicates if the status is not 'success'.
-        """
+        """Targets are not duplicates if the status is not 'success'."""
         original_target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
             width=1,
@@ -147,9 +137,7 @@ class TestDuplicates:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestActiveFlag:
-    """
-    Tests for the effects of the active flag on duplicate matching.
-    """
+    """Tests for the effects of the active flag on duplicate matching."""
 
     @staticmethod
     def test_active_flag(
@@ -157,7 +145,8 @@ class TestActiveFlag:
         vws_client: VWS,
     ) -> None:
         """Targets with `active_flag` set to `False` can have duplicates.
-        Targets with `active_flag` set to `False` are not found as duplicates.
+        Targets with `active_flag` set to `False` are not found as
+        duplicates.
 
         https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#check
         says:
@@ -201,9 +190,7 @@ class TestActiveFlag:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestProcessing:
-    """
-    Tests for targets in the processing stage.
-    """
+    """Tests for targets in the processing stage."""
 
     @staticmethod
     def test_processing(
@@ -254,14 +241,13 @@ class TestProcessing:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestInactiveProject:
-    """
-    Tests for inactive projects.
-    """
+    """Tests for inactive projects."""
 
     @staticmethod
     def test_inactive_project(inactive_vws_client: VWS) -> None:
         """
-        If the project is inactive, a FORBIDDEN response is returned.
+        If the project is inactive, a FORBIDDEN response is
+        returned.
         """
         with pytest.raises(expected_exception=ProjectInactiveError):
             inactive_vws_client.get_duplicate_targets(

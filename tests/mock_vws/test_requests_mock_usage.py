@@ -1,6 +1,4 @@
-"""
-Tests for the usage of the mock for ``requests``.
-"""
+"""Tests for the usage of the mock for ``requests``."""
 
 import datetime
 import email.utils
@@ -32,9 +30,7 @@ def _not_exact_matcher(
     first_image_content: bytes,
     second_image_content: bytes,
 ) -> bool:
-    """
-    A matcher which returns True if the images are not the same.
-    """
+    """A matcher which returns True if the images are not the same."""
     return first_image_content != second_image_content
 
 
@@ -59,7 +55,8 @@ def request_unmocked_address() -> None:
 @beartype
 def request_mocked_address() -> None:
     """
-    Make a request, using `requests` to an address that is mocked by `MockVWS`.
+    Make a request, using `requests` to an address that is mocked by
+    `MockVWS`.
     """
     requests.get(
         url="https://vws.vuforia.com/summary",
@@ -73,14 +70,13 @@ def request_mocked_address() -> None:
 
 
 class TestRealHTTP:
-    """
-    Tests for making requests to mocked and unmocked addresses.
-    """
+    """Tests for making requests to mocked and unmocked addresses."""
 
     @staticmethod
     def test_default() -> None:
         """
-        By default, the mock stops any requests made with `requests` to non-
+        By default, the mock stops any requests made with `requests` to
+        non-
         Vuforia addresses, but not to mocked Vuforia endpoints.
         """
         with MockVWS():
@@ -102,7 +98,8 @@ class TestRealHTTP:
     @staticmethod
     def test_real_http() -> None:
         """
-        When the `real_http` parameter given to the context manager is set to
+        When the `real_http` parameter given to the context manager is
+        set to
         `True`, requests made to unmocked addresses are not stopped.
         """
         with (
@@ -115,18 +112,14 @@ class TestRealHTTP:
 
 
 class TestProcessingTime:
-    """
-    Tests for the time taken to process targets in the mock.
-    """
+    """Tests for the time taken to process targets in the mock."""
 
     # There is a race condition in this test type - if tests start to
     # fail, consider increasing the leeway.
     LEEWAY = 0.5
 
     def test_default(self, image_file_failed_state: io.BytesIO) -> None:
-        """
-        By default, targets in the mock takes 2 seconds to be processed.
-        """
+        """By default, targets in the mock takes 2 seconds to be processed."""
         database = VuforiaDatabase()
         with MockVWS() as mock:
             mock.add_database(database=database)
@@ -139,9 +132,7 @@ class TestProcessingTime:
         assert expected - self.LEEWAY < time_taken < expected + self.LEEWAY
 
     def test_custom(self, image_file_failed_state: io.BytesIO) -> None:
-        """
-        It is possible to set a custom processing time.
-        """
+        """It is possible to set a custom processing time."""
         database = VuforiaDatabase()
         seconds = 5
         with MockVWS(processing_time_seconds=seconds) as mock:
@@ -156,15 +147,11 @@ class TestProcessingTime:
 
 
 class TestDatabaseName:
-    """
-    Tests for the database name.
-    """
+    """Tests for the database name."""
 
     @staticmethod
     def test_default() -> None:
-        """
-        By default, the database has a random name.
-        """
+        """By default, the database has a random name."""
         database_details = VuforiaDatabase()
         other_database_details = VuforiaDatabase()
         assert (
@@ -174,23 +161,17 @@ class TestDatabaseName:
 
     @staticmethod
     def test_custom_name() -> None:
-        """
-        It is possible to set a custom database name.
-        """
+        """It is possible to set a custom database name."""
         database_details = VuforiaDatabase(database_name="foo")
         assert database_details.database_name == "foo"
 
 
 class TestCustomBaseURLs:
-    """
-    Tests for using custom base URLs.
-    """
+    """Tests for using custom base URLs."""
 
     @staticmethod
     def test_custom_base_vws_url() -> None:
-        """
-        It is possible to use a custom base VWS URL.
-        """
+        """It is possible to use a custom base VWS URL."""
         with MockVWS(
             base_vws_url="https://vuforia.vws.example.com",
             real_http=False,
@@ -211,9 +192,7 @@ class TestCustomBaseURLs:
 
     @staticmethod
     def test_custom_base_vwq_url() -> None:
-        """
-        It is possible to use a custom base cloud recognition URL.
-        """
+        """It is possible to use a custom base cloud recognition URL."""
         with MockVWS(
             base_vwq_url="https://vuforia.vwq.example.com",
             real_http=False,
@@ -237,9 +216,7 @@ class TestCustomBaseURLs:
 
     @staticmethod
     def test_no_scheme() -> None:
-        """
-        An error if raised if a URL is given with no scheme.
-        """
+        """An error if raised if a URL is given with no scheme."""
         with pytest.raises(expected_exception=MissingSchemeError) as vws_exc:
             MockVWS(base_vws_url="vuforia.vws.example.com")
 
@@ -258,14 +235,13 @@ class TestCustomBaseURLs:
 
 
 class TestTargets:
-    """
-    Tests for target representations.
-    """
+    """Tests for target representations."""
 
     @staticmethod
     def test_to_dict(high_quality_image: io.BytesIO) -> None:
         """
-        It is possible to dump a target to a dictionary and load it back.
+        It is possible to dump a target to a dictionary and load it
+        back.
         """
         database = VuforiaDatabase()
 
@@ -297,7 +273,8 @@ class TestTargets:
     @staticmethod
     def test_to_dict_deleted(high_quality_image: io.BytesIO) -> None:
         """
-        It is possible to dump a deleted target to a dictionary and load it
+        It is possible to dump a deleted target to a dictionary and load
+        it
         back.
         """
         database = VuforiaDatabase()
@@ -331,14 +308,13 @@ class TestTargets:
 
 
 class TestDatabaseToDict:
-    """
-    Tests for dumping a database to a dictionary.
-    """
+    """Tests for dumping a database to a dictionary."""
 
     @staticmethod
     def test_to_dict(high_quality_image: io.BytesIO) -> None:
         """
-        It is possible to dump a database to a dictionary and load it back.
+        It is possible to dump a database to a dictionary and load it
+        back.
         """
         database = VuforiaDatabase()
         vws_client = VWS(
@@ -366,14 +342,13 @@ class TestDatabaseToDict:
 
 
 class TestDateHeader:
-    """
-    Tests for the date header in responses from mock routes.
-    """
+    """Tests for the date header in responses from mock routes."""
 
     @staticmethod
     def test_date_changes() -> None:
         """
-        The date that the response is sent is in the response Date header.
+        The date that the response is sent is in the response Date
+        header.
         """
         new_year = 2012
         new_time = datetime.datetime(
@@ -396,14 +371,13 @@ class TestDateHeader:
 
 
 class TestAddDatabase:
-    """
-    Tests for adding databases to the mock.
-    """
+    """Tests for adding databases to the mock."""
 
     @staticmethod
     def test_duplicate_keys() -> None:
         """
-        It is not possible to have multiple databases with matching keys.
+        It is not possible to have multiple databases with matching
+        keys.
         """
         database = VuforiaDatabase(
             server_access_key="1",
@@ -457,15 +431,11 @@ class TestAddDatabase:
 
 
 class TestQueryImageMatchers:
-    """
-    Tests for query image matchers.
-    """
+    """Tests for query image matchers."""
 
     @staticmethod
     def test_exact_match(high_quality_image: io.BytesIO) -> None:
-        """
-        The exact matcher matches only exactly the same images.
-        """
+        """The exact matcher matches only exactly the same images."""
         database = VuforiaDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -501,9 +471,7 @@ class TestQueryImageMatchers:
 
     @staticmethod
     def test_custom_matcher(high_quality_image: io.BytesIO) -> None:
-        """
-        It is possible to use a custom matcher.
-        """
+        """It is possible to use a custom matcher."""
         database = VuforiaDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -542,9 +510,7 @@ class TestQueryImageMatchers:
         high_quality_image: io.BytesIO,
         different_high_quality_image: io.BytesIO,
     ) -> None:
-        """
-        The structural similarity matcher matches similar images.
-        """
+        """The structural similarity matcher matches similar images."""
         database = VuforiaDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -587,15 +553,11 @@ class TestQueryImageMatchers:
 
 
 class TestDuplicatesImageMatchers:
-    """
-    Tests for duplicates image matchers.
-    """
+    """Tests for duplicates image matchers."""
 
     @staticmethod
     def test_exact_match(high_quality_image: io.BytesIO) -> None:
-        """
-        The exact matcher matches only exactly the same images.
-        """
+        """The exact matcher matches only exactly the same images."""
         database = VuforiaDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -639,9 +601,7 @@ class TestDuplicatesImageMatchers:
 
     @staticmethod
     def test_custom_matcher(high_quality_image: io.BytesIO) -> None:
-        """
-        It is possible to use a custom matcher.
-        """
+        """It is possible to use a custom matcher."""
         database = VuforiaDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -687,9 +647,7 @@ class TestDuplicatesImageMatchers:
     def test_structural_similarity_matcher(
         high_quality_image: io.BytesIO,
     ) -> None:
-        """
-        The structural similarity matcher matches similar images.
-        """
+        """The structural similarity matcher matches similar images."""
         database = VuforiaDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -728,15 +686,11 @@ class TestDuplicatesImageMatchers:
 # Flask app.
 @pytest.mark.usefixtures("mock_only_vuforia")
 class TestDataTypes:
-    """
-    Tests for sending various data types.
-    """
+    """Tests for sending various data types."""
 
     @staticmethod
     def test_text(endpoint: Endpoint) -> None:
-        """
-        It is possible to send strings to VWS endpoints.
-        """
+        """It is possible to send strings to VWS endpoints."""
         netloc = urlparse(url=endpoint.base_url).netloc
 
         if netloc == "cloudreco.vuforia.com":
