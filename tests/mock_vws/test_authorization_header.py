@@ -1,9 +1,9 @@
 """Tests for the `Authorization` header."""
 
-import io
 import json
 import uuid
 from http import HTTPStatus
+from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
 import pytest
@@ -13,7 +13,6 @@ from vws.exceptions.vws_exceptions import AuthenticationFailureError, FailError
 from vws_auth_tools import rfc_1123_date
 
 from mock_vws._constants import ResultCodes
-from mock_vws.database import VuforiaDatabase
 from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import (
     assert_valid_transaction_id,
@@ -21,6 +20,11 @@ from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
 )
 from tests.mock_vws.utils.too_many_requests import handle_server_errors
+
+if TYPE_CHECKING:
+    import io
+
+    from mock_vws.database import VuforiaDatabase
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")

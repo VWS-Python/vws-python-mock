@@ -1,15 +1,19 @@
 """Validators for the project state."""
 
 import logging
-from collections.abc import Iterable, Mapping
 from http import HTTPMethod
+from typing import TYPE_CHECKING
 
 from beartype import beartype
 
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._services_validators.exceptions import ProjectInactiveError
-from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Mapping
+
+    from mock_vws.database import VuforiaDatabase
 
 _LOGGER = logging.getLogger(name=__name__)
 

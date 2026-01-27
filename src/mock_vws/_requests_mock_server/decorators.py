@@ -8,7 +8,6 @@ from urllib.parse import urljoin, urlparse
 from beartype import BeartypeConf, beartype
 from responses import RequestsMock
 
-from mock_vws.database import VuforiaDatabase
 from mock_vws.image_matchers import (
     ImageMatcher,
     StructuralSimilarityMatcher,
@@ -24,6 +23,8 @@ from .mock_web_services_api import MockVuforiaWebServicesAPI
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
+
+    from mock_vws.database import VuforiaDatabase
 
 _STRUCTURAL_SIMILARITY_MATCHER = StructuralSimilarityMatcher()
 _BRISQUE_TRACKING_RATER = BrisqueTargetTrackingRater()

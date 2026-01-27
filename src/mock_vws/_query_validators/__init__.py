@@ -1,10 +1,8 @@
 """Input validators to use in the mock query API."""
 
-from collections.abc import Iterable, Mapping
+from typing import TYPE_CHECKING
 
 from beartype import beartype
-
-from mock_vws.database import VuforiaDatabase
 
 from .accept_header_validators import validate_accept_header
 from .auth_validators import (
@@ -36,6 +34,11 @@ from .image_validators import (
 from .include_target_data_validators import validate_include_target_data
 from .num_results_validators import validate_max_num_results
 from .project_state_validators import validate_project_state
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Mapping
+
+    from mock_vws.database import VuforiaDatabase
 
 
 @beartype

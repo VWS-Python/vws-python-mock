@@ -1,8 +1,6 @@
 """Tests for running the mock server in Docker."""
 
-import io
 import uuid
-from collections.abc import Iterable, Iterator
 from http import HTTPStatus
 from typing import TYPE_CHECKING
 
@@ -11,8 +9,6 @@ import pytest
 import requests
 from beartype import beartype
 from docker.errors import BuildError, NotFound
-from docker.models.containers import Container
-from docker.models.networks import Network
 from tenacity import retry
 from tenacity.retry import retry_if_exception_type
 from tenacity.stop import stop_after_delay
@@ -22,7 +18,12 @@ from vws import VWS, CloudRecoService
 from mock_vws.database import VuforiaDatabase
 
 if TYPE_CHECKING:
+    import io
+    from collections.abc import Iterable, Iterator
+
+    from docker.models.containers import Container
     from docker.models.images import Image
+    from docker.models.networks import Network
 
 
 @retry(

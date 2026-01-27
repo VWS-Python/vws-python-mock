@@ -5,11 +5,10 @@ import io
 import json
 from http import HTTPMethod, HTTPStatus
 from string import hexdigits
-from typing import Any, Final
+from typing import TYPE_CHECKING, Any, Final
 
 import pytest
 from beartype import beartype
-from vws import VWS
 from vws.exceptions.custom_exceptions import (
     ServerError,
 )
@@ -22,7 +21,6 @@ from vws.exceptions.vws_exceptions import (
     ProjectInactiveError,
     TargetNameExistError,
 )
-from vws.response import Response
 
 from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import make_image_file
@@ -30,6 +28,10 @@ from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
     assert_vws_response,
 )
+
+if TYPE_CHECKING:
+    from vws import VWS
+    from vws.response import Response
 
 _MAX_METADATA_BYTES: Final[int] = 1024 * 1024 - 1
 

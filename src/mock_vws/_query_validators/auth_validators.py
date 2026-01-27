@@ -1,7 +1,7 @@
 """Authorization validators to use in the mock query API."""
 
 import logging
-from collections.abc import Iterable, Mapping
+from typing import TYPE_CHECKING
 
 from beartype import beartype
 
@@ -11,7 +11,11 @@ from mock_vws._query_validators.exceptions import (
     AuthHeaderMissingError,
     MalformedAuthHeaderError,
 )
-from mock_vws.database import VuforiaDatabase
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Mapping
+
+    from mock_vws.database import VuforiaDatabase
 
 _LOGGER = logging.getLogger(name=__name__)
 

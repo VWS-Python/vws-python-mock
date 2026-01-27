@@ -1,8 +1,6 @@
 """Input validators to use in the mock."""
 
-from collections.abc import Iterable, Mapping
-
-from mock_vws.database import VuforiaDatabase
+from typing import TYPE_CHECKING
 
 from .active_flag_validators import validate_active_flag
 from .auth_validators import (
@@ -48,6 +46,11 @@ from .name_validators import (
 from .project_state_validators import validate_project_state
 from .target_validators import validate_target_id_exists
 from .width_validators import validate_width
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Mapping
+
+    from mock_vws.database import VuforiaDatabase
 
 
 def run_services_validators(

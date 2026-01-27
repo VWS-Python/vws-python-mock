@@ -1,9 +1,9 @@
 """Tests for the mock of the database summary endpoint."""
 
-import io
 import logging
 import uuid
 from http import HTTPStatus
+from typing import TYPE_CHECKING
 
 import pytest
 from beartype import beartype
@@ -16,6 +16,9 @@ from vws.exceptions.vws_exceptions import FailError
 
 from mock_vws import MockVWS
 from mock_vws.database import VuforiaDatabase
+
+if TYPE_CHECKING:
+    import io
 
 LOGGER = logging.getLogger(name=__name__)
 LOGGER.setLevel(level=logging.DEBUG)

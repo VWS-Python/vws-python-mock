@@ -1,6 +1,5 @@
 """Custom lint tests."""
 
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
@@ -9,6 +8,7 @@ from beartype import beartype
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
+    from pathlib import Path
 
 
 @beartype

@@ -12,11 +12,10 @@ import json
 import uuid
 from collections.abc import Callable, Iterable, Mapping
 from http import HTTPMethod, HTTPStatus
-from typing import Any, ParamSpec, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, ParamSpec, Protocol, runtime_checkable
 from zoneinfo import ZoneInfo
 
 from beartype import BeartypeConf, beartype
-from requests.models import PreparedRequest
 
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
@@ -28,10 +27,14 @@ from mock_vws._services_validators.exceptions import (
     TargetStatusProcessingError,
     ValidatorError,
 )
-from mock_vws.image_matchers import ImageMatcher
 from mock_vws.target import Target
-from mock_vws.target_manager import TargetManager
-from mock_vws.target_raters import TargetTrackingRater
+
+if TYPE_CHECKING:
+    from requests.models import PreparedRequest
+
+    from mock_vws.image_matchers import ImageMatcher
+    from mock_vws.target_manager import TargetManager
+    from mock_vws.target_raters import TargetTrackingRater
 
 _TARGET_ID_PATTERN = "[A-Za-z0-9]+"
 

@@ -3,9 +3,8 @@
 import base64
 import io
 import uuid
-from collections.abc import Iterable, Mapping
 from email.message import EmailMessage
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from beartype import beartype
 from werkzeug.formparser import MultiPartParser
@@ -14,8 +13,12 @@ from mock_vws._base64_decoding import decode_base64
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_client_keys
 from mock_vws._mock_common import json_dump
-from mock_vws.database import VuforiaDatabase
-from mock_vws.image_matchers import ImageMatcher
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Mapping
+
+    from mock_vws.database import VuforiaDatabase
+    from mock_vws.image_matchers import ImageMatcher
 
 
 @beartype

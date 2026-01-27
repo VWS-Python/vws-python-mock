@@ -1,16 +1,20 @@
 """Tests for the mock of the target summary endpoint."""
 
 import datetime
-import io
 import uuid
+from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
 import pytest
-from vws import VWS, CloudRecoService
 from vws.exceptions.vws_exceptions import UnknownTargetError
 from vws.reports import TargetStatuses
 
-from mock_vws.database import VuforiaDatabase
+if TYPE_CHECKING:
+    import io
+
+    from vws import VWS, CloudRecoService
+
+    from mock_vws.database import VuforiaDatabase
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")

@@ -3,13 +3,16 @@
 import json
 import logging
 import re
-from collections.abc import Iterable
 from dataclasses import dataclass
 from http import HTTPMethod, HTTPStatus
+from typing import TYPE_CHECKING
 
 from beartype import beartype
 
 from .exceptions import FailError
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 _LOGGER = logging.getLogger(name=__name__)
 
