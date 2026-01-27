@@ -1,6 +1,4 @@
-"""
-Tests for the usage of the mock Flask application.
-"""
+"""Tests for the usage of the mock Flask application."""
 
 import io
 import json
@@ -28,9 +26,7 @@ _EXAMPLE_URL_FOR_TARGET_MANAGER = "http://" + uuid.uuid4().hex + ".com"
 
 @pytest.fixture(autouse=True)
 def _(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
-    """
-    Enable a mock service backed by the Flask applications.
-    """
+    """Enable a mock service backed by the Flask applications."""
     with responses.RequestsMock(
         assert_all_requests_are_fired=False,
     ) as mock_obj:
@@ -61,9 +57,7 @@ def _(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
 
 
 class TestProcessingTime:
-    """
-    Tests for the time taken to process targets in the mock.
-    """
+    """Tests for the time taken to process targets in the mock."""
 
     # There is a race condition in this test type - if tests start to
     # fail, consider increasing the leeway.
@@ -73,9 +67,7 @@ class TestProcessingTime:
         self,
         image_file_failed_state: io.BytesIO,
     ) -> None:
-        """
-        By default, targets in the mock takes 2 seconds to be processed.
-        """
+        """By default, targets in the mock takes 2 seconds to be processed."""
         database = VuforiaDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
@@ -93,9 +85,7 @@ class TestProcessingTime:
         image_file_failed_state: io.BytesIO,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        """
-        It is possible to set a custom processing time.
-        """
+        """It is possible to set a custom processing time."""
         seconds = 5.0
         monkeypatch.setenv(
             name="PROCESSING_TIME_SECONDS",
@@ -115,14 +105,13 @@ class TestProcessingTime:
 
 
 class TestAddDatabase:
-    """
-    Tests for adding databases to the mock.
-    """
+    """Tests for adding databases to the mock."""
 
     @staticmethod
     def test_duplicate_keys() -> None:
         """
-        It is not possible to have multiple databases with matching keys.
+        It is not possible to have multiple databases with matching
+        keys.
         """
         database = VuforiaDatabase(
             server_access_key="1",
@@ -180,9 +169,7 @@ class TestAddDatabase:
 
     @staticmethod
     def test_give_no_details(high_quality_image: io.BytesIO) -> None:
-        """
-        It is possible to create a database without giving any data.
-        """
+        """It is possible to create a database without giving any data."""
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         response = requests.post(url=databases_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.CREATED
@@ -208,14 +195,13 @@ class TestAddDatabase:
 
 
 class TestDeleteDatabase:
-    """
-    Tests for deleting databases from the mock.
-    """
+    """Tests for deleting databases from the mock."""
 
     @staticmethod
     def test_not_found() -> None:
         """
-        A 404 error is returned when trying to delete a database which does not
+        A 404 error is returned when trying to delete a database which
+        does not
         exist.
         """
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
@@ -225,9 +211,7 @@ class TestDeleteDatabase:
 
     @staticmethod
     def test_delete_database() -> None:
-        """
-        It is possible to delete a database.
-        """
+        """It is possible to delete a database."""
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         response = requests.post(url=databases_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.CREATED
@@ -242,18 +226,14 @@ class TestDeleteDatabase:
 
 
 class TestQueryImageMatchers:
-    """
-    Tests for query image matchers.
-    """
+    """Tests for query image matchers."""
 
     @staticmethod
     def test_exact_match(
         high_quality_image: io.BytesIO,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        """
-        The exact matcher matches only exactly the same images.
-        """
+        """The exact matcher matches only exactly the same images."""
         monkeypatch.setenv(name="QUERY_IMAGE_MATCHER", value="exact")
 
         database = VuforiaDatabase()
@@ -297,9 +277,7 @@ class TestQueryImageMatchers:
         different_high_quality_image: io.BytesIO,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        """
-        The structural similarity matcher matches similar images.
-        """
+        """The structural similarity matcher matches similar images."""
         monkeypatch.setenv(
             name="QUERY_IMAGE_MATCHER",
             value="structural_similarity",
@@ -346,18 +324,14 @@ class TestQueryImageMatchers:
 
 
 class TestDuplicatesImageMatchers:
-    """
-    Tests for duplicates image matchers.
-    """
+    """Tests for duplicates image matchers."""
 
     @staticmethod
     def test_exact_match(
         high_quality_image: io.BytesIO,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        """
-        The exact matcher matches only exactly the same images.
-        """
+        """The exact matcher matches only exactly the same images."""
         monkeypatch.setenv(name="DUPLICATES_IMAGE_MATCHER", value="exact")
         database = VuforiaDatabase()
         vws_client = VWS(
@@ -406,9 +380,7 @@ class TestDuplicatesImageMatchers:
         high_quality_image: io.BytesIO,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        """
-        The structural similarity matcher matches similar images.
-        """
+        """The structural similarity matcher matches similar images."""
         monkeypatch.setenv(
             name="DUPLICATES_IMAGE_MATCHER",
             value="structural_similarity",
@@ -447,18 +419,14 @@ class TestDuplicatesImageMatchers:
 
 
 class TestTargetRaters:
-    """
-    Tests for using target raters.
-    """
+    """Tests for using target raters."""
 
     @staticmethod
     def test_default(
         image_file_success_state_low_rating: io.BytesIO,
         high_quality_image: io.BytesIO,
     ) -> None:
-        """
-        By default, the BRISQUE target rater is used.
-        """
+        """By default, the BRISQUE target rater is used."""
         database = VuforiaDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
@@ -507,9 +475,7 @@ class TestTargetRaters:
         image_file_success_state_low_rating: io.BytesIO,
         high_quality_image: io.BytesIO,
     ) -> None:
-        """
-        It is possible to use the BRISQUE target rater.
-        """
+        """It is possible to use the BRISQUE target rater."""
         monkeypatch.setenv(name="TARGET_RATER", value="brisque")
 
         database = VuforiaDatabase()
@@ -559,9 +525,7 @@ class TestTargetRaters:
         monkeypatch: pytest.MonkeyPatch,
         high_quality_image: io.BytesIO,
     ) -> None:
-        """
-        It is possible to use the perfect target rater.
-        """
+        """It is possible to use the perfect target rater."""
         monkeypatch.setenv(name="TARGET_RATER", value="perfect")
         database = VuforiaDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
@@ -600,9 +564,7 @@ class TestTargetRaters:
         monkeypatch: pytest.MonkeyPatch,
         high_quality_image: io.BytesIO,
     ) -> None:
-        """
-        It is possible to use the random target rater.
-        """
+        """It is possible to use the random target rater."""
         monkeypatch.setenv(name="TARGET_RATER", value="random")
 
         database = VuforiaDatabase()

@@ -1,6 +1,4 @@
-"""
-A fake implementation of a target for the Vuforia Web Services API.
-"""
+"""A fake implementation of a target for the Vuforia Web Services API."""
 
 import base64
 import datetime
@@ -22,9 +20,7 @@ from mock_vws.target_raters import (
 
 
 class TargetDict(TypedDict):
-    """
-    A dictionary type which represents a target.
-    """
+    """A dictionary type which represents a target."""
 
     name: str
     width: float
@@ -41,17 +37,13 @@ class TargetDict(TypedDict):
 
 @beartype
 def _random_hex() -> str:
-    """
-    Return a random hex value.
-    """
+    """Return a random hex value."""
     return uuid.uuid4().hex
 
 
 @beartype
 def _time_now() -> datetime.datetime:
-    """
-    Return the current time in the GMT time zone.
-    """
+    """Return the current time in the GMT time zone."""
     gmt = ZoneInfo(key="GMT")
     return datetime.datetime.now(tz=gmt)
 
@@ -82,7 +74,8 @@ class Target:
 
     @property
     def _post_processing_status(self) -> TargetStatuses:
-        """Return the status of the target, or what it will be when processing
+        """Return the status of the target, or what it will be when
+        processing
         is finished.
 
         The status depends on the standard deviation of the color bands.
@@ -128,16 +121,12 @@ class Target:
 
     @property
     def _post_processing_target_rating(self) -> int:
-        """
-        The rating of the target after processing.
-        """
+        """The rating of the target after processing."""
         return self.target_tracking_rater(image_content=self.image_value)
 
     @property
     def tracking_rating(self) -> int:
-        """
-        Return the tracking rating of the target recognition image.
-        """
+        """Return the tracking rating of the target recognition image."""
         pre_rating_time = datetime.timedelta(
             # That this is half of the total processing time is unrealistic.
             # In VWS it is not a constant percentage.
@@ -157,9 +146,7 @@ class Target:
 
     @classmethod
     def from_dict(cls, target_dict: TargetDict) -> Self:
-        """
-        Load a target from a dictionary.
-        """
+        """Load a target from a dictionary."""
         timezone = ZoneInfo(key="GMT")
         name = target_dict["name"]
         active_flag = target_dict["active_flag"]
@@ -201,9 +188,7 @@ class Target:
         )
 
     def to_dict(self) -> TargetDict:
-        """
-        Dump a target to a dictionary which can be loaded as JSON.
-        """
+        """Dump a target to a dictionary which can be loaded as JSON."""
         delete_date: str | None = None
         if self.delete_date:
             delete_date = self.delete_date.isoformat()

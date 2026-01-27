@@ -1,6 +1,4 @@
-"""
-Matchers for query and duplicate requests.
-"""
+"""Matchers for query and duplicate requests."""
 
 import io
 from typing import Protocol, runtime_checkable
@@ -16,9 +14,7 @@ from torchmetrics.image import (
 
 @runtime_checkable
 class ImageMatcher(Protocol):
-    """
-    Protocol for a matcher for query and duplicate requests.
-    """
+    """Protocol for a matcher for query and duplicate requests."""
 
     def __call__(
         self,
@@ -38,9 +34,7 @@ class ImageMatcher(Protocol):
 
 @beartype
 class ExactMatcher:
-    """
-    A matcher which returns whether two images are exactly equal.
-    """
+    """A matcher which returns whether two images are exactly equal."""
 
     def __call__(
         self,
@@ -59,7 +53,8 @@ class ExactMatcher:
 @beartype
 class StructuralSimilarityMatcher:
     """
-    A matcher which returns whether two images are similar using SSIM.
+    A matcher which returns whether two images are similar using
+    SSIM.
     """
 
     def __call__(

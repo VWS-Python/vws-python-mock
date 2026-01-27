@@ -1,6 +1,4 @@
-"""
-Validators for target names.
-"""
+"""Validators for target names."""
 
 import json
 import logging
@@ -26,7 +24,8 @@ def validate_name_characters_in_range(
     request_method: str,
     request_path: str,
 ) -> None:
-    """Validate the characters in the name argument given to a VWS endpoint.
+    """Validate the characters in the name argument given to a VWS
+    endpoint.
 
     Args:
         request_body: The body of the request.
@@ -179,7 +178,8 @@ def validate_name_does_not_exist_existing_target(
     request_path: str,
     databases: Iterable[VuforiaDatabase],
 ) -> None:
-    """Validate that the name does not exist for any existing target apart from
+    """Validate that the name does not exist for any existing target apart
+    from
     the one being updated.
 
     Args:

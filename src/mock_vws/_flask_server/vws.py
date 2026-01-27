@@ -47,17 +47,13 @@ _LOGGER = logging.getLogger(name=__name__)
 
 @beartype
 class _ImageMatcherChoice(StrEnum):
-    """
-    Image matcher choices.
-    """
+    """Image matcher choices."""
 
     EXACT = auto()
     STRUCTURAL_SIMILARITY = auto()
 
     def to_image_matcher(self) -> ImageMatcher:
-        """
-        Get the image matcher.
-        """
+        """Get the image matcher."""
         match self:
             case self.EXACT:
                 return ExactMatcher()
@@ -69,9 +65,7 @@ class _ImageMatcherChoice(StrEnum):
 
 @beartype
 class VWSSettings(BaseSettings):
-    """
-    Settings for the VWS Flask app.
-    """
+    """Settings for the VWS Flask app."""
 
     target_manager_base_url: str
     processing_time_seconds: float = 2.0
@@ -83,9 +77,7 @@ class VWSSettings(BaseSettings):
 
 @beartype
 def get_all_databases() -> set[VuforiaDatabase]:
-    """
-    Get all database objects from the task manager back-end.
-    """
+    """Get all database objects from the task manager back-end."""
     settings = VWSSettings.model_validate(obj={})
     timeout_seconds = 30
     response = requests.get(
@@ -127,9 +119,7 @@ def set_terminate_wsgi_input() -> None:
 @VWS_FLASK_APP.before_request
 @beartype
 def validate_request() -> None:
-    """
-    Run validators on the request.
-    """
+    """Run validators on the request."""
     databases = get_all_databases()
     run_services_validators(
         request_headers=dict(request.headers),
@@ -142,9 +132,7 @@ def validate_request() -> None:
 
 @VWS_FLASK_APP.errorhandler(code_or_exception=ValidatorError)
 def handle_exceptions(exc: ValidatorError) -> Response:
-    """
-    Return the error response associated with the given exception.
-    """
+    """Return the error response associated with the given exception."""
     response = Response(
         status=exc.status_code.value,
         response=exc.response_text,

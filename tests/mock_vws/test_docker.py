@@ -1,6 +1,4 @@
-"""
-Tests for running the mock server in Docker.
-"""
+"""Tests for running the mock server in Docker."""
 
 import io
 import uuid
@@ -37,9 +35,7 @@ if TYPE_CHECKING:
 )
 @beartype
 def wait_for_health_check(container: Container) -> None:
-    """
-    Wait for a container to pass its health check.
-    """
+    """Wait for a container to pass its health check."""
     container.reload()
     health_status = container.attrs["State"]["Health"]["Status"]
     # In theory this might not be hit by coverage.
@@ -97,7 +93,8 @@ def test_build_and_run(
     request: pytest.FixtureRequest,
 ) -> None:
     """
-    It is possible to build Docker images which combine to make a working mock
+    It is possible to build Docker images which combine to make a
+    working mock
     application.
     """
     repository_root = request.config.rootpath

@@ -1,6 +1,4 @@
-"""
-Fixtures which prepare requests.
-"""
+"""Fixtures which prepare requests."""
 
 import base64
 import io
@@ -40,9 +38,7 @@ def add_target(
     vuforia_database: VuforiaDatabase,
     image_file_failed_state: io.BytesIO,
 ) -> Endpoint:
-    """
-    Return details of the endpoint for adding a target.
-    """
+    """Return details of the endpoint for adding a target."""
     image_data = image_file_failed_state.getvalue()
     image_data_encoded = base64.b64encode(s=image_data).decode(
         encoding="ascii"
@@ -97,9 +93,7 @@ def delete_target(
     target_id: str,
     vws_client: VWS,
 ) -> Endpoint:
-    """
-    Return details of the endpoint for deleting a target.
-    """
+    """Return details of the endpoint for deleting a target."""
     _wait_for_target_processed(vws_client=vws_client, target_id=target_id)
     date = rfc_1123_date()
     request_path = f"/targets/{target_id}"
@@ -140,7 +134,8 @@ def delete_target(
 @pytest.fixture
 def database_summary(vuforia_database: VuforiaDatabase) -> Endpoint:
     """
-    Return details of the endpoint for getting details about the database.
+    Return details of the endpoint for getting details about the
+    database.
     """
     date = rfc_1123_date()
     request_path = "/summary"
@@ -233,9 +228,7 @@ def get_target(
     target_id: str,
     vws_client: VWS,
 ) -> Endpoint:
-    """
-    Return details of the endpoint for getting details of a target.
-    """
+    """Return details of the endpoint for getting details of a target."""
     _wait_for_target_processed(vws_client=vws_client, target_id=target_id)
     date = rfc_1123_date()
     request_path = f"/targets/{target_id}"
@@ -276,9 +269,7 @@ def get_target(
 
 @pytest.fixture
 def target_list(vuforia_database: VuforiaDatabase) -> Endpoint:
-    """
-    Return details of the endpoint for getting a list of targets.
-    """
+    """Return details of the endpoint for getting a list of targets."""
     date = rfc_1123_date()
     request_path = "/targets"
     method = HTTPMethod.GET
@@ -323,7 +314,8 @@ def target_summary(
     vws_client: VWS,
 ) -> Endpoint:
     """
-    Return details of the endpoint for getting a summary report of a target.
+    Return details of the endpoint for getting a summary report of a
+    target.
     """
     _wait_for_target_processed(vws_client=vws_client, target_id=target_id)
     date = rfc_1123_date()
@@ -369,9 +361,7 @@ def update_target(
     target_id: str,
     vws_client: VWS,
 ) -> Endpoint:
-    """
-    Return details of the endpoint for updating a target.
-    """
+    """Return details of the endpoint for updating a target."""
     _wait_for_target_processed(vws_client=vws_client, target_id=target_id)
     data: dict[str, Any] = {}
     request_path = f"/targets/{target_id}"
@@ -419,7 +409,8 @@ def query(
     high_quality_image: io.BytesIO,
 ) -> Endpoint:
     """
-    Return details of the endpoint for making an image recognition query.
+    Return details of the endpoint for making an image recognition
+    query.
     """
     image_content = high_quality_image.getvalue()
     date = rfc_1123_date()

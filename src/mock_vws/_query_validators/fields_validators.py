@@ -1,6 +1,4 @@
-"""
-Validators for the fields given.
-"""
+"""Validators for the fields given."""
 
 import io
 import logging

@@ -1,6 +1,4 @@
-"""
-Configuration, plugins and fixtures for `pytest`.
-"""
+"""Configuration, plugins and fixtures for `pytest`."""
 
 import base64
 import binascii
@@ -22,9 +20,7 @@ pytest_plugins = [
 
 @pytest.fixture(name="vws_client")
 def fixture_vws_client(vuforia_database: VuforiaDatabase) -> VWS:
-    """
-    A VWS client for an active VWS database.
-    """
+    """A VWS client for an active VWS database."""
     return VWS(
         server_access_key=vuforia_database.server_access_key,
         server_secret_key=vuforia_database.server_secret_key,
@@ -33,9 +29,7 @@ def fixture_vws_client(vuforia_database: VuforiaDatabase) -> VWS:
 
 @pytest.fixture
 def cloud_reco_client(vuforia_database: VuforiaDatabase) -> CloudRecoService:
-    """
-    A query client for an active VWS database.
-    """
+    """A query client for an active VWS database."""
     return CloudRecoService(
         client_access_key=vuforia_database.client_access_key,
         client_secret_key=vuforia_database.client_secret_key,
@@ -44,9 +38,7 @@ def cloud_reco_client(vuforia_database: VuforiaDatabase) -> CloudRecoService:
 
 @pytest.fixture(name="inactive_vws_client")
 def fixture_inactive_vws_client(inactive_database: VuforiaDatabase) -> VWS:
-    """
-    A client for an inactive VWS database.
-    """
+    """A client for an inactive VWS database."""
     return VWS(
         server_access_key=inactive_database.server_access_key,
         server_secret_key=inactive_database.server_secret_key,
@@ -57,9 +49,7 @@ def fixture_inactive_vws_client(inactive_database: VuforiaDatabase) -> VWS:
 def inactive_cloud_reco_client(
     inactive_database: VuforiaDatabase,
 ) -> CloudRecoService:
-    """
-    A query client for an inactive VWS database.
-    """
+    """A query client for an inactive VWS database."""
     return CloudRecoService(
         client_access_key=inactive_database.client_access_key,
         client_secret_key=inactive_database.client_secret_key,
@@ -99,7 +89,8 @@ def target_id(
 )
 def endpoint(request: pytest.FixtureRequest) -> Endpoint:
     """
-    Return details of an endpoint for the Target API or the Query API.
+    Return details of an endpoint for the Target API or the Query
+    API.
     """
     endpoint_fixture: Endpoint = request.getfixturevalue(argname=request.param)
     return endpoint_fixture
@@ -126,7 +117,8 @@ def endpoint(request: pytest.FixtureRequest) -> Endpoint:
     ],
 )
 def not_base64_encoded_processable(request: pytest.FixtureRequest) -> str:
-    """Return a string which is not decodable as base64 data, but Vuforia will
+    """Return a string which is not decodable as base64 data, but Vuforia
+    will
     respond as if this is valid base64 data.
 
     ``UNPROCESSABLE_ENTITY`` when this is given.
@@ -150,7 +142,8 @@ def not_base64_encoded_processable(request: pytest.FixtureRequest) -> str:
 )
 def not_base64_encoded_not_processable(request: pytest.FixtureRequest) -> str:
     """
-    Return a string which is not decodable as base64 data, and Vuforia will
+    Return a string which is not decodable as base64 data, and Vuforia
+    will
     return an ``UNPROCESSABLE_ENTITY`` response when this is given.
     """
     not_base64_encoded_string: str = request.param

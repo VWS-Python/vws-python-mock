@@ -1,6 +1,4 @@
-"""
-Input validators to use in the mock query API.
-"""
+"""Input validators to use in the mock query API."""
 
 from collections.abc import Iterable, Mapping
 

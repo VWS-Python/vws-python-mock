@@ -1,3 +1,1 @@
-"""
-An interface to the mock Vuforia which uses ``responses``.
-"""
+"""An interface to the mock Vuforia which uses ``responses``."""

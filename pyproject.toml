@@ -53,12 +53,11 @@ optional-dependencies.dev = [
     "actionlint-py==1.7.10.24",
     "check-manifest==0.51",
     "check-wheel-contents==0.6.3",
-    "coverage==7.13.1",
+    "coverage==7.13.2",
     "deptry==0.24.0",
     "dirty-equals==0.11",
     "doc8==2.0.0",
-    "doccmd==2026.1.18",
-    "docformatter==1.7.7",
+    "doccmd==2026.1.25",
     "docker==7.1.0",
     "enum-tools[sphinx]==0.13.0",
     "freezegun==1.5.5",
@@ -66,12 +65,13 @@ optional-dependencies.dev = [
     "interrogate==1.7.0",
     "mypy[faster-cache]==1.19.1",
     "mypy-strict-kwargs==2026.1.12",
-    "prek==0.2.30",
+    "prek==0.3.0",
+    "pydocstringformatter==0.7.5",
     "pydocstyle==6.3",
     "pylint[spelling]==4.0.4",
     "pylint-per-file-ignores==3.2.0",
     "pyproject-fmt==2.11.1",
-    "pyrefly==0.48.2",
+    "pyrefly==0.50.0",
     "pyright==1.1.408",
     "pyroma==5.0.1",
     "pytest==9.0.2",
@@ -80,7 +80,7 @@ optional-dependencies.dev = [
     "python-dotenv==1.2.1",
     "pyyaml==6.0.3",
     "requests-mock-flask==2026.1.12",
-    "ruff==0.14.13",
+    "ruff==0.14.14",
     # We add shellcheck-py not only for shell scripts and shell code blocks,
     # but also because having it installed means that ``actionlint-py`` will
     # use it to lint shell commands in GitHub workflow files.
@@ -97,7 +97,7 @@ optional-dependencies.dev = [
     "sphinxcontrib-spelling==8.0.2",
     "sybil==9.3.0",
     "tenacity==9.1.2",
-    "ty==0.0.12",
+    "ty==0.0.14",
     "types-docker==7.1.0.20260109",
     "types-pyyaml==6.0.12.20250915",
     "types-requests==2.32.4.20260107",
@@ -153,8 +153,8 @@ lint.select = [
 lint.ignore = [
     # Ruff warns that this conflicts with the formatter.
     "COM812",
-    # Allow our chosen docstring line-style - no one-line summary.
-    "D200",
+    # Allow our chosen docstring line-style - pydocstringformatter handles formatting
+    # but doesn't enforce D205 (blank line after summary) or D212 (summary on first line).
     "D205",
     "D212",
     "D415",
@@ -167,6 +167,14 @@ lint.ignore = [
 
 lint.per-file-ignores."ci/test_custom_linters.py" = [
     # Allow asserts in tests.
+    "S101",
+]
+
+lint.per-file-ignores."doccmd_*.py" = [
+    # Allow our chosen docstring line-style - pydocstringformatter handles
+    # formatting but docstrings in docs may not match this style.
+    "D200",
+    # Allow asserts in docs.
     "S101",
 ]
 
@@ -299,9 +307,6 @@ spelling-private-dict-file = 'spelling_private_dict.txt'
 # --spelling-private-dict-file option instead of raising a message.
 spelling-store-unknown-words = 'no'
 
-[tool.docformatter]
-make-summary-multi-line = true
-
 [tool.check-manifest]
 
 ignore = [
@@ -403,6 +408,12 @@ search_path = [
 enableTypeIgnoreComments = false
 reportUnnecessaryTypeIgnoreComment = true
 typeCheckingMode = "strict"
+
+[tool.pydocstringformatter]
+write = true
+split-summary-body = false
+max-line-length = 75
+linewrap-full-docstring = true
 
 [tool.interrogate]
 fail-under = 100

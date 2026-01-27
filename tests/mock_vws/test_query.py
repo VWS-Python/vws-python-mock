@@ -147,9 +147,7 @@ def _query(
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestContentType:
-    """
-    Tests for the Content-Type header.
-    """
+    """Tests for the Content-Type header."""
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -208,9 +206,7 @@ class TestContentType:
         resp_cache_control: str | None,
         resp_text: str,
     ) -> None:
-        """
-        With bad Content-Type headers we get a variety of results.
-        """
+        """With bad Content-Type headers we get a variety of results."""
         image_content = high_quality_image.getvalue()
         date = rfc_1123_date()
         request_path = "/v1/query"
@@ -272,8 +268,10 @@ class TestContentType:
         vuforia_database: VuforiaDatabase,
     ) -> None:
         """
-        If a Content-Type header which is not ``multipart/form-data`` is given
-        with the correct boundary, an ``UNSUPPORTED_MEDIA_TYPE`` response is
+        If a Content-Type header which is not ``multipart/form-data`` is
+        given
+        with the correct boundary, an ``UNSUPPORTED_MEDIA_TYPE`` response
+        is
         given.
         """
         image_content = high_quality_image.getvalue()
@@ -348,7 +346,8 @@ class TestContentType:
         content_type: str,
     ) -> None:
         """
-        If no boundary is given, an ``INTERNAL_SERVER_ERROR`` is returned.
+        If no boundary is given, an ``INTERNAL_SERVER_ERROR`` is
+        returned.
         """
         image_content = high_quality_image.getvalue()
         date = rfc_1123_date()
@@ -408,9 +407,7 @@ class TestContentType:
         high_quality_image: io.BytesIO,
         vuforia_database: VuforiaDatabase,
     ) -> None:
-        """
-        If a bogus boundary is given, a ``BAD_REQUEST`` is returned.
-        """
+        """If a bogus boundary is given, a ``BAD_REQUEST`` is returned."""
         image_content = high_quality_image.getvalue()
         date = rfc_1123_date()
         request_path = "/v1/query"
@@ -472,7 +469,8 @@ class TestContentType:
         vuforia_database: VuforiaDatabase,
     ) -> None:
         """
-        If sections that are not the boundary section are given in the header,
+        If sections that are not the boundary section are given in the
+        header,
         that is fine.
         """
         image_content = high_quality_image.getvalue()
@@ -525,9 +523,7 @@ class TestContentType:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestSuccess:
-    """
-    Tests for successful calls to the query endpoint.
-    """
+    """Tests for successful calls to the query endpoint."""
 
     @staticmethod
     def test_no_results(
@@ -535,7 +531,8 @@ class TestSuccess:
         cloud_reco_client: CloudRecoService,
     ) -> None:
         """
-        When there are no matching images in the database, an empty list of
+        When there are no matching images in the database, an empty list
+        of
         results is returned.
         """
         results = cloud_reco_client.query(image=high_quality_image)
@@ -548,7 +545,8 @@ class TestSuccess:
         vws_client: VWS,
     ) -> None:
         """
-        If the exact high quality image that was added is queried for, target
+        If the exact high quality image that was added is queried for,
+        target
         data is shown.
         """
         image_file = high_quality_image
@@ -626,7 +624,8 @@ class TestSuccess:
         cloud_reco_client: CloudRecoService,
     ) -> None:
         """
-        If a similar image to one that was added is queried for, target data is
+        If a similar image to one that was added is queried for, target
+        data is
         shown.
         """
         metadata_encoded = base64.b64encode(s=b"example").decode(
@@ -675,8 +674,10 @@ class TestSuccess:
         cloud_reco_client: CloudRecoService,
     ) -> None:
         """
-        Vuforia accepts some metadata strings which are not valid base64.
-        When a target with such a string is matched by a query, Vuforia returns
+        Vuforia accepts some metadata strings which are not valid
+        base64.
+        When a target with such a string is matched by a query, Vuforia
+        returns
         an interesting result:
 
         * If the metadata string is a length one greater than a multiple of 4,
@@ -717,14 +718,13 @@ class TestSuccess:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestIncorrectFields:
-    """
-    Tests for incorrect and unexpected fields.
-    """
+    """Tests for incorrect and unexpected fields."""
 
     @staticmethod
     def test_missing_image(vuforia_database: VuforiaDatabase) -> None:
         """
-        If an image is not given, a ``BAD_REQUEST`` response is returned.
+        If an image is not given, a ``BAD_REQUEST`` response is
+        returned.
         """
         response = _query(vuforia_database=vuforia_database, body={})
 
@@ -744,7 +744,8 @@ class TestIncorrectFields:
         vuforia_database: VuforiaDatabase,
     ) -> None:
         """
-        If extra fields are given, a ``BAD_REQUEST`` response is returned.
+        If extra fields are given, a ``BAD_REQUEST`` response is
+        returned.
         """
         image_content = high_quality_image.getvalue()
         body = {
@@ -792,9 +793,7 @@ class TestIncorrectFields:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestMaxNumResults:
-    """
-    Tests for the ``max_num_results`` parameter.
-    """
+    """Tests for the ``max_num_results`` parameter."""
 
     @staticmethod
     def test_default(
@@ -802,9 +801,7 @@ class TestMaxNumResults:
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
     ) -> None:
-        """
-        The default ``max_num_results`` is 1.
-        """
+        """The default ``max_num_results`` is 1."""
         image_content = high_quality_image.getvalue()
 
         target_id_1 = vws_client.add_target(
@@ -871,9 +868,7 @@ class TestMaxNumResults:
         vws_client: VWS,
         cloud_reco_client: CloudRecoService,
     ) -> None:
-        """
-        A maximum of ``max_num_results`` results are returned.
-        """
+        """A maximum of ``max_num_results`` results are returned."""
         _add_and_wait_for_targets(
             image=high_quality_image,
             vws_client=vws_client,
@@ -895,7 +890,8 @@ class TestMaxNumResults:
         num_results: int,
         cloud_reco_client: CloudRecoService,
     ) -> None:
-        """An error is returned if ``max_num_results`` is given as an integer
+        """An error is returned if ``max_num_results`` is given as an
+        integer
         out of the range (1, 50).
 
         The documentation at
@@ -935,7 +931,8 @@ class TestMaxNumResults:
         vuforia_database: VuforiaDatabase,
         num_results: bytes,
     ) -> None:
-        """An error is returned if ``max_num_results`` is given as something
+        """An error is returned if ``max_num_results`` is given as
+        something
         other than an integer.
 
         Integers greater than 2147483647 are not considered integers
@@ -970,9 +967,7 @@ def _add_and_wait_for_targets(
     vws_client: VWS,
     num_targets: int,
 ) -> None:
-    """
-    Add targets with the given image.
-    """
+    """Add targets with the given image."""
     target_ids: Iterable[str] = set()
     for _ in range(num_targets):
         target_id = vws_client.add_target(
@@ -990,9 +985,7 @@ def _add_and_wait_for_targets(
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestIncludeTargetData:
-    """
-    Tests for the ``include_target_data`` parameter.
-    """
+    """Tests for the ``include_target_data`` parameter."""
 
     @staticmethod
     def test_default(
@@ -1000,9 +993,7 @@ class TestIncludeTargetData:
         vws_client: VWS,
         vuforia_database: VuforiaDatabase,
     ) -> None:
-        """
-        The default ``include_target_data`` is 'top'.
-        """
+        """The default ``include_target_data`` is 'top'."""
         _add_and_wait_for_targets(
             image=high_quality_image,
             vws_client=vws_client,
@@ -1034,7 +1025,8 @@ class TestIncludeTargetData:
         vws_client: VWS,
     ) -> None:
         """
-        When ``include_target_data`` is set to "top" (case insensitive), only
+        When ``include_target_data`` is set to "top" (case insensitive),
+        only
         the first result includes target data.
         """
         _add_and_wait_for_targets(
@@ -1069,7 +1061,8 @@ class TestIncludeTargetData:
         vws_client: VWS,
     ) -> None:
         """
-        When ``include_target_data`` is set to "none" (case insensitive), no
+        When ``include_target_data`` is set to "none" (case
+        insensitive), no
         results include target data.
         """
         _add_and_wait_for_targets(
@@ -1104,7 +1097,8 @@ class TestIncludeTargetData:
         vws_client: VWS,
     ) -> None:
         """
-        When ``include_target_data`` is set to "all" (case insensitive), all
+        When ``include_target_data`` is set to "all" (case insensitive),
+        all
         results include target data.
         """
         _add_and_wait_for_targets(
@@ -1139,7 +1133,8 @@ class TestIncludeTargetData:
         include_target_data: str | bool | int,
     ) -> None:
         """
-        A ``BAD_REQUEST`` error is given when a string that is not one of
+        A ``BAD_REQUEST`` error is given when a string that is not one
+        of
         'none', 'top' or 'all' (case insensitive).
         """
         image_content = high_quality_image.getvalue()
@@ -1168,9 +1163,7 @@ class TestIncludeTargetData:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestAcceptHeader:
-    """
-    Tests for the ``Accept`` header.
-    """
+    """Tests for the ``Accept`` header."""
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -1187,8 +1180,8 @@ class TestAcceptHeader:
         vuforia_database: VuforiaDatabase,
         extra_headers: dict[str, str],
     ) -> None:
-        """
-        An ``Accept`` header can be given iff its value is "application/json".
+        """An ``Accept`` header can be given iff its value is
+        "application/json".
         """
         image_content = high_quality_image.getvalue()
         date = rfc_1123_date()
@@ -1242,7 +1235,8 @@ class TestAcceptHeader:
         vuforia_database: VuforiaDatabase,
     ) -> None:
         """
-        A NOT_ACCEPTABLE response is returned if an ``Accept`` header is given
+        A NOT_ACCEPTABLE response is returned if an ``Accept`` header is
+        given
         with a value which is not "application/json".
         """
         image_content = high_quality_image.getvalue()
@@ -1302,9 +1296,7 @@ class TestAcceptHeader:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestActiveFlag:
-    """
-    Tests for active versus inactive targets.
-    """
+    """Tests for active versus inactive targets."""
 
     @staticmethod
     def test_inactive(
@@ -1312,9 +1304,7 @@ class TestActiveFlag:
         vws_client: VWS,
         cloud_reco_client: CloudRecoService,
     ) -> None:
-        """
-        Images which are not active are not matched.
-        """
+        """Images which are not active are not matched."""
         target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
             width=1,
@@ -1330,25 +1320,22 @@ class TestActiveFlag:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestBadImage:
-    """
-    Tests for bad images.
-    """
+    """Tests for bad images."""
 
     @staticmethod
     def test_corrupted(
         corrupted_image_file: io.BytesIO,
         cloud_reco_client: CloudRecoService,
     ) -> None:
-        """
-        No error is returned when a corrupted image is given.
-        """
+        """No error is returned when a corrupted image is given."""
         results = cloud_reco_client.query(image=corrupted_image_file)
         assert results == []
 
     @staticmethod
     def test_not_image(cloud_reco_client: CloudRecoService) -> None:
         """
-        An ``UNPROCESSABLE_ENTITY`` response is returned when a non-image is
+        An ``UNPROCESSABLE_ENTITY`` response is returned when a non-
+        image is
         given.
         """
         not_image_data = b"not_image_data"
@@ -1384,15 +1371,14 @@ class TestBadImage:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestMaximumImageFileSize:
-    """
-    Tests for maximum image file sizes.
-    """
+    """Tests for maximum image file sizes."""
 
     @staticmethod
     def test_png(cloud_reco_client: CloudRecoService) -> None:
         """
         According to
-        https://developer.vuforia.com/library/web-api/vuforia-query-web-api.
+        https://developer.vuforia.com/library/web-api/vuforia-query-web-
+        api.
         the maximum file size is "2MiB for PNG".
 
         Above this limit, a ``REQUEST_ENTITY_TOO_LARGE`` response is returned.
@@ -1462,7 +1448,8 @@ class TestMaximumImageFileSize:
     def test_jpeg(cloud_reco_client: CloudRecoService) -> None:
         """
         According to
-        https://developer.vuforia.com/library/web-api/vuforia-query-web-api.
+        https://developer.vuforia.com/library/web-api/vuforia-query-web-
+        api.
         the maximum file size is "512 KiB for JPEG".
         However, this test shows that the maximum size for JPEG is 2 MiB.
 
@@ -1532,16 +1519,15 @@ class TestMaximumImageFileSize:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestMaximumImageDimensions:
-    """
-    Tests for maximum image dimensions.
-    """
+    """Tests for maximum image dimensions."""
 
     @staticmethod
     def test_max_height(
         cloud_reco_client: CloudRecoService,
     ) -> None:
         """
-        An error is returned when an image with a height greater than 30000 is
+        An error is returned when an image with a height greater than
+        30000 is
         given.
         """
         width = 1
@@ -1593,7 +1579,8 @@ class TestMaximumImageDimensions:
     @staticmethod
     def test_max_width(cloud_reco_client: CloudRecoService) -> None:
         """
-        An error is returned when an image with a width greater than 30000 is
+        An error is returned when an image with a width greater than
+        30000 is
         given.
         """
         height = 1
@@ -1644,9 +1631,7 @@ class TestMaximumImageDimensions:
 
     @staticmethod
     def test_max_pixels(cloud_reco_client: CloudRecoService) -> None:
-        """
-        No error is returned for an 835 x 835 image.
-        """
+        """No error is returned for an 835 x 835 image."""
         # If we make this 836 then we hit REQUEST_ENTITY_TOO_LARGE errors.
         max_height = max_width = 835
         png_not_too_wide = make_image_file(
@@ -1662,9 +1647,7 @@ class TestMaximumImageDimensions:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestImageFormats:
-    """
-    Tests for various image formats.
-    """
+    """Tests for various image formats."""
 
     @staticmethod
     @pytest.mark.parametrize(argnames="file_format", argvalues=["png", "jpeg"])
@@ -1673,9 +1656,7 @@ class TestImageFormats:
         file_format: str,
         cloud_reco_client: CloudRecoService,
     ) -> None:
-        """
-        PNG and JPEG formats are supported.
-        """
+        """PNG and JPEG formats are supported."""
         image_buffer = io.BytesIO()
         pil_image = Image.open(fp=high_quality_image)
         pil_image.save(fp=image_buffer, format=file_format)
@@ -1690,9 +1671,7 @@ class TestImageFormats:
         high_quality_image: io.BytesIO,
         cloud_reco_client: CloudRecoService,
     ) -> None:
-        """
-        File formats which are not PNG or JPEG are not supported.
-        """
+        """File formats which are not PNG or JPEG are not supported."""
         file_format = "tiff"
         image_buffer = io.BytesIO()
         pil_image = Image.open(fp=high_quality_image)
@@ -1730,9 +1709,7 @@ class TestImageFormats:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestProcessing:
-    """
-    Tests for targets in the processing state.
-    """
+    """Tests for targets in the processing state."""
 
     @staticmethod
     @pytest.mark.parametrize(argnames="active_flag", argvalues=[True, False])
@@ -1744,7 +1721,8 @@ class TestProcessing:
         active_flag: bool,
     ) -> None:
         """
-        When a target with a matching image is in the processing state it is
+        When a target with a matching image is in the processing state
+        it is
         not matched.
         """
         target_id = vws_client.add_target(
@@ -1776,9 +1754,7 @@ class TestProcessing:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestUpdate:
-    """
-    Tests for updated targets.
-    """
+    """Tests for updated targets."""
 
     @staticmethod
     def test_updated_target(
@@ -1855,9 +1831,7 @@ class TestUpdate:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestDeleted:
-    """
-    Tests for matching deleted targets.
-    """
+    """Tests for matching deleted targets."""
 
     @staticmethod
     def test_deleted_active(
@@ -1865,9 +1839,7 @@ class TestDeleted:
         vws_client: VWS,
         cloud_reco_client: CloudRecoService,
     ) -> None:
-        """
-        Deleted targets are not matched.
-        """
+        """Deleted targets are not matched."""
         target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
             width=1,
@@ -1904,7 +1876,8 @@ class TestDeleted:
         cloud_reco_client: CloudRecoService,
     ) -> None:
         """
-        No error is returned when querying for an image of recently deleted,
+        No error is returned when querying for an image of recently
+        deleted,
         inactive target.
         """
         target_id = vws_client.add_target(
@@ -1922,9 +1895,7 @@ class TestDeleted:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestTargetStatusFailed:
-    """
-    Tests for targets with the status "failed".
-    """
+    """Tests for targets with the status "failed"."""
 
     @staticmethod
     def test_status_failed(
@@ -1932,9 +1903,7 @@ class TestTargetStatusFailed:
         vws_client: VWS,
         cloud_reco_client: CloudRecoService,
     ) -> None:
-        """
-        Targets with the status "failed" are not found in query results.
-        """
+        """Targets with the status "failed" are not found in query results."""
         target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
             width=1,
@@ -2041,9 +2010,7 @@ class TestDateFormats:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestInactiveProject:
-    """
-    Tests for inactive projects.
-    """
+    """Tests for inactive projects."""
 
     @staticmethod
     def test_inactive_project(
@@ -2051,7 +2018,8 @@ class TestInactiveProject:
         inactive_cloud_reco_client: CloudRecoService,
     ) -> None:
         """
-        If the project is inactive, a FORBIDDEN response is returned.
+        If the project is inactive, a FORBIDDEN response is
+        returned.
         """
         with pytest.raises(
             expected_exception=InactiveProjectError

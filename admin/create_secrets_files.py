@@ -20,9 +20,7 @@ if TYPE_CHECKING:
 
 
 def main() -> None:
-    """
-    Create secrets files.
-    """
+    """Create secrets files."""
     email_address = os.environ["VWS_EMAIL_ADDRESS"]
     password = os.environ["VWS_PASSWORD"]
     new_secrets_dir = Path(os.environ["NEW_SECRETS_DIR"]).expanduser()

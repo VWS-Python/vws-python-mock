@@ -1,6 +1,4 @@
-"""
-Validators for the ``include_target_data`` field.
-"""
+"""Validators for the ``include_target_data`` field."""
 
 import io
 import logging
@@ -20,7 +18,8 @@ def validate_include_target_data(
     request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:
-    """Validate the ``include_target_data`` field is either an accepted value
+    """Validate the ``include_target_data`` field is either an accepted
+    value
     or not given.
 
     Args:

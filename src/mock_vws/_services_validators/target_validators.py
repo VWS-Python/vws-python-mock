@@ -1,6 +1,4 @@
-"""
-Validators for given target IDs.
-"""
+"""Validators for given target IDs."""
 
 import logging
 from collections.abc import Iterable, Mapping

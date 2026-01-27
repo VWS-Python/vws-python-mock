@@ -1,6 +1,4 @@
-"""
-Exceptions to raise from validators.
-"""
+"""Exceptions to raise from validators."""
 
 import email.utils
 import textwrap
@@ -17,7 +15,8 @@ from mock_vws._mock_common import json_dump
 @beartype
 class ValidatorError(Exception):
     """
-    A base class for exceptions thrown from mock Vuforia services endpoints.
+    A base class for exceptions thrown from mock Vuforia services
+    endpoints.
     """
 
     status_code: HTTPStatus
@@ -27,8 +26,7 @@ class ValidatorError(Exception):
 
 @beartype
 class UnknownTargetError(ValidatorError):
-    """
-    Exception raised when Vuforia returns a response with a result code
+    """Exception raised when Vuforia returns a response with a result code
     'UnknownTarget'.
     """
 
@@ -37,7 +35,8 @@ class UnknownTargetError(ValidatorError):
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -67,8 +66,7 @@ class UnknownTargetError(ValidatorError):
 
 @beartype
 class ProjectInactiveError(ValidatorError):
-    """
-    Exception raised when Vuforia returns a response with a result code
+    """Exception raised when Vuforia returns a response with a result code
     'ProjectInactive'.
     """
 
@@ -77,7 +75,8 @@ class ProjectInactiveError(ValidatorError):
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -107,8 +106,7 @@ class ProjectInactiveError(ValidatorError):
 
 @beartype
 class AuthenticationFailureError(ValidatorError):
-    """
-    Exception raised when Vuforia returns a response with a result code
+    """Exception raised when Vuforia returns a response with a result code
     'AuthenticationFailure'.
     """
 
@@ -117,7 +115,8 @@ class AuthenticationFailureError(ValidatorError):
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -147,8 +146,8 @@ class AuthenticationFailureError(ValidatorError):
 
 @beartype
 class FailError(ValidatorError):
-    """
-    Exception raised when Vuforia returns a response with a result code 'Fail'.
+    """Exception raised when Vuforia returns a response with a result code
+    'Fail'.
     """
 
     def __init__(self, *, status_code: HTTPStatus) -> None:
@@ -156,7 +155,8 @@ class FailError(ValidatorError):
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -186,8 +186,7 @@ class FailError(ValidatorError):
 
 @beartype
 class MetadataTooLargeError(ValidatorError):
-    """
-    Exception raised when Vuforia returns a response with a result code
+    """Exception raised when Vuforia returns a response with a result code
     'MetadataTooLarge'.
     """
 
@@ -196,7 +195,8 @@ class MetadataTooLargeError(ValidatorError):
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -226,8 +226,7 @@ class MetadataTooLargeError(ValidatorError):
 
 @beartype
 class TargetNameExistError(ValidatorError):
-    """
-    Exception raised when Vuforia returns a response with a result code
+    """Exception raised when Vuforia returns a response with a result code
     'TargetNameExist'.
     """
 
@@ -236,7 +235,8 @@ class TargetNameExistError(ValidatorError):
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -266,8 +266,7 @@ class TargetNameExistError(ValidatorError):
 
 @beartype
 class BadImageError(ValidatorError):
-    """
-    Exception raised when Vuforia returns a response with a result code
+    """Exception raised when Vuforia returns a response with a result code
     'BadImage'.
     """
 
@@ -276,7 +275,8 @@ class BadImageError(ValidatorError):
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -306,8 +306,7 @@ class BadImageError(ValidatorError):
 
 @beartype
 class ImageTooLargeError(ValidatorError):
-    """
-    Exception raised when Vuforia returns a response with a result code
+    """Exception raised when Vuforia returns a response with a result code
     'ImageTooLarge'.
     """
 
@@ -316,7 +315,8 @@ class ImageTooLargeError(ValidatorError):
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -346,8 +346,7 @@ class ImageTooLargeError(ValidatorError):
 
 @beartype
 class RequestTimeTooSkewedError(ValidatorError):
-    """
-    Exception raised when Vuforia returns a response with a result code
+    """Exception raised when Vuforia returns a response with a result code
     'RequestTimeTooSkewed'.
     """
 
@@ -356,7 +355,8 @@ class RequestTimeTooSkewedError(ValidatorError):
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -387,7 +387,8 @@ class RequestTimeTooSkewedError(ValidatorError):
 @beartype
 class ContentLengthHeaderTooLargeError(ValidatorError):
     """
-    Exception raised when the given content length header is too large.
+    Exception raised when the given content length header is too
+    large.
     """
 
     # We skip coverage here as running a test to cover this is very slow.
@@ -396,7 +397,8 @@ class ContentLengthHeaderTooLargeError(ValidatorError):
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -419,7 +421,8 @@ class ContentLengthHeaderTooLargeError(ValidatorError):
 @beartype
 class ContentLengthHeaderNotIntError(ValidatorError):
     """
-    Exception raised when the given content length header is not an integer.
+    Exception raised when the given content length header is not an
+    integer.
     """
 
     def __init__(self) -> None:
@@ -427,7 +430,8 @@ class ContentLengthHeaderNotIntError(ValidatorError):
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -458,16 +462,15 @@ class ContentLengthHeaderNotIntError(ValidatorError):
 
 @beartype
 class UnnecessaryRequestBodyError(ValidatorError):
-    """
-    Exception raised when a request body is given but not necessary.
-    """
+    """Exception raised when a request body is given but not necessary."""
 
     def __init__(self) -> None:
         """
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -498,7 +501,8 @@ class TargetStatusNotSuccessError(ValidatorError):
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()
@@ -528,16 +532,15 @@ class TargetStatusNotSuccessError(ValidatorError):
 
 @beartype
 class TargetStatusProcessingError(ValidatorError):
-    """
-    Exception raised when trying to delete a target which is processing.
-    """
+    """Exception raised when trying to delete a target which is processing."""
 
     def __init__(self) -> None:
         """
         Attributes:
             status_code: The status code to use in a response if this is
                 raised.
-            response_text: The response text to use in a response if this is
+            response_text: The response text to use in a response if this
+        is
                 raised.
         """
         super().__init__()

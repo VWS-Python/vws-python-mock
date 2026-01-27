@@ -1,6 +1,4 @@
-"""
-Validators of the date header to use in the mock query API.
-"""
+"""Validators of the date header to use in the mock query API."""
 
 import contextlib
 import datetime

@@ -1,6 +1,4 @@
-"""
-Validators for the ``max_num_results`` fields.
-"""
+"""Validators for the ``max_num_results`` fields."""
 
 import io
 import logging
@@ -24,7 +22,8 @@ def validate_max_num_results(
     request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:
-    """Validate the ``max_num_results`` field is either an integer within range
+    """Validate the ``max_num_results`` field is either an integer within
+    range
     or not given.
 
     Args:

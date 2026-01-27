@@ -1,6 +1,4 @@
-"""
-Validators for application metadata.
-"""
+"""Validators for application metadata."""
 
 import binascii
 import json
@@ -20,7 +18,8 @@ _LOGGER = logging.getLogger(name=__name__)
 
 @beartype
 def validate_metadata_size(*, request_body: bytes) -> None:
-    """Validate that the given application metadata is a string or 1024 * 1024
+    """Validate that the given application metadata is a string or 1024 *
+    1024
     bytes or fewer.
 
     Args:

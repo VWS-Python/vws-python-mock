@@ -1,6 +1,4 @@
-"""
-Tests for the mock of the database summary endpoint.
-"""
+"""Tests for the mock of the database summary endpoint."""
 
 import io
 import logging
@@ -25,9 +23,7 @@ LOGGER.setLevel(level=logging.DEBUG)
 
 @beartype
 def _log_attempt_number(retry_state: RetryCallState) -> None:
-    """
-    Log the attempt number of a retry.
-    """
+    """Log the attempt number of a retry."""
     attempt_number: int = retry_state.attempt_number
     message = f"Attempt number: {attempt_number}"
     LOGGER.debug(msg=message)
@@ -92,7 +88,8 @@ def _wait_for_image_numbers(
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestDatabaseSummary:
     """
-    Tests for the mock of the database summary endpoint at `GET /summary`.
+    Tests for the mock of the database summary endpoint at `GET
+    /summary`.
     """
 
     @staticmethod
@@ -100,9 +97,7 @@ class TestDatabaseSummary:
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
     ) -> None:
-        """
-        It is possible to get a success response.
-        """
+        """It is possible to get a success response."""
         report = vws_client.get_database_summary_report()
         assert report.name == vuforia_database.database_name
 
@@ -116,9 +111,7 @@ class TestDatabaseSummary:
 
     @staticmethod
     def test_active_images(vws_client: VWS, target_id: str) -> None:
-        """
-        The number of images in the active state is returned.
-        """
+        """The number of images in the active state is returned."""
         vws_client.wait_for_target_processed(target_id=target_id)
 
         _wait_for_image_numbers(
@@ -134,9 +127,7 @@ class TestDatabaseSummary:
         image_file_failed_state: io.BytesIO,
         vws_client: VWS,
     ) -> None:
-        """
-        The number of images with a 'failed' status is returned.
-        """
+        """The number of images with a 'failed' status is returned."""
         target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
             width=1,
@@ -161,7 +152,8 @@ class TestDatabaseSummary:
         image_file_success_state_low_rating: io.BytesIO,
     ) -> None:
         """
-        The number of images with a False active_flag and a 'success' status is
+        The number of images with a False active_flag and a 'success'
+        status is
         returned.
         """
         target_id = vws_client.add_target(
@@ -187,9 +179,7 @@ class TestDatabaseSummary:
         image_file_failed_state: io.BytesIO,
         vws_client: VWS,
     ) -> None:
-        """
-        An image with a 'failed' status does not show as inactive.
-        """
+        """An image with a 'failed' status does not show as inactive."""
         target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
             width=1,
@@ -213,9 +203,7 @@ class TestDatabaseSummary:
         image_file_failed_state: io.BytesIO,
         vws_client: VWS,
     ) -> None:
-        """
-        Deleted targets are not shown in the summary.
-        """
+        """Deleted targets are not shown in the summary."""
         target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
             width=1,
@@ -250,9 +238,7 @@ class TestProcessingImages:
     def test_processing_images(
         image_file_success_state_low_rating: io.BytesIO,
     ) -> None:
-        """
-        The number of images in the processing state is returned.
-        """
+        """The number of images in the processing state is returned."""
         database = VuforiaDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -280,9 +266,7 @@ class TestProcessingImages:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestQuotas:
-    """
-    Tests for quotas and thresholds.
-    """
+    """Tests for quotas and thresholds."""
 
     @staticmethod
     def test_quotas(vws_client: VWS) -> None:
@@ -301,9 +285,7 @@ class TestQuotas:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestRecos:
-    """
-    Tests for the recognition count fields.
-    """
+    """Tests for the recognition count fields."""
 
     @staticmethod
     def test_query_request(
@@ -311,7 +293,8 @@ class TestRecos:
         high_quality_image: io.BytesIO,
         vws_client: VWS,
     ) -> None:
-        """The ``*_recos`` counts seem to be delayed by a significant amount of
+        """The ``*_recos`` counts seem to be delayed by a significant
+        amount of
         time.
 
         We therefore test that they exist, are integers and do not
@@ -343,14 +326,13 @@ class TestRecos:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestRequestUsage:
-    """
-    Tests for the ``request_usage`` field.
-    """
+    """Tests for the ``request_usage`` field."""
 
     @staticmethod
     def test_target_request(vws_client: VWS) -> None:
         """
-        The ``request_usage`` count does not increase with each request to the
+        The ``request_usage`` count does not increase with each request
+        to the
         target API.
         """
         report = vws_client.get_database_summary_report()
@@ -366,7 +348,8 @@ class TestRequestUsage:
         vws_client: VWS,
     ) -> None:
         """
-        The ``request_usage`` count does not increase with each request to the
+        The ``request_usage`` count does not increase with each request
+        to the
         target API, even if it is a bad request.
         """
         report = vws_client.get_database_summary_report()
@@ -394,7 +377,8 @@ class TestRequestUsage:
         vws_client: VWS,
     ) -> None:
         """
-        The ``request_usage`` count does not increase with each query.
+        The ``request_usage`` count does not increase with each
+        query.
         """
         report = vws_client.get_database_summary_report()
         original_request_usage = report.request_usage
@@ -408,15 +392,11 @@ class TestRequestUsage:
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestInactiveProject:
-    """
-    Tests for inactive projects.
-    """
+    """Tests for inactive projects."""
 
     @staticmethod
     def test_inactive_project(
         inactive_vws_client: VWS,
     ) -> None:
-        """
-        The project's active state does not affect the database summary.
-        """
+        """The project's active state does not affect the database summary."""
         inactive_vws_client.get_database_summary_report()

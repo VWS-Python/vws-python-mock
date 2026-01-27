@@ -1,6 +1,4 @@
-"""
-Common utilities for creating mock routes.
-"""
+"""Common utilities for creating mock routes."""
 
 import json
 from collections.abc import Iterable

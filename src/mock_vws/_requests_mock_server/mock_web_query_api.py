@@ -31,16 +31,12 @@ _P = ParamSpec("_P")
 
 @runtime_checkable
 class _RouteMethod(Protocol[_P]):
-    """
-    Callable used for routing which also exposes ``__name__``.
-    """
+    """Callable used for routing which also exposes ``__name__``."""
 
     __name__: str
 
     def __call__(self, *args: _P.args, **kwargs: _P.kwargs) -> _ResponseType:
-        """
-        Return a mock response.
-        """
+        """Return a mock response."""
         ...  # pylint: disable=unnecessary-ellipsis
 
 
@@ -63,7 +59,8 @@ def route(
     def decorator(
         method: _RouteMethod[_P],
     ) -> _RouteMethod[_P]:
-        """Register a decorated method so that it can be recognized as a route.
+        """Register a decorated method so that it can be recognized as a
+        route.
 
         Returns:
             The given `method` with multiple changes, including added
@@ -83,9 +80,7 @@ def route(
 
 @beartype
 def _body_bytes(request: PreparedRequest) -> bytes:
-    """
-    Return the body of a request as bytes.
-    """
+    """Return the body of a request as bytes."""
     if request.body is None or isinstance(request.body, str):
         return b""
 
@@ -107,7 +102,8 @@ class MockVuforiaWebQueryAPI:
         """
         Args:
             target_manager: The target manager which holds all databases.
-            query_match_checker: A callable which takes two image values and
+            query_match_checker: A callable which takes two image values
+        and
                 returns whether they match.
 
         Attributes:
@@ -119,9 +115,7 @@ class MockVuforiaWebQueryAPI:
 
     @route(path_pattern="/v1/query", http_methods={HTTPMethod.POST})
     def query(self, request: PreparedRequest) -> _ResponseType:
-        """
-        Perform an image recognition query.
-        """
+        """Perform an image recognition query."""
         try:
             run_query_validators(
                 request_path=request.path_url,

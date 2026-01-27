@@ -1,6 +1,4 @@
-"""
-Decorators for using the mock.
-"""
+"""Decorators for using the mock."""
 
 import re
 from contextlib import ContextDecorator
@@ -32,9 +30,7 @@ _BRISQUE_TRACKING_RATER = BrisqueTargetTrackingRater()
 
 
 class MissingSchemeError(Exception):
-    """
-    Raised when a URL is missing a schema.
-    """
+    """Raised when a URL is missing a schema."""
 
     def __init__(self, url: str) -> None:
         """
@@ -46,7 +42,8 @@ class MissingSchemeError(Exception):
 
     def __str__(self) -> str:
         """
-        Give a string representation of this error with a suggestion.
+        Give a string representation of this error with a
+        suggestion.
         """
         return (
             f'Invalid URL "{self.url}": No scheme supplied. '
@@ -56,9 +53,7 @@ class MissingSchemeError(Exception):
 
 @beartype(conf=BeartypeConf(is_pep484_tower=True))
 class MockVWS(ContextDecorator):
-    """
-    Route requests to Vuforia's Web Service APIs to fakes of those APIs.
-    """
+    """Route requests to Vuforia's Web Service APIs to fakes of those APIs."""
 
     def __init__(
         self,
@@ -71,7 +66,8 @@ class MockVWS(ContextDecorator):
         target_tracking_rater: TargetTrackingRater = _BRISQUE_TRACKING_RATER,
         real_http: bool = False,
     ) -> None:
-        """Route requests to Vuforia's Web Service APIs to fakes of those APIs.
+        """Route requests to Vuforia's Web Service APIs to fakes of those
+        APIs.
 
         Args:
             real_http: Whether or not to forward requests to the real

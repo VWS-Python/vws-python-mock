@@ -1,3 +1,1 @@
-"""
-Common fixtures.
-"""
+"""Common fixtures."""

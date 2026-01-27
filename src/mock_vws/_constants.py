@@ -1,6 +1,4 @@
-"""
-Constants used to make the VWS mock.
-"""
+"""Constants used to make the VWS mock."""
 
 from enum import Enum, unique
 

@@ -1,6 +1,4 @@
-"""
-Assertion helpers.
-"""
+"""Assertion helpers."""
 
 import copy
 import datetime
@@ -169,7 +167,8 @@ def assert_vws_response(
 
 @beartype
 def assert_query_success(*, response: Response) -> None:
-    """Assert that the given response is a success response for performing an
+    """Assert that the given response is a success response for performing
+    an
     image recognition query.
 
     Raises:
