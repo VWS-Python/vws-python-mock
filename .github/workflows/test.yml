@@ -25,7 +25,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.13', '3.14']
+        python-version: ['3.14']
         ci_pattern:
           - tests/mock_vws/test_query.py::TestContentType
           - tests/mock_vws/test_query.py::TestSuccess
@@ -133,12 +133,7 @@ jobs:
           # See the "CI Setup" document for details of how this was set up.
           ci/decrypt_secret.sh
           tar xvf "${HOME}"/secrets/secrets.tar
-          # Use modulo to map job index to secrets file index.
-          # This ensures all Python versions for the same test pattern
-          # use the same secrets file.
-          NUM_SECRETS_FILES=$(find ./ci_secrets -name 'vuforia_secrets_*.env' | wc -l)
-          SECRETS_INDEX=$(( ${{ strategy.job-index }} % NUM_SECRETS_FILES ))
-          cp ./ci_secrets/vuforia_secrets_${SECRETS_INDEX}.env ./vuforia_secrets.env
+          cp ./ci_secrets/vuforia_secrets_${{ strategy.job-index }}.env ./vuforia_secrets.env
         env:
           CI_PATTERN: ${{ matrix.ci_pattern }}
           ENCRYPTED_FILE: secrets.tar.gpg
@@ -190,7 +185,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.13', '3.14']
+        python-version: ['3.14']
         platform: [ubuntu-latest]
 
     steps:
@@ -236,7 +231,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        python-version: ['3.13', '3.14']
+        python-version: ['3.14']
 
     steps:
       - uses: actions/checkout@v6
