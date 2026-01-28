@@ -28,6 +28,15 @@ from mock_vws._services_validators.exceptions import (
     TargetStatusProcessingError,
     ValidatorError,
 )
+from mock_vws._vumark_generators import (
+    generate_pdf,
+    generate_png,
+    generate_svg,
+)
+from mock_vws._vumark_validators import (
+    validate_accept_header,
+    validate_instance_id,
+)
 from mock_vws.image_matchers import ImageMatcher
 from mock_vws.target import Target
 from mock_vws.target_manager import TargetManager
@@ -38,7 +47,7 @@ _TARGET_ID_PATTERN = "[A-Za-z0-9]+"
 
 _ROUTES: set[Route] = set()
 
-_ResponseType = tuple[int, Mapping[str, str], str]
+_ResponseType = tuple[int, Mapping[str, str], str | bytes]
 _P = ParamSpec("_P")
 
 
@@ -702,7 +711,7 @@ class MockVuforiaWebServicesAPI:
             "previous_month_recos": target.previous_month_recos,
         }
         body_json = json_dump(body=body)
-        headers = {
+        target_summary_headers = {
             "Connection": "keep-alive",
             "Content-Length": str(object=len(body_json)),
             "Content-Type": "application/json",
@@ -714,4 +723,74 @@ class MockVuforiaWebServicesAPI:
             "x-content-type-options": "nosniff",
         }
 
-        return HTTPStatus.OK, headers, body_json
+        return HTTPStatus.OK, target_summary_headers, body_json
+
+    @route(
+        path_pattern=f"/targets/{_TARGET_ID_PATTERN}/instances",
+        http_methods={HTTPMethod.POST},
+    )
+    def generate_vumark_instance(
+        self,
+        request: PreparedRequest,
+    ) -> _ResponseType:
+        """Generate a VuMark instance image.
+
+        Fake implementation of
+        https://developer.vuforia.com/library/vuforia-engine/web-api/vumark-generation-web-api/
+        """
+        try:
+            run_services_validators(
+                request_headers=request.headers,
+                request_body=_body_bytes(request=request),
+                request_method=request.method or "",
+                request_path=request.path_url,
+                databases=self._target_manager.databases,
+            )
+        except ValidatorError as exc:
+            return exc.status_code, exc.headers, exc.response_text.encode()
+
+        # Validate Accept header
+        try:
+            accept_header = validate_accept_header(
+                request_headers=request.headers,
+            )
+        except ValidatorError as exc:
+            return exc.status_code, exc.headers, exc.response_text.encode()
+
+        # Extract and validate instance_id from request body
+        request_json: dict[str, Any] = json.loads(s=request.body or b"{}")
+        try:
+            instance_id = validate_instance_id(
+                instance_id=request_json.get("instance_id"),
+            )
+        except ValidatorError as exc:
+            return exc.status_code, exc.headers, exc.response_text.encode()
+
+        # Generate the appropriate image format
+        if accept_header == "image/svg+xml":
+            content = generate_svg(instance_id=instance_id)
+            content_type = "image/svg+xml"
+        elif accept_header == "image/png":
+            content = generate_png(instance_id=instance_id)
+            content_type = "image/png"
+        else:  # application/pdf
+            content = generate_pdf(instance_id=instance_id)
+            content_type = "application/pdf"
+
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
+        headers = {
+            "Connection": "keep-alive",
+            "Content-Length": str(object=len(content)),
+            "Content-Type": content_type,
+            "Date": date,
+            "server": "envoy",
+            "x-envoy-upstream-service-time": "5",
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
+        }
+        return HTTPStatus.OK, headers, content

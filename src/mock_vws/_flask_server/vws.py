@@ -27,6 +27,15 @@ from mock_vws._services_validators.exceptions import (
     TargetStatusProcessingError,
     ValidatorError,
 )
+from mock_vws._vumark_generators import (
+    generate_pdf,
+    generate_png,
+    generate_svg,
+)
+from mock_vws._vumark_validators import (
+    validate_accept_header,
+    validate_instance_id,
+)
 from mock_vws.database import VuforiaDatabase
 from mock_vws.image_matchers import (
     ExactMatcher,
@@ -625,6 +634,72 @@ def update_target(target_id: str) -> Response:
     return Response(
         status=HTTPStatus.OK,
         response=json_dump(body=body),
+        headers=headers,
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/targets/<string:target_id>/instances",
+    methods=[HTTPMethod.POST],
+)
+@beartype
+def generate_vumark_instance(target_id: str) -> Response:
+    """Generate a VuMark instance image.
+
+    Fake implementation of
+    https://developer.vuforia.com/library/vuforia-engine/web-api/vumark-generation-web-api/
+    """
+    databases = get_all_databases()
+    database = get_database_matching_server_keys(
+        request_headers=dict(request.headers),
+        request_body=request.data,
+        request_method=request.method,
+        request_path=request.path,
+        databases=databases,
+    )
+
+    # Validate Accept header
+    accept_header = validate_accept_header(
+        request_headers=dict(request.headers),
+    )
+
+    # Extract and validate instance_id from request body
+    request_json = json.loads(s=request.data)
+    instance_id = validate_instance_id(
+        instance_id=request_json.get("instance_id"),
+    )
+
+    # Verify target exists (raises ValueError if not found)
+    (_,) = (
+        target for target in database.targets if target.target_id == target_id
+    )
+
+    # Generate the appropriate image format
+    if accept_header == "image/svg+xml":
+        content = generate_svg(instance_id=instance_id)
+        content_type = "image/svg+xml"
+    elif accept_header == "image/png":
+        content = generate_png(instance_id=instance_id)
+        content_type = "image/png"
+    else:  # application/pdf
+        content = generate_pdf(instance_id=instance_id)
+        content_type = "application/pdf"
+
+    date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
+    headers = {
+        "Connection": "keep-alive",
+        "Content-Type": content_type,
+        "server": "envoy",
+        "Date": date,
+        "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
+    }
+
+    return Response(
+        status=HTTPStatus.OK,
+        response=content,
         headers=headers,
     )
 
