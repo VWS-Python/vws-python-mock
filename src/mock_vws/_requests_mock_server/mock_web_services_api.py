@@ -773,7 +773,7 @@ class MockVuforiaWebServicesAPI:
         elif accept_header == "image/png":
             content = generate_png(instance_id=instance_id)
             content_type = "image/png"
-        else:  # application/pdf
+        else:  # PDF
             content = generate_pdf(instance_id=instance_id)
             content_type = "application/pdf"
 

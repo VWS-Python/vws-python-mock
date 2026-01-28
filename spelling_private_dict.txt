@@ -100,6 +100,7 @@ resjsonarr
 rfc
 rgb
 str
+svg
 timestamp
 todo
 travis
