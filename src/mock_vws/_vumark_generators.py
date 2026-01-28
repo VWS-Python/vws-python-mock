@@ -28,7 +28,7 @@ def generate_svg(instance_id: str) -> bytes:
         f'font-size="10">{instance_id}</text>'
         "</svg>"
     )
-    return svg_content.encode("utf-8")
+    return svg_content.encode()
 
 
 @beartype
@@ -42,19 +42,19 @@ def generate_png(instance_id: str) -> bytes:
         PNG image data as bytes.
     """
     # Create a simple 200x200 image
-    img = Image.new("RGB", (200, 200), color="white")
-    draw = ImageDraw.Draw(img)
+    img = Image.new(mode="RGB", size=(200, 200))
+    draw = ImageDraw.Draw(im=img)
 
     # Draw a border
-    draw.rectangle([0, 0, 199, 199], outline="black", width=2)
+    draw.rectangle(xy=[0, 0, 199, 199], outline="black")
 
     # Add text
-    draw.text((100, 80), "VuMark Mock", fill="black", anchor="mm")
-    draw.text((100, 110), instance_id[:20], fill="black", anchor="mm")
+    draw.text(xy=(100, 80), text="VuMark Mock", fill="black")
+    draw.text(xy=(100, 110), text=instance_id[:20], fill="black")
 
     # Save to bytes
     buffer = io.BytesIO()
-    img.save(buffer, format="PNG")
+    img.save(fp=buffer, format="PNG")
     return buffer.getvalue()
 
 
@@ -111,4 +111,4 @@ trailer
 startxref
 496
 %%EOF"""
-    return pdf_content.encode("latin-1")
+    return pdf_content.encode()

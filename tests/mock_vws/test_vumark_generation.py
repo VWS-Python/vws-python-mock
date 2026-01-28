@@ -36,7 +36,7 @@ def _generate_vumark_instance(
         The response from the API.
     """
     request_path = f"/targets/{target_id}/instances"
-    content = json.dumps(obj={"instance_id": instance_id}).encode("utf-8")
+    content = json.dumps(obj={"instance_id": instance_id}).encode()
     date = rfc_1123_date()
     content_type = "application/json"
 
@@ -53,7 +53,7 @@ def _generate_vumark_instance(
     headers = {
         "Authorization": authorization_string,
         "Date": date,
-        "Content-Length": str(len(content)),
+        "Content-Length": str(object=len(content)),
         "Content-Type": content_type,
         "Accept": accept,
     }
@@ -81,7 +81,7 @@ def _generate_vumark_instance_with_body(
         The response from the API.
     """
     request_path = f"/targets/{target_id}/instances"
-    content = json.dumps(obj=body).encode("utf-8")
+    content = json.dumps(obj=body).encode()
     date = rfc_1123_date()
     content_type = "application/json"
 
@@ -98,7 +98,7 @@ def _generate_vumark_instance_with_body(
     headers = {
         "Authorization": authorization_string,
         "Date": date,
-        "Content-Length": str(len(content)),
+        "Content-Length": str(object=len(content)),
         "Content-Type": content_type,
         "Accept": accept,
     }

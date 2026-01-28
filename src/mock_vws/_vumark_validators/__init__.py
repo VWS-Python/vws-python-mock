@@ -27,7 +27,7 @@ def validate_accept_header(request_headers: Mapping[str, str]) -> str:
     Raises:
         InvalidAcceptHeaderError: The Accept header is missing or invalid.
     """
-    accept_header = request_headers.get("Accept", "")
+    accept_header: str = request_headers.get("Accept") or ""
     if accept_header not in VALID_ACCEPT_HEADERS:
         raise InvalidAcceptHeaderError
     return accept_header
