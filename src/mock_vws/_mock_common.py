@@ -1,13 +1,11 @@
 """Common utilities for creating mock routes."""
 
 import json
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from beartype import beartype
-
-if TYPE_CHECKING:
-    from collections.abc import Iterable
 
 
 @dataclass(frozen=True)

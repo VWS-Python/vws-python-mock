@@ -1,14 +1,11 @@
 """Helpers for getting databases which match keys given in requests."""
 
-from typing import TYPE_CHECKING
+from collections.abc import Iterable, Mapping
 
 from beartype import beartype
 from vws_auth_tools import authorization_header
 
-if TYPE_CHECKING:
-    from collections.abc import Iterable, Mapping
-
-    from mock_vws.database import VuforiaDatabase
+from mock_vws.database import VuforiaDatabase
 
 
 @beartype

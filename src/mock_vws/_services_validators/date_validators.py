@@ -2,8 +2,8 @@
 
 import datetime
 import logging
+from collections.abc import Mapping
 from http import HTTPStatus
-from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
 from beartype import beartype
@@ -12,9 +12,6 @@ from mock_vws._services_validators.exceptions import (
     FailError,
     RequestTimeTooSkewedError,
 )
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping
 
 _LOGGER = logging.getLogger(name=__name__)
 

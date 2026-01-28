@@ -2,8 +2,8 @@
 
 import json
 import logging
+from collections.abc import Iterable, Mapping
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING
 
 from beartype import beartype
 
@@ -12,11 +12,7 @@ from mock_vws._services_validators.exceptions import (
     FailError,
     TargetNameExistError,
 )
-
-if TYPE_CHECKING:
-    from collections.abc import Iterable, Mapping
-
-    from mock_vws.database import VuforiaDatabase
+from mock_vws.database import VuforiaDatabase
 
 _LOGGER = logging.getLogger(name=__name__)
 

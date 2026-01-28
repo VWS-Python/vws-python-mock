@@ -2,8 +2,9 @@
 
 import io
 import secrets
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Literal
+from typing import Literal
 from urllib.parse import urljoin
 
 import requests
@@ -11,10 +12,7 @@ from PIL import Image
 from requests.structures import CaseInsensitiveDict
 from vws.response import Response
 
-if TYPE_CHECKING:
-    from collections.abc import Mapping
-
-    from mock_vws._constants import ResultCodes
+from mock_vws._constants import ResultCodes
 
 
 @dataclass(frozen=True)

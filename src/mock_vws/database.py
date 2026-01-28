@@ -1,17 +1,15 @@
 """Utilities for managing mock Vuforia databases."""
 
 import uuid
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Self, TypedDict
+from typing import Self, TypedDict
 
 from beartype import beartype
 
 from mock_vws._constants import TargetStatuses
 from mock_vws.states import States
 from mock_vws.target import Target, TargetDict
-
-if TYPE_CHECKING:
-    from collections.abc import Iterable
 
 
 @beartype

@@ -1,8 +1,8 @@
 """Validators for the ``Content-Type`` header."""
 
 import logging
+from collections.abc import Mapping
 from email.message import EmailMessage
-from typing import TYPE_CHECKING
 
 from beartype import beartype
 
@@ -12,9 +12,6 @@ from mock_vws._query_validators.exceptions import (
     NoContentTypeError,
     UnsupportedMediaTypeError,
 )
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping
 
 _LOGGER = logging.getLogger(name=__name__)
 

@@ -1,14 +1,11 @@
 """Validators for the ``Accept`` header."""
 
 import logging
-from typing import TYPE_CHECKING
+from collections.abc import Mapping
 
 from beartype import beartype
 
 from mock_vws._query_validators.exceptions import InvalidAcceptHeaderError
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping
 
 _LOGGER = logging.getLogger(name=__name__)
 

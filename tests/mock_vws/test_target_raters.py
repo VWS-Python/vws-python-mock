@@ -1,6 +1,6 @@
 """Tests for target quality raters."""
 
-from typing import TYPE_CHECKING
+import io
 
 import pytest
 
@@ -9,9 +9,6 @@ from mock_vws.target_raters import (
     HardcodedTargetTrackingRater,
     RandomTargetTrackingRater,
 )
-
-if TYPE_CHECKING:
-    import io
 
 
 def test_random_target_tracking_rater() -> None:

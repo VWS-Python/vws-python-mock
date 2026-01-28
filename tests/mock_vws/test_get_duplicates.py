@@ -3,15 +3,12 @@
 import copy
 import io
 import uuid
-from typing import TYPE_CHECKING
 
 import pytest
 from PIL import Image
+from vws import VWS
 from vws.exceptions.vws_exceptions import ProjectInactiveError
 from vws.reports import TargetStatuses
-
-if TYPE_CHECKING:
-    from vws import VWS
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")

@@ -6,15 +6,12 @@ import email.utils
 import json
 from http import HTTPStatus
 from string import hexdigits
-from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
 from beartype import beartype
+from vws.response import Response
 
-if TYPE_CHECKING:
-    from vws.response import Response
-
-    from mock_vws._constants import ResultCodes
+from mock_vws._constants import ResultCodes
 
 
 @beartype

@@ -1,15 +1,12 @@
 """Helpers for testing the usage of the mocks."""
 
 import datetime
-from typing import TYPE_CHECKING
+import io
 
 from vws import VWS
 from vws.reports import TargetStatuses
 
-if TYPE_CHECKING:
-    import io
-
-    from mock_vws.database import VuforiaDatabase
+from mock_vws.database import VuforiaDatabase
 
 
 def processing_time_seconds(

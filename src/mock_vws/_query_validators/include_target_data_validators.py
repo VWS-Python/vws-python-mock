@@ -2,16 +2,13 @@
 
 import io
 import logging
+from collections.abc import Mapping
 from email.message import EmailMessage
-from typing import TYPE_CHECKING
 
 from beartype import beartype
 from werkzeug.formparser import MultiPartParser
 
 from mock_vws._query_validators.exceptions import InvalidIncludeTargetDataError
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping
 
 _LOGGER = logging.getLogger(name=__name__)
 

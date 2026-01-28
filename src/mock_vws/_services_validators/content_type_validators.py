@@ -1,15 +1,12 @@
 """Content-Type header validators to use in the mock."""
 
 import logging
+from collections.abc import Mapping
 from http import HTTPMethod
-from typing import TYPE_CHECKING
 
 from beartype import beartype
 
 from mock_vws._services_validators.exceptions import AuthenticationFailureError
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping
 
 _LOGGER = logging.getLogger(name=__name__)
 

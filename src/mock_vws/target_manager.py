@@ -4,10 +4,10 @@ from typing import TYPE_CHECKING
 
 from beartype import beartype
 
+from mock_vws.database import VuforiaDatabase
+
 if TYPE_CHECKING:
     from collections.abc import Iterable
-
-    from mock_vws.database import VuforiaDatabase
 
 
 @beartype
