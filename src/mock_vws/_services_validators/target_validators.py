@@ -41,7 +41,12 @@ def validate_target_id_exists(
     if len(split_path) == request_path_no_target_id_length:
         return
 
-    target_id = split_path[-1]
+    # Handle paths like /targets/{id}/instances (VuMark generation)
+    # The target_id is the second-to-last element
+    if split_path[-1] == "instances":
+        target_id = split_path[-2]
+    else:
+        target_id = split_path[-1]
     database = get_database_matching_server_keys(
         request_headers=request_headers,
         request_body=request_body,

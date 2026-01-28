@@ -490,6 +490,8 @@ ignore_decorators = [
     "@*APP.route",
     "@*APP.before_request",
     "@*APP.errorhandler",
+    # requests-mock server
+    "@route",
 ]
 
 [tool.yamlfix]

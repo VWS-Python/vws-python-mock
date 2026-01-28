@@ -38,6 +38,8 @@ class ResultCodes(Enum):
     PROJECT_INACTIVE = "ProjectInactive"
     INACTIVE_PROJECT = "InactiveProject"
     TOO_MANY_REQUESTS = "TooManyRequests"
+    INVALID_INSTANCE_ID = "InvalidInstanceId"
+    INVALID_ACCEPT_HEADER = "InvalidAcceptHeader"
 
 
 @beartype
