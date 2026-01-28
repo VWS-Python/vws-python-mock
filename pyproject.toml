@@ -162,6 +162,12 @@ lint.ignore = [
     # Ignore "too-many-*" errors as they seem to get in the way more than
     # helping.
     "PLR0913",
+    # Beartype requires imports to be available at runtime, not just for type
+    # checking. See https://github.com/beartype/beartype/discussions/594
+    # for when beartype will support `if TYPE_CHECKING` imports.
+    "TC001",
+    "TC002",
+    "TC003",
 ]
 
 lint.per-file-ignores."ci/test_custom_linters.py" = [
