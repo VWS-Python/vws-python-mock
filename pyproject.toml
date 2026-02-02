@@ -480,6 +480,9 @@ ignore_names = [
     "REQUEST_QUOTA_REACHED",
     # pydantic-settings
     "model_config",
+    # TYPE_CHECKING imports used in string annotations
+    "HTTPAdapter",
+    "Callback",
 ]
 
 # Duplicate some of .gitignore
@@ -495,6 +498,3 @@ ignore_decorators = [
 [tool.yamlfix]
 section_whitelines = 1
 whitelines = 1
-
-[tool.uv.sources]
-vws-python = { path = "../vws-python", editable = true }
