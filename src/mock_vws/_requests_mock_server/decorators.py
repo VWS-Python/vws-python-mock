@@ -161,7 +161,7 @@ class MockVWS(ContextDecorator):
                     min_tuple_length_for_read_timeout = 2
                     if isinstance(timeout, tuple):
                         timeout_tuple = cast(
-                            tuple[float | None, float | None], timeout
+                            "tuple[float | None, float | None]", timeout
                         )
                         if len(timeout_tuple) >= min_tuple_length_for_read_timeout:
                             read_timeout_value = timeout_tuple[1]
@@ -192,7 +192,7 @@ class MockVWS(ContextDecorator):
         # Patch _on_request to capture the timeout parameter.
         # We cast to Any to bypass type checkers as we're intentionally
         # accessing a private member of the responses library.
-        mock_any = cast(Any, mock)
+        mock_any = cast("Any", mock)
         original_on_request = mock_any._on_request  # noqa: SLF001
 
         def patched_on_request(
