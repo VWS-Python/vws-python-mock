@@ -111,6 +111,104 @@ class TestRealHTTP:
             request_unmocked_address()
 
 
+class TestResponseDelay:
+    """Tests for the response delay feature."""
+
+    @staticmethod
+    def test_default_no_delay() -> None:
+        """By default, there is no response delay."""
+        with MockVWS():
+            # With a very short timeout, the request should still succeed
+            # because there is no delay
+            response = requests.get(
+                url="https://vws.vuforia.com/summary",
+                headers={
+                    "Date": rfc_1123_date(),
+                    "Authorization": "bad_auth_token",
+                },
+                data=b"",
+                timeout=0.5,
+            )
+            # We just care that no timeout occurred, not the response content
+            assert response.status_code is not None
+
+    @staticmethod
+    def test_delay_causes_timeout() -> None:
+        """
+        When response_delay_seconds is set higher than the client
+        timeout,
+        a Timeout exception is raised.
+        """
+        with (
+            MockVWS(response_delay_seconds=0.5),
+            pytest.raises(expected_exception=requests.exceptions.Timeout),
+        ):
+            requests.get(
+                url="https://vws.vuforia.com/summary",
+                headers={
+                    "Date": rfc_1123_date(),
+                    "Authorization": "bad_auth_token",
+                },
+                data=b"",
+                timeout=0.1,
+            )
+
+    @staticmethod
+    def test_delay_allows_completion() -> None:
+        """
+        When response_delay_seconds is set lower than the client
+        timeout,
+        the request completes successfully.
+        """
+        with MockVWS(response_delay_seconds=0.1):
+            # This should succeed because timeout > delay
+            response = requests.get(
+                url="https://vws.vuforia.com/summary",
+                headers={
+                    "Date": rfc_1123_date(),
+                    "Authorization": "bad_auth_token",
+                },
+                data=b"",
+                timeout=2.0,
+            )
+            assert response.status_code is not None
+
+    @staticmethod
+    def test_vws_client_with_timeout() -> None:
+        """
+        The VWS client's request_timeout_seconds parameter works with
+        response_delay_seconds.
+        """
+        database = VuforiaDatabase()
+        with MockVWS(response_delay_seconds=0.5) as mock:
+            mock.add_database(database=database)
+            vws_client = VWS(
+                server_access_key=database.server_access_key,
+                server_secret_key=database.server_secret_key,
+                request_timeout_seconds=0.1,
+            )
+            with pytest.raises(expected_exception=requests.exceptions.Timeout):
+                vws_client.list_targets()
+
+    @staticmethod
+    def test_vws_client_without_timeout() -> None:
+        """
+        The VWS client completes successfully when the timeout exceeds
+        the response delay.
+        """
+        database = VuforiaDatabase()
+        with MockVWS(response_delay_seconds=0.1) as mock:
+            mock.add_database(database=database)
+            vws_client = VWS(
+                server_access_key=database.server_access_key,
+                server_secret_key=database.server_secret_key,
+                request_timeout_seconds=2.0,
+            )
+            # This should succeed
+            targets = vws_client.list_targets()
+            assert targets == []
+
+
 class TestProcessingTime:
     """Tests for the time taken to process targets in the mock."""
 
