@@ -495,6 +495,3 @@ ignore_decorators = [
 [tool.yamlfix]
 section_whitelines = 1
 whitelines = 1
-
-[tool.uv.sources]
-vws-python = { path = "../vws-python", editable = true }

@@ -174,39 +174,26 @@ class TestResponseDelay:
             assert response.status_code is not None
 
     @staticmethod
-    def test_vws_client_with_timeout() -> None:
+    def test_delay_with_tuple_timeout() -> None:
         """
-        The VWS client's request_timeout_seconds parameter works with
-        response_delay_seconds.
+        The response delay works correctly with tuple timeouts
+        (connect_timeout, read_timeout).
         """
-        database = VuforiaDatabase()
-        with MockVWS(response_delay_seconds=0.5) as mock:
-            mock.add_database(database=database)
-            vws_client = VWS(
-                server_access_key=database.server_access_key,
-                server_secret_key=database.server_secret_key,
-                request_timeout_seconds=0.1,
+        with (
+            MockVWS(response_delay_seconds=0.5),
+            pytest.raises(expected_exception=requests.exceptions.Timeout),
+        ):
+            # Tuple timeout: (connect_timeout, read_timeout)
+            # The read timeout (0.1) is less than the delay (0.5)
+            requests.get(
+                url="https://vws.vuforia.com/summary",
+                headers={
+                    "Date": rfc_1123_date(),
+                    "Authorization": "bad_auth_token",
+                },
+                data=b"",
+                timeout=(5.0, 0.1),
             )
-            with pytest.raises(expected_exception=requests.exceptions.Timeout):
-                vws_client.list_targets()
-
-    @staticmethod
-    def test_vws_client_without_timeout() -> None:
-        """
-        The VWS client completes successfully when the timeout exceeds
-        the response delay.
-        """
-        database = VuforiaDatabase()
-        with MockVWS(response_delay_seconds=0.1) as mock:
-            mock.add_database(database=database)
-            vws_client = VWS(
-                server_access_key=database.server_access_key,
-                server_secret_key=database.server_secret_key,
-                request_timeout_seconds=2.0,
-            )
-            # This should succeed
-            targets = vws_client.list_targets()
-            assert targets == []
 
 
 class TestProcessingTime:

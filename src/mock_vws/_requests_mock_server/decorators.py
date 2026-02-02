@@ -1,13 +1,12 @@
 """Decorators for using the mock."""
 
 import re
-import threading
 import time
 from contextlib import ContextDecorator
-from typing import TYPE_CHECKING, Any, Literal, Self
+from typing import TYPE_CHECKING, Literal, Self
 from urllib.parse import urljoin, urlparse
 
-import requests as requests_lib
+import requests
 from beartype import BeartypeConf, beartype
 from responses import RequestsMock
 
@@ -29,13 +28,9 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Mapping
 
     from requests import PreparedRequest
-    from requests.adapters import HTTPAdapter  # noqa: F401
 
     ResponseType = tuple[int, Mapping[str, str], str]
-    Callback = Callable[[PreparedRequest], ResponseType]  # noqa: F841
-
-# Thread-local storage to capture the request timeout
-_timeout_storage = threading.local()
+    Callback = Callable[[PreparedRequest], ResponseType]
 
 _STRUCTURAL_SIMILARITY_MATCHER = StructuralSimilarityMatcher()
 _BRISQUE_TRACKING_RATER = BrisqueTargetTrackingRater()
@@ -152,20 +147,28 @@ class MockVWS(ContextDecorator):
         def wrap_callback(callback: "Callback") -> "Callback":
             """Wrap a callback to add a response delay."""
 
-            def wrapped(request: "PreparedRequest") -> "ResponseType":
-                # Check if the delay would exceed the request timeout
-                timeout = getattr(_timeout_storage, "timeout", None)
-                if timeout is not None and delay_seconds > 0:
-                    # timeout can be a float or a tuple (connect, read)
-                    if isinstance(timeout, tuple):
-                        effective_timeout: float | None = timeout[1]  # read timeout
-                    else:
-                        effective_timeout = timeout
-                    if (
-                        effective_timeout is not None
-                        and delay_seconds > effective_timeout
-                    ):
-                        raise requests_lib.exceptions.Timeout
+            def wrapped(
+                request: "PreparedRequest",
+            ) -> "ResponseType":
+                # req_kwargs is added dynamically by the responses
+                # library onto PreparedRequest objects - it is not
+                # in the requests type stubs.
+                timeout = request.req_kwargs.get("timeout")  # type: ignore[attr-defined]
+                # requests allows timeout as a (connect, read)
+                # tuple. The delay simulates server response
+                # time, so compare against the read timeout.
+                effective: float | None = None
+                if isinstance(timeout, tuple):
+                    effective = timeout[1]
+                elif isinstance(timeout, (int, float)):
+                    effective = timeout
+
+                if (
+                    effective is not None
+                    and delay_seconds > effective
+                ):
+                    time.sleep(effective)
+                    raise requests.exceptions.Timeout
 
                 result = callback(request)
                 time.sleep(delay_seconds)
@@ -174,19 +177,6 @@ class MockVWS(ContextDecorator):
             return wrapped
 
         mock = RequestsMock(assert_all_requests_are_fired=False)
-
-        # Patch _on_request to capture the timeout parameter
-        original_on_request = mock._on_request  # noqa: SLF001
-
-        def patched_on_request(
-            adapter: "HTTPAdapter",
-            request: "PreparedRequest",
-            **kwargs: Any,  # noqa: ANN401
-        ) -> Any:  # noqa: ANN401
-            _timeout_storage.timeout = kwargs.get("timeout")
-            return original_on_request(adapter, request, **kwargs)  # type: ignore[misc]
-
-        mock._on_request = patched_on_request  # type: ignore[method-assign]  # noqa: SLF001
         for vws_route in self._mock_vws_api.routes:
             url_pattern = urljoin(
                 base=self._base_vws_url,
