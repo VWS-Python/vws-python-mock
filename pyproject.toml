@@ -115,14 +115,14 @@ urls.Source = "https://github.com/VWS-Python/vws-python-mock"
 [tool.setuptools]
 zip-safe = false
 
-[tool.setuptools.packages.find]
-where = [
-    "src",
-]
-
 [tool.setuptools.package-data]
 mock_vws = [
     "py.typed",
+]
+
+[tool.setuptools.packages.find]
+where = [
+    "src",
 ]
 
 [tool.distutils.bdist_wheel]
@@ -194,6 +194,12 @@ lint.unfixable = [
 lint.pydocstyle.convention = "google"
 
 [tool.pylint]
+
+[tool.pylint.'FORMAT']
+
+# Allow the body of an if to be on the same line as the test if there is no
+# else.
+single-line-if-stmt = false
 
 [tool.pylint.'MASTER']
 
@@ -287,12 +293,6 @@ disable = [
     'wrong-import-order',
 ]
 
-[tool.pylint.'FORMAT']
-
-# Allow the body of an if to be on the same line as the test if there is no
-# else.
-single-line-if-stmt = false
-
 [tool.pylint.'SPELLING']
 
 # Spelling dictionary name. Available dictionaries: none. To make it working
@@ -368,6 +368,14 @@ retries = 10
 retry_delay = 10
 cumulative_timing = false
 
+[tool.coverage.report]
+
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+]
+fail_under = 100
+
 [tool.coverage.run]
 
 branch = true
@@ -376,14 +384,6 @@ omit = [
 ]
 parallel = true
 source = [ "src/", "tests/" ]
-
-[tool.coverage.report]
-
-exclude_also = [
-    "if TYPE_CHECKING:",
-    "class .*\\bProtocol\\):",
-]
-fail_under = 100
 
 [tool.mypy]
 
