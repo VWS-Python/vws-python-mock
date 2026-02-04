@@ -79,7 +79,7 @@ optional-dependencies.dev = [
     "python-dotenv==1.2.1",
     "pyyaml==6.0.3",
     "requests-mock-flask==2026.1.12",
-    "ruff==0.14.14",
+    "ruff==0.15.0",
     # We add shellcheck-py not only for shell scripts and shell code blocks,
     # but also because having it installed means that ``actionlint-py`` will
     # use it to lint shell commands in GitHub workflow files.
