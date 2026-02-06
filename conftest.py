@@ -1,4 +1,11 @@
-"""Setup for Sybil."""
+"""
+Setup for Sybil.
+
+Beartype is not applied to test functions because of a Python 3.14
+annotation issue. See:
+- https://github.com/beartype/beartype/discussions/594
+- https://github.com/beartype/beartype/pull/440
+"""
 
 from doctest import ELLIPSIS
 
@@ -11,15 +18,6 @@ from sybil.parsers.rest import (
 )
 
 from tests.mock_vws.utils.retries import RETRY_EXCEPTIONS
-
-
-@beartype
-def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
-    """Apply the beartype decorator to all collected test functions."""
-    for item in items:
-        if isinstance(item, pytest.Function):
-            item.obj = beartype(obj=item.obj)
-
 
 pytest_collect_file = Sybil(
     parsers=[
