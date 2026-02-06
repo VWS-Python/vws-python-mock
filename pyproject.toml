@@ -480,6 +480,9 @@ ignore_names = [
     "REQUEST_QUOTA_REACHED",
     # pydantic-settings
     "model_config",
+    # TYPE_CHECKING imports used in string annotations
+    "HTTPAdapter",
+    "Callback",
 ]
 
 # Duplicate some of .gitignore
