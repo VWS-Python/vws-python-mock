@@ -69,7 +69,7 @@ optional-dependencies.dev = [
     "pydocstyle==6.3",
     "pylint[spelling]==4.0.4",
     "pylint-per-file-ignores==3.2.0",
-    "pyproject-fmt==2.11.1",
+    "pyproject-fmt==2.14.0",
     "pyrefly==0.51.1",
     "pyright==1.1.408",
     "pyroma==5.0.1",
@@ -80,10 +80,6 @@ optional-dependencies.dev = [
     "pyyaml==6.0.3",
     "requests-mock-flask==2026.1.12",
     "ruff==0.15.0",
-    # We add shellcheck-py not only for shell scripts and shell code blocks,
-    # but also because having it installed means that ``actionlint-py`` will
-    # use it to lint shell commands in GitHub workflow files.
-    "shellcheck-py==0.11.0.1",
     "shfmt-py==3.12.0.2",
     "sphinx==8.2.3",
     "sphinx-copybutton==0.5.2",
@@ -105,6 +101,10 @@ optional-dependencies.dev = [
     "vws-python==2025.3.10.1",
     "vws-test-fixtures==2023.3.5",
     "vws-web-tools==2024.10.6.1",
+    # We add shellcheck-py not only for shell scripts and shell code blocks,
+    # but also because having it installed means that ``actionlint-py`` will
+    # use it to lint shell commands in GitHub workflow files.
+    "shellcheck-py==0.11.0.1",
     "yamlfix==1.19.1",
     "zizmor==1.22.0",
 ]
@@ -114,29 +114,23 @@ urls.Source = "https://github.com/VWS-Python/vws-python-mock"
 
 [tool.setuptools]
 zip-safe = false
-
-[tool.setuptools.packages.find]
-where = [
+package-data.mock_vws = [
+    "py.typed",
+]
+packages.find.where = [
     "src",
 ]
 
-[tool.setuptools.package-data]
-mock_vws = [
-    "py.typed",
-]
-
-[tool.distutils.bdist_wheel]
-universal = true
+[tool.distutils]
+bdist_wheel.universal = true
 
 [tool.setuptools_scm]
-
 # We use a fallback version like
 # https://github.com/pypa/setuptools_scm/issues/77 so that we do not
 # error in the Docker build stage of the release pipeline.
 #
 # This must be a PEP 440 compliant version.
 fallback_version = "0.0.0"
-
 # This keeps the start of the version the same as the last release.
 # This is useful for our documentation to include e.g. binary links
 # to the latest released binary.
@@ -150,33 +144,30 @@ lint.select = [
     "ALL",
 ]
 lint.ignore = [
-    # Ruff warns that this conflicts with the formatter.
-    "COM812",
     # Allow our chosen docstring line-style - pydocstringformatter handles formatting
     # but doesn't enforce D205 (blank line after summary) or D212 (summary on first line).
     "D205",
-    "D212",
-    "D415",
-    # Ruff warns that this conflicts with the formatter.
-    "ISC001",
     # Ignore 'too-many-*' errors as they seem to get in the way more than
     # helping.
     "PLR0913",
+    # Ruff warns that this conflicts with the formatter.
+    "COM812",
+    # Ruff warns that this conflicts with the formatter.
+    "ISC001",
+    "D212",
+    "D415",
 ]
-
 lint.per-file-ignores."ci/test_custom_linters.py" = [
     # Allow asserts in tests.
     "S101",
 ]
-
 lint.per-file-ignores."doccmd_*.py" = [
+    # Allow asserts in docs.
+    "S101",
     # Allow our chosen docstring line-style - pydocstringformatter handles
     # formatting but docstrings in docs may not match this style.
     "D200",
-    # Allow asserts in docs.
-    "S101",
 ]
-
 lint.per-file-ignores."tests/**" = [
     # Allow asserts in tests.
     "S101",
@@ -184,7 +175,6 @@ lint.per-file-ignores."tests/**" = [
     "S105",
     "S106",
 ]
-
 # Do not automatically remove commented out code.
 # We comment out code during development, and with VSCode auto-save, this code
 # is sometimes annoyingly removed.
@@ -194,15 +184,13 @@ lint.unfixable = [
 lint.pydocstyle.convention = "google"
 
 [tool.pylint]
-
-[tool.pylint.'MASTER']
-
+# Allow the body of an if to be on the same line as the test if there is no
+# else.
+"FORMAT".single-line-if-stmt = false
 # Pickle collected data for later comparisons.
-persistent = true
-
+"MASTER".persistent = true
 # Use multiple processes to speed up Pylint.
-jobs = 0
-
+"MASTER".jobs = 0
 # List of plugins (as comma separated values of python modules names) to load,
 # usually to register additional checkers.
 # See https://chezsoi.org/lucas/blog/pylint-strict-base-configuration.html.
@@ -211,7 +199,7 @@ jobs = 0
 # - pylint.extensions.magic_value
 # - pylint.extensions.while_used
 # as they seemed to get in the way.
-load-plugins = [
+"MASTER".load-plugins = [
     "pylint_per_file_ignores",
     "pylint.extensions.bad_builtin",
     "pylint.extensions.comparison_placement",
@@ -229,23 +217,19 @@ load-plugins = [
     "pylint.extensions.set_membership",
     "pylint.extensions.typing",
 ]
-
 # We ignore invalid names because:
 # - We want to use generated module names, which may not be valid, but are never seen.
 # - We want to use global variables in documentation, which may not be uppercase
-per-file-ignores = [
+"MASTER".per-file-ignores = [
     "docs/source/conf.py:invalid-name",
     "docs/source/doccmd_*.py:invalid-name",
     "doccmd_README_rst_*.py:invalid-name",
 ]
-
-[tool.pylint.'MESSAGES CONTROL']
-
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
 # multiple time (only on the command line, not in the configuration file where
 # it should appear only once). See also the "--disable" option for examples.
-enable = [
+"MESSAGES CONTROL".enable = [
     "bad-inline-option",
     "deprecated-pragma",
     "file-ignored",
@@ -253,7 +237,6 @@ enable = [
     "use-symbolic-message-instead",
     "useless-suppression",
 ]
-
 # Disable the message, report, category or checker with the given id(s). You
 # can either give multiple identifiers separated by comma (,) or put this
 # option multiple times (only on the command line, not in the configuration
@@ -263,8 +246,7 @@ enable = [
 # --enable=similarities". If you want to run only the classes checker, but have
 # no Warning level messages displayed, use"--disable=all --enable=classes
 # --disable=W"
-
-disable = [
+"MESSAGES CONTROL".disable = [
     # Style issues that we can deal with ourselves
     "too-few-public-methods",
     "too-many-locals",
@@ -286,35 +268,22 @@ disable = [
     # Let ruff handle imports
     "wrong-import-order",
 ]
-
-[tool.pylint.'FORMAT']
-
-# Allow the body of an if to be on the same line as the test if there is no
-# else.
-single-line-if-stmt = false
-
-[tool.pylint.'SPELLING']
-
 # Spelling dictionary name. Available dictionaries: none. To make it working
 # install python-enchant package.
-spelling-dict = 'en_US'
-
+"SPELLING".spelling-dict = "en_US"
 # A path to a file that contains private dictionary; one word per line.
-spelling-private-dict-file = 'spelling_private_dict.txt'
-
+"SPELLING".spelling-private-dict-file = "spelling_private_dict.txt"
 # Tells whether to store unknown words to indicated private dictionary in
 # --spelling-private-dict-file option instead of raising a message.
-spelling-store-unknown-words = 'no'
+"SPELLING".spelling-store-unknown-words = "no"
 
 [tool.check-manifest]
-
 ignore = [
     ".checkmake-config.ini",
     ".prettierrc",
     ".yamlfmt",
     "*.enc",
     "admin/**",
-
     "CHANGELOG.rst",
     "CODE_OF_CONDUCT.rst",
     "CONTRIBUTING.rst",
@@ -339,9 +308,7 @@ pep621_dev_dependency_groups = [
     "dev",
     "release",
 ]
-
-[tool.deptry.per_rule_ignores]
-DEP002 = [
+per_rule_ignores.DEP002 = [
     # tzdata is needed on Windows for zoneinfo to work.
     # See https://docs.python.org/3/library/zoneinfo.html#data-sources.
     "tzdata",
@@ -352,41 +319,34 @@ indent = 4
 keep_full_version = true
 max_supported_python = "3.13"
 
-[tool.pytest.ini_options]
-
-xfail_strict = true
-log_cli = true
-addopts = [
+[tool.pytest]
+ini_options.xfail_strict = true
+ini_options.log_cli = true
+ini_options.addopts = [
     "--strict-markers",
 ]
-markers = [
+ini_options.markers = [
     "requires_docker_build",
 ]
-
 # Options for pytest-retry.
-retries = 10
-retry_delay = 10
-cumulative_timing = false
+ini_options.retries = 10
+ini_options.retry_delay = 10
+ini_options.cumulative_timing = false
 
-[tool.coverage.run]
-
-branch = true
-omit = [
-    "src/mock_vws/_flask_server/healthcheck.py",
-]
-parallel = true
-source = [ "src/", "tests/" ]
-
-[tool.coverage.report]
-
-exclude_also = [
+[tool.coverage]
+report.exclude_also = [
     "if TYPE_CHECKING:",
     "class .*\\bProtocol\\):",
 ]
-fail_under = 100
+report.fail_under = 100
+run.branch = true
+run.omit = [
+    "src/mock_vws/_flask_server/healthcheck.py",
+]
+run.parallel = true
+run.source = [ "src/", "tests/" ]
 
 [tool.mypy]
-
 strict = true
 files = [ "." ]
 exclude = [ "build" ]
@@ -403,7 +363,6 @@ search_path = [
 ]
 
 [tool.pyright]
-
 enableTypeIgnoreComments = false
 reportUnnecessaryTypeIgnoreComment = true
 typeCheckingMode = "strict"
@@ -426,7 +385,6 @@ warn_required_dynamic_aliases = true
 warn_untyped_fields = true
 
 [tool.doc8]
-
 max_line_length = 2000
 ignore_path = [
     "./.eggs",
@@ -481,7 +439,6 @@ ignore_names = [
     # pydantic-settings
     "model_config",
 ]
-
 # Duplicate some of .gitignore
 exclude = [ ".venv" ]
 ignore_decorators = [
