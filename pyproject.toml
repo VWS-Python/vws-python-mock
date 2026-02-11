@@ -334,17 +334,17 @@ ini_options.retry_delay = 10
 ini_options.cumulative_timing = false
 
 [tool.coverage]
-report.exclude_also = [
-    "if TYPE_CHECKING:",
-    "class .*\\bProtocol\\):",
-]
-report.fail_under = 100
 run.branch = true
 run.omit = [
     "src/mock_vws/_flask_server/healthcheck.py",
 ]
 run.parallel = true
 run.source = [ "src/", "tests/" ]
+report.exclude_also = [
+    "class .*\\bProtocol\\):",
+    "if TYPE_CHECKING:",
+]
+report.fail_under = 100
 
 [tool.mypy]
 strict = true
