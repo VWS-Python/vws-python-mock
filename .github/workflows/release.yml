@@ -123,7 +123,7 @@ jobs:
         uses: docker/setup-qemu-action@v3
 
       - name: Build and push target manager Docker image
-        uses: docker/build-push-action@v6.19.1
+        uses: docker/build-push-action@v6.19.2
         with:
           file: src/mock_vws/_flask_server/Dockerfile
           platforms: linux/amd64,linux/arm64
@@ -134,7 +134,7 @@ jobs:
             adamtheturtle/vuforia-target-manager-mock:${{ steps.calver.outputs.release }}
 
       - name: Build and push VWS Docker image
-        uses: docker/build-push-action@v6.19.1
+        uses: docker/build-push-action@v6.19.2
         with:
           file: src/mock_vws/_flask_server/Dockerfile
           platforms: linux/amd64,linux/arm64
@@ -145,7 +145,7 @@ jobs:
             adamtheturtle/vuforia-vws-mock:${{ steps.calver.outputs.release }}
 
       - name: Build and push VWQ Docker image
-        uses: docker/build-push-action@v6.19.1
+        uses: docker/build-push-action@v6.19.2
         with:
           file: src/mock_vws/_flask_server/Dockerfile
           platforms: linux/amd64,linux/arm64
