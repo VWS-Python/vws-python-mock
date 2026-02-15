@@ -21,6 +21,7 @@ class DatabaseDict(TypedDict):
     server_secret_key: str
     client_access_key: str
     client_secret_key: str
+    default_target_type: str
     state_name: str
     targets: Iterable[TargetDict]
 
@@ -62,6 +63,7 @@ class VuforiaDatabase:
     # In particular, we might want to inspect the ``database`` object's targets
     # as they change via API requests.
     targets: set[Target] = field(default_factory=set[Target], hash=False)
+    default_target_type: str = "cloud_target"
     state: States = States.WORKING
 
     request_quota: int = 100000
@@ -80,6 +82,7 @@ class VuforiaDatabase:
             "server_secret_key": self.server_secret_key,
             "client_access_key": self.client_access_key,
             "client_secret_key": self.client_secret_key,
+            "default_target_type": self.default_target_type,
             "state_name": self.state.name,
             "targets": targets,
         }
@@ -100,6 +103,7 @@ class VuforiaDatabase:
             server_secret_key=database_dict["server_secret_key"],
             client_access_key=database_dict["client_access_key"],
             client_secret_key=database_dict["client_secret_key"],
+            default_target_type=database_dict["default_target_type"],
             state=States[database_dict["state_name"]],
             targets={
                 Target.from_dict(target_dict=target_dict)

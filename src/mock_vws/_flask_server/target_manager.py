@@ -159,6 +159,10 @@ def create_database() -> Response:
         "state_name",
         random_database.state.name,
     )
+    default_target_type = request_json.get(
+        "default_target_type",
+        random_database.default_target_type,
+    )
 
     state = States[state_name]
 
@@ -168,6 +172,7 @@ def create_database() -> Response:
         client_access_key=client_access_key,
         client_secret_key=client_secret_key,
         database_name=database_name,
+        default_target_type=default_target_type,
         state=state,
     )
     try:
@@ -210,6 +215,7 @@ def create_target(database_name: str) -> Response:
         processing_time_seconds=request_json["processing_time_seconds"],
         application_metadata=request_json["application_metadata"],
         target_id=request_json["target_id"],
+        target_type=request_json.get("target_type", "cloud_target"),
         target_tracking_rater=target_tracking_rater,
     )
     database.targets.add(target)

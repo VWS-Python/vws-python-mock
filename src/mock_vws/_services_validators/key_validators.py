@@ -121,6 +121,13 @@ def validate_keys(
         optional_keys=set(),
     )
 
+    generate_vumark = _Route(
+        path_pattern=f"/targets/{target_id_pattern}/instances",
+        http_methods={HTTPMethod.POST},
+        mandatory_keys={"instance_id"},
+        optional_keys=set(),
+    )
+
     routes = (
         add_target,
         delete_target,
@@ -130,6 +137,7 @@ def validate_keys(
         get_duplicates,
         update_target,
         target_summary,
+        generate_vumark,
     )
 
     (matching_route,) = (

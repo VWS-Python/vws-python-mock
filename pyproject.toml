@@ -437,6 +437,8 @@ ignore_names = [
     # Too difficult to test (see notes in the code)
     "DATE_RANGE_ERROR",
     "REQUEST_QUOTA_REACHED",
+    # requests-mock server route callback
+    "generate_vumark_instance",
     # pydantic-settings
     "model_config",
 ]

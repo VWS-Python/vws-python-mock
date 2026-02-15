@@ -28,6 +28,17 @@ from mock_vws._services_validators.exceptions import (
     TargetStatusProcessingError,
     ValidatorError,
 )
+from mock_vws._vumark_generators import (
+    generate_pdf,
+    generate_png,
+    generate_svg,
+)
+from mock_vws._vumark_validators import (
+    validate_accept_header,
+    validate_instance_id,
+    validate_target_status_success,
+    validate_target_type,
+)
 from mock_vws.image_matchers import ImageMatcher
 from mock_vws.target import Target
 from mock_vws.target_manager import TargetManager
@@ -38,7 +49,7 @@ _TARGET_ID_PATTERN = "[A-Za-z0-9]+"
 
 _ROUTES: set[Route] = set()
 
-_ResponseType = tuple[int, Mapping[str, str], str]
+_ResponseType = tuple[int, Mapping[str, str], str | bytes]
 _P = ParamSpec("_P")
 
 
@@ -102,6 +113,22 @@ def _body_bytes(request: PreparedRequest) -> bytes:
         return request.body.encode(encoding="utf-8")
 
     return request.body
+
+
+@beartype
+def _generate_vumark_content(
+    *,
+    accept_header: str,
+    instance_id: str,
+) -> tuple[str, bytes]:
+    """Return generated VuMark content for the requested output format."""
+    generators: dict[str, Callable[[str], bytes]] = {
+        "image/svg+xml": generate_svg,
+        "image/png": generate_png,
+        "application/pdf": generate_pdf,
+    }
+    generator = generators[accept_header]
+    return accept_header, generator(instance_id)
 
 
 @beartype(conf=BeartypeConf(is_pep484_tower=True))
@@ -187,6 +214,7 @@ class MockVuforiaWebServicesAPI:
             processing_time_seconds=self._processing_time_seconds,
             application_metadata=application_metadata,
             target_tracking_rater=self._target_tracking_rater,
+            target_type=database.default_target_type,
         )
         database.targets.add(new_target)
 
@@ -702,7 +730,7 @@ class MockVuforiaWebServicesAPI:
             "previous_month_recos": target.previous_month_recos,
         }
         body_json = json_dump(body=body)
-        headers = {
+        target_summary_headers = {
             "Connection": "keep-alive",
             "Content-Length": str(object=len(body_json)),
             "Content-Type": "application/json",
@@ -714,4 +742,72 @@ class MockVuforiaWebServicesAPI:
             "x-content-type-options": "nosniff",
         }
 
-        return HTTPStatus.OK, headers, body_json
+        return HTTPStatus.OK, target_summary_headers, body_json
+
+    @route(
+        path_pattern=f"/targets/{_TARGET_ID_PATTERN}/instances",
+        http_methods={HTTPMethod.POST},
+    )
+    def generate_vumark_instance(
+        self,
+        request: PreparedRequest,
+    ) -> _ResponseType:
+        """Generate a VuMark instance image.
+
+        Fake implementation of
+        https://developer.vuforia.com/library/vuforia-engine/web-api/vumark-generation-web-api/
+        """
+        try:
+            run_services_validators(
+                request_headers=request.headers,
+                request_body=_body_bytes(request=request),
+                request_method=request.method or "",
+                request_path=request.path_url,
+                databases=self._target_manager.databases,
+            )
+            accept_header = validate_accept_header(
+                request_headers=request.headers,
+            )
+
+            request_json: dict[str, Any] = json.loads(s=request.body or b"{}")
+            instance_id = validate_instance_id(
+                instance_id=request_json.get("instance_id"),
+            )
+
+            database = get_database_matching_server_keys(
+                request_headers=request.headers,
+                request_body=_body_bytes(request=request),
+                request_method=request.method or "",
+                request_path=request.path_url,
+                databases=self._target_manager.databases,
+            )
+            split_path = request.path_url.split(sep="/")
+            target_id = split_path[-2]
+            target = database.get_target(target_id=target_id)
+            validate_target_type(target=target)
+            validate_target_status_success(target=target)
+        except ValidatorError as exc:
+            return exc.status_code, exc.headers, exc.response_text
+
+        content_type, content = _generate_vumark_content(
+            accept_header=accept_header,
+            instance_id=instance_id,
+        )
+
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
+        headers = {
+            "Connection": "keep-alive",
+            "Content-Length": str(object=len(content)),
+            "Content-Type": content_type,
+            "Date": date,
+            "server": "envoy",
+            "x-envoy-upstream-service-time": "5",
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
+        }
+        return HTTPStatus.OK, headers, content

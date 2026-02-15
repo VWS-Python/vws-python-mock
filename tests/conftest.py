@@ -2,6 +2,7 @@
 
 import base64
 import binascii
+import dataclasses
 import io
 import uuid
 
@@ -71,6 +72,15 @@ def target_id(
         image=image_file_success_state_low_rating,
         active_flag=True,
         application_metadata=None,
+    )
+
+
+@pytest.fixture
+def vucloud_database(vuforia_database: VuforiaDatabase) -> VuforiaDatabase:
+    """A database configured to create VuMark targets by default."""
+    return dataclasses.replace(
+        vuforia_database,
+        default_target_type="vumark",
     )
 
 
