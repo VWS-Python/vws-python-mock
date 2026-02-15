@@ -7,6 +7,7 @@ be given.
 import io
 from http import HTTPStatus
 from types import SimpleNamespace
+from unittest.mock import patch
 
 import pytest
 from vws import VWS
@@ -59,7 +60,6 @@ class TestTargetIdNamedInstances:
 
     @staticmethod
     def test_summary_path_handles_target_id_named_instances(
-        monkeypatch: pytest.MonkeyPatch,
         image_file_success_state_low_rating: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -67,18 +67,17 @@ class TestTargetIdNamedInstances:
         ID.
         """
         target_id = "instances"
-        monkeypatch.setattr(
+        with patch(
             "mock_vws.target.uuid.uuid4",
-            lambda: SimpleNamespace(hex=target_id),
-        )
-
-        created_target_id = vws_client.add_target(
-            name="example_target",
-            width=1,
-            image=image_file_success_state_low_rating,
-            active_flag=True,
-            application_metadata=None,
-        )
+            return_value=SimpleNamespace(hex=target_id),
+        ):
+            created_target_id = vws_client.add_target(
+                name="example_target",
+                width=1,
+                image=image_file_success_state_low_rating,
+                active_flag=True,
+                application_metadata=None,
+            )
         assert created_target_id == target_id
 
         vws_client.wait_for_target_processed(target_id=created_target_id)
