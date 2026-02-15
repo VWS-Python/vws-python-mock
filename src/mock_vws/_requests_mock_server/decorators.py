@@ -4,7 +4,7 @@ import re
 import time
 from collections.abc import Callable, Mapping
 from contextlib import ContextDecorator
-from typing import Literal, Self
+from typing import Any, Literal, Self
 from urllib.parse import urljoin, urlparse
 
 import requests
@@ -146,15 +146,17 @@ class MockVWS(ContextDecorator):
             # req_kwargs is added dynamically by the responses
             # library onto PreparedRequest objects - it is not
             # in the requests type stubs.
-            timeout = request.req_kwargs.get("timeout")  # type: ignore[attr-defined]
+            req_kwargs: dict[str, Any] = getattr(request, "req_kwargs", {})
+            timeout = req_kwargs.get("timeout")
             # requests allows timeout as a (connect, read)
             # tuple. The delay simulates server response
             # time, so compare against the read timeout.
             effective: float | None = None
             if isinstance(timeout, tuple):
-                effective = timeout[1]
+                if isinstance(timeout[1], (int, float)):
+                    effective = float(timeout[1])
             elif isinstance(timeout, (int, float)):
-                effective = timeout
+                effective = float(timeout)
 
             if effective is not None and delay_seconds > effective:
                 time.sleep(effective)
