@@ -60,8 +60,8 @@ class _ImageMatcherChoice(StrEnum):
                 return ExactMatcher()
             case self.STRUCTURAL_SIMILARITY:
                 return StructuralSimilarityMatcher()
-
-        raise ValueError  # pragma: no cover
+            case _:  # pragma: no cover
+                raise ValueError
 
 
 @beartype
