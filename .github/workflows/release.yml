@@ -135,19 +135,9 @@ jobs:
           verbose: true
 
   docker:
-    name: Publish Docker image (${{ matrix.image.target }})
+    name: Publish Docker images
     needs: release
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        image:
-          - target: target-manager
-            repo: adamtheturtle/vuforia-target-manager-mock
-          - target: vws
-            repo: adamtheturtle/vuforia-vws-mock
-          - target: vwq
-            repo: adamtheturtle/vuforia-vwq-mock
 
     permissions: {}
 
@@ -169,13 +159,9 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v6.19.2
+      - name: Build and push Docker images
+        uses: docker/bake-action@v6.10.0
         with:
-          file: src/mock_vws/_flask_server/Dockerfile
-          platforms: linux/amd64,linux/arm64
           push: true
-          target: ${{ matrix.image.target }}
-          tags: |-
-            ${{ matrix.image.repo }}:latest
-            ${{ matrix.image.repo }}:${{ needs.release.outputs.version }}
+        env:
+          VERSION: ${{ needs.release.outputs.version }}
