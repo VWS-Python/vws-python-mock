@@ -45,8 +45,8 @@ class _TargetRaterChoice(StrEnum):
                 return HardcodedTargetTrackingRater(rating=5)
             case self.RANDOM:
                 return RandomTargetTrackingRater()
-
-        raise ValueError  # pragma: no cover
+            case _:  # pragma: no cover
+                raise ValueError
 
 
 @beartype
