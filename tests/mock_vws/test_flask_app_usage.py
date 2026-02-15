@@ -1,7 +1,9 @@
 """Tests for the usage of the mock Flask application."""
 
+import email.utils
 import io
 import json
+import time
 import uuid
 from collections.abc import Iterator
 from http import HTTPStatus
@@ -605,3 +607,63 @@ class TestTargetRaters:
         assert lowest_rating >= minimum_rating
         assert highest_rating <= maximum_rating
         assert lowest_rating != highest_rating
+
+
+class TestResponseDelay:
+    """Tests for the response delay feature."""
+
+    @staticmethod
+    def test_default_no_delay() -> None:
+        """By default, there is no response delay."""
+        database = VuforiaDatabase()
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+
+        start = time.monotonic()
+        requests.get(
+            url="https://vws.vuforia.com/summary",
+            headers={
+                "Date": email.utils.formatdate(
+                    timeval=None,
+                    localtime=False,
+                    usegmt=True,
+                ),
+                "Authorization": "bad_auth_token",
+            },
+            data=b"",
+            timeout=30,
+        )
+        elapsed = time.monotonic() - start
+        # With no delay, the response should be fast
+        assert elapsed < 1.0
+
+    @staticmethod
+    def test_delay_is_applied(
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """When response_delay_seconds is set, the response is delayed."""
+        delay = 0.5
+        monkeypatch.setenv(
+            name="RESPONSE_DELAY_SECONDS",
+            value=str(object=delay),
+        )
+        database = VuforiaDatabase()
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+
+        start = time.monotonic()
+        requests.get(
+            url="https://vws.vuforia.com/summary",
+            headers={
+                "Date": email.utils.formatdate(
+                    timeval=None,
+                    localtime=False,
+                    usegmt=True,
+                ),
+                "Authorization": "bad_auth_token",
+            },
+            data=b"",
+            timeout=30,
+        )
+        elapsed = time.monotonic() - start
+        assert elapsed >= delay
