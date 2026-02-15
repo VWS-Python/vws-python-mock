@@ -4,6 +4,10 @@ Changelog
 Next
 ----
 
+2026.02.15.4
+------------
+
+
 - Add ``sleep_fn`` parameter to ``MockVWS`` for injecting a custom delay strategy, enabling deterministic and fast tests without monkey-patching.
 
 2026.02.15.3
