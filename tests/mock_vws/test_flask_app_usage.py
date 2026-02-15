@@ -657,7 +657,7 @@ class TestResponseDelay:
         """When response_delay_seconds is set, the response is delayed."""
         monkeypatch.setenv(
             name="RESPONSE_DELAY_SECONDS",
-            value=str(object=self.DELAY_SECONDS),
+            value=f"{self.DELAY_SECONDS}",
         )
         database = VuforiaDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
