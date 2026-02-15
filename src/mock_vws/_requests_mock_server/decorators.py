@@ -142,6 +142,7 @@ class MockVWS(ContextDecorator):
         def wrapped(
             request: PreparedRequest,
         ) -> _ResponseType:
+            """Handle the response delay and timeout logic."""
             # req_kwargs is added dynamically by the responses
             # library onto PreparedRequest objects - it is not
             # in the requests type stubs.
