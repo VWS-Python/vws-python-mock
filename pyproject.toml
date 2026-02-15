@@ -346,6 +346,7 @@ report.exclude_also = [
 ]
 report.fail_under = 100
 
+report.show_missing = true
 [tool.mypy]
 strict = true
 files = [ "." ]
