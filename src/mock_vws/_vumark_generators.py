@@ -1,6 +1,7 @@
 """Generate placeholder VuMark images for the mock API."""
 
 import io
+from xml.sax.saxutils import escape
 
 from beartype import beartype
 from PIL import Image, ImageDraw
@@ -16,6 +17,7 @@ def generate_svg(instance_id: str) -> bytes:
     Returns:
         SVG image data as bytes.
     """
+    escaped_id = escape(data=instance_id)
     svg_content = (
         '<?xml version="1.0" encoding="UTF-8"?>'
         '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" '
@@ -25,7 +27,7 @@ def generate_svg(instance_id: str) -> bytes:
         '<text x="100" y="90" text-anchor="middle" font-family="Arial" '
         'font-size="14">VuMark Mock</text>'
         '<text x="100" y="120" text-anchor="middle" font-family="monospace" '
-        f'font-size="10">{instance_id}</text>'
+        f'font-size="10">{escaped_id}</text>'
         "</svg>"
     )
     return svg_content.encode()
@@ -41,18 +43,13 @@ def generate_png(instance_id: str) -> bytes:
     Returns:
         PNG image data as bytes.
     """
-    # Create a simple 200x200 image
-    img = Image.new(mode="RGB", size=(200, 200))
+    img = Image.new(mode="RGB", size=(200, 200), color=(255, 255, 255))
     draw = ImageDraw.Draw(im=img)
 
-    # Draw a border
     draw.rectangle(xy=[0, 0, 199, 199], outline="black")
-
-    # Add text
     draw.text(xy=(100, 80), text="VuMark Mock", fill="black")
     draw.text(xy=(100, 110), text=instance_id[:20], fill="black")
 
-    # Save to bytes
     buffer = io.BytesIO()
     img.save(fp=buffer, format="PNG")
     return buffer.getvalue()
@@ -70,45 +67,63 @@ def generate_pdf(instance_id: str) -> bytes:
     Returns:
         PDF document data as bytes.
     """
-    # Create a minimal valid PDF
-    # This is a simple PDF 1.4 document with one page and text
-    pdf_content = f"""%PDF-1.4
-1 0 obj
-<< /Type /Catalog /Pages 2 0 R >>
-endobj
-2 0 obj
-<< /Type /Pages /Kids [3 0 R] /Count 1 >>
-endobj
-3 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] /Contents 4 0 R
-/Resources << /Font << /F1 5 0 R >> >> >>
-endobj
-4 0 obj
-<< /Length 100 >>
-stream
-BT
-/F1 12 Tf
-50 150 Td
-(VuMark Mock) Tj
-0 -20 Td
-({instance_id}) Tj
-ET
-endstream
-endobj
-5 0 obj
-<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
-endobj
-xref
-0 6
-0000000000 65535 f
-0000000009 00000 n
-0000000058 00000 n
-0000000115 00000 n
-0000000266 00000 n
-0000000416 00000 n
-trailer
-<< /Size 6 /Root 1 0 R >>
-startxref
-496
-%%EOF"""
-    return pdf_content.encode()
+    # Escape parentheses in instance_id for PDF string literals.
+    safe_id = instance_id.replace("\\", "\\\\")
+    safe_id = safe_id.replace("(", "\\(")
+    safe_id = safe_id.replace(")", "\\)")
+
+    # Build the stream content first so we can measure its length.
+    stream = (
+        "BT\n"
+        "/F1 12 Tf\n"
+        "50 150 Td\n"
+        "(VuMark Mock) Tj\n"
+        "0 -20 Td\n"
+        f"({safe_id}) Tj\n"
+        "ET\n"
+    )
+    stream_bytes = stream.encode()
+    stream_length = len(stream_bytes)
+
+    # Build each object, tracking byte offsets for the xref table.
+    obj1 = "1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n"
+    obj2 = "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n"
+    obj3 = (
+        "3 0 obj\n"
+        "<< /Type /Page /Parent 2 0 R"
+        " /MediaBox [0 0 200 200]"
+        " /Contents 4 0 R"
+        " /Resources << /Font << /F1 5 0 R >> >> >>\n"
+        "endobj\n"
+    )
+    obj4 = (
+        f"4 0 obj\n<< /Length {stream_length} >>\n"
+        f"stream\n{stream}endstream\nendobj\n"
+    )
+    obj5 = (
+        "5 0 obj\n"
+        "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\n"
+        "endobj\n"
+    )
+
+    header = "%PDF-1.4\n"
+    offsets: list[int] = []
+    body = header
+    for obj in (obj1, obj2, obj3, obj4, obj5):
+        offsets.append(len(body.encode()))
+        body += obj
+
+    xref_offset = len(body.encode())
+    xref = f"xref\n0 {len(offsets) + 1}\n0000000000 65535 f \n"
+    for offset in offsets:
+        xref += f"{offset:010d} 00000 n \n"
+
+    trailer = (
+        "trailer\n"
+        f"<< /Size {len(offsets) + 1} /Root 1 0 R >>\n"
+        "startxref\n"
+        f"{xref_offset}\n"
+        "%%EOF"
+    )
+
+    return (body + xref + trailer).encode()
