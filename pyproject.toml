@@ -478,6 +478,8 @@ ignore_names = [
     # Too difficult to test (see notes in the code)
     "DATE_RANGE_ERROR",
     "REQUEST_QUOTA_REACHED",
+    # requests-mock server route callback
+    "generate_vumark_instance",
     # pydantic-settings
     "model_config",
 ]
@@ -490,8 +492,6 @@ ignore_decorators = [
     "@*APP.route",
     "@*APP.before_request",
     "@*APP.errorhandler",
-    # requests-mock server
-    "@route",
 ]
 
 [tool.yamlfix]

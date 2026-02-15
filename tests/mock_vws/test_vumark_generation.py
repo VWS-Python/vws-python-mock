@@ -107,20 +107,17 @@ def _generate_vumark_instance_with_body(
     return requests.post(url=url, data=content, headers=headers, timeout=30)
 
 
-@pytest.mark.usefixtures("mock_only_vuforia")
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestSuccessfulGeneration:
     """Tests for successful VuMark instance generation."""
 
     @pytest.fixture
     def vuforia_database(  # pylint: disable=no-self-use
         self,
-        vuforia_database: VuforiaDatabase,
+        vucloud_database: VuforiaDatabase,
     ) -> VuforiaDatabase:
-        """Override to create a VuMark database."""
-        return dataclasses.replace(
-            vuforia_database,
-            default_target_type="vumark",
-        )
+        """Use a VuCloud database for VuMark generation tests."""
+        return vucloud_database
 
     @staticmethod
     def test_svg_generation(
