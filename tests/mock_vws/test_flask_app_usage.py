@@ -612,58 +612,50 @@ class TestTargetRaters:
 class TestResponseDelay:
     """Tests for the response delay feature."""
 
+    DELAY_SECONDS = 0.5
+
     @staticmethod
-    def test_default_no_delay() -> None:
+    def _make_request() -> None:
+        """Make a request to the VWS API."""
+        requests.get(
+            url="https://vws.vuforia.com/summary",
+            headers={
+                "Date": email.utils.formatdate(
+                    timeval=None,
+                    localtime=False,
+                    usegmt=True,
+                ),
+                "Authorization": "bad_auth_token",
+            },
+            data=b"",
+            timeout=30,
+        )
+
+    def test_default_no_delay(self) -> None:
         """By default, there is no response delay."""
         database = VuforiaDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         start = time.monotonic()
-        requests.get(
-            url="https://vws.vuforia.com/summary",
-            headers={
-                "Date": email.utils.formatdate(
-                    timeval=None,
-                    localtime=False,
-                    usegmt=True,
-                ),
-                "Authorization": "bad_auth_token",
-            },
-            data=b"",
-            timeout=30,
-        )
+        self._make_request()
         elapsed = time.monotonic() - start
-        # With no delay, the response should be fast
-        assert elapsed < 1.0
+        assert elapsed < self.DELAY_SECONDS
 
-    @staticmethod
     def test_delay_is_applied(
+        self,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """When response_delay_seconds is set, the response is delayed."""
-        delay = 0.5
         monkeypatch.setenv(
             name="RESPONSE_DELAY_SECONDS",
-            value=str(object=delay),
+            value=str(object=self.DELAY_SECONDS),
         )
         database = VuforiaDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         start = time.monotonic()
-        requests.get(
-            url="https://vws.vuforia.com/summary",
-            headers={
-                "Date": email.utils.formatdate(
-                    timeval=None,
-                    localtime=False,
-                    usegmt=True,
-                ),
-                "Authorization": "bad_auth_token",
-            },
-            data=b"",
-            timeout=30,
-        )
+        self._make_request()
         elapsed = time.monotonic() - start
-        assert elapsed >= delay
+        assert elapsed >= self.DELAY_SECONDS
