@@ -36,6 +36,8 @@ from mock_vws._vumark_generators import (
 from mock_vws._vumark_validators import (
     validate_accept_header,
     validate_instance_id,
+    validate_target_status_success,
+    validate_target_type,
 )
 from mock_vws.image_matchers import ImageMatcher
 from mock_vws.target import Target
@@ -196,6 +198,7 @@ class MockVuforiaWebServicesAPI:
             processing_time_seconds=self._processing_time_seconds,
             application_metadata=application_metadata,
             target_tracking_rater=self._target_tracking_rater,
+            target_type=database.default_target_type,
         )
         database.targets.add(new_target)
 
@@ -763,6 +766,29 @@ class MockVuforiaWebServicesAPI:
             instance_id = validate_instance_id(
                 instance_id=request_json.get("instance_id"),
             )
+        except ValidatorError as exc:
+            return exc.status_code, exc.headers, exc.response_text
+
+        # Look up the target and validate type and status
+        database = get_database_matching_server_keys(
+            request_headers=request.headers,
+            request_body=_body_bytes(request=request),
+            request_method=request.method or "",
+            request_path=request.path_url,
+            databases=self._target_manager.databases,
+        )
+
+        split_path = request.path_url.split(sep="/")
+        target_id = split_path[-2]
+        target = database.get_target(target_id=target_id)
+
+        try:
+            validate_target_type(target=target)
+        except ValidatorError as exc:
+            return exc.status_code, exc.headers, exc.response_text
+
+        try:
+            validate_target_status_success(target=target)
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
 

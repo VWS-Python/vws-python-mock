@@ -86,6 +86,7 @@ def _enable_use_mock_vuforia(
         server_secret_key=working_database.server_secret_key,
         client_access_key=working_database.client_access_key,
         client_secret_key=working_database.client_secret_key,
+        default_target_type=working_database.default_target_type,
     )
 
     inactive_database = VuforiaDatabase(

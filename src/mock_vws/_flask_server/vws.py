@@ -35,6 +35,8 @@ from mock_vws._vumark_generators import (
 from mock_vws._vumark_validators import (
     validate_accept_header,
     validate_instance_id,
+    validate_target_status_success,
+    validate_target_type,
 )
 from mock_vws.database import VuforiaDatabase
 from mock_vws.image_matchers import (
@@ -190,6 +192,7 @@ def add_target() -> Response:
         processing_time_seconds=settings.processing_time_seconds,
         application_metadata=request_json.get("application_metadata"),
         target_tracking_rater=target_tracking_rater,
+        target_type=database.default_target_type,
     )
 
     databases_url = f"{settings.target_manager_base_url}/databases"
@@ -669,10 +672,12 @@ def generate_vumark_instance(target_id: str) -> Response:
         instance_id=request_json.get("instance_id"),
     )
 
-    # Verify target exists (raises ValueError if not found)
-    (_,) = (
+    # Verify target exists and validate type/status
+    (target,) = (
         target for target in database.targets if target.target_id == target_id
     )
+    validate_target_type(target=target)
+    validate_target_status_success(target=target)
 
     # Generate the appropriate image format
     if accept_header == "image/svg+xml":

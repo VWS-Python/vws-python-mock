@@ -29,6 +29,7 @@ class TargetDict(TypedDict):
     processing_time_seconds: float
     application_metadata: str | None
     target_id: str
+    target_type: str
     last_modified_date: str
     delete_date_optional: str | None
     upload_date: str
@@ -69,6 +70,7 @@ class Target:
     previous_month_recos: int = 0
     reco_rating: str = ""
     target_id: str = field(default_factory=_random_hex)
+    target_type: str = "cloud_target"
     total_recos: int = 0
     upload_date: datetime.datetime = field(default_factory=_time_now)
 
@@ -156,6 +158,7 @@ class Target:
         processing_time_seconds = target_dict["processing_time_seconds"]
         application_metadata = target_dict["application_metadata"]
         target_id = target_dict["target_id"]
+        target_type = target_dict["target_type"]
         delete_date_optional = target_dict["delete_date_optional"]
         if delete_date_optional is None:
             delete_date = None
@@ -175,6 +178,7 @@ class Target:
         )
         return cls(
             target_id=target_id,
+            target_type=target_type,
             name=name,
             active_flag=active_flag,
             width=width,
@@ -203,6 +207,7 @@ class Target:
             "processing_time_seconds": float(self.processing_time_seconds),
             "application_metadata": self.application_metadata,
             "target_id": self.target_id,
+            "target_type": self.target_type,
             "last_modified_date": self.last_modified_date.isoformat(),
             "delete_date_optional": delete_date,
             "upload_date": self.upload_date.isoformat(),

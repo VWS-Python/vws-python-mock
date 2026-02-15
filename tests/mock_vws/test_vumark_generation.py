@@ -1,5 +1,6 @@
 """Tests for the VuMark Generation API endpoint."""
 
+import dataclasses
 import io
 import json
 import uuid
@@ -110,9 +111,20 @@ def _generate_vumark_instance_with_body(
 class TestSuccessfulGeneration:
     """Tests for successful VuMark instance generation."""
 
+    @pytest.fixture
+    def vuforia_database(
+        self,
+        vuforia_database: VuforiaDatabase,
+    ) -> VuforiaDatabase:
+        """Override to create a VuMark database."""
+        return dataclasses.replace(
+            vuforia_database,
+            default_target_type="vumark",
+        )
+
     @staticmethod
     def test_svg_generation(
-        image_file_failed_state: io.BytesIO,
+        image_file_success_state_low_rating: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
     ) -> None:
@@ -120,10 +132,11 @@ class TestSuccessfulGeneration:
         target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
             width=1,
-            image=image_file_failed_state,
+            image=image_file_success_state_low_rating,
             active_flag=True,
             application_metadata=None,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = _generate_vumark_instance(
             database=vuforia_database,
@@ -141,7 +154,7 @@ class TestSuccessfulGeneration:
 
     @staticmethod
     def test_png_generation(
-        image_file_failed_state: io.BytesIO,
+        image_file_success_state_low_rating: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
     ) -> None:
@@ -149,10 +162,11 @@ class TestSuccessfulGeneration:
         target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
             width=1,
-            image=image_file_failed_state,
+            image=image_file_success_state_low_rating,
             active_flag=True,
             application_metadata=None,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = _generate_vumark_instance(
             database=vuforia_database,
@@ -168,7 +182,7 @@ class TestSuccessfulGeneration:
 
     @staticmethod
     def test_pdf_generation(
-        image_file_failed_state: io.BytesIO,
+        image_file_success_state_low_rating: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
     ) -> None:
@@ -176,10 +190,11 @@ class TestSuccessfulGeneration:
         target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
             width=1,
-            image=image_file_failed_state,
+            image=image_file_success_state_low_rating,
             active_flag=True,
             application_metadata=None,
         )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = _generate_vumark_instance(
             database=vuforia_database,
@@ -353,16 +368,16 @@ class TestInvalidInstanceId:
 
 
 @pytest.mark.usefixtures("mock_only_vuforia")
-class TestResponseHeaders:
-    """Tests for response headers."""
+class TestInvalidTargetType:
+    """Tests for non-VuMark target types."""
 
     @staticmethod
-    def test_response_headers(
+    def test_cloud_target(
         image_file_failed_state: io.BytesIO,
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
     ) -> None:
-        """The response includes expected headers."""
+        """An error is returned for non-VuMark targets."""
         target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
             width=1,
@@ -370,6 +385,98 @@ class TestResponseHeaders:
             active_flag=True,
             application_metadata=None,
         )
+
+        response = _generate_vumark_instance(
+            database=vuforia_database,
+            target_id=target_id,
+            instance_id="test123",
+            accept="image/svg+xml",
+        )
+
+        assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+        response_json = response.json()
+        assert (
+            response_json["result_code"]
+            == ResultCodes.INVALID_TARGET_TYPE.value
+        )
+
+
+@pytest.mark.usefixtures("mock_only_vuforia")
+class TestTargetStatusNotSuccess:
+    """Tests for targets not in success status."""
+
+    @pytest.fixture
+    def vuforia_database(
+        self,
+        vuforia_database: VuforiaDatabase,
+    ) -> VuforiaDatabase:
+        """Override to create a VuMark database."""
+        return dataclasses.replace(
+            vuforia_database,
+            default_target_type="vumark",
+        )
+
+    @staticmethod
+    def test_failed_target(
+        image_file_failed_state: io.BytesIO,
+        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
+    ) -> None:
+        """An error is returned when target status is not success."""
+        target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=image_file_failed_state,
+            active_flag=True,
+            application_metadata=None,
+        )
+        vws_client.wait_for_target_processed(target_id=target_id)
+
+        response = _generate_vumark_instance(
+            database=vuforia_database,
+            target_id=target_id,
+            instance_id="test123",
+            accept="image/svg+xml",
+        )
+
+        assert response.status_code == HTTPStatus.FORBIDDEN
+        response_json = response.json()
+        assert (
+            response_json["result_code"]
+            == ResultCodes.TARGET_STATUS_NOT_SUCCESS.value
+        )
+
+
+@pytest.mark.usefixtures("mock_only_vuforia")
+class TestResponseHeaders:
+    """Tests for response headers."""
+
+    @pytest.fixture
+    def vuforia_database(
+        self,
+        vuforia_database: VuforiaDatabase,
+    ) -> VuforiaDatabase:
+        """Override to create a VuMark database."""
+        return dataclasses.replace(
+            vuforia_database,
+            default_target_type="vumark",
+        )
+
+    @staticmethod
+    def test_response_headers(
+        image_file_success_state_low_rating: io.BytesIO,
+        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
+    ) -> None:
+        """The response includes expected headers."""
+        target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=image_file_success_state_low_rating,
+            active_flag=True,
+            application_metadata=None,
+        )
+        vws_client.wait_for_target_processed(target_id=target_id)
 
         response = _generate_vumark_instance(
             database=vuforia_database,

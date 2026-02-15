@@ -114,6 +114,8 @@ jobs:
           - tests/mock_vws/test_vumark_generation.py::TestSuccessfulGeneration
           - tests/mock_vws/test_vumark_generation.py::TestInvalidAcceptHeader
           - tests/mock_vws/test_vumark_generation.py::TestInvalidInstanceId
+          - tests/mock_vws/test_vumark_generation.py::TestInvalidTargetType
+          - tests/mock_vws/test_vumark_generation.py::TestTargetStatusNotSuccess
           - tests/mock_vws/test_vumark_generation.py::TestResponseHeaders
           - tests/mock_vws/test_requests_mock_usage.py
           - tests/mock_vws/test_flask_app_usage.py
