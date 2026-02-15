@@ -115,6 +115,7 @@ validators
 versioning
 vuforia
 vuforia's
+vumark
 vwq
 vws
 xa

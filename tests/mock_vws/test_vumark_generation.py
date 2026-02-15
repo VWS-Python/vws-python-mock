@@ -112,7 +112,7 @@ class TestSuccessfulGeneration:
     """Tests for successful VuMark instance generation."""
 
     @pytest.fixture
-    def vuforia_database(
+    def vuforia_database(  # pylint: disable=no-self-use
         self,
         vuforia_database: VuforiaDatabase,
     ) -> VuforiaDatabase:
@@ -369,7 +369,7 @@ class TestInvalidInstanceId:
 
 @pytest.mark.usefixtures("mock_only_vuforia")
 class TestInvalidTargetType:
-    """Tests for non-VuMark target types."""
+    """Tests for non-vumark target types."""
 
     @staticmethod
     def test_cloud_target(
@@ -377,7 +377,7 @@ class TestInvalidTargetType:
         vuforia_database: VuforiaDatabase,
         vws_client: VWS,
     ) -> None:
-        """An error is returned for non-VuMark targets."""
+        """An error is returned for non-vumark targets."""
         target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
             width=1,
@@ -406,7 +406,7 @@ class TestTargetStatusNotSuccess:
     """Tests for targets not in success status."""
 
     @pytest.fixture
-    def vuforia_database(
+    def vuforia_database(  # pylint: disable=no-self-use
         self,
         vuforia_database: VuforiaDatabase,
     ) -> VuforiaDatabase:
@@ -452,7 +452,7 @@ class TestResponseHeaders:
     """Tests for response headers."""
 
     @pytest.fixture
-    def vuforia_database(
+    def vuforia_database(  # pylint: disable=no-self-use
         self,
         vuforia_database: VuforiaDatabase,
     ) -> VuforiaDatabase:

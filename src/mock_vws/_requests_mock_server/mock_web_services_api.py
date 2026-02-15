@@ -115,6 +115,22 @@ def _body_bytes(request: PreparedRequest) -> bytes:
     return request.body
 
 
+@beartype
+def _generate_vumark_content(
+    *,
+    accept_header: str,
+    instance_id: str,
+) -> tuple[str, bytes]:
+    """Return generated VuMark content for the requested output format."""
+    generators: dict[str, Callable[[str], bytes]] = {
+        "image/svg+xml": generate_svg,
+        "image/png": generate_png,
+        "application/pdf": generate_pdf,
+    }
+    generator = generators[accept_header]
+    return accept_header, generator(instance_id)
+
+
 @beartype(conf=BeartypeConf(is_pep484_tower=True))
 class MockVuforiaWebServicesAPI:
     """A fake implementation of the Vuforia Web Services API.
@@ -749,59 +765,34 @@ class MockVuforiaWebServicesAPI:
                 request_path=request.path_url,
                 databases=self._target_manager.databases,
             )
-        except ValidatorError as exc:
-            return exc.status_code, exc.headers, exc.response_text
-
-        # Validate Accept header
-        try:
             accept_header = validate_accept_header(
                 request_headers=request.headers,
             )
-        except ValidatorError as exc:
-            return exc.status_code, exc.headers, exc.response_text
 
-        # Extract and validate instance_id from request body
-        request_json: dict[str, Any] = json.loads(s=request.body or b"{}")
-        try:
+            request_json: dict[str, Any] = json.loads(s=request.body or b"{}")
             instance_id = validate_instance_id(
                 instance_id=request_json.get("instance_id"),
             )
-        except ValidatorError as exc:
-            return exc.status_code, exc.headers, exc.response_text
 
-        # Look up the target and validate type and status
-        database = get_database_matching_server_keys(
-            request_headers=request.headers,
-            request_body=_body_bytes(request=request),
-            request_method=request.method or "",
-            request_path=request.path_url,
-            databases=self._target_manager.databases,
-        )
-
-        split_path = request.path_url.split(sep="/")
-        target_id = split_path[-2]
-        target = database.get_target(target_id=target_id)
-
-        try:
+            database = get_database_matching_server_keys(
+                request_headers=request.headers,
+                request_body=_body_bytes(request=request),
+                request_method=request.method or "",
+                request_path=request.path_url,
+                databases=self._target_manager.databases,
+            )
+            split_path = request.path_url.split(sep="/")
+            target_id = split_path[-2]
+            target = database.get_target(target_id=target_id)
             validate_target_type(target=target)
-        except ValidatorError as exc:
-            return exc.status_code, exc.headers, exc.response_text
-
-        try:
             validate_target_status_success(target=target)
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
 
-        # Generate the appropriate image format
-        if accept_header == "image/svg+xml":
-            content = generate_svg(instance_id=instance_id)
-            content_type = "image/svg+xml"
-        elif accept_header == "image/png":
-            content = generate_png(instance_id=instance_id)
-            content_type = "image/png"
-        else:  # PDF
-            content = generate_pdf(instance_id=instance_id)
-            content_type = "application/pdf"
+        content_type, content = _generate_vumark_content(
+            accept_header=accept_header,
+            instance_id=instance_id,
+        )
 
         date = email.utils.formatdate(
             timeval=None,

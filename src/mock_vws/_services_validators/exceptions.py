@@ -608,7 +608,7 @@ class InvalidInstanceIdError(ValidatorError):
 
 @beartype
 class InvalidTargetTypeError(ValidatorError):
-    """Exception raised when a non-VuMark target is used for VuMark
+    """Exception raised when a non-vumark target is used for vumark
     generation.
     """
 
@@ -648,7 +648,7 @@ class InvalidTargetTypeError(ValidatorError):
 
 @beartype
 class InvalidAcceptHeaderError(ValidatorError):
-    """Exception raised when an invalid Accept header is given for VuMark
+    """Exception raised when an invalid Accept header is given for vumark
     generation.
     """
 
