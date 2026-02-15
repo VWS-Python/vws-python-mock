@@ -70,6 +70,7 @@ class MockVWS(ContextDecorator):
         target_tracking_rater: TargetTrackingRater = _BRISQUE_TRACKING_RATER,
         real_http: bool = False,
         response_delay_seconds: float = 0.0,
+        sleep_fn: Callable[[float], None] = time.sleep,
     ) -> None:
         """Route requests to Vuforia's Web Service APIs to fakes of those
         APIs.
@@ -91,6 +92,10 @@ class MockVWS(ContextDecorator):
             target_tracking_rater: A callable for rating targets for tracking.
             response_delay_seconds: The number of seconds to delay each
                 response by. This can be used to test timeout handling.
+            sleep_fn: The function to use for sleeping during response
+                delays. Defaults to ``time.sleep``. Inject a custom
+                function to control virtual time in tests without
+                monkey-patching.
 
         Raises:
             MissingSchemeError: There is no scheme in a given URL.
@@ -98,6 +103,7 @@ class MockVWS(ContextDecorator):
         super().__init__()
         self._real_http = real_http
         self._response_delay_seconds = response_delay_seconds
+        self._sleep_fn = sleep_fn
         self._mock: RequestsMock
         self._target_manager = TargetManager()
 
@@ -136,6 +142,7 @@ class MockVWS(ContextDecorator):
     def _wrap_callback(
         callback: _Callback,
         delay_seconds: float,
+        sleep_fn: Callable[[float], None],
     ) -> _Callback:
         """Wrap a callback to add a response delay."""
 
@@ -159,11 +166,11 @@ class MockVWS(ContextDecorator):
                 effective = float(timeout)
 
             if effective is not None and delay_seconds > effective:
-                time.sleep(effective)
+                sleep_fn(effective)
                 raise requests.exceptions.Timeout
 
             result = callback(request)
-            time.sleep(delay_seconds)
+            sleep_fn(delay_seconds)
             return result
 
         return wrapped
@@ -195,6 +202,7 @@ class MockVWS(ContextDecorator):
                         callback=self._wrap_callback(
                             callback=original_callback,
                             delay_seconds=self._response_delay_seconds,
+                            sleep_fn=self._sleep_fn,
                         ),
                         content_type=None,
                     )

@@ -195,6 +195,54 @@ class TestResponseDelay:
                 timeout=(5.0, 0.1),
             )
 
+    @staticmethod
+    def test_custom_sleep_fn_called_on_delay() -> None:
+        """
+        When a custom ``sleep_fn`` is provided, it is called instead of
+        ``time.sleep`` for the non-timeout delay path.
+        """
+        calls: list[float] = []
+        with MockVWS(
+            response_delay_seconds=5.0,
+            sleep_fn=calls.append,
+        ):
+            requests.get(
+                url="https://vws.vuforia.com/summary",
+                headers={
+                    "Date": rfc_1123_date(),
+                    "Authorization": "bad_auth_token",
+                },
+                data=b"",
+                timeout=30,
+            )
+        assert calls == [5.0]
+
+    @staticmethod
+    def test_custom_sleep_fn_called_on_timeout() -> None:
+        """
+        When a custom ``sleep_fn`` is provided, it is called instead of
+        ``time.sleep`` for the timeout path.
+        """
+        calls: list[float] = []
+        with (
+            MockVWS(
+                response_delay_seconds=5.0,
+                sleep_fn=calls.append,
+            ),
+            pytest.raises(expected_exception=requests.exceptions.Timeout),
+        ):
+            requests.get(
+                url="https://vws.vuforia.com/summary",
+                headers={
+                    "Date": rfc_1123_date(),
+                    "Authorization": "bad_auth_token",
+                },
+                data=b"",
+                timeout=1.0,
+            )
+        # sleep_fn should have been called with the effective timeout
+        assert calls == [1.0]
+
 
 class TestProcessingTime:
     """Tests for the time taken to process targets in the mock."""
