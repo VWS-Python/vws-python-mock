@@ -747,7 +747,7 @@ class MockVuforiaWebServicesAPI:
                 databases=self._target_manager.databases,
             )
         except ValidatorError as exc:
-            return exc.status_code, exc.headers, exc.response_text.encode()
+            return exc.status_code, exc.headers, exc.response_text
 
         # Validate Accept header
         try:
@@ -755,7 +755,7 @@ class MockVuforiaWebServicesAPI:
                 request_headers=request.headers,
             )
         except ValidatorError as exc:
-            return exc.status_code, exc.headers, exc.response_text.encode()
+            return exc.status_code, exc.headers, exc.response_text
 
         # Extract and validate instance_id from request body
         request_json: dict[str, Any] = json.loads(s=request.body or b"{}")
@@ -764,7 +764,7 @@ class MockVuforiaWebServicesAPI:
                 instance_id=request_json.get("instance_id"),
             )
         except ValidatorError as exc:
-            return exc.status_code, exc.headers, exc.response_text.encode()
+            return exc.status_code, exc.headers, exc.response_text
 
         # Generate the appropriate image format
         if accept_header == "image/svg+xml":
