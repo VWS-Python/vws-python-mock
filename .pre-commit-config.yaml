@@ -415,3 +415,11 @@ repos:
         language: python
         types_or: [markdown, rst]
         additional_dependencies: [uv==0.9.5]
+
+      - id: hclfmt
+        name: hclfmt
+        entry: hclfmt -w
+        language: golang
+        types: [hcl]
+        additional_dependencies: [github.com/hashicorp/hcl/v2/cmd/hclfmt@v2.24.0]
+        stages: [pre-commit]
