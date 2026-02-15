@@ -345,8 +345,8 @@ report.exclude_also = [
     "if TYPE_CHECKING:",
 ]
 report.fail_under = 100
-
 report.show_missing = true
+
 [tool.mypy]
 strict = true
 files = [ "." ]
