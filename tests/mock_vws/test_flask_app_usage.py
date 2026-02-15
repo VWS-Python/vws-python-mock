@@ -610,7 +610,15 @@ class TestTargetRaters:
 
 
 class TestResponseDelay:
-    """Tests for the response delay feature."""
+    """Tests for the response delay feature.
+
+    These tests run through the ``responses`` library, which intercepts
+    requests in-process. Because of this, the client ``timeout`` parameter
+    is not enforced — the delay blocks but never raises
+    ``requests.exceptions.Timeout``. When running the Flask app as a real
+    server (e.g. in Docker), the delay causes a genuinely slow HTTP
+    response and the ``requests`` client will raise ``Timeout`` on its own.
+    """
 
     DELAY_SECONDS = 0.5
 
