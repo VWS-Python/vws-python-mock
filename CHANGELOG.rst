@@ -4,6 +4,8 @@ Changelog
 Next
 ----
 
+- Add ``response_delay_seconds`` parameter to ``MockVWS`` for simulating slow server responses and testing timeout handling.
+
 2025.03.10.1
 ------------
 
