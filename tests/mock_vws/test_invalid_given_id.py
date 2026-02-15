@@ -4,11 +4,14 @@ ID to
 be given.
 """
 
+import io
 from http import HTTPStatus
+from types import SimpleNamespace
 
 import pytest
 from vws import VWS
 
+from mock_vws import target as target_module
 from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import assert_vws_failure
@@ -49,3 +52,39 @@ class TestInvalidGivenID:
             status_code=HTTPStatus.NOT_FOUND,
             result_code=ResultCodes.UNKNOWN_TARGET,
         )
+
+
+@pytest.mark.usefixtures("mock_only_vuforia")
+class TestTargetIdNamedInstances:
+    """Regression tests for a target ID with value ``instances``."""
+
+    @staticmethod
+    def test_summary_path_handles_target_id_named_instances(
+        monkeypatch: pytest.MonkeyPatch,
+        image_file_success_state_low_rating: io.BytesIO,
+        vws_client: VWS,
+    ) -> None:
+        """`/summary/{target_id}` should use the final path segment as
+        ID.
+        """
+        target_id = "instances"
+        monkeypatch.setattr(
+            target_module.uuid,
+            "uuid4",
+            lambda: SimpleNamespace(hex=target_id),
+        )
+
+        created_target_id = vws_client.add_target(
+            name="example_target",
+            width=1,
+            image=image_file_success_state_low_rating,
+            active_flag=True,
+            application_metadata=None,
+        )
+        assert created_target_id == target_id
+
+        vws_client.wait_for_target_processed(target_id=created_target_id)
+        report = vws_client.get_target_summary_report(
+            target_id=created_target_id,
+        )
+        assert report.target_name == "example_target"
