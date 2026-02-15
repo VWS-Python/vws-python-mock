@@ -135,9 +135,19 @@ jobs:
           verbose: true
 
   docker:
-    name: Publish Docker images
+    name: Publish Docker image (${{ matrix.image.target }})
     needs: release
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        image:
+          - target: target-manager
+            repo: adamtheturtle/vuforia-target-manager-mock
+          - target: vws
+            repo: adamtheturtle/vuforia-vws-mock
+          - target: vwq
+            repo: adamtheturtle/vuforia-vwq-mock
 
     permissions: {}
 
@@ -159,35 +169,13 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-      - name: Build and push target manager Docker image
+      - name: Build and push Docker image
         uses: docker/build-push-action@v6.19.2
         with:
           file: src/mock_vws/_flask_server/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          target: target-manager
-          tags: |
-            adamtheturtle/vuforia-target-manager-mock:latest
-            adamtheturtle/vuforia-target-manager-mock:${{ needs.release.outputs.version }}
-
-      - name: Build and push VWS Docker image
-        uses: docker/build-push-action@v6.19.2
-        with:
-          file: src/mock_vws/_flask_server/Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: true
-          target: vws
-          tags: |
-            adamtheturtle/vuforia-vws-mock:latest
-            adamtheturtle/vuforia-vws-mock:${{ needs.release.outputs.version }}
-
-      - name: Build and push VWQ Docker image
-        uses: docker/build-push-action@v6.19.2
-        with:
-          file: src/mock_vws/_flask_server/Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: true
-          target: vwq
+          target: ${{ matrix.image.target }}
           tags: |-
-            adamtheturtle/vuforia-vwq-mock:latest
-            adamtheturtle/vuforia-vwq-mock:${{ needs.release.outputs.version }}
+            ${{ matrix.image.repo }}:latest
+            ${{ matrix.image.repo }}:${{ needs.release.outputs.version }}
