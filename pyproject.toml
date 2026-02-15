@@ -446,6 +446,7 @@ ignore_decorators = [
     "@pytest.fixture",
     # Flask
     "@*APP.route",
+    "@*APP.after_request",
     "@*APP.before_request",
     "@*APP.errorhandler",
 ]

@@ -4,19 +4,8 @@ Changelog
 Next
 ----
 
-2026.02.15.2
-------------
-
-
-2026.02.15.1
-------------
-
-
-2026.02.15
-----------
-
-
 - Add ``response_delay_seconds`` parameter to ``MockVWS`` for simulating slow server responses and testing timeout handling.
+- Add ``response_delay_seconds`` setting to the Flask mock (``VWSSettings`` and ``VWQSettings``) for simulating slow server responses.
 
 2025.03.10.1
 ------------

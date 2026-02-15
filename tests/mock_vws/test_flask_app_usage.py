@@ -1,7 +1,9 @@
 """Tests for the usage of the mock Flask application."""
 
+import email.utils
 import io
 import json
+import time
 import uuid
 from collections.abc import Iterator
 from http import HTTPStatus
@@ -605,3 +607,63 @@ class TestTargetRaters:
         assert lowest_rating >= minimum_rating
         assert highest_rating <= maximum_rating
         assert lowest_rating != highest_rating
+
+
+class TestResponseDelay:
+    """Tests for the response delay feature.
+
+    These tests run through the ``responses`` library, which intercepts
+    requests in-process. Because of this, the client ``timeout`` parameter
+    is not enforced — the delay blocks but never raises
+    ``requests.exceptions.Timeout``. When running the Flask app as a real
+    server (e.g. in Docker), the delay causes a genuinely slow HTTP
+    response and the ``requests`` client will raise ``Timeout`` on its own.
+    """
+
+    DELAY_SECONDS = 0.5
+
+    @staticmethod
+    def _make_request() -> None:
+        """Make a request to the VWS API."""
+        requests.get(
+            url="https://vws.vuforia.com/summary",
+            headers={
+                "Date": email.utils.formatdate(
+                    timeval=None,
+                    localtime=False,
+                    usegmt=True,
+                ),
+                "Authorization": "bad_auth_token",
+            },
+            data=b"",
+            timeout=30,
+        )
+
+    def test_default_no_delay(self) -> None:
+        """By default, there is no response delay."""
+        database = VuforiaDatabase()
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+
+        start = time.monotonic()
+        self._make_request()
+        elapsed = time.monotonic() - start
+        assert elapsed < self.DELAY_SECONDS
+
+    def test_delay_is_applied(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """When response_delay_seconds is set, the response is delayed."""
+        monkeypatch.setenv(
+            name="RESPONSE_DELAY_SECONDS",
+            value=f"{self.DELAY_SECONDS}",
+        )
+        database = VuforiaDatabase()
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+
+        start = time.monotonic()
+        self._make_request()
+        elapsed = time.monotonic() - start
+        assert elapsed >= self.DELAY_SECONDS
