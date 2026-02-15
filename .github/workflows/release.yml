@@ -31,6 +31,10 @@ jobs:
           # Credentials need to persist for stefanzweifel/git-auto-commit-action.
           # zizmor: ignore[artipacked]
           persist-credentials: true
+          # Use a PAT so that the push from git-auto-commit-action
+          # can bypass repository ruleset required status checks.
+          # The default GITHUB_TOKEN cannot bypass rulesets.
+          token: ${{ secrets.RELEASE_PAT }}
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
