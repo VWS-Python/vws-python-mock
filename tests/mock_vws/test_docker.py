@@ -121,9 +121,16 @@ def test_build_and_run(
         full_log = "\n".join(
             [item["stream"] for item in exc.build_log if "stream" in item],
         )
+        windows_message_substrings = (
+            "no matching manifest for windows/amd64",
+            "no matching manifest for windows(10.0.26100)/amd64",
+        )
         # If this assertion fails, it may be useful to look at the other
         # properties of ``exc``.
-        if "no matching manifest for windows/amd64" not in exc.msg:
+        if not any(
+            windows_message_substring in exc.msg
+            for windows_message_substring in windows_message_substrings
+        ):
             raise AssertionError(full_log) from exc
         pytest.skip(
             reason="We do not currently support using Windows containers."
