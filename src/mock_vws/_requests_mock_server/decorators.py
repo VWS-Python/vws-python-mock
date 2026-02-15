@@ -2,7 +2,7 @@
 
 import re
 from contextlib import ContextDecorator
-from typing import TYPE_CHECKING, Literal, Self
+from typing import Literal, Self
 from urllib.parse import urljoin, urlparse
 
 from beartype import BeartypeConf, beartype
@@ -21,9 +21,6 @@ from mock_vws.target_raters import (
 
 from .mock_web_query_api import MockVuforiaWebQueryAPI
 from .mock_web_services_api import MockVuforiaWebServicesAPI
-
-if TYPE_CHECKING:
-    from collections.abc import Iterable
 
 _STRUCTURAL_SIMILARITY_MATCHER = StructuralSimilarityMatcher()
 _BRISQUE_TRACKING_RATER = BrisqueTargetTrackingRater()
@@ -130,8 +127,6 @@ class MockVWS(ContextDecorator):
         Returns:
             ``self``.
         """
-        compiled_url_patterns: Iterable[re.Pattern[str]] = set()
-
         mock = RequestsMock(assert_all_requests_are_fired=False)
         for vws_route in self._mock_vws_api.routes:
             url_pattern = urljoin(
@@ -139,10 +134,6 @@ class MockVWS(ContextDecorator):
                 url=f"{vws_route.path_pattern}$",
             )
             compiled_url_pattern = re.compile(pattern=url_pattern)
-            compiled_url_patterns = {
-                *compiled_url_patterns,
-                compiled_url_pattern,
-            }
 
             for vws_http_method in vws_route.http_methods:
                 mock.add_callback(
@@ -158,10 +149,6 @@ class MockVWS(ContextDecorator):
                 url=f"{vwq_route.path_pattern}$",
             )
             compiled_url_pattern = re.compile(pattern=url_pattern)
-            compiled_url_patterns = {
-                *compiled_url_patterns,
-                compiled_url_pattern,
-            }
 
             for vwq_http_method in vwq_route.http_methods:
                 mock.add_callback(
