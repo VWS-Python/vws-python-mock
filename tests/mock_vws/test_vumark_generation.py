@@ -10,7 +10,6 @@ import requests
 from vws import VWS
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from mock_vws import MockVWS
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuforiaDatabase
 
@@ -107,105 +106,95 @@ def _generate_vumark_instance_with_body(
     return requests.post(url=url, data=content, headers=headers, timeout=30)
 
 
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestSuccessfulGeneration:
     """Tests for successful VuMark instance generation."""
 
     @staticmethod
-    def test_svg_generation(image_file_failed_state: io.BytesIO) -> None:
+    def test_svg_generation(
+        image_file_failed_state: io.BytesIO,
+        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
+    ) -> None:
         """SVG images can be generated."""
-        database = VuforiaDatabase()
-        with MockVWS() as mock:
-            mock.add_database(database=database)
-            vws_client = VWS(
-                server_access_key=database.server_access_key,
-                server_secret_key=database.server_secret_key,
-            )
+        target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=image_file_failed_state,
+            active_flag=True,
+            application_metadata=None,
+        )
 
-            target_id = vws_client.add_target(
-                name=uuid.uuid4().hex,
-                width=1,
-                image=image_file_failed_state,
-                active_flag=True,
-                application_metadata=None,
-            )
+        response = _generate_vumark_instance(
+            database=vuforia_database,
+            target_id=target_id,
+            instance_id="test123",
+            accept="image/svg+xml",
+        )
 
-            response = _generate_vumark_instance(
-                database=database,
-                target_id=target_id,
-                instance_id="test123",
-                accept="image/svg+xml",
-            )
-
-            assert response.status_code == HTTPStatus.OK
-            assert response.headers["Content-Type"] == "image/svg+xml"
-            # Verify the response contains valid SVG
-            assert b"<?xml" in response.content
-            assert b"<svg" in response.content
-            assert b"test123" in response.content
+        assert response.status_code == HTTPStatus.OK
+        assert response.headers["Content-Type"] == "image/svg+xml"
+        # Verify the response contains valid SVG
+        assert b"<?xml" in response.content
+        assert b"<svg" in response.content
+        assert b"test123" in response.content
 
     @staticmethod
-    def test_png_generation(image_file_failed_state: io.BytesIO) -> None:
+    def test_png_generation(
+        image_file_failed_state: io.BytesIO,
+        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
+    ) -> None:
         """PNG images can be generated."""
-        database = VuforiaDatabase()
-        with MockVWS() as mock:
-            mock.add_database(database=database)
-            vws_client = VWS(
-                server_access_key=database.server_access_key,
-                server_secret_key=database.server_secret_key,
-            )
+        target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=image_file_failed_state,
+            active_flag=True,
+            application_metadata=None,
+        )
 
-            target_id = vws_client.add_target(
-                name=uuid.uuid4().hex,
-                width=1,
-                image=image_file_failed_state,
-                active_flag=True,
-                application_metadata=None,
-            )
+        response = _generate_vumark_instance(
+            database=vuforia_database,
+            target_id=target_id,
+            instance_id="test456",
+            accept="image/png",
+        )
 
-            response = _generate_vumark_instance(
-                database=database,
-                target_id=target_id,
-                instance_id="test456",
-                accept="image/png",
-            )
-
-            assert response.status_code == HTTPStatus.OK
-            assert response.headers["Content-Type"] == "image/png"
-            # Verify the response contains PNG magic bytes
-            assert response.content[:8] == b"\x89PNG\r\n\x1a\n"
+        assert response.status_code == HTTPStatus.OK
+        assert response.headers["Content-Type"] == "image/png"
+        # Verify the response contains PNG magic bytes
+        assert response.content[:8] == b"\x89PNG\r\n\x1a\n"
 
     @staticmethod
-    def test_pdf_generation(image_file_failed_state: io.BytesIO) -> None:
+    def test_pdf_generation(
+        image_file_failed_state: io.BytesIO,
+        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
+    ) -> None:
         """PDF documents can be generated."""
-        database = VuforiaDatabase()
-        with MockVWS() as mock:
-            mock.add_database(database=database)
-            vws_client = VWS(
-                server_access_key=database.server_access_key,
-                server_secret_key=database.server_secret_key,
-            )
+        target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=image_file_failed_state,
+            active_flag=True,
+            application_metadata=None,
+        )
 
-            target_id = vws_client.add_target(
-                name=uuid.uuid4().hex,
-                width=1,
-                image=image_file_failed_state,
-                active_flag=True,
-                application_metadata=None,
-            )
+        response = _generate_vumark_instance(
+            database=vuforia_database,
+            target_id=target_id,
+            instance_id="test789",
+            accept="application/pdf",
+        )
 
-            response = _generate_vumark_instance(
-                database=database,
-                target_id=target_id,
-                instance_id="test789",
-                accept="application/pdf",
-            )
-
-            assert response.status_code == HTTPStatus.OK
-            assert response.headers["Content-Type"] == "application/pdf"
-            # Verify the response contains PDF header
-            assert response.content.startswith(b"%PDF-")
+        assert response.status_code == HTTPStatus.OK
+        assert response.headers["Content-Type"] == "application/pdf"
+        # Verify the response contains PDF header
+        assert response.content.startswith(b"%PDF-")
 
 
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestInvalidAcceptHeader:
     """Tests for invalid Accept headers."""
 
@@ -229,40 +218,35 @@ class TestInvalidAcceptHeader:
     )
     def test_invalid_accept_header(
         image_file_failed_state: io.BytesIO,
+        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         accept_header: str,
     ) -> None:
         """An error is returned for invalid Accept headers."""
-        database = VuforiaDatabase()
-        with MockVWS() as mock:
-            mock.add_database(database=database)
-            vws_client = VWS(
-                server_access_key=database.server_access_key,
-                server_secret_key=database.server_secret_key,
-            )
+        target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=image_file_failed_state,
+            active_flag=True,
+            application_metadata=None,
+        )
 
-            target_id = vws_client.add_target(
-                name=uuid.uuid4().hex,
-                width=1,
-                image=image_file_failed_state,
-                active_flag=True,
-                application_metadata=None,
-            )
+        response = _generate_vumark_instance(
+            database=vuforia_database,
+            target_id=target_id,
+            instance_id="test123",
+            accept=accept_header,
+        )
 
-            response = _generate_vumark_instance(
-                database=database,
-                target_id=target_id,
-                instance_id="test123",
-                accept=accept_header,
-            )
-
-            assert response.status_code == HTTPStatus.BAD_REQUEST
-            response_json = response.json()
-            assert (
-                response_json["result_code"]
-                == ResultCodes.INVALID_ACCEPT_HEADER.value
-            )
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        response_json = response.json()
+        assert (
+            response_json["result_code"]
+            == ResultCodes.INVALID_ACCEPT_HEADER.value
+        )
 
 
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestInvalidInstanceId:
     """Tests for invalid instance IDs."""
 
@@ -280,144 +264,123 @@ class TestInvalidInstanceId:
     )
     def test_invalid_instance_id(
         image_file_failed_state: io.BytesIO,
+        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
         instance_id: str | None,
     ) -> None:
         """An error is returned for invalid instance IDs."""
-        database = VuforiaDatabase()
-        with MockVWS() as mock:
-            mock.add_database(database=database)
-            vws_client = VWS(
-                server_access_key=database.server_access_key,
-                server_secret_key=database.server_secret_key,
-            )
+        target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=image_file_failed_state,
+            active_flag=True,
+            application_metadata=None,
+        )
 
-            target_id = vws_client.add_target(
-                name=uuid.uuid4().hex,
-                width=1,
-                image=image_file_failed_state,
-                active_flag=True,
-                application_metadata=None,
-            )
+        response = _generate_vumark_instance(
+            database=vuforia_database,
+            target_id=target_id,
+            instance_id=instance_id,
+            accept="image/svg+xml",
+        )
 
-            response = _generate_vumark_instance(
-                database=database,
-                target_id=target_id,
-                instance_id=instance_id,
-                accept="image/svg+xml",
-            )
-
-            assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-            response_json = response.json()
-            assert (
-                response_json["result_code"]
-                == ResultCodes.INVALID_INSTANCE_ID.value
-            )
+        assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+        response_json = response.json()
+        assert (
+            response_json["result_code"]
+            == ResultCodes.INVALID_INSTANCE_ID.value
+        )
 
     @staticmethod
     def test_missing_instance_id(
         image_file_failed_state: io.BytesIO,
+        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """An error is returned when instance_id is missing from the body.
 
         The key validator rejects the request with a "Fail" error (400)
         because instance_id is a required field.
         """
-        database = VuforiaDatabase()
-        with MockVWS() as mock:
-            mock.add_database(database=database)
-            vws_client = VWS(
-                server_access_key=database.server_access_key,
-                server_secret_key=database.server_secret_key,
-            )
+        target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=image_file_failed_state,
+            active_flag=True,
+            application_metadata=None,
+        )
 
-            target_id = vws_client.add_target(
-                name=uuid.uuid4().hex,
-                width=1,
-                image=image_file_failed_state,
-                active_flag=True,
-                application_metadata=None,
-            )
+        response = _generate_vumark_instance_with_body(
+            database=vuforia_database,
+            target_id=target_id,
+            body={},  # No instance_id
+            accept="image/svg+xml",
+        )
 
-            response = _generate_vumark_instance_with_body(
-                database=database,
-                target_id=target_id,
-                body={},  # No instance_id
-                accept="image/svg+xml",
-            )
-
-            # Missing required keys return a "Fail" error
-            assert response.status_code == HTTPStatus.BAD_REQUEST
-            response_json = response.json()
-            assert response_json["result_code"] == ResultCodes.FAIL.value
+        # Missing required keys return a "Fail" error
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        response_json = response.json()
+        assert response_json["result_code"] == ResultCodes.FAIL.value
 
     @staticmethod
     def test_integer_instance_id(
         image_file_failed_state: io.BytesIO,
+        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
     ) -> None:
         """An error is returned when instance_id is not a string."""
-        database = VuforiaDatabase()
-        with MockVWS() as mock:
-            mock.add_database(database=database)
-            vws_client = VWS(
-                server_access_key=database.server_access_key,
-                server_secret_key=database.server_secret_key,
-            )
+        target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=image_file_failed_state,
+            active_flag=True,
+            application_metadata=None,
+        )
 
-            target_id = vws_client.add_target(
-                name=uuid.uuid4().hex,
-                width=1,
-                image=image_file_failed_state,
-                active_flag=True,
-                application_metadata=None,
-            )
+        response = _generate_vumark_instance(
+            database=vuforia_database,
+            target_id=target_id,
+            instance_id=12345,
+            accept="image/svg+xml",
+        )
 
-            response = _generate_vumark_instance(
-                database=database,
-                target_id=target_id,
-                instance_id=12345,
-                accept="image/svg+xml",
-            )
-
-            assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-            response_json = response.json()
-            assert (
-                response_json["result_code"]
-                == ResultCodes.INVALID_INSTANCE_ID.value
-            )
+        assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+        response_json = response.json()
+        assert (
+            response_json["result_code"]
+            == ResultCodes.INVALID_INSTANCE_ID.value
+        )
 
 
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestResponseHeaders:
     """Tests for response headers."""
 
     @staticmethod
-    def test_response_headers(image_file_failed_state: io.BytesIO) -> None:
+    def test_response_headers(
+        image_file_failed_state: io.BytesIO,
+        vuforia_database: VuforiaDatabase,
+        vws_client: VWS,
+    ) -> None:
         """The response includes expected headers."""
-        database = VuforiaDatabase()
-        with MockVWS() as mock:
-            mock.add_database(database=database)
-            vws_client = VWS(
-                server_access_key=database.server_access_key,
-                server_secret_key=database.server_secret_key,
-            )
+        target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=image_file_failed_state,
+            active_flag=True,
+            application_metadata=None,
+        )
 
-            target_id = vws_client.add_target(
-                name=uuid.uuid4().hex,
-                width=1,
-                image=image_file_failed_state,
-                active_flag=True,
-                application_metadata=None,
-            )
+        response = _generate_vumark_instance(
+            database=vuforia_database,
+            target_id=target_id,
+            instance_id="test123",
+            accept="image/svg+xml",
+        )
 
-            response = _generate_vumark_instance(
-                database=database,
-                target_id=target_id,
-                instance_id="test123",
-                accept="image/svg+xml",
-            )
-
-            assert response.status_code == HTTPStatus.OK
-            assert response.headers["Connection"] == "keep-alive"
-            assert response.headers["server"] == "envoy"
-            assert response.headers["Content-Type"] == "image/svg+xml"
-            assert "Content-Length" in response.headers
-            assert "Date" in response.headers
+        assert response.status_code == HTTPStatus.OK
+        assert response.headers["Connection"] == "keep-alive"
+        assert response.headers["server"] == "envoy"
+        assert response.headers["Content-Type"] == "image/svg+xml"
+        assert "Content-Length" in response.headers
+        assert "Date" in response.headers
