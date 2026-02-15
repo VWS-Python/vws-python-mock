@@ -154,15 +154,16 @@ class MockVWS(ContextDecorator):
             # library onto PreparedRequest objects - it is not
             # in the requests type stubs.
             req_kwargs: dict[str, Any] = getattr(request, "req_kwargs", {})
-            timeout = req_kwargs.get("timeout")
+            timeout: tuple[float, float] | float | int | None = req_kwargs.get(
+                "timeout"
+            )
             # requests allows timeout as a (connect, read)
             # tuple. The delay simulates server response
             # time, so compare against the read timeout.
-            effective: float | None = None
             if isinstance(timeout, tuple):
-                if isinstance(timeout[1], (int, float)):
-                    effective = float(timeout[1])
-            elif isinstance(timeout, (int, float)):
+                timeout = timeout[1]
+            effective: float | None = None
+            if isinstance(timeout, (int, float)):
                 effective = float(timeout)
 
             if effective is not None and delay_seconds > effective:
