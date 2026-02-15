@@ -106,7 +106,7 @@ def _generate_vumark_instance_with_body(
     return requests.post(url=url, data=content, headers=headers, timeout=30)
 
 
-@pytest.mark.usefixtures("verify_mock_vuforia")
+@pytest.mark.usefixtures("mock_only_vuforia")
 class TestSuccessfulGeneration:
     """Tests for successful VuMark instance generation."""
 
@@ -194,7 +194,7 @@ class TestSuccessfulGeneration:
         assert response.content.startswith(b"%PDF-")
 
 
-@pytest.mark.usefixtures("verify_mock_vuforia")
+@pytest.mark.usefixtures("mock_only_vuforia")
 class TestInvalidAcceptHeader:
     """Tests for invalid Accept headers."""
 
@@ -246,7 +246,7 @@ class TestInvalidAcceptHeader:
         )
 
 
-@pytest.mark.usefixtures("verify_mock_vuforia")
+@pytest.mark.usefixtures("mock_only_vuforia")
 class TestInvalidInstanceId:
     """Tests for invalid instance IDs."""
 
@@ -352,7 +352,7 @@ class TestInvalidInstanceId:
         )
 
 
-@pytest.mark.usefixtures("verify_mock_vuforia")
+@pytest.mark.usefixtures("mock_only_vuforia")
 class TestResponseHeaders:
     """Tests for response headers."""
 
