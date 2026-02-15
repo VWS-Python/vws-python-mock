@@ -11,7 +11,6 @@ from types import SimpleNamespace
 import pytest
 from vws import VWS
 
-from mock_vws import target as target_module
 from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import assert_vws_failure
@@ -69,8 +68,7 @@ class TestTargetIdNamedInstances:
         """
         target_id = "instances"
         monkeypatch.setattr(
-            target_module.uuid,
-            "uuid4",
+            "mock_vws.target.uuid.uuid4",
             lambda: SimpleNamespace(hex=target_id),
         )
 
