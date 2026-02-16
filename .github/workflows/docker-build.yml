@@ -23,13 +23,6 @@ jobs:
     name: Build Docker images
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        image:
-          - name: target-manager
-          - name: vws
-          - name: vwq
-
     steps:
       - uses: actions/checkout@v6
         with:
@@ -41,24 +34,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build Docker image
-        uses: docker/build-push-action@v6.18.0
+      - name: Check Docker bake definition
+        uses: docker/bake-action@v6.10.0
         with:
-          platforms: linux/amd64,linux/arm64
-          file: src/mock_vws/_flask_server/Dockerfile
-          push: false
-          target: ${{ matrix.image.name }}
-          tags: |-
-            adamtheturtle/vuforia-${{ matrix.image.name }}-mock:latest
+          call: check
 
-  completion-docker:
-    needs: build
-    runs-on: ubuntu-latest
-    if: always()  # Run even if one matrix job fails
-    steps:
-      - name: Check matrix job status
-        run: |-
-          if ! ${{ needs.build.result == 'success' }}; then
-            echo "One or more matrix jobs failed"
-            exit 1
-          fi
+      - name: Build Docker images
+        uses: docker/bake-action@v6.10.0
+        with:
+          push: false

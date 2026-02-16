@@ -8,6 +8,7 @@ import base64
 import email.utils
 import json
 import logging
+import time
 import uuid
 from enum import StrEnum, auto
 from http import HTTPMethod, HTTPStatus
@@ -70,8 +71,8 @@ class _ImageMatcherChoice(StrEnum):
                 return ExactMatcher()
             case self.STRUCTURAL_SIMILARITY:
                 return StructuralSimilarityMatcher()
-
-        raise ValueError  # pragma: no cover
+            case _:  # pragma: no cover
+                raise ValueError
 
 
 @beartype
@@ -84,6 +85,7 @@ class VWSSettings(BaseSettings):
     duplicates_image_matcher: _ImageMatcherChoice = (
         _ImageMatcherChoice.STRUCTURAL_SIMILARITY
     )
+    response_delay_seconds: float = 0.0
 
 
 @beartype
@@ -139,6 +141,15 @@ def validate_request() -> None:
         request_path=request.path,
         databases=databases,
     )
+
+
+@VWS_FLASK_APP.after_request
+@beartype
+def add_response_delay(response: Response) -> Response:
+    """Add a delay to each response."""
+    settings = VWSSettings.model_validate(obj={})
+    time.sleep(settings.response_delay_seconds)
+    return response
 
 
 @VWS_FLASK_APP.errorhandler(code_or_exception=ValidatorError)

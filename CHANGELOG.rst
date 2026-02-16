@@ -4,6 +4,23 @@ Changelog
 Next
 ----
 
+2026.02.15.5
+------------
+
+
+2026.02.15.4
+------------
+
+
+- Add ``sleep_fn`` parameter to ``MockVWS`` for injecting a custom delay strategy, enabling deterministic and fast tests without monkey-patching.
+
+2026.02.15.3
+------------
+
+
+- Add ``response_delay_seconds`` parameter to ``MockVWS`` for simulating slow server responses and testing timeout handling.
+- Add ``response_delay_seconds`` setting to the Flask mock (``VWSSettings`` and ``VWQSettings``) for simulating slow server responses.
+
 2025.03.10.1
 ------------
 

@@ -4,20 +4,17 @@ name: Release
 on: workflow_dispatch
 
 jobs:
-  build:
-    name: Publish a release
+  release:
+    name: Create release
     runs-on: ubuntu-latest
 
-    # Specifying an environment is strongly recommended by PyPI.
-    # See https://github.com/pypa/gh-action-pypi-publish/tree/release/v1/?tab=readme-ov-file#trusted-publishing.
-    environment: release
-
     permissions:
-      # This is needed for PyPI publishing.
-      # See https://github.com/pypa/gh-action-pypi-publish/tree/release/v1/?tab=readme-ov-file#trusted-publishing.
-      id-token: write
       # This is needed for https://github.com/stefanzweifel/git-auto-commit-action.
       contents: write
+
+    outputs:
+      version: ${{ steps.calver.outputs.release }}
+      tag: ${{ steps.tag_version.outputs.new_tag }}
 
     steps:
       - uses: actions/checkout@v6
@@ -28,13 +25,13 @@ jobs:
           # Also, avoids
           # https://github.com/stefanzweifel/git-auto-commit-action/issues/99.
           fetch-depth: 0
-          persist-credentials: false
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          enable-cache: true
-          cache-dependency-glob: '**/pyproject.toml'
+          # Credentials need to persist for stefanzweifel/git-auto-commit-action.
+          # zizmor: ignore[artipacked]
+          persist-credentials: true
+          # Use a PAT so that the push from git-auto-commit-action
+          # can bypass repository ruleset required status checks.
+          # The default GITHUB_TOKEN cannot bypass rulesets.
+          token: ${{ secrets.RELEASE_PAT }}
 
       - name: Calver calculate version
         uses: StephaneBour/actions-calver@master
@@ -96,10 +93,37 @@ jobs:
           name: Release ${{ steps.tag_version.outputs.new_tag }}
           body: ${{ steps.tag_version.outputs.changelog }}
 
+  pypi:
+    name: Publish to PyPI
+    needs: release
+    runs-on: ubuntu-latest
+
+    # Specifying an environment is strongly recommended by PyPI.
+    # See https://github.com/pypa/gh-action-pypi-publish/tree/release/v1/?tab=readme-ov-file#trusted-publishing.
+    environment: release
+
+    permissions:
+      # This is needed for PyPI publishing.
+      # See https://github.com/pypa/gh-action-pypi-publish/tree/release/v1/?tab=readme-ov-file#trusted-publishing.
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.release.outputs.tag }}
+          # Fetch all history including tags.
+          # Needed for setuptools-scm version detection.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: '**/pyproject.toml'
+
       - name: Build a binary wheel and a source tarball
         run: |
-          git fetch --tags
-          git checkout ${{ steps.tag_version.outputs.new_tag }}
           uv build --sdist --wheel --out-dir dist/
           uv run --extra=release check-wheel-contents dist/*.whl
 
@@ -109,6 +133,19 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           verbose: true
+
+  docker:
+    name: Publish Docker images
+    needs: release
+    runs-on: ubuntu-latest
+
+    permissions: {}
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.release.outputs.tag }}
+          persist-credentials: false
 
       - name: Login to DockerHub
         uses: docker/login-action@v3
@@ -122,35 +159,9 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-      - name: Build and push target manager Docker image
-        uses: docker/build-push-action@v6.18.0
+      - name: Build and push Docker images
+        uses: docker/bake-action@v6.10.0
         with:
-          file: src/mock_vws/_flask_server/Dockerfile
-          platforms: linux/amd64,linux/arm64
           push: true
-          target: target-manager
-          tags: |
-            adamtheturtle/vuforia-target-manager-mock:latest
-            adamtheturtle/vuforia-target-manager-mock:${{ steps.calver.outputs.release }}
-
-      - name: Build and push VWS Docker image
-        uses: docker/build-push-action@v6.18.0
-        with:
-          file: src/mock_vws/_flask_server/Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: true
-          target: vws
-          tags: |
-            adamtheturtle/vuforia-vws-mock:latest
-            adamtheturtle/vuforia-vws-mock:${{ steps.calver.outputs.release }}
-
-      - name: Build and push VWQ Docker image
-        uses: docker/build-push-action@v6.18.0
-        with:
-          file: src/mock_vws/_flask_server/Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: true
-          target: vwq
-          tags: |-
-            adamtheturtle/vuforia-vwq-mock:latest
-            adamtheturtle/vuforia-vwq-mock:${{ steps.calver.outputs.release }}
+        env:
+          VERSION: ${{ needs.release.outputs.version }}

@@ -5,6 +5,7 @@ https://developer.vuforia.com/library/web-api/vuforia-query-web-api
 """
 
 import email.utils
+import time
 from enum import StrEnum, auto
 from http import HTTPMethod, HTTPStatus
 
@@ -45,8 +46,8 @@ class _ImageMatcherChoice(StrEnum):
                 return ExactMatcher()
             case self.STRUCTURAL_SIMILARITY:
                 return StructuralSimilarityMatcher()
-
-        raise ValueError  # pragma: no cover
+            case _:  # pragma: no cover
+                raise ValueError
 
 
 @beartype
@@ -58,6 +59,7 @@ class VWQSettings(BaseSettings):
     query_image_matcher: _ImageMatcherChoice = (
         _ImageMatcherChoice.STRUCTURAL_SIMILARITY
     )
+    response_delay_seconds: float = 0.0
 
 
 @beartype
@@ -99,6 +101,15 @@ def set_terminate_wsgi_input() -> None:
 
     if set_terminate_wsgi_input_true:
         request.environ["wsgi.input_terminated"] = True
+
+
+@CLOUDRECO_FLASK_APP.after_request
+@beartype
+def add_response_delay(response: Response) -> Response:
+    """Add a delay to each response."""
+    settings = VWQSettings.model_validate(obj={})
+    time.sleep(settings.response_delay_seconds)
+    return response
 
 
 @CLOUDRECO_FLASK_APP.errorhandler(code_or_exception=ValidatorError)

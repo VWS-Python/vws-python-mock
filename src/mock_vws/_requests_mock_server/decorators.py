@@ -1,11 +1,15 @@
 """Decorators for using the mock."""
 
 import re
+import time
+from collections.abc import Callable, Mapping
 from contextlib import ContextDecorator
-from typing import TYPE_CHECKING, Literal, Self
+from typing import Any, Literal, Self
 from urllib.parse import urljoin, urlparse
 
+import requests
 from beartype import BeartypeConf, beartype
+from requests import PreparedRequest
 from responses import RequestsMock
 
 from mock_vws.database import VuforiaDatabase
@@ -22,8 +26,8 @@ from mock_vws.target_raters import (
 from .mock_web_query_api import MockVuforiaWebQueryAPI
 from .mock_web_services_api import MockVuforiaWebServicesAPI
 
-if TYPE_CHECKING:
-    from collections.abc import Iterable
+_ResponseType = tuple[int, Mapping[str, str], str]
+_Callback = Callable[[PreparedRequest], _ResponseType]
 
 _STRUCTURAL_SIMILARITY_MATCHER = StructuralSimilarityMatcher()
 _BRISQUE_TRACKING_RATER = BrisqueTargetTrackingRater()
@@ -65,6 +69,8 @@ class MockVWS(ContextDecorator):
         processing_time_seconds: float = 2.0,
         target_tracking_rater: TargetTrackingRater = _BRISQUE_TRACKING_RATER,
         real_http: bool = False,
+        response_delay_seconds: float = 0.0,
+        sleep_fn: Callable[[float], None] = time.sleep,
     ) -> None:
         """Route requests to Vuforia's Web Service APIs to fakes of those
         APIs.
@@ -84,12 +90,20 @@ class MockVWS(ContextDecorator):
             duplicate_match_checker: A callable which takes two image values
                 and returns whether they are duplicates.
             target_tracking_rater: A callable for rating targets for tracking.
+            response_delay_seconds: The number of seconds to delay each
+                response by. This can be used to test timeout handling.
+            sleep_fn: The function to use for sleeping during response
+                delays. Defaults to ``time.sleep``. Inject a custom
+                function to control virtual time in tests without
+                monkey-patching.
 
         Raises:
             MissingSchemeError: There is no scheme in a given URL.
         """
         super().__init__()
         self._real_http = real_http
+        self._response_delay_seconds = response_delay_seconds
+        self._sleep_fn = sleep_fn
         self._mock: RequestsMock
         self._target_manager = TargetManager()
 
@@ -124,52 +138,75 @@ class MockVWS(ContextDecorator):
         """
         self._target_manager.add_database(database=database)
 
+    @staticmethod
+    def _wrap_callback(
+        callback: _Callback,
+        delay_seconds: float,
+        sleep_fn: Callable[[float], None],
+    ) -> _Callback:
+        """Wrap a callback to add a response delay."""
+
+        def wrapped(
+            request: PreparedRequest,
+        ) -> _ResponseType:
+            """Handle the response delay and timeout logic."""
+            # req_kwargs is added dynamically by the responses
+            # library onto PreparedRequest objects - it is not
+            # in the requests type stubs.
+            req_kwargs: dict[str, Any] = getattr(request, "req_kwargs", {})
+            timeout: tuple[float, float] | float | int | None = req_kwargs.get(
+                "timeout"
+            )
+            # requests allows timeout as a (connect, read)
+            # tuple. The delay simulates server response
+            # time, so compare against the read timeout.
+            if isinstance(timeout, tuple):
+                timeout = timeout[1]
+            effective: float | None = None
+            if isinstance(timeout, (int, float)):
+                effective = float(timeout)
+
+            if effective is not None and delay_seconds > effective:
+                sleep_fn(effective)
+                raise requests.exceptions.Timeout
+
+            result = callback(request)
+            sleep_fn(delay_seconds)
+            return result
+
+        return wrapped
+
     def __enter__(self) -> Self:
         """Start an instance of a Vuforia mock.
 
         Returns:
             ``self``.
         """
-        compiled_url_patterns: Iterable[re.Pattern[str]] = set()
-
         mock = RequestsMock(assert_all_requests_are_fired=False)
-        for vws_route in self._mock_vws_api.routes:
-            url_pattern = urljoin(
-                base=self._base_vws_url,
-                url=f"{vws_route.path_pattern}$",
-            )
-            compiled_url_pattern = re.compile(pattern=url_pattern)
-            compiled_url_patterns = {
-                *compiled_url_patterns,
-                compiled_url_pattern,
-            }
 
-            for vws_http_method in vws_route.http_methods:
-                mock.add_callback(
-                    method=vws_http_method,
-                    url=compiled_url_pattern,
-                    callback=getattr(self._mock_vws_api, vws_route.route_name),
-                    content_type=None,
+        for api, base_url in (
+            (self._mock_vws_api, self._base_vws_url),
+            (self._mock_vwq_api, self._base_vwq_url),
+        ):
+            for route in api.routes:
+                url_pattern = urljoin(
+                    base=base_url,
+                    url=f"{route.path_pattern}$",
                 )
+                compiled_url_pattern = re.compile(pattern=url_pattern)
 
-        for vwq_route in self._mock_vwq_api.routes:
-            url_pattern = urljoin(
-                base=self._base_vwq_url,
-                url=f"{vwq_route.path_pattern}$",
-            )
-            compiled_url_pattern = re.compile(pattern=url_pattern)
-            compiled_url_patterns = {
-                *compiled_url_patterns,
-                compiled_url_pattern,
-            }
-
-            for vwq_http_method in vwq_route.http_methods:
-                mock.add_callback(
-                    method=vwq_http_method,
-                    url=compiled_url_pattern,
-                    callback=getattr(self._mock_vwq_api, vwq_route.route_name),
-                    content_type=None,
-                )
+                for http_method in route.http_methods:
+                    original_callback = getattr(api, route.route_name)
+                    mock.add_callback(
+                        method=http_method,
+                        url=compiled_url_pattern,
+                        callback=self._wrap_callback(
+                            callback=original_callback,
+                            delay_seconds=self._response_delay_seconds,
+                            sleep_fn=self._sleep_fn,
+                        ),
+                        content_type=None,
+                    )
 
         if self._real_http:
             all_requests_pattern = re.compile(pattern=".*")
