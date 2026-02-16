@@ -3,7 +3,6 @@
 import json
 from http import HTTPMethod, HTTPStatus
 
-import pytest
 import requests
 from vws_auth_tools import authorization_header, rfc_1123_date
 
@@ -17,17 +16,6 @@ def test_generate_instance_success(
     vumark_vuforia_database: VuMarkVuforiaDatabase,
 ) -> None:
     """A VuMark instance can be generated with valid template settings."""
-    if vumark_vuforia_database.target_id.startswith(
-        "<"
-    ) or vumark_vuforia_database.instance_id.startswith("<"):
-        pytest.skip(
-            reason=(
-                "VuMark generation settings are placeholders. "
-                "Set VUMARK_VUFORIA_TARGET_ID and "
-                "VUMARK_VUFORIA_INSTANCE_ID."
-            ),
-        )
-
     request_path = f"/targets/{vumark_vuforia_database.target_id}/instances"
     content_type = "application/json"
     content = json.dumps(
