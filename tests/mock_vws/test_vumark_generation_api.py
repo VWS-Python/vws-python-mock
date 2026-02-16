@@ -33,6 +33,7 @@ def test_generate_instance_for_missing_target(
     response = requests.post(
         url=_VWS_HOST + request_path,
         headers={
+            "Accept": "image/png",
             "Authorization": authorization_string,
             "Content-Length": str(object=len(content)),
             "Content-Type": content_type,
