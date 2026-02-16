@@ -109,9 +109,6 @@ def _generate_secrets_file_content(
         VUMARK_VUFORIA_TARGET_MANAGER_DATABASE_NAME={vumark_details["database_name"]}
         VUMARK_VUFORIA_SERVER_ACCESS_KEY={vumark_details["server_access_key"]}
         VUMARK_VUFORIA_SERVER_SECRET_KEY={vumark_details["server_secret_key"]}
-
-        INACTIVE_VUMARK_VUFORIA_TARGET_MANAGER_DATABASE_NAME={os.environ["INACTIVE_VUMARK_VUFORIA_TARGET_MANAGER_DATABASE_NAME"]}
-        INACTIVE_VUMARK_VUFORIA_SERVER_SECRET_KEY={os.environ["INACTIVE_VUMARK_VUFORIA_SERVER_SECRET_KEY"]}
         """,
     )
 
