@@ -1,5 +1,6 @@
 """Fixtures for credentials for Vuforia databases."""
 
+from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
@@ -41,12 +42,25 @@ class _VuMarkVuforiaDatabaseSettings(BaseSettings):
     target_manager_database_name: str
     server_access_key: str
     server_secret_key: str
+    target_id: str = "<SHARED_VUMARK_TARGET_ID>"
+    instance_id: str = "<SHARED_VUMARK_INSTANCE_ID>"
 
     model_config = SettingsConfigDict(
         env_prefix="VUMARK_VUFORIA_",
         env_file=Path("vuforia_secrets.env"),
         extra="allow",
     )
+
+
+@dataclass(frozen=True)
+class VuMarkVuforiaDatabase:
+    """Credentials for the VuMark generation API."""
+
+    target_manager_database_name: str
+    server_access_key: str
+    server_secret_key: str
+    target_id: str
+    instance_id: str
 
 
 @pytest.fixture
@@ -81,12 +95,14 @@ def inactive_database() -> VuforiaDatabase:
 
 
 @pytest.fixture
-def vumark_vuforia_database() -> VuforiaDatabase:
+def vumark_vuforia_database() -> VuMarkVuforiaDatabase:
     """Return VuMark VWS credentials from environment variables."""
     settings = _VuMarkVuforiaDatabaseSettings.model_validate(obj={})
 
-    return VuforiaDatabase(
-        database_name=settings.target_manager_database_name,
+    return VuMarkVuforiaDatabase(
+        target_manager_database_name=settings.target_manager_database_name,
         server_access_key=settings.server_access_key,
         server_secret_key=settings.server_secret_key,
+        target_id=settings.target_id,
+        instance_id=settings.instance_id,
     )

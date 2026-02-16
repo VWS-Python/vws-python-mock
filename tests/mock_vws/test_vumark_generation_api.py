@@ -2,49 +2,24 @@
 
 import json
 from http import HTTPMethod, HTTPStatus
-from pathlib import Path
 
 import pytest
 import requests
-from pydantic import ValidationError
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from mock_vws.database import VuforiaDatabase
+from tests.mock_vws.fixtures.credentials import VuMarkVuforiaDatabase
 
 _VWS_HOST = "https://vws.vuforia.com"
 _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
 
-class _VuMarkGenerationSettings(BaseSettings):
-    """Settings needed for VuMark instance generation tests."""
-
-    target_id: str
-    instance_id: str
-
-    model_config = SettingsConfigDict(
-        env_prefix="VUMARK_VUFORIA_",
-        env_file=Path("vuforia_secrets.env"),
-        extra="allow",
-    )
-
-
-def _get_vumark_generation_settings() -> _VuMarkGenerationSettings:
-    """Return generation settings, skipping if they are not configured."""
-    try:
-        settings = _VuMarkGenerationSettings.model_validate(obj={})
-    except ValidationError:
-        pytest.skip(
-            reason=(
-                "VuMark generation settings are not configured. "
-                "Set VUMARK_VUFORIA_TARGET_ID and "
-                "VUMARK_VUFORIA_INSTANCE_ID."
-            ),
-        )
-
-    if settings.target_id.startswith("<") or settings.instance_id.startswith(
+def test_generate_instance_success(
+    vumark_vuforia_database: VuMarkVuforiaDatabase,
+) -> None:
+    """A VuMark instance can be generated with valid template settings."""
+    if vumark_vuforia_database.target_id.startswith(
         "<"
-    ):
+    ) or vumark_vuforia_database.instance_id.startswith("<"):
         pytest.skip(
             reason=(
                 "VuMark generation settings are placeholders. "
@@ -53,19 +28,11 @@ def _get_vumark_generation_settings() -> _VuMarkGenerationSettings:
             ),
         )
 
-    return settings
-
-
-def test_generate_instance_success(
-    vumark_vuforia_database: VuforiaDatabase,
-) -> None:
-    """A VuMark instance can be generated with valid template settings."""
-    settings = _get_vumark_generation_settings()
-    request_path = f"/targets/{settings.target_id}/instances"
+    request_path = f"/targets/{vumark_vuforia_database.target_id}/instances"
     content_type = "application/json"
-    content = json.dumps(obj={"instance_id": settings.instance_id}).encode(
-        encoding="utf-8"
-    )
+    content = json.dumps(
+        obj={"instance_id": vumark_vuforia_database.instance_id}
+    ).encode(encoding="utf-8")
     date = rfc_1123_date()
     authorization_string = authorization_header(
         access_key=vumark_vuforia_database.server_access_key,
