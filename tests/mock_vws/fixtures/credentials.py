@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from mock_vws.database import VuforiaDatabase
@@ -30,6 +31,20 @@ class _InactiveVuforiaDatabaseSettings(_VuforiaDatabaseSettings):
 
     model_config = SettingsConfigDict(
         env_prefix="INACTIVE_VUFORIA_",
+        env_file=Path("vuforia_secrets.env"),
+        extra="allow",
+    )
+
+
+class _VuMarkVuforiaDatabaseSettings(BaseSettings):
+    """Settings for a VuMark Vuforia database."""
+
+    target_manager_database_name: str
+    server_access_key: str
+    server_secret_key: str
+
+    model_config = SettingsConfigDict(
+        env_prefix="VUMARK_VUFORIA_",
         env_file=Path("vuforia_secrets.env"),
         extra="allow",
     )
@@ -63,4 +78,19 @@ def inactive_database() -> VuforiaDatabase:
         client_access_key=settings.client_access_key,
         client_secret_key=settings.client_secret_key,
         state=States.PROJECT_INACTIVE,
+    )
+
+
+@pytest.fixture
+def vumark_vuforia_database() -> VuforiaDatabase:
+    """Return VuMark VWS credentials from environment variables."""
+    try:
+        settings = _VuMarkVuforiaDatabaseSettings.model_validate(obj={})
+    except ValidationError:
+        pytest.skip(reason="VuMark credentials are not configured.")
+
+    return VuforiaDatabase(
+        database_name=settings.target_manager_database_name,
+        server_access_key=settings.server_access_key,
+        server_secret_key=settings.server_secret_key,
     )
