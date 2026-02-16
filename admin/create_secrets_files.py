@@ -12,7 +12,6 @@ from typing import TYPE_CHECKING
 
 import vws_web_tools
 from dotenv import load_dotenv
-from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 
 if TYPE_CHECKING:
@@ -43,8 +42,7 @@ def main() -> None:
 
     while files_to_create:
         if driver is None:
-            # With Safari we get a bunch of errors / timeouts.
-            driver = webdriver.Chrome()
+            driver = vws_web_tools.create_chrome_driver()
         file = files_to_create[-1]
         sys.stdout.write(f"Creating database {file.name}\n")
         time = datetime.datetime.now(tz=datetime.UTC).strftime(
@@ -69,7 +67,7 @@ def main() -> None:
             driver = None
             continue
 
-        vws_web_tools.create_database(
+        vws_web_tools.create_cloud_database(
             driver=driver,
             database_name=database_name,
             license_name=license_name,
