@@ -3,7 +3,6 @@
 from pathlib import Path
 
 import pytest
-from pydantic import ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from mock_vws.database import VuforiaDatabase
@@ -84,10 +83,7 @@ def inactive_database() -> VuforiaDatabase:
 @pytest.fixture
 def vumark_vuforia_database() -> VuforiaDatabase:
     """Return VuMark VWS credentials from environment variables."""
-    try:
-        settings = _VuMarkVuforiaDatabaseSettings.model_validate(obj={})
-    except ValidationError:
-        pytest.skip(reason="VuMark credentials are not configured.")
+    settings = _VuMarkVuforiaDatabaseSettings.model_validate(obj={})
 
     return VuforiaDatabase(
         database_name=settings.target_manager_database_name,

@@ -134,6 +134,7 @@ def main() -> None:
     ]
     files_to_create = [file for file in required_files if not file.exists()]
     driver: WebDriver | None = None
+    shared_vumark_details: VuMarkDatabaseDict | None = None
 
     while files_to_create:
         if driver is None:
@@ -159,21 +160,22 @@ def main() -> None:
             driver = None
             continue
 
-        vumark_details = _create_and_get_vumark_details(
-            driver=driver,
-            vumark_database_name=vumark_database_name,
-        )
-        if vumark_details is None:
-            driver.quit()
-            driver = None
-            continue
+        if shared_vumark_details is None:
+            shared_vumark_details = _create_and_get_vumark_details(
+                driver=driver,
+                vumark_database_name=vumark_database_name,
+            )
+            if shared_vumark_details is None:
+                driver.quit()
+                driver = None
+                continue
 
         driver.quit()
         driver = None
 
         file_contents = _generate_secrets_file_content(
             database_details=database_details,
-            vumark_details=vumark_details,
+            vumark_details=shared_vumark_details,
         )
         file.write_text(data=file_contents)
         sys.stdout.write(f"Created database {file.name}\n")
