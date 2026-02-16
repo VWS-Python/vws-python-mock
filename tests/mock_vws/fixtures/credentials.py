@@ -43,7 +43,6 @@ class _VuMarkVuforiaDatabaseSettings(BaseSettings):
     server_access_key: str
     server_secret_key: str
     target_id: str = "<SHARED_VUMARK_TARGET_ID>"
-    instance_id: str = "<SHARED_VUMARK_INSTANCE_ID>"
 
     model_config = SettingsConfigDict(
         env_prefix="VUMARK_VUFORIA_",
@@ -60,7 +59,6 @@ class VuMarkVuforiaDatabase:
     server_access_key: str
     server_secret_key: str
     target_id: str
-    instance_id: str
 
 
 @pytest.fixture
@@ -104,5 +102,4 @@ def vumark_vuforia_database() -> VuMarkVuforiaDatabase:
         server_access_key=settings.server_access_key,
         server_secret_key=settings.server_secret_key,
         target_id=settings.target_id,
-        instance_id=settings.instance_id,
     )

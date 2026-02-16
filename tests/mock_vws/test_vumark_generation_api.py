@@ -2,6 +2,7 @@
 
 import json
 from http import HTTPMethod, HTTPStatus
+from uuid import uuid4
 
 import requests
 from vws_auth_tools import authorization_header, rfc_1123_date
@@ -18,9 +19,10 @@ def test_generate_instance_success(
     """A VuMark instance can be generated with valid template settings."""
     request_path = f"/targets/{vumark_vuforia_database.target_id}/instances"
     content_type = "application/json"
-    content = json.dumps(
-        obj={"instance_id": vumark_vuforia_database.instance_id}
-    ).encode(encoding="utf-8")
+    generated_instance_id = uuid4().hex
+    content = json.dumps(obj={"instance_id": generated_instance_id}).encode(
+        encoding="utf-8"
+    )
     date = rfc_1123_date()
     authorization_string = authorization_header(
         access_key=vumark_vuforia_database.server_access_key,
