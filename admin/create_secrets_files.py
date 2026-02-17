@@ -13,24 +13,10 @@ from typing import TYPE_CHECKING
 import vws_web_tools
 from dotenv import load_dotenv
 from selenium.common.exceptions import TimeoutException
-from tenacity import (
-    retry,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_exponential,
-)
 
 if TYPE_CHECKING:
     from selenium.webdriver.remote.webdriver import WebDriver
     from vws_web_tools import DatabaseDict, VuMarkDatabaseDict
-
-
-RETRY_ON_TIMEOUT = retry(
-    retry=retry_if_exception_type(exception_types=TimeoutException),
-    stop=stop_after_attempt(max_attempt_number=3),
-    wait=wait_exponential(multiplier=2, min=5, max=30),
-    reraise=True,
-)
 
 
 def _create_and_get_database_details(
@@ -58,7 +44,7 @@ def _create_and_get_database_details(
         license_name=license_name,
     )
 
-    return RETRY_ON_TIMEOUT(vws_web_tools.get_database_details)(
+    return vws_web_tools.get_database_details(
         driver=driver,
         database_name=database_name,
     )
@@ -77,7 +63,7 @@ def _create_and_get_vumark_details(
         database_name=vumark_database_name,
     )
 
-    return RETRY_ON_TIMEOUT(vws_web_tools.get_vumark_database_details)(
+    return vws_web_tools.get_vumark_database_details(
         driver=driver,
         database_name=vumark_database_name,
     )
