@@ -8,7 +8,7 @@ import os
 import sys
 import textwrap
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import vws_web_tools
 from dotenv import load_dotenv
@@ -109,18 +109,16 @@ def _create_and_get_vumark_target_id(
     vumark_template_name: str,
 ) -> str:
     """Upload a VuMark template and get its target ID."""
-    target_id = vws_web_tools.upload_vumark_template(
-        driver=driver,
-        database_name=vumark_database_name,
-        svg_file_path=VUMARK_TEMPLATE_SVG_FILE_PATH,
-        template_name=vumark_template_name,
-        width=100.0,
+    return cast(
+        "str",
+        vws_web_tools.upload_vumark_template(
+            driver=driver,
+            database_name=vumark_database_name,
+            svg_file_path=VUMARK_TEMPLATE_SVG_FILE_PATH,
+            template_name=vumark_template_name,
+            width=100.0,
+        ),
     )
-    if isinstance(target_id, str):
-        return target_id
-
-    msg = "Expected `upload_vumark_template` to return a string target ID."
-    raise RuntimeError(msg)
 
 
 def _create_vuforia_resource_names() -> tuple[str, str, str, str]:
