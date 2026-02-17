@@ -42,6 +42,8 @@ def validate_target_id_exists(
         return
 
     target_id = split_path[-1]
+    if split_path[-1] == "instances":
+        target_id = split_path[-2]
     database = get_database_matching_server_keys(
         request_headers=request_headers,
         request_body=request_body,

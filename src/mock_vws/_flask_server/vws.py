@@ -44,6 +44,12 @@ VWS_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
 
 
 _LOGGER = logging.getLogger(name=__name__)
+_VUMARK_PNG = base64.b64decode(
+    s=(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8A"
+        "AwMCAO7Zl6kAAAAASUVORK5CYII="
+    ),
+)
 
 
 @beartype
@@ -334,6 +340,37 @@ def delete_target(target_id: str) -> Response:
     return Response(
         status=HTTPStatus.OK,
         response=json_dump(body=body),
+        headers=headers,
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/targets/<string:target_id>/instances",
+    methods=[HTTPMethod.POST],
+)
+@beartype
+def generate_vumark_instance(target_id: str) -> Response:
+    """Generate a VuMark instance.
+
+    Fake implementation of
+    https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#generate-instance
+    """
+    # ``target_id`` is validated by request validators.
+    del target_id
+    date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
+    headers = {
+        "Connection": "keep-alive",
+        "Content-Type": "image/png",
+        "server": "envoy",
+        "Date": date,
+        "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
+    }
+    return Response(
+        status=HTTPStatus.OK,
+        response=_VUMARK_PNG,
         headers=headers,
     )
 

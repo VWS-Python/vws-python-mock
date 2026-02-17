@@ -234,7 +234,7 @@ def fixture_verify_mock_vuforia(
     vuforia_database: VuforiaDatabase,
     inactive_database: VuforiaDatabase,
     monkeypatch: pytest.MonkeyPatch,
-) -> Generator[None]:
+) -> Generator[VuforiaBackend]:
     """Test functions which use this fixture are run multiple times. Once
     with
     the real Vuforia, and once with each mock.
@@ -257,11 +257,17 @@ def fixture_verify_mock_vuforia(
         VuforiaBackend.DOCKER_IN_MEMORY: _enable_use_docker_in_memory,
     }[backend]
 
-    yield from enable_function(
+    backend_generator = enable_function(
         working_database=vuforia_database,
         inactive_database=inactive_database,
         monkeypatch=monkeypatch,
     )
+    next(backend_generator)
+    try:
+        yield backend
+    finally:
+        with contextlib.suppress(StopIteration):
+            next(backend_generator)
 
 
 @pytest.fixture(

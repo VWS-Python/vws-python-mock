@@ -34,11 +34,17 @@ from mock_vws.target_manager import TargetManager
 from mock_vws.target_raters import TargetTrackingRater
 
 _TARGET_ID_PATTERN = "[A-Za-z0-9]+"
+_VUMARK_PNG = base64.b64decode(
+    s=(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8A"
+        "AwMCAO7Zl6kAAAAASUVORK5CYII="
+    ),
+)
 
 
 _ROUTES: set[Route] = set()
 
-_ResponseType = tuple[int, Mapping[str, str], str]
+_ResponseType = tuple[int, Mapping[str, str], str | bytes]
 _P = ParamSpec("_P")
 
 
@@ -286,6 +292,42 @@ class MockVuforiaWebServicesAPI:
             "x-content-type-options": "nosniff",
         }
         return HTTPStatus.OK, headers, body_json
+
+    @route(
+        path_pattern=f"/targets/{_TARGET_ID_PATTERN}/instances",
+        http_methods={HTTPMethod.POST},
+    )
+    def generate_vumark_instance(
+        self, request: PreparedRequest
+    ) -> _ResponseType:
+        """Generate a VuMark instance."""
+        try:
+            run_services_validators(
+                request_headers=request.headers,
+                request_body=_body_bytes(request=request),
+                request_method=request.method or "",
+                request_path=request.path_url,
+                databases=self._target_manager.databases,
+            )
+        except ValidatorError as exc:
+            return exc.status_code, exc.headers, exc.response_text
+
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
+        headers = {
+            "Connection": "keep-alive",
+            "Content-Type": "image/png",
+            "Date": date,
+            "server": "envoy",
+            "x-envoy-upstream-service-time": "5",
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
+        }
+        return HTTPStatus.OK, headers, _VUMARK_PNG
 
     @route(path_pattern="/summary", http_methods={HTTPMethod.GET})
     def database_summary(self, request: PreparedRequest) -> _ResponseType:
