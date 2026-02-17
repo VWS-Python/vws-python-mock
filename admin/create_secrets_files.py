@@ -136,50 +136,6 @@ def _create_vuforia_resource_names() -> tuple[str, str, str, str]:
     )
 
 
-def _create_shared_vumark_resources(
-    email_address: str,
-    password: str,
-) -> tuple["VuMarkDatabaseDict", str]:
-    """Create shared VuMark resources used by all generated secrets
-    files.
-    """
-    shared_vumark_details: VuMarkDatabaseDict | None = None
-    shared_vumark_target_id: str | None = None
-
-    while shared_vumark_details is None or shared_vumark_target_id is None:
-        vumark_driver = vws_web_tools.create_chrome_driver()
-        (
-            _license_name,
-            _database_name,
-            vumark_database_name,
-            vumark_template_name,
-        ) = _create_vuforia_resource_names()
-        try:
-            vws_web_tools.log_in(
-                driver=vumark_driver,
-                email_address=email_address,
-                password=password,
-            )
-            vws_web_tools.wait_for_logged_in(driver=vumark_driver)
-            shared_vumark_details = _create_and_get_vumark_details(
-                driver=vumark_driver,
-                vumark_database_name=vumark_database_name,
-            )
-            shared_vumark_target_id = _create_and_get_vumark_target_id(
-                driver=vumark_driver,
-                vumark_database_name=vumark_database_name,
-                vumark_template_name=vumark_template_name,
-            )
-        except TimeoutException:
-            sys.stderr.write(
-                "Timed out waiting for shared VuMark setup/details after "
-                "retries\n"
-            )
-        vumark_driver.quit()
-
-    return shared_vumark_details, shared_vumark_target_id
-
-
 def main() -> None:
     """Create secrets files."""
     email_address = os.environ["VWS_EMAIL_ADDRESS"]
@@ -209,18 +165,8 @@ def main() -> None:
         for i in range(num_databases)
     ]
     files_to_create = [file for file in required_files if not file.exists()]
-    if not files_to_create:
-        sys.stdout.write("No secrets files need to be created.\n")
-        return
-
-    shared_vumark_details, shared_vumark_target_id = (
-        _create_shared_vumark_resources(
-            email_address=email_address,
-            password=password,
-        )
-    )
-
     driver: WebDriver | None = None
+
     while files_to_create:
         if driver is None:
             driver = vws_web_tools.create_chrome_driver()
@@ -229,8 +175,8 @@ def main() -> None:
         (
             license_name,
             database_name,
-            _vumark_database_name,
-            _vumark_template_name,
+            vumark_database_name,
+            vumark_template_name,
         ) = _create_vuforia_resource_names()
 
         try:
@@ -249,14 +195,41 @@ def main() -> None:
             driver = None
             continue
 
+        try:
+            vumark_details = _create_and_get_vumark_details(
+                driver=driver,
+                vumark_database_name=vumark_database_name,
+            )
+        except TimeoutException:
+            sys.stderr.write(
+                "Timed out waiting for VuMark setup/details after retries\n"
+            )
+            driver.quit()
+            driver = None
+            continue
+
+        try:
+            vumark_target_id = _create_and_get_vumark_target_id(
+                driver=driver,
+                vumark_database_name=vumark_database_name,
+                vumark_template_name=vumark_template_name,
+            )
+        except TimeoutException:
+            sys.stderr.write(
+                "Timed out waiting for VuMark template upload after retries\n"
+            )
+            driver.quit()
+            driver = None
+            continue
+
         driver.quit()
         driver = None
 
         file_contents = _generate_secrets_file_content(
             database_details=database_details,
-            vumark_details=shared_vumark_details,
+            vumark_details=vumark_details,
             inactive_database_details=inactive_database_details,
-            vumark_target_id=shared_vumark_target_id,
+            vumark_target_id=vumark_target_id,
         )
         file.write_text(data=file_contents)
         sys.stdout.write(f"Created database {file.name}\n")
