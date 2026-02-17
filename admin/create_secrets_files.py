@@ -25,6 +25,23 @@ if TYPE_CHECKING:
     from vws_web_tools import DatabaseDict, VuMarkDatabaseDict
 
 
+@retry(
+    retry=retry_if_exception_type(exception_types=TimeoutException),
+    stop=stop_after_attempt(max_attempt_number=3),
+    wait=wait_exponential(multiplier=2, min=5, max=30),
+    reraise=True,
+)
+def _get_database_details_with_retries(
+    driver: "WebDriver",
+    database_name: str,
+) -> "DatabaseDict":
+    """Get cloud database details with retries on timeout."""
+    return vws_web_tools.get_database_details(
+        driver=driver,
+        database_name=database_name,
+    )
+
+
 def _create_and_get_database_details(
     driver: "WebDriver",
     email_address: str,
@@ -50,18 +67,12 @@ def _create_and_get_database_details(
         license_name=license_name,
     )
 
-    return vws_web_tools.get_database_details(
+    return _get_database_details_with_retries(
         driver=driver,
         database_name=database_name,
     )
 
 
-@retry(
-    retry=retry_if_exception_type(exception_types=TimeoutException),
-    stop=stop_after_attempt(max_attempt_number=3),
-    wait=wait_exponential(multiplier=2, min=5, max=30),
-    reraise=True,
-)
 def _create_and_get_vumark_details(
     driver: "WebDriver",
     vumark_database_name: str,
@@ -75,7 +86,7 @@ def _create_and_get_vumark_details(
         database_name=vumark_database_name,
     )
 
-    return vws_web_tools.get_vumark_database_details(
+    return _get_vumark_details_with_retries(
         driver=driver,
         database_name=vumark_database_name,
     )
@@ -87,21 +98,13 @@ def _create_and_get_vumark_details(
     wait=wait_exponential(multiplier=2, min=5, max=30),
     reraise=True,
 )
-def _create_and_get_database_details_with_retries(
+def _get_vumark_details_with_retries(
     driver: "WebDriver",
-    email_address: str,
-    password: str,
-    license_name: str,
     database_name: str,
-) -> "DatabaseDict":
-    """Create a cloud database and return details with retries on
-    timeout.
-    """
-    return _create_and_get_database_details(
+) -> "VuMarkDatabaseDict":
+    """Get VuMark database details with retries on timeout."""
+    return vws_web_tools.get_vumark_database_details(
         driver=driver,
-        email_address=email_address,
-        password=password,
-        license_name=license_name,
         database_name=database_name,
     )
 
@@ -167,7 +170,7 @@ def main() -> None:
         vumark_database_name = f"my-vumark-database-{time}"
 
         try:
-            database_details = _create_and_get_database_details_with_retries(
+            database_details = _create_and_get_database_details(
                 driver=driver,
                 email_address=email_address,
                 password=password,
@@ -176,8 +179,7 @@ def main() -> None:
             )
         except TimeoutException:
             sys.stderr.write(
-                "Timed out waiting for license/database creation "
-                "after retries\n"
+                "Timed out waiting for database setup/details after retries\n"
             )
             driver.quit()
             driver = None
@@ -190,7 +192,7 @@ def main() -> None:
             )
         except TimeoutException:
             sys.stderr.write(
-                "Timed out waiting for VuMark creation after retries\n"
+                "Timed out waiting for VuMark setup/details after retries\n"
             )
             driver.quit()
             driver = None
