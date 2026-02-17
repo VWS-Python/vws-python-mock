@@ -19,7 +19,9 @@ if TYPE_CHECKING:
     from vws_web_tools import DatabaseDict, VuMarkDatabaseDict
 
 
-VUMARK_TEMPLATE_SVG_FILE_PATH = Path(__file__).with_name("vumark_template.svg")
+VUMARK_TEMPLATE_SVG_FILE_PATH = Path(__file__).with_name(
+    name="vumark_template.svg",
+)
 
 
 def _create_and_get_database_details(
