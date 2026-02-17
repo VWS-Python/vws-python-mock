@@ -76,8 +76,8 @@ def _create_and_get_vumark_details(
 
 
 @retry(
-    retry=retry_if_exception_type(TimeoutException),
-    stop=stop_after_attempt(3),
+    retry=retry_if_exception_type(exception_types=TimeoutException),
+    stop=stop_after_attempt(max_attempt_number=3),
     wait=wait_exponential(multiplier=2, min=5, max=30),
     reraise=True,
 )
@@ -101,8 +101,8 @@ def _create_and_get_database_details_with_retries(
 
 
 @retry(
-    retry=retry_if_exception_type(TimeoutException),
-    stop=stop_after_attempt(3),
+    retry=retry_if_exception_type(exception_types=TimeoutException),
+    stop=stop_after_attempt(max_attempt_number=3),
     wait=wait_exponential(multiplier=2, min=5, max=30),
     reraise=True,
 )
