@@ -133,6 +133,10 @@ def main() -> None:
         for i in range(num_databases)
     ]
     files_to_create = [file for file in required_files if not file.exists()]
+    if not files_to_create:
+        sys.stdout.write("No secrets files need to be created.\n")
+        return
+
     shared_vumark_details: VuMarkDatabaseDict | None = None
 
     while shared_vumark_details is None:
