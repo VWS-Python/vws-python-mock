@@ -56,6 +56,12 @@ def _create_and_get_database_details(
     )
 
 
+@retry(
+    retry=retry_if_exception_type(exception_types=TimeoutException),
+    stop=stop_after_attempt(max_attempt_number=3),
+    wait=wait_exponential(multiplier=2, min=5, max=30),
+    reraise=True,
+)
 def _create_and_get_vumark_details(
     driver: "WebDriver",
     vumark_database_name: str,
@@ -97,23 +103,6 @@ def _create_and_get_database_details_with_retries(
         password=password,
         license_name=license_name,
         database_name=database_name,
-    )
-
-
-@retry(
-    retry=retry_if_exception_type(exception_types=TimeoutException),
-    stop=stop_after_attempt(max_attempt_number=3),
-    wait=wait_exponential(multiplier=2, min=5, max=30),
-    reraise=True,
-)
-def _create_and_get_vumark_details_with_retries(
-    driver: "WebDriver",
-    vumark_database_name: str,
-) -> "VuMarkDatabaseDict":
-    """Create a VuMark database and return details with retries on timeout."""
-    return _create_and_get_vumark_details(
-        driver=driver,
-        vumark_database_name=vumark_database_name,
     )
 
 
@@ -195,7 +184,7 @@ def main() -> None:
             continue
 
         try:
-            vumark_details = _create_and_get_vumark_details_with_retries(
+            vumark_details = _create_and_get_vumark_details(
                 driver=driver,
                 vumark_database_name=vumark_database_name,
             )
