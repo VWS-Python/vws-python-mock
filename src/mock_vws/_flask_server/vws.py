@@ -18,7 +18,7 @@ from beartype import beartype
 from flask import Flask, Response, request
 from pydantic_settings import BaseSettings
 
-from mock_vws._constants import ResultCodes, TargetStatuses
+from mock_vws._constants import VUMARK_PNG, ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._mock_common import json_dump
 from mock_vws._services_validators import run_services_validators
@@ -44,12 +44,6 @@ VWS_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
 
 
 _LOGGER = logging.getLogger(name=__name__)
-_VUMARK_PNG = base64.b64decode(
-    s=(
-        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8A"
-        "AwMCAO7Zl6kAAAAASUVORK5CYII="
-    ),
-)
 
 
 @beartype
@@ -370,7 +364,7 @@ def generate_vumark_instance(target_id: str) -> Response:
     }
     return Response(
         status=HTTPStatus.OK,
-        response=_VUMARK_PNG,
+        response=VUMARK_PNG,
         headers=headers,
     )
 

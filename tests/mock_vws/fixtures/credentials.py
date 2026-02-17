@@ -1,6 +1,6 @@
 """Fixtures for credentials for Vuforia databases."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import pytest
@@ -55,10 +55,10 @@ class _VuMarkVuforiaDatabaseSettings(BaseSettings):
 class VuMarkVuforiaDatabase:
     """Credentials for the VuMark generation API."""
 
-    target_manager_database_name: str
-    server_access_key: str
-    server_secret_key: str
-    target_id: str
+    target_manager_database_name: str = field(repr=False)
+    server_access_key: str = field(repr=False)
+    server_secret_key: str = field(repr=False)
+    target_id: str = field(repr=False)
 
 
 @pytest.fixture

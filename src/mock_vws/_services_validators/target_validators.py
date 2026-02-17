@@ -10,6 +10,7 @@ from mock_vws._services_validators.exceptions import UnknownTargetError
 from mock_vws.database import VuforiaDatabase
 
 _LOGGER = logging.getLogger(name=__name__)
+_TARGETS_WITH_INSTANCE_PATH_LENGTH = 4
 
 
 @beartype
@@ -42,7 +43,11 @@ def validate_target_id_exists(
         return
 
     target_id = split_path[-1]
-    if split_path[-1] == "instances":
+    if (
+        len(split_path) == _TARGETS_WITH_INSTANCE_PATH_LENGTH
+        and split_path[-3] == "targets"
+        and split_path[-1] == "instances"
+    ):
         target_id = split_path[-2]
     database = get_database_matching_server_keys(
         request_headers=request_headers,

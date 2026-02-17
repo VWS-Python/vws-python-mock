@@ -1,7 +1,6 @@
 """Choose which backends to use for the tests."""
 
 import contextlib
-import io
 import logging
 from collections.abc import Generator
 from enum import Enum
@@ -10,7 +9,6 @@ import pytest
 import requests
 import responses
 from beartype import beartype
-from PIL import Image
 from requests_mock_flask import add_flask_app_to_mock
 from vws import VWS
 from vws.exceptions.vws_exceptions import (
@@ -26,6 +24,7 @@ from mock_vws.states import States
 from mock_vws.target import Target
 from mock_vws.target_raters import HardcodedTargetTrackingRater
 from tests.mock_vws.fixtures.credentials import VuMarkVuforiaDatabase
+from tests.mock_vws.utils import make_image_file
 from tests.mock_vws.utils.retries import RETRY_ON_TOO_MANY_REQUESTS
 
 LOGGER = logging.getLogger(name=__name__)
@@ -63,15 +62,6 @@ def _delete_all_targets(*, database_keys: VuforiaDatabase) -> None:
 
 
 @beartype
-def _rgb_png_bytes() -> bytes:
-    """Return a small RGB PNG image."""
-    image = Image.new(mode="RGB", size=(8, 8), color=(255, 0, 0))
-    image_file = io.BytesIO()
-    image.save(fp=image_file, format="PNG")
-    return image_file.getvalue()
-
-
-@beartype
 def _vumark_database(
     *,
     vumark_vuforia_database: VuMarkVuforiaDatabase,
@@ -80,7 +70,12 @@ def _vumark_database(
     vumark_target = Target(
         active_flag=True,
         application_metadata=None,
-        image_value=_rgb_png_bytes(),
+        image_value=make_image_file(
+            file_format="PNG",
+            color_space="RGB",
+            width=8,
+            height=8,
+        ).getvalue(),
         name="mock-vumark-target",
         processing_time_seconds=0,
         width=1,
@@ -177,6 +172,10 @@ def _enable_use_docker_in_memory(
         name="TARGET_MANAGER_BASE_URL",
         value=target_manager_base_url,
     )
+    vumark_database = _vumark_database(
+        vumark_vuforia_database=vumark_vuforia_database,
+    )
+    (vumark_target,) = vumark_database.targets
 
     with responses.RequestsMock(assert_all_requests_are_fired=False) as mock:
         add_flask_app_to_mock(
@@ -218,9 +217,12 @@ def _enable_use_docker_in_memory(
         )
         requests.post(
             url=databases_url,
-            json=_vumark_database(
-                vumark_vuforia_database=vumark_vuforia_database,
-            ).to_dict(),
+            json=vumark_database.to_dict(),
+            timeout=30,
+        )
+        requests.post(
+            url=(f"{databases_url}/{vumark_database.database_name}/targets"),
+            json=vumark_target.to_dict(),
             timeout=30,
         )
 
