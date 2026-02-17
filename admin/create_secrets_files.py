@@ -86,7 +86,7 @@ def _create_and_get_vumark_details(
 def _generate_secrets_file_content(
     database_details: "DatabaseDict",
     vumark_details: "VuMarkDatabaseDict",
-    inactive_database_details: dict[str, str],
+    inactive_database_details: "DatabaseDict",
 ) -> str:
     """Generate the content of a secrets file."""
     return textwrap.dedent(
@@ -97,11 +97,11 @@ def _generate_secrets_file_content(
         VUFORIA_CLIENT_ACCESS_KEY={database_details["client_access_key"]}
         VUFORIA_CLIENT_SECRET_KEY={database_details["client_secret_key"]}
 
-        INACTIVE_VUFORIA_TARGET_MANAGER_DATABASE_NAME={inactive_database_details["INACTIVE_VUFORIA_TARGET_MANAGER_DATABASE_NAME"]}
-        INACTIVE_VUFORIA_SERVER_ACCESS_KEY={inactive_database_details["INACTIVE_VUFORIA_SERVER_ACCESS_KEY"]}
-        INACTIVE_VUFORIA_SERVER_SECRET_KEY={inactive_database_details["INACTIVE_VUFORIA_SERVER_SECRET_KEY"]}
-        INACTIVE_VUFORIA_CLIENT_ACCESS_KEY={inactive_database_details["INACTIVE_VUFORIA_CLIENT_ACCESS_KEY"]}
-        INACTIVE_VUFORIA_CLIENT_SECRET_KEY={inactive_database_details["INACTIVE_VUFORIA_CLIENT_SECRET_KEY"]}
+        INACTIVE_VUFORIA_TARGET_MANAGER_DATABASE_NAME={inactive_database_details["database_name"]}
+        INACTIVE_VUFORIA_SERVER_ACCESS_KEY={inactive_database_details["server_access_key"]}
+        INACTIVE_VUFORIA_SERVER_SECRET_KEY={inactive_database_details["server_secret_key"]}
+        INACTIVE_VUFORIA_CLIENT_ACCESS_KEY={inactive_database_details["client_access_key"]}
+        INACTIVE_VUFORIA_CLIENT_SECRET_KEY={inactive_database_details["client_secret_key"]}
 
         VUMARK_VUFORIA_TARGET_MANAGER_DATABASE_NAME={vumark_details["database_name"]}
         VUMARK_VUFORIA_SERVER_ACCESS_KEY={vumark_details["server_access_key"]}
@@ -122,22 +122,14 @@ def main() -> None:
         msg = f"Existing secrets file does not exist: {existing_secrets_file}"
         raise FileNotFoundError(msg)
     load_dotenv(dotenv_path=existing_secrets_file)
-    inactive_database_details = {
-        "INACTIVE_VUFORIA_TARGET_MANAGER_DATABASE_NAME": os.environ[
+    inactive_database_details: DatabaseDict = {
+        "database_name": os.environ[
             "INACTIVE_VUFORIA_TARGET_MANAGER_DATABASE_NAME"
         ],
-        "INACTIVE_VUFORIA_SERVER_ACCESS_KEY": os.environ[
-            "INACTIVE_VUFORIA_SERVER_ACCESS_KEY"
-        ],
-        "INACTIVE_VUFORIA_SERVER_SECRET_KEY": os.environ[
-            "INACTIVE_VUFORIA_SERVER_SECRET_KEY"
-        ],
-        "INACTIVE_VUFORIA_CLIENT_ACCESS_KEY": os.environ[
-            "INACTIVE_VUFORIA_CLIENT_ACCESS_KEY"
-        ],
-        "INACTIVE_VUFORIA_CLIENT_SECRET_KEY": os.environ[
-            "INACTIVE_VUFORIA_CLIENT_SECRET_KEY"
-        ],
+        "server_access_key": os.environ["INACTIVE_VUFORIA_SERVER_ACCESS_KEY"],
+        "server_secret_key": os.environ["INACTIVE_VUFORIA_SERVER_SECRET_KEY"],
+        "client_access_key": os.environ["INACTIVE_VUFORIA_CLIENT_ACCESS_KEY"],
+        "client_secret_key": os.environ["INACTIVE_VUFORIA_CLIENT_SECRET_KEY"],
     }
     new_secrets_dir.mkdir(exist_ok=True)
 
