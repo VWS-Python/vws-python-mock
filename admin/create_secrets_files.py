@@ -19,6 +19,11 @@ if TYPE_CHECKING:
     from vws_web_tools import DatabaseDict, VuMarkDatabaseDict
 
 
+VUMARK_TEMPLATE_SVG_FILE_PATH = Path(__file__).with_name(
+    name="vumark_template.svg",
+)
+
+
 def _create_and_get_database_details(
     driver: "WebDriver",
     email_address: str,
@@ -73,6 +78,7 @@ def _generate_secrets_file_content(
     database_details: "DatabaseDict",
     vumark_details: "VuMarkDatabaseDict",
     inactive_database_details: "DatabaseDict",
+    vumark_target_id: str,
 ) -> str:
     """Generate the content of a secrets file."""
     return textwrap.dedent(
@@ -90,10 +96,88 @@ def _generate_secrets_file_content(
         INACTIVE_VUFORIA_CLIENT_SECRET_KEY={inactive_database_details["client_secret_key"]}
 
         VUMARK_VUFORIA_TARGET_MANAGER_DATABASE_NAME={vumark_details["database_name"]}
+        VUMARK_VUFORIA_TARGET_ID={vumark_target_id}
         VUMARK_VUFORIA_SERVER_ACCESS_KEY={vumark_details["server_access_key"]}
         VUMARK_VUFORIA_SERVER_SECRET_KEY={vumark_details["server_secret_key"]}
         """,
     )
+
+
+def _create_and_get_vumark_target_id(
+    driver: "WebDriver",
+    vumark_database_name: str,
+    vumark_template_name: str,
+) -> str:
+    """Upload a VuMark template and get its target ID."""
+    vws_web_tools.upload_vumark_template(
+        driver=driver,
+        database_name=vumark_database_name,
+        svg_file_path=VUMARK_TEMPLATE_SVG_FILE_PATH,
+        template_name=vumark_template_name,
+        width=100.0,
+    )
+    return vws_web_tools.get_vumark_target_id(
+        driver=driver,
+        database_name=vumark_database_name,
+        target_name=vumark_template_name,
+    )
+
+
+def _create_vuforia_resource_names() -> tuple[str, str, str, str]:
+    """Create names for Vuforia resources."""
+    time = datetime.datetime.now(tz=datetime.UTC).strftime(
+        format="%Y-%m-%d-%H-%M-%S",
+    )
+    return (
+        f"my-license-{time}",
+        f"my-database-{time}",
+        f"my-vumark-database-{time}",
+        f"my-vumark-template-{time}",
+    )
+
+
+def _create_shared_vumark_resources(
+    email_address: str,
+    password: str,
+) -> tuple["VuMarkDatabaseDict", str]:
+    """Create shared VuMark resources used by all generated secrets
+    files.
+    """
+    shared_vumark_details: VuMarkDatabaseDict | None = None
+    shared_vumark_target_id: str | None = None
+
+    while shared_vumark_details is None or shared_vumark_target_id is None:
+        vumark_driver = vws_web_tools.create_chrome_driver()
+        (
+            _license_name,
+            _database_name,
+            vumark_database_name,
+            vumark_template_name,
+        ) = _create_vuforia_resource_names()
+        try:
+            vws_web_tools.log_in(
+                driver=vumark_driver,
+                email_address=email_address,
+                password=password,
+            )
+            vws_web_tools.wait_for_logged_in(driver=vumark_driver)
+            shared_vumark_details = _create_and_get_vumark_details(
+                driver=vumark_driver,
+                vumark_database_name=vumark_database_name,
+            )
+            shared_vumark_target_id = _create_and_get_vumark_target_id(
+                driver=vumark_driver,
+                vumark_database_name=vumark_database_name,
+                vumark_template_name=vumark_template_name,
+            )
+        except TimeoutException:
+            sys.stderr.write(
+                "Timed out waiting for shared VuMark setup/details after "
+                "retries\n"
+            )
+        vumark_driver.quit()
+
+    return shared_vumark_details, shared_vumark_target_id
 
 
 def main() -> None:
@@ -129,31 +213,12 @@ def main() -> None:
         sys.stdout.write("No secrets files need to be created.\n")
         return
 
-    shared_vumark_details: VuMarkDatabaseDict | None = None
-
-    while shared_vumark_details is None:
-        vumark_driver = vws_web_tools.create_chrome_driver()
-        time = datetime.datetime.now(tz=datetime.UTC).strftime(
-            format="%Y-%m-%d-%H-%M-%S",
+    shared_vumark_details, shared_vumark_target_id = (
+        _create_shared_vumark_resources(
+            email_address=email_address,
+            password=password,
         )
-        vumark_database_name = f"my-vumark-database-{time}"
-        try:
-            vws_web_tools.log_in(
-                driver=vumark_driver,
-                email_address=email_address,
-                password=password,
-            )
-            vws_web_tools.wait_for_logged_in(driver=vumark_driver)
-            shared_vumark_details = _create_and_get_vumark_details(
-                driver=vumark_driver,
-                vumark_database_name=vumark_database_name,
-            )
-        except TimeoutException:
-            sys.stderr.write(
-                "Timed out waiting for shared VuMark setup/details after "
-                "retries\n"
-            )
-        vumark_driver.quit()
+    )
 
     driver: WebDriver | None = None
     while files_to_create:
@@ -161,11 +226,12 @@ def main() -> None:
             driver = vws_web_tools.create_chrome_driver()
         file = files_to_create[-1]
         sys.stdout.write(f"Creating database {file.name}\n")
-        time = datetime.datetime.now(tz=datetime.UTC).strftime(
-            format="%Y-%m-%d-%H-%M-%S",
-        )
-        license_name = f"my-license-{time}"
-        database_name = f"my-database-{time}"
+        (
+            license_name,
+            database_name,
+            _vumark_database_name,
+            _vumark_template_name,
+        ) = _create_vuforia_resource_names()
 
         try:
             database_details = _create_and_get_database_details(
@@ -190,6 +256,7 @@ def main() -> None:
             database_details=database_details,
             vumark_details=shared_vumark_details,
             inactive_database_details=inactive_database_details,
+            vumark_target_id=shared_vumark_target_id,
         )
         file.write_text(data=file_contents)
         sys.stdout.write(f"Created database {file.name}\n")
