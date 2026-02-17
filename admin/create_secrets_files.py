@@ -13,10 +13,24 @@ from typing import TYPE_CHECKING
 import vws_web_tools
 from dotenv import load_dotenv
 from selenium.common.exceptions import TimeoutException
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+)
 
 if TYPE_CHECKING:
     from selenium.webdriver.remote.webdriver import WebDriver
     from vws_web_tools import DatabaseDict, VuMarkDatabaseDict
+
+
+RETRY_ON_TIMEOUT = retry(
+    retry=retry_if_exception_type(exception_types=TimeoutException),
+    stop=stop_after_attempt(max_attempt_number=3),
+    wait=wait_exponential(multiplier=2, min=5, max=30),
+    reraise=True,
+)
 
 
 def _create_and_get_database_details(
@@ -25,10 +39,10 @@ def _create_and_get_database_details(
     password: str,
     license_name: str,
     database_name: str,
-) -> "DatabaseDict | None":
+) -> "DatabaseDict":
     """Create a cloud database and get its details.
 
-    Returns database details or None if a timeout occurs.
+    Returns database details.
     """
     vws_web_tools.log_in(
         driver=driver,
@@ -36,11 +50,7 @@ def _create_and_get_database_details(
         password=password,
     )
     vws_web_tools.wait_for_logged_in(driver=driver)
-    try:
-        vws_web_tools.create_license(driver=driver, license_name=license_name)
-    except TimeoutException:
-        sys.stderr.write("Timed out waiting for license creation\n")
-        return None
+    vws_web_tools.create_license(driver=driver, license_name=license_name)
 
     vws_web_tools.create_cloud_database(
         driver=driver,
@@ -48,43 +58,29 @@ def _create_and_get_database_details(
         license_name=license_name,
     )
 
-    try:
-        return vws_web_tools.get_database_details(
-            driver=driver,
-            database_name=database_name,
-        )
-    except TimeoutException:
-        sys.stderr.write("Timed out waiting for database to be created\n")
-        return None
+    return RETRY_ON_TIMEOUT(vws_web_tools.get_database_details)(
+        driver=driver,
+        database_name=database_name,
+    )
 
 
 def _create_and_get_vumark_details(
     driver: "WebDriver",
     vumark_database_name: str,
-) -> "VuMarkDatabaseDict | None":
+) -> "VuMarkDatabaseDict":
     """Create a VuMark database and get its details.
 
-    Returns VuMark database details or None if a timeout occurs.
+    Returns VuMark database details.
     """
-    try:
-        vws_web_tools.create_vumark_database(
-            driver=driver,
-            database_name=vumark_database_name,
-        )
-    except TimeoutException:
-        sys.stderr.write("Timed out waiting for VuMark database creation\n")
-        return None
+    vws_web_tools.create_vumark_database(
+        driver=driver,
+        database_name=vumark_database_name,
+    )
 
-    try:
-        return vws_web_tools.get_vumark_database_details(
-            driver=driver,
-            database_name=vumark_database_name,
-        )
-    except TimeoutException:
-        sys.stderr.write(
-            "Timed out waiting for VuMark database to be created\n"
-        )
-        return None
+    return RETRY_ON_TIMEOUT(vws_web_tools.get_vumark_database_details)(
+        driver=driver,
+        database_name=vumark_database_name,
+    )
 
 
 def _generate_secrets_file_content(
@@ -145,16 +141,22 @@ def main() -> None:
             format="%Y-%m-%d-%H-%M-%S",
         )
         vumark_database_name = f"my-vumark-database-{time}"
-        vws_web_tools.log_in(
-            driver=vumark_driver,
-            email_address=email_address,
-            password=password,
-        )
-        vws_web_tools.wait_for_logged_in(driver=vumark_driver)
-        shared_vumark_details = _create_and_get_vumark_details(
-            driver=vumark_driver,
-            vumark_database_name=vumark_database_name,
-        )
+        try:
+            vws_web_tools.log_in(
+                driver=vumark_driver,
+                email_address=email_address,
+                password=password,
+            )
+            vws_web_tools.wait_for_logged_in(driver=vumark_driver)
+            shared_vumark_details = _create_and_get_vumark_details(
+                driver=vumark_driver,
+                vumark_database_name=vumark_database_name,
+            )
+        except TimeoutException:
+            sys.stderr.write(
+                "Timed out waiting for shared VuMark setup/details after "
+                "retries\n"
+            )
         vumark_driver.quit()
 
     driver: WebDriver | None = None
@@ -169,14 +171,18 @@ def main() -> None:
         license_name = f"my-license-{time}"
         database_name = f"my-database-{time}"
 
-        database_details = _create_and_get_database_details(
-            driver=driver,
-            email_address=email_address,
-            password=password,
-            license_name=license_name,
-            database_name=database_name,
-        )
-        if database_details is None:
+        try:
+            database_details = _create_and_get_database_details(
+                driver=driver,
+                email_address=email_address,
+                password=password,
+                license_name=license_name,
+                database_name=database_name,
+            )
+        except TimeoutException:
+            sys.stderr.write(
+                "Timed out waiting for database setup/details after retries\n"
+            )
             driver.quit()
             driver = None
             continue
