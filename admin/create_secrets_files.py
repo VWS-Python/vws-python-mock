@@ -8,7 +8,7 @@ import os
 import sys
 import textwrap
 from pathlib import Path
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 import vws_web_tools
 from dotenv import load_dotenv
@@ -109,15 +109,17 @@ def _create_and_get_vumark_target_id(
     vumark_template_name: str,
 ) -> str:
     """Upload a VuMark template and get its target ID."""
-    return cast(
-        "str",
-        vws_web_tools.upload_vumark_template(
-            driver=driver,
-            database_name=vumark_database_name,
-            svg_file_path=VUMARK_TEMPLATE_SVG_FILE_PATH,
-            template_name=vumark_template_name,
-            width=100.0,
-        ),
+    vws_web_tools.upload_vumark_template(
+        driver=driver,
+        database_name=vumark_database_name,
+        svg_file_path=VUMARK_TEMPLATE_SVG_FILE_PATH,
+        template_name=vumark_template_name,
+        width=100.0,
+    )
+    return vws_web_tools.get_vumark_target_id(
+        driver=driver,
+        database_name=vumark_database_name,
+        target_name=vumark_template_name,
     )
 
 
