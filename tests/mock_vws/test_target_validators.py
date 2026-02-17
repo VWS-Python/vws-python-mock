@@ -2,6 +2,7 @@
 
 import pytest
 
+from mock_vws._services_validators import target_validators
 from mock_vws._services_validators.target_validators import (
     validate_target_id_exists,
 )
@@ -32,8 +33,8 @@ def _database_with_target(*, target_id: str) -> VuforiaDatabase:
 
 
 @pytest.mark.parametrize(
-    ("request_path", "target_id"),
-    [
+    argnames=("request_path", "target_id"),
+    argvalues=[
         ("/targets/instances", "instances"),
         ("/targets/target123/instances", "target123"),
     ],
@@ -49,9 +50,9 @@ def test_validate_target_id_exists_uses_correct_path_segment(
     """
     database = _database_with_target(target_id=target_id)
     monkeypatch.setattr(
-        "mock_vws._services_validators.target_validators."
-        "get_database_matching_server_keys",
-        lambda **_kwargs: database,
+        target=target_validators,
+        name="get_database_matching_server_keys",
+        value=lambda **_kwargs: database,
     )
 
     validate_target_id_exists(
