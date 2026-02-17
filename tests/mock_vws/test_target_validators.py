@@ -1,5 +1,8 @@
 """Tests for target ID validators."""
 
+from collections.abc import Iterable, Mapping
+from functools import partial
+
 import pytest
 
 from mock_vws._services_validators import target_validators
@@ -32,6 +35,24 @@ def _database_with_target(*, target_id: str) -> VuforiaDatabase:
     return VuforiaDatabase(targets={target})
 
 
+def _always_match_database(
+    *,
+    database: VuforiaDatabase,
+    request_headers: Mapping[str, str],
+    request_body: bytes | None,
+    request_method: str,
+    request_path: str,
+    databases: Iterable[VuforiaDatabase],
+) -> VuforiaDatabase:
+    """Return the given database regardless of request details."""
+    del request_headers
+    del request_body
+    del request_method
+    del request_path
+    del databases
+    return database
+
+
 @pytest.mark.parametrize(
     argnames=("request_path", "target_id"),
     argvalues=[
@@ -49,10 +70,11 @@ def test_validate_target_id_exists_uses_correct_path_segment(
     shapes.
     """
     database = _database_with_target(target_id=target_id)
+
     monkeypatch.setattr(
         target=target_validators,
         name="get_database_matching_server_keys",
-        value=lambda **_kwargs: database,
+        value=partial(_always_match_database, database=database),
     )
 
     validate_target_id_exists(
