@@ -295,16 +295,13 @@ class MockVuforiaWebServicesAPI:
         self, request: PreparedRequest
     ) -> _ResponseType:
         """Generate a VuMark instance."""
-        try:
-            run_services_validators(
-                request_headers=request.headers,
-                request_body=_body_bytes(request=request),
-                request_method=request.method or "",
-                request_path=request.path_url,
-                databases=self._target_manager.databases,
-            )
-        except ValidatorError as exc:
-            return exc.status_code, exc.headers, exc.response_text
+        run_services_validators(
+            request_headers=request.headers,
+            request_body=_body_bytes(request=request),
+            request_method=request.method or "",
+            request_path=request.path_url,
+            databases=self._target_manager.databases,
+        )
 
         date = email.utils.formatdate(
             timeval=None,

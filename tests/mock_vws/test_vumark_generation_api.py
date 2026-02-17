@@ -19,14 +19,6 @@ def test_generate_instance_success(
     vumark_vuforia_database: VuMarkVuforiaDatabase,
 ) -> None:
     """A VuMark instance can be generated with valid template settings."""
-    if vumark_vuforia_database.target_id.startswith("<"):
-        pytest.skip(
-            reason=(
-                "VuMark target ID is a placeholder. "
-                "Set VUMARK_VUFORIA_TARGET_ID."
-            ),
-        )
-
     request_path = f"/targets/{vumark_vuforia_database.target_id}/instances"
     content_type = "application/json"
     generated_instance_id = uuid4().hex
