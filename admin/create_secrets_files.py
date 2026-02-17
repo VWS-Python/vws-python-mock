@@ -6,7 +6,6 @@ See the instructions in the contributing guide in the documentation.
 import datetime
 import os
 import sys
-import tempfile
 import textwrap
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -33,14 +32,7 @@ RETRY_ON_TIMEOUT = retry(
     reraise=True,
 )
 
-VUMARK_TEMPLATE_SVG = textwrap.dedent(
-    text="""\
-    <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">
-      <rect x="0" y="0" width="512" height="512" fill="#ffffff" />
-      <circle cx="256" cy="256" r="144" fill="#000000" />
-    </svg>
-    """,
-)
+VUMARK_TEMPLATE_SVG_FILE_PATH = Path(__file__).with_name("vumark_template.svg")
 
 
 def _create_and_get_database_details(
@@ -128,19 +120,13 @@ def _create_and_get_vumark_target_id(
     vumark_template_name: str,
 ) -> str:
     """Upload a VuMark template and get its target ID."""
-    with tempfile.TemporaryDirectory() as temporary_directory:
-        svg_file_path = Path(temporary_directory) / "template.svg"
-        svg_file_path.write_text(
-            data=VUMARK_TEMPLATE_SVG,
-            encoding="utf-8",
-        )
-        upload_result = RETRY_ON_TIMEOUT(vws_web_tools.upload_vumark_template)(
-            driver=driver,
-            database_name=vumark_database_name,
-            svg_file_path=svg_file_path,
-            template_name=vumark_template_name,
-            width=100.0,
-        )
+    upload_result = RETRY_ON_TIMEOUT(vws_web_tools.upload_vumark_template)(
+        driver=driver,
+        database_name=vumark_database_name,
+        svg_file_path=VUMARK_TEMPLATE_SVG_FILE_PATH,
+        template_name=vumark_template_name,
+        width=100.0,
+    )
 
     if isinstance(upload_result, str):
         return upload_result
