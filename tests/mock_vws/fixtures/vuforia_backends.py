@@ -257,17 +257,12 @@ def fixture_verify_mock_vuforia(
         VuforiaBackend.DOCKER_IN_MEMORY: _enable_use_docker_in_memory,
     }[backend]
 
-    backend_generator = enable_function(
+    for _ in enable_function(
         working_database=vuforia_database,
         inactive_database=inactive_database,
         monkeypatch=monkeypatch,
-    )
-    next(backend_generator)
-    try:
+    ):
         yield backend
-    finally:
-        with contextlib.suppress(StopIteration):
-            next(backend_generator)
 
 
 @pytest.fixture(
