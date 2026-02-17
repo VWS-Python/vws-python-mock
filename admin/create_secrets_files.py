@@ -133,9 +133,27 @@ def main() -> None:
         for i in range(num_databases)
     ]
     files_to_create = [file for file in required_files if not file.exists()]
-    driver: WebDriver | None = None
     shared_vumark_details: VuMarkDatabaseDict | None = None
 
+    while shared_vumark_details is None:
+        driver = vws_web_tools.create_chrome_driver()
+        time = datetime.datetime.now(tz=datetime.UTC).strftime(
+            format="%Y-%m-%d-%H-%M-%S",
+        )
+        vumark_database_name = f"my-vumark-database-{time}"
+        vws_web_tools.log_in(
+            driver=driver,
+            email_address=email_address,
+            password=password,
+        )
+        vws_web_tools.wait_for_logged_in(driver=driver)
+        shared_vumark_details = _create_and_get_vumark_details(
+            driver=driver,
+            vumark_database_name=vumark_database_name,
+        )
+        driver.quit()
+
+    driver: WebDriver | None = None
     while files_to_create:
         if driver is None:
             driver = vws_web_tools.create_chrome_driver()
@@ -146,7 +164,6 @@ def main() -> None:
         )
         license_name = f"my-license-{time}"
         database_name = f"my-database-{time}"
-        vumark_database_name = f"my-vumark-database-{time}"
 
         database_details = _create_and_get_database_details(
             driver=driver,
@@ -160,19 +177,12 @@ def main() -> None:
             driver = None
             continue
 
-        if shared_vumark_details is None:
-            shared_vumark_details = _create_and_get_vumark_details(
-                driver=driver,
-                vumark_database_name=vumark_database_name,
-            )
-            if shared_vumark_details is None:
-                driver.quit()
-                driver = None
-                continue
-
         driver.quit()
         driver = None
 
+        if shared_vumark_details is None:
+            msg = "Failed to create shared VuMark database details."
+            raise RuntimeError(msg)
         file_contents = _generate_secrets_file_content(
             database_details=database_details,
             vumark_details=shared_vumark_details,
