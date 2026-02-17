@@ -19,6 +19,11 @@ if TYPE_CHECKING:
     from vws_web_tools import DatabaseDict, VuMarkDatabaseDict
 
 
+VUMARK_TEMPLATE_SVG_FILE_PATH = Path(__file__).with_name(
+    name="vumark_template.svg",
+)
+
+
 def _create_and_get_database_details(
     driver: "WebDriver",
     email_address: str,
@@ -73,6 +78,7 @@ def _generate_secrets_file_content(
     database_details: "DatabaseDict",
     vumark_details: "VuMarkDatabaseDict",
     inactive_database_details: "DatabaseDict",
+    vumark_target_id: str,
 ) -> str:
     """Generate the content of a secrets file."""
     return textwrap.dedent(
@@ -90,9 +96,43 @@ def _generate_secrets_file_content(
         INACTIVE_VUFORIA_CLIENT_SECRET_KEY={inactive_database_details["client_secret_key"]}
 
         VUMARK_VUFORIA_TARGET_MANAGER_DATABASE_NAME={vumark_details["database_name"]}
+        VUMARK_VUFORIA_TARGET_ID={vumark_target_id}
         VUMARK_VUFORIA_SERVER_ACCESS_KEY={vumark_details["server_access_key"]}
         VUMARK_VUFORIA_SERVER_SECRET_KEY={vumark_details["server_secret_key"]}
         """,
+    )
+
+
+def _create_and_get_vumark_target_id(
+    driver: "WebDriver",
+    vumark_database_name: str,
+    vumark_template_name: str,
+) -> str:
+    """Upload a VuMark template and get its target ID."""
+    vws_web_tools.upload_vumark_template(
+        driver=driver,
+        database_name=vumark_database_name,
+        svg_file_path=VUMARK_TEMPLATE_SVG_FILE_PATH,
+        template_name=vumark_template_name,
+        width=100.0,
+    )
+    return vws_web_tools.get_vumark_target_id(
+        driver=driver,
+        database_name=vumark_database_name,
+        target_name=vumark_template_name,
+    )
+
+
+def _create_vuforia_resource_names() -> tuple[str, str, str, str]:
+    """Create names for Vuforia resources."""
+    time = datetime.datetime.now(tz=datetime.UTC).strftime(
+        format="%Y-%m-%d-%H-%M-%S",
+    )
+    return (
+        f"my-license-{time}",
+        f"my-database-{time}",
+        f"my-vumark-database-{time}",
+        f"my-vumark-template-{time}",
     )
 
 
@@ -132,12 +172,12 @@ def main() -> None:
             driver = vws_web_tools.create_chrome_driver()
         file = files_to_create[-1]
         sys.stdout.write(f"Creating database {file.name}\n")
-        time = datetime.datetime.now(tz=datetime.UTC).strftime(
-            format="%Y-%m-%d-%H-%M-%S",
-        )
-        license_name = f"my-license-{time}"
-        database_name = f"my-database-{time}"
-        vumark_database_name = f"my-vumark-database-{time}"
+        (
+            license_name,
+            database_name,
+            vumark_database_name,
+            vumark_template_name,
+        ) = _create_vuforia_resource_names()
 
         try:
             database_details = _create_and_get_database_details(
@@ -168,6 +208,20 @@ def main() -> None:
             driver = None
             continue
 
+        try:
+            vumark_target_id = _create_and_get_vumark_target_id(
+                driver=driver,
+                vumark_database_name=vumark_database_name,
+                vumark_template_name=vumark_template_name,
+            )
+        except TimeoutException:
+            sys.stderr.write(
+                "Timed out waiting for VuMark template upload after retries\n"
+            )
+            driver.quit()
+            driver = None
+            continue
+
         driver.quit()
         driver = None
 
@@ -175,6 +229,7 @@ def main() -> None:
             database_details=database_details,
             vumark_details=vumark_details,
             inactive_database_details=inactive_database_details,
+            vumark_target_id=vumark_target_id,
         )
         file.write_text(data=file_contents)
         sys.stdout.write(f"Created database {file.name}\n")
