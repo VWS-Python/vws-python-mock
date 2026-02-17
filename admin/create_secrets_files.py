@@ -153,10 +153,6 @@ def main() -> None:
         )
         vumark_driver.quit()
 
-    if shared_vumark_details is None:
-        msg = "Failed to create shared VuMark database details."
-        raise RuntimeError(msg)
-
     driver: WebDriver | None = None
     while files_to_create:
         if driver is None:
