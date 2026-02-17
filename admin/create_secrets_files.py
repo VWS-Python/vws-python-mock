@@ -13,24 +13,11 @@ from typing import TYPE_CHECKING
 import vws_web_tools
 from dotenv import load_dotenv
 from selenium.common.exceptions import TimeoutException
-from tenacity import (
-    retry,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_exponential,
-)
 
 if TYPE_CHECKING:
     from selenium.webdriver.remote.webdriver import WebDriver
     from vws_web_tools import DatabaseDict, VuMarkDatabaseDict
 
-
-RETRY_ON_TIMEOUT = retry(
-    retry=retry_if_exception_type(exception_types=TimeoutException),
-    stop=stop_after_attempt(max_attempt_number=3),
-    wait=wait_exponential(multiplier=2, min=5, max=30),
-    reraise=True,
-)
 
 VUMARK_TEMPLATE_SVG_FILE_PATH = Path(__file__).with_name("vumark_template.svg")
 
@@ -60,7 +47,7 @@ def _create_and_get_database_details(
         license_name=license_name,
     )
 
-    return RETRY_ON_TIMEOUT(vws_web_tools.get_database_details)(
+    return vws_web_tools.get_database_details(
         driver=driver,
         database_name=database_name,
     )
@@ -79,7 +66,7 @@ def _create_and_get_vumark_details(
         database_name=vumark_database_name,
     )
 
-    return RETRY_ON_TIMEOUT(vws_web_tools.get_vumark_database_details)(
+    return vws_web_tools.get_vumark_database_details(
         driver=driver,
         database_name=vumark_database_name,
     )
@@ -120,30 +107,17 @@ def _create_and_get_vumark_target_id(
     vumark_template_name: str,
 ) -> str:
     """Upload a VuMark template and get its target ID."""
-    upload_result = RETRY_ON_TIMEOUT(vws_web_tools.upload_vumark_template)(
+    target_id = vws_web_tools.upload_vumark_template(
         driver=driver,
         database_name=vumark_database_name,
         svg_file_path=VUMARK_TEMPLATE_SVG_FILE_PATH,
         template_name=vumark_template_name,
         width=100.0,
     )
-
-    if isinstance(upload_result, str):
-        return upload_result
-
-    if isinstance(upload_result, dict):
-        target_id = upload_result.get("target_id")
-        if isinstance(target_id, str):
-            return target_id
-
-    target_id = getattr(upload_result, "target_id", None)
     if isinstance(target_id, str):
         return target_id
 
-    msg = (
-        "Expected `upload_vumark_template` to return a target ID. "
-        "Upgrade `vws-web-tools` to a version that returns one."
-    )
+    msg = "Expected `upload_vumark_template` to return a string target ID."
     raise RuntimeError(msg)
 
 
