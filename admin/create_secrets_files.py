@@ -136,22 +136,26 @@ def main() -> None:
     shared_vumark_details: VuMarkDatabaseDict | None = None
 
     while shared_vumark_details is None:
-        driver = vws_web_tools.create_chrome_driver()
+        vumark_driver = vws_web_tools.create_chrome_driver()
         time = datetime.datetime.now(tz=datetime.UTC).strftime(
             format="%Y-%m-%d-%H-%M-%S",
         )
         vumark_database_name = f"my-vumark-database-{time}"
         vws_web_tools.log_in(
-            driver=driver,
+            driver=vumark_driver,
             email_address=email_address,
             password=password,
         )
-        vws_web_tools.wait_for_logged_in(driver=driver)
+        vws_web_tools.wait_for_logged_in(driver=vumark_driver)
         shared_vumark_details = _create_and_get_vumark_details(
-            driver=driver,
+            driver=vumark_driver,
             vumark_database_name=vumark_database_name,
         )
-        driver.quit()
+        vumark_driver.quit()
+
+    if shared_vumark_details is None:
+        msg = "Failed to create shared VuMark database details."
+        raise RuntimeError(msg)
 
     driver: WebDriver | None = None
     while files_to_create:
@@ -180,9 +184,6 @@ def main() -> None:
         driver.quit()
         driver = None
 
-        if shared_vumark_details is None:
-            msg = "Failed to create shared VuMark database details."
-            raise RuntimeError(msg)
         file_contents = _generate_secrets_file_content(
             database_details=database_details,
             vumark_details=shared_vumark_details,
