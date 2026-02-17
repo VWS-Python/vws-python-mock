@@ -25,21 +25,12 @@ if TYPE_CHECKING:
     from vws_web_tools import DatabaseDict, VuMarkDatabaseDict
 
 
-@retry(
+RETRY_ON_TIMEOUT = retry(
     retry=retry_if_exception_type(exception_types=TimeoutException),
     stop=stop_after_attempt(max_attempt_number=3),
     wait=wait_exponential(multiplier=2, min=5, max=30),
     reraise=True,
 )
-def _get_database_details_with_retries(
-    driver: "WebDriver",
-    database_name: str,
-) -> "DatabaseDict":
-    """Get cloud database details with retries on timeout."""
-    return vws_web_tools.get_database_details(
-        driver=driver,
-        database_name=database_name,
-    )
 
 
 def _create_and_get_database_details(
@@ -67,7 +58,7 @@ def _create_and_get_database_details(
         license_name=license_name,
     )
 
-    return _get_database_details_with_retries(
+    return RETRY_ON_TIMEOUT(vws_web_tools.get_database_details)(
         driver=driver,
         database_name=database_name,
     )
@@ -86,26 +77,9 @@ def _create_and_get_vumark_details(
         database_name=vumark_database_name,
     )
 
-    return _get_vumark_details_with_retries(
+    return RETRY_ON_TIMEOUT(vws_web_tools.get_vumark_database_details)(
         driver=driver,
         database_name=vumark_database_name,
-    )
-
-
-@retry(
-    retry=retry_if_exception_type(exception_types=TimeoutException),
-    stop=stop_after_attempt(max_attempt_number=3),
-    wait=wait_exponential(multiplier=2, min=5, max=30),
-    reraise=True,
-)
-def _get_vumark_details_with_retries(
-    driver: "WebDriver",
-    database_name: str,
-) -> "VuMarkDatabaseDict":
-    """Get VuMark database details with retries on timeout."""
-    return vws_web_tools.get_vumark_database_details(
-        driver=driver,
-        database_name=database_name,
     )
 
 
