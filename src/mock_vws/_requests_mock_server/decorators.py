@@ -26,7 +26,7 @@ from mock_vws.target_raters import (
 from .mock_web_query_api import MockVuforiaWebQueryAPI
 from .mock_web_services_api import MockVuforiaWebServicesAPI
 
-_ResponseType = tuple[int, Mapping[str, str], str]
+_ResponseType = tuple[int, Mapping[str, str], str | bytes]
 _Callback = Callable[[PreparedRequest], _ResponseType]
 
 _STRUCTURAL_SIMILARITY_MATCHER = StructuralSimilarityMatcher()

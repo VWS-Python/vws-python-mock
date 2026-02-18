@@ -114,6 +114,13 @@ def validate_keys(
         },
     )
 
+    generate_instance = _Route(
+        path_pattern=f"/targets/{target_id_pattern}/instances",
+        http_methods={HTTPMethod.POST},
+        mandatory_keys={"instance_id"},
+        optional_keys=set(),
+    )
+
     target_summary = _Route(
         path_pattern=f"/summary/{target_id_pattern}",
         http_methods={HTTPMethod.GET},
@@ -129,6 +136,7 @@ def validate_keys(
         get_target,
         get_duplicates,
         update_target,
+        generate_instance,
         target_summary,
     )
 
