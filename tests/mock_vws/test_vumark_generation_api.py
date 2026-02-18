@@ -8,6 +8,7 @@ import pytest
 import requests
 from vws_auth_tools import authorization_header, rfc_1123_date
 
+from mock_vws._constants import ResultCodes
 from tests.mock_vws.fixtures.credentials import VuMarkVuforiaDatabase
 
 _VWS_HOST = "https://vws.vuforia.com"
@@ -84,9 +85,7 @@ class TestGenerateInstance:
         expected_signature: bytes,
         vumark_vuforia_database: VuMarkVuforiaDatabase,
     ) -> None:
-        """A VuMark instance can be generated in PNG, SVG, or PDF
-        format.
-        """
+        """A VuMark instance can be generated in the requested format."""
         response = _make_vumark_request(
             vumark_vuforia_database=vumark_vuforia_database,
             instance_id=uuid4().hex,
@@ -114,7 +113,10 @@ class TestGenerateInstance:
 
         assert response.status_code == HTTPStatus.BAD_REQUEST
         response_json = response.json()
-        assert response_json["result_code"] == "InvalidAcceptHeader"
+        assert (
+            response_json["result_code"]
+            == ResultCodes.INVALID_ACCEPT_HEADER.value
+        )
 
     @staticmethod
     def test_empty_instance_id(
@@ -129,4 +131,7 @@ class TestGenerateInstance:
 
         assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
         response_json = response.json()
-        assert response_json["result_code"] == "InvalidInstanceId"
+        assert (
+            response_json["result_code"]
+            == ResultCodes.INVALID_INSTANCE_ID.value
+        )

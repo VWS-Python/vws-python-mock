@@ -69,7 +69,6 @@ nat
 noqa
 outerboundary
 overridable
-pdf
 pdict
 plugins
 png
@@ -101,7 +100,6 @@ resjsonarr
 rfc
 rgb
 str
-svg
 timestamp
 todo
 travis
