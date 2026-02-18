@@ -20,7 +20,7 @@ license = "MIT"
 authors = [
     { name = "Adam Dangoor", email = "adamdangoor@gmail.com" },
 ]
-requires-python = ">=3.13"
+requires-python = ">=3.14"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Web Environment",
@@ -28,7 +28,7 @@ classifiers = [
     "Operating System :: Microsoft :: Windows",
     "Operating System :: POSIX",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 dynamic = [
     "version",
@@ -162,6 +162,12 @@ lint.ignore = [
     # Ignore 'too-many-*' errors as they seem to get in the way more than
     # helping.
     "PLR0913",
+    # Beartype requires imports to be available at runtime, not just for type
+    # checking. See https://github.com/beartype/beartype/discussions/594
+    # for when beartype will support `if TYPE_CHECKING` imports.
+    "TC001",
+    "TC002",
+    "TC003",
 ]
 lint.per-file-ignores."ci/test_custom_linters.py" = [
     # Allow asserts in tests.
@@ -326,7 +332,7 @@ per_rule_ignores.DEP002 = [
 [tool.pyproject-fmt]
 indent = 4
 keep_full_version = true
-max_supported_python = "3.13"
+max_supported_python = "3.14"
 
 [tool.pytest]
 ini_options.xfail_strict = true
