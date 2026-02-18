@@ -114,10 +114,3 @@ Header cases
 ------------
 
 The mock does not necessarily match Vuforia for all header cases.
-
-VuMark instance images
-----------------------
-
-The mock returns a fixed minimal image in the requested format.
-The ``instance_id`` value is not encoded into the response image.
-Real Vuforia encodes the instance ID into the VuMark pattern.
