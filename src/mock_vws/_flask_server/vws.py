@@ -361,10 +361,10 @@ def generate_vumark_instance(target_id: str) -> Response:
     del target_id
 
     accept = request.headers.get(key="Accept", default="")
-    valid_accept_types = {
-        "image/png": (VUMARK_PNG, "image/png"),
-        "image/svg+xml": (VUMARK_SVG, "image/svg+xml"),
-        "application/pdf": (VUMARK_PDF, "application/pdf"),
+    valid_accept_types: dict[str, bytes] = {
+        "image/png": VUMARK_PNG,
+        "image/svg+xml": VUMARK_SVG,
+        "application/pdf": VUMARK_PDF,
     }
     if accept not in valid_accept_types:
         raise InvalidAcceptHeaderError
@@ -374,7 +374,8 @@ def generate_vumark_instance(target_id: str) -> Response:
     if not instance_id:
         raise InvalidInstanceIdError
 
-    response_body, content_type = valid_accept_types[accept]
+    response_body = valid_accept_types[accept]
+    content_type = accept
     date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
     headers = {
         "Connection": "keep-alive",

@@ -303,10 +303,10 @@ class MockVuforiaWebServicesAPI:
         self, request: PreparedRequest
     ) -> _ResponseType:
         """Generate a VuMark instance."""
-        valid_accept_types: dict[str, tuple[bytes, str]] = {
-            "image/png": (VUMARK_PNG, "image/png"),
-            "image/svg+xml": (VUMARK_SVG, "image/svg+xml"),
-            "application/pdf": (VUMARK_PDF, "application/pdf"),
+        valid_accept_types: dict[str, bytes] = {
+            "image/png": VUMARK_PNG,
+            "image/svg+xml": VUMARK_SVG,
+            "application/pdf": VUMARK_PDF,
         }
         try:
             run_services_validators(
@@ -328,7 +328,8 @@ class MockVuforiaWebServicesAPI:
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
 
-        response_body, content_type = valid_accept_types[accept]
+        response_body = valid_accept_types[accept]
+        content_type = accept
         date = email.utils.formatdate(
             timeval=None,
             localtime=False,
