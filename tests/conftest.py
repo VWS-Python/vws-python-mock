@@ -85,6 +85,7 @@ def target_id(
         "target_summary",
         "update_target",
         "query",
+        "vumark_generate_instance",
     ],
 )
 def endpoint(request: pytest.FixtureRequest) -> Endpoint:

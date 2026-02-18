@@ -381,6 +381,12 @@ class TestSkewedTime:
             assert_query_success(response=response)
             return
 
+        if endpoint.successful_headers_result_code is None:
+            assert (
+                response.status_code == endpoint.successful_headers_status_code
+            )
+            return
+
         assert_vws_response(
             response=response,
             status_code=endpoint.successful_headers_status_code,
@@ -443,6 +449,12 @@ class TestSkewedTime:
         netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":
             assert_query_success(response=response)
+            return
+
+        if endpoint.successful_headers_result_code is None:
+            assert (
+                response.status_code == endpoint.successful_headers_status_code
+            )
             return
 
         assert_vws_response(
