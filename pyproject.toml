@@ -138,6 +138,10 @@ fallback_version = "0.0.0"
 # Code to match this is in ``conf.py``.
 version_scheme = "post-release"
 
+[tool.uv]
+sources.torch = { index = "pytorch-cpu" }
+index = [ { name = "pytorch-cpu", url = "https://download.pytorch.org/whl/cpu", explicit = true } ]
+
 [tool.ruff]
 line-length = 79
 lint.select = [
