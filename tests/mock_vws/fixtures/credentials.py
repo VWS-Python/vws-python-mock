@@ -42,7 +42,7 @@ class _VuMarkVuforiaDatabaseSettings(BaseSettings):
     target_manager_database_name: str
     server_access_key: str
     server_secret_key: str
-    target_id: str = "MockVuMarkTargetID00"
+    target_id: str
 
     model_config = SettingsConfigDict(
         env_prefix="VUMARK_VUFORIA_",
