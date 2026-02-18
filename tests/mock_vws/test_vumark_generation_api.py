@@ -18,8 +18,8 @@ _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 class TestGenerateInstance:
     """Tests for the VuMark instance generation endpoint."""
 
+    @staticmethod
     def test_generate_instance_success(
-        self,
         vumark_vuforia_database: VuMarkVuforiaDatabase,
     ) -> None:
         """A VuMark instance can be generated with valid template settings."""
