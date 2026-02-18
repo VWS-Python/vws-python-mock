@@ -15,6 +15,7 @@ beartype
 binascii
 bool
 boolean
+brisque
 bytesio
 changelog
 chunked

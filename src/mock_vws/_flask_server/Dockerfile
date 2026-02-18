@@ -1,4 +1,6 @@
 FROM ghcr.io/astral-sh/uv:0.10.4-python3.13-trixie-slim AS base
+# Install build tools required by packages that compile C++ extensions (e.g. libsvm-official).
+RUN apt-get update && apt-get install -y --no-install-recommends g++=3.0.3 && rm -rf /var/lib/apt/lists/*
 # We set this pretend version as we do not have Git in our path, and we do
 # not care enough about having the version correct inside the Docker container
 # to install it.

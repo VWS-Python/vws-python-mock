@@ -6,7 +6,7 @@ from typing import Protocol, cast, runtime_checkable
 import numpy as np
 from beartype import beartype
 from PIL import Image
-from skimage.metrics import (
+from skimage.metrics import (  # pylint: disable=no-name-in-module
     structural_similarity,  # pyright: ignore[reportUnknownVariableType]
 )
 
