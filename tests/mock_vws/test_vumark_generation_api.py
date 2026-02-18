@@ -60,8 +60,8 @@ class TestGenerateInstance:
     """Tests for the VuMark instance generation endpoint."""
 
     @pytest.mark.parametrize(
-        ("accept", "expected_content_type", "expected_signature"),
-        [
+        argnames=("accept", "expected_content_type", "expected_signature"),
+        argvalues=[
             pytest.param("image/png", "image/png", _PNG_SIGNATURE, id="png"),
             pytest.param(
                 "image/svg+xml",

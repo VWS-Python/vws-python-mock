@@ -360,7 +360,7 @@ def generate_vumark_instance(target_id: str) -> Response:
     # ``target_id`` is validated by request validators.
     del target_id
 
-    accept = request.headers.get("Accept", "")
+    accept = request.headers.get(key="Accept", default="")
     valid_accept_types = {
         "image/png": (VUMARK_PNG, "image/png"),
         "image/svg+xml": (VUMARK_SVG, "image/svg+xml"),
