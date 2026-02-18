@@ -35,16 +35,15 @@ dynamic = [
 ]
 dependencies = [
     "beartype>=0.22.9",
+    "brisque>=0.0.17",
     "flask>=3.0.3",
     "numpy>=1.26.4",
     "pillow>=11.0.0",
-    "piq>=0.8.0",
     "pydantic-settings>=2.6.1",
     "requests>=2.32.3",
     "responses>=0.25.3",
-    "torch>=2.5.1",
-    "torchmetrics>=1.5.1",
-    "torchvision>=0.20.1",
+    "scikit-image>=0.21.0",
+    "scipy>=1.12.0",
     "tzdata; sys_platform=='win32'",
     "vws-auth-tools>=2024.7.12",
     "werkzeug>=3.1.2",
@@ -138,11 +137,6 @@ fallback_version = "0.0.0"
 #
 # Code to match this is in ``conf.py``.
 version_scheme = "post-release"
-
-[tool.uv]
-sources.torch = { index = "pytorch-cpu" }
-sources.torchvision = { index = "pytorch-cpu" }
-index = [ { name = "pytorch-cpu", url = "https://download.pytorch.org/whl/cpu", explicit = true } ]
 
 [tool.ruff]
 line-length = 79
@@ -315,12 +309,11 @@ pep621_dev_dependency_groups = [
     "release",
 ]
 per_rule_ignores.DEP002 = [
+    # scipy is a transitive dependency of brisque.
+    "scipy",
     # tzdata is needed on Windows for zoneinfo to work.
     # See https://docs.python.org/3/library/zoneinfo.html#data-sources.
     "tzdata",
-    # torchvision is used transitively via piq, but must be a direct dependency
-    # so that tool.uv.sources can route it to the CPU-only PyTorch index.
-    "torchvision",
 ]
 
 [tool.pyproject-fmt]

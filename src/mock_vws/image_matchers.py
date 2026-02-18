@@ -1,14 +1,13 @@
 """Matchers for query and duplicate requests."""
 
 import io
-from typing import Protocol, runtime_checkable
+from typing import Protocol, cast, runtime_checkable
 
 import numpy as np
-import torch
 from beartype import beartype
 from PIL import Image
-from torchmetrics.image import (
-    StructuralSimilarityIndexMeasure,
+from skimage.metrics import (
+    structural_similarity,  # pyright: ignore[reportUnknownVariableType]
 )
 
 
@@ -78,42 +77,22 @@ class StructuralSimilarityMatcher:
         first_image_resized = first_image.resize(size=target_size)
         second_image_resized = second_image.resize(size=target_size)
 
-        first_image_np = np.array(object=first_image_resized, dtype=np.float32)
-        first_image_tensor = torch.tensor(data=first_image_np).float() / 255
-        first_image_tensor = first_image_tensor.view(
-            first_image_resized.size[1],
-            first_image_resized.size[0],
-            len(first_image_resized.getbands()),
+        first_image_np = (
+            np.array(object=first_image_resized, dtype=np.float32) / 255
+        )
+        second_image_np = (
+            np.array(object=second_image_resized, dtype=np.float32) / 255
         )
 
-        second_image_np = np.array(
-            object=second_image_resized,
-            dtype=np.float32,
+        ssim_score: float = cast(
+            "float",
+            structural_similarity(  # type: ignore[no-untyped-call]
+                im1=first_image_np,
+                im2=second_image_np,
+                data_range=1.0,
+                channel_axis=2,
+            ),
         )
-        second_image_tensor = torch.tensor(data=second_image_np).float() / 255
-        second_image_tensor = second_image_tensor.view(
-            second_image_resized.size[1],
-            second_image_resized.size[0],
-            len(second_image_resized.getbands()),
-        )
-
-        first_image_tensor_batch_dimension = first_image_tensor.permute(
-            2,
-            0,
-            1,
-        ).unsqueeze(dim=0)
-        second_image_tensor_batch_dimension = second_image_tensor.permute(
-            2,
-            0,
-            1,
-        ).unsqueeze(dim=0)
-
-        ssim = StructuralSimilarityIndexMeasure(data_range=1.0)
-        ssim_value = ssim(
-            first_image_tensor_batch_dimension,
-            second_image_tensor_batch_dimension,
-        )
-        ssim_score = ssim_value.item()
 
         # Normalize SSIM score from -1 to 1 scale to 0 to 10 scale.
         # This maps -1 to 0 and 1 to 10.

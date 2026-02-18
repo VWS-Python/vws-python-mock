@@ -1,16 +1,13 @@
 """Raters for target quality."""
 
 import functools
-import io
 import math
 import secrets
 from typing import Protocol, runtime_checkable
 
-import numpy as np
-import torch
 from beartype import beartype
-from PIL import Image
-from piq.brisque import brisque  # pyright: ignore[reportMissingTypeStubs]
+
+from mock_vws._brisque import brisque_score
 
 
 @functools.cache
@@ -25,21 +22,11 @@ def _get_brisque_target_tracking_rating(*, image_content: bytes) -> int:
     Args:
         image_content: A target's image's content.
     """
-    image_file = io.BytesIO(initial_bytes=image_content)
-    image = Image.open(fp=image_file)
-    image_np = np.array(object=image, dtype=np.float32)
-    image_tensor = torch.tensor(data=image_np).float() / 255
-    image_tensor = image_tensor.view(
-        image.size[1],
-        image.size[0],
-        len(image.getbands()),
-    )
-    image_tensor = image_tensor.permute(2, 0, 1).unsqueeze(dim=0)
     try:
-        brisque_score = brisque(x=image_tensor, data_range=255)
+        score = brisque_score(image_content=image_content)
     except (AssertionError, IndexError):
         return 0
-    return math.ceil(int(brisque_score.item()) / 20)
+    return math.ceil(int(score) / 20)
 
 
 @runtime_checkable
