@@ -11,6 +11,21 @@ VUMARK_PNG = (
     b"\xaeB`\x82"
 )
 
+VUMARK_SVG = (
+    b'<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"></svg>'
+)
+
+VUMARK_PDF = (
+    b"%PDF-1.4\n"
+    b"1 0 obj<</Type /Catalog /Pages 2 0 R>>endobj\n"
+    b"2 0 obj<</Type /Pages /Kids [3 0 R] /Count 1>>endobj\n"
+    b"3 0 obj<</Type /Page /MediaBox [0 0 100 100]>>endobj\n"
+    b"xref\n0 4\n"
+    b"0000000000 65535 f \n"
+    b"trailer<</Size 4/Root 1 0 R>>\n"
+    b"startxref\n9\n%%EOF"
+)
+
 
 @beartype
 @unique
@@ -45,6 +60,8 @@ class ResultCodes(Enum):
     PROJECT_INACTIVE = "ProjectInactive"
     INACTIVE_PROJECT = "InactiveProject"
     TOO_MANY_REQUESTS = "TooManyRequests"
+    INVALID_ACCEPT_HEADER = "InvalidAcceptHeader"
+    INVALID_INSTANCE_ID = "InvalidInstanceId"
 
 
 @beartype
