@@ -18,12 +18,20 @@ from zoneinfo import ZoneInfo
 from beartype import BeartypeConf, beartype
 from requests.models import PreparedRequest
 
-from mock_vws._constants import VUMARK_PNG, ResultCodes, TargetStatuses
+from mock_vws._constants import (
+    VUMARK_PDF,
+    VUMARK_PNG,
+    VUMARK_SVG,
+    ResultCodes,
+    TargetStatuses,
+)
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._mock_common import Route, json_dump
 from mock_vws._services_validators import run_services_validators
 from mock_vws._services_validators.exceptions import (
     FailError,
+    InvalidAcceptHeaderError,
+    InvalidInstanceIdError,
     TargetStatusNotSuccessError,
     TargetStatusProcessingError,
     ValidatorError,
@@ -295,14 +303,33 @@ class MockVuforiaWebServicesAPI:
         self, request: PreparedRequest
     ) -> _ResponseType:
         """Generate a VuMark instance."""
-        run_services_validators(
-            request_headers=request.headers,
-            request_body=_body_bytes(request=request),
-            request_method=request.method or "",
-            request_path=request.path_url,
-            databases=self._target_manager.databases,
-        )
+        valid_accept_types: dict[str, bytes] = {
+            "image/png": VUMARK_PNG,
+            "image/svg+xml": VUMARK_SVG,
+            "application/pdf": VUMARK_PDF,
+        }
+        try:
+            run_services_validators(
+                request_headers=request.headers,
+                request_body=_body_bytes(request=request),
+                request_method=request.method or "",
+                request_path=request.path_url,
+                databases=self._target_manager.databases,
+            )
 
+            accept = dict(request.headers).get("Accept", "")
+            if accept not in valid_accept_types:
+                raise InvalidAcceptHeaderError
+
+            request_json = json.loads(s=_body_bytes(request=request))
+            instance_id = request_json.get("instance_id", "")
+            if not instance_id:
+                raise InvalidInstanceIdError
+        except ValidatorError as exc:
+            return exc.status_code, exc.headers, exc.response_text
+
+        response_body = valid_accept_types[accept]
+        content_type = accept
         date = email.utils.formatdate(
             timeval=None,
             localtime=False,
@@ -310,7 +337,7 @@ class MockVuforiaWebServicesAPI:
         )
         headers = {
             "Connection": "keep-alive",
-            "Content-Type": "image/png",
+            "Content-Type": content_type,
             "Date": date,
             "server": "envoy",
             "x-envoy-upstream-service-time": "5",
@@ -318,7 +345,7 @@ class MockVuforiaWebServicesAPI:
             "x-aws-region": "us-east-2, us-west-2",
             "x-content-type-options": "nosniff",
         }
-        return HTTPStatus.OK, headers, VUMARK_PNG
+        return HTTPStatus.OK, headers, response_body
 
     @route(path_pattern="/summary", http_methods={HTTPMethod.GET})
     def database_summary(self, request: PreparedRequest) -> _ResponseType:

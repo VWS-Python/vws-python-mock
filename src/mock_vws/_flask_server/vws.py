@@ -18,12 +18,20 @@ from beartype import beartype
 from flask import Flask, Response, request
 from pydantic_settings import BaseSettings
 
-from mock_vws._constants import VUMARK_PNG, ResultCodes, TargetStatuses
+from mock_vws._constants import (
+    VUMARK_PDF,
+    VUMARK_PNG,
+    VUMARK_SVG,
+    ResultCodes,
+    TargetStatuses,
+)
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._mock_common import json_dump
 from mock_vws._services_validators import run_services_validators
 from mock_vws._services_validators.exceptions import (
     FailError,
+    InvalidAcceptHeaderError,
+    InvalidInstanceIdError,
     TargetStatusNotSuccessError,
     TargetStatusProcessingError,
     ValidatorError,
@@ -351,10 +359,27 @@ def generate_vumark_instance(target_id: str) -> Response:
     """
     # ``target_id`` is validated by request validators.
     del target_id
+
+    accept = request.headers.get(key="Accept", default="")
+    valid_accept_types: dict[str, bytes] = {
+        "image/png": VUMARK_PNG,
+        "image/svg+xml": VUMARK_SVG,
+        "application/pdf": VUMARK_PDF,
+    }
+    if accept not in valid_accept_types:
+        raise InvalidAcceptHeaderError
+
+    request_json = json.loads(s=request.data)
+    instance_id = request_json.get("instance_id", "")
+    if not instance_id:
+        raise InvalidInstanceIdError
+
+    response_body = valid_accept_types[accept]
+    content_type = accept
     date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
     headers = {
         "Connection": "keep-alive",
-        "Content-Type": "image/png",
+        "Content-Type": content_type,
         "server": "envoy",
         "Date": date,
         "x-envoy-upstream-service-time": "5",
@@ -364,7 +389,7 @@ def generate_vumark_instance(target_id: str) -> Response:
     }
     return Response(
         status=HTTPStatus.OK,
-        response=VUMARK_PNG,
+        response=response_body,
         headers=headers,
     )
 
