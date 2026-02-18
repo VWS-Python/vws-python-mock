@@ -11,12 +11,11 @@ COPY --chown=myuser:myuser . /app
 
 # See https://pythonspeed.com/articles/activate-virtualenv-dockerfile/
 # For why we use this method of activating the virtual environment.
-ENV VIRTUAL_ENV=/app/docker_venvs/.venv
 ENV UV_PROJECT_ENVIRONMENT=/app/docker_venvs/.venv
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+ENV PATH="$UV_PROJECT_ENVIRONMENT/bin:$PATH"
 
 WORKDIR /app
-RUN python3 -m venv $VIRTUAL_ENV && \
+RUN python3 -m venv $UV_PROJECT_ENVIRONMENT && \
     pip install --no-cache-dir uv==0.10.4 && \
     uv sync --no-cache
 EXPOSE 5000
