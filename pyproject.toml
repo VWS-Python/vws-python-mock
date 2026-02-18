@@ -140,6 +140,7 @@ version_scheme = "post-release"
 
 [tool.uv]
 sources.torch = { index = "pytorch-cpu" }
+sources.torchvision = { index = "pytorch-cpu" }
 index = [ { name = "pytorch-cpu", url = "https://download.pytorch.org/whl/cpu", explicit = true } ]
 
 [tool.ruff]

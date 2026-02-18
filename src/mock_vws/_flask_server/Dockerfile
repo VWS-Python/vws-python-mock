@@ -16,7 +16,8 @@ ENV UV_PROJECT_ENVIRONMENT=/app/docker_venvs/.venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 WORKDIR /app
-RUN pip install --no-cache-dir uv==0.10.4 && \
+RUN python3 -m venv $VIRTUAL_ENV && \
+    pip install --no-cache-dir uv==0.10.4 && \
     uv sync --no-cache
 EXPOSE 5000
 ENTRYPOINT ["python"]
