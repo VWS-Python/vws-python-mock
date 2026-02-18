@@ -65,7 +65,7 @@ _JETTY_CONTENT_TYPE_ERROR = textwrap.dedent(
     <tr><th>STATUS:</th><td>400</td></tr>
     <tr><th>MESSAGE:</th><td>Bad Request</td></tr>
     </table>
-    <hr/><a href="https://jetty.org/">Powered by Jetty:// 12.0.20</a><hr/>
+    <hr/><a href="https://jetty.org/">Powered by Jetty:// 12.1.6</a><hr/>
 
     </body>
     </html>
