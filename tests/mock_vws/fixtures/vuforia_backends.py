@@ -13,6 +13,7 @@ from requests_mock_flask import add_flask_app_to_mock
 from vws import VWS
 from vws.exceptions.vws_exceptions import (
     TargetStatusNotSuccessError,
+    TargetStatusProcessingError,
 )
 
 from mock_vws import MockVWS
@@ -58,7 +59,14 @@ def _delete_all_targets(*, database_keys: VuforiaDatabase) -> None:
         with contextlib.suppress(TargetStatusNotSuccessError):
             vws_client.update_target(target_id=target, active_flag=False)
         vws_client.wait_for_target_processed(target_id=target)
-        vws_client.delete_target(target_id=target)
+        # Vuforia may briefly return TargetStatusProcessing immediately
+        # after wait_for_target_processed returns (race condition after
+        # update_target triggers reprocessing), so retry once if needed.
+        try:
+            vws_client.delete_target(target_id=target)
+        except TargetStatusProcessingError:
+            vws_client.wait_for_target_processed(target_id=target)
+            vws_client.delete_target(target_id=target)
 
 
 @beartype
