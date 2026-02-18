@@ -16,7 +16,7 @@ RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 WORKDIR /app
-RUN pip install --no-cache-dir uv==0.1.44 && \
+RUN pip install --no-cache-dir uv==0.10.4 && \
     uv pip install --no-cache-dir --upgrade --editable .
 EXPOSE 5000
 ENTRYPOINT ["python"]
