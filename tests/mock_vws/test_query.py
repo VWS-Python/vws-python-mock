@@ -73,7 +73,7 @@ _JETTY_CONTENT_TYPE_ERROR = textwrap.dedent(
     """,
 )
 
-_JETTY_VERSION_RE = re.compile(r"Powered by Jetty:// [\d.]+")
+_JETTY_VERSION_RE = re.compile(pattern=r"Powered by Jetty:// [\d.]+")
 
 _NGINX_REQUEST_ENTITY_TOO_LARGE_ERROR = textwrap.dedent(
     text="""\
