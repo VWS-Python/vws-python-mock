@@ -44,6 +44,7 @@ dependencies = [
     "responses>=0.25.3",
     "torch>=2.5.1",
     "torchmetrics>=1.5.1",
+    "torchvision>=0.20.1",
     "tzdata; sys_platform=='win32'",
     "vws-auth-tools>=2024.7.12",
     "werkzeug>=3.1.2",
@@ -317,6 +318,9 @@ per_rule_ignores.DEP002 = [
     # tzdata is needed on Windows for zoneinfo to work.
     # See https://docs.python.org/3/library/zoneinfo.html#data-sources.
     "tzdata",
+    # torchvision is used transitively via piq, but must be a direct dependency
+    # so that tool.uv.sources can route it to the CPU-only PyTorch index.
+    "torchvision",
 ]
 
 [tool.pyproject-fmt]
