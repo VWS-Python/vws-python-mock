@@ -12,12 +12,13 @@ COPY --chown=myuser:myuser . /app
 # See https://pythonspeed.com/articles/activate-virtualenv-dockerfile/
 # For why we use this method of activating the virtual environment.
 ENV VIRTUAL_ENV=/app/docker_venvs/.venv
-RUN python3 -m venv $VIRTUAL_ENV
+ENV UV_PROJECT_ENVIRONMENT=/app/docker_venvs/.venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 WORKDIR /app
-RUN pip install --no-cache-dir uv==0.10.4 && \
-    uv pip install --no-cache-dir --upgrade --editable .
+RUN python3 -m venv $VIRTUAL_ENV && \
+    pip install --no-cache-dir uv==0.10.4 && \
+    uv sync --no-cache
 EXPOSE 5000
 ENTRYPOINT ["python"]
 HEALTHCHECK --interval=1s --timeout=10s --start-period=5s --retries=3 CMD ["python", "/app/src/mock_vws/_flask_server/healthcheck.py"]
