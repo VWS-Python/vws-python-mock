@@ -7,6 +7,7 @@ from email.message import EmailMessage
 
 from beartype import beartype
 from PIL import Image
+from werkzeug.datastructures import FileStorage, MultiDict
 from werkzeug.formparser import MultiPartParser
 
 from mock_vws._query_validators.exceptions import (
@@ -16,6 +17,33 @@ from mock_vws._query_validators.exceptions import (
 )
 
 _LOGGER = logging.getLogger(name=__name__)
+
+
+@beartype
+def _parse_multipart_files(
+    *,
+    request_headers: Mapping[str, str],
+    request_body: bytes,
+) -> MultiDict[str, FileStorage]:
+    """Parse the multipart body and return the files section.
+
+    Args:
+        request_headers: The headers sent with the request.
+        request_body: The body of the request.
+
+    Returns:
+        The files parsed from the multipart body.
+    """
+    email_message = EmailMessage()
+    email_message["Content-Type"] = request_headers["Content-Type"]
+    boundary = email_message.get_boundary(failobj="")
+    parser = MultiPartParser()
+    _, files = parser.parse(
+        stream=io.BytesIO(initial_bytes=request_body),
+        boundary=boundary.encode(encoding="utf-8"),
+        content_length=len(request_body),
+    )
+    return files
 
 
 @beartype
@@ -33,14 +61,9 @@ def validate_image_field_given(
     Raises:
         ImageNotGivenError: The image field is not given.
     """
-    email_message = EmailMessage()
-    email_message["Content-Type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary(failobj="")
-    parser = MultiPartParser()
-    _, files = parser.parse(
-        stream=io.BytesIO(initial_bytes=request_body),
-        boundary=boundary.encode(encoding="utf-8"),
-        content_length=len(request_body),
+    files = _parse_multipart_files(
+        request_headers=request_headers,
+        request_body=request_body,
     )
     if files.get(key="image") is not None:
         return
@@ -64,14 +87,9 @@ def validate_image_file_size(
     Raises:
         RequestEntityTooLargeError: The image file size is too large.
     """
-    email_message = EmailMessage()
-    email_message["Content-Type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary(failobj="")
-    parser = MultiPartParser()
-    _, files = parser.parse(
-        stream=io.BytesIO(initial_bytes=request_body),
-        boundary=boundary.encode(encoding="utf-8"),
-        content_length=len(request_body),
+    files = _parse_multipart_files(
+        request_headers=request_headers,
+        request_body=request_body,
     )
     image_part = files["image"]
     image_value = image_part.stream.read()
@@ -105,14 +123,9 @@ def validate_image_dimensions(
         BadImageError: The image is given and is not within the maximum width
             and height limits.
     """
-    email_message = EmailMessage()
-    email_message["Content-Type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary(failobj="")
-    parser = MultiPartParser()
-    _, files = parser.parse(
-        stream=io.BytesIO(initial_bytes=request_body),
-        boundary=boundary.encode(encoding="utf-8"),
-        content_length=len(request_body),
+    files = _parse_multipart_files(
+        request_headers=request_headers,
+        request_body=request_body,
     )
     image_part = files["image"]
     image_value = image_part.stream.read()
@@ -142,14 +155,9 @@ def validate_image_format(
     Raises:
         BadImageError: The image is given and is not either a PNG or a JPEG.
     """
-    email_message = EmailMessage()
-    email_message["Content-Type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary(failobj="")
-    parser = MultiPartParser()
-    _, files = parser.parse(
-        stream=io.BytesIO(initial_bytes=request_body),
-        boundary=boundary.encode(encoding="utf-8"),
-        content_length=len(request_body),
+    files = _parse_multipart_files(
+        request_headers=request_headers,
+        request_body=request_body,
     )
     image_part = files["image"]
     pil_image = Image.open(fp=image_part.stream)
@@ -175,17 +183,11 @@ def validate_image_is_image(
     Raises:
         BadImageError: Image data is given and it is not an image file.
     """
-    email_message = EmailMessage()
-    email_message["Content-Type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary(failobj="")
-    parser = MultiPartParser()
-    _, files = parser.parse(
-        stream=io.BytesIO(initial_bytes=request_body),
-        boundary=boundary.encode(encoding="utf-8"),
-        content_length=len(request_body),
+    files = _parse_multipart_files(
+        request_headers=request_headers,
+        request_body=request_body,
     )
-    image_part = files["image"]
-    image_file = image_part.stream
+    image_file = files["image"].stream
 
     try:
         Image.open(fp=image_file)
