@@ -1,10 +1,9 @@
-FROM python:3.13-slim AS base
+FROM ghcr.io/astral-sh/uv:0.10.4-python3.13-trixie-slim AS base
 # We set this pretend version as we do not have Git in our path, and we do
 # not care enough about having the version correct inside the Docker container
 # to install it.
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0
 # Avoid using root user.
-# This avoids having to use ``--root-user-action=ignore`` with pip.
 RUN useradd -ms /bin/bash myuser
 USER myuser
 COPY --chown=myuser:myuser . /app
@@ -15,9 +14,7 @@ ENV UV_PROJECT_ENVIRONMENT=/app/docker_venvs/.venv
 ENV PATH="$UV_PROJECT_ENVIRONMENT/bin:$PATH"
 
 WORKDIR /app
-RUN python3 -m venv $UV_PROJECT_ENVIRONMENT && \
-    pip install --no-cache-dir uv==0.10.4 && \
-    uv sync --no-cache
+RUN uv sync --no-cache
 EXPOSE 5000
 ENTRYPOINT ["python"]
 HEALTHCHECK --interval=1s --timeout=10s --start-period=5s --retries=3 CMD ["python", "/app/src/mock_vws/_flask_server/healthcheck.py"]
