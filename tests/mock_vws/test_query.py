@@ -9,6 +9,7 @@ import copy
 import datetime
 import io
 import json
+import re
 import textwrap
 import time
 import uuid
@@ -71,6 +72,8 @@ _JETTY_CONTENT_TYPE_ERROR = textwrap.dedent(
     </html>
     """,
 )
+
+_JETTY_VERSION_RE = re.compile(pattern=r"Powered by Jetty:// [\d.]+")
 
 _NGINX_REQUEST_ENTITY_TOO_LARGE_ERROR = textwrap.dedent(
     text="""\
@@ -252,7 +255,11 @@ class TestContentType:
         if resp_status_code != HTTPStatus.INTERNAL_SERVER_ERROR:
             handle_server_errors(response=vws_response)
 
-        assert requests_response.text == resp_text
+        repl = "Powered by Jetty://"
+        sub = _JETTY_VERSION_RE.sub
+        actual = sub(repl=repl, string=requests_response.text)
+        expected = sub(repl=repl, string=resp_text)
+        assert actual == expected
         assert_vwq_failure(
             response=vws_response,
             status_code=resp_status_code,
