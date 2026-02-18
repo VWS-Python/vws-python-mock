@@ -103,7 +103,7 @@ def run_services_validators(
     validate_date_format(request_headers=request_headers)
     validate_date_in_range(request_headers=request_headers)
 
-    validate_json(request_body=request_body)
+    validate_json(request_body=request_body, request_path=request_path)
 
     validate_keys(
         request_body=request_body,

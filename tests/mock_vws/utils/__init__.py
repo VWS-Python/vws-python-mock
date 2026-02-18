@@ -47,7 +47,7 @@ class Endpoint:
     method: str
     headers: Mapping[str, str]
     data: bytes | str
-    successful_headers_result_code: ResultCodes
+    successful_headers_result_code: ResultCodes | None
     successful_headers_status_code: int
     access_key: str
     secret_key: str
