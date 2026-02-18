@@ -448,6 +448,7 @@ ignore_names = [
 exclude = [ ".venv" ]
 ignore_decorators = [
     "@pytest.fixture",
+    "@route",
     # Flask
     "@*APP.route",
     "@*APP.after_request",
