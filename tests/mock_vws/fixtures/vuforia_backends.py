@@ -10,13 +10,9 @@ import requests
 import responses
 from beartype import beartype
 from requests_mock_flask import add_flask_app_to_mock
-from tenacity import retry
-from tenacity.retry import retry_if_exception_type
-from tenacity.wait import wait_fixed
 from vws import VWS
 from vws.exceptions.vws_exceptions import (
     TargetStatusNotSuccessError,
-    TargetStatusProcessingError,
 )
 
 from mock_vws import MockVWS
@@ -33,25 +29,6 @@ from tests.mock_vws.utils.retries import RETRY_ON_TOO_MANY_REQUESTS
 
 LOGGER = logging.getLogger(name=__name__)
 LOGGER.setLevel(level=logging.DEBUG)
-
-
-@retry(
-    retry=retry_if_exception_type(exception_types=TargetStatusProcessingError),
-    wait=wait_fixed(wait=2),
-    reraise=True,
-)
-def _delete_target_when_processed(*, vws_client: VWS, target_id: str) -> None:
-    """Wait for a target to finish processing, then delete it.
-
-    Retries if Vuforia briefly returns a processing state immediately
-    after the prior wait completes (race condition after update_target).
-
-    Args:
-        vws_client: The VWS client to use.
-        target_id: The target to delete.
-    """
-    vws_client.wait_for_target_processed(target_id=target_id)
-    vws_client.delete_target(target_id=target_id)
 
 
 @RETRY_ON_TOO_MANY_REQUESTS
@@ -80,7 +57,8 @@ def _delete_all_targets(*, database_keys: VuforiaDatabase) -> None:
         # we change the target to inactive before deleting it.
         with contextlib.suppress(TargetStatusNotSuccessError):
             vws_client.update_target(target_id=target, active_flag=False)
-        _delete_target_when_processed(vws_client=vws_client, target_id=target)
+        vws_client.wait_for_target_processed(target_id=target)
+        vws_client.delete_target(target_id=target)
 
 
 @beartype
