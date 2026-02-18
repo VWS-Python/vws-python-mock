@@ -255,9 +255,11 @@ class TestContentType:
         if resp_status_code != HTTPStatus.INTERNAL_SERVER_ERROR:
             handle_server_errors(response=vws_response)
 
+        repl = "Powered by Jetty://"
         sub = _JETTY_VERSION_RE.sub
-        jetty = "Powered by Jetty://"
-        assert sub(jetty, requests_response.text) == sub(jetty, resp_text)
+        actual = sub(repl=repl, string=requests_response.text)
+        expected = sub(repl=repl, string=resp_text)
+        assert actual == expected
         assert_vwq_failure(
             response=vws_response,
             status_code=resp_status_code,
