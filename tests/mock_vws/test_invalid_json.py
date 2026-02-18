@@ -75,10 +75,15 @@ class TestInvalidJSON:
         assert_valid_date_header(response=response)
 
         if takes_json_data:
+            expected_result_code = (
+                ResultCodes.BAD_REQUEST
+                if endpoint.path_url.endswith("/instances")
+                else ResultCodes.FAIL
+            )
             assert_vws_failure(
                 response=response,
                 status_code=HTTPStatus.BAD_REQUEST,
-                result_code=ResultCodes.FAIL,
+                result_code=expected_result_code,
             )
             return
 

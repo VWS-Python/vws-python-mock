@@ -62,6 +62,7 @@ class ResultCodes(Enum):
     TOO_MANY_REQUESTS = "TooManyRequests"
     INVALID_ACCEPT_HEADER = "InvalidAcceptHeader"
     INVALID_INSTANCE_ID = "InvalidInstanceId"
+    BAD_REQUEST = "BadRequest"
 
 
 @beartype
