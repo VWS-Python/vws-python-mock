@@ -19,32 +19,6 @@ from mock_vws._query_validators.exceptions import (
 _LOGGER = logging.getLogger(name=__name__)
 
 
-def _parse_multipart_files(
-    *,
-    request_headers: Mapping[str, str],
-    request_body: bytes,
-) -> MultiDict[str, FileStorage]:
-    """Parse the multipart body and return the files section.
-
-    Args:
-        request_headers: The headers sent with the request.
-        request_body: The body of the request.
-
-    Returns:
-        The files parsed from the multipart body.
-    """
-    email_message = EmailMessage()
-    email_message["Content-Type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary(failobj="")
-    parser = MultiPartParser()
-    _, files = parser.parse(
-        stream=io.BytesIO(initial_bytes=request_body),
-        boundary=boundary.encode(encoding="utf-8"),
-        content_length=len(request_body),
-    )
-    return files
-
-
 @beartype
 def _parse_multipart_files(
     *,
