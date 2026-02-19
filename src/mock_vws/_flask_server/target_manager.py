@@ -16,7 +16,6 @@ from mock_vws.database import CloudDatabase
 from mock_vws.database_type import DatabaseType
 from mock_vws.states import States
 from mock_vws.target import ImageTarget
-from mock_vws.target_type import TargetType
 from mock_vws.target_manager import TargetManager
 from mock_vws.target_raters import (
     BrisqueTargetTrackingRater,
@@ -24,6 +23,7 @@ from mock_vws.target_raters import (
     RandomTargetTrackingRater,
     TargetTrackingRater,
 )
+from mock_vws.target_type import TargetType
 
 TARGET_MANAGER_FLASK_APP = Flask(import_name=__name__, static_folder=None)
 
