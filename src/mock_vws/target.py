@@ -53,9 +53,15 @@ def _time_now() -> datetime.datetime:
 @beartype(conf=BeartypeConf(is_pep484_tower=True))
 @dataclass(frozen=True, eq=True)
 class ImageTarget:
-    """
-    A Vuforia Target as managed in
+    """A Vuforia Target as managed in
     https://developer.vuforia.com/target-manager.
+
+    The :attr:`target_type` field controls whether this represents an image
+    target or a VuMark template target. Note that some attributes (such as
+    :attr:`image_value`, :attr:`reco_rating`, and recognition counts) are
+    primarily meaningful for image targets. For VuMark template targets, these
+    fields are still present but may not be used by the mock or reflected in
+    the real Vuforia Web Services.
     """
 
     active_flag: bool
