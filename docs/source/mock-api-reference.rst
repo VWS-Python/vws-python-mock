@@ -24,7 +24,15 @@ API Reference
    :members:
    :undoc-members:
 
+.. autoenum:: mock_vws.database_type.DatabaseType
+   :members:
+   :undoc-members:
+
 .. autoclass:: mock_vws.target.Target
+
+.. autoenum:: mock_vws.target_type.TargetType
+   :members:
+   :undoc-members:
 
 Image matchers
 --------------
