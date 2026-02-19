@@ -8,6 +8,7 @@ from typing import Self, TypedDict
 from beartype import beartype
 
 from mock_vws._constants import TargetStatuses
+from mock_vws.database_type import DatabaseType
 from mock_vws.states import States
 from mock_vws.target import Target, TargetDict
 
@@ -22,6 +23,7 @@ class DatabaseDict(TypedDict):
     client_access_key: str
     client_secret_key: str
     state_name: str
+    database_type_name: str
     targets: Iterable[TargetDict]
 
 
@@ -63,6 +65,7 @@ class VuforiaDatabase:
     # as they change via API requests.
     targets: set[Target] = field(default_factory=set[Target], hash=False)
     state: States = States.WORKING
+    database_type: DatabaseType = DatabaseType.CLOUD_RECO
 
     request_quota: int = 100000
     reco_threshold: int = 1000
@@ -81,6 +84,7 @@ class VuforiaDatabase:
             "client_access_key": self.client_access_key,
             "client_secret_key": self.client_secret_key,
             "state_name": self.state.name,
+            "database_type_name": self.database_type.name,
             "targets": targets,
         }
 
@@ -101,6 +105,7 @@ class VuforiaDatabase:
             client_access_key=database_dict["client_access_key"],
             client_secret_key=database_dict["client_secret_key"],
             state=States[database_dict["state_name"]],
+            database_type=DatabaseType[database_dict["database_type_name"]],
             targets={
                 Target.from_dict(target_dict=target_dict)
                 for target_dict in database_dict["targets"]

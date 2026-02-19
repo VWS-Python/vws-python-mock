@@ -63,6 +63,7 @@ class ResultCodes(Enum):
     INVALID_ACCEPT_HEADER = "InvalidAcceptHeader"
     INVALID_INSTANCE_ID = "InvalidInstanceId"
     BAD_REQUEST = "BadRequest"
+    INVALID_TARGET_TYPE = "InvalidTargetType"
 
 
 @beartype

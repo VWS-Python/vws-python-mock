@@ -32,11 +32,13 @@ from mock_vws._services_validators.exceptions import (
     FailError,
     InvalidAcceptHeaderError,
     InvalidInstanceIdError,
+    InvalidTargetTypeError,
     TargetStatusNotSuccessError,
     TargetStatusProcessingError,
     ValidatorError,
 )
 from mock_vws.database import VuforiaDatabase
+from mock_vws.database_type import DatabaseType
 from mock_vws.image_matchers import (
     ExactMatcher,
     ImageMatcher,
@@ -359,6 +361,17 @@ def generate_vumark_instance(target_id: str) -> Response:
     """
     # ``target_id`` is validated by request validators.
     del target_id
+
+    databases = get_all_databases()
+    database = get_database_matching_server_keys(
+        request_headers=dict(request.headers),
+        request_body=request.data,
+        request_method=request.method,
+        request_path=request.path,
+        databases=databases,
+    )
+    if database.database_type != DatabaseType.VUMARK:
+        raise InvalidTargetTypeError
 
     accept = request.headers.get(key="Accept", default="")
     valid_accept_types: dict[str, bytes] = {

@@ -13,8 +13,10 @@ from flask import Flask, Response, request
 from pydantic_settings import BaseSettings
 
 from mock_vws.database import VuforiaDatabase
+from mock_vws.database_type import DatabaseType
 from mock_vws.states import States
 from mock_vws.target import Target
+from mock_vws.target_type import TargetType
 from mock_vws.target_manager import TargetManager
 from mock_vws.target_raters import (
     BrisqueTargetTrackingRater,
@@ -159,8 +161,13 @@ def create_database() -> Response:
         "state_name",
         random_database.state.name,
     )
+    database_type_name = request_json.get(
+        "database_type_name",
+        random_database.database_type.name,
+    )
 
     state = States[state_name]
+    database_type = DatabaseType[database_type_name]
 
     database = VuforiaDatabase(
         server_access_key=server_access_key,
@@ -169,6 +176,7 @@ def create_database() -> Response:
         client_secret_key=client_secret_key,
         database_name=database_name,
         state=state,
+        database_type=database_type,
     )
     try:
         TARGET_MANAGER.add_database(database=database)
@@ -202,6 +210,9 @@ def create_target(database_name: str) -> Response:
     settings = TargetManagerSettings.model_validate(obj={})
     target_tracking_rater = settings.target_rater.to_target_rater()
 
+    target_type = TargetType[
+        request_json.get("target_type_name", TargetType.IMAGE.name)
+    ]
     target = Target(
         name=request_json["name"],
         width=request_json["width"],
@@ -211,6 +222,7 @@ def create_target(database_name: str) -> Response:
         application_metadata=request_json["application_metadata"],
         target_id=request_json["target_id"],
         target_tracking_rater=target_tracking_rater,
+        target_type=target_type,
     )
     database.targets.add(target)
 

@@ -17,6 +17,7 @@ from mock_vws.target_raters import (
     HardcodedTargetTrackingRater,
     TargetTrackingRater,
 )
+from mock_vws.target_type import TargetType
 
 
 class TargetDict(TypedDict):
@@ -33,6 +34,7 @@ class TargetDict(TypedDict):
     delete_date_optional: str | None
     upload_date: str
     tracking_rating: int
+    target_type_name: str
 
 
 @beartype
@@ -69,6 +71,7 @@ class Target:
     previous_month_recos: int = 0
     reco_rating: str = ""
     target_id: str = field(default_factory=_random_hex)
+    target_type: TargetType = TargetType.IMAGE
     total_recos: int = 0
     upload_date: datetime.datetime = field(default_factory=_time_now)
 
@@ -173,6 +176,7 @@ class Target:
         target_tracking_rater = HardcodedTargetTrackingRater(
             rating=target_dict["tracking_rating"],
         )
+        target_type = TargetType[target_dict["target_type_name"]]
         return cls(
             target_id=target_id,
             name=name,
@@ -185,6 +189,7 @@ class Target:
             last_modified_date=last_modified_date,
             upload_date=upload_date,
             target_tracking_rater=target_tracking_rater,
+            target_type=target_type,
         )
 
     def to_dict(self) -> TargetDict:
@@ -207,4 +212,5 @@ class Target:
             "delete_date_optional": delete_date,
             "upload_date": self.upload_date.isoformat(),
             "tracking_rating": self.tracking_rating,
+            "target_type_name": self.target_type.name,
         }
