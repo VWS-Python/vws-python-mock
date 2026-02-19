@@ -24,7 +24,7 @@ API Reference
    :members:
    :undoc-members:
 
-.. autoclass:: mock_vws.target.Target
+.. autoclass:: mock_vws.target.ImageTarget
 
 Image matchers
 --------------
