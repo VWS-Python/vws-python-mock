@@ -32,10 +32,12 @@ from mock_vws._services_validators.exceptions import (
     FailError,
     InvalidAcceptHeaderError,
     InvalidInstanceIdError,
+    InvalidTargetTypeError,
     TargetStatusNotSuccessError,
     TargetStatusProcessingError,
     ValidatorError,
 )
+from mock_vws.database_type import DatabaseType
 from mock_vws.image_matchers import ImageMatcher
 from mock_vws.target import ImageTarget
 from mock_vws.target_manager import TargetManager
@@ -316,6 +318,16 @@ class MockVuforiaWebServicesAPI:
                 request_path=request.path_url,
                 databases=self._target_manager.databases,
             )
+
+            database = get_database_matching_server_keys(
+                request_headers=request.headers,
+                request_body=_body_bytes(request=request),
+                request_method=request.method or "",
+                request_path=request.path_url,
+                databases=self._target_manager.databases,
+            )
+            if database.database_type != DatabaseType.VUMARK:
+                raise InvalidTargetTypeError
 
             accept = dict(request.headers).get("Accept", "")
             if accept not in valid_accept_types:

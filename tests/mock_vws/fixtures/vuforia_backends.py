@@ -20,6 +20,7 @@ from mock_vws._flask_server.target_manager import TARGET_MANAGER_FLASK_APP
 from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
 from mock_vws._flask_server.vws import VWS_FLASK_APP
 from mock_vws.database import CloudDatabase
+from mock_vws.database_type import DatabaseType
 from mock_vws.states import States
 from mock_vws.target import ImageTarget
 from mock_vws.target_raters import HardcodedTargetTrackingRater
@@ -87,6 +88,7 @@ def _vumark_database(
         server_access_key=vumark_vuforia_database.server_access_key,
         server_secret_key=vumark_vuforia_database.server_secret_key,
         targets={vumark_target},
+        database_type=DatabaseType.VUMARK,
     )
 
 
