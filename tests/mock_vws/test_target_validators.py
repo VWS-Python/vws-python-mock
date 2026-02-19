@@ -10,14 +10,14 @@ from mock_vws._services_validators.target_validators import (
     validate_target_id_exists,
 )
 from mock_vws.database import VuforiaDatabase
-from mock_vws.target import Target
+from mock_vws.target import ImageTarget
 from mock_vws.target_raters import HardcodedTargetTrackingRater
 from tests.mock_vws.utils import make_image_file
 
 
 def _database_with_target(*, target_id: str) -> VuforiaDatabase:
     """Create a database containing one target with the given ID."""
-    target = Target(
+    target = ImageTarget(
         active_flag=True,
         application_metadata=None,
         image_value=make_image_file(

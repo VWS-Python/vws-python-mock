@@ -42,7 +42,7 @@ from mock_vws.image_matchers import (
     ImageMatcher,
     StructuralSimilarityMatcher,
 )
-from mock_vws.target import Target
+from mock_vws.target import ImageTarget
 from mock_vws.target_raters import (
     HardcodedTargetTrackingRater,
 )
@@ -192,7 +192,7 @@ def add_target() -> Response:
     # This rater is not used.
     target_tracking_rater = HardcodedTargetTrackingRater(rating=1)
 
-    new_target = Target(
+    new_target = ImageTarget(
         name=name,
         width=request_json["width"],
         image_value=base64.b64decode(s=request_json["image"]),

@@ -19,7 +19,7 @@ from mock_vws.target_raters import (
 )
 
 
-class TargetDict(TypedDict):
+class ImageTargetDict(TypedDict):
     """A dictionary type which represents a target."""
 
     name: str
@@ -50,7 +50,7 @@ def _time_now() -> datetime.datetime:
 
 @beartype(conf=BeartypeConf(is_pep484_tower=True))
 @dataclass(frozen=True, eq=True)
-class Target:
+class ImageTarget:
     """
     A Vuforia Target as managed in
     https://developer.vuforia.com/target-manager.
@@ -145,7 +145,7 @@ class Target:
         return self._post_processing_target_rating
 
     @classmethod
-    def from_dict(cls, target_dict: TargetDict) -> Self:
+    def from_dict(cls, target_dict: ImageTargetDict) -> Self:
         """Load a target from a dictionary."""
         timezone = ZoneInfo(key="GMT")
         name = target_dict["name"]
@@ -187,7 +187,7 @@ class Target:
             target_tracking_rater=target_tracking_rater,
         )
 
-    def to_dict(self) -> TargetDict:
+    def to_dict(self) -> ImageTargetDict:
         """Dump a target to a dictionary which can be loaded as JSON."""
         delete_date: str | None = None
         if self.delete_date:

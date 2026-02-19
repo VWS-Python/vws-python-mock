@@ -21,7 +21,7 @@ from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
 from mock_vws._flask_server.vws import VWS_FLASK_APP
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
-from mock_vws.target import Target
+from mock_vws.target import ImageTarget
 from mock_vws.target_raters import HardcodedTargetTrackingRater
 from tests.mock_vws.fixtures.credentials import VuMarkVuforiaDatabase
 from tests.mock_vws.utils import make_image_file
@@ -67,7 +67,7 @@ def _vumark_database(
     vumark_vuforia_database: VuMarkVuforiaDatabase,
 ) -> VuforiaDatabase:
     """Return a database with a target for VuMark instance generation."""
-    vumark_target = Target(
+    vumark_target = ImageTarget(
         active_flag=True,
         application_metadata=None,
         image_value=make_image_file(
