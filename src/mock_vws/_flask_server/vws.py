@@ -87,11 +87,12 @@ class VWSSettings(BaseSettings):
 
 @beartype
 def get_all_cloud_databases() -> set[CloudDatabase]:
-    """Get all cloud database objects from the target manager back-end."""
+    """Get all database objects from the task manager back-end."""
     settings = VWSSettings.model_validate(obj={})
+    timeout_seconds = 30
     response = requests.get(
         url=f"{settings.target_manager_base_url}/cloud_databases",
-        timeout=30,
+        timeout=timeout_seconds,
     )
     return {
         CloudDatabase.from_dict(database_dict=database_dict)

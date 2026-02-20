@@ -57,28 +57,6 @@ class TargetManagerSettings(BaseSettings):
     target_rater: _TargetRaterChoice = _TargetRaterChoice.BRISQUE
 
 
-@beartype
-def _get_cloud_database(database_name: str) -> CloudDatabase:
-    """Get a cloud database by name."""
-    (database,) = (
-        database
-        for database in TARGET_MANAGER.cloud_databases
-        if database.database_name == database_name
-    )
-    return database
-
-
-@beartype
-def _get_vumark_database(database_name: str) -> VuMarkDatabase:
-    """Get a VuMark database by name."""
-    (database,) = (
-        database
-        for database in TARGET_MANAGER.vumark_databases
-        if database.database_name == database_name
-    )
-    return database
-
-
 @TARGET_MANAGER_FLASK_APP.route(
     rule="/cloud_databases/<string:database_name>",
     methods=[HTTPMethod.DELETE],
@@ -90,11 +68,15 @@ def delete_cloud_database(database_name: str) -> Response:
     :status 200: The cloud database has been deleted.
     """
     try:
-        database = _get_cloud_database(database_name=database_name)
+        (matching_database,) = {
+            database
+            for database in TARGET_MANAGER.cloud_databases
+            if database_name == database.database_name
+        }
     except ValueError:
         return Response(response="", status=HTTPStatus.NOT_FOUND)
 
-    TARGET_MANAGER.remove_cloud_database(cloud_database=database)
+    TARGET_MANAGER.remove_cloud_database(cloud_database=matching_database)
     return Response(response="", status=HTTPStatus.OK)
 
 
@@ -109,11 +91,15 @@ def delete_vumark_database(database_name: str) -> Response:
     :status 200: The VuMark database has been deleted.
     """
     try:
-        database = _get_vumark_database(database_name=database_name)
+        (matching_database,) = {
+            database
+            for database in TARGET_MANAGER.vumark_databases
+            if database_name == database.database_name
+        }
     except ValueError:
         return Response(response="", status=HTTPStatus.NOT_FOUND)
 
-    TARGET_MANAGER.remove_vumark_database(vumark_database=database)
+    TARGET_MANAGER.remove_vumark_database(vumark_database=matching_database)
     return Response(response="", status=HTTPStatus.OK)
 
 
@@ -196,34 +182,43 @@ def create_cloud_database() -> Response:
 
     :status 201: The cloud database has been successfully created.
     """
-    request_json = json.loads(s=request.data)
     random_database = CloudDatabase()
-    database = CloudDatabase(
-        server_access_key=request_json.get(
-            "server_access_key",
-            random_database.server_access_key,
-        ),
-        server_secret_key=request_json.get(
-            "server_secret_key",
-            random_database.server_secret_key,
-        ),
-        client_access_key=request_json.get(
-            "client_access_key",
-            random_database.client_access_key,
-        ),
-        client_secret_key=request_json.get(
-            "client_secret_key",
-            random_database.client_secret_key,
-        ),
-        database_name=request_json.get(
-            "database_name",
-            random_database.database_name,
-        ),
-        state=States[
-            request_json.get("state_name", random_database.state.name)
-        ],
+    request_json = json.loads(s=request.data)
+    server_access_key = request_json.get(
+        "server_access_key",
+        random_database.server_access_key,
+    )
+    server_secret_key = request_json.get(
+        "server_secret_key",
+        random_database.server_secret_key,
+    )
+    client_access_key = request_json.get(
+        "client_access_key",
+        random_database.client_access_key,
+    )
+    client_secret_key = request_json.get(
+        "client_secret_key",
+        random_database.client_secret_key,
+    )
+    database_name = request_json.get(
+        "database_name",
+        random_database.database_name,
+    )
+    state_name = request_json.get(
+        "state_name",
+        random_database.state.name,
     )
 
+    state = States[state_name]
+
+    database = CloudDatabase(
+        server_access_key=server_access_key,
+        server_secret_key=server_secret_key,
+        client_access_key=client_access_key,
+        client_secret_key=client_secret_key,
+        database_name=database_name,
+        state=state,
+    )
     try:
         TARGET_MANAGER.add_cloud_database(cloud_database=database)
     except ValueError as exc:
@@ -286,7 +281,11 @@ def create_vumark_database() -> Response:
 @beartype
 def create_target(database_name: str) -> Response:
     """Create a new target in a given cloud database."""
-    database = _get_cloud_database(database_name=database_name)
+    (database,) = (
+        database
+        for database in TARGET_MANAGER.cloud_databases
+        if database.database_name == database_name
+    )
     request_json = json.loads(s=request.data)
     image_base64 = request_json["image_base64"]
     image_bytes = base64.b64decode(s=image_base64)
@@ -318,7 +317,11 @@ def create_target(database_name: str) -> Response:
 @beartype
 def create_vumark_target(database_name: str) -> Response:
     """Create a new VuMark target in a given database."""
-    database = _get_vumark_database(database_name=database_name)
+    (database,) = (
+        database
+        for database in TARGET_MANAGER.vumark_databases
+        if database.database_name == database_name
+    )
     request_json = json.loads(s=request.data)
     target = VuMarkTarget.from_dict(target_dict=request_json)
     database.vumark_targets.add(target)
@@ -336,7 +339,11 @@ def create_vumark_target(database_name: str) -> Response:
 @beartype
 def delete_target(database_name: str, target_id: str) -> Response:
     """Delete a target."""
-    database = _get_cloud_database(database_name=database_name)
+    (database,) = (
+        database
+        for database in TARGET_MANAGER.cloud_databases
+        if database.database_name == database_name
+    )
     target = database.get_target(target_id=target_id)
     now = datetime.datetime.now(tz=target.upload_date.tzinfo)
     # See https://github.com/facebook/pyrefly/issues/1897
@@ -358,7 +365,11 @@ def delete_target(database_name: str, target_id: str) -> Response:
 )
 def update_target(database_name: str, target_id: str) -> Response:
     """Update a target."""
-    database = _get_cloud_database(database_name=database_name)
+    (database,) = (
+        database
+        for database in TARGET_MANAGER.cloud_databases
+        if database.database_name == database_name
+    )
     target = database.get_target(target_id=target_id)
 
     request_json = json.loads(s=request.data)

@@ -116,14 +116,13 @@ class MockVuforiaWebQueryAPI:
     @route(path_pattern="/v1/query", http_methods={HTTPMethod.POST})
     def query(self, request: PreparedRequest) -> _ResponseType:
         """Perform an image recognition query."""
-        cloud_databases = self._target_manager.cloud_databases
         try:
             run_query_validators(
                 request_path=request.path_url,
                 request_headers=request.headers,
                 request_body=_body_bytes(request=request),
                 request_method=request.method or "",
-                databases=cloud_databases,
+                databases=self._target_manager.cloud_databases,
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
@@ -133,7 +132,7 @@ class MockVuforiaWebQueryAPI:
             request_body=_body_bytes(request=request),
             request_method=request.method or "",
             request_path=request.path_url,
-            databases=cloud_databases,
+            databases=self._target_manager.cloud_databases,
             query_match_checker=self._query_match_checker,
         )
 
