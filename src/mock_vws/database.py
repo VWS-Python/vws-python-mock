@@ -9,7 +9,12 @@ from beartype import beartype
 
 from mock_vws._constants import TargetStatuses
 from mock_vws.states import States
-from mock_vws.target import ImageTarget, ImageTargetDict
+from mock_vws.target import (
+    ImageTarget,
+    ImageTargetDict,
+    VuMarkTarget,
+    VuMarkTargetDict,
+)
 
 
 @beartype
@@ -23,6 +28,7 @@ class CloudDatabaseDict(TypedDict):
     client_secret_key: str
     state_name: str
     targets: Iterable[ImageTargetDict]
+    vumark_targets: Iterable[VuMarkTargetDict]
 
 
 @beartype
@@ -57,12 +63,16 @@ class CloudDatabase:
     server_secret_key: str = field(default_factory=_random_hex, repr=False)
     client_access_key: str = field(default_factory=_random_hex, repr=False)
     client_secret_key: str = field(default_factory=_random_hex, repr=False)
-    # We have ``targets`` as ``hash=False`` so that we can have the class as
-    # ``frozen=True`` while still being able to keep the interface we want.
-    # In particular, we might want to inspect the ``database`` object's targets
-    # as they change via API requests.
+    # We have ``targets`` and ``vumark_targets`` as ``hash=False`` so that we
+    # can have the class as ``frozen=True`` while still being able to keep the
+    # interface we want. In particular, we might want to inspect the
+    # ``database`` object's targets as they change via API requests.
     targets: set[ImageTarget] = field(
         default_factory=set[ImageTarget],
+        hash=False,
+    )
+    vumark_targets: set[VuMarkTarget] = field(
+        default_factory=set[VuMarkTarget],
         hash=False,
     )
     state: States = States.WORKING
@@ -77,6 +87,7 @@ class CloudDatabase:
     def to_dict(self) -> CloudDatabaseDict:
         """Dump a target to a dictionary which can be loaded as JSON."""
         targets = [target.to_dict() for target in self.targets]
+        vumark_targets = [target.to_dict() for target in self.vumark_targets]
         return {
             "database_name": self.database_name,
             "server_access_key": self.server_access_key,
@@ -85,12 +96,15 @@ class CloudDatabase:
             "client_secret_key": self.client_secret_key,
             "state_name": self.state.name,
             "targets": targets,
+            "vumark_targets": vumark_targets,
         }
 
-    def get_target(self, target_id: str) -> ImageTarget:
+    def get_target(self, target_id: str) -> ImageTarget | VuMarkTarget:
         """Return a target from the database with the given ID."""
         (target,) = (
-            target for target in self.targets if target.target_id == target_id
+            target
+            for target in {*self.targets, *self.vumark_targets}
+            if target.target_id == target_id
         )
         return target
 
@@ -108,47 +122,59 @@ class CloudDatabase:
                 ImageTarget.from_dict(target_dict=target_dict)
                 for target_dict in database_dict["targets"]
             },
+            vumark_targets={
+                VuMarkTarget.from_dict(target_dict=target_dict)
+                for target_dict in database_dict["vumark_targets"]
+            },
         )
 
     @property
-    def not_deleted_targets(self) -> set[ImageTarget]:
+    def not_deleted_targets(self) -> set[ImageTarget | VuMarkTarget]:
         """All targets which have not been deleted."""
-        return {target for target in self.targets if not target.delete_date}
+        return {
+            target
+            for target in {*self.targets, *self.vumark_targets}
+            if not target.delete_date
+        }
 
     @property
     def active_targets(self) -> set[ImageTarget]:
-        """All active targets."""
+        """All active image targets."""
         return {
             target
-            for target in self.not_deleted_targets
-            if target.status == TargetStatuses.SUCCESS.value
+            for target in self.targets
+            if not target.delete_date
+            and target.status == TargetStatuses.SUCCESS.value
             and target.active_flag
         }
 
     @property
     def inactive_targets(self) -> set[ImageTarget]:
-        """All inactive targets."""
+        """All inactive image targets."""
         return {
             target
-            for target in self.not_deleted_targets
-            if target.status == TargetStatuses.SUCCESS.value
+            for target in self.targets
+            if not target.delete_date
+            and target.status == TargetStatuses.SUCCESS.value
             and not target.active_flag
         }
 
     @property
     def failed_targets(self) -> set[ImageTarget]:
-        """All failed targets."""
+        """All failed image targets."""
         return {
             target
-            for target in self.not_deleted_targets
-            if target.status == TargetStatuses.FAILED.value
+            for target in self.targets
+            if not target.delete_date
+            and target.status == TargetStatuses.FAILED.value
         }
 
     @property
     def processing_targets(self) -> set[ImageTarget]:
-        """All processing targets."""
+        """All processing image targets."""
         return {
             target
-            for target in self.not_deleted_targets
-            if target.status == TargetStatuses.PROCESSING.value
+            for target in self.targets
+            if not target.delete_date
+            and target.status == TargetStatuses.PROCESSING.value
         }

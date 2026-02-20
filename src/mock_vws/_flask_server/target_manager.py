@@ -14,7 +14,7 @@ from pydantic_settings import BaseSettings
 
 from mock_vws.database import CloudDatabase
 from mock_vws.states import States
-from mock_vws.target import ImageTarget
+from mock_vws.target import ImageTarget, VuMarkTarget
 from mock_vws.target_manager import TargetManager
 from mock_vws.target_raters import (
     BrisqueTargetTrackingRater,
@@ -213,6 +213,28 @@ def create_target(database_name: str) -> Response:
         target_tracking_rater=target_tracking_rater,
     )
     database.targets.add(target)
+
+    return Response(
+        response=json.dumps(obj=target.to_dict()),
+        status=HTTPStatus.CREATED,
+    )
+
+
+@TARGET_MANAGER_FLASK_APP.route(
+    rule="/databases/<string:database_name>/vumark_targets",
+    methods=[HTTPMethod.POST],
+)
+@beartype
+def create_vumark_target(database_name: str) -> Response:
+    """Create a new VuMark target in a given database."""
+    (database,) = (
+        database
+        for database in TARGET_MANAGER.databases
+        if database.database_name == database_name
+    )
+    request_json = json.loads(s=request.data)
+    target = VuMarkTarget.from_dict(target_dict=request_json)
+    database.vumark_targets.add(target)
 
     return Response(
         response=json.dumps(obj=target.to_dict()),

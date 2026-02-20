@@ -21,10 +21,8 @@ from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
 from mock_vws._flask_server.vws import VWS_FLASK_APP
 from mock_vws.database import CloudDatabase
 from mock_vws.states import States
-from mock_vws.target import ImageTarget
-from mock_vws.target_raters import HardcodedTargetTrackingRater
+from mock_vws.target import VuMarkTarget
 from tests.mock_vws.fixtures.credentials import VuMarkCloudDatabase
-from tests.mock_vws.utils import make_image_file
 from tests.mock_vws.utils.retries import RETRY_ON_TOO_MANY_REQUESTS
 
 LOGGER = logging.getLogger(name=__name__)
@@ -66,27 +64,18 @@ def _vumark_database(
     *,
     vumark_vuforia_database: VuMarkCloudDatabase,
 ) -> CloudDatabase:
-    """Return a database with a target for VuMark instance generation."""
-    vumark_target = ImageTarget(
-        active_flag=True,
-        application_metadata=None,
-        image_value=make_image_file(
-            file_format="PNG",
-            color_space="RGB",
-            width=8,
-            height=8,
-        ).getvalue(),
+    """Return a database with a VuMark target for VuMark instance
+    generation.
+    """
+    vumark_target = VuMarkTarget(
         name="mock-vumark-target",
-        processing_time_seconds=0,
-        width=1,
-        target_tracking_rater=HardcodedTargetTrackingRater(rating=5),
         target_id=vumark_vuforia_database.target_id,
     )
     return CloudDatabase(
         database_name=vumark_vuforia_database.target_manager_database_name,
         server_access_key=vumark_vuforia_database.server_access_key,
         server_secret_key=vumark_vuforia_database.server_secret_key,
-        targets={vumark_target},
+        vumark_targets={vumark_target},
     )
 
 
@@ -175,7 +164,7 @@ def _enable_use_docker_in_memory(
     vumark_database = _vumark_database(
         vumark_vuforia_database=vumark_vuforia_database,
     )
-    (vumark_target,) = vumark_database.targets
+    (vumark_target,) = vumark_database.vumark_targets
 
     with responses.RequestsMock(assert_all_requests_are_fired=False) as mock:
         add_flask_app_to_mock(
@@ -221,7 +210,9 @@ def _enable_use_docker_in_memory(
             timeout=30,
         )
         requests.post(
-            url=(f"{databases_url}/{vumark_database.database_name}/targets"),
+            url=(
+                f"{databases_url}/{vumark_database.database_name}/vumark_targets"
+            ),
             json=vumark_target.to_dict(),
             timeout=30,
         )

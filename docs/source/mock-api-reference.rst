@@ -26,6 +26,8 @@ API Reference
 
 .. autoclass:: mock_vws.target.ImageTarget
 
+.. autoclass:: mock_vws.target.VuMarkTarget
+
 Image matchers
 --------------
 
