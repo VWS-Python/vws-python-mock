@@ -24,7 +24,6 @@ class VuMarkTargetDict(TypedDict):
 
     target_id: str
     name: str
-    delete_date_optional: str | None
 
 
 class ImageTargetDict(TypedDict):
@@ -231,34 +230,20 @@ class VuMarkTarget:
 
     name: str
     target_id: str = field(default_factory=_random_hex)
-    delete_date: datetime.datetime | None = None
 
     @classmethod
     def from_dict(cls, target_dict: VuMarkTargetDict) -> Self:
         """Load a VuMark target from a dictionary."""
-        timezone = ZoneInfo(key="GMT")
-        delete_date_optional = target_dict["delete_date_optional"]
-        if delete_date_optional is None:
-            delete_date = None
-        else:
-            delete_date = datetime.datetime.fromisoformat(
-                delete_date_optional
-            ).replace(tzinfo=timezone)
         return cls(
             target_id=target_dict["target_id"],
             name=target_dict["name"],
-            delete_date=delete_date,
         )
 
     def to_dict(self) -> VuMarkTargetDict:
         """Dump a VuMark target to a dictionary which can be loaded as
         JSON.
         """
-        delete_date: str | None = None
-        if self.delete_date:
-            delete_date = self.delete_date.isoformat()
         return {
             "target_id": self.target_id,
             "name": self.name,
-            "delete_date_optional": delete_date,
         }

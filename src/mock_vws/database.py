@@ -221,7 +221,5 @@ class VuMarkDatabase:
 
     @property
     def not_deleted_targets(self) -> set[VuMarkTarget]:
-        """All VuMark targets which have not been deleted."""
-        return {
-            target for target in self.vumark_targets if not target.delete_date
-        }
+        """All VuMark targets."""
+        return set(self.vumark_targets)
