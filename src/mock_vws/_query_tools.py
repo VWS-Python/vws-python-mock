@@ -16,7 +16,6 @@ from mock_vws._database_matchers import get_database_matching_client_keys
 from mock_vws._mock_common import json_dump
 from mock_vws.database import CloudDatabase
 from mock_vws.image_matchers import ImageMatcher
-from mock_vws.target import ImageTarget
 
 
 @beartype
@@ -73,8 +72,7 @@ def get_query_match_response_text(
     matching_targets = [
         target
         for target in database.targets
-        if isinstance(target, ImageTarget)
-        and query_match_checker(
+        if query_match_checker(
             first_image_content=target.image_value,
             second_image_content=image_value,
         )

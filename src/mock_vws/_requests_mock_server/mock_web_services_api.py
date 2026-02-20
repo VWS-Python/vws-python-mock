@@ -512,14 +512,9 @@ class MockVuforiaWebServicesAPI:
         target_id = request.path_url.split(sep="/")[-1]
         target = database.get_target(target_id=target_id)
 
-        if isinstance(target, ImageTarget):
-            width = target.width
-            tracking_rating = target.tracking_rating
-            reco_rating = target.reco_rating
-        else:
-            width = 0.0
-            tracking_rating = -1
-            reco_rating = ""
+        width = target.width
+        tracking_rating = target.tracking_rating
+        reco_rating = target.reco_rating
         target_record = {
             "target_id": target.target_id,
             "active_flag": target.active_flag,
@@ -588,21 +583,18 @@ class MockVuforiaWebServicesAPI:
 
         other_targets = database.targets - {target}
 
-        similar_targets: list[str] = []
-        if isinstance(target, ImageTarget):
-            similar_targets = [
-                other.target_id
-                for other in other_targets
-                if isinstance(other, ImageTarget)
-                and self._duplicate_match_checker(
-                    first_image_content=target.image_value,
-                    second_image_content=other.image_value,
-                )
-                and TargetStatuses.FAILED.value
-                not in {target.status, other.status}
-                and TargetStatuses.PROCESSING.value != other.status
-                and other.active_flag
-            ]
+        similar_targets = [
+            other.target_id
+            for other in other_targets
+            if self._duplicate_match_checker(
+                first_image_content=target.image_value,
+                second_image_content=other.image_value,
+            )
+            and TargetStatuses.FAILED.value
+            not in {target.status, other.status}
+            and TargetStatuses.PROCESSING.value != other.status
+            and other.active_flag
+        ]
 
         date = email.utils.formatdate(
             timeval=None,
@@ -779,16 +771,10 @@ class MockVuforiaWebServicesAPI:
             localtime=False,
             usegmt=True,
         )
-        if isinstance(target, ImageTarget):
-            tracking_rating = target.tracking_rating
-            total_recos = target.total_recos
-            current_month_recos = target.current_month_recos
-            previous_month_recos = target.previous_month_recos
-        else:
-            tracking_rating = -1
-            total_recos = 0
-            current_month_recos = 0
-            previous_month_recos = 0
+        tracking_rating = target.tracking_rating
+        total_recos = target.total_recos
+        current_month_recos = target.current_month_recos
+        previous_month_recos = target.previous_month_recos
         body = {
             "status": target.status,
             "transaction_id": uuid.uuid4().hex,
