@@ -450,7 +450,7 @@ ignore_names = [
     # pydantic-settings
     "model_config",
     # Used in TYPE_CHECKING for type hints
-    "DatabaseDict",
+    "CloudDatabaseDict",
     "VuMarkDatabaseDict",
 ]
 # Duplicate some of .gitignore

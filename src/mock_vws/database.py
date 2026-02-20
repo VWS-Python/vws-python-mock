@@ -13,8 +13,8 @@ from mock_vws.target import ImageTarget, ImageTargetDict
 
 
 @beartype
-class DatabaseDict(TypedDict):
-    """A dictionary type which represents a database."""
+class CloudDatabaseDict(TypedDict):
+    """A dictionary type which represents a cloud database."""
 
     database_name: str
     server_access_key: str
@@ -74,7 +74,7 @@ class VuforiaDatabase:
     total_recos: int = 0
     target_quota: int = 1000
 
-    def to_dict(self) -> DatabaseDict:
+    def to_dict(self) -> CloudDatabaseDict:
         """Dump a target to a dictionary which can be loaded as JSON."""
         targets = [target.to_dict() for target in self.targets]
         return {
@@ -95,7 +95,7 @@ class VuforiaDatabase:
         return target
 
     @classmethod
-    def from_dict(cls, database_dict: DatabaseDict) -> Self:
+    def from_dict(cls, database_dict: CloudDatabaseDict) -> Self:
         """Load a database from a dictionary."""
         return cls(
             database_name=database_dict["database_name"],
