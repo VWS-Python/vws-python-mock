@@ -17,11 +17,10 @@ from mock_vws.target_raters import (
     HardcodedTargetTrackingRater,
     TargetTrackingRater,
 )
-from mock_vws.target_type import TargetType
 
 
-class TargetDict(TypedDict):
-    """A dictionary type which represents a target."""
+class ImageTargetDict(TypedDict):
+    """A dictionary type which represents an image target."""
 
     name: str
     width: float
@@ -34,6 +33,19 @@ class TargetDict(TypedDict):
     delete_date_optional: str | None
     upload_date: str
     tracking_rating: int
+    target_type_name: str
+
+
+class VuMarkTargetDict(TypedDict):
+    """A dictionary type which represents a VuMark template target."""
+
+    name: str
+    active_flag: bool
+    processing_time_seconds: float
+    target_id: str
+    last_modified_date: str
+    delete_date_optional: str | None
+    upload_date: str
     target_type_name: str
 
 
@@ -52,16 +64,9 @@ def _time_now() -> datetime.datetime:
 
 @beartype(conf=BeartypeConf(is_pep484_tower=True))
 @dataclass(frozen=True, eq=True)
-class Target:
-    """A Vuforia Target as managed in
+class ImageTarget:
+    """A Vuforia image target as managed in
     https://developer.vuforia.com/target-manager.
-
-    The :attr:`target_type` field controls whether this represents an image
-    target or a VuMark template target. Note that some attributes (such as
-    :attr:`image_value`, :attr:`reco_rating`, and recognition counts) are
-    primarily meaningful for image targets. For VuMark template targets, these
-    fields are still present but may not be used by the mock or reflected in
-    the real Vuforia Web Services.
     """
 
     active_flag: bool
@@ -77,7 +82,6 @@ class Target:
     previous_month_recos: int = 0
     reco_rating: str = ""
     target_id: str = field(default_factory=_random_hex)
-    target_type: TargetType = TargetType.IMAGE
     total_recos: int = 0
     upload_date: datetime.datetime = field(default_factory=_time_now)
 
@@ -154,7 +158,7 @@ class Target:
         return self._post_processing_target_rating
 
     @classmethod
-    def from_dict(cls, target_dict: TargetDict) -> Self:
+    def from_dict(cls, target_dict: ImageTargetDict) -> Self:
         """Load a target from a dictionary."""
         timezone = ZoneInfo(key="GMT")
         name = target_dict["name"]
@@ -182,7 +186,6 @@ class Target:
         target_tracking_rater = HardcodedTargetTrackingRater(
             rating=target_dict["tracking_rating"],
         )
-        target_type = TargetType[target_dict["target_type_name"]]
         return cls(
             target_id=target_id,
             name=name,
@@ -195,10 +198,9 @@ class Target:
             last_modified_date=last_modified_date,
             upload_date=upload_date,
             target_tracking_rater=target_tracking_rater,
-            target_type=target_type,
         )
 
-    def to_dict(self) -> TargetDict:
+    def to_dict(self) -> ImageTargetDict:
         """Dump a target to a dictionary which can be loaded as JSON."""
         delete_date: str | None = None
         if self.delete_date:
@@ -218,5 +220,88 @@ class Target:
             "delete_date_optional": delete_date,
             "upload_date": self.upload_date.isoformat(),
             "tracking_rating": self.tracking_rating,
-            "target_type_name": self.target_type.name,
+            "target_type_name": "IMAGE",
+        }
+
+
+@beartype(conf=BeartypeConf(is_pep484_tower=True))
+@dataclass(frozen=True, eq=True)
+class VuMarkTarget:
+    """A VuMark template target as managed in
+    https://developer.vuforia.com/target-manager.
+    """
+
+    name: str
+    active_flag: bool
+    processing_time_seconds: float
+    delete_date: datetime.datetime | None = None
+    last_modified_date: datetime.datetime = field(default_factory=_time_now)
+    target_id: str = field(default_factory=_random_hex)
+    upload_date: datetime.datetime = field(default_factory=_time_now)
+
+    @property
+    def status(self) -> str:
+        """Return the status of the VuMark template target.
+
+        VuMark templates always succeed after the processing time.
+        """
+        processing_time = datetime.timedelta(
+            seconds=float(self.processing_time_seconds),
+        )
+
+        timezone = self.upload_date.tzinfo
+        now = datetime.datetime.now(tz=timezone)
+        time_since_change = now - self.last_modified_date
+
+        if time_since_change <= processing_time:
+            return TargetStatuses.PROCESSING.value
+
+        return TargetStatuses.SUCCESS.value
+
+    @classmethod
+    def from_dict(cls, target_dict: VuMarkTargetDict) -> Self:
+        """Load a VuMark target from a dictionary."""
+        timezone = ZoneInfo(key="GMT")
+        delete_date_optional = target_dict["delete_date_optional"]
+        if delete_date_optional is None:
+            delete_date = None
+        else:
+            delete_date = datetime.datetime.fromisoformat(
+                delete_date_optional,
+            ).replace(tzinfo=timezone)
+
+        last_modified_date = datetime.datetime.fromisoformat(
+            target_dict["last_modified_date"],
+        ).replace(tzinfo=timezone)
+        upload_date = datetime.datetime.fromisoformat(
+            target_dict["upload_date"],
+        ).replace(tzinfo=timezone)
+
+        return cls(
+            name=target_dict["name"],
+            active_flag=target_dict["active_flag"],
+            target_id=target_dict["target_id"],
+            processing_time_seconds=target_dict["processing_time_seconds"],
+            delete_date=delete_date,
+            last_modified_date=last_modified_date,
+            upload_date=upload_date,
+        )
+
+    def to_dict(self) -> VuMarkTargetDict:
+        """Dump a VuMark target to a dictionary which can be loaded as
+        JSON.
+        """
+        delete_date: str | None = None
+        if self.delete_date:
+            delete_date = self.delete_date.isoformat()
+
+        return {
+            "name": self.name,
+            "active_flag": self.active_flag,
+            "target_id": self.target_id,
+            "processing_time_seconds": float(self.processing_time_seconds),
+            "delete_date_optional": delete_date,
+            "last_modified_date": self.last_modified_date.isoformat(),
+            "upload_date": self.upload_date.isoformat(),
+            "target_type_name": "VUMARK_TEMPLATE",
         }

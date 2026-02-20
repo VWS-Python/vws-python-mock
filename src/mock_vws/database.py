@@ -3,14 +3,19 @@
 import uuid
 from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Self, TypedDict
+from typing import Self, TypedDict, cast
 
 from beartype import beartype
 
 from mock_vws._constants import TargetStatuses
 from mock_vws.database_type import DatabaseType
 from mock_vws.states import States
-from mock_vws.target import Target, TargetDict
+from mock_vws.target import (
+    ImageTarget,
+    ImageTargetDict,
+    VuMarkTarget,
+    VuMarkTargetDict,
+)
 
 
 @beartype
@@ -24,7 +29,7 @@ class DatabaseDict(TypedDict):
     client_secret_key: str
     state_name: str
     database_type_name: str
-    targets: Iterable[TargetDict]
+    targets: Iterable[ImageTargetDict | VuMarkTargetDict]
 
 
 @beartype
@@ -63,7 +68,10 @@ class VuforiaDatabase:
     # ``frozen=True`` while still being able to keep the interface we want.
     # In particular, we might want to inspect the ``database`` object's targets
     # as they change via API requests.
-    targets: set[Target] = field(default_factory=set[Target], hash=False)
+    targets: set[ImageTarget | VuMarkTarget] = field(
+        default_factory=set[ImageTarget | VuMarkTarget],
+        hash=False,
+    )
     state: States = States.WORKING
     database_type: DatabaseType = DatabaseType.CLOUD_RECO
 
@@ -76,7 +84,9 @@ class VuforiaDatabase:
 
     def to_dict(self) -> DatabaseDict:
         """Dump a target to a dictionary which can be loaded as JSON."""
-        targets = [target.to_dict() for target in self.targets]
+        targets: list[ImageTargetDict | VuMarkTargetDict] = [
+            target.to_dict() for target in self.targets
+        ]
         return {
             "database_name": self.database_name,
             "server_access_key": self.server_access_key,
@@ -88,7 +98,7 @@ class VuforiaDatabase:
             "targets": targets,
         }
 
-    def get_target(self, target_id: str) -> Target:
+    def get_target(self, target_id: str) -> ImageTarget | VuMarkTarget:
         """Return a target from the database with the given ID."""
         (target,) = (
             target for target in self.targets if target.target_id == target_id
@@ -98,6 +108,21 @@ class VuforiaDatabase:
     @classmethod
     def from_dict(cls, database_dict: DatabaseDict) -> Self:
         """Load a database from a dictionary."""
+        targets: set[ImageTarget | VuMarkTarget] = set()
+        for target_dict in database_dict["targets"]:
+            if target_dict["target_type_name"] == "VUMARK_TEMPLATE":
+                targets.add(
+                    VuMarkTarget.from_dict(
+                        target_dict=target_dict,
+                    )
+                )
+            else:
+                targets.add(
+                    ImageTarget.from_dict(
+                        target_dict=cast("ImageTargetDict", target_dict),
+                    )
+                )
+
         return cls(
             database_name=database_dict["database_name"],
             server_access_key=database_dict["server_access_key"],
@@ -106,19 +131,16 @@ class VuforiaDatabase:
             client_secret_key=database_dict["client_secret_key"],
             state=States[database_dict["state_name"]],
             database_type=DatabaseType[database_dict["database_type_name"]],
-            targets={
-                Target.from_dict(target_dict=target_dict)
-                for target_dict in database_dict["targets"]
-            },
+            targets=targets,
         )
 
     @property
-    def not_deleted_targets(self) -> set[Target]:
+    def not_deleted_targets(self) -> set[ImageTarget | VuMarkTarget]:
         """All targets which have not been deleted."""
         return {target for target in self.targets if not target.delete_date}
 
     @property
-    def active_targets(self) -> set[Target]:
+    def active_targets(self) -> set[ImageTarget | VuMarkTarget]:
         """All active targets."""
         return {
             target
@@ -128,7 +150,7 @@ class VuforiaDatabase:
         }
 
     @property
-    def inactive_targets(self) -> set[Target]:
+    def inactive_targets(self) -> set[ImageTarget | VuMarkTarget]:
         """All inactive targets."""
         return {
             target
@@ -138,7 +160,7 @@ class VuforiaDatabase:
         }
 
     @property
-    def failed_targets(self) -> set[Target]:
+    def failed_targets(self) -> set[ImageTarget | VuMarkTarget]:
         """All failed targets."""
         return {
             target
@@ -147,7 +169,7 @@ class VuforiaDatabase:
         }
 
     @property
-    def processing_targets(self) -> set[Target]:
+    def processing_targets(self) -> set[ImageTarget | VuMarkTarget]:
         """All processing targets."""
         return {
             target

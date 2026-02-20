@@ -105,7 +105,7 @@ optional-dependencies.dev = [
     "vulture==2.14",
     "vws-python==2026.2.15",
     "vws-test-fixtures==2023.3.5",
-    "vws-web-tools==2026.2.17.1",
+    "vws-web-tools==2026.2.20",
     "yamlfix==1.19.1",
     "zizmor==1.22.0",
 ]
@@ -452,10 +452,7 @@ ignore_names = [
     # Used in TYPE_CHECKING for type hints
     "DatabaseDict",
     "VuMarkDatabaseDict",
-    # TypedDict field names accessed via dict subscript
-    "target_type_name",
-    # Public enum values for library consumers
-    "VUMARK_TEMPLATE",
+    "VuMarkTargetDict",
 ]
 # Duplicate some of .gitignore
 exclude = [ ".venv" ]

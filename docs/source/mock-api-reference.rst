@@ -28,11 +28,9 @@ API Reference
    :members:
    :undoc-members:
 
-.. autoclass:: mock_vws.target.Target
+.. autoclass:: mock_vws.target.ImageTarget
 
-.. autoenum:: mock_vws.target_type.TargetType
-   :members:
-   :undoc-members:
+.. autoclass:: mock_vws.target.VuMarkTarget
 
 Image matchers
 --------------
