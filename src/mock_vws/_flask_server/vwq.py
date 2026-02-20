@@ -63,12 +63,8 @@ class VWQSettings(BaseSettings):
 
 
 @beartype
-def get_all_databases() -> set[CloudDatabase]:
-    """Get all cloud database objects from the target manager back-end.
-
-    Only cloud databases are returned because the query API uses client
-    keys for authentication, which VuMark databases do not have.
-    """
+def get_all_cloud_databases() -> set[CloudDatabase]:
+    """Get all cloud database objects from the target manager back-end."""
     settings = VWQSettings.model_validate(obj={})
     response = requests.get(
         url=f"{settings.target_manager_base_url}/databases",
@@ -136,7 +132,7 @@ def query() -> Response:
     settings = VWQSettings.model_validate(obj={})
     query_match_checker = settings.query_image_matcher.to_image_matcher()
 
-    databases = get_all_databases()
+    databases = get_all_cloud_databases()
     request_body = request.stream.read()
     run_query_validators(
         request_headers=dict(request.headers),
