@@ -13,8 +13,8 @@ from vws import VWS
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes
-from mock_vws.database import VuforiaDatabase
-from tests.mock_vws.fixtures.credentials import VuMarkVuforiaDatabase
+from mock_vws.database import CloudDatabase
+from tests.mock_vws.fixtures.credentials import VuMarkCloudDatabase
 from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.retries import RETRY_ON_TOO_MANY_REQUESTS
 
@@ -37,7 +37,7 @@ def _wait_for_target_processed(vws_client: VWS, target_id: str) -> None:
 
 @pytest.fixture
 def add_target(
-    vuforia_database: VuforiaDatabase,
+    vuforia_database: CloudDatabase,
     image_file_failed_state: io.BytesIO,
 ) -> Endpoint:
     """Return details of the endpoint for adding a target."""
@@ -91,7 +91,7 @@ def add_target(
 
 @pytest.fixture
 def delete_target(
-    vuforia_database: VuforiaDatabase,
+    vuforia_database: CloudDatabase,
     target_id: str,
     vws_client: VWS,
 ) -> Endpoint:
@@ -134,7 +134,7 @@ def delete_target(
 
 
 @pytest.fixture
-def database_summary(vuforia_database: VuforiaDatabase) -> Endpoint:
+def database_summary(vuforia_database: CloudDatabase) -> Endpoint:
     """
     Return details of the endpoint for getting details about the
     database.
@@ -178,7 +178,7 @@ def database_summary(vuforia_database: VuforiaDatabase) -> Endpoint:
 
 @pytest.fixture
 def get_duplicates(
-    vuforia_database: VuforiaDatabase,
+    vuforia_database: CloudDatabase,
     target_id: str,
     vws_client: VWS,
 ) -> Endpoint:
@@ -226,7 +226,7 @@ def get_duplicates(
 
 @pytest.fixture
 def get_target(
-    vuforia_database: VuforiaDatabase,
+    vuforia_database: CloudDatabase,
     target_id: str,
     vws_client: VWS,
 ) -> Endpoint:
@@ -270,7 +270,7 @@ def get_target(
 
 
 @pytest.fixture
-def target_list(vuforia_database: VuforiaDatabase) -> Endpoint:
+def target_list(vuforia_database: CloudDatabase) -> Endpoint:
     """Return details of the endpoint for getting a list of targets."""
     date = rfc_1123_date()
     request_path = "/targets"
@@ -311,7 +311,7 @@ def target_list(vuforia_database: VuforiaDatabase) -> Endpoint:
 
 @pytest.fixture
 def target_summary(
-    vuforia_database: VuforiaDatabase,
+    vuforia_database: CloudDatabase,
     target_id: str,
     vws_client: VWS,
 ) -> Endpoint:
@@ -359,7 +359,7 @@ def target_summary(
 
 @pytest.fixture
 def update_target(
-    vuforia_database: VuforiaDatabase,
+    vuforia_database: CloudDatabase,
     target_id: str,
     vws_client: VWS,
 ) -> Endpoint:
@@ -407,7 +407,7 @@ def update_target(
 
 @pytest.fixture
 def query(
-    vuforia_database: VuforiaDatabase,
+    vuforia_database: CloudDatabase,
     high_quality_image: io.BytesIO,
 ) -> Endpoint:
     """
@@ -457,7 +457,7 @@ def query(
 
 @pytest.fixture
 def vumark_generate_instance(
-    vumark_vuforia_database: VuMarkVuforiaDatabase,
+    vumark_vuforia_database: VuMarkCloudDatabase,
 ) -> Endpoint:
     """Return details of the endpoint for generating a VuMark instance."""
     request_path = f"/targets/{vumark_vuforia_database.target_id}/instances"

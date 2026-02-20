@@ -16,7 +16,7 @@ from vws import VWS, CloudRecoService
 from vws_auth_tools import rfc_1123_date
 
 from mock_vws import MissingSchemeError, MockVWS
-from mock_vws.database import VuforiaDatabase
+from mock_vws.database import CloudDatabase
 from mock_vws.image_matchers import ExactMatcher, StructuralSimilarityMatcher
 from mock_vws.target import ImageTarget
 from tests.mock_vws.utils import Endpoint
@@ -253,7 +253,7 @@ class TestProcessingTime:
 
     def test_default(self, image_file_failed_state: io.BytesIO) -> None:
         """By default, targets in the mock takes 2 seconds to be processed."""
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         with MockVWS() as mock:
             mock.add_database(database=database)
             time_taken = processing_time_seconds(
@@ -266,7 +266,7 @@ class TestProcessingTime:
 
     def test_custom(self, image_file_failed_state: io.BytesIO) -> None:
         """It is possible to set a custom processing time."""
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         seconds = 5
         with MockVWS(processing_time_seconds=seconds) as mock:
             mock.add_database(database=database)
@@ -285,8 +285,8 @@ class TestDatabaseName:
     @staticmethod
     def test_default() -> None:
         """By default, the database has a random name."""
-        database_details = VuforiaDatabase()
-        other_database_details = VuforiaDatabase()
+        database_details = CloudDatabase()
+        other_database_details = CloudDatabase()
         assert (
             database_details.database_name
             != other_database_details.database_name
@@ -295,7 +295,7 @@ class TestDatabaseName:
     @staticmethod
     def test_custom_name() -> None:
         """It is possible to set a custom database name."""
-        database_details = VuforiaDatabase(database_name="foo")
+        database_details = CloudDatabase(database_name="foo")
         assert database_details.database_name == "foo"
 
 
@@ -376,7 +376,7 @@ class TestTargets:
         It is possible to dump a target to a dictionary and load it
         back.
         """
-        database = VuforiaDatabase()
+        database = CloudDatabase()
 
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -410,7 +410,7 @@ class TestTargets:
         it
         back.
         """
-        database = VuforiaDatabase()
+        database = CloudDatabase()
 
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -449,7 +449,7 @@ class TestDatabaseToDict:
         It is possible to dump a database to a dictionary and load it
         back.
         """
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
             server_secret_key=database.server_secret_key,
@@ -470,7 +470,7 @@ class TestDatabaseToDict:
         # The dictionary is JSON dump-able
         assert json.dumps(obj=database_dict)
 
-        new_database = VuforiaDatabase.from_dict(database_dict=database_dict)
+        new_database = CloudDatabase.from_dict(database_dict=database_dict)
         assert new_database == database
 
 
@@ -512,7 +512,7 @@ class TestAddDatabase:
         It is not possible to have multiple databases with matching
         keys.
         """
-        database = VuforiaDatabase(
+        database = CloudDatabase(
             server_access_key="1",
             server_secret_key="2",
             client_access_key="3",
@@ -520,11 +520,11 @@ class TestAddDatabase:
             database_name="5",
         )
 
-        bad_server_access_key_db = VuforiaDatabase(server_access_key="1")
-        bad_server_secret_key_db = VuforiaDatabase(server_secret_key="2")
-        bad_client_access_key_db = VuforiaDatabase(client_access_key="3")
-        bad_client_secret_key_db = VuforiaDatabase(client_secret_key="4")
-        bad_database_name_db = VuforiaDatabase(database_name="5")
+        bad_server_access_key_db = CloudDatabase(server_access_key="1")
+        bad_server_secret_key_db = CloudDatabase(server_secret_key="2")
+        bad_client_access_key_db = CloudDatabase(client_access_key="3")
+        bad_client_secret_key_db = CloudDatabase(client_secret_key="4")
+        bad_database_name_db = CloudDatabase(database_name="5")
 
         server_access_key_conflict_error = (
             "All server access keys must be unique. "
@@ -569,7 +569,7 @@ class TestQueryImageMatchers:
     @staticmethod
     def test_exact_match(high_quality_image: io.BytesIO) -> None:
         """The exact matcher matches only exactly the same images."""
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
             server_secret_key=database.server_secret_key,
@@ -605,7 +605,7 @@ class TestQueryImageMatchers:
     @staticmethod
     def test_custom_matcher(high_quality_image: io.BytesIO) -> None:
         """It is possible to use a custom matcher."""
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
             server_secret_key=database.server_secret_key,
@@ -644,7 +644,7 @@ class TestQueryImageMatchers:
         different_high_quality_image: io.BytesIO,
     ) -> None:
         """The structural similarity matcher matches similar images."""
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
             server_secret_key=database.server_secret_key,
@@ -691,7 +691,7 @@ class TestDuplicatesImageMatchers:
     @staticmethod
     def test_exact_match(high_quality_image: io.BytesIO) -> None:
         """The exact matcher matches only exactly the same images."""
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
             server_secret_key=database.server_secret_key,
@@ -735,7 +735,7 @@ class TestDuplicatesImageMatchers:
     @staticmethod
     def test_custom_matcher(high_quality_image: io.BytesIO) -> None:
         """It is possible to use a custom matcher."""
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
             server_secret_key=database.server_secret_key,
@@ -781,7 +781,7 @@ class TestDuplicatesImageMatchers:
         high_quality_image: io.BytesIO,
     ) -> None:
         """The structural similarity matcher matches similar images."""
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
             server_secret_key=database.server_secret_key,

@@ -26,10 +26,10 @@ This requires Python |minimum-python-version|\+.
     import requests
 
     from mock_vws import MockVWS
-    from mock_vws.database import VuforiaDatabase
+    from mock_vws.database import CloudDatabase
 
     with MockVWS() as mock:
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         mock.add_database(database=database)
         # This will use the Vuforia mock.
         requests.get(url="https://vws.vuforia.com/summary", timeout=30)

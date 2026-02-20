@@ -9,13 +9,13 @@ from mock_vws._services_validators import target_validators
 from mock_vws._services_validators.target_validators import (
     validate_target_id_exists,
 )
-from mock_vws.database import VuforiaDatabase
+from mock_vws.database import CloudDatabase
 from mock_vws.target import ImageTarget
 from mock_vws.target_raters import HardcodedTargetTrackingRater
 from tests.mock_vws.utils import make_image_file
 
 
-def _database_with_target(*, target_id: str) -> VuforiaDatabase:
+def _database_with_target(*, target_id: str) -> CloudDatabase:
     """Create a database containing one target with the given ID."""
     target = ImageTarget(
         active_flag=True,
@@ -32,18 +32,18 @@ def _database_with_target(*, target_id: str) -> VuforiaDatabase:
         target_tracking_rater=HardcodedTargetTrackingRater(rating=5),
         width=1,
     )
-    return VuforiaDatabase(targets={target})
+    return CloudDatabase(targets={target})
 
 
 def _always_match_database(
     *,
-    database: VuforiaDatabase,
+    database: CloudDatabase,
     request_headers: Mapping[str, str],
     request_body: bytes | None,
     request_method: str,
     request_path: str,
-    databases: Iterable[VuforiaDatabase],
-) -> VuforiaDatabase:
+    databases: Iterable[CloudDatabase],
+) -> CloudDatabase:
     """Return the given database regardless of request details."""
     del request_headers
     del request_body

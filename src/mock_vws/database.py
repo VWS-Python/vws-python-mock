@@ -33,7 +33,7 @@ def _random_hex() -> str:
 
 @beartype
 @dataclass(eq=True, frozen=True)
-class VuforiaDatabase:
+class CloudDatabase:
     """Credentials for VWS APIs.
 
     Args:

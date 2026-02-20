@@ -19,7 +19,7 @@ from tenacity.stop import stop_after_delay
 from tenacity.wait import wait_fixed
 from vws import VWS, CloudRecoService
 
-from mock_vws.database import VuforiaDatabase
+from mock_vws.database import CloudDatabase
 
 if TYPE_CHECKING:
     from docker.models.images import Image
@@ -152,7 +152,7 @@ def test_build_and_run(
         rm=True,
     )
 
-    database = VuforiaDatabase()
+    database = CloudDatabase()
     target_manager_container_name = "vws-mock-target-manager-" + random
     target_manager_internal_base_url = (
         f"http://{target_manager_container_name}:5000"

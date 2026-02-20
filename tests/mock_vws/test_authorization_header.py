@@ -13,7 +13,7 @@ from vws.exceptions.vws_exceptions import AuthenticationFailureError, FailError
 from vws_auth_tools import rfc_1123_date
 
 from mock_vws._constants import ResultCodes
-from mock_vws.database import VuforiaDatabase
+from mock_vws.database import CloudDatabase
 from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import (
     assert_valid_transaction_id,
@@ -246,7 +246,7 @@ class TestBadKey:
 
     @staticmethod
     def test_bad_access_key_services(
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
     ) -> None:
         """
         If the server access key given does not match any database, a
@@ -265,7 +265,7 @@ class TestBadKey:
 
     @staticmethod
     def test_bad_access_key_query(
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
         high_quality_image: io.BytesIO,
     ) -> None:
         """
@@ -312,7 +312,7 @@ class TestBadKey:
 
     @staticmethod
     def test_bad_secret_key_services(
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
     ) -> None:
         """
         If the server secret key given is incorrect, an
@@ -328,7 +328,7 @@ class TestBadKey:
 
     @staticmethod
     def test_bad_secret_key_query(
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
         high_quality_image: io.BytesIO,
     ) -> None:
         """

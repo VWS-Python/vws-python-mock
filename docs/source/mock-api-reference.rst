@@ -11,11 +11,11 @@ API Reference
    :members:
    :undoc-members:
 
-.. Many parts of the VuforiaDatabase API are used for the Flask target
+.. Many parts of the CloudDatabase API are used for the Flask target
 .. database app, but Python users are not expected to use them.
 .. Therefore, they are not documented.
 
-.. autoclass:: mock_vws.database.VuforiaDatabase
+.. autoclass:: mock_vws.database.CloudDatabase
    :members:
    :undoc-members:
    :exclude-members: to_dict, get_target, from_dict, not_deleted_targets, active_targets, inactive_targets, failed_targets, processing_targets

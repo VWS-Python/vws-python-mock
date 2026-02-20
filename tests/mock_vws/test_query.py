@@ -38,7 +38,7 @@ from vws.reports import TargetStatuses
 from vws.response import Response
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from mock_vws.database import VuforiaDatabase
+from mock_vws.database import CloudDatabase
 from tests.mock_vws.utils import make_image_file
 from tests.mock_vws.utils.assertions import (
     assert_query_success,
@@ -90,7 +90,7 @@ _NGINX_REQUEST_ENTITY_TOO_LARGE_ERROR = textwrap.dedent(
 
 def _query(
     *,
-    vuforia_database: VuforiaDatabase,
+    vuforia_database: CloudDatabase,
     body: dict[str, Any],
 ) -> Response:
     """Make a request to the endpoint to make an image recognition query.
@@ -202,7 +202,7 @@ class TestContentType:
     def test_incorrect_no_boundary(
         *,
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
         content_type: str,
         resp_status_code: int,
         resp_content_type: str | None,
@@ -272,7 +272,7 @@ class TestContentType:
     @staticmethod
     def test_incorrect_with_boundary(
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
     ) -> None:
         """
         If a Content-Type header which is not ``multipart/form-data`` is
@@ -349,7 +349,7 @@ class TestContentType:
     )
     def test_no_boundary(
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
         content_type: str,
     ) -> None:
         """
@@ -412,7 +412,7 @@ class TestContentType:
     @staticmethod
     def test_bogus_boundary(
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
     ) -> None:
         """If a bogus boundary is given, a ``BAD_REQUEST`` is returned."""
         image_content = high_quality_image.getvalue()
@@ -473,7 +473,7 @@ class TestContentType:
     @staticmethod
     def test_extra_section(
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
     ) -> None:
         """
         If sections that are not the boundary section are given in the
@@ -548,7 +548,7 @@ class TestSuccess:
     @staticmethod
     def test_match_exact(
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
         vws_client: VWS,
     ) -> None:
         """
@@ -728,7 +728,7 @@ class TestIncorrectFields:
     """Tests for incorrect and unexpected fields."""
 
     @staticmethod
-    def test_missing_image(vuforia_database: VuforiaDatabase) -> None:
+    def test_missing_image(vuforia_database: CloudDatabase) -> None:
         """
         If an image is not given, a ``BAD_REQUEST`` response is
         returned.
@@ -748,7 +748,7 @@ class TestIncorrectFields:
     @staticmethod
     def test_extra_fields(
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
     ) -> None:
         """
         If extra fields are given, a ``BAD_REQUEST`` response is
@@ -774,7 +774,7 @@ class TestIncorrectFields:
 
     @staticmethod
     def test_missing_image_and_extra_fields(
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
     ) -> None:
         """If extra fields are given and no image field is given, a
         ``BAD_REQUEST`` response is returned.
@@ -805,7 +805,7 @@ class TestMaxNumResults:
     @staticmethod
     def test_default(
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
         vws_client: VWS,
     ) -> None:
         """The default ``max_num_results`` is 1."""
@@ -842,7 +842,7 @@ class TestMaxNumResults:
     @pytest.mark.parametrize(argnames="num_results", argvalues=[1, b"1", 50])
     def test_valid_accepted(
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
         num_results: int | bytes,
     ) -> None:
         """Numbers between 1 and 50 are valid inputs.
@@ -935,7 +935,7 @@ class TestMaxNumResults:
     )
     def test_invalid_type(
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
         num_results: bytes,
     ) -> None:
         """An error is returned if ``max_num_results`` is given as
@@ -998,7 +998,7 @@ class TestIncludeTargetData:
     def test_default(
         high_quality_image: io.BytesIO,
         vws_client: VWS,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
     ) -> None:
         """The default ``include_target_data`` is 'top'."""
         _add_and_wait_for_targets(
@@ -1027,7 +1027,7 @@ class TestIncludeTargetData:
     )
     def test_top(
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
         include_target_data: str,
         vws_client: VWS,
     ) -> None:
@@ -1063,7 +1063,7 @@ class TestIncludeTargetData:
     )
     def test_none(
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
         include_target_data: str,
         vws_client: VWS,
     ) -> None:
@@ -1099,7 +1099,7 @@ class TestIncludeTargetData:
     )
     def test_all(
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
         include_target_data: str,
         vws_client: VWS,
     ) -> None:
@@ -1136,7 +1136,7 @@ class TestIncludeTargetData:
     def test_invalid_value(
         *,
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
         include_target_data: str | bool | int,
     ) -> None:
         """
@@ -1184,7 +1184,7 @@ class TestAcceptHeader:
     )
     def test_valid(
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
         extra_headers: dict[str, str],
     ) -> None:
         """An ``Accept`` header can be given iff its value is
@@ -1239,7 +1239,7 @@ class TestAcceptHeader:
     @staticmethod
     def test_invalid(
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
     ) -> None:
         """
         A NOT_ACCEPTABLE response is returned if an ``Accept`` header is
@@ -1952,7 +1952,7 @@ class TestDateFormats:
     @pytest.mark.parametrize(argnames="include_tz", argvalues=[True, False])
     def test_date_formats(
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
         datetime_format: str,
         *,
         include_tz: bool,

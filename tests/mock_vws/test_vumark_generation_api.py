@@ -9,7 +9,7 @@ import requests
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes
-from tests.mock_vws.fixtures.credentials import VuMarkVuforiaDatabase
+from tests.mock_vws.fixtures.credentials import VuMarkCloudDatabase
 
 _VWS_HOST = "https://vws.vuforia.com"
 _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
@@ -19,7 +19,7 @@ _SVG_START = b"<"
 
 def _make_vumark_request(
     *,
-    vumark_vuforia_database: VuMarkVuforiaDatabase,
+    vumark_vuforia_database: VuMarkCloudDatabase,
     instance_id: str,
     accept: str,
 ) -> requests.Response:
@@ -83,7 +83,7 @@ class TestGenerateInstance:
         accept: str,
         expected_content_type: str,
         expected_signature: bytes,
-        vumark_vuforia_database: VuMarkVuforiaDatabase,
+        vumark_vuforia_database: VuMarkCloudDatabase,
     ) -> None:
         """A VuMark instance can be generated in the requested format."""
         response = _make_vumark_request(
@@ -102,7 +102,7 @@ class TestGenerateInstance:
 
     @staticmethod
     def test_invalid_accept_header(
-        vumark_vuforia_database: VuMarkVuforiaDatabase,
+        vumark_vuforia_database: VuMarkCloudDatabase,
     ) -> None:
         """An unsupported Accept header returns an error."""
         response = _make_vumark_request(
@@ -120,7 +120,7 @@ class TestGenerateInstance:
 
     @staticmethod
     def test_empty_instance_id(
-        vumark_vuforia_database: VuMarkVuforiaDatabase,
+        vumark_vuforia_database: VuMarkCloudDatabase,
     ) -> None:
         """An empty instance_id returns InvalidInstanceId."""
         response = _make_vumark_request(

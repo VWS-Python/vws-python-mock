@@ -8,7 +8,7 @@ import uuid
 import pytest
 from vws import VWS, CloudRecoService
 
-from mock_vws.database import VuforiaDatabase
+from mock_vws.database import CloudDatabase
 from tests.mock_vws.utils import Endpoint
 
 pytest_plugins = [
@@ -19,7 +19,7 @@ pytest_plugins = [
 
 
 @pytest.fixture(name="vws_client")
-def fixture_vws_client(vuforia_database: VuforiaDatabase) -> VWS:
+def fixture_vws_client(vuforia_database: CloudDatabase) -> VWS:
     """A VWS client for an active VWS database."""
     return VWS(
         server_access_key=vuforia_database.server_access_key,
@@ -28,7 +28,7 @@ def fixture_vws_client(vuforia_database: VuforiaDatabase) -> VWS:
 
 
 @pytest.fixture
-def cloud_reco_client(vuforia_database: VuforiaDatabase) -> CloudRecoService:
+def cloud_reco_client(vuforia_database: CloudDatabase) -> CloudRecoService:
     """A query client for an active VWS database."""
     return CloudRecoService(
         client_access_key=vuforia_database.client_access_key,
@@ -37,7 +37,7 @@ def cloud_reco_client(vuforia_database: VuforiaDatabase) -> CloudRecoService:
 
 
 @pytest.fixture(name="inactive_vws_client")
-def fixture_inactive_vws_client(inactive_database: VuforiaDatabase) -> VWS:
+def fixture_inactive_vws_client(inactive_database: CloudDatabase) -> VWS:
     """A client for an inactive VWS database."""
     return VWS(
         server_access_key=inactive_database.server_access_key,
@@ -47,7 +47,7 @@ def fixture_inactive_vws_client(inactive_database: VuforiaDatabase) -> VWS:
 
 @pytest.fixture
 def inactive_cloud_reco_client(
-    inactive_database: VuforiaDatabase,
+    inactive_database: CloudDatabase,
 ) -> CloudRecoService:
     """A query client for an inactive VWS database."""
     return CloudRecoService(

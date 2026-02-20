@@ -7,7 +7,7 @@ from beartype import beartype
 
 from mock_vws._database_matchers import get_database_matching_client_keys
 from mock_vws._query_validators.exceptions import InactiveProjectError
-from mock_vws.database import VuforiaDatabase
+from mock_vws.database import CloudDatabase
 from mock_vws.states import States
 
 _LOGGER = logging.getLogger(name=__name__)
@@ -19,7 +19,7 @@ def validate_project_state(
     request_headers: Mapping[str, str],
     request_body: bytes,
     request_method: str,
-    databases: Iterable[VuforiaDatabase],
+    databases: Iterable[CloudDatabase],
 ) -> None:
     """Validate the state of the project.
 

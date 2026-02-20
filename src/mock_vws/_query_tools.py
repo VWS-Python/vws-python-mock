@@ -14,7 +14,7 @@ from mock_vws._base64_decoding import decode_base64
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_client_keys
 from mock_vws._mock_common import json_dump
-from mock_vws.database import VuforiaDatabase
+from mock_vws.database import CloudDatabase
 from mock_vws.image_matchers import ImageMatcher
 
 
@@ -25,7 +25,7 @@ def get_query_match_response_text(
     request_body: bytes,
     request_method: str,
     request_path: str,
-    databases: Iterable[VuforiaDatabase],
+    databases: Iterable[CloudDatabase],
     query_match_checker: ImageMatcher,
 ) -> str:
     """
