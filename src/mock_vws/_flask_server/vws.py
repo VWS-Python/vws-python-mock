@@ -144,15 +144,19 @@ def set_terminate_wsgi_input() -> None:
 @VWS_FLASK_APP.before_request
 @beartype
 def validate_request() -> None:
-    """Run validators on the request."""
-    cloud_databases = get_all_cloud_databases()
-    vumark_databases = get_all_vumark_databases()
+    """Run validators on the request.
+
+    The VuMark endpoint does its own validation because it needs to
+    authenticate against both cloud and VuMark databases.
+    """
+    if request.endpoint == "generate_vumark_instance":
+        return
     run_services_validators(
         request_headers=dict(request.headers),
         request_body=request.data,
         request_method=request.method,
         request_path=request.path,
-        databases=[*cloud_databases, *vumark_databases],
+        databases=get_all_cloud_databases(),
     )
 
 
@@ -373,6 +377,20 @@ def generate_vumark_instance(target_id: str) -> Response:
     Fake implementation of
     https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#generate-instance
     """
+    cloud_databases = get_all_cloud_databases()
+    vumark_databases = get_all_vumark_databases()
+    all_databases: list[CloudDatabase | VuMarkDatabase] = [
+        *cloud_databases,
+        *vumark_databases,
+    ]
+    run_services_validators(
+        request_headers=dict(request.headers),
+        request_body=request.data,
+        request_method=request.method,
+        request_path=request.path,
+        databases=all_databases,
+    )
+
     # ``target_id`` is validated by request validators.
     del target_id
 

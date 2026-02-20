@@ -1,10 +1,13 @@
 """A fake implementation of a Vuforia target manager."""
 
+from typing import TYPE_CHECKING
+
 from beartype import beartype
 
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 
-AnyDatabase = CloudDatabase | VuMarkDatabase
+if TYPE_CHECKING:
+    from mock_vws._database_matchers import AnyDatabase
 
 
 @beartype
@@ -65,7 +68,7 @@ class TargetManager:
         """
         message_fmt = (
             "All {key_name}s must be unique. "
-            'There is already a cloud database with the {key_name} "{value}".'
+            'There is already a database with the {key_name} "{value}".'
         )
         all_databases: list[AnyDatabase] = [
             *self._cloud_databases,
