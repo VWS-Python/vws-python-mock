@@ -12,7 +12,7 @@ from beartype import BeartypeConf, beartype
 from requests import PreparedRequest
 from responses import RequestsMock
 
-from mock_vws.database import CloudDatabase
+from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.image_matchers import (
     ImageMatcher,
     StructuralSimilarityMatcher,
@@ -138,6 +138,20 @@ class MockVWS(ContextDecorator):
         """
         self._target_manager.add_cloud_database(
             cloud_database=cloud_database,
+        )
+
+    def add_vumark_database(self, vumark_database: VuMarkDatabase) -> None:
+        """Add a VuMark database.
+
+        Args:
+            vumark_database: The VuMark database to add.
+
+        Raises:
+            ValueError: One of the given database keys matches a key for
+                an existing database.
+        """
+        self._target_manager.add_vumark_database(
+            vumark_database=vumark_database,
         )
 
     @staticmethod

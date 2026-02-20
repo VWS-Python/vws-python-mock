@@ -16,7 +16,7 @@ from vws import VWS, CloudRecoService
 from vws_auth_tools import rfc_1123_date
 
 from mock_vws import MissingSchemeError, MockVWS
-from mock_vws.database import CloudDatabase
+from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.image_matchers import ExactMatcher, StructuralSimilarityMatcher
 from mock_vws.target import ImageTarget
 from tests.mock_vws.utils import Endpoint
@@ -528,23 +528,23 @@ class TestAddDatabase:
 
         server_access_key_conflict_error = (
             "All server access keys must be unique. "
-            'There is already a cloud database with the server access key "1".'
+            'There is already a database with the server access key "1".'
         )
         server_secret_key_conflict_error = (
             "All server secret keys must be unique. "
-            'There is already a cloud database with the server secret key "2".'
+            'There is already a database with the server secret key "2".'
         )
         client_access_key_conflict_error = (
             "All client access keys must be unique. "
-            'There is already a cloud database with the client access key "3".'
+            'There is already a database with the client access key "3".'
         )
         client_secret_key_conflict_error = (
             "All client secret keys must be unique. "
-            'There is already a cloud database with the client secret key "4".'
+            'There is already a database with the client secret key "4".'
         )
         database_name_conflict_error = (
             "All names must be unique. "
-            'There is already a cloud database with the name "5".'
+            'There is already a database with the name "5".'
         )
 
         with MockVWS() as mock:
@@ -561,6 +561,48 @@ class TestAddDatabase:
                     match=expected_message + "$",
                 ):
                     mock.add_cloud_database(cloud_database=bad_database)
+
+    @staticmethod
+    def test_duplicate_vumark_keys() -> None:
+        """
+        It is not possible to have multiple databases with matching
+        keys, including VuMark databases.
+        """
+        database = VuMarkDatabase(
+            server_access_key="1",
+            server_secret_key="2",
+            database_name="3",
+        )
+
+        bad_server_access_key_db = VuMarkDatabase(server_access_key="1")
+        bad_server_secret_key_db = VuMarkDatabase(server_secret_key="2")
+        bad_database_name_db = VuMarkDatabase(database_name="3")
+
+        server_access_key_conflict_error = (
+            "All server access keys must be unique. "
+            'There is already a database with the server access key "1".'
+        )
+        server_secret_key_conflict_error = (
+            "All server secret keys must be unique. "
+            'There is already a database with the server secret key "2".'
+        )
+        database_name_conflict_error = (
+            "All names must be unique. "
+            'There is already a database with the name "3".'
+        )
+
+        with MockVWS() as mock:
+            mock.add_vumark_database(vumark_database=database)
+            for bad_database, expected_message in (
+                (bad_server_access_key_db, server_access_key_conflict_error),
+                (bad_server_secret_key_db, server_secret_key_conflict_error),
+                (bad_database_name_db, database_name_conflict_error),
+            ):
+                with pytest.raises(
+                    expected_exception=ValueError,
+                    match=expected_message + "$",
+                ):
+                    mock.add_vumark_database(vumark_database=bad_database)
 
 
 class TestQueryImageMatchers:

@@ -19,6 +19,13 @@ from mock_vws.target_raters import (
 )
 
 
+class VuMarkTargetDict(TypedDict):
+    """A dictionary type which represents a VuMark target."""
+
+    target_id: str
+    name: str
+
+
 class ImageTargetDict(TypedDict):
     """A dictionary type which represents a target."""
 
@@ -207,4 +214,36 @@ class ImageTarget:
             "delete_date_optional": delete_date,
             "upload_date": self.upload_date.isoformat(),
             "tracking_rating": self.tracking_rating,
+        }
+
+
+@beartype(conf=BeartypeConf(is_pep484_tower=True))
+@dataclass(frozen=True, eq=True)
+class VuMarkTarget:
+    """
+    A VuMark target as managed in
+    https://developer.vuforia.com/target-manager.
+
+    Unlike ImageTarget, VuMark targets do not require an image — they use a
+    VuMark template.
+    """
+
+    name: str
+    target_id: str = field(default_factory=_random_hex)
+
+    @classmethod
+    def from_dict(cls, target_dict: VuMarkTargetDict) -> Self:
+        """Load a VuMark target from a dictionary."""
+        return cls(
+            target_id=target_dict["target_id"],
+            name=target_dict["name"],
+        )
+
+    def to_dict(self) -> VuMarkTargetDict:
+        """Dump a VuMark target to a dictionary which can be loaded as
+        JSON.
+        """
+        return {
+            "target_id": self.target_id,
+            "name": self.name,
         }

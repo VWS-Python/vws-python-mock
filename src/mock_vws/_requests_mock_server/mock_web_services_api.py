@@ -12,7 +12,7 @@ import json
 import uuid
 from collections.abc import Callable, Iterable, Mapping
 from http import HTTPMethod, HTTPStatus
-from typing import Any, ParamSpec, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, ParamSpec, Protocol, runtime_checkable
 from zoneinfo import ZoneInfo
 
 from beartype import BeartypeConf, beartype
@@ -40,6 +40,9 @@ from mock_vws.image_matchers import ImageMatcher
 from mock_vws.target import ImageTarget
 from mock_vws.target_manager import TargetManager
 from mock_vws.target_raters import TargetTrackingRater
+
+if TYPE_CHECKING:
+    from mock_vws.database import CloudDatabase, VuMarkDatabase
 
 _TARGET_ID_PATTERN = "[A-Za-z0-9]+"
 
@@ -309,12 +312,16 @@ class MockVuforiaWebServicesAPI:
             "application/pdf": VUMARK_PDF,
         }
         try:
+            all_databases: list[CloudDatabase | VuMarkDatabase] = [
+                *self._target_manager.cloud_databases,
+                *self._target_manager.vumark_databases,
+            ]
             run_services_validators(
                 request_headers=request.headers,
                 request_body=_body_bytes(request=request),
                 request_method=request.method or "",
                 request_path=request.path_url,
-                databases=self._target_manager.cloud_databases,
+                databases=all_databases,
             )
 
             accept = dict(request.headers).get("Accept", "")

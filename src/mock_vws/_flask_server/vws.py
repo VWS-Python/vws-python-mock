@@ -36,7 +36,7 @@ from mock_vws._services_validators.exceptions import (
     TargetStatusProcessingError,
     ValidatorError,
 )
-from mock_vws.database import CloudDatabase
+from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.image_matchers import (
     ExactMatcher,
     ImageMatcher,
@@ -100,6 +100,21 @@ def get_all_cloud_databases() -> set[CloudDatabase]:
     }
 
 
+@beartype
+def get_all_vumark_databases() -> set[VuMarkDatabase]:
+    """Get all VuMark database objects from the task manager back-end."""
+    settings = VWSSettings.model_validate(obj={})
+    timeout_seconds = 30
+    response = requests.get(
+        url=f"{settings.target_manager_base_url}/vumark_databases",
+        timeout=timeout_seconds,
+    )
+    return {
+        VuMarkDatabase.from_dict(database_dict=database_dict)
+        for database_dict in response.json()
+    }
+
+
 @VWS_FLASK_APP.before_request
 def set_terminate_wsgi_input() -> None:
     """We set ``wsgi.input_terminated`` to ``True`` when going through
@@ -129,14 +144,19 @@ def set_terminate_wsgi_input() -> None:
 @VWS_FLASK_APP.before_request
 @beartype
 def validate_request() -> None:
-    """Run validators on the request."""
-    databases = get_all_cloud_databases()
+    """Run validators on the request.
+
+    The VuMark endpoint does its own validation because it needs to
+    authenticate against both cloud and VuMark databases.
+    """
+    if request.endpoint == "generate_vumark_instance":
+        return
     run_services_validators(
         request_headers=dict(request.headers),
         request_body=request.data,
         request_method=request.method,
         request_path=request.path,
-        databases=databases,
+        databases=get_all_cloud_databases(),
     )
 
 
@@ -357,6 +377,20 @@ def generate_vumark_instance(target_id: str) -> Response:
     Fake implementation of
     https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#generate-instance
     """
+    cloud_databases = get_all_cloud_databases()
+    vumark_databases = get_all_vumark_databases()
+    all_databases: list[CloudDatabase | VuMarkDatabase] = [
+        *cloud_databases,
+        *vumark_databases,
+    ]
+    run_services_validators(
+        request_headers=dict(request.headers),
+        request_body=request.data,
+        request_method=request.method,
+        request_path=request.path,
+        databases=all_databases,
+    )
+
     # ``target_id`` is validated by request validators.
     del target_id
 
