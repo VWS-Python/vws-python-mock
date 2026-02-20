@@ -395,6 +395,7 @@ class TestTargets:
 
         assert len(database.targets) == 1
         target = next(iter(database.targets))
+        assert isinstance(target, ImageTarget)
         target_dict = target.to_dict()
 
         # The dictionary is JSON dump-able
@@ -431,6 +432,7 @@ class TestTargets:
 
         assert len(database.targets) == 1
         target = next(iter(database.targets))
+        assert isinstance(target, ImageTarget)
         target_dict = target.to_dict()
 
         # The dictionary is JSON dump-able

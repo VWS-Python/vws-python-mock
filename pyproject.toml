@@ -452,10 +452,7 @@ ignore_names = [
     # Used in TYPE_CHECKING for type hints
     "CloudDatabaseDict",
     "VuMarkDatabaseDict",
-    # TypedDict field names accessed via dict subscript
-    "target_type_name",
-    # Public enum values for library consumers
-    "VUMARK_TEMPLATE",
+    "VuMarkTargetDict",
 ]
 # Duplicate some of .gitignore
 exclude = [ ".venv" ]

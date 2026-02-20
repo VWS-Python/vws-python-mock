@@ -22,10 +22,8 @@ from mock_vws._flask_server.vws import VWS_FLASK_APP
 from mock_vws.database import CloudDatabase
 from mock_vws.database_type import DatabaseType
 from mock_vws.states import States
-from mock_vws.target import ImageTarget
-from mock_vws.target_raters import HardcodedTargetTrackingRater
+from mock_vws.target import VuMarkTarget
 from tests.mock_vws.fixtures.credentials import VuMarkCloudDatabase
-from tests.mock_vws.utils import make_image_file
 from tests.mock_vws.utils.retries import RETRY_ON_TOO_MANY_REQUESTS
 
 LOGGER = logging.getLogger(name=__name__)
@@ -68,19 +66,10 @@ def _vumark_database(
     vumark_vuforia_database: VuMarkCloudDatabase,
 ) -> CloudDatabase:
     """Return a database with a target for VuMark instance generation."""
-    vumark_target = ImageTarget(
+    vumark_target = VuMarkTarget(
         active_flag=True,
-        application_metadata=None,
-        image_value=make_image_file(
-            file_format="PNG",
-            color_space="RGB",
-            width=8,
-            height=8,
-        ).getvalue(),
         name="mock-vumark-target",
         processing_time_seconds=0,
-        width=1,
-        target_tracking_rater=HardcodedTargetTrackingRater(rating=5),
         target_id=vumark_vuforia_database.target_id,
     )
     return CloudDatabase(
