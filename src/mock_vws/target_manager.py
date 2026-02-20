@@ -35,6 +35,9 @@ class TargetManager:
 
         Args:
             cloud_database: The cloud database to remove.
+
+        Raises:
+            KeyError: The cloud database is not in the target manager.
         """
         self._cloud_databases = {
             db for db in self._cloud_databases if db != cloud_database

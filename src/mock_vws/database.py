@@ -74,8 +74,8 @@ class CloudDatabase:
     client_secret_key: str = field(default_factory=_random_hex, repr=False)
     # We have ``targets`` as ``hash=False`` so that we can have the class as
     # ``frozen=True`` while still being able to keep the interface we want.
-    # In particular, we might want to inspect the ``database`` object's
-    # targets as they change via API requests.
+    # In particular, we might want to inspect the ``database`` object's targets
+    # as they change via API requests.
     targets: set[ImageTarget] = field(
         default_factory=set[ImageTarget],
         hash=False,
@@ -103,7 +103,7 @@ class CloudDatabase:
         }
 
     def get_target(self, target_id: str) -> ImageTarget:
-        """Return an image target from the database with the given ID."""
+        """Return a target from the database with the given ID."""
         (target,) = (
             target for target in self.targets if target.target_id == target_id
         )
@@ -132,44 +132,40 @@ class CloudDatabase:
 
     @property
     def active_targets(self) -> set[ImageTarget]:
-        """All active image targets."""
+        """All active targets."""
         return {
             target
-            for target in self.targets
-            if not target.delete_date
-            and target.status == TargetStatuses.SUCCESS.value
+            for target in self.not_deleted_targets
+            if target.status == TargetStatuses.SUCCESS.value
             and target.active_flag
         }
 
     @property
     def inactive_targets(self) -> set[ImageTarget]:
-        """All inactive image targets."""
+        """All inactive targets."""
         return {
             target
-            for target in self.targets
-            if not target.delete_date
-            and target.status == TargetStatuses.SUCCESS.value
+            for target in self.not_deleted_targets
+            if target.status == TargetStatuses.SUCCESS.value
             and not target.active_flag
         }
 
     @property
     def failed_targets(self) -> set[ImageTarget]:
-        """All failed image targets."""
+        """All failed targets."""
         return {
             target
-            for target in self.targets
-            if not target.delete_date
-            and target.status == TargetStatuses.FAILED.value
+            for target in self.not_deleted_targets
+            if target.status == TargetStatuses.FAILED.value
         }
 
     @property
     def processing_targets(self) -> set[ImageTarget]:
-        """All processing image targets."""
+        """All processing targets."""
         return {
             target
-            for target in self.targets
-            if not target.delete_date
-            and target.status == TargetStatuses.PROCESSING.value
+            for target in self.not_deleted_targets
+            if target.status == TargetStatuses.PROCESSING.value
         }
 
 
