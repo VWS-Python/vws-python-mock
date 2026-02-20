@@ -246,7 +246,7 @@ class TestProcessingImages:
         )
 
         with MockVWS() as mock:
-            mock.add_database(database=database)
+            mock.add_cloud_database(cloud_database=database)
             vws_client.add_target(
                 name=uuid.uuid4().hex,
                 width=1,

@@ -19,59 +19,61 @@ class TargetManager:
     """
 
     def __init__(self) -> None:
-        """Create a target manager with no databases."""
-        self._databases: Iterable[CloudDatabase] = set()
+        """Create a target manager with no cloud databases."""
+        self._cloud_databases: Iterable[CloudDatabase] = set()
 
-    def remove_database(self, database: CloudDatabase) -> None:
+    def remove_cloud_database(self, cloud_database: CloudDatabase) -> None:
         """Remove a cloud database.
 
         Args:
-            database: The database to add.
+            cloud_database: The cloud database to remove.
 
         Raises:
-            KeyError: The database is not in the target manager.
+            KeyError: The cloud database is not in the target manager.
         """
-        self._databases = {db for db in self._databases if db != database}
+        self._cloud_databases = {
+            db for db in self._cloud_databases if db != cloud_database
+        }
 
-    def add_database(self, database: CloudDatabase) -> None:
+    def add_cloud_database(self, cloud_database: CloudDatabase) -> None:
         """Add a cloud database.
 
         Args:
-            database: The database to add.
+            cloud_database: The cloud database to add.
 
         Raises:
-            ValueError: One of the given database keys matches a key for an
-                existing database.
+            ValueError: One of the given cloud database keys matches a key for
+                an existing cloud database.
         """
         message_fmt = (
             "All {key_name}s must be unique. "
-            'There is already a database with the {key_name} "{value}".'
+            'There is already a cloud database with the {key_name} "{value}".'
         )
         for existing_db in self.cloud_databases:
             for existing, new, key_name in (
                 (
                     existing_db.server_access_key,
-                    database.server_access_key,
+                    cloud_database.server_access_key,
                     "server access key",
                 ),
                 (
                     existing_db.server_secret_key,
-                    database.server_secret_key,
+                    cloud_database.server_secret_key,
                     "server secret key",
                 ),
                 (
                     existing_db.client_access_key,
-                    database.client_access_key,
+                    cloud_database.client_access_key,
                     "client access key",
                 ),
                 (
                     existing_db.client_secret_key,
-                    database.client_secret_key,
+                    cloud_database.client_secret_key,
                     "client secret key",
                 ),
                 (
                     existing_db.database_name,
-                    database.database_name,
+                    cloud_database.database_name,
                     "name",
                 ),
             ):
@@ -79,9 +81,9 @@ class TargetManager:
                     message = message_fmt.format(key_name=key_name, value=new)
                     raise ValueError(message)
 
-        self._databases = {*self._databases, database}
+        self._cloud_databases = {*self._cloud_databases, cloud_database}
 
     @property
     def cloud_databases(self) -> set[CloudDatabase]:
         """All cloud databases."""
-        return set(self._databases)
+        return set(self._cloud_databases)
