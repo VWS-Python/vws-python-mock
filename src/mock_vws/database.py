@@ -99,12 +99,10 @@ class CloudDatabase:
             "vumark_targets": vumark_targets,
         }
 
-    def get_target(self, target_id: str) -> ImageTarget | VuMarkTarget:
-        """Return a target from the database with the given ID."""
+    def get_target(self, target_id: str) -> ImageTarget:
+        """Return an image target from the database with the given ID."""
         (target,) = (
-            target
-            for target in {*self.targets, *self.vumark_targets}
-            if target.target_id == target_id
+            target for target in self.targets if target.target_id == target_id
         )
         return target
 
