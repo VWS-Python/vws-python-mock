@@ -129,11 +129,13 @@ class CloudDatabase:
     @property
     def not_deleted_targets(self) -> set[ImageTarget | VuMarkTarget]:
         """All targets which have not been deleted."""
-        return {
-            target
-            for target in {*self.targets, *self.vumark_targets}
-            if not target.delete_date
+        not_deleted_image = {
+            target for target in self.targets if not target.delete_date
         }
+        not_deleted_vumark = {
+            target for target in self.vumark_targets if not target.delete_date
+        }
+        return not_deleted_image | not_deleted_vumark
 
     @property
     def active_targets(self) -> set[ImageTarget]:
