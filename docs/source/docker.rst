@@ -54,7 +54,7 @@ To mimic this functionality, this mock provides a target manager container which
 To add a database, make a request to the following endpoint against the target manager container:
 
 .. autoflask:: mock_vws._flask_server.target_manager:TARGET_MANAGER_FLASK_APP
-   :endpoints: create_database
+   :endpoints: create_cloud_database
 
 For example, with the containers set up as in :ref:`creating-containers`, use ``curl``:
 
