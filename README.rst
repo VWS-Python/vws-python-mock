@@ -30,7 +30,7 @@ This requires Python |minimum-python-version|\+.
 
     with MockVWS() as mock:
         database = CloudDatabase()
-        mock.add_database(database=database)
+        mock.add_cloud_database(cloud_database=database)
         # This will use the Vuforia mock.
         requests.get(url="https://vws.vuforia.com/summary", timeout=30)
 

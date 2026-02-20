@@ -80,33 +80,46 @@ def _get_vumark_database(database_name: str) -> VuMarkDatabase:
 
 
 @TARGET_MANAGER_FLASK_APP.route(
-    rule="/databases/<string:database_name>",
+    rule="/cloud_databases/<string:database_name>",
     methods=[HTTPMethod.DELETE],
 )
 @beartype
-def delete_database(database_name: str) -> Response:
-    """Delete a database.
+def delete_cloud_database(database_name: str) -> Response:
+    """Delete a cloud database.
 
-    :status 200: The database has been deleted.
+    :status 200: The cloud database has been deleted.
     """
-    all_databases: list[CloudDatabase | VuMarkDatabase] = [
-        *TARGET_MANAGER.cloud_databases,
-        *TARGET_MANAGER.vumark_databases,
-    ]
     try:
-        (matching_database,) = [
-            database
-            for database in all_databases
-            if database_name == database.database_name
-        ]
+        database = _get_cloud_database(database_name=database_name)
     except ValueError:
         return Response(response="", status=HTTPStatus.NOT_FOUND)
 
-    TARGET_MANAGER.remove_database(database=matching_database)
+    TARGET_MANAGER.remove_cloud_database(cloud_database=database)
     return Response(response="", status=HTTPStatus.OK)
 
 
-@TARGET_MANAGER_FLASK_APP.route(rule="/databases", methods=[HTTPMethod.GET])
+@TARGET_MANAGER_FLASK_APP.route(
+    rule="/vumark_databases/<string:database_name>",
+    methods=[HTTPMethod.DELETE],
+)
+@beartype
+def delete_vumark_database(database_name: str) -> Response:
+    """Delete a VuMark database.
+
+    :status 200: The VuMark database has been deleted.
+    """
+    try:
+        database = _get_vumark_database(database_name=database_name)
+    except ValueError:
+        return Response(response="", status=HTTPStatus.NOT_FOUND)
+
+    TARGET_MANAGER.remove_vumark_database(vumark_database=database)
+    return Response(response="", status=HTTPStatus.OK)
+
+
+@TARGET_MANAGER_FLASK_APP.route(
+    rule="/cloud_databases", methods=[HTTPMethod.GET]
+)
 @beartype
 def get_cloud_databases() -> Response:
     """Return a list of all cloud databases."""
@@ -135,7 +148,9 @@ def get_vumark_databases() -> Response:
     )
 
 
-@TARGET_MANAGER_FLASK_APP.route(rule="/databases", methods=[HTTPMethod.POST])
+@TARGET_MANAGER_FLASK_APP.route(
+    rule="/cloud_databases", methods=[HTTPMethod.POST]
+)
 @beartype
 def create_cloud_database() -> Response:
     """Create a new cloud database.
@@ -144,38 +159,42 @@ def create_cloud_database() -> Response:
     :resheader Content-Type: application/json
 
     :reqjson string client_access_key: (Optional) The client access key for the
-      database.
+      cloud database.
 
     :reqjson string client_secret_key: (Optional) The client secret key for the
-      database.
+      cloud database.
 
-    :reqjson string database_name: (Optional) The name of the database.
+    :reqjson string database_name: (Optional) The name of the cloud database.
 
     :reqjson string server_access_key: (Optional) The server access key for the
-      database.
+      cloud database.
 
     :reqjson string server_secret_key: (Optional) The server secret key for the
+      cloud database.
+
+    :reqjson string state_name: (Optional) The state of the cloud database.
+     This can be "WORKING" or "PROJECT_INACTIVE". This defaults to "WORKING".
+
+    :resjson string client_access_key: The client access key for the cloud
       database.
 
-    :reqjson string state_name: (Optional) The state of the database. This can
-     be "WORKING" or "PROJECT_INACTIVE". This defaults to "WORKING".
+    :resjson string client_secret_key: The client secret key for the cloud
+      database.
 
-    :resjson string client_access_key: The client access key for the database.
+    :resjson string database_name: The cloud database name.
 
-    :resjson string client_secret_key: The client secret key for the database.
+    :resjson string server_access_key: The server access key for the cloud
+      database.
 
-    :resjson string database_name: The database name.
+    :resjson string server_secret_key: The server secret key for the cloud
+      database.
 
-    :resjson string server_access_key: The server access key for the database.
+    :resjson string state_name: The cloud database state. This will be
+      "WORKING" or "PROJECT_INACTIVE".
 
-    :resjson string server_secret_key: The server secret key for the database.
+    :reqjsonarr targets: The targets in the cloud database.
 
-    :resjson string state_name: The database state. This will be "WORKING" or
-      "PROJECT_INACTIVE".
-
-    :reqjsonarr targets: The targets in the database.
-
-    :status 201: The database has been successfully created.
+    :status 201: The cloud database has been successfully created.
     """
     request_json = json.loads(s=request.data)
     random_database = CloudDatabase()
@@ -206,7 +225,7 @@ def create_cloud_database() -> Response:
     )
 
     try:
-        TARGET_MANAGER.add_database(database=database)
+        TARGET_MANAGER.add_cloud_database(cloud_database=database)
     except ValueError as exc:
         return Response(
             response=str(object=exc),
@@ -247,7 +266,7 @@ def create_vumark_database() -> Response:
     )
 
     try:
-        TARGET_MANAGER.add_database(database=database)
+        TARGET_MANAGER.add_vumark_database(vumark_database=database)
     except ValueError as exc:
         return Response(
             response=str(object=exc),
@@ -261,12 +280,12 @@ def create_vumark_database() -> Response:
 
 
 @TARGET_MANAGER_FLASK_APP.route(
-    rule="/databases/<string:database_name>/targets",
+    rule="/cloud_databases/<string:database_name>/targets",
     methods=[HTTPMethod.POST],
 )
 @beartype
 def create_target(database_name: str) -> Response:
-    """Create a new target in a given database."""
+    """Create a new target in a given cloud database."""
     database = _get_cloud_database(database_name=database_name)
     request_json = json.loads(s=request.data)
     image_base64 = request_json["image_base64"]
@@ -293,7 +312,7 @@ def create_target(database_name: str) -> Response:
 
 
 @TARGET_MANAGER_FLASK_APP.route(
-    rule="/databases/<string:database_name>/vumark_targets",
+    rule="/vumark_databases/<string:database_name>/vumark_targets",
     methods=[HTTPMethod.POST],
 )
 @beartype
@@ -311,7 +330,7 @@ def create_vumark_target(database_name: str) -> Response:
 
 
 @TARGET_MANAGER_FLASK_APP.route(
-    rule="/databases/<string:database_name>/targets/<string:target_id>",
+    rule="/cloud_databases/<string:database_name>/targets/<string:target_id>",
     methods={HTTPMethod.DELETE},
 )
 @beartype
@@ -334,7 +353,7 @@ def delete_target(database_name: str, target_id: str) -> Response:
 
 
 @TARGET_MANAGER_FLASK_APP.route(
-    rule="/databases/<string:database_name>/targets/<string:target_id>",
+    rule="/cloud_databases/<string:database_name>/targets/<string:target_id>",
     methods=[HTTPMethod.PUT],
 )
 def update_target(database_name: str, target_id: str) -> Response:

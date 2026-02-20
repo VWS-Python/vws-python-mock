@@ -63,7 +63,7 @@ For example, with the containers set up as in :ref:`creating-containers`, use ``
    $ curl --request POST \
        --header "Content-Type: application/json" \
        --data '{}' \
-       '127.0.0.1:5005/databases'
+       '127.0.0.1:5005/cloud_databases'
    {
        "client_access_key": "2d61c1d17bb94694bee77c1f1f41e5d9",
        "client_secret_key": "b73f8170cf7d42728fa8ce66221ad147",
@@ -80,7 +80,7 @@ Deleting a database
 To delete a database use the following endpoint:
 
 .. autoflask:: mock_vws._flask_server.target_manager:TARGET_MANAGER_FLASK_APP
-   :endpoints: delete_database
+   :endpoints: delete_cloud_database
 
 
 .. _Target Manager: https://developer.vuforia.com/target-manager

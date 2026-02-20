@@ -67,7 +67,7 @@ def get_all_cloud_databases() -> set[CloudDatabase]:
     """Get all cloud database objects from the target manager back-end."""
     settings = VWQSettings.model_validate(obj={})
     response = requests.get(
-        url=f"{settings.target_manager_base_url}/databases",
+        url=f"{settings.target_manager_base_url}/cloud_databases",
         timeout=30,
     )
     return {

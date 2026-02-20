@@ -12,11 +12,12 @@ from beartype import BeartypeConf, beartype
 from requests import PreparedRequest
 from responses import RequestsMock
 
+from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.image_matchers import (
     ImageMatcher,
     StructuralSimilarityMatcher,
 )
-from mock_vws.target_manager import AnyDatabase, TargetManager
+from mock_vws.target_manager import TargetManager
 from mock_vws.target_raters import (
     BrisqueTargetTrackingRater,
     TargetTrackingRater,
@@ -125,17 +126,33 @@ class MockVWS(ContextDecorator):
             query_match_checker=query_match_checker,
         )
 
-    def add_database(self, database: AnyDatabase) -> None:
-        """Add a database.
+    def add_cloud_database(self, cloud_database: CloudDatabase) -> None:
+        """Add a cloud database.
 
         Args:
-            database: The database to add.
+            cloud_database: The cloud database to add.
 
         Raises:
-            ValueError: One of the given database keys matches a key for an
-                existing database.
+            ValueError: One of the given cloud database keys matches a key for
+                an existing cloud database.
         """
-        self._target_manager.add_database(database=database)
+        self._target_manager.add_cloud_database(
+            cloud_database=cloud_database,
+        )
+
+    def add_vumark_database(self, vumark_database: VuMarkDatabase) -> None:
+        """Add a VuMark database.
+
+        Args:
+            vumark_database: The VuMark database to add.
+
+        Raises:
+            ValueError: One of the given database keys matches a key for
+                an existing database.
+        """
+        self._target_manager.add_vumark_database(
+            vumark_database=vumark_database,
+        )
 
     @staticmethod
     def _wrap_callback(

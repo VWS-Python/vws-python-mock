@@ -71,7 +71,7 @@ class TestProcessingTime:
     ) -> None:
         """By default, targets in the mock takes 2 seconds to be processed."""
         database = CloudDatabase()
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         time_taken = processing_time_seconds(
@@ -94,7 +94,7 @@ class TestProcessingTime:
             value=str(object=seconds),
         )
         database = CloudDatabase()
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         time_taken = processing_time_seconds(
@@ -131,26 +131,26 @@ class TestAddDatabase:
 
         server_access_key_conflict_error = (
             "All server access keys must be unique. "
-            'There is already a database with the server access key "1".'
+            'There is already a cloud database with the server access key "1".'
         )
         server_secret_key_conflict_error = (
             "All server secret keys must be unique. "
-            'There is already a database with the server secret key "2".'
+            'There is already a cloud database with the server secret key "2".'
         )
         client_access_key_conflict_error = (
             "All client access keys must be unique. "
-            'There is already a database with the client access key "3".'
+            'There is already a cloud database with the client access key "3".'
         )
         client_secret_key_conflict_error = (
             "All client secret keys must be unique. "
-            'There is already a database with the client secret key "4".'
+            'There is already a cloud database with the client secret key "4".'
         )
         database_name_conflict_error = (
             "All names must be unique. "
-            'There is already a database with the name "5".'
+            'There is already a cloud database with the name "5".'
         )
 
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         for bad_database, expected_message in (
@@ -172,7 +172,7 @@ class TestAddDatabase:
     @staticmethod
     def test_give_no_details(high_quality_image: io.BytesIO) -> None:
         """It is possible to create a database without giving any data."""
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
         response = requests.post(url=databases_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.CREATED
 
@@ -206,7 +206,7 @@ class TestDeleteDatabase:
         does not
         exist.
         """
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
         delete_url = databases_url + "/" + "foobar"
         response = requests.delete(url=delete_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.NOT_FOUND
@@ -214,7 +214,7 @@ class TestDeleteDatabase:
     @staticmethod
     def test_delete_database() -> None:
         """It is possible to delete a database."""
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
         response = requests.post(url=databases_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.CREATED
 
@@ -253,7 +253,7 @@ class TestQueryImageMatchers:
         re_exported_image = io.BytesIO()
         pil_image.save(fp=re_exported_image, format="PNG")
 
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         target_id = vws_client.add_target(
@@ -297,7 +297,7 @@ class TestQueryImageMatchers:
         pil_image = Image.open(fp=high_quality_image)
         re_exported_image = io.BytesIO()
         pil_image.save(fp=re_exported_image, format="PNG")
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         assert re_exported_image.getvalue() != high_quality_image.getvalue()
@@ -345,7 +345,7 @@ class TestDuplicatesImageMatchers:
         re_exported_image = io.BytesIO()
         pil_image.save(fp=re_exported_image, format="PNG")
 
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         target_id = vws_client.add_target(
@@ -397,7 +397,7 @@ class TestDuplicatesImageMatchers:
         re_exported_image = io.BytesIO()
         pil_image.save(fp=re_exported_image, format="PNG")
 
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         target_id = vws_client.add_target(
@@ -430,7 +430,7 @@ class TestTargetRaters:
     ) -> None:
         """By default, the BRISQUE target rater is used."""
         database = CloudDatabase()
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         vws_client = VWS(
@@ -481,7 +481,7 @@ class TestTargetRaters:
         monkeypatch.setenv(name="TARGET_RATER", value="brisque")
 
         database = CloudDatabase()
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         vws_client = VWS(
@@ -530,7 +530,7 @@ class TestTargetRaters:
         """It is possible to use the perfect target rater."""
         monkeypatch.setenv(name="TARGET_RATER", value="perfect")
         database = CloudDatabase()
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         vws_client = VWS(
@@ -570,7 +570,7 @@ class TestTargetRaters:
         monkeypatch.setenv(name="TARGET_RATER", value="random")
 
         database = CloudDatabase()
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         vws_client = VWS(
@@ -642,7 +642,7 @@ class TestResponseDelay:
     def test_default_no_delay(self) -> None:
         """By default, there is no response delay."""
         database = CloudDatabase()
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         start = time.monotonic()
@@ -660,7 +660,7 @@ class TestResponseDelay:
             value=f"{self.DELAY_SECONDS}",
         )
         database = CloudDatabase()
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         start = time.monotonic()

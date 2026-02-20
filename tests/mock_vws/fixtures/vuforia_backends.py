@@ -126,9 +126,9 @@ def _enable_use_mock_vuforia(
     )
 
     with MockVWS() as mock:
-        mock.add_database(database=working_database)
-        mock.add_database(database=inactive_database)
-        mock.add_database(database=vumark_database)
+        mock.add_cloud_database(cloud_database=working_database)
+        mock.add_cloud_database(cloud_database=inactive_database)
+        mock.add_vumark_database(vumark_database=vumark_database)
         yield
 
 
@@ -185,23 +185,31 @@ def _enable_use_docker_in_memory(
             base_url=target_manager_base_url,
         )
 
-        databases_url = target_manager_base_url + "/databases"
+        cloud_databases_url = target_manager_base_url + "/cloud_databases"
         vumark_databases_url = target_manager_base_url + "/vumark_databases"
 
-        for url in (databases_url, vumark_databases_url):
-            for database in requests.get(url=url, timeout=30).json():
-                requests.delete(
-                    url=databases_url + "/" + database["database_name"],
-                    timeout=30,
-                )
+        for database in requests.get(
+            url=cloud_databases_url, timeout=30
+        ).json():
+            requests.delete(
+                url=cloud_databases_url + "/" + database["database_name"],
+                timeout=30,
+            )
+        for database in requests.get(
+            url=vumark_databases_url, timeout=30
+        ).json():
+            requests.delete(
+                url=vumark_databases_url + "/" + database["database_name"],
+                timeout=30,
+            )
 
         requests.post(
-            url=databases_url,
+            url=cloud_databases_url,
             json=working_database.to_dict(),
             timeout=30,
         )
         requests.post(
-            url=databases_url,
+            url=cloud_databases_url,
             json=inactive_database.to_dict(),
             timeout=30,
         )
@@ -212,7 +220,8 @@ def _enable_use_docker_in_memory(
         )
         requests.post(
             url=(
-                f"{databases_url}/{vumark_database.database_name}/vumark_targets"
+                f"{vumark_databases_url}"
+                f"/{vumark_database.database_name}/vumark_targets"
             ),
             json=vumark_target.to_dict(),
             timeout=30,
