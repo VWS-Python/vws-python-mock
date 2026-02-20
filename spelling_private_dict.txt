@@ -3,6 +3,7 @@ MPixel
 MiB
 MissingSchema
 Ubuntu
+VuMark
 admin
 another's
 api
