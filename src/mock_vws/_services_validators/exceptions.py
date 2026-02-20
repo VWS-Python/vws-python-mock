@@ -662,7 +662,7 @@ class InvalidTargetTypeError(ValidatorError):
                 raised.
         """
         super().__init__()
-        self.status_code = HTTPStatus.FORBIDDEN
+        self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
         body = {
             "transaction_id": uuid.uuid4().hex,
             "result_code": ResultCodes.INVALID_TARGET_TYPE.value,

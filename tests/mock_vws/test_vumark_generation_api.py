@@ -149,7 +149,7 @@ class TestGenerateInstance:
 
     @staticmethod
     def test_non_vumark_database(
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
     ) -> None:
         """Generating a VuMark instance for a target in a non-VuMark
         database returns InvalidTargetType.
@@ -178,8 +178,9 @@ class TestGenerateInstance:
             instance_id=uuid4().hex,
             accept="image/png",
         )
-        assert response.status_code == HTTPStatus.FORBIDDEN
+        assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
         response_json = response.json()
         assert (
-            response_json["result_code"] == ResultCodes.INVALID_TARGET_TYPE.value
+            response_json["result_code"]
+            == ResultCodes.INVALID_TARGET_TYPE.value
         )
