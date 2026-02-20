@@ -18,7 +18,7 @@ from vws_auth_tools import rfc_1123_date
 from mock_vws import MissingSchemeError, MockVWS
 from mock_vws.database import VuforiaDatabase
 from mock_vws.image_matchers import ExactMatcher, StructuralSimilarityMatcher
-from mock_vws.target import Target
+from mock_vws.target import ImageTarget
 from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.usage_test_helpers import (
     processing_time_seconds,
@@ -400,7 +400,7 @@ class TestTargets:
         # The dictionary is JSON dump-able
         assert json.dumps(obj=target_dict)
 
-        new_target = Target.from_dict(target_dict=target_dict)
+        new_target = ImageTarget.from_dict(target_dict=target_dict)
         assert new_target == target
 
     @staticmethod
@@ -436,7 +436,7 @@ class TestTargets:
         # The dictionary is JSON dump-able
         assert json.dumps(obj=target_dict)
 
-        new_target = Target.from_dict(target_dict=target_dict)
+        new_target = ImageTarget.from_dict(target_dict=target_dict)
         assert new_target.delete_date == target.delete_date
 
 

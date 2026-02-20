@@ -37,7 +37,7 @@ from mock_vws._services_validators.exceptions import (
     ValidatorError,
 )
 from mock_vws.image_matchers import ImageMatcher
-from mock_vws.target import Target
+from mock_vws.target import ImageTarget
 from mock_vws.target_manager import TargetManager
 from mock_vws.target_raters import TargetTrackingRater
 
@@ -187,7 +187,7 @@ class MockVuforiaWebServicesAPI:
 
         application_metadata = request_json.get("application_metadata")
 
-        new_target = Target(
+        new_target = ImageTarget(
             name=request_json["name"],
             width=request_json["width"],
             image_value=base64.b64decode(s=request_json["image"]),

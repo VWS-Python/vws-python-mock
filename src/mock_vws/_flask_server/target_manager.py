@@ -14,7 +14,7 @@ from pydantic_settings import BaseSettings
 
 from mock_vws.database import VuforiaDatabase
 from mock_vws.states import States
-from mock_vws.target import Target
+from mock_vws.target import ImageTarget
 from mock_vws.target_manager import TargetManager
 from mock_vws.target_raters import (
     BrisqueTargetTrackingRater,
@@ -202,7 +202,7 @@ def create_target(database_name: str) -> Response:
     settings = TargetManagerSettings.model_validate(obj={})
     target_tracking_rater = settings.target_rater.to_target_rater()
 
-    target = Target(
+    target = ImageTarget(
         name=request_json["name"],
         width=request_json["width"],
         image_value=image_bytes,
