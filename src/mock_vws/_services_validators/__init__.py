@@ -2,7 +2,7 @@
 
 from collections.abc import Iterable, Mapping
 
-from mock_vws.database import VuforiaDatabase
+from mock_vws.database import CloudDatabase
 
 from .active_flag_validators import validate_active_flag
 from .auth_validators import (
@@ -55,7 +55,7 @@ def run_services_validators(
     request_headers: Mapping[str, str],
     request_body: bytes,
     request_method: str,
-    databases: Iterable[VuforiaDatabase],
+    databases: Iterable[CloudDatabase],
 ) -> None:
     """Run all validators.
 

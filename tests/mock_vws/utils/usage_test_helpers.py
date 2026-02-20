@@ -6,12 +6,12 @@ import io
 from vws import VWS
 from vws.reports import TargetStatuses
 
-from mock_vws.database import VuforiaDatabase
+from mock_vws.database import CloudDatabase
 
 
 def processing_time_seconds(
     *,
-    vuforia_database: VuforiaDatabase,
+    vuforia_database: CloudDatabase,
     image: io.BytesIO,
 ) -> float:
     """Return the time taken to process a target in the database."""

@@ -18,7 +18,7 @@ from vws import VWS, CloudRecoService
 from mock_vws._flask_server.target_manager import TARGET_MANAGER_FLASK_APP
 from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
 from mock_vws._flask_server.vws import VWS_FLASK_APP
-from mock_vws.database import VuforiaDatabase
+from mock_vws.database import CloudDatabase
 from tests.mock_vws.utils.usage_test_helpers import (
     processing_time_seconds,
 )
@@ -70,7 +70,7 @@ class TestProcessingTime:
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """By default, targets in the mock takes 2 seconds to be processed."""
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
@@ -93,7 +93,7 @@ class TestProcessingTime:
             name="PROCESSING_TIME_SECONDS",
             value=str(object=seconds),
         )
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
@@ -115,7 +115,7 @@ class TestAddDatabase:
         It is not possible to have multiple databases with matching
         keys.
         """
-        database = VuforiaDatabase(
+        database = CloudDatabase(
             server_access_key="1",
             server_secret_key="2",
             client_access_key="3",
@@ -123,11 +123,11 @@ class TestAddDatabase:
             database_name="5",
         )
 
-        bad_server_access_key_db = VuforiaDatabase(server_access_key="1")
-        bad_server_secret_key_db = VuforiaDatabase(server_secret_key="2")
-        bad_client_access_key_db = VuforiaDatabase(client_access_key="3")
-        bad_client_secret_key_db = VuforiaDatabase(client_secret_key="4")
-        bad_database_name_db = VuforiaDatabase(database_name="5")
+        bad_server_access_key_db = CloudDatabase(server_access_key="1")
+        bad_server_secret_key_db = CloudDatabase(server_secret_key="2")
+        bad_client_access_key_db = CloudDatabase(client_access_key="3")
+        bad_client_secret_key_db = CloudDatabase(client_secret_key="4")
+        bad_database_name_db = CloudDatabase(database_name="5")
 
         server_access_key_conflict_error = (
             "All server access keys must be unique. "
@@ -238,7 +238,7 @@ class TestQueryImageMatchers:
         """The exact matcher matches only exactly the same images."""
         monkeypatch.setenv(name="QUERY_IMAGE_MATCHER", value="exact")
 
-        database = VuforiaDatabase()
+        database = CloudDatabase()
 
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -284,7 +284,7 @@ class TestQueryImageMatchers:
             name="QUERY_IMAGE_MATCHER",
             value="structural_similarity",
         )
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
             server_secret_key=database.server_secret_key,
@@ -335,7 +335,7 @@ class TestDuplicatesImageMatchers:
     ) -> None:
         """The exact matcher matches only exactly the same images."""
         monkeypatch.setenv(name="DUPLICATES_IMAGE_MATCHER", value="exact")
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
             server_secret_key=database.server_secret_key,
@@ -387,7 +387,7 @@ class TestDuplicatesImageMatchers:
             name="DUPLICATES_IMAGE_MATCHER",
             value="structural_similarity",
         )
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
             server_secret_key=database.server_secret_key,
@@ -429,7 +429,7 @@ class TestTargetRaters:
         high_quality_image: io.BytesIO,
     ) -> None:
         """By default, the BRISQUE target rater is used."""
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
@@ -480,7 +480,7 @@ class TestTargetRaters:
         """It is possible to use the BRISQUE target rater."""
         monkeypatch.setenv(name="TARGET_RATER", value="brisque")
 
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
@@ -529,7 +529,7 @@ class TestTargetRaters:
     ) -> None:
         """It is possible to use the perfect target rater."""
         monkeypatch.setenv(name="TARGET_RATER", value="perfect")
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
@@ -569,7 +569,7 @@ class TestTargetRaters:
         """It is possible to use the random target rater."""
         monkeypatch.setenv(name="TARGET_RATER", value="random")
 
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
@@ -641,7 +641,7 @@ class TestResponseDelay:
 
     def test_default_no_delay(self) -> None:
         """By default, there is no response delay."""
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
@@ -659,7 +659,7 @@ class TestResponseDelay:
             name="RESPONSE_DELAY_SECONDS",
             value=f"{self.DELAY_SECONDS}",
         )
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 

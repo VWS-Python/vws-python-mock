@@ -7,7 +7,7 @@ from beartype import beartype
 
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._services_validators.exceptions import UnknownTargetError
-from mock_vws.database import VuforiaDatabase
+from mock_vws.database import CloudDatabase
 
 _LOGGER = logging.getLogger(name=__name__)
 _TARGETS_WITH_INSTANCE_PATH_LENGTH = 4
@@ -20,7 +20,7 @@ def validate_target_id_exists(
     request_headers: Mapping[str, str],
     request_body: bytes,
     request_method: str,
-    databases: Iterable[VuforiaDatabase],
+    databases: Iterable[CloudDatabase],
 ) -> None:
     """Validate that if a target ID is given, it exists in the database
     matching the request.

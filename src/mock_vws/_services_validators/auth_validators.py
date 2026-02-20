@@ -11,7 +11,7 @@ from mock_vws._services_validators.exceptions import (
     AuthenticationFailureError,
     FailError,
 )
-from mock_vws.database import VuforiaDatabase
+from mock_vws.database import CloudDatabase
 
 _LOGGER = logging.getLogger(name=__name__)
 
@@ -36,7 +36,7 @@ def validate_auth_header_exists(*, request_headers: Mapping[str, str]) -> None:
 def validate_access_key_exists(
     *,
     request_headers: Mapping[str, str],
-    databases: Iterable[VuforiaDatabase],
+    databases: Iterable[CloudDatabase],
 ) -> None:
     """Validate the authorization header includes an access key for a
     database.
@@ -92,7 +92,7 @@ def validate_authorization(
     request_headers: Mapping[str, str],
     request_body: bytes,
     request_method: str,
-    databases: Iterable[VuforiaDatabase],
+    databases: Iterable[CloudDatabase],
 ) -> None:
     """Validate the authorization header given to a VWS endpoint.
 

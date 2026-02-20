@@ -36,7 +36,7 @@ from mock_vws._services_validators.exceptions import (
     TargetStatusProcessingError,
     ValidatorError,
 )
-from mock_vws.database import VuforiaDatabase
+from mock_vws.database import CloudDatabase
 from mock_vws.image_matchers import (
     ExactMatcher,
     ImageMatcher,
@@ -86,7 +86,7 @@ class VWSSettings(BaseSettings):
 
 
 @beartype
-def get_all_databases() -> set[VuforiaDatabase]:
+def get_all_databases() -> set[CloudDatabase]:
     """Get all database objects from the task manager back-end."""
     settings = VWSSettings.model_validate(obj={})
     timeout_seconds = 30
@@ -95,7 +95,7 @@ def get_all_databases() -> set[VuforiaDatabase]:
         timeout=timeout_seconds,
     )
     return {
-        VuforiaDatabase.from_dict(database_dict=database_dict)
+        CloudDatabase.from_dict(database_dict=database_dict)
         for database_dict in response.json()
     }
 

@@ -15,7 +15,7 @@ from vws import VWS, CloudRecoService
 from vws.exceptions.vws_exceptions import FailError
 
 from mock_vws import MockVWS
-from mock_vws.database import VuforiaDatabase
+from mock_vws.database import CloudDatabase
 
 LOGGER = logging.getLogger(name=__name__)
 LOGGER.setLevel(level=logging.DEBUG)
@@ -94,7 +94,7 @@ class TestDatabaseSummary:
 
     @staticmethod
     def test_success(
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
         vws_client: VWS,
     ) -> None:
         """It is possible to get a success response."""
@@ -239,7 +239,7 @@ class TestProcessingImages:
         image_file_success_state_low_rating: io.BytesIO,
     ) -> None:
         """The number of images in the processing state is returned."""
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
             server_secret_key=database.server_secret_key,

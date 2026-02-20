@@ -10,7 +10,7 @@ from vws import VWS, CloudRecoService
 from vws.exceptions.vws_exceptions import UnknownTargetError
 from vws.reports import TargetStatuses
 
-from mock_vws.database import VuforiaDatabase
+from mock_vws.database import CloudDatabase
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -21,7 +21,7 @@ class TestTargetSummary:
     @pytest.mark.parametrize(argnames="active_flag", argvalues=[True, False])
     def test_target_summary(
         vws_client: VWS,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
         image_file_failed_state: io.BytesIO,
         *,
         active_flag: bool,

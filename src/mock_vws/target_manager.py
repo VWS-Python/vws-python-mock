@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from beartype import beartype
 
-from mock_vws.database import VuforiaDatabase
+from mock_vws.database import CloudDatabase
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -20,9 +20,9 @@ class TargetManager:
 
     def __init__(self) -> None:
         """Create a target manager with no databases."""
-        self._databases: Iterable[VuforiaDatabase] = set()
+        self._databases: Iterable[CloudDatabase] = set()
 
-    def remove_database(self, database: VuforiaDatabase) -> None:
+    def remove_database(self, database: CloudDatabase) -> None:
         """Remove a cloud database.
 
         Args:
@@ -33,7 +33,7 @@ class TargetManager:
         """
         self._databases = {db for db in self._databases if db != database}
 
-    def add_database(self, database: VuforiaDatabase) -> None:
+    def add_database(self, database: CloudDatabase) -> None:
         """Add a cloud database.
 
         Args:
@@ -82,6 +82,6 @@ class TargetManager:
         self._databases = {*self._databases, database}
 
     @property
-    def databases(self) -> set[VuforiaDatabase]:
+    def databases(self) -> set[CloudDatabase]:
         """All cloud databases."""
         return set(self._databases)

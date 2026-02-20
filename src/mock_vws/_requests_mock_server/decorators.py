@@ -12,7 +12,7 @@ from beartype import BeartypeConf, beartype
 from requests import PreparedRequest
 from responses import RequestsMock
 
-from mock_vws.database import VuforiaDatabase
+from mock_vws.database import CloudDatabase
 from mock_vws.image_matchers import (
     ImageMatcher,
     StructuralSimilarityMatcher,
@@ -126,7 +126,7 @@ class MockVWS(ContextDecorator):
             query_match_checker=query_match_checker,
         )
 
-    def add_database(self, database: VuforiaDatabase) -> None:
+    def add_database(self, database: CloudDatabase) -> None:
         """Add a cloud database.
 
         Args:

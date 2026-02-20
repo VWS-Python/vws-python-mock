@@ -21,7 +21,7 @@ from mock_vws._query_validators import run_query_validators
 from mock_vws._query_validators.exceptions import (
     ValidatorError,
 )
-from mock_vws.database import VuforiaDatabase
+from mock_vws.database import CloudDatabase
 from mock_vws.image_matchers import (
     ExactMatcher,
     ImageMatcher,
@@ -63,7 +63,7 @@ class VWQSettings(BaseSettings):
 
 
 @beartype
-def get_all_databases() -> set[VuforiaDatabase]:
+def get_all_databases() -> set[CloudDatabase]:
     """Get all database objects from the target manager back-end."""
     settings = VWQSettings.model_validate(obj={})
     response = requests.get(
@@ -71,7 +71,7 @@ def get_all_databases() -> set[VuforiaDatabase]:
         timeout=30,
     )
     return {
-        VuforiaDatabase.from_dict(database_dict=database_dict)
+        CloudDatabase.from_dict(database_dict=database_dict)
         for database_dict in response.json()
     }
 

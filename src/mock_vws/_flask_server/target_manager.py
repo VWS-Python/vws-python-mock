@@ -12,7 +12,7 @@ from beartype import beartype
 from flask import Flask, Response, request
 from pydantic_settings import BaseSettings
 
-from mock_vws.database import VuforiaDatabase
+from mock_vws.database import CloudDatabase
 from mock_vws.states import States
 from mock_vws.target import ImageTarget
 from mock_vws.target_manager import TargetManager
@@ -133,7 +133,7 @@ def create_database() -> Response:
 
     :status 201: The database has been successfully created.
     """
-    random_database = VuforiaDatabase()
+    random_database = CloudDatabase()
     request_json = json.loads(s=request.data)
     server_access_key = request_json.get(
         "server_access_key",
@@ -162,7 +162,7 @@ def create_database() -> Response:
 
     state = States[state_name]
 
-    database = VuforiaDatabase(
+    database = CloudDatabase(
         server_access_key=server_access_key,
         server_secret_key=server_secret_key,
         client_access_key=client_access_key,
