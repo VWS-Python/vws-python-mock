@@ -36,7 +36,6 @@ from mock_vws._services_validators.exceptions import (
     TargetStatusProcessingError,
     ValidatorError,
 )
-from mock_vws.database import CloudDatabase
 from mock_vws.image_matchers import ImageMatcher
 from mock_vws.target import ImageTarget
 from mock_vws.target_manager import TargetManager
@@ -165,7 +164,7 @@ class MockVuforiaWebServicesAPI:
                 request_body=_body_bytes(request=request),
                 request_method=request.method or "",
                 request_path=request.path_url,
-                databases=self._target_manager.databases,
+                databases=self._target_manager.cloud_databases,
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
@@ -175,10 +174,8 @@ class MockVuforiaWebServicesAPI:
             request_body=_body_bytes(request=request),
             request_method=request.method or "",
             request_path=request.path_url,
-            databases=self._target_manager.databases,
+            databases=self._target_manager.cloud_databases,
         )
-        if not isinstance(database, CloudDatabase):
-            raise TypeError
 
         request_json: dict[str, Any] = json.loads(s=request.body or b"")
         given_active_flag = request_json.get("active_flag")
@@ -242,7 +239,7 @@ class MockVuforiaWebServicesAPI:
                 request_body=_body_bytes(request=request),
                 request_method=request.method or "",
                 request_path=request.path_url,
-                databases=self._target_manager.databases,
+                databases=self._target_manager.cloud_databases,
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
@@ -252,10 +249,8 @@ class MockVuforiaWebServicesAPI:
             request_body=_body_bytes(request=request),
             request_method=request.method or "",
             request_path=request.path_url,
-            databases=self._target_manager.databases,
+            databases=self._target_manager.cloud_databases,
         )
-        if not isinstance(database, CloudDatabase):
-            raise TypeError
 
         target_id = request.path_url.split(sep="/")[-1]
         target = database.get_target(target_id=target_id)
@@ -319,7 +314,7 @@ class MockVuforiaWebServicesAPI:
                 request_body=_body_bytes(request=request),
                 request_method=request.method or "",
                 request_path=request.path_url,
-                databases=self._target_manager.databases,
+                databases=self._target_manager.cloud_databases,
             )
 
             accept = dict(request.headers).get("Accept", "")
@@ -365,7 +360,7 @@ class MockVuforiaWebServicesAPI:
                 request_body=_body_bytes(request=request),
                 request_method=request.method or "",
                 request_path=request.path_url,
-                databases=self._target_manager.databases,
+                databases=self._target_manager.cloud_databases,
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
@@ -375,10 +370,8 @@ class MockVuforiaWebServicesAPI:
             request_body=_body_bytes(request=request),
             request_method=request.method or "",
             request_path=request.path_url,
-            databases=self._target_manager.databases,
+            databases=self._target_manager.cloud_databases,
         )
-        if not isinstance(database, CloudDatabase):
-            raise TypeError
 
         date = email.utils.formatdate(
             timeval=None,
@@ -428,7 +421,7 @@ class MockVuforiaWebServicesAPI:
                 request_body=_body_bytes(request=request),
                 request_method=request.method or "",
                 request_path=request.path_url,
-                databases=self._target_manager.databases,
+                databases=self._target_manager.cloud_databases,
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
@@ -438,7 +431,7 @@ class MockVuforiaWebServicesAPI:
             request_body=_body_bytes(request=request),
             request_method=request.method or "",
             request_path=request.path_url,
-            databases=self._target_manager.databases,
+            databases=self._target_manager.cloud_databases,
         )
 
         date = email.utils.formatdate(
@@ -485,7 +478,7 @@ class MockVuforiaWebServicesAPI:
                 request_body=_body_bytes(request=request),
                 request_method=request.method or "",
                 request_path=request.path_url,
-                databases=self._target_manager.databases,
+                databases=self._target_manager.cloud_databases,
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
@@ -495,10 +488,8 @@ class MockVuforiaWebServicesAPI:
             request_body=_body_bytes(request=request),
             request_method=request.method or "",
             request_path=request.path_url,
-            databases=self._target_manager.databases,
+            databases=self._target_manager.cloud_databases,
         )
-        if not isinstance(database, CloudDatabase):
-            raise TypeError
         target_id = request.path_url.split(sep="/")[-1]
         target = database.get_target(target_id=target_id)
 
@@ -553,7 +544,7 @@ class MockVuforiaWebServicesAPI:
                 request_body=_body_bytes(request=request),
                 request_method=request.method or "",
                 request_path=request.path_url,
-                databases=self._target_manager.databases,
+                databases=self._target_manager.cloud_databases,
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
@@ -563,10 +554,8 @@ class MockVuforiaWebServicesAPI:
             request_body=_body_bytes(request=request),
             request_method=request.method or "",
             request_path=request.path_url,
-            databases=self._target_manager.databases,
+            databases=self._target_manager.cloud_databases,
         )
-        if not isinstance(database, CloudDatabase):
-            raise TypeError
         target_id = request.path_url.split(sep="/")[-1]
         target = database.get_target(target_id=target_id)
 
@@ -626,7 +615,7 @@ class MockVuforiaWebServicesAPI:
                 request_body=_body_bytes(request=request),
                 request_method=request.method or "",
                 request_path=request.path_url,
-                databases=self._target_manager.databases,
+                databases=self._target_manager.cloud_databases,
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
@@ -636,10 +625,8 @@ class MockVuforiaWebServicesAPI:
             request_body=_body_bytes(request=request),
             request_method=request.method or "",
             request_path=request.path_url,
-            databases=self._target_manager.databases,
+            databases=self._target_manager.cloud_databases,
         )
-        if not isinstance(database, CloudDatabase):
-            raise TypeError
 
         target_id = request.path_url.split(sep="/")[-1]
         target = database.get_target(target_id=target_id)
@@ -741,7 +728,7 @@ class MockVuforiaWebServicesAPI:
                 request_body=_body_bytes(request=request),
                 request_method=request.method or "",
                 request_path=request.path_url,
-                databases=self._target_manager.databases,
+                databases=self._target_manager.cloud_databases,
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
@@ -751,10 +738,8 @@ class MockVuforiaWebServicesAPI:
             request_body=_body_bytes(request=request),
             request_method=request.method or "",
             request_path=request.path_url,
-            databases=self._target_manager.databases,
+            databases=self._target_manager.cloud_databases,
         )
-        if not isinstance(database, CloudDatabase):
-            raise TypeError
         target_id = request.path_url.split(sep="/")[-1]
         target = database.get_target(target_id=target_id)
 

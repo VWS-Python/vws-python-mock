@@ -6,7 +6,6 @@ from beartype import beartype
 from vws_auth_tools import authorization_header
 
 from mock_vws.database import CloudDatabase
-from mock_vws.target_manager import AnyDatabase
 
 
 @beartype
@@ -16,7 +15,7 @@ def get_database_matching_client_keys(
     request_body: bytes | None,
     request_method: str,
     request_path: str,
-    databases: Iterable[AnyDatabase],
+    databases: Iterable[CloudDatabase],
 ) -> CloudDatabase:
     """Return the first of the given databases which is being accessed by
     the
@@ -43,8 +42,6 @@ def get_database_matching_client_keys(
     date = request_headers_dict.get("Date", "")
 
     for database in databases:
-        if not isinstance(database, CloudDatabase):
-            continue
         expected_authorization_header = authorization_header(
             access_key=database.client_access_key,
             secret_key=database.client_secret_key,
@@ -67,8 +64,8 @@ def get_database_matching_server_keys(
     request_body: bytes | None,
     request_method: str,
     request_path: str,
-    databases: Iterable[AnyDatabase],
-) -> AnyDatabase:
+    databases: Iterable[CloudDatabase],
+) -> CloudDatabase:
     """Return the first of the given databases which is being accessed by
     the
     given server request.

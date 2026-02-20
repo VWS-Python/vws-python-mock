@@ -62,9 +62,8 @@ def _get_cloud_database(database_name: str) -> CloudDatabase:
     """Get a cloud database by name."""
     (database,) = (
         database
-        for database in TARGET_MANAGER.databases
-        if isinstance(database, CloudDatabase)
-        and database.database_name == database_name
+        for database in TARGET_MANAGER.cloud_databases
+        if database.database_name == database_name
     )
     return database
 
@@ -74,9 +73,8 @@ def _get_vumark_database(database_name: str) -> VuMarkDatabase:
     """Get a VuMark database by name."""
     (database,) = (
         database
-        for database in TARGET_MANAGER.databases
-        if isinstance(database, VuMarkDatabase)
-        and database.database_name == database_name
+        for database in TARGET_MANAGER.vumark_databases
+        if database.database_name == database_name
     )
     return database
 
@@ -91,12 +89,16 @@ def delete_database(database_name: str) -> Response:
 
     :status 200: The database has been deleted.
     """
+    all_databases: list[CloudDatabase | VuMarkDatabase] = [
+        *TARGET_MANAGER.cloud_databases,
+        *TARGET_MANAGER.vumark_databases,
+    ]
     try:
-        (matching_database,) = {
+        (matching_database,) = [
             database
-            for database in TARGET_MANAGER.databases
+            for database in all_databases
             if database_name == database.database_name
-        }
+        ]
     except ValueError:
         return Response(response="", status=HTTPStatus.NOT_FOUND)
 
@@ -109,9 +111,7 @@ def delete_database(database_name: str) -> Response:
 def get_cloud_databases() -> Response:
     """Return a list of all cloud databases."""
     databases = [
-        database.to_dict()
-        for database in TARGET_MANAGER.databases
-        if isinstance(database, CloudDatabase)
+        database.to_dict() for database in TARGET_MANAGER.cloud_databases
     ]
     return Response(
         response=json.dumps(obj=databases),
@@ -127,9 +127,7 @@ def get_cloud_databases() -> Response:
 def get_vumark_databases() -> Response:
     """Return a list of all VuMark databases."""
     databases = [
-        database.to_dict()
-        for database in TARGET_MANAGER.databases
-        if isinstance(database, VuMarkDatabase)
+        database.to_dict() for database in TARGET_MANAGER.vumark_databases
     ]
     return Response(
         response=json.dumps(obj=databases),

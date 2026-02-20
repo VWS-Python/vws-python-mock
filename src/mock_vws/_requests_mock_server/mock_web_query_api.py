@@ -20,7 +20,6 @@ from mock_vws._query_validators import run_query_validators
 from mock_vws._query_validators.exceptions import (
     ValidatorError,
 )
-from mock_vws.database import CloudDatabase
 from mock_vws.image_matchers import ImageMatcher
 from mock_vws.target_manager import TargetManager
 
@@ -117,11 +116,7 @@ class MockVuforiaWebQueryAPI:
     @route(path_pattern="/v1/query", http_methods={HTTPMethod.POST})
     def query(self, request: PreparedRequest) -> _ResponseType:
         """Perform an image recognition query."""
-        cloud_databases = {
-            db
-            for db in self._target_manager.databases
-            if isinstance(db, CloudDatabase)
-        }
+        cloud_databases = self._target_manager.cloud_databases
         try:
             run_query_validators(
                 request_path=request.path_url,
