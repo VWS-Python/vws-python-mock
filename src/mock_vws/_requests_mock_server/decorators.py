@@ -126,17 +126,19 @@ class MockVWS(ContextDecorator):
             query_match_checker=query_match_checker,
         )
 
-    def add_database(self, database: CloudDatabase) -> None:
+    def add_cloud_database(self, cloud_database: CloudDatabase) -> None:
         """Add a cloud database.
 
         Args:
-            database: The database to add.
+            cloud_database: The cloud database to add.
 
         Raises:
-            ValueError: One of the given database keys matches a key for an
-                existing database.
+            ValueError: One of the given cloud database keys matches a key for
+                an existing cloud database.
         """
-        self._target_manager.add_database(database=database)
+        self._target_manager.add_cloud_database(
+            cloud_database=cloud_database,
+        )
 
     @staticmethod
     def _wrap_callback(

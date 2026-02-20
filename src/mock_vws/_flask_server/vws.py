@@ -91,7 +91,7 @@ def get_all_cloud_databases() -> set[CloudDatabase]:
     settings = VWSSettings.model_validate(obj={})
     timeout_seconds = 30
     response = requests.get(
-        url=f"{settings.target_manager_base_url}/databases",
+        url=f"{settings.target_manager_base_url}/cloud_databases",
         timeout=timeout_seconds,
     )
     return {
@@ -202,7 +202,7 @@ def add_target() -> Response:
         target_tracking_rater=target_tracking_rater,
     )
 
-    databases_url = f"{settings.target_manager_base_url}/databases"
+    databases_url = f"{settings.target_manager_base_url}/cloud_databases"
     timeout_seconds = 30
     requests.post(
         url=f"{databases_url}/{database.database_name}/targets",
@@ -318,7 +318,7 @@ def delete_target(target_id: str) -> Response:
     if target.status == TargetStatuses.PROCESSING.value:
         raise TargetStatusProcessingError
 
-    databases_url = f"{settings.target_manager_base_url}/databases"
+    databases_url = f"{settings.target_manager_base_url}/cloud_databases"
     requests.delete(
         url=f"{databases_url}/{database.database_name}/targets/{target_id}",
         timeout=30,
@@ -669,7 +669,7 @@ def update_target(target_id: str) -> Response:
         update_values["image"] = image
 
     put_url = (
-        f"{settings.target_manager_base_url}/databases/"
+        f"{settings.target_manager_base_url}/cloud_databases/"
         f"{database.database_name}/targets/{target_id}"
     )
     requests.put(url=put_url, json=update_values, timeout=30)

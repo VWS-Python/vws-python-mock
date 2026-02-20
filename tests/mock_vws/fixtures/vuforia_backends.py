@@ -137,9 +137,9 @@ def _enable_use_mock_vuforia(
     )
 
     with MockVWS() as mock:
-        mock.add_database(database=working_database)
-        mock.add_database(database=inactive_database)
-        mock.add_database(database=vumark_database)
+        mock.add_cloud_database(cloud_database=working_database)
+        mock.add_cloud_database(cloud_database=inactive_database)
+        mock.add_cloud_database(cloud_database=vumark_database)
         yield
 
 
@@ -196,7 +196,7 @@ def _enable_use_docker_in_memory(
             base_url=target_manager_base_url,
         )
 
-        databases_url = target_manager_base_url + "/databases"
+        databases_url = target_manager_base_url + "/cloud_databases"
         databases = requests.get(url=databases_url, timeout=30).json()
         for database in databases:
             database_name = database["database_name"]

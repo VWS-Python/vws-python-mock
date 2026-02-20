@@ -255,7 +255,7 @@ class TestProcessingTime:
         """By default, targets in the mock takes 2 seconds to be processed."""
         database = CloudDatabase()
         with MockVWS() as mock:
-            mock.add_database(database=database)
+            mock.add_cloud_database(cloud_database=database)
             time_taken = processing_time_seconds(
                 vuforia_database=database,
                 image=image_file_failed_state,
@@ -269,7 +269,7 @@ class TestProcessingTime:
         database = CloudDatabase()
         seconds = 5
         with MockVWS(processing_time_seconds=seconds) as mock:
-            mock.add_database(database=database)
+            mock.add_cloud_database(cloud_database=database)
             time_taken = processing_time_seconds(
                 vuforia_database=database,
                 image=image_file_failed_state,
@@ -384,7 +384,7 @@ class TestTargets:
         )
 
         with MockVWS() as mock:
-            mock.add_database(database=database)
+            mock.add_cloud_database(cloud_database=database)
             vws_client.add_target(
                 name="example",
                 width=1,
@@ -418,7 +418,7 @@ class TestTargets:
         )
 
         with MockVWS() as mock:
-            mock.add_database(database=database)
+            mock.add_cloud_database(cloud_database=database)
             target_id = vws_client.add_target(
                 name="example",
                 width=1,
@@ -457,7 +457,7 @@ class TestDatabaseToDict:
 
         # We test a database with a target added.
         with MockVWS() as mock:
-            mock.add_database(database=database)
+            mock.add_cloud_database(cloud_database=database)
             vws_client.add_target(
                 name="example",
                 width=1,
@@ -528,27 +528,27 @@ class TestAddDatabase:
 
         server_access_key_conflict_error = (
             "All server access keys must be unique. "
-            'There is already a database with the server access key "1".'
+            'There is already a cloud database with the server access key "1".'
         )
         server_secret_key_conflict_error = (
             "All server secret keys must be unique. "
-            'There is already a database with the server secret key "2".'
+            'There is already a cloud database with the server secret key "2".'
         )
         client_access_key_conflict_error = (
             "All client access keys must be unique. "
-            'There is already a database with the client access key "3".'
+            'There is already a cloud database with the client access key "3".'
         )
         client_secret_key_conflict_error = (
             "All client secret keys must be unique. "
-            'There is already a database with the client secret key "4".'
+            'There is already a cloud database with the client secret key "4".'
         )
         database_name_conflict_error = (
             "All names must be unique. "
-            'There is already a database with the name "5".'
+            'There is already a cloud database with the name "5".'
         )
 
         with MockVWS() as mock:
-            mock.add_database(database=database)
+            mock.add_cloud_database(cloud_database=database)
             for bad_database, expected_message in (
                 (bad_server_access_key_db, server_access_key_conflict_error),
                 (bad_server_secret_key_db, server_secret_key_conflict_error),
@@ -560,7 +560,7 @@ class TestAddDatabase:
                     expected_exception=ValueError,
                     match=expected_message + "$",
                 ):
-                    mock.add_database(database=bad_database)
+                    mock.add_cloud_database(cloud_database=bad_database)
 
 
 class TestQueryImageMatchers:
@@ -584,7 +584,7 @@ class TestQueryImageMatchers:
         pil_image.save(fp=re_exported_image, format="PNG")
 
         with MockVWS(query_match_checker=ExactMatcher()) as mock:
-            mock.add_database(database=database)
+            mock.add_cloud_database(cloud_database=database)
             target_id = vws_client.add_target(
                 name="example",
                 width=1,
@@ -620,7 +620,7 @@ class TestQueryImageMatchers:
         pil_image.save(fp=re_exported_image, format="PNG")
 
         with MockVWS(query_match_checker=_not_exact_matcher) as mock:
-            mock.add_database(database=database)
+            mock.add_cloud_database(cloud_database=database)
             target_id = vws_client.add_target(
                 name="example",
                 width=1,
@@ -661,7 +661,7 @@ class TestQueryImageMatchers:
         with MockVWS(
             query_match_checker=StructuralSimilarityMatcher(),
         ) as mock:
-            mock.add_database(database=database)
+            mock.add_cloud_database(cloud_database=database)
             target_id = vws_client.add_target(
                 name="example",
                 width=1,
@@ -702,7 +702,7 @@ class TestDuplicatesImageMatchers:
         pil_image.save(fp=re_exported_image, format="PNG")
 
         with MockVWS(duplicate_match_checker=ExactMatcher()) as mock:
-            mock.add_database(database=database)
+            mock.add_cloud_database(cloud_database=database)
             target_id = vws_client.add_target(
                 name="example_0",
                 width=1,
@@ -746,7 +746,7 @@ class TestDuplicatesImageMatchers:
         pil_image.save(fp=re_exported_image, format="PNG")
 
         with MockVWS(duplicate_match_checker=_not_exact_matcher) as mock:
-            mock.add_database(database=database)
+            mock.add_cloud_database(cloud_database=database)
             target_id = vws_client.add_target(
                 name="example_0",
                 width=1,
@@ -794,7 +794,7 @@ class TestDuplicatesImageMatchers:
         with MockVWS(
             duplicate_match_checker=StructuralSimilarityMatcher(),
         ) as mock:
-            mock.add_database(database=database)
+            mock.add_cloud_database(cloud_database=database)
             target_id = vws_client.add_target(
                 name="example",
                 width=1,

@@ -216,7 +216,7 @@ def test_build_and_run(
     )
 
     response = requests.post(
-        url=f"{base_target_manager_url}/databases",
+        url=f"{base_target_manager_url}/cloud_databases",
         json=database.to_dict(),
         timeout=30,
     )
