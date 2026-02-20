@@ -528,23 +528,23 @@ class TestAddDatabase:
 
         server_access_key_conflict_error = (
             "All server access keys must be unique. "
-            'There is already a cloud database with the server access key "1".'
+            'There is already a database with the server access key "1".'
         )
         server_secret_key_conflict_error = (
             "All server secret keys must be unique. "
-            'There is already a cloud database with the server secret key "2".'
+            'There is already a database with the server secret key "2".'
         )
         client_access_key_conflict_error = (
             "All client access keys must be unique. "
-            'There is already a cloud database with the client access key "3".'
+            'There is already a database with the client access key "3".'
         )
         client_secret_key_conflict_error = (
             "All client secret keys must be unique. "
-            'There is already a cloud database with the client secret key "4".'
+            'There is already a database with the client secret key "4".'
         )
         database_name_conflict_error = (
             "All names must be unique. "
-            'There is already a cloud database with the name "5".'
+            'There is already a database with the name "5".'
         )
 
         with MockVWS() as mock:
