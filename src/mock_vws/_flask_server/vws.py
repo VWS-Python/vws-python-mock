@@ -36,7 +36,7 @@ from mock_vws._services_validators.exceptions import (
     TargetStatusProcessingError,
     ValidatorError,
 )
-from mock_vws.database import CloudDatabase
+from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.image_matchers import (
     ExactMatcher,
     ImageMatcher,
@@ -100,6 +100,21 @@ def get_all_cloud_databases() -> set[CloudDatabase]:
     }
 
 
+@beartype
+def get_all_vumark_databases() -> set[VuMarkDatabase]:
+    """Get all VuMark database objects from the task manager back-end."""
+    settings = VWSSettings.model_validate(obj={})
+    timeout_seconds = 30
+    response = requests.get(
+        url=f"{settings.target_manager_base_url}/vumark_databases",
+        timeout=timeout_seconds,
+    )
+    return {
+        VuMarkDatabase.from_dict(database_dict=database_dict)
+        for database_dict in response.json()
+    }
+
+
 @VWS_FLASK_APP.before_request
 def set_terminate_wsgi_input() -> None:
     """We set ``wsgi.input_terminated`` to ``True`` when going through
@@ -130,13 +145,14 @@ def set_terminate_wsgi_input() -> None:
 @beartype
 def validate_request() -> None:
     """Run validators on the request."""
-    databases = get_all_cloud_databases()
+    cloud_databases = get_all_cloud_databases()
+    vumark_databases = get_all_vumark_databases()
     run_services_validators(
         request_headers=dict(request.headers),
         request_body=request.data,
         request_method=request.method,
         request_path=request.path,
-        databases=databases,
+        databases=[*cloud_databases, *vumark_databases],
     )
 
 
