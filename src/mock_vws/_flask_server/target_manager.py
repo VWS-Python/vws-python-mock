@@ -70,7 +70,7 @@ def delete_database(database_name: str) -> Response:
     try:
         (matching_database,) = {
             database
-            for database in TARGET_MANAGER.databases
+            for database in TARGET_MANAGER.cloud_databases
             if database_name == database.database_name
         }
     except ValueError:
@@ -82,9 +82,11 @@ def delete_database(database_name: str) -> Response:
 
 @TARGET_MANAGER_FLASK_APP.route(rule="/databases", methods=[HTTPMethod.GET])
 @beartype
-def get_databases() -> Response:
+def get_cloud_databases() -> Response:
     """Return a list of all databases."""
-    databases = [database.to_dict() for database in TARGET_MANAGER.databases]
+    databases = [
+        database.to_dict() for database in TARGET_MANAGER.cloud_databases
+    ]
     return Response(
         response=json.dumps(obj=databases),
         status=HTTPStatus.OK,
@@ -93,7 +95,7 @@ def get_databases() -> Response:
 
 @TARGET_MANAGER_FLASK_APP.route(rule="/databases", methods=[HTTPMethod.POST])
 @beartype
-def create_database() -> Response:
+def create_cloud_database() -> Response:
     """Create a new database.
 
     :reqheader Content-Type: application/json
@@ -193,7 +195,7 @@ def create_target(database_name: str) -> Response:
     """Create a new target in a given database."""
     (database,) = (
         database
-        for database in TARGET_MANAGER.databases
+        for database in TARGET_MANAGER.cloud_databases
         if database.database_name == database_name
     )
     request_json = json.loads(s=request.data)
@@ -229,7 +231,7 @@ def delete_target(database_name: str, target_id: str) -> Response:
     """Delete a target."""
     (database,) = (
         database
-        for database in TARGET_MANAGER.databases
+        for database in TARGET_MANAGER.cloud_databases
         if database.database_name == database_name
     )
     target = database.get_target(target_id=target_id)
@@ -255,7 +257,7 @@ def update_target(database_name: str, target_id: str) -> Response:
     """Update a target."""
     (database,) = (
         database
-        for database in TARGET_MANAGER.databases
+        for database in TARGET_MANAGER.cloud_databases
         if database.database_name == database_name
     )
     target = database.get_target(target_id=target_id)

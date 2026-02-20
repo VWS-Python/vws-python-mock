@@ -86,7 +86,7 @@ class VWSSettings(BaseSettings):
 
 
 @beartype
-def get_all_databases() -> set[CloudDatabase]:
+def get_all_cloud_databases() -> set[CloudDatabase]:
     """Get all database objects from the task manager back-end."""
     settings = VWSSettings.model_validate(obj={})
     timeout_seconds = 30
@@ -130,7 +130,7 @@ def set_terminate_wsgi_input() -> None:
 @beartype
 def validate_request() -> None:
     """Run validators on the request."""
-    databases = get_all_databases()
+    databases = get_all_cloud_databases()
     run_services_validators(
         request_headers=dict(request.headers),
         request_body=request.data,
@@ -172,7 +172,7 @@ def add_target() -> Response:
     https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#add
     """
     settings = VWSSettings.model_validate(obj={})
-    databases = get_all_databases()
+    databases = get_all_cloud_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
         request_body=request.data,
@@ -245,7 +245,7 @@ def get_target(target_id: str) -> Response:
     Fake implementation of
     https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#target-record
     """
-    databases = get_all_databases()
+    databases = get_all_cloud_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
         request_body=request.data,
@@ -302,7 +302,7 @@ def delete_target(target_id: str) -> Response:
     https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#delete
     """
     settings = VWSSettings.model_validate(obj={})
-    databases = get_all_databases()
+    databases = get_all_cloud_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
         request_body=request.data,
@@ -402,7 +402,7 @@ def database_summary() -> Response:
     Fake implementation of
     https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#summary-report
     """
-    databases = get_all_databases()
+    databases = get_all_cloud_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
         request_body=request.data,
@@ -457,7 +457,7 @@ def target_summary(target_id: str) -> Response:
     Fake implementation of
     https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#retrieve-report
     """
-    databases = get_all_databases()
+    databases = get_all_cloud_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
         request_body=request.data,
@@ -511,7 +511,7 @@ def get_duplicates(target_id: str) -> Response:
     Fake implementation of
     https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#check
     """
-    databases = get_all_databases()
+    databases = get_all_cloud_databases()
     settings = VWSSettings.model_validate(obj={})
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
@@ -570,7 +570,7 @@ def target_list() -> Response:
     Fake implementation of
     https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#details-list
     """
-    databases = get_all_databases()
+    databases = get_all_cloud_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
         request_body=request.data,
@@ -616,7 +616,7 @@ def update_target(target_id: str) -> Response:
     # We do not use ``request.get_json(force=True)`` because this only works
     # when the content type is given as ``application/json``.
     request_json = json.loads(s=request.data)
-    databases = get_all_databases()
+    databases = get_all_cloud_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
         request_body=request.data,
