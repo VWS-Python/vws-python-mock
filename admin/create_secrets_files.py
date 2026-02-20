@@ -19,6 +19,11 @@ if TYPE_CHECKING:
     from vws_web_tools import DatabaseDict, VuMarkDatabaseDict
 
 
+VUMARK_TEMPLATE_SVG_FILE_PATH = Path(__file__).with_name(
+    name="vumark_template.svg",
+)
+
+
 def _create_and_get_database_details(
     driver: "WebDriver",
     email_address: str,
@@ -47,6 +52,25 @@ def _create_and_get_database_details(
     return vws_web_tools.get_database_details(
         driver=driver,
         database_name=database_name,
+    )
+
+
+def _create_and_get_vumark_details(
+    driver: "WebDriver",
+    vumark_database_name: str,
+) -> "VuMarkDatabaseDict":
+    """Create a VuMark database and get its details.
+
+    Returns VuMark database details.
+    """
+    vws_web_tools.create_vumark_database(
+        driver=driver,
+        database_name=vumark_database_name,
+    )
+
+    return vws_web_tools.get_vumark_database_details(
+        driver=driver,
+        database_name=vumark_database_name,
     )
 
 
@@ -79,7 +103,27 @@ def _generate_secrets_file_content(
     )
 
 
-def _create_vuforia_resource_names() -> tuple[str, str]:
+def _create_and_get_vumark_target_id(
+    driver: "WebDriver",
+    vumark_database_name: str,
+    vumark_template_name: str,
+) -> str:
+    """Upload a VuMark template and get its target ID."""
+    vws_web_tools.upload_vumark_template(
+        driver=driver,
+        database_name=vumark_database_name,
+        svg_file_path=VUMARK_TEMPLATE_SVG_FILE_PATH,
+        template_name=vumark_template_name,
+        width=100.0,
+    )
+    return vws_web_tools.get_vumark_target_id(
+        driver=driver,
+        database_name=vumark_database_name,
+        target_name=vumark_template_name,
+    )
+
+
+def _create_vuforia_resource_names() -> tuple[str, str, str, str]:
     """Create names for Vuforia resources."""
     time = datetime.datetime.now(tz=datetime.UTC).strftime(
         format="%Y-%m-%d-%H-%M-%S",
@@ -87,6 +131,8 @@ def _create_vuforia_resource_names() -> tuple[str, str]:
     return (
         f"my-license-{time}",
         f"my-database-{time}",
+        f"my-vumark-database-{time}",
+        f"my-vumark-template-{time}",
     )
 
 
@@ -111,14 +157,6 @@ def main() -> None:
         "client_access_key": os.environ["INACTIVE_VUFORIA_CLIENT_ACCESS_KEY"],
         "client_secret_key": os.environ["INACTIVE_VUFORIA_CLIENT_SECRET_KEY"],
     }
-    vumark_details: VuMarkDatabaseDict = {
-        "database_name": os.environ[
-            "VUMARK_VUFORIA_TARGET_MANAGER_DATABASE_NAME"
-        ],
-        "server_access_key": os.environ["VUMARK_VUFORIA_SERVER_ACCESS_KEY"],
-        "server_secret_key": os.environ["VUMARK_VUFORIA_SERVER_SECRET_KEY"],
-    }
-    vumark_target_id = os.environ["VUMARK_VUFORIA_TARGET_ID"]
     new_secrets_dir.mkdir(exist_ok=True)
 
     num_databases = 100
@@ -137,6 +175,8 @@ def main() -> None:
         (
             license_name,
             database_name,
+            vumark_database_name,
+            vumark_template_name,
         ) = _create_vuforia_resource_names()
 
         try:
@@ -150,6 +190,33 @@ def main() -> None:
         except TimeoutException:
             sys.stderr.write(
                 "Timed out waiting for database setup/details after retries\n"
+            )
+            driver.quit()
+            driver = None
+            continue
+
+        try:
+            vumark_details = _create_and_get_vumark_details(
+                driver=driver,
+                vumark_database_name=vumark_database_name,
+            )
+        except TimeoutException:
+            sys.stderr.write(
+                "Timed out waiting for VuMark setup/details after retries\n"
+            )
+            driver.quit()
+            driver = None
+            continue
+
+        try:
+            vumark_target_id = _create_and_get_vumark_target_id(
+                driver=driver,
+                vumark_database_name=vumark_database_name,
+                vumark_template_name=vumark_template_name,
+            )
+        except TimeoutException:
+            sys.stderr.write(
+                "Timed out waiting for VuMark template upload after retries\n"
             )
             driver.quit()
             driver = None
