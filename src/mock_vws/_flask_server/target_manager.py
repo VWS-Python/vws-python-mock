@@ -349,7 +349,7 @@ def delete_target(database_name: str, target_id: str) -> Response:
     target = database.get_target(target_id=target_id)
     now = datetime.datetime.now(tz=target.upload_date.tzinfo)
     # See https://github.com/facebook/pyrefly/issues/1897
-    new_target: ImageTarget | VuMarkTarget = copy.replace(  # type: ignore[assignment]
+    new_target: ImageTarget = copy.replace(
         target,  # pyrefly: ignore[bad-argument-type]
         delete_date=now,
     )
@@ -381,33 +381,24 @@ def update_target(database_name: str, target_id: str) -> Response:
     gmt = ZoneInfo(key="GMT")
     last_modified_date = datetime.datetime.now(tz=gmt)
 
-    if isinstance(target, ImageTarget):
-        width = request_json.get("width", target.width)
-        application_metadata = request_json.get(
-            "application_metadata",
-            target.application_metadata,
-        )
-        image_value = target.image_value
-        if "image" in request_json:
-            image_value = base64.b64decode(s=request_json["image"])
-        # See https://github.com/facebook/pyrefly/issues/1897
-        new_target: ImageTarget | VuMarkTarget = copy.replace(
-            target,  # pyrefly: ignore[bad-argument-type]
-            name=name,
-            width=width,
-            active_flag=active_flag,
-            application_metadata=application_metadata,
-            image_value=image_value,
-            last_modified_date=last_modified_date,
-        )
-    else:
-        # See https://github.com/facebook/pyrefly/issues/1897
-        new_target = copy.replace(
-            target,  # pyrefly: ignore[bad-argument-type]
-            name=name,
-            active_flag=active_flag,
-            last_modified_date=last_modified_date,
-        )
+    width = request_json.get("width", target.width)
+    application_metadata = request_json.get(
+        "application_metadata",
+        target.application_metadata,
+    )
+    image_value = target.image_value
+    if "image" in request_json:
+        image_value = base64.b64decode(s=request_json["image"])
+    # See https://github.com/facebook/pyrefly/issues/1897
+    new_target: ImageTarget = copy.replace(
+        target,  # pyrefly: ignore[bad-argument-type]
+        name=name,
+        width=width,
+        active_flag=active_flag,
+        application_metadata=application_metadata,
+        image_value=image_value,
+        last_modified_date=last_modified_date,
+    )
 
     database.targets.remove(target)
     database.targets.add(new_target)

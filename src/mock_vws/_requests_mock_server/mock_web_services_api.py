@@ -39,7 +39,7 @@ from mock_vws._services_validators.exceptions import (
 )
 from mock_vws.database import VuMarkDatabase
 from mock_vws.image_matchers import ImageMatcher
-from mock_vws.target import ImageTarget, VuMarkTarget
+from mock_vws.target import ImageTarget
 from mock_vws.target_manager import TargetManager
 from mock_vws.target_raters import TargetTrackingRater
 
@@ -270,7 +270,7 @@ class MockVuforiaWebServicesAPI:
 
         now = datetime.datetime.now(tz=target.upload_date.tzinfo)
         # See https://github.com/facebook/pyrefly/issues/1897
-        new_target: ImageTarget | VuMarkTarget = copy.replace(  # type: ignore[assignment]
+        new_target: ImageTarget = copy.replace(
             target,  # pyrefly: ignore[bad-argument-type]
             delete_date=now,
         )
@@ -331,7 +331,7 @@ class MockVuforiaWebServicesAPI:
                 request_body=_body_bytes(request=request),
                 request_method=request.method or "",
                 request_path=request.path_url,
-                databases=self._target_manager.databases,
+                databases=all_databases,
             )
             if not isinstance(database, VuMarkDatabase):
                 raise InvalidTargetTypeError
@@ -690,46 +690,37 @@ class MockVuforiaWebServicesAPI:
         gmt = ZoneInfo(key="GMT")
         last_modified_date = datetime.datetime.now(tz=gmt)
 
-        if isinstance(target, ImageTarget):
-            width = request_json.get("width", target.width)
-            application_metadata = request_json.get(
-                "application_metadata",
-                target.application_metadata,
+        width = request_json.get("width", target.width)
+        application_metadata = request_json.get(
+            "application_metadata",
+            target.application_metadata,
+        )
+
+        image_value = target.image_value
+        if "image" in request_json:
+            image_value = base64.b64decode(s=request_json["image"])
+
+        if (
+            "application_metadata" in request_json
+            and application_metadata is None
+        ):
+            fail_exception = FailError(status_code=HTTPStatus.BAD_REQUEST)
+            return (
+                fail_exception.status_code,
+                fail_exception.headers,
+                fail_exception.response_text,
             )
 
-            image_value = target.image_value
-            if "image" in request_json:
-                image_value = base64.b64decode(s=request_json["image"])
-
-            if (
-                "application_metadata" in request_json
-                and application_metadata is None
-            ):
-                fail_exception = FailError(status_code=HTTPStatus.BAD_REQUEST)
-                return (
-                    fail_exception.status_code,
-                    fail_exception.headers,
-                    fail_exception.response_text,
-                )
-
-            # See https://github.com/facebook/pyrefly/issues/1897
-            new_target: ImageTarget | VuMarkTarget = copy.replace(
-                target,  # pyrefly: ignore[bad-argument-type]
-                name=name,
-                width=width,
-                active_flag=active_flag,
-                application_metadata=application_metadata,
-                image_value=image_value,
-                last_modified_date=last_modified_date,
-            )
-        else:
-            # See https://github.com/facebook/pyrefly/issues/1897
-            new_target = copy.replace(
-                target,  # pyrefly: ignore[bad-argument-type]
-                name=name,
-                active_flag=active_flag,
-                last_modified_date=last_modified_date,
-            )
+        # See https://github.com/facebook/pyrefly/issues/1897
+        new_target: ImageTarget = copy.replace(
+            target,  # pyrefly: ignore[bad-argument-type]
+            name=name,
+            width=width,
+            active_flag=active_flag,
+            application_metadata=application_metadata,
+            image_value=image_value,
+            last_modified_date=last_modified_date,
+        )
 
         database.targets.remove(target)
         database.targets.add(new_target)
