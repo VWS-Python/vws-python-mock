@@ -19,8 +19,7 @@ from mock_vws import MockVWS
 from mock_vws._flask_server.target_manager import TARGET_MANAGER_FLASK_APP
 from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
 from mock_vws._flask_server.vws import VWS_FLASK_APP
-from mock_vws.database import CloudDatabase
-from mock_vws.database_type import DatabaseType
+from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.states import States
 from mock_vws.target import VuMarkTarget
 from tests.mock_vws.fixtures.credentials import VuMarkCloudDatabase
@@ -64,20 +63,19 @@ def _delete_all_targets(*, database_keys: CloudDatabase) -> None:
 def _vumark_database(
     *,
     vumark_vuforia_database: VuMarkCloudDatabase,
-) -> CloudDatabase:
-    """Return a database with a target for VuMark instance generation."""
+) -> VuMarkDatabase:
+    """Return a database with a VuMark target for VuMark instance
+    generation.
+    """
     vumark_target = VuMarkTarget(
-        active_flag=True,
         name="mock-vumark-target",
-        processing_time_seconds=0,
         target_id=vumark_vuforia_database.target_id,
     )
-    return CloudDatabase(
+    return VuMarkDatabase(
         database_name=vumark_vuforia_database.target_manager_database_name,
         server_access_key=vumark_vuforia_database.server_access_key,
         server_secret_key=vumark_vuforia_database.server_secret_key,
-        targets={vumark_target},
-        database_type=DatabaseType.VUMARK,
+        vumark_targets={vumark_target},
     )
 
 
@@ -128,9 +126,9 @@ def _enable_use_mock_vuforia(
     )
 
     with MockVWS() as mock:
-        mock.add_database(database=working_database)
-        mock.add_database(database=inactive_database)
-        mock.add_database(database=vumark_database)
+        mock.add_cloud_database(cloud_database=working_database)
+        mock.add_cloud_database(cloud_database=inactive_database)
+        mock.add_vumark_database(vumark_database=vumark_database)
         yield
 
 
@@ -166,7 +164,7 @@ def _enable_use_docker_in_memory(
     vumark_database = _vumark_database(
         vumark_vuforia_database=vumark_vuforia_database,
     )
-    (vumark_target,) = vumark_database.targets
+    (vumark_target,) = vumark_database.vumark_targets
 
     with responses.RequestsMock(assert_all_requests_are_fired=False) as mock:
         add_flask_app_to_mock(
@@ -187,32 +185,44 @@ def _enable_use_docker_in_memory(
             base_url=target_manager_base_url,
         )
 
-        databases_url = target_manager_base_url + "/databases"
-        databases = requests.get(url=databases_url, timeout=30).json()
-        for database in databases:
-            database_name = database["database_name"]
+        cloud_databases_url = target_manager_base_url + "/cloud_databases"
+        vumark_databases_url = target_manager_base_url + "/vumark_databases"
+
+        for database in requests.get(
+            url=cloud_databases_url, timeout=30
+        ).json():
             requests.delete(
-                url=databases_url + "/" + database_name,
+                url=cloud_databases_url + "/" + database["database_name"],
+                timeout=30,
+            )
+        for database in requests.get(
+            url=vumark_databases_url, timeout=30
+        ).json():
+            requests.delete(
+                url=vumark_databases_url + "/" + database["database_name"],
                 timeout=30,
             )
 
         requests.post(
-            url=databases_url,
+            url=cloud_databases_url,
             json=working_database.to_dict(),
             timeout=30,
         )
         requests.post(
-            url=databases_url,
+            url=cloud_databases_url,
             json=inactive_database.to_dict(),
             timeout=30,
         )
         requests.post(
-            url=databases_url,
+            url=vumark_databases_url,
             json=vumark_database.to_dict(),
             timeout=30,
         )
         requests.post(
-            url=(f"{databases_url}/{vumark_database.database_name}/targets"),
+            url=(
+                f"{vumark_databases_url}"
+                f"/{vumark_database.database_name}/vumark_targets"
+            ),
             json=vumark_target.to_dict(),
             timeout=30,
         )

@@ -12,7 +12,7 @@ import json
 import uuid
 from collections.abc import Callable, Iterable, Mapping
 from http import HTTPMethod, HTTPStatus
-from typing import Any, ParamSpec, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, ParamSpec, Protocol, runtime_checkable
 from zoneinfo import ZoneInfo
 
 from beartype import BeartypeConf, beartype
@@ -37,11 +37,14 @@ from mock_vws._services_validators.exceptions import (
     TargetStatusProcessingError,
     ValidatorError,
 )
-from mock_vws.database_type import DatabaseType
+from mock_vws.database import VuMarkDatabase
 from mock_vws.image_matchers import ImageMatcher
 from mock_vws.target import ImageTarget, VuMarkTarget
 from mock_vws.target_manager import TargetManager
 from mock_vws.target_raters import TargetTrackingRater
+
+if TYPE_CHECKING:
+    from mock_vws.database import CloudDatabase
 
 _TARGET_ID_PATTERN = "[A-Za-z0-9]+"
 
@@ -166,7 +169,7 @@ class MockVuforiaWebServicesAPI:
                 request_body=_body_bytes(request=request),
                 request_method=request.method or "",
                 request_path=request.path_url,
-                databases=self._target_manager.databases,
+                databases=self._target_manager.cloud_databases,
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
@@ -176,7 +179,7 @@ class MockVuforiaWebServicesAPI:
             request_body=_body_bytes(request=request),
             request_method=request.method or "",
             request_path=request.path_url,
-            databases=self._target_manager.databases,
+            databases=self._target_manager.cloud_databases,
         )
 
         request_json: dict[str, Any] = json.loads(s=request.body or b"")
@@ -241,7 +244,7 @@ class MockVuforiaWebServicesAPI:
                 request_body=_body_bytes(request=request),
                 request_method=request.method or "",
                 request_path=request.path_url,
-                databases=self._target_manager.databases,
+                databases=self._target_manager.cloud_databases,
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
@@ -251,7 +254,7 @@ class MockVuforiaWebServicesAPI:
             request_body=_body_bytes(request=request),
             request_method=request.method or "",
             request_path=request.path_url,
-            databases=self._target_manager.databases,
+            databases=self._target_manager.cloud_databases,
         )
 
         target_id = request.path_url.split(sep="/")[-1]
@@ -311,12 +314,16 @@ class MockVuforiaWebServicesAPI:
             "application/pdf": VUMARK_PDF,
         }
         try:
+            all_databases: list[CloudDatabase | VuMarkDatabase] = [
+                *self._target_manager.cloud_databases,
+                *self._target_manager.vumark_databases,
+            ]
             run_services_validators(
                 request_headers=request.headers,
                 request_body=_body_bytes(request=request),
                 request_method=request.method or "",
                 request_path=request.path_url,
-                databases=self._target_manager.databases,
+                databases=all_databases,
             )
 
             database = get_database_matching_server_keys(
@@ -326,7 +333,7 @@ class MockVuforiaWebServicesAPI:
                 request_path=request.path_url,
                 databases=self._target_manager.databases,
             )
-            if database.database_type != DatabaseType.VUMARK:
+            if not isinstance(database, VuMarkDatabase):
                 raise InvalidTargetTypeError
 
             accept = dict(request.headers).get("Accept", "")
@@ -372,7 +379,7 @@ class MockVuforiaWebServicesAPI:
                 request_body=_body_bytes(request=request),
                 request_method=request.method or "",
                 request_path=request.path_url,
-                databases=self._target_manager.databases,
+                databases=self._target_manager.cloud_databases,
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
@@ -382,7 +389,7 @@ class MockVuforiaWebServicesAPI:
             request_body=_body_bytes(request=request),
             request_method=request.method or "",
             request_path=request.path_url,
-            databases=self._target_manager.databases,
+            databases=self._target_manager.cloud_databases,
         )
 
         date = email.utils.formatdate(
@@ -433,7 +440,7 @@ class MockVuforiaWebServicesAPI:
                 request_body=_body_bytes(request=request),
                 request_method=request.method or "",
                 request_path=request.path_url,
-                databases=self._target_manager.databases,
+                databases=self._target_manager.cloud_databases,
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
@@ -443,7 +450,7 @@ class MockVuforiaWebServicesAPI:
             request_body=_body_bytes(request=request),
             request_method=request.method or "",
             request_path=request.path_url,
-            databases=self._target_manager.databases,
+            databases=self._target_manager.cloud_databases,
         )
 
         date = email.utils.formatdate(
@@ -490,7 +497,7 @@ class MockVuforiaWebServicesAPI:
                 request_body=_body_bytes(request=request),
                 request_method=request.method or "",
                 request_path=request.path_url,
-                databases=self._target_manager.databases,
+                databases=self._target_manager.cloud_databases,
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
@@ -500,7 +507,7 @@ class MockVuforiaWebServicesAPI:
             request_body=_body_bytes(request=request),
             request_method=request.method or "",
             request_path=request.path_url,
-            databases=self._target_manager.databases,
+            databases=self._target_manager.cloud_databases,
         )
         target_id = request.path_url.split(sep="/")[-1]
         target = database.get_target(target_id=target_id)
@@ -564,7 +571,7 @@ class MockVuforiaWebServicesAPI:
                 request_body=_body_bytes(request=request),
                 request_method=request.method or "",
                 request_path=request.path_url,
-                databases=self._target_manager.databases,
+                databases=self._target_manager.cloud_databases,
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
@@ -574,7 +581,7 @@ class MockVuforiaWebServicesAPI:
             request_body=_body_bytes(request=request),
             request_method=request.method or "",
             request_path=request.path_url,
-            databases=self._target_manager.databases,
+            databases=self._target_manager.cloud_databases,
         )
         target_id = request.path_url.split(sep="/")[-1]
         target = database.get_target(target_id=target_id)
@@ -638,7 +645,7 @@ class MockVuforiaWebServicesAPI:
                 request_body=_body_bytes(request=request),
                 request_method=request.method or "",
                 request_path=request.path_url,
-                databases=self._target_manager.databases,
+                databases=self._target_manager.cloud_databases,
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
@@ -648,7 +655,7 @@ class MockVuforiaWebServicesAPI:
             request_body=_body_bytes(request=request),
             request_method=request.method or "",
             request_path=request.path_url,
-            databases=self._target_manager.databases,
+            databases=self._target_manager.cloud_databases,
         )
 
         target_id = request.path_url.split(sep="/")[-1]
@@ -761,7 +768,7 @@ class MockVuforiaWebServicesAPI:
                 request_body=_body_bytes(request=request),
                 request_method=request.method or "",
                 request_path=request.path_url,
-                databases=self._target_manager.databases,
+                databases=self._target_manager.cloud_databases,
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
@@ -771,7 +778,7 @@ class MockVuforiaWebServicesAPI:
             request_body=_body_bytes(request=request),
             request_method=request.method or "",
             request_path=request.path_url,
-            databases=self._target_manager.databases,
+            databases=self._target_manager.cloud_databases,
         )
         target_id = request.path_url.split(sep="/")[-1]
         target = database.get_target(target_id=target_id)

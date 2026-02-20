@@ -20,6 +20,11 @@ API Reference
    :undoc-members:
    :exclude-members: to_dict, get_target, from_dict, not_deleted_targets, active_targets, inactive_targets, failed_targets, processing_targets
 
+.. autoclass:: mock_vws.database.VuMarkDatabase
+   :members:
+   :undoc-members:
+   :exclude-members: to_dict, from_dict, not_deleted_targets
+
 .. autoenum:: mock_vws.states.States
    :members:
    :undoc-members:

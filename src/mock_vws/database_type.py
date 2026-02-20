@@ -11,4 +11,3 @@ class DatabaseType(StrEnum):
     """Constants representing various database types."""
 
     CLOUD_RECO = auto()
-    VUMARK = auto()
