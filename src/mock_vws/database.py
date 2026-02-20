@@ -28,6 +28,15 @@ class CloudDatabaseDict(TypedDict):
     client_secret_key: str
     state_name: str
     targets: Iterable[ImageTargetDict]
+
+
+@beartype
+class VuMarkDatabaseDict(TypedDict):
+    """A dictionary type which represents a VuMark database."""
+
+    database_name: str
+    server_access_key: str
+    server_secret_key: str
     vumark_targets: Iterable[VuMarkTargetDict]
 
 
@@ -63,16 +72,12 @@ class CloudDatabase:
     server_secret_key: str = field(default_factory=_random_hex, repr=False)
     client_access_key: str = field(default_factory=_random_hex, repr=False)
     client_secret_key: str = field(default_factory=_random_hex, repr=False)
-    # We have ``targets`` and ``vumark_targets`` as ``hash=False`` so that we
-    # can have the class as ``frozen=True`` while still being able to keep the
-    # interface we want. In particular, we might want to inspect the
-    # ``database`` object's targets as they change via API requests.
+    # We have ``targets`` as ``hash=False`` so that we can have the class as
+    # ``frozen=True`` while still being able to keep the interface we want.
+    # In particular, we might want to inspect the ``database`` object's
+    # targets as they change via API requests.
     targets: set[ImageTarget] = field(
         default_factory=set[ImageTarget],
-        hash=False,
-    )
-    vumark_targets: set[VuMarkTarget] = field(
-        default_factory=set[VuMarkTarget],
         hash=False,
     )
     state: States = States.WORKING
@@ -87,7 +92,6 @@ class CloudDatabase:
     def to_dict(self) -> CloudDatabaseDict:
         """Dump a target to a dictionary which can be loaded as JSON."""
         targets = [target.to_dict() for target in self.targets]
-        vumark_targets = [target.to_dict() for target in self.vumark_targets]
         return {
             "database_name": self.database_name,
             "server_access_key": self.server_access_key,
@@ -96,7 +100,6 @@ class CloudDatabase:
             "client_secret_key": self.client_secret_key,
             "state_name": self.state.name,
             "targets": targets,
-            "vumark_targets": vumark_targets,
         }
 
     def get_target(self, target_id: str) -> ImageTarget:
@@ -120,22 +123,12 @@ class CloudDatabase:
                 ImageTarget.from_dict(target_dict=target_dict)
                 for target_dict in database_dict["targets"]
             },
-            vumark_targets={
-                VuMarkTarget.from_dict(target_dict=target_dict)
-                for target_dict in database_dict["vumark_targets"]
-            },
         )
 
     @property
-    def not_deleted_targets(self) -> set[ImageTarget | VuMarkTarget]:
+    def not_deleted_targets(self) -> set[ImageTarget]:
         """All targets which have not been deleted."""
-        not_deleted_image = {
-            target for target in self.targets if not target.delete_date
-        }
-        not_deleted_vumark = {
-            target for target in self.vumark_targets if not target.delete_date
-        }
-        return not_deleted_image | not_deleted_vumark
+        return {target for target in self.targets if not target.delete_date}
 
     @property
     def active_targets(self) -> set[ImageTarget]:
@@ -177,4 +170,62 @@ class CloudDatabase:
             for target in self.targets
             if not target.delete_date
             and target.status == TargetStatuses.PROCESSING.value
+        }
+
+
+@beartype
+@dataclass(eq=True, frozen=True)
+class VuMarkDatabase:
+    """Credentials for the VuMark generation API.
+
+    Args:
+        database_name: The name of a VWS target manager database name. Defaults
+            to a random string.
+        server_access_key: A VWS server access key. Defaults to a random
+            string.
+        server_secret_key: A VWS server secret key. Defaults to a random
+            string.
+    """
+
+    database_name: str = field(default_factory=_random_hex, repr=False)
+    server_access_key: str = field(default_factory=_random_hex, repr=False)
+    server_secret_key: str = field(default_factory=_random_hex, repr=False)
+    # We have ``vumark_targets`` as ``hash=False`` so that we can have the
+    # class as ``frozen=True`` while still being able to keep the interface
+    # we want.
+    vumark_targets: set[VuMarkTarget] = field(
+        default_factory=set[VuMarkTarget],
+        hash=False,
+    )
+
+    def to_dict(self) -> VuMarkDatabaseDict:
+        """Dump a VuMark database to a dictionary which can be loaded as
+        JSON.
+        """
+        vumark_targets = [target.to_dict() for target in self.vumark_targets]
+        return {
+            "database_name": self.database_name,
+            "server_access_key": self.server_access_key,
+            "server_secret_key": self.server_secret_key,
+            "vumark_targets": vumark_targets,
+        }
+
+    @classmethod
+    def from_dict(cls, database_dict: VuMarkDatabaseDict) -> Self:
+        """Load a VuMark database from a dictionary."""
+        return cls(
+            database_name=database_dict["database_name"],
+            server_access_key=database_dict["server_access_key"],
+            server_secret_key=database_dict["server_secret_key"],
+            vumark_targets={
+                VuMarkTarget.from_dict(target_dict=target_dict)
+                for target_dict in database_dict["vumark_targets"]
+            },
+        )
+
+    @property
+    def not_deleted_targets(self) -> set[VuMarkTarget]:
+        """All VuMark targets which have not been deleted."""
+        return {
+            target for target in self.vumark_targets if not target.delete_date
         }

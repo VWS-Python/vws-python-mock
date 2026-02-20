@@ -452,6 +452,8 @@ ignore_names = [
     # Used in TYPE_CHECKING for type hints
     "CloudDatabaseDict",
     "VuMarkDatabaseDict",
+    # TypedDict fields
+    "state_name",
 ]
 # Duplicate some of .gitignore
 exclude = [ ".venv" ]

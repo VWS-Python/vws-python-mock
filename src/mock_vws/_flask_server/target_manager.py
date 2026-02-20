@@ -12,7 +12,7 @@ from beartype import beartype
 from flask import Flask, Response, request
 from pydantic_settings import BaseSettings
 
-from mock_vws.database import CloudDatabase
+from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.states import States
 from mock_vws.target import ImageTarget, VuMarkTarget
 from mock_vws.target_manager import TargetManager
@@ -57,6 +57,30 @@ class TargetManagerSettings(BaseSettings):
     target_rater: _TargetRaterChoice = _TargetRaterChoice.BRISQUE
 
 
+@beartype
+def _get_cloud_database(database_name: str) -> CloudDatabase:
+    """Get a cloud database by name."""
+    (database,) = (
+        database
+        for database in TARGET_MANAGER.databases
+        if isinstance(database, CloudDatabase)
+        and database.database_name == database_name
+    )
+    return database
+
+
+@beartype
+def _get_vumark_database(database_name: str) -> VuMarkDatabase:
+    """Get a VuMark database by name."""
+    (database,) = (
+        database
+        for database in TARGET_MANAGER.databases
+        if isinstance(database, VuMarkDatabase)
+        and database.database_name == database_name
+    )
+    return database
+
+
 @TARGET_MANAGER_FLASK_APP.route(
     rule="/databases/<string:database_name>",
     methods=[HTTPMethod.DELETE],
@@ -82,9 +106,31 @@ def delete_database(database_name: str) -> Response:
 
 @TARGET_MANAGER_FLASK_APP.route(rule="/databases", methods=[HTTPMethod.GET])
 @beartype
-def get_databases() -> Response:
-    """Return a list of all databases."""
-    databases = [database.to_dict() for database in TARGET_MANAGER.databases]
+def get_cloud_databases() -> Response:
+    """Return a list of all cloud databases."""
+    databases = [
+        database.to_dict()
+        for database in TARGET_MANAGER.databases
+        if isinstance(database, CloudDatabase)
+    ]
+    return Response(
+        response=json.dumps(obj=databases),
+        status=HTTPStatus.OK,
+    )
+
+
+@TARGET_MANAGER_FLASK_APP.route(
+    rule="/vumark_databases",
+    methods=[HTTPMethod.GET],
+)
+@beartype
+def get_vumark_databases() -> Response:
+    """Return a list of all VuMark databases."""
+    databases = [
+        database.to_dict()
+        for database in TARGET_MANAGER.databases
+        if isinstance(database, VuMarkDatabase)
+    ]
     return Response(
         response=json.dumps(obj=databases),
         status=HTTPStatus.OK,
@@ -93,8 +139,8 @@ def get_databases() -> Response:
 
 @TARGET_MANAGER_FLASK_APP.route(rule="/databases", methods=[HTTPMethod.POST])
 @beartype
-def create_database() -> Response:
-    """Create a new database.
+def create_cloud_database() -> Response:
+    """Create a new cloud database.
 
     :reqheader Content-Type: application/json
     :resheader Content-Type: application/json
@@ -133,43 +179,75 @@ def create_database() -> Response:
 
     :status 201: The database has been successfully created.
     """
-    random_database = CloudDatabase()
     request_json = json.loads(s=request.data)
-    server_access_key = request_json.get(
-        "server_access_key",
-        random_database.server_access_key,
-    )
-    server_secret_key = request_json.get(
-        "server_secret_key",
-        random_database.server_secret_key,
-    )
-    client_access_key = request_json.get(
-        "client_access_key",
-        random_database.client_access_key,
-    )
-    client_secret_key = request_json.get(
-        "client_secret_key",
-        random_database.client_secret_key,
-    )
-    database_name = request_json.get(
-        "database_name",
-        random_database.database_name,
-    )
-    state_name = request_json.get(
-        "state_name",
-        random_database.state.name,
-    )
-
-    state = States[state_name]
-
+    random_database = CloudDatabase()
     database = CloudDatabase(
-        server_access_key=server_access_key,
-        server_secret_key=server_secret_key,
-        client_access_key=client_access_key,
-        client_secret_key=client_secret_key,
-        database_name=database_name,
-        state=state,
+        server_access_key=request_json.get(
+            "server_access_key",
+            random_database.server_access_key,
+        ),
+        server_secret_key=request_json.get(
+            "server_secret_key",
+            random_database.server_secret_key,
+        ),
+        client_access_key=request_json.get(
+            "client_access_key",
+            random_database.client_access_key,
+        ),
+        client_secret_key=request_json.get(
+            "client_secret_key",
+            random_database.client_secret_key,
+        ),
+        database_name=request_json.get(
+            "database_name",
+            random_database.database_name,
+        ),
+        state=States[
+            request_json.get("state_name", random_database.state.name)
+        ],
     )
+
+    try:
+        TARGET_MANAGER.add_database(database=database)
+    except ValueError as exc:
+        return Response(
+            response=str(object=exc),
+            status=HTTPStatus.CONFLICT,
+        )
+
+    return Response(
+        response=json.dumps(obj=database.to_dict()),
+        status=HTTPStatus.CREATED,
+    )
+
+
+@TARGET_MANAGER_FLASK_APP.route(
+    rule="/vumark_databases",
+    methods=[HTTPMethod.POST],
+)
+@beartype
+def create_vumark_database() -> Response:
+    """Create a new VuMark database.
+
+    :status 201: The database has been successfully created.
+    """
+    request_json = json.loads(s=request.data)
+    random_vumark_database = VuMarkDatabase()
+    database = VuMarkDatabase(
+        server_access_key=request_json.get(
+            "server_access_key",
+            random_vumark_database.server_access_key,
+        ),
+        server_secret_key=request_json.get(
+            "server_secret_key",
+            random_vumark_database.server_secret_key,
+        ),
+        database_name=request_json.get(
+            "database_name",
+            random_vumark_database.database_name,
+        ),
+    )
+
     try:
         TARGET_MANAGER.add_database(database=database)
     except ValueError as exc:
@@ -191,11 +269,7 @@ def create_database() -> Response:
 @beartype
 def create_target(database_name: str) -> Response:
     """Create a new target in a given database."""
-    (database,) = (
-        database
-        for database in TARGET_MANAGER.databases
-        if database.database_name == database_name
-    )
+    database = _get_cloud_database(database_name=database_name)
     request_json = json.loads(s=request.data)
     image_base64 = request_json["image_base64"]
     image_bytes = base64.b64decode(s=image_base64)
@@ -227,11 +301,7 @@ def create_target(database_name: str) -> Response:
 @beartype
 def create_vumark_target(database_name: str) -> Response:
     """Create a new VuMark target in a given database."""
-    (database,) = (
-        database
-        for database in TARGET_MANAGER.databases
-        if database.database_name == database_name
-    )
+    database = _get_vumark_database(database_name=database_name)
     request_json = json.loads(s=request.data)
     target = VuMarkTarget.from_dict(target_dict=request_json)
     database.vumark_targets.add(target)
@@ -249,11 +319,7 @@ def create_vumark_target(database_name: str) -> Response:
 @beartype
 def delete_target(database_name: str, target_id: str) -> Response:
     """Delete a target."""
-    (database,) = (
-        database
-        for database in TARGET_MANAGER.databases
-        if database.database_name == database_name
-    )
+    database = _get_cloud_database(database_name=database_name)
     target = database.get_target(target_id=target_id)
     now = datetime.datetime.now(tz=target.upload_date.tzinfo)
     # See https://github.com/facebook/pyrefly/issues/1897
@@ -275,11 +341,7 @@ def delete_target(database_name: str, target_id: str) -> Response:
 )
 def update_target(database_name: str, target_id: str) -> Response:
     """Update a target."""
-    (database,) = (
-        database
-        for database in TARGET_MANAGER.databases
-        if database.database_name == database_name
-    )
+    database = _get_cloud_database(database_name=database_name)
     target = database.get_target(target_id=target_id)
 
     request_json = json.loads(s=request.data)

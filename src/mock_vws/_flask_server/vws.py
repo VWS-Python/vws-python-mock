@@ -36,13 +36,14 @@ from mock_vws._services_validators.exceptions import (
     TargetStatusProcessingError,
     ValidatorError,
 )
-from mock_vws.database import CloudDatabase
+from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.image_matchers import (
     ExactMatcher,
     ImageMatcher,
     StructuralSimilarityMatcher,
 )
 from mock_vws.target import ImageTarget
+from mock_vws.target_manager import AnyDatabase
 from mock_vws.target_raters import (
     HardcodedTargetTrackingRater,
 )
@@ -86,18 +87,24 @@ class VWSSettings(BaseSettings):
 
 
 @beartype
-def get_all_databases() -> set[CloudDatabase]:
+def get_all_databases() -> set[AnyDatabase]:
     """Get all database objects from the task manager back-end."""
     settings = VWSSettings.model_validate(obj={})
     timeout_seconds = 30
-    response = requests.get(
+    databases: set[AnyDatabase] = set()
+    cloud_response = requests.get(
         url=f"{settings.target_manager_base_url}/databases",
         timeout=timeout_seconds,
     )
-    return {
-        CloudDatabase.from_dict(database_dict=database_dict)
-        for database_dict in response.json()
-    }
+    for database_dict in cloud_response.json():
+        databases.add(CloudDatabase.from_dict(database_dict=database_dict))
+    vumark_response = requests.get(
+        url=f"{settings.target_manager_base_url}/vumark_databases",
+        timeout=timeout_seconds,
+    )
+    for database_dict in vumark_response.json():
+        databases.add(VuMarkDatabase.from_dict(database_dict=database_dict))
+    return databases
 
 
 @VWS_FLASK_APP.before_request
@@ -180,6 +187,8 @@ def add_target() -> Response:
         request_path=request.path,
         databases=databases,
     )
+    if not isinstance(database, CloudDatabase):
+        raise TypeError
 
     # We do not use ``request.get_json(force=True)`` because this only works
     # when the content type is given as ``application/json``.
@@ -253,6 +262,8 @@ def get_target(target_id: str) -> Response:
         request_path=request.path,
         databases=databases,
     )
+    if not isinstance(database, CloudDatabase):
+        raise TypeError
 
     (target,) = (
         target for target in database.targets if target.target_id == target_id
@@ -310,6 +321,8 @@ def delete_target(target_id: str) -> Response:
         request_path=request.path,
         databases=databases,
     )
+    if not isinstance(database, CloudDatabase):
+        raise TypeError
 
     (target,) = (
         target for target in database.targets if target.target_id == target_id
@@ -410,6 +423,8 @@ def database_summary() -> Response:
         request_path=request.path,
         databases=databases,
     )
+    if not isinstance(database, CloudDatabase):
+        raise TypeError
 
     body = {
         "result_code": ResultCodes.SUCCESS.value,
@@ -465,6 +480,8 @@ def target_summary(target_id: str) -> Response:
         request_path=request.path,
         databases=databases,
     )
+    if not isinstance(database, CloudDatabase):
+        raise TypeError
 
     (target,) = (
         target for target in database.targets if target.target_id == target_id
@@ -520,6 +537,8 @@ def get_duplicates(target_id: str) -> Response:
         request_path=request.path,
         databases=databases,
     )
+    if not isinstance(database, CloudDatabase):
+        raise TypeError
     image_match_checker = settings.duplicates_image_matcher.to_image_matcher()
 
     (target,) = (
@@ -624,6 +643,8 @@ def update_target(target_id: str) -> Response:
         request_path=request.path,
         databases=databases,
     )
+    if not isinstance(database, CloudDatabase):
+        raise TypeError
 
     (target,) = (
         target for target in database.targets if target.target_id == target_id

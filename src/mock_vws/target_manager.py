@@ -4,10 +4,12 @@ from typing import TYPE_CHECKING
 
 from beartype import beartype
 
-from mock_vws.database import CloudDatabase
+from mock_vws.database import CloudDatabase, VuMarkDatabase
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
+
+AnyDatabase = CloudDatabase | VuMarkDatabase
 
 
 @beartype
@@ -20,21 +22,21 @@ class TargetManager:
 
     def __init__(self) -> None:
         """Create a target manager with no databases."""
-        self._databases: Iterable[CloudDatabase] = set()
+        self._databases: Iterable[AnyDatabase] = set()
 
-    def remove_database(self, database: CloudDatabase) -> None:
-        """Remove a cloud database.
+    def remove_database(self, database: AnyDatabase) -> None:
+        """Remove a database.
 
         Args:
-            database: The database to add.
+            database: The database to remove.
 
         Raises:
             KeyError: The database is not in the target manager.
         """
         self._databases = {db for db in self._databases if db != database}
 
-    def add_database(self, database: CloudDatabase) -> None:
-        """Add a cloud database.
+    def add_database(self, database: AnyDatabase) -> None:
+        """Add a database.
 
         Args:
             database: The database to add.
@@ -60,16 +62,6 @@ class TargetManager:
                     "server secret key",
                 ),
                 (
-                    existing_db.client_access_key,
-                    database.client_access_key,
-                    "client access key",
-                ),
-                (
-                    existing_db.client_secret_key,
-                    database.client_secret_key,
-                    "client secret key",
-                ),
-                (
                     existing_db.database_name,
                     database.database_name,
                     "name",
@@ -79,9 +71,30 @@ class TargetManager:
                     message = message_fmt.format(key_name=key_name, value=new)
                     raise ValueError(message)
 
+            if isinstance(existing_db, CloudDatabase) and isinstance(
+                database, CloudDatabase
+            ):
+                for existing, new, key_name in (
+                    (
+                        existing_db.client_access_key,
+                        database.client_access_key,
+                        "client access key",
+                    ),
+                    (
+                        existing_db.client_secret_key,
+                        database.client_secret_key,
+                        "client secret key",
+                    ),
+                ):
+                    if existing == new:
+                        message = message_fmt.format(
+                            key_name=key_name, value=new
+                        )
+                        raise ValueError(message)
+
         self._databases = {*self._databases, database}
 
     @property
-    def databases(self) -> set[CloudDatabase]:
-        """All cloud databases."""
+    def databases(self) -> set[AnyDatabase]:
+        """All databases."""
         return set(self._databases)

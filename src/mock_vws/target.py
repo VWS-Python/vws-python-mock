@@ -24,16 +24,7 @@ class VuMarkTargetDict(TypedDict):
 
     target_id: str
     name: str
-    active_flag: bool
-    width: float
-    reco_rating: str
-    total_recos: int
-    current_month_recos: int
-    previous_month_recos: int
     delete_date_optional: str | None
-    last_modified_date: str
-    upload_date: str
-    tracking_rating: int
 
 
 class ImageTargetDict(TypedDict):
@@ -235,26 +226,12 @@ class VuMarkTarget:
     https://developer.vuforia.com/target-manager.
 
     Unlike ImageTarget, VuMark targets do not require an image — they use a
-    VuMark template and are always in SUCCESS status.
+    VuMark template.
     """
 
     name: str
     target_id: str = field(default_factory=_random_hex)
-    active_flag: bool = True
-    width: float = 1.0
-    reco_rating: str = ""
-    total_recos: int = 0
-    current_month_recos: int = 0
-    previous_month_recos: int = 0
-    tracking_rating: int = 5
     delete_date: datetime.datetime | None = None
-    last_modified_date: datetime.datetime = field(default_factory=_time_now)
-    upload_date: datetime.datetime = field(default_factory=_time_now)
-
-    @property
-    def status(self) -> str:
-        """VuMark targets are always in SUCCESS status."""
-        return TargetStatuses.SUCCESS.value
 
     @classmethod
     def from_dict(cls, target_dict: VuMarkTargetDict) -> Self:
@@ -267,25 +244,10 @@ class VuMarkTarget:
             delete_date = datetime.datetime.fromisoformat(
                 delete_date_optional
             ).replace(tzinfo=timezone)
-        last_modified_date = datetime.datetime.fromisoformat(
-            target_dict["last_modified_date"],
-        ).replace(tzinfo=timezone)
-        upload_date = datetime.datetime.fromisoformat(
-            target_dict["upload_date"],
-        ).replace(tzinfo=timezone)
         return cls(
             target_id=target_dict["target_id"],
             name=target_dict["name"],
-            active_flag=target_dict["active_flag"],
-            width=target_dict["width"],
-            reco_rating=target_dict["reco_rating"],
-            total_recos=target_dict["total_recos"],
-            current_month_recos=target_dict["current_month_recos"],
-            previous_month_recos=target_dict["previous_month_recos"],
             delete_date=delete_date,
-            last_modified_date=last_modified_date,
-            upload_date=upload_date,
-            tracking_rating=target_dict["tracking_rating"],
         )
 
     def to_dict(self) -> VuMarkTargetDict:
@@ -298,14 +260,5 @@ class VuMarkTarget:
         return {
             "target_id": self.target_id,
             "name": self.name,
-            "active_flag": self.active_flag,
-            "width": self.width,
-            "reco_rating": self.reco_rating,
-            "total_recos": self.total_recos,
-            "current_month_recos": self.current_month_recos,
-            "previous_month_recos": self.previous_month_recos,
             "delete_date_optional": delete_date,
-            "last_modified_date": self.last_modified_date.isoformat(),
-            "upload_date": self.upload_date.isoformat(),
-            "tracking_rating": self.tracking_rating,
         }

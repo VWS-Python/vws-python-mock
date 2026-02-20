@@ -12,12 +12,11 @@ from beartype import BeartypeConf, beartype
 from requests import PreparedRequest
 from responses import RequestsMock
 
-from mock_vws.database import CloudDatabase
 from mock_vws.image_matchers import (
     ImageMatcher,
     StructuralSimilarityMatcher,
 )
-from mock_vws.target_manager import TargetManager
+from mock_vws.target_manager import AnyDatabase, TargetManager
 from mock_vws.target_raters import (
     BrisqueTargetTrackingRater,
     TargetTrackingRater,
@@ -126,8 +125,8 @@ class MockVWS(ContextDecorator):
             query_match_checker=query_match_checker,
         )
 
-    def add_database(self, database: CloudDatabase) -> None:
-        """Add a cloud database.
+    def add_database(self, database: AnyDatabase) -> None:
+        """Add a database.
 
         Args:
             database: The database to add.
