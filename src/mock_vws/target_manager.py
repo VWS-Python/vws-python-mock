@@ -47,7 +47,7 @@ class TargetManager:
             "All {key_name}s must be unique. "
             'There is already a database with the {key_name} "{value}".'
         )
-        for existing_db in self.databases:
+        for existing_db in self.cloud_databases:
             for existing, new, key_name in (
                 (
                     existing_db.server_access_key,
@@ -82,6 +82,6 @@ class TargetManager:
         self._databases = {*self._databases, database}
 
     @property
-    def databases(self) -> set[CloudDatabase]:
+    def cloud_databases(self) -> set[CloudDatabase]:
         """All cloud databases."""
         return set(self._databases)

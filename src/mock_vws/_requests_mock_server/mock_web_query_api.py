@@ -122,7 +122,7 @@ class MockVuforiaWebQueryAPI:
                 request_headers=request.headers,
                 request_body=_body_bytes(request=request),
                 request_method=request.method or "",
-                databases=self._target_manager.databases,
+                databases=self._target_manager.cloud_databases,
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
@@ -132,7 +132,7 @@ class MockVuforiaWebQueryAPI:
             request_body=_body_bytes(request=request),
             request_method=request.method or "",
             request_path=request.path_url,
-            databases=self._target_manager.databases,
+            databases=self._target_manager.cloud_databases,
             query_match_checker=self._query_match_checker,
         )
 
