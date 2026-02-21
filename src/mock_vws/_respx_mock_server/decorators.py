@@ -51,7 +51,7 @@ def _to_prepared_request(request: httpx.Request) -> PreparedRequest:
     prepared.method = request.method
     prepared.url = str(request.url)  # type: ignore[call-overload]
     prepared.headers = CaseInsensitiveDict(  # type: ignore[misc]
-        dict(request.headers)
+        {k: v for k, v in request.headers.items()}  # noqa: C416
     )
     prepared.body = request.content
     return prepared
@@ -204,7 +204,7 @@ class MockVWSForHttpx(ContextDecorator):
                 body = body.encode()
             return httpx.Response(
                 status_code=status_code,
-                headers=list(headers.items()),
+                headers=[(k, v) for k, v in headers.items()],
                 content=body,
             )
 
