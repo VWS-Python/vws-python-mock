@@ -15,7 +15,10 @@ from PIL import Image
 from requests_mock_flask import add_flask_app_to_mock
 from vws import VWS, CloudRecoService
 
-from mock_vws._flask_server.target_manager import TARGET_MANAGER_FLASK_APP
+from mock_vws._flask_server.target_manager import (
+    TARGET_MANAGER,
+    TARGET_MANAGER_FLASK_APP,
+)
 from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
 from mock_vws._flask_server.vws import VWS_FLASK_APP
 from mock_vws.database import CloudDatabase, VuMarkDatabase
@@ -56,6 +59,11 @@ def _(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
         )
 
         yield
+
+    for database in TARGET_MANAGER.cloud_databases:
+        TARGET_MANAGER.remove_cloud_database(cloud_database=database)
+    for database in TARGET_MANAGER.vumark_databases:
+        TARGET_MANAGER.remove_vumark_database(vumark_database=database)
 
 
 class TestProcessingTime:
@@ -176,26 +184,26 @@ class TestAddDatabase:
         keys, including VuMark databases.
         """
         database = VuMarkDatabase(
-            server_access_key="v1",
-            server_secret_key="v2",
-            database_name="v3",
+            server_access_key="1",
+            server_secret_key="2",
+            database_name="3",
         )
 
-        bad_server_access_key_db = VuMarkDatabase(server_access_key="v1")
-        bad_server_secret_key_db = VuMarkDatabase(server_secret_key="v2")
-        bad_database_name_db = VuMarkDatabase(database_name="v3")
+        bad_server_access_key_db = VuMarkDatabase(server_access_key="1")
+        bad_server_secret_key_db = VuMarkDatabase(server_secret_key="2")
+        bad_database_name_db = VuMarkDatabase(database_name="3")
 
         server_access_key_conflict_error = (
             "All server access keys must be unique. "
-            'There is already a database with the server access key "v1".'
+            'There is already a database with the server access key "1".'
         )
         server_secret_key_conflict_error = (
             "All server secret keys must be unique. "
-            'There is already a database with the server secret key "v2".'
+            'There is already a database with the server secret key "2".'
         )
         database_name_conflict_error = (
             "All names must be unique. "
-            'There is already a database with the name "v3".'
+            'There is already a database with the name "3".'
         )
 
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/vumark_databases"
