@@ -10,9 +10,8 @@ from urllib.parse import urljoin, urlparse
 import httpx
 import respx
 from beartype import BeartypeConf, beartype
-from requests import PreparedRequest
-from requests.structures import CaseInsensitiveDict
 
+from mock_vws._mock_common import RequestData
 from mock_vws._requests_mock_server.decorators import MissingSchemeError
 from mock_vws._requests_mock_server.mock_web_query_api import (
     MockVuforiaWebQueryAPI,
@@ -37,24 +36,21 @@ _STRUCTURAL_SIMILARITY_MATCHER = StructuralSimilarityMatcher()
 _BRISQUE_TRACKING_RATER = BrisqueTargetTrackingRater()
 
 
-def _to_prepared_request(request: httpx.Request) -> PreparedRequest:
-    """Convert an httpx.Request to a requests.PreparedRequest.
+def _to_request_data(request: httpx.Request) -> RequestData:
+    """Convert an httpx.Request to a RequestData.
 
     Args:
         request: The httpx request to convert.
 
     Returns:
-        A PreparedRequest with headers, body, method, and url set.
-        The ``path_url`` property is derived automatically from ``url``.
+        A RequestData with method, path, headers, and body set.
     """
-    prepared = PreparedRequest()
-    prepared.method = request.method
-    prepared.url = str(request.url)  # type: ignore[call-overload]
-    prepared.headers = CaseInsensitiveDict(  # type: ignore[misc]
-        {k: v for k, v in request.headers.items()}  # noqa: C416
+    return RequestData(
+        method=request.method,
+        path=request.url.raw_path.decode(encoding="ascii"),
+        headers=request.headers,
+        body=request.content,
     )
-    prepared.body = request.content
-    return prepared
 
 
 @beartype(conf=BeartypeConf(is_pep484_tower=True))
@@ -158,12 +154,12 @@ class MockVWSForHttpx(ContextDecorator):
 
     def _make_callback(
         self,
-        handler: Callable[[PreparedRequest], _ResponseType],
+        handler: Callable[[RequestData], _ResponseType],
     ) -> Callable[[httpx.Request], httpx.Response]:
         """Create a respx-compatible callback from a handler.
 
         Args:
-            handler: A handler that takes a PreparedRequest and returns a
+            handler: A handler that takes a RequestData and returns a
                 response tuple.
 
         Returns:
@@ -187,7 +183,7 @@ class MockVWSForHttpx(ContextDecorator):
                 httpx.ReadTimeout: The response delay exceeded the read
                     timeout.
             """
-            prepared = _to_prepared_request(request=request)
+            request_data = _to_request_data(request=request)
             timeout_info: dict[str, float | None] = request.extensions.get(
                 "timeout", {}
             )
@@ -198,7 +194,7 @@ class MockVWSForHttpx(ContextDecorator):
                     message="Response delay exceeded read timeout",
                     request=request,
                 )
-            status_code, headers, body = handler(prepared)
+            status_code, headers, body = handler(request_data)
             sleep_fn(delay_seconds)
             if isinstance(body, str):
                 body = body.encode()
