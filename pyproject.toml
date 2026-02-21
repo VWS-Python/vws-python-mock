@@ -340,7 +340,7 @@ markers = [
 # Options for pytest-retry.
 retries = "10"
 retry_delay = "10"
-cumulative_timing = "false"
+cumulative_timing = false
 
 [tool.coverage]
 run.branch = true
