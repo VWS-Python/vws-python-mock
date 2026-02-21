@@ -32,6 +32,7 @@ from mock_vws._services_validators.exceptions import (
     FailError,
     InvalidAcceptHeaderError,
     InvalidInstanceIdError,
+    InvalidTargetTypeError,
     TargetStatusNotSuccessError,
     TargetStatusProcessingError,
     ValidatorError,
@@ -278,13 +279,16 @@ def get_target(target_id: str) -> Response:
         target for target in database.targets if target.target_id == target_id
     )
 
+    width = target.width
+    tracking_rating = target.tracking_rating
+    reco_rating = target.reco_rating
     target_record = {
         "target_id": target.target_id,
         "active_flag": target.active_flag,
         "name": target.name,
-        "width": target.width,
-        "tracking_rating": target.tracking_rating,
-        "reco_rating": target.reco_rating,
+        "width": width,
+        "tracking_rating": tracking_rating,
+        "reco_rating": reco_rating,
     }
 
     date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
@@ -393,6 +397,16 @@ def generate_vumark_instance(target_id: str) -> Response:
 
     # ``target_id`` is validated by request validators.
     del target_id
+
+    database = get_database_matching_server_keys(
+        request_headers=dict(request.headers),
+        request_body=request.data,
+        request_method=request.method,
+        request_path=request.path,
+        databases=all_databases,
+    )
+    if not isinstance(database, VuMarkDatabase):
+        raise InvalidTargetTypeError
 
     accept = request.headers.get(key="Accept", default="")
     valid_accept_types: dict[str, bytes] = {
@@ -503,6 +517,10 @@ def target_summary(target_id: str) -> Response:
     (target,) = (
         target for target in database.targets if target.target_id == target_id
     )
+    tracking_rating = target.tracking_rating
+    total_recos = target.total_recos
+    current_month_recos = target.current_month_recos
+    previous_month_recos = target.previous_month_recos
     body = {
         "status": target.status,
         "transaction_id": uuid.uuid4().hex,
@@ -511,10 +529,10 @@ def target_summary(target_id: str) -> Response:
         "target_name": target.name,
         "upload_date": target.upload_date.strftime(format="%Y-%m-%d"),
         "active_flag": target.active_flag,
-        "tracking_rating": target.tracking_rating,
-        "total_recos": target.total_recos,
-        "current_month_recos": target.current_month_recos,
-        "previous_month_recos": target.previous_month_recos,
+        "tracking_rating": tracking_rating,
+        "total_recos": total_recos,
+        "current_month_recos": current_month_recos,
+        "previous_month_recos": previous_month_recos,
     }
     date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
     headers = {

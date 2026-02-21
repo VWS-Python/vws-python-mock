@@ -29,6 +29,10 @@ API Reference
    :members:
    :undoc-members:
 
+.. autoenum:: mock_vws.database_type.DatabaseType
+   :members:
+   :undoc-members:
+
 .. autoclass:: mock_vws.target.ImageTarget
 
 .. autoclass:: mock_vws.target.VuMarkTarget

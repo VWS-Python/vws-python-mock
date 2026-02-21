@@ -6,10 +6,13 @@ from uuid import uuid4
 
 import pytest
 import requests
+from vws import VWS
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes
+from mock_vws.database import CloudDatabase
 from tests.mock_vws.fixtures.credentials import VuMarkCloudDatabase
+from tests.mock_vws.utils import make_image_file
 
 _VWS_HOST = "https://vws.vuforia.com"
 _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
@@ -19,22 +22,24 @@ _SVG_START = b"<"
 
 def _make_vumark_request(
     *,
-    vumark_vuforia_database: VuMarkCloudDatabase,
+    server_access_key: str,
+    server_secret_key: str,
+    target_id: str,
     instance_id: str,
     accept: str,
 ) -> requests.Response:
     """Send a VuMark instance generation request and return the
     response.
     """
-    request_path = f"/targets/{vumark_vuforia_database.target_id}/instances"
+    request_path = f"/targets/{target_id}/instances"
     content_type = "application/json"
     content = json.dumps(obj={"instance_id": instance_id}).encode(
         encoding="utf-8"
     )
     date = rfc_1123_date()
     authorization_string = authorization_header(
-        access_key=vumark_vuforia_database.server_access_key,
-        secret_key=vumark_vuforia_database.server_secret_key,
+        access_key=server_access_key,
+        secret_key=server_secret_key,
         method=HTTPMethod.POST,
         content=content,
         content_type=content_type,
@@ -87,7 +92,9 @@ class TestGenerateInstance:
     ) -> None:
         """A VuMark instance can be generated in the requested format."""
         response = _make_vumark_request(
-            vumark_vuforia_database=vumark_vuforia_database,
+            server_access_key=vumark_vuforia_database.server_access_key,
+            server_secret_key=vumark_vuforia_database.server_secret_key,
+            target_id=vumark_vuforia_database.target_id,
             instance_id=uuid4().hex,
             accept=accept,
         )
@@ -106,7 +113,9 @@ class TestGenerateInstance:
     ) -> None:
         """An unsupported Accept header returns an error."""
         response = _make_vumark_request(
-            vumark_vuforia_database=vumark_vuforia_database,
+            server_access_key=vumark_vuforia_database.server_access_key,
+            server_secret_key=vumark_vuforia_database.server_secret_key,
+            target_id=vumark_vuforia_database.target_id,
             instance_id=uuid4().hex,
             accept="text/plain",
         )
@@ -124,7 +133,9 @@ class TestGenerateInstance:
     ) -> None:
         """An empty instance_id returns InvalidInstanceId."""
         response = _make_vumark_request(
-            vumark_vuforia_database=vumark_vuforia_database,
+            server_access_key=vumark_vuforia_database.server_access_key,
+            server_secret_key=vumark_vuforia_database.server_secret_key,
+            target_id=vumark_vuforia_database.target_id,
             instance_id="",
             accept="image/png",
         )
@@ -134,4 +145,42 @@ class TestGenerateInstance:
         assert (
             response_json["result_code"]
             == ResultCodes.INVALID_INSTANCE_ID.value
+        )
+
+    @staticmethod
+    def test_non_vumark_database(
+        vuforia_database: CloudDatabase,
+    ) -> None:
+        """Generating a VuMark instance for a target in a non-VuMark
+        database returns InvalidTargetType.
+        """
+        vws_client = VWS(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
+        )
+        image = make_image_file(
+            file_format="PNG",
+            color_space="RGB",
+            width=8,
+            height=8,
+        )
+        target_id = vws_client.add_target(
+            name="test",
+            width=1,
+            image=image,
+            active_flag=True,
+            application_metadata=None,
+        )
+        response = _make_vumark_request(
+            server_access_key=vuforia_database.server_access_key,
+            server_secret_key=vuforia_database.server_secret_key,
+            target_id=target_id,
+            instance_id=uuid4().hex,
+            accept="image/png",
+        )
+        assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+        response_json = response.json()
+        assert (
+            response_json["result_code"]
+            == ResultCodes.INVALID_TARGET_TYPE.value
         )

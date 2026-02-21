@@ -32,17 +32,19 @@ from mock_vws._services_validators.exceptions import (
     FailError,
     InvalidAcceptHeaderError,
     InvalidInstanceIdError,
+    InvalidTargetTypeError,
     TargetStatusNotSuccessError,
     TargetStatusProcessingError,
     ValidatorError,
 )
+from mock_vws.database import VuMarkDatabase
 from mock_vws.image_matchers import ImageMatcher
 from mock_vws.target import ImageTarget
 from mock_vws.target_manager import TargetManager
 from mock_vws.target_raters import TargetTrackingRater
 
 if TYPE_CHECKING:
-    from mock_vws.database import CloudDatabase, VuMarkDatabase
+    from mock_vws.database import CloudDatabase
 
 _TARGET_ID_PATTERN = "[A-Za-z0-9]+"
 
@@ -268,7 +270,7 @@ class MockVuforiaWebServicesAPI:
 
         now = datetime.datetime.now(tz=target.upload_date.tzinfo)
         # See https://github.com/facebook/pyrefly/issues/1897
-        new_target = copy.replace(
+        new_target: ImageTarget = copy.replace(
             target,  # pyrefly: ignore[bad-argument-type]
             delete_date=now,
         )
@@ -323,6 +325,16 @@ class MockVuforiaWebServicesAPI:
                 request_path=request.path_url,
                 databases=all_databases,
             )
+
+            database = get_database_matching_server_keys(
+                request_headers=request.headers,
+                request_body=_body_bytes(request=request),
+                request_method=request.method or "",
+                request_path=request.path_url,
+                databases=all_databases,
+            )
+            if not isinstance(database, VuMarkDatabase):
+                raise InvalidTargetTypeError
 
             accept = dict(request.headers).get("Accept", "")
             if accept not in valid_accept_types:
@@ -500,13 +512,16 @@ class MockVuforiaWebServicesAPI:
         target_id = request.path_url.split(sep="/")[-1]
         target = database.get_target(target_id=target_id)
 
+        width = target.width
+        tracking_rating = target.tracking_rating
+        reco_rating = target.reco_rating
         target_record = {
             "target_id": target.target_id,
             "active_flag": target.active_flag,
             "name": target.name,
-            "width": target.width,
-            "tracking_rating": target.tracking_rating,
-            "reco_rating": target.reco_rating,
+            "width": width,
+            "tracking_rating": tracking_rating,
+            "reco_rating": reco_rating,
         }
         date = email.utils.formatdate(
             timeval=None,
@@ -653,17 +668,8 @@ class MockVuforiaWebServicesAPI:
             )
 
         request_json: dict[str, Any] = json.loads(s=request.body or b"")
-        width = request_json.get("width", target.width)
         name = request_json.get("name", target.name)
         active_flag = request_json.get("active_flag", target.active_flag)
-        application_metadata = request_json.get(
-            "application_metadata",
-            target.application_metadata,
-        )
-
-        image_value = target.image_value
-        if "image" in request_json:
-            image_value = base64.b64decode(s=request_json["image"])
 
         if "active_flag" in request_json and active_flag is None:
             fail_exception = FailError(status_code=HTTPStatus.BAD_REQUEST)
@@ -672,6 +678,19 @@ class MockVuforiaWebServicesAPI:
                 fail_exception.headers,
                 fail_exception.response_text,
             )
+
+        gmt = ZoneInfo(key="GMT")
+        last_modified_date = datetime.datetime.now(tz=gmt)
+
+        width = request_json.get("width", target.width)
+        application_metadata = request_json.get(
+            "application_metadata",
+            target.application_metadata,
+        )
+
+        image_value = target.image_value
+        if "image" in request_json:
+            image_value = base64.b64decode(s=request_json["image"])
 
         if (
             "application_metadata" in request_json
@@ -684,11 +703,8 @@ class MockVuforiaWebServicesAPI:
                 fail_exception.response_text,
             )
 
-        gmt = ZoneInfo(key="GMT")
-        last_modified_date = datetime.datetime.now(tz=gmt)
-
         # See https://github.com/facebook/pyrefly/issues/1897
-        new_target = copy.replace(
+        new_target: ImageTarget = copy.replace(
             target,  # pyrefly: ignore[bad-argument-type]
             name=name,
             width=width,
@@ -755,6 +771,10 @@ class MockVuforiaWebServicesAPI:
             localtime=False,
             usegmt=True,
         )
+        tracking_rating = target.tracking_rating
+        total_recos = target.total_recos
+        current_month_recos = target.current_month_recos
+        previous_month_recos = target.previous_month_recos
         body = {
             "status": target.status,
             "transaction_id": uuid.uuid4().hex,
@@ -763,10 +783,10 @@ class MockVuforiaWebServicesAPI:
             "target_name": target.name,
             "upload_date": target.upload_date.strftime(format="%Y-%m-%d"),
             "active_flag": target.active_flag,
-            "tracking_rating": target.tracking_rating,
-            "total_recos": target.total_recos,
-            "current_month_recos": target.current_month_recos,
-            "previous_month_recos": target.previous_month_recos,
+            "tracking_rating": tracking_rating,
+            "total_recos": total_recos,
+            "current_month_recos": current_month_recos,
+            "previous_month_recos": previous_month_recos,
         }
         body_json = json_dump(body=body)
         headers = {

@@ -27,7 +27,7 @@ class VuMarkTargetDict(TypedDict):
 
 
 class ImageTargetDict(TypedDict):
-    """A dictionary type which represents a target."""
+    """A dictionary type which represents an image target."""
 
     name: str
     width: float
@@ -58,8 +58,7 @@ def _time_now() -> datetime.datetime:
 @beartype(conf=BeartypeConf(is_pep484_tower=True))
 @dataclass(frozen=True, eq=True)
 class ImageTarget:
-    """
-    A Vuforia Target as managed in
+    """A Vuforia image target as managed in
     https://developer.vuforia.com/target-manager.
     """
 

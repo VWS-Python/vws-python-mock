@@ -8,6 +8,7 @@ from typing import Self, TypedDict
 from beartype import beartype
 
 from mock_vws._constants import TargetStatuses
+from mock_vws.database_type import DatabaseType
 from mock_vws.states import States
 from mock_vws.target import (
     ImageTarget,
@@ -27,6 +28,7 @@ class CloudDatabaseDict(TypedDict):
     client_access_key: str
     client_secret_key: str
     state_name: str
+    database_type_name: str
     targets: Iterable[ImageTargetDict]
 
 
@@ -81,6 +83,7 @@ class CloudDatabase:
         hash=False,
     )
     state: States = States.WORKING
+    database_type: DatabaseType = DatabaseType.CLOUD_RECO
 
     request_quota: int = 100000
     reco_threshold: int = 1000
@@ -91,7 +94,9 @@ class CloudDatabase:
 
     def to_dict(self) -> CloudDatabaseDict:
         """Dump a target to a dictionary which can be loaded as JSON."""
-        targets = [target.to_dict() for target in self.targets]
+        targets: list[ImageTargetDict] = [
+            target.to_dict() for target in self.targets
+        ]
         return {
             "database_name": self.database_name,
             "server_access_key": self.server_access_key,
@@ -99,6 +104,7 @@ class CloudDatabase:
             "client_access_key": self.client_access_key,
             "client_secret_key": self.client_secret_key,
             "state_name": self.state.name,
+            "database_type_name": self.database_type.name,
             "targets": targets,
         }
 
@@ -112,6 +118,11 @@ class CloudDatabase:
     @classmethod
     def from_dict(cls, database_dict: CloudDatabaseDict) -> Self:
         """Load a database from a dictionary."""
+        targets: set[ImageTarget] = {
+            ImageTarget.from_dict(target_dict=target_dict)
+            for target_dict in database_dict["targets"]
+        }
+
         return cls(
             database_name=database_dict["database_name"],
             server_access_key=database_dict["server_access_key"],
@@ -119,10 +130,8 @@ class CloudDatabase:
             client_access_key=database_dict["client_access_key"],
             client_secret_key=database_dict["client_secret_key"],
             state=States[database_dict["state_name"]],
-            targets={
-                ImageTarget.from_dict(target_dict=target_dict)
-                for target_dict in database_dict["targets"]
-            },
+            database_type=DatabaseType[database_dict["database_type_name"]],
+            targets=targets,
         )
 
     @property

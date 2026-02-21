@@ -13,6 +13,7 @@ from flask import Flask, Response, request
 from pydantic_settings import BaseSettings
 
 from mock_vws.database import CloudDatabase, VuMarkDatabase
+from mock_vws.database_type import DatabaseType
 from mock_vws.states import States
 from mock_vws.target import ImageTarget, VuMarkTarget
 from mock_vws.target_manager import TargetManager
@@ -204,8 +205,13 @@ def create_cloud_database() -> Response:
         "state_name",
         random_database.state.name,
     )
+    database_type_name = request_json.get(
+        "database_type_name",
+        random_database.database_type.name,
+    )
 
     state = States[state_name]
+    database_type = DatabaseType[database_type_name]
 
     database = CloudDatabase(
         server_access_key=server_access_key,
@@ -214,6 +220,7 @@ def create_cloud_database() -> Response:
         client_secret_key=client_secret_key,
         database_name=database_name,
         state=state,
+        database_type=database_type,
     )
     try:
         TARGET_MANAGER.add_cloud_database(cloud_database=database)
@@ -283,11 +290,10 @@ def create_target(database_name: str) -> Response:
         if database.database_name == database_name
     )
     request_json = json.loads(s=request.data)
-    image_base64 = request_json["image_base64"]
-    image_bytes = base64.b64decode(s=image_base64)
     settings = TargetManagerSettings.model_validate(obj={})
-    target_tracking_rater = settings.target_rater.to_target_rater()
 
+    image_bytes = base64.b64decode(s=request_json["image_base64"])
+    target_tracking_rater = settings.target_rater.to_target_rater()
     target = ImageTarget(
         name=request_json["name"],
         width=request_json["width"],
@@ -343,7 +349,7 @@ def delete_target(database_name: str, target_id: str) -> Response:
     target = database.get_target(target_id=target_id)
     now = datetime.datetime.now(tz=target.upload_date.tzinfo)
     # See https://github.com/facebook/pyrefly/issues/1897
-    new_target = copy.replace(
+    new_target: ImageTarget = copy.replace(
         target,  # pyrefly: ignore[bad-argument-type]
         delete_date=now,
     )
@@ -369,24 +375,22 @@ def update_target(database_name: str, target_id: str) -> Response:
     target = database.get_target(target_id=target_id)
 
     request_json = json.loads(s=request.data)
-    width = request_json.get("width", target.width)
     name = request_json.get("name", target.name)
     active_flag = request_json.get("active_flag", target.active_flag)
-    application_metadata = request_json.get(
-        "application_metadata",
-        target.application_metadata,
-    )
-
-    image_value = target.image_value
-    request_json = json.loads(s=request.data)
-    if "image" in request_json:
-        image_value = base64.b64decode(s=request_json["image"])
 
     gmt = ZoneInfo(key="GMT")
     last_modified_date = datetime.datetime.now(tz=gmt)
 
+    width = request_json.get("width", target.width)
+    application_metadata = request_json.get(
+        "application_metadata",
+        target.application_metadata,
+    )
+    image_value = target.image_value
+    if "image" in request_json:
+        image_value = base64.b64decode(s=request_json["image"])
     # See https://github.com/facebook/pyrefly/issues/1897
-    new_target = copy.replace(
+    new_target: ImageTarget = copy.replace(
         target,  # pyrefly: ignore[bad-argument-type]
         name=name,
         width=width,
