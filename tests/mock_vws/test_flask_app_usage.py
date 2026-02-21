@@ -114,13 +114,14 @@ class TestProcessingTime:
         assert expected - self.LEEWAY < time_taken < expected + self.LEEWAY
 
 
-class TestAddDatabase:
-    """Tests for adding databases to the mock."""
+class TestAddCloudDatabase:
+    """Tests for adding cloud databases to the mock."""
 
     @staticmethod
     def test_duplicate_keys() -> None:
         """
-        It is not possible to have multiple databases with matching
+        It is not possible to have multiple cloud databases with
+        matching
         keys.
         """
         database = CloudDatabase(
@@ -178,10 +179,43 @@ class TestAddDatabase:
             assert response.text == expected_message
 
     @staticmethod
-    def test_duplicate_vumark_keys() -> None:
+    def test_give_no_details(high_quality_image: io.BytesIO) -> None:
+        """It is possible to create a cloud database without giving any
+        data.
         """
-        It is not possible to have multiple databases with matching
-        keys, including VuMark databases.
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+        response = requests.post(url=databases_url, json={}, timeout=30)
+        assert response.status_code == HTTPStatus.CREATED
+
+        data = json.loads(s=response.text)
+
+        assert data["targets"] == []
+        assert data["state_name"] == "WORKING"
+        assert "database_name" in data
+
+        vws_client = VWS(
+            server_access_key=data["server_access_key"],
+            server_secret_key=data["server_secret_key"],
+        )
+
+        cloud_reco_client = CloudRecoService(
+            client_access_key=data["client_access_key"],
+            client_secret_key=data["client_secret_key"],
+        )
+
+        assert not vws_client.list_targets()
+        assert not cloud_reco_client.query(image=high_quality_image)
+
+
+class TestAddVuMarkDatabase:
+    """Tests for adding VuMark databases to the mock."""
+
+    @staticmethod
+    def test_duplicate_keys() -> None:
+        """
+        It is not possible to have multiple VuMark databases with
+        matching
+        keys.
         """
         database = VuMarkDatabase(
             server_access_key="1",
@@ -223,42 +257,15 @@ class TestAddDatabase:
             assert response.status_code == HTTPStatus.CONFLICT
             assert response.text == expected_message
 
-    @staticmethod
-    def test_give_no_details(high_quality_image: io.BytesIO) -> None:
-        """It is possible to create a database without giving any data."""
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
-        response = requests.post(url=databases_url, json={}, timeout=30)
-        assert response.status_code == HTTPStatus.CREATED
 
-        data = json.loads(s=response.text)
-
-        assert data["targets"] == []
-        assert data["state_name"] == "WORKING"
-        assert "database_name" in data
-
-        vws_client = VWS(
-            server_access_key=data["server_access_key"],
-            server_secret_key=data["server_secret_key"],
-        )
-
-        cloud_reco_client = CloudRecoService(
-            client_access_key=data["client_access_key"],
-            client_secret_key=data["client_secret_key"],
-        )
-
-        assert not vws_client.list_targets()
-        assert not cloud_reco_client.query(image=high_quality_image)
-
-
-class TestDeleteDatabase:
-    """Tests for deleting databases from the mock."""
+class TestDeleteCloudDatabase:
+    """Tests for deleting cloud databases from the mock."""
 
     @staticmethod
     def test_not_found() -> None:
         """
-        A 404 error is returned when trying to delete a database which
-        does not
-        exist.
+        A 404 error is returned when trying to delete a cloud database
+        which does not exist.
         """
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
         delete_url = databases_url + "/" + "foobar"
@@ -266,8 +273,8 @@ class TestDeleteDatabase:
         assert response.status_code == HTTPStatus.NOT_FOUND
 
     @staticmethod
-    def test_delete_database() -> None:
-        """It is possible to delete a database."""
+    def test_delete_cloud_database() -> None:
+        """It is possible to delete a cloud database."""
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
         response = requests.post(url=databases_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.CREATED
@@ -280,12 +287,15 @@ class TestDeleteDatabase:
         response = requests.delete(url=delete_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.NOT_FOUND
 
+
+class TestDeleteVuMarkDatabase:
+    """Tests for deleting VuMark databases from the mock."""
+
     @staticmethod
-    def test_vumark_not_found() -> None:
+    def test_not_found() -> None:
         """
         A 404 error is returned when trying to delete a VuMark database
-        which
-        does not exist.
+        which does not exist.
         """
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/vumark_databases"
         delete_url = databases_url + "/" + "foobar"
