@@ -329,18 +329,18 @@ keep_full_version = true
 max_supported_python = "3.13"
 
 [tool.pytest]
-ini_options.xfail_strict = true
-ini_options.log_cli = true
-ini_options.addopts = [
+xfail_strict = true
+log_cli = true
+addopts = [
     "--strict-markers",
 ]
-ini_options.markers = [
+markers = [
     "requires_docker_build",
 ]
 # Options for pytest-retry.
-ini_options.retries = 10
-ini_options.retry_delay = 10
-ini_options.cumulative_timing = false
+retries = "10"
+retry_delay = "10"
+cumulative_timing = false
 
 [tool.coverage]
 run.branch = true
