@@ -6,7 +6,13 @@ from uuid import uuid4
 
 import pytest
 import requests
-from vws import VWS
+from beartype import beartype
+from vws import VWS, VuMarkService
+from vws.exceptions.vws_exceptions import (
+    InvalidInstanceIdError,
+    InvalidTargetTypeError,
+)
+from vws.vumark_accept import VuMarkAccept
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes
@@ -20,6 +26,20 @@ _PDF_SIGNATURE = b"%PDF"
 _SVG_START = b"<"
 
 
+@beartype
+def _make_vumark_service(
+    *,
+    server_access_key: str,
+    server_secret_key: str,
+) -> VuMarkService:
+    """Return a VuMark service client."""
+    return VuMarkService(
+        server_access_key=server_access_key,
+        server_secret_key=server_secret_key,
+    )
+
+
+@beartype
 def _make_vumark_request(
     *,
     server_access_key: str,
@@ -66,18 +86,16 @@ class TestGenerateInstance:
     """Tests for the VuMark instance generation endpoint."""
 
     @pytest.mark.parametrize(
-        argnames=("accept", "expected_content_type", "expected_signature"),
+        argnames=("accept", "expected_signature"),
         argvalues=[
-            pytest.param("image/png", "image/png", _PNG_SIGNATURE, id="png"),
+            pytest.param(VuMarkAccept.PNG, _PNG_SIGNATURE, id="png"),
             pytest.param(
-                "image/svg+xml",
-                "image/svg+xml",
+                VuMarkAccept.SVG,
                 _SVG_START,
                 id="svg",
             ),
             pytest.param(
-                "application/pdf",
-                "application/pdf",
+                VuMarkAccept.PDF,
                 _PDF_SIGNATURE,
                 id="pdf",
             ),
@@ -85,12 +103,39 @@ class TestGenerateInstance:
     )
     @staticmethod
     def test_generate_instance_format(
-        accept: str,
-        expected_content_type: str,
+        accept: VuMarkAccept,
         expected_signature: bytes,
         vumark_vuforia_database: VuMarkCloudDatabase,
     ) -> None:
         """A VuMark instance can be generated in the requested format."""
+        vumark_client = _make_vumark_service(
+            server_access_key=vumark_vuforia_database.server_access_key,
+            server_secret_key=vumark_vuforia_database.server_secret_key,
+        )
+        vumark_bytes = vumark_client.generate_vumark_instance(
+            target_id=vumark_vuforia_database.target_id,
+            instance_id=uuid4().hex,
+            accept=accept,
+        )
+
+        assert vumark_bytes.strip().startswith(expected_signature)
+        assert len(vumark_bytes) > len(expected_signature)
+
+    @pytest.mark.parametrize(
+        argnames=("accept", "expected_content_type"),
+        argvalues=[
+            pytest.param("image/png", "image/png", id="png"),
+            pytest.param("image/svg+xml", "image/svg+xml", id="svg"),
+            pytest.param("application/pdf", "application/pdf", id="pdf"),
+        ],
+    )
+    @staticmethod
+    def test_generate_instance_content_type_header(
+        accept: str,
+        expected_content_type: str,
+        vumark_vuforia_database: VuMarkCloudDatabase,
+    ) -> None:
+        """VuMark image responses include the expected content type."""
         response = _make_vumark_request(
             server_access_key=vumark_vuforia_database.server_access_key,
             server_secret_key=vumark_vuforia_database.server_secret_key,
@@ -104,8 +149,6 @@ class TestGenerateInstance:
             response.headers["Content-Type"].split(sep=";")[0]
             == expected_content_type
         )
-        assert response.content.strip().startswith(expected_signature)
-        assert len(response.content) > len(expected_signature)
 
     @staticmethod
     def test_invalid_accept_header(
@@ -132,16 +175,21 @@ class TestGenerateInstance:
         vumark_vuforia_database: VuMarkCloudDatabase,
     ) -> None:
         """An empty instance_id returns InvalidInstanceId."""
-        response = _make_vumark_request(
+        vumark_client = _make_vumark_service(
             server_access_key=vumark_vuforia_database.server_access_key,
             server_secret_key=vumark_vuforia_database.server_secret_key,
-            target_id=vumark_vuforia_database.target_id,
-            instance_id="",
-            accept="image/png",
         )
+        with pytest.raises(expected_exception=InvalidInstanceIdError) as exc:
+            vumark_client.generate_vumark_instance(
+                target_id=vumark_vuforia_database.target_id,
+                instance_id="",
+                accept=VuMarkAccept.PNG,
+            )
 
-        assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-        response_json = response.json()
+        assert (
+            exc.value.response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+        )
+        response_json = json.loads(s=exc.value.response.text)
         assert (
             response_json["result_code"]
             == ResultCodes.INVALID_INSTANCE_ID.value
@@ -154,9 +202,15 @@ class TestGenerateInstance:
         """Generating a VuMark instance for a target in a non-VuMark
         database returns InvalidTargetType.
         """
+        server_access_key = vuforia_database.server_access_key
+        server_secret_key = vuforia_database.server_secret_key
         vws_client = VWS(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
+            server_access_key=server_access_key,
+            server_secret_key=server_secret_key,
+        )
+        vumark_client = _make_vumark_service(
+            server_access_key=server_access_key,
+            server_secret_key=server_secret_key,
         )
         image = make_image_file(
             file_format="PNG",
@@ -171,15 +225,17 @@ class TestGenerateInstance:
             active_flag=True,
             application_metadata=None,
         )
-        response = _make_vumark_request(
-            server_access_key=vuforia_database.server_access_key,
-            server_secret_key=vuforia_database.server_secret_key,
-            target_id=target_id,
-            instance_id=uuid4().hex,
-            accept="image/png",
+        with pytest.raises(expected_exception=InvalidTargetTypeError) as exc:
+            vumark_client.generate_vumark_instance(
+                target_id=target_id,
+                instance_id=uuid4().hex,
+                accept=VuMarkAccept.PNG,
+            )
+
+        assert (
+            exc.value.response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
         )
-        assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-        response_json = response.json()
+        response_json = json.loads(s=exc.value.response.text)
         assert (
             response_json["result_code"]
             == ResultCodes.INVALID_TARGET_TYPE.value
