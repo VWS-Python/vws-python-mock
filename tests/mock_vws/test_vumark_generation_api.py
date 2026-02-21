@@ -6,6 +6,7 @@ from uuid import uuid4
 
 import pytest
 import requests
+from beartype import beartype
 from vws import VWS, VuMarkService
 from vws.exceptions.vws_exceptions import (
     InvalidInstanceIdError,
@@ -25,6 +26,7 @@ _PDF_SIGNATURE = b"%PDF"
 _SVG_START = b"<"
 
 
+@beartype
 def _make_vumark_service(
     *,
     server_access_key: str,
@@ -37,6 +39,7 @@ def _make_vumark_service(
     )
 
 
+@beartype
 def _make_vumark_request(
     *,
     server_access_key: str,
