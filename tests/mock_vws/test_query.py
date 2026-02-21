@@ -143,6 +143,7 @@ def _query(
         headers=dict(requests_response.headers),
         request_body=requests_response.request.body,
         tell_position=requests_response.raw.tell(),
+        content=requests_response.content,
     )
     handle_server_errors(response=vws_response)
     return vws_response
@@ -250,6 +251,7 @@ class TestContentType:
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
             tell_position=requests_response.raw.tell(),
+            content=requests_response.content,
         )
 
         if resp_status_code != HTTPStatus.INTERNAL_SERVER_ERROR:
@@ -326,6 +328,7 @@ class TestContentType:
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
             tell_position=requests_response.raw.tell(),
+            content=requests_response.content,
         )
         handle_server_errors(response=vws_response)
         assert not requests_response.text
@@ -397,6 +400,7 @@ class TestContentType:
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
             tell_position=requests_response.raw.tell(),
+            content=requests_response.content,
         )
         expected_text = "RESTEASY007550: Unable to get boundary for multipart"
         assert requests_response.text == expected_text
@@ -456,6 +460,7 @@ class TestContentType:
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
             tell_position=requests_response.raw.tell(),
+            content=requests_response.content,
         )
         handle_server_errors(response=vws_response)
 
@@ -521,6 +526,7 @@ class TestContentType:
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
             tell_position=requests_response.raw.tell(),
+            content=requests_response.content,
         )
         handle_server_errors(response=vws_response)
         assert_query_success(response=vws_response)
@@ -1230,6 +1236,7 @@ class TestAcceptHeader:
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
             tell_position=requests_response.raw.tell(),
+            content=requests_response.content,
         )
         handle_server_errors(response=vws_response)
         assert_query_success(response=vws_response)
@@ -1288,6 +1295,7 @@ class TestAcceptHeader:
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
             tell_position=requests_response.raw.tell(),
+            content=requests_response.content,
         )
         handle_server_errors(response=vws_response)
 
@@ -2008,6 +2016,7 @@ class TestDateFormats:
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
             tell_position=requests_response.raw.tell(),
+            content=requests_response.content,
         )
         handle_server_errors(response=vws_response)
         assert_query_success(response=vws_response)

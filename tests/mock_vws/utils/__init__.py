@@ -71,6 +71,7 @@ class Endpoint:
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
             tell_position=requests_response.raw.tell(),
+            content=requests_response.content,
         )
 
     @property
