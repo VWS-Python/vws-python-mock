@@ -34,6 +34,9 @@ class TestInvalidGivenID:
         target ID
         of a target which does not exist.
         """
+        # This shared check only covers endpoints that end in target_id,
+        # such as /targets/{target_id}. Endpoints with trailing segments
+        # are covered by endpoint-specific tests.
         if not endpoint.path_url.endswith(target_id):
             return
 
