@@ -117,6 +117,7 @@ def get_all_vumark_databases() -> set[VuMarkDatabase]:
 
 
 @VWS_FLASK_APP.before_request
+@beartype
 def set_terminate_wsgi_input() -> None:
     """We set ``wsgi.input_terminated`` to ``True`` when going through
     ``requests`` in our tests, so that requests have the given ``Content-
@@ -171,6 +172,7 @@ def add_response_delay(response: Response) -> Response:
 
 
 @VWS_FLASK_APP.errorhandler(code_or_exception=ValidatorError)
+@beartype
 def handle_exceptions(exc: ValidatorError) -> Response:
     """Return the error response associated with the given exception."""
     response = Response(
@@ -319,6 +321,7 @@ def get_target(target_id: str) -> Response:
     rule="/targets/<string:target_id>",
     methods=[HTTPMethod.DELETE],
 )
+@beartype
 def delete_target(target_id: str) -> Response:
     """Delete a target.
 
@@ -499,6 +502,7 @@ def database_summary() -> Response:
     rule="/summary/<string:target_id>",
     methods=[HTTPMethod.GET],
 )
+@beartype
 def target_summary(target_id: str) -> Response:
     """Get a summary report for a target.
 
@@ -616,6 +620,7 @@ def get_duplicates(target_id: str) -> Response:
 
 
 @VWS_FLASK_APP.route(rule="/targets", methods=[HTTPMethod.GET])
+@beartype
 def target_list() -> Response:
     """Get a list of all targets.
 
@@ -658,6 +663,7 @@ def target_list() -> Response:
 @VWS_FLASK_APP.route(
     rule="/targets/<string:target_id>", methods=[HTTPMethod.PUT]
 )
+@beartype
 def update_target(target_id: str) -> Response:
     """Update a target.
 

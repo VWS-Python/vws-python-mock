@@ -15,6 +15,7 @@ _LOGGER = logging.getLogger(name=__name__)
 
 @beartype
 def validate_project_state(
+    *,
     request_path: str,
     request_headers: Mapping[str, str],
     request_body: bytes,

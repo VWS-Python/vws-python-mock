@@ -171,6 +171,7 @@ def validate_image_format(
 
 @beartype
 def validate_image_is_image(
+    *,
     request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:

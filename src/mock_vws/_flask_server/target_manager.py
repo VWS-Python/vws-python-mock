@@ -369,6 +369,7 @@ def delete_target(database_name: str, target_id: str) -> Response:
     rule="/cloud_databases/<string:database_name>/targets/<string:target_id>",
     methods=[HTTPMethod.PUT],
 )
+@beartype
 def update_target(database_name: str, target_id: str) -> Response:
     """Update a target."""
     (database,) = (
