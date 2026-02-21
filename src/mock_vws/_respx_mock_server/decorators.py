@@ -180,8 +180,8 @@ class MockVWSForHttpx(ContextDecorator):
                 An httpx.Response built from the handler's return value.
 
             Raises:
-                httpx.ReadTimeout: The response delay exceeded the read
-                    timeout.
+                Exception: A timeout error is raised when the response
+                    delay exceeds the read timeout.
             """
             request_data = _to_request_data(request=request)
             timeout_info: dict[str, float | None] = request.extensions.get(
@@ -200,7 +200,7 @@ class MockVWSForHttpx(ContextDecorator):
                 body = body.encode()
             return httpx.Response(
                 status_code=status_code,
-                headers=[(k, v) for k, v in headers.items()],
+                headers=headers,
                 content=body,
             )
 
@@ -214,7 +214,8 @@ class MockVWSForHttpx(ContextDecorator):
             request: The unmatched httpx request.
 
         Raises:
-            httpx.ConnectError: Always raised to block unmatched requests.
+            Exception: A connection error is always raised to block
+                unmatched requests.
         """
         raise httpx.ConnectError(
             message="Connection refused by mock",

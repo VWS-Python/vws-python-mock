@@ -14,7 +14,8 @@ def _request_unmocked_address() -> None:
     """Make a request using ``httpx`` to an unmocked, free local address.
 
     Raises:
-        httpx.ConnectError: Expected, as there is nothing to connect to.
+        Exception: A connection error is expected, as there is nothing
+            to connect to.
     """
     sock = socket.socket()
     sock.bind(("", 0))
