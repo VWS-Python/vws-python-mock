@@ -67,6 +67,7 @@ class _RouteMethod(Protocol[_P]):
 
 @beartype
 def route(
+    *,
     path_pattern: str,
     http_methods: Iterable[HTTPMethod],
 ) -> Callable[[_RouteMethod[_P]], _RouteMethod[_P]]:

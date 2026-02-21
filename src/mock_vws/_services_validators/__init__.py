@@ -2,6 +2,8 @@
 
 from collections.abc import Iterable, Mapping
 
+from beartype import beartype
+
 from mock_vws._database_matchers import AnyDatabase
 
 from .active_flag_validators import validate_active_flag
@@ -50,7 +52,9 @@ from .target_validators import validate_target_id_exists
 from .width_validators import validate_width
 
 
+@beartype
 def run_services_validators(
+    *,
     request_path: str,
     request_headers: Mapping[str, str],
     request_body: bytes,

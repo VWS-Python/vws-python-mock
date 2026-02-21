@@ -35,6 +35,7 @@ _STRUCTURAL_SIMILARITY_MATCHER = StructuralSimilarityMatcher()
 _BRISQUE_TRACKING_RATER = BrisqueTargetTrackingRater()
 
 
+@beartype
 class MissingSchemeError(Exception):
     """Raised when a URL is missing a schema."""
 
