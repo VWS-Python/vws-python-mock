@@ -196,6 +196,23 @@ class TestGenerateInstance:
         )
 
     @staticmethod
+    def test_unknown_target(
+        vumark_vuforia_database: VuMarkCloudDatabase,
+    ) -> None:
+        """An unknown target_id returns UnknownTarget."""
+        response = _make_vumark_request(
+            server_access_key=vumark_vuforia_database.server_access_key,
+            server_secret_key=vumark_vuforia_database.server_secret_key,
+            target_id=uuid4().hex,
+            instance_id=uuid4().hex,
+            accept=VuMarkAccept.PNG,
+        )
+
+        assert response.status_code == HTTPStatus.NOT_FOUND
+        response_json = response.json()
+        assert response_json["result_code"] == ResultCodes.UNKNOWN_TARGET.value
+
+    @staticmethod
     def test_non_vumark_database(
         vuforia_database: CloudDatabase,
     ) -> None:
