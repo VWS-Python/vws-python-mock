@@ -113,6 +113,7 @@ def add_response_delay(response: Response) -> Response:
 
 
 @CLOUDRECO_FLASK_APP.errorhandler(code_or_exception=ValidatorError)
+@beartype
 def handle_exceptions(exc: ValidatorError) -> Response:
     """Return the error response associated with the given exception."""
     response = Response(
@@ -127,6 +128,7 @@ def handle_exceptions(exc: ValidatorError) -> Response:
 
 
 @CLOUDRECO_FLASK_APP.route(rule="/v1/query", methods=[HTTPMethod.POST])
+@beartype
 def query() -> Response:
     """Perform an image recognition query."""
     settings = VWQSettings.model_validate(obj={})

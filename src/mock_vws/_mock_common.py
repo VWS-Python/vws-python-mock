@@ -8,6 +8,7 @@ from typing import Any
 from beartype import beartype
 
 
+@beartype
 @dataclass(frozen=True)
 class RequestData:
     """A library-agnostic representation of an HTTP request.
@@ -25,6 +26,7 @@ class RequestData:
     body: bytes
 
 
+@beartype
 @dataclass(frozen=True)
 class Route:
     """A representation of a VWS route.

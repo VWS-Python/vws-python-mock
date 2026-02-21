@@ -14,6 +14,7 @@ from .exceptions import FailError
 _LOGGER = logging.getLogger(name=__name__)
 
 
+@beartype
 @dataclass
 class _Route:
     """A representation of a VWS route.
