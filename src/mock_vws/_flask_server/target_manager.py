@@ -91,11 +91,15 @@ def delete_vumark_database(database_name: str) -> Response:
 
     :status 200: The VuMark database has been deleted.
     """
-    (matching_database,) = {
-        database
-        for database in TARGET_MANAGER.vumark_databases
-        if database_name == database.database_name
-    }
+    try:
+        (matching_database,) = {
+            database
+            for database in TARGET_MANAGER.vumark_databases
+            if database_name == database.database_name
+        }
+    except ValueError:
+        return Response(response="", status=HTTPStatus.NOT_FOUND)
+
     TARGET_MANAGER.remove_vumark_database(vumark_database=matching_database)
     return Response(response="", status=HTTPStatus.OK)
 
