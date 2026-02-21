@@ -60,10 +60,10 @@ def _(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
 
         yield
 
-    for database in TARGET_MANAGER.cloud_databases:
-        TARGET_MANAGER.remove_cloud_database(cloud_database=database)
-    for database in TARGET_MANAGER.vumark_databases:
-        TARGET_MANAGER.remove_vumark_database(vumark_database=database)
+    for cloud_database in TARGET_MANAGER.cloud_databases:
+        TARGET_MANAGER.remove_cloud_database(cloud_database=cloud_database)
+    for vumark_database in TARGET_MANAGER.vumark_databases:
+        TARGET_MANAGER.remove_vumark_database(vumark_database=vumark_database)
 
 
 class TestProcessingTime:
