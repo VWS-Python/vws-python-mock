@@ -4,6 +4,10 @@ Changelog
 Next
 ----
 
+2026.02.21
+----------
+
+
 - Add ``VuMarkTarget`` class for VuMark template targets, alongside the renamed ``ImageTarget`` class (previously ``Target``).
   ``ImageTarget`` is for image-based targets and ``VuMarkTarget`` is for VuMark template targets.
   Both can be stored in a ``VuforiaDatabase``.
