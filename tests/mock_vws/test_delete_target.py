@@ -19,7 +19,7 @@ class TestDelete:
     """Tests for deleting targets."""
 
     @staticmethod
-    def test_no_wait(target_id: str, vws_client: VWS) -> None:
+    def test_no_wait(*, target_id: str, vws_client: VWS) -> None:
         """When attempting to delete a target immediately after creating
         it, a
         `FORBIDDEN` response is returned.
@@ -41,7 +41,7 @@ class TestDelete:
         )
 
     @staticmethod
-    def test_processed(target_id: str, vws_client: VWS) -> None:
+    def test_processed(*, target_id: str, vws_client: VWS) -> None:
         """When a target has finished processing, it can be deleted."""
         vws_client.wait_for_target_processed(target_id=target_id)
         vws_client.delete_target(target_id=target_id)

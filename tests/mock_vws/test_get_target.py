@@ -18,6 +18,7 @@ class TestGetRecord:
 
     @staticmethod
     def test_get_vws_target(
+        *,
         vws_client: VWS,
         image_file_failed_state: io.BytesIO,
     ) -> None:
@@ -53,6 +54,7 @@ class TestGetRecord:
 
     @staticmethod
     def test_fail_status(
+        *,
         vws_client: VWS,
         image_file_failed_state: io.BytesIO,
     ) -> None:
@@ -77,6 +79,7 @@ class TestGetRecord:
 
     @staticmethod
     def test_success_status(
+        *,
         image_file_success_state_low_rating: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -139,6 +142,7 @@ class TestTargetTrackingRating:
 
     @staticmethod
     def test_target_quality(
+        *,
         vws_client: VWS,
         high_quality_image: io.BytesIO,
         image_file_success_state_low_rating: io.BytesIO,

@@ -20,10 +20,10 @@ class TestTargetSummary:
     @staticmethod
     @pytest.mark.parametrize(argnames="active_flag", argvalues=[True, False])
     def test_target_summary(
+        *,
         vws_client: VWS,
         vuforia_database: CloudDatabase,
         image_file_failed_state: io.BytesIO,
-        *,
         active_flag: bool,
     ) -> None:
         """A target summary is returned."""
@@ -70,6 +70,7 @@ class TestTargetSummary:
         ],
     )
     def test_after_processing(
+        *,
         vws_client: VWS,
         request: pytest.FixtureRequest,
         image_fixture_name: str,
@@ -121,6 +122,7 @@ class TestRecognitionCounts:
 
     @staticmethod
     def test_recognition(
+        *,
         vws_client: VWS,
         cloud_reco_client: CloudRecoService,
         high_quality_image: io.BytesIO,

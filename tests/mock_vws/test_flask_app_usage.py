@@ -92,6 +92,7 @@ class TestProcessingTime:
 
     def test_custom(
         self,
+        *,
         image_file_failed_state: io.BytesIO,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
@@ -323,6 +324,7 @@ class TestQueryImageMatchers:
 
     @staticmethod
     def test_exact_match(
+        *,
         high_quality_image: io.BytesIO,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
@@ -366,6 +368,7 @@ class TestQueryImageMatchers:
 
     @staticmethod
     def test_structural_similarity_matcher(
+        *,
         high_quality_image: io.BytesIO,
         different_high_quality_image: io.BytesIO,
         monkeypatch: pytest.MonkeyPatch,
@@ -421,6 +424,7 @@ class TestDuplicatesImageMatchers:
 
     @staticmethod
     def test_exact_match(
+        *,
         high_quality_image: io.BytesIO,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
@@ -470,6 +474,7 @@ class TestDuplicatesImageMatchers:
 
     @staticmethod
     def test_structural_similarity_matcher(
+        *,
         high_quality_image: io.BytesIO,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
@@ -516,6 +521,7 @@ class TestTargetRaters:
 
     @staticmethod
     def test_default(
+        *,
         image_file_success_state_low_rating: io.BytesIO,
         high_quality_image: io.BytesIO,
     ) -> None:
@@ -564,6 +570,7 @@ class TestTargetRaters:
 
     @staticmethod
     def test_brisque(
+        *,
         monkeypatch: pytest.MonkeyPatch,
         image_file_success_state_low_rating: io.BytesIO,
         high_quality_image: io.BytesIO,
@@ -615,6 +622,7 @@ class TestTargetRaters:
 
     @staticmethod
     def test_perfect(
+        *,
         monkeypatch: pytest.MonkeyPatch,
         high_quality_image: io.BytesIO,
     ) -> None:
@@ -654,6 +662,7 @@ class TestTargetRaters:
 
     @staticmethod
     def test_random(
+        *,
         monkeypatch: pytest.MonkeyPatch,
         high_quality_image: io.BytesIO,
     ) -> None:

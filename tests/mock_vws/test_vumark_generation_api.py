@@ -103,6 +103,7 @@ class TestGenerateInstance:
     )
     @staticmethod
     def test_generate_instance_format(
+        *,
         accept: VuMarkAccept,
         expected_signature: bytes,
         vumark_vuforia_database: VuMarkCloudDatabase,
@@ -131,6 +132,7 @@ class TestGenerateInstance:
     )
     @staticmethod
     def test_generate_instance_content_type_header(
+        *,
         accept: str,
         expected_content_type: str,
         vumark_vuforia_database: VuMarkCloudDatabase,
