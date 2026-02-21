@@ -280,6 +280,33 @@ class TestDeleteDatabase:
         response = requests.delete(url=delete_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.NOT_FOUND
 
+    @staticmethod
+    def test_vumark_not_found() -> None:
+        """
+        A 404 error is returned when trying to delete a VuMark database
+        which
+        does not exist.
+        """
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/vumark_databases"
+        delete_url = databases_url + "/" + "foobar"
+        response = requests.delete(url=delete_url, json={}, timeout=30)
+        assert response.status_code == HTTPStatus.NOT_FOUND
+
+    @staticmethod
+    def test_delete_vumark_database() -> None:
+        """It is possible to delete a VuMark database."""
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/vumark_databases"
+        response = requests.post(url=databases_url, json={}, timeout=30)
+        assert response.status_code == HTTPStatus.CREATED
+
+        data = json.loads(s=response.text)
+        delete_url = databases_url + "/" + data["database_name"]
+        response = requests.delete(url=delete_url, json={}, timeout=30)
+        assert response.status_code == HTTPStatus.OK
+
+        response = requests.delete(url=delete_url, json={}, timeout=30)
+        assert response.status_code == HTTPStatus.NOT_FOUND
+
 
 class TestQueryImageMatchers:
     """Tests for query image matchers."""
