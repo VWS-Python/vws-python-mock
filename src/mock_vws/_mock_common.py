@@ -1,11 +1,28 @@
 """Common utilities for creating mock routes."""
 
 import json
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from typing import Any
 
 from beartype import beartype
+
+
+@dataclass(frozen=True)
+class RequestData:
+    """A library-agnostic representation of an HTTP request.
+
+    Args:
+        method: The HTTP method of the request.
+        path: The path of the request.
+        headers: The headers sent with the request.
+        body: The body of the request.
+    """
+
+    method: str
+    path: str
+    headers: Mapping[str, str]
+    body: bytes
 
 
 @dataclass(frozen=True)
