@@ -49,8 +49,8 @@ def _to_prepared_request(request: httpx.Request) -> PreparedRequest:
     """
     prepared = PreparedRequest()
     prepared.method = request.method
-    prepared.url = str(request.url)  # type: ignore[arg-type]
-    prepared.headers = CaseInsensitiveDict(  # type: ignore[arg-type]
+    prepared.url = str(request.url)  # type: ignore[call-overload]
+    prepared.headers = CaseInsensitiveDict(  # type: ignore[misc]
         dict(request.headers)
     )
     prepared.body = request.content
