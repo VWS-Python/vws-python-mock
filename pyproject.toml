@@ -338,9 +338,9 @@ markers = [
     "requires_docker_build",
 ]
 # Options for pytest-retry.
-retries = 10
-retry_delay = 10
-cumulative_timing = false
+retries = "10"
+retry_delay = "10"
+cumulative_timing = "false"
 
 [tool.coverage]
 run.branch = true
