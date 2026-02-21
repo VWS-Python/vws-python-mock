@@ -12,6 +12,7 @@ from beartype import BeartypeConf, beartype
 from requests import PreparedRequest
 from responses import RequestsMock
 
+from mock_vws._mock_common import RequestData
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.image_matchers import (
     ImageMatcher,
@@ -27,7 +28,8 @@ from .mock_web_query_api import MockVuforiaWebQueryAPI
 from .mock_web_services_api import MockVuforiaWebServicesAPI
 
 _ResponseType = tuple[int, Mapping[str, str], str | bytes]
-_Callback = Callable[[PreparedRequest], _ResponseType]
+_MockCallback = Callable[[RequestData], _ResponseType]
+_ResponsesCallback = Callable[[PreparedRequest], _ResponseType]
 
 _STRUCTURAL_SIMILARITY_MATCHER = StructuralSimilarityMatcher()
 _BRISQUE_TRACKING_RATER = BrisqueTargetTrackingRater()
@@ -156,10 +158,10 @@ class MockVWS(ContextDecorator):
 
     @staticmethod
     def _wrap_callback(
-        callback: _Callback,
+        callback: _MockCallback,
         delay_seconds: float,
         sleep_fn: Callable[[float], None],
-    ) -> _Callback:
+    ) -> _ResponsesCallback:
         """Wrap a callback to add a response delay."""
 
         def wrapped(
@@ -186,7 +188,21 @@ class MockVWS(ContextDecorator):
                 sleep_fn(effective)
                 raise requests.exceptions.Timeout
 
-            result = callback(request)
+            raw_body = request.body
+            if raw_body is None:
+                body_bytes = b""
+            elif isinstance(raw_body, str):
+                body_bytes = raw_body.encode(encoding="utf-8")
+            else:
+                body_bytes = raw_body
+
+            request_data = RequestData(
+                method=request.method or "",
+                path=request.path_url,
+                headers=dict(request.headers),
+                body=body_bytes,
+            )
+            result = callback(request_data)
             sleep_fn(delay_seconds)
             return result
 
