@@ -123,34 +123,22 @@ def _create_and_get_vumark_target_id(
 
 
 def _fetch_inactive_database_details(
+    driver: "WebDriver",
     email_address: str,
     password: str,
     database_name: str,
 ) -> "DatabaseDict":
-    """Fetch details for an existing inactive database, retrying on
-    timeout.
-    """
-    while True:
-        driver = vws_web_tools.create_chrome_driver()
-        try:
-            vws_web_tools.log_in(
-                driver=driver,
-                email_address=email_address,
-                password=password,
-            )
-            vws_web_tools.wait_for_logged_in(driver=driver)
-            details = vws_web_tools.get_database_details(
-                driver=driver,
-                database_name=database_name,
-            )
-        except TimeoutException:
-            sys.stderr.write(
-                "Timed out getting inactive database details after retries\n"
-            )
-            driver.quit()
-            continue
-        driver.quit()
-        return details
+    """Fetch details for an existing inactive database."""
+    vws_web_tools.log_in(
+        driver=driver,
+        email_address=email_address,
+        password=password,
+    )
+    vws_web_tools.wait_for_logged_in(driver=driver)
+    return vws_web_tools.get_database_details(
+        driver=driver,
+        database_name=database_name,
+    )
 
 
 def _create_vuforia_resource_names() -> tuple[str, str, str, str]:
@@ -175,11 +163,14 @@ def main() -> None:
         "INACTIVE_VUFORIA_TARGET_MANAGER_DATABASE_NAME"
     ]
     new_secrets_dir.mkdir(exist_ok=True)
+    inactive_driver = vws_web_tools.create_chrome_driver()
     inactive_database_details = _fetch_inactive_database_details(
+        driver=inactive_driver,
         email_address=email_address,
         password=password,
         database_name=inactive_database_name,
     )
+    inactive_driver.quit()
 
     num_databases = 100
     required_files = [
