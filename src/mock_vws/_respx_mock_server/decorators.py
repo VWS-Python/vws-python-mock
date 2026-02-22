@@ -48,7 +48,7 @@ def _to_request_data(request: httpx.Request) -> RequestData:
     return RequestData(
         method=request.method,
         path=request.url.raw_path.decode(encoding="ascii"),
-        headers=request.headers,
+        headers={k.title(): v for k, v in request.headers.items()},
         body=request.content,
     )
 

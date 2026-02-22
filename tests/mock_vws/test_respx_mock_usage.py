@@ -1,13 +1,17 @@
 """Tests for the usage of the mock for ``httpx`` via ``respx``."""
 
+import json
 import socket
+import uuid
+from http import HTTPMethod, HTTPStatus
 
 import httpx
 import pytest
-from vws_auth_tools import rfc_1123_date
+from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws import MissingSchemeError, MockVWSForHttpx
 from mock_vws.database import CloudDatabase, VuMarkDatabase
+from mock_vws.target import VuMarkTarget
 
 
 def _request_unmocked_address() -> None:
@@ -388,3 +392,40 @@ class TestVWSEndpoints:
             )
         # We just verify we get a response (auth will fail but endpoint works)
         assert response.status_code is not None
+
+    @staticmethod
+    def test_vumark_bytes_response() -> None:
+        """The vumark endpoint returns bytes content via httpx."""
+        vumark_target = VuMarkTarget(name="test-target")
+        database = VuMarkDatabase(vumark_targets={vumark_target})
+        target_id = vumark_target.target_id
+        request_path = f"/targets/{target_id}/instances"
+        content_type = "application/json"
+        content = json.dumps(obj={"instance_id": uuid.uuid4().hex}).encode(
+            encoding="utf-8"
+        )
+        date = rfc_1123_date()
+        auth = authorization_header(
+            access_key=database.server_access_key,
+            secret_key=database.server_secret_key,
+            method=HTTPMethod.POST,
+            content=content,
+            content_type=content_type,
+            date=date,
+            request_path=request_path,
+        )
+        with MockVWSForHttpx() as mock:
+            mock.add_vumark_database(vumark_database=database)
+            response = httpx.post(
+                url="https://vws.vuforia.com" + request_path,
+                headers={
+                    "Accept": "image/png",
+                    "Authorization": auth,
+                    "Content-Length": str(object=len(content)),
+                    "Content-Type": content_type,
+                    "Date": date,
+                },
+                content=content,
+                timeout=30,
+            )
+        assert response.status_code == HTTPStatus.OK
