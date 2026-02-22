@@ -203,6 +203,15 @@ class VuMarkDatabase:
         hash=False,
     )
 
+    def get_vumark_target(self, target_id: str) -> VuMarkTarget:
+        """Return a VuMark target from the database with the given ID."""
+        (target,) = (
+            target
+            for target in self.vumark_targets
+            if target.target_id == target_id
+        )
+        return target
+
     def to_dict(self) -> VuMarkDatabaseDict:
         """Dump a VuMark database to a dictionary which can be loaded as
         JSON.
