@@ -122,23 +122,34 @@ def _create_and_get_vumark_target_id(
     )
 
 
-def _fetch_inactive_database_details(
+def _create_and_get_inactive_database_details(
     driver: "WebDriver",
     email_address: str,
     password: str,
+    license_name: str,
     database_name: str,
 ) -> "DatabaseDict":
-    """Fetch details for an existing inactive database."""
+    """Create a cloud database, get its details, then delete the license to
+    make it inactive.
+    """
     vws_web_tools.log_in(
         driver=driver,
         email_address=email_address,
         password=password,
     )
     vws_web_tools.wait_for_logged_in(driver=driver)
-    return vws_web_tools.get_database_details(
+    vws_web_tools.create_license(driver=driver, license_name=license_name)
+    vws_web_tools.create_cloud_database(
+        driver=driver,
+        database_name=database_name,
+        license_name=license_name,
+    )
+    database_details = vws_web_tools.get_database_details(
         driver=driver,
         database_name=database_name,
     )
+    vws_web_tools.delete_license(driver=driver, license_name=license_name)
+    return database_details
 
 
 def _create_vuforia_resource_names() -> tuple[str, str, str, str]:
@@ -159,16 +170,18 @@ def main() -> None:
     email_address = os.environ["VWS_EMAIL_ADDRESS"]
     password = os.environ["VWS_PASSWORD"]
     new_secrets_dir = Path(os.environ["NEW_SECRETS_DIR"]).expanduser()
-    inactive_database_name = os.environ[
-        "INACTIVE_VUFORIA_TARGET_MANAGER_DATABASE_NAME"
-    ]
     new_secrets_dir.mkdir(exist_ok=True)
+
+    time = datetime.datetime.now(tz=datetime.UTC).strftime(
+        format="%Y-%m-%d-%H-%M-%S",
+    )
     inactive_driver = vws_web_tools.create_chrome_driver()
-    inactive_database_details = _fetch_inactive_database_details(
+    inactive_database_details = _create_and_get_inactive_database_details(
         driver=inactive_driver,
         email_address=email_address,
         password=password,
-        database_name=inactive_database_name,
+        license_name=f"my-inactive-license-{time}",
+        database_name=f"my-inactive-database-{time}",
     )
     inactive_driver.quit()
 
