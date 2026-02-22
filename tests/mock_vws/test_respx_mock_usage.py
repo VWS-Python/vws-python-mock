@@ -395,7 +395,7 @@ class TestVWSEndpoints:
 
     @staticmethod
     def test_vumark_bytes_response() -> None:
-        """The vumark endpoint returns bytes content via httpx."""
+        """The VuMark endpoint returns bytes content via httpx."""
         vumark_target = VuMarkTarget(name="test-target")
         database = VuMarkDatabase(vumark_targets={vumark_target})
         target_id = vumark_target.target_id
