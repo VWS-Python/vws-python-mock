@@ -4,6 +4,10 @@ Changelog
 Next
 ----
 
+2026.02.22.3
+------------
+
+
 - ``MockVWS`` now intercepts both ``requests`` (via ``responses``) and ``httpx`` (via ``respx``) simultaneously.
   ``MockVWSForHttpx`` has been removed — ``MockVWS`` handles both HTTP libraries.
 
