@@ -3,12 +3,14 @@
 import datetime
 import io
 
+from beartype import beartype
 from vws import VWS
 from vws.reports import TargetStatuses
 
 from mock_vws.database import CloudDatabase
 
 
+@beartype
 def processing_time_seconds(
     *,
     vuforia_database: CloudDatabase,

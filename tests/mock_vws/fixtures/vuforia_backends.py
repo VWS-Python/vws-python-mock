@@ -29,6 +29,7 @@ LOGGER = logging.getLogger(name=__name__)
 LOGGER.setLevel(level=logging.DEBUG)
 
 
+@beartype
 @RETRY_ON_TOO_MANY_REQUESTS
 def _delete_all_targets(*, database_keys: CloudDatabase) -> None:
     """Delete all targets.

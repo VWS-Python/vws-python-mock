@@ -219,6 +219,7 @@ def assert_query_success(*, response: Response) -> None:
     )
 
 
+@beartype
 def assert_vwq_failure(
     *,
     response: Response,

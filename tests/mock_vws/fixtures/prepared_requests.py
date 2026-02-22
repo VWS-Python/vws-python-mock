@@ -8,6 +8,7 @@ from typing import Any
 from uuid import uuid4
 
 import pytest
+from beartype import beartype
 from urllib3.filepost import encode_multipart_formdata
 from vws import VWS
 from vws_auth_tools import authorization_header, rfc_1123_date
@@ -22,6 +23,7 @@ VWS_HOST = "https://vws.vuforia.com"
 VWQ_HOST = "https://cloudreco.vuforia.com"
 
 
+@beartype
 @RETRY_ON_TOO_MANY_REQUESTS
 def _wait_for_target_processed(*, vws_client: VWS, target_id: str) -> None:
     """Wait for a target to be processed.
