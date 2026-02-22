@@ -11,9 +11,12 @@ from vws import VWS, CloudRecoService
 from mock_vws.database import CloudDatabase
 from tests.mock_vws.utils import Endpoint
 
+# `credentials` must be listed before modules that import from it.
+# If listed later, those imports happen before pytest can register it for
+# assertion rewriting, causing a PytestAssertRewriteWarning.
 pytest_plugins = [
-    "tests.mock_vws.fixtures.prepared_requests",
     "tests.mock_vws.fixtures.credentials",
+    "tests.mock_vws.fixtures.prepared_requests",
     "tests.mock_vws.fixtures.vuforia_backends",
 ]
 
