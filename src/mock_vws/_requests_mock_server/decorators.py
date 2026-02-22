@@ -12,9 +12,6 @@ from beartype import BeartypeConf, beartype
 from requests import PreparedRequest
 from responses import RequestsMock
 
-if TYPE_CHECKING:
-    import respx
-
 from mock_vws._mock_common import MissingSchemeError, RequestData
 from mock_vws._respx_mock_server.decorators import start_respx_router
 from mock_vws.database import CloudDatabase, VuMarkDatabase
@@ -30,6 +27,9 @@ from mock_vws.target_raters import (
 
 from .mock_web_query_api import MockVuforiaWebQueryAPI
 from .mock_web_services_api import MockVuforiaWebServicesAPI
+
+if TYPE_CHECKING:
+    import respx
 
 _ResponseType = tuple[int, Mapping[str, str], str | bytes]
 _MockCallback = Callable[[RequestData], _ResponseType]

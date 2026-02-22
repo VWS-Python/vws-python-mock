@@ -131,7 +131,7 @@ def start_respx_router(
     sleep_fn: Callable[[float], None],
     real_http: bool,
 ) -> respx.MockRouter:
-    """Configure and start a respx.MockRouter with Vuforia routes.
+    """Configure and start a respx router with Vuforia routes.
 
     Args:
         mock_vws_api: The VWS API handler.
@@ -143,7 +143,7 @@ def start_respx_router(
         real_http: Whether to pass through unmatched requests.
 
     Returns:
-        A started respx.MockRouter.
+        A started respx router.
     """
     router = respx.MockRouter(
         assert_all_called=False,
