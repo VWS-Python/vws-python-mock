@@ -4,7 +4,7 @@ import re
 import time
 from collections.abc import Callable, Mapping
 from contextlib import ContextDecorator
-from typing import Any, Literal, Self
+from typing import TYPE_CHECKING, Any, Literal, Self
 from urllib.parse import urlparse
 
 import requests
@@ -12,7 +12,11 @@ from beartype import BeartypeConf, beartype
 from requests import PreparedRequest
 from responses import RequestsMock
 
-from mock_vws._mock_common import RequestData
+if TYPE_CHECKING:
+    import respx
+
+from mock_vws._mock_common import MissingSchemeError, RequestData
+from mock_vws._respx_mock_server.decorators import start_respx_router
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.image_matchers import (
     ImageMatcher,
@@ -35,32 +39,12 @@ _STRUCTURAL_SIMILARITY_MATCHER = StructuralSimilarityMatcher()
 _BRISQUE_TRACKING_RATER = BrisqueTargetTrackingRater()
 
 
-@beartype
-class MissingSchemeError(Exception):
-    """Raised when a URL is missing a schema."""
-
-    def __init__(self, url: str) -> None:
-        """
-        Args:
-            url: The URL which is missing a scheme.
-        """
-        super().__init__()
-        self.url = url
-
-    def __str__(self) -> str:
-        """
-        Give a string representation of this error with a
-        suggestion.
-        """
-        return (
-            f'Invalid URL "{self.url}": No scheme supplied. '
-            f'Perhaps you meant "https://{self.url}".'
-        )
-
-
 @beartype(conf=BeartypeConf(is_pep484_tower=True))
 class MockVWS(ContextDecorator):
-    """Route requests to Vuforia's Web Service APIs to fakes of those APIs."""
+    """Route requests to Vuforia's Web Service APIs to fakes of those APIs.
+
+    Works with both ``requests`` and ``httpx``.
+    """
 
     def __init__(
         self,
@@ -77,6 +61,8 @@ class MockVWS(ContextDecorator):
     ) -> None:
         """Route requests to Vuforia's Web Service APIs to fakes of those
         APIs.
+
+        Works with both ``requests`` and ``httpx``.
 
         Args:
             real_http: Whether or not to forward requests to the real
@@ -108,6 +94,7 @@ class MockVWS(ContextDecorator):
         self._response_delay_seconds = response_delay_seconds
         self._sleep_fn = sleep_fn
         self._mock: RequestsMock
+        self._router: respx.MockRouter
         self._target_manager = TargetManager()
 
         self._base_vws_url = base_vws_url
@@ -252,6 +239,16 @@ class MockVWS(ContextDecorator):
         self._mock = mock
         self._mock.start()
 
+        self._router = start_respx_router(
+            mock_vws_api=self._mock_vws_api,
+            mock_vwq_api=self._mock_vwq_api,
+            base_vws_url=self._base_vws_url,
+            base_vwq_url=self._base_vwq_url,
+            response_delay_seconds=self._response_delay_seconds,
+            sleep_fn=self._sleep_fn,
+            real_http=self._real_http,
+        )
+
         return self
 
     def __exit__(self, *exc: object) -> Literal[False]:
@@ -265,4 +262,5 @@ class MockVWS(ContextDecorator):
         del exc
 
         self._mock.stop()
+        self._router.stop()
         return False

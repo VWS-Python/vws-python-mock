@@ -1,8 +1,8 @@
 |project|
 =========
 
-Mocking calls made to Vuforia with Python ``requests``
-------------------------------------------------------
+Mocking calls made to Vuforia
+------------------------------
 
 .. code-block:: console
 
@@ -11,9 +11,6 @@ Mocking calls made to Vuforia with Python ``requests``
 This requires Python |minimum-python-version|\+.
 
 .. include:: basic-example.rst
-
-Mocking calls made to Vuforia with Python ``httpx``
-----------------------------------------------------
 
 .. include:: httpx-example.rst
 

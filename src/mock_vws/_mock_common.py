@@ -9,6 +9,29 @@ from beartype import beartype
 
 
 @beartype
+class MissingSchemeError(Exception):
+    """Raised when a URL is missing a schema."""
+
+    def __init__(self, url: str) -> None:
+        """
+        Args:
+            url: The URL which is missing a scheme.
+        """
+        super().__init__()
+        self.url = url
+
+    def __str__(self) -> str:
+        """
+        Give a string representation of this error with a
+        suggestion.
+        """
+        return (
+            f'Invalid URL "{self.url}": No scheme supplied. '
+            f'Perhaps you meant "https://{self.url}".'
+        )
+
+
+@beartype
 @dataclass(frozen=True)
 class RequestData:
     """A library-agnostic representation of an HTTP request.
