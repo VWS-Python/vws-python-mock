@@ -24,6 +24,9 @@ class VuMarkTargetDict(TypedDict):
 
     target_id: str
     name: str
+    processing_time_seconds: float
+    last_modified_date: str
+    upload_date: str
 
 
 class ImageTargetDict(TypedDict):
@@ -228,14 +231,46 @@ class VuMarkTarget:
     """
 
     name: str
+    processing_time_seconds: float = 0.0
     target_id: str = field(default_factory=_random_hex)
+    last_modified_date: datetime.datetime = field(default_factory=_time_now)
+    upload_date: datetime.datetime = field(default_factory=_time_now)
+
+    @property
+    def status(self) -> str:
+        """Return the status of the target.
+
+        VuMark targets always succeed after processing.
+        """
+        processing_time = datetime.timedelta(
+            seconds=float(self.processing_time_seconds),
+        )
+
+        timezone = self.upload_date.tzinfo
+        now = datetime.datetime.now(tz=timezone)
+        time_since_change = now - self.last_modified_date
+
+        if time_since_change <= processing_time:
+            return TargetStatuses.PROCESSING.value
+
+        return TargetStatuses.SUCCESS.value
 
     @classmethod
     def from_dict(cls, target_dict: VuMarkTargetDict) -> Self:
         """Load a VuMark target from a dictionary."""
+        timezone = ZoneInfo(key="GMT")
+        last_modified_date = datetime.datetime.fromisoformat(
+            target_dict["last_modified_date"],
+        ).replace(tzinfo=timezone)
+        upload_date = datetime.datetime.fromisoformat(
+            target_dict["upload_date"],
+        ).replace(tzinfo=timezone)
         return cls(
             target_id=target_dict["target_id"],
             name=target_dict["name"],
+            processing_time_seconds=target_dict["processing_time_seconds"],
+            last_modified_date=last_modified_date,
+            upload_date=upload_date,
         )
 
     def to_dict(self) -> VuMarkTargetDict:
@@ -245,4 +280,7 @@ class VuMarkTarget:
         return {
             "target_id": self.target_id,
             "name": self.name,
+            "processing_time_seconds": float(self.processing_time_seconds),
+            "last_modified_date": self.last_modified_date.isoformat(),
+            "upload_date": self.upload_date.isoformat(),
         }

@@ -319,6 +319,11 @@ class MockVuforiaWebServicesAPI:
             if not isinstance(database, VuMarkDatabase):
                 raise InvalidTargetTypeError
 
+            target_id = request.path.split(sep="/")[-2]
+            target = database.get_vumark_target(target_id=target_id)
+            if target.status != TargetStatuses.SUCCESS.value:
+                raise TargetStatusNotSuccessError
+
             accept = dict(request.headers).get("Accept", "")
             if accept not in valid_accept_types:
                 raise InvalidAcceptHeaderError

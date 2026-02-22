@@ -398,9 +398,6 @@ def generate_vumark_instance(target_id: str) -> Response:
         databases=all_databases,
     )
 
-    # ``target_id`` is validated by request validators.
-    del target_id
-
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
         request_body=request.data,
@@ -410,6 +407,10 @@ def generate_vumark_instance(target_id: str) -> Response:
     )
     if not isinstance(database, VuMarkDatabase):
         raise InvalidTargetTypeError
+
+    target = database.get_vumark_target(target_id=target_id)
+    if target.status != TargetStatuses.SUCCESS.value:
+        raise TargetStatusNotSuccessError
 
     accept = request.headers.get(key="Accept", default="")
     valid_accept_types: dict[str, bytes] = {
