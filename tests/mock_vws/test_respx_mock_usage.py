@@ -209,6 +209,46 @@ class TestCustomBaseURLs:
             )
 
     @staticmethod
+    def test_custom_base_vws_url_with_path_prefix() -> None:
+        """A custom base VWS URL with a path prefix intercepts at the
+        prefix.
+        """
+        with MockVWSForHttpx(
+            base_vws_url="https://vuforia.vws.example.com/prefix",
+            real_http=False,
+        ):
+            with pytest.raises(expected_exception=httpx.ConnectError):
+                httpx.get(
+                    url="https://vuforia.vws.example.com/summary",
+                    timeout=30,
+                )
+
+            httpx.get(
+                url="https://vuforia.vws.example.com/prefix/summary",
+                timeout=30,
+            )
+
+    @staticmethod
+    def test_custom_base_vwq_url_with_path_prefix() -> None:
+        """A custom base VWQ URL with a path prefix intercepts at the
+        prefix.
+        """
+        with MockVWSForHttpx(
+            base_vwq_url="https://vuforia.vwq.example.com/prefix",
+            real_http=False,
+        ):
+            with pytest.raises(expected_exception=httpx.ConnectError):
+                httpx.post(
+                    url="https://vuforia.vwq.example.com/v1/query",
+                    timeout=30,
+                )
+
+            httpx.post(
+                url="https://vuforia.vwq.example.com/prefix/v1/query",
+                timeout=30,
+            )
+
+    @staticmethod
     def test_no_scheme() -> None:
         """An error is raised if a URL is given with no scheme."""
         with pytest.raises(expected_exception=MissingSchemeError) as vws_exc:
