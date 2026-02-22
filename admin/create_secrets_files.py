@@ -152,7 +152,7 @@ def _create_and_get_inactive_database_details(
     return database_details
 
 
-def _create_vuforia_resource_names() -> tuple[str, str, str, str, str, str]:
+def _create_vuforia_resource_names() -> tuple[str, str, str, str]:
     """Create names for Vuforia resources."""
     time = datetime.datetime.now(tz=datetime.UTC).strftime(
         format="%Y-%m-%d-%H-%M-%S",
@@ -160,8 +160,6 @@ def _create_vuforia_resource_names() -> tuple[str, str, str, str, str, str]:
     return (
         f"my-license-{time}",
         f"my-database-{time}",
-        f"my-inactive-license-{time}",
-        f"my-inactive-database-{time}",
         f"my-vumark-database-{time}",
         f"my-vumark-template-{time}",
     )
@@ -173,6 +171,19 @@ def main() -> None:
     password = os.environ["VWS_PASSWORD"]
     new_secrets_dir = Path(os.environ["NEW_SECRETS_DIR"]).expanduser()
     new_secrets_dir.mkdir(exist_ok=True)
+
+    time = datetime.datetime.now(tz=datetime.UTC).strftime(
+        format="%Y-%m-%d-%H-%M-%S",
+    )
+    inactive_driver = vws_web_tools.create_chrome_driver()
+    inactive_database_details = _create_and_get_inactive_database_details(
+        driver=inactive_driver,
+        email_address=email_address,
+        password=password,
+        license_name=f"my-inactive-license-{time}",
+        database_name=f"my-inactive-database-{time}",
+    )
+    inactive_driver.quit()
 
     num_databases = 100
     required_files = [
@@ -190,8 +201,6 @@ def main() -> None:
         (
             license_name,
             database_name,
-            inactive_license_name,
-            inactive_database_name,
             vumark_database_name,
             vumark_template_name,
         ) = _create_vuforia_resource_names()
@@ -204,16 +213,6 @@ def main() -> None:
                 password=password,
                 license_name=license_name,
                 database_name=database_name,
-            )
-            sys.stdout.write("Creating inactive database details\n")
-            inactive_database_details = (
-                _create_and_get_inactive_database_details(
-                    driver=driver,
-                    email_address=email_address,
-                    password=password,
-                    license_name=inactive_license_name,
-                    database_name=inactive_database_name,
-                )
             )
             sys.stdout.write("Creating VuMark database details\n")
             vumark_details = _create_and_get_vumark_details(
