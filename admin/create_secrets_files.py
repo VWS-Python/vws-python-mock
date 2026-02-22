@@ -193,6 +193,7 @@ def main() -> None:
         ) = _create_vuforia_resource_names()
 
         try:
+            sys.stdout.write("Creating database details\n")
             database_details = _create_and_get_database_details(
                 driver=driver,
                 email_address=email_address,
@@ -200,37 +201,19 @@ def main() -> None:
                 license_name=license_name,
                 database_name=database_name,
             )
-        except TimeoutException:
-            sys.stderr.write(
-                "Timed out waiting for database setup/details after retries\n"
-            )
-            driver.quit()
-            driver = None
-            continue
-
-        try:
+            sys.stdout.write("Creating VuMark database details\n")
             vumark_details = _create_and_get_vumark_details(
                 driver=driver,
                 vumark_database_name=vumark_database_name,
             )
-        except TimeoutException:
-            sys.stderr.write(
-                "Timed out waiting for VuMark setup/details after retries\n"
-            )
-            driver.quit()
-            driver = None
-            continue
-
-        try:
+            sys.stdout.write("Creating VuMark target\n")
             vumark_target_id = _create_and_get_vumark_target_id(
                 driver=driver,
                 vumark_database_name=vumark_database_name,
                 vumark_template_name=vumark_template_name,
             )
         except TimeoutException:
-            sys.stderr.write(
-                "Timed out waiting for VuMark template upload after retries\n"
-            )
+            sys.stderr.write("Timed out during database setup\n")
             driver.quit()
             driver = None
             continue
