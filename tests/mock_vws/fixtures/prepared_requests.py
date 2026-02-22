@@ -23,7 +23,7 @@ VWQ_HOST = "https://cloudreco.vuforia.com"
 
 
 @RETRY_ON_TOO_MANY_REQUESTS
-def _wait_for_target_processed(vws_client: VWS, target_id: str) -> None:
+def _wait_for_target_processed(*, vws_client: VWS, target_id: str) -> None:
     """Wait for a target to be processed.
 
     We retry here because pytest-retry does not retry on exceptions
