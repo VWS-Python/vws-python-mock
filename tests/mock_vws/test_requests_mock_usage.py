@@ -8,6 +8,7 @@ import socket
 from http import HTTPStatus
 from urllib.parse import urlparse
 
+import httpx
 import pytest
 import requests
 from beartype import beartype
@@ -1004,3 +1005,50 @@ class TestDataTypes:
         )
         response = new_endpoint.send()
         assert response.status_code == endpoint.successful_headers_status_code
+
+
+class TestHttpxAlsoIntercepted:
+    """Tests that MockVWS also intercepts httpx requests."""
+
+    @staticmethod
+    def test_httpx_vuforia_endpoint_intercepted() -> None:
+        """``MockVWS`` intercepts ``httpx`` requests to Vuforia
+        endpoints.
+        """
+        with MockVWS():
+            response = httpx.get(
+                url="https://vws.vuforia.com/summary",
+                headers={
+                    "Date": rfc_1123_date(),
+                    "Authorization": "bad_auth_token",
+                },
+                timeout=30,
+            )
+        assert response.status_code is not None
+
+    @staticmethod
+    def test_httpx_unmocked_address_blocked() -> None:
+        """``MockVWS`` blocks ``httpx`` requests to non-Vuforia
+        addresses.
+        """
+        sock = socket.socket()
+        sock.bind(("", 0))
+        port = sock.getsockname()[1]
+        sock.close()
+        with MockVWS(), pytest.raises(expected_exception=httpx.ConnectError):
+            httpx.get(url=f"http://localhost:{port}", timeout=30)
+
+    @staticmethod
+    def test_httpx_real_http() -> None:
+        """When ``real_http=True``, ``httpx`` requests to non-Vuforia
+        addresses are not blocked.
+        """
+        sock = socket.socket()
+        sock.bind(("", 0))
+        port = sock.getsockname()[1]
+        sock.close()
+        with (
+            MockVWS(real_http=True),
+            pytest.raises(expected_exception=httpx.ConnectError),
+        ):
+            httpx.get(url=f"http://localhost:{port}", timeout=30)
