@@ -2,20 +2,21 @@
 
 import re
 from collections.abc import Callable, Mapping
+from typing import Protocol
 from urllib.parse import urlparse
 
 import httpx
 import respx
 
-from mock_vws._mock_common import RequestData
-from mock_vws._requests_mock_server.mock_web_query_api import (
-    MockVuforiaWebQueryAPI,
-)
-from mock_vws._requests_mock_server.mock_web_services_api import (
-    MockVuforiaWebServicesAPI,
-)
+from mock_vws._mock_common import RequestData, Route
 
 _ResponseType = tuple[int, Mapping[str, str], str | bytes]
+
+
+class _APIHandler(Protocol):
+    """An API handler with mock routes."""
+
+    routes: set[Route]
 
 
 def _to_request_data(
@@ -123,8 +124,8 @@ def _make_respx_callback(
 
 def start_respx_router(
     *,
-    mock_vws_api: MockVuforiaWebServicesAPI,
-    mock_vwq_api: MockVuforiaWebQueryAPI,
+    mock_vws_api: _APIHandler,
+    mock_vwq_api: _APIHandler,
     base_vws_url: str,
     base_vwq_url: str,
     response_delay_seconds: float,
