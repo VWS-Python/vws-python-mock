@@ -19,7 +19,6 @@ from vws_auth_tools import authorization_header, rfc_1123_date
 from mock_vws import MockVWS
 from mock_vws._constants import ResultCodes
 from mock_vws.database import CloudDatabase, VuMarkDatabase
-from mock_vws.states import States
 from mock_vws.target import VuMarkTarget
 from tests.mock_vws.fixtures.credentials import VuMarkCloudDatabase
 from tests.mock_vws.utils import make_image_file
@@ -361,33 +360,24 @@ class TestTargetStatusNotSuccess:
         assert vumark_bytes.strip().startswith(_PNG_SIGNATURE)
 
 
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestInactiveDatabase:
     """Tests for VuMark generation with an inactive database."""
 
     @staticmethod
-    def test_inactive_database() -> None:
+    def test_inactive_database(
+        inactive_database: CloudDatabase,
+    ) -> None:
         """Calling the VuMark generation API with credentials for an
         inactive database returns ProjectInactive.
         """
-        vumark_target = VuMarkTarget(
-            name="test-target",
-            processing_time_seconds=0,
+        response = _make_vumark_request(
+            server_access_key=inactive_database.server_access_key,
+            server_secret_key=inactive_database.server_secret_key,
+            target_id=uuid4().hex,
+            instance_id=uuid4().hex,
+            accept="image/png",
         )
-        vumark_database = VuMarkDatabase(vumark_targets={vumark_target})
-        inactive_cloud_database = CloudDatabase(
-            state=States.PROJECT_INACTIVE,
-        )
-
-        with MockVWS() as mock:
-            mock.add_cloud_database(cloud_database=inactive_cloud_database)
-            mock.add_vumark_database(vumark_database=vumark_database)
-            response = _make_vumark_request(
-                server_access_key=inactive_cloud_database.server_access_key,
-                server_secret_key=inactive_cloud_database.server_secret_key,
-                target_id=vumark_target.target_id,
-                instance_id=uuid4().hex,
-                accept="image/png",
-            )
 
         assert response.status_code == HTTPStatus.FORBIDDEN
         response_json = response.json()
