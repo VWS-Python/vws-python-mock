@@ -12,6 +12,11 @@ This requires Python |minimum-python-version|\+.
 
 .. include:: basic-example.rst
 
+Mocking calls made to Vuforia with Python ``httpx``
+----------------------------------------------------
+
+.. include:: httpx-example.rst
+
 Using Docker to mock calls to Vuforia from any language
 -------------------------------------------------------
 

@@ -7,6 +7,10 @@ API Reference
    :members:
    :undoc-members:
 
+.. autoclass:: mock_vws.MockVWSForHttpx
+   :members:
+   :undoc-members:
+
 .. autoclass:: mock_vws.MissingSchemeError
    :members:
    :undoc-members:
