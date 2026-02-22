@@ -8,6 +8,7 @@ from typing import Literal
 from urllib.parse import urljoin
 
 import requests
+from beartype import beartype
 from PIL import Image
 from requests.structures import CaseInsensitiveDict
 from vws.response import Response
@@ -52,6 +53,7 @@ class Endpoint:
     access_key: str
     secret_key: str
 
+    @beartype
     def send(self) -> Response:
         """Send the request."""
         request = requests.Request(
@@ -81,6 +83,7 @@ class Endpoint:
         return full_content_type.split(sep=";")[0]
 
 
+@beartype
 def make_image_file(
     file_format: str,
     color_space: Literal["RGB", "CMYK"],
