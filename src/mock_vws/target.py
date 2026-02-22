@@ -92,10 +92,9 @@ class ImageTarget:
         suitable the target is for detection.
         """
         image_file = io.BytesIO(initial_bytes=self.image_value)
-        image = Image.open(fp=image_file)
-        image_stat = ImageStat.Stat(image_or_list=image)
-
-        average_std_dev = statistics.mean(data=image_stat.stddev)
+        with Image.open(fp=image_file) as image:
+            image_stat = ImageStat.Stat(image_or_list=image)
+            average_std_dev = statistics.mean(data=image_stat.stddev)
 
         success_threshold = 5
 
