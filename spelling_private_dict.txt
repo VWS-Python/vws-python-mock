@@ -45,6 +45,7 @@ hmac
 html
 http
 https
+httpx
 iff
 io
 issuecomment
@@ -98,6 +99,7 @@ reqjsonarr
 resheader
 resjson
 resjsonarr
+respx
 rfc
 rgb
 str
