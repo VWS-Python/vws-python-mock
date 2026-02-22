@@ -240,8 +240,8 @@ class MockVWS(ContextDecorator):
         self._mock.start()
 
         self._router = start_respx_router(
-            mock_vws_api=self._mock_vws_api,
-            mock_vwq_api=self._mock_vwq_api,
+            mock_vws_api=self._mock_vws_api,  # pyrefly: ignore
+            mock_vwq_api=self._mock_vwq_api,  # pyrefly: ignore
             base_vws_url=self._base_vws_url,
             base_vwq_url=self._base_vwq_url,
             response_delay_seconds=self._response_delay_seconds,
