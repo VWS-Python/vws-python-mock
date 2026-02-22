@@ -36,18 +36,26 @@ _STRUCTURAL_SIMILARITY_MATCHER = StructuralSimilarityMatcher()
 _BRISQUE_TRACKING_RATER = BrisqueTargetTrackingRater()
 
 
-def _to_request_data(request: httpx.Request) -> RequestData:
+def _to_request_data(
+    request: httpx.Request,
+    *,
+    base_path: str,
+) -> RequestData:
     """Convert an httpx.Request to a RequestData.
 
     Args:
         request: The httpx request to convert.
+        base_path: The base path prefix to strip from the request path.
 
     Returns:
         A RequestData with method, path, headers, and body set.
     """
+    path = request.url.raw_path.decode(encoding="ascii")
+    if base_path and path.startswith(base_path):
+        path = path[len(base_path) :]
     return RequestData(
         method=request.method,
-        path=request.url.raw_path.decode(encoding="ascii"),
+        path=path,
         headers={k.title(): v for k, v in request.headers.items()},
         body=request.content,
     )
@@ -155,12 +163,14 @@ class MockVWSForHttpx(ContextDecorator):
     def _make_callback(
         self,
         handler: Callable[[RequestData], _ResponseType],
+        base_path: str,
     ) -> Callable[[httpx.Request], httpx.Response]:
         """Create a respx-compatible callback from a handler.
 
         Args:
             handler: A handler that takes a RequestData and returns a
                 response tuple.
+            base_path: The base path prefix to strip from the request path.
 
         Returns:
             A callback that takes an httpx.Request and returns an
@@ -183,7 +193,10 @@ class MockVWSForHttpx(ContextDecorator):
                 Exception: A timeout error is raised when the response
                     delay exceeds the read timeout.
             """
-            request_data = _to_request_data(request=request)
+            request_data = _to_request_data(
+                request=request,
+                base_path=base_path,
+            )
             timeout_info: dict[str, float | None] = request.extensions.get(
                 "timeout", {}
             )
@@ -237,6 +250,7 @@ class MockVWSForHttpx(ContextDecorator):
             (self._mock_vws_api, self._base_vws_url),
             (self._mock_vwq_api, self._base_vwq_url),
         ):
+            base_path = urlparse(url=base_url).path.rstrip("/")
             for route in api.routes:
                 url_pattern = base_url.rstrip("/") + route.path_pattern + "$"
                 compiled_url_pattern = re.compile(pattern=url_pattern)
@@ -249,6 +263,7 @@ class MockVWSForHttpx(ContextDecorator):
                     ).mock(
                         side_effect=self._make_callback(
                             handler=original_callback,
+                            base_path=base_path,
                         ),
                     )
 
