@@ -10,6 +10,7 @@ class TestTargetList:
 
     @staticmethod
     def test_includes_targets(
+        *,
         vws_client: VWS,
         target_id: str,
     ) -> None:
@@ -18,6 +19,7 @@ class TestTargetList:
 
     @staticmethod
     def test_deleted(
+        *,
         vws_client: VWS,
         target_id: str,
     ) -> None:

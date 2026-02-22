@@ -88,6 +88,7 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
 
 @pytest.mark.requires_docker_build
 def test_build_and_run(
+    *,
     high_quality_image: io.BytesIO,
     custom_bridge_network: Network,
     request: pytest.FixtureRequest,

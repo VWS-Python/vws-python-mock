@@ -94,6 +94,7 @@ class TestDatabaseSummary:
 
     @staticmethod
     def test_success(
+        *,
         vuforia_database: CloudDatabase,
         vws_client: VWS,
     ) -> None:
@@ -110,7 +111,7 @@ class TestDatabaseSummary:
         )
 
     @staticmethod
-    def test_active_images(vws_client: VWS, target_id: str) -> None:
+    def test_active_images(*, vws_client: VWS, target_id: str) -> None:
         """The number of images in the active state is returned."""
         vws_client.wait_for_target_processed(target_id=target_id)
 
@@ -124,6 +125,7 @@ class TestDatabaseSummary:
 
     @staticmethod
     def test_failed_images(
+        *,
         image_file_failed_state: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -148,6 +150,7 @@ class TestDatabaseSummary:
 
     @staticmethod
     def test_inactive_images(
+        *,
         vws_client: VWS,
         image_file_success_state_low_rating: io.BytesIO,
     ) -> None:
@@ -176,6 +179,7 @@ class TestDatabaseSummary:
 
     @staticmethod
     def test_inactive_failed(
+        *,
         image_file_failed_state: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -200,6 +204,7 @@ class TestDatabaseSummary:
 
     @staticmethod
     def test_deleted(
+        *,
         image_file_failed_state: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -289,6 +294,7 @@ class TestRecos:
 
     @staticmethod
     def test_query_request(
+        *,
         cloud_reco_client: CloudRecoService,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
@@ -344,6 +350,7 @@ class TestRequestUsage:
 
     @staticmethod
     def test_bad_target_request(
+        *,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -372,6 +379,7 @@ class TestRequestUsage:
 
     @staticmethod
     def test_query_request(
+        *,
         cloud_reco_client: CloudRecoService,
         high_quality_image: io.BytesIO,
         vws_client: VWS,

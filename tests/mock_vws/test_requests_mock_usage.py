@@ -684,6 +684,7 @@ class TestQueryImageMatchers:
 
     @staticmethod
     def test_structural_similarity_matcher(
+        *,
         high_quality_image: io.BytesIO,
         different_high_quality_image: io.BytesIO,
     ) -> None:

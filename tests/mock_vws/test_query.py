@@ -273,6 +273,7 @@ class TestContentType:
 
     @staticmethod
     def test_incorrect_with_boundary(
+        *,
         high_quality_image: io.BytesIO,
         vuforia_database: CloudDatabase,
     ) -> None:
@@ -351,6 +352,7 @@ class TestContentType:
         ],
     )
     def test_no_boundary(
+        *,
         high_quality_image: io.BytesIO,
         vuforia_database: CloudDatabase,
         content_type: str,
@@ -415,6 +417,7 @@ class TestContentType:
 
     @staticmethod
     def test_bogus_boundary(
+        *,
         high_quality_image: io.BytesIO,
         vuforia_database: CloudDatabase,
     ) -> None:
@@ -477,6 +480,7 @@ class TestContentType:
 
     @staticmethod
     def test_extra_section(
+        *,
         high_quality_image: io.BytesIO,
         vuforia_database: CloudDatabase,
     ) -> None:
@@ -540,6 +544,7 @@ class TestSuccess:
 
     @staticmethod
     def test_no_results(
+        *,
         high_quality_image: io.BytesIO,
         cloud_reco_client: CloudRecoService,
     ) -> None:
@@ -553,6 +558,7 @@ class TestSuccess:
 
     @staticmethod
     def test_match_exact(
+        *,
         high_quality_image: io.BytesIO,
         vuforia_database: CloudDatabase,
         vws_client: VWS,
@@ -603,6 +609,7 @@ class TestSuccess:
 
     @staticmethod
     def test_low_quality_image(
+        *,
         image_file_success_state_low_rating: io.BytesIO,
         cloud_reco_client: CloudRecoService,
         vws_client: VWS,
@@ -631,6 +638,7 @@ class TestSuccess:
 
     @staticmethod
     def test_match_similar(
+        *,
         high_quality_image: io.BytesIO,
         different_high_quality_image: io.BytesIO,
         vws_client: VWS,
@@ -681,6 +689,7 @@ class TestSuccess:
 
     @staticmethod
     def test_not_base64_encoded_processable(
+        *,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
         not_base64_encoded_processable: str,
@@ -753,6 +762,7 @@ class TestIncorrectFields:
 
     @staticmethod
     def test_extra_fields(
+        *,
         high_quality_image: io.BytesIO,
         vuforia_database: CloudDatabase,
     ) -> None:
@@ -810,6 +820,7 @@ class TestMaxNumResults:
 
     @staticmethod
     def test_default(
+        *,
         high_quality_image: io.BytesIO,
         vuforia_database: CloudDatabase,
         vws_client: VWS,
@@ -847,6 +858,7 @@ class TestMaxNumResults:
     @staticmethod
     @pytest.mark.parametrize(argnames="num_results", argvalues=[1, b"1", 50])
     def test_valid_accepted(
+        *,
         high_quality_image: io.BytesIO,
         vuforia_database: CloudDatabase,
         num_results: int | bytes,
@@ -877,6 +889,7 @@ class TestMaxNumResults:
 
     @staticmethod
     def test_valid_works(
+        *,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
         cloud_reco_client: CloudRecoService,
@@ -899,6 +912,7 @@ class TestMaxNumResults:
     @staticmethod
     @pytest.mark.parametrize(argnames="num_results", argvalues=[-1, 0, 51])
     def test_out_of_range(
+        *,
         high_quality_image: io.BytesIO,
         num_results: int,
         cloud_reco_client: CloudRecoService,
@@ -940,6 +954,7 @@ class TestMaxNumResults:
         argvalues=[b"0.1", b"1.1", b"a", b"2147483648"],
     )
     def test_invalid_type(
+        *,
         high_quality_image: io.BytesIO,
         vuforia_database: CloudDatabase,
         num_results: bytes,
@@ -1002,6 +1017,7 @@ class TestIncludeTargetData:
 
     @staticmethod
     def test_default(
+        *,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
         vuforia_database: CloudDatabase,
@@ -1032,6 +1048,7 @@ class TestIncludeTargetData:
         argvalues=["top", "TOP"],
     )
     def test_top(
+        *,
         high_quality_image: io.BytesIO,
         vuforia_database: CloudDatabase,
         include_target_data: str,
@@ -1068,6 +1085,7 @@ class TestIncludeTargetData:
         argvalues=["none", "NONE"],
     )
     def test_none(
+        *,
         high_quality_image: io.BytesIO,
         vuforia_database: CloudDatabase,
         include_target_data: str,
@@ -1104,6 +1122,7 @@ class TestIncludeTargetData:
         argvalues=["all", "ALL"],
     )
     def test_all(
+        *,
         high_quality_image: io.BytesIO,
         vuforia_database: CloudDatabase,
         include_target_data: str,
@@ -1189,6 +1208,7 @@ class TestAcceptHeader:
         ],
     )
     def test_valid(
+        *,
         high_quality_image: io.BytesIO,
         vuforia_database: CloudDatabase,
         extra_headers: dict[str, str],
@@ -1245,6 +1265,7 @@ class TestAcceptHeader:
 
     @staticmethod
     def test_invalid(
+        *,
         high_quality_image: io.BytesIO,
         vuforia_database: CloudDatabase,
     ) -> None:
@@ -1315,6 +1336,7 @@ class TestActiveFlag:
 
     @staticmethod
     def test_inactive(
+        *,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
         cloud_reco_client: CloudRecoService,
@@ -1339,6 +1361,7 @@ class TestBadImage:
 
     @staticmethod
     def test_corrupted(
+        *,
         corrupted_image_file: io.BytesIO,
         cloud_reco_client: CloudRecoService,
     ) -> None:
@@ -1667,6 +1690,7 @@ class TestImageFormats:
     @staticmethod
     @pytest.mark.parametrize(argnames="file_format", argvalues=["png", "jpeg"])
     def test_supported(
+        *,
         high_quality_image: io.BytesIO,
         file_format: str,
         cloud_reco_client: CloudRecoService,
@@ -1683,6 +1707,7 @@ class TestImageFormats:
 
     @staticmethod
     def test_unsupported(
+        *,
         high_quality_image: io.BytesIO,
         cloud_reco_client: CloudRecoService,
     ) -> None:
@@ -1729,10 +1754,10 @@ class TestProcessing:
     @staticmethod
     @pytest.mark.parametrize(argnames="active_flag", argvalues=[True, False])
     def test_processing(
+        *,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
         cloud_reco_client: CloudRecoService,
-        *,
         active_flag: bool,
     ) -> None:
         """
@@ -1773,6 +1798,7 @@ class TestUpdate:
 
     @staticmethod
     def test_updated_target(
+        *,
         high_quality_image: io.BytesIO,
         different_high_quality_image: io.BytesIO,
         vws_client: VWS,
@@ -1850,6 +1876,7 @@ class TestDeleted:
 
     @staticmethod
     def test_deleted_active(
+        *,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
         cloud_reco_client: CloudRecoService,
@@ -1886,6 +1913,7 @@ class TestDeleted:
 
     @staticmethod
     def test_deleted_inactive(
+        *,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
         cloud_reco_client: CloudRecoService,
@@ -1914,6 +1942,7 @@ class TestTargetStatusFailed:
 
     @staticmethod
     def test_status_failed(
+        *,
         image_file_failed_state: io.BytesIO,
         vws_client: VWS,
         cloud_reco_client: CloudRecoService,
@@ -1959,10 +1988,10 @@ class TestDateFormats:
     )
     @pytest.mark.parametrize(argnames="include_tz", argvalues=[True, False])
     def test_date_formats(
+        *,
         high_quality_image: io.BytesIO,
         vuforia_database: CloudDatabase,
         datetime_format: str,
-        *,
         include_tz: bool,
     ) -> None:
         """Test various date formats which are known to be accepted.
@@ -2030,6 +2059,7 @@ class TestInactiveProject:
 
     @staticmethod
     def test_inactive_project(
+        *,
         high_quality_image: io.BytesIO,
         inactive_cloud_reco_client: CloudRecoService,
     ) -> None:

@@ -265,6 +265,7 @@ class TestBadKey:
 
     @staticmethod
     def test_bad_access_key_query(
+        *,
         vuforia_database: CloudDatabase,
         high_quality_image: io.BytesIO,
     ) -> None:
@@ -328,6 +329,7 @@ class TestBadKey:
 
     @staticmethod
     def test_bad_secret_key_query(
+        *,
         vuforia_database: CloudDatabase,
         high_quality_image: io.BytesIO,
     ) -> None:
