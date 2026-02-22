@@ -392,6 +392,5 @@ class TestInactiveDatabase:
         assert response.status_code == HTTPStatus.FORBIDDEN
         response_json = response.json()
         assert (
-            response_json["result_code"]
-            == ResultCodes.PROJECT_INACTIVE.value
+            response_json["result_code"] == ResultCodes.PROJECT_INACTIVE.value
         )
