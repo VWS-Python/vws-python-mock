@@ -5,7 +5,7 @@ import time
 from collections.abc import Callable, Mapping
 from contextlib import ContextDecorator
 from typing import Literal, Self
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urlparse
 
 import httpx
 import respx
@@ -48,7 +48,7 @@ def _to_request_data(request: httpx.Request) -> RequestData:
     return RequestData(
         method=request.method,
         path=request.url.raw_path.decode(encoding="ascii"),
-        headers=request.headers,
+        headers={k.title(): v for k, v in request.headers.items()},
         body=request.content,
     )
 
@@ -238,10 +238,7 @@ class MockVWSForHttpx(ContextDecorator):
             (self._mock_vwq_api, self._base_vwq_url),
         ):
             for route in api.routes:
-                url_pattern = urljoin(
-                    base=base_url,
-                    url=f"{route.path_pattern}$",
-                )
+                url_pattern = base_url.rstrip("/") + route.path_pattern + "$"
                 compiled_url_pattern = re.compile(pattern=url_pattern)
 
                 for http_method in route.http_methods:

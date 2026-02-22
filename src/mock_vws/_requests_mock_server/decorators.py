@@ -5,7 +5,7 @@ import time
 from collections.abc import Callable, Mapping
 from contextlib import ContextDecorator
 from typing import Any, Literal, Self
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urlparse
 
 import requests
 from beartype import BeartypeConf, beartype
@@ -222,10 +222,7 @@ class MockVWS(ContextDecorator):
             (self._mock_vwq_api, self._base_vwq_url),
         ):
             for route in api.routes:
-                url_pattern = urljoin(
-                    base=base_url,
-                    url=f"{route.path_pattern}$",
-                )
+                url_pattern = base_url.rstrip("/") + route.path_pattern + "$"
                 compiled_url_pattern = re.compile(pattern=url_pattern)
 
                 for http_method in route.http_methods:

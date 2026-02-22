@@ -1,13 +1,17 @@
 """Tests for the usage of the mock for ``httpx`` via ``respx``."""
 
+import json
 import socket
+import uuid
+from http import HTTPMethod, HTTPStatus
 
 import httpx
 import pytest
-from vws_auth_tools import rfc_1123_date
+from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws import MissingSchemeError, MockVWSForHttpx
 from mock_vws.database import CloudDatabase, VuMarkDatabase
+from mock_vws.target import VuMarkTarget
 
 
 def _request_unmocked_address() -> None:
@@ -209,6 +213,46 @@ class TestCustomBaseURLs:
             )
 
     @staticmethod
+    def test_custom_base_vws_url_with_path_prefix() -> None:
+        """A custom base VWS URL with a path prefix intercepts at the
+        prefix.
+        """
+        with MockVWSForHttpx(
+            base_vws_url="https://vuforia.vws.example.com/prefix",
+            real_http=False,
+        ):
+            with pytest.raises(expected_exception=httpx.ConnectError):
+                httpx.get(
+                    url="https://vuforia.vws.example.com/summary",
+                    timeout=30,
+                )
+
+            httpx.get(
+                url="https://vuforia.vws.example.com/prefix/summary",
+                timeout=30,
+            )
+
+    @staticmethod
+    def test_custom_base_vwq_url_with_path_prefix() -> None:
+        """A custom base VWQ URL with a path prefix intercepts at the
+        prefix.
+        """
+        with MockVWSForHttpx(
+            base_vwq_url="https://vuforia.vwq.example.com/prefix",
+            real_http=False,
+        ):
+            with pytest.raises(expected_exception=httpx.ConnectError):
+                httpx.post(
+                    url="https://vuforia.vwq.example.com/v1/query",
+                    timeout=30,
+                )
+
+            httpx.post(
+                url="https://vuforia.vwq.example.com/prefix/v1/query",
+                timeout=30,
+            )
+
+    @staticmethod
     def test_no_scheme() -> None:
         """An error is raised if a URL is given with no scheme."""
         with pytest.raises(expected_exception=MissingSchemeError) as vws_exc:
@@ -348,3 +392,40 @@ class TestVWSEndpoints:
             )
         # We just verify we get a response (auth will fail but endpoint works)
         assert response.status_code is not None
+
+    @staticmethod
+    def test_vumark_bytes_response() -> None:
+        """The VuMark endpoint returns bytes content via httpx."""
+        vumark_target = VuMarkTarget(name="test-target")
+        database = VuMarkDatabase(vumark_targets={vumark_target})
+        target_id = vumark_target.target_id
+        request_path = f"/targets/{target_id}/instances"
+        content_type = "application/json"
+        content = json.dumps(obj={"instance_id": uuid.uuid4().hex}).encode(
+            encoding="utf-8"
+        )
+        date = rfc_1123_date()
+        auth = authorization_header(
+            access_key=database.server_access_key,
+            secret_key=database.server_secret_key,
+            method=HTTPMethod.POST,
+            content=content,
+            content_type=content_type,
+            date=date,
+            request_path=request_path,
+        )
+        with MockVWSForHttpx() as mock:
+            mock.add_vumark_database(vumark_database=database)
+            response = httpx.post(
+                url="https://vws.vuforia.com" + request_path,
+                headers={
+                    "Accept": "image/png",
+                    "Authorization": auth,
+                    "Content-Length": str(object=len(content)),
+                    "Content-Type": content_type,
+                    "Date": date,
+                },
+                content=content,
+                timeout=30,
+            )
+        assert response.status_code == HTTPStatus.OK
