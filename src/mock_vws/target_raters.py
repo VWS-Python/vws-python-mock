@@ -26,14 +26,14 @@ def _get_brisque_target_tracking_rating(*, image_content: bytes) -> int:
         image_content: A target's image's content.
     """
     image_file = io.BytesIO(initial_bytes=image_content)
-    image = Image.open(fp=image_file)
-    image_np = np.array(object=image, dtype=np.float32)
-    image_tensor = torch.tensor(data=image_np).float() / 255
-    image_tensor = image_tensor.view(
-        image.size[1],
-        image.size[0],
-        len(image.getbands()),
-    )
+    with Image.open(fp=image_file) as image:
+        image_np = np.array(object=image, dtype=np.float32)
+        image_tensor = torch.tensor(data=image_np).float() / 255
+        image_tensor = image_tensor.view(
+            image.size[1],
+            image.size[0],
+            len(image.getbands()),
+        )
     image_tensor = image_tensor.permute(2, 0, 1).unsqueeze(dim=0)
     try:
         brisque_score = brisque(x=image_tensor, data_range=255)

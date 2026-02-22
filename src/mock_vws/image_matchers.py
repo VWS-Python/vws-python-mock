@@ -69,14 +69,16 @@ class StructuralSimilarityMatcher:
             second_image_content: Another image's content.
         """
         first_image_file = io.BytesIO(initial_bytes=first_image_content)
-        first_image = Image.open(fp=first_image_file)
         second_image_file = io.BytesIO(initial_bytes=second_image_content)
-        second_image = Image.open(fp=second_image_file)
-        # Images must be the same size, and they must be larger than the
-        # default SSIM window size of 11x11.
-        target_size = (256, 256)
-        first_image_resized = first_image.resize(size=target_size)
-        second_image_resized = second_image.resize(size=target_size)
+        with (
+            Image.open(fp=first_image_file) as first_image,
+            Image.open(fp=second_image_file) as second_image,
+        ):
+            # Images must be the same size, and they must be larger than the
+            # default SSIM window size of 11x11.
+            target_size = (256, 256)
+            first_image_resized = first_image.resize(size=target_size)
+            second_image_resized = second_image.resize(size=target_size)
 
         first_image_np = np.array(object=first_image_resized, dtype=np.float32)
         first_image_tensor = torch.tensor(data=first_image_np).float() / 255

@@ -40,13 +40,12 @@ def validate_image_integrity(*, request_body: bytes) -> None:
     decoded = decode_base64(encoded_data=image)
 
     image_file = io.BytesIO(initial_bytes=decoded)
-    pil_image = Image.open(fp=image_file)
-
-    try:
-        pil_image.verify()
-    except SyntaxError as exc:
-        _LOGGER.warning(msg="The image is not a valid image file.")
-        raise BadImageError from exc
+    with Image.open(fp=image_file) as pil_image:
+        try:
+            pil_image.verify()
+        except SyntaxError as exc:
+            _LOGGER.warning(msg="The image is not a valid image file.")
+            raise BadImageError from exc
 
 
 @beartype
@@ -70,10 +69,9 @@ def validate_image_format(*, request_body: bytes) -> None:
 
     decoded = decode_base64(encoded_data=image)
     image_file = io.BytesIO(initial_bytes=decoded)
-    pil_image = Image.open(fp=image_file)
-
-    if pil_image.format in {"PNG", "JPEG"}:
-        return
+    with Image.open(fp=image_file) as pil_image:
+        if pil_image.format in {"PNG", "JPEG"}:
+            return
 
     _LOGGER.warning(msg="The image is not a PNG or JPEG.")
     raise BadImageError
@@ -101,10 +99,9 @@ def validate_image_color_space(*, request_body: bytes) -> None:
 
     decoded = decode_base64(encoded_data=image)
     image_file = io.BytesIO(initial_bytes=decoded)
-    pil_image = Image.open(fp=image_file)
-
-    if pil_image.mode in {"L", "RGB"}:
-        return
+    with Image.open(fp=image_file) as pil_image:
+        if pil_image.mode in {"L", "RGB"}:
+            return
 
     _LOGGER.warning(
         msg="The image is not in the RGB or greyscale color space.",
@@ -165,7 +162,8 @@ def validate_image_is_image(*, request_body: bytes) -> None:
     image_file = io.BytesIO(initial_bytes=decoded)
 
     try:
-        Image.open(fp=image_file)
+        with Image.open(fp=image_file) as _:
+            pass
     except OSError as exc:
         raise BadImageError from exc
 
