@@ -72,11 +72,16 @@ def _vumark_database(
         name="mock-vumark-target",
         target_id=vumark_vuforia_database.target_id,
     )
+    processing_target = VuMarkTarget(
+        name="mock-processing-vumark-target",
+        target_id=vumark_vuforia_database.processing_target_id,
+        processing_time_seconds=9999,
+    )
     return VuMarkDatabase(
         database_name=vumark_vuforia_database.target_manager_database_name,
         server_access_key=vumark_vuforia_database.server_access_key,
         server_secret_key=vumark_vuforia_database.server_secret_key,
-        vumark_targets={vumark_target},
+        vumark_targets={vumark_target, processing_target},
     )
 
 
@@ -165,7 +170,6 @@ def _enable_use_docker_in_memory(
     vumark_database = _vumark_database(
         vumark_vuforia_database=vumark_vuforia_database,
     )
-    (vumark_target,) = vumark_database.vumark_targets
 
     with responses.RequestsMock(assert_all_requests_are_fired=False) as mock:
         add_flask_app_to_mock(
@@ -219,14 +223,15 @@ def _enable_use_docker_in_memory(
             json=vumark_database.to_dict(),
             timeout=30,
         )
-        requests.post(
-            url=(
-                f"{vumark_databases_url}"
-                f"/{vumark_database.database_name}/vumark_targets"
-            ),
-            json=vumark_target.to_dict(),
-            timeout=30,
-        )
+        for vumark_target in vumark_database.vumark_targets:
+            requests.post(
+                url=(
+                    f"{vumark_databases_url}"
+                    f"/{vumark_database.database_name}/vumark_targets"
+                ),
+                json=vumark_target.to_dict(),
+                timeout=30,
+            )
 
         yield
 
