@@ -85,6 +85,7 @@ class Endpoint:
 
 @beartype
 def make_image_file(
+    *,
     file_format: str,
     color_space: Literal["RGB", "CMYK"],
     width: int,
