@@ -79,7 +79,6 @@ optional-dependencies.dev = [
     "pytest==9.0.2",
     "pytest-retry==1.7.0",
     "pytest-xdist==3.8.0",
-    "python-dotenv==1.2.1",
     "pyyaml==6.0.3",
     "requests-mock-flask==2026.2.16",
     "ruff==0.15.1",
@@ -107,7 +106,7 @@ optional-dependencies.dev = [
     "vulture==2.14",
     "vws-python==2026.2.21",
     "vws-test-fixtures==2023.3.5",
-    "vws-web-tools==2026.2.20",
+    "vws-web-tools==2026.2.22",
     "yamlfix==1.19.1",
     "zizmor==1.22.0",
 ]
@@ -453,6 +452,7 @@ ignore_names = [
     "model_config",
     # Used in TYPE_CHECKING for type hints
     "CloudDatabaseDict",
+    "DatabaseDict",
     "VuMarkDatabaseDict",
     "VuMarkTargetDict",
 ]

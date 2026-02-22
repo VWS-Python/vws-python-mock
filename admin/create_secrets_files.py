@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import vws_web_tools
-from dotenv import load_dotenv
 from selenium.common.exceptions import TimeoutException
 
 if TYPE_CHECKING:
@@ -123,6 +122,25 @@ def _create_and_get_vumark_target_id(
     )
 
 
+def _fetch_inactive_database_details(
+    driver: "WebDriver",
+    email_address: str,
+    password: str,
+    database_name: str,
+) -> "DatabaseDict":
+    """Fetch details for an existing inactive database."""
+    vws_web_tools.log_in(
+        driver=driver,
+        email_address=email_address,
+        password=password,
+    )
+    vws_web_tools.wait_for_logged_in(driver=driver)
+    return vws_web_tools.get_database_details(
+        driver=driver,
+        database_name=database_name,
+    )
+
+
 def _create_vuforia_resource_names() -> tuple[str, str, str, str]:
     """Create names for Vuforia resources."""
     time = datetime.datetime.now(tz=datetime.UTC).strftime(
@@ -141,23 +159,18 @@ def main() -> None:
     email_address = os.environ["VWS_EMAIL_ADDRESS"]
     password = os.environ["VWS_PASSWORD"]
     new_secrets_dir = Path(os.environ["NEW_SECRETS_DIR"]).expanduser()
-    existing_secrets_file = Path(
-        os.environ["EXISTING_SECRETS_FILE"]
-    ).expanduser()
-    if not existing_secrets_file.exists():
-        msg = f"Existing secrets file does not exist: {existing_secrets_file}"
-        raise FileNotFoundError(msg)
-    load_dotenv(dotenv_path=existing_secrets_file)
-    inactive_database_details: DatabaseDict = {
-        "database_name": os.environ[
-            "INACTIVE_VUFORIA_TARGET_MANAGER_DATABASE_NAME"
-        ],
-        "server_access_key": os.environ["INACTIVE_VUFORIA_SERVER_ACCESS_KEY"],
-        "server_secret_key": os.environ["INACTIVE_VUFORIA_SERVER_SECRET_KEY"],
-        "client_access_key": os.environ["INACTIVE_VUFORIA_CLIENT_ACCESS_KEY"],
-        "client_secret_key": os.environ["INACTIVE_VUFORIA_CLIENT_SECRET_KEY"],
-    }
+    inactive_database_name = os.environ[
+        "INACTIVE_VUFORIA_TARGET_MANAGER_DATABASE_NAME"
+    ]
     new_secrets_dir.mkdir(exist_ok=True)
+    inactive_driver = vws_web_tools.create_chrome_driver()
+    inactive_database_details = _fetch_inactive_database_details(
+        driver=inactive_driver,
+        email_address=email_address,
+        password=password,
+        database_name=inactive_database_name,
+    )
+    inactive_driver.quit()
 
     num_databases = 100
     required_files = [
