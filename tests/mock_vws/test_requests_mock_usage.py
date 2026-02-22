@@ -5,6 +5,7 @@ import email.utils
 import io
 import json
 import socket
+from http import HTTPStatus
 from urllib.parse import urlparse
 
 import pytest
@@ -13,7 +14,7 @@ from beartype import beartype
 from freezegun import freeze_time
 from PIL import Image
 from vws import VWS, CloudRecoService
-from vws_auth_tools import rfc_1123_date
+from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws import MissingSchemeError, MockVWS
 from mock_vws.database import CloudDatabase, VuMarkDatabase
@@ -390,6 +391,42 @@ class TestCustomBaseURLs:
                 url="https://vuforia.vwq.example.com/prefix/v1/query",
                 timeout=30,
             )
+
+    @staticmethod
+    def test_vws_operations_work_with_path_prefix() -> None:
+        """VWS API operations work correctly with a base URL path
+        prefix.
+        """
+        database = CloudDatabase()
+        base_vws_url = "https://vuforia.vws.example.com/prefix"
+
+        with MockVWS(base_vws_url=base_vws_url) as mock:
+            mock.add_cloud_database(cloud_database=database)
+
+            request_path = "/targets"
+            date = rfc_1123_date()
+            auth = authorization_header(
+                access_key=database.server_access_key,
+                secret_key=database.server_secret_key,
+                method="GET",
+                content=b"",
+                content_type="",
+                date=date,
+                request_path=request_path,
+            )
+            response = requests.get(
+                url=base_vws_url + request_path,
+                headers={
+                    "Authorization": auth,
+                    "Date": date,
+                },
+                timeout=30,
+            )
+
+        assert response.status_code == HTTPStatus.OK
+        response_json = response.json()
+        assert response_json["result_code"] == "Success"
+        assert response_json["results"] == []
 
     @staticmethod
     def test_no_scheme() -> None:

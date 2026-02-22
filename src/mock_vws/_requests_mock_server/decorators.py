@@ -162,6 +162,7 @@ class MockVWS(ContextDecorator):
         callback: _MockCallback,
         delay_seconds: float,
         sleep_fn: Callable[[float], None],
+        base_path: str,
     ) -> _ResponsesCallback:
         """Wrap a callback to add a response delay."""
 
@@ -197,9 +198,13 @@ class MockVWS(ContextDecorator):
             else:
                 body_bytes = raw_body
 
+            path = request.path_url
+            if base_path and path.startswith(base_path):
+                path = path[len(base_path) :]
+
             request_data = RequestData(
                 method=request.method or "",
-                path=request.path_url,
+                path=path,
                 headers=dict(request.headers),
                 body=body_bytes,
             )
@@ -221,6 +226,7 @@ class MockVWS(ContextDecorator):
             (self._mock_vws_api, self._base_vws_url),
             (self._mock_vwq_api, self._base_vwq_url),
         ):
+            base_path = urlparse(url=base_url).path.rstrip("/")
             for route in api.routes:
                 url_pattern = base_url.rstrip("/") + route.path_pattern + "$"
                 compiled_url_pattern = re.compile(pattern=url_pattern)
@@ -234,6 +240,7 @@ class MockVWS(ContextDecorator):
                             callback=original_callback,
                             delay_seconds=self._response_delay_seconds,
                             sleep_fn=self._sleep_fn,
+                            base_path=base_path,
                         ),
                         content_type=None,
                     )
