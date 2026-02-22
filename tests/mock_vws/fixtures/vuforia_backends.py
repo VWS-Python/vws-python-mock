@@ -84,13 +84,13 @@ def _vumark_database(
 def _enable_use_real_vuforia(
     *,
     working_database: CloudDatabase,
-    inactive_database: CloudDatabase,
+    inactive_cloud_database: CloudDatabase,
     vumark_vuforia_database: VuMarkCloudDatabase,
     monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None]:
     """Test against the real Vuforia."""
     assert monkeypatch
-    assert inactive_database
+    assert inactive_cloud_database
     assert vumark_vuforia_database
     _delete_all_targets(database_keys=working_database)
     yield
@@ -100,7 +100,7 @@ def _enable_use_real_vuforia(
 def _enable_use_mock_vuforia(
     *,
     working_database: CloudDatabase,
-    inactive_database: CloudDatabase,
+    inactive_cloud_database: CloudDatabase,
     vumark_vuforia_database: VuMarkCloudDatabase,
     monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None]:
@@ -114,13 +114,13 @@ def _enable_use_mock_vuforia(
         client_secret_key=working_database.client_secret_key,
     )
 
-    inactive_database = CloudDatabase(
+    inactive_cloud_database = CloudDatabase(
         state=States.PROJECT_INACTIVE,
-        database_name=inactive_database.database_name,
-        server_access_key=inactive_database.server_access_key,
-        server_secret_key=inactive_database.server_secret_key,
-        client_access_key=inactive_database.client_access_key,
-        client_secret_key=inactive_database.client_secret_key,
+        database_name=inactive_cloud_database.database_name,
+        server_access_key=inactive_cloud_database.server_access_key,
+        server_secret_key=inactive_cloud_database.server_secret_key,
+        client_access_key=inactive_cloud_database.client_access_key,
+        client_secret_key=inactive_cloud_database.client_secret_key,
     )
     vumark_database = _vumark_database(
         vumark_vuforia_database=vumark_vuforia_database,
@@ -128,7 +128,7 @@ def _enable_use_mock_vuforia(
 
     with MockVWS() as mock:
         mock.add_cloud_database(cloud_database=working_database)
-        mock.add_cloud_database(cloud_database=inactive_database)
+        mock.add_cloud_database(cloud_database=inactive_cloud_database)
         mock.add_vumark_database(vumark_database=vumark_database)
         yield
 
@@ -137,7 +137,7 @@ def _enable_use_mock_vuforia(
 def _enable_use_docker_in_memory(
     *,
     working_database: CloudDatabase,
-    inactive_database: CloudDatabase,
+    inactive_cloud_database: CloudDatabase,
     vumark_vuforia_database: VuMarkCloudDatabase,
     monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None]:
@@ -211,7 +211,7 @@ def _enable_use_docker_in_memory(
         )
         requests.post(
             url=cloud_databases_url,
-            json=inactive_database.to_dict(),
+            json=inactive_cloud_database.to_dict(),
             timeout=30,
         )
         requests.post(
@@ -289,7 +289,7 @@ def pytest_collection_modifyitems(
 def fixture_verify_mock_vuforia(
     request: pytest.FixtureRequest,
     vuforia_database: CloudDatabase,
-    inactive_database: CloudDatabase,
+    inactive_cloud_database: CloudDatabase,
     vumark_vuforia_database: VuMarkCloudDatabase,
     monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None]:
@@ -317,7 +317,7 @@ def fixture_verify_mock_vuforia(
 
     yield from enable_function(
         working_database=vuforia_database,
-        inactive_database=inactive_database,
+        inactive_cloud_database=inactive_cloud_database,
         vumark_vuforia_database=vumark_vuforia_database,
         monkeypatch=monkeypatch,
     )
@@ -335,7 +335,7 @@ def fixture_verify_mock_vuforia(
 def mock_only_vuforia(
     request: pytest.FixtureRequest,
     vuforia_database: CloudDatabase,
-    inactive_database: CloudDatabase,
+    inactive_cloud_database: CloudDatabase,
     vumark_vuforia_database: VuMarkCloudDatabase,
     monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None]:
@@ -363,7 +363,7 @@ def mock_only_vuforia(
 
     yield from enable_function(
         working_database=vuforia_database,
-        inactive_database=inactive_database,
+        inactive_cloud_database=inactive_cloud_database,
         vumark_vuforia_database=vumark_vuforia_database,
         monkeypatch=monkeypatch,
     )

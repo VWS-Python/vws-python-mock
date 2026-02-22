@@ -76,7 +76,7 @@ def vuforia_database() -> CloudDatabase:
 
 
 @pytest.fixture
-def inactive_database() -> CloudDatabase:
+def inactive_cloud_database() -> CloudDatabase:
     """
     Return VWS credentials for an inactive project from environment
     variables.
