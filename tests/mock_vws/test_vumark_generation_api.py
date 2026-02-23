@@ -261,13 +261,6 @@ class TestGenerateInstance:
             == ResultCodes.INVALID_TARGET_TYPE.value
         )
 
-
-@pytest.mark.usefixtures("verify_mock_vuforia")
-class TestTargetStatusNotSuccess:
-    """Tests for VuMark generation when the target is not in success
-    state.
-    """
-
     @staticmethod
     def test_successful_target(
         vumark_vuforia_database: VuMarkCloudDatabase,
