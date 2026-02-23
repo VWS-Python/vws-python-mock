@@ -365,8 +365,6 @@ class TestInactiveDatabase:
             accept="image/png",
         )
 
-        assert response.status_code == HTTPStatus.FORBIDDEN
+        assert response.status_code == HTTPStatus.NOT_FOUND
         response_json = response.json()
-        assert (
-            response_json["result_code"] == ResultCodes.PROJECT_INACTIVE.value
-        )
+        assert response_json["result_code"] == ResultCodes.UNKNOWN_TARGET.value
