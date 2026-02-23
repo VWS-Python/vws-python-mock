@@ -68,7 +68,7 @@ def main() -> None:
     """Create inactive VuMark credentials and update existing secrets."""
     email_address = os.environ["VWS_EMAIL_ADDRESS"]
     password = os.environ["VWS_PASSWORD"]
-    secrets_dir = Path(os.environ.get("SECRETS_DIR", "ci_secrets"))
+    secrets_dir = Path(os.environ.get("SECRETS_DIR") or "ci_secrets")
     passphrase = os.environ["PASSPHRASE_FOR_VUFORIA_SECRETS"]
 
     sys.stdout.write("Creating inactive VuMark database...\n")
@@ -89,7 +89,7 @@ def main() -> None:
         f"{secret_key}\n"
     )
 
-    env_files = sorted(secrets_dir.glob("vuforia_secrets_*.env"))
+    env_files = sorted(secrets_dir.glob(pattern="vuforia_secrets_*.env"))
     if not env_files:
         msg = f"No vuforia_secrets_*.env files found in {secrets_dir}"
         raise FileNotFoundError(msg)
@@ -104,7 +104,8 @@ def main() -> None:
         if already_has:
             skipped += 1
             continue
-        env_file.write_text(content.rstrip("\n") + new_lines)
+        updated_content = content.rstrip("\n") + new_lines
+        env_file.write_text(data=updated_content, encoding="utf-8")
         updated += 1
 
     sys.stdout.write(
@@ -112,16 +113,16 @@ def main() -> None:
         " (already had fields).\n",
     )
 
-    subprocess.run(  # noqa: S603
-        ["tar", "cvf", "secrets.tar", str(secrets_dir)],  # noqa: S607
+    subprocess.run(
+        args=["tar", "cvf", "secrets.tar", secrets_dir.name],
         check=True,
         capture_output=True,
         text=True,
     )
     sys.stdout.write("secrets.tar created.\n")
 
-    subprocess.run(  # noqa: S603
-        [  # noqa: S607
+    subprocess.run(
+        args=[
             "gpg",
             "--yes",
             "--batch",
