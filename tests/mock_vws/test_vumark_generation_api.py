@@ -16,10 +16,8 @@ from vws.exceptions.vws_exceptions import (
 from vws.vumark_accept import VuMarkAccept
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from mock_vws import MockVWS
 from mock_vws._constants import ResultCodes
-from mock_vws.database import CloudDatabase, VuMarkDatabase
-from mock_vws.target import VuMarkTarget
+from mock_vws.database import CloudDatabase
 from tests.mock_vws.fixtures.credentials import VuMarkCloudDatabase
 from tests.mock_vws.utils import make_image_file
 
@@ -263,69 +261,79 @@ class TestGenerateInstance:
             == ResultCodes.INVALID_TARGET_TYPE.value
         )
 
+    @staticmethod
+    def test_successful_target(
+        vumark_vuforia_database: VuMarkCloudDatabase,
+    ) -> None:
+        """A VuMark target that has finished processing succeeds."""
+        vumark_client = _make_vumark_service(
+            server_access_key=vumark_vuforia_database.server_access_key,
+            server_secret_key=vumark_vuforia_database.server_secret_key,
+        )
+        vumark_bytes = vumark_client.generate_vumark_instance(
+            target_id=vumark_vuforia_database.target_id,
+            instance_id=uuid4().hex,
+            accept=VuMarkAccept.PNG,
+        )
 
-class TestTargetStatusNotSuccess:
-    """Tests for VuMark generation when the target is not in success
-    state.
+        assert vumark_bytes.strip().startswith(_PNG_SIGNATURE)
+
+
+# VuMark targets cannot be added via the VWS API — they are configured
+# through the Vuforia Target Manager portal.  This means we cannot
+# create a target that is perpetually in PROCESSING state against real
+# Vuforia.  The mock controls processing time via the
+# ``processing_time_seconds`` attribute on ``VuMarkTarget``, so these
+# tests are inherently mock-only.
+@pytest.mark.usefixtures("mock_only_vuforia")
+class TestProcessingTarget:
+    """Tests for VuMark generation when the target is still processing.
+
+    These use ``mock_only_vuforia`` because there is no way to keep a
+    VuMark target in PROCESSING state indefinitely on real Vuforia.
     """
 
     @staticmethod
-    def test_processing_target() -> None:
+    def test_processing_target(
+        vumark_vuforia_database: VuMarkCloudDatabase,
+    ) -> None:
         """A VuMark target still processing returns
         TargetStatusNotSuccess.
         """
-        vumark_target = VuMarkTarget(
-            name="processing-target",
-            processing_time_seconds=9999,
-        )
-        vumark_database = VuMarkDatabase(
-            vumark_targets={vumark_target},
-        )
         vumark_client = _make_vumark_service(
-            server_access_key=vumark_database.server_access_key,
-            server_secret_key=vumark_database.server_secret_key,
+            server_access_key=vumark_vuforia_database.server_access_key,
+            server_secret_key=vumark_vuforia_database.server_secret_key,
         )
-
-        with MockVWS() as mock:
-            mock.add_vumark_database(vumark_database=vumark_database)
-            with pytest.raises(
-                expected_exception=TargetStatusNotSuccessError,
-            ) as exc:
-                vumark_client.generate_vumark_instance(
-                    target_id=vumark_target.target_id,
-                    instance_id=uuid4().hex,
-                    accept=VuMarkAccept.PNG,
-                )
-
-            assert exc.value.response.status_code == HTTPStatus.FORBIDDEN
-            response_json = json.loads(s=exc.value.response.text)
-            assert (
-                response_json["result_code"]
-                == ResultCodes.TARGET_STATUS_NOT_SUCCESS.value
+        with pytest.raises(
+            expected_exception=TargetStatusNotSuccessError,
+        ) as exc:
+            vumark_client.generate_vumark_instance(
+                target_id=vumark_vuforia_database.processing_target_id,
+                instance_id=uuid4().hex,
+                accept=VuMarkAccept.PNG,
             )
 
+        assert exc.value.response.status_code == HTTPStatus.FORBIDDEN
+        response_json = json.loads(s=exc.value.response.text)
+        assert (
+            response_json["result_code"]
+            == ResultCodes.TARGET_STATUS_NOT_SUCCESS.value
+        )
+
     @staticmethod
-    def test_processing_target_raw_response() -> None:
+    def test_processing_target_raw_response(
+        vumark_vuforia_database: VuMarkCloudDatabase,
+    ) -> None:
         """The raw HTTP response for a processing target has the expected
         status code and result code.
         """
-        vumark_target = VuMarkTarget(
-            name="processing-target",
-            processing_time_seconds=9999,
+        response = _make_vumark_request(
+            server_access_key=vumark_vuforia_database.server_access_key,
+            server_secret_key=vumark_vuforia_database.server_secret_key,
+            target_id=vumark_vuforia_database.processing_target_id,
+            instance_id=uuid4().hex,
+            accept="image/png",
         )
-        vumark_database = VuMarkDatabase(
-            vumark_targets={vumark_target},
-        )
-
-        with MockVWS() as mock:
-            mock.add_vumark_database(vumark_database=vumark_database)
-            response = _make_vumark_request(
-                server_access_key=vumark_database.server_access_key,
-                server_secret_key=vumark_database.server_secret_key,
-                target_id=vumark_target.target_id,
-                instance_id=uuid4().hex,
-                accept="image/png",
-            )
 
         assert response.status_code == HTTPStatus.FORBIDDEN
         response_json = response.json()
@@ -333,28 +341,3 @@ class TestTargetStatusNotSuccess:
             response_json["result_code"]
             == ResultCodes.TARGET_STATUS_NOT_SUCCESS.value
         )
-
-    @staticmethod
-    def test_successful_target() -> None:
-        """A VuMark target that has finished processing succeeds."""
-        vumark_target = VuMarkTarget(
-            name="ready-target",
-            processing_time_seconds=0,
-        )
-        vumark_database = VuMarkDatabase(
-            vumark_targets={vumark_target},
-        )
-        vumark_client = _make_vumark_service(
-            server_access_key=vumark_database.server_access_key,
-            server_secret_key=vumark_database.server_secret_key,
-        )
-
-        with MockVWS() as mock:
-            mock.add_vumark_database(vumark_database=vumark_database)
-            vumark_bytes = vumark_client.generate_vumark_instance(
-                target_id=vumark_target.target_id,
-                instance_id=uuid4().hex,
-                accept=VuMarkAccept.PNG,
-            )
-
-        assert vumark_bytes.strip().startswith(_PNG_SIGNATURE)
