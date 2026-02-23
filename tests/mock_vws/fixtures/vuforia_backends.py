@@ -317,6 +317,7 @@ def pytest_collection_modifyitems(
     ids=[backend.value for backend in list(VuforiaBackend)],
 )
 def fixture_verify_mock_vuforia(
+    *,
     request: pytest.FixtureRequest,
     vuforia_database: CloudDatabase,
     inactive_cloud_database: CloudDatabase,
@@ -365,6 +366,7 @@ def fixture_verify_mock_vuforia(
     ],
 )
 def mock_only_vuforia(
+    *,
     request: pytest.FixtureRequest,
     vuforia_database: CloudDatabase,
     inactive_cloud_database: CloudDatabase,
