@@ -39,6 +39,7 @@ def _wait_for_target_processed(*, vws_client: VWS, target_id: str) -> None:
 
 @pytest.fixture
 def add_target(
+    *,
     vuforia_database: CloudDatabase,
     image_file_failed_state: io.BytesIO,
 ) -> Endpoint:
@@ -93,6 +94,7 @@ def add_target(
 
 @pytest.fixture
 def delete_target(
+    *,
     vuforia_database: CloudDatabase,
     target_id: str,
     vws_client: VWS,
@@ -136,7 +138,7 @@ def delete_target(
 
 
 @pytest.fixture
-def database_summary(vuforia_database: CloudDatabase) -> Endpoint:
+def database_summary(*, vuforia_database: CloudDatabase) -> Endpoint:
     """
     Return details of the endpoint for getting details about the
     database.
@@ -180,6 +182,7 @@ def database_summary(vuforia_database: CloudDatabase) -> Endpoint:
 
 @pytest.fixture
 def get_duplicates(
+    *,
     vuforia_database: CloudDatabase,
     target_id: str,
     vws_client: VWS,
@@ -228,6 +231,7 @@ def get_duplicates(
 
 @pytest.fixture
 def get_target(
+    *,
     vuforia_database: CloudDatabase,
     target_id: str,
     vws_client: VWS,
@@ -272,7 +276,7 @@ def get_target(
 
 
 @pytest.fixture
-def target_list(vuforia_database: CloudDatabase) -> Endpoint:
+def target_list(*, vuforia_database: CloudDatabase) -> Endpoint:
     """Return details of the endpoint for getting a list of targets."""
     date = rfc_1123_date()
     request_path = "/targets"
@@ -313,6 +317,7 @@ def target_list(vuforia_database: CloudDatabase) -> Endpoint:
 
 @pytest.fixture
 def target_summary(
+    *,
     vuforia_database: CloudDatabase,
     target_id: str,
     vws_client: VWS,
@@ -361,6 +366,7 @@ def target_summary(
 
 @pytest.fixture
 def update_target(
+    *,
     vuforia_database: CloudDatabase,
     target_id: str,
     vws_client: VWS,
@@ -409,6 +415,7 @@ def update_target(
 
 @pytest.fixture
 def query(
+    *,
     vuforia_database: CloudDatabase,
     high_quality_image: io.BytesIO,
 ) -> Endpoint:
@@ -459,6 +466,7 @@ def query(
 
 @pytest.fixture
 def vumark_generate_instance(
+    *,
     vumark_vuforia_database: VuMarkCloudDatabase,
 ) -> Endpoint:
     """Return details of the endpoint for generating a VuMark instance."""
