@@ -269,6 +269,38 @@ class TestTargetStatusNotSuccess:
     """
 
     @staticmethod
+    def test_successful_target(
+        vumark_vuforia_database: VuMarkCloudDatabase,
+    ) -> None:
+        """A VuMark target that has finished processing succeeds."""
+        vumark_client = _make_vumark_service(
+            server_access_key=vumark_vuforia_database.server_access_key,
+            server_secret_key=vumark_vuforia_database.server_secret_key,
+        )
+        vumark_bytes = vumark_client.generate_vumark_instance(
+            target_id=vumark_vuforia_database.target_id,
+            instance_id=uuid4().hex,
+            accept=VuMarkAccept.PNG,
+        )
+
+        assert vumark_bytes.strip().startswith(_PNG_SIGNATURE)
+
+
+# VuMark targets cannot be added via the VWS API — they are configured
+# through the Vuforia Target Manager portal.  This means we cannot
+# create a target that is perpetually in PROCESSING state against real
+# Vuforia.  The mock controls processing time via the
+# ``processing_time_seconds`` attribute on ``VuMarkTarget``, so these
+# tests are inherently mock-only.
+@pytest.mark.usefixtures("mock_only_vuforia")
+class TestProcessingTarget:
+    """Tests for VuMark generation when the target is still processing.
+
+    These use ``mock_only_vuforia`` because there is no way to keep a
+    VuMark target in PROCESSING state indefinitely on real Vuforia.
+    """
+
+    @staticmethod
     def test_processing_target(
         vumark_vuforia_database: VuMarkCloudDatabase,
     ) -> None:
@@ -316,20 +348,3 @@ class TestTargetStatusNotSuccess:
             response_json["result_code"]
             == ResultCodes.TARGET_STATUS_NOT_SUCCESS.value
         )
-
-    @staticmethod
-    def test_successful_target(
-        vumark_vuforia_database: VuMarkCloudDatabase,
-    ) -> None:
-        """A VuMark target that has finished processing succeeds."""
-        vumark_client = _make_vumark_service(
-            server_access_key=vumark_vuforia_database.server_access_key,
-            server_secret_key=vumark_vuforia_database.server_secret_key,
-        )
-        vumark_bytes = vumark_client.generate_vumark_instance(
-            target_id=vumark_vuforia_database.target_id,
-            instance_id=uuid4().hex,
-            accept=VuMarkAccept.PNG,
-        )
-
-        assert vumark_bytes.strip().startswith(_PNG_SIGNATURE)
