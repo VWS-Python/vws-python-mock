@@ -86,11 +86,9 @@ To find the environment variables to set in the :file:`vuforia_secrets.env` file
 
 Two Cloud databases are necessary in order to run all the Cloud Target tests.
 One of those must be an inactive project.
-To create an inactive project, delete the license key associated with a database.
+The script creates the inactive project automatically by deleting its license.
 
 VuMark tests require one VuMark database.
-When creating multiple credentials files, the same inactive database and the
-same VuMark database can be reused across all files.
 
 Targets sometimes get stuck at the "Processing" stage meaning that they cannot be deleted.
 When this happens, create a new target database to use for testing.
@@ -102,7 +100,6 @@ To create databases without using the browser, use :file:`admin/create_secrets_f
       $ export VWS_EMAIL_ADDRESS=...
       $ export VWS_PASSWORD=...
       $ export NEW_SECRETS_DIR=...
-      $ export INACTIVE_VUFORIA_TARGET_MANAGER_DATABASE_NAME=...
       # You may have to run this a few times, but it is idempotent.
       $ python admin/create_secrets_files.py
       # Each generated file gets its own Cloud database credentials and shares
