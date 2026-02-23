@@ -18,7 +18,10 @@ from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes
 from mock_vws.database import CloudDatabase
-from tests.mock_vws.fixtures.credentials import VuMarkCloudDatabase
+from tests.mock_vws.fixtures.credentials import (
+    InactiveVuMarkCloudDatabase,
+    VuMarkCloudDatabase,
+)
 from tests.mock_vws.utils import make_image_file
 
 _VWS_HOST = "https://vws.vuforia.com"
@@ -341,3 +344,27 @@ class TestProcessingTarget:
             response_json["result_code"]
             == ResultCodes.TARGET_STATUS_NOT_SUCCESS.value
         )
+
+
+@pytest.mark.usefixtures("verify_mock_vuforia")
+class TestInactiveDatabase:
+    """Tests for VuMark generation with an inactive database."""
+
+    @staticmethod
+    def test_inactive_database(
+        inactive_vumark_database: InactiveVuMarkCloudDatabase,
+    ) -> None:
+        """Calling the VuMark generation API with credentials for an
+        inactive database returns ProjectInactive.
+        """
+        response = _make_vumark_request(
+            server_access_key=inactive_vumark_database.server_access_key,
+            server_secret_key=inactive_vumark_database.server_secret_key,
+            target_id=uuid4().hex,
+            instance_id=uuid4().hex,
+            accept="image/png",
+        )
+
+        assert response.status_code == HTTPStatus.NOT_FOUND
+        response_json = response.json()
+        assert response_json["result_code"] == ResultCodes.UNKNOWN_TARGET.value

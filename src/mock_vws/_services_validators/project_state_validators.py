@@ -11,7 +11,7 @@ from mock_vws._database_matchers import (
     get_database_matching_server_keys,
 )
 from mock_vws._services_validators.exceptions import ProjectInactiveError
-from mock_vws.database import CloudDatabase
+from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.states import States
 
 _LOGGER = logging.getLogger(name=__name__)
@@ -47,13 +47,17 @@ def validate_project_state(
         databases=databases,
     )
 
-    if not isinstance(database, CloudDatabase):
-        return
-
     if database.state != States.PROJECT_INACTIVE:
         return
 
-    if request_method == HTTPMethod.GET and "duplicates" not in request_path:
+    if (
+        isinstance(database, CloudDatabase)
+        and request_method == HTTPMethod.GET
+        and "duplicates" not in request_path
+    ):
+        return
+
+    if isinstance(database, VuMarkDatabase):
         return
 
     _LOGGER.warning(msg="The project is inactive.")

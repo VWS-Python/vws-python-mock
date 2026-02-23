@@ -38,6 +38,20 @@ class _InactiveCloudDatabaseSettings(_CloudDatabaseSettings):
     )
 
 
+class _InactiveVuMarkDatabaseSettings(BaseSettings):
+    """Settings for an inactive VuMark database."""
+
+    target_manager_database_name: str
+    server_access_key: str
+    server_secret_key: str
+
+    model_config = SettingsConfigDict(
+        env_prefix="INACTIVE_VUMARK_VUFORIA_",
+        env_file=Path("vuforia_secrets.env"),
+        extra="allow",
+    )
+
+
 class _VuMarkCloudDatabaseSettings(BaseSettings):
     """Settings for a VuMark Vuforia database."""
 
@@ -52,6 +66,15 @@ class _VuMarkCloudDatabaseSettings(BaseSettings):
         env_file=Path("vuforia_secrets.env"),
         extra="allow",
     )
+
+
+@dataclass(frozen=True)
+class InactiveVuMarkCloudDatabase:
+    """Credentials for an inactive VuMark database."""
+
+    target_manager_database_name: str = field(repr=False)
+    server_access_key: str = field(repr=False)
+    server_secret_key: str = field(repr=False)
 
 
 @dataclass(frozen=True)
@@ -93,6 +116,17 @@ def inactive_cloud_database() -> CloudDatabase:
         client_access_key=settings.client_access_key,
         client_secret_key=settings.client_secret_key,
         state=States.PROJECT_INACTIVE,
+    )
+
+
+@pytest.fixture
+def inactive_vumark_database() -> InactiveVuMarkCloudDatabase:
+    """Return inactive VuMark credentials from environment variables."""
+    settings = _InactiveVuMarkDatabaseSettings.model_validate(obj={})
+    return InactiveVuMarkCloudDatabase(
+        target_manager_database_name=settings.target_manager_database_name,
+        server_access_key=settings.server_access_key,
+        server_secret_key=settings.server_secret_key,
     )
 
 
