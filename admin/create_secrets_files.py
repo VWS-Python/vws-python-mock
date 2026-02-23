@@ -23,12 +23,12 @@ VUMARK_TEMPLATE_SVG_FILE_PATH = Path(__file__).with_name(
 )
 
 
-def _create_and_get_database_details(
+def _create_and_get_cloud_database_details(
     driver: "WebDriver",
     email_address: str,
     password: str,
-    license_name: str,
-    database_name: str,
+    cloud_license_name: str,
+    cloud_database_name: str,
 ) -> "DatabaseDict":
     """Create a cloud database and get its details.
 
@@ -40,17 +40,19 @@ def _create_and_get_database_details(
         password=password,
     )
     vws_web_tools.wait_for_logged_in(driver=driver)
-    vws_web_tools.create_license(driver=driver, license_name=license_name)
+    vws_web_tools.create_license(
+        driver=driver, license_name=cloud_license_name
+    )
 
     vws_web_tools.create_cloud_database(
         driver=driver,
-        database_name=database_name,
-        license_name=license_name,
+        database_name=cloud_database_name,
+        license_name=cloud_license_name,
     )
 
     return vws_web_tools.get_database_details(
         driver=driver,
-        database_name=database_name,
+        database_name=cloud_database_name,
     )
 
 
@@ -74,19 +76,20 @@ def _create_and_get_vumark_details(
 
 
 def _generate_secrets_file_content(
-    database_details: "DatabaseDict",
+    cloud_database_details: "DatabaseDict",
     vumark_details: "VuMarkDatabaseDict",
     inactive_database_details: "DatabaseDict",
+    inactive_vumark_details: "VuMarkDatabaseDict",
     vumark_target_id: str,
 ) -> str:
     """Generate the content of a secrets file."""
     return textwrap.dedent(
         text=f"""\
-        VUFORIA_TARGET_MANAGER_DATABASE_NAME={database_details["database_name"]}
-        VUFORIA_SERVER_ACCESS_KEY={database_details["server_access_key"]}
-        VUFORIA_SERVER_SECRET_KEY={database_details["server_secret_key"]}
-        VUFORIA_CLIENT_ACCESS_KEY={database_details["client_access_key"]}
-        VUFORIA_CLIENT_SECRET_KEY={database_details["client_secret_key"]}
+        VUFORIA_TARGET_MANAGER_DATABASE_NAME={cloud_database_details["database_name"]}
+        VUFORIA_SERVER_ACCESS_KEY={cloud_database_details["server_access_key"]}
+        VUFORIA_SERVER_SECRET_KEY={cloud_database_details["server_secret_key"]}
+        VUFORIA_CLIENT_ACCESS_KEY={cloud_database_details["client_access_key"]}
+        VUFORIA_CLIENT_SECRET_KEY={cloud_database_details["client_secret_key"]}
 
         INACTIVE_VUFORIA_TARGET_MANAGER_DATABASE_NAME={inactive_database_details["database_name"]}
         INACTIVE_VUFORIA_SERVER_ACCESS_KEY={inactive_database_details["server_access_key"]}
@@ -98,6 +101,10 @@ def _generate_secrets_file_content(
         VUMARK_VUFORIA_TARGET_ID={vumark_target_id}
         VUMARK_VUFORIA_SERVER_ACCESS_KEY={vumark_details["server_access_key"]}
         VUMARK_VUFORIA_SERVER_SECRET_KEY={vumark_details["server_secret_key"]}
+
+        INACTIVE_VUMARK_VUFORIA_TARGET_MANAGER_DATABASE_NAME={inactive_vumark_details["database_name"]}
+        INACTIVE_VUMARK_VUFORIA_SERVER_ACCESS_KEY={inactive_vumark_details["server_access_key"]}
+        INACTIVE_VUMARK_VUFORIA_SERVER_SECRET_KEY={inactive_vumark_details["server_secret_key"]}
         """,
     )
 
@@ -126,8 +133,8 @@ def _create_and_get_inactive_database_details(
     driver: "WebDriver",
     email_address: str,
     password: str,
-    license_name: str,
-    database_name: str,
+    cloud_license_name: str,
+    cloud_database_name: str,
 ) -> "DatabaseDict":
     """Create a cloud database, get its details, then delete the license to
     make it inactive.
@@ -138,18 +145,56 @@ def _create_and_get_inactive_database_details(
         password=password,
     )
     vws_web_tools.wait_for_logged_in(driver=driver)
-    vws_web_tools.create_license(driver=driver, license_name=license_name)
+    vws_web_tools.create_license(
+        driver=driver, license_name=cloud_license_name
+    )
     vws_web_tools.create_cloud_database(
         driver=driver,
-        database_name=database_name,
-        license_name=license_name,
+        database_name=cloud_database_name,
+        license_name=cloud_license_name,
     )
-    database_details = vws_web_tools.get_database_details(
+    cloud_database_details = vws_web_tools.get_database_details(
         driver=driver,
-        database_name=database_name,
+        database_name=cloud_database_name,
     )
-    vws_web_tools.delete_license(driver=driver, license_name=license_name)
-    return database_details
+    vws_web_tools.delete_license(
+        driver=driver, license_name=cloud_license_name
+    )
+    return cloud_database_details
+
+
+def _create_and_get_inactive_vumark_details(
+    driver: "WebDriver",
+    email_address: str,
+    password: str,
+    vumark_license_name: str,
+    vumark_database_name: str,
+) -> "VuMarkDatabaseDict":
+    """Create a VuMark database, get its details, then delete the license
+    to
+    make it inactive.
+    """
+    vws_web_tools.log_in(
+        driver=driver,
+        email_address=email_address,
+        password=password,
+    )
+    vws_web_tools.wait_for_logged_in(driver=driver)
+    vws_web_tools.create_license(
+        driver=driver, license_name=vumark_license_name
+    )
+    vws_web_tools.create_vumark_database(
+        driver=driver,
+        database_name=vumark_database_name,
+    )
+    vumark_database_details = vws_web_tools.get_vumark_database_details(
+        driver=driver,
+        database_name=vumark_database_name,
+    )
+    vws_web_tools.delete_license(
+        driver=driver, license_name=vumark_license_name
+    )
+    return vumark_database_details
 
 
 def _create_vuforia_resource_names() -> tuple[str, str, str, str]:
@@ -158,8 +203,8 @@ def _create_vuforia_resource_names() -> tuple[str, str, str, str]:
         format="%Y-%m-%d-%H-%M-%S",
     )
     return (
-        f"my-license-{time}",
-        f"my-database-{time}",
+        f"my-cloud-license-{time}",
+        f"my-cloud-database-{time}",
         f"my-vumark-database-{time}",
         f"my-vumark-template-{time}",
     )
@@ -180,10 +225,20 @@ def main() -> None:
         driver=inactive_driver,
         email_address=email_address,
         password=password,
-        license_name=f"my-inactive-license-{time}",
-        database_name=f"my-inactive-database-{time}",
+        cloud_license_name=f"my-inactive-cloud-license-{time}",
+        cloud_database_name=f"my-inactive-cloud-database-{time}",
     )
     inactive_driver.quit()
+
+    inactive_vumark_driver = vws_web_tools.create_chrome_driver()
+    inactive_vumark_details = _create_and_get_inactive_vumark_details(
+        driver=inactive_vumark_driver,
+        email_address=email_address,
+        password=password,
+        vumark_license_name=f"my-inactive-vumark-license-{time}",
+        vumark_database_name=f"my-inactive-vumark-database-{time}",
+    )
+    inactive_vumark_driver.quit()
 
     num_databases = 100
     required_files = [
@@ -199,20 +254,20 @@ def main() -> None:
         file = files_to_create[-1]
         sys.stdout.write(f"Creating database {file.name}\n")
         (
-            license_name,
-            database_name,
+            cloud_license_name,
+            cloud_database_name,
             vumark_database_name,
             vumark_template_name,
         ) = _create_vuforia_resource_names()
 
         try:
-            sys.stdout.write("Creating database details\n")
-            database_details = _create_and_get_database_details(
+            sys.stdout.write("Creating cloud database details\n")
+            cloud_database_details = _create_and_get_cloud_database_details(
                 driver=driver,
                 email_address=email_address,
                 password=password,
-                license_name=license_name,
-                database_name=database_name,
+                cloud_license_name=cloud_license_name,
+                cloud_database_name=cloud_database_name,
             )
             sys.stdout.write("Creating VuMark database details\n")
             vumark_details = _create_and_get_vumark_details(
@@ -235,9 +290,10 @@ def main() -> None:
         driver = None
 
         file_contents = _generate_secrets_file_content(
-            database_details=database_details,
+            cloud_database_details=cloud_database_details,
             vumark_details=vumark_details,
             inactive_database_details=inactive_database_details,
+            inactive_vumark_details=inactive_vumark_details,
             vumark_target_id=vumark_target_id,
         )
         file.write_text(data=file_contents)

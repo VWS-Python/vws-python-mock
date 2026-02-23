@@ -130,11 +130,11 @@ def validate_image_dimensions(
     image_part = files["image"]
     image_value = image_part.stream.read()
     image_file = io.BytesIO(initial_bytes=image_value)
-    pil_image = Image.open(fp=image_file)
-    max_width = 30000
-    max_height = 30000
-    if pil_image.height <= max_height and pil_image.width <= max_width:
-        return
+    with Image.open(fp=image_file) as pil_image:
+        max_width = 30000
+        max_height = 30000
+        if pil_image.height <= max_height and pil_image.width <= max_width:
+            return
 
     _LOGGER.warning(msg="The image dimensions are too large.")
     raise BadImageError
@@ -160,10 +160,9 @@ def validate_image_format(
         request_body=request_body,
     )
     image_part = files["image"]
-    pil_image = Image.open(fp=image_part.stream)
-
-    if pil_image.format in {"PNG", "JPEG"}:
-        return
+    with Image.open(fp=image_part.stream) as pil_image:
+        if pil_image.format in {"PNG", "JPEG"}:
+            return
 
     _LOGGER.warning(msg="The image format is not PNG or JPEG.")
     raise BadImageError
@@ -191,7 +190,8 @@ def validate_image_is_image(
     image_file = files["image"].stream
 
     try:
-        Image.open(fp=image_file)
+        with Image.open(fp=image_file) as _:
+            pass
     except OSError as exc:
         _LOGGER.warning(msg="The image is not an image file.")
         raise BadImageError from exc

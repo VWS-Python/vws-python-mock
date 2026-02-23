@@ -2,8 +2,10 @@
 
 from dataclasses import dataclass, field
 from pathlib import Path
+from uuid import uuid4
 
 import pytest
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from mock_vws.database import CloudDatabase
@@ -43,6 +45,7 @@ class _VuMarkCloudDatabaseSettings(BaseSettings):
     server_access_key: str
     server_secret_key: str
     target_id: str
+    processing_target_id: str = Field(default_factory=lambda: uuid4().hex)
 
     model_config = SettingsConfigDict(
         env_prefix="VUMARK_VUFORIA_",
@@ -59,6 +62,7 @@ class VuMarkCloudDatabase:
     server_access_key: str = field(repr=False)
     server_secret_key: str = field(repr=False)
     target_id: str = field(repr=False)
+    processing_target_id: str = field(repr=False)
 
 
 @pytest.fixture
@@ -76,7 +80,7 @@ def vuforia_database() -> CloudDatabase:
 
 
 @pytest.fixture
-def inactive_database() -> CloudDatabase:
+def inactive_cloud_database() -> CloudDatabase:
     """
     Return VWS credentials for an inactive project from environment
     variables.
@@ -102,4 +106,5 @@ def vumark_vuforia_database() -> VuMarkCloudDatabase:
         server_access_key=settings.server_access_key,
         server_secret_key=settings.server_secret_key,
         target_id=settings.target_id,
+        processing_target_id=settings.processing_target_id,
     )
