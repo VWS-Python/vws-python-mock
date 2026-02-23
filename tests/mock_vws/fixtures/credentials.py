@@ -2,8 +2,10 @@
 
 from dataclasses import dataclass, field
 from pathlib import Path
+from uuid import uuid4
 
 import pytest
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from mock_vws.database import CloudDatabase
@@ -43,7 +45,7 @@ class _VuMarkCloudDatabaseSettings(BaseSettings):
     server_access_key: str
     server_secret_key: str
     target_id: str
-    processing_target_id: str
+    processing_target_id: str = Field(default_factory=lambda: uuid4().hex)
 
     model_config = SettingsConfigDict(
         env_prefix="VUMARK_VUFORIA_",
