@@ -22,7 +22,10 @@ from mock_vws._flask_server.vws import VWS_FLASK_APP
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.states import States
 from mock_vws.target import VuMarkTarget
-from tests.mock_vws.fixtures.credentials import VuMarkCloudDatabase
+from tests.mock_vws.fixtures.credentials import (
+    InactiveVuMarkCloudDatabase,
+    VuMarkCloudDatabase,
+)
 from tests.mock_vws.utils.retries import RETRY_ON_TOO_MANY_REQUESTS
 
 LOGGER = logging.getLogger(name=__name__)
@@ -91,12 +94,14 @@ def _enable_use_real_vuforia(
     working_database: CloudDatabase,
     inactive_cloud_database: CloudDatabase,
     vumark_vuforia_database: VuMarkCloudDatabase,
+    inactive_vumark_database: InactiveVuMarkCloudDatabase,
     monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None]:
     """Test against the real Vuforia."""
     assert monkeypatch
     assert inactive_cloud_database
     assert vumark_vuforia_database
+    assert inactive_vumark_database
     _delete_all_targets(database_keys=working_database)
     yield
 
@@ -107,6 +112,7 @@ def _enable_use_mock_vuforia(
     working_database: CloudDatabase,
     inactive_cloud_database: CloudDatabase,
     vumark_vuforia_database: VuMarkCloudDatabase,
+    inactive_vumark_database: InactiveVuMarkCloudDatabase,
     monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None]:
     """Test against the in-memory mock Vuforia."""
@@ -130,11 +136,18 @@ def _enable_use_mock_vuforia(
     vumark_database = _vumark_database(
         vumark_vuforia_database=vumark_vuforia_database,
     )
+    inactive_vumark_db = VuMarkDatabase(
+        state=States.PROJECT_INACTIVE,
+        database_name=inactive_vumark_database.target_manager_database_name,
+        server_access_key=inactive_vumark_database.server_access_key,
+        server_secret_key=inactive_vumark_database.server_secret_key,
+    )
 
     with MockVWS() as mock:
         mock.add_cloud_database(cloud_database=working_database)
         mock.add_cloud_database(cloud_database=inactive_cloud_database)
         mock.add_vumark_database(vumark_database=vumark_database)
+        mock.add_vumark_database(vumark_database=inactive_vumark_db)
         yield
 
 
@@ -144,6 +157,7 @@ def _enable_use_docker_in_memory(
     working_database: CloudDatabase,
     inactive_cloud_database: CloudDatabase,
     vumark_vuforia_database: VuMarkCloudDatabase,
+    inactive_vumark_database: InactiveVuMarkCloudDatabase,
     monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None]:
     """Test against mock Vuforia created to be run in a container."""
@@ -169,6 +183,12 @@ def _enable_use_docker_in_memory(
     )
     vumark_database = _vumark_database(
         vumark_vuforia_database=vumark_vuforia_database,
+    )
+    inactive_vumark_db = VuMarkDatabase(
+        state=States.PROJECT_INACTIVE,
+        database_name=inactive_vumark_database.target_manager_database_name,
+        server_access_key=inactive_vumark_database.server_access_key,
+        server_secret_key=inactive_vumark_database.server_secret_key,
     )
 
     with responses.RequestsMock(assert_all_requests_are_fired=False) as mock:
@@ -221,6 +241,11 @@ def _enable_use_docker_in_memory(
         requests.post(
             url=vumark_databases_url,
             json=vumark_database.to_dict(),
+            timeout=30,
+        )
+        requests.post(
+            url=vumark_databases_url,
+            json=inactive_vumark_db.to_dict(),
             timeout=30,
         )
         for vumark_target in vumark_database.vumark_targets:
@@ -296,6 +321,7 @@ def fixture_verify_mock_vuforia(
     vuforia_database: CloudDatabase,
     inactive_cloud_database: CloudDatabase,
     vumark_vuforia_database: VuMarkCloudDatabase,
+    inactive_vumark_database: InactiveVuMarkCloudDatabase,
     monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None]:
     """Test functions which use this fixture are run multiple times. Once
@@ -324,6 +350,7 @@ def fixture_verify_mock_vuforia(
         working_database=vuforia_database,
         inactive_cloud_database=inactive_cloud_database,
         vumark_vuforia_database=vumark_vuforia_database,
+        inactive_vumark_database=inactive_vumark_database,
         monkeypatch=monkeypatch,
     )
 
@@ -342,6 +369,7 @@ def mock_only_vuforia(
     vuforia_database: CloudDatabase,
     inactive_cloud_database: CloudDatabase,
     vumark_vuforia_database: VuMarkCloudDatabase,
+    inactive_vumark_database: InactiveVuMarkCloudDatabase,
     monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None]:
     """Test functions which use this fixture are run multiple times. Once
@@ -370,5 +398,6 @@ def mock_only_vuforia(
         working_database=vuforia_database,
         inactive_cloud_database=inactive_cloud_database,
         vumark_vuforia_database=vumark_vuforia_database,
+        inactive_vumark_database=inactive_vumark_database,
         monkeypatch=monkeypatch,
     )

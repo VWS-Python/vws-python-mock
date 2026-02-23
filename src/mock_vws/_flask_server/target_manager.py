@@ -252,6 +252,10 @@ def create_vumark_database() -> Response:
     """
     request_json = json.loads(s=request.data)
     random_vumark_database = VuMarkDatabase()
+    state_name = request_json.get(
+        "state_name",
+        random_vumark_database.state.name,
+    )
     database = VuMarkDatabase(
         server_access_key=request_json.get(
             "server_access_key",
@@ -265,6 +269,7 @@ def create_vumark_database() -> Response:
             "database_name",
             random_vumark_database.database_name,
         ),
+        state=States[state_name],
     )
 
     try:

@@ -47,13 +47,14 @@ def validate_project_state(
         databases=databases,
     )
 
-    if not isinstance(database, CloudDatabase):
-        return
-
     if database.state != States.PROJECT_INACTIVE:
         return
 
-    if request_method == HTTPMethod.GET and "duplicates" not in request_path:
+    if (
+        isinstance(database, CloudDatabase)
+        and request_method == HTTPMethod.GET
+        and "duplicates" not in request_path
+    ):
         return
 
     _LOGGER.warning(msg="The project is inactive.")

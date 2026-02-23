@@ -40,6 +40,7 @@ class VuMarkDatabaseDict(TypedDict):
     server_access_key: str
     server_secret_key: str
     vumark_targets: Iterable[VuMarkTargetDict]
+    state_name: str
 
 
 @beartype
@@ -202,6 +203,7 @@ class VuMarkDatabase:
         default_factory=set[VuMarkTarget],
         hash=False,
     )
+    state: States = States.WORKING
 
     def get_vumark_target(self, target_id: str) -> VuMarkTarget:
         """Return a VuMark target from the database with the given ID."""
@@ -222,6 +224,7 @@ class VuMarkDatabase:
             "server_access_key": self.server_access_key,
             "server_secret_key": self.server_secret_key,
             "vumark_targets": vumark_targets,
+            "state_name": self.state.name,
         }
 
     @classmethod
@@ -235,6 +238,7 @@ class VuMarkDatabase:
                 VuMarkTarget.from_dict(target_dict=target_dict)
                 for target_dict in database_dict["vumark_targets"]
             },
+            state=States[database_dict["state_name"]],
         )
 
     @property

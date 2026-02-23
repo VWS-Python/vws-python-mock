@@ -18,7 +18,10 @@ from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes
 from mock_vws.database import CloudDatabase
-from tests.mock_vws.fixtures.credentials import VuMarkCloudDatabase
+from tests.mock_vws.fixtures.credentials import (
+    InactiveVuMarkCloudDatabase,
+    VuMarkCloudDatabase,
+)
 from tests.mock_vws.utils import make_image_file
 
 _VWS_HOST = "https://vws.vuforia.com"
@@ -349,14 +352,14 @@ class TestInactiveDatabase:
 
     @staticmethod
     def test_inactive_database(
-        inactive_cloud_database: CloudDatabase,
+        inactive_vumark_database: InactiveVuMarkCloudDatabase,
     ) -> None:
         """Calling the VuMark generation API with credentials for an
         inactive database returns ProjectInactive.
         """
         response = _make_vumark_request(
-            server_access_key=inactive_cloud_database.server_access_key,
-            server_secret_key=inactive_cloud_database.server_secret_key,
+            server_access_key=inactive_vumark_database.server_access_key,
+            server_secret_key=inactive_vumark_database.server_secret_key,
             target_id=uuid4().hex,
             instance_id=uuid4().hex,
             accept="image/png",
