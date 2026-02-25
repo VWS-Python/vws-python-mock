@@ -1,4 +1,4 @@
-"""Tests for ``MockVWS`` intercepting ``httpx`` via async ``vws``
+"""Tests for ``MockVWS`` intercepting ``httpx`` via asynchronous ``vws``
 clients.
 """
 
@@ -20,16 +20,16 @@ from mock_vws.target import VuMarkTarget
 
 
 class TestAsyncVWS:
-    """Async ``vws-python`` client usage through the mock."""
+    """Asynchronous ``vws-python`` client usage through the mock."""
 
     @staticmethod
     def test_response_delay_causes_httpx_timeout() -> None:
-        """Async ``httpx`` timeouts are surfaced through ``AsyncVWS``."""
+        """``httpx`` timeouts are surfaced through ``AsyncVWS``."""
         database = CloudDatabase()
         calls: list[float] = []
 
         async def run_test() -> None:
-            """Trigger a timed request through the async client."""
+            """Trigger a timed request through the client."""
             async with AsyncVWS(
                 server_access_key=database.server_access_key,
                 server_secret_key=database.server_secret_key,
@@ -74,12 +74,12 @@ class TestAsyncVWS:
     def test_add_get_and_delete_target(
         image_file_success_state_low_rating: io.BytesIO,
     ) -> None:
-        """A target lifecycle works through ``AsyncVWS``."""
+        """A target life cycle works through ``AsyncVWS``."""
         database = CloudDatabase()
         target_name = "async-target"
 
         async def run_test() -> None:
-            """Exercise the async target lifecycle."""
+            """Exercise the target life cycle."""
             async with AsyncVWS(
                 server_access_key=database.server_access_key,
                 server_secret_key=database.server_secret_key,
@@ -109,7 +109,7 @@ class TestAsyncVWS:
 
 
 class TestAsyncCloudRecoService:
-    """Async cloud query usage through the mock."""
+    """Asynchronous cloud query usage through the mock."""
 
     @staticmethod
     def test_query_returns_match(high_quality_image: io.BytesIO) -> None:
@@ -117,7 +117,7 @@ class TestAsyncCloudRecoService:
         database = CloudDatabase()
 
         async def run_test() -> None:
-            """Add a target and query it using async clients."""
+            """Add a target and query it using the clients."""
             async with (
                 AsyncVWS(
                     server_access_key=database.server_access_key,
@@ -148,7 +148,7 @@ class TestAsyncCloudRecoService:
 
 
 class TestAsyncVuMarkService:
-    """Async VuMark generation usage through the mock."""
+    """Asynchronous VuMark generation usage through the mock."""
 
     @staticmethod
     def test_generate_vumark_instance_returns_png_bytes() -> None:
