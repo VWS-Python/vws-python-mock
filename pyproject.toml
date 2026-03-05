@@ -103,7 +103,7 @@ optional-dependencies.dev = [
     "types-pyyaml==6.0.12.20250915",
     "types-requests==2.32.4.20260107",
     "urllib3==2.6.3",
-    "vulture==2.14",
+    "vulture==2.15",
     "vws-python==2026.2.25.1",
     "vws-test-fixtures==2023.3.5",
     "vws-web-tools==2026.2.22.1",
