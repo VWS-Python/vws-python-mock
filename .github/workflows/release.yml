@@ -7,6 +7,7 @@ jobs:
   release:
     name: Create release
     runs-on: ubuntu-latest
+    environment: release
 
     permissions:
       # This is needed for https://github.com/stefanzweifel/git-auto-commit-action.
@@ -138,6 +139,7 @@ jobs:
     name: Publish Docker images
     needs: release
     runs-on: ubuntu-latest
+    environment: dockerhub
 
     permissions: {}
 
