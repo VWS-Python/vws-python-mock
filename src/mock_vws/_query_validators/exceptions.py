@@ -605,9 +605,7 @@ class NoBoundaryFoundError(ValidatorError):
         """
         super().__init__()
         self.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-        self.response_text = (
-            "RESTEASY007550: Unable to get boundary for multipart"
-        )
+        self.response_text = "Unable to get boundary for multipart"
 
         date = email.utils.formatdate(
             timeval=None,
