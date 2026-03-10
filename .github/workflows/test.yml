@@ -314,7 +314,7 @@ jobs:
         if: ${{ failure() }}
 
   # Final completion check
-  completion:
+  completion-ci:
     needs: [ci-tests, skip-tests, windows-tests, coverage]
     runs-on: ubuntu-latest
     if: always()
