@@ -15,8 +15,8 @@ target "vws" {
   inherits = ["_base"]
   target   = "vws"
   tags = [
-    "adamtheturtle/vuforia-vws-mock:latest",
-    "adamtheturtle/vuforia-vws-mock:${VERSION}",
+    "ghcr.io/vws-python/vuforia-vws-mock:latest",
+    "ghcr.io/vws-python/vuforia-vws-mock:${VERSION}",
   ]
 }
 
@@ -24,8 +24,8 @@ target "vwq" {
   inherits = ["_base"]
   target   = "vwq"
   tags = [
-    "adamtheturtle/vuforia-vwq-mock:latest",
-    "adamtheturtle/vuforia-vwq-mock:${VERSION}",
+    "ghcr.io/vws-python/vuforia-vwq-mock:latest",
+    "ghcr.io/vws-python/vuforia-vwq-mock:${VERSION}",
   ]
 }
 
@@ -33,7 +33,7 @@ target "target-manager" {
   inherits = ["_base"]
   target   = "target-manager"
   tags = [
-    "adamtheturtle/vuforia-target-manager-mock:latest",
-    "adamtheturtle/vuforia-target-manager-mock:${VERSION}",
+    "ghcr.io/vws-python/vuforia-target-manager-mock:latest",
+    "ghcr.io/vws-python/vuforia-target-manager-mock:${VERSION}",
   ]
 }
