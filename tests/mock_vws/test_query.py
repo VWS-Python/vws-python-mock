@@ -179,10 +179,10 @@ class TestContentType:
             ),
             (
                 "*/*",
-                HTTPStatus.INTERNAL_SERVER_ERROR,
-                "application/json",
+                HTTPStatus.BAD_REQUEST,
+                "text/plain;charset=utf-8",
                 None,
-                "RESTEASY007550: Unable to get boundary for multipart",
+                "Unable to get boundary for multipart",
             ),
             (
                 "text/*",
@@ -404,12 +404,12 @@ class TestContentType:
             tell_position=requests_response.raw.tell(),
             content=requests_response.content,
         )
-        expected_text = "RESTEASY007550: Unable to get boundary for multipart"
+        expected_text = "Unable to get boundary for multipart"
         assert requests_response.text == expected_text
         assert_vwq_failure(
             response=vws_response,
-            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
-            content_type="application/json",
+            status_code=HTTPStatus.BAD_REQUEST,
+            content_type="text/plain;charset=utf-8",
             cache_control=None,
             www_authenticate=None,
             connection="keep-alive",

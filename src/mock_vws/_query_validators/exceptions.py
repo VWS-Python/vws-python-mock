@@ -604,10 +604,8 @@ class NoBoundaryFoundError(ValidatorError):
                 raised.
         """
         super().__init__()
-        self.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-        self.response_text = (
-            "RESTEASY007550: Unable to get boundary for multipart"
-        )
+        self.status_code = HTTPStatus.BAD_REQUEST
+        self.response_text = "Unable to get boundary for multipart"
 
         date = email.utils.formatdate(
             timeval=None,
@@ -615,7 +613,7 @@ class NoBoundaryFoundError(ValidatorError):
             usegmt=True,
         )
         self.headers = {
-            "Content-Type": "application/json",
+            "Content-Type": "text/plain;charset=utf-8",
             "Connection": "keep-alive",
             "Server": "nginx",
             "Date": date,
