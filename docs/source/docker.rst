@@ -28,19 +28,19 @@ Creating containers
        --publish 5005:5000 \
        --name vuforia-target-manager-mock \
        --network vws-bridge-network \
-       adamtheturtle/vuforia-target-manager-mock
+       ghcr.io/vws-python/vuforia-target-manager-mock
    $ docker run \
        --detach \
        --publish 5006:5000 \
        -e TARGET_MANAGER_BACKEND=vuforia-target-manager-mock:5000 \
        --network vws-bridge-network \
-       adamtheturtle/vuforia-vws-mock
+       ghcr.io/vws-python/vuforia-vws-mock
    $ docker run \
        --detach \
        --publish 5007:5000 \
        -e TARGET_MANAGER_BACKEND=vuforia-target-manager-mock:5000 \
        --network vws-bridge-network \
-       adamtheturtle/vuforia-vwq-mock
+       ghcr.io/vws-python/vuforia-vwq-mock
 
 
 Adding a database to the mock target manager
@@ -157,9 +157,9 @@ Building images from source
    $ export REPOSITORY_ROOT="$PWD"
    $ export DOCKERFILE="$REPOSITORY_ROOT/src/mock_vws/_flask_server/Dockerfile"
 
-   $ export TARGET_MANAGER_TAG=adamtheturtle/vuforia-target-manager-mock:latest
-   $ export VWS_TAG=adamtheturtle/vuforia-vws-mock:latest
-   $ export VWQ_TAG=adamtheturtle/vuforia-vwq-mock:latest
+   $ export TARGET_MANAGER_TAG=ghcr.io/vws-python/vuforia-target-manager-mock:latest
+   $ export VWS_TAG=ghcr.io/vws-python/vuforia-vws-mock:latest
+   $ export VWQ_TAG=ghcr.io/vws-python/vuforia-vwq-mock:latest
 
    $ docker buildx build "$REPOSITORY_ROOT" --file "$DOCKERFILE" --target target-manager --tag "$TARGET_MANAGER_TAG"
    $ docker buildx build "$REPOSITORY_ROOT" --file "$DOCKERFILE" --target vws --tag "$VWS_TAG"
