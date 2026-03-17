@@ -131,15 +131,16 @@ jobs:
           cache-dependency-glob: '**/pyproject.toml'
 
       - name: Set secrets file
-        run: |
-          # See the "CI Setup" document for details of how this was set up.
-          ci/decrypt_secret.sh
-          tar xvf "${HOME}"/secrets/secrets.tar
-          cp ./ci_secrets/vuforia_secrets_${{ strategy.job-index }}.env ./vuforia_secrets.env
         env:
           CI_PATTERN: ${{ matrix.ci_pattern }}
           ENCRYPTED_FILE: secrets.tar.gpg
           LARGE_SECRET_PASSPHRASE: ${{ secrets.PASSPHRASE_FOR_VUFORIA_SECRETS }}
+          JOB_INDEX: ${{ strategy.job-index }}
+        run: |
+          # See the "CI Setup" document for details of how this was set up.
+          ci/decrypt_secret.sh
+          tar xvf "${HOME}"/secrets/secrets.tar
+          cp "./ci_secrets/vuforia_secrets_${JOB_INDEX}.env" ./vuforia_secrets.env
 
       # We have seen issues with running out of disk space on test_docker
       - name: Free Disk Space (Ubuntu)

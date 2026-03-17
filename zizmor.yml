@@ -8,5 +8,3 @@ rules:
     disable: true
   superfluous-actions:
     disable: true
-  template-injection:
-    disable: true
