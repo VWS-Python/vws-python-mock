@@ -254,8 +254,7 @@ class TestContentType:
             content=requests_response.content,
         )
 
-        if resp_status_code != HTTPStatus.INTERNAL_SERVER_ERROR:
-            handle_server_errors(response=vws_response)
+        handle_server_errors(response=vws_response)
 
         repl = "Powered by Jetty://"
         sub = _JETTY_VERSION_RE.sub
@@ -357,10 +356,7 @@ class TestContentType:
         vuforia_database: CloudDatabase,
         content_type: str,
     ) -> None:
-        """
-        If no boundary is given, an ``INTERNAL_SERVER_ERROR`` is
-        returned.
-        """
+        """If no boundary is given, a ``BAD_REQUEST`` is returned."""
         image_content = high_quality_image.getvalue()
         date = rfc_1123_date()
         request_path = "/v1/query"
