@@ -329,6 +329,28 @@ indent = 4
 keep_full_version = true
 max_supported_python = "3.13"
 
+[tool.mypy]
+strict = true
+files = [ "." ]
+exclude = [ "build" ]
+plugins = [
+    "pydantic.mypy",
+    "mypy_strict_kwargs",
+]
+follow_untyped_imports = true
+
+[tool.pyrefly]
+search_path = [
+    ".",
+    "src",
+]
+errors.non-exhaustive-match = "error"
+
+[tool.pyright]
+enableTypeIgnoreComments = false
+reportUnnecessaryTypeIgnoreComment = true
+typeCheckingMode = "strict"
+
 [tool.pytest]
 xfail_strict = true
 log_cli = true
@@ -356,28 +378,6 @@ report.exclude_also = [
 ]
 report.fail_under = 100
 report.show_missing = true
-
-[tool.mypy]
-strict = true
-files = [ "." ]
-exclude = [ "build" ]
-plugins = [
-    "pydantic.mypy",
-    "mypy_strict_kwargs",
-]
-follow_untyped_imports = true
-
-[tool.pyrefly]
-search_path = [
-    ".",
-    "src",
-]
-errors.non-exhaustive-match = "error"
-
-[tool.pyright]
-enableTypeIgnoreComments = false
-reportUnnecessaryTypeIgnoreComment = true
-typeCheckingMode = "strict"
 
 [tool.pydocstringformatter]
 write = true
