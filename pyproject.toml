@@ -56,7 +56,7 @@ optional-dependencies.dev = [
     "check-manifest==0.51",
     "check-wheel-contents==0.6.3",
     "coverage==7.13.5",
-    "deptry==0.24.0",
+    "deptry==0.25.1",
     "dirty-equals==0.11",
     "doc8==2.0.0",
     "doccmd==2026.3.26.2",
