@@ -59,7 +59,7 @@ def _time_now() -> datetime.datetime:
 
 
 @beartype(conf=BeartypeConf(is_pep484_tower=True))
-@dataclass(frozen=True, eq=True)
+@dataclass(frozen=True, eq=True, kw_only=True)
 class ImageTarget:
     """A Vuforia image target as managed in
     https://developer.vuforia.com/target-manager.
@@ -219,7 +219,7 @@ class ImageTarget:
 
 
 @beartype(conf=BeartypeConf(is_pep484_tower=True))
-@dataclass(frozen=True, eq=True)
+@dataclass(frozen=True, eq=True, kw_only=True)
 class VuMarkTarget:
     """
     A VuMark target as managed in

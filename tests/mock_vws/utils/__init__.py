@@ -16,7 +16,7 @@ from vws.response import Response
 from mock_vws._constants import ResultCodes
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class Endpoint:
     """Details of endpoints to be called in tests.
 

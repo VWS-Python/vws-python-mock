@@ -50,7 +50,7 @@ def _random_hex() -> str:
 
 
 @beartype
-@dataclass(eq=True, frozen=True)
+@dataclass(eq=True, frozen=True, kw_only=True)
 class CloudDatabase:
     """Credentials for VWS APIs.
 
@@ -180,7 +180,7 @@ class CloudDatabase:
 
 
 @beartype
-@dataclass(eq=True, frozen=True)
+@dataclass(eq=True, frozen=True, kw_only=True)
 class VuMarkDatabase:
     """Credentials for the VuMark generation API.
 
