@@ -15,7 +15,7 @@ _LOGGER = logging.getLogger(name=__name__)
 
 
 @beartype
-@dataclass
+@dataclass(frozen=True, kw_only=True)
 class _Route:
     """A representation of a VWS route.
 

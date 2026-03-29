@@ -32,7 +32,7 @@ class MissingSchemeError(Exception):
 
 
 @beartype
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class RequestData:
     """A library-agnostic representation of an HTTP request.
 
@@ -50,7 +50,7 @@ class RequestData:
 
 
 @beartype
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class Route:
     """A representation of a VWS route.
 

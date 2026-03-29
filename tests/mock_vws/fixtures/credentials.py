@@ -68,7 +68,7 @@ class _VuMarkCloudDatabaseSettings(BaseSettings):
     )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class InactiveVuMarkCloudDatabase:
     """Credentials for an inactive VuMark database."""
 
@@ -77,7 +77,7 @@ class InactiveVuMarkCloudDatabase:
     server_secret_key: str = field(repr=False)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class VuMarkCloudDatabase:
     """Credentials for the VuMark generation API."""
 
