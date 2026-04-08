@@ -295,7 +295,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 @beartype
 def pytest_collection_modifyitems(
     config: pytest.Config,
-    items: list[pytest.Function],
+    items: list[pytest.Item],
 ) -> None:
     """Skip Docker tests if requested."""
     skip_docker_build_tests_option = "--skip-docker_build_tests"
