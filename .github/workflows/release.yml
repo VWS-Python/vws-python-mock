@@ -168,7 +168,7 @@ jobs:
         uses: docker/setup-qemu-action@v4
 
       - name: Build and push Docker images
-        uses: docker/bake-action@v7.0.0
+        uses: docker/bake-action@v7.1.0
         with:
           push: true
         env:
