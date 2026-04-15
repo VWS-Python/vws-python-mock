@@ -184,8 +184,8 @@ class MockVWS(ContextDecorator):
                     body_bytes = b""
                 case str() as raw_body:
                     body_bytes = raw_body.encode(encoding="utf-8")
-                case bytes() as raw_body:
-                    body_bytes = raw_body
+                case _:
+                    body_bytes = request.body
 
             path = request.path_url
             if base_path and path.startswith(base_path):
