@@ -168,8 +168,8 @@ class MockVWS(ContextDecorator):
             # tuple. The delay simulates server response
             # time, so compare against the read timeout.
             match timeout:
-                case tuple():
-                    effective: float | None = float(timeout[1])
+                case (_, int() | float() as read_timeout):
+                    effective: float | None = float(read_timeout)
                 case int() | float():
                     effective = float(timeout)
                 case _:
