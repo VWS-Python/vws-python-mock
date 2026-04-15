@@ -167,23 +167,25 @@ class MockVWS(ContextDecorator):
             # requests allows timeout as a (connect, read)
             # tuple. The delay simulates server response
             # time, so compare against the read timeout.
-            if isinstance(timeout, tuple):
-                timeout = timeout[1]
-            effective: float | None = None
-            if isinstance(timeout, (int, float)):
-                effective = float(timeout)
+            match timeout:
+                case tuple():
+                    effective: float | None = float(timeout[1])
+                case int() | float():
+                    effective = float(timeout)
+                case _:
+                    effective = None
 
             if effective is not None and delay_seconds > effective:
                 sleep_fn(effective)
                 raise requests.exceptions.Timeout
 
-            raw_body = request.body
-            if raw_body is None:
-                body_bytes = b""
-            elif isinstance(raw_body, str):
-                body_bytes = raw_body.encode(encoding="utf-8")
-            else:
-                body_bytes = raw_body
+            match request.body:
+                case None:
+                    body_bytes = b""
+                case str() as raw_body:
+                    body_bytes = raw_body.encode(encoding="utf-8")
+                case bytes() as raw_body:
+                    body_bytes = raw_body
 
             path = request.path_url
             if base_path and path.startswith(base_path):
