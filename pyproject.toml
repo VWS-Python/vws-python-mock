@@ -77,7 +77,7 @@ optional-dependencies.dev = [
     "pyright==1.1.408",
     "pyroma==5.0.1",
     "pytest==9.0.3",
-    "pytest-beartype-tests==2026.4.19.1",
+    "pytest-beartype-tests",
     "pytest-retry==1.7.0",
     "pytest-xdist==3.8.0",
     "pyyaml==6.0.3",
@@ -145,6 +145,7 @@ fallback_version = "0.0.0"
 version_scheme = "post-release"
 
 [tool.uv]
+sources.pytest-beartype-tests = { git = "https://github.com/adamtheturtle/pytest-beartype-tests.git", rev = "bc81d99" }
 sources.torch = { index = "pytorch-cpu" }
 sources.torchvision = { index = "pytorch-cpu" }
 index = [ { name = "pytorch-cpu", url = "https://download.pytorch.org/whl/cpu", explicit = true } ]
