@@ -103,6 +103,7 @@ respx
 rfc
 rgb
 str
+stringify
 timestamp
 todo
 travis
