@@ -15,7 +15,7 @@ def flask_app_healthy(port: int) -> bool:
     try:
         conn.request(method="GET", url="/some-random-endpoint")
         response = conn.getresponse()
-    except (TimeoutError, http.client.HTTPException, socket.gaierror):
+    except TimeoutError, http.client.HTTPException, socket.gaierror:
         return False
     finally:
         conn.close()
