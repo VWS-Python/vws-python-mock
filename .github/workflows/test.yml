@@ -119,7 +119,8 @@ jobs:
           - tests/mock_vws/test_target_validators.py
           - tests/mock_vws/test_docker.py
           - ci/test_custom_linters.py
-          - '**/*.rst'
+          - README.rst
+          - docs/
 
     steps:
       - uses: actions/checkout@v6
@@ -161,7 +162,6 @@ jobs:
 
       - name: Run tests
         run: |
-          shopt -s globstar
           uv run --extra=dev \
             coverage run -m pytest \
               -s \
