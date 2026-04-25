@@ -111,6 +111,9 @@ def test_tests_collected_once(
         ci_pattern=".",
         repository_root=repository_root,
     )
+    # Exclude this file's own meta-tests from the comparison: they are
+    # not part of any CI pattern by design (they validate the patterns).
+    all_tests = {t for t in all_tests if not t.startswith("ci/")}
     assert tests_to_patterns.keys() - all_tests == set()
     assert all_tests - tests_to_patterns.keys() == set()
 
