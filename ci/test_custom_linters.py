@@ -8,6 +8,23 @@ from beartype import beartype
 
 
 @beartype
+def _expand_pattern(*, ci_pattern: str) -> list[str]:
+    """Expand a CI pattern, treating shell-style globs as recursive globs.
+
+    Hidden directories (such as ``.venv``) are skipped to match bash's
+    default globbing behaviour. Patterns without glob metacharacters are
+    returned unchanged.
+    """
+    if not any(char in ci_pattern for char in "*?["):
+        return [ci_pattern]
+    return [
+        path.as_posix()
+        for path in Path().glob(pattern=ci_pattern)
+        if not any(part.startswith(".") for part in path.parts)
+    ]
+
+
+@beartype
 def _ci_patterns(*, repository_root: Path) -> set[str]:
     """Return the CI patterns given in the CI configuration file."""
     ci_file = repository_root / ".github" / "workflows" / "test.yml"
@@ -52,7 +69,7 @@ def _tests_from_pattern(*, ci_pattern: str) -> set[str]:
             # Unknown config option: retry_delay
             # ```
             "--disable-warnings",
-            ci_pattern,
+            *_expand_pattern(ci_pattern=ci_pattern),
         ],
         plugins=[plugin],
     )
@@ -71,7 +88,7 @@ def test_ci_patterns_valid(request: pytest.FixtureRequest) -> None:
         collect_only_result = pytest.main(
             args=[
                 "--collect-only",
-                ci_pattern,
+                *_expand_pattern(ci_pattern=ci_pattern),
                 # Disable pytest-retry to avoid:
                 # ```
                 # ValueError: no option named 'filtered_exceptions'
