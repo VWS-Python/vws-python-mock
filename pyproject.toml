@@ -61,7 +61,6 @@ optional-dependencies.dev = [
     "doc8==2.0.0",
     "doccmd==2026.3.26.2",
     "docker==7.1.0",
-    "enum-tools[sphinx]==0.13.0",
     "freezegun==1.5.5",
     "furo==2025.12.19",
     "interrogate==1.7.0",

@@ -25,11 +25,11 @@ API Reference
    :undoc-members:
    :exclude-members: to_dict, from_dict, not_deleted_targets
 
-.. autoenum:: mock_vws.states.States
+.. autoclass:: mock_vws.states.States
    :members:
    :undoc-members:
 
-.. autoenum:: mock_vws.database_type.DatabaseType
+.. autoclass:: mock_vws.database_type.DatabaseType
    :members:
    :undoc-members:
 

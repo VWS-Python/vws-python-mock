@@ -26,7 +26,6 @@ extensions = [
     "sphinxcontrib.spelling",
     "sphinxcontrib.autohttp.flask",
     "sphinx_toolbox.more_autodoc.autoprotocol",
-    "enum_tools.autoenum",
 ]
 
 # Required by sphinx-toolbox 4.2.0rc1 for compatibility with Sphinx 9.
