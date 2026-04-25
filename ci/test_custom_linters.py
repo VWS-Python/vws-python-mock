@@ -39,6 +39,12 @@ def _tests_from_pattern(
             "--collect-only",
             # If there are any warnings, these obscure the output.
             "--disable-warnings",
+            # Disable ``pytest-beartype-tests`` to avoid repeated wrapping
+            # of the same test functions across many ``pytest.main`` calls,
+            # which can trigger ``Cannot stringify annotation containing
+            # string formatting`` under Python 3.14 deferred annotations.
+            "-p",
+            "no:pytest_beartype_tests",
             ci_pattern,
         ],
     )
@@ -70,6 +76,13 @@ def test_ci_patterns_valid(request: pytest.FixtureRequest) -> None:
                 # ````
                 "-p",
                 "no:pytest-retry",
+                # Disable ``pytest-beartype-tests`` to avoid repeated
+                # wrapping of the same test functions across many
+                # ``pytest.main`` calls, which can trigger ``Cannot
+                # stringify annotation containing string formatting``
+                # under Python 3.14 deferred annotations.
+                "-p",
+                "no:pytest_beartype_tests",
                 # Disable warnings to avoid many instances of:
                 # ```
                 # Unknown config option: retry_delay
