@@ -26,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.14']
+        python-version: ['3.13']
         ci_pattern:
           - tests/mock_vws/test_query.py::TestContentType
           - tests/mock_vws/test_query.py::TestSuccess
@@ -114,13 +114,13 @@ jobs:
           - tests/mock_vws/test_update_target.py::TestInactiveProject
           - tests/mock_vws/test_requests_mock_usage.py
           - tests/mock_vws/test_respx_mock_usage.py
-          - tests/mock_vws/test_target_validators.py
           - tests/mock_vws/test_flask_app_usage.py
           - tests/mock_vws/test_vumark_generation_api.py
+          - tests/mock_vws/test_target_validators.py
           - tests/mock_vws/test_docker.py
+          - ci/test_custom_linters.py
           - README.rst
-          - docs/source/basic-example.rst
-          - docs/source/httpx-example.rst
+          - docs/
 
     steps:
       - uses: actions/checkout@v6
@@ -191,7 +191,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.14']
+        python-version: ['3.13']
         platform: [ubuntu-latest]
 
     steps:
@@ -237,7 +237,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        python-version: ['3.14']
+        python-version: ['3.13']
 
     steps:
       - uses: actions/checkout@v6
