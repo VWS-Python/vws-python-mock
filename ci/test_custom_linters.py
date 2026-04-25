@@ -43,7 +43,7 @@ def all_tests() -> frozenset[str]:
     ``capsys`` would see an empty string and the test would pass vacuously.
     """
     plugin = _CollectPlugin()
-    pytest.main(
+    exit_code = pytest.main(
         args=[
             "--collect-only",
             # Disable pytest-retry to avoid:
@@ -60,6 +60,12 @@ def all_tests() -> frozenset[str]:
             ".",
         ],
         plugins=[plugin],
+    )
+    # Fail loudly on collection errors (import failures, syntax errors, etc.)
+    # rather than silently using whatever items were captured before the
+    # crash.
+    assert exit_code == pytest.ExitCode.OK, (
+        f"Collection failed with exit code {exit_code}."
     )
     return frozenset(plugin.nodeids)
 
