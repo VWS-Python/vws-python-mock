@@ -8,15 +8,11 @@ import os
 import sys
 import textwrap
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import vws_web_tools
 from selenium.common.exceptions import TimeoutException
-
-if TYPE_CHECKING:
-    from selenium.webdriver.remote.webdriver import WebDriver
-    from vws_web_tools import DatabaseDict, VuMarkDatabaseDict
-
+from selenium.webdriver.remote.webdriver import WebDriver
+from vws_web_tools import DatabaseDict, VuMarkDatabaseDict
 
 VUMARK_TEMPLATE_SVG_FILE_PATH = Path(__file__).with_name(
     name="vumark_template.svg",
