@@ -1,14 +1,10 @@
 """Custom lint tests."""
 
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import pytest
 import yaml
 from beartype import beartype
-
-if TYPE_CHECKING:
-    from collections.abc import Iterable
 
 
 @beartype
@@ -23,32 +19,49 @@ def _ci_patterns(*, repository_root: Path) -> set[str]:
     return ci_patterns
 
 
+class _CollectPlugin:
+    """Pytest plugin that records collected node IDs."""
+
+    def __init__(self) -> None:
+        """Initialize an empty set of collected node IDs."""
+        self.nodeids: set[str] = set()
+
+    def pytest_collection_modifyitems(
+        self,
+        items: list[pytest.Item],
+    ) -> None:
+        """Record the node IDs of all collected items."""
+        self.nodeids.update(item.nodeid for item in items)
+
+
 @beartype
-def _tests_from_pattern(
-    *,
-    ci_pattern: str,
-    capsys: pytest.CaptureFixture[str],
-) -> set[str]:
-    """From a CI pattern, get all tests ``pytest`` would collect."""
-    # Clear the captured output.
-    capsys.readouterr()
-    tests: Iterable[str] = set()
+def _tests_from_pattern(*, ci_pattern: str) -> set[str]:
+    """From a CI pattern, get all tests ``pytest`` would collect.
+
+    Uses a collection-hook plugin instead of parsing stdout: an in-process
+    ``pytest.main()`` installs its own output capture, so reading from
+    ``capsys`` would see an empty string and the test would pass vacuously.
+    """
+    plugin = _CollectPlugin()
     pytest.main(
         args=[
-            "-q",
             "--collect-only",
-            # If there are any warnings, these obscure the output.
+            # Disable pytest-retry to avoid:
+            # ```
+            # ValueError: no option named 'filtered_exceptions'
+            # ```
+            "-p",
+            "no:pytest-retry",
+            # Disable warnings to avoid many instances of:
+            # ```
+            # Unknown config option: retry_delay
+            # ```
             "--disable-warnings",
             ci_pattern,
         ],
+        plugins=[plugin],
     )
-    data = capsys.readouterr().out
-    for line in data.splitlines():
-        # We filter empty lines and lines which look like
-        # "9 tests collected in 0.01s".
-        if line and "collected in" not in line:
-            tests = {*tests, line}
-    return set(tests)
+    return plugin.nodeids
 
 
 def test_ci_patterns_valid(request: pytest.FixtureRequest) -> None:
@@ -60,31 +73,13 @@ def test_ci_patterns_valid(request: pytest.FixtureRequest) -> None:
     ci_patterns = _ci_patterns(repository_root=request.config.rootpath)
 
     for ci_pattern in ci_patterns:
-        collect_only_result = pytest.main(
-            args=[
-                "--collect-only",
-                ci_pattern,
-                # Disable pytest-retry to avoid:
-                # ```
-                # ValueError: no option named 'filtered_exceptions'
-                # ````
-                "-p",
-                "no:pytest-retry",
-                # Disable warnings to avoid many instances of:
-                # ```
-                # Unknown config option: retry_delay
-                # ```
-                "--disable-warnings",
-            ],
-        )
-
+        tests = _tests_from_pattern(ci_pattern=ci_pattern)
         message = f'"{ci_pattern}" does not match any tests.'
-        assert collect_only_result == 0, message
+        assert tests, message
 
 
 def test_tests_collected_once(
     *,
-    capsys: pytest.CaptureFixture[str],
     request: pytest.FixtureRequest,
 ) -> None:
     """Each test in the test suite is collected exactly once.
@@ -95,7 +90,7 @@ def test_tests_collected_once(
     tests_to_patterns: dict[str, set[str]] = {}
 
     for pattern in ci_patterns:
-        tests = _tests_from_pattern(ci_pattern=pattern, capsys=capsys)
+        tests = _tests_from_pattern(ci_pattern=pattern)
         for test in tests:
             if test in tests_to_patterns:
                 tests_to_patterns[test].add(pattern)
@@ -110,6 +105,6 @@ def test_tests_collected_once(
         )
         assert len(patterns) == 1, message
 
-    all_tests = _tests_from_pattern(ci_pattern=".", capsys=capsys)
+    all_tests = _tests_from_pattern(ci_pattern=".")
     assert tests_to_patterns.keys() - all_tests == set()
     assert all_tests - tests_to_patterns.keys() == set()
