@@ -1,5 +1,7 @@
 """Custom lint tests."""
 
+import subprocess
+import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -24,37 +26,33 @@ def _ci_patterns(*, repository_root: Path) -> set[str]:
 
 
 @beartype
-def _tests_from_pattern(
-    *,
-    ci_pattern: str,
-    capsys: pytest.CaptureFixture[str],
-) -> set[str]:
-    """From a CI pattern, get all tests ``pytest`` would collect."""
-    # Clear the captured output.
-    capsys.readouterr()
-    tests: Iterable[str] = set()
-    pytest.main(
+def _collect(
+    *, ci_pattern: str, repository_root: Path
+) -> subprocess.CompletedProcess[str]:
+    """Run ``pytest --collect-only`` for ``ci_pattern`` in a fresh
+    subprocess.
+
+    A real subprocess (not ``pytest.main``) is used so that plugin state
+    (notably ``pytest-beartype-tests`` re-wrapping the same test
+    functions) does not accumulate across iterations and trigger
+    ``Cannot stringify annotation containing string formatting`` under
+    Python 3.14 deferred annotations.
+    """
+    return subprocess.run(
         args=[
+            sys.executable,
+            "-m",
+            "pytest",
             "-q",
             "--collect-only",
-            # If there are any warnings, these obscure the output.
             "--disable-warnings",
-            # Disable ``pytest-beartype-tests`` to avoid repeated wrapping
-            # of the same test functions across many ``pytest.main`` calls,
-            # which can trigger ``Cannot stringify annotation containing
-            # string formatting`` under Python 3.14 deferred annotations.
-            "-p",
-            "no:pytest_beartype_tests",
             ci_pattern,
         ],
+        check=False,
+        cwd=repository_root,
+        capture_output=True,
+        text=True,
     )
-    data = capsys.readouterr().out
-    for line in data.splitlines():
-        # We filter empty lines and lines which look like
-        # "9 tests collected in 0.01s".
-        if line and "collected in" not in line:
-            tests = {*tests, line}
-    return set(tests)
 
 
 def test_ci_patterns_valid(request: pytest.FixtureRequest) -> None:
@@ -63,52 +61,38 @@ def test_ci_patterns_valid(request: pytest.FixtureRequest) -> None:
     test in
     the test suite.
     """
-    ci_patterns = _ci_patterns(repository_root=request.config.rootpath)
+    repository_root = request.config.rootpath
+    ci_patterns = _ci_patterns(repository_root=repository_root)
 
     for ci_pattern in ci_patterns:
-        collect_only_result = pytest.main(
-            args=[
-                "--collect-only",
-                ci_pattern,
-                # Disable pytest-retry to avoid:
-                # ```
-                # ValueError: no option named 'filtered_exceptions'
-                # ````
-                "-p",
-                "no:pytest-retry",
-                # Disable ``pytest-beartype-tests`` to avoid repeated
-                # wrapping of the same test functions across many
-                # ``pytest.main`` calls, which can trigger ``Cannot
-                # stringify annotation containing string formatting``
-                # under Python 3.14 deferred annotations.
-                "-p",
-                "no:pytest_beartype_tests",
-                # Disable warnings to avoid many instances of:
-                # ```
-                # Unknown config option: retry_delay
-                # ```
-                "--disable-warnings",
-            ],
+        result = _collect(
+            ci_pattern=ci_pattern,
+            repository_root=repository_root,
         )
-
-        message = f'"{ci_pattern}" does not match any tests.'
-        assert collect_only_result == 0, message
+        message = (
+            f'"{ci_pattern}" does not match any tests.\n'
+            f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+        )
+        assert result.returncode == 0, message
 
 
 def test_tests_collected_once(
     *,
-    capsys: pytest.CaptureFixture[str],
     request: pytest.FixtureRequest,
 ) -> None:
     """Each test in the test suite is collected exactly once.
 
     This does not necessarily mean that they are run - they may be skipped.
     """
-    ci_patterns = _ci_patterns(repository_root=request.config.rootpath)
+    repository_root = request.config.rootpath
+    ci_patterns = _ci_patterns(repository_root=repository_root)
     tests_to_patterns: dict[str, set[str]] = {}
 
     for pattern in ci_patterns:
-        tests = _tests_from_pattern(ci_pattern=pattern, capsys=capsys)
+        tests = _tests_from_pattern(
+            ci_pattern=pattern,
+            repository_root=repository_root,
+        )
         for test in tests:
             if test in tests_to_patterns:
                 tests_to_patterns[test].add(pattern)
@@ -123,6 +107,29 @@ def test_tests_collected_once(
         )
         assert len(patterns) == 1, message
 
-    all_tests = _tests_from_pattern(ci_pattern=".", capsys=capsys)
+    all_tests = _tests_from_pattern(
+        ci_pattern=".",
+        repository_root=repository_root,
+    )
     assert tests_to_patterns.keys() - all_tests == set()
     assert all_tests - tests_to_patterns.keys() == set()
+
+
+@beartype
+def _tests_from_pattern(
+    *,
+    ci_pattern: str,
+    repository_root: Path,
+) -> set[str]:
+    """From a CI pattern, get all tests ``pytest`` would collect."""
+    result = _collect(
+        ci_pattern=ci_pattern,
+        repository_root=repository_root,
+    )
+    tests: Iterable[str] = set()
+    for line in result.stdout.splitlines():
+        # We filter empty lines and lines which look like
+        # "9 tests collected in 0.01s".
+        if line and "collected in" not in line:
+            tests = {*tests, line}
+    return set(tests)
