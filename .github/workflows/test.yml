@@ -113,11 +113,15 @@ jobs:
           - tests/mock_vws/test_update_target.py::TestWidth
           - tests/mock_vws/test_update_target.py::TestInactiveProject
           - tests/mock_vws/test_requests_mock_usage.py
+          - tests/mock_vws/test_respx_mock_usage.py
           - tests/mock_vws/test_flask_app_usage.py
           - tests/mock_vws/test_vumark_generation_api.py
+          - tests/mock_vws/test_target_validators.py
           - tests/mock_vws/test_docker.py
+          - ci/test_custom_linters.py
           - README.rst
           - docs/source/basic-example.rst
+          - docs/source/httpx-example.rst
 
     steps:
       - uses: actions/checkout@v6
