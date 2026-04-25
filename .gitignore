@@ -112,3 +112,5 @@ secrets.tar
 src/*/_setuptools_scm_version.txt
 
 uv.lock
+
+.claude/scheduled_tasks.lock
