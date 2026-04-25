@@ -15,6 +15,7 @@ _LOGGER = logging.getLogger(name=__name__)
 
 @beartype
 def validate_include_target_data(
+    *,
     request_headers: Mapping[str, str],
     request_body: bytes,
 ) -> None:

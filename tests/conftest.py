@@ -8,18 +8,21 @@ import uuid
 import pytest
 from vws import VWS, CloudRecoService
 
-from mock_vws.database import VuforiaDatabase
+from mock_vws.database import CloudDatabase
 from tests.mock_vws.utils import Endpoint
 
+# `credentials` must be listed before modules that import from it.
+# If listed later, those imports happen before pytest can register it for
+# assertion rewriting, causing a PytestAssertRewriteWarning.
 pytest_plugins = [
-    "tests.mock_vws.fixtures.prepared_requests",
     "tests.mock_vws.fixtures.credentials",
+    "tests.mock_vws.fixtures.prepared_requests",
     "tests.mock_vws.fixtures.vuforia_backends",
 ]
 
 
 @pytest.fixture(name="vws_client")
-def fixture_vws_client(vuforia_database: VuforiaDatabase) -> VWS:
+def fixture_vws_client(*, vuforia_database: CloudDatabase) -> VWS:
     """A VWS client for an active VWS database."""
     return VWS(
         server_access_key=vuforia_database.server_access_key,
@@ -28,7 +31,7 @@ def fixture_vws_client(vuforia_database: VuforiaDatabase) -> VWS:
 
 
 @pytest.fixture
-def cloud_reco_client(vuforia_database: VuforiaDatabase) -> CloudRecoService:
+def cloud_reco_client(*, vuforia_database: CloudDatabase) -> CloudRecoService:
     """A query client for an active VWS database."""
     return CloudRecoService(
         client_access_key=vuforia_database.client_access_key,
@@ -37,27 +40,32 @@ def cloud_reco_client(vuforia_database: VuforiaDatabase) -> CloudRecoService:
 
 
 @pytest.fixture(name="inactive_vws_client")
-def fixture_inactive_vws_client(inactive_database: VuforiaDatabase) -> VWS:
+def fixture_inactive_vws_client(
+    *,
+    inactive_cloud_database: CloudDatabase,
+) -> VWS:
     """A client for an inactive VWS database."""
     return VWS(
-        server_access_key=inactive_database.server_access_key,
-        server_secret_key=inactive_database.server_secret_key,
+        server_access_key=inactive_cloud_database.server_access_key,
+        server_secret_key=inactive_cloud_database.server_secret_key,
     )
 
 
 @pytest.fixture
 def inactive_cloud_reco_client(
-    inactive_database: VuforiaDatabase,
+    *,
+    inactive_cloud_database: CloudDatabase,
 ) -> CloudRecoService:
     """A query client for an inactive VWS database."""
     return CloudRecoService(
-        client_access_key=inactive_database.client_access_key,
-        client_secret_key=inactive_database.client_secret_key,
+        client_access_key=inactive_cloud_database.client_access_key,
+        client_secret_key=inactive_cloud_database.client_secret_key,
     )
 
 
 @pytest.fixture
 def target_id(
+    *,
     image_file_success_state_low_rating: io.BytesIO,
     vws_client: VWS,
 ) -> str:
@@ -85,9 +93,10 @@ def target_id(
         "target_summary",
         "update_target",
         "query",
+        "vumark_generate_instance",
     ],
 )
-def endpoint(request: pytest.FixtureRequest) -> Endpoint:
+def endpoint(*, request: pytest.FixtureRequest) -> Endpoint:
     """
     Return details of an endpoint for the Target API or the Query
     API.
@@ -116,7 +125,7 @@ def endpoint(request: pytest.FixtureRequest) -> Endpoint:
         ),
     ],
 )
-def not_base64_encoded_processable(request: pytest.FixtureRequest) -> str:
+def not_base64_encoded_processable(*, request: pytest.FixtureRequest) -> str:
     """Return a string which is not decodable as base64 data, but Vuforia
     will
     respond as if this is valid base64 data.
@@ -140,7 +149,10 @@ def not_base64_encoded_processable(request: pytest.FixtureRequest) -> str:
         pytest.param('"', id="Not a base64 character."),
     ],
 )
-def not_base64_encoded_not_processable(request: pytest.FixtureRequest) -> str:
+def not_base64_encoded_not_processable(
+    *,
+    request: pytest.FixtureRequest,
+) -> str:
     """
     Return a string which is not decodable as base64 data, and Vuforia
     will

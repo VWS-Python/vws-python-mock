@@ -8,6 +8,7 @@ from typing import Literal
 from urllib.parse import urljoin
 
 import requests
+from beartype import beartype
 from PIL import Image
 from requests.structures import CaseInsensitiveDict
 from vws.response import Response
@@ -15,7 +16,7 @@ from vws.response import Response
 from mock_vws._constants import ResultCodes
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class Endpoint:
     """Details of endpoints to be called in tests.
 
@@ -47,11 +48,12 @@ class Endpoint:
     method: str
     headers: Mapping[str, str]
     data: bytes | str
-    successful_headers_result_code: ResultCodes
+    successful_headers_result_code: ResultCodes | None
     successful_headers_status_code: int
     access_key: str
     secret_key: str
 
+    @beartype
     def send(self) -> Response:
         """Send the request."""
         request = requests.Request(
@@ -71,6 +73,7 @@ class Endpoint:
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
             tell_position=requests_response.raw.tell(),
+            content=requests_response.content,
         )
 
     @property
@@ -80,7 +83,9 @@ class Endpoint:
         return full_content_type.split(sep=";")[0]
 
 
+@beartype
 def make_image_file(
+    *,
     file_format: str,
     color_space: Literal["RGB", "CMYK"],
     width: int,

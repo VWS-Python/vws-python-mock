@@ -8,6 +8,7 @@ from json.decoder import JSONDecodeError
 from beartype import beartype
 
 from mock_vws._services_validators.exceptions import (
+    BadRequestError,
     FailError,
     UnnecessaryRequestBodyError,
 )
@@ -43,14 +44,18 @@ def validate_body_given(*, request_body: bytes, request_method: str) -> None:
 
 
 @beartype
-def validate_json(*, request_body: bytes) -> None:
+def validate_json(*, request_body: bytes, request_path: str) -> None:
     """Validate that any given body is valid JSON.
 
     Args:
         request_body: The body of the request.
+        request_path: The path of the request.
 
     Raises:
-        FailError: The request body includes invalid JSON.
+        BadRequestError: The request body includes invalid JSON for the
+            VuMark instance generation endpoint.
+        FailError: The request body includes invalid JSON for other
+            endpoints.
     """
     if not request_body:
         return
@@ -59,4 +64,6 @@ def validate_json(*, request_body: bytes) -> None:
         json.loads(s=request_body.decode())
     except JSONDecodeError as exc:
         _LOGGER.warning(msg="The request body is not valid JSON.")
+        if request_path.endswith("/instances"):
+            raise BadRequestError from exc
         raise FailError(status_code=HTTPStatus.BAD_REQUEST) from exc

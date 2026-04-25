@@ -1,10 +1,12 @@
 """Tests for the usage of the mock Flask application."""
 
+import email.utils
 import io
 import json
+import time
 import uuid
 from collections.abc import Iterator
-from http import HTTPStatus
+from http import HTTPMethod, HTTPStatus
 
 import pytest
 import requests
@@ -12,11 +14,17 @@ import responses
 from PIL import Image
 from requests_mock_flask import add_flask_app_to_mock
 from vws import VWS, CloudRecoService
+from vws_auth_tools import authorization_header, rfc_1123_date
 
-from mock_vws._flask_server.target_manager import TARGET_MANAGER_FLASK_APP
+from mock_vws._constants import ResultCodes
+from mock_vws._flask_server.target_manager import (
+    TARGET_MANAGER,
+    TARGET_MANAGER_FLASK_APP,
+)
 from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
 from mock_vws._flask_server.vws import VWS_FLASK_APP
-from mock_vws.database import VuforiaDatabase
+from mock_vws.database import CloudDatabase, VuMarkDatabase
+from mock_vws.target import VuMarkTarget
 from tests.mock_vws.utils.usage_test_helpers import (
     processing_time_seconds,
 )
@@ -25,7 +33,7 @@ _EXAMPLE_URL_FOR_TARGET_MANAGER = "http://" + uuid.uuid4().hex + ".com"
 
 
 @pytest.fixture(autouse=True)
-def _(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
+def _(*, monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     """Enable a mock service backed by the Flask applications."""
     with responses.RequestsMock(
         assert_all_requests_are_fired=False,
@@ -55,6 +63,11 @@ def _(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
 
         yield
 
+    for cloud_database in TARGET_MANAGER.cloud_databases:
+        TARGET_MANAGER.remove_cloud_database(cloud_database=cloud_database)
+    for vumark_database in TARGET_MANAGER.vumark_databases:
+        TARGET_MANAGER.remove_vumark_database(vumark_database=vumark_database)
+
 
 class TestProcessingTime:
     """Tests for the time taken to process targets in the mock."""
@@ -68,8 +81,8 @@ class TestProcessingTime:
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """By default, targets in the mock takes 2 seconds to be processed."""
-        database = VuforiaDatabase()
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        database = CloudDatabase()
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         time_taken = processing_time_seconds(
@@ -82,6 +95,7 @@ class TestProcessingTime:
 
     def test_custom(
         self,
+        *,
         image_file_failed_state: io.BytesIO,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
@@ -91,8 +105,8 @@ class TestProcessingTime:
             name="PROCESSING_TIME_SECONDS",
             value=str(object=seconds),
         )
-        database = VuforiaDatabase()
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        database = CloudDatabase()
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         time_taken = processing_time_seconds(
@@ -104,16 +118,17 @@ class TestProcessingTime:
         assert expected - self.LEEWAY < time_taken < expected + self.LEEWAY
 
 
-class TestAddDatabase:
-    """Tests for adding databases to the mock."""
+class TestAddCloudDatabase:
+    """Tests for adding cloud databases to the mock."""
 
     @staticmethod
     def test_duplicate_keys() -> None:
         """
-        It is not possible to have multiple databases with matching
+        It is not possible to have multiple cloud databases with
+        matching
         keys.
         """
-        database = VuforiaDatabase(
+        database = CloudDatabase(
             server_access_key="1",
             server_secret_key="2",
             client_access_key="3",
@@ -121,11 +136,11 @@ class TestAddDatabase:
             database_name="5",
         )
 
-        bad_server_access_key_db = VuforiaDatabase(server_access_key="1")
-        bad_server_secret_key_db = VuforiaDatabase(server_secret_key="2")
-        bad_client_access_key_db = VuforiaDatabase(client_access_key="3")
-        bad_client_secret_key_db = VuforiaDatabase(client_secret_key="4")
-        bad_database_name_db = VuforiaDatabase(database_name="5")
+        bad_server_access_key_db = CloudDatabase(server_access_key="1")
+        bad_server_secret_key_db = CloudDatabase(server_secret_key="2")
+        bad_client_access_key_db = CloudDatabase(client_access_key="3")
+        bad_client_secret_key_db = CloudDatabase(client_secret_key="4")
+        bad_database_name_db = CloudDatabase(database_name="5")
 
         server_access_key_conflict_error = (
             "All server access keys must be unique. "
@@ -148,7 +163,7 @@ class TestAddDatabase:
             'There is already a database with the name "5".'
         )
 
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         for bad_database, expected_message in (
@@ -169,8 +184,10 @@ class TestAddDatabase:
 
     @staticmethod
     def test_give_no_details(high_quality_image: io.BytesIO) -> None:
-        """It is possible to create a database without giving any data."""
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        """It is possible to create a cloud database without giving any
+        data.
+        """
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
         response = requests.post(url=databases_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.CREATED
 
@@ -194,25 +211,105 @@ class TestAddDatabase:
         assert not cloud_reco_client.query(image=high_quality_image)
 
 
-class TestDeleteDatabase:
-    """Tests for deleting databases from the mock."""
+class TestAddVuMarkDatabase:
+    """Tests for adding VuMark databases to the mock."""
+
+    @staticmethod
+    def test_duplicate_keys() -> None:
+        """
+        It is not possible to have multiple VuMark databases with
+        matching
+        keys.
+        """
+        database = VuMarkDatabase(
+            server_access_key="1",
+            server_secret_key="2",
+            database_name="3",
+        )
+
+        bad_server_access_key_db = VuMarkDatabase(server_access_key="1")
+        bad_server_secret_key_db = VuMarkDatabase(server_secret_key="2")
+        bad_database_name_db = VuMarkDatabase(database_name="3")
+
+        server_access_key_conflict_error = (
+            "All server access keys must be unique. "
+            'There is already a database with the server access key "1".'
+        )
+        server_secret_key_conflict_error = (
+            "All server secret keys must be unique. "
+            'There is already a database with the server secret key "2".'
+        )
+        database_name_conflict_error = (
+            "All names must be unique. "
+            'There is already a database with the name "3".'
+        )
+
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/vumark_databases"
+        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+
+        for bad_database, expected_message in (
+            (bad_server_access_key_db, server_access_key_conflict_error),
+            (bad_server_secret_key_db, server_secret_key_conflict_error),
+            (bad_database_name_db, database_name_conflict_error),
+        ):
+            response = requests.post(
+                url=databases_url,
+                json=bad_database.to_dict(),
+                timeout=30,
+            )
+
+            assert response.status_code == HTTPStatus.CONFLICT
+            assert response.text == expected_message
+
+
+class TestDeleteCloudDatabase:
+    """Tests for deleting cloud databases from the mock."""
 
     @staticmethod
     def test_not_found() -> None:
         """
-        A 404 error is returned when trying to delete a database which
-        does not
-        exist.
+        A 404 error is returned when trying to delete a cloud database
+        which does not exist.
         """
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
         delete_url = databases_url + "/" + "foobar"
         response = requests.delete(url=delete_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.NOT_FOUND
 
     @staticmethod
-    def test_delete_database() -> None:
-        """It is possible to delete a database."""
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+    def test_delete_cloud_database() -> None:
+        """It is possible to delete a cloud database."""
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+        response = requests.post(url=databases_url, json={}, timeout=30)
+        assert response.status_code == HTTPStatus.CREATED
+
+        data = json.loads(s=response.text)
+        delete_url = databases_url + "/" + data["database_name"]
+        response = requests.delete(url=delete_url, json={}, timeout=30)
+        assert response.status_code == HTTPStatus.OK
+
+        response = requests.delete(url=delete_url, json={}, timeout=30)
+        assert response.status_code == HTTPStatus.NOT_FOUND
+
+
+class TestDeleteVuMarkDatabase:
+    """Tests for deleting VuMark databases from the mock."""
+
+    @staticmethod
+    def test_not_found() -> None:
+        """
+        A 404 error is returned when trying to delete a VuMark database
+        which does not exist.
+        """
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/vumark_databases"
+        delete_url = databases_url + "/" + "foobar"
+        response = requests.delete(url=delete_url, json={}, timeout=30)
+        assert response.status_code == HTTPStatus.NOT_FOUND
+
+    @staticmethod
+    def test_delete_vumark_database() -> None:
+        """It is possible to delete a VuMark database."""
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/vumark_databases"
         response = requests.post(url=databases_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.CREATED
 
@@ -230,13 +327,14 @@ class TestQueryImageMatchers:
 
     @staticmethod
     def test_exact_match(
+        *,
         high_quality_image: io.BytesIO,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """The exact matcher matches only exactly the same images."""
         monkeypatch.setenv(name="QUERY_IMAGE_MATCHER", value="exact")
 
-        database = VuforiaDatabase()
+        database = CloudDatabase()
 
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -251,7 +349,7 @@ class TestQueryImageMatchers:
         re_exported_image = io.BytesIO()
         pil_image.save(fp=re_exported_image, format="PNG")
 
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         target_id = vws_client.add_target(
@@ -273,6 +371,7 @@ class TestQueryImageMatchers:
 
     @staticmethod
     def test_structural_similarity_matcher(
+        *,
         high_quality_image: io.BytesIO,
         different_high_quality_image: io.BytesIO,
         monkeypatch: pytest.MonkeyPatch,
@@ -282,7 +381,7 @@ class TestQueryImageMatchers:
             name="QUERY_IMAGE_MATCHER",
             value="structural_similarity",
         )
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
             server_secret_key=database.server_secret_key,
@@ -295,7 +394,7 @@ class TestQueryImageMatchers:
         pil_image = Image.open(fp=high_quality_image)
         re_exported_image = io.BytesIO()
         pil_image.save(fp=re_exported_image, format="PNG")
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         assert re_exported_image.getvalue() != high_quality_image.getvalue()
@@ -328,12 +427,13 @@ class TestDuplicatesImageMatchers:
 
     @staticmethod
     def test_exact_match(
+        *,
         high_quality_image: io.BytesIO,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """The exact matcher matches only exactly the same images."""
         monkeypatch.setenv(name="DUPLICATES_IMAGE_MATCHER", value="exact")
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
             server_secret_key=database.server_secret_key,
@@ -343,7 +443,7 @@ class TestDuplicatesImageMatchers:
         re_exported_image = io.BytesIO()
         pil_image.save(fp=re_exported_image, format="PNG")
 
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         target_id = vws_client.add_target(
@@ -377,6 +477,7 @@ class TestDuplicatesImageMatchers:
 
     @staticmethod
     def test_structural_similarity_matcher(
+        *,
         high_quality_image: io.BytesIO,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
@@ -385,7 +486,7 @@ class TestDuplicatesImageMatchers:
             name="DUPLICATES_IMAGE_MATCHER",
             value="structural_similarity",
         )
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
             server_secret_key=database.server_secret_key,
@@ -395,7 +496,7 @@ class TestDuplicatesImageMatchers:
         re_exported_image = io.BytesIO()
         pil_image.save(fp=re_exported_image, format="PNG")
 
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         target_id = vws_client.add_target(
@@ -423,12 +524,13 @@ class TestTargetRaters:
 
     @staticmethod
     def test_default(
+        *,
         image_file_success_state_low_rating: io.BytesIO,
         high_quality_image: io.BytesIO,
     ) -> None:
         """By default, the BRISQUE target rater is used."""
-        database = VuforiaDatabase()
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        database = CloudDatabase()
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         vws_client = VWS(
@@ -471,6 +573,7 @@ class TestTargetRaters:
 
     @staticmethod
     def test_brisque(
+        *,
         monkeypatch: pytest.MonkeyPatch,
         image_file_success_state_low_rating: io.BytesIO,
         high_quality_image: io.BytesIO,
@@ -478,8 +581,8 @@ class TestTargetRaters:
         """It is possible to use the BRISQUE target rater."""
         monkeypatch.setenv(name="TARGET_RATER", value="brisque")
 
-        database = VuforiaDatabase()
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        database = CloudDatabase()
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         vws_client = VWS(
@@ -522,13 +625,14 @@ class TestTargetRaters:
 
     @staticmethod
     def test_perfect(
+        *,
         monkeypatch: pytest.MonkeyPatch,
         high_quality_image: io.BytesIO,
     ) -> None:
         """It is possible to use the perfect target rater."""
         monkeypatch.setenv(name="TARGET_RATER", value="perfect")
-        database = VuforiaDatabase()
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        database = CloudDatabase()
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         vws_client = VWS(
@@ -561,14 +665,15 @@ class TestTargetRaters:
 
     @staticmethod
     def test_random(
+        *,
         monkeypatch: pytest.MonkeyPatch,
         high_quality_image: io.BytesIO,
     ) -> None:
         """It is possible to use the random target rater."""
         monkeypatch.setenv(name="TARGET_RATER", value="random")
 
-        database = VuforiaDatabase()
-        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/databases"
+        database = CloudDatabase()
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
         requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
         vws_client = VWS(
@@ -605,3 +710,140 @@ class TestTargetRaters:
         assert lowest_rating >= minimum_rating
         assert highest_rating <= maximum_rating
         assert lowest_rating != highest_rating
+
+
+class TestVuMarkTargetStatus:
+    """Tests for VuMark instance generation when target status is
+    validated (Flask app code path).
+    """
+
+    @staticmethod
+    def test_processing_target_returns_forbidden() -> None:
+        """A VuMark target still processing returns 403 when generating
+        an instance via the Flask app.
+        """
+        vumark_target = VuMarkTarget(
+            name="processing-target",
+            processing_time_seconds=9999,
+        )
+        vumark_database = VuMarkDatabase(
+            vumark_targets=set(),
+        )
+
+        vumark_databases_url = (
+            _EXAMPLE_URL_FOR_TARGET_MANAGER + "/vumark_databases"
+        )
+        response = requests.post(
+            url=vumark_databases_url,
+            json=vumark_database.to_dict(),
+            timeout=30,
+        )
+        assert response.status_code == HTTPStatus.CREATED
+        database_data = json.loads(s=response.text)
+
+        vumark_targets_url = (
+            f"{vumark_databases_url}"
+            f"/{database_data['database_name']}/vumark_targets"
+        )
+        response = requests.post(
+            url=vumark_targets_url,
+            json=vumark_target.to_dict(),
+            timeout=30,
+        )
+        assert response.status_code == HTTPStatus.CREATED
+
+        request_path = f"/targets/{vumark_target.target_id}/instances"
+        content_type = "application/json"
+        content = json.dumps(
+            obj={"instance_id": uuid.uuid4().hex},
+        ).encode(encoding="utf-8")
+        date = rfc_1123_date()
+        authorization_string = authorization_header(
+            access_key=vumark_database.server_access_key,
+            secret_key=vumark_database.server_secret_key,
+            method=HTTPMethod.POST,
+            content=content,
+            content_type=content_type,
+            date=date,
+            request_path=request_path,
+        )
+
+        response = requests.post(
+            url="https://vws.vuforia.com" + request_path,
+            headers={
+                "Accept": "image/png",
+                "Authorization": authorization_string,
+                "Content-Length": str(object=len(content)),
+                "Content-Type": content_type,
+                "Date": date,
+            },
+            data=content,
+            timeout=30,
+        )
+
+        assert response.status_code == HTTPStatus.FORBIDDEN
+        response_json = response.json()
+        assert (
+            response_json["result_code"]
+            == ResultCodes.TARGET_STATUS_NOT_SUCCESS.value
+        )
+
+
+class TestResponseDelay:
+    """Tests for the response delay feature.
+
+    These tests run through the ``responses`` library, which intercepts
+    requests in-process. Because of this, the client ``timeout`` parameter
+    is not enforced — the delay blocks but never raises
+    ``requests.exceptions.Timeout``. When running the Flask app as a real
+    server (e.g. in Docker), the delay causes a genuinely slow HTTP
+    response and the ``requests`` client will raise ``Timeout`` on its own.
+    """
+
+    DELAY_SECONDS = 0.5
+
+    @staticmethod
+    def _make_request() -> None:
+        """Make a request to the VWS API."""
+        requests.get(
+            url="https://vws.vuforia.com/summary",
+            headers={
+                "Date": email.utils.formatdate(
+                    timeval=None,
+                    localtime=False,
+                    usegmt=True,
+                ),
+                "Authorization": "bad_auth_token",
+            },
+            data=b"",
+            timeout=30,
+        )
+
+    def test_default_no_delay(self) -> None:
+        """By default, there is no response delay."""
+        database = CloudDatabase()
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+
+        start = time.monotonic()
+        self._make_request()
+        elapsed = time.monotonic() - start
+        assert elapsed < self.DELAY_SECONDS
+
+    def test_delay_is_applied(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """When response_delay_seconds is set, the response is delayed."""
+        monkeypatch.setenv(
+            name="RESPONSE_DELAY_SECONDS",
+            value=f"{self.DELAY_SECONDS}",
+        )
+        database = CloudDatabase()
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+
+        start = time.monotonic()
+        self._make_request()
+        elapsed = time.monotonic() - start
+        assert elapsed >= self.DELAY_SECONDS

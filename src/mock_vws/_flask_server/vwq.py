@@ -5,6 +5,7 @@ https://developer.vuforia.com/library/web-api/vuforia-query-web-api
 """
 
 import email.utils
+import time
 from enum import StrEnum, auto
 from http import HTTPMethod, HTTPStatus
 
@@ -20,7 +21,7 @@ from mock_vws._query_validators import run_query_validators
 from mock_vws._query_validators.exceptions import (
     ValidatorError,
 )
-from mock_vws.database import VuforiaDatabase
+from mock_vws.database import CloudDatabase
 from mock_vws.image_matchers import (
     ExactMatcher,
     ImageMatcher,
@@ -45,8 +46,8 @@ class _ImageMatcherChoice(StrEnum):
                 return ExactMatcher()
             case self.STRUCTURAL_SIMILARITY:
                 return StructuralSimilarityMatcher()
-
-        raise ValueError  # pragma: no cover
+            case _:  # pragma: no cover
+                raise ValueError
 
 
 @beartype
@@ -58,18 +59,19 @@ class VWQSettings(BaseSettings):
     query_image_matcher: _ImageMatcherChoice = (
         _ImageMatcherChoice.STRUCTURAL_SIMILARITY
     )
+    response_delay_seconds: float = 0.0
 
 
 @beartype
-def get_all_databases() -> set[VuforiaDatabase]:
+def get_all_cloud_databases() -> set[CloudDatabase]:
     """Get all database objects from the target manager back-end."""
     settings = VWQSettings.model_validate(obj={})
     response = requests.get(
-        url=f"{settings.target_manager_base_url}/databases",
+        url=f"{settings.target_manager_base_url}/cloud_databases",
         timeout=30,
     )
     return {
-        VuforiaDatabase.from_dict(database_dict=database_dict)
+        CloudDatabase.from_dict(database_dict=database_dict)
         for database_dict in response.json()
     }
 
@@ -101,7 +103,17 @@ def set_terminate_wsgi_input() -> None:
         request.environ["wsgi.input_terminated"] = True
 
 
+@CLOUDRECO_FLASK_APP.after_request
+@beartype
+def add_response_delay(response: Response) -> Response:
+    """Add a delay to each response."""
+    settings = VWQSettings.model_validate(obj={})
+    time.sleep(settings.response_delay_seconds)
+    return response
+
+
 @CLOUDRECO_FLASK_APP.errorhandler(code_or_exception=ValidatorError)
+@beartype
 def handle_exceptions(exc: ValidatorError) -> Response:
     """Return the error response associated with the given exception."""
     response = Response(
@@ -116,12 +128,13 @@ def handle_exceptions(exc: ValidatorError) -> Response:
 
 
 @CLOUDRECO_FLASK_APP.route(rule="/v1/query", methods=[HTTPMethod.POST])
+@beartype
 def query() -> Response:
     """Perform an image recognition query."""
     settings = VWQSettings.model_validate(obj={})
     query_match_checker = settings.query_image_matcher.to_image_matcher()
 
-    databases = get_all_databases()
+    databases = get_all_cloud_databases()
     request_body = request.stream.read()
     run_query_validators(
         request_headers=dict(request.headers),

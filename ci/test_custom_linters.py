@@ -83,6 +83,7 @@ def test_ci_patterns_valid(request: pytest.FixtureRequest) -> None:
 
 
 def test_tests_collected_once(
+    *,
     capsys: pytest.CaptureFixture[str],
     request: pytest.FixtureRequest,
 ) -> None:

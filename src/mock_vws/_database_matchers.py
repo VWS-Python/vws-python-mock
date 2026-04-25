@@ -5,7 +5,9 @@ from collections.abc import Iterable, Mapping
 from beartype import beartype
 from vws_auth_tools import authorization_header
 
-from mock_vws.database import VuforiaDatabase
+from mock_vws.database import CloudDatabase, VuMarkDatabase
+
+AnyDatabase = CloudDatabase | VuMarkDatabase
 
 
 @beartype
@@ -15,8 +17,8 @@ def get_database_matching_client_keys(
     request_body: bytes | None,
     request_method: str,
     request_path: str,
-    databases: Iterable[VuforiaDatabase],
-) -> VuforiaDatabase:
+    databases: Iterable[CloudDatabase],
+) -> CloudDatabase:
     """Return the first of the given databases which is being accessed by
     the
     given client request.
@@ -58,14 +60,14 @@ def get_database_matching_client_keys(
 
 
 @beartype
-def get_database_matching_server_keys(
+def get_database_matching_server_keys[DatabaseT: AnyDatabase](
     *,
     request_headers: Mapping[str, str],
     request_body: bytes | None,
     request_method: str,
     request_path: str,
-    databases: Iterable[VuforiaDatabase],
-) -> VuforiaDatabase:
+    databases: Iterable[DatabaseT],
+) -> DatabaseT:
     """Return the first of the given databases which is being accessed by
     the
     given server request.

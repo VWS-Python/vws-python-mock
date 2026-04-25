@@ -10,9 +10,8 @@ from http import HTTPMethod, HTTPStatus
 from typing import ParamSpec, Protocol, runtime_checkable
 
 from beartype import beartype
-from requests.models import PreparedRequest
 
-from mock_vws._mock_common import Route
+from mock_vws._mock_common import RequestData, Route
 from mock_vws._query_tools import (
     get_query_match_response_text,
 )
@@ -42,6 +41,7 @@ class _RouteMethod(Protocol[_P]):
 
 @beartype
 def route(
+    *,
     path_pattern: str,
     http_methods: Iterable[str],
 ) -> Callable[[_RouteMethod[_P]], _RouteMethod[_P]]:
@@ -79,20 +79,8 @@ def route(
 
 
 @beartype
-def _body_bytes(request: PreparedRequest) -> bytes:
-    """Return the body of a request as bytes."""
-    if request.body is None or isinstance(request.body, str):
-        return b""
-
-    return request.body
-
-
-@beartype
 class MockVuforiaWebQueryAPI:
-    """A fake implementation of the Vuforia Web Query API.
-
-    This implementation is tied to the implementation of ``responses``.
-    """
+    """A fake implementation of the Vuforia Web Query API."""
 
     def __init__(
         self,
@@ -114,25 +102,25 @@ class MockVuforiaWebQueryAPI:
         self._query_match_checker = query_match_checker
 
     @route(path_pattern="/v1/query", http_methods={HTTPMethod.POST})
-    def query(self, request: PreparedRequest) -> _ResponseType:
+    def query(self, request: RequestData) -> _ResponseType:
         """Perform an image recognition query."""
         try:
             run_query_validators(
-                request_path=request.path_url,
+                request_path=request.path,
                 request_headers=request.headers,
-                request_body=_body_bytes(request=request),
-                request_method=request.method or "",
-                databases=self._target_manager.databases,
+                request_body=request.body,
+                request_method=request.method,
+                databases=self._target_manager.cloud_databases,
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
 
         response_text = get_query_match_response_text(
             request_headers=request.headers,
-            request_body=_body_bytes(request=request),
-            request_method=request.method or "",
-            request_path=request.path_url,
-            databases=self._target_manager.databases,
+            request_body=request.body,
+            request_method=request.method,
+            request_path=request.path,
+            databases=self._target_manager.cloud_databases,
             query_match_checker=self._query_match_checker,
         )
 

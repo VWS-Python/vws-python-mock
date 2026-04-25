@@ -5,11 +5,14 @@ from collections.abc import Iterable, Mapping
 
 from beartype import beartype
 
-from mock_vws._database_matchers import get_database_matching_server_keys
+from mock_vws._database_matchers import (
+    AnyDatabase,
+    get_database_matching_server_keys,
+)
 from mock_vws._services_validators.exceptions import UnknownTargetError
-from mock_vws.database import VuforiaDatabase
 
 _LOGGER = logging.getLogger(name=__name__)
+_TARGETS_WITH_INSTANCE_PATH_LENGTH = 4
 
 
 @beartype
@@ -19,7 +22,7 @@ def validate_target_id_exists(
     request_headers: Mapping[str, str],
     request_body: bytes,
     request_method: str,
-    databases: Iterable[VuforiaDatabase],
+    databases: Iterable[AnyDatabase],
 ) -> None:
     """Validate that if a target ID is given, it exists in the database
     matching the request.
@@ -42,6 +45,12 @@ def validate_target_id_exists(
         return
 
     target_id = split_path[-1]
+    if (
+        len(split_path) == _TARGETS_WITH_INSTANCE_PATH_LENGTH
+        and split_path[-3] == "targets"
+        and split_path[-1] == "instances"
+    ):
+        target_id = split_path[-2]
     database = get_database_matching_server_keys(
         request_headers=request_headers,
         request_body=request_body,

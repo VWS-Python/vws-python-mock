@@ -185,6 +185,46 @@ class FailError(ValidatorError):
 
 
 @beartype
+class BadRequestError(ValidatorError):
+    """Exception raised when Vuforia returns a response with a result code
+    'BadRequest'.
+    """
+
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this
+        is
+                raised.
+        """
+        super().__init__()
+        self.status_code = HTTPStatus.BAD_REQUEST
+        body = {
+            "transaction_id": uuid.uuid4().hex,
+            "result_code": ResultCodes.BAD_REQUEST.value,
+        }
+        self.response_text = json_dump(body=body)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
+        self.headers = {
+            "Connection": "keep-alive",
+            "Content-Type": "application/json",
+            "server": "envoy",
+            "Date": date,
+            "x-envoy-upstream-service-time": "5",
+            "Content-Length": str(object=len(self.response_text)),
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
+        }
+
+
+@beartype
 class MetadataTooLargeError(ValidatorError):
     """Exception raised when Vuforia returns a response with a result code
     'MetadataTooLarge'.
@@ -510,6 +550,122 @@ class TargetStatusNotSuccessError(ValidatorError):
         body = {
             "transaction_id": uuid.uuid4().hex,
             "result_code": ResultCodes.TARGET_STATUS_NOT_SUCCESS.value,
+        }
+        self.response_text = json_dump(body=body)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
+        self.headers = {
+            "Connection": "keep-alive",
+            "Content-Type": "application/json",
+            "server": "envoy",
+            "Date": date,
+            "x-envoy-upstream-service-time": "5",
+            "Content-Length": str(object=len(self.response_text)),
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
+        }
+
+
+@beartype
+class InvalidAcceptHeaderError(ValidatorError):
+    """Exception raised when an unsupported Accept header is given."""
+
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this
+        is
+                raised.
+        """
+        super().__init__()
+        self.status_code = HTTPStatus.BAD_REQUEST
+        body = {
+            "transaction_id": uuid.uuid4().hex,
+            "result_code": ResultCodes.INVALID_ACCEPT_HEADER.value,
+        }
+        self.response_text = json_dump(body=body)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
+        self.headers = {
+            "Connection": "keep-alive",
+            "Content-Type": "application/json",
+            "server": "envoy",
+            "Date": date,
+            "x-envoy-upstream-service-time": "5",
+            "Content-Length": str(object=len(self.response_text)),
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
+        }
+
+
+@beartype
+class InvalidInstanceIdError(ValidatorError):
+    """Exception raised when an invalid instance_id is given."""
+
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this
+        is
+                raised.
+        """
+        super().__init__()
+        self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
+        body = {
+            "transaction_id": uuid.uuid4().hex,
+            "result_code": ResultCodes.INVALID_INSTANCE_ID.value,
+        }
+        self.response_text = json_dump(body=body)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
+        self.headers = {
+            "Connection": "keep-alive",
+            "Content-Type": "application/json",
+            "server": "envoy",
+            "Date": date,
+            "x-envoy-upstream-service-time": "5",
+            "Content-Length": str(object=len(self.response_text)),
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
+        }
+
+
+@beartype
+class InvalidTargetTypeError(ValidatorError):
+    """Exception raised when the target type is not valid for the
+    operation.
+    """
+
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in a response if this is
+                raised.
+            response_text: The response text to use in a response if this
+        is
+                raised.
+        """
+        super().__init__()
+        self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
+        body = {
+            "transaction_id": uuid.uuid4().hex,
+            "result_code": ResultCodes.INVALID_TARGET_TYPE.value,
         }
         self.response_text = json_dump(body=body)
         date = email.utils.formatdate(

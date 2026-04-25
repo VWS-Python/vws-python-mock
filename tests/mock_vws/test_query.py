@@ -9,6 +9,7 @@ import copy
 import datetime
 import io
 import json
+import re
 import textwrap
 import time
 import uuid
@@ -37,7 +38,7 @@ from vws.reports import TargetStatuses
 from vws.response import Response
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from mock_vws.database import VuforiaDatabase
+from mock_vws.database import CloudDatabase
 from tests.mock_vws.utils import make_image_file
 from tests.mock_vws.utils.assertions import (
     assert_query_success,
@@ -72,6 +73,8 @@ _JETTY_CONTENT_TYPE_ERROR = textwrap.dedent(
     """,
 )
 
+_JETTY_VERSION_RE = re.compile(pattern=r"Powered by Jetty:// [\d.]+")
+
 _NGINX_REQUEST_ENTITY_TOO_LARGE_ERROR = textwrap.dedent(
     text="""\
     <html>\r
@@ -87,7 +90,7 @@ _NGINX_REQUEST_ENTITY_TOO_LARGE_ERROR = textwrap.dedent(
 
 def _query(
     *,
-    vuforia_database: VuforiaDatabase,
+    vuforia_database: CloudDatabase,
     body: dict[str, Any],
 ) -> Response:
     """Make a request to the endpoint to make an image recognition query.
@@ -140,6 +143,7 @@ def _query(
         headers=dict(requests_response.headers),
         request_body=requests_response.request.body,
         tell_position=requests_response.raw.tell(),
+        content=requests_response.content,
     )
     handle_server_errors(response=vws_response)
     return vws_response
@@ -175,10 +179,10 @@ class TestContentType:
             ),
             (
                 "*/*",
-                HTTPStatus.INTERNAL_SERVER_ERROR,
-                "application/json",
+                HTTPStatus.BAD_REQUEST,
+                "text/plain;charset=utf-8",
                 None,
-                "RESTEASY007550: Unable to get boundary for multipart",
+                "Unable to get boundary for multipart",
             ),
             (
                 "text/*",
@@ -199,7 +203,7 @@ class TestContentType:
     def test_incorrect_no_boundary(
         *,
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
         content_type: str,
         resp_status_code: int,
         resp_content_type: str | None,
@@ -247,12 +251,16 @@ class TestContentType:
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
             tell_position=requests_response.raw.tell(),
+            content=requests_response.content,
         )
 
-        if resp_status_code != HTTPStatus.INTERNAL_SERVER_ERROR:
-            handle_server_errors(response=vws_response)
+        handle_server_errors(response=vws_response)
 
-        assert requests_response.text == resp_text
+        repl = "Powered by Jetty://"
+        sub = _JETTY_VERSION_RE.sub
+        actual = sub(repl=repl, string=requests_response.text)
+        expected = sub(repl=repl, string=resp_text)
+        assert actual == expected
         assert_vwq_failure(
             response=vws_response,
             status_code=resp_status_code,
@@ -264,8 +272,9 @@ class TestContentType:
 
     @staticmethod
     def test_incorrect_with_boundary(
+        *,
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
     ) -> None:
         """
         If a Content-Type header which is not ``multipart/form-data`` is
@@ -319,6 +328,7 @@ class TestContentType:
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
             tell_position=requests_response.raw.tell(),
+            content=requests_response.content,
         )
         handle_server_errors(response=vws_response)
         assert not requests_response.text
@@ -341,14 +351,12 @@ class TestContentType:
         ],
     )
     def test_no_boundary(
+        *,
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
         content_type: str,
     ) -> None:
-        """
-        If no boundary is given, an ``INTERNAL_SERVER_ERROR`` is
-        returned.
-        """
+        """If no boundary is given, a ``BAD_REQUEST`` is returned."""
         image_content = high_quality_image.getvalue()
         date = rfc_1123_date()
         request_path = "/v1/query"
@@ -390,13 +398,14 @@ class TestContentType:
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
             tell_position=requests_response.raw.tell(),
+            content=requests_response.content,
         )
-        expected_text = "RESTEASY007550: Unable to get boundary for multipart"
+        expected_text = "Unable to get boundary for multipart"
         assert requests_response.text == expected_text
         assert_vwq_failure(
             response=vws_response,
-            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
-            content_type="application/json",
+            status_code=HTTPStatus.BAD_REQUEST,
+            content_type="text/plain;charset=utf-8",
             cache_control=None,
             www_authenticate=None,
             connection="keep-alive",
@@ -404,8 +413,9 @@ class TestContentType:
 
     @staticmethod
     def test_bogus_boundary(
+        *,
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
     ) -> None:
         """If a bogus boundary is given, a ``BAD_REQUEST`` is returned."""
         image_content = high_quality_image.getvalue()
@@ -449,6 +459,7 @@ class TestContentType:
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
             tell_position=requests_response.raw.tell(),
+            content=requests_response.content,
         )
         handle_server_errors(response=vws_response)
 
@@ -465,8 +476,9 @@ class TestContentType:
 
     @staticmethod
     def test_extra_section(
+        *,
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
     ) -> None:
         """
         If sections that are not the boundary section are given in the
@@ -514,6 +526,7 @@ class TestContentType:
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
             tell_position=requests_response.raw.tell(),
+            content=requests_response.content,
         )
         handle_server_errors(response=vws_response)
         assert_query_success(response=vws_response)
@@ -527,6 +540,7 @@ class TestSuccess:
 
     @staticmethod
     def test_no_results(
+        *,
         high_quality_image: io.BytesIO,
         cloud_reco_client: CloudRecoService,
     ) -> None:
@@ -540,8 +554,9 @@ class TestSuccess:
 
     @staticmethod
     def test_match_exact(
+        *,
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
         vws_client: VWS,
     ) -> None:
         """
@@ -590,6 +605,7 @@ class TestSuccess:
 
     @staticmethod
     def test_low_quality_image(
+        *,
         image_file_success_state_low_rating: io.BytesIO,
         cloud_reco_client: CloudRecoService,
         vws_client: VWS,
@@ -618,6 +634,7 @@ class TestSuccess:
 
     @staticmethod
     def test_match_similar(
+        *,
         high_quality_image: io.BytesIO,
         different_high_quality_image: io.BytesIO,
         vws_client: VWS,
@@ -668,6 +685,7 @@ class TestSuccess:
 
     @staticmethod
     def test_not_base64_encoded_processable(
+        *,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
         not_base64_encoded_processable: str,
@@ -721,7 +739,7 @@ class TestIncorrectFields:
     """Tests for incorrect and unexpected fields."""
 
     @staticmethod
-    def test_missing_image(vuforia_database: VuforiaDatabase) -> None:
+    def test_missing_image(vuforia_database: CloudDatabase) -> None:
         """
         If an image is not given, a ``BAD_REQUEST`` response is
         returned.
@@ -740,8 +758,9 @@ class TestIncorrectFields:
 
     @staticmethod
     def test_extra_fields(
+        *,
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
     ) -> None:
         """
         If extra fields are given, a ``BAD_REQUEST`` response is
@@ -767,7 +786,7 @@ class TestIncorrectFields:
 
     @staticmethod
     def test_missing_image_and_extra_fields(
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
     ) -> None:
         """If extra fields are given and no image field is given, a
         ``BAD_REQUEST`` response is returned.
@@ -797,8 +816,9 @@ class TestMaxNumResults:
 
     @staticmethod
     def test_default(
+        *,
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
         vws_client: VWS,
     ) -> None:
         """The default ``max_num_results`` is 1."""
@@ -834,8 +854,9 @@ class TestMaxNumResults:
     @staticmethod
     @pytest.mark.parametrize(argnames="num_results", argvalues=[1, b"1", 50])
     def test_valid_accepted(
+        *,
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
         num_results: int | bytes,
     ) -> None:
         """Numbers between 1 and 50 are valid inputs.
@@ -864,6 +885,7 @@ class TestMaxNumResults:
 
     @staticmethod
     def test_valid_works(
+        *,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
         cloud_reco_client: CloudRecoService,
@@ -886,6 +908,7 @@ class TestMaxNumResults:
     @staticmethod
     @pytest.mark.parametrize(argnames="num_results", argvalues=[-1, 0, 51])
     def test_out_of_range(
+        *,
         high_quality_image: io.BytesIO,
         num_results: int,
         cloud_reco_client: CloudRecoService,
@@ -927,8 +950,9 @@ class TestMaxNumResults:
         argvalues=[b"0.1", b"1.1", b"a", b"2147483648"],
     )
     def test_invalid_type(
+        *,
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
         num_results: bytes,
     ) -> None:
         """An error is returned if ``max_num_results`` is given as
@@ -989,9 +1013,10 @@ class TestIncludeTargetData:
 
     @staticmethod
     def test_default(
+        *,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
     ) -> None:
         """The default ``include_target_data`` is 'top'."""
         _add_and_wait_for_targets(
@@ -1019,8 +1044,9 @@ class TestIncludeTargetData:
         argvalues=["top", "TOP"],
     )
     def test_top(
+        *,
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
         include_target_data: str,
         vws_client: VWS,
     ) -> None:
@@ -1055,8 +1081,9 @@ class TestIncludeTargetData:
         argvalues=["none", "NONE"],
     )
     def test_none(
+        *,
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
         include_target_data: str,
         vws_client: VWS,
     ) -> None:
@@ -1091,8 +1118,9 @@ class TestIncludeTargetData:
         argvalues=["all", "ALL"],
     )
     def test_all(
+        *,
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
         include_target_data: str,
         vws_client: VWS,
     ) -> None:
@@ -1129,7 +1157,7 @@ class TestIncludeTargetData:
     def test_invalid_value(
         *,
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
         include_target_data: str | bool | int,
     ) -> None:
         """
@@ -1176,8 +1204,9 @@ class TestAcceptHeader:
         ],
     )
     def test_valid(
+        *,
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
         extra_headers: dict[str, str],
     ) -> None:
         """An ``Accept`` header can be given iff its value is
@@ -1223,6 +1252,7 @@ class TestAcceptHeader:
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
             tell_position=requests_response.raw.tell(),
+            content=requests_response.content,
         )
         handle_server_errors(response=vws_response)
         assert_query_success(response=vws_response)
@@ -1231,8 +1261,9 @@ class TestAcceptHeader:
 
     @staticmethod
     def test_invalid(
+        *,
         high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
+        vuforia_database: CloudDatabase,
     ) -> None:
         """
         A NOT_ACCEPTABLE response is returned if an ``Accept`` header is
@@ -1281,6 +1312,7 @@ class TestAcceptHeader:
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
             tell_position=requests_response.raw.tell(),
+            content=requests_response.content,
         )
         handle_server_errors(response=vws_response)
 
@@ -1300,6 +1332,7 @@ class TestActiveFlag:
 
     @staticmethod
     def test_inactive(
+        *,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
         cloud_reco_client: CloudRecoService,
@@ -1324,6 +1357,7 @@ class TestBadImage:
 
     @staticmethod
     def test_corrupted(
+        *,
         corrupted_image_file: io.BytesIO,
         cloud_reco_client: CloudRecoService,
     ) -> None:
@@ -1652,6 +1686,7 @@ class TestImageFormats:
     @staticmethod
     @pytest.mark.parametrize(argnames="file_format", argvalues=["png", "jpeg"])
     def test_supported(
+        *,
         high_quality_image: io.BytesIO,
         file_format: str,
         cloud_reco_client: CloudRecoService,
@@ -1668,6 +1703,7 @@ class TestImageFormats:
 
     @staticmethod
     def test_unsupported(
+        *,
         high_quality_image: io.BytesIO,
         cloud_reco_client: CloudRecoService,
     ) -> None:
@@ -1714,10 +1750,10 @@ class TestProcessing:
     @staticmethod
     @pytest.mark.parametrize(argnames="active_flag", argvalues=[True, False])
     def test_processing(
+        *,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
         cloud_reco_client: CloudRecoService,
-        *,
         active_flag: bool,
     ) -> None:
         """
@@ -1758,6 +1794,7 @@ class TestUpdate:
 
     @staticmethod
     def test_updated_target(
+        *,
         high_quality_image: io.BytesIO,
         different_high_quality_image: io.BytesIO,
         vws_client: VWS,
@@ -1835,6 +1872,7 @@ class TestDeleted:
 
     @staticmethod
     def test_deleted_active(
+        *,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
         cloud_reco_client: CloudRecoService,
@@ -1871,6 +1909,7 @@ class TestDeleted:
 
     @staticmethod
     def test_deleted_inactive(
+        *,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
         cloud_reco_client: CloudRecoService,
@@ -1899,6 +1938,7 @@ class TestTargetStatusFailed:
 
     @staticmethod
     def test_status_failed(
+        *,
         image_file_failed_state: io.BytesIO,
         vws_client: VWS,
         cloud_reco_client: CloudRecoService,
@@ -1944,10 +1984,10 @@ class TestDateFormats:
     )
     @pytest.mark.parametrize(argnames="include_tz", argvalues=[True, False])
     def test_date_formats(
-        high_quality_image: io.BytesIO,
-        vuforia_database: VuforiaDatabase,
-        datetime_format: str,
         *,
+        high_quality_image: io.BytesIO,
+        vuforia_database: CloudDatabase,
+        datetime_format: str,
         include_tz: bool,
     ) -> None:
         """Test various date formats which are known to be accepted.
@@ -2001,6 +2041,7 @@ class TestDateFormats:
             headers=dict(requests_response.headers),
             request_body=requests_response.request.body,
             tell_position=requests_response.raw.tell(),
+            content=requests_response.content,
         )
         handle_server_errors(response=vws_response)
         assert_query_success(response=vws_response)
@@ -2014,6 +2055,7 @@ class TestInactiveProject:
 
     @staticmethod
     def test_inactive_project(
+        *,
         high_quality_image: io.BytesIO,
         inactive_cloud_reco_client: CloudRecoService,
     ) -> None:

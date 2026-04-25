@@ -19,7 +19,7 @@ from tenacity.stop import stop_after_delay
 from tenacity.wait import wait_fixed
 from vws import VWS, CloudRecoService
 
-from mock_vws.database import VuforiaDatabase
+from mock_vws.database import CloudDatabase
 
 if TYPE_CHECKING:
     from docker.models.images import Image
@@ -88,6 +88,7 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
 
 @pytest.mark.requires_docker_build
 def test_build_and_run(
+    *,
     high_quality_image: io.BytesIO,
     custom_bridge_network: Network,
     request: pytest.FixtureRequest,
@@ -121,9 +122,16 @@ def test_build_and_run(
         full_log = "\n".join(
             [item["stream"] for item in exc.build_log if "stream" in item],
         )
+        windows_message_substrings = (
+            "no matching manifest for windows/amd64",
+            "no matching manifest for windows(10.0.26100)/amd64",
+        )
         # If this assertion fails, it may be useful to look at the other
         # properties of ``exc``.
-        if "no matching manifest for windows/amd64" not in exc.msg:
+        if not any(
+            windows_message_substring in exc.msg
+            for windows_message_substring in windows_message_substrings
+        ):
             raise AssertionError(full_log) from exc
         pytest.skip(
             reason="We do not currently support using Windows containers."
@@ -145,7 +153,7 @@ def test_build_and_run(
         rm=True,
     )
 
-    database = VuforiaDatabase()
+    database = CloudDatabase()
     target_manager_container_name = "vws-mock-target-manager-" + random
     target_manager_internal_base_url = (
         f"http://{target_manager_container_name}:5000"
@@ -209,7 +217,7 @@ def test_build_and_run(
     )
 
     response = requests.post(
-        url=f"{base_target_manager_url}/databases",
+        url=f"{base_target_manager_url}/cloud_databases",
         json=database.to_dict(),
         timeout=30,
     )

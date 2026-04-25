@@ -77,6 +77,7 @@ class TestUpdate:
         ids=["Documented Content-Type", "Undocumented Content-Type"],
     )
     def test_content_types(
+        *,
         vws_client: VWS,
         image_file_failed_state: io.BytesIO,
         content_type: str,
@@ -113,6 +114,7 @@ class TestUpdate:
 
     @staticmethod
     def test_empty_content_type(
+        *,
         vws_client: VWS,
         image_file_failed_state: io.BytesIO,
     ) -> None:
@@ -147,6 +149,7 @@ class TestUpdate:
 
     @staticmethod
     def test_no_fields_given(
+        *,
         vws_client: VWS,
         target_id: str,
     ) -> None:
@@ -185,6 +188,7 @@ class TestUnexpectedData:
 
     @staticmethod
     def test_invalid_extra_data(
+        *,
         vws_client: VWS,
         target_id: str,
     ) -> None:
@@ -219,6 +223,7 @@ class TestWidth:
         ids=["Negative", "Wrong Type", "None", "Zero"],
     )
     def test_width_invalid(
+        *,
         vws_client: VWS,
         width: int | str | None,
         target_id: str,
@@ -246,7 +251,7 @@ class TestWidth:
         assert target_details.target_record.width == original_width
 
     @staticmethod
-    def test_width_valid(vws_client: VWS, target_id: str) -> None:
+    def test_width_valid(*, vws_client: VWS, target_id: str) -> None:
         """Positive numbers are valid widths."""
         vws_client.wait_for_target_processed(target_id=target_id)
 
@@ -270,9 +275,9 @@ class TestActiveFlag:
         argvalues=[True, False],
     )
     def test_active_flag(
+        *,
         vws_client: VWS,
         image_file_success_state_low_rating: io.BytesIO,
-        *,
         initial_active_flag: bool,
         desired_active_flag: bool,
     ) -> None:
@@ -300,6 +305,7 @@ class TestActiveFlag:
         argvalues=["string", None],
     )
     def test_invalid(
+        *,
         vws_client: VWS,
         target_id: str,
         desired_active_flag: str | None,
@@ -338,6 +344,7 @@ class TestApplicationMetadata:
         ids=["Short", "Max length"],
     )
     def test_base64_encoded(
+        *,
         target_id: str,
         metadata: bytes,
         vws_client: VWS,
@@ -355,6 +362,7 @@ class TestApplicationMetadata:
     @staticmethod
     @pytest.mark.parametrize(argnames="invalid_metadata", argvalues=[1, None])
     def test_invalid_type(
+        *,
         vws_client: VWS,
         target_id: str,
         invalid_metadata: int | None,
@@ -377,6 +385,7 @@ class TestApplicationMetadata:
 
     @staticmethod
     def test_not_base64_encoded_processable(
+        *,
         vws_client: VWS,
         target_id: str,
         not_base64_encoded_processable: str,
@@ -395,6 +404,7 @@ class TestApplicationMetadata:
 
     @staticmethod
     def test_not_base64_encoded_not_processable(
+        *,
         vws_client: VWS,
         target_id: str,
         not_base64_encoded_not_processable: str,
@@ -419,7 +429,7 @@ class TestApplicationMetadata:
         )
 
     @staticmethod
-    def test_metadata_too_large(vws_client: VWS, target_id: str) -> None:
+    def test_metadata_too_large(*, vws_client: VWS, target_id: str) -> None:
         """
         A base64 encoded string of greater than 1024 * 1024 bytes is too
         large
@@ -465,6 +475,7 @@ class TestTargetName:
         ids=["Short name", "Max char value", "Long name"],
     )
     def test_name_valid(
+        *,
         name: str,
         target_id: str,
         vws_client: VWS,
@@ -512,6 +523,7 @@ class TestTargetName:
         ],
     )
     def test_name_invalid(
+        *,
         name: str | int | None,
         target_id: str,
         vws_client: VWS,
@@ -536,6 +548,7 @@ class TestTargetName:
 
     @staticmethod
     def test_existing_target_name(
+        *,
         image_file_success_state_low_rating: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -576,6 +589,7 @@ class TestTargetName:
 
     @staticmethod
     def test_same_name_given(
+        *,
         image_file_success_state_low_rating: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -606,6 +620,7 @@ class TestImage:
 
     @staticmethod
     def test_image_valid(
+        *,
         image_files_failed_state: io.BytesIO,
         target_id: str,
         vws_client: VWS,
@@ -623,6 +638,7 @@ class TestImage:
 
     @staticmethod
     def test_bad_image_format_or_color_space(
+        *,
         bad_image_file: io.BytesIO,
         target_id: str,
         vws_client: VWS,
@@ -643,6 +659,7 @@ class TestImage:
 
     @staticmethod
     def test_corrupted(
+        *,
         vws_client: VWS,
         corrupted_image_file: io.BytesIO,
         target_id: str,
@@ -662,7 +679,7 @@ class TestImage:
         )
 
     @staticmethod
-    def test_image_too_large(target_id: str, vws_client: VWS) -> None:
+    def test_image_too_large(*, target_id: str, vws_client: VWS) -> None:
         """
         An `ImageTooLargeError` result is returned if the image is above
         a
@@ -723,6 +740,7 @@ class TestImage:
 
     @staticmethod
     def test_not_base64_encoded_processable(
+        *,
         vws_client: VWS,
         target_id: str,
         not_base64_encoded_processable: str,
@@ -751,6 +769,7 @@ class TestImage:
 
     @staticmethod
     def test_not_base64_encoded_not_processable(
+        *,
         vws_client: VWS,
         target_id: str,
         not_base64_encoded_not_processable: str,
@@ -777,7 +796,7 @@ class TestImage:
         )
 
     @staticmethod
-    def test_not_image(target_id: str, vws_client: VWS) -> None:
+    def test_not_image(*, target_id: str, vws_client: VWS) -> None:
         """
         If the given image is not an image file then a `BadImageError`
         result
@@ -803,6 +822,7 @@ class TestImage:
         argvalues=[1, None],
     )
     def test_invalid_type(
+        *,
         invalid_type_image: int | None,
         target_id: str,
         vws_client: VWS,
@@ -825,6 +845,7 @@ class TestImage:
 
     @staticmethod
     def test_rating_can_change(
+        *,
         image_file_success_state_low_rating: io.BytesIO,
         high_quality_image: io.BytesIO,
         vws_client: VWS,

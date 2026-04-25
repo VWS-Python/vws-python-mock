@@ -19,8 +19,18 @@ from mock_vws.target_raters import (
 )
 
 
-class TargetDict(TypedDict):
-    """A dictionary type which represents a target."""
+class VuMarkTargetDict(TypedDict):
+    """A dictionary type which represents a VuMark target."""
+
+    target_id: str
+    name: str
+    processing_time_seconds: float
+    last_modified_date: str
+    upload_date: str
+
+
+class ImageTargetDict(TypedDict):
+    """A dictionary type which represents an image target."""
 
     name: str
     width: float
@@ -49,10 +59,9 @@ def _time_now() -> datetime.datetime:
 
 
 @beartype(conf=BeartypeConf(is_pep484_tower=True))
-@dataclass(frozen=True, eq=True)
-class Target:
-    """
-    A Vuforia Target as managed in
+@dataclass(frozen=True, eq=True, kw_only=True)
+class ImageTarget:
+    """A Vuforia image target as managed in
     https://developer.vuforia.com/target-manager.
     """
 
@@ -83,10 +92,9 @@ class Target:
         suitable the target is for detection.
         """
         image_file = io.BytesIO(initial_bytes=self.image_value)
-        image = Image.open(fp=image_file)
-        image_stat = ImageStat.Stat(image_or_list=image)
-
-        average_std_dev = statistics.mean(data=image_stat.stddev)
+        with Image.open(fp=image_file) as image:
+            image_stat = ImageStat.Stat(image_or_list=image)
+            average_std_dev = statistics.mean(data=image_stat.stddev)
 
         success_threshold = 5
 
@@ -145,7 +153,7 @@ class Target:
         return self._post_processing_target_rating
 
     @classmethod
-    def from_dict(cls, target_dict: TargetDict) -> Self:
+    def from_dict(cls, target_dict: ImageTargetDict) -> Self:
         """Load a target from a dictionary."""
         timezone = ZoneInfo(key="GMT")
         name = target_dict["name"]
@@ -187,7 +195,7 @@ class Target:
             target_tracking_rater=target_tracking_rater,
         )
 
-    def to_dict(self) -> TargetDict:
+    def to_dict(self) -> ImageTargetDict:
         """Dump a target to a dictionary which can be loaded as JSON."""
         delete_date: str | None = None
         if self.delete_date:
@@ -207,4 +215,71 @@ class Target:
             "delete_date_optional": delete_date,
             "upload_date": self.upload_date.isoformat(),
             "tracking_rating": self.tracking_rating,
+        }
+
+
+@beartype(conf=BeartypeConf(is_pep484_tower=True))
+@dataclass(frozen=True, eq=True, kw_only=True)
+class VuMarkTarget:
+    """
+    A VuMark target as managed in
+    https://developer.vuforia.com/target-manager.
+
+    Unlike ImageTarget, VuMark targets do not require an image — they use a
+    VuMark template.
+    """
+
+    name: str
+    processing_time_seconds: float = 0.0
+    target_id: str = field(default_factory=_random_hex)
+    last_modified_date: datetime.datetime = field(default_factory=_time_now)
+    upload_date: datetime.datetime = field(default_factory=_time_now)
+
+    @property
+    def status(self) -> str:
+        """Return the status of the target.
+
+        VuMark targets always succeed after processing.
+        """
+        processing_time = datetime.timedelta(
+            seconds=float(self.processing_time_seconds),
+        )
+
+        timezone = self.upload_date.tzinfo
+        now = datetime.datetime.now(tz=timezone)
+        time_since_change = now - self.last_modified_date
+
+        if time_since_change <= processing_time:
+            return TargetStatuses.PROCESSING.value
+
+        return TargetStatuses.SUCCESS.value
+
+    @classmethod
+    def from_dict(cls, target_dict: VuMarkTargetDict) -> Self:
+        """Load a VuMark target from a dictionary."""
+        timezone = ZoneInfo(key="GMT")
+        last_modified_date = datetime.datetime.fromisoformat(
+            target_dict["last_modified_date"],
+        ).replace(tzinfo=timezone)
+        upload_date = datetime.datetime.fromisoformat(
+            target_dict["upload_date"],
+        ).replace(tzinfo=timezone)
+        return cls(
+            target_id=target_dict["target_id"],
+            name=target_dict["name"],
+            processing_time_seconds=target_dict["processing_time_seconds"],
+            last_modified_date=last_modified_date,
+            upload_date=upload_date,
+        )
+
+    def to_dict(self) -> VuMarkTargetDict:
+        """Dump a VuMark target to a dictionary which can be loaded as
+        JSON.
+        """
+        return {
+            "target_id": self.target_id,
+            "name": self.name,
+            "processing_time_seconds": float(self.processing_time_seconds),
+            "last_modified_date": self.last_modified_date.isoformat(),
+            "upload_date": self.upload_date.isoformat(),
         }

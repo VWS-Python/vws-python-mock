@@ -4,9 +4,7 @@ rules:
     disable: true
   cache-poisoning:
     disable: true
-  bot-conditions:
-    disable: true
   dependabot-cooldown:
     disable: true
-  template-injection:
+  superfluous-actions:
     disable: true

@@ -8,10 +8,10 @@ VWS Mock
 
 Mock for the Vuforia Web Services (VWS) API and the Vuforia Web Query API.
 
-Mocking calls made to Vuforia with Python ``requests``
-------------------------------------------------------
+Mocking calls made to Vuforia
+------------------------------
 
-Using the mock redirects requests to Vuforia made with `requests`_ to an in-memory implementation.
+``MockVWS`` intercepts requests made with `requests`_ or `httpx`_.
 
 .. code-block:: shell
 
@@ -26,17 +26,35 @@ This requires Python |minimum-python-version|\+.
     import requests
 
     from mock_vws import MockVWS
-    from mock_vws.database import VuforiaDatabase
+    from mock_vws.database import CloudDatabase
 
     with MockVWS() as mock:
-        database = VuforiaDatabase()
-        mock.add_database(database=database)
+        database = CloudDatabase()
+        mock.add_cloud_database(cloud_database=database)
         # This will use the Vuforia mock.
         requests.get(url="https://vws.vuforia.com/summary", timeout=30)
+
+``MockVWS`` also intercepts `httpx`_ requests:
+
+.. code-block:: python
+
+    """Make a request to the Vuforia Web Services API mock using httpx."""
+
+    import httpx
+
+    from mock_vws import MockVWS
+    from mock_vws.database import CloudDatabase
+
+    with MockVWS() as mock:
+        database = CloudDatabase()
+        mock.add_cloud_database(cloud_database=database)
+        # This will use the Vuforia mock.
+        httpx.get(url="https://vws.vuforia.com/summary", timeout=30)
 
 By default, an exception will be raised if any requests to unmocked addresses are made.
 
 .. _requests: https://pypi.org/project/requests/
+.. _httpx: https://pypi.org/project/httpx/
 
 Using Docker to mock calls to Vuforia from any language
 -------------------------------------------------------

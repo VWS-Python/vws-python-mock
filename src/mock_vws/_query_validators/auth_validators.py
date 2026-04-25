@@ -11,7 +11,7 @@ from mock_vws._query_validators.exceptions import (
     AuthHeaderMissingError,
     MalformedAuthHeaderError,
 )
-from mock_vws.database import VuforiaDatabase
+from mock_vws.database import CloudDatabase
 
 _LOGGER = logging.getLogger(name=__name__)
 
@@ -63,7 +63,7 @@ def validate_auth_header_number_of_parts(
 def validate_client_key_exists(
     *,
     request_headers: Mapping[str, str],
-    databases: Iterable[VuforiaDatabase],
+    databases: Iterable[CloudDatabase],
 ) -> None:
     """Validate the authorization header includes a client key for a
     database.
@@ -113,7 +113,7 @@ def validate_authorization(
     request_headers: Mapping[str, str],
     request_body: bytes,
     request_method: str,
-    databases: Iterable[VuforiaDatabase],
+    databases: Iterable[CloudDatabase],
 ) -> None:
     """Validate the authorization header given to the query endpoint.
 

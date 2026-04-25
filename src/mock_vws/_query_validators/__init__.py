@@ -4,7 +4,7 @@ from collections.abc import Iterable, Mapping
 
 from beartype import beartype
 
-from mock_vws.database import VuforiaDatabase
+from mock_vws.database import CloudDatabase
 
 from .accept_header_validators import validate_accept_header
 from .auth_validators import (
@@ -45,7 +45,7 @@ def run_query_validators(
     request_headers: Mapping[str, str],
     request_body: bytes,
     request_method: str,
-    databases: Iterable[VuforiaDatabase],
+    databases: Iterable[CloudDatabase],
 ) -> None:
     """Run all validators.
 

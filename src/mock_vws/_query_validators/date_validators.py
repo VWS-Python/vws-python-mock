@@ -34,6 +34,7 @@ def validate_date_header_given(*, request_headers: Mapping[str, str]) -> None:
     raise DateHeaderNotGivenError
 
 
+@beartype
 def _accepted_date_formats() -> set[str]:
     """Return all known accepted date formats.
 

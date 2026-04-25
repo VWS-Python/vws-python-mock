@@ -103,6 +103,13 @@ These are:
 
 When the given ``Content-Length`` header does not match the length of the given data, the mock server (written with Flask) will not behave as the real Vuforia Web Services behaves.
 
+VuMark instance images
+----------------------
+
+The mock returns a fixed minimal image in the requested format.
+The ``instance_id`` value is not encoded into the response image.
+Real Vuforia encodes the instance ID into the VuMark pattern.
+
 Header cases
 ------------
 

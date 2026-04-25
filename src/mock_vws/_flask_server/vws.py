@@ -8,6 +8,7 @@ import base64
 import email.utils
 import json
 import logging
+import time
 import uuid
 from enum import StrEnum, auto
 from http import HTTPMethod, HTTPStatus
@@ -17,23 +18,32 @@ from beartype import beartype
 from flask import Flask, Response, request
 from pydantic_settings import BaseSettings
 
-from mock_vws._constants import ResultCodes, TargetStatuses
+from mock_vws._constants import (
+    VUMARK_PDF,
+    VUMARK_PNG,
+    VUMARK_SVG,
+    ResultCodes,
+    TargetStatuses,
+)
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._mock_common import json_dump
 from mock_vws._services_validators import run_services_validators
 from mock_vws._services_validators.exceptions import (
     FailError,
+    InvalidAcceptHeaderError,
+    InvalidInstanceIdError,
+    InvalidTargetTypeError,
     TargetStatusNotSuccessError,
     TargetStatusProcessingError,
     ValidatorError,
 )
-from mock_vws.database import VuforiaDatabase
+from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.image_matchers import (
     ExactMatcher,
     ImageMatcher,
     StructuralSimilarityMatcher,
 )
-from mock_vws.target import Target
+from mock_vws.target import ImageTarget
 from mock_vws.target_raters import (
     HardcodedTargetTrackingRater,
 )
@@ -59,8 +69,8 @@ class _ImageMatcherChoice(StrEnum):
                 return ExactMatcher()
             case self.STRUCTURAL_SIMILARITY:
                 return StructuralSimilarityMatcher()
-
-        raise ValueError  # pragma: no cover
+            case _:  # pragma: no cover
+                raise ValueError
 
 
 @beartype
@@ -73,24 +83,41 @@ class VWSSettings(BaseSettings):
     duplicates_image_matcher: _ImageMatcherChoice = (
         _ImageMatcherChoice.STRUCTURAL_SIMILARITY
     )
+    response_delay_seconds: float = 0.0
 
 
 @beartype
-def get_all_databases() -> set[VuforiaDatabase]:
+def get_all_cloud_databases() -> set[CloudDatabase]:
     """Get all database objects from the task manager back-end."""
     settings = VWSSettings.model_validate(obj={})
     timeout_seconds = 30
     response = requests.get(
-        url=f"{settings.target_manager_base_url}/databases",
+        url=f"{settings.target_manager_base_url}/cloud_databases",
         timeout=timeout_seconds,
     )
     return {
-        VuforiaDatabase.from_dict(database_dict=database_dict)
+        CloudDatabase.from_dict(database_dict=database_dict)
+        for database_dict in response.json()
+    }
+
+
+@beartype
+def get_all_vumark_databases() -> set[VuMarkDatabase]:
+    """Get all VuMark database objects from the task manager back-end."""
+    settings = VWSSettings.model_validate(obj={})
+    timeout_seconds = 30
+    response = requests.get(
+        url=f"{settings.target_manager_base_url}/vumark_databases",
+        timeout=timeout_seconds,
+    )
+    return {
+        VuMarkDatabase.from_dict(database_dict=database_dict)
         for database_dict in response.json()
     }
 
 
 @VWS_FLASK_APP.before_request
+@beartype
 def set_terminate_wsgi_input() -> None:
     """We set ``wsgi.input_terminated`` to ``True`` when going through
     ``requests`` in our tests, so that requests have the given ``Content-
@@ -119,18 +146,33 @@ def set_terminate_wsgi_input() -> None:
 @VWS_FLASK_APP.before_request
 @beartype
 def validate_request() -> None:
-    """Run validators on the request."""
-    databases = get_all_databases()
+    """Run validators on the request.
+
+    The VuMark endpoint does its own validation because it needs to
+    authenticate against both cloud and VuMark databases.
+    """
+    if request.endpoint == "generate_vumark_instance":
+        return
     run_services_validators(
         request_headers=dict(request.headers),
         request_body=request.data,
         request_method=request.method,
         request_path=request.path,
-        databases=databases,
+        databases=get_all_cloud_databases(),
     )
 
 
+@VWS_FLASK_APP.after_request
+@beartype
+def add_response_delay(response: Response) -> Response:
+    """Add a delay to each response."""
+    settings = VWSSettings.model_validate(obj={})
+    time.sleep(settings.response_delay_seconds)
+    return response
+
+
 @VWS_FLASK_APP.errorhandler(code_or_exception=ValidatorError)
+@beartype
 def handle_exceptions(exc: ValidatorError) -> Response:
     """Return the error response associated with the given exception."""
     response = Response(
@@ -153,7 +195,7 @@ def add_target() -> Response:
     https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#add
     """
     settings = VWSSettings.model_validate(obj={})
-    databases = get_all_databases()
+    databases = get_all_cloud_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
         request_body=request.data,
@@ -173,7 +215,7 @@ def add_target() -> Response:
     # This rater is not used.
     target_tracking_rater = HardcodedTargetTrackingRater(rating=1)
 
-    new_target = Target(
+    new_target = ImageTarget(
         name=name,
         width=request_json["width"],
         image_value=base64.b64decode(s=request_json["image"]),
@@ -183,7 +225,7 @@ def add_target() -> Response:
         target_tracking_rater=target_tracking_rater,
     )
 
-    databases_url = f"{settings.target_manager_base_url}/databases"
+    databases_url = f"{settings.target_manager_base_url}/cloud_databases"
     timeout_seconds = 30
     requests.post(
         url=f"{databases_url}/{database.database_name}/targets",
@@ -226,7 +268,7 @@ def get_target(target_id: str) -> Response:
     Fake implementation of
     https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#target-record
     """
-    databases = get_all_databases()
+    databases = get_all_cloud_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
         request_body=request.data,
@@ -239,13 +281,16 @@ def get_target(target_id: str) -> Response:
         target for target in database.targets if target.target_id == target_id
     )
 
+    width = target.width
+    tracking_rating = target.tracking_rating
+    reco_rating = target.reco_rating
     target_record = {
         "target_id": target.target_id,
         "active_flag": target.active_flag,
         "name": target.name,
-        "width": target.width,
-        "tracking_rating": target.tracking_rating,
-        "reco_rating": target.reco_rating,
+        "width": width,
+        "tracking_rating": tracking_rating,
+        "reco_rating": reco_rating,
     }
 
     date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
@@ -276,6 +321,7 @@ def get_target(target_id: str) -> Response:
     rule="/targets/<string:target_id>",
     methods=[HTTPMethod.DELETE],
 )
+@beartype
 def delete_target(target_id: str) -> Response:
     """Delete a target.
 
@@ -283,7 +329,7 @@ def delete_target(target_id: str) -> Response:
     https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#delete
     """
     settings = VWSSettings.model_validate(obj={})
-    databases = get_all_databases()
+    databases = get_all_cloud_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
         request_body=request.data,
@@ -299,7 +345,7 @@ def delete_target(target_id: str) -> Response:
     if target.status == TargetStatuses.PROCESSING.value:
         raise TargetStatusProcessingError
 
-    databases_url = f"{settings.target_manager_base_url}/databases"
+    databases_url = f"{settings.target_manager_base_url}/cloud_databases"
     requests.delete(
         url=f"{databases_url}/{database.database_name}/targets/{target_id}",
         timeout=30,
@@ -327,6 +373,79 @@ def delete_target(target_id: str) -> Response:
     )
 
 
+@VWS_FLASK_APP.route(
+    rule="/targets/<string:target_id>/instances",
+    methods=[HTTPMethod.POST],
+)
+@beartype
+def generate_vumark_instance(target_id: str) -> Response:
+    """Generate a VuMark instance.
+
+    Fake implementation of
+    https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#generate-instance
+    """
+    cloud_databases = get_all_cloud_databases()
+    vumark_databases = get_all_vumark_databases()
+    all_databases: list[CloudDatabase | VuMarkDatabase] = [
+        *cloud_databases,
+        *vumark_databases,
+    ]
+    run_services_validators(
+        request_headers=dict(request.headers),
+        request_body=request.data,
+        request_method=request.method,
+        request_path=request.path,
+        databases=all_databases,
+    )
+
+    database = get_database_matching_server_keys(
+        request_headers=dict(request.headers),
+        request_body=request.data,
+        request_method=request.method,
+        request_path=request.path,
+        databases=all_databases,
+    )
+    if not isinstance(database, VuMarkDatabase):
+        raise InvalidTargetTypeError
+
+    target = database.get_vumark_target(target_id=target_id)
+    if target.status != TargetStatuses.SUCCESS.value:
+        raise TargetStatusNotSuccessError
+
+    accept = request.headers.get(key="Accept", default="")
+    valid_accept_types: dict[str, bytes] = {
+        "image/png": VUMARK_PNG,
+        "image/svg+xml": VUMARK_SVG,
+        "application/pdf": VUMARK_PDF,
+    }
+    if accept not in valid_accept_types:
+        raise InvalidAcceptHeaderError
+
+    request_json = json.loads(s=request.data)
+    instance_id = request_json.get("instance_id", "")
+    if not instance_id:
+        raise InvalidInstanceIdError
+
+    response_body = valid_accept_types[accept]
+    content_type = accept
+    date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
+    headers = {
+        "Connection": "keep-alive",
+        "Content-Type": content_type,
+        "server": "envoy",
+        "Date": date,
+        "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
+    }
+    return Response(
+        status=HTTPStatus.OK,
+        response=response_body,
+        headers=headers,
+    )
+
+
 @VWS_FLASK_APP.route(rule="/summary", methods=[HTTPMethod.GET])
 @beartype
 def database_summary() -> Response:
@@ -335,7 +454,7 @@ def database_summary() -> Response:
     Fake implementation of
     https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#summary-report
     """
-    databases = get_all_databases()
+    databases = get_all_cloud_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
         request_body=request.data,
@@ -384,13 +503,14 @@ def database_summary() -> Response:
     rule="/summary/<string:target_id>",
     methods=[HTTPMethod.GET],
 )
+@beartype
 def target_summary(target_id: str) -> Response:
     """Get a summary report for a target.
 
     Fake implementation of
     https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#retrieve-report
     """
-    databases = get_all_databases()
+    databases = get_all_cloud_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
         request_body=request.data,
@@ -402,6 +522,10 @@ def target_summary(target_id: str) -> Response:
     (target,) = (
         target for target in database.targets if target.target_id == target_id
     )
+    tracking_rating = target.tracking_rating
+    total_recos = target.total_recos
+    current_month_recos = target.current_month_recos
+    previous_month_recos = target.previous_month_recos
     body = {
         "status": target.status,
         "transaction_id": uuid.uuid4().hex,
@@ -410,10 +534,10 @@ def target_summary(target_id: str) -> Response:
         "target_name": target.name,
         "upload_date": target.upload_date.strftime(format="%Y-%m-%d"),
         "active_flag": target.active_flag,
-        "tracking_rating": target.tracking_rating,
-        "total_recos": target.total_recos,
-        "current_month_recos": target.current_month_recos,
-        "previous_month_recos": target.previous_month_recos,
+        "tracking_rating": tracking_rating,
+        "total_recos": total_recos,
+        "current_month_recos": current_month_recos,
+        "previous_month_recos": previous_month_recos,
     }
     date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
     headers = {
@@ -444,7 +568,7 @@ def get_duplicates(target_id: str) -> Response:
     Fake implementation of
     https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#check
     """
-    databases = get_all_databases()
+    databases = get_all_cloud_databases()
     settings = VWSSettings.model_validate(obj={})
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
@@ -497,13 +621,14 @@ def get_duplicates(target_id: str) -> Response:
 
 
 @VWS_FLASK_APP.route(rule="/targets", methods=[HTTPMethod.GET])
+@beartype
 def target_list() -> Response:
     """Get a list of all targets.
 
     Fake implementation of
     https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#details-list
     """
-    databases = get_all_databases()
+    databases = get_all_cloud_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
         request_body=request.data,
@@ -539,6 +664,7 @@ def target_list() -> Response:
 @VWS_FLASK_APP.route(
     rule="/targets/<string:target_id>", methods=[HTTPMethod.PUT]
 )
+@beartype
 def update_target(target_id: str) -> Response:
     """Update a target.
 
@@ -549,7 +675,7 @@ def update_target(target_id: str) -> Response:
     # We do not use ``request.get_json(force=True)`` because this only works
     # when the content type is given as ``application/json``.
     request_json = json.loads(s=request.data)
-    databases = get_all_databases()
+    databases = get_all_cloud_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
         request_body=request.data,
@@ -602,7 +728,7 @@ def update_target(target_id: str) -> Response:
         update_values["image"] = image
 
     put_url = (
-        f"{settings.target_manager_base_url}/databases/"
+        f"{settings.target_manager_base_url}/cloud_databases/"
         f"{database.database_name}/targets/{target_id}"
     )
     requests.put(url=put_url, json=update_values, timeout=30)

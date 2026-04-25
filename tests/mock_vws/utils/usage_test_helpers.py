@@ -3,15 +3,17 @@
 import datetime
 import io
 
+from beartype import beartype
 from vws import VWS
 from vws.reports import TargetStatuses
 
-from mock_vws.database import VuforiaDatabase
+from mock_vws.database import CloudDatabase
 
 
+@beartype
 def processing_time_seconds(
     *,
-    vuforia_database: VuforiaDatabase,
+    vuforia_database: CloudDatabase,
     image: io.BytesIO,
 ) -> float:
     """Return the time taken to process a target in the database."""

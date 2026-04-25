@@ -5,20 +5,22 @@ import email.utils
 import io
 import json
 import socket
+from http import HTTPStatus
 from urllib.parse import urlparse
 
+import httpx
 import pytest
 import requests
 from beartype import beartype
 from freezegun import freeze_time
 from PIL import Image
 from vws import VWS, CloudRecoService
-from vws_auth_tools import rfc_1123_date
+from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws import MissingSchemeError, MockVWS
-from mock_vws.database import VuforiaDatabase
+from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.image_matchers import ExactMatcher, StructuralSimilarityMatcher
-from mock_vws.target import Target
+from mock_vws.target import ImageTarget, VuMarkTarget
 from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.usage_test_helpers import (
     processing_time_seconds,
@@ -111,6 +113,139 @@ class TestRealHTTP:
             request_unmocked_address()
 
 
+class TestResponseDelay:
+    """Tests for the response delay feature."""
+
+    @staticmethod
+    def test_default_no_delay() -> None:
+        """By default, there is no response delay."""
+        with MockVWS():
+            # With a very short timeout, the request should still succeed
+            # because there is no delay
+            response = requests.get(
+                url="https://vws.vuforia.com/summary",
+                headers={
+                    "Date": rfc_1123_date(),
+                    "Authorization": "bad_auth_token",
+                },
+                data=b"",
+                timeout=0.5,
+            )
+            # We just care that no timeout occurred, not the response content
+            assert response.status_code is not None
+
+    @staticmethod
+    def test_delay_causes_timeout() -> None:
+        """
+        When response_delay_seconds is set higher than the client
+        timeout,
+        a Timeout exception is raised.
+        """
+        with (
+            MockVWS(response_delay_seconds=0.5),
+            pytest.raises(expected_exception=requests.exceptions.Timeout),
+        ):
+            requests.get(
+                url="https://vws.vuforia.com/summary",
+                headers={
+                    "Date": rfc_1123_date(),
+                    "Authorization": "bad_auth_token",
+                },
+                data=b"",
+                timeout=0.1,
+            )
+
+    @staticmethod
+    def test_delay_allows_completion() -> None:
+        """
+        When response_delay_seconds is set lower than the client
+        timeout,
+        the request completes successfully.
+        """
+        with MockVWS(response_delay_seconds=0.1):
+            # This should succeed because timeout > delay
+            response = requests.get(
+                url="https://vws.vuforia.com/summary",
+                headers={
+                    "Date": rfc_1123_date(),
+                    "Authorization": "bad_auth_token",
+                },
+                data=b"",
+                timeout=2.0,
+            )
+            assert response.status_code is not None
+
+    @staticmethod
+    def test_delay_with_tuple_timeout() -> None:
+        """
+        The response delay works correctly with tuple timeouts
+        (connect_timeout, read_timeout).
+        """
+        with (
+            MockVWS(response_delay_seconds=0.5),
+            pytest.raises(expected_exception=requests.exceptions.Timeout),
+        ):
+            # Tuple timeout: (connect_timeout, read_timeout)
+            # The read timeout (0.1) is less than the delay (0.5)
+            requests.get(
+                url="https://vws.vuforia.com/summary",
+                headers={
+                    "Date": rfc_1123_date(),
+                    "Authorization": "bad_auth_token",
+                },
+                data=b"",
+                timeout=(5.0, 0.1),
+            )
+
+    @staticmethod
+    def test_custom_sleep_fn_called_on_delay() -> None:
+        """
+        When a custom ``sleep_fn`` is provided, it is called instead of
+        ``time.sleep`` for the non-timeout delay path.
+        """
+        calls: list[float] = []
+        with MockVWS(
+            response_delay_seconds=5.0,
+            sleep_fn=calls.append,
+        ):
+            requests.get(
+                url="https://vws.vuforia.com/summary",
+                headers={
+                    "Date": rfc_1123_date(),
+                    "Authorization": "bad_auth_token",
+                },
+                data=b"",
+                timeout=30,
+            )
+        assert calls == [5.0]
+
+    @staticmethod
+    def test_custom_sleep_fn_called_on_timeout() -> None:
+        """
+        When a custom ``sleep_fn`` is provided, it is called instead of
+        ``time.sleep`` for the timeout path.
+        """
+        calls: list[float] = []
+        with (
+            MockVWS(
+                response_delay_seconds=5.0,
+                sleep_fn=calls.append,
+            ),
+            pytest.raises(expected_exception=requests.exceptions.Timeout),
+        ):
+            requests.get(
+                url="https://vws.vuforia.com/summary",
+                headers={
+                    "Date": rfc_1123_date(),
+                    "Authorization": "bad_auth_token",
+                },
+                data=b"",
+                timeout=1.0,
+            )
+        # sleep_fn should have been called with the effective timeout
+        assert calls == [1.0]
+
+
 class TestProcessingTime:
     """Tests for the time taken to process targets in the mock."""
 
@@ -120,9 +255,9 @@ class TestProcessingTime:
 
     def test_default(self, image_file_failed_state: io.BytesIO) -> None:
         """By default, targets in the mock takes 2 seconds to be processed."""
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         with MockVWS() as mock:
-            mock.add_database(database=database)
+            mock.add_cloud_database(cloud_database=database)
             time_taken = processing_time_seconds(
                 vuforia_database=database,
                 image=image_file_failed_state,
@@ -133,10 +268,10 @@ class TestProcessingTime:
 
     def test_custom(self, image_file_failed_state: io.BytesIO) -> None:
         """It is possible to set a custom processing time."""
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         seconds = 5
         with MockVWS(processing_time_seconds=seconds) as mock:
-            mock.add_database(database=database)
+            mock.add_cloud_database(cloud_database=database)
             time_taken = processing_time_seconds(
                 vuforia_database=database,
                 image=image_file_failed_state,
@@ -152,8 +287,8 @@ class TestDatabaseName:
     @staticmethod
     def test_default() -> None:
         """By default, the database has a random name."""
-        database_details = VuforiaDatabase()
-        other_database_details = VuforiaDatabase()
+        database_details = CloudDatabase()
+        other_database_details = CloudDatabase()
         assert (
             database_details.database_name
             != other_database_details.database_name
@@ -162,7 +297,7 @@ class TestDatabaseName:
     @staticmethod
     def test_custom_name() -> None:
         """It is possible to set a custom database name."""
-        database_details = VuforiaDatabase(database_name="foo")
+        database_details = CloudDatabase(database_name="foo")
         assert database_details.database_name == "foo"
 
 
@@ -215,6 +350,86 @@ class TestCustomBaseURLs:
             )
 
     @staticmethod
+    def test_custom_base_vws_url_with_path_prefix() -> None:
+        """A custom base VWS URL with a path prefix intercepts at the
+        prefix.
+        """
+        with MockVWS(
+            base_vws_url="https://vuforia.vws.example.com/prefix",
+            real_http=False,
+        ):
+            with pytest.raises(
+                expected_exception=requests.exceptions.ConnectionError
+            ):
+                requests.get(
+                    url="https://vuforia.vws.example.com/summary",
+                    timeout=30,
+                )
+
+            requests.get(
+                url="https://vuforia.vws.example.com/prefix/summary",
+                timeout=30,
+            )
+
+    @staticmethod
+    def test_custom_base_vwq_url_with_path_prefix() -> None:
+        """A custom base VWQ URL with a path prefix intercepts at the
+        prefix.
+        """
+        with MockVWS(
+            base_vwq_url="https://vuforia.vwq.example.com/prefix",
+            real_http=False,
+        ):
+            with pytest.raises(
+                expected_exception=requests.exceptions.ConnectionError
+            ):
+                requests.post(
+                    url="https://vuforia.vwq.example.com/v1/query",
+                    timeout=30,
+                )
+
+            requests.post(
+                url="https://vuforia.vwq.example.com/prefix/v1/query",
+                timeout=30,
+            )
+
+    @staticmethod
+    def test_vws_operations_work_with_path_prefix() -> None:
+        """VWS API operations work correctly with a base URL path
+        prefix.
+        """
+        database = CloudDatabase()
+        base_vws_url = "https://vuforia.vws.example.com/prefix"
+
+        with MockVWS(base_vws_url=base_vws_url) as mock:
+            mock.add_cloud_database(cloud_database=database)
+
+            request_path = "/targets"
+            date = rfc_1123_date()
+            auth = authorization_header(
+                access_key=database.server_access_key,
+                secret_key=database.server_secret_key,
+                method="GET",
+                content=b"",
+                content_type="",
+                date=date,
+                request_path=request_path,
+            )
+            response = requests.get(
+                url=base_vws_url + request_path,
+                headers={
+                    "Authorization": auth,
+                    "Date": date,
+                },
+                timeout=30,
+            )
+
+        assert response.status_code == HTTPStatus.OK
+        response_json = response.json()
+        assert response_json["result_code"] == "Success"
+        assert response_json["results"] == []
+
+    @staticmethod
     def test_no_scheme() -> None:
         """An error if raised if a URL is given with no scheme."""
         with pytest.raises(expected_exception=MissingSchemeError) as vws_exc:
@@ -243,7 +458,7 @@ class TestTargets:
         It is possible to dump a target to a dictionary and load it
         back.
         """
-        database = VuforiaDatabase()
+        database = CloudDatabase()
 
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -251,7 +466,7 @@ class TestTargets:
         )
 
         with MockVWS() as mock:
-            mock.add_database(database=database)
+            mock.add_cloud_database(cloud_database=database)
             vws_client.add_target(
                 name="example",
                 width=1,
@@ -262,12 +477,13 @@ class TestTargets:
 
         assert len(database.targets) == 1
         target = next(iter(database.targets))
+        assert isinstance(target, ImageTarget)
         target_dict = target.to_dict()
 
         # The dictionary is JSON dump-able
         assert json.dumps(obj=target_dict)
 
-        new_target = Target.from_dict(target_dict=target_dict)
+        new_target = ImageTarget.from_dict(target_dict=target_dict)
         assert new_target == target
 
     @staticmethod
@@ -277,7 +493,7 @@ class TestTargets:
         it
         back.
         """
-        database = VuforiaDatabase()
+        database = CloudDatabase()
 
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -285,7 +501,7 @@ class TestTargets:
         )
 
         with MockVWS() as mock:
-            mock.add_database(database=database)
+            mock.add_cloud_database(cloud_database=database)
             target_id = vws_client.add_target(
                 name="example",
                 width=1,
@@ -298,13 +514,30 @@ class TestTargets:
 
         assert len(database.targets) == 1
         target = next(iter(database.targets))
+        assert isinstance(target, ImageTarget)
         target_dict = target.to_dict()
 
         # The dictionary is JSON dump-able
         assert json.dumps(obj=target_dict)
 
-        new_target = Target.from_dict(target_dict=target_dict)
+        new_target = ImageTarget.from_dict(target_dict=target_dict)
         assert new_target.delete_date == target.delete_date
+
+    @staticmethod
+    def test_vumark_target_to_dict() -> None:
+        """It is possible to dump a VuMark target to a dictionary and
+        load it back.
+        """
+        vumark_target = VuMarkTarget(
+            name="example-vumark",
+            processing_time_seconds=5.0,
+        )
+        target_dict = vumark_target.to_dict()
+
+        assert json.dumps(obj=target_dict)
+
+        new_target = VuMarkTarget.from_dict(target_dict=target_dict)
+        assert new_target == vumark_target
 
 
 class TestDatabaseToDict:
@@ -316,7 +549,7 @@ class TestDatabaseToDict:
         It is possible to dump a database to a dictionary and load it
         back.
         """
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
             server_secret_key=database.server_secret_key,
@@ -324,7 +557,7 @@ class TestDatabaseToDict:
 
         # We test a database with a target added.
         with MockVWS() as mock:
-            mock.add_database(database=database)
+            mock.add_cloud_database(cloud_database=database)
             vws_client.add_target(
                 name="example",
                 width=1,
@@ -337,7 +570,26 @@ class TestDatabaseToDict:
         # The dictionary is JSON dump-able
         assert json.dumps(obj=database_dict)
 
-        new_database = VuforiaDatabase.from_dict(database_dict=database_dict)
+        new_database = CloudDatabase.from_dict(database_dict=database_dict)
+        assert new_database == database
+
+    @staticmethod
+    def test_vumark_database_to_dict() -> None:
+        """It is possible to dump a VuMark database to a dictionary and
+        load it back.
+        """
+        vumark_target = VuMarkTarget(
+            name="example-vumark",
+            processing_time_seconds=3.0,
+        )
+        database = VuMarkDatabase(
+            vumark_targets={vumark_target},
+        )
+
+        database_dict = database.to_dict()
+        assert json.dumps(obj=database_dict)
+
+        new_database = VuMarkDatabase.from_dict(database_dict=database_dict)
         assert new_database == database
 
 
@@ -379,7 +631,7 @@ class TestAddDatabase:
         It is not possible to have multiple databases with matching
         keys.
         """
-        database = VuforiaDatabase(
+        database = CloudDatabase(
             server_access_key="1",
             server_secret_key="2",
             client_access_key="3",
@@ -387,11 +639,11 @@ class TestAddDatabase:
             database_name="5",
         )
 
-        bad_server_access_key_db = VuforiaDatabase(server_access_key="1")
-        bad_server_secret_key_db = VuforiaDatabase(server_secret_key="2")
-        bad_client_access_key_db = VuforiaDatabase(client_access_key="3")
-        bad_client_secret_key_db = VuforiaDatabase(client_secret_key="4")
-        bad_database_name_db = VuforiaDatabase(database_name="5")
+        bad_server_access_key_db = CloudDatabase(server_access_key="1")
+        bad_server_secret_key_db = CloudDatabase(server_secret_key="2")
+        bad_client_access_key_db = CloudDatabase(client_access_key="3")
+        bad_client_secret_key_db = CloudDatabase(client_secret_key="4")
+        bad_database_name_db = CloudDatabase(database_name="5")
 
         server_access_key_conflict_error = (
             "All server access keys must be unique. "
@@ -415,7 +667,7 @@ class TestAddDatabase:
         )
 
         with MockVWS() as mock:
-            mock.add_database(database=database)
+            mock.add_cloud_database(cloud_database=database)
             for bad_database, expected_message in (
                 (bad_server_access_key_db, server_access_key_conflict_error),
                 (bad_server_secret_key_db, server_secret_key_conflict_error),
@@ -427,7 +679,49 @@ class TestAddDatabase:
                     expected_exception=ValueError,
                     match=expected_message + "$",
                 ):
-                    mock.add_database(database=bad_database)
+                    mock.add_cloud_database(cloud_database=bad_database)
+
+    @staticmethod
+    def test_duplicate_vumark_keys() -> None:
+        """
+        It is not possible to have multiple databases with matching
+        keys, including VuMark databases.
+        """
+        database = VuMarkDatabase(
+            server_access_key="1",
+            server_secret_key="2",
+            database_name="3",
+        )
+
+        bad_server_access_key_db = VuMarkDatabase(server_access_key="1")
+        bad_server_secret_key_db = VuMarkDatabase(server_secret_key="2")
+        bad_database_name_db = VuMarkDatabase(database_name="3")
+
+        server_access_key_conflict_error = (
+            "All server access keys must be unique. "
+            'There is already a database with the server access key "1".'
+        )
+        server_secret_key_conflict_error = (
+            "All server secret keys must be unique. "
+            'There is already a database with the server secret key "2".'
+        )
+        database_name_conflict_error = (
+            "All names must be unique. "
+            'There is already a database with the name "3".'
+        )
+
+        with MockVWS() as mock:
+            mock.add_vumark_database(vumark_database=database)
+            for bad_database, expected_message in (
+                (bad_server_access_key_db, server_access_key_conflict_error),
+                (bad_server_secret_key_db, server_secret_key_conflict_error),
+                (bad_database_name_db, database_name_conflict_error),
+            ):
+                with pytest.raises(
+                    expected_exception=ValueError,
+                    match=expected_message + "$",
+                ):
+                    mock.add_vumark_database(vumark_database=bad_database)
 
 
 class TestQueryImageMatchers:
@@ -436,7 +730,7 @@ class TestQueryImageMatchers:
     @staticmethod
     def test_exact_match(high_quality_image: io.BytesIO) -> None:
         """The exact matcher matches only exactly the same images."""
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
             server_secret_key=database.server_secret_key,
@@ -451,7 +745,7 @@ class TestQueryImageMatchers:
         pil_image.save(fp=re_exported_image, format="PNG")
 
         with MockVWS(query_match_checker=ExactMatcher()) as mock:
-            mock.add_database(database=database)
+            mock.add_cloud_database(cloud_database=database)
             target_id = vws_client.add_target(
                 name="example",
                 width=1,
@@ -472,7 +766,7 @@ class TestQueryImageMatchers:
     @staticmethod
     def test_custom_matcher(high_quality_image: io.BytesIO) -> None:
         """It is possible to use a custom matcher."""
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
             server_secret_key=database.server_secret_key,
@@ -487,7 +781,7 @@ class TestQueryImageMatchers:
         pil_image.save(fp=re_exported_image, format="PNG")
 
         with MockVWS(query_match_checker=_not_exact_matcher) as mock:
-            mock.add_database(database=database)
+            mock.add_cloud_database(cloud_database=database)
             target_id = vws_client.add_target(
                 name="example",
                 width=1,
@@ -507,11 +801,12 @@ class TestQueryImageMatchers:
 
     @staticmethod
     def test_structural_similarity_matcher(
+        *,
         high_quality_image: io.BytesIO,
         different_high_quality_image: io.BytesIO,
     ) -> None:
         """The structural similarity matcher matches similar images."""
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
             server_secret_key=database.server_secret_key,
@@ -528,7 +823,7 @@ class TestQueryImageMatchers:
         with MockVWS(
             query_match_checker=StructuralSimilarityMatcher(),
         ) as mock:
-            mock.add_database(database=database)
+            mock.add_cloud_database(cloud_database=database)
             target_id = vws_client.add_target(
                 name="example",
                 width=1,
@@ -558,7 +853,7 @@ class TestDuplicatesImageMatchers:
     @staticmethod
     def test_exact_match(high_quality_image: io.BytesIO) -> None:
         """The exact matcher matches only exactly the same images."""
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
             server_secret_key=database.server_secret_key,
@@ -569,7 +864,7 @@ class TestDuplicatesImageMatchers:
         pil_image.save(fp=re_exported_image, format="PNG")
 
         with MockVWS(duplicate_match_checker=ExactMatcher()) as mock:
-            mock.add_database(database=database)
+            mock.add_cloud_database(cloud_database=database)
             target_id = vws_client.add_target(
                 name="example_0",
                 width=1,
@@ -602,7 +897,7 @@ class TestDuplicatesImageMatchers:
     @staticmethod
     def test_custom_matcher(high_quality_image: io.BytesIO) -> None:
         """It is possible to use a custom matcher."""
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
             server_secret_key=database.server_secret_key,
@@ -613,7 +908,7 @@ class TestDuplicatesImageMatchers:
         pil_image.save(fp=re_exported_image, format="PNG")
 
         with MockVWS(duplicate_match_checker=_not_exact_matcher) as mock:
-            mock.add_database(database=database)
+            mock.add_cloud_database(cloud_database=database)
             target_id = vws_client.add_target(
                 name="example_0",
                 width=1,
@@ -648,7 +943,7 @@ class TestDuplicatesImageMatchers:
         high_quality_image: io.BytesIO,
     ) -> None:
         """The structural similarity matcher matches similar images."""
-        database = VuforiaDatabase()
+        database = CloudDatabase()
         vws_client = VWS(
             server_access_key=database.server_access_key,
             server_secret_key=database.server_secret_key,
@@ -661,7 +956,7 @@ class TestDuplicatesImageMatchers:
         with MockVWS(
             duplicate_match_checker=StructuralSimilarityMatcher(),
         ) as mock:
-            mock.add_database(database=database)
+            mock.add_cloud_database(cloud_database=database)
             target_id = vws_client.add_target(
                 name="example",
                 width=1,
@@ -710,3 +1005,50 @@ class TestDataTypes:
         )
         response = new_endpoint.send()
         assert response.status_code == endpoint.successful_headers_status_code
+
+
+class TestHttpxAlsoIntercepted:
+    """Tests that MockVWS also intercepts httpx requests."""
+
+    @staticmethod
+    def test_httpx_vuforia_endpoint_intercepted() -> None:
+        """``MockVWS`` intercepts ``httpx`` requests to Vuforia
+        endpoints.
+        """
+        with MockVWS():
+            response = httpx.get(
+                url="https://vws.vuforia.com/summary",
+                headers={
+                    "Date": rfc_1123_date(),
+                    "Authorization": "bad_auth_token",
+                },
+                timeout=30,
+            )
+        assert response.status_code is not None
+
+    @staticmethod
+    def test_httpx_unmocked_address_blocked() -> None:
+        """``MockVWS`` blocks ``httpx`` requests to non-Vuforia
+        addresses.
+        """
+        sock = socket.socket()
+        sock.bind(("", 0))
+        port = sock.getsockname()[1]
+        sock.close()
+        with MockVWS(), pytest.raises(expected_exception=httpx.ConnectError):
+            httpx.get(url=f"http://localhost:{port}", timeout=30)
+
+    @staticmethod
+    def test_httpx_real_http() -> None:
+        """When ``real_http=True``, ``httpx`` requests to non-Vuforia
+        addresses are not blocked.
+        """
+        sock = socket.socket()
+        sock.bind(("", 0))
+        port = sock.getsockname()[1]
+        sock.close()
+        with (
+            MockVWS(real_http=True),
+            pytest.raises(expected_exception=httpx.ConnectError),
+        ):
+            httpx.get(url=f"http://localhost:{port}", timeout=30)

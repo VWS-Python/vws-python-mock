@@ -103,6 +103,7 @@ class TestContentTypes:
         ],
     )
     def test_content_types(
+        *,
         vws_client: VWS,
         image_file_failed_state: io.BytesIO,
         content_type: str,
@@ -129,6 +130,7 @@ class TestContentTypes:
 
     @staticmethod
     def test_empty_content_type(
+        *,
         vws_client: VWS,
         image_file_failed_state: io.BytesIO,
     ) -> None:
@@ -174,6 +176,7 @@ class TestMissingData:
         argvalues=["name", "width", "image"],
     )
     def test_missing_data(
+        *,
         vws_client: VWS,
         image_file_failed_state: io.BytesIO,
         data_to_remove: str,
@@ -212,6 +215,7 @@ class TestWidth:
         ids=["Negative", "Wrong Type", "None", "Zero"],
     )
     def test_width_invalid(
+        *,
         vws_client: VWS,
         image_file_failed_state: io.BytesIO,
         width: int | str | None,
@@ -239,6 +243,7 @@ class TestWidth:
 
     @staticmethod
     def test_width_valid(
+        *,
         vws_client: VWS,
         image_file_failed_state: io.BytesIO,
     ) -> None:
@@ -273,6 +278,7 @@ class TestTargetName:
         ids=["Short name", "Max char value", "Long name"],
     )
     def test_name_valid(
+        *,
         name: str,
         image_file_failed_state: io.BytesIO,
         vws_client: VWS,
@@ -310,6 +316,7 @@ class TestTargetName:
         ],
     )
     def test_name_invalid(
+        *,
         name: str | int | None,
         image_file_failed_state: io.BytesIO,
         status_code: int,
@@ -349,6 +356,7 @@ class TestTargetName:
 
     @staticmethod
     def test_existing_target_name(
+        *,
         image_file_failed_state: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -378,6 +386,7 @@ class TestTargetName:
 
     @staticmethod
     def test_deleted_existing_target_name(
+        *,
         image_file_failed_state: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -411,6 +420,7 @@ class TestImage:
 
     @staticmethod
     def test_image_valid(
+        *,
         vws_client: VWS,
         image_files_failed_state: io.BytesIO,
     ) -> None:
@@ -428,6 +438,7 @@ class TestImage:
 
     @staticmethod
     def test_bad_image_format_or_color_space(
+        *,
         bad_image_file: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -454,6 +465,7 @@ class TestImage:
 
     @staticmethod
     def test_corrupted(
+        *,
         corrupted_image_file: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -543,6 +555,7 @@ class TestImage:
 
     @staticmethod
     def test_not_base64_encoded_processable(
+        *,
         vws_client: VWS,
         not_base64_encoded_processable: str,
     ) -> None:
@@ -570,6 +583,7 @@ class TestImage:
 
     @staticmethod
     def test_not_base64_encoded_not_processable(
+        *,
         vws_client: VWS,
         not_base64_encoded_not_processable: str,
     ) -> None:
@@ -622,6 +636,7 @@ class TestImage:
         argvalues=[1, None],
     )
     def test_invalid_type(
+        *,
         invalid_type_image: int | None,
         vws_client: VWS,
     ) -> None:
@@ -681,6 +696,7 @@ class TestActiveFlag:
 
     @staticmethod
     def test_invalid(
+        *,
         image_file_failed_state: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -717,6 +733,7 @@ class TestActiveFlag:
 
     @staticmethod
     def test_not_set(
+        *,
         vws_client: VWS,
         image_file_failed_state: io.BytesIO,
     ) -> None:
@@ -740,6 +757,7 @@ class TestActiveFlag:
 
     @staticmethod
     def test_set_to_none(
+        *,
         vws_client: VWS,
         image_file_failed_state: io.BytesIO,
     ) -> None:
@@ -773,6 +791,7 @@ class TestUnexpectedData:
 
     @staticmethod
     def test_invalid_extra_data(
+        *,
         vws_client: VWS,
         image_file_failed_state: io.BytesIO,
     ) -> None:
@@ -816,6 +835,7 @@ class TestApplicationMetadata:
         ids=["Short", "Max length"],
     )
     def test_base64_encoded(
+        *,
         image_file_failed_state: io.BytesIO,
         metadata: bytes,
         vws_client: VWS,
@@ -835,6 +855,7 @@ class TestApplicationMetadata:
 
     @staticmethod
     def test_null(
+        *,
         vws_client: VWS,
         image_file_failed_state: io.BytesIO,
     ) -> None:
@@ -860,6 +881,7 @@ class TestApplicationMetadata:
 
     @staticmethod
     def test_invalid_type(
+        *,
         vws_client: VWS,
         image_file_failed_state: io.BytesIO,
     ) -> None:
@@ -890,6 +912,7 @@ class TestApplicationMetadata:
 
     @staticmethod
     def test_not_base64_encoded_processable(
+        *,
         high_quality_image: io.BytesIO,
         not_base64_encoded_processable: str,
         vws_client: VWS,
@@ -909,6 +932,7 @@ class TestApplicationMetadata:
 
     @staticmethod
     def test_not_base64_encoded_not_processable(
+        *,
         high_quality_image: io.BytesIO,
         not_base64_encoded_not_processable: str,
         vws_client: VWS,
@@ -935,6 +959,7 @@ class TestApplicationMetadata:
 
     @staticmethod
     def test_metadata_too_large(
+        *,
         image_file_failed_state: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -970,6 +995,7 @@ class TestInactiveProject:
 
     @staticmethod
     def test_inactive_project(
+        *,
         image_file_failed_state: io.BytesIO,
         inactive_vws_client: VWS,
     ) -> None:

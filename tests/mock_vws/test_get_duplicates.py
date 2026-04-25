@@ -17,6 +17,7 @@ class TestDuplicates:
 
     @staticmethod
     def test_duplicates(
+        *,
         high_quality_image: io.BytesIO,
         image_file_success_state_low_rating: io.BytesIO,
         vws_client: VWS,
@@ -61,6 +62,7 @@ class TestDuplicates:
 
     @staticmethod
     def test_duplicates_not_same(
+        *,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -100,6 +102,7 @@ class TestDuplicates:
 
     @staticmethod
     def test_status(
+        *,
         image_file_failed_state: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -141,6 +144,7 @@ class TestActiveFlag:
 
     @staticmethod
     def test_active_flag(
+        *,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -194,6 +198,7 @@ class TestProcessing:
 
     @staticmethod
     def test_processing(
+        *,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
     ) -> None:

@@ -2,7 +2,9 @@
 
 from collections.abc import Iterable, Mapping
 
-from mock_vws.database import VuforiaDatabase
+from beartype import beartype
+
+from mock_vws._database_matchers import AnyDatabase
 
 from .active_flag_validators import validate_active_flag
 from .auth_validators import (
@@ -50,12 +52,14 @@ from .target_validators import validate_target_id_exists
 from .width_validators import validate_width
 
 
+@beartype
 def run_services_validators(
+    *,
     request_path: str,
     request_headers: Mapping[str, str],
     request_body: bytes,
     request_method: str,
-    databases: Iterable[VuforiaDatabase],
+    databases: Iterable[AnyDatabase],
 ) -> None:
     """Run all validators.
 
@@ -103,7 +107,7 @@ def run_services_validators(
     validate_date_format(request_headers=request_headers)
     validate_date_in_range(request_headers=request_headers)
 
-    validate_json(request_body=request_body)
+    validate_json(request_body=request_body, request_path=request_path)
 
     validate_keys(
         request_body=request_body,

@@ -1,8 +1,8 @@
 |project|
 =========
 
-Mocking calls made to Vuforia with Python ``requests``
-------------------------------------------------------
+Mocking calls made to Vuforia
+------------------------------
 
 .. code-block:: console
 
@@ -11,6 +11,8 @@ Mocking calls made to Vuforia with Python ``requests``
 This requires Python |minimum-python-version|\+.
 
 .. include:: basic-example.rst
+
+.. include:: httpx-example.rst
 
 Using Docker to mock calls to Vuforia from any language
 -------------------------------------------------------
