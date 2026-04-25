@@ -1,14 +1,10 @@
 """Custom lint tests."""
 
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import pytest
 import yaml
 from beartype import beartype
-
-if TYPE_CHECKING:
-    from collections.abc import Iterable
 
 
 @beartype
@@ -23,32 +19,44 @@ def _ci_patterns(*, repository_root: Path) -> set[str]:
     return ci_patterns
 
 
+class _CollectPlugin:
+    """Pytest plugin that records the node IDs of collected items."""
+
+    def __init__(self) -> None:
+        """Start with an empty set of collected node IDs."""
+        self.collected: set[str] = set()
+
+    def pytest_itemcollected(self, item: pytest.Item) -> None:
+        """Record each collected item's node ID."""
+        self.collected.add(item.nodeid)
+
+
 @beartype
-def _tests_from_pattern(
-    *,
-    ci_pattern: str,
-    capsys: pytest.CaptureFixture[str],
-) -> set[str]:
+def _tests_from_pattern(*, ci_pattern: str) -> set[str]:
     """From a CI pattern, get all tests ``pytest`` would collect."""
-    # Clear the captured output.
-    capsys.readouterr()
-    tests: Iterable[str] = set()
+    plugin = _CollectPlugin()
     pytest.main(
         args=[
             "-q",
             "--collect-only",
-            # If there are any warnings, these obscure the output.
+            # Disable pytest-retry to avoid:
+            # ```
+            # ValueError: no option named 'filtered_exceptions'
+            # ```
+            # which causes the nested run to exit with INTERNAL_ERROR
+            # before any items are collected.
+            "-p",
+            "no:pytest-retry",
+            # Disable warnings to avoid many instances of:
+            # ```
+            # Unknown config option: retry_delay
+            # ```
             "--disable-warnings",
             ci_pattern,
         ],
+        plugins=[plugin],
     )
-    data = capsys.readouterr().out
-    for line in data.splitlines():
-        # We filter empty lines and lines which look like
-        # "9 tests collected in 0.01s".
-        if line and "collected in" not in line:
-            tests = {*tests, line}
-    return set(tests)
+    return plugin.collected
 
 
 def test_ci_patterns_valid(request: pytest.FixtureRequest) -> None:
@@ -82,20 +90,18 @@ def test_ci_patterns_valid(request: pytest.FixtureRequest) -> None:
         assert collect_only_result == 0, message
 
 
-def test_tests_collected_once(
-    *,
-    capsys: pytest.CaptureFixture[str],
-    request: pytest.FixtureRequest,
-) -> None:
+def test_tests_collected_once(request: pytest.FixtureRequest) -> None:
     """Each test in the test suite is collected exactly once.
 
     This does not necessarily mean that they are run - they may be skipped.
     """
     ci_patterns = _ci_patterns(repository_root=request.config.rootpath)
+    all_tests = _tests_from_pattern(ci_pattern=".")
+    assert all_tests
     tests_to_patterns: dict[str, set[str]] = {}
 
     for pattern in ci_patterns:
-        tests = _tests_from_pattern(ci_pattern=pattern, capsys=capsys)
+        tests = _tests_from_pattern(ci_pattern=pattern)
         for test in tests:
             if test in tests_to_patterns:
                 tests_to_patterns[test].add(pattern)
@@ -110,6 +116,5 @@ def test_tests_collected_once(
         )
         assert len(patterns) == 1, message
 
-    all_tests = _tests_from_pattern(ci_pattern=".", capsys=capsys)
     assert tests_to_patterns.keys() - all_tests == set()
     assert all_tests - tests_to_patterns.keys() == set()

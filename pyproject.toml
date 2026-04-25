@@ -417,6 +417,7 @@ ignore_names = [
     # pytest configuration
     "pytest_collect_file",
     "pytest_collection_modifyitems",
+    "pytest_itemcollected",
     "pytest_plugins",
     "pytest_set_filtered_exceptions",
     "pytest_addoption",
