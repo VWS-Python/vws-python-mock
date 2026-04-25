@@ -34,9 +34,9 @@ class _CollectPlugin:
         self.nodeids.update(item.nodeid for item in items)
 
 
-@beartype
-def _tests_from_pattern(*, ci_pattern: str) -> set[str]:
-    """From a CI pattern, get all tests ``pytest`` would collect.
+@pytest.fixture(scope="module")
+def all_tests() -> frozenset[str]:
+    """Collect every test node ID in the suite, exactly once.
 
     Uses a collection-hook plugin instead of parsing stdout: an in-process
     ``pytest.main()`` installs its own output capture, so reading from
@@ -57,14 +57,36 @@ def _tests_from_pattern(*, ci_pattern: str) -> set[str]:
             # Unknown config option: retry_delay
             # ```
             "--disable-warnings",
-            ci_pattern,
+            ".",
         ],
         plugins=[plugin],
     )
-    return plugin.nodeids
+    return frozenset(plugin.nodeids)
 
 
-def test_ci_patterns_valid(request: pytest.FixtureRequest) -> None:
+@beartype
+def _matches(*, nodeid: str, ci_pattern: str) -> bool:
+    """Whether ``pytest <ci_pattern>`` would have collected ``nodeid``.
+
+    The patterns in the CI matrix are all of the form ``path[/]`` or
+    ``path::Class[::method]``. A node ID matches if it equals the pattern,
+    is a directory child of a pattern ending with ``/``, or extends the
+    pattern at a ``::`` (sub-item), ``/`` (path), or ``[`` (parametrize)
+    boundary.
+    """
+    if nodeid == ci_pattern:
+        return True
+    if not nodeid.startswith(ci_pattern):
+        return False
+    if ci_pattern.endswith("/"):
+        return True
+    return nodeid[len(ci_pattern)] in {":", "/", "["}
+
+
+def test_ci_patterns_valid(
+    request: pytest.FixtureRequest,
+    all_tests: frozenset[str],
+) -> None:
     """
     All of the CI patterns in the CI configuration match at least one
     test in
@@ -73,14 +95,17 @@ def test_ci_patterns_valid(request: pytest.FixtureRequest) -> None:
     ci_patterns = _ci_patterns(repository_root=request.config.rootpath)
 
     for ci_pattern in ci_patterns:
-        tests = _tests_from_pattern(ci_pattern=ci_pattern)
+        matched = {
+            n for n in all_tests if _matches(nodeid=n, ci_pattern=ci_pattern)
+        }
         message = f'"{ci_pattern}" does not match any tests.'
-        assert tests, message
+        assert matched, message
 
 
 def test_tests_collected_once(
     *,
     request: pytest.FixtureRequest,
+    all_tests: frozenset[str],
 ) -> None:
     """Each test in the test suite is collected exactly once.
 
@@ -90,12 +115,9 @@ def test_tests_collected_once(
     tests_to_patterns: dict[str, set[str]] = {}
 
     for pattern in ci_patterns:
-        tests = _tests_from_pattern(ci_pattern=pattern)
-        for test in tests:
-            if test in tests_to_patterns:
-                tests_to_patterns[test].add(pattern)
-            else:
-                tests_to_patterns[test] = {pattern}
+        for test in all_tests:
+            if _matches(nodeid=test, ci_pattern=pattern):
+                tests_to_patterns.setdefault(test, set()).add(pattern)
 
     for test_name, patterns in tests_to_patterns.items():
         message = (
@@ -105,6 +127,5 @@ def test_tests_collected_once(
         )
         assert len(patterns) == 1, message
 
-    all_tests = _tests_from_pattern(ci_pattern=".")
     assert tests_to_patterns.keys() - all_tests == set()
     assert all_tests - tests_to_patterns.keys() == set()
