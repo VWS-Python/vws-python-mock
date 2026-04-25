@@ -24,12 +24,12 @@ VUMARK_TEMPLATE_SVG_FILE_PATH = Path(__file__).with_name(
 
 
 def _create_and_get_cloud_database_details(
-    driver: "WebDriver",
+    driver: WebDriver,
     email_address: str,
     password: str,
     cloud_license_name: str,
     cloud_database_name: str,
-) -> "DatabaseDict":
+) -> DatabaseDict:
     """Create a cloud database and get its details.
 
     Returns database details.
@@ -57,9 +57,9 @@ def _create_and_get_cloud_database_details(
 
 
 def _create_and_get_vumark_details(
-    driver: "WebDriver",
+    driver: WebDriver,
     vumark_database_name: str,
-) -> "VuMarkDatabaseDict":
+) -> VuMarkDatabaseDict:
     """Create a VuMark database and get its details.
 
     Returns VuMark database details.
@@ -76,10 +76,10 @@ def _create_and_get_vumark_details(
 
 
 def _generate_secrets_file_content(
-    cloud_database_details: "DatabaseDict",
-    vumark_details: "VuMarkDatabaseDict",
-    inactive_database_details: "DatabaseDict",
-    inactive_vumark_details: "VuMarkDatabaseDict",
+    cloud_database_details: DatabaseDict,
+    vumark_details: VuMarkDatabaseDict,
+    inactive_database_details: DatabaseDict,
+    inactive_vumark_details: VuMarkDatabaseDict,
     vumark_target_id: str,
 ) -> str:
     """Generate the content of a secrets file."""
@@ -110,7 +110,7 @@ def _generate_secrets_file_content(
 
 
 def _create_and_get_vumark_target_id(
-    driver: "WebDriver",
+    driver: WebDriver,
     vumark_database_name: str,
     vumark_template_name: str,
 ) -> str:
@@ -130,12 +130,12 @@ def _create_and_get_vumark_target_id(
 
 
 def _create_and_get_inactive_database_details(
-    driver: "WebDriver",
+    driver: WebDriver,
     email_address: str,
     password: str,
     cloud_license_name: str,
     cloud_database_name: str,
-) -> "DatabaseDict":
+) -> DatabaseDict:
     """Create a cloud database, get its details, then delete the license to
     make it inactive.
     """
@@ -164,12 +164,12 @@ def _create_and_get_inactive_database_details(
 
 
 def _create_and_get_inactive_vumark_details(
-    driver: "WebDriver",
+    driver: WebDriver,
     email_address: str,
     password: str,
     vumark_license_name: str,
     vumark_database_name: str,
-) -> "VuMarkDatabaseDict":
+) -> VuMarkDatabaseDict:
     """Create a VuMark database, get its details, then delete the license
     to
     make it inactive.
