@@ -1,4 +1,11 @@
-"""Setup for Sybil."""
+"""
+Setup for Sybil.
+
+Beartype is not applied to test functions because of a Python 3.14
+annotation issue. See:
+- https://github.com/beartype/beartype/discussions/594
+- https://github.com/beartype/beartype/pull/440
+"""
 
 from doctest import ELLIPSIS
 
