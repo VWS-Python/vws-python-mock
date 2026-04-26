@@ -1,5 +1,7 @@
 """Custom lint tests."""
 
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -19,42 +21,33 @@ def _ci_patterns(*, repository_root: Path) -> set[str]:
     return ci_patterns
 
 
-class _CollectPlugin:
-    """Pytest plugin that records the node IDs of collected items."""
-
-    def __init__(self) -> None:
-        """Start with an empty set of collected node IDs."""
-        self.collected: set[str] = set()
-
-    def pytest_itemcollected(self, item: pytest.Item) -> None:
-        """Record each collected item's node ID."""
-        self.collected.add(item.nodeid)
-
-
 @beartype
-def _tests_from_pattern(*, ci_pattern: str) -> set[str]:
-    """From a CI pattern, get all tests ``pytest`` would collect."""
-    plugin = _CollectPlugin()
-    pytest.main(
+def _collect(
+    *, ci_pattern: str, repository_root: Path
+) -> subprocess.CompletedProcess[str]:
+    """Run ``pytest --collect-only`` for ``ci_pattern`` in a fresh
+    subprocess.
+
+    A real subprocess (not ``pytest.main``) is used so that plugin state
+    -- notably ``pytest-beartype-tests`` re-wrapping the same test
+    functions -- does not accumulate across iterations and trigger
+    ``Cannot stringify annotation containing string formatting`` under
+    Python 3.14 deferred annotations.
+    See https://github.com/adamtheturtle/pytest-beartype-tests/issues/30.
+    """
+    return subprocess.run(
         args=[
+            sys.executable,
+            "-m",
+            "pytest",
             "-q",
             "--collect-only",
             # Disable pytest-retry to avoid:
             # ```
             # ValueError: no option named 'filtered_exceptions'
             # ```
-            # which causes the nested run to exit with INTERNAL_ERROR
-            # before any items are collected.
             "-p",
             "no:pytest-retry",
-            # Disable pytest-beartype-tests to avoid
-            # https://github.com/beartype/beartype/issues/637 — wrapping
-            # collected items with @beartype installs a buggy
-            # __annotate_beartype__ closure on the underlying test
-            # function, which crashes a subsequent nested collection on
-            # Python 3.14.
-            "-p",
-            "no:pytest_beartype_tests",
             # Disable warnings to avoid many instances of:
             # ```
             # Unknown config option: retry_delay
@@ -62,9 +55,27 @@ def _tests_from_pattern(*, ci_pattern: str) -> set[str]:
             "--disable-warnings",
             ci_pattern,
         ],
-        plugins=[plugin],
+        check=False,
+        cwd=repository_root,
+        capture_output=True,
+        text=True,
     )
-    return plugin.collected
+
+
+@beartype
+def _tests_from_pattern(*, ci_pattern: str, repository_root: Path) -> set[str]:
+    """From a CI pattern, get all tests ``pytest`` would collect."""
+    result = _collect(
+        ci_pattern=ci_pattern,
+        repository_root=repository_root,
+    )
+    tests: set[str] = set()
+    for line in result.stdout.splitlines():
+        # We filter empty lines and lines which look like
+        # "9 tests collected in 0.01s".
+        if line and "collected in" not in line:
+            tests.add(line)
+    return tests
 
 
 def test_ci_patterns_valid(request: pytest.FixtureRequest) -> None:
@@ -73,37 +84,19 @@ def test_ci_patterns_valid(request: pytest.FixtureRequest) -> None:
     test in
     the test suite.
     """
-    ci_patterns = _ci_patterns(repository_root=request.config.rootpath)
+    repository_root = request.config.rootpath
+    ci_patterns = _ci_patterns(repository_root=repository_root)
 
     for ci_pattern in ci_patterns:
-        collect_only_result = pytest.main(
-            args=[
-                "--collect-only",
-                ci_pattern,
-                # Disable pytest-retry to avoid:
-                # ```
-                # ValueError: no option named 'filtered_exceptions'
-                # ````
-                "-p",
-                "no:pytest-retry",
-                # Disable pytest-beartype-tests to avoid
-                # https://github.com/beartype/beartype/issues/637 —
-                # wrapping collected items with @beartype installs a
-                # buggy __annotate_beartype__ closure on the underlying
-                # test function, which crashes a subsequent nested
-                # collection on Python 3.14.
-                "-p",
-                "no:pytest_beartype_tests",
-                # Disable warnings to avoid many instances of:
-                # ```
-                # Unknown config option: retry_delay
-                # ```
-                "--disable-warnings",
-            ],
+        result = _collect(
+            ci_pattern=ci_pattern,
+            repository_root=repository_root,
         )
-
-        message = f'"{ci_pattern}" does not match any tests.'
-        assert collect_only_result == 0, message
+        message = (
+            f'"{ci_pattern}" does not match any tests.\n'
+            f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+        )
+        assert result.returncode == 0, message
 
 
 def test_tests_collected_once(request: pytest.FixtureRequest) -> None:
@@ -111,15 +104,25 @@ def test_tests_collected_once(request: pytest.FixtureRequest) -> None:
 
     This does not necessarily mean that they are run - they may be skipped.
     """
-    ci_patterns = _ci_patterns(repository_root=request.config.rootpath)
-    all_tests = _tests_from_pattern(ci_pattern=".")
+    repository_root = request.config.rootpath
+    ci_patterns = _ci_patterns(repository_root=repository_root)
+    all_tests = _tests_from_pattern(
+        ci_pattern=".",
+        repository_root=repository_root,
+    )
     assert all_tests
     tests_to_patterns: dict[str, set[str]] = {}
 
     for pattern in ci_patterns:
-        tests = _tests_from_pattern(ci_pattern=pattern)
+        tests = _tests_from_pattern(
+            ci_pattern=pattern,
+            repository_root=repository_root,
+        )
         for test in tests:
-            tests_to_patterns.setdefault(test, set()).add(pattern)
+            if test in tests_to_patterns:
+                tests_to_patterns[test].add(pattern)
+            else:
+                tests_to_patterns[test] = {pattern}
 
     for test_name, patterns in tests_to_patterns.items():
         message = (
