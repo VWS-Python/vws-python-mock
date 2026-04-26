@@ -103,10 +103,7 @@ def test_tests_collected_once(request: pytest.FixtureRequest) -> None:
     for pattern in ci_patterns:
         tests = _tests_from_pattern(ci_pattern=pattern)
         for test in tests:
-            if test in tests_to_patterns:
-                tests_to_patterns[test].add(pattern)
-            else:
-                tests_to_patterns[test] = {pattern}
+            tests_to_patterns.setdefault(test, set()).add(pattern)
 
     for test_name, patterns in tests_to_patterns.items():
         message = (

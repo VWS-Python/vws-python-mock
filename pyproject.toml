@@ -374,7 +374,7 @@ run.omit = [
     "src/mock_vws/_flask_server/healthcheck.py",
 ]
 run.parallel = true
-run.source = [ "src/", "tests/" ]
+run.source = [ "ci/", "src/", "tests/" ]
 report.exclude_also = [
     "class .*\\bProtocol\\):",
     "if TYPE_CHECKING:",
