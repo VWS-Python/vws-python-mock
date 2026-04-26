@@ -47,6 +47,14 @@ def _tests_from_pattern(*, ci_pattern: str) -> set[str]:
             # before any items are collected.
             "-p",
             "no:pytest-retry",
+            # Disable pytest-beartype-tests to avoid
+            # https://github.com/beartype/beartype/issues/637 — wrapping
+            # collected items with @beartype installs a buggy
+            # __annotate_beartype__ closure on the underlying test
+            # function, which crashes a subsequent nested collection on
+            # Python 3.14.
+            "-p",
+            "no:pytest_beartype_tests",
             # Disable warnings to avoid many instances of:
             # ```
             # Unknown config option: retry_delay
@@ -78,6 +86,14 @@ def test_ci_patterns_valid(request: pytest.FixtureRequest) -> None:
                 # ````
                 "-p",
                 "no:pytest-retry",
+                # Disable pytest-beartype-tests to avoid
+                # https://github.com/beartype/beartype/issues/637 —
+                # wrapping collected items with @beartype installs a
+                # buggy __annotate_beartype__ closure on the underlying
+                # test function, which crashes a subsequent nested
+                # collection on Python 3.14.
+                "-p",
+                "no:pytest_beartype_tests",
                 # Disable warnings to avoid many instances of:
                 # ```
                 # Unknown config option: retry_delay
