@@ -104,6 +104,8 @@ respx
 rfc
 rgb
 str
+stringify
+subprocess
 timestamp
 todo
 travis
