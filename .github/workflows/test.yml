@@ -291,6 +291,9 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: '**/pyproject.toml'
+          # Pin to 3.14 so ``coverage`` can parse source files that use
+          # PEP 758 syntax (parenthesis-free ``except E1, E2:``).
+          python-version: '3.14'
 
       - uses: actions/download-artifact@v8
         with:
@@ -300,9 +303,7 @@ jobs:
       - name: Require 100% Coverage
         id: coverage
         run: |
-          # Pin to 3.14 so ``coverage`` can parse source files that use
-          # PEP 758 syntax (parenthesis-free ``except E1, E2:``).
-          uv tool install --python 3.14 'coverage[toml]'
+          uv tool install 'coverage[toml]'
 
           coverage combine
           coverage html --skip-covered --skip-empty
