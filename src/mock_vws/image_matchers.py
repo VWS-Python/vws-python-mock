@@ -81,7 +81,12 @@ class StructuralSimilarityMatcher:
             second_image_resized = second_image.resize(size=target_size)
 
         first_image_np = np.array(object=first_image_resized, dtype=np.float32)
-        first_image_tensor = torch.tensor(data=first_image_np).float() / 255
+        first_image_tensor = (
+            torch.tensor(  # pyright: ignore[reportPrivateImportUsage]
+                data=first_image_np,
+            ).float()
+            / 255
+        )
         first_image_tensor = first_image_tensor.view(
             first_image_resized.size[1],
             first_image_resized.size[0],
@@ -92,7 +97,12 @@ class StructuralSimilarityMatcher:
             object=second_image_resized,
             dtype=np.float32,
         )
-        second_image_tensor = torch.tensor(data=second_image_np).float() / 255
+        second_image_tensor = (
+            torch.tensor(  # pyright: ignore[reportPrivateImportUsage]
+                data=second_image_np,
+            ).float()
+            / 255
+        )
         second_image_tensor = second_image_tensor.view(
             second_image_resized.size[1],
             second_image_resized.size[0],
