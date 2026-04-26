@@ -89,6 +89,7 @@ reportAssignmentType
 reportAttributeAccessIssue
 reportGeneralTypeIssues
 reportMissingTypeStubs
+reportPrivateImportUsage
 reportUnknownArgumentType
 reportUnknownMemberType
 reportUnknownVariableType
