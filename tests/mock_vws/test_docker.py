@@ -52,7 +52,7 @@ def wait_for_health_check(container: Container) -> None:
     """Wait for a container to pass its health check.
 
     On failure, augment the error with the container's logs and the
-    Docker healthcheck probe history so CI failures are diagnosable.
+    Docker health check probe history so CI failures are diagnosable.
     """
     try:
         _poll_health_check(container=container)
