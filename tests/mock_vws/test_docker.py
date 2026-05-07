@@ -34,8 +34,8 @@ if TYPE_CHECKING:
     reraise=True,
 )
 @beartype
-def wait_for_health_check(container: Container) -> None:
-    """Wait for a container to pass its health check."""
+def _poll_health_check(container: Container) -> None:
+    """Poll a container until it reports a healthy status."""
     container.reload()
     health_status = container.attrs["State"]["Health"]["Status"]
     # In theory this might not be hit by coverage.
@@ -45,6 +45,35 @@ def wait_for_health_check(container: Container) -> None:
             f"Container {container.name} is not healthy: {health_status}"
         )
         raise ValueError(error_message)
+
+
+@beartype
+def wait_for_health_check(container: Container) -> None:
+    """Wait for a container to pass its health check.
+
+    On failure, augment the error with the container's logs and the
+    Docker health check probe history so CI failures are diagnosable.
+    """
+    try:
+        _poll_health_check(container=container)
+    except ValueError as exc:  # pragma: no cover
+        container.reload()
+        logs = container.logs().decode(errors="replace")
+        health_log = container.attrs["State"]["Health"].get("Log", [])
+        probes = "\n".join(
+            f"  exit={entry.get('ExitCode')!r} "
+            f"start={entry.get('Start')!r} end={entry.get('End')!r}\n"
+            f"  output={entry.get('Output')!r}"
+            for entry in health_log
+        )
+        error_message = (
+            f"{exc}\n"
+            f"--- container logs ({container.name}) ---\n"
+            f"{logs}\n"
+            f"--- healthcheck probes ({container.name}) ---\n"
+            f"{probes}"
+        )
+        raise ValueError(error_message) from exc
 
 
 @pytest.fixture(name="custom_bridge_network")
