@@ -51,7 +51,8 @@ dependencies = [
     "vws-auth-tools>=2024.7.12",
     "werkzeug>=3.1.2",
 ]
-optional-dependencies.dev = [    "actionlint-py==1.7.12.24",
+optional-dependencies.dev = [
+    "actionlint-py==1.7.12.24",
     "check-manifest==0.51",
     "check-wheel-contents==0.6.3",
     "coverage==7.14.0",
@@ -109,6 +110,7 @@ optional-dependencies.dev = [    "actionlint-py==1.7.12.24",
     "vws-web-tools==2026.2.22.1",
     "yamlfix==1.19.1",
     "zizmor==1.25.2",
+
 ]
 optional-dependencies.release = [ "check-wheel-contents==0.6.3" ]
 urls.Documentation = "https://vws-python.github.io/vws-python-mock/"
