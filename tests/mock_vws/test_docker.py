@@ -53,7 +53,7 @@ def wait_for_health_check(container: Container) -> None:
     """Wait for a container to pass its health check.
 
     On failure, augment the error with the container's logs and the
-    Docker health check probe history so CI failures are diagnosable.
+    Docker health check probe history so CI failures are easy to diagnose.
     """
     try:
         _poll_health_check(container=container)
@@ -287,7 +287,8 @@ def test_build_and_run_raises_full_log_for_unexpected_build_error(
     class Images:
         """Mock Docker images API."""
 
-        def build(self, **_: object) -> tuple[object, object]:
+        @staticmethod
+        def build(**_: object) -> tuple[object, object]:
             """Raise an unexpected Docker build error."""
             build_log = [
                 {"stream": "first build log line"},
