@@ -254,6 +254,23 @@ jobs:
         run: |
           cp ./vuforia_secrets.env.example ./vuforia_secrets.env
 
+      - name: Start Docker
+        shell: pwsh
+        run: |
+          $service = Get-Service docker -ErrorAction Stop
+          if ($service.Status -ne "Running") {
+            Start-Service docker
+          }
+          $deadline = (Get-Date).AddMinutes(2)
+          do {
+            docker info
+            if ($LASTEXITCODE -eq 0) {
+              exit 0
+            }
+            Start-Sleep -Seconds 5
+          } while ((Get-Date) -lt $deadline)
+          docker info
+
       - name: Run tests
         shell: bash
         run: |
