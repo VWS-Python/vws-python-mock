@@ -4,7 +4,8 @@ import io
 import uuid
 from collections.abc import Iterable, Iterator
 from http import HTTPStatus
-from typing import TYPE_CHECKING
+from pathlib import Path
+from typing import TYPE_CHECKING, cast
 
 import docker
 import pytest
@@ -274,3 +275,61 @@ def test_build_and_run(
     matching_targets = cloud_reco_client.query(image=high_quality_image)
 
     assert matching_targets[0].target_id == target_id
+
+
+def test_build_and_run_raises_full_log_for_unexpected_build_error(
+    *,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """An unexpected Docker build error includes the full build log."""
+
+    class Images:
+        """Mock Docker images API."""
+
+        def build(self, **_: object) -> tuple[object, object]:
+            """Raise an unexpected Docker build error."""
+            build_log = [
+                {"stream": "first build log line"},
+                {"stream": "second build log line"},
+                {"aux": "ignored"},
+            ]
+            raise BuildError(
+                reason="unexpected build failure",
+                build_log=iter(build_log),
+            )
+
+    class Client:
+        """Mock Docker client."""
+
+        images = Images()
+
+    class Config:
+        """Mock pytest config."""
+
+        rootpath = tmp_path
+
+    class Request:
+        """Mock pytest request."""
+
+        config = Config()
+
+    class CustomBridgeNetwork:
+        """Mock Docker network."""
+
+        name = "custom-bridge-network"
+
+    monkeypatch.setattr(target=docker, name="from_env", value=Client)
+
+    with pytest.raises(
+        expected_exception=AssertionError,
+        match="first build log line\nsecond build log line",
+    ):
+        test_build_and_run(
+            high_quality_image=io.BytesIO(),
+            custom_bridge_network=cast(
+                "Network",
+                CustomBridgeNetwork(),
+            ),
+            request=cast("pytest.FixtureRequest", Request()),
+        )
