@@ -380,6 +380,8 @@ run.omit = [
     "src/mock_vws/_flask_server/healthcheck.py",
 ]
 run.parallel = true
+run.patch = [ "subprocess" ]
+run.relative_files = true
 run.source = [ "ci/", "src/", "tests/" ]
 report.exclude_also = [
     "class .*\\bProtocol\\):",
