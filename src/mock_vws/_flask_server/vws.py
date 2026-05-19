@@ -12,6 +12,7 @@ import time
 import uuid
 from enum import StrEnum, auto
 from http import HTTPMethod, HTTPStatus
+from typing import assert_never
 
 import requests
 from beartype import beartype
@@ -62,15 +63,15 @@ class _ImageMatcherChoice(StrEnum):
     EXACT = auto()
     STRUCTURAL_SIMILARITY = auto()
 
-    def to_image_matcher(self) -> ImageMatcher:
+    def to_image_matcher(self: _ImageMatcherChoice) -> ImageMatcher:
         """Get the image matcher."""
         match self:
-            case self.EXACT:
+            case _ImageMatcherChoice.EXACT:
                 return ExactMatcher()
-            case self.STRUCTURAL_SIMILARITY:
+            case _ImageMatcherChoice.STRUCTURAL_SIMILARITY:
                 return StructuralSimilarityMatcher()
-            case _:  # pragma: no cover
-                raise ValueError
+            case _ as unreachable:
+                assert_never(unreachable)
 
 
 @beartype

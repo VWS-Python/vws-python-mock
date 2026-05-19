@@ -385,6 +385,7 @@ run.patch = [ "subprocess" ]
 run.relative_files = true
 run.source = [ "ci/", "src/", "tests/" ]
 report.exclude_also = [
+    "case _ as unreachable:\n\\s*assert_never\\(",
     "class .*\\bProtocol\\):",
     "if TYPE_CHECKING:",
 ]

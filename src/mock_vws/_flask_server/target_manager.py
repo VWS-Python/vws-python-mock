@@ -6,6 +6,7 @@ import datetime
 import json
 from enum import StrEnum, auto
 from http import HTTPMethod, HTTPStatus
+from typing import assert_never
 from zoneinfo import ZoneInfo
 
 from beartype import beartype
@@ -37,17 +38,19 @@ class _TargetRaterChoice(StrEnum):
     PERFECT = auto()
     RANDOM = auto()
 
-    def to_target_rater(self) -> TargetTrackingRater:
+    def to_target_rater(
+        self: _TargetRaterChoice,
+    ) -> TargetTrackingRater:
         """Get the target rater."""
         match self:
-            case self.BRISQUE:
+            case _TargetRaterChoice.BRISQUE:
                 return BrisqueTargetTrackingRater()
-            case self.PERFECT:
+            case _TargetRaterChoice.PERFECT:
                 return HardcodedTargetTrackingRater(rating=5)
-            case self.RANDOM:
+            case _TargetRaterChoice.RANDOM:
                 return RandomTargetTrackingRater()
-            case _:  # pragma: no cover
-                raise ValueError
+            case _ as unreachable:
+                assert_never(unreachable)
 
 
 @beartype
