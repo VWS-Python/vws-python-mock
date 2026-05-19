@@ -46,18 +46,18 @@ _USER_ID = _accept_user_id(user_id=_USER_ID_VALUE)
 
 type _Packed[*_Ts] = tuple[*_Ts]  # noqa: PYI047
 
-first_party_function(1, 2)  # type: ignore[misc]
+first_party_function(a=1, b=2)  # type: ignore[misc]
 first_party_function(a=1, b=2)
 positional_only(1)
 
-Service("svc")  # type: ignore[misc]
+Service(name="svc")  # type: ignore[misc]
 Service(name="svc").method(3)  # type: ignore[misc]
 service = Service(name="svc")
-service.method(7)  # type: ignore[misc]
+service.method(item=7)  # type: ignore[misc]
 Service.method(Service(name="svc"), item=4)  # type: ignore[misc]
-Service.method(Service(name="svc"), 4)  # type: ignore[misc]
-Service.class_method(5)  # type: ignore[misc]
-Service.static_method(6)  # type: ignore[misc]
+Service.method(Service(name="svc"), item=4)  # type: ignore[misc]
+Service.class_method(item=5)  # type: ignore[misc]
+Service.static_method(item=6)  # type: ignore[misc]
 Data("name")  # type: ignore[misc]
 
 sys.stdout.write("ok\n")
