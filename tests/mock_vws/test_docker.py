@@ -153,11 +153,11 @@ def test_build_and_run(
         )
         # If this assertion fails, it may be useful to look at the other
         # properties of ``exc``.
-        if not any(
+        is_windows_container_error = any(
             windows_message_substring in exc.msg
             for windows_message_substring in windows_message_substrings
-        ):
-            raise AssertionError(full_log) from exc  # pragma: no cover
+        )
+        assert is_windows_container_error, full_log
         pytest.skip(
             reason="We do not currently support using Windows containers."
         )
