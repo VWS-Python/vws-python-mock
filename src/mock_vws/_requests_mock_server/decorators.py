@@ -160,7 +160,10 @@ class MockVWS(ContextDecorator):
             # req_kwargs is added dynamically by the responses
             # library onto PreparedRequest objects - it is not
             # in the requests type stubs.
-            req_kwargs: dict[str, Any] = getattr(request, "req_kwargs", {})
+            req_kwargs: dict[str, Any] = request.__dict__.get(
+                "req_kwargs",
+                {},
+            )
             timeout: tuple[float, float] | float | int | None = req_kwargs.get(
                 "timeout"
             )
@@ -221,7 +224,10 @@ class MockVWS(ContextDecorator):
                 compiled_url_pattern = re.compile(pattern=url_pattern)
 
                 for http_method in route.http_methods:
-                    original_callback = getattr(api, route.route_name)
+                    original_callback = object.__getattribute__(
+                        api,
+                        route.route_name,
+                    )
                     mock.add_callback(
                         method=http_method,
                         url=compiled_url_pattern,
