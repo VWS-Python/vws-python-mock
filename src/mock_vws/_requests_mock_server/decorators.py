@@ -160,7 +160,8 @@ class MockVWS(ContextDecorator):
             # req_kwargs is added dynamically by the responses
             # library onto PreparedRequest objects - it is not
             # in the requests type stubs.
-            req_kwargs: dict[str, Any] = request.__dict__.get(
+            req_kwargs: dict[str, Any] = getattr(  # pylint: disable=bad-builtin
+                request,
                 "req_kwargs",
                 {},
             )
@@ -224,7 +225,7 @@ class MockVWS(ContextDecorator):
                 compiled_url_pattern = re.compile(pattern=url_pattern)
 
                 for http_method in route.http_methods:
-                    original_callback = object.__getattribute__(
+                    original_callback = getattr(  # pylint: disable=bad-builtin
                         api,
                         route.route_name,
                     )
