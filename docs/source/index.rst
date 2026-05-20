@@ -40,6 +40,7 @@ Reference
 .. toctree::
    :hidden:
 
+   unreleased
    changelog
    release-process
    ci-setup
