@@ -161,7 +161,10 @@ def start_respx_router(
             compiled_url_pattern = re.compile(pattern=url_pattern)
 
             for http_method in route.http_methods:
-                original_callback = getattr(api, route.route_name)
+                original_callback = object.__getattribute__(
+                    api,
+                    route.route_name,
+                )
                 router.route(
                     method=http_method,
                     url=compiled_url_pattern,
