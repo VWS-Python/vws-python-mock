@@ -235,6 +235,7 @@ MASTER.load-plugins = [
     "pylint.extensions.set_membership",
     "pylint.extensions.typing",
 ]
+MASTER.unsafe-load-any-extension = false
 # We ignore invalid names because:
 # - We want to use generated module names, which may not be valid, but are never seen.
 # - We want to use global variables in documentation, which may not be uppercase
