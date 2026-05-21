@@ -6,7 +6,7 @@ VWS Mock
 .. contents::
    :local:
 
-Mock for the Vuforia Web Services (VWS) API and the Vuforia Web Query API.
+Mock for the Vuforia Web Services (VWS) API, the Vuforia Web Query API, and the Model Target Web API.
 
 Mocking calls made to Vuforia
 ------------------------------

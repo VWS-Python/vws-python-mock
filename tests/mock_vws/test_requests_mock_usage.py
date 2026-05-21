@@ -5,6 +5,7 @@ import email.utils
 import io
 import json
 import socket
+import zipfile
 from http import HTTPStatus
 from urllib.parse import urlparse
 
@@ -25,6 +26,26 @@ from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.usage_test_helpers import (
     processing_time_seconds,
 )
+
+_MODEL_TARGET_DATASET_REQUEST = {
+    "name": "dataset-name",
+    "targetSdk": "10.18",
+    "models": [
+        {
+            "name": "model-name",
+            "cadDataUrl": "https://example.com/model.glb",
+            "views": [
+                {
+                    "name": "view-name",
+                    "guideViewPosition": {
+                        "translation": [0, 0, 5],
+                        "rotation": [0, 0, 0, 1],
+                    },
+                },
+            ],
+        },
+    ],
+}
 
 
 @beartype
@@ -1052,3 +1073,95 @@ class TestHttpxAlsoIntercepted:
             pytest.raises(expected_exception=httpx.ConnectError),
         ):
             httpx.get(url=f"http://localhost:{port}", timeout=30)
+
+
+class TestModelTargetWebAPI:
+    """Tests for the Model Target Web API."""
+
+    @staticmethod
+    def test_standard_dataset_workflow() -> None:
+        """A standard Model Target dataset can be created and
+        downloaded.
+        """
+        with MockVWS(processing_time_seconds=0):
+            token_response = requests.post(
+                url="https://vws.vuforia.com/oauth2/token",
+                auth=("client-id", "client-secret"),
+                data={"grant_type": "client_credentials"},
+                timeout=30,
+            )
+            token = token_response.json()["access_token"]
+            headers = {"Authorization": f"Bearer {token}"}
+
+            create_response = requests.post(
+                url="https://vws.vuforia.com/modeltargets/datasets",
+                headers=headers,
+                json=_MODEL_TARGET_DATASET_REQUEST,
+                timeout=30,
+            )
+            dataset_uuid = create_response.json()["uuid"]
+
+            status_response = requests.get(
+                url=(
+                    "https://vws.vuforia.com/modeltargets/datasets/"
+                    f"{dataset_uuid}/status"
+                ),
+                headers=headers,
+                timeout=30,
+            )
+            dataset_response = requests.get(
+                url=(
+                    "https://vws.vuforia.com/modeltargets/datasets/"
+                    f"{dataset_uuid}/dataset"
+                ),
+                headers=headers,
+                timeout=30,
+            )
+
+        assert token_response.status_code == HTTPStatus.OK
+        assert create_response.status_code == HTTPStatus.CREATED
+        assert status_response.json()["status"] == "done"
+        with zipfile.ZipFile(
+            file=io.BytesIO(initial_bytes=dataset_response.content),
+        ) as dataset_zip:
+            assert dataset_zip.namelist() == ["dataset.json"]
+
+    @staticmethod
+    def test_advanced_dataset_workflow() -> None:
+        """An advanced Model Target dataset can be created."""
+        with MockVWS(processing_time_seconds=0):
+            response = requests.post(
+                url="https://vws.vuforia.com/modeltargets/advancedDatasets",
+                headers={"Authorization": "Bearer token"},
+                json=_MODEL_TARGET_DATASET_REQUEST,
+                timeout=30,
+            )
+            dataset_uuid = response.json()["uuid"]
+            status_response = requests.get(
+                url=(
+                    "https://vws.vuforia.com/modeltargets/"
+                    f"advancedDatasets/{dataset_uuid}/status"
+                ),
+                headers={"Authorization": "Bearer token"},
+                timeout=30,
+            )
+
+        assert response.status_code == HTTPStatus.CREATED
+        assert status_response.json()["uuid"] == dataset_uuid
+
+    @staticmethod
+    def test_bearer_token_required() -> None:
+        """Model Target dataset routes require a bearer token."""
+        with MockVWS():
+            response = requests.post(
+                url="https://vws.vuforia.com/modeltargets/datasets",
+                json=_MODEL_TARGET_DATASET_REQUEST,
+                timeout=30,
+            )
+
+        assert response.status_code == HTTPStatus.UNAUTHORIZED
+        assert response.json()["error"] == {
+            "code": "401",
+            "message": "no Bearer token",
+            "target": "jwt",
+        }

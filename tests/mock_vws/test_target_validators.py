@@ -71,7 +71,7 @@ def test_validate_target_id_exists_uses_correct_path_segment(
     """
     database = _database_with_target(target_id=target_id)
 
-    monkeypatch.setattr(  # pylint: disable=bad-builtin
+    monkeypatch.setattr(
         target=target_validators,
         name="get_database_matching_server_keys",
         value=partial(_always_match_database, database=database),

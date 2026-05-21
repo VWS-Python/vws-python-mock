@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from beartype import beartype
 
 from mock_vws.database import CloudDatabase, VuMarkDatabase
+from mock_vws.model_target import ModelTargetDataset
 
 if TYPE_CHECKING:
     from mock_vws._database_matchers import AnyDatabase
@@ -22,6 +23,7 @@ class TargetManager:
         """Create a target manager with no databases."""
         self._cloud_databases: set[CloudDatabase] = set()
         self._vumark_databases: set[VuMarkDatabase] = set()
+        self._model_target_datasets: dict[str, ModelTargetDataset] = {}
 
     @property
     def cloud_databases(self) -> set[CloudDatabase]:
@@ -32,6 +34,11 @@ class TargetManager:
     def vumark_databases(self) -> set[VuMarkDatabase]:
         """All VuMark databases."""
         return set(self._vumark_databases)
+
+    @property
+    def model_target_datasets(self) -> dict[str, ModelTargetDataset]:
+        """All Model Target datasets, keyed by UUID."""
+        return dict(self._model_target_datasets)
 
     def remove_cloud_database(self, cloud_database: CloudDatabase) -> None:
         """Remove a cloud database.
@@ -55,6 +62,19 @@ class TargetManager:
         self._vumark_databases = {
             db for db in self._vumark_databases if db != vumark_database
         }
+
+    def add_model_target_dataset(
+        self,
+        model_target_dataset: ModelTargetDataset,
+    ) -> None:
+        """Add a Model Target dataset."""
+        self._model_target_datasets[model_target_dataset.uuid_] = (
+            model_target_dataset
+        )
+
+    def remove_model_target_dataset(self, dataset_uuid: str) -> None:
+        """Remove a Model Target dataset."""
+        del self._model_target_datasets[dataset_uuid]
 
     def add_cloud_database(self, cloud_database: CloudDatabase) -> None:
         """Add a cloud database.

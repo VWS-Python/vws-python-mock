@@ -5,6 +5,7 @@ import io
 import json
 import time
 import uuid
+import zipfile
 from collections.abc import Iterator
 from http import HTTPMethod, HTTPStatus
 
@@ -30,6 +31,25 @@ from tests.mock_vws.utils.usage_test_helpers import (
 )
 
 _EXAMPLE_URL_FOR_TARGET_MANAGER = "http://" + uuid.uuid4().hex + ".com"
+_MODEL_TARGET_DATASET_REQUEST = {
+    "name": "dataset-name",
+    "targetSdk": "10.18",
+    "models": [
+        {
+            "name": "model-name",
+            "cadDataUrl": "https://example.com/model.glb",
+            "views": [
+                {
+                    "name": "view-name",
+                    "guideViewPosition": {
+                        "translation": [0, 0, 5],
+                        "rotation": [0, 0, 0, 1],
+                    },
+                },
+            ],
+        },
+    ],
+}
 
 
 @pytest.fixture(autouse=True)
@@ -67,6 +87,8 @@ def _(*, monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
         TARGET_MANAGER.remove_cloud_database(cloud_database=cloud_database)
     for vumark_database in TARGET_MANAGER.vumark_databases:
         TARGET_MANAGER.remove_vumark_database(vumark_database=vumark_database)
+    for dataset_uuid in TARGET_MANAGER.model_target_datasets:
+        TARGET_MANAGER.remove_model_target_dataset(dataset_uuid=dataset_uuid)
 
 
 class TestProcessingTime:
@@ -787,6 +809,57 @@ class TestVuMarkTargetStatus:
             response_json["result_code"]
             == ResultCodes.TARGET_STATUS_NOT_SUCCESS.value
         )
+
+
+class TestModelTargetWebAPI:
+    """Tests for the Model Target Web API through the Flask app."""
+
+    @staticmethod
+    def test_standard_dataset_workflow(
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """A Model Target dataset can be created and downloaded."""
+        monkeypatch.setenv(name="PROCESSING_TIME_SECONDS", value="0")
+        token_response = requests.post(
+            url="https://vws.vuforia.com/oauth2/token",
+            auth=("client-id", "client-secret"),
+            data={"grant_type": "client_credentials"},
+            timeout=30,
+        )
+        token = token_response.json()["access_token"]
+        headers = {"Authorization": f"Bearer {token}"}
+
+        create_response = requests.post(
+            url="https://vws.vuforia.com/modeltargets/datasets",
+            headers=headers,
+            json=_MODEL_TARGET_DATASET_REQUEST,
+            timeout=30,
+        )
+        dataset_uuid = create_response.json()["uuid"]
+        status_response = requests.get(
+            url=(
+                "https://vws.vuforia.com/modeltargets/datasets/"
+                f"{dataset_uuid}/status"
+            ),
+            headers=headers,
+            timeout=30,
+        )
+        dataset_response = requests.get(
+            url=(
+                "https://vws.vuforia.com/modeltargets/datasets/"
+                f"{dataset_uuid}/dataset"
+            ),
+            headers=headers,
+            timeout=30,
+        )
+
+        assert token_response.status_code == HTTPStatus.OK
+        assert create_response.status_code == HTTPStatus.CREATED
+        assert status_response.json()["status"] == "done"
+        with zipfile.ZipFile(
+            file=io.BytesIO(initial_bytes=dataset_response.content),
+        ) as dataset_zip:
+            assert dataset_zip.namelist() == ["dataset.json"]
 
 
 class TestResponseDelay:

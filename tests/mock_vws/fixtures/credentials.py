@@ -68,6 +68,20 @@ class _VuMarkCloudDatabaseSettings(BaseSettings):
     )
 
 
+class _ModelTargetSettings(BaseSettings):
+    """Settings for the Model Target Web API."""
+
+    client_id: str
+    client_secret: str
+    cad_data_url: str
+
+    model_config = SettingsConfigDict(
+        env_prefix="MODEL_TARGET_VUFORIA_",
+        env_file=Path("vuforia_secrets.env"),
+        extra="allow",
+    )
+
+
 @dataclass(frozen=True, kw_only=True)
 class InactiveVuMarkCloudDatabase:
     """Credentials for an inactive VuMark database."""
@@ -86,6 +100,27 @@ class VuMarkCloudDatabase:
     server_secret_key: str = field(repr=False)
     target_id: str = field(repr=False)
     processing_target_id: str = field(repr=False)
+
+
+@dataclass(frozen=True, kw_only=True)
+class ModelTargetCredentials:
+    """Credentials and input data for the Model Target Web API."""
+
+    client_id: str = field(repr=False)
+    client_secret: str = field(repr=False)
+    cad_data_url: str = field(repr=False)
+
+
+def get_model_target_credentials() -> ModelTargetCredentials:
+    """Return Model Target Web API credentials from environment
+    variables.
+    """
+    settings = _ModelTargetSettings.model_validate(obj={})
+    return ModelTargetCredentials(
+        client_id=settings.client_id,
+        client_secret=settings.client_secret,
+        cad_data_url=settings.cad_data_url,
+    )
 
 
 @pytest.fixture

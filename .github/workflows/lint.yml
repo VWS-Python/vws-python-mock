@@ -42,6 +42,9 @@ jobs:
         run: uv run --extra=dev prek run --all-files --hook-stage ${{ matrix.hook-stage }}
           --verbose
         env:
+          # Avoid intermittent uv distribution cache rename failures while
+          # prek installs hook environments on Windows.
+          UV_NO_CACHE: '1'
           UV_PYTHON: ${{ matrix.python-version }}
 
       - uses: pre-commit-ci/lite-action@v1.1.0

@@ -115,6 +115,7 @@ jobs:
           - tests/mock_vws/test_requests_mock_usage.py
           - tests/mock_vws/test_respx_mock_usage.py
           - tests/mock_vws/test_flask_app_usage.py
+          - tests/mock_vws/test_model_target_web_api.py
           - tests/mock_vws/test_vumark_generation_api.py
           - tests/mock_vws/test_target_validators.py
           - tests/mock_vws/test_docker.py

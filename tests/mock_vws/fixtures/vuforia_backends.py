@@ -261,6 +261,49 @@ def _enable_use_docker_in_memory(
         yield
 
 
+@beartype
+def _enable_use_real_model_target_vuforia(
+    *,
+    monkeypatch: pytest.MonkeyPatch,
+) -> Generator[None]:
+    """Test against the real Model Target Web API."""
+    assert monkeypatch
+    yield
+
+
+@beartype
+def _enable_use_mock_model_target_vuforia(
+    *,
+    monkeypatch: pytest.MonkeyPatch,
+) -> Generator[None]:
+    """Test against the in-memory mock Model Target Web API."""
+    assert monkeypatch
+    with MockVWS():
+        yield
+
+
+@beartype
+def _enable_use_docker_in_memory_model_target_vuforia(
+    *,
+    monkeypatch: pytest.MonkeyPatch,
+) -> Generator[None]:
+    """Test against the Flask-backed mock Model Target Web API."""
+    assert monkeypatch
+    VWS_FLASK_APP.config["VWS_MOCK_TERMINATE_WSGI_INPUT"] = True
+    monkeypatch.setenv(
+        name="TARGET_MANAGER_BASE_URL",
+        value="http://example.com",
+    )
+
+    with responses.RequestsMock(assert_all_requests_are_fired=False) as mock:
+        add_flask_app_to_mock(
+            mock_obj=mock,
+            flask_app=VWS_FLASK_APP,
+            base_url="https://vws.vuforia.com",
+        )
+        yield
+
+
 class VuforiaBackend(Enum):
     """Backends for tests."""
 
@@ -354,6 +397,40 @@ def fixture_verify_mock_vuforia(
         inactive_vumark_database=inactive_vumark_database,
         monkeypatch=monkeypatch,
     )
+
+
+@pytest.fixture(
+    name="verify_model_target_mock_vuforia",
+    params=list(VuforiaBackend),
+    ids=[backend.value for backend in list(VuforiaBackend)],
+)
+def fixture_verify_model_target_mock_vuforia(
+    *,
+    request: pytest.FixtureRequest,
+    monkeypatch: pytest.MonkeyPatch,
+) -> Generator[VuforiaBackend]:
+    """Run Model Target Web API contract tests against real and mock
+    APIs.
+    """
+    backend: VuforiaBackend = request.param
+    should_skip = request.config.getoption(
+        name=f"--skip-{backend.name.lower()}",
+    )
+    if should_skip:
+        pytest.skip()
+
+    enable_function = {
+        VuforiaBackend.REAL: _enable_use_real_model_target_vuforia,
+        VuforiaBackend.MOCK: _enable_use_mock_model_target_vuforia,
+        VuforiaBackend.DOCKER_IN_MEMORY: (
+            _enable_use_docker_in_memory_model_target_vuforia
+        ),
+    }[backend]
+
+    with contextlib.contextmanager(func=enable_function)(
+        monkeypatch=monkeypatch,
+    ):
+        yield backend
 
 
 @pytest.fixture(

@@ -1,0 +1,341 @@
+"""A fake implementation of the Model Target Web API."""
+
+import base64
+import io
+import json
+import zipfile
+from http import HTTPStatus
+from typing import Any
+from urllib.parse import parse_qs
+
+from beartype import beartype
+
+from mock_vws._mock_common import RequestData, json_dump
+from mock_vws.model_target import ModelTargetDataset, ModelTargetDatasetType
+from mock_vws.target_manager import TargetManager
+
+_ResponseType = tuple[int, dict[str, str], str | bytes]
+_MAX_ADVANCED_MODEL_COUNT = 20
+
+
+@beartype
+def _json_response(
+    *,
+    status_code: HTTPStatus,
+    body: dict[str, Any],
+) -> _ResponseType:
+    """Return a JSON response."""
+    body_json = json_dump(body=body)
+    return (
+        status_code,
+        {
+            "Content-Length": str(object=len(body_json)),
+            "Content-Type": "application/json",
+        },
+        body_json,
+    )
+
+
+@beartype
+def _error_response(
+    *,
+    status_code: HTTPStatus,
+    code: str,
+    message: str,
+    target: str,
+) -> _ResponseType:
+    """Return an error response shaped like the Model Target Web API."""
+    return _json_response(
+        status_code=status_code,
+        body={
+            "error": {
+                "code": code,
+                "message": message,
+                "target": target,
+            },
+        },
+    )
+
+
+@beartype
+def _get_header(request: RequestData, name: str) -> str | None:
+    """Return a request header, case-insensitively."""
+    lower_name = name.casefold()
+    for key, value in request.headers.items():
+        if key.casefold() == lower_name:
+            return value
+    return None
+
+
+@beartype
+def _require_bearer_token(request: RequestData) -> _ResponseType | None:
+    """Return an error response if the request has no bearer token."""
+    auth_header = _get_header(request=request, name="Authorization")
+    if auth_header is None or not auth_header.startswith("Bearer "):
+        return _error_response(
+            status_code=HTTPStatus.UNAUTHORIZED,
+            code="401",
+            message="no Bearer token",
+            target="jwt",
+        )
+    if not auth_header.removeprefix("Bearer ").strip():
+        return _error_response(
+            status_code=HTTPStatus.UNAUTHORIZED,
+            code="401",
+            message="invalid Bearer token",
+            target="jwt",
+        )
+    return None
+
+
+@beartype
+def oauth2_token(request: RequestData) -> _ResponseType:
+    """Return a fake OAuth2 access token."""
+    auth_header = _get_header(request=request, name="Authorization")
+    form = parse_qs(qs=request.body.decode(encoding="utf-8"))
+    grant_type = form.get("grant_type", [""])[0]
+    has_basic_auth = auth_header is not None and auth_header.startswith(
+        "Basic ",
+    )
+    has_password_credentials = all(
+        form.get(field, [""])[0] for field in ("username", "password")
+    )
+    if grant_type not in {"", "client_credentials", "password"} or (
+        not has_basic_auth and not has_password_credentials
+    ):
+        return _error_response(
+            status_code=HTTPStatus.BAD_REQUEST,
+            code="BAD_REQUEST",
+            message="Invalid OAuth2 token request.",
+            target="grant_type",
+        )
+
+    token_source = request.body or (auth_header or "").encode()
+    access_token = base64.urlsafe_b64encode(s=token_source).decode(
+        encoding="ascii",
+    )
+    access_token = access_token.rstrip("=") or "mock-vuforia-access-token"
+    return _json_response(
+        status_code=HTTPStatus.OK,
+        body={
+            "access_token": access_token,
+            "token_type": "bearer",
+            "expires_in": 3600,
+        },
+    )
+
+
+@beartype
+def _load_request_json(request: RequestData) -> dict[str, Any] | _ResponseType:
+    """Load a Model Target dataset creation request body."""
+    content_type = _get_header(request=request, name="Content-Type") or ""
+    if "application/json" not in content_type:
+        return _error_response(
+            status_code=HTTPStatus.BAD_REQUEST,
+            code="BAD_REQUEST",
+            message="Content-Type must be application/json.",
+            target="Content-Type",
+        )
+    try:
+        request_json: dict[str, Any] = json.loads(s=request.body)
+    except json.JSONDecodeError:
+        return _error_response(
+            status_code=HTTPStatus.BAD_REQUEST,
+            code="BAD_REQUEST",
+            message="Request body must be valid JSON.",
+            target="body",
+        )
+    return request_json
+
+
+@beartype
+def _validate_dataset_request(
+    *,
+    request_json: dict[str, Any],
+    dataset_type: ModelTargetDatasetType,
+) -> _ResponseType | None:
+    """Validate the dataset request enough for useful mock feedback."""
+    for field in ("name", "models", "targetSdk"):
+        if field not in request_json:
+            return _error_response(
+                status_code=HTTPStatus.BAD_REQUEST,
+                code="BAD_REQUEST",
+                message=f"Missing required field: {field}.",
+                target=field,
+            )
+
+    models_value = request_json["models"]
+    if not isinstance(models_value, list):
+        return _error_response(
+            status_code=HTTPStatus.BAD_REQUEST,
+            code="BAD_REQUEST",
+            message="models must be a list.",
+            target="models",
+        )
+
+    models: list[Any] = [*models_value]
+    model_count = len(models)
+
+    if dataset_type == ModelTargetDatasetType.STANDARD and model_count != 1:
+        return _error_response(
+            status_code=HTTPStatus.BAD_REQUEST,
+            code="BAD_REQUEST",
+            message="Standard Model Target datasets must have one model.",
+            target="models",
+        )
+
+    if (
+        dataset_type == ModelTargetDatasetType.ADVANCED
+        and not 1 <= model_count <= _MAX_ADVANCED_MODEL_COUNT
+    ):
+        return _error_response(
+            status_code=HTTPStatus.BAD_REQUEST,
+            code="BAD_REQUEST",
+            message="Advanced Model Target datasets must have 1 to 20 models.",
+            target="models",
+        )
+
+    return None
+
+
+@beartype
+def create_model_target_dataset(
+    *,
+    request: RequestData,
+    target_manager: TargetManager,
+    processing_time_seconds: float,
+    dataset_type: ModelTargetDatasetType,
+) -> _ResponseType:
+    """Create a standard or advanced Model Target dataset."""
+    auth_error = _require_bearer_token(request=request)
+    if auth_error is not None:
+        return auth_error
+
+    request_json_or_error = _load_request_json(request=request)
+    if not isinstance(request_json_or_error, dict):
+        return request_json_or_error
+
+    validation_error = _validate_dataset_request(
+        request_json=request_json_or_error,
+        dataset_type=dataset_type,
+    )
+    if validation_error is not None:
+        return validation_error
+
+    dataset = ModelTargetDataset(
+        request_body=request_json_or_error,
+        dataset_type=dataset_type,
+        processing_time_seconds=processing_time_seconds,
+    )
+    target_manager.add_model_target_dataset(model_target_dataset=dataset)
+    return _json_response(
+        status_code=HTTPStatus.CREATED,
+        body={"uuid": dataset.uuid_},
+    )
+
+
+@beartype
+def get_model_target_dataset_status(
+    *,
+    request: RequestData,
+    target_manager: TargetManager,
+    dataset_uuid: str,
+) -> _ResponseType:
+    """Return the status of a Model Target dataset."""
+    auth_error = _require_bearer_token(request=request)
+    if auth_error is not None:
+        return auth_error
+    try:
+        dataset = target_manager.model_target_datasets[dataset_uuid]
+    except KeyError:
+        return _error_response(
+            status_code=HTTPStatus.NOT_FOUND,
+            code="404",
+            message="The dataset was not found.",
+            target="uuid",
+        )
+    return _json_response(
+        status_code=HTTPStatus.OK,
+        body=dataset.status_body(),
+    )
+
+
+@beartype
+def _dataset_zip_bytes(dataset: ModelTargetDataset) -> bytes:
+    """Return a small valid zip file for a generated dataset."""
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(file=zip_buffer, mode="w") as zip_file:
+        zip_file.writestr(
+            zinfo_or_arcname="dataset.json",
+            data=json.dumps(
+                obj={
+                    "uuid": dataset.uuid_,
+                    "type": dataset.dataset_type.value,
+                    "request": dataset.request_body,
+                },
+                separators=(",", ":"),
+            ),
+        )
+    return zip_buffer.getvalue()
+
+
+@beartype
+def download_model_target_dataset(
+    *,
+    request: RequestData,
+    target_manager: TargetManager,
+    dataset_uuid: str,
+) -> _ResponseType:
+    """Download a generated Model Target dataset."""
+    auth_error = _require_bearer_token(request=request)
+    if auth_error is not None:
+        return auth_error
+    try:
+        dataset = target_manager.model_target_datasets[dataset_uuid]
+    except KeyError:
+        return _error_response(
+            status_code=HTTPStatus.NOT_FOUND,
+            code="404",
+            message="The dataset was not found.",
+            target="uuid",
+        )
+    if dataset.status != "done":
+        return _error_response(
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
+            code="UNPROCESSABLE_ENTITY",
+            message="The dataset is still processing.",
+            target="uuid",
+        )
+
+    body = _dataset_zip_bytes(dataset=dataset)
+    return (
+        HTTPStatus.OK,
+        {
+            "Content-Length": str(object=len(body)),
+            "Content-Type": "application/zip",
+        },
+        body,
+    )
+
+
+@beartype
+def delete_model_target_dataset(
+    *,
+    request: RequestData,
+    target_manager: TargetManager,
+    dataset_uuid: str,
+) -> _ResponseType:
+    """Delete a Model Target dataset."""
+    auth_error = _require_bearer_token(request=request)
+    if auth_error is not None:
+        return auth_error
+    try:
+        target_manager.remove_model_target_dataset(dataset_uuid=dataset_uuid)
+    except KeyError:
+        return _error_response(
+            status_code=HTTPStatus.NOT_FOUND,
+            code="404",
+            message="The dataset was not found.",
+            target="uuid",
+        )
+    return HTTPStatus.OK, {"Content-Length": "0"}, ""

@@ -111,7 +111,7 @@ optional-dependencies.dev = [
     "vulture==2.16",
     "vws-python==2026.2.25.1",
     "vws-test-fixtures==2023.3.5",
-    "vws-web-tools==2026.2.22.1",
+    "vws-web-tools==2026.5.21",
     "yamlfix==1.19.1",
     "zizmor==1.25.2",
 ]

@@ -12,7 +12,11 @@ from pathlib import Path
 import vws_web_tools
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.remote.webdriver import WebDriver
-from vws_web_tools import DatabaseDict, VuMarkDatabaseDict
+from vws_web_tools import (
+    DatabaseDict,
+    ModelTargetWebAPIDict,
+    VuMarkDatabaseDict,
+)
 
 VUMARK_TEMPLATE_SVG_FILE_PATH = Path(__file__).with_name(
     name="vumark_template.svg",
@@ -72,11 +76,13 @@ def _create_and_get_vumark_details(
 
 
 def _generate_secrets_file_content(
+    *,
     cloud_database_details: DatabaseDict,
     vumark_details: VuMarkDatabaseDict,
     inactive_database_details: DatabaseDict,
     inactive_vumark_details: VuMarkDatabaseDict,
     vumark_target_id: str,
+    model_target_web_api_details: ModelTargetWebAPIDict,
 ) -> str:
     """Generate the content of a secrets file."""
     return textwrap.dedent(
@@ -101,6 +107,10 @@ def _generate_secrets_file_content(
         INACTIVE_VUMARK_VUFORIA_TARGET_MANAGER_DATABASE_NAME={inactive_vumark_details["database_name"]}
         INACTIVE_VUMARK_VUFORIA_SERVER_ACCESS_KEY={inactive_vumark_details["server_access_key"]}
         INACTIVE_VUMARK_VUFORIA_SERVER_SECRET_KEY={inactive_vumark_details["server_secret_key"]}
+
+        MODEL_TARGET_VUFORIA_CLIENT_ID={model_target_web_api_details["client_id"]}
+        MODEL_TARGET_VUFORIA_CLIENT_SECRET={model_target_web_api_details["client_secret"]}
+        MODEL_TARGET_VUFORIA_CAD_DATA_URL={model_target_web_api_details["cad_data_url"]}
         """,
     )
 
@@ -193,6 +203,21 @@ def _create_and_get_inactive_vumark_details(
     return vumark_database_details
 
 
+def _get_model_target_web_api_details(
+    driver: WebDriver,
+    email_address: str,
+    password: str,
+) -> ModelTargetWebAPIDict:
+    """Get credentials and input data for the Model Target Web API."""
+    vws_web_tools.log_in(
+        driver=driver,
+        email_address=email_address,
+        password=password,
+    )
+    vws_web_tools.wait_for_logged_in(driver=driver)
+    return vws_web_tools.get_model_target_web_api_details(driver=driver)
+
+
 def _create_vuforia_resource_names() -> tuple[str, str, str, str]:
     """Create names for Vuforia resources."""
     time = datetime.datetime.now(tz=datetime.UTC).strftime(
@@ -235,6 +260,14 @@ def main() -> None:
         vumark_database_name=f"my-inactive-vumark-database-{time}",
     )
     inactive_vumark_driver.quit()
+
+    model_target_driver = vws_web_tools.create_chrome_driver()
+    model_target_web_api_details = _get_model_target_web_api_details(
+        driver=model_target_driver,
+        email_address=email_address,
+        password=password,
+    )
+    model_target_driver.quit()
 
     num_databases = 100
     required_files = [
@@ -291,6 +324,7 @@ def main() -> None:
             inactive_database_details=inactive_database_details,
             inactive_vumark_details=inactive_vumark_details,
             vumark_target_id=vumark_target_id,
+            model_target_web_api_details=model_target_web_api_details,
         )
         file.write_text(data=file_contents)
         sys.stdout.write(f"Created database {file.name}\n")
