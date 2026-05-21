@@ -16,6 +16,9 @@ from mock_vws.target_manager import TargetManager
 
 _ResponseType = tuple[int, dict[str, str], str | bytes]
 _MAX_ADVANCED_MODEL_COUNT = 20
+_JWT_DOT_COUNT = 2
+_MOCK_MODEL_TARGET_CLIENT_ID = "client-id"
+_MOCK_MODEL_TARGET_CLIENT_SECRET = "client-secret"  # noqa: S105
 
 
 @beartype
@@ -58,6 +61,16 @@ def _error_response(
 
 
 @beartype
+def _oauth2_error_response(
+    *,
+    status_code: HTTPStatus,
+    body: dict[str, str],
+) -> _ResponseType:
+    """Return an OAuth2 error response."""
+    return _json_response(status_code=status_code, body=body)
+
+
+@beartype
 def _get_header(request: RequestData, name: str) -> str | None:
     """Return a request header, case-insensitively."""
     lower_name = name.casefold()
@@ -65,6 +78,28 @@ def _get_header(request: RequestData, name: str) -> str | None:
         if key.casefold() == lower_name:
             return value
     return None
+
+
+@beartype
+def _basic_auth_credentials(auth_header: str | None) -> tuple[str, str] | None:
+    """Return HTTP Basic credentials from an authorization header."""
+    if auth_header is None or not auth_header.startswith("Basic "):
+        return None
+
+    encoded_credentials = auth_header.removeprefix("Basic ").strip()
+    try:
+        decoded_credentials = base64.b64decode(
+            s=encoded_credentials,
+            validate=True,
+        ).decode(encoding="utf-8")
+    except ValueError:
+        return None
+
+    client_id, separator, client_secret = decoded_credentials.partition(":")
+    if not separator:
+        return None
+
+    return client_id, client_secret
 
 
 @beartype
@@ -78,14 +113,55 @@ def _require_bearer_token(request: RequestData) -> _ResponseType | None:
             message="no Bearer token",
             target="jwt",
         )
-    if not auth_header.removeprefix("Bearer ").strip():
+    bearer_token = auth_header.removeprefix("Bearer ").strip()
+    if not bearer_token:
         return _error_response(
             status_code=HTTPStatus.UNAUTHORIZED,
             code="401",
-            message="invalid Bearer token",
+            message="no Bearer token",
+            target="jwt",
+        )
+    if bearer_token.count(".") != _JWT_DOT_COUNT:
+        return _error_response(
+            status_code=HTTPStatus.UNAUTHORIZED,
+            code="401",
+            message="Invalid JWT serialization: Missing dot delimiter(s)",
             target="jwt",
         )
     return None
+
+
+@beartype
+def _fake_jwt(*, token_source: bytes) -> str:
+    """Return a deterministic bearer token for the mock."""
+
+    def encode_part(value: dict[str, Any]) -> str:
+        """Return a base64url-encoded token part."""
+        raw_part = json.dumps(
+            obj=value,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode(encoding="utf-8")
+        return (
+            base64.urlsafe_b64encode(s=raw_part)
+            .decode(
+                encoding="ascii",
+            )
+            .rstrip("=")
+        )
+
+    header = encode_part(value={"alg": "mock", "typ": "JWT"})
+    payload = encode_part(
+        value={
+            "aud": "vuforia-model-target",
+            "src": base64.urlsafe_b64encode(s=token_source)
+            .decode(
+                encoding="ascii",
+            )
+            .rstrip("="),
+        },
+    )
+    return f"{header}.{payload}.mock-signature"
 
 
 @beartype
@@ -93,32 +169,39 @@ def oauth2_token(request: RequestData) -> _ResponseType:
     """Return a fake OAuth2 access token."""
     auth_header = _get_header(request=request, name="Authorization")
     form = parse_qs(qs=request.body.decode(encoding="utf-8"))
-    grant_type = form.get("grant_type", [""])[0]
-    has_basic_auth = auth_header is not None and auth_header.startswith(
-        "Basic ",
-    )
-    has_password_credentials = all(
-        form.get(field, [""])[0] for field in ("username", "password")
-    )
-    if grant_type not in {"", "client_credentials", "password"} or (
-        not has_basic_auth and not has_password_credentials
-    ):
-        return _error_response(
+    grant_type = form.get("grant_type", ["client_credentials"])[0]
+    if grant_type != "client_credentials":
+        return _oauth2_error_response(
             status_code=HTTPStatus.BAD_REQUEST,
-            code="BAD_REQUEST",
-            message="Invalid OAuth2 token request.",
-            target="grant_type",
+            body={"error": "unsupported_grant_type"},
+        )
+
+    basic_credentials = _basic_auth_credentials(auth_header=auth_header)
+    if basic_credentials is None:
+        return _oauth2_error_response(
+            status_code=HTTPStatus.UNAUTHORIZED,
+            body={
+                "error": "invalid_request",
+                "error_description": (
+                    "Missing or invalid authorization header"
+                ),
+            },
+        )
+
+    if basic_credentials != (
+        _MOCK_MODEL_TARGET_CLIENT_ID,
+        _MOCK_MODEL_TARGET_CLIENT_SECRET,
+    ):
+        return _oauth2_error_response(
+            status_code=HTTPStatus.UNAUTHORIZED,
+            body={"error": "invalid_client"},
         )
 
     token_source = request.body or (auth_header or "").encode()
-    access_token = base64.urlsafe_b64encode(s=token_source).decode(
-        encoding="ascii",
-    )
-    access_token = access_token.rstrip("=") or "mock-vuforia-access-token"
     return _json_response(
         status_code=HTTPStatus.OK,
         body={
-            "access_token": access_token,
+            "access_token": _fake_jwt(token_source=token_source),
             "token_type": "bearer",
             "expires_in": 3600,
         },

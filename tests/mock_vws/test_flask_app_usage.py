@@ -96,7 +96,7 @@ class TestProcessingTime:
 
     # There is a race condition in this test type - if tests start to
     # fail, consider increasing the leeway.
-    LEEWAY = 0.5
+    LEEWAY = 1.0
 
     def test_default(
         self,

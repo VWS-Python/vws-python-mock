@@ -191,7 +191,7 @@ class TestModelTargetWebAPI:
         with MockVWS(processing_time_seconds=0):
             create_response = httpx.post(
                 url="https://vws.vuforia.com/modeltargets/datasets",
-                headers={"Authorization": "Bearer token"},
+                headers={"Authorization": "Bearer mock.header.signature"},
                 json=_MODEL_TARGET_DATASET_REQUEST,
                 timeout=30,
             )
@@ -201,7 +201,7 @@ class TestModelTargetWebAPI:
                     "https://vws.vuforia.com/modeltargets/datasets/"
                     f"{dataset_uuid}/status"
                 ),
-                headers={"Authorization": "Bearer token"},
+                headers={"Authorization": "Bearer mock.header.signature"},
                 timeout=30,
             )
 

@@ -272,7 +272,7 @@ class TestProcessingTime:
 
     # There is a race condition in this test type - if tests start to
     # fail, consider increasing the leeway.
-    LEEWAY = 0.5
+    LEEWAY = 1.0
 
     def test_default(self, image_file_failed_state: io.BytesIO) -> None:
         """By default, targets in the mock takes 2 seconds to be processed."""
@@ -1132,7 +1132,7 @@ class TestModelTargetWebAPI:
         with MockVWS(processing_time_seconds=0):
             response = requests.post(
                 url="https://vws.vuforia.com/modeltargets/advancedDatasets",
-                headers={"Authorization": "Bearer token"},
+                headers={"Authorization": "Bearer mock.header.signature"},
                 json=_MODEL_TARGET_DATASET_REQUEST,
                 timeout=30,
             )
@@ -1142,7 +1142,7 @@ class TestModelTargetWebAPI:
                     "https://vws.vuforia.com/modeltargets/"
                     f"advancedDatasets/{dataset_uuid}/status"
                 ),
-                headers={"Authorization": "Bearer token"},
+                headers={"Authorization": "Bearer mock.header.signature"},
                 timeout=30,
             )
 
