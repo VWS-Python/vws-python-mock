@@ -136,7 +136,7 @@ def _flask_request_data() -> RequestData:
         method=request.method,
         path=request.path,
         headers=dict(request.headers),
-        body=request.data,
+        body=request.get_data(parse_form_data=False),
     )
 
 
