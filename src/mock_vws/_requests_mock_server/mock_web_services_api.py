@@ -26,6 +26,13 @@ from mock_vws._constants import (
 )
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._mock_common import RequestData, Route, json_dump
+from mock_vws._model_target_web_api import (
+    create_model_target_dataset,
+    delete_model_target_dataset,
+    download_model_target_dataset,
+    get_model_target_dataset_status,
+    oauth2_token,
+)
 from mock_vws._services_validators import run_services_validators
 from mock_vws._services_validators.exceptions import (
     FailError,
@@ -38,6 +45,7 @@ from mock_vws._services_validators.exceptions import (
 )
 from mock_vws.database import VuMarkDatabase
 from mock_vws.image_matchers import ImageMatcher
+from mock_vws.model_target import ModelTargetDatasetType
 from mock_vws.target import ImageTarget
 from mock_vws.target_manager import TargetManager
 from mock_vws.target_raters import TargetTrackingRater
@@ -46,6 +54,7 @@ if TYPE_CHECKING:
     from mock_vws.database import CloudDatabase
 
 _TARGET_ID_PATTERN = "[A-Za-z0-9]+"
+_MODEL_TARGET_DATASET_UUID_PATTERN = "[A-Za-z0-9-]+"
 
 
 _ROUTES: set[Route] = set()
@@ -137,6 +146,159 @@ class MockVuforiaWebServicesAPI:
         self._processing_time_seconds = processing_time_seconds
         self._duplicate_match_checker = duplicate_match_checker
         self._target_tracking_rater = target_tracking_rater
+
+    @route(path_pattern="/oauth2/token", http_methods={HTTPMethod.POST})
+    def oauth2_token(  # pylint: disable=no-self-use
+        self,
+        request: RequestData,
+    ) -> _ResponseType:
+        """Obtain an OAuth2 token for the Model Target Web API."""
+        return oauth2_token(request=request)
+
+    @route(
+        path_pattern="/modeltargets/datasets",
+        http_methods={HTTPMethod.POST},
+    )
+    def create_standard_model_target_dataset(
+        self,
+        request: RequestData,
+    ) -> _ResponseType:
+        """Create a standard Model Target dataset."""
+        return create_model_target_dataset(
+            request=request,
+            target_manager=self._target_manager,
+            processing_time_seconds=self._processing_time_seconds,
+            dataset_type=ModelTargetDatasetType.STANDARD,
+        )
+
+    @route(
+        path_pattern="/modeltargets/advancedDatasets",
+        http_methods={HTTPMethod.POST},
+    )
+    def create_advanced_model_target_dataset(
+        self,
+        request: RequestData,
+    ) -> _ResponseType:
+        """Create an advanced Model Target dataset."""
+        return create_model_target_dataset(
+            request=request,
+            target_manager=self._target_manager,
+            processing_time_seconds=self._processing_time_seconds,
+            dataset_type=ModelTargetDatasetType.ADVANCED,
+        )
+
+    @route(
+        path_pattern=(
+            "/modeltargets/datasets/"
+            f"{_MODEL_TARGET_DATASET_UUID_PATTERN}/status"
+        ),
+        http_methods={HTTPMethod.GET},
+    )
+    def get_standard_model_target_dataset_status(
+        self,
+        request: RequestData,
+    ) -> _ResponseType:
+        """Return a standard Model Target dataset creation status."""
+        dataset_uuid = request.path.split(sep="/")[-2]
+        return get_model_target_dataset_status(
+            request=request,
+            target_manager=self._target_manager,
+            dataset_uuid=dataset_uuid,
+        )
+
+    @route(
+        path_pattern=(
+            "/modeltargets/advancedDatasets/"
+            f"{_MODEL_TARGET_DATASET_UUID_PATTERN}/status"
+        ),
+        http_methods={HTTPMethod.GET},
+    )
+    def get_advanced_model_target_dataset_status(
+        self,
+        request: RequestData,
+    ) -> _ResponseType:
+        """Return an advanced Model Target dataset creation status."""
+        dataset_uuid = request.path.split(sep="/")[-2]
+        return get_model_target_dataset_status(
+            request=request,
+            target_manager=self._target_manager,
+            dataset_uuid=dataset_uuid,
+        )
+
+    @route(
+        path_pattern=(
+            "/modeltargets/datasets/"
+            f"{_MODEL_TARGET_DATASET_UUID_PATTERN}/dataset"
+        ),
+        http_methods={HTTPMethod.GET},
+    )
+    def download_standard_model_target_dataset(
+        self,
+        request: RequestData,
+    ) -> _ResponseType:
+        """Download a standard Model Target dataset."""
+        dataset_uuid = request.path.split(sep="/")[-2]
+        return download_model_target_dataset(
+            request=request,
+            target_manager=self._target_manager,
+            dataset_uuid=dataset_uuid,
+        )
+
+    @route(
+        path_pattern=(
+            "/modeltargets/advancedDatasets/"
+            f"{_MODEL_TARGET_DATASET_UUID_PATTERN}/dataset"
+        ),
+        http_methods={HTTPMethod.GET},
+    )
+    def download_advanced_model_target_dataset(
+        self,
+        request: RequestData,
+    ) -> _ResponseType:
+        """Download an advanced Model Target dataset."""
+        dataset_uuid = request.path.split(sep="/")[-2]
+        return download_model_target_dataset(
+            request=request,
+            target_manager=self._target_manager,
+            dataset_uuid=dataset_uuid,
+        )
+
+    @route(
+        path_pattern=(
+            f"/modeltargets/datasets/{_MODEL_TARGET_DATASET_UUID_PATTERN}"
+        ),
+        http_methods={HTTPMethod.DELETE},
+    )
+    def delete_standard_model_target_dataset(
+        self,
+        request: RequestData,
+    ) -> _ResponseType:
+        """Delete a standard Model Target dataset."""
+        dataset_uuid = request.path.split(sep="/")[-1]
+        return delete_model_target_dataset(
+            request=request,
+            target_manager=self._target_manager,
+            dataset_uuid=dataset_uuid,
+        )
+
+    @route(
+        path_pattern=(
+            "/modeltargets/advancedDatasets/"
+            f"{_MODEL_TARGET_DATASET_UUID_PATTERN}"
+        ),
+        http_methods={HTTPMethod.DELETE},
+    )
+    def delete_advanced_model_target_dataset(
+        self,
+        request: RequestData,
+    ) -> _ResponseType:
+        """Delete an advanced Model Target dataset."""
+        dataset_uuid = request.path.split(sep="/")[-1]
+        return delete_model_target_dataset(
+            request=request,
+            target_manager=self._target_manager,
+            dataset_uuid=dataset_uuid,
+        )
 
     @route(
         path_pattern="/targets",

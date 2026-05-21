@@ -110,6 +110,13 @@ The mock returns a fixed minimal image in the requested format.
 The ``instance_id`` value is not encoded into the response image.
 Real Vuforia encodes the instance ID into the VuMark pattern.
 
+Model Target datasets
+---------------------
+
+The Model Target Web API mock supports OAuth2 token requests, standard and advanced dataset creation, status polling, dataset downloads, and deletion.
+The generated dataset download is a small valid zip file containing request metadata, not a real Vuforia Engine Model Target dataset.
+Model Target API routes accept any non-empty bearer token.
+
 Header cases
 ------------
 

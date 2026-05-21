@@ -4,6 +4,7 @@ clients.
 
 import io
 import uuid
+from http import HTTPStatus
 
 import httpx
 import pytest
@@ -17,6 +18,26 @@ from mock_vws import MockVWS
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.image_matchers import ExactMatcher
 from mock_vws.target import VuMarkTarget
+
+_MODEL_TARGET_DATASET_REQUEST = {
+    "name": "dataset-name",
+    "targetSdk": "10.18",
+    "models": [
+        {
+            "name": "model-name",
+            "cadDataUrl": "https://example.com/model.glb",
+            "views": [
+                {
+                    "name": "view-name",
+                    "guideViewPosition": {
+                        "translation": [0, 0, 5],
+                        "rotation": [0, 0, 0, 1],
+                    },
+                },
+            ],
+        },
+    ],
+}
 
 
 class TestVWS:
@@ -159,3 +180,30 @@ class TestVuMarkService:
             )
 
         assert response_content.startswith(b"\x89PNG")
+
+
+class TestModelTargetWebAPI:
+    """Model Target Web API usage through the mock via ``httpx``."""
+
+    @staticmethod
+    def test_standard_dataset_status() -> None:
+        """``httpx`` requests can use Model Target Web API routes."""
+        with MockVWS(processing_time_seconds=0):
+            create_response = httpx.post(
+                url="https://vws.vuforia.com/modeltargets/datasets",
+                headers={"Authorization": "Bearer token"},
+                json=_MODEL_TARGET_DATASET_REQUEST,
+                timeout=30,
+            )
+            dataset_uuid = create_response.json()["uuid"]
+            status_response = httpx.get(
+                url=(
+                    "https://vws.vuforia.com/modeltargets/datasets/"
+                    f"{dataset_uuid}/status"
+                ),
+                headers={"Authorization": "Bearer token"},
+                timeout=30,
+            )
+
+        assert create_response.status_code == HTTPStatus.CREATED
+        assert status_response.json()["status"] == "done"

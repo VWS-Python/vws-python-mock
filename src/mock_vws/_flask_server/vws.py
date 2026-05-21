@@ -27,7 +27,17 @@ from mock_vws._constants import (
     TargetStatuses,
 )
 from mock_vws._database_matchers import get_database_matching_server_keys
-from mock_vws._mock_common import json_dump
+from mock_vws._flask_server.target_manager import TARGET_MANAGER
+from mock_vws._mock_common import RequestData, json_dump
+from mock_vws._model_target_web_api import (
+    create_model_target_dataset,
+    delete_model_target_dataset,
+    download_model_target_dataset,
+    get_model_target_dataset_status,
+)
+from mock_vws._model_target_web_api import (
+    oauth2_token as model_target_oauth2_token,
+)
 from mock_vws._services_validators import run_services_validators
 from mock_vws._services_validators.exceptions import (
     FailError,
@@ -44,7 +54,9 @@ from mock_vws.image_matchers import (
     ImageMatcher,
     StructuralSimilarityMatcher,
 )
+from mock_vws.model_target import ModelTargetDatasetType
 from mock_vws.target import ImageTarget
+from mock_vws.target_manager import TargetManager
 from mock_vws.target_raters import (
     HardcodedTargetTrackingRater,
 )
@@ -117,6 +129,32 @@ def get_all_vumark_databases() -> set[VuMarkDatabase]:
     }
 
 
+@beartype
+def _flask_request_data() -> RequestData:
+    """Return the current Flask request as shared request data."""
+    return RequestData(
+        method=request.method,
+        path=request.path,
+        headers=dict(request.headers),
+        body=request.data,
+    )
+
+
+@beartype
+def _model_target_manager() -> TargetManager:
+    """Return the target manager backing the Flask app."""
+    return TARGET_MANAGER
+
+
+@beartype
+def _to_flask_response(
+    api_response: tuple[int, dict[str, str], str | bytes],
+) -> Response:
+    """Convert a shared API response to a Flask response."""
+    status_code, headers, body = api_response
+    return Response(response=body, status=status_code, headers=headers)
+
+
 @VWS_FLASK_APP.before_request
 @beartype
 def set_terminate_wsgi_input() -> None:
@@ -154,6 +192,10 @@ def validate_request() -> None:
     """
     if request.endpoint == "generate_vumark_instance":
         return
+    if request.path == "/oauth2/token" or request.path.startswith(
+        "/modeltargets/",
+    ):
+        return
     run_services_validators(
         request_headers=dict(request.headers),
         request_body=request.data,
@@ -185,6 +227,157 @@ def handle_exceptions(exc: ValidatorError) -> Response:
     response.headers.clear()
     response.headers.extend(exc.headers)
     return response
+
+
+@VWS_FLASK_APP.route(rule="/oauth2/token", methods=[HTTPMethod.POST])
+@beartype
+def oauth2_token() -> Response:
+    """Obtain an OAuth2 token for the Model Target Web API."""
+    return _to_flask_response(
+        api_response=model_target_oauth2_token(
+            request=_flask_request_data(),
+        ),
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/modeltargets/datasets",
+    methods=[HTTPMethod.POST],
+)
+@beartype
+def create_standard_model_target_dataset() -> Response:
+    """Create a standard Model Target dataset."""
+    settings = VWSSettings.model_validate(obj={})
+    return _to_flask_response(
+        api_response=create_model_target_dataset(
+            request=_flask_request_data(),
+            target_manager=_model_target_manager(),
+            processing_time_seconds=settings.processing_time_seconds,
+            dataset_type=ModelTargetDatasetType.STANDARD,
+        ),
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/modeltargets/advancedDatasets",
+    methods=[HTTPMethod.POST],
+)
+@beartype
+def create_advanced_model_target_dataset() -> Response:
+    """Create an advanced Model Target dataset."""
+    settings = VWSSettings.model_validate(obj={})
+    return _to_flask_response(
+        api_response=create_model_target_dataset(
+            request=_flask_request_data(),
+            target_manager=_model_target_manager(),
+            processing_time_seconds=settings.processing_time_seconds,
+            dataset_type=ModelTargetDatasetType.ADVANCED,
+        ),
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/modeltargets/datasets/<string:dataset_uuid>/status",
+    methods=[HTTPMethod.GET],
+)
+@beartype
+def get_standard_model_target_dataset_status(
+    dataset_uuid: str,
+) -> Response:
+    """Return a standard Model Target dataset creation status."""
+    return _to_flask_response(
+        api_response=get_model_target_dataset_status(
+            request=_flask_request_data(),
+            target_manager=_model_target_manager(),
+            dataset_uuid=dataset_uuid,
+        ),
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/modeltargets/advancedDatasets/<string:dataset_uuid>/status",
+    methods=[HTTPMethod.GET],
+)
+@beartype
+def get_advanced_model_target_dataset_status(
+    dataset_uuid: str,
+) -> Response:
+    """Return an advanced Model Target dataset creation status."""
+    return _to_flask_response(
+        api_response=get_model_target_dataset_status(
+            request=_flask_request_data(),
+            target_manager=_model_target_manager(),
+            dataset_uuid=dataset_uuid,
+        ),
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/modeltargets/datasets/<string:dataset_uuid>/dataset",
+    methods=[HTTPMethod.GET],
+)
+@beartype
+def download_standard_model_target_dataset(
+    dataset_uuid: str,
+) -> Response:
+    """Download a standard Model Target dataset."""
+    return _to_flask_response(
+        api_response=download_model_target_dataset(
+            request=_flask_request_data(),
+            target_manager=_model_target_manager(),
+            dataset_uuid=dataset_uuid,
+        ),
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/modeltargets/advancedDatasets/<string:dataset_uuid>/dataset",
+    methods=[HTTPMethod.GET],
+)
+@beartype
+def download_advanced_model_target_dataset(
+    dataset_uuid: str,
+) -> Response:
+    """Download an advanced Model Target dataset."""
+    return _to_flask_response(
+        api_response=download_model_target_dataset(
+            request=_flask_request_data(),
+            target_manager=_model_target_manager(),
+            dataset_uuid=dataset_uuid,
+        ),
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/modeltargets/datasets/<string:dataset_uuid>",
+    methods=[HTTPMethod.DELETE],
+)
+@beartype
+def delete_standard_model_target_dataset(dataset_uuid: str) -> Response:
+    """Delete a standard Model Target dataset."""
+    return _to_flask_response(
+        api_response=delete_model_target_dataset(
+            request=_flask_request_data(),
+            target_manager=_model_target_manager(),
+            dataset_uuid=dataset_uuid,
+        ),
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/modeltargets/advancedDatasets/<string:dataset_uuid>",
+    methods=[HTTPMethod.DELETE],
+)
+@beartype
+def delete_advanced_model_target_dataset(dataset_uuid: str) -> Response:
+    """Delete an advanced Model Target dataset."""
+    return _to_flask_response(
+        api_response=delete_model_target_dataset(
+            request=_flask_request_data(),
+            target_manager=_model_target_manager(),
+            dataset_uuid=dataset_uuid,
+        ),
+    )
 
 
 @VWS_FLASK_APP.route(rule="/targets", methods=[HTTPMethod.POST])
