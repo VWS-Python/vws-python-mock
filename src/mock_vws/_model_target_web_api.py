@@ -51,8 +51,8 @@ def _error_response(
     status_code: HTTPStatus,
     code: str,
     message: str,
-    target: str | None = None,
-    details: list[dict[str, str]] | None = None,
+    target: str | None,
+    details: list[dict[str, str]] | None,
 ) -> _ResponseType:
     """Return an error response shaped like the Model Target Web API."""
     error: dict[str, Any] = {"code": code, "message": message}
@@ -136,6 +136,7 @@ def _require_bearer_token(request: RequestData) -> _ResponseType | None:
             code="401",
             message="no Bearer token",
             target="jwt",
+            details=None,
         )
     bearer_token = auth_header.removeprefix("Bearer ").strip()
     if not bearer_token:
@@ -144,6 +145,7 @@ def _require_bearer_token(request: RequestData) -> _ResponseType | None:
             code="401",
             message="no Bearer token",
             target="jwt",
+            details=None,
         )
     if bearer_token.count(".") != _JWT_DOT_COUNT:
         return _error_response(
@@ -151,6 +153,7 @@ def _require_bearer_token(request: RequestData) -> _ResponseType | None:
             code="401",
             message="Invalid JWT serialization: Missing dot delimiter(s)",
             target="jwt",
+            details=None,
         )
     return None
 
@@ -241,6 +244,8 @@ def _load_request_json(request: RequestData) -> dict[str, Any] | _ResponseType:
             status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
             code="ERROR",
             message="Expecting text/json or application/json body",
+            target=None,
+            details=None,
         )
     try:
         request_json: dict[str, Any] = json.loads(s=request.body)
@@ -249,6 +254,8 @@ def _load_request_json(request: RequestData) -> dict[str, Any] | _ResponseType:
             status_code=HTTPStatus.BAD_REQUEST,
             code="ERROR",
             message=f"Invalid Json: {exc}",
+            target=None,
+            details=None,
         )
     return request_json
 
@@ -372,6 +379,7 @@ def get_model_target_dataset_status(
                 f"{dataset_uuid}"
             ),
             target=_MOCK_USER_TARGET,
+            details=None,
         )
     return _json_response(
         status_code=HTTPStatus.OK,
@@ -420,6 +428,7 @@ def download_model_target_dataset(
                 f"{dataset_uuid}"
             ),
             target=_MOCK_USER_TARGET,
+            details=None,
         )
     if dataset.status != "done":
         return _error_response(
@@ -430,6 +439,7 @@ def download_model_target_dataset(
                 "not-started != done"
             ),
             target=dataset_uuid,
+            details=None,
         )
 
     body = _dataset_zip_bytes(dataset=dataset)
@@ -465,5 +475,6 @@ def delete_model_target_dataset(
                 f"{dataset_uuid}"
             ),
             target=_MOCK_USER_TARGET,
+            details=None,
         )
     return HTTPStatus.OK, {"Content-Length": "0"}, ""
