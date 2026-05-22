@@ -105,7 +105,9 @@ def _assert_model_target_error(
     message: str,
     target: str,
 ) -> None:
-    """Assert a Model Target Web API error response."""
+    """Assert a Model Target Web API error response with the legacy
+    shape.
+    """
     assert response.status_code == status_code
     assert response.json() == {
         "error": {
@@ -294,8 +296,9 @@ class TestAuthentication:
         )
 
 
-class TestMockErrors:
-    """Tests for mock-only Model Target Web API error paths."""
+@pytest.mark.usefixtures("verify_model_target_mock_vuforia")
+class TestErrorResponses:
+    """Verified fake tests for Model Target Web API error responses."""
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -313,13 +316,12 @@ class TestMockErrors:
     )
     def test_invalid_basic_auth_header(*, authorization: str) -> None:
         """Malformed OAuth2 Basic auth headers are rejected."""
-        with MockVWS():
-            response = requests.post(
-                url=f"{_VWS_HOST}/oauth2/token",
-                headers={"Authorization": authorization},
-                data={"grant_type": "client_credentials"},
-                timeout=30,
-            )
+        response = requests.post(
+            url=f"{_VWS_HOST}/oauth2/token",
+            headers={"Authorization": authorization},
+            data={"grant_type": "client_credentials"},
+            timeout=30,
+        )
 
         _assert_oauth2_error(
             response=response,
@@ -331,122 +333,116 @@ class TestMockErrors:
         )
 
     @staticmethod
-    @pytest.mark.parametrize(
-        argnames=("body", "headers", "message", "target"),
-        argvalues=[
-            pytest.param(
-                "{}",
-                {},
-                "Content-Type must be application/json.",
-                "Content-Type",
-                id="wrong-content-type",
-            ),
-            pytest.param(
-                "{",
-                {"Content-Type": "application/json"},
-                "Request body must be valid JSON.",
-                "body",
-                id="invalid-json",
-            ),
-        ],
-    )
-    def test_invalid_request_body(
+    def test_wrong_content_type(
         *,
-        body: str,
-        headers: dict[str, str],
-        message: str,
-        target: str,
+        verify_model_target_mock_vuforia: VuforiaBackend,
     ) -> None:
-        """Invalid dataset request bodies are rejected."""
-        with MockVWS():
-            response = requests.post(
-                url=f"{_VWS_HOST}/modeltargets/datasets",
-                headers={
-                    "Authorization": f"Bearer {_MOCK_BEARER_TOKEN}",
-                    **headers,
-                },
-                data=body,
-                timeout=30,
-            )
-
-        _assert_model_target_error(
-            response=response,
-            status_code=HTTPStatus.BAD_REQUEST,
-            code="BAD_REQUEST",
-            message=message,
-            target=target,
+        """Non-JSON dataset bodies are rejected with 415."""
+        credentials = _credentials_for_backend(
+            backend=verify_model_target_mock_vuforia,
         )
+        access_token = _get_access_token(credentials=credentials)
+        response = requests.post(
+            url=f"{_VWS_HOST}/modeltargets/datasets",
+            headers={"Authorization": f"Bearer {access_token}"},
+            data="{}",
+            timeout=30,
+        )
+
+        assert response.status_code == HTTPStatus.UNSUPPORTED_MEDIA_TYPE
+        error = response.json()["error"]
+        assert error["code"] == "ERROR"
+        assert error["message"] == (
+            "Expecting text/json or application/json body"
+        )
+        assert "target" not in error
+
+    @staticmethod
+    def test_invalid_json(
+        *,
+        verify_model_target_mock_vuforia: VuforiaBackend,
+    ) -> None:
+        """Unparseable JSON bodies are rejected with 400."""
+        credentials = _credentials_for_backend(
+            backend=verify_model_target_mock_vuforia,
+        )
+        access_token = _get_access_token(credentials=credentials)
+        response = requests.post(
+            url=f"{_VWS_HOST}/modeltargets/datasets",
+            headers={
+                "Authorization": f"Bearer {access_token}",
+                "Content-Type": "application/json",
+            },
+            data="{",
+            timeout=30,
+        )
+
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        error = response.json()["error"]
+        assert error["code"] == "ERROR"
+        assert error["message"].startswith("Invalid Json")
+        assert "target" not in error
 
     @staticmethod
     @pytest.mark.parametrize(
-        argnames=("path", "body", "message", "target"),
+        argnames=("body", "expected_messages"),
         argvalues=[
             pytest.param(
-                "/modeltargets/datasets",
                 {},
-                "Missing required field: name.",
-                "name",
-                id="missing-name",
+                {
+                    "/models: element is required",
+                    "/name: element is required",
+                    "/targetSdk: element is required",
+                },
+                id="empty-body",
             ),
             pytest.param(
-                "/modeltargets/datasets",
                 {
                     "name": "dataset-name",
                     "targetSdk": "10.18",
                     "models": "model",
                 },
-                "models must be a list.",
-                "models",
+                {"/models: error.expected.jsarray"},
                 id="models-not-list",
             ),
             pytest.param(
-                "/modeltargets/datasets",
                 {
                     **_UNAUTHENTICATED_DATASET_REQUEST,
                     "models": [],
                 },
-                "Standard Model Target datasets must have one model.",
-                "models",
-                id="standard-model-count",
-            ),
-            pytest.param(
-                "/modeltargets/advancedDatasets",
-                {
-                    **_UNAUTHENTICATED_DATASET_REQUEST,
-                    "models": [
-                        *_UNAUTHENTICATED_DATASET_REQUEST["models"],
-                    ]
-                    * 21,
-                },
-                "Advanced Model Target datasets must have 1 to 20 models.",
-                "models",
-                id="advanced-model-count",
+                {"exactly one model should be provided"},
+                id="standard-zero-models",
             ),
         ],
     )
     def test_invalid_dataset_request(
         *,
-        path: str,
+        verify_model_target_mock_vuforia: VuforiaBackend,
         body: dict[str, object],
-        message: str,
-        target: str,
+        expected_messages: set[str],
     ) -> None:
-        """Invalid dataset creation requests are rejected."""
-        with MockVWS():
-            response = requests.post(
-                url=f"{_VWS_HOST}{path}",
-                headers={"Authorization": f"Bearer {_MOCK_BEARER_TOKEN}"},
-                json=body,
-                timeout=30,
-            )
-
-        _assert_model_target_error(
-            response=response,
-            status_code=HTTPStatus.BAD_REQUEST,
-            code="BAD_REQUEST",
-            message=message,
-            target=target,
+        """Invalid standard dataset creation requests are rejected."""
+        credentials = _credentials_for_backend(
+            backend=verify_model_target_mock_vuforia,
         )
+        access_token = _get_access_token(credentials=credentials)
+        response = requests.post(
+            url=f"{_VWS_HOST}/modeltargets/datasets",
+            headers={"Authorization": f"Bearer {access_token}"},
+            json=body,
+            timeout=30,
+        )
+
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        error = response.json()["error"]
+        assert error["code"] == "BAD_REQUEST"
+        assert error["message"] == (
+            f"Validation error for request {error['target']}"
+        )
+        actual_messages = {detail["message"] for detail in error["details"]}
+        assert actual_messages == expected_messages
+        for detail in error["details"]:
+            assert detail["code"] == "VALIDATION_ERROR"
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -471,29 +467,75 @@ class TestMockErrors:
     )
     def test_unknown_dataset(
         *,
+        verify_model_target_mock_vuforia: VuforiaBackend,
         method: HTTPMethod,
         path: str,
     ) -> None:
-        """Unknown datasets are rejected."""
+        """Unknown datasets are rejected with a NOT_FOUND error."""
+        credentials = _credentials_for_backend(
+            backend=verify_model_target_mock_vuforia,
+        )
+        access_token = _get_access_token(credentials=credentials)
+        response = requests.request(
+            method=method,
+            url=f"{_VWS_HOST}{path}",
+            headers={"Authorization": f"Bearer {access_token}"},
+            timeout=30,
+        )
+
+        assert response.status_code == HTTPStatus.NOT_FOUND
+        error = response.json()["error"]
+        assert error["code"] == "NOT_FOUND"
+        assert error["message"] == (
+            f"Could not find a model-view database with uuid {_DATASET_UUID}"
+        )
+        # The user-id portion is per-account in real Vuforia, so check only
+        # the stable prefix.
+        assert error["target"].startswith("userId:")
+
+
+class TestMockOnlyErrors:
+    """Mock-only Model Target Web API error paths.
+
+    These cases cannot easily be verified against real Vuforia with the
+    currently available test account and are kept mock-only by design.
+    """
+
+    @staticmethod
+    def test_advanced_model_count_exceeds_limit() -> None:
+        """Advanced dataset requests with too many models are rejected.
+
+        Real Vuforia returns a 403 for the currently available test account
+        because the account lacks the advanced-dataset scope, so the
+        validation-error shape cannot be observed end-to-end. The mock
+        therefore enforces the documented advanced-dataset model count
+        limit on its own.
+        """
+        body = {
+            **_UNAUTHENTICATED_DATASET_REQUEST,
+            "models": [*_UNAUTHENTICATED_DATASET_REQUEST["models"]] * 21,
+        }
         with MockVWS():
-            response = requests.request(
-                method=method,
-                url=f"{_VWS_HOST}{path}",
+            response = requests.post(
+                url=f"{_VWS_HOST}/modeltargets/advancedDatasets",
                 headers={"Authorization": f"Bearer {_MOCK_BEARER_TOKEN}"},
+                json=body,
                 timeout=30,
             )
 
-        _assert_model_target_error(
-            response=response,
-            status_code=HTTPStatus.NOT_FOUND,
-            code="404",
-            message="The dataset was not found.",
-            target="uuid",
-        )
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        error = response.json()["error"]
+        assert error["code"] == "BAD_REQUEST"
+        assert error["details"][0]["code"] == "VALIDATION_ERROR"
 
     @staticmethod
     def test_processing_dataset_cannot_be_downloaded() -> None:
-        """A dataset cannot be downloaded while it is still processing."""
+        """A dataset cannot be downloaded while it is still processing.
+
+        Mock-only because exercising this against real Vuforia would require
+        creating a dataset on every test run; the mock lets us drive the
+        processing window deterministically.
+        """
         with MockVWS(processing_time_seconds=60):
             create_response = requests.post(
                 url=f"{_VWS_HOST}/modeltargets/datasets",
@@ -501,22 +543,23 @@ class TestMockErrors:
                 json=_UNAUTHENTICATED_DATASET_REQUEST,
                 timeout=30,
             )
+            dataset_uuid = create_response.json()["uuid"]
             response = requests.get(
                 url=(
-                    f"{_VWS_HOST}/modeltargets/datasets/"
-                    f"{create_response.json()['uuid']}/dataset"
+                    f"{_VWS_HOST}/modeltargets/datasets/{dataset_uuid}/dataset"
                 ),
                 headers={"Authorization": f"Bearer {_MOCK_BEARER_TOKEN}"},
                 timeout=30,
             )
 
-        _assert_model_target_error(
-            response=response,
-            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
-            code="UNPROCESSABLE_ENTITY",
-            message="The dataset is still processing.",
-            target="uuid",
+        assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+        error = response.json()["error"]
+        assert error["code"] == "UNSUPPORTED_STATE"
+        assert error["message"] == (
+            f"Training status for dataset {dataset_uuid} is "
+            "not-started != done"
         )
+        assert error["target"] == dataset_uuid
 
 
 class TestStandardDataset:

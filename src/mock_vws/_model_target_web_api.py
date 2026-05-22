@@ -3,6 +3,7 @@
 import base64
 import io
 import json
+import uuid
 import zipfile
 from http import HTTPStatus
 from typing import Any
@@ -19,6 +20,11 @@ _MAX_ADVANCED_MODEL_COUNT = 20
 _JWT_DOT_COUNT = 2
 _MOCK_MODEL_TARGET_CLIENT_ID = "client-id"
 _MOCK_MODEL_TARGET_CLIENT_SECRET = "client-secret"  # noqa: S105
+# A stable mock value standing in for the user-id segment that real
+# Vuforia embeds in some Model Target error targets such as
+# ``userId:7635391``. The numeric portion is per-account in real Vuforia;
+# the mock uses a fixed placeholder.
+_MOCK_USER_TARGET = "userId:mock"
 
 
 @beartype
@@ -45,18 +51,36 @@ def _error_response(
     status_code: HTTPStatus,
     code: str,
     message: str,
-    target: str,
+    target: str | None = None,
+    details: list[dict[str, str]] | None = None,
 ) -> _ResponseType:
     """Return an error response shaped like the Model Target Web API."""
-    return _json_response(
-        status_code=status_code,
-        body={
-            "error": {
-                "code": code,
-                "message": message,
-                "target": target,
-            },
-        },
+    error: dict[str, Any] = {"code": code, "message": message}
+    if target is not None:
+        error["target"] = target
+    if details is not None:
+        error["details"] = details
+    return _json_response(status_code=status_code, body={"error": error})
+
+
+@beartype
+def _validation_error_response(
+    *,
+    details: list[dict[str, str]],
+) -> _ResponseType:
+    """Return a Vuforia-style validation error.
+
+    Real Vuforia tags each validation error with a per-request UUID that
+    appears in both ``message`` and ``target``. The mock generates a fresh
+    UUID so the shape matches.
+    """
+    request_uuid = uuid.uuid4().hex
+    return _error_response(
+        status_code=HTTPStatus.BAD_REQUEST,
+        code="BAD_REQUEST",
+        message=f"Validation error for request {request_uuid}",
+        target=request_uuid,
+        details=details,
     )
 
 
@@ -214,19 +238,17 @@ def _load_request_json(request: RequestData) -> dict[str, Any] | _ResponseType:
     content_type = _get_header(request=request, name="Content-Type") or ""
     if "application/json" not in content_type:
         return _error_response(
-            status_code=HTTPStatus.BAD_REQUEST,
-            code="BAD_REQUEST",
-            message="Content-Type must be application/json.",
-            target="Content-Type",
+            status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
+            code="ERROR",
+            message="Expecting text/json or application/json body",
         )
     try:
         request_json: dict[str, Any] = json.loads(s=request.body)
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as exc:
         return _error_response(
             status_code=HTTPStatus.BAD_REQUEST,
-            code="BAD_REQUEST",
-            message="Request body must be valid JSON.",
-            target="body",
+            code="ERROR",
+            message=f"Invalid Json: {exc}",
         )
     return request_json
 
@@ -238,44 +260,55 @@ def _validate_dataset_request(
     dataset_type: ModelTargetDatasetType,
 ) -> _ResponseType | None:
     """Validate the dataset request enough for useful mock feedback."""
-    for field in ("name", "models", "targetSdk"):
-        if field not in request_json:
-            return _error_response(
-                status_code=HTTPStatus.BAD_REQUEST,
-                code="BAD_REQUEST",
-                message=f"Missing required field: {field}.",
-                target=field,
-            )
+    missing_details = [
+        {
+            "code": "VALIDATION_ERROR",
+            "message": f"/{field}: element is required",
+        }
+        for field in ("models", "name", "targetSdk")
+        if field not in request_json
+    ]
+    if missing_details:
+        return _validation_error_response(details=missing_details)
 
     models_value = request_json["models"]
     if not isinstance(models_value, list):
-        return _error_response(
-            status_code=HTTPStatus.BAD_REQUEST,
-            code="BAD_REQUEST",
-            message="models must be a list.",
-            target="models",
+        return _validation_error_response(
+            details=[
+                {
+                    "code": "VALIDATION_ERROR",
+                    "message": "/models: error.expected.jsarray",
+                },
+            ],
         )
 
     models: list[Any] = [*models_value]
     model_count = len(models)
 
     if dataset_type == ModelTargetDatasetType.STANDARD and model_count != 1:
-        return _error_response(
-            status_code=HTTPStatus.BAD_REQUEST,
-            code="BAD_REQUEST",
-            message="Standard Model Target datasets must have one model.",
-            target="models",
+        return _validation_error_response(
+            details=[
+                {
+                    "code": "VALIDATION_ERROR",
+                    "message": "exactly one model should be provided",
+                },
+            ],
         )
 
     if (
         dataset_type == ModelTargetDatasetType.ADVANCED
         and not 1 <= model_count <= _MAX_ADVANCED_MODEL_COUNT
     ):
-        return _error_response(
-            status_code=HTTPStatus.BAD_REQUEST,
-            code="BAD_REQUEST",
-            message="Advanced Model Target datasets must have 1 to 20 models.",
-            target="models",
+        return _validation_error_response(
+            details=[
+                {
+                    "code": "VALIDATION_ERROR",
+                    "message": (
+                        "models must contain between 1 and "
+                        f"{_MAX_ADVANCED_MODEL_COUNT} entries"
+                    ),
+                },
+            ],
         )
 
     return None
@@ -333,9 +366,12 @@ def get_model_target_dataset_status(
     except KeyError:
         return _error_response(
             status_code=HTTPStatus.NOT_FOUND,
-            code="404",
-            message="The dataset was not found.",
-            target="uuid",
+            code="NOT_FOUND",
+            message=(
+                "Could not find a model-view database with uuid "
+                f"{dataset_uuid}"
+            ),
+            target=_MOCK_USER_TARGET,
         )
     return _json_response(
         status_code=HTTPStatus.OK,
@@ -378,16 +414,22 @@ def download_model_target_dataset(
     except KeyError:
         return _error_response(
             status_code=HTTPStatus.NOT_FOUND,
-            code="404",
-            message="The dataset was not found.",
-            target="uuid",
+            code="NOT_FOUND",
+            message=(
+                "Could not find a model-view database with uuid "
+                f"{dataset_uuid}"
+            ),
+            target=_MOCK_USER_TARGET,
         )
     if dataset.status != "done":
         return _error_response(
             status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
-            code="UNPROCESSABLE_ENTITY",
-            message="The dataset is still processing.",
-            target="uuid",
+            code="UNSUPPORTED_STATE",
+            message=(
+                f"Training status for dataset {dataset_uuid} is "
+                "not-started != done"
+            ),
+            target=dataset_uuid,
         )
 
     body = _dataset_zip_bytes(dataset=dataset)
@@ -417,8 +459,11 @@ def delete_model_target_dataset(
     except KeyError:
         return _error_response(
             status_code=HTTPStatus.NOT_FOUND,
-            code="404",
-            message="The dataset was not found.",
-            target="uuid",
+            code="NOT_FOUND",
+            message=(
+                "Could not find a model-view database with uuid "
+                f"{dataset_uuid}"
+            ),
+            target=_MOCK_USER_TARGET,
         )
     return HTTPStatus.OK, {"Content-Length": "0"}, ""
