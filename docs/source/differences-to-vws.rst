@@ -118,6 +118,13 @@ The generated dataset download is a small valid zip file containing request meta
 Model Target API routes require a syntactically JSON Web Token-shaped bearer token, such as the token returned by the mock OAuth2 route.
 The mock does not verify token signatures, claims, expiry, or revocation.
 
+For unknown Model Target datasets, the mock returns an error whose ``target`` is ``userId:mock``.
+Real Vuforia uses ``userId:<numeric-user-id>`` where the numeric portion is per-account.
+
+Two Model Target Web API error paths remain mock-only in ``tests/mock_vws/test_model_target_web_api.py::TestMockOnlyErrors``.
+Downloads of still-processing datasets are mock-only because exercising the path against real Vuforia would require creating a dataset on every test run; the mock drives the processing window deterministically.
+Advanced-dataset creation with more than 20 models is mock-only because the available test account lacks the advanced-dataset scope and real Vuforia rejects the request with a 403 before validating model counts.
+
 Header cases
 ------------
 

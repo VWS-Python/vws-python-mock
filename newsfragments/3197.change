@@ -1,0 +1,1 @@
+Match real Vuforia Model Target Web API error responses for invalid request bodies, invalid dataset creation payloads, unknown datasets, and downloads of still-processing datasets.

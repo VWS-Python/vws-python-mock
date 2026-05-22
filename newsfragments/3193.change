@@ -1,0 +1,1 @@
+Match real Vuforia Model Target dataset creation validation error shape, including per-request UUID, details list, and status codes (415 for unsupported media type, 400 with ``BAD_REQUEST`` validation details).
