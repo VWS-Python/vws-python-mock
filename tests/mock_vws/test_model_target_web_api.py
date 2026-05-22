@@ -362,7 +362,7 @@ class TestErrorResponses:
         *,
         verify_model_target_mock_vuforia: VuforiaBackend,
     ) -> None:
-        """Unparseable JSON bodies are rejected with 400."""
+        """Malformed JSON bodies are rejected with 400."""
         credentials = _credentials_for_backend(
             backend=verify_model_target_mock_vuforia,
         )
