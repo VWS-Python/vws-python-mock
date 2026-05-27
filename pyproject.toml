@@ -59,7 +59,7 @@ optional-dependencies.dev = [
     "deptry==0.25.1",
     "dirty-equals==0.11",
     "doc8==2.0.0",
-    "doccmd==2026.5.19",
+    "doccmd==2026.5.25",
     "docker==7.1.0",
     "freezegun==1.5.5",
     "furo==2025.12.19",
