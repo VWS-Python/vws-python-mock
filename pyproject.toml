@@ -123,30 +123,30 @@ urls.Source = "https://github.com/VWS-Python/vws-python-mock"
 dev = []
 
 [tool.setuptools]
-zip-safe = false
-package-data.mock_vws = [
-    "py.typed",
-]
 packages.find.where = [
     "src",
 ]
+package-data.mock_vws = [
+    "py.typed",
+]
+zip-safe = false
 
 [tool.distutils]
 bdist_wheel.universal = true
 
 [tool.setuptools_scm]
-# We use a fallback version like
-# https://github.com/pypa/setuptools_scm/issues/77 so that we do not
-# error in the Docker build stage of the release pipeline.
-#
-# This must be a PEP 440 compliant version.
-fallback_version = "0.0.0"
 # This keeps the start of the version the same as the last release.
 # This is useful for our documentation to include e.g. binary links
 # to the latest released binary.
 #
 # Code to match this is in ``conf.py``.
 version_scheme = "post-release"
+# We use a fallback version like
+# https://github.com/pypa/setuptools_scm/issues/77 so that we do not
+# error in the Docker build stage of the release pipeline.
+#
+# This must be a PEP 440 compliant version.
+fallback_version = "0.0.0"
 
 [tool.uv]
 sources.torch = { index = "pytorch-cpu" }
@@ -206,11 +206,67 @@ lint.flake8-tidy-imports.banned-api."typing.cast".msg = "typing.cast is banned: 
 lint.pydocstyle.convention = "google"
 
 [tool.pylint]
+# Disable the message, report, category or checker with the given id(s). You
+# can either give multiple identifiers separated by comma (,) or put this
+# option multiple times (only on the command line, not in the configuration
+# file where it should appear only once).You can also use "--disable=all" to
+# disable everything first and then reenable specific checks. For example, if
+# you want to run only the similarities checker, you can use "--disable=all
+# --enable=similarities". If you want to run only the classes checker, but have
+# no Warning level messages displayed, use"--disable=all --enable=classes
+# --disable=W"
+"MESSAGES CONTROL".disable = [
+    # Too difficult to please
+    "duplicate-code",
+    # Let ruff handle long lines
+    "line-too-long",
+    "locally-disabled",
+    "missing-return-type-doc",
+    # We don't need everything to be documented because of mypy
+    "missing-type-doc",
+    # Style issues that we can deal with ourselves
+    "too-few-public-methods",
+    "too-many-arguments",
+    "too-many-instance-attributes",
+    "too-many-lines",
+    "too-many-locals",
+    # Let ruff deal with sorting
+    "ungrouped-imports",
+    # Let ruff handle unused imports
+    "unused-import",
+    # Let ruff handle imports
+    "wrong-import-order",
+]
+# Enable the message, report, category or checker with the given id(s). You can
+# either give multiple identifier separated by comma (,) or put this option
+# multiple time (only on the command line, not in the configuration file where
+# it should appear only once). See also the "--disable" option for examples.
+"MESSAGES CONTROL".enable = [
+    "bad-inline-option",
+    "deprecated-pragma",
+    "file-ignored",
+    "spelling",
+    "use-symbolic-message-instead",
+    "useless-suppression",
+]
+DEPRECATED_BUILTINS.bad-functions = [
+    # Use Pylint until Ruff can ban bare builtin calls, or until custom rules
+    # make this removable:
+    # https://github.com/astral-sh/ruff/issues/10079
+    # https://github.com/astral-sh/ruff/issues/970
+    "filter",
+    "getattr",
+    "hasattr",
+    "map",
+    "setattr",
+]
 # Allow the body of an if to be on the same line as the test if there is no
 # else.
 FORMAT.single-line-if-stmt = false
-# Pickle collected data for later comparisons.
-MASTER.persistent = true
+# Return non-zero exit code if useless-suppression is emitted.
+MAIN.fail-on = [
+    "useless-suppression",
+]
 # Use multiple processes to speed up Pylint.
 MASTER.jobs = 0
 # List of plugins (as comma separated values of python modules names) to load,
@@ -222,7 +278,6 @@ MASTER.jobs = 0
 # - pylint.extensions.while_used
 # as they seemed to get in the way.
 MASTER.load-plugins = [
-    "pylint_per_file_ignores",
     "pylint.extensions.bad_builtin",
     "pylint.extensions.comparison_placement",
     "pylint.extensions.consider_refactoring_into_while_condition",
@@ -238,8 +293,8 @@ MASTER.load-plugins = [
     "pylint.extensions.redefined_variable_type",
     "pylint.extensions.set_membership",
     "pylint.extensions.typing",
+    "pylint_per_file_ignores",
 ]
-MASTER.unsafe-load-any-extension = false
 # We ignore invalid names because:
 # - We want to use generated module names, which may not be valid, but are never seen.
 # - We want to use global variables in documentation, which may not be uppercase
@@ -248,64 +303,9 @@ MASTER.per-file-ignores = [
     "docs/source/doccmd_*.py:invalid-name",
     "doccmd_README_rst_*.py:invalid-name",
 ]
-# Return non-zero exit code if useless-suppression is emitted.
-MAIN.fail-on = [
-    "useless-suppression",
-]
-DEPRECATED_BUILTINS.bad-functions = [
-    # Use Pylint until Ruff can ban bare builtin calls, or until custom rules
-    # make this removable:
-    # https://github.com/astral-sh/ruff/issues/10079
-    # https://github.com/astral-sh/ruff/issues/970
-    "filter",
-    "getattr",
-    "hasattr",
-    "map",
-    "setattr",
-]
-# Enable the message, report, category or checker with the given id(s). You can
-# either give multiple identifier separated by comma (,) or put this option
-# multiple time (only on the command line, not in the configuration file where
-# it should appear only once). See also the "--disable" option for examples.
-"MESSAGES CONTROL".enable = [
-    "bad-inline-option",
-    "deprecated-pragma",
-    "file-ignored",
-    "spelling",
-    "use-symbolic-message-instead",
-    "useless-suppression",
-]
-# Disable the message, report, category or checker with the given id(s). You
-# can either give multiple identifiers separated by comma (,) or put this
-# option multiple times (only on the command line, not in the configuration
-# file where it should appear only once).You can also use "--disable=all" to
-# disable everything first and then reenable specific checks. For example, if
-# you want to run only the similarities checker, you can use "--disable=all
-# --enable=similarities". If you want to run only the classes checker, but have
-# no Warning level messages displayed, use"--disable=all --enable=classes
-# --disable=W"
-"MESSAGES CONTROL".disable = [
-    # Style issues that we can deal with ourselves
-    "too-few-public-methods",
-    "too-many-locals",
-    "too-many-arguments",
-    "too-many-instance-attributes",
-    "too-many-lines",
-    "locally-disabled",
-    # Let ruff handle long lines
-    "line-too-long",
-    # Let ruff handle unused imports
-    "unused-import",
-    # Let ruff deal with sorting
-    "ungrouped-imports",
-    # We don't need everything to be documented because of mypy
-    "missing-type-doc",
-    "missing-return-type-doc",
-    # Too difficult to please
-    "duplicate-code",
-    # Let ruff handle imports
-    "wrong-import-order",
-]
+# Pickle collected data for later comparisons.
+MASTER.persistent = true
+MASTER.unsafe-load-any-extension = false
 # Spelling dictionary name. Available dictionaries: none. To make it working
 # install python-enchant package.
 SPELLING.spelling-dict = "en_US"
@@ -315,39 +315,40 @@ SPELLING.spelling-private-dict-file = "spelling_private_dict.txt"
 # --spelling-private-dict-file option instead of raising a message.
 SPELLING.spelling-store-unknown-words = "no"
 
+[tool.interrogate]
+fail-under = 100
+verbose = 2
+omit-covered-files = true
+
 [tool.check-manifest]
 ignore = [
+    "*.enc",
     ".checkmake-config.ini",
+    ".git_archival.txt",
     ".prettierrc",
     ".yamlfmt",
-    "*.enc",
     "admin/**",
     "CHANGELOG.rst",
-    "newsfragments",
-    "newsfragments/**",
-    "CODE_OF_CONDUCT.rst",
-    "CONTRIBUTING.rst",
-    "LICENSE",
-    "Makefile",
     "ci",
     "ci/**",
+    "CODE_OF_CONDUCT.rst",
+    "CONTRIBUTING.rst",
     "docs",
     "docs/**",
-    ".git_archival.txt",
+    "LICENSE",
+    "lint.mk",
+    "Makefile",
+    "newsfragments",
+    "newsfragments/**",
+    "secrets.tar.gpg",
     "spelling_private_dict.txt",
+    "src/mock_vws/_flask_server/Dockerfile",
     "tests",
     "tests/**",
     "vuforia_secrets.env.example",
-    "lint.mk",
-    "src/mock_vws/_flask_server/Dockerfile",
-    "secrets.tar.gpg",
 ]
 
 [tool.deptry]
-optional_dependencies_dev_groups = [
-    "dev",
-    "release",
-]
 per_rule_ignores.DEP002 = [
     # tzdata is needed on Windows for zoneinfo to work.
     # See https://docs.python.org/3/library/zoneinfo.html#data-sources.
@@ -356,6 +357,76 @@ per_rule_ignores.DEP002 = [
     # so that tool.uv.sources can route it to the CPU-only PyTorch index.
     "torchvision",
 ]
+optional_dependencies_dev_groups = [
+    "dev",
+    "release",
+]
+
+[tool.vulture]
+# Duplicate some of .gitignore
+exclude = [ ".venv" ]
+# Ideally we would limit the paths to the source code where we want to ignore names,
+# but Vulture does not enable this.
+ignore_names = [
+    # Sphinx
+    "autoclass_content",
+    "autoclass_content",
+    "autodoc_member_order",
+    "autodoc_use_legacy_class_based",
+    # Used in TYPE_CHECKING for type hints
+    "CloudDatabaseDict",
+    "copybutton_exclude",
+    "DatabaseDict",
+    # Too difficult to test (see notes in the code)
+    "DATE_RANGE_ERROR",
+    "extensions",
+    # pytest fixtures - we name fixtures like this for this purpose
+    "fixture_*",
+    "html_show_copyright",
+    "html_show_sourcelink",
+    "html_show_sphinx",
+    "html_theme",
+    "html_theme_options",
+    "html_title",
+    "htmlhelp_basename",
+    "intersphinx_mapping",
+    "language",
+    "linkcheck_ignore",
+    "linkcheck_retries",
+    "master_doc",
+    # pydantic-settings
+    "model_config",
+    "nitpicky",
+    "project_copyright",
+    "pygments_style",
+    "pytest_addoption",
+    # pytest configuration
+    "pytest_collect_file",
+    "pytest_collection_modifyitems",
+    "pytest_itemcollected",
+    "pytest_plugins",
+    "pytest_set_filtered_exceptions",
+    "REQUEST_QUOTA_REACHED",
+    "rst_prolog",
+    "source_suffix",
+    "spelling_word_list_filename",
+    "templates_path",
+    "towncrier_draft_autoversion_mode",
+    "towncrier_draft_include_empty",
+    "towncrier_draft_working_directory",
+    "VuMarkDatabaseDict",
+    "VuMarkTargetDict",
+    "warning_is_error",
+]
+ignore_decorators = [
+    "@*APP.after_request",
+    "@*APP.before_request",
+    "@*APP.errorhandler",
+    # Flask
+    "@*APP.route",
+    "@pytest.fixture",
+    "@route",
+]
 
 [tool.pyproject-fmt]
 indent = 4
@@ -363,14 +434,14 @@ keep_full_version = true
 max_supported_python = "3.14"
 
 [tool.mypy]
-strict = true
 files = [ "." ]
 exclude = [ "build" ]
+follow_untyped_imports = true
+strict = true
 plugins = [
     "pydantic.mypy",
     "mypy_strict_kwargs",
 ]
-follow_untyped_imports = true
 
 [tool.pyrefly]
 search_path = [
@@ -380,23 +451,23 @@ search_path = [
 errors.non-exhaustive-match = "error"
 
 [tool.pyright]
+typeCheckingMode = "strict"
 enableTypeIgnoreComments = false
 reportUnnecessaryTypeIgnoreComment = true
-typeCheckingMode = "strict"
 
 [tool.pytest]
-xfail_strict = true
-log_cli = true
 addopts = [
     "--strict-markers",
 ]
+cumulative_timing = false
+log_cli = true
 markers = [
     "requires_docker_build",
 ]
 # Options for pytest-retry.
 retries = "10"
 retry_delay = "10"
-cumulative_timing = false
+xfail_strict = true
 
 [tool.coverage]
 run.branch = true
@@ -427,11 +498,11 @@ filename = "CHANGELOG.rst"
 # date) followed by a flat bullet list with no per-type sub-headings.
 template = "docs/towncrier_template.rst.jinja"
 title_format = "{version}"
+issue_format = "#{issue}"
 # ``title_format`` underline first, then any nested headings.  A bare
 # version such as ``2026.05.18`` underlined with ``-`` matches every
 # pre-towncrier entry in CHANGELOG.rst.
 underlines = [ "-", "~", "^" ]
-issue_format = "#{issue}"
 type = [
     # A single, unnamed fragment type keeps the assembled output as one
     # flat bullet list, matching the historical changelog (which never
@@ -444,11 +515,6 @@ write = true
 split-summary-body = false
 max-line-length = 75
 linewrap-full-docstring = true
-
-[tool.interrogate]
-fail-under = 100
-omit-covered-files = true
-verbose = 2
 
 [tool.pydantic-mypy]
 init_forbid_extra = true
@@ -465,72 +531,6 @@ ignore_path = [
     "./node_modules",
     "./src/*.egg-info/",
     "./src/*/_setuptools_scm_version.txt",
-]
-
-[tool.vulture]
-# Ideally we would limit the paths to the source code where we want to ignore names,
-# but Vulture does not enable this.
-ignore_names = [
-    # pytest configuration
-    "pytest_collect_file",
-    "pytest_collection_modifyitems",
-    "pytest_itemcollected",
-    "pytest_plugins",
-    "pytest_set_filtered_exceptions",
-    "pytest_addoption",
-    # pytest fixtures - we name fixtures like this for this purpose
-    "fixture_*",
-    # Sphinx
-    "autoclass_content",
-    "autoclass_content",
-    "autodoc_member_order",
-    "autodoc_use_legacy_class_based",
-    "copybutton_exclude",
-    "extensions",
-    "html_show_copyright",
-    "html_show_sourcelink",
-    "html_show_sphinx",
-    "html_theme",
-    "html_theme_options",
-    "html_title",
-    "htmlhelp_basename",
-    "intersphinx_mapping",
-    "language",
-    "linkcheck_ignore",
-    "linkcheck_retries",
-    "master_doc",
-    "nitpicky",
-    "project_copyright",
-    "pygments_style",
-    "rst_prolog",
-    "source_suffix",
-    "spelling_word_list_filename",
-    "templates_path",
-    "warning_is_error",
-    # Too difficult to test (see notes in the code)
-    "DATE_RANGE_ERROR",
-    "REQUEST_QUOTA_REACHED",
-    # pydantic-settings
-    "model_config",
-    # Used in TYPE_CHECKING for type hints
-    "CloudDatabaseDict",
-    "DatabaseDict",
-    "VuMarkDatabaseDict",
-    "VuMarkTargetDict",
-    "towncrier_draft_autoversion_mode",
-    "towncrier_draft_include_empty",
-    "towncrier_draft_working_directory",
-]
-# Duplicate some of .gitignore
-exclude = [ ".venv" ]
-ignore_decorators = [
-    "@pytest.fixture",
-    "@route",
-    # Flask
-    "@*APP.route",
-    "@*APP.after_request",
-    "@*APP.before_request",
-    "@*APP.errorhandler",
 ]
 
 [tool.yamlfix]
