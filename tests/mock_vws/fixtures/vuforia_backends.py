@@ -26,14 +26,14 @@ from tests.mock_vws.fixtures.credentials import (
     InactiveVuMarkCloudDatabase,
     VuMarkCloudDatabase,
 )
-from tests.mock_vws.utils.retries import RETRY_ON_TOO_MANY_REQUESTS
+from tests.mock_vws.utils.retries import RETRY_ON_TRANSIENT_VWS_FAILURE
 
 LOGGER = logging.getLogger(name=__name__)
 LOGGER.setLevel(level=logging.DEBUG)
 
 
 @beartype
-@RETRY_ON_TOO_MANY_REQUESTS
+@RETRY_ON_TRANSIENT_VWS_FAILURE
 def _delete_all_targets(*, database_keys: CloudDatabase) -> None:
     """Delete all targets.
 
