@@ -10,7 +10,7 @@ from sybil.parsers.rest import (
     PythonCodeBlockParser,
 )
 
-from tests.mock_vws.utils.retries import RETRY_EXCEPTIONS
+from tests.mock_vws.utils.retries import TRANSIENT_VWS_EXCEPTIONS
 
 pytest_collect_file = Sybil(
     parsers=[
@@ -29,4 +29,4 @@ def pytest_set_filtered_exceptions() -> tuple[type[Exception], ...]:
     This is for ``pytest-retry``.
     The configuration for retries is in ``pyproject.toml``.
     """
-    return RETRY_EXCEPTIONS
+    return TRANSIENT_VWS_EXCEPTIONS

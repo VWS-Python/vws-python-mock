@@ -17,14 +17,14 @@ from mock_vws._constants import ResultCodes
 from mock_vws.database import CloudDatabase
 from tests.mock_vws.fixtures.credentials import VuMarkCloudDatabase
 from tests.mock_vws.utils import Endpoint
-from tests.mock_vws.utils.retries import RETRY_ON_TOO_MANY_REQUESTS
+from tests.mock_vws.utils.retries import RETRY_ON_TRANSIENT_VWS_FAILURE
 
 VWS_HOST = "https://vws.vuforia.com"
 VWQ_HOST = "https://cloudreco.vuforia.com"
 
 
 @beartype
-@RETRY_ON_TOO_MANY_REQUESTS
+@RETRY_ON_TRANSIENT_VWS_FAILURE
 def _wait_for_target_processed(*, vws_client: VWS, target_id: str) -> None:
     """Wait for a target to be processed.
 
