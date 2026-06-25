@@ -38,7 +38,7 @@ class TestAuthorizationHeader:
         is given.
         """
         date = rfc_1123_date()
-        new_headers = {
+        new_headers: dict[str, str] = {
             **endpoint.headers,
             "Date": date,
         }
