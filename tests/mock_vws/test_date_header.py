@@ -46,7 +46,7 @@ class TestMissing:
             request_path=endpoint.path_url,
         )
 
-        new_headers = {
+        new_headers: dict[str, str] = {
             **endpoint.headers,
             "Authorization": authorization_string,
         }
