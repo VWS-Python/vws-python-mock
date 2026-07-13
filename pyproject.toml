@@ -103,7 +103,7 @@ optional-dependencies.dev = [
     "sybil==10.1.0",
     "tenacity==9.1.4",
     "towncrier==25.8.0",
-    "ty==0.0.57",
+    "ty==0.0.59",
     "types-docker==7.1.0.20260518",
     "types-pyyaml==6.0.12.20260518",
     "types-requests==2.33.0.20260518",
