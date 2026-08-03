@@ -31,6 +31,7 @@ class CloudDatabaseDict(TypedDict):
     database_type_name: str
     targets: Iterable[ImageTargetDict]
     request_quota: NotRequired[int]
+    target_quota: NotRequired[int]
 
 
 @beartype
@@ -69,6 +70,8 @@ class CloudDatabase:
         state: The state of the database.
         request_quota: The request quota. Set this to ``0`` to make VWS
             endpoints return ``RequestQuotaReached``.
+        target_quota: The target quota. When the database contains this many
+            targets, adding another returns ``TargetQuotaReached``.
     """
 
     # We hide a few things in the ``repr`` with ``repr=False`` so that they do
@@ -111,6 +114,7 @@ class CloudDatabase:
             "database_type_name": self.database_type.name,
             "targets": targets,
             "request_quota": self.request_quota,
+            "target_quota": self.target_quota,
         }
 
     def get_target(self, target_id: str) -> ImageTarget:
@@ -138,6 +142,7 @@ class CloudDatabase:
             database_type=DatabaseType[database_dict["database_type_name"]],
             targets=targets,
             request_quota=database_dict.get("request_quota", 100000),
+            target_quota=database_dict.get("target_quota", 1000),
         )
 
     @property

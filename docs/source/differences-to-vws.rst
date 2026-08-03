@@ -92,9 +92,6 @@ There are some result codes which the mock cannot return.
 These are:
 
 * ``DateRangeError``
-* ``ProjectHasNoAPIAccess``
-* ``ProjectSuspended``
-* ``TargetQuotaReached``
 * ``TooManyRequests``
 
 Request quota exhaustion
@@ -105,6 +102,20 @@ The mock returns ``RequestQuotaReached`` when a
 ``request_quota=0``. This behavior follows the public Vuforia documentation,
 but the response has not been verified against a real database with an
 exhausted quota.
+
+Other configurable result codes
+-------------------------------
+
+The mock also supports three other result codes which have not been verified
+against real databases in the corresponding states:
+
+* ``TargetQuotaReached`` is returned when adding a target to a
+  :class:`mock_vws.database.CloudDatabase` which already contains
+  ``target_quota`` targets.
+* ``ProjectSuspended`` is returned by VWS endpoints when a database uses the
+  :attr:`mock_vws.states.States.PROJECT_SUSPENDED` state.
+* ``ProjectHasNoAPIAccess`` is returned by VWS endpoints when a database uses
+  the :attr:`mock_vws.states.States.PROJECT_HAS_NO_API_ACCESS` state.
 
 ``Content-Length`` headers
 --------------------------

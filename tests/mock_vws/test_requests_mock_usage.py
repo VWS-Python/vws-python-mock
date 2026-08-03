@@ -16,13 +16,20 @@ from beartype import beartype
 from freezegun import freeze_time
 from PIL import Image
 from vws import VWS, CloudRecoService
-from vws.exceptions.vws_exceptions import RequestQuotaReachedError
+from vws.exceptions.base_exceptions import VWSError
+from vws.exceptions.vws_exceptions import (
+    ProjectHasNoAPIAccessError,
+    ProjectSuspendedError,
+    RequestQuotaReachedError,
+    TargetQuotaReachedError,
+)
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws import MissingSchemeError, MockVWS
 from mock_vws._constants import ResultCodes
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.image_matchers import ExactMatcher, StructuralSimilarityMatcher
+from mock_vws.states import States
 from mock_vws.target import ImageTarget, VuMarkTarget
 from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import assert_vws_failure
@@ -371,6 +378,81 @@ class TestRequestQuota:
         )
 
 
+class TestAdditionalResultCodes:
+    """Tests for configurable, mock-only VWS result codes."""
+
+    @staticmethod
+    def test_target_quota_reached(
+        *,
+        image_file_failed_state: io.BytesIO,
+    ) -> None:
+        """A database at its target quota rejects new targets."""
+        database = CloudDatabase(target_quota=0)
+        client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+
+        with MockVWS() as mock:
+            mock.add_cloud_database(cloud_database=database)
+            with pytest.raises(
+                expected_exception=TargetQuotaReachedError,
+            ) as exc_info:
+                client.add_target(
+                    name="example",
+                    width=1,
+                    image=image_file_failed_state,
+                    application_metadata=None,
+                    active_flag=True,
+                )
+
+        assert_vws_failure(
+            response=exc_info.value.response,
+            status_code=HTTPStatus.FORBIDDEN,
+            result_code=ResultCodes.TARGET_QUOTA_REACHED,
+        )
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        argnames=("state", "expected_exception", "result_code"),
+        argvalues=[
+            (
+                States.PROJECT_SUSPENDED,
+                ProjectSuspendedError,
+                ResultCodes.PROJECT_SUSPENDED,
+            ),
+            (
+                States.PROJECT_HAS_NO_API_ACCESS,
+                ProjectHasNoAPIAccessError,
+                ResultCodes.PROJECT_HAS_NO_API_ACCESS,
+            ),
+        ],
+    )
+    def test_project_state_result_codes(
+        *,
+        state: States,
+        expected_exception: type[VWSError],
+        result_code: ResultCodes,
+    ) -> None:
+        """Configured project states reject VWS requests."""
+        database = CloudDatabase(state=state)
+        client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+
+        with MockVWS() as mock:
+            mock.add_cloud_database(cloud_database=database)
+            with pytest.raises(expected_exception=expected_exception) as exc:
+                client.list_targets()
+
+        assert_vws_failure(
+            response=exc.value.response,
+            status_code=HTTPStatus.FORBIDDEN,
+            result_code=result_code,
+        )
+
+
 class TestCustomBaseURLs:
     """Tests for using custom base URLs."""
 
@@ -652,6 +734,16 @@ class TestDatabaseToDict:
         new_database = CloudDatabase.from_dict(database_dict=database_dict)
 
         assert new_database.request_quota == 0
+
+    @staticmethod
+    def test_custom_target_quota() -> None:
+        """The target quota survives a dictionary round trip."""
+        database = CloudDatabase(target_quota=0)
+
+        database_dict = database.to_dict()
+        new_database = CloudDatabase.from_dict(database_dict=database_dict)
+
+        assert new_database.target_quota == 0
 
     @staticmethod
     def test_vumark_database_to_dict() -> None:

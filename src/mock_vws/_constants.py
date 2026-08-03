@@ -58,7 +58,10 @@ class ResultCodes(Enum):
     # suite from using it.
     REQUEST_QUOTA_REACHED = "RequestQuotaReached"
     TARGET_STATUS_NOT_SUCCESS = "TargetStatusNotSuccess"
+    TARGET_QUOTA_REACHED = "TargetQuotaReached"
+    PROJECT_SUSPENDED = "ProjectSuspended"
     PROJECT_INACTIVE = "ProjectInactive"
+    PROJECT_HAS_NO_API_ACCESS = "ProjectHasNoAPIAccess"
     INACTIVE_PROJECT = "InactiveProject"
     TOO_MANY_REQUESTS = "TooManyRequests"
     INVALID_ACCEPT_HEADER = "InvalidAcceptHeader"

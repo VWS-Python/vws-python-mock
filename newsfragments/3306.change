@@ -1,0 +1,2 @@
+Add configurable ``TargetQuotaReached``, ``ProjectSuspended``, and
+``ProjectHasNoAPIAccess`` responses from VWS endpoints.
