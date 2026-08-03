@@ -15,6 +15,7 @@ import responses
 from PIL import Image
 from requests_mock_flask import add_flask_app_to_mock
 from vws import VWS, CloudRecoService
+from vws.exceptions.vws_exceptions import RequestQuotaReachedError
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes
@@ -138,6 +139,29 @@ class TestProcessingTime:
 
         expected = seconds
         assert expected - self.LEEWAY < time_taken < expected + self.LEEWAY
+
+
+class TestRequestQuota:
+    """Tests for request quota exhaustion in the Flask mock."""
+
+    @staticmethod
+    def test_request_quota_reached() -> None:
+        """The Flask mock preserves and enforces a zero request quota."""
+        database = CloudDatabase(request_quota=0)
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+        response = requests.post(
+            url=databases_url,
+            json=database.to_dict(),
+            timeout=30,
+        )
+        response.raise_for_status()
+        client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+
+        with pytest.raises(expected_exception=RequestQuotaReachedError):
+            client.list_targets()
 
 
 class TestAddCloudDatabase:

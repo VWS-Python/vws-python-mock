@@ -16,13 +16,16 @@ from beartype import beartype
 from freezegun import freeze_time
 from PIL import Image
 from vws import VWS, CloudRecoService
+from vws.exceptions.vws_exceptions import RequestQuotaReachedError
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws import MissingSchemeError, MockVWS
+from mock_vws._constants import ResultCodes
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.image_matchers import ExactMatcher, StructuralSimilarityMatcher
 from mock_vws.target import ImageTarget, VuMarkTarget
 from tests.mock_vws.utils import Endpoint
+from tests.mock_vws.utils.assertions import assert_vws_failure
 from tests.mock_vws.utils.usage_test_helpers import (
     processing_time_seconds,
 )
@@ -322,6 +325,52 @@ class TestDatabaseName:
         assert database_details.database_name == "foo"
 
 
+class TestRequestQuota:
+    """Tests for request quota exhaustion.
+
+    These tests run only against the mock. Deliberately exhausting the request
+    quota of the real Vuforia test database would make it unusable for the
+    rest of the verified-fake test suite.
+    """
+
+    @staticmethod
+    def test_request_quota_available() -> None:
+        """A database with request quota accepts VWS requests."""
+        database = CloudDatabase(request_quota=1)
+        client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+
+        with MockVWS() as mock:
+            mock.add_cloud_database(cloud_database=database)
+            targets = client.list_targets()
+
+        assert not targets
+
+    @staticmethod
+    def test_request_quota_reached() -> None:
+        """A database with no request quota rejects VWS requests."""
+        database = CloudDatabase(request_quota=0)
+        client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+
+        with MockVWS() as mock:
+            mock.add_cloud_database(cloud_database=database)
+            with pytest.raises(
+                expected_exception=RequestQuotaReachedError,
+            ) as exc_info:
+                client.list_targets()
+
+        assert_vws_failure(
+            response=exc_info.value.response,
+            status_code=HTTPStatus.FORBIDDEN,
+            result_code=ResultCodes.REQUEST_QUOTA_REACHED,
+        )
+
+
 class TestCustomBaseURLs:
     """Tests for using custom base URLs."""
 
@@ -593,6 +642,16 @@ class TestDatabaseToDict:
 
         new_database = CloudDatabase.from_dict(database_dict=database_dict)
         assert new_database == database
+
+    @staticmethod
+    def test_custom_request_quota() -> None:
+        """The request quota survives a dictionary round trip."""
+        database = CloudDatabase(request_quota=0)
+
+        database_dict = database.to_dict()
+        new_database = CloudDatabase.from_dict(database_dict=database_dict)
+
+        assert new_database.request_quota == 0
 
     @staticmethod
     def test_vumark_database_to_dict() -> None:

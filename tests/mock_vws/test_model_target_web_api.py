@@ -96,13 +96,16 @@ def _get_access_token(
     if (
         backend == VuforiaBackend.REAL
         and response.status_code == HTTPStatus.UNAUTHORIZED
+        and response.json() == {"error": "invalid_client"}
     ):
-        pytest.skip(
+        pytest.xfail(
             reason=(
-                "The configured real Vuforia Model Target OAuth2 "
-                "credentials were rejected"
+                "Real Model Target Web API credentials are not accepted; "
+                "authenticated behavior is verified against the mock "
+                "backends only until the credentials are rotated."
             ),
         )
+
     assert response.status_code == HTTPStatus.OK
     response_json: dict[str, Any] = json.loads(s=response.text)
     access_token = response_json["access_token"]
