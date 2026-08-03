@@ -18,6 +18,7 @@ from mock_vws.target_manager import TargetManager
 _ResponseType = tuple[int, dict[str, str], str | bytes]
 _MAX_ADVANCED_MODEL_COUNT = 20
 _JWT_DOT_COUNT = 2
+_ZIP_EPOCH = (1980, 1, 1, 0, 0, 0)
 _MOCK_MODEL_TARGET_CLIENT_ID = "client-id"
 _MOCK_MODEL_TARGET_CLIENT_SECRET = "client-secret"  # noqa: S105
 # A stable mock value standing in for the user-id segment that real
@@ -392,8 +393,12 @@ def _dataset_zip_bytes(dataset: ModelTargetDataset) -> bytes:
     """Return a small valid zip file for a generated dataset."""
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(file=zip_buffer, mode="w") as zip_file:
+        dataset_file = zipfile.ZipInfo(
+            filename="dataset.json",
+            date_time=_ZIP_EPOCH,
+        )
         zip_file.writestr(
-            zinfo_or_arcname="dataset.json",
+            zinfo_or_arcname=dataset_file,
             data=json.dumps(
                 obj={
                     "uuid": dataset.uuid_,
@@ -401,6 +406,7 @@ def _dataset_zip_bytes(dataset: ModelTargetDataset) -> bytes:
                     "request": dataset.request_body,
                 },
                 separators=(",", ":"),
+                sort_keys=True,
             ),
         )
     return zip_buffer.getvalue()
