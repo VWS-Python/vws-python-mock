@@ -346,7 +346,7 @@ class TestRequestQuota:
             mock.add_cloud_database(cloud_database=database)
             targets = client.list_targets()
 
-        assert targets == []
+        assert not targets
 
     @staticmethod
     def test_request_quota_reached() -> None:
