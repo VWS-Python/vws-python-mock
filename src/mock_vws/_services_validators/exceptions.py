@@ -105,6 +105,47 @@ class ProjectInactiveError(ValidatorError):
 
 
 @beartype
+class RequestQuotaReachedError(ValidatorError):
+    """Exception raised when a database's request quota is exhausted.
+
+    This response is based on Vuforia's documented status code and its common
+    VWS error response shape. It has not been verified against a real database
+    with an exhausted quota.
+    """
+
+    def __init__(self) -> None:
+        """
+        Attributes:
+            status_code: The status code to use in the response.
+            response_text: The response text to use in the response.
+            headers: The response headers.
+        """
+        super().__init__()
+        self.status_code = HTTPStatus.FORBIDDEN
+        body = {
+            "transaction_id": uuid.uuid4().hex,
+            "result_code": ResultCodes.REQUEST_QUOTA_REACHED.value,
+        }
+        self.response_text = json_dump(body=body)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
+        self.headers = {
+            "Connection": "keep-alive",
+            "Content-Type": "application/json",
+            "server": "envoy",
+            "Date": date,
+            "x-envoy-upstream-service-time": "5",
+            "Content-Length": str(object=len(self.response_text)),
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
+        }
+
+
+@beartype
 class AuthenticationFailureError(ValidatorError):
     """Exception raised when Vuforia returns a response with a result code
     'AuthenticationFailure'.

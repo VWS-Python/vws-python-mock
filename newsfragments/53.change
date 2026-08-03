@@ -1,0 +1,2 @@
+Cloud databases with ``request_quota=0`` now return a
+``RequestQuotaReached`` response from VWS endpoints.

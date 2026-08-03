@@ -94,9 +94,17 @@ These are:
 * ``DateRangeError``
 * ``ProjectHasNoAPIAccess``
 * ``ProjectSuspended``
-* ``RequestQuotaReached``
 * ``TargetQuotaReached``
 * ``TooManyRequests``
+
+Request quota exhaustion
+------------------------
+
+The mock returns ``RequestQuotaReached`` when a
+:class:`mock_vws.database.CloudDatabase` is created with
+``request_quota=0``. This behavior follows the public Vuforia documentation,
+but the response has not been verified against a real database with an
+exhausted quota.
 
 ``Content-Length`` headers
 --------------------------

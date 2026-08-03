@@ -156,6 +156,9 @@ def create_cloud_database() -> Response:
 
     :reqjson string database_name: (Optional) The name of the cloud database.
 
+    :reqjson int request_quota: (Optional) The request quota. Set this to zero
+      to make VWS endpoints return ``RequestQuotaReached``.
+
     :reqjson string server_access_key: (Optional) The server access key for the
       cloud database.
 
@@ -172,6 +175,8 @@ def create_cloud_database() -> Response:
       database.
 
     :resjson string database_name: The cloud database name.
+
+    :resjson int request_quota: The request quota.
 
     :resjson string server_access_key: The server access key for the cloud
       database.
@@ -216,6 +221,10 @@ def create_cloud_database() -> Response:
         "database_type_name",
         random_database.database_type.name,
     )
+    request_quota = request_json.get(
+        "request_quota",
+        random_database.request_quota,
+    )
 
     state = States[state_name]
     database_type = DatabaseType[database_type_name]
@@ -228,6 +237,7 @@ def create_cloud_database() -> Response:
         database_name=database_name,
         state=state,
         database_type=database_type,
+        request_quota=request_quota,
     )
     try:
         TARGET_MANAGER.add_cloud_database(cloud_database=database)

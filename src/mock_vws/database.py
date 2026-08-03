@@ -3,7 +3,7 @@
 import uuid
 from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Self, TypedDict
+from typing import NotRequired, Self, TypedDict
 
 from beartype import beartype
 
@@ -30,6 +30,7 @@ class CloudDatabaseDict(TypedDict):
     state_name: str
     database_type_name: str
     targets: Iterable[ImageTargetDict]
+    request_quota: NotRequired[int]
 
 
 @beartype
@@ -66,6 +67,8 @@ class CloudDatabase:
         client_secret_key: A VWS client secret key. Defaults to a random
             string.
         state: The state of the database.
+        request_quota: The request quota. Set this to ``0`` to make VWS
+            endpoints return ``RequestQuotaReached``.
     """
 
     # We hide a few things in the ``repr`` with ``repr=False`` so that they do
@@ -107,6 +110,7 @@ class CloudDatabase:
             "state_name": self.state.name,
             "database_type_name": self.database_type.name,
             "targets": targets,
+            "request_quota": self.request_quota,
         }
 
     def get_target(self, target_id: str) -> ImageTarget:
@@ -133,6 +137,7 @@ class CloudDatabase:
             state=States[database_dict["state_name"]],
             database_type=DatabaseType[database_dict["database_type_name"]],
             targets=targets,
+            request_quota=database_dict.get("request_quota", 100000),
         )
 
     @property
