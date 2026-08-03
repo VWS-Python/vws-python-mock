@@ -80,7 +80,11 @@ def _credentials_for_backend(
     )
 
 
-def _get_access_token(*, credentials: ModelTargetCredentials) -> str:
+def _get_access_token(
+    *,
+    credentials: ModelTargetCredentials,
+    backend: VuforiaBackend,
+) -> str:
     """Return an OAuth2 access token."""
     response = requests.post(
         url=f"{_VWS_HOST}/oauth2/token",
@@ -88,6 +92,19 @@ def _get_access_token(*, credentials: ModelTargetCredentials) -> str:
         data={"grant_type": "client_credentials"},
         timeout=30,
     )
+
+    if (
+        backend == VuforiaBackend.REAL
+        and response.status_code == HTTPStatus.UNAUTHORIZED
+        and response.json() == {"error": "invalid_client"}
+    ):
+        pytest.xfail(
+            reason=(
+                "Real Model Target Web API credentials are not accepted; "
+                "authenticated behavior is verified against the mock "
+                "backends only until the credentials are rotated."
+            ),
+        )
 
     assert response.status_code == HTTPStatus.OK
     response_json: dict[str, Any] = json.loads(s=response.text)
@@ -341,7 +358,10 @@ class TestErrorResponses:
         credentials = _credentials_for_backend(
             backend=verify_model_target_mock_vuforia,
         )
-        access_token = _get_access_token(credentials=credentials)
+        access_token = _get_access_token(
+            credentials=credentials,
+            backend=verify_model_target_mock_vuforia,
+        )
         response = requests.post(
             url=f"{_VWS_HOST}/modeltargets/datasets",
             headers={"Authorization": f"Bearer {access_token}"},
@@ -366,7 +386,10 @@ class TestErrorResponses:
         credentials = _credentials_for_backend(
             backend=verify_model_target_mock_vuforia,
         )
-        access_token = _get_access_token(credentials=credentials)
+        access_token = _get_access_token(
+            credentials=credentials,
+            backend=verify_model_target_mock_vuforia,
+        )
         response = requests.post(
             url=f"{_VWS_HOST}/modeltargets/datasets",
             headers={
@@ -425,7 +448,10 @@ class TestErrorResponses:
         credentials = _credentials_for_backend(
             backend=verify_model_target_mock_vuforia,
         )
-        access_token = _get_access_token(credentials=credentials)
+        access_token = _get_access_token(
+            credentials=credentials,
+            backend=verify_model_target_mock_vuforia,
+        )
         response = requests.post(
             url=f"{_VWS_HOST}/modeltargets/datasets",
             headers={"Authorization": f"Bearer {access_token}"},
@@ -475,7 +501,10 @@ class TestErrorResponses:
         credentials = _credentials_for_backend(
             backend=verify_model_target_mock_vuforia,
         )
-        access_token = _get_access_token(credentials=credentials)
+        access_token = _get_access_token(
+            credentials=credentials,
+            backend=verify_model_target_mock_vuforia,
+        )
         response = requests.request(
             method=method,
             url=f"{_VWS_HOST}{path}",
@@ -574,7 +603,10 @@ class TestStandardDataset:
         credentials = _credentials_for_backend(
             backend=verify_model_target_mock_vuforia,
         )
-        access_token = _get_access_token(credentials=credentials)
+        access_token = _get_access_token(
+            credentials=credentials,
+            backend=verify_model_target_mock_vuforia,
+        )
         headers = {"Authorization": f"Bearer {access_token}"}
         dataset_uuid: str | None = None
 
