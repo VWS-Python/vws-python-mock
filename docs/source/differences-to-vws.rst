@@ -102,6 +102,31 @@ The mock returns ``RequestQuotaReached`` when a
 but the response has not been verified against a real database with an
 exhausted quota.
 
+Configurable Cloud Query failures
+---------------------------------
+
+The Vuforia Cloud Query API documents failure responses with JSON, arbitrary
+content, or no body. Use
+:paramref:`mock_vws.MockVWS.cloud_query_failure_response` to make every Cloud
+Query request return a particular documented failure shape through the
+in-process ``requests`` and ``httpx`` backends::
+
+    from mock_vws import CloudQueryFailureResponse, MockVWS
+
+    failure = CloudQueryFailureResponse(
+        status_code=503,
+        headers={"Content-Type": "text/plain", "Retry-After": "10"},
+        body=b"Temporarily unavailable",
+    )
+
+    with MockVWS(cloud_query_failure_response=failure):
+        # Cloud Query calls return the configured response.
+        ...
+
+The configured response bypasses normal Cloud Query validation and image
+matching. Omitting it preserves the normal successful-query behavior. This
+configuration is not supported by the Flask/Docker backend.
+
 Other configurable result codes
 -------------------------------
 
