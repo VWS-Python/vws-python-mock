@@ -3,6 +3,40 @@ Changelog
 
 .. towncrier release notes start
 
+2026.08.04.2
+------------
+
+- Replace the PyTorch image-quality stack with OpenCV and a lightweight BRISQUE
+  implementation. This reduces dependency download and installation sizes and
+  removes the need to configure PyTorch's CPU-only package index.
+
+- Allow VuMark generation requests to be configured to return ``QuotaExceeded``, ``LicenseCheckFailed``, or ``AuthorizationFailed`` responses.
+
+- Cloud databases with ``request_quota=0`` now return a
+  ``RequestQuotaReached`` response from VWS endpoints.
+
+- Add a mock implementation of the Model Target Web API, including OAuth2 token creation, standard and advanced dataset creation, status polling, dataset download, and deletion.
+
+- Improve Model Target Web API mock authentication failure responses, including
+  malformed and unsecured JSON Web Token headers.
+
+- Match real Vuforia Model Target dataset creation validation error shape, including per-request UUID, details list, and status codes (415 for unsupported media type, 400 with ``BAD_REQUEST`` validation details).
+
+- Match real Vuforia Model Target unknown-dataset response shape (``NOT_FOUND`` code, ``Could not find a model-view database with uuid <uuid>`` message, ``userId:`` target).
+  Keep each Model Target dataset status response internally consistent when processing completes while the response is being generated.
+
+- Make synthetic Model Target dataset zip downloads byte-for-byte reproducible.
+
+- Match real Vuforia Model Target Web API error responses for invalid request bodies, invalid dataset creation payloads, unknown datasets, and downloads of still-processing datasets.
+
+- Add configurable ``TargetQuotaReached``, ``ProjectSuspended``, and
+  ``ProjectHasNoAPIAccess`` responses from VWS endpoints.
+
+- Add configurable ``TooManyRequests`` responses from VWS endpoints using the
+  ``CloudDatabase.requests_per_second_limit`` setting.
+
+- Add ``CloudQueryFailureResponse`` and the ``MockVWS.cloud_query_failure_response`` parameter for returning configurable Cloud Query failure status codes, headers, and raw bodies through the ``requests`` and ``httpx`` backends.
+
 2026.04.26
 ----------
 

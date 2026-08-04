@@ -1,2 +1,0 @@
-Match real Vuforia Model Target unknown-dataset response shape (``NOT_FOUND`` code, ``Could not find a model-view database with uuid <uuid>`` message, ``userId:`` target).
-Keep each Model Target dataset status response internally consistent when processing completes while the response is being generated.

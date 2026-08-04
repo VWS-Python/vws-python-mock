@@ -1,2 +1,0 @@
-Add configurable ``TooManyRequests`` responses from VWS endpoints using the
-``CloudDatabase.requests_per_second_limit`` setting.
