@@ -44,6 +44,7 @@ from tests.mock_vws.utils.usage_test_helpers import (
     processing_time_seconds,
 )
 
+_MODEL_TARGET_AUTHORIZATION = "Bearer eyJhbGciOiJtb2NrIn0.e30.signature"
 _MODEL_TARGET_DATASET_REQUEST = {
     "name": "dataset-name",
     "targetSdk": "10.18",
@@ -1347,7 +1348,7 @@ class TestModelTargetWebAPI:
         with MockVWS(processing_time_seconds=0):
             response = requests.post(
                 url="https://vws.vuforia.com/modeltargets/advancedDatasets",
-                headers={"Authorization": "Bearer mock.header.signature"},
+                headers={"Authorization": _MODEL_TARGET_AUTHORIZATION},
                 json=_MODEL_TARGET_DATASET_REQUEST,
                 timeout=30,
             )
@@ -1357,7 +1358,7 @@ class TestModelTargetWebAPI:
                     "https://vws.vuforia.com/modeltargets/"
                     f"advancedDatasets/{dataset_uuid}/status"
                 ),
-                headers={"Authorization": "Bearer mock.header.signature"},
+                headers={"Authorization": _MODEL_TARGET_AUTHORIZATION},
                 timeout=30,
             )
 
@@ -1367,7 +1368,7 @@ class TestModelTargetWebAPI:
     @staticmethod
     def test_dataset_download_is_reproducible() -> None:
         """Downloading the same dataset produces identical bytes."""
-        headers = {"Authorization": "Bearer mock.header.signature"}
+        headers = {"Authorization": _MODEL_TARGET_AUTHORIZATION}
         with MockVWS(processing_time_seconds=0):
             with freeze_time(time_to_freeze="2026-01-01"):
                 create_response = requests.post(

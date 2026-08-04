@@ -19,7 +19,7 @@ from tests.mock_vws.fixtures.vuforia_backends import VuforiaBackend
 
 _VWS_HOST = "https://vws.vuforia.com"
 _DATASET_UUID = "0b12466eee5d49409a440927006ff5d8"
-_MOCK_BEARER_TOKEN = "mock.header.signature"
+_MOCK_BEARER_TOKEN = "eyJhbGciOiJtb2NrIn0.e30.signature"
 
 
 def _dataset_request(*, cad_data_url: str) -> dict[str, Any]:
@@ -237,6 +237,24 @@ class TestAuthentication:
                 "Bearer invalid-token",
                 "Invalid JWT serialization: Missing dot delimiter(s)",
                 id="malformed",
+            ),
+            pytest.param(
+                "Bearer ..",
+                "Invalid unsecured/JWS/JWE header: Invalid JSON object",
+                id="invalid-header-json",
+            ),
+            pytest.param(
+                "Bearer e30.e30.signature",
+                'Missing "alg" in header JSON object',
+                id="missing-algorithm",
+            ),
+            pytest.param(
+                "Bearer eyJhbGciOiJub25lIn0.e30.",
+                (
+                    "Unsecured (plain) JWTs are rejected, extend class to "
+                    "handle"
+                ),
+                id="unsecured",
             ),
         ],
     )

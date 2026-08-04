@@ -128,6 +128,30 @@ def _basic_auth_credentials(auth_header: str | None) -> tuple[str, str] | None:
 
 
 @beartype
+def _jwt_header_error(*, bearer_token: str) -> str | None:
+    """Return the Vuforia error for an invalid JSON Web Token header."""
+    encoded_header = bearer_token.partition(".")[0]
+    try:
+        padding = "=" * (-len(encoded_header) % 4)
+        decoded_header = base64.b64decode(
+            s=encoded_header + padding,
+            altchars=b"-_",
+            validate=True,
+        )
+        header = json.loads(s=decoded_header)
+    except ValueError:
+        header = None
+
+    if not isinstance(header, dict):
+        return "Invalid unsecured/JWS/JWE header: Invalid JSON object"
+    if "alg" not in header:
+        return 'Missing "alg" in header JSON object'
+    if header["alg"] == "none":
+        return "Unsecured (plain) JWTs are rejected, extend class to handle"
+    return None
+
+
+@beartype
 def _require_bearer_token(request: RequestData) -> _ResponseType | None:
     """Return an error response if the request has no bearer token."""
     auth_header = _get_header(request=request, name="Authorization")
@@ -153,6 +177,15 @@ def _require_bearer_token(request: RequestData) -> _ResponseType | None:
             status_code=HTTPStatus.UNAUTHORIZED,
             code="401",
             message="Invalid JWT serialization: Missing dot delimiter(s)",
+            target="jwt",
+            details=None,
+        )
+    jwt_header_error = _jwt_header_error(bearer_token=bearer_token)
+    if jwt_header_error is not None:
+        return _error_response(
+            status_code=HTTPStatus.UNAUTHORIZED,
+            code="401",
+            message=jwt_header_error,
             target="jwt",
             details=None,
         )
