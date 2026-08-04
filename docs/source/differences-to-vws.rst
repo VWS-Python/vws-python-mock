@@ -92,7 +92,6 @@ There are some result codes which the mock cannot return.
 These are:
 
 * ``DateRangeError``
-* ``TooManyRequests``
 
 Request quota exhaustion
 ------------------------
@@ -106,7 +105,7 @@ exhausted quota.
 Other configurable result codes
 -------------------------------
 
-The mock also supports three other result codes which have not been verified
+The mock also supports four other result codes which have not been verified
 against real databases in the corresponding states:
 
 * ``TargetQuotaReached`` is returned when adding a target to a
@@ -116,6 +115,11 @@ against real databases in the corresponding states:
   :attr:`mock_vws.states.States.PROJECT_SUSPENDED` state.
 * ``ProjectHasNoAPIAccess`` is returned by VWS endpoints when a database uses
   the :attr:`mock_vws.states.States.PROJECT_HAS_NO_API_ACCESS` state.
+* ``TooManyRequests`` is returned when a
+  :class:`mock_vws.database.CloudDatabase` exceeds its
+  ``requests_per_second_limit``. Set the limit to ``0`` to return this result
+  code for every VWS request. By default, the mock does not apply a per-second
+  request limit.
 
 ``Content-Length`` headers
 --------------------------

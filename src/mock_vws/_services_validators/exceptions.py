@@ -146,6 +146,37 @@ class RequestQuotaReachedError(ValidatorError):
 
 
 @beartype
+class TooManyRequestsError(ValidatorError):
+    """Exception raised when a database exceeds its request rate limit."""
+
+    def __init__(self) -> None:
+        """Initialize a ``TooManyRequests`` response."""
+        super().__init__()
+        self.status_code = HTTPStatus.TOO_MANY_REQUESTS
+        body = {
+            "transaction_id": uuid.uuid4().hex,
+            "result_code": ResultCodes.TOO_MANY_REQUESTS.value,
+        }
+        self.response_text = json_dump(body=body)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
+        self.headers = {
+            "Connection": "keep-alive",
+            "Content-Type": "application/json",
+            "server": "envoy",
+            "Date": date,
+            "x-envoy-upstream-service-time": "5",
+            "Content-Length": str(object=len(self.response_text)),
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
+        }
+
+
+@beartype
 class TargetQuotaReachedError(ValidatorError):
     """Exception raised when a database's target quota is exhausted."""
 
