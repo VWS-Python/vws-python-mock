@@ -26,7 +26,7 @@ def _get_brisque_target_tracking_rating(*, image_content: bytes) -> int:
     """
     image_file = io.BytesIO(initial_bytes=image_content)
     with Image.open(fp=image_file) as image, warnings.catch_warnings():
-        # Uniform images produce a zero-variance warning and a NaN score.
+        # Uniform images produce a zero-variance warning and non-finite score.
         warnings.simplefilter(action="ignore", category=RuntimeWarning)
         brisque_score = score(image=image)
 
