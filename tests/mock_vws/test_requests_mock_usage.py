@@ -1209,6 +1209,40 @@ class TestModelTargetWebAPI:
         assert status_response.json()["uuid"] == dataset_uuid
 
     @staticmethod
+    def test_dataset_download_is_reproducible() -> None:
+        """Downloading the same dataset produces identical bytes."""
+        headers = {"Authorization": "Bearer mock.header.signature"}
+        with MockVWS(processing_time_seconds=0):
+            with freeze_time(time_to_freeze="2026-01-01"):
+                create_response = requests.post(
+                    url="https://vws.vuforia.com/modeltargets/datasets",
+                    headers=headers,
+                    json=_MODEL_TARGET_DATASET_REQUEST,
+                    timeout=30,
+                )
+            dataset_uuid = create_response.json()["uuid"]
+            dataset_url = (
+                "https://vws.vuforia.com/modeltargets/datasets/"
+                f"{dataset_uuid}/dataset"
+            )
+            with freeze_time(time_to_freeze="2026-01-02"):
+                first_response = requests.get(
+                    url=dataset_url,
+                    headers=headers,
+                    timeout=30,
+                )
+            with freeze_time(time_to_freeze="2027-01-02"):
+                second_response = requests.get(
+                    url=dataset_url,
+                    headers=headers,
+                    timeout=30,
+                )
+
+        assert first_response.status_code == HTTPStatus.OK
+        assert second_response.status_code == HTTPStatus.OK
+        assert first_response.content == second_response.content
+
+    @staticmethod
     def test_bearer_token_required() -> None:
         """Model Target dataset routes require a bearer token."""
         with MockVWS():
