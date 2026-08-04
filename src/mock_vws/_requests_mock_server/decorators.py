@@ -25,6 +25,7 @@ from mock_vws.target_raters import (
     BrisqueTargetTrackingRater,
     TargetTrackingRater,
 )
+from mock_vws.vumark import VuMarkGenerationFailure
 
 from .mock_web_query_api import MockVuforiaWebQueryAPI
 from .mock_web_services_api import MockVuforiaWebServicesAPI
@@ -60,6 +61,7 @@ class MockVWS(ContextDecorator):
         real_http: bool = False,
         response_delay_seconds: float = 0.0,
         sleep_fn: Callable[[float], None] = time.sleep,
+        vumark_generation_failure: VuMarkGenerationFailure | None = None,
     ) -> None:
         """Route requests to Vuforia's Web Service APIs to fakes of those
         APIs.
@@ -80,6 +82,10 @@ class MockVWS(ContextDecorator):
                 Query request, bypassing normal request validation and image
                 matching. By default, Cloud Query requests are handled
                 normally.
+            vumark_generation_failure: A failure to return for every VuMark
+                generation request, bypassing normal request validation and
+                instance generation. By default, VuMark generation requests
+                are handled normally.
             query_match_checker: A callable which takes two image values and
                 returns whether they will match in a query request.
             duplicate_match_checker: A callable which takes two image values
@@ -115,6 +121,7 @@ class MockVWS(ContextDecorator):
             processing_time_seconds=float(processing_time_seconds),
             duplicate_match_checker=duplicate_match_checker,
             target_tracking_rater=target_tracking_rater,
+            vumark_generation_failure=vumark_generation_failure,
         )
 
         self._mock_vwq_api = MockVuforiaWebQueryAPI(
