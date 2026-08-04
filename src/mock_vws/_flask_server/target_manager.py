@@ -162,6 +162,10 @@ def create_cloud_database() -> Response:
     :reqjson int target_quota: (Optional) The target quota. Once this many
       targets exist, adding another returns ``TargetQuotaReached``.
 
+    :reqjson int requests_per_second_limit: (Optional) The maximum number of
+      VWS requests accepted in a rolling one-second window. Set this to zero
+      to make VWS endpoints return ``TooManyRequests``.
+
     :reqjson string server_access_key: (Optional) The server access key for the
       cloud database.
 
@@ -183,6 +187,9 @@ def create_cloud_database() -> Response:
     :resjson int request_quota: The request quota.
 
     :resjson int target_quota: The target quota.
+
+    :resjson int requests_per_second_limit: The per-second request limit, or
+      null when rate limiting is disabled.
 
     :resjson string server_access_key: The server access key for the cloud
       database.
@@ -234,6 +241,10 @@ def create_cloud_database() -> Response:
         "target_quota",
         random_database.target_quota,
     )
+    requests_per_second_limit = request_json.get(
+        "requests_per_second_limit",
+        random_database.requests_per_second_limit,
+    )
 
     state = States[state_name]
     database_type = DatabaseType[database_type_name]
@@ -248,6 +259,7 @@ def create_cloud_database() -> Response:
         database_type=database_type,
         request_quota=request_quota,
         target_quota=target_quota,
+        requests_per_second_limit=requests_per_second_limit,
     )
     try:
         TARGET_MANAGER.add_cloud_database(cloud_database=database)

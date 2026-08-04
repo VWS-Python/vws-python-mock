@@ -32,6 +32,7 @@ class CloudDatabaseDict(TypedDict):
     targets: Iterable[ImageTargetDict]
     request_quota: NotRequired[int]
     target_quota: NotRequired[int]
+    requests_per_second_limit: NotRequired[int | None]
 
 
 @beartype
@@ -72,6 +73,10 @@ class CloudDatabase:
             endpoints return ``RequestQuotaReached``.
         target_quota: The target quota. When the database contains this many
             targets, adding another returns ``TargetQuotaReached``.
+        requests_per_second_limit: The maximum number of VWS requests accepted
+            in a rolling one-second window. Set this to ``0`` to make VWS
+            endpoints return ``TooManyRequests``. By default, the mock does
+            not apply a per-second request limit.
     """
 
     # We hide a few things in the ``repr`` with ``repr=False`` so that they do
@@ -98,6 +103,7 @@ class CloudDatabase:
     previous_month_recos: int = 0
     total_recos: int = 0
     target_quota: int = 1000
+    requests_per_second_limit: int | None = None
 
     def to_dict(self) -> CloudDatabaseDict:
         """Dump a target to a dictionary which can be loaded as JSON."""
@@ -115,6 +121,7 @@ class CloudDatabase:
             "targets": targets,
             "request_quota": self.request_quota,
             "target_quota": self.target_quota,
+            "requests_per_second_limit": self.requests_per_second_limit,
         }
 
     def get_target(self, target_id: str) -> ImageTarget:
@@ -143,6 +150,9 @@ class CloudDatabase:
             targets=targets,
             request_quota=database_dict.get("request_quota", 100000),
             target_quota=database_dict.get("target_quota", 1000),
+            requests_per_second_limit=database_dict.get(
+                "requests_per_second_limit"
+            ),
         )
 
     @property

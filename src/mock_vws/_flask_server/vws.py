@@ -202,6 +202,7 @@ def validate_request() -> None:
         request_method=request.method,
         request_path=request.path,
         databases=get_all_cloud_databases(),
+        request_rate_limiter=TARGET_MANAGER.request_rate_limiter,
     )
 
 
@@ -590,6 +591,7 @@ def generate_vumark_instance(target_id: str) -> Response:
         request_method=request.method,
         request_path=request.path,
         databases=all_databases,
+        request_rate_limiter=TARGET_MANAGER.request_rate_limiter,
     )
 
     database = get_database_matching_server_keys(

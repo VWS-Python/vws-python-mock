@@ -49,6 +49,10 @@ from .name_validators import (
 )
 from .project_state_validators import validate_project_state
 from .request_quota_validators import validate_request_quota
+from .request_rate_validators import (
+    RequestRateLimiter,
+    validate_request_rate,
+)
 from .target_quota_validators import validate_target_quota
 from .target_validators import validate_target_id_exists
 from .width_validators import validate_width
@@ -62,6 +66,7 @@ def run_services_validators(
     request_body: bytes,
     request_method: str,
     databases: Iterable[AnyDatabase],
+    request_rate_limiter: RequestRateLimiter,
 ) -> None:
     """Run all validators.
 
@@ -71,6 +76,7 @@ def run_services_validators(
         request_body: The body of the request.
         request_method: The HTTP method of the request.
         databases: All Vuforia databases.
+        request_rate_limiter: The rate limiter tracking recent requests.
     """
     validate_auth_header_exists(request_headers=request_headers)
     validate_auth_header_has_signature(request_headers=request_headers)
@@ -91,6 +97,14 @@ def run_services_validators(
         request_method=request_method,
         request_path=request_path,
         databases=databases,
+    )
+    validate_request_rate(
+        request_headers=request_headers,
+        request_body=request_body,
+        request_method=request_method,
+        request_path=request_path,
+        databases=databases,
+        request_rate_limiter=request_rate_limiter,
     )
     validate_project_state(
         request_headers=request_headers,

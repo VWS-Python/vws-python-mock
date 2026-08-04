@@ -317,6 +317,7 @@ class MockVuforiaWebServicesAPI:
                 request_method=request.method,
                 request_path=request.path,
                 databases=self._target_manager.cloud_databases,
+                request_rate_limiter=self._target_manager.request_rate_limiter,
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
@@ -392,6 +393,7 @@ class MockVuforiaWebServicesAPI:
                 request_method=request.method,
                 request_path=request.path,
                 databases=self._target_manager.cloud_databases,
+                request_rate_limiter=self._target_manager.request_rate_limiter,
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
@@ -469,6 +471,7 @@ class MockVuforiaWebServicesAPI:
                 request_method=request.method,
                 request_path=request.path,
                 databases=all_databases,
+                request_rate_limiter=self._target_manager.request_rate_limiter,
             )
 
             database = get_database_matching_server_keys(
@@ -530,6 +533,7 @@ class MockVuforiaWebServicesAPI:
                 request_method=request.method,
                 request_path=request.path,
                 databases=self._target_manager.cloud_databases,
+                request_rate_limiter=self._target_manager.request_rate_limiter,
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
@@ -591,6 +595,7 @@ class MockVuforiaWebServicesAPI:
                 request_method=request.method,
                 request_path=request.path,
                 databases=self._target_manager.cloud_databases,
+                request_rate_limiter=self._target_manager.request_rate_limiter,
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
@@ -648,6 +653,7 @@ class MockVuforiaWebServicesAPI:
                 request_method=request.method,
                 request_path=request.path,
                 databases=self._target_manager.cloud_databases,
+                request_rate_limiter=self._target_manager.request_rate_limiter,
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
@@ -717,6 +723,7 @@ class MockVuforiaWebServicesAPI:
                 request_method=request.method,
                 request_path=request.path,
                 databases=self._target_manager.cloud_databases,
+                request_rate_limiter=self._target_manager.request_rate_limiter,
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
@@ -788,6 +795,7 @@ class MockVuforiaWebServicesAPI:
                 request_method=request.method,
                 request_path=request.path,
                 databases=self._target_manager.cloud_databases,
+                request_rate_limiter=self._target_manager.request_rate_limiter,
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
@@ -902,6 +910,7 @@ class MockVuforiaWebServicesAPI:
                 request_method=request.method,
                 request_path=request.path,
                 databases=self._target_manager.cloud_databases,
+                request_rate_limiter=self._target_manager.request_rate_limiter,
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text

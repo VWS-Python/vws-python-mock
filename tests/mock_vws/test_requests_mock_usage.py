@@ -22,11 +22,18 @@ from vws.exceptions.vws_exceptions import (
     ProjectSuspendedError,
     RequestQuotaReachedError,
     TargetQuotaReachedError,
+    TooManyRequestsError,
 )
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws import MissingSchemeError, MockVWS
 from mock_vws._constants import ResultCodes
+from mock_vws._services_validators.exceptions import (
+    TooManyRequestsError as TooManyRequestsValidatorError,
+)
+from mock_vws._services_validators.request_rate_validators import (
+    RequestRateLimiter,
+)
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.image_matchers import ExactMatcher, StructuralSimilarityMatcher
 from mock_vws.states import States
@@ -376,6 +383,46 @@ class TestRequestQuota:
             status_code=HTTPStatus.FORBIDDEN,
             result_code=ResultCodes.REQUEST_QUOTA_REACHED,
         )
+
+
+class TestRequestRateLimit:
+    """Tests for configurable per-second VWS request limits."""
+
+    @staticmethod
+    def test_zero_limit() -> None:
+        """A zero request rate limit rejects every VWS request."""
+        database = CloudDatabase(requests_per_second_limit=0)
+        client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+
+        with MockVWS() as mock:
+            mock.add_cloud_database(cloud_database=database)
+            with pytest.raises(
+                expected_exception=TooManyRequestsError,
+            ) as exc_info:
+                client.list_targets()
+
+        assert_vws_failure(
+            response=exc_info.value.response,
+            status_code=HTTPStatus.TOO_MANY_REQUESTS,
+            result_code=ResultCodes.TOO_MANY_REQUESTS,
+        )
+
+    @staticmethod
+    def test_rolling_window() -> None:
+        """Requests are accepted again after the rolling window passes."""
+        request_times = iter([10.0, 10.5, 11.0])
+        rate_limiter = RequestRateLimiter(
+            time_function=request_times.__next__,
+        )
+        database = CloudDatabase(requests_per_second_limit=1)
+
+        rate_limiter.validate(database=database)
+        with pytest.raises(expected_exception=TooManyRequestsValidatorError):
+            rate_limiter.validate(database=database)
+        rate_limiter.validate(database=database)
 
 
 class TestAdditionalResultCodes:
@@ -744,6 +791,23 @@ class TestDatabaseToDict:
         new_database = CloudDatabase.from_dict(database_dict=database_dict)
 
         assert new_database.target_quota == 0
+
+    @staticmethod
+    def test_custom_requests_per_second_limit() -> None:
+        """The per-second request limit survives a dictionary round
+        trip.
+        """
+        requests_per_second_limit = 12
+        database = CloudDatabase(
+            requests_per_second_limit=requests_per_second_limit
+        )
+
+        database_dict = database.to_dict()
+        new_database = CloudDatabase.from_dict(database_dict=database_dict)
+
+        assert (
+            new_database.requests_per_second_limit == requests_per_second_limit
+        )
 
     @staticmethod
     def test_vumark_database_to_dict() -> None:
