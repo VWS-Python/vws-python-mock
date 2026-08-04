@@ -34,6 +34,12 @@ jobs:
           # The default GITHUB_TOKEN cannot bypass rulesets.
           token: ${{ secrets.RELEASE_PAT }}
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: '**/pyproject.toml'
+
       - name: Calver calculate version
         uses: StephaneBour/actions-calver@master
         id: calver
