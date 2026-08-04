@@ -138,7 +138,9 @@ Model Target datasets
 
 The Model Target Web API mock supports OAuth2 token requests, standard and advanced dataset creation, status polling, dataset downloads, and deletion.
 The generated dataset download is a small valid zip file containing request metadata, not a real Vuforia Engine Model Target dataset.
-Model Target API routes require a syntactically JSON Web Token-shaped bearer token, such as the token returned by the mock OAuth2 route.
+Model Target API routes require a three-part JSON Web Token with a JSON object
+header and a non-``none`` ``alg`` value, such as the token returned by the mock
+OAuth2 route.
 The mock does not verify token signatures, claims, expiry, or revocation.
 
 For unknown Model Target datasets, the mock returns an error whose ``target`` is ``userId:mock``.

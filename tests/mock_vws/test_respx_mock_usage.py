@@ -19,6 +19,7 @@ from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.image_matchers import ExactMatcher
 from mock_vws.target import VuMarkTarget
 
+_MODEL_TARGET_AUTHORIZATION = "Bearer eyJhbGciOiJtb2NrIn0.e30.signature"
 _MODEL_TARGET_DATASET_REQUEST = {
     "name": "dataset-name",
     "targetSdk": "10.18",
@@ -191,7 +192,7 @@ class TestModelTargetWebAPI:
         with MockVWS(processing_time_seconds=0):
             create_response = httpx.post(
                 url="https://vws.vuforia.com/modeltargets/datasets",
-                headers={"Authorization": "Bearer mock.header.signature"},
+                headers={"Authorization": _MODEL_TARGET_AUTHORIZATION},
                 json=_MODEL_TARGET_DATASET_REQUEST,
                 timeout=30,
             )
@@ -201,7 +202,7 @@ class TestModelTargetWebAPI:
                     "https://vws.vuforia.com/modeltargets/datasets/"
                     f"{dataset_uuid}/status"
                 ),
-                headers={"Authorization": "Bearer mock.header.signature"},
+                headers={"Authorization": _MODEL_TARGET_AUTHORIZATION},
                 timeout=30,
             )
 

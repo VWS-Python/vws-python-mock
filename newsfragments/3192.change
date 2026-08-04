@@ -1,1 +1,2 @@
-Improve Model Target Web API mock authentication failure responses.
+Improve Model Target Web API mock authentication failure responses, including
+malformed and unsecured JSON Web Token headers.
