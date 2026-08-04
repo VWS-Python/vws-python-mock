@@ -3,6 +3,27 @@ Changelog
 
 .. towncrier release notes start
 
+2026.08.04
+----------
+
+- Cloud databases with ``request_quota=0`` now return a
+  ``RequestQuotaReached`` response from VWS endpoints.
+
+- Add a mock implementation of the Model Target Web API, including OAuth2 token creation, standard and advanced dataset creation, status polling, dataset download, and deletion.
+
+- Improve Model Target Web API mock authentication failure responses.
+
+- Match real Vuforia Model Target dataset creation validation error shape, including per-request UUID, details list, and status codes (415 for unsupported media type, 400 with ``BAD_REQUEST`` validation details).
+
+- Match real Vuforia Model Target unknown-dataset response shape (``NOT_FOUND`` code, ``Could not find a model-view database with uuid <uuid>`` message, ``userId:`` target).
+
+- Make synthetic Model Target dataset zip downloads byte-for-byte reproducible.
+
+- Match real Vuforia Model Target Web API error responses for invalid request bodies, invalid dataset creation payloads, unknown datasets, and downloads of still-processing datasets.
+
+- Add configurable ``TargetQuotaReached``, ``ProjectSuspended``, and
+  ``ProjectHasNoAPIAccess`` responses from VWS endpoints.
+
 2026.04.26
 ----------
 
