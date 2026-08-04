@@ -10,7 +10,12 @@ from mock_vws._database_matchers import (
     AnyDatabase,
     get_database_matching_server_keys,
 )
-from mock_vws._services_validators.exceptions import ProjectInactiveError
+from mock_vws._services_validators.exceptions import (
+    ProjectHasNoAPIAccessError,
+    ProjectInactiveError,
+    ProjectSuspendedError,
+    ValidatorError,
+)
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.states import States
 
@@ -46,6 +51,13 @@ def validate_project_state(
         request_path=request_path,
         databases=databases,
     )
+
+    state_errors: dict[States, type[ValidatorError]] = {
+        States.PROJECT_HAS_NO_API_ACCESS: ProjectHasNoAPIAccessError,
+        States.PROJECT_SUSPENDED: ProjectSuspendedError,
+    }
+    if error := state_errors.get(database.state):
+        raise error
 
     if database.state != States.PROJECT_INACTIVE:
         return

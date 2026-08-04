@@ -159,6 +159,9 @@ def create_cloud_database() -> Response:
     :reqjson int request_quota: (Optional) The request quota. Set this to zero
       to make VWS endpoints return ``RequestQuotaReached``.
 
+    :reqjson int target_quota: (Optional) The target quota. Once this many
+      targets exist, adding another returns ``TargetQuotaReached``.
+
     :reqjson string server_access_key: (Optional) The server access key for the
       cloud database.
 
@@ -166,7 +169,8 @@ def create_cloud_database() -> Response:
       cloud database.
 
     :reqjson string state_name: (Optional) The state of the cloud database.
-     This can be "WORKING" or "PROJECT_INACTIVE". This defaults to "WORKING".
+     This can be "WORKING", "PROJECT_INACTIVE", "PROJECT_SUSPENDED", or
+     "PROJECT_HAS_NO_API_ACCESS". This defaults to "WORKING".
 
     :resjson string client_access_key: The client access key for the cloud
       database.
@@ -178,14 +182,15 @@ def create_cloud_database() -> Response:
 
     :resjson int request_quota: The request quota.
 
+    :resjson int target_quota: The target quota.
+
     :resjson string server_access_key: The server access key for the cloud
       database.
 
     :resjson string server_secret_key: The server secret key for the cloud
       database.
 
-    :resjson string state_name: The cloud database state. This will be
-      "WORKING" or "PROJECT_INACTIVE".
+    :resjson string state_name: The cloud database state.
 
     :reqjsonarr targets: The targets in the cloud database.
 
@@ -225,6 +230,10 @@ def create_cloud_database() -> Response:
         "request_quota",
         random_database.request_quota,
     )
+    target_quota = request_json.get(
+        "target_quota",
+        random_database.target_quota,
+    )
 
     state = States[state_name]
     database_type = DatabaseType[database_type_name]
@@ -238,6 +247,7 @@ def create_cloud_database() -> Response:
         state=state,
         database_type=database_type,
         request_quota=request_quota,
+        target_quota=target_quota,
     )
     try:
         TARGET_MANAGER.add_cloud_database(cloud_database=database)

@@ -12,5 +12,9 @@ class States(StrEnum):
 
     WORKING = auto()
 
+    PROJECT_SUSPENDED = auto()
+
     # A project is inactive if the license key has been deleted.
     PROJECT_INACTIVE = auto()
+
+    PROJECT_HAS_NO_API_ACCESS = auto()

@@ -15,7 +15,10 @@ import responses
 from PIL import Image
 from requests_mock_flask import add_flask_app_to_mock
 from vws import VWS, CloudRecoService
-from vws.exceptions.vws_exceptions import RequestQuotaReachedError
+from vws.exceptions.vws_exceptions import (
+    RequestQuotaReachedError,
+    TargetQuotaReachedError,
+)
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes
@@ -162,6 +165,34 @@ class TestRequestQuota:
 
         with pytest.raises(expected_exception=RequestQuotaReachedError):
             client.list_targets()
+
+    @staticmethod
+    def test_target_quota_reached(
+        *,
+        image_file_failed_state: io.BytesIO,
+    ) -> None:
+        """The Flask mock preserves and enforces a zero target quota."""
+        database = CloudDatabase(target_quota=0)
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+        response = requests.post(
+            url=databases_url,
+            json=database.to_dict(),
+            timeout=30,
+        )
+        response.raise_for_status()
+        client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+
+        with pytest.raises(expected_exception=TargetQuotaReachedError):
+            client.add_target(
+                name="example",
+                width=1,
+                image=image_file_failed_state,
+                application_metadata=None,
+                active_flag=True,
+            )
 
 
 class TestAddCloudDatabase:

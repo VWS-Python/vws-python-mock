@@ -146,6 +146,99 @@ class RequestQuotaReachedError(ValidatorError):
 
 
 @beartype
+class TargetQuotaReachedError(ValidatorError):
+    """Exception raised when a database's target quota is exhausted."""
+
+    def __init__(self) -> None:
+        """Initialize a ``TargetQuotaReached`` response."""
+        super().__init__()
+        self.status_code = HTTPStatus.FORBIDDEN
+        body = {
+            "transaction_id": uuid.uuid4().hex,
+            "result_code": ResultCodes.TARGET_QUOTA_REACHED.value,
+        }
+        self.response_text = json_dump(body=body)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
+        self.headers = {
+            "Connection": "keep-alive",
+            "Content-Type": "application/json",
+            "server": "envoy",
+            "Date": date,
+            "x-envoy-upstream-service-time": "5",
+            "Content-Length": str(object=len(self.response_text)),
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
+        }
+
+
+@beartype
+class ProjectSuspendedError(ValidatorError):
+    """Exception raised when a database has been suspended."""
+
+    def __init__(self) -> None:
+        """Initialize a ``ProjectSuspended`` response."""
+        super().__init__()
+        self.status_code = HTTPStatus.FORBIDDEN
+        body = {
+            "transaction_id": uuid.uuid4().hex,
+            "result_code": ResultCodes.PROJECT_SUSPENDED.value,
+        }
+        self.response_text = json_dump(body=body)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
+        self.headers = {
+            "Connection": "keep-alive",
+            "Content-Type": "application/json",
+            "server": "envoy",
+            "Date": date,
+            "x-envoy-upstream-service-time": "5",
+            "Content-Length": str(object=len(self.response_text)),
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
+        }
+
+
+@beartype
+class ProjectHasNoAPIAccessError(ValidatorError):
+    """Exception raised when a database cannot make API requests."""
+
+    def __init__(self) -> None:
+        """Initialize a ``ProjectHasNoAPIAccess`` response."""
+        super().__init__()
+        self.status_code = HTTPStatus.FORBIDDEN
+        body = {
+            "transaction_id": uuid.uuid4().hex,
+            "result_code": ResultCodes.PROJECT_HAS_NO_API_ACCESS.value,
+        }
+        self.response_text = json_dump(body=body)
+        date = email.utils.formatdate(
+            timeval=None,
+            localtime=False,
+            usegmt=True,
+        )
+        self.headers = {
+            "Connection": "keep-alive",
+            "Content-Type": "application/json",
+            "server": "envoy",
+            "Date": date,
+            "x-envoy-upstream-service-time": "5",
+            "Content-Length": str(object=len(self.response_text)),
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
+        }
+
+
+@beartype
 class AuthenticationFailureError(ValidatorError):
     """Exception raised when Vuforia returns a response with a result code
     'AuthenticationFailure'.

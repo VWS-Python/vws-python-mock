@@ -49,6 +49,7 @@ from .name_validators import (
 )
 from .project_state_validators import validate_project_state
 from .request_quota_validators import validate_request_quota
+from .target_quota_validators import validate_target_quota
 from .target_validators import validate_target_id_exists
 from .width_validators import validate_width
 
@@ -92,6 +93,13 @@ def run_services_validators(
         databases=databases,
     )
     validate_project_state(
+        request_headers=request_headers,
+        request_body=request_body,
+        request_method=request_method,
+        request_path=request_path,
+        databases=databases,
+    )
+    validate_target_quota(
         request_headers=request_headers,
         request_body=request_body,
         request_method=request_method,
