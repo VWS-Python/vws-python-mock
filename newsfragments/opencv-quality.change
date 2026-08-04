@@ -1,0 +1,3 @@
+Replace the PyTorch image-quality stack with OpenCV and a lightweight BRISQUE
+implementation. This reduces dependency download and installation sizes and
+removes the need to configure PyTorch's CPU-only package index.

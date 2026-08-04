@@ -1,15 +1,13 @@
 """Matchers for query and duplicate requests."""
 
 import io
+import statistics
 from typing import Protocol, runtime_checkable
 
+import cv2
 import numpy as np
-import torch
 from beartype import beartype
 from PIL import Image
-from torchmetrics.image import (
-    StructuralSimilarityIndexMeasure,
-)
 
 
 @runtime_checkable
@@ -77,48 +75,19 @@ class StructuralSimilarityMatcher:
             # Images must be the same size, and they must be larger than the
             # default SSIM window size of 11x11.
             target_size = (256, 256)
-            first_image_resized = first_image.resize(size=target_size)
-            second_image_resized = second_image.resize(size=target_size)
+            first_image_array = np.asarray(
+                a=first_image.resize(size=target_size).convert(mode="RGB"),
+            )
+            second_image_array = np.asarray(
+                a=second_image.resize(size=target_size).convert(mode="RGB"),
+            )
 
-        first_image_np = np.array(object=first_image_resized, dtype=np.float32)
-        first_image_tensor = torch.tensor(data=first_image_np).float() / 255
-        first_image_tensor = first_image_tensor.view(
-            first_image_resized.size[1],
-            first_image_resized.size[0],
-            len(first_image_resized.getbands()),
+        quality_ssim = cv2.quality.QualitySSIM.create(
+            ref=first_image_array,
         )
+        channel_scores = quality_ssim.compute(cmp=second_image_array)
+        ssim_score = statistics.fmean(data=channel_scores[:3])
 
-        second_image_np = np.array(
-            object=second_image_resized,
-            dtype=np.float32,
-        )
-        second_image_tensor = torch.tensor(data=second_image_np).float() / 255
-        second_image_tensor = second_image_tensor.view(
-            second_image_resized.size[1],
-            second_image_resized.size[0],
-            len(second_image_resized.getbands()),
-        )
-
-        first_image_tensor_batch_dimension = first_image_tensor.permute(
-            2,
-            0,
-            1,
-        ).unsqueeze(dim=0)
-        second_image_tensor_batch_dimension = second_image_tensor.permute(
-            2,
-            0,
-            1,
-        ).unsqueeze(dim=0)
-
-        ssim = StructuralSimilarityIndexMeasure(data_range=1.0)
-        ssim_value = ssim(
-            first_image_tensor_batch_dimension,
-            second_image_tensor_batch_dimension,
-        )
-        ssim_score = ssim_value.item()
-
-        # Normalize SSIM score from -1 to 1 scale to 0 to 10 scale.
-        # This maps -1 to 0 and 1 to 10.
-        normalized_score = (ssim_score + 1) * 5
-        minimum_acceptable_ssim_score = 7
-        return bool(normalized_score > minimum_acceptable_ssim_score)
+        # The old normalized > 7 threshold is equivalent to a raw SSIM > 0.4.
+        minimum_acceptable_ssim_score = 0.4
+        return ssim_score > minimum_acceptable_ssim_score
