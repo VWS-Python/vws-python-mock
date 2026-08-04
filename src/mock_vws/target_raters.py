@@ -4,13 +4,12 @@ import functools
 import io
 import math
 import secrets
+import warnings
 from typing import Protocol, runtime_checkable
 
-import numpy as np
-import torch
 from beartype import beartype
 from PIL import Image
-from piq.brisque import brisque  # pyright: ignore[reportMissingTypeStubs]
+from pyteenybrisque import score
 
 
 @functools.cache
@@ -26,20 +25,18 @@ def _get_brisque_target_tracking_rating(*, image_content: bytes) -> int:
         image_content: A target's image's content.
     """
     image_file = io.BytesIO(initial_bytes=image_content)
-    with Image.open(fp=image_file) as image:
-        image_np = np.array(object=image, dtype=np.float32)
-        image_tensor = torch.tensor(data=image_np).float() / 255
-        image_tensor = image_tensor.view(
-            image.size[1],
-            image.size[0],
-            len(image.getbands()),
-        )
-    image_tensor = image_tensor.permute(2, 0, 1).unsqueeze(dim=0)
-    try:
-        brisque_score = brisque(x=image_tensor, data_range=255)
-    except AssertionError, IndexError:
+    with Image.open(fp=image_file) as image, warnings.catch_warnings():
+        # Uniform images produce a zero-variance warning and non-finite score.
+        warnings.simplefilter(action="ignore", category=RuntimeWarning)
+        brisque_score = score(image=image)
+
+    if not math.isfinite(brisque_score):
         return 0
-    return math.ceil(int(brisque_score.item()) / 20)
+
+    # BRISQUE ranges from 0 (best) to 100 (worst), while Vuforia's target
+    # tracking rating ranges from 0 (worst) to 5 (best).
+    rating = 5 - math.floor(brisque_score / 20)
+    return min(5, max(0, rating))
 
 
 @runtime_checkable

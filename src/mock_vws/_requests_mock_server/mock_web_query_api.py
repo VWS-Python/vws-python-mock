@@ -19,12 +19,13 @@ from mock_vws._query_validators import run_query_validators
 from mock_vws._query_validators.exceptions import (
     ValidatorError,
 )
+from mock_vws.cloud_query import CloudQueryFailureResponse
 from mock_vws.image_matchers import ImageMatcher
 from mock_vws.target_manager import TargetManager
 
 _ROUTES: set[Route] = set()
 
-_ResponseType = tuple[int, Mapping[str, str], str]
+_ResponseType = tuple[int, Mapping[str, str], str | bytes]
 _P = ParamSpec("_P")
 
 
@@ -86,13 +87,16 @@ class MockVuforiaWebQueryAPI:
         self,
         target_manager: TargetManager,
         query_match_checker: ImageMatcher,
+        failure_response: CloudQueryFailureResponse | None,
     ) -> None:
         """
         Args:
             target_manager: The target manager which holds all databases.
             query_match_checker: A callable which takes two image values
-        and
+                and
                 returns whether they match.
+            failure_response: A configured failure response which takes
+                precedence over normal query handling.
 
         Attributes:
             routes: The `Route`s to be used in the mock.
@@ -100,10 +104,18 @@ class MockVuforiaWebQueryAPI:
         self.routes = _ROUTES
         self._target_manager = target_manager
         self._query_match_checker = query_match_checker
+        self._failure_response = failure_response
 
     @route(path_pattern="/v1/query", http_methods={HTTPMethod.POST})
     def query(self, request: RequestData) -> _ResponseType:
         """Perform an image recognition query."""
+        if self._failure_response is not None:
+            return (
+                self._failure_response.status_code,
+                self._failure_response.headers,
+                self._failure_response.body,
+            )
+
         try:
             run_query_validators(
                 request_path=request.path,

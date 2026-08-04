@@ -4,6 +4,9 @@ from typing import TYPE_CHECKING
 
 from beartype import beartype
 
+from mock_vws._services_validators.request_rate_validators import (
+    RequestRateLimiter,
+)
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.model_target import ModelTargetDataset
 
@@ -24,6 +27,12 @@ class TargetManager:
         self._cloud_databases: set[CloudDatabase] = set()
         self._vumark_databases: set[VuMarkDatabase] = set()
         self._model_target_datasets: dict[str, ModelTargetDataset] = {}
+        self._request_rate_limiter = RequestRateLimiter()
+
+    @property
+    def request_rate_limiter(self) -> RequestRateLimiter:
+        """The rate limiter for databases in this target manager."""
+        return self._request_rate_limiter
 
     @property
     def cloud_databases(self) -> set[CloudDatabase]:
@@ -52,6 +61,7 @@ class TargetManager:
         self._cloud_databases = {
             db for db in self._cloud_databases if db != cloud_database
         }
+        self._request_rate_limiter.remove_database(database=cloud_database)
 
     def remove_vumark_database(self, vumark_database: VuMarkDatabase) -> None:
         """Remove a VuMark database.

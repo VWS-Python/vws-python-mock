@@ -18,6 +18,7 @@ from vws import VWS, CloudRecoService
 from vws.exceptions.vws_exceptions import (
     RequestQuotaReachedError,
     TargetQuotaReachedError,
+    TooManyRequestsError,
 )
 from vws_auth_tools import authorization_header, rfc_1123_date
 
@@ -193,6 +194,25 @@ class TestRequestQuota:
                 application_metadata=None,
                 active_flag=True,
             )
+
+    @staticmethod
+    def test_too_many_requests() -> None:
+        """The Flask mock preserves and enforces a zero request rate limit."""
+        database = CloudDatabase(requests_per_second_limit=0)
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+        response = requests.post(
+            url=databases_url,
+            json=database.to_dict(),
+            timeout=30,
+        )
+        response.raise_for_status()
+        client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+
+        with pytest.raises(expected_exception=TooManyRequestsError):
+            client.list_targets()
 
 
 class TestAddCloudDatabase:
