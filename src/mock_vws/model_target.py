@@ -66,12 +66,13 @@ class ModelTargetDataset:
 
     def status_body(self) -> dict[str, Any]:
         """Return a status response body for this dataset."""
+        status = self.status
         body: dict[str, Any] = {
-            "status": self.status,
+            "status": status,
             "uuid": self.uuid_,
             "createdAt": _format_datetime(value=self.created_at),
         }
-        if self.status == "processing":
+        if status == "processing":
             body["eta"] = _format_datetime(value=self.completed_at)
         else:
             body["completedAt"] = _format_datetime(value=self.completed_at)
