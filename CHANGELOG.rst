@@ -3,6 +3,21 @@ Changelog
 
 .. towncrier release notes start
 
+2026.08.04.1
+------------
+
+- Replace the PyTorch image-quality stack with OpenCV and a lightweight BRISQUE
+  implementation. This reduces dependency download and installation sizes and
+  removes the need to configure PyTorch's CPU-only package index.
+
+- Match real Vuforia Model Target unknown-dataset response shape (``NOT_FOUND`` code, ``Could not find a model-view database with uuid <uuid>`` message, ``userId:`` target).
+  Keep each Model Target dataset status response internally consistent when processing completes while the response is being generated.
+
+- Add configurable ``TooManyRequests`` responses from VWS endpoints using the
+  ``CloudDatabase.requests_per_second_limit`` setting.
+
+- Add ``CloudQueryFailureResponse`` and the ``MockVWS.cloud_query_failure_response`` parameter for returning configurable Cloud Query failure status codes, headers, and raw bodies through the ``requests`` and ``httpx`` backends.
+
 2026.08.04
 ----------
 
