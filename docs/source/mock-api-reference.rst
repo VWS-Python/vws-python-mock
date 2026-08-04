@@ -11,6 +11,10 @@ API Reference
    :members:
    :undoc-members:
 
+.. autoclass:: mock_vws.CloudQueryFailureResponse(*, status_code, headers={}, body=b'')
+   :members:
+   :undoc-members:
+
 .. Many parts of the CloudDatabase API are used for the Flask target
 .. database app, but Python users are not expected to use them.
 .. Therefore, they are not documented.

@@ -14,6 +14,7 @@ from responses import RequestsMock
 
 from mock_vws._mock_common import MissingSchemeError, RequestData
 from mock_vws._respx_mock_server.decorators import start_respx_router
+from mock_vws.cloud_query import CloudQueryFailureResponse
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.image_matchers import (
     ImageMatcher,
@@ -51,6 +52,7 @@ class MockVWS(ContextDecorator):
         *,
         base_vws_url: str = "https://vws.vuforia.com",
         base_vwq_url: str = "https://cloudreco.vuforia.com",
+        cloud_query_failure_response: CloudQueryFailureResponse | None = None,
         duplicate_match_checker: ImageMatcher = _STRUCTURAL_SIMILARITY_MATCHER,
         query_match_checker: ImageMatcher = _STRUCTURAL_SIMILARITY_MATCHER,
         processing_time_seconds: float = 2.0,
@@ -74,6 +76,10 @@ class MockVWS(ContextDecorator):
                 In the real Vuforia Web Services, this is not deterministic.
             base_vwq_url: The base URL for the VWQ API.
             base_vws_url: The base URL for the VWS API.
+            cloud_query_failure_response: A response to return for every Cloud
+                Query request, bypassing normal request validation and image
+                matching. By default, Cloud Query requests are handled
+                normally.
             query_match_checker: A callable which takes two image values and
                 returns whether they will match in a query request.
             duplicate_match_checker: A callable which takes two image values
@@ -114,6 +120,7 @@ class MockVWS(ContextDecorator):
         self._mock_vwq_api = MockVuforiaWebQueryAPI(
             target_manager=self._target_manager,
             query_match_checker=query_match_checker,
+            failure_response=cloud_query_failure_response,
         )
 
     def add_cloud_database(self, cloud_database: CloudDatabase) -> None:
