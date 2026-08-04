@@ -49,6 +49,7 @@ from mock_vws.model_target import ModelTargetDatasetType
 from mock_vws.target import ImageTarget
 from mock_vws.target_manager import TargetManager
 from mock_vws.target_raters import TargetTrackingRater
+from mock_vws.vumark import VuMarkGenerationFailure
 
 if TYPE_CHECKING:
     from mock_vws.database import CloudDatabase
@@ -125,6 +126,7 @@ class MockVuforiaWebServicesAPI:
         processing_time_seconds: float,
         duplicate_match_checker: ImageMatcher,
         target_tracking_rater: TargetTrackingRater,
+        vumark_generation_failure: VuMarkGenerationFailure | None,
     ) -> None:
         """
         Args:
@@ -137,6 +139,8 @@ class MockVuforiaWebServicesAPI:
               and returns whether they are duplicates.
             target_tracking_rater: A callable for rating targets for
         tracking.
+            vumark_generation_failure: A configured failure which takes
+                precedence over normal VuMark generation handling.
 
         Attributes:
             routes: The `Route`s to be used in the mock.
@@ -146,6 +150,7 @@ class MockVuforiaWebServicesAPI:
         self._processing_time_seconds = processing_time_seconds
         self._duplicate_match_checker = duplicate_match_checker
         self._target_tracking_rater = target_tracking_rater
+        self._vumark_generation_failure = vumark_generation_failure
 
     @route(path_pattern="/oauth2/token", http_methods={HTTPMethod.POST})
     def oauth2_token(  # pylint: disable=no-self-use
@@ -455,6 +460,28 @@ class MockVuforiaWebServicesAPI:
     )
     def generate_vumark_instance(self, request: RequestData) -> _ResponseType:
         """Generate a VuMark instance."""
+        if self._vumark_generation_failure is not None:
+            body_json = json_dump(
+                body={
+                    "transaction_id": uuid.uuid4().hex,
+                    "result_code": self._vumark_generation_failure.value,
+                }
+            )
+            date = email.utils.formatdate(
+                timeval=None,
+                localtime=False,
+                usegmt=True,
+            )
+            return (
+                self._vumark_generation_failure.status_code,
+                {
+                    "Content-Length": str(object=len(body_json)),
+                    "Content-Type": "application/json",
+                    "Date": date,
+                },
+                body_json,
+            )
+
         valid_accept_types: dict[str, bytes] = {
             "image/png": VUMARK_PNG,
             "image/svg+xml": VUMARK_SVG,
