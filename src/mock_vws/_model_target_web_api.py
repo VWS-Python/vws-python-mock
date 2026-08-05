@@ -16,6 +16,7 @@ from mock_vws.model_target import (
     ModelTargetDataset,
     ModelTargetDatasetType,
     ModelTargetGenerationFailure,
+    ModelTargetGenerationWarning,
 )
 from mock_vws.target_manager import TargetManager
 
@@ -396,6 +397,7 @@ def create_model_target_dataset(
     processing_time_seconds: float,
     dataset_type: ModelTargetDatasetType,
     generation_failure: ModelTargetGenerationFailure | None,
+    generation_warning: ModelTargetGenerationWarning | None,
 ) -> _ResponseType:
     """Create a standard or advanced Model Target dataset."""
     auth_error = _require_bearer_token(request=request)
@@ -418,6 +420,7 @@ def create_model_target_dataset(
         dataset_type=dataset_type,
         processing_time_seconds=processing_time_seconds,
         generation_failure=generation_failure,
+        generation_warning=generation_warning,
     )
     target_manager.add_model_target_dataset(model_target_dataset=dataset)
     return _json_response(

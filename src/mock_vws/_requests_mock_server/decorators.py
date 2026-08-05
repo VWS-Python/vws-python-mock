@@ -20,7 +20,10 @@ from mock_vws.image_matchers import (
     ImageMatcher,
     StructuralSimilarityMatcher,
 )
-from mock_vws.model_target import ModelTargetGenerationFailure
+from mock_vws.model_target import (
+    ModelTargetGenerationFailure,
+    ModelTargetGenerationWarning,
+)
 from mock_vws.target_manager import TargetManager
 from mock_vws.target_raters import (
     BrisqueTargetTrackingRater,
@@ -61,6 +64,9 @@ class MockVWS(ContextDecorator):
         model_target_generation_failure: (
             ModelTargetGenerationFailure | None
         ) = None,
+        model_target_generation_warning: (
+            ModelTargetGenerationWarning | None
+        ) = None,
         target_tracking_rater: TargetTrackingRater = _BRISQUE_TRACKING_RATER,
         real_http: bool = False,
         response_delay_seconds: float = 0.0,
@@ -83,6 +89,10 @@ class MockVWS(ContextDecorator):
             model_target_generation_failure: A failure to return after every
                 Model Target dataset finishes processing. By default, Model
                 Target datasets finish successfully.
+            model_target_generation_warning: A warning to return after every
+                Model Target dataset finishes processing. By default, Model
+                Target datasets finish without warnings. This cannot be
+                combined with ``model_target_generation_failure``.
             base_vwq_url: The base URL for the VWQ API.
             base_vws_url: The base URL for the VWS API.
             cloud_query_failure_response: A response to return for every Cloud
@@ -107,8 +117,19 @@ class MockVWS(ContextDecorator):
 
         Raises:
             MissingSchemeError: There is no scheme in a given URL.
+            ValueError: Both a Model Target generation failure and warning are
+                configured.
         """
         super().__init__()
+        if (
+            model_target_generation_failure is not None
+            and model_target_generation_warning is not None
+        ):
+            msg = (
+                "Model Target generation failure and warning configurations "
+                "are mutually exclusive"
+            )
+            raise ValueError(msg)
         self._real_http = real_http
         self._response_delay_seconds = response_delay_seconds
         self._sleep_fn = sleep_fn
@@ -127,6 +148,7 @@ class MockVWS(ContextDecorator):
             target_manager=self._target_manager,
             processing_time_seconds=float(processing_time_seconds),
             model_target_generation_failure=model_target_generation_failure,
+            model_target_generation_warning=model_target_generation_warning,
             duplicate_match_checker=duplicate_match_checker,
             target_tracking_rater=target_tracking_rater,
             vumark_generation_failure=vumark_generation_failure,

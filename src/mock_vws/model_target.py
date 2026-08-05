@@ -1,5 +1,6 @@
 """Model Target dataset objects."""
 
+import copy
 import datetime
 import uuid
 from dataclasses import dataclass, field
@@ -31,6 +32,31 @@ class ModelTargetGenerationFailure:
 
 
 @beartype
+@dataclass(frozen=True, kw_only=True)
+class ModelTargetGenerationWarning:
+    """A configured Model Target dataset generation warning.
+
+    Args:
+        message: The top-level warning message included in the dataset status
+            response.
+        details: The warning details included in the dataset status response.
+    """
+
+    message: str = "Warning after creating dataset"
+    details: list[dict[str, Any]] = field(
+        default_factory=lambda: [
+            {
+                "code": "LOW_RECOGNITION_QUALITY",
+                "message": (
+                    "The processed model appears to have substandard "
+                    "recognition quality."
+                ),
+            },
+        ],
+    )
+
+
+@beartype
 def _now() -> datetime.datetime:
     """Return the current time in UTC."""
     return datetime.datetime.now(tz=ZoneInfo(key="UTC"))
@@ -55,12 +81,14 @@ class ModelTargetDataset:
         uuid_: The dataset UUID.
         created_at: When the dataset creation was requested.
         generation_failure: A failure to return when processing completes.
+        generation_warning: A warning to return when processing completes.
     """
 
     request_body: dict[str, Any] = field(hash=False)
     dataset_type: ModelTargetDatasetType
     processing_time_seconds: float = field(hash=False)
     generation_failure: ModelTargetGenerationFailure | None = field(hash=False)
+    generation_warning: ModelTargetGenerationWarning | None = field(hash=False)
     uuid_: str = field(default_factory=lambda: uuid.uuid4().hex)
     created_at: datetime.datetime = field(default_factory=_now)
 
@@ -96,6 +124,13 @@ class ModelTargetDataset:
             body["error"] = {
                 "code": "ERROR",
                 "message": self.generation_failure.message,
+            }
+        if status == "done" and self.generation_warning is not None:
+            body["warning"] = {
+                "code": "WARNING",
+                "message": self.generation_warning.message,
+                "target": self.uuid_,
+                "details": copy.deepcopy(x=self.generation_warning.details),
             }
 
         return body
