@@ -187,7 +187,7 @@ def _jwt_signature_error(*, bearer_token: str) -> str | None:
 
     try:
         padding = "=" * (-len(encoded_signature) % 4)
-        decoded_signature = base64.b64decode(
+        base64.b64decode(
             s=encoded_signature + padding,
             altchars=b"-_",
             validate=True,
@@ -195,8 +195,6 @@ def _jwt_signature_error(*, bearer_token: str) -> str | None:
     except ValueError:
         return "Signed JWT rejected: Invalid signature"
 
-    if not decoded_signature:
-        return "Signed JWT rejected: Invalid signature"
     return None
 
 
