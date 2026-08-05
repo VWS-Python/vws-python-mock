@@ -12,7 +12,11 @@ from urllib.parse import parse_qs
 from beartype import beartype
 
 from mock_vws._mock_common import RequestData, json_dump
-from mock_vws.model_target import ModelTargetDataset, ModelTargetDatasetType
+from mock_vws.model_target import (
+    ModelTargetDataset,
+    ModelTargetDatasetType,
+    ModelTargetGenerationFailure,
+)
 from mock_vws.target_manager import TargetManager
 
 _ResponseType = tuple[int, dict[str, str], str | bytes]
@@ -362,6 +366,7 @@ def create_model_target_dataset(
     target_manager: TargetManager,
     processing_time_seconds: float,
     dataset_type: ModelTargetDatasetType,
+    generation_failure: ModelTargetGenerationFailure | None,
 ) -> _ResponseType:
     """Create a standard or advanced Model Target dataset."""
     auth_error = _require_bearer_token(request=request)
@@ -383,6 +388,7 @@ def create_model_target_dataset(
         request_body=request_json_or_error,
         dataset_type=dataset_type,
         processing_time_seconds=processing_time_seconds,
+        generation_failure=generation_failure,
     )
     target_manager.add_model_target_dataset(model_target_dataset=dataset)
     return _json_response(

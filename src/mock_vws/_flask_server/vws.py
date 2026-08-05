@@ -255,6 +255,7 @@ def create_standard_model_target_dataset() -> Response:
             target_manager=_model_target_manager(),
             processing_time_seconds=settings.processing_time_seconds,
             dataset_type=ModelTargetDatasetType.STANDARD,
+            generation_failure=None,
         ),
     )
 
@@ -273,6 +274,7 @@ def create_advanced_model_target_dataset() -> Response:
             target_manager=_model_target_manager(),
             processing_time_seconds=settings.processing_time_seconds,
             dataset_type=ModelTargetDatasetType.ADVANCED,
+            generation_failure=None,
         ),
     )
 

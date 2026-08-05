@@ -20,6 +20,7 @@ from mock_vws.image_matchers import (
     ImageMatcher,
     StructuralSimilarityMatcher,
 )
+from mock_vws.model_target import ModelTargetGenerationFailure
 from mock_vws.target_manager import TargetManager
 from mock_vws.target_raters import (
     BrisqueTargetTrackingRater,
@@ -57,6 +58,9 @@ class MockVWS(ContextDecorator):
         duplicate_match_checker: ImageMatcher = _STRUCTURAL_SIMILARITY_MATCHER,
         query_match_checker: ImageMatcher = _STRUCTURAL_SIMILARITY_MATCHER,
         processing_time_seconds: float = 2.0,
+        model_target_generation_failure: (
+            ModelTargetGenerationFailure | None
+        ) = None,
         target_tracking_rater: TargetTrackingRater = _BRISQUE_TRACKING_RATER,
         real_http: bool = False,
         response_delay_seconds: float = 0.0,
@@ -76,6 +80,9 @@ class MockVWS(ContextDecorator):
             processing_time_seconds: The number of seconds to process each
                 image for.
                 In the real Vuforia Web Services, this is not deterministic.
+            model_target_generation_failure: A failure to return after every
+                Model Target dataset finishes processing. By default, Model
+                Target datasets finish successfully.
             base_vwq_url: The base URL for the VWQ API.
             base_vws_url: The base URL for the VWS API.
             cloud_query_failure_response: A response to return for every Cloud
@@ -119,6 +126,7 @@ class MockVWS(ContextDecorator):
         self._mock_vws_api = MockVuforiaWebServicesAPI(
             target_manager=self._target_manager,
             processing_time_seconds=float(processing_time_seconds),
+            model_target_generation_failure=model_target_generation_failure,
             duplicate_match_checker=duplicate_match_checker,
             target_tracking_rater=target_tracking_rater,
             vumark_generation_failure=vumark_generation_failure,

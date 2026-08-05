@@ -19,6 +19,18 @@ class ModelTargetDatasetType(StrEnum):
 
 
 @beartype
+@dataclass(frozen=True, kw_only=True)
+class ModelTargetGenerationFailure:
+    """A configured Model Target dataset generation failure.
+
+    Args:
+        message: The failure message included in the dataset status response.
+    """
+
+    message: str = "Model Target dataset generation failed"
+
+
+@beartype
 def _now() -> datetime.datetime:
     """Return the current time in UTC."""
     return datetime.datetime.now(tz=ZoneInfo(key="UTC"))
@@ -42,11 +54,13 @@ class ModelTargetDataset:
             dataset becomes available.
         uuid_: The dataset UUID.
         created_at: When the dataset creation was requested.
+        generation_failure: A failure to return when processing completes.
     """
 
     request_body: dict[str, Any] = field(hash=False)
     dataset_type: ModelTargetDatasetType
     processing_time_seconds: float = field(hash=False)
+    generation_failure: ModelTargetGenerationFailure | None = field(hash=False)
     uuid_: str = field(default_factory=lambda: uuid.uuid4().hex)
     created_at: datetime.datetime = field(default_factory=_now)
 
@@ -62,6 +76,8 @@ class ModelTargetDataset:
         """The current dataset generation status."""
         if _now() < self.completed_at:
             return "processing"
+        if self.generation_failure is not None:
+            return "failed"
         return "done"
 
     def status_body(self) -> dict[str, Any]:
@@ -76,5 +92,10 @@ class ModelTargetDataset:
             body["eta"] = _format_datetime(value=self.completed_at)
         else:
             body["completedAt"] = _format_datetime(value=self.completed_at)
+        if status == "failed" and self.generation_failure is not None:
+            body["error"] = {
+                "code": "ERROR",
+                "message": self.generation_failure.message,
+            }
 
         return body
