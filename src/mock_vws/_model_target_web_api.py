@@ -156,6 +156,26 @@ def _jwt_header_error(*, bearer_token: str) -> str | None:
 
 
 @beartype
+def _jwt_payload_error(*, bearer_token: str) -> str | None:
+    """Return the Vuforia error for an invalid JSON Web Token payload."""
+    encoded_payload = bearer_token.split(sep=".")[1]
+    try:
+        padding = "=" * (-len(encoded_payload) % 4)
+        decoded_payload = base64.b64decode(
+            s=encoded_payload + padding,
+            altchars=b"-_",
+            validate=True,
+        )
+        payload = json.loads(s=decoded_payload)
+    except ValueError:
+        payload = None
+
+    if not isinstance(payload, dict):
+        return "Payload of JWS object is not a valid JSON object"
+    return None
+
+
+@beartype
 def _require_bearer_token(request: RequestData) -> _ResponseType | None:
     """Return an error response if the request has no bearer token."""
     auth_header = _get_header(request=request, name="Authorization")
@@ -190,6 +210,15 @@ def _require_bearer_token(request: RequestData) -> _ResponseType | None:
             status_code=HTTPStatus.UNAUTHORIZED,
             code="401",
             message=jwt_header_error,
+            target="jwt",
+            details=None,
+        )
+    jwt_payload_error = _jwt_payload_error(bearer_token=bearer_token)
+    if jwt_payload_error is not None:
+        return _error_response(
+            status_code=HTTPStatus.UNAUTHORIZED,
+            code="401",
+            message=jwt_payload_error,
             target="jwt",
             details=None,
         )

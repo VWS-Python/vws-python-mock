@@ -256,6 +256,21 @@ class TestAuthentication:
                 ),
                 id="unsecured",
             ),
+            pytest.param(
+                "Bearer eyJhbGciOiJSUzI1NiJ9.%.signature",
+                "Payload of JWS object is not a valid JSON object",
+                id="payload-not-base64",
+            ),
+            pytest.param(
+                "Bearer eyJhbGciOiJSUzI1NiJ9..signature",
+                "Payload of JWS object is not a valid JSON object",
+                id="blank-payload",
+            ),
+            pytest.param(
+                "Bearer eyJhbGciOiJSUzI1NiJ9.InZhbHVlIg.signature",
+                "Payload of JWS object is not a valid JSON object",
+                id="payload-not-json-object",
+            ),
         ],
     )
     def test_invalid_bearer_token(
