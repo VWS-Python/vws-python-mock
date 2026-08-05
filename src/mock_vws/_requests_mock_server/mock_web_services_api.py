@@ -48,6 +48,7 @@ from mock_vws.image_matchers import ImageMatcher
 from mock_vws.model_target import (
     ModelTargetDatasetType,
     ModelTargetGenerationFailure,
+    ModelTargetGenerationWarning,
 )
 from mock_vws.target import ImageTarget
 from mock_vws.target_manager import TargetManager
@@ -128,6 +129,7 @@ class MockVuforiaWebServicesAPI:
         target_manager: TargetManager,
         processing_time_seconds: float,
         model_target_generation_failure: (ModelTargetGenerationFailure | None),
+        model_target_generation_warning: (ModelTargetGenerationWarning | None),
         duplicate_match_checker: ImageMatcher,
         target_tracking_rater: TargetTrackingRater,
         vumark_generation_failure: VuMarkGenerationFailure | None,
@@ -139,6 +141,8 @@ class MockVuforiaWebServicesAPI:
               image for. In the real Vuforia Web Services, this is not
               deterministic.
             model_target_generation_failure: A configured failure returned
+                after Model Target dataset processing completes.
+            model_target_generation_warning: A configured warning returned
                 after Model Target dataset processing completes.
             duplicate_match_checker: A callable which takes two image
         values
@@ -155,6 +159,7 @@ class MockVuforiaWebServicesAPI:
         self.routes = _ROUTES
         self._processing_time_seconds = processing_time_seconds
         self._model_target_generation_failure = model_target_generation_failure
+        self._model_target_generation_warning = model_target_generation_warning
         self._duplicate_match_checker = duplicate_match_checker
         self._target_tracking_rater = target_tracking_rater
         self._vumark_generation_failure = vumark_generation_failure
@@ -182,6 +187,7 @@ class MockVuforiaWebServicesAPI:
             processing_time_seconds=self._processing_time_seconds,
             dataset_type=ModelTargetDatasetType.STANDARD,
             generation_failure=self._model_target_generation_failure,
+            generation_warning=self._model_target_generation_warning,
         )
 
     @route(
@@ -199,6 +205,7 @@ class MockVuforiaWebServicesAPI:
             processing_time_seconds=self._processing_time_seconds,
             dataset_type=ModelTargetDatasetType.ADVANCED,
             generation_failure=self._model_target_generation_failure,
+            generation_warning=self._model_target_generation_warning,
         )
 
     @route(

@@ -169,6 +169,10 @@ in-process Model Target datasets finish with a ``failed`` status and an
 :paramref:`~mock_vws.MockVWS.processing_time_seconds`, so callers can test
 both processing and failed states. This configuration is not supported by the
 Flask/Docker backend.
+Use :paramref:`mock_vws.MockVWS.model_target_generation_warning` to make
+successful in-process Model Target datasets include a Vuforia-shaped
+``warning`` object after processing completes. This configuration is not
+supported by the Flask/Docker backend.
 Model Target API routes require a three-part JSON Web Token with JSON object
 header and payload parts and a non-``none`` ``alg`` value, such as the token
 returned by the mock OAuth2 route.
