@@ -60,12 +60,9 @@ class ModelTargetDataset:
     request_body: dict[str, Any] = field(hash=False)
     dataset_type: ModelTargetDatasetType
     processing_time_seconds: float = field(hash=False)
+    generation_failure: ModelTargetGenerationFailure | None = field(hash=False)
     uuid_: str = field(default_factory=lambda: uuid.uuid4().hex)
     created_at: datetime.datetime = field(default_factory=_now)
-    generation_failure: ModelTargetGenerationFailure | None = field(
-        default=None,
-        hash=False,
-    )
 
     @property
     def completed_at(self) -> datetime.datetime:

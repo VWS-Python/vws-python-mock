@@ -366,7 +366,7 @@ def create_model_target_dataset(
     target_manager: TargetManager,
     processing_time_seconds: float,
     dataset_type: ModelTargetDatasetType,
-    generation_failure: ModelTargetGenerationFailure | None = None,
+    generation_failure: ModelTargetGenerationFailure | None,
 ) -> _ResponseType:
     """Create a standard or advanced Model Target dataset."""
     auth_error = _require_bearer_token(request=request)

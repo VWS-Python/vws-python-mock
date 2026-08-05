@@ -698,6 +698,7 @@ class TestModelTargetDatasetStatus:
             request_body={},
             dataset_type=ModelTargetDatasetType.STANDARD,
             processing_time_seconds=processing_time_seconds,
+            generation_failure=None,
             uuid_="dataset-uuid",
         )
 
