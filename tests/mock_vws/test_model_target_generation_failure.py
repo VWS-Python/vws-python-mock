@@ -10,7 +10,7 @@ import requests
 
 from mock_vws import MockVWS, ModelTargetGenerationFailure
 
-_AUTHORIZATION = "Bearer eyJhbGciOiJtb2NrIn0.e30.signature"
+_AUTHORIZATION = "Bearer eyJhbGciOiJtb2NrIn0.e30.c2lnbmF0dXJl"
 _CREATE_URL = "https://vws.vuforia.com/modeltargets/datasets"
 _REQUEST_BODY: dict[str, Any] = {
     "name": "dataset-name",

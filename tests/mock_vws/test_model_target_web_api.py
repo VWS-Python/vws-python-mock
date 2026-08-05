@@ -19,7 +19,7 @@ from tests.mock_vws.fixtures.vuforia_backends import VuforiaBackend
 
 _VWS_HOST = "https://vws.vuforia.com"
 _DATASET_UUID = "0b12466eee5d49409a440927006ff5d8"
-_MOCK_BEARER_TOKEN = "eyJhbGciOiJtb2NrIn0.e30.signature"
+_MOCK_BEARER_TOKEN = "eyJhbGciOiJtb2NrIn0.e30.c2lnbmF0dXJl"
 
 
 def _dataset_request(*, cad_data_url: str) -> dict[str, Any]:
@@ -270,6 +270,16 @@ class TestAuthentication:
                 "Bearer eyJhbGciOiJSUzI1NiJ9.InZhbHVlIg.signature",
                 "Payload of JWS object is not a valid JSON object",
                 id="payload-not-json-object",
+            ),
+            pytest.param(
+                "Bearer eyJhbGciOiJSUzI1NiJ9.e30.",
+                "The signature must not be empty",
+                id="blank-signature",
+            ),
+            pytest.param(
+                "Bearer eyJhbGciOiJSUzI1NiJ9.e30.%",
+                "Signed JWT rejected: Invalid signature",
+                id="signature-not-base64",
             ),
         ],
     )

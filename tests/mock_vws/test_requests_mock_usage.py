@@ -44,7 +44,7 @@ from tests.mock_vws.utils.usage_test_helpers import (
     processing_time_seconds,
 )
 
-_MODEL_TARGET_AUTHORIZATION = "Bearer eyJhbGciOiJtb2NrIn0.e30.signature"
+_MODEL_TARGET_AUTHORIZATION = "Bearer eyJhbGciOiJtb2NrIn0.e30.c2lnbmF0dXJl"
 _MODEL_TARGET_DATASET_REQUEST = {
     "name": "dataset-name",
     "targetSdk": "10.18",
