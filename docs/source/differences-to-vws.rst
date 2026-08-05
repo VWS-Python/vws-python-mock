@@ -163,6 +163,12 @@ Model Target datasets
 
 The Model Target Web API mock supports OAuth2 token requests, standard and advanced dataset creation, status polling, dataset downloads, and deletion.
 The generated dataset download is a small valid zip file containing request metadata, not a real Vuforia Engine Model Target dataset.
+Use :paramref:`mock_vws.MockVWS.model_target_generation_failure` to make
+in-process Model Target datasets finish with a ``failed`` status and an
+``error`` object. The failure is returned after the configured
+:paramref:`~mock_vws.MockVWS.processing_time_seconds`, so callers can test
+both processing and failed states. This configuration is not supported by the
+Flask/Docker backend.
 Model Target API routes require a three-part JSON Web Token with a JSON object
 header and a non-``none`` ``alg`` value, such as the token returned by the mock
 OAuth2 route.
