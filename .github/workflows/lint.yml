@@ -29,6 +29,9 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9.0.0
+
       - name: Lint
         uses: j178/prek-action@v3.0.0
         with:
