@@ -25,7 +25,7 @@ class RequestRateLimiter:
     def __init__(
         self,
         *,
-        time_function: Callable[[], float] = time.monotonic,
+        time_function: Callable[[], float] = time.monotonic,  # noqa: NOD001
     ) -> None:
         """Initialize an empty rate limiter."""
         self._request_times: dict[str, deque[float]] = {}

@@ -427,3 +427,9 @@ repos:
         types: [hcl]
         additional_dependencies: [github.com/hashicorp/hcl/v2/cmd/hclfmt@v2.24.0]
         stages: [pre-commit]
+
+  - repo: https://github.com/adamtheturtle/no-defaults
+    rev: v1.0.0
+    hooks:
+      - id: no-defaults
+        stages: [pre-commit]
