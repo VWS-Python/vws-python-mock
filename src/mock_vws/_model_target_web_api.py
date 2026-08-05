@@ -177,6 +177,28 @@ def _jwt_payload_error(*, bearer_token: str) -> str | None:
 
 
 @beartype
+def _jwt_signature_error(*, bearer_token: str) -> str | None:
+    """Return the Vuforia error for an invalid JSON Web Token
+    signature.
+    """
+    encoded_signature = bearer_token.rpartition(".")[2]
+    if not encoded_signature:
+        return "The signature must not be empty"
+
+    try:
+        padding = "=" * (-len(encoded_signature) % 4)
+        base64.b64decode(
+            s=encoded_signature + padding,
+            altchars=b"-_",
+            validate=True,
+        )
+    except ValueError:
+        return "Signed JWT rejected: Invalid signature"
+
+    return None
+
+
+@beartype
 def _require_bearer_token(request: RequestData) -> _ResponseType | None:
     """Return an error response if the request has no bearer token."""
     auth_header = _get_header(request=request, name="Authorization")
@@ -205,21 +227,16 @@ def _require_bearer_token(request: RequestData) -> _ResponseType | None:
             target="jwt",
             details=None,
         )
-    jwt_header_error = _jwt_header_error(bearer_token=bearer_token)
-    if jwt_header_error is not None:
+    jwt_error = _jwt_header_error(bearer_token=bearer_token)
+    if jwt_error is None:
+        jwt_error = _jwt_payload_error(bearer_token=bearer_token)
+    if jwt_error is None:
+        jwt_error = _jwt_signature_error(bearer_token=bearer_token)
+    if jwt_error is not None:
         return _error_response(
             status_code=HTTPStatus.UNAUTHORIZED,
             code="401",
-            message=jwt_header_error,
-            target="jwt",
-            details=None,
-        )
-    jwt_payload_error = _jwt_payload_error(bearer_token=bearer_token)
-    if jwt_payload_error is not None:
-        return _error_response(
-            status_code=HTTPStatus.UNAUTHORIZED,
-            code="401",
-            message=jwt_payload_error,
+            message=jwt_error,
             target="jwt",
             details=None,
         )

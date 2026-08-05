@@ -174,8 +174,9 @@ successful in-process Model Target datasets include a Vuforia-shaped
 ``warning`` object after processing completes. This configuration is not
 supported by the Flask/Docker backend.
 Model Target API routes require a three-part JSON Web Token with JSON object
-header and payload parts and a non-``none`` ``alg`` value, such as the token
-returned by the mock OAuth2 route.
+header and payload parts, a non-``none`` ``alg`` value, and a non-empty
+base64url-encoded signature, such as the token returned by the mock OAuth2
+route.
 The mock does not verify token signatures, payload claims such as expiry, or
 token revocation.
 
