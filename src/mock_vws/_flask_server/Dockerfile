@@ -3,10 +3,11 @@ FROM ghcr.io/astral-sh/uv:0.11.7-python3.14-trixie-slim AS base
 # not care enough about having the version correct inside the Docker container
 # to install it.
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0
-# Avoid using root user.
-RUN useradd -ms /bin/bash myuser
-USER myuser
-COPY --chown=myuser:myuser . /app
+# Avoid using root user. Use an explicit UID so the container does not rely on
+# the host being able to resolve the account name.
+RUN useradd --create-home --shell /bin/bash --uid 10001 myuser
+USER 10001
+COPY --chown=10001:10001 . /app
 
 # See https://pythonspeed.com/articles/activate-virtualenv-dockerfile/
 # For why we use this method of activating the virtual environment.
