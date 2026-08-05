@@ -180,6 +180,12 @@ route.
 The mock does not verify token signatures, payload claims such as expiry, or
 token revocation.
 
+Dataset creation requests are validated for the required top-level ``models``,
+``name`` and ``targetSdk`` fields, for those fields' types, for each ``models``
+entry being a JSON object, and for the number of models.
+The mock does not validate the contents of each model, such as ``cadDataUrl``
+values, ``views``, or ``targetSdk`` version numbers.
+
 For unknown Model Target datasets, the mock returns an error whose ``target`` is ``userId:mock``.
 Real Vuforia uses ``userId:<numeric-user-id>`` where the numeric portion is per-account.
 

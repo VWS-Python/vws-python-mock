@@ -363,18 +363,37 @@ def _validate_dataset_request(
     if missing_details:
         return _validation_error_response(details=missing_details)
 
+    type_details = [
+        {
+            "code": "VALIDATION_ERROR",
+            "message": f"/{field}: error.expected.jsstring",
+        }
+        for field in ("name", "targetSdk")
+        if not isinstance(request_json[field], str)
+    ]
+
     models_value = request_json["models"]
     if not isinstance(models_value, list):
-        return _validation_error_response(
-            details=[
-                {
-                    "code": "VALIDATION_ERROR",
-                    "message": "/models: error.expected.jsarray",
-                },
-            ],
+        type_details.append(
+            {
+                "code": "VALIDATION_ERROR",
+                "message": "/models: error.expected.jsarray",
+            },
         )
+        return _validation_error_response(details=type_details)
 
     models: list[Any] = [*models_value]
+    type_details.extend(
+        {
+            "code": "VALIDATION_ERROR",
+            "message": f"/models({index}): error.expected.jsobject",
+        }
+        for index, model in enumerate(iterable=models)
+        if not isinstance(model, dict)
+    )
+    if type_details:
+        return _validation_error_response(details=type_details)
+
     model_count = len(models)
 
     if dataset_type == ModelTargetDatasetType.STANDARD and model_count != 1:
