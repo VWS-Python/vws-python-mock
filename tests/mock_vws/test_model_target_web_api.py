@@ -480,6 +480,41 @@ class TestErrorResponses:
                 {"exactly one model should be provided"},
                 id="standard-zero-models",
             ),
+            pytest.param(
+                {**_UNAUTHENTICATED_DATASET_REQUEST, "name": 1},
+                {"/name: error.expected.jsstring"},
+                id="name-not-string",
+            ),
+            pytest.param(
+                {**_UNAUTHENTICATED_DATASET_REQUEST, "targetSdk": ["10.18"]},
+                {"/targetSdk: error.expected.jsstring"},
+                id="target-sdk-not-string",
+            ),
+            pytest.param(
+                {"name": None, "targetSdk": None, "models": "model"},
+                {
+                    "/models: error.expected.jsarray",
+                    "/name: error.expected.jsstring",
+                    "/targetSdk: error.expected.jsstring",
+                },
+                id="multiple-type-errors",
+            ),
+            pytest.param(
+                {**_UNAUTHENTICATED_DATASET_REQUEST, "models": ["model"]},
+                {"/models(0): error.expected.jsobject"},
+                id="model-not-object",
+            ),
+            pytest.param(
+                {
+                    **_UNAUTHENTICATED_DATASET_REQUEST,
+                    "models": [
+                        *_UNAUTHENTICATED_DATASET_REQUEST["models"],
+                        "model",
+                    ],
+                },
+                {"/models(1): error.expected.jsobject"},
+                id="second-model-not-object",
+            ),
         ],
     )
     def test_invalid_dataset_request(
