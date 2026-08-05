@@ -1,0 +1,1 @@
+Reject Model Target bearer tokens whose JWT payload is not a JSON object.

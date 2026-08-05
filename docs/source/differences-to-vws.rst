@@ -169,10 +169,11 @@ in-process Model Target datasets finish with a ``failed`` status and an
 :paramref:`~mock_vws.MockVWS.processing_time_seconds`, so callers can test
 both processing and failed states. This configuration is not supported by the
 Flask/Docker backend.
-Model Target API routes require a three-part JSON Web Token with a JSON object
-header and a non-``none`` ``alg`` value, such as the token returned by the mock
-OAuth2 route.
-The mock does not verify token signatures, claims, expiry, or revocation.
+Model Target API routes require a three-part JSON Web Token with JSON object
+header and payload parts and a non-``none`` ``alg`` value, such as the token
+returned by the mock OAuth2 route.
+The mock does not verify token signatures, payload claims such as expiry, or
+token revocation.
 
 For unknown Model Target datasets, the mock returns an error whose ``target`` is ``userId:mock``.
 Real Vuforia uses ``userId:<numeric-user-id>`` where the numeric portion is per-account.
