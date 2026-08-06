@@ -381,6 +381,69 @@ def _model_field_details(*, models: list[Any]) -> list[dict[str, str]]:
 
 
 @beartype
+def _view_details(*, models: list[Any]) -> list[dict[str, str]]:
+    """Return validation details for the guide views of each model."""
+    views = [
+        (model_index, view_index, view)
+        for model_index, model in enumerate(iterable=models)
+        for view_index, view in enumerate(iterable=model.get("views", []))
+    ]
+
+    object_details = [
+        {
+            "code": "VALIDATION_ERROR",
+            "message": (
+                f"/models({model_index})/views({view_index}): "
+                "error.expected.jsobject"
+            ),
+        }
+        for model_index, view_index, view in views
+        if not isinstance(view, dict)
+    ]
+    if object_details:
+        return object_details
+
+    missing_details = [
+        {
+            "code": "VALIDATION_ERROR",
+            "message": (
+                f"/models({model_index})/views({view_index})/{field}: "
+                "element is required"
+            ),
+        }
+        for model_index, view_index, view in views
+        for field in ("guideViewPosition", "name")
+        if field not in view
+    ]
+    if missing_details:
+        return missing_details
+
+    name_details = [
+        {
+            "code": "VALIDATION_ERROR",
+            "message": (
+                f"/models({model_index})/views({view_index})/name: "
+                "error.expected.jsstring"
+            ),
+        }
+        for model_index, view_index, view in views
+        if not isinstance(view["name"], str)
+    ]
+    position_details = [
+        {
+            "code": "VALIDATION_ERROR",
+            "message": (
+                f"/models({model_index})/views({view_index})"
+                "/guideViewPosition: error.expected.jsobject"
+            ),
+        }
+        for model_index, view_index, view in views
+        if not isinstance(view["guideViewPosition"], dict)
+    ]
+    return name_details + position_details
+
+
+@beartype
 def _model_count_details(
     *,
     models: list[Any],
@@ -472,9 +535,13 @@ def _validate_dataset_request(
     details = _top_level_details(request_json=request_json)
     if not details:
         models: list[Any] = [*request_json["models"]]
-        details = _model_field_details(models=models) or _model_count_details(
-            models=models,
-            dataset_type=dataset_type,
+        details = (
+            _model_field_details(models=models)
+            or _view_details(models=models)
+            or _model_count_details(
+                models=models,
+                dataset_type=dataset_type,
+            )
         )
 
     if details:
