@@ -444,6 +444,47 @@ def _view_details(*, models: list[Any]) -> list[dict[str, str]]:
 
 
 @beartype
+def _guide_view_position_details(
+    *,
+    models: list[Any],
+) -> list[dict[str, str]]:
+    """Return validation details for the guide view positions."""
+    positions = [
+        (model_index, view_index, view["guideViewPosition"])
+        for model_index, model in enumerate(iterable=models)
+        for view_index, view in enumerate(iterable=model.get("views", []))
+    ]
+
+    missing_details = [
+        {
+            "code": "VALIDATION_ERROR",
+            "message": (
+                f"/models({model_index})/views({view_index})"
+                f"/guideViewPosition/{field}: element is required"
+            ),
+        }
+        for model_index, view_index, position in positions
+        for field in ("rotation", "translation")
+        if field not in position
+    ]
+    if missing_details:
+        return missing_details
+
+    return [
+        {
+            "code": "VALIDATION_ERROR",
+            "message": (
+                f"/models({model_index})/views({view_index})"
+                f"/guideViewPosition/{field}: error.expected.jsarray"
+            ),
+        }
+        for model_index, view_index, position in positions
+        for field in ("rotation", "translation")
+        if not isinstance(position[field], list)
+    ]
+
+
+@beartype
 def _model_count_details(
     *,
     models: list[Any],
@@ -538,6 +579,7 @@ def _validate_dataset_request(
         details = (
             _model_field_details(models=models)
             or _view_details(models=models)
+            or _guide_view_position_details(models=models)
             or _model_count_details(
                 models=models,
                 dataset_type=dataset_type,

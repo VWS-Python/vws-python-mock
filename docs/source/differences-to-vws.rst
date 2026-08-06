@@ -187,9 +187,12 @@ Each model is validated for the required ``cadDataUrl`` and ``name`` fields,
 for those fields' types, and for ``views`` being a JSON array when it is given.
 Each ``views`` entry is validated for being a JSON object, for the required
 ``guideViewPosition`` and ``name`` fields, and for those fields' types.
+Each ``guideViewPosition`` object is validated for the required ``rotation``
+and ``translation`` fields, and for those fields being JSON arrays.
 The mock does not validate the contents of each model further, such as whether
-``cadDataUrl`` values are reachable, the contents of ``guideViewPosition``
-objects, or ``targetSdk`` version numbers.
+``cadDataUrl`` values are reachable, the lengths of ``rotation`` and
+``translation`` arrays or the types of their elements, or ``targetSdk``
+version numbers.
 
 For unknown Model Target datasets, the mock returns an error whose ``target`` is ``userId:mock``.
 Real Vuforia uses ``userId:<numeric-user-id>`` where the numeric portion is per-account.

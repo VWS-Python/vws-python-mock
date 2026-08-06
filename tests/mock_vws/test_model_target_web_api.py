@@ -58,6 +58,8 @@ _EMPTY_VIEW: dict[str, Any] = {}
 
 _EMPTY_GUIDE_VIEW_POSITION: list[Any] = []
 
+_EMPTY_GUIDE_VIEW_POSITION_OBJECT: dict[str, Any] = {}
+
 _UNAUTHENTICATED_DATASET_REQUEST: dict[str, Any] = {
     "name": "dataset-name",
     "targetSdk": "10.18",
@@ -611,6 +613,87 @@ class TestErrorResponses:
                     ),
                 },
                 id="view-guide-view-position-not-object",
+            ),
+            pytest.param(
+                {
+                    **_UNAUTHENTICATED_DATASET_REQUEST,
+                    "models": [
+                        {
+                            **_MODEL,
+                            "views": [
+                                {
+                                    **_VIEW,
+                                    "guideViewPosition": (
+                                        _EMPTY_GUIDE_VIEW_POSITION_OBJECT
+                                    ),
+                                },
+                            ],
+                        },
+                    ],
+                },
+                {
+                    (
+                        "/models(0)/views(0)/guideViewPosition/rotation: "
+                        "element is required"
+                    ),
+                    (
+                        "/models(0)/views(0)/guideViewPosition/translation: "
+                        "element is required"
+                    ),
+                },
+                id="guide-view-position-missing-fields",
+            ),
+            pytest.param(
+                {
+                    **_UNAUTHENTICATED_DATASET_REQUEST,
+                    "models": [
+                        {
+                            **_MODEL,
+                            "views": [
+                                {
+                                    **_VIEW,
+                                    "guideViewPosition": {
+                                        "rotation": "0,0,0,1",
+                                        "translation": [0, 0, 5],
+                                    },
+                                },
+                            ],
+                        },
+                    ],
+                },
+                {
+                    (
+                        "/models(0)/views(0)/guideViewPosition/rotation: "
+                        "error.expected.jsarray"
+                    ),
+                },
+                id="guide-view-position-rotation-not-array",
+            ),
+            pytest.param(
+                {
+                    **_UNAUTHENTICATED_DATASET_REQUEST,
+                    "models": [
+                        {
+                            **_MODEL,
+                            "views": [
+                                {
+                                    **_VIEW,
+                                    "guideViewPosition": {
+                                        "rotation": [0, 0, 0, 1],
+                                        "translation": 5,
+                                    },
+                                },
+                            ],
+                        },
+                    ],
+                },
+                {
+                    (
+                        "/models(0)/views(0)/guideViewPosition/translation: "
+                        "error.expected.jsarray"
+                    ),
+                },
+                id="guide-view-position-translation-not-array",
             ),
         ],
     )
