@@ -1,7 +1,6 @@
 """Validators for the VWS per-second request rate."""
 
 import threading
-import time
 from collections import deque
 from collections.abc import Callable, Iterable, Mapping
 
@@ -25,7 +24,7 @@ class RequestRateLimiter:
     def __init__(
         self,
         *,
-        time_function: Callable[[], float] = time.monotonic,  # noqa: NOD001
+        time_function: Callable[[], float],
     ) -> None:
         """Initialize an empty rate limiter."""
         self._request_times: dict[str, deque[float]] = {}
