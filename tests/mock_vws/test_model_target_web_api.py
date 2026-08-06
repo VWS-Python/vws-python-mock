@@ -45,24 +45,26 @@ def _dataset_request(*, cad_data_url: str) -> dict[str, Any]:
     }
 
 
-_UNAUTHENTICATED_DATASET_REQUEST = {
-    "name": "dataset-name",
-    "targetSdk": "10.18",
-    "models": [
+_MODEL: dict[str, Any] = {
+    "name": "model-name",
+    "cadDataUrl": "https://example.com/model.glb",
+    "views": [
         {
-            "name": "model-name",
-            "cadDataUrl": "https://example.com/model.glb",
-            "views": [
-                {
-                    "name": "view-name",
-                    "guideViewPosition": {
-                        "translation": [0, 0, 5],
-                        "rotation": [0, 0, 0, 1],
-                    },
-                },
-            ],
+            "name": "view-name",
+            "guideViewPosition": {
+                "translation": [0, 0, 5],
+                "rotation": [0, 0, 0, 1],
+            },
         },
     ],
+}
+
+_EMPTY_MODEL: dict[str, Any] = {}
+
+_UNAUTHENTICATED_DATASET_REQUEST: dict[str, Any] = {
+    "name": "dataset-name",
+    "targetSdk": "10.18",
+    "models": [_MODEL],
 }
 
 
@@ -514,6 +516,46 @@ class TestErrorResponses:
                 },
                 {"/models(1): error.expected.jsobject"},
                 id="second-model-not-object",
+            ),
+            pytest.param(
+                {
+                    **_UNAUTHENTICATED_DATASET_REQUEST,
+                    "models": [_EMPTY_MODEL],
+                },
+                {
+                    "/models(0)/cadDataUrl: element is required",
+                    "/models(0)/name: element is required",
+                },
+                id="model-missing-fields",
+            ),
+            pytest.param(
+                {
+                    **_UNAUTHENTICATED_DATASET_REQUEST,
+                    "models": [
+                        {
+                            **_MODEL,
+                            "cadDataUrl": 1,
+                        },
+                    ],
+                },
+                {"/models(0)/cadDataUrl: error.expected.jsstring"},
+                id="model-cad-data-url-not-string",
+            ),
+            pytest.param(
+                {
+                    **_UNAUTHENTICATED_DATASET_REQUEST,
+                    "models": [{**_MODEL, "name": None}],
+                },
+                {"/models(0)/name: error.expected.jsstring"},
+                id="model-name-not-string",
+            ),
+            pytest.param(
+                {
+                    **_UNAUTHENTICATED_DATASET_REQUEST,
+                    "models": [{**_MODEL, "views": "view-name"}],
+                },
+                {"/models(0)/views: error.expected.jsarray"},
+                id="model-views-not-array",
             ),
         ],
     )
