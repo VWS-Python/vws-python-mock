@@ -58,23 +58,23 @@ class MockVWS(ContextDecorator):
     def __init__(
         self,
         *,
-        base_vws_url: str = "https://vws.vuforia.com",  # noqa: NOD001
-        base_vwq_url: str = "https://cloudreco.vuforia.com",  # noqa: NOD001
-        cloud_query_failure_response: CloudQueryFailureResponse | None = None,  # noqa: NOD001
-        duplicate_match_checker: ImageMatcher = _STRUCTURAL_SIMILARITY_MATCHER,  # noqa: NOD001
-        query_match_checker: ImageMatcher = _STRUCTURAL_SIMILARITY_MATCHER,  # noqa: NOD001
-        processing_time_seconds: float = 2.0,  # noqa: NOD001
+        base_vws_url: str = "https://vws.vuforia.com",
+        base_vwq_url: str = "https://cloudreco.vuforia.com",
+        cloud_query_failure_response: CloudQueryFailureResponse | None = None,
+        duplicate_match_checker: ImageMatcher = _STRUCTURAL_SIMILARITY_MATCHER,
+        query_match_checker: ImageMatcher = _STRUCTURAL_SIMILARITY_MATCHER,
+        processing_time_seconds: float = 2.0,
         model_target_generation_failure: (
             ModelTargetGenerationFailure | None
-        ) = None,  # noqa: NOD001
+        ) = None,
         model_target_generation_warning: (
             ModelTargetGenerationWarning | None
-        ) = None,  # noqa: NOD001
-        target_tracking_rater: TargetTrackingRater = _BRISQUE_TRACKING_RATER,  # noqa: NOD001
-        real_http: bool = False,  # noqa: NOD001
-        response_delay_seconds: float = 0.0,  # noqa: NOD001
-        sleep_fn: Callable[[float], None] = time.sleep,  # noqa: NOD001
-        vumark_generation_failure: VuMarkGenerationFailure | None = None,  # noqa: NOD001
+        ) = None,
+        target_tracking_rater: TargetTrackingRater = _BRISQUE_TRACKING_RATER,
+        real_http: bool = False,
+        response_delay_seconds: float = 0.0,
+        sleep_fn: Callable[[float], None] = time.sleep,
+        vumark_generation_failure: VuMarkGenerationFailure | None = None,
     ) -> None:
         """Route requests to Vuforia's Web Service APIs to fakes of those
         APIs.
