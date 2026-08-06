@@ -114,3 +114,6 @@ src/*/_setuptools_scm_version.txt
 uv.lock
 
 .claude/scheduled_tasks.lock
+
+# Vale styles downloaded by ``vale sync``
+styles/
