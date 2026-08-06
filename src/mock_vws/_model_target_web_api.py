@@ -346,12 +346,80 @@ def _load_request_json(request: RequestData) -> dict[str, Any] | _ResponseType:
 
 
 @beartype
-def _validate_dataset_request(
+def _model_field_details(*, models: list[Any]) -> list[dict[str, str]]:
+    """Return validation details for the fields of each model."""
+    missing_details = [
+        {
+            "code": "VALIDATION_ERROR",
+            "message": f"/models({index})/{field}: element is required",
+        }
+        for index, model in enumerate(iterable=models)
+        for field in ("cadDataUrl", "name")
+        if field not in model
+    ]
+    if missing_details:
+        return missing_details
+
+    string_details = [
+        {
+            "code": "VALIDATION_ERROR",
+            "message": f"/models({index})/{field}: error.expected.jsstring",
+        }
+        for index, model in enumerate(iterable=models)
+        for field in ("cadDataUrl", "name")
+        if not isinstance(model[field], str)
+    ]
+    views_details = [
+        {
+            "code": "VALIDATION_ERROR",
+            "message": f"/models({index})/views: error.expected.jsarray",
+        }
+        for index, model in enumerate(iterable=models)
+        if "views" in model and not isinstance(model["views"], list)
+    ]
+    return string_details + views_details
+
+
+@beartype
+def _model_count_details(
+    *,
+    models: list[Any],
+    dataset_type: ModelTargetDatasetType,
+) -> list[dict[str, str]]:
+    """Return validation details for the number of models."""
+    model_count = len(models)
+
+    if dataset_type == ModelTargetDatasetType.STANDARD and model_count != 1:
+        return [
+            {
+                "code": "VALIDATION_ERROR",
+                "message": "exactly one model should be provided",
+            },
+        ]
+
+    if (
+        dataset_type == ModelTargetDatasetType.ADVANCED
+        and not 1 <= model_count <= _MAX_ADVANCED_MODEL_COUNT
+    ):
+        return [
+            {
+                "code": "VALIDATION_ERROR",
+                "message": (
+                    "models must contain between 1 and "
+                    f"{_MAX_ADVANCED_MODEL_COUNT} entries"
+                ),
+            },
+        ]
+
+    return []
+
+
+@beartype
+def _top_level_details(
     *,
     request_json: dict[str, Any],
-    dataset_type: ModelTargetDatasetType,
-) -> _ResponseType | None:
-    """Validate the dataset request enough for useful mock feedback."""
+) -> list[dict[str, str]]:
+    """Return validation details for the top-level dataset fields."""
     missing_details = [
         {
             "code": "VALIDATION_ERROR",
@@ -361,7 +429,7 @@ def _validate_dataset_request(
         if field not in request_json
     ]
     if missing_details:
-        return _validation_error_response(details=missing_details)
+        return missing_details
 
     type_details = [
         {
@@ -380,7 +448,7 @@ def _validate_dataset_request(
                 "message": "/models: error.expected.jsarray",
             },
         )
-        return _validation_error_response(details=type_details)
+        return type_details
 
     models: list[Any] = [*models_value]
     type_details.extend(
@@ -391,36 +459,26 @@ def _validate_dataset_request(
         for index, model in enumerate(iterable=models)
         if not isinstance(model, dict)
     )
-    if type_details:
-        return _validation_error_response(details=type_details)
+    return type_details
 
-    model_count = len(models)
 
-    if dataset_type == ModelTargetDatasetType.STANDARD and model_count != 1:
-        return _validation_error_response(
-            details=[
-                {
-                    "code": "VALIDATION_ERROR",
-                    "message": "exactly one model should be provided",
-                },
-            ],
+@beartype
+def _validate_dataset_request(
+    *,
+    request_json: dict[str, Any],
+    dataset_type: ModelTargetDatasetType,
+) -> _ResponseType | None:
+    """Validate the dataset request enough for useful mock feedback."""
+    details = _top_level_details(request_json=request_json)
+    if not details:
+        models: list[Any] = [*request_json["models"]]
+        details = _model_field_details(models=models) or _model_count_details(
+            models=models,
+            dataset_type=dataset_type,
         )
 
-    if (
-        dataset_type == ModelTargetDatasetType.ADVANCED
-        and not 1 <= model_count <= _MAX_ADVANCED_MODEL_COUNT
-    ):
-        return _validation_error_response(
-            details=[
-                {
-                    "code": "VALIDATION_ERROR",
-                    "message": (
-                        "models must contain between 1 and "
-                        f"{_MAX_ADVANCED_MODEL_COUNT} entries"
-                    ),
-                },
-            ],
-        )
+    if details:
+        return _validation_error_response(details=details)
 
     return None
 
