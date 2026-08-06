@@ -22,6 +22,15 @@ _DATASET_UUID = "0b12466eee5d49409a440927006ff5d8"
 _MOCK_BEARER_TOKEN = "eyJhbGciOiJtb2NrIn0.e30.c2lnbmF0dXJl"
 
 
+_VIEW: dict[str, Any] = {
+    "name": "view-name",
+    "guideViewPosition": {
+        "translation": [0, 0, 5],
+        "rotation": [0, 0, 0, 1],
+    },
+}
+
+
 def _dataset_request(*, cad_data_url: str) -> dict[str, Any]:
     """Return a standard Model Target dataset request."""
     return {
@@ -31,15 +40,7 @@ def _dataset_request(*, cad_data_url: str) -> dict[str, Any]:
             {
                 "name": "model-name",
                 "cadDataUrl": cad_data_url,
-                "views": [
-                    {
-                        "name": "view-name",
-                        "guideViewPosition": {
-                            "translation": [0, 0, 5],
-                            "rotation": [0, 0, 0, 1],
-                        },
-                    },
-                ],
+                "views": [_VIEW],
             },
         ],
     }
@@ -48,18 +49,14 @@ def _dataset_request(*, cad_data_url: str) -> dict[str, Any]:
 _MODEL: dict[str, Any] = {
     "name": "model-name",
     "cadDataUrl": "https://example.com/model.glb",
-    "views": [
-        {
-            "name": "view-name",
-            "guideViewPosition": {
-                "translation": [0, 0, 5],
-                "rotation": [0, 0, 0, 1],
-            },
-        },
-    ],
+    "views": [_VIEW],
 }
 
 _EMPTY_MODEL: dict[str, Any] = {}
+
+_EMPTY_VIEW: dict[str, Any] = {}
+
+_EMPTY_GUIDE_VIEW_POSITION: list[Any] = []
 
 _UNAUTHENTICATED_DATASET_REQUEST: dict[str, Any] = {
     "name": "dataset-name",
@@ -556,6 +553,64 @@ class TestErrorResponses:
                 },
                 {"/models(0)/views: error.expected.jsarray"},
                 id="model-views-not-array",
+            ),
+            pytest.param(
+                {
+                    **_UNAUTHENTICATED_DATASET_REQUEST,
+                    "models": [{**_MODEL, "views": ["view-name"]}],
+                },
+                {"/models(0)/views(0): error.expected.jsobject"},
+                id="view-not-object",
+            ),
+            pytest.param(
+                {
+                    **_UNAUTHENTICATED_DATASET_REQUEST,
+                    "models": [{**_MODEL, "views": [_EMPTY_VIEW]}],
+                },
+                {
+                    (
+                        "/models(0)/views(0)/guideViewPosition: "
+                        "element is required"
+                    ),
+                    "/models(0)/views(0)/name: element is required",
+                },
+                id="view-missing-fields",
+            ),
+            pytest.param(
+                {
+                    **_UNAUTHENTICATED_DATASET_REQUEST,
+                    "models": [
+                        {**_MODEL, "views": [{**_VIEW, "name": 1}]},
+                    ],
+                },
+                {"/models(0)/views(0)/name: error.expected.jsstring"},
+                id="view-name-not-string",
+            ),
+            pytest.param(
+                {
+                    **_UNAUTHENTICATED_DATASET_REQUEST,
+                    "models": [
+                        {
+                            **_MODEL,
+                            "views": [
+                                _VIEW,
+                                {
+                                    **_VIEW,
+                                    "guideViewPosition": (
+                                        _EMPTY_GUIDE_VIEW_POSITION
+                                    ),
+                                },
+                            ],
+                        },
+                    ],
+                },
+                {
+                    (
+                        "/models(0)/views(1)/guideViewPosition: "
+                        "error.expected.jsobject"
+                    ),
+                },
+                id="view-guide-view-position-not-object",
             ),
         ],
     )

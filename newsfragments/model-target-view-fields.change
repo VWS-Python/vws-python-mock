@@ -1,0 +1,1 @@
+Reject Model Target dataset creation requests with ``views`` entries which are not JSON objects, which are missing ``guideViewPosition`` or ``name``, or which have wrongly typed ``guideViewPosition`` or ``name`` values.
