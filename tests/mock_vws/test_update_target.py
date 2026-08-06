@@ -38,7 +38,7 @@ def _update_target(
     vws_client: VWS,
     data: dict[str, Any],
     target_id: str,
-    content_type: str = "application/json",
+    content_type: str,
 ) -> Response:
     """Make a request to the endpoint to update a target.
 
@@ -160,6 +160,7 @@ class TestUpdate:
             vws_client=vws_client,
             data={},
             target_id=target_id,
+            content_type="application/json",
         )
 
         assert_vws_response(
@@ -203,6 +204,7 @@ class TestUnexpectedData:
                 vws_client=vws_client,
                 data={"extra_thing": 1},
                 target_id=target_id,
+                content_type="application/json",
             )
 
         assert_vws_failure(
@@ -239,6 +241,7 @@ class TestWidth:
                 vws_client=vws_client,
                 data={"width": width},
                 target_id=target_id,
+                content_type="application/json",
             )
 
         assert_vws_failure(
@@ -321,6 +324,7 @@ class TestActiveFlag:
                 vws_client=vws_client,
                 data={"active_flag": desired_active_flag},
                 target_id=target_id,
+                content_type="application/json",
             )
 
         assert_vws_failure(
@@ -375,6 +379,7 @@ class TestApplicationMetadata:
                 vws_client=vws_client,
                 data={"application_metadata": invalid_metadata},
                 target_id=target_id,
+                content_type="application/json",
             )
 
         assert_vws_failure(
@@ -538,6 +543,7 @@ class TestTargetName:
                 vws_client=vws_client,
                 data={"name": name},
                 target_id=target_id,
+                content_type="application/json",
             )
 
         assert_vws_failure(
@@ -759,6 +765,7 @@ class TestImage:
                 vws_client=vws_client,
                 data={"image": not_base64_encoded_processable},
                 target_id=target_id,
+                content_type="application/json",
             )
 
         assert_vws_failure(
@@ -787,6 +794,7 @@ class TestImage:
                 vws_client=vws_client,
                 data={"image": not_base64_encoded_not_processable},
                 target_id=target_id,
+                content_type="application/json",
             )
 
         assert_vws_failure(
@@ -835,6 +843,7 @@ class TestImage:
                 vws_client=vws_client,
                 data={"image": invalid_type_image},
                 target_id=target_id,
+                content_type="application/json",
             )
 
         assert_vws_failure(
