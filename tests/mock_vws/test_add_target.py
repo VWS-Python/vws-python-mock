@@ -39,7 +39,7 @@ def _add_target_to_vws(
     *,
     vws_client: VWS,
     data: dict[str, Any],
-    content_type: str = "application/json",
+    content_type: str,
 ) -> Response:
     """Return a response from a request to the endpoint to add a target.
 
@@ -195,7 +195,11 @@ class TestMissingData:
         data.pop(data_to_remove)
 
         with pytest.raises(expected_exception=FailError) as exc:
-            _add_target_to_vws(vws_client=vws_client, data=data)
+            _add_target_to_vws(
+                vws_client=vws_client,
+                data=data,
+                content_type="application/json",
+            )
 
         assert_vws_failure(
             response=exc.value.response,
@@ -233,7 +237,11 @@ class TestWidth:
         }
 
         with pytest.raises(expected_exception=FailError) as exc:
-            _add_target_to_vws(vws_client=vws_client, data=data)
+            _add_target_to_vws(
+                vws_client=vws_client,
+                data=data,
+                content_type="application/json",
+            )
 
         assert_vws_failure(
             response=exc.value.response,
@@ -343,10 +351,18 @@ class TestTargetName:
 
         if status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             with pytest.raises(expected_exception=ServerError) as exc:
-                _add_target_to_vws(vws_client=vws_client, data=data)
+                _add_target_to_vws(
+                    vws_client=vws_client,
+                    data=data,
+                    content_type="application/json",
+                )
         else:
             with pytest.raises(expected_exception=FailError) as exc:
-                _add_target_to_vws(vws_client=vws_client, data=data)
+                _add_target_to_vws(
+                    vws_client=vws_client,
+                    data=data,
+                    content_type="application/json",
+                )
 
         assert_vws_failure(
             response=exc.value.response,
@@ -573,7 +589,11 @@ class TestImage:
         }
 
         with pytest.raises(expected_exception=BadImageError) as exc:
-            _add_target_to_vws(vws_client=vws_client, data=data)
+            _add_target_to_vws(
+                vws_client=vws_client,
+                data=data,
+                content_type="application/json",
+            )
 
         assert_vws_failure(
             response=exc.value.response,
@@ -600,7 +620,11 @@ class TestImage:
         }
 
         with pytest.raises(expected_exception=FailError) as exc:
-            _add_target_to_vws(vws_client=vws_client, data=data)
+            _add_target_to_vws(
+                vws_client=vws_client,
+                data=data,
+                content_type="application/json",
+            )
 
         assert_vws_failure(
             response=exc.value.response,
@@ -648,7 +672,11 @@ class TestImage:
         }
 
         with pytest.raises(expected_exception=FailError) as exc:
-            _add_target_to_vws(vws_client=vws_client, data=data)
+            _add_target_to_vws(
+                vws_client=vws_client,
+                data=data,
+                content_type="application/json",
+            )
 
         assert_vws_failure(
             response=exc.value.response,
@@ -749,7 +777,9 @@ class TestActiveFlag:
             "image": image_data_encoded,
         }
 
-        response = _add_target_to_vws(vws_client=vws_client, data=data)
+        response = _add_target_to_vws(
+            vws_client=vws_client, data=data, content_type="application/json"
+        )
         response_json = json.loads(s=response.text)
         target_id = response_json["target_id"]
         target_details = vws_client.get_target_record(target_id=target_id)
@@ -774,7 +804,9 @@ class TestActiveFlag:
             "active_flag": None,
         }
 
-        response = _add_target_to_vws(vws_client=vws_client, data=data)
+        response = _add_target_to_vws(
+            vws_client=vws_client, data=data, content_type="application/json"
+        )
 
         response_json = json.loads(s=response.text)
         target_id = response_json["target_id"]
@@ -812,7 +844,11 @@ class TestUnexpectedData:
         }
 
         with pytest.raises(expected_exception=FailError) as exc:
-            _add_target_to_vws(vws_client=vws_client, data=data)
+            _add_target_to_vws(
+                vws_client=vws_client,
+                data=data,
+                content_type="application/json",
+            )
 
         assert_vws_failure(
             response=exc.value.response,
@@ -875,6 +911,7 @@ class TestApplicationMetadata:
         response = _add_target_to_vws(
             vws_client=vws_client,
             data=request_data,
+            content_type="application/json",
         )
 
         assert_success(response=response)
@@ -902,7 +939,11 @@ class TestApplicationMetadata:
         }
 
         with pytest.raises(expected_exception=FailError) as exc:
-            _add_target_to_vws(vws_client=vws_client, data=data)
+            _add_target_to_vws(
+                vws_client=vws_client,
+                data=data,
+                content_type="application/json",
+            )
 
         assert_vws_failure(
             response=exc.value.response,
