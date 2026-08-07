@@ -447,8 +447,8 @@ def _view_details(*, models: list[Any]) -> list[dict[str, str]]:
 def _is_json_number(*, value: object) -> bool:
     """Return whether a decoded JSON value is a number.
 
-    JSON booleans decode to Python ``bool`` values, which are also ``int``
-    values, so they are excluded.
+    A JSON boolean decodes to a Python ``bool`` value, which is also an
+    ``int`` value, so ``bool`` values are excluded.
     """
     return isinstance(value, int | float) and not isinstance(value, bool)
 
