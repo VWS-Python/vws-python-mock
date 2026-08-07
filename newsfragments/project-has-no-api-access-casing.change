@@ -1,0 +1,1 @@
+Document that the casing of the ``ProjectHasNoAPIAccess`` result code is unconfirmed, as Vuforia's documentation spells it ``ProjectHasNoApiAccess`` and no response from a real database in that state has been observed.

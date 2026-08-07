@@ -61,6 +61,10 @@ class ResultCodes(Enum):
     TARGET_QUOTA_REACHED = "TargetQuotaReached"
     PROJECT_SUSPENDED = "ProjectSuspended"
     PROJECT_INACTIVE = "ProjectInactive"
+    # Vuforia's result codes table spells this "ProjectHasNoApiAccess". We have
+    # never seen a real response for a database in this state, so the casing is
+    # unconfirmed. We keep "ProjectHasNoAPIAccess" to match ``vws-python`` and
+    # ``vws-cli``, which map this result code by that spelling.
     PROJECT_HAS_NO_API_ACCESS = "ProjectHasNoAPIAccess"
     INACTIVE_PROJECT = "InactiveProject"
     TOO_MANY_REQUESTS = "TooManyRequests"
