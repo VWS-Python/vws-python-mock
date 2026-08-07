@@ -9,6 +9,8 @@ from http import HTTPMethod, HTTPStatus
 
 from beartype import beartype
 
+from mock_vws._mock_common import RECO_COUNTS_REPORT_PATH_PATTERN
+
 from .exceptions import FailError
 
 _LOGGER = logging.getLogger(name=__name__)
@@ -129,8 +131,16 @@ def validate_keys(
         optional_keys=set(),
     )
 
+    reco_counts_report = _Route(
+        path_pattern=RECO_COUNTS_REPORT_PATH_PATTERN,
+        http_methods={HTTPMethod.POST},
+        mandatory_keys={"month"},
+        optional_keys=set(),
+    )
+
     routes = (
         add_target,
+        reco_counts_report,
         delete_target,
         database_summary,
         target_list,

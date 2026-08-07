@@ -1,8 +1,10 @@
+CSV
 KiB
 MPixel
 MiB
 MissingSchema
 OAuth
+Reco
 Ubuntu
 VuMark
 admin
@@ -76,12 +78,14 @@ pdict
 plugins
 png
 pragma
+presigned
 processable
 pyrefly
 pyright
 pytest
 readme
 readthedocs
+reco
 recognitions
 refactoring
 regex

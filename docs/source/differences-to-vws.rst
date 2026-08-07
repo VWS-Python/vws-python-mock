@@ -255,6 +255,38 @@ Two Model Target Web API error paths remain mock-only in ``tests/mock_vws/test_m
 Downloads of still-processing datasets are mock-only because exercising the path against real Vuforia would require creating a dataset on every test run; the mock drives the processing window deterministically.
 Advanced-dataset creation with more than 20 models is mock-only because the available test account lacks the advanced-dataset scope and real Vuforia rejects the request with a 403 before validating model counts.
 
+Reco counts reports
+-------------------
+
+The mock does not count recognitions, so a generated reco counts report
+contains only the ``target_id,reco_count`` header row.
+The mock returns the same report for the current month and the previous month.
+
+The mock does not use the database ID in the request path.
+It uses the database which matches the request's server keys, and it accepts
+any database ID.
+Real Vuforia returns a 401 response for a request which is signed with valid
+server keys but which names a database ID that those keys do not belong to.
+
+Real Vuforia returns a presigned URL for cloud storage, and the report takes
+between a few seconds and one hour to generate.
+The mock returns a URL served by the mock itself, without the query
+parameters of a presigned URL, and the report takes
+:paramref:`~mock_vws.MockVWS.processing_time_seconds` seconds to generate.
+The URL returned by the Flask and Docker mock is built from the
+:envvar:`VWS_BASE_URL` environment variable.
+As with real Vuforia, the URL returns a 404 response until the report is
+ready, and it requires no authorization.
+
+The whole endpoint is mock-only in
+``tests/mock_vws/test_reco_counts_report.py``, because the test credentials do
+not include a database ID and so a request cannot be made which real Vuforia
+authenticates.
+Nothing about it has been verified against real Vuforia: not the ``Fail``
+result code returned for a ``month`` which is not in the ``YYYY-mm`` form or
+which is neither the current month nor the previous month, not the columns of
+the CSV report, and not the headers of either response.
+
 Header cases
 ------------
 

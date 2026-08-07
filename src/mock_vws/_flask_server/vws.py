@@ -38,6 +38,10 @@ from mock_vws._model_target_web_api import (
 from mock_vws._model_target_web_api import (
     oauth2_token as model_target_oauth2_token,
 )
+from mock_vws._reco_counts_web_api import create_reco_counts_report
+from mock_vws._reco_counts_web_api import (
+    download_reco_counts_report as download_report,
+)
 from mock_vws._services_validators import run_services_validators
 from mock_vws._services_validators.exceptions import (
     FailError,
@@ -93,6 +97,9 @@ class VWSSettings(BaseSettings):
     target_manager_base_url: str
     processing_time_seconds: float = 2.0
     vws_host: str = ""
+    # The base URL which clients use to reach this application.
+    # Generated reco counts reports are served from this URL.
+    vws_base_url: str = "https://vws.vuforia.com"
     duplicates_image_matcher: _ImageMatcherChoice = (
         _ImageMatcherChoice.STRUCTURAL_SIMILARITY
     )
@@ -189,11 +196,16 @@ def validate_request() -> None:
 
     The VuMark endpoint does its own validation because it needs to
     authenticate against both cloud and VuMark databases.
+
+    Reco counts report downloads stand in for presigned URLs, which are not
+    authorized with VWS credentials.
     """
     if request.endpoint == "generate_vumark_instance":
         return
-    if request.path == "/oauth2/token" or request.path.startswith(
-        "/modeltargets/",
+    if (
+        request.path == "/oauth2/token"
+        or request.path.startswith("/modeltargets/")
+        or request.path.startswith("/reports/recoCounts/")
     ):
         return
     run_services_validators(
@@ -381,6 +393,50 @@ def delete_advanced_model_target_dataset(dataset_uuid: str) -> Response:
             request=_flask_request_data(),
             target_manager=_model_target_manager(),
             dataset_uuid=dataset_uuid,
+        ),
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/imagetargets/databases/<string:database_id>/reports/recoCounts",
+    methods=[HTTPMethod.POST],
+)
+@beartype
+def reco_counts_report(database_id: str) -> Response:
+    """Request a reco counts report for a database.
+
+    Fake implementation of
+    https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api
+    """
+    # The mock authenticates with the request's server keys, so the database
+    # ID in the path is not used.
+    del database_id
+    settings = VWSSettings.model_validate(obj={})
+    return _to_flask_response(
+        api_response=create_reco_counts_report(
+            request_body=request.data,
+            target_manager=TARGET_MANAGER,
+            generation_time_seconds=settings.processing_time_seconds,
+            base_url=settings.vws_base_url.rstrip("/"),
+        ),
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/reports/recoCounts/<string:report_id>",
+    methods=[HTTPMethod.GET],
+)
+@beartype
+def download_reco_counts_report(report_id: str) -> Response:
+    """Download a generated reco counts report.
+
+    This stands in for the presigned URL which real Vuforia returns, so it
+    does not require any authorization.
+    """
+    return _to_flask_response(
+        api_response=download_report(
+            target_manager=TARGET_MANAGER,
+            report_id=report_id,
         ),
     )
 

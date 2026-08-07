@@ -149,6 +149,7 @@ class MockVWS(ContextDecorator):
 
         self._mock_vws_api = MockVuforiaWebServicesAPI(
             target_manager=self._target_manager,
+            base_vws_url=base_vws_url,
             processing_time_seconds=float(processing_time_seconds),
             model_target_generation_failure=model_target_generation_failure,
             model_target_generation_warning=model_target_generation_warning,
