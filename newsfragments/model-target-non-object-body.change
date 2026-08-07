@@ -1,0 +1,1 @@
+Reject Model Target dataset creation requests with a body which is valid JSON but not a JSON object, rather than raising an error in the mock.

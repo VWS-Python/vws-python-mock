@@ -180,6 +180,8 @@ route.
 The mock does not verify token signatures, payload claims such as expiry, or
 token revocation.
 
+Dataset creation request bodies which are valid JSON but not JSON objects are
+reported as missing every required top-level field.
 Dataset creation requests are validated for the required top-level ``models``,
 ``name`` and ``targetSdk`` fields, for those fields' types, for each ``models``
 entry being a JSON object, and for the number of models.
