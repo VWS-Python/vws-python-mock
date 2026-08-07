@@ -51,6 +51,16 @@ The mock is strict.
 That is, it accepts only a few date formats, and rejects all others.
 If you find a date format which is accepted by the real Query API but rejected by the mock, please create a GitHub issue.
 
+Unknown fields in Query API requests
+------------------------------------
+
+The `Vuforia Query Web API`_ documentation states that the API accepts requests with unknown data fields, and ignores the unknown fields.
+The real Query API does not do this.
+It returns a 400 (``BAD REQUEST``) response with the ``UnknownParameters`` result code when a multipart field other than ``image``, ``max_num_results`` or ``include_target_data`` is given.
+The mock matches the real Query API rather than the documentation.
+
+.. _Vuforia Query Web API: https://developer.vuforia.com/library/vuforia-engine/web-api/vuforia-query-web-api/
+
 Targets stuck in processing
 ---------------------------
 
