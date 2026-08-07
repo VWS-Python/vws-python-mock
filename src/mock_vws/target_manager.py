@@ -1,5 +1,6 @@
 """A fake implementation of a Vuforia target manager."""
 
+import time
 from typing import TYPE_CHECKING
 
 from beartype import beartype
@@ -27,7 +28,9 @@ class TargetManager:
         self._cloud_databases: set[CloudDatabase] = set()
         self._vumark_databases: set[VuMarkDatabase] = set()
         self._model_target_datasets: dict[str, ModelTargetDataset] = {}
-        self._request_rate_limiter = RequestRateLimiter()
+        self._request_rate_limiter = RequestRateLimiter(
+            time_function=time.monotonic,
+        )
 
     @property
     def request_rate_limiter(self) -> RequestRateLimiter:
