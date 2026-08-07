@@ -762,9 +762,11 @@ class TestIncorrectFields:
         high_quality_image: io.BytesIO,
         vuforia_database: CloudDatabase,
     ) -> None:
-        """
-        If extra fields are given, a ``BAD_REQUEST`` response is
+        """If extra fields are given, a ``BAD_REQUEST`` response is
         returned.
+
+        The Query API documentation says that unknown fields are ignored,
+        but the real Query API rejects them.
         """
         image_content = high_quality_image.getvalue()
         body = {
