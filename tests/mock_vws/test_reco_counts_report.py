@@ -40,6 +40,8 @@ def _request_reco_counts_report(
     month: str | int,
 ) -> requests.Response:
     """Request a reco counts report and return the response."""
+    # The mocks accept any database ID, and the test credentials do not
+    # include the ID of the real database.
     database_id = uuid.uuid4().hex
     request_path = f"/imagetargets/databases/{database_id}/reports/recoCounts"
     content_type = "application/json"
@@ -68,9 +70,15 @@ def _request_reco_counts_report(
     )
 
 
-@pytest.mark.usefixtures("verify_mock_vuforia")
+@pytest.mark.usefixtures("mock_only_vuforia")
 class TestRecoCountsReport:
-    """Tests for requesting a reco counts report."""
+    """Tests for requesting a reco counts report.
+
+    These are tested against the mocks only.
+    Real Vuforia returns a 401 response for a request which is signed with
+    valid server keys but which names a database ID that the keys do not
+    belong to, and the test credentials do not include a database ID.
+    """
 
     @staticmethod
     @pytest.mark.parametrize(

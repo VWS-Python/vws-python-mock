@@ -211,6 +211,8 @@ The mock returns the same report for the current month and the previous month.
 The mock does not use the database ID in the request path.
 It uses the database which matches the request's server keys, and it accepts
 any database ID.
+Real Vuforia returns a 401 response for a request which is signed with valid
+server keys but which names a database ID that those keys do not belong to.
 
 Real Vuforia returns a presigned URL for cloud storage, and the report takes
 between a few seconds and one hour to generate.
@@ -222,11 +224,14 @@ The URL returned by the Flask and Docker mock is built from the
 As with real Vuforia, the URL returns a 404 response until the report is
 ready, and it requires no authorization.
 
-The ``Fail`` result code returned for a ``month`` which is not in the
-``YYYY-mm`` form, and for a ``month`` which is neither the current month nor
-the previous month, has not been verified against real Vuforia.
-The columns of the CSV report, and the headers of the download response, have
-not been verified against a real report either.
+The whole endpoint is mock-only in
+``tests/mock_vws/test_reco_counts_report.py``, because the test credentials do
+not include a database ID and so a request cannot be made which real Vuforia
+authenticates.
+Nothing about it has been verified against real Vuforia: not the ``Fail``
+result code returned for a ``month`` which is not in the ``YYYY-mm`` form or
+which is neither the current month nor the previous month, not the columns of
+the CSV report, and not the headers of either response.
 
 Header cases
 ------------
