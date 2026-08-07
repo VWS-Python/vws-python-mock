@@ -1,0 +1,1 @@
+Change the ``ProjectHasNoAPIAccess`` result code to ``ProjectHasNoApiAccess``, matching Vuforia's result codes table.

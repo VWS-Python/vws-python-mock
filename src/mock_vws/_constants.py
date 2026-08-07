@@ -61,7 +61,10 @@ class ResultCodes(Enum):
     TARGET_QUOTA_REACHED = "TargetQuotaReached"
     PROJECT_SUSPENDED = "ProjectSuspended"
     PROJECT_INACTIVE = "ProjectInactive"
-    PROJECT_HAS_NO_API_ACCESS = "ProjectHasNoAPIAccess"
+    # We have never seen a real response for a database in this state, so this
+    # casing comes from Vuforia's result codes table rather than from an
+    # observed response.
+    PROJECT_HAS_NO_API_ACCESS = "ProjectHasNoApiAccess"
     INACTIVE_PROJECT = "InactiveProject"
     TOO_MANY_REQUESTS = "TooManyRequests"
     INVALID_ACCEPT_HEADER = "InvalidAcceptHeader"
