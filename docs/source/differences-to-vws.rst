@@ -138,14 +138,13 @@ against real databases in the corresponding states:
   ``target_quota`` targets.
 * ``ProjectSuspended`` is returned by VWS endpoints when a database uses the
   :attr:`mock_vws.states.States.PROJECT_SUSPENDED` state.
-* ``ProjectHasNoAPIAccess`` is returned by VWS endpoints when a database uses
+* ``ProjectHasNoApiAccess`` is returned by VWS endpoints when a database uses
   the :attr:`mock_vws.states.States.PROJECT_HAS_NO_API_ACCESS` state.
-  Vuforia's own result codes table spells this ``ProjectHasNoApiAccess``, with
-  ``Api`` rather than ``API``.
-  We have never seen a response from a real database in this state, so we
-  cannot tell which spelling real Vuforia returns.
-  The mock uses ``ProjectHasNoAPIAccess`` to match the spelling used by
-  ``vws-python`` and ``vws-cli``.
+  This casing comes from Vuforia's result codes table, as no response from a
+  real database in this state has been seen.
+  ``vws-python`` and ``vws-cli`` map this result code by the
+  ``ProjectHasNoAPIAccess`` spelling, so they do not recognize this response
+  until they are updated.
 * ``TooManyRequests`` is returned when a
   :class:`mock_vws.database.CloudDatabase` exceeds its
   ``requests_per_second_limit``. Set the limit to ``0`` to return this result

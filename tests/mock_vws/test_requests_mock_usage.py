@@ -16,9 +16,7 @@ from beartype import beartype
 from freezegun import freeze_time
 from PIL import Image
 from vws import VWS, CloudRecoService
-from vws.exceptions.base_exceptions import VWSError
 from vws.exceptions.vws_exceptions import (
-    ProjectHasNoAPIAccessError,
     ProjectSuspendedError,
     RequestQuotaReachedError,
     TargetQuotaReachedError,
@@ -461,29 +459,9 @@ class TestAdditionalResultCodes:
         )
 
     @staticmethod
-    @pytest.mark.parametrize(
-        argnames=("state", "expected_exception", "result_code"),
-        argvalues=[
-            (
-                States.PROJECT_SUSPENDED,
-                ProjectSuspendedError,
-                ResultCodes.PROJECT_SUSPENDED,
-            ),
-            (
-                States.PROJECT_HAS_NO_API_ACCESS,
-                ProjectHasNoAPIAccessError,
-                ResultCodes.PROJECT_HAS_NO_API_ACCESS,
-            ),
-        ],
-    )
-    def test_project_state_result_codes(
-        *,
-        state: States,
-        expected_exception: type[VWSError],
-        result_code: ResultCodes,
-    ) -> None:
-        """Configured project states reject VWS requests."""
-        database = CloudDatabase(state=state)
+    def test_project_suspended() -> None:
+        """A suspended project rejects VWS requests."""
+        database = CloudDatabase(state=States.PROJECT_SUSPENDED)
         client = VWS(
             server_access_key=database.server_access_key,
             server_secret_key=database.server_secret_key,
@@ -491,14 +469,51 @@ class TestAdditionalResultCodes:
 
         with MockVWS() as mock:
             mock.add_cloud_database(cloud_database=database)
-            with pytest.raises(expected_exception=expected_exception) as exc:
+            with pytest.raises(
+                expected_exception=ProjectSuspendedError,
+            ) as exc:
                 client.list_targets()
 
         assert_vws_failure(
             response=exc.value.response,
             status_code=HTTPStatus.FORBIDDEN,
-            result_code=result_code,
+            result_code=ResultCodes.PROJECT_SUSPENDED,
         )
+
+    @staticmethod
+    def test_project_has_no_api_access() -> None:
+        """A project with no API access rejects VWS requests.
+
+        This does not use ``vws-python`` because that library maps this
+        result code by the ``ProjectHasNoAPIAccess`` spelling, which
+        Vuforia's result codes table does not use.
+        """
+        database = CloudDatabase(state=States.PROJECT_HAS_NO_API_ACCESS)
+        request_path = "/targets"
+
+        with MockVWS() as mock:
+            mock.add_cloud_database(cloud_database=database)
+            date = rfc_1123_date()
+            auth = authorization_header(
+                access_key=database.server_access_key,
+                secret_key=database.server_secret_key,
+                method="GET",
+                content=b"",
+                content_type="",
+                date=date,
+                request_path=request_path,
+            )
+            response = requests.get(
+                url="https://vws.vuforia.com" + request_path,
+                headers={
+                    "Authorization": auth,
+                    "Date": date,
+                },
+                timeout=30,
+            )
+
+        assert response.status_code == HTTPStatus.FORBIDDEN
+        assert response.json()["result_code"] == "ProjectHasNoApiAccess"
 
 
 class TestCustomBaseURLs:

@@ -239,11 +239,11 @@ class ProjectSuspendedError(ValidatorError):
 
 
 @beartype
-class ProjectHasNoAPIAccessError(ValidatorError):
+class ProjectHasNoApiAccessError(ValidatorError):
     """Exception raised when a database cannot make API requests."""
 
     def __init__(self) -> None:
-        """Initialize a ``ProjectHasNoAPIAccess`` response."""
+        """Initialize a ``ProjectHasNoApiAccess`` response."""
         super().__init__()
         self.status_code = HTTPStatus.FORBIDDEN
         body = {

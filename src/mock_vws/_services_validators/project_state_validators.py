@@ -11,7 +11,7 @@ from mock_vws._database_matchers import (
     get_database_matching_server_keys,
 )
 from mock_vws._services_validators.exceptions import (
-    ProjectHasNoAPIAccessError,
+    ProjectHasNoApiAccessError,
     ProjectInactiveError,
     ProjectSuspendedError,
     ValidatorError,
@@ -53,7 +53,7 @@ def validate_project_state(
     )
 
     state_errors: dict[States, type[ValidatorError]] = {
-        States.PROJECT_HAS_NO_API_ACCESS: ProjectHasNoAPIAccessError,
+        States.PROJECT_HAS_NO_API_ACCESS: ProjectHasNoApiAccessError,
         States.PROJECT_SUSPENDED: ProjectSuspendedError,
     }
     if error := state_errors.get(database.state):
