@@ -695,6 +695,58 @@ class TestErrorResponses:
                 },
                 id="guide-view-position-translation-not-array",
             ),
+            pytest.param(
+                {
+                    **_UNAUTHENTICATED_DATASET_REQUEST,
+                    "models": [
+                        {
+                            **_MODEL,
+                            "views": [
+                                {
+                                    **_VIEW,
+                                    "guideViewPosition": {
+                                        "rotation": [0, "0", 0, 1],
+                                        "translation": [0, 0, 5],
+                                    },
+                                },
+                            ],
+                        },
+                    ],
+                },
+                {
+                    (
+                        "/models(0)/views(0)/guideViewPosition/rotation(1): "
+                        "error.expected.jsnumber"
+                    ),
+                },
+                id="guide-view-position-rotation-element-not-number",
+            ),
+            pytest.param(
+                {
+                    **_UNAUTHENTICATED_DATASET_REQUEST,
+                    "models": [
+                        {
+                            **_MODEL,
+                            "views": [
+                                {
+                                    **_VIEW,
+                                    "guideViewPosition": {
+                                        "rotation": [0, 0, 0, 1],
+                                        "translation": [0, 0, True],
+                                    },
+                                },
+                            ],
+                        },
+                    ],
+                },
+                {
+                    (
+                        "/models(0)/views(0)/guideViewPosition/"
+                        "translation(2): error.expected.jsnumber"
+                    ),
+                },
+                id="guide-view-position-translation-element-not-number",
+            ),
         ],
     )
     def test_invalid_dataset_request(
