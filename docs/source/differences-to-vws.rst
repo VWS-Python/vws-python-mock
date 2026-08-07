@@ -201,6 +201,33 @@ Two Model Target Web API error paths remain mock-only in ``tests/mock_vws/test_m
 Downloads of still-processing datasets are mock-only because exercising the path against real Vuforia would require creating a dataset on every test run; the mock drives the processing window deterministically.
 Advanced-dataset creation with more than 20 models is mock-only because the available test account lacks the advanced-dataset scope and real Vuforia rejects the request with a 403 before validating model counts.
 
+Reco counts reports
+-------------------
+
+The mock does not count recognitions, so a generated reco counts report
+contains only the ``target_id,reco_count`` header row.
+The mock returns the same report for the current month and the previous month.
+
+The mock does not use the database ID in the request path.
+It uses the database which matches the request's server keys, and it accepts
+any database ID.
+
+Real Vuforia returns a presigned URL for cloud storage, and the report takes
+between a few seconds and one hour to generate.
+The mock returns a URL served by the mock itself, without the query
+parameters of a presigned URL, and the report takes
+:paramref:`~mock_vws.MockVWS.processing_time_seconds` seconds to generate.
+The URL returned by the Flask and Docker mock is built from the
+:envvar:`VWS_BASE_URL` environment variable.
+As with real Vuforia, the URL returns a 404 response until the report is
+ready, and it requires no authorization.
+
+The ``Fail`` result code returned for a ``month`` which is not in the
+``YYYY-mm`` form, and for a ``month`` which is neither the current month nor
+the previous month, has not been verified against real Vuforia.
+The columns of the CSV report, and the headers of the download response, have
+not been verified against a real report either.
+
 Header cases
 ------------
 

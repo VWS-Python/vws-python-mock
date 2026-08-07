@@ -7,6 +7,15 @@ from typing import Any
 
 from beartype import beartype
 
+# A database ID as it appears in the path of a reco counts report request.
+DATABASE_ID_PATTERN = "[A-Za-z0-9_-]+"
+# The path of the endpoint which requests a reco counts report.
+RECO_COUNTS_REPORT_PATH_PATTERN = (
+    f"/imagetargets/databases/{DATABASE_ID_PATTERN}/reports/recoCounts"
+)
+# The path which stands in for a reco counts report presigned URL.
+RECO_COUNTS_DOWNLOAD_PATH_PATTERN = "/reports/recoCounts/[A-Za-z0-9]+"
+
 
 @beartype
 class MissingSchemeError(Exception):

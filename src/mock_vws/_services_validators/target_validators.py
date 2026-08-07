@@ -1,6 +1,7 @@
 """Validators for given target IDs."""
 
 import logging
+import re
 from collections.abc import Iterable, Mapping
 
 from beartype import beartype
@@ -9,6 +10,7 @@ from mock_vws._database_matchers import (
     AnyDatabase,
     get_database_matching_server_keys,
 )
+from mock_vws._mock_common import RECO_COUNTS_REPORT_PATH_PATTERN
 from mock_vws._services_validators.exceptions import UnknownTargetError
 
 _LOGGER = logging.getLogger(name=__name__)
@@ -38,6 +40,12 @@ def validate_target_id_exists(
         UnknownTargetError: There are no matching targets for a given target
             ID.
     """
+    if re.fullmatch(
+        pattern=RECO_COUNTS_REPORT_PATH_PATTERN,
+        string=request_path,
+    ):
+        return
+
     split_path = request_path.split(sep="/")
 
     request_path_no_target_id_length = 2

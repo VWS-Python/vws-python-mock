@@ -25,13 +25,23 @@ from mock_vws._constants import (
     TargetStatuses,
 )
 from mock_vws._database_matchers import get_database_matching_server_keys
-from mock_vws._mock_common import RequestData, Route, json_dump
+from mock_vws._mock_common import (
+    RECO_COUNTS_DOWNLOAD_PATH_PATTERN,
+    RECO_COUNTS_REPORT_PATH_PATTERN,
+    RequestData,
+    Route,
+    json_dump,
+)
 from mock_vws._model_target_web_api import (
     create_model_target_dataset,
     delete_model_target_dataset,
     download_model_target_dataset,
     get_model_target_dataset_status,
     oauth2_token,
+)
+from mock_vws._reco_counts_web_api import (
+    create_reco_counts_report,
+    download_reco_counts_report,
 )
 from mock_vws._services_validators import run_services_validators
 from mock_vws._services_validators.exceptions import (
@@ -127,6 +137,7 @@ class MockVuforiaWebServicesAPI:
         self,
         *,
         target_manager: TargetManager,
+        base_vws_url: str,
         processing_time_seconds: float,
         model_target_generation_failure: (ModelTargetGenerationFailure | None),
         model_target_generation_warning: (ModelTargetGenerationWarning | None),
@@ -137,6 +148,9 @@ class MockVuforiaWebServicesAPI:
         """
         Args:
             target_manager: Target Manager which stores databases.
+            base_vws_url: The base URL which the mock VWS API is served
+        from.
+                Generated reco counts reports are served from this URL.
             processing_time_seconds: The number of seconds to process each
               image for. In the real Vuforia Web Services, this is not
               deterministic.
@@ -156,6 +170,7 @@ class MockVuforiaWebServicesAPI:
             routes: The `Route`s to be used in the mock.
         """
         self._target_manager = target_manager
+        self._base_vws_url = base_vws_url
         self.routes = _ROUTES
         self._processing_time_seconds = processing_time_seconds
         self._model_target_generation_failure = model_target_generation_failure
@@ -319,6 +334,53 @@ class MockVuforiaWebServicesAPI:
             request=request,
             target_manager=self._target_manager,
             dataset_uuid=dataset_uuid,
+        )
+
+    @route(
+        path_pattern=RECO_COUNTS_REPORT_PATH_PATTERN,
+        http_methods={HTTPMethod.POST},
+    )
+    def reco_counts_report(self, request: RequestData) -> _ResponseType:
+        """Request a reco counts report for a database.
+
+        Fake implementation of
+        https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api
+        """
+        try:
+            run_services_validators(
+                request_headers=request.headers,
+                request_body=request.body,
+                request_method=request.method,
+                request_path=request.path,
+                databases=self._target_manager.cloud_databases,
+                request_rate_limiter=self._target_manager.request_rate_limiter,
+            )
+            return create_reco_counts_report(
+                request_body=request.body,
+                target_manager=self._target_manager,
+                generation_time_seconds=self._processing_time_seconds,
+                base_url=self._base_vws_url.rstrip("/"),
+            )
+        except ValidatorError as exc:
+            return exc.status_code, exc.headers, exc.response_text
+
+    @route(
+        path_pattern=RECO_COUNTS_DOWNLOAD_PATH_PATTERN,
+        http_methods={HTTPMethod.GET},
+    )
+    def download_reco_counts_report(
+        self,
+        request: RequestData,
+    ) -> _ResponseType:
+        """Download a generated reco counts report.
+
+        This stands in for the presigned URL which real Vuforia returns, so
+        it does not require any authorization.
+        """
+        report_id = request.path.split(sep="/")[-1]
+        return download_reco_counts_report(
+            target_manager=self._target_manager,
+            report_id=report_id,
         )
 
     @route(

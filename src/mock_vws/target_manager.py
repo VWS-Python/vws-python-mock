@@ -10,6 +10,7 @@ from mock_vws._services_validators.request_rate_validators import (
 )
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.model_target import ModelTargetDataset
+from mock_vws.reco_counts import RecoCountsReport
 
 if TYPE_CHECKING:
     from mock_vws._database_matchers import AnyDatabase
@@ -28,6 +29,7 @@ class TargetManager:
         self._cloud_databases: set[CloudDatabase] = set()
         self._vumark_databases: set[VuMarkDatabase] = set()
         self._model_target_datasets: dict[str, ModelTargetDataset] = {}
+        self._reco_counts_reports: dict[str, RecoCountsReport] = {}
         self._request_rate_limiter = RequestRateLimiter(
             time_function=time.monotonic,
         )
@@ -51,6 +53,20 @@ class TargetManager:
     def model_target_datasets(self) -> dict[str, ModelTargetDataset]:
         """All Model Target datasets, keyed by UUID."""
         return dict(self._model_target_datasets)
+
+    @property
+    def reco_counts_reports(self) -> dict[str, RecoCountsReport]:
+        """All reco counts reports, keyed by report identifier."""
+        return dict(self._reco_counts_reports)
+
+    def add_reco_counts_report(
+        self,
+        reco_counts_report: RecoCountsReport,
+    ) -> None:
+        """Add a reco counts report."""
+        self._reco_counts_reports[reco_counts_report.uuid_] = (
+            reco_counts_report
+        )
 
     def remove_cloud_database(self, cloud_database: CloudDatabase) -> None:
         """Remove a cloud database.

@@ -138,6 +138,13 @@ VWS container
 
    Default: ``2.0``
 
+.. envvar:: VWS_BASE_URL
+
+   The base URL which clients use to reach the VWS container.
+   The download URL of a reco counts report is built from this URL.
+
+   Default: ``https://vws.vuforia.com``
+
 .. envvar:: DUPLICATES_IMAGE_MATCHER
 
    The matcher to use for the duplicates endpoint.
