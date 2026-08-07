@@ -102,6 +102,44 @@ The mock returns ``RequestQuotaReached`` when a
 but the response has not been verified against a real database with an
 exhausted quota.
 
+Request rate limits
+-------------------
+
+Vuforia documents a request rate limit of 15 requests per second for VWS
+endpoints in general, with 45 requests per second for
+``GET /targets/{target_id}``, 10 requests per second for
+``GET /duplicates/{target_id}``, and 1 request per minute for ``GET /targets``.
+
+The mock models these limits separately for each group of endpoints, but it
+applies no limit by default. The documented numbers have not been verified
+against a real database, and applying a limit of 1 request per minute to
+``GET /targets`` by default would break the tests of anything which uses the
+mock. Set ``request_rate_limits`` to
+:data:`mock_vws.request_rate_limits.DOCUMENTED_REQUEST_RATE_LIMITS` to apply
+the documented limits::
+
+    from mock_vws import MockVWS
+    from mock_vws.database import CloudDatabase
+    from mock_vws.request_rate_limits import DOCUMENTED_REQUEST_RATE_LIMITS
+
+    database = CloudDatabase(
+        request_rate_limits=DOCUMENTED_REQUEST_RATE_LIMITS,
+    )
+
+    with MockVWS() as mock:
+        mock.add_cloud_database(cloud_database=database)
+        # A second ``GET /targets`` request within a minute returns
+        # ``TooManyRequests``.
+        ...
+
+``requests_per_second_limit`` remains available. It applies one limit to all
+VWS endpoints together, and it is tracked separately from the per-endpoint
+limits.
+
+Vuforia also documents that ``GET /targets`` fails for databases with more than
+1 million images. The mock does not implement this, as the behavior is not
+reproducible against a test account.
+
 Configurable Cloud Query failures
 ---------------------------------
 
@@ -146,10 +184,9 @@ against real databases in the corresponding states:
   ``ProjectHasNoAPIAccess`` spelling, so they do not recognize this response
   until they are updated.
 * ``TooManyRequests`` is returned when a
-  :class:`mock_vws.database.CloudDatabase` exceeds its
-  ``requests_per_second_limit``. Set the limit to ``0`` to return this result
-  code for every VWS request. By default, the mock does not apply a per-second
-  request limit.
+  :class:`mock_vws.database.CloudDatabase` exceeds a configured request rate
+  limit. Set ``requests_per_second_limit`` to ``0`` to return this result code
+  for every VWS request.
 
 ``Content-Length`` headers
 --------------------------

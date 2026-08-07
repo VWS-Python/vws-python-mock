@@ -41,6 +41,22 @@ API Reference
    :undoc-members:
    :exclude-members: to_dict, from_dict, not_deleted_targets
 
+.. autoclass:: mock_vws.request_rate_limits.RequestRateLimit
+   :members:
+   :undoc-members:
+   :exclude-members: to_dict, from_dict
+
+.. autoclass:: mock_vws.request_rate_limits.RequestRateLimits
+   :members:
+   :undoc-members:
+   :exclude-members: to_dict, from_dict, for_endpoint
+
+.. autoclass:: mock_vws.request_rate_limits.RateLimitedEndpoint
+   :members:
+   :undoc-members:
+
+.. autodata:: mock_vws.request_rate_limits.DOCUMENTED_REQUEST_RATE_LIMITS
+
 .. autoclass:: mock_vws.states.States
    :members:
    :undoc-members:

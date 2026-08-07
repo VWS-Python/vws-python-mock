@@ -15,6 +15,7 @@ from pydantic_settings import BaseSettings
 
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.database_type import DatabaseType
+from mock_vws.request_rate_limits import RequestRateLimits
 from mock_vws.states import States
 from mock_vws.target import ImageTarget, VuMarkTarget
 from mock_vws.target_manager import TargetManager
@@ -163,8 +164,15 @@ def create_cloud_database() -> Response:
       targets exist, adding another returns ``TargetQuotaReached``.
 
     :reqjson int requests_per_second_limit: (Optional) The maximum number of
-      VWS requests accepted in a rolling one-second window. Set this to zero
-      to make VWS endpoints return ``TooManyRequests``.
+      VWS requests accepted in a rolling one-second window, across all VWS
+      endpoints. Set this to zero to make VWS endpoints return
+      ``TooManyRequests``.
+
+    :reqjson request_rate_limits: (Optional) Request rate limits for
+      individual groups of VWS endpoints. This is an object with the optional
+      keys "other", "get_target", "get_duplicates" and "list_targets", each
+      either null or an object with the keys "max_requests" and
+      "window_seconds".
 
     :reqjson string server_access_key: (Optional) The server access key for the
       cloud database.
@@ -190,6 +198,9 @@ def create_cloud_database() -> Response:
 
     :resjson int requests_per_second_limit: The per-second request limit, or
       null when rate limiting is disabled.
+
+    :resjson request_rate_limits: The per-endpoint request rate limits, or
+      null when per-endpoint rate limiting is disabled.
 
     :resjson string server_access_key: The server access key for the cloud
       database.
@@ -245,6 +256,12 @@ def create_cloud_database() -> Response:
         "requests_per_second_limit",
         random_database.requests_per_second_limit,
     )
+    request_rate_limits_dict = request_json.get("request_rate_limits")
+    request_rate_limits = (
+        None
+        if request_rate_limits_dict is None
+        else RequestRateLimits.from_dict(limits_dict=request_rate_limits_dict)
+    )
 
     state = States[state_name]
     database_type = DatabaseType[database_type_name]
@@ -260,6 +277,7 @@ def create_cloud_database() -> Response:
         request_quota=request_quota,
         target_quota=target_quota,
         requests_per_second_limit=requests_per_second_limit,
+        request_rate_limits=request_rate_limits,
     )
     try:
         TARGET_MANAGER.add_cloud_database(cloud_database=database)

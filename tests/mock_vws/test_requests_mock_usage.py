@@ -34,6 +34,12 @@ from mock_vws._services_validators.request_rate_validators import (
 )
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.image_matchers import ExactMatcher, StructuralSimilarityMatcher
+from mock_vws.request_rate_limits import (
+    DOCUMENTED_REQUEST_RATE_LIMITS,
+    RateLimitedEndpoint,
+    RequestRateLimit,
+    RequestRateLimits,
+)
 from mock_vws.states import States
 from mock_vws.target import ImageTarget, VuMarkTarget
 from tests.mock_vws.utils import Endpoint
@@ -418,10 +424,240 @@ class TestRequestRateLimit:
         )
         database = CloudDatabase(requests_per_second_limit=1)
 
-        rate_limiter.validate(database=database)
+        rate_limiter.validate(
+            database=database,
+            endpoint=RateLimitedEndpoint.OTHER,
+        )
         with pytest.raises(expected_exception=TooManyRequestsValidatorError):
-            rate_limiter.validate(database=database)
-        rate_limiter.validate(database=database)
+            rate_limiter.validate(
+                database=database,
+                endpoint=RateLimitedEndpoint.OTHER,
+            )
+        rate_limiter.validate(
+            database=database,
+            endpoint=RateLimitedEndpoint.OTHER,
+        )
+
+    @staticmethod
+    def test_limit_applies_to_all_endpoints() -> None:
+        """The database-wide limit is shared between all endpoints."""
+        request_times = iter([10.0, 10.1])
+        rate_limiter = RequestRateLimiter(
+            time_function=request_times.__next__,
+        )
+        database = CloudDatabase(requests_per_second_limit=1)
+
+        rate_limiter.validate(
+            database=database,
+            endpoint=RateLimitedEndpoint.GET_TARGET,
+        )
+        with pytest.raises(expected_exception=TooManyRequestsValidatorError):
+            rate_limiter.validate(
+                database=database,
+                endpoint=RateLimitedEndpoint.LIST_TARGETS,
+            )
+
+
+class TestPerEndpointRequestRateLimits:
+    """Tests for per-endpoint VWS request rate limits."""
+
+    @staticmethod
+    def test_endpoints_are_limited_separately() -> None:
+        """Each endpoint group has its own budget of requests."""
+        request_times = iter([10.0, 10.1, 10.2])
+        rate_limiter = RequestRateLimiter(
+            time_function=request_times.__next__,
+        )
+        database = CloudDatabase(
+            request_rate_limits=RequestRateLimits(
+                get_target=RequestRateLimit(
+                    max_requests=1, window_seconds=1.0
+                ),
+                get_duplicates=RequestRateLimit(
+                    max_requests=1, window_seconds=1.0
+                ),
+            ),
+        )
+
+        rate_limiter.validate(
+            database=database,
+            endpoint=RateLimitedEndpoint.GET_TARGET,
+        )
+        rate_limiter.validate(
+            database=database,
+            endpoint=RateLimitedEndpoint.GET_DUPLICATES,
+        )
+        with pytest.raises(expected_exception=TooManyRequestsValidatorError):
+            rate_limiter.validate(
+                database=database,
+                endpoint=RateLimitedEndpoint.GET_TARGET,
+            )
+
+    @staticmethod
+    def test_endpoints_without_a_limit_share_the_other_limit() -> None:
+        """Endpoints with no limit of their own share the ``other``
+        limit.
+        """
+        request_times = iter([10.0, 10.1, 10.2])
+        rate_limiter = RequestRateLimiter(
+            time_function=request_times.__next__,
+        )
+        database = CloudDatabase(
+            request_rate_limits=RequestRateLimits(
+                other=RequestRateLimit(max_requests=2, window_seconds=1.0),
+                get_target=RequestRateLimit(
+                    max_requests=1, window_seconds=1.0
+                ),
+            ),
+        )
+
+        rate_limiter.validate(
+            database=database,
+            endpoint=RateLimitedEndpoint.OTHER,
+        )
+        # ``GET /targets`` has no limit of its own, so it shares the ``other``
+        # limit.
+        rate_limiter.validate(
+            database=database,
+            endpoint=RateLimitedEndpoint.LIST_TARGETS,
+        )
+        with pytest.raises(expected_exception=TooManyRequestsValidatorError):
+            rate_limiter.validate(
+                database=database,
+                endpoint=RateLimitedEndpoint.OTHER,
+            )
+
+    @staticmethod
+    def test_windows_longer_than_a_second() -> None:
+        """A limit may use a window which is longer than one second."""
+        request_times = iter([10.0, 40.0, 71.0])
+        rate_limiter = RequestRateLimiter(
+            time_function=request_times.__next__,
+        )
+        database = CloudDatabase(
+            request_rate_limits=RequestRateLimits(
+                list_targets=RequestRateLimit(
+                    max_requests=1,
+                    window_seconds=60.0,
+                ),
+            ),
+        )
+
+        rate_limiter.validate(
+            database=database,
+            endpoint=RateLimitedEndpoint.LIST_TARGETS,
+        )
+        with pytest.raises(expected_exception=TooManyRequestsValidatorError):
+            rate_limiter.validate(
+                database=database,
+                endpoint=RateLimitedEndpoint.LIST_TARGETS,
+            )
+        rate_limiter.validate(
+            database=database,
+            endpoint=RateLimitedEndpoint.LIST_TARGETS,
+        )
+
+    @staticmethod
+    def test_rejected_requests_do_not_use_other_budgets() -> None:
+        """A request rejected by one limit does not count towards
+        another.
+        """
+        request_times = iter([10.0, 10.1, 10.2])
+        rate_limiter = RequestRateLimiter(
+            time_function=request_times.__next__,
+        )
+        database = CloudDatabase(
+            requests_per_second_limit=5,
+            request_rate_limits=RequestRateLimits(
+                list_targets=RequestRateLimit(
+                    max_requests=1, window_seconds=1.0
+                )
+            ),
+        )
+
+        rate_limiter.validate(
+            database=database,
+            endpoint=RateLimitedEndpoint.LIST_TARGETS,
+        )
+        with pytest.raises(expected_exception=TooManyRequestsValidatorError):
+            rate_limiter.validate(
+                database=database,
+                endpoint=RateLimitedEndpoint.LIST_TARGETS,
+            )
+        rate_limiter.validate(
+            database=database,
+            endpoint=RateLimitedEndpoint.GET_TARGET,
+        )
+
+    @staticmethod
+    def test_documented_limits() -> None:
+        """The documented limits are available to use."""
+        database = CloudDatabase(
+            request_rate_limits=DOCUMENTED_REQUEST_RATE_LIMITS,
+        )
+        client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+
+        with MockVWS() as mock:
+            mock.add_cloud_database(cloud_database=database)
+            # ``GET /targets`` is limited to one request per minute.
+            client.list_targets()
+            with pytest.raises(
+                expected_exception=TooManyRequestsError,
+            ) as exc_info:
+                client.list_targets()
+
+            # Other endpoints have their own budgets.
+            client.get_database_summary_report()
+
+        assert_vws_failure(
+            response=exc_info.value.response,
+            status_code=HTTPStatus.TOO_MANY_REQUESTS,
+            result_code=ResultCodes.TOO_MANY_REQUESTS,
+        )
+
+    @staticmethod
+    def test_get_target_and_duplicates_limits(
+        *,
+        image_file_failed_state: io.BytesIO,
+    ) -> None:
+        """``GET /targets/{target_id}`` and ``GET /duplicates/{target_id}``
+        have their own limits.
+        """
+        database = CloudDatabase(
+            request_rate_limits=RequestRateLimits(
+                get_target=RequestRateLimit(
+                    max_requests=2, window_seconds=60.0
+                ),
+                get_duplicates=RequestRateLimit(
+                    max_requests=1,
+                    window_seconds=60.0,
+                ),
+            ),
+        )
+        client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+
+        with MockVWS(processing_time_seconds=0) as mock:
+            mock.add_cloud_database(cloud_database=database)
+            target_id = client.add_target(
+                name="example",
+                width=1,
+                image=image_file_failed_state,
+                application_metadata=None,
+                active_flag=True,
+            )
+            client.get_target_record(target_id=target_id)
+            client.get_duplicate_targets(target_id=target_id)
+            with pytest.raises(expected_exception=TooManyRequestsError):
+                client.get_duplicate_targets(target_id=target_id)
+            client.get_target_record(target_id=target_id)
+            with pytest.raises(expected_exception=TooManyRequestsError):
+                client.get_target_record(target_id=target_id)
 
 
 class TestAdditionalResultCodes:
@@ -823,6 +1059,23 @@ class TestDatabaseToDict:
 
         assert (
             new_database.requests_per_second_limit == requests_per_second_limit
+        )
+
+    @staticmethod
+    def test_custom_request_rate_limits() -> None:
+        """Per-endpoint request rate limits survive a dictionary round
+        trip.
+        """
+        database = CloudDatabase(
+            request_rate_limits=DOCUMENTED_REQUEST_RATE_LIMITS,
+        )
+
+        database_dict = database.to_dict()
+        assert json.dumps(obj=database_dict)
+        new_database = CloudDatabase.from_dict(database_dict=database_dict)
+
+        assert (
+            new_database.request_rate_limits == DOCUMENTED_REQUEST_RATE_LIMITS
         )
 
     @staticmethod
