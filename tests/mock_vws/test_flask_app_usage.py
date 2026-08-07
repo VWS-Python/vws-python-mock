@@ -30,6 +30,7 @@ from mock_vws._flask_server.target_manager import (
 from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
 from mock_vws._flask_server.vws import VWS_FLASK_APP
 from mock_vws.database import CloudDatabase, VuMarkDatabase
+from mock_vws.request_rate_limits import RequestRateLimit, RequestRateLimits
 from mock_vws.target import VuMarkTarget
 from tests.mock_vws.utils.usage_test_helpers import (
     processing_time_seconds,
@@ -213,6 +214,36 @@ class TestRequestQuota:
 
         with pytest.raises(expected_exception=TooManyRequestsError):
             client.list_targets()
+
+    @staticmethod
+    def test_per_endpoint_limits() -> None:
+        """The Flask mock preserves and enforces per-endpoint limits."""
+        database = CloudDatabase(
+            request_rate_limits=RequestRateLimits(
+                list_targets=RequestRateLimit(
+                    max_requests=1,
+                    window_seconds=60.0,
+                ),
+            ),
+        )
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+        response = requests.post(
+            url=databases_url,
+            json=database.to_dict(),
+            timeout=30,
+        )
+        response.raise_for_status()
+        client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+
+        client.list_targets()
+        with pytest.raises(expected_exception=TooManyRequestsError):
+            client.list_targets()
+
+        # Other endpoints are not limited.
+        client.get_database_summary_report()
 
 
 class TestAddCloudDatabase:

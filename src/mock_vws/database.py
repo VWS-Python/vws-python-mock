@@ -9,6 +9,10 @@ from beartype import beartype
 
 from mock_vws._constants import TargetStatuses
 from mock_vws.database_type import DatabaseType
+from mock_vws.request_rate_limits import (
+    RequestRateLimits,
+    RequestRateLimitsDict,
+)
 from mock_vws.states import States
 from mock_vws.target import (
     ImageTarget,
@@ -33,6 +37,7 @@ class CloudDatabaseDict(TypedDict):
     request_quota: NotRequired[int]
     target_quota: NotRequired[int]
     requests_per_second_limit: NotRequired[int | None]
+    request_rate_limits: NotRequired[RequestRateLimitsDict | None]
 
 
 @beartype
@@ -74,9 +79,15 @@ class CloudDatabase:
         target_quota: The target quota. When the database contains this many
             targets, adding another returns ``TargetQuotaReached``.
         requests_per_second_limit: The maximum number of VWS requests accepted
-            in a rolling one-second window. Set this to ``0`` to make VWS
-            endpoints return ``TooManyRequests``. By default, the mock does
-            not apply a per-second request limit.
+            in a rolling one-second window, across all VWS endpoints. Set this
+            to ``0`` to make VWS endpoints return ``TooManyRequests``. By
+            default, the mock does not apply this limit.
+        request_rate_limits: Request rate limits which apply to individual
+            groups of VWS endpoints, tracked separately from each other and
+            from ``requests_per_second_limit``. Set this to
+            :data:`mock_vws.request_rate_limits.DOCUMENTED_REQUEST_RATE_LIMITS`
+            to apply the limits which Vuforia documents. By default, the mock
+            does not apply per-endpoint request limits.
     """
 
     # We hide a few things in the ``repr`` with ``repr=False`` so that they do
@@ -104,12 +115,18 @@ class CloudDatabase:
     total_recos: int = 0
     target_quota: int = 1000
     requests_per_second_limit: int | None = None
+    request_rate_limits: RequestRateLimits | None = None
 
     def to_dict(self) -> CloudDatabaseDict:
         """Dump a target to a dictionary which can be loaded as JSON."""
         targets: list[ImageTargetDict] = [
             target.to_dict() for target in self.targets
         ]
+        request_rate_limits: RequestRateLimitsDict | None = (
+            None
+            if self.request_rate_limits is None
+            else self.request_rate_limits.to_dict()
+        )
         return {
             "database_name": self.database_name,
             "server_access_key": self.server_access_key,
@@ -122,6 +139,7 @@ class CloudDatabase:
             "request_quota": self.request_quota,
             "target_quota": self.target_quota,
             "requests_per_second_limit": self.requests_per_second_limit,
+            "request_rate_limits": request_rate_limits,
         }
 
     def get_target(self, target_id: str) -> ImageTarget:
@@ -138,6 +156,14 @@ class CloudDatabase:
             ImageTarget.from_dict(target_dict=target_dict)
             for target_dict in database_dict["targets"]
         }
+        request_rate_limits_dict = database_dict.get("request_rate_limits")
+        request_rate_limits = (
+            None
+            if request_rate_limits_dict is None
+            else RequestRateLimits.from_dict(
+                limits_dict=request_rate_limits_dict
+            )
+        )
 
         return cls(
             database_name=database_dict["database_name"],
@@ -153,6 +179,7 @@ class CloudDatabase:
             requests_per_second_limit=database_dict.get(
                 "requests_per_second_limit"
             ),
+            request_rate_limits=request_rate_limits,
         )
 
     @property
