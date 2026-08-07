@@ -453,6 +453,55 @@ class TestErrorResponses:
 
     @staticmethod
     @pytest.mark.parametrize(
+        argnames="body",
+        argvalues=[
+            pytest.param("[]", id="array"),
+            pytest.param('"dataset"', id="string"),
+            pytest.param("1", id="number"),
+            pytest.param("true", id="boolean"),
+            pytest.param("null", id="null"),
+        ],
+    )
+    def test_body_not_json_object(
+        *,
+        verify_model_target_mock_vuforia: VuforiaBackend,
+        body: str,
+    ) -> None:
+        """JSON bodies which are not objects are missing every field."""
+        credentials = _credentials_for_backend(
+            backend=verify_model_target_mock_vuforia,
+        )
+        access_token = _get_access_token(
+            credentials=credentials,
+            backend=verify_model_target_mock_vuforia,
+        )
+        response = requests.post(
+            url=f"{_VWS_HOST}/modeltargets/datasets",
+            headers={
+                "Authorization": f"Bearer {access_token}",
+                "Content-Type": "application/json",
+            },
+            data=body,
+            timeout=30,
+        )
+
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        error = response.json()["error"]
+        assert error["code"] == "BAD_REQUEST"
+        assert error["message"] == (
+            f"Validation error for request {error['target']}"
+        )
+        actual_messages = {detail["message"] for detail in error["details"]}
+        assert actual_messages == {
+            "/models: element is required",
+            "/name: element is required",
+            "/targetSdk: element is required",
+        }
+        for detail in error["details"]:
+            assert detail["code"] == "VALIDATION_ERROR"
+
+    @staticmethod
+    @pytest.mark.parametrize(
         argnames=("body", "expected_messages"),
         argvalues=[
             pytest.param(

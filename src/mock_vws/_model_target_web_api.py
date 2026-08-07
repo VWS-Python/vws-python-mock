@@ -321,6 +321,12 @@ def oauth2_token(request: RequestData) -> _ResponseType:
 
 
 @beartype
+def _is_json_object(*, value: object) -> bool:
+    """Return whether a decoded JSON value is an object."""
+    return isinstance(value, dict)
+
+
+@beartype
 def _load_request_json(request: RequestData) -> dict[str, Any] | _ResponseType:
     """Load a Model Target dataset creation request body."""
     content_type = _get_header(request=request, name="Content-Type") or ""
@@ -341,6 +347,13 @@ def _load_request_json(request: RequestData) -> dict[str, Any] | _ResponseType:
             message=f"Invalid Json: {exc}",
             target=None,
             details=None,
+        )
+    if not _is_json_object(value=request_json):
+        # The required top-level fields are read from the request body, so a
+        # body which is valid JSON but not a JSON object is reported as
+        # having every required field missing.
+        return _validation_error_response(
+            details=_top_level_details(request_json={}),
         )
     return request_json
 
