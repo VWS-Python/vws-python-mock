@@ -444,6 +444,16 @@ def _view_details(*, models: list[Any]) -> list[dict[str, str]]:
 
 
 @beartype
+def _is_json_number(*, value: object) -> bool:
+    """Return whether a decoded JSON value is a number.
+
+    A JSON boolean decodes to a Python ``bool`` value, which is also an
+    ``int`` value, so ``bool`` values are excluded.
+    """
+    return isinstance(value, int | float) and not isinstance(value, bool)
+
+
+@beartype
 def _guide_view_position_details(
     *,
     models: list[Any],
@@ -470,7 +480,7 @@ def _guide_view_position_details(
     if missing_details:
         return missing_details
 
-    return [
+    array_details = [
         {
             "code": "VALIDATION_ERROR",
             "message": (
@@ -481,6 +491,23 @@ def _guide_view_position_details(
         for model_index, view_index, position in positions
         for field in ("rotation", "translation")
         if not isinstance(position[field], list)
+    ]
+    if array_details:
+        return array_details
+
+    return [
+        {
+            "code": "VALIDATION_ERROR",
+            "message": (
+                f"/models({model_index})/views({view_index})"
+                f"/guideViewPosition/{field}({element_index}): "
+                "error.expected.jsnumber"
+            ),
+        }
+        for model_index, view_index, position in positions
+        for field in ("rotation", "translation")
+        for element_index, element in enumerate(iterable=position[field])
+        if not _is_json_number(value=element)
     ]
 
 

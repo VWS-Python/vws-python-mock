@@ -1,0 +1,1 @@
+Reject Model Target dataset creation requests with ``guideViewPosition`` ``rotation`` or ``translation`` arrays which contain values that are not JSON numbers.
