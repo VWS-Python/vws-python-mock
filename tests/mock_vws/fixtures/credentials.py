@@ -20,15 +20,22 @@ class _CloudDatabaseSettings(BaseSettings):
     server_secret_key: str
     client_access_key: str
     client_secret_key: str
-    # Secrets files created before ``VUFORIA_DATABASE_ID`` was added do not
-    # contain it. Tests which need it skip when it is empty.
-    database_id: str = ""
 
     model_config = SettingsConfigDict(
         env_prefix="VUFORIA_",
         env_file=Path("vuforia_secrets.env"),
         extra="allow",
     )
+
+
+class _WorkingCloudDatabaseSettings(_CloudDatabaseSettings):
+    """Settings for the working Vuforia database.
+
+    Only the working database has an ID, because only endpoints which name
+    a database in their path need one.
+    """
+
+    database_id: str
 
 
 class _InactiveCloudDatabaseSettings(_CloudDatabaseSettings):
@@ -142,11 +149,10 @@ def vuforia_database() -> CloudDatabase:
 
 @pytest.fixture
 def vuforia_database_id() -> str:
-    """Return the ID of the working database from environment variables.
-
-    This is empty when the secrets file predates ``VUFORIA_DATABASE_ID``.
+    """Return the ID of the working database from environment
+    variables.
     """
-    settings = _CloudDatabaseSettings.model_validate(obj={})
+    settings = _WorkingCloudDatabaseSettings.model_validate(obj={})
     return settings.database_id
 
 

@@ -9,7 +9,8 @@ from beartype import beartype
 
 # The mock does not count recognitions, so a generated report never has any
 # rows for targets.
-_CSV_CONTENT = "target_id,reco_count\n"
+# Real Vuforia ends the header row with a carriage return and a line feed.
+_CSV_CONTENT = "target_id,reco_count\r\n"
 
 
 @beartype

@@ -83,19 +83,6 @@ def _database_id_for_backend(
     if backend != VuforiaBackend.REAL:
         return uuid.uuid4().hex
 
-    # Secrets files created before ``VUFORIA_DATABASE_ID`` was added do not
-    # contain it, and cannot make a request which real Vuforia authenticates.
-    # Delete this guard once the secrets files have been regenerated with
-    # ``admin/create_secrets_files.py``, so that a missing ID is a failure.
-    if not vuforia_database_id:  # pragma: no cover
-        pytest.skip(
-            reason=(
-                "VUFORIA_DATABASE_ID is not set. Regenerate the secrets "
-                "files with admin/create_secrets_files.py to run this "
-                "against real Vuforia."
-            ),
-        )
-
     return vuforia_database_id
 
 
@@ -220,8 +207,8 @@ class TestDownloadReport:
 
         ready_response = requests.get(url=presigned_url, timeout=30)
         assert ready_response.status_code == HTTPStatus.OK
-        assert ready_response.headers["Content-Type"] == "text/csv"
-        assert ready_response.text == "target_id,reco_count\n"
+        assert ready_response.headers["Content-Type"] == "text/plain"
+        assert ready_response.text == "target_id,reco_count\r\n"
 
     @staticmethod
     def test_unknown_report() -> None:
