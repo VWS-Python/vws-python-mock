@@ -88,6 +88,7 @@ def _generate_secrets_file_content(
     return textwrap.dedent(
         text=f"""\
         VUFORIA_TARGET_MANAGER_DATABASE_NAME={cloud_database_details["database_name"]}
+        VUFORIA_DATABASE_ID={cloud_database_details["database_id"]}
         VUFORIA_SERVER_ACCESS_KEY={cloud_database_details["server_access_key"]}
         VUFORIA_SERVER_SECRET_KEY={cloud_database_details["server_secret_key"]}
         VUFORIA_CLIENT_ACCESS_KEY={cloud_database_details["client_access_key"]}

@@ -28,6 +28,16 @@ class _CloudDatabaseSettings(BaseSettings):
     )
 
 
+class _WorkingCloudDatabaseSettings(_CloudDatabaseSettings):
+    """Settings for the working Vuforia database.
+
+    Only the working database has an ID, because only endpoints which name
+    a database in their path need one.
+    """
+
+    database_id: str
+
+
 class _InactiveCloudDatabaseSettings(_CloudDatabaseSettings):
     """Settings for an inactive Vuforia database."""
 
@@ -135,6 +145,15 @@ def vuforia_database() -> CloudDatabase:
         client_secret_key=settings.client_secret_key,
         state=States.WORKING,
     )
+
+
+@pytest.fixture
+def vuforia_database_id() -> str:
+    """Return the ID of the working database from environment
+    variables.
+    """
+    settings = _WorkingCloudDatabaseSettings.model_validate(obj={})
+    return settings.database_id
 
 
 @pytest.fixture

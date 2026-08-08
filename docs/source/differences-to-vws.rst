@@ -259,33 +259,50 @@ Reco counts reports
 -------------------
 
 The mock does not count recognitions, so a generated reco counts report
-contains only the ``target_id,reco_count`` header row.
+contains only the ``target_id,reco_count`` header row, ending with a carriage
+return and a line feed.
+That is what real Vuforia returns for a database with no recognitions.
 The mock returns the same report for the current month and the previous month.
+As with real Vuforia, the report is served with a ``text/plain`` content type
+rather than a CSV one.
 
 The mock does not use the database ID in the request path.
 It uses the database which matches the request's server keys, and it accepts
 any database ID.
-Real Vuforia returns a 401 response for a request which is signed with valid
-server keys but which names a database ID that those keys do not belong to.
+Real Vuforia returns a 401 response with the ``AuthenticationFailure`` result
+code for a request which is signed with valid server keys but which names a
+database ID that those keys do not belong to.
+That includes naming the database by its name rather than by its ID.
+:class:`mock_vws.database.CloudDatabase` has no database ID, so the mock
+cannot make the same check.
 
-Real Vuforia returns a presigned URL for cloud storage, and the report takes
-between a few seconds and one hour to generate.
+Real Vuforia returns a presigned URL for cloud storage.
 The mock returns a URL served by the mock itself, without the query
-parameters of a presigned URL, and the report takes
-:paramref:`~mock_vws.MockVWS.processing_time_seconds` seconds to generate.
+parameters of a presigned URL, so the mock's URL never expires where a real
+one expires after just under seven days.
 The URL returned by the Flask and Docker mock is built from the
 :envvar:`VWS_BASE_URL` environment variable.
-As with real Vuforia, the URL returns a 404 response until the report is
-ready, and it requires no authorization.
+The report takes :paramref:`~mock_vws.MockVWS.processing_time_seconds`
+seconds to generate in the mock.
+The documentation says a real report takes between a few seconds and one
+hour, but a report for a database with no recognitions has been observed
+ready within seconds.
 
-The whole endpoint is mock-only in
-``tests/mock_vws/test_reco_counts_report.py``, because the test credentials do
-not include a database ID and so a request cannot be made which real Vuforia
-authenticates.
-Nothing about it has been verified against real Vuforia: not the ``Fail``
-result code returned for a ``month`` which is not in the ``YYYY-mm`` form or
-which is neither the current month nor the previous month, not the columns of
-the CSV report, and not the headers of either response.
+Real Vuforia names the report file after the requested month, and does so
+differently for each of the two months it accepts.
+A report for the current month is named for the date and the hour, such as
+``2026-08-08-21.csv``, and a report for the previous month is named for the
+month, such as ``2026-07.csv``.
+The mock names every report after an opaque report identifier, so the
+requested month cannot be recovered from the mock's URL, and two requests for
+the same month never give the same URL.
+
+The mock's URL returns a 404 response until the report is ready, and requires
+no authorization.
+The lack of authorization matches real Vuforia, whose URL carries its own
+signature.
+The 404 has not been verified, because no request for a real report has caught
+one before it was generated.
 
 Header cases
 ------------

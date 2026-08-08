@@ -156,8 +156,10 @@ def download_reco_counts_report(
         )
 
     body = report.csv_content
+    # Real Vuforia serves the report from S3 with a ``text/plain`` content
+    # type, not ``text/csv``.
     headers = _download_headers(
-        content_type="text/csv",
+        content_type="text/plain",
         content_length=len(body),
     )
     return HTTPStatus.OK, headers, body
