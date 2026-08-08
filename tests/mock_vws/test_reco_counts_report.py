@@ -83,7 +83,11 @@ def _database_id_for_backend(
     if backend != VuforiaBackend.REAL:
         return uuid.uuid4().hex
 
-    if not vuforia_database_id:
+    # Secrets files created before ``VUFORIA_DATABASE_ID`` was added do not
+    # contain it, and cannot make a request which real Vuforia authenticates.
+    # Delete this guard once the secrets files have been regenerated with
+    # ``admin/create_secrets_files.py``, so that a missing ID is a failure.
+    if not vuforia_database_id:  # pragma: no cover
         pytest.skip(
             reason=(
                 "VUFORIA_DATABASE_ID is not set. Regenerate the secrets "
