@@ -54,19 +54,19 @@ from mock_vws._services_validators.exceptions import (
     ValidatorError,
 )
 from mock_vws.database import VuMarkDatabase
-from mock_vws.image_matchers import ImageMatcher
 from mock_vws.model_target import (
     ModelTargetDatasetType,
     ModelTargetGenerationFailure,
     ModelTargetGenerationWarning,
 )
 from mock_vws.target import ImageTarget
-from mock_vws.target_manager import TargetManager
-from mock_vws.target_raters import TargetTrackingRater
-from mock_vws.vumark import VuMarkGenerationFailure
 
 if TYPE_CHECKING:
     from mock_vws.database import CloudDatabase
+    from mock_vws.image_matchers import ImageMatcher
+    from mock_vws.target_manager import TargetManager
+    from mock_vws.target_raters import TargetTrackingRater
+    from mock_vws.vumark import VuMarkGenerationFailure
 
 _TARGET_ID_PATTERN = "[A-Za-z0-9]+"
 _MODEL_TARGET_DATASET_UUID_PATTERN = "[A-Za-z0-9-]+"

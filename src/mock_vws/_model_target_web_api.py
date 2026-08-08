@@ -6,7 +6,7 @@ import json
 import uuid
 import zipfile
 from http import HTTPStatus
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from urllib.parse import parse_qs
 
 from beartype import beartype
@@ -18,7 +18,9 @@ from mock_vws.model_target import (
     ModelTargetGenerationFailure,
     ModelTargetGenerationWarning,
 )
-from mock_vws.target_manager import TargetManager
+
+if TYPE_CHECKING:
+    from mock_vws.target_manager import TargetManager
 
 _ResponseType = tuple[int, dict[str, str], str | bytes]
 _MAX_ADVANCED_MODEL_COUNT = 20

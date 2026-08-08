@@ -1,11 +1,13 @@
 """Common utilities for creating mock routes."""
 
 import json
-from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from beartype import beartype
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Mapping
 
 # A database ID as it appears in the path of a reco counts report request.
 DATABASE_ID_PATTERN = "[A-Za-z0-9_-]+"

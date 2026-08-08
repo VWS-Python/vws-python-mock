@@ -1,11 +1,14 @@
 """Helpers for getting databases which match keys given in requests."""
 
-from collections.abc import Iterable, Mapping
+from typing import TYPE_CHECKING
 
 from beartype import beartype
 from vws_auth_tools import authorization_header
 
 from mock_vws.database import CloudDatabase, VuMarkDatabase
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Mapping
 
 AnyDatabase = CloudDatabase | VuMarkDatabase
 

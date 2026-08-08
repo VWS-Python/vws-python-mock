@@ -1,10 +1,8 @@
 """Input validators to use in the mock."""
 
-from collections.abc import Iterable, Mapping
+from typing import TYPE_CHECKING
 
 from beartype import beartype
-
-from mock_vws._database_matchers import AnyDatabase
 
 from .active_flag_validators import validate_active_flag
 from .auth_validators import (
@@ -56,6 +54,11 @@ from .request_rate_validators import (
 from .target_quota_validators import validate_target_quota
 from .target_validators import validate_target_id_exists
 from .width_validators import validate_width
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Mapping
+
+    from mock_vws._database_matchers import AnyDatabase
 
 
 @beartype

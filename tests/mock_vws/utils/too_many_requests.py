@@ -1,11 +1,14 @@
 """Helpers for handling too many requests errors."""
 
 from http import HTTPStatus
+from typing import TYPE_CHECKING
 
 from beartype import beartype
 from vws.exceptions.custom_exceptions import ServerError
 from vws.exceptions.vws_exceptions import TooManyRequestsError
-from vws.response import Response
+
+if TYPE_CHECKING:
+    from vws.response import Response
 
 
 @beartype

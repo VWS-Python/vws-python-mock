@@ -2,9 +2,9 @@
 clients.
 """
 
-import io
 import uuid
 from http import HTTPStatus
+from typing import TYPE_CHECKING
 
 import httpx
 import pytest
@@ -18,6 +18,9 @@ from mock_vws import MockVWS
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.image_matchers import ExactMatcher
 from mock_vws.target import VuMarkTarget
+
+if TYPE_CHECKING:
+    import io
 
 _MODEL_TARGET_AUTHORIZATION = "Bearer eyJhbGciOiJtb2NrIn0.e30.c2lnbmF0dXJl"
 _MODEL_TARGET_DATASET_REQUEST = {

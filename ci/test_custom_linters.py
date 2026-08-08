@@ -1,10 +1,13 @@
 """Custom lint tests."""
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 import yaml
 from beartype import beartype
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 @beartype

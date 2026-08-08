@@ -12,7 +12,7 @@ import time
 import uuid
 from enum import StrEnum, auto
 from http import HTTPMethod, HTTPStatus
-from typing import assert_never
+from typing import TYPE_CHECKING, assert_never
 
 import requests
 from beartype import beartype
@@ -60,10 +60,12 @@ from mock_vws.image_matchers import (
 )
 from mock_vws.model_target import ModelTargetDatasetType
 from mock_vws.target import ImageTarget
-from mock_vws.target_manager import TargetManager
 from mock_vws.target_raters import (
     HardcodedTargetTrackingRater,
 )
+
+if TYPE_CHECKING:
+    from mock_vws.target_manager import TargetManager
 
 VWS_FLASK_APP = Flask(import_name=__name__, static_folder=None)
 VWS_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True

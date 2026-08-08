@@ -7,7 +7,7 @@ https://developer.vuforia.com/library/web-api/vuforia-query-web-api
 import email.utils
 from collections.abc import Callable, Iterable, Mapping
 from http import HTTPMethod, HTTPStatus
-from typing import ParamSpec, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, ParamSpec, Protocol, runtime_checkable
 
 from beartype import beartype
 
@@ -19,9 +19,11 @@ from mock_vws._query_validators import run_query_validators
 from mock_vws._query_validators.exceptions import (
     ValidatorError,
 )
-from mock_vws.cloud_query import CloudQueryFailureResponse
-from mock_vws.image_matchers import ImageMatcher
-from mock_vws.target_manager import TargetManager
+
+if TYPE_CHECKING:
+    from mock_vws.cloud_query import CloudQueryFailureResponse
+    from mock_vws.image_matchers import ImageMatcher
+    from mock_vws.target_manager import TargetManager
 
 _ROUTES: set[Route] = set()
 

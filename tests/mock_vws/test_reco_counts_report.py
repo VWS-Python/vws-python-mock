@@ -6,6 +6,7 @@ import time
 import uuid
 from http import HTTPMethod, HTTPStatus
 from string import hexdigits
+from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -14,7 +15,9 @@ from beartype import beartype
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes
-from mock_vws.database import CloudDatabase
+
+if TYPE_CHECKING:
+    from mock_vws.database import CloudDatabase
 
 _VWS_HOST = "https://vws.vuforia.com"
 # The number of seconds which the mocks take to generate a report.

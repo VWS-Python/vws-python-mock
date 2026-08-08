@@ -6,8 +6,8 @@ import json
 import time
 import uuid
 import zipfile
-from collections.abc import Iterator
 from http import HTTPMethod, HTTPStatus
+from typing import TYPE_CHECKING
 
 import pytest
 import requests
@@ -35,6 +35,9 @@ from mock_vws.target import VuMarkTarget
 from tests.mock_vws.utils.usage_test_helpers import (
     processing_time_seconds,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 _EXAMPLE_URL_FOR_TARGET_MANAGER = "http://" + uuid.uuid4().hex + ".com"
 _MODEL_TARGET_DATASET_REQUEST = {

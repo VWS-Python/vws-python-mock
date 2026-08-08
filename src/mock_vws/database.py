@@ -1,9 +1,8 @@
 """Utilities for managing mock Vuforia databases."""
 
 import uuid
-from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import NotRequired, Self, TypedDict
+from typing import TYPE_CHECKING, NotRequired, Self, TypedDict
 
 from beartype import beartype
 
@@ -20,6 +19,9 @@ from mock_vws.target import (
     VuMarkTarget,
     VuMarkTargetDict,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 
 @beartype

@@ -20,25 +20,26 @@ from mock_vws._requests_mock_server.mock_web_services_api import (
     MockVuforiaWebServicesAPI,
 )
 from mock_vws._respx_mock_server.decorators import start_respx_router
-from mock_vws.cloud_query import CloudQueryFailureResponse
-from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.image_matchers import (
     ImageMatcher,
     StructuralSimilarityMatcher,
-)
-from mock_vws.model_target import (
-    ModelTargetGenerationFailure,
-    ModelTargetGenerationWarning,
 )
 from mock_vws.target_manager import TargetManager
 from mock_vws.target_raters import (
     BrisqueTargetTrackingRater,
     TargetTrackingRater,
 )
-from mock_vws.vumark import VuMarkGenerationFailure
 
 if TYPE_CHECKING:
     import respx
+
+    from mock_vws.cloud_query import CloudQueryFailureResponse
+    from mock_vws.database import CloudDatabase, VuMarkDatabase
+    from mock_vws.model_target import (
+        ModelTargetGenerationFailure,
+        ModelTargetGenerationWarning,
+    )
+    from mock_vws.vumark import VuMarkGenerationFailure
 
 _ResponseType = tuple[int, Mapping[str, str], str | bytes]
 _MockCallback = Callable[[RequestData], _ResponseType]

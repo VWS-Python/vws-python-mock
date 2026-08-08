@@ -1,8 +1,8 @@
 """Tests for configurable Cloud Query failure responses."""
 
-import io
 from collections.abc import Callable
 from http import HTTPMethod, HTTPStatus
+from typing import TYPE_CHECKING
 
 import httpx
 import pytest
@@ -12,6 +12,9 @@ from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws import CloudQueryFailureResponse, MockVWS
 from mock_vws.database import CloudDatabase
+
+if TYPE_CHECKING:
+    import io
 
 _QUERY_URL = "https://cloudreco.vuforia.com/v1/query"
 type _HTTPResponse = requests.Response | httpx.Response

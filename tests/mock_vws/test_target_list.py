@@ -1,7 +1,11 @@
 """Tests for the mock of the target list endpoint."""
 
+from typing import TYPE_CHECKING
+
 import pytest
-from vws import VWS
+
+if TYPE_CHECKING:
+    from vws import VWS
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")

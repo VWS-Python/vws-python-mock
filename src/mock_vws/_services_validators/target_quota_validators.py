@@ -1,7 +1,7 @@
 """Validators for the VWS target quota."""
 
-from collections.abc import Iterable, Mapping
 from http import HTTPMethod
+from typing import TYPE_CHECKING
 
 from beartype import beartype
 
@@ -12,6 +12,9 @@ from mock_vws._database_matchers import (
 from mock_vws.database import CloudDatabase
 
 from .exceptions import TargetQuotaReachedError
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Mapping
 
 
 @beartype

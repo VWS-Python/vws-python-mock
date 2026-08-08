@@ -1,23 +1,27 @@
 """Fixtures which prepare requests."""
 
 import base64
-import io
 import json
 from http import HTTPMethod, HTTPStatus
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 import pytest
 from beartype import beartype
 from urllib3.filepost import encode_multipart_formdata
-from vws import VWS
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes
-from mock_vws.database import CloudDatabase
-from tests.mock_vws.fixtures.credentials import VuMarkCloudDatabase
 from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.retries import RETRY_ON_TRANSIENT_VWS_FAILURE
+
+if TYPE_CHECKING:
+    import io
+
+    from vws import VWS
+
+    from mock_vws.database import CloudDatabase
+    from tests.mock_vws.fixtures.credentials import VuMarkCloudDatabase
 
 VWS_HOST = "https://vws.vuforia.com"
 VWQ_HOST = "https://cloudreco.vuforia.com"

@@ -1,7 +1,7 @@
 """Tests for target ID validators."""
 
-from collections.abc import Iterable, Mapping
 from functools import partial
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -13,6 +13,9 @@ from mock_vws.database import CloudDatabase
 from mock_vws.target import ImageTarget
 from mock_vws.target_raters import HardcodedTargetTrackingRater
 from tests.mock_vws.utils import make_image_file
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Mapping
 
 
 def _database_with_target(*, target_id: str) -> CloudDatabase:

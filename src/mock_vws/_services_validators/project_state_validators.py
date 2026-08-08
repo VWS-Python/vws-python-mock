@@ -1,8 +1,8 @@
 """Validators for the project state."""
 
 import logging
-from collections.abc import Iterable, Mapping
 from http import HTTPMethod
+from typing import TYPE_CHECKING
 
 from beartype import beartype
 
@@ -18,6 +18,9 @@ from mock_vws._services_validators.exceptions import (
 )
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.states import States
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Mapping
 
 _LOGGER = logging.getLogger(name=__name__)
 

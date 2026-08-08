@@ -1,13 +1,16 @@
 """Helpers for testing the usage of the mocks."""
 
 import datetime
-import io
+from typing import TYPE_CHECKING
 
 from beartype import beartype
 from vws import VWS
 from vws.reports import TargetStatuses
 
-from mock_vws.database import CloudDatabase
+if TYPE_CHECKING:
+    import io
+
+    from mock_vws.database import CloudDatabase
 
 
 @beartype

@@ -2,7 +2,7 @@
 
 import logging
 import re
-from collections.abc import Iterable, Mapping
+from typing import TYPE_CHECKING
 
 from beartype import beartype
 
@@ -12,6 +12,9 @@ from mock_vws._database_matchers import (
 )
 from mock_vws._mock_common import RECO_COUNTS_REPORT_PATH_PATTERN
 from mock_vws._services_validators.exceptions import UnknownTargetError
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Mapping
 
 _LOGGER = logging.getLogger(name=__name__)
 _TARGETS_WITH_INSTANCE_PATH_LENGTH = 4

@@ -3,8 +3,8 @@
 import re
 import threading
 from collections import deque
-from collections.abc import Callable, Iterable, Mapping
 from http import HTTPMethod
+from typing import TYPE_CHECKING
 
 from beartype import beartype
 
@@ -19,6 +19,9 @@ from mock_vws.request_rate_limits import (
 )
 
 from .exceptions import TooManyRequestsError
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Iterable, Mapping
 
 _WINDOW_SECONDS = 1.0
 

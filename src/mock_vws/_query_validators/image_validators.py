@@ -2,12 +2,11 @@
 
 import io
 import logging
-from collections.abc import Mapping
 from email.message import EmailMessage
+from typing import TYPE_CHECKING
 
 from beartype import beartype
 from PIL import Image
-from werkzeug.datastructures import FileStorage, MultiDict
 from werkzeug.formparser import MultiPartParser
 
 from mock_vws._query_validators.exceptions import (
@@ -15,6 +14,11 @@ from mock_vws._query_validators.exceptions import (
     ImageNotGivenError,
     RequestEntityTooLargeError,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    from werkzeug.datastructures import FileStorage, MultiDict
 
 _LOGGER = logging.getLogger(name=__name__)
 

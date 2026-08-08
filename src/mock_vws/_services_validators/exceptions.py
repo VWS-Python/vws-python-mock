@@ -3,13 +3,16 @@
 import email.utils
 import textwrap
 import uuid
-from collections.abc import Mapping
 from http import HTTPStatus
+from typing import TYPE_CHECKING
 
 from beartype import beartype
 
 from mock_vws._constants import ResultCodes
 from mock_vws._mock_common import json_dump
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
 
 @beartype

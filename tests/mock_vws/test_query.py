@@ -27,7 +27,6 @@ from tenacity.retry import retry_if_exception_type
 from tenacity.stop import stop_after_delay
 from tenacity.wait import wait_fixed
 from urllib3.filepost import encode_multipart_formdata
-from vws import VWS, CloudRecoService
 from vws.exceptions.cloud_reco_exceptions import (
     BadImageError,
     InactiveProjectError,
@@ -38,7 +37,6 @@ from vws.reports import TargetStatuses
 from vws.response import Response
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from mock_vws.database import CloudDatabase
 from tests.mock_vws.utils import make_image_file
 from tests.mock_vws.utils.assertions import (
     assert_query_success,
@@ -49,6 +47,10 @@ from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
+
+    from vws import VWS, CloudRecoService
+
+    from mock_vws.database import CloudDatabase
 
 VWQ_HOST = "https://cloudreco.vuforia.com"
 

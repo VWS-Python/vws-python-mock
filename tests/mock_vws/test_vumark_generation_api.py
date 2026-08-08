@@ -2,6 +2,7 @@
 
 import json
 from http import HTTPMethod, HTTPStatus
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 import pytest
@@ -17,12 +18,14 @@ from vws.vumark_accept import VuMarkAccept
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes
-from mock_vws.database import CloudDatabase
-from tests.mock_vws.fixtures.credentials import (
-    InactiveVuMarkCloudDatabase,
-    VuMarkCloudDatabase,
-)
 from tests.mock_vws.utils import make_image_file
+
+if TYPE_CHECKING:
+    from mock_vws.database import CloudDatabase
+    from tests.mock_vws.fixtures.credentials import (
+        InactiveVuMarkCloudDatabase,
+        VuMarkCloudDatabase,
+    )
 
 _VWS_HOST = "https://vws.vuforia.com"
 _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"

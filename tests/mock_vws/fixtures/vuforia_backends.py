@@ -2,8 +2,8 @@
 
 import contextlib
 import logging
-from collections.abc import Generator
 from enum import Enum
+from typing import TYPE_CHECKING
 
 import pytest
 import requests
@@ -22,11 +22,15 @@ from mock_vws._flask_server.vws import VWS_FLASK_APP
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.states import States
 from mock_vws.target import VuMarkTarget
-from tests.mock_vws.fixtures.credentials import (
-    InactiveVuMarkCloudDatabase,
-    VuMarkCloudDatabase,
-)
 from tests.mock_vws.utils.retries import RETRY_ON_TRANSIENT_VWS_FAILURE
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
+    from tests.mock_vws.fixtures.credentials import (
+        InactiveVuMarkCloudDatabase,
+        VuMarkCloudDatabase,
+    )
 
 LOGGER = logging.getLogger(name=__name__)
 LOGGER.setLevel(level=logging.DEBUG)

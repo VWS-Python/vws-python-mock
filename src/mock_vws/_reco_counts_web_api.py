@@ -7,7 +7,7 @@ import logging
 import re
 import uuid
 from http import HTTPStatus
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from zoneinfo import ZoneInfo
 
 from beartype import beartype
@@ -16,7 +16,9 @@ from mock_vws._constants import ResultCodes
 from mock_vws._mock_common import json_dump
 from mock_vws._services_validators.exceptions import FailError
 from mock_vws.reco_counts import RecoCountsReport
-from mock_vws.target_manager import TargetManager
+
+if TYPE_CHECKING:
+    from mock_vws.target_manager import TargetManager
 
 _ResponseType = tuple[int, dict[str, str], str | bytes]
 _LOGGER = logging.getLogger(name=__name__)

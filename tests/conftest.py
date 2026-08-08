@@ -2,14 +2,17 @@
 
 import base64
 import binascii
-import io
 import uuid
+from typing import TYPE_CHECKING
 
 import pytest
 from vws import VWS, CloudRecoService
 
-from mock_vws.database import CloudDatabase
-from tests.mock_vws.utils import Endpoint
+if TYPE_CHECKING:
+    import io
+
+    from mock_vws.database import CloudDatabase
+    from tests.mock_vws.utils import Endpoint
 
 # `credentials` must be listed before modules that import from it.
 # If listed later, those imports happen before pytest can register it for
