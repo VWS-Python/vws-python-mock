@@ -367,7 +367,7 @@ def fixture_verify_mock_vuforia(
     vumark_vuforia_database: VuMarkCloudDatabase,
     inactive_vumark_database: InactiveVuMarkCloudDatabase,
     monkeypatch: pytest.MonkeyPatch,
-) -> Generator[None]:
+) -> Generator[VuforiaBackend]:
     """Test functions which use this fixture are run multiple times. Once
     with
     the real Vuforia, and once with each mock.
@@ -375,7 +375,7 @@ def fixture_verify_mock_vuforia(
     This is useful for verifying the mocks.
 
     Yields:
-        ``None``.
+        The backend which the test is running against.
     """
     backend: VuforiaBackend = request.param
     should_skip = request.config.getoption(
@@ -390,13 +390,14 @@ def fixture_verify_mock_vuforia(
         VuforiaBackend.DOCKER_IN_MEMORY: _enable_use_docker_in_memory,
     }[backend]
 
-    yield from enable_function(
+    with contextlib.contextmanager(func=enable_function)(
         working_database=vuforia_database,
         inactive_cloud_database=inactive_cloud_database,
         vumark_vuforia_database=vumark_vuforia_database,
         inactive_vumark_database=inactive_vumark_database,
         monkeypatch=monkeypatch,
-    )
+    ):
+        yield backend
 
 
 @pytest.fixture(
