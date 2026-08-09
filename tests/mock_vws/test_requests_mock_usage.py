@@ -1,5 +1,6 @@
 """Tests for the usage of the mock for ``requests``."""
 
+import dataclasses
 import datetime
 import email.utils
 import io
@@ -8,6 +9,7 @@ import socket
 import zipfile
 from http import HTTPStatus
 from urllib.parse import urlparse
+from zoneinfo import ZoneInfo
 
 import httpx
 import pytest
@@ -33,6 +35,7 @@ from mock_vws._services_validators.request_rate_validators import (
     RequestRateLimiter,
 )
 from mock_vws.database import CloudDatabase, VuMarkDatabase
+from mock_vws.database_type import DatabaseType
 from mock_vws.image_matchers import ExactMatcher, StructuralSimilarityMatcher
 from mock_vws.request_rate_limits import (
     DOCUMENTED_REQUEST_RATE_LIMITS,
@@ -42,6 +45,7 @@ from mock_vws.request_rate_limits import (
 )
 from mock_vws.states import States
 from mock_vws.target import ImageTarget, VuMarkTarget
+from mock_vws.target_raters import HardcodedTargetTrackingRater
 from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import assert_vws_failure
 from tests.mock_vws.utils.usage_test_helpers import (
@@ -975,6 +979,74 @@ class TestTargets:
         assert new_target.delete_date == target.delete_date
 
     @staticmethod
+    def test_round_trip_non_default_fields(
+        high_quality_image: io.BytesIO,
+    ) -> None:
+        """Every field of a target survives a dictionary round trip.
+
+        The target tracking rater is deliberately not preserved:
+        ``to_dict`` writes the computed tracking rating and ``from_dict``
+        rebuilds the target with a hardcoded rater which gives that
+        rating.
+        """
+        gmt = ZoneInfo(key="GMT")
+        target = ImageTarget(
+            active_flag=False,
+            application_metadata="example-metadata",
+            current_month_recos=1,
+            delete_date=datetime.datetime(
+                year=2020, month=1, day=4, tzinfo=gmt
+            ),
+            image_value=high_quality_image.getvalue(),
+            last_modified_date=datetime.datetime(
+                year=2020, month=1, day=3, tzinfo=gmt
+            ),
+            name="example",
+            previous_month_recos=2,
+            processing_time_seconds=0.5,
+            reco_rating="example-reco-rating",
+            target_id="example-target-id",
+            target_tracking_rater=HardcodedTargetTrackingRater(rating=4),
+            total_recos=3,
+            upload_date=datetime.datetime(
+                year=2020, month=1, day=2, tzinfo=gmt
+            ),
+            width=1.5,
+        )
+        # Adding a field to ``ImageTarget`` must mean adding it to this
+        # test, and therefore to the round trip.
+        expected_field_names = {
+            "active_flag",
+            "application_metadata",
+            "current_month_recos",
+            "delete_date",
+            "image_value",
+            "last_modified_date",
+            "name",
+            "previous_month_recos",
+            "processing_time_seconds",
+            "reco_rating",
+            "target_id",
+            "target_tracking_rater",
+            "total_recos",
+            "upload_date",
+            "width",
+        }
+        field_names = {
+            field.name
+            for field in dataclasses.fields(class_or_instance=ImageTarget)
+        }
+        assert field_names == expected_field_names
+
+        target_dict = target.to_dict()
+        # The dictionary is JSON dump-able
+        assert json.dumps(obj=target_dict)
+
+        new_target = ImageTarget.from_dict(target_dict=target_dict)
+        assert new_target == target
+        assert new_target.tracking_rating == target.tracking_rating
+
+    @staticmethod
     def test_vumark_target_to_dict() -> None:
         """It is possible to dump a VuMark target to a dictionary and
         load it back.
@@ -1077,6 +1149,82 @@ class TestDatabaseToDict:
         assert (
             new_database.request_rate_limits == DOCUMENTED_REQUEST_RATE_LIMITS
         )
+
+    @staticmethod
+    def test_round_trip_non_default_fields(
+        high_quality_image: io.BytesIO,
+    ) -> None:
+        """Every field of a database survives a dictionary round trip."""
+        gmt = ZoneInfo(key="GMT")
+        target = ImageTarget(
+            active_flag=True,
+            application_metadata=None,
+            image_value=high_quality_image.getvalue(),
+            last_modified_date=datetime.datetime(
+                year=2020, month=1, day=3, tzinfo=gmt
+            ),
+            name="example",
+            processing_time_seconds=0.5,
+            target_tracking_rater=HardcodedTargetTrackingRater(rating=4),
+            upload_date=datetime.datetime(
+                year=2020, month=1, day=2, tzinfo=gmt
+            ),
+            width=1.5,
+        )
+        database = CloudDatabase(
+            client_access_key="example-client-access-key",
+            client_secret_key="example-client-secret-key",
+            current_month_recos=1,
+            database_id="example-database-id",
+            database_name="example-database-name",
+            # ``CLOUD_RECO`` is the only database type, so it is not
+            # possible to use a non-default value here.
+            database_type=DatabaseType.CLOUD_RECO,
+            previous_month_recos=2,
+            reco_threshold=3,
+            request_quota=4,
+            request_rate_limits=DOCUMENTED_REQUEST_RATE_LIMITS,
+            requests_per_second_limit=5,
+            server_access_key="example-server-access-key",
+            server_secret_key="example-server-secret-key",
+            state=States.PROJECT_SUSPENDED,
+            target_quota=6,
+            targets={target},
+            total_recos=7,
+        )
+        # Adding a field to ``CloudDatabase`` must mean adding it to this
+        # test, and therefore to the round trip.
+        expected_field_names = {
+            "client_access_key",
+            "client_secret_key",
+            "current_month_recos",
+            "database_id",
+            "database_name",
+            "database_type",
+            "previous_month_recos",
+            "reco_threshold",
+            "request_quota",
+            "request_rate_limits",
+            "requests_per_second_limit",
+            "server_access_key",
+            "server_secret_key",
+            "state",
+            "target_quota",
+            "targets",
+            "total_recos",
+        }
+        field_names = {
+            field.name
+            for field in dataclasses.fields(class_or_instance=CloudDatabase)
+        }
+        assert field_names == expected_field_names
+
+        database_dict = database.to_dict()
+        # The dictionary is JSON dump-able
+        assert json.dumps(obj=database_dict)
+
+        new_database = CloudDatabase.from_dict(database_dict=database_dict)
+        assert new_database == database
 
     @staticmethod
     def test_vumark_database_to_dict() -> None:

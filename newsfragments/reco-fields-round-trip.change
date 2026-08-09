@@ -1,0 +1,1 @@
+Preserve the recognition count fields, the reco rating and the reco threshold when dumping a ``CloudDatabase`` or an ``ImageTarget`` to a dictionary and loading it back.
