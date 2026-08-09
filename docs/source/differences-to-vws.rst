@@ -321,23 +321,17 @@ one before it was generated.
 Paths which the mock does not serve
 -----------------------------------
 
-Real Vuforia returns a 404 response for a request to a path which it does not
-serve, and for a request to a served path with a method which that path does
-not serve.
-It does not return a 405 response.
-The Flask and Docker mock does the same, with an empty body and no
-``Content-Type`` header.
-
-Real Vuforia gives an empty body only for a request to a path which does not
-start with a served path, such as ``/some-random-endpoint``.
+Real Vuforia gives an empty body with a 404 response only for a request to a
+path which does not start with a served path, such as
+``/some-random-endpoint``.
 For any other request which it does not serve, such as ``DELETE /summary`` or
 ``GET /targetsfoo``, it gives an HTML "Not Found" page which names the method
 and the path of the request.
-The mock gives an empty body for all of these.
+The Flask and Docker mock gives an empty body for all of these.
 
 The ``requests`` and ``httpx`` backends mock only the paths which the mock
 serves, so a request to any other path raises a connection error rather than
-returning a response.
+giving the 404 response which real Vuforia gives.
 
 Header cases
 ------------
