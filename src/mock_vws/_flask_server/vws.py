@@ -28,7 +28,7 @@ from mock_vws._constants import (
 )
 from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._flask_server.target_manager import TARGET_MANAGER
-from mock_vws._mock_common import RequestData, json_dump
+from mock_vws._mock_common import RequestData, json_dump, sorted_targets
 from mock_vws._model_target_web_api import (
     create_model_target_dataset,
     delete_model_target_dataset,
@@ -838,7 +838,7 @@ def get_duplicates(target_id: str) -> Response:
     (target,) = (
         target for target in database.targets if target.target_id == target_id
     )
-    other_targets = database.targets - {target}
+    other_targets = sorted_targets(targets=database.targets - {target})
 
     similar_targets = [
         other.target_id
@@ -892,7 +892,10 @@ def target_list() -> Response:
         request_path=request.path,
         databases=databases,
     )
-    results = [target.target_id for target in database.not_deleted_targets]
+    results = [
+        target.target_id
+        for target in sorted_targets(targets=database.not_deleted_targets)
+    ]
 
     body = {
         "transaction_id": uuid.uuid4().hex,

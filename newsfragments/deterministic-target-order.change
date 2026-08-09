@@ -1,0 +1,4 @@
+Return targets in a deterministic order from the Query API, ``GET /targets``
+and ``GET /duplicates/{target_id}``.  Targets are ordered by upload date and
+then by target ID, so repeated runs agree with each other.  This order is not
+Vuforia's match score order.

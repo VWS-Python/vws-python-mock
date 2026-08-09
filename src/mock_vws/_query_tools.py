@@ -13,7 +13,7 @@ from werkzeug.formparser import MultiPartParser
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_client_keys
-from mock_vws._mock_common import json_dump
+from mock_vws._mock_common import json_dump, sorted_targets
 from mock_vws.database import CloudDatabase
 from mock_vws.image_matchers import ImageMatcher
 
@@ -71,7 +71,7 @@ def get_query_match_response_text(
 
     matching_targets = [
         target
-        for target in database.targets
+        for target in sorted_targets(targets=database.targets)
         if query_match_checker(
             first_image_content=target.image_value,
             second_image_content=image_value,

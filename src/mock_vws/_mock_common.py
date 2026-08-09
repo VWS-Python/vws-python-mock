@@ -7,6 +7,8 @@ from typing import Any
 
 from beartype import beartype
 
+from mock_vws.target import ImageTarget
+
 # A database ID as it appears in the path of a reco counts report request.
 DATABASE_ID_PATTERN = "[A-Za-z0-9_-]+"
 # The path of the endpoint which requests a reco counts report.
@@ -73,6 +75,26 @@ class Route:
     route_name: str
     path_pattern: str
     http_methods: Iterable[str]
+
+
+@beartype
+def sorted_targets(*, targets: Iterable[ImageTarget]) -> list[ImageTarget]:
+    """Put targets into a deterministic order.
+
+    Targets are held in a ``set``, so iterating over them gives an order which
+    varies between runs. Endpoints which return lists of targets use this so
+    that repeated runs agree with each other.
+
+    Args:
+        targets: The targets to order.
+
+    Returns:
+        The given targets, ordered by upload date and then by target ID.
+    """
+    return sorted(
+        targets,
+        key=lambda target: (target.upload_date, target.target_id),
+    )
 
 
 @beartype

@@ -31,6 +31,7 @@ from mock_vws._mock_common import (
     RequestData,
     Route,
     json_dump,
+    sorted_targets,
 )
 from mock_vws._model_target_web_api import (
     create_model_target_dataset,
@@ -720,7 +721,8 @@ class MockVuforiaWebServicesAPI:
         )
 
         response_results = [
-            target.target_id for target in database.not_deleted_targets
+            target.target_id
+            for target in sorted_targets(targets=database.not_deleted_targets)
         ]
         body = {
             "transaction_id": uuid.uuid4().hex,
@@ -843,7 +845,7 @@ class MockVuforiaWebServicesAPI:
         target_id = request.path.split(sep="/")[-1]
         target = database.get_target(target_id=target_id)
 
-        other_targets = database.targets - {target}
+        other_targets = sorted_targets(targets=database.targets - {target})
 
         similar_targets = [
             other.target_id
