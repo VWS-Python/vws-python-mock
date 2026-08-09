@@ -118,6 +118,7 @@ def _enable_use_mock_vuforia(
     """Test against the in-memory mock Vuforia."""
     assert monkeypatch
     working_database = CloudDatabase(
+        database_id=working_database.database_id,
         database_name=working_database.database_name,
         server_access_key=working_database.server_access_key,
         server_secret_key=working_database.server_secret_key,

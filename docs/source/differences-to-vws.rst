@@ -266,15 +266,14 @@ The mock returns the same report for the current month and the previous month.
 As with real Vuforia, the report is served with a ``text/plain`` content type
 rather than a CSV one.
 
-The mock does not use the database ID in the request path.
-It uses the database which matches the request's server keys, and it accepts
-any database ID.
-Real Vuforia returns a 401 response with the ``AuthenticationFailure`` result
-code for a request which is signed with valid server keys but which names a
-database ID that those keys do not belong to.
+As real Vuforia does, the mock returns a 401 response with the
+``AuthenticationFailure`` result code for a request which is signed with valid
+server keys but which names a database ID in its path that those keys do not
+belong to.
 That includes naming the database by its name rather than by its ID.
-:class:`mock_vws.database.CloudDatabase` has no database ID, so the mock
-cannot make the same check.
+The ID of a database is
+:paramref:`mock_vws.database.CloudDatabase.database_id`, which defaults to a
+random string.
 
 Real Vuforia returns a presigned URL for cloud storage.
 The mock returns a URL served by the mock itself, without the query

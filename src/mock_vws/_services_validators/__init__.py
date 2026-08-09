@@ -19,6 +19,7 @@ from .content_length_validators import (
     validate_content_length_header_not_too_small,
 )
 from .content_type_validators import validate_content_type_header_given
+from .database_id_validators import validate_database_id_matches_keys
 from .date_validators import (
     validate_date_format,
     validate_date_header_given,
@@ -85,6 +86,13 @@ def run_services_validators(
         databases=databases,
     )
     validate_authorization(
+        request_headers=request_headers,
+        request_body=request_body,
+        request_method=request_method,
+        request_path=request_path,
+        databases=databases,
+    )
+    validate_database_id_matches_keys(
         request_headers=request_headers,
         request_body=request_body,
         request_method=request_method,

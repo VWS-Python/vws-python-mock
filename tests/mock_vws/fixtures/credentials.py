@@ -136,8 +136,9 @@ def get_model_target_credentials() -> ModelTargetCredentials:
 @pytest.fixture
 def vuforia_database() -> CloudDatabase:
     """Return VWS credentials from environment variables."""
-    settings = _CloudDatabaseSettings.model_validate(obj={})
+    settings = _WorkingCloudDatabaseSettings.model_validate(obj={})
     return CloudDatabase(
+        database_id=settings.database_id,
         database_name=settings.target_manager_database_name,
         server_access_key=settings.server_access_key,
         server_secret_key=settings.server_secret_key,
@@ -145,15 +146,6 @@ def vuforia_database() -> CloudDatabase:
         client_secret_key=settings.client_secret_key,
         state=States.WORKING,
     )
-
-
-@pytest.fixture
-def vuforia_database_id() -> str:
-    """Return the ID of the working database from environment
-    variables.
-    """
-    settings = _WorkingCloudDatabaseSettings.model_validate(obj={})
-    return settings.database_id
 
 
 @pytest.fixture
