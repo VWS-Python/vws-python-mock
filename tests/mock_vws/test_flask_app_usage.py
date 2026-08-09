@@ -321,7 +321,8 @@ class TestUnroutedRequests:
         """A request to a path which is not routed returns a 404 even
         without credentials.
 
-        The Docker health check relies on this request not erroring.
+        The Docker health check relies on this request returning a
+        response.
         """
         response = VWS_FLASK_APP.test_client().get("/some-random-endpoint")
 
