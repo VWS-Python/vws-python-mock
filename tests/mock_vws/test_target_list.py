@@ -1,7 +1,12 @@
 """Tests for the mock of the target list endpoint."""
 
+import io
+import uuid
+
 import pytest
 from vws import VWS
+
+from tests.mock_vws.fixtures.vuforia_backends import VuforiaBackend
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -27,6 +32,34 @@ class TestTargetList:
         vws_client.wait_for_target_processed(target_id=target_id)
         vws_client.delete_target(target_id=target_id)
         assert not vws_client.list_targets()
+
+    @staticmethod
+    def test_order_is_upload_date_then_target_id(
+        *,
+        verify_mock_vuforia: VuforiaBackend,
+        high_quality_image: io.BytesIO,
+        vws_client: VWS,
+    ) -> None:
+        """The mock returns targets ordered by upload date.
+
+        The real Vuforia Web Services do not document an order, so we do
+        not verify this against them.
+        """
+        if verify_mock_vuforia == VuforiaBackend.REAL:
+            pytest.skip(reason="The real Vuforia does not document an order.")
+
+        target_ids = [
+            vws_client.add_target(
+                name=uuid.uuid4().hex,
+                width=1,
+                image=high_quality_image,
+                active_flag=True,
+                application_metadata=None,
+            )
+            for _ in range(3)
+        ]
+
+        assert vws_client.list_targets() == target_ids
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")

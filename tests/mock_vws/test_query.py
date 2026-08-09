@@ -39,6 +39,7 @@ from vws.response import Response
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws.database import CloudDatabase
+from tests.mock_vws.fixtures.vuforia_backends import VuforiaBackend
 from tests.mock_vws.utils import make_image_file
 from tests.mock_vws.utils.assertions import (
     assert_query_success,
@@ -1007,6 +1008,101 @@ def _add_and_wait_for_targets(
 
     for created_target_id in target_ids:
         vws_client.wait_for_target_processed(target_id=created_target_id)
+
+
+@pytest.mark.usefixtures("verify_mock_vuforia")
+class TestResultOrder:
+    """Tests for the order of query results."""
+
+    @staticmethod
+    def test_order_is_upload_date_then_target_id(
+        *,
+        verify_mock_vuforia: VuforiaBackend,
+        high_quality_image: io.BytesIO,
+        vws_client: VWS,
+        vuforia_database: CloudDatabase,
+    ) -> None:
+        """The mock returns matches ordered by upload date.
+
+        The real Query API orders results by match score, which the mock
+        does not model, so we do not verify this against the real Vuforia
+        Web Services.
+        """
+        if verify_mock_vuforia == VuforiaBackend.REAL:
+            pytest.skip(reason="The real Query API orders by match score.")
+
+        target_ids = [
+            vws_client.add_target(
+                name=uuid.uuid4().hex,
+                width=1,
+                image=high_quality_image,
+                active_flag=True,
+                application_metadata=None,
+            )
+            for _ in range(3)
+        ]
+
+        for target_id in target_ids:
+            vws_client.wait_for_target_processed(target_id=target_id)
+
+        image_content = high_quality_image.getvalue()
+        body = {
+            "image": ("image.jpeg", image_content, "image/jpeg"),
+            "max_num_results": (None, 3, "text/plain"),
+        }
+
+        response = _query(vuforia_database=vuforia_database, body=body)
+
+        assert_query_success(response=response)
+        response_json = json.loads(s=response.text)
+        result_target_ids = [
+            result["target_id"] for result in response_json["results"]
+        ]
+        assert result_target_ids == target_ids
+
+    @staticmethod
+    def test_max_num_results_keeps_the_first_results(
+        *,
+        verify_mock_vuforia: VuforiaBackend,
+        high_quality_image: io.BytesIO,
+        vws_client: VWS,
+        vuforia_database: CloudDatabase,
+    ) -> None:
+        """``max_num_results`` truncates a deterministically ordered
+        list.
+
+        Which matches survive the truncation therefore does not vary
+        between runs.
+        """
+        if verify_mock_vuforia == VuforiaBackend.REAL:
+            pytest.skip(reason="The real Query API orders by match score.")
+
+        target_ids = [
+            vws_client.add_target(
+                name=uuid.uuid4().hex,
+                width=1,
+                image=high_quality_image,
+                active_flag=True,
+                application_metadata=None,
+            )
+            for _ in range(3)
+        ]
+
+        for target_id in target_ids:
+            vws_client.wait_for_target_processed(target_id=target_id)
+
+        image_content = high_quality_image.getvalue()
+        body = {
+            "image": ("image.jpeg", image_content, "image/jpeg"),
+            "max_num_results": (None, 1, "text/plain"),
+        }
+
+        response = _query(vuforia_database=vuforia_database, body=body)
+
+        assert_query_success(response=response)
+        response_json = json.loads(s=response.text)
+        (result,) = response_json["results"]
+        assert result["target_id"] == target_ids[0]
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")

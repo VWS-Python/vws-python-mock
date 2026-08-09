@@ -32,6 +32,7 @@ jobs:
           - tests/mock_vws/test_query.py::TestSuccess
           - tests/mock_vws/test_query.py::TestIncorrectFields
           - tests/mock_vws/test_query.py::TestMaxNumResults
+          - tests/mock_vws/test_query.py::TestResultOrder
           - tests/mock_vws/test_query.py::TestIncludeTargetData
           - tests/mock_vws/test_query.py::TestAcceptHeader
           - tests/mock_vws/test_query.py::TestActiveFlag
