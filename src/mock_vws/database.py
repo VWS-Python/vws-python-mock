@@ -26,6 +26,7 @@ from mock_vws.target import (
 class CloudDatabaseDict(TypedDict):
     """A dictionary type which represents a cloud database."""
 
+    database_id: str
     database_name: str
     server_access_key: str
     server_secret_key: str
@@ -63,6 +64,10 @@ class CloudDatabase:
     """Credentials for VWS APIs.
 
     Args:
+        database_id: The identifier of a VWS target manager database. Defaults
+            to a random string. Endpoints which name a database in their path,
+            such as the reco counts report endpoint, accept only the identifier
+            of the database which the request's server keys belong to.
         database_name: The name of a VWS target manager database name. Defaults
             to a random string.
         server_access_key: A VWS server access key. Defaults to a random
@@ -92,6 +97,7 @@ class CloudDatabase:
 
     # We hide a few things in the ``repr`` with ``repr=False`` so that they do
     # not show up in CI logs.
+    database_id: str = field(default_factory=_random_hex, repr=False)
     database_name: str = field(default_factory=_random_hex, repr=False)
     server_access_key: str = field(default_factory=_random_hex, repr=False)
     server_secret_key: str = field(default_factory=_random_hex, repr=False)
@@ -128,6 +134,7 @@ class CloudDatabase:
             else self.request_rate_limits.to_dict()
         )
         return {
+            "database_id": self.database_id,
             "database_name": self.database_name,
             "server_access_key": self.server_access_key,
             "server_secret_key": self.server_secret_key,
@@ -166,6 +173,7 @@ class CloudDatabase:
         )
 
         return cls(
+            database_id=database_dict["database_id"],
             database_name=database_dict["database_name"],
             server_access_key=database_dict["server_access_key"],
             server_secret_key=database_dict["server_secret_key"],

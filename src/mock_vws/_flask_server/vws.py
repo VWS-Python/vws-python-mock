@@ -408,8 +408,8 @@ def reco_counts_report(database_id: str) -> Response:
     Fake implementation of
     https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api
     """
-    # The mock authenticates with the request's server keys, so the database
-    # ID in the path is not used.
+    # The database ID in the path is validated against the request's server
+    # keys before the request reaches this route.
     del database_id
     settings = VWSSettings.model_validate(obj={})
     return _to_flask_response(

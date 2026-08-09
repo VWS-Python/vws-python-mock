@@ -232,6 +232,10 @@ def create_cloud_database() -> Response:
         "client_secret_key",
         random_database.client_secret_key,
     )
+    database_id = request_json.get(
+        "database_id",
+        random_database.database_id,
+    )
     database_name = request_json.get(
         "database_name",
         random_database.database_name,
@@ -271,6 +275,7 @@ def create_cloud_database() -> Response:
         server_secret_key=server_secret_key,
         client_access_key=client_access_key,
         client_secret_key=client_secret_key,
+        database_id=database_id,
         database_name=database_name,
         state=state,
         database_type=database_type,

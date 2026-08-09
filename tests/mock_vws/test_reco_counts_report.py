@@ -15,7 +15,6 @@ from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes
 from mock_vws.database import CloudDatabase
-from tests.mock_vws.fixtures.vuforia_backends import VuforiaBackend
 
 _VWS_HOST = "https://vws.vuforia.com"
 # The number of seconds which the mocks take to generate a report.
@@ -41,7 +40,11 @@ def _request_reco_counts_report(
     database_id: str,
     month: str | int,
 ) -> requests.Response:
-    """Request a reco counts report and return the response."""
+    """Request a reco counts report and return the response.
+
+    The report is requested for the database named by the given ID, and the
+    request is signed with the given database's server keys.
+    """
     request_path = f"/imagetargets/databases/{database_id}/reports/recoCounts"
     content_type = "application/json"
     content = json.dumps(obj={"month": month}).encode(encoding="utf-8")
@@ -69,23 +72,7 @@ def _request_reco_counts_report(
     )
 
 
-@beartype
-def _database_id_for_backend(
-    *,
-    backend: VuforiaBackend,
-    vuforia_database_id: str,
-) -> str:
-    """Return the database ID to name in the request path.
-
-    Real Vuforia requires the ID to be the ID of the database which the
-    request's server keys belong to. The mocks accept any ID.
-    """
-    if backend != VuforiaBackend.REAL:
-        return uuid.uuid4().hex
-
-    return vuforia_database_id
-
-
+@pytest.mark.usefixtures("verify_mock_vuforia")
 class TestRecoCountsReport:
     """Tests for requesting a reco counts report."""
 
@@ -97,9 +84,7 @@ class TestRecoCountsReport:
     )
     def test_reco_counts_report(
         *,
-        verify_mock_vuforia: VuforiaBackend,
         vuforia_database: CloudDatabase,
-        vuforia_database_id: str,
         months_ago: int,
     ) -> None:
         """A report can be requested for the current and previous
@@ -107,10 +92,7 @@ class TestRecoCountsReport:
         """
         response = _request_reco_counts_report(
             vuforia_database=vuforia_database,
-            database_id=_database_id_for_backend(
-                backend=verify_mock_vuforia,
-                vuforia_database_id=vuforia_database_id,
-            ),
+            database_id=vuforia_database.database_id,
             month=_month_offset_from_now(months=-months_ago),
         )
 
@@ -134,18 +116,13 @@ class TestRecoCountsReport:
     )
     def test_month_out_of_range(
         *,
-        verify_mock_vuforia: VuforiaBackend,
         vuforia_database: CloudDatabase,
-        vuforia_database_id: str,
         months_ago: int,
     ) -> None:
         """Only the current and the previous month can be requested."""
         response = _request_reco_counts_report(
             vuforia_database=vuforia_database,
-            database_id=_database_id_for_backend(
-                backend=verify_mock_vuforia,
-                vuforia_database_id=vuforia_database_id,
-            ),
+            database_id=vuforia_database.database_id,
             month=_month_offset_from_now(months=-months_ago),
         )
 
@@ -161,24 +138,56 @@ class TestRecoCountsReport:
     )
     def test_malformed_month(
         *,
-        verify_mock_vuforia: VuforiaBackend,
         vuforia_database: CloudDatabase,
-        vuforia_database_id: str,
         month: str | int,
     ) -> None:
         """The month must be given in the ``YYYY-mm`` form."""
         response = _request_reco_counts_report(
             vuforia_database=vuforia_database,
-            database_id=_database_id_for_backend(
-                backend=verify_mock_vuforia,
-                vuforia_database_id=vuforia_database_id,
-            ),
+            database_id=vuforia_database.database_id,
             month=month,
         )
 
         assert response.status_code == HTTPStatus.BAD_REQUEST
         response_json = json.loads(s=response.text)
         assert response_json["result_code"] == ResultCodes.FAIL.value
+
+    @staticmethod
+    def test_unknown_database_id(*, vuforia_database: CloudDatabase) -> None:
+        """The path must name the database which the request's server
+        keys belong to.
+        """
+        response = _request_reco_counts_report(
+            vuforia_database=vuforia_database,
+            database_id=uuid.uuid4().hex,
+            month=_month_offset_from_now(months=0),
+        )
+
+        assert response.status_code == HTTPStatus.UNAUTHORIZED
+        response_json = json.loads(s=response.text)
+        assert (
+            response_json["result_code"]
+            == ResultCodes.AUTHENTICATION_FAILURE.value
+        )
+
+    @staticmethod
+    def test_database_name_in_path(
+        *,
+        vuforia_database: CloudDatabase,
+    ) -> None:
+        """A database is named in the path by its ID, not by its name."""
+        response = _request_reco_counts_report(
+            vuforia_database=vuforia_database,
+            database_id=vuforia_database.database_name,
+            month=_month_offset_from_now(months=0),
+        )
+
+        assert response.status_code == HTTPStatus.UNAUTHORIZED
+        response_json = json.loads(s=response.text)
+        assert (
+            response_json["result_code"]
+            == ResultCodes.AUTHENTICATION_FAILURE.value
+        )
 
 
 @pytest.mark.usefixtures("mock_only_vuforia")
@@ -195,7 +204,7 @@ class TestDownloadReport:
         """The report is available from the given URL once it is ready."""
         response = _request_reco_counts_report(
             vuforia_database=vuforia_database,
-            database_id=uuid.uuid4().hex,
+            database_id=vuforia_database.database_id,
             month=_month_offset_from_now(months=0),
         )
         presigned_url = json.loads(s=response.text)["presigned_url"]

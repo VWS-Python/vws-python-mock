@@ -1,0 +1,1 @@
+Give ``CloudDatabase`` a ``database_id``, and reject a reco counts report request whose path names a database which the request's server keys do not belong to, as real Vuforia does.
