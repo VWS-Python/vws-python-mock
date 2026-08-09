@@ -124,13 +124,6 @@ def validate_keys(
         optional_keys=set(),
     )
 
-    target_summary = _Route(
-        path_pattern=f"/summary/{target_id_pattern}",
-        http_methods={HTTPMethod.GET},
-        mandatory_keys=set(),
-        optional_keys=set(),
-    )
-
     reco_counts_report = _Route(
         path_pattern=RECO_COUNTS_REPORT_PATH_PATTERN,
         http_methods={HTTPMethod.POST},
