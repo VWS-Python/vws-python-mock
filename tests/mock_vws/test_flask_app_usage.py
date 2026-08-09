@@ -246,6 +246,88 @@ class TestRequestQuota:
         client.get_database_summary_report()
 
 
+class TestUnroutedRequests:
+    """Tests for requests which the Flask app does not route.
+
+    These tests use the Flask test client because the ``responses``
+    library intercepts only the paths and methods which the app routes,
+    so requests to any other path never reach the app.
+    """
+
+    @staticmethod
+    def _signed_headers(
+        *,
+        database: CloudDatabase,
+        method: HTTPMethod,
+        request_path: str,
+    ) -> dict[str, str]:
+        """Return headers which sign a request with valid server keys."""
+        date = rfc_1123_date()
+        authorization_string = authorization_header(
+            access_key=database.server_access_key,
+            secret_key=database.server_secret_key,
+            method=method,
+            content=b"",
+            content_type="",
+            date=date,
+            request_path=request_path,
+        )
+        return {"Authorization": authorization_string, "Date": date}
+
+    def test_unknown_path(self) -> None:
+        """A request to a path which is not routed returns a 404."""
+        database = CloudDatabase()
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+
+        request_path = "/some-random-endpoint"
+        headers = self._signed_headers(
+            database=database,
+            method=HTTPMethod.GET,
+            request_path=request_path,
+        )
+
+        response = VWS_FLASK_APP.test_client().get(
+            request_path,
+            headers=headers,
+        )
+
+        assert response.status_code == HTTPStatus.NOT_FOUND
+
+    def test_unknown_method(self) -> None:
+        """A request to a routed path with a method which that path does
+        not serve returns a 405.
+        """
+        database = CloudDatabase()
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+
+        request_path = "/summary"
+        headers = self._signed_headers(
+            database=database,
+            method=HTTPMethod.POST,
+            request_path=request_path,
+        )
+
+        response = VWS_FLASK_APP.test_client().post(
+            request_path,
+            headers=headers,
+        )
+
+        assert response.status_code == HTTPStatus.METHOD_NOT_ALLOWED
+
+    @staticmethod
+    def test_unauthenticated_unknown_path() -> None:
+        """A request to a path which is not routed returns a 404 even
+        without credentials.
+
+        The Docker health check relies on this request not erroring.
+        """
+        response = VWS_FLASK_APP.test_client().get("/some-random-endpoint")
+
+        assert response.status_code == HTTPStatus.NOT_FOUND
+
+
 class TestAddCloudDatabase:
     """Tests for adding cloud databases to the mock."""
 

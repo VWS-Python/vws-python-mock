@@ -199,7 +199,13 @@ def validate_request() -> None:
 
     Reco counts report downloads stand in for presigned URLs, which are not
     authorized with VWS credentials.
+
+    Flask runs ``before_request`` handlers before it raises a routing error,
+    so requests which match no route reach this function.
+    Those requests are left to Flask, which raises the routing error itself.
     """
+    if request.url_rule is None:
+        return
     if request.endpoint == "generate_vumark_instance":
         return
     if (

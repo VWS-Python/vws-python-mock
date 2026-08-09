@@ -318,6 +318,21 @@ signature.
 The 404 has not been verified, because no request for a real report has caught
 one before it was generated.
 
+Paths which the mock does not serve
+-----------------------------------
+
+Real Vuforia returns a 404 response for a request to a path which it does not
+serve.
+
+The Flask and Docker mock does the same, with a Flask error page as the body,
+and it returns a 405 response for a request to a served path with a method
+which that path does not serve.
+Neither response body has been verified against real Vuforia.
+
+The ``requests`` and ``httpx`` backends mock only the paths which the mock
+serves, so a request to any other path raises a connection error rather than
+returning a response.
+
 Header cases
 ------------
 
