@@ -1,10 +1,66 @@
 """Custom lint tests."""
 
+import ast
 from pathlib import Path
 
 import pytest
 import yaml
 from beartype import beartype
+
+
+def test_pre_commit_hook_identifiers_unique(
+    request: pytest.FixtureRequest,
+) -> None:
+    """Each pre-commit hook has a unique ID and display name."""
+    config_file = request.config.rootpath / ".pre-commit-config.yaml"
+    config = yaml.safe_load(stream=config_file.read_text())
+    hooks = [
+        hook
+        for repository in config["repos"]
+        for hook in repository.get("hooks", [])
+    ]
+    hook_ids = [hook["id"] for hook in hooks]
+    hook_names = [hook.get("name", hook["id"]) for hook in hooks]
+
+    assert len(hook_ids) == len(set(hook_ids)), (
+        "Pre-commit hook IDs must be unique."
+    )
+    assert len(hook_names) == len(set(hook_names)), (
+        "Pre-commit hook names must be unique."
+    )
+
+
+def test_validate_and_run_functions_are_keyword_only(
+    request: pytest.FixtureRequest,
+) -> None:
+    """Validation and runner APIs do not accept positional arguments."""
+    violations: list[str] = []
+    source_root = request.config.rootpath / "src"
+
+    for source_file in source_root.rglob("*.py"):
+        module = ast.parse(source_file.read_text())
+        for function in ast.walk(module):
+            if not isinstance(
+                function, ast.FunctionDef | ast.AsyncFunctionDef
+            ):
+                continue
+            if not function.name.startswith(("validate_", "run_")):
+                continue
+            positional_arguments = [
+                argument.arg
+                for argument in [
+                    *function.args.posonlyargs,
+                    *function.args.args,
+                ]
+                if argument.arg not in {"self", "cls"}
+            ]
+            if positional_arguments:
+                path = source_file.relative_to(request.config.rootpath)
+                violations.append(f"{path}:{function.lineno} {function.name}")
+
+    assert not violations, "Functions must be keyword-only: " + ", ".join(
+        violations
+    )
 
 
 @beartype

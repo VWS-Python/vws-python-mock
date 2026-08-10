@@ -413,7 +413,7 @@ repos:
           - *uv_version
 
       - id: yamlfix
-        name: pyproject-fmt
+        name: yamlfix
         entry: uv run --extra=dev yamlfix
         language: python
         types_or: [yaml]
