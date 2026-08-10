@@ -32,6 +32,7 @@ from .image_validators import (
     validate_image_format,
     validate_image_integrity,
     validate_image_is_image,
+    validate_image_pixel_count,
     validate_image_size,
 )
 from .json_validators import validate_body_given, validate_json
@@ -163,6 +164,7 @@ def run_services_validators(
     validate_image_format(request_body=request_body)
     validate_image_color_space(request_body=request_body)
     validate_image_size(request_body=request_body)
+    validate_image_pixel_count(request_body=request_body)
     validate_image_integrity(request_body=request_body)
 
     validate_name_type(request_body=request_body)

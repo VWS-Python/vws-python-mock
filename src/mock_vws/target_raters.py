@@ -8,8 +8,9 @@ import warnings
 from typing import Protocol, runtime_checkable
 
 from beartype import beartype
-from PIL import Image
 from pyteenybrisque import score
+
+from mock_vws._image_opening import open_image
 
 
 @functools.cache
@@ -25,10 +26,15 @@ def _get_brisque_target_tracking_rating(*, image_content: bytes) -> int:
         image_content: A target's image's content.
     """
     image_file = io.BytesIO(initial_bytes=image_content)
-    with Image.open(fp=image_file) as image, warnings.catch_warnings():
+    with open_image(fp=image_file) as image, warnings.catch_warnings():
         # Uniform images produce a zero-variance warning and non-finite score.
         warnings.simplefilter(action="ignore", category=RuntimeWarning)
-        brisque_score = score(image=image)
+        try:
+            brisque_score = score(image=image)
+        except ZeroDivisionError:
+            # An image of a single color divides by zero rather than giving a
+            # non-finite score.
+            return 0
 
     if not math.isfinite(brisque_score):
         return 0

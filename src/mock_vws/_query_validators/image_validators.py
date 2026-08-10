@@ -6,10 +6,10 @@ from collections.abc import Mapping
 from email.message import EmailMessage
 
 from beartype import beartype
-from PIL import Image
 from werkzeug.datastructures import FileStorage, MultiDict
 from werkzeug.formparser import MultiPartParser
 
+from mock_vws._image_opening import open_image
 from mock_vws._query_validators.exceptions import (
     BadImageError,
     ImageNotGivenError,
@@ -130,7 +130,7 @@ def validate_image_dimensions(
     image_part = files["image"]
     image_value = image_part.stream.read()
     image_file = io.BytesIO(initial_bytes=image_value)
-    with Image.open(fp=image_file) as pil_image:
+    with open_image(fp=image_file) as pil_image:
         max_width = 30000
         max_height = 30000
         if pil_image.height <= max_height and pil_image.width <= max_width:
@@ -160,7 +160,7 @@ def validate_image_format(
         request_body=request_body,
     )
     image_part = files["image"]
-    with Image.open(fp=image_part.stream) as pil_image:
+    with open_image(fp=image_part.stream) as pil_image:
         if pil_image.format in {"PNG", "JPEG"}:
             return
 
@@ -190,7 +190,7 @@ def validate_image_is_image(
     image_file = files["image"].stream
 
     try:
-        with Image.open(fp=image_file) as _:
+        with open_image(fp=image_file) as _:
             pass
     except OSError as exc:
         _LOGGER.warning(msg="The image is not an image file.")

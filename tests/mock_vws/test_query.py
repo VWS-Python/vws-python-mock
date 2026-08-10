@@ -39,7 +39,10 @@ from vws.response import Response
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws.database import CloudDatabase
-from tests.mock_vws.utils import make_image_file
+from tests.mock_vws.utils import (
+    make_decompression_bomb_image_file,
+    make_image_file,
+)
 from tests.mock_vws.utils.assertions import (
     assert_query_success,
     assert_valid_transaction_id,
@@ -1678,6 +1681,24 @@ class TestMaximumImageDimensions:
         )
 
         result = cloud_reco_client.query(image=png_not_too_wide)
+        assert result == []
+
+    @staticmethod
+    def test_small_file_many_pixels(
+        cloud_reco_client: CloudRecoService,
+    ) -> None:
+        """
+        No error is returned for an image with a small file size and a
+        huge number of pixels.
+
+        Unlike ``POST /targets``, the Query API has no limit on the
+        number of pixels, only on the width and the height.
+        """
+        max_bytes = 2 * 1024 * 1024
+        image_file = make_decompression_bomb_image_file()
+        assert len(image_file.getvalue()) < max_bytes
+
+        result = cloud_reco_client.query(image=image_file)
         assert result == []
 
 
