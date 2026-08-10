@@ -249,8 +249,8 @@ class TestRequestQuota:
 class TestUnroutedRequests:
     """Tests for requests which the Flask app does not route.
 
-    Requests which are routed are covered by
-    ``tests/mock_vws/test_unrouted_requests.py``, which verifies the
+    Signed requests are covered by
+    ``tests/mock_vws/test_invalid_given_id.py``, which verifies the
     responses against real Vuforia.
     """
 

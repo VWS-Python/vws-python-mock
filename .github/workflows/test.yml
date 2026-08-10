@@ -92,7 +92,6 @@ jobs:
           - tests/mock_vws/test_target_raters.py
           - tests/mock_vws/test_target_summary.py
           - tests/mock_vws/test_unexpected_json.py
-          - tests/mock_vws/test_unrouted_requests.py
           - tests/mock_vws/test_update_target.py::TestActiveFlag
           - tests/mock_vws/test_update_target.py::TestApplicationMetadata::test_base64_encoded
           - tests/mock_vws/test_update_target.py::TestApplicationMetadata::test_invalid_type
