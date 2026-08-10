@@ -76,6 +76,7 @@ optional-dependencies.dev = [
     "pyroma==5.0.1",
     "pytest==9.1.1",
     "pytest-beartype-tests==2026.4.26",
+    "pytest-partition-check==2026.8.10.1",
     "pytest-retry==1.7.0",
     "pytest-xdist==3.8.0",
     "pyyaml==6.0.3",
@@ -171,10 +172,6 @@ lint.ignore = [
     "TC001",
     "TC002",
     "TC003",
-]
-lint.per-file-ignores."ci/test_custom_linters.py" = [
-    # Allow asserts in tests.
-    "S101",
 ]
 lint.per-file-ignores."doccmd_*.py" = [
     # Allow our chosen docstring line-style - pydocstringformatter handles
@@ -396,7 +393,6 @@ ignore_names = [
     # pytest configuration
     "pytest_collect_file",
     "pytest_collection_modifyitems",
-    "pytest_itemcollected",
     "pytest_plugins",
     "pytest_set_filtered_exceptions",
     "REQUEST_QUOTA_REACHED",
