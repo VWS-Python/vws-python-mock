@@ -5,6 +5,30 @@ from pathlib import Path
 import pytest
 import yaml
 from beartype import beartype
+from pytest_partition_check import PartitionError, check_partition
+
+# Plugins which break nested ``pytest`` collection runs.
+_DISABLED_PLUGINS = (
+    # Disable pytest-retry to avoid:
+    # ```
+    # ValueError: no option named 'filtered_exceptions'
+    # ```
+    # which causes the nested run to exit with INTERNAL_ERROR
+    # before any items are collected.
+    "pytest-retry",
+    # Disable pytest-beartype-tests to avoid
+    # https://github.com/beartype/beartype/issues/637 — wrapping
+    # collected items with @beartype installs a buggy
+    # __annotate_beartype__ closure on the underlying test function,
+    # which crashes a subsequent nested collection on Python 3.14.
+    "pytest_beartype_tests",
+)
+
+# Disable warnings to avoid many instances of:
+# ```
+# Unknown config option: retry_delay
+# ```
+_EXTRA_ARGS = ("--disable-warnings",)
 
 
 @beartype
@@ -19,115 +43,26 @@ def _ci_patterns(*, repository_root: Path) -> set[str]:
     return ci_patterns
 
 
-class _CollectPlugin:
-    """Pytest plugin that records the node IDs of collected items."""
+def test_ci_patterns_partition_test_suite(
+    request: pytest.FixtureRequest,
+) -> None:
+    """The CI patterns partition the test suite.
 
-    def __init__(self) -> None:
-        """Start with an empty set of collected node IDs."""
-        self.collected: set[str] = set()
+    That is, every CI pattern matches at least one test, and every test
+    is collected by exactly one CI pattern.
 
-    def pytest_itemcollected(self, item: pytest.Item) -> None:
-        """Record each collected item's node ID."""
-        self.collected.add(item.nodeid)
-
-
-@beartype
-def _tests_from_pattern(*, ci_pattern: str) -> set[str]:
-    """From a CI pattern, get all tests ``pytest`` would collect."""
-    plugin = _CollectPlugin()
-    pytest.main(
-        args=[
-            "-q",
-            "--collect-only",
-            # Disable pytest-retry to avoid:
-            # ```
-            # ValueError: no option named 'filtered_exceptions'
-            # ```
-            # which causes the nested run to exit with INTERNAL_ERROR
-            # before any items are collected.
-            "-p",
-            "no:pytest-retry",
-            # Disable pytest-beartype-tests to avoid
-            # https://github.com/beartype/beartype/issues/637 — wrapping
-            # collected items with @beartype installs a buggy
-            # __annotate_beartype__ closure on the underlying test
-            # function, which crashes a subsequent nested collection on
-            # Python 3.14.
-            "-p",
-            "no:pytest_beartype_tests",
-            # Disable warnings to avoid many instances of:
-            # ```
-            # Unknown config option: retry_delay
-            # ```
-            "--disable-warnings",
-            ci_pattern,
-        ],
-        plugins=[plugin],
-    )
-    return plugin.collected
-
-
-def test_ci_patterns_valid(request: pytest.FixtureRequest) -> None:
+    A test being collected does not necessarily mean that it is run - it
+    may be skipped.
     """
-    All of the CI patterns in the CI configuration match at least one
-    test in
-    the test suite.
-    """
-    ci_patterns = _ci_patterns(repository_root=request.config.rootpath)
+    repository_root = request.config.rootpath
+    ci_patterns = _ci_patterns(repository_root=repository_root)
 
-    for ci_pattern in ci_patterns:
-        collect_only_result = pytest.main(
-            args=[
-                "--collect-only",
-                ci_pattern,
-                # Disable pytest-retry to avoid:
-                # ```
-                # ValueError: no option named 'filtered_exceptions'
-                # ````
-                "-p",
-                "no:pytest-retry",
-                # Disable pytest-beartype-tests to avoid
-                # https://github.com/beartype/beartype/issues/637 —
-                # wrapping collected items with @beartype installs a
-                # buggy __annotate_beartype__ closure on the underlying
-                # test function, which crashes a subsequent nested
-                # collection on Python 3.14.
-                "-p",
-                "no:pytest_beartype_tests",
-                # Disable warnings to avoid many instances of:
-                # ```
-                # Unknown config option: retry_delay
-                # ```
-                "--disable-warnings",
-            ],
+    try:
+        check_partition(
+            patterns=ci_patterns,
+            rootdir=repository_root,
+            disable_plugins=_DISABLED_PLUGINS,
+            extra_args=_EXTRA_ARGS,
         )
-
-        message = f'"{ci_pattern}" does not match any tests.'
-        assert collect_only_result == 0, message
-
-
-def test_tests_collected_once(request: pytest.FixtureRequest) -> None:
-    """Each test in the test suite is collected exactly once.
-
-    This does not necessarily mean that they are run - they may be skipped.
-    """
-    ci_patterns = _ci_patterns(repository_root=request.config.rootpath)
-    all_tests = _tests_from_pattern(ci_pattern=".")
-    assert all_tests
-    tests_to_patterns: dict[str, set[str]] = {}
-
-    for pattern in ci_patterns:
-        tests = _tests_from_pattern(ci_pattern=pattern)
-        for test in tests:
-            tests_to_patterns.setdefault(test, set()).add(pattern)
-
-    for test_name, patterns in tests_to_patterns.items():
-        message = (
-            f'Test "{test_name}" will be run once for each pattern in '
-            f"{patterns}. "
-            "Each test should be run only once."
-        )
-        assert len(patterns) == 1, message
-
-    assert tests_to_patterns.keys() - all_tests == set()
-    assert all_tests - tests_to_patterns.keys() == set()
+    except PartitionError as exc:
+        pytest.fail(reason=str(object=exc))
