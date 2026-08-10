@@ -125,7 +125,6 @@ jobs:
           - tests/mock_vws/test_vumark_generation_failure.py
           - tests/mock_vws/test_target_validators.py
           - tests/mock_vws/test_docker.py
-          - ci/test_custom_linters.py
           - README.rst
           - docs/
 

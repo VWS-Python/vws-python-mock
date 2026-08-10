@@ -62,9 +62,17 @@ repos:
         stages: [pre-commit]
   - repo: local
     hooks:
-      - id: custom-linters
-        name: custom-linters
-        entry: uv run --extra=dev -m pytest ci/test_custom_linters.py
+      - id: pytest-check-partition
+        name: pytest-check-partition
+        entry: >-
+          bash -c 'uv run --extra=dev python -c
+          "import json, yaml;
+          print(json.dumps(yaml.safe_load(open(\".github/workflows/test.yml\"))))"
+          | jq -r '\''.jobs["ci-tests"].strategy.matrix.ci_pattern[]'\''
+          | uv run --extra=dev pytest-check-partition --patterns-stdin
+          --disable-plugin pytest-retry
+          --disable-plugin pytest_beartype_tests
+          --extra-arg=--disable-warnings'
         stages: [pre-push]
         language: python
         types_or: [yaml, python]
