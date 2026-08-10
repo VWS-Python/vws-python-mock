@@ -37,6 +37,20 @@ The criteria for these images is not defined by the Vuforia documentation.
 The mock is more forgiving than the real Vuforia Web Services.
 Therefore, an image given a 'success' status by the mock may not be given a 'success' status by the real Vuforia Web Services.
 
+Result ordering
+---------------
+
+The real Query API orders results by match score, with the best match first.
+The mock has no match score, so it cannot reproduce that order.
+Instead, the mock orders the targets it returns by upload date and then by target ID.
+This makes repeated runs agree with each other, but it means that the mock's order is not a ranking.
+Do not rely on the first result of a mock query being the best match.
+
+This affects which results survive ``max_num_results``, and which result gets target data with ``include_target_data=top``.
+
+``GET /targets`` and ``GET /duplicates/{target_id}`` use the same order.
+The real Vuforia Web Services do not document an order for those endpoints.
+
 Matching recently deleted targets
 ---------------------------------
 
@@ -303,6 +317,21 @@ The lack of authorization matches real Vuforia, whose URL carries its own
 signature.
 The 404 has not been verified, because no request for a real report has caught
 one before it was generated.
+
+Paths which the mock does not serve
+-----------------------------------
+
+Real Vuforia gives an empty body with a 404 response only for a request to a
+path which does not start with a served path, such as
+``/some-random-endpoint``.
+For any other request which it does not serve, such as ``DELETE /summary`` or
+``GET /targetsfoo``, it gives an HTML "Not Found" page which names the method
+and the path of the request.
+The Flask and Docker mock gives an empty body for all of these.
+
+The ``requests`` and ``httpx`` backends mock only the paths which the mock
+serves, so a request to any other path raises a connection error rather than
+giving the 404 response which real Vuforia gives.
 
 Header cases
 ------------
