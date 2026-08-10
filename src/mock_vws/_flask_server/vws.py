@@ -18,6 +18,7 @@ import requests
 from beartype import beartype
 from flask import Flask, Response, request
 from pydantic_settings import BaseSettings
+from werkzeug.exceptions import MethodNotAllowed, NotFound
 
 from mock_vws._constants import (
     VUMARK_PDF,
@@ -199,7 +200,14 @@ def validate_request() -> None:
 
     Reco counts report downloads stand in for presigned URLs, which are not
     authorized with VWS credentials.
+
+    Flask runs ``before_request`` handlers before it raises a routing error,
+    so requests which match no route reach this function.
+    Those requests are left to Flask, which raises the routing error, and
+    ``handle_unrouted_request`` turns that into a response.
     """
+    if request.url_rule is None:
+        return
     if request.endpoint == "generate_vumark_instance":
         return
     if (
@@ -239,6 +247,23 @@ def handle_exceptions(exc: ValidatorError) -> Response:
 
     response.headers.clear()
     response.headers.extend(exc.headers)
+    return response
+
+
+@VWS_FLASK_APP.errorhandler(code_or_exception=HTTPStatus.NOT_FOUND)
+@VWS_FLASK_APP.errorhandler(code_or_exception=HTTPStatus.METHOD_NOT_ALLOWED)
+@beartype
+def handle_unrouted_request(exc: NotFound | MethodNotAllowed) -> Response:
+    """Return a 404 response with no body for a request which no route
+    serves.
+
+    Real Vuforia returns a 404 response for a request to a path which it does
+    not serve, and for a request to a served path with a method which that
+    path does not serve.
+    """
+    del exc
+    response = Response(status=HTTPStatus.NOT_FOUND, response=b"")
+    del response.headers["Content-Type"]
     return response
 
 

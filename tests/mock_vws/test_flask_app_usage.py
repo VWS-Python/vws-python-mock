@@ -246,6 +246,27 @@ class TestRequestQuota:
         client.get_database_summary_report()
 
 
+class TestUnroutedRequests:
+    """Tests for requests which the Flask app does not route.
+
+    Signed requests are covered by
+    ``tests/mock_vws/test_invalid_given_id.py``, which verifies the
+    responses against real Vuforia.
+    """
+
+    @staticmethod
+    def test_unauthenticated_unknown_path() -> None:
+        """A request to a path which is not routed returns a 404 even
+        without credentials.
+
+        The Docker health check relies on this request returning a
+        response.
+        """
+        response = VWS_FLASK_APP.test_client().get("/some-random-endpoint")
+
+        assert response.status_code == HTTPStatus.NOT_FOUND
+
+
 class TestAddCloudDatabase:
     """Tests for adding cloud databases to the mock."""
 
