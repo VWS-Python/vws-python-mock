@@ -10,9 +10,10 @@ from typing import NotRequired, Self, TypedDict
 from zoneinfo import ZoneInfo
 
 from beartype import BeartypeConf, beartype
-from PIL import Image, ImageStat
+from PIL import ImageStat
 
 from mock_vws._constants import TargetStatuses
+from mock_vws._image_opening import open_image
 from mock_vws.target_raters import (
     HardcodedTargetTrackingRater,
     TargetTrackingRater,
@@ -96,7 +97,7 @@ class ImageTarget:
         suitable the target is for detection.
         """
         image_file = io.BytesIO(initial_bytes=self.image_value)
-        with Image.open(fp=image_file) as image:
+        with open_image(fp=image_file) as image:
             image_stat = ImageStat.Stat(image_or_list=image)
             average_std_dev = statistics.mean(data=image_stat.stddev)
 

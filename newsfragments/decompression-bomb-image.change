@@ -1,0 +1,2 @@
+Return a response, rather than raising an uncaught ``PIL.Image.DecompressionBombError``, when an image with a small file size but a huge number of pixels is given to ``POST /targets`` or ``POST /v1/query``.
+As real Vuforia does, ``POST /targets`` now returns the ``ImageTooLarge`` result code for an image with more than 37748736 pixels, and the Query API applies no pixel count limit.

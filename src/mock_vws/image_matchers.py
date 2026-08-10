@@ -7,7 +7,8 @@ from typing import Protocol, runtime_checkable
 import cv2
 import numpy as np
 from beartype import beartype
-from PIL import Image
+
+from mock_vws._image_opening import open_image
 
 
 @runtime_checkable
@@ -69,8 +70,8 @@ class StructuralSimilarityMatcher:
         first_image_file = io.BytesIO(initial_bytes=first_image_content)
         second_image_file = io.BytesIO(initial_bytes=second_image_content)
         with (
-            Image.open(fp=first_image_file) as first_image,
-            Image.open(fp=second_image_file) as second_image,
+            open_image(fp=first_image_file) as first_image,
+            open_image(fp=second_image_file) as second_image,
         ):
             # Images must be the same size, and they must be larger than the
             # default SSIM window size of 11x11.

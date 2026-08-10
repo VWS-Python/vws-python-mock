@@ -120,3 +120,42 @@ def make_image_file(
     image.save(fp=image_buffer, format=file_format)
     image_buffer.seek(0)
     return image_buffer
+
+
+@beartype
+def make_single_color_image_file(*, width: int, height: int) -> io.BytesIO:
+    """Return a greyscale PNG file of one color.
+
+    A single color image compresses to a tiny file whatever its dimensions, so
+    this is a way to make an image with many pixels but a small file size.
+
+    Args:
+        width: The width, in pixels, of the image.
+        height: The height, in pixels, of the image.
+
+    Returns:
+        A greyscale PNG file of one color.
+    """
+    image_buffer = io.BytesIO()
+    image = Image.new(mode="L", size=(width, height))
+    image.save(fp=image_buffer, format="PNG")
+    image_buffer.seek(0)
+    return image_buffer
+
+
+@beartype
+def make_decompression_bomb_image_file() -> io.BytesIO:
+    """Return a PNG file which is tiny on disk but huge when decoded.
+
+    The dimensions are within the maximum width and height accepted by the
+    Query API, and the file is well within the maximum file size, but the
+    pixel count is above the point at which Pillow refuses to open an image.
+
+    Returns:
+        A PNG file which is a decompression bomb.
+    """
+    # Pillow raises ``Image.DecompressionBombError`` for images with more than
+    # twice ``Image.MAX_IMAGE_PIXELS`` pixels, which is 178956970 pixels by
+    # default.
+    width = height = 15_000
+    return make_single_color_image_file(width=width, height=height)

@@ -7,9 +7,9 @@ import logging
 from http import HTTPStatus
 
 from beartype import beartype
-from PIL import Image
 
 from mock_vws._base64_decoding import decode_base64
+from mock_vws._image_opening import open_image
 from mock_vws._services_validators.exceptions import (
     BadImageError,
     FailError,
@@ -40,7 +40,7 @@ def validate_image_integrity(*, request_body: bytes) -> None:
     decoded = decode_base64(encoded_data=image)
 
     image_file = io.BytesIO(initial_bytes=decoded)
-    with Image.open(fp=image_file) as pil_image:
+    with open_image(fp=image_file) as pil_image:
         try:
             pil_image.verify()
         except SyntaxError as exc:
@@ -69,7 +69,7 @@ def validate_image_format(*, request_body: bytes) -> None:
 
     decoded = decode_base64(encoded_data=image)
     image_file = io.BytesIO(initial_bytes=decoded)
-    with Image.open(fp=image_file) as pil_image:
+    with open_image(fp=image_file) as pil_image:
         if pil_image.format in {"PNG", "JPEG"}:
             return
 
@@ -99,7 +99,7 @@ def validate_image_color_space(*, request_body: bytes) -> None:
 
     decoded = decode_base64(encoded_data=image)
     image_file = io.BytesIO(initial_bytes=decoded)
-    with Image.open(fp=image_file) as pil_image:
+    with open_image(fp=image_file) as pil_image:
         if pil_image.mode in {"L", "RGB"}:
             return
 
@@ -140,6 +140,44 @@ def validate_image_size(*, request_body: bytes) -> None:
 
 
 @beartype
+def validate_image_pixel_count(*, request_body: bytes) -> None:
+    """Validate the number of pixels of the image given to a VWS endpoint.
+
+    A small file can decode to a very large number of pixels, so this is not
+    covered by the file size limit.
+
+    Args:
+        request_body: The body of the request.
+
+    Raises:
+        ImageTooLargeError: The image is given and it has more than the
+            maximum number of pixels.
+    """
+    if not request_body:
+        return
+
+    request_text = request_body.decode()
+    image = json.loads(s=request_text).get("image")
+
+    if image is None:
+        return
+
+    decoded = decode_base64(encoded_data=image)
+    image_file = io.BytesIO(initial_bytes=decoded)
+
+    # This limit is not documented.
+    # It was found by binary search against a real database, and it holds
+    # whatever the image's aspect ratio and color space are.
+    max_allowed_pixels = 37_748_736
+    with open_image(fp=image_file) as pil_image:
+        if pil_image.width * pil_image.height <= max_allowed_pixels:
+            return
+
+    _LOGGER.warning(msg="The image has too many pixels.")
+    raise ImageTooLargeError
+
+
+@beartype
 def validate_image_is_image(*, request_body: bytes) -> None:
     """Validate that the given image data is actually an image file.
 
@@ -162,9 +200,10 @@ def validate_image_is_image(*, request_body: bytes) -> None:
     image_file = io.BytesIO(initial_bytes=decoded)
 
     try:
-        with Image.open(fp=image_file) as _:
+        with open_image(fp=image_file) as _:
             pass
     except OSError as exc:
+        _LOGGER.warning(msg="The image is not an image file.")
         raise BadImageError from exc
 
 

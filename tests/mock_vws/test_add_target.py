@@ -25,7 +25,11 @@ from vws.exceptions.vws_exceptions import (
 from vws.response import Response
 
 from mock_vws._constants import ResultCodes
-from tests.mock_vws.utils import make_image_file
+from tests.mock_vws.utils import (
+    make_decompression_bomb_image_file,
+    make_image_file,
+    make_single_color_image_file,
+)
 from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
     assert_vws_response,
@@ -499,6 +503,76 @@ class TestImage:
             response=exc.value.response,
             status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             result_code=ResultCodes.BAD_IMAGE,
+        )
+
+    @staticmethod
+    def test_decompression_bomb(vws_client: VWS) -> None:
+        """
+        An ``ImageTooLargeError`` result is returned when the given
+        image has a small file size but a huge number of pixels.
+        """
+        max_bytes = 2.3 * 1024 * 1024
+        image_file = make_decompression_bomb_image_file()
+        assert len(image_file.getvalue()) < max_bytes
+
+        with pytest.raises(expected_exception=ImageTooLargeError) as exc:
+            vws_client.add_target(
+                name="example_name",
+                width=1,
+                image=image_file,
+                application_metadata=None,
+                active_flag=True,
+            )
+
+        assert_vws_failure(
+            response=exc.value.response,
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
+            result_code=ResultCodes.IMAGE_TOO_LARGE,
+        )
+
+    @staticmethod
+    def test_image_pixel_count_too_large(vws_client: VWS) -> None:
+        """
+        An ``ImageTooLargeError`` result is returned if the image has
+        more than 37748736 pixels, whatever its file size.
+
+        This limit is not documented.
+        """
+        max_allowed_pixels = 37_748_736
+        width = height = 6144
+        assert width * height == max_allowed_pixels
+
+        image_not_too_many_pixels = make_single_color_image_file(
+            width=width,
+            height=height,
+        )
+
+        vws_client.add_target(
+            name="example_name",
+            width=1,
+            image=image_not_too_many_pixels,
+            application_metadata=None,
+            active_flag=True,
+        )
+
+        image_too_many_pixels = make_single_color_image_file(
+            width=width + 1,
+            height=height,
+        )
+
+        with pytest.raises(expected_exception=ImageTooLargeError) as exc:
+            vws_client.add_target(
+                name="example_name_2",
+                width=1,
+                image=image_too_many_pixels,
+                application_metadata=None,
+                active_flag=True,
+            )
+
+        assert_vws_failure(
+            response=exc.value.response,
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
+            result_code=ResultCodes.IMAGE_TOO_LARGE,
         )
 
     @staticmethod

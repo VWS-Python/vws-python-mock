@@ -187,6 +187,11 @@ This is not the case.
 The documentation page `Vuforia Query Web API`_ states "Maximum image size: 2.1 MPixel. 512 KiB for JPEG, 2MiB for PNG".
 However, JPEG images up to 2MiB are accepted.
 
+There is no documented limit on the number of pixels in an image, but ``POST /targets`` returns ``ImageTooLarge`` for an image with more than 37748736 pixels, whatever its file size, aspect ratio or color space.
+An image of a single color has a tiny file size whatever its dimensions, which is how this limit is reached.
+The Query API applies no such limit.
+It applies only its maximum width and height of 30000 pixels.
+
 The ``request_count`` in a database summary is always ``0``.
 
 The documentation for the target summary report says "Note: tracking_rating and ``reco_rating`` are provided only when status = success.".
