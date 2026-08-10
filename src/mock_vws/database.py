@@ -36,6 +36,10 @@ class CloudDatabaseDict(TypedDict):
     database_type_name: str
     targets: Iterable[ImageTargetDict]
     request_quota: NotRequired[int]
+    reco_threshold: NotRequired[int]
+    current_month_recos: NotRequired[int]
+    previous_month_recos: NotRequired[int]
+    total_recos: NotRequired[int]
     target_quota: NotRequired[int]
     requests_per_second_limit: NotRequired[int | None]
     request_rate_limits: NotRequired[RequestRateLimitsDict | None]
@@ -144,6 +148,10 @@ class CloudDatabase:
             "database_type_name": self.database_type.name,
             "targets": targets,
             "request_quota": self.request_quota,
+            "reco_threshold": self.reco_threshold,
+            "current_month_recos": self.current_month_recos,
+            "previous_month_recos": self.previous_month_recos,
+            "total_recos": self.total_recos,
             "target_quota": self.target_quota,
             "requests_per_second_limit": self.requests_per_second_limit,
             "request_rate_limits": request_rate_limits,
@@ -183,6 +191,10 @@ class CloudDatabase:
             database_type=DatabaseType[database_dict["database_type_name"]],
             targets=targets,
             request_quota=database_dict.get("request_quota", 100000),
+            reco_threshold=database_dict.get("reco_threshold", 1000),
+            current_month_recos=database_dict.get("current_month_recos", 0),
+            previous_month_recos=database_dict.get("previous_month_recos", 0),
+            total_recos=database_dict.get("total_recos", 0),
             target_quota=database_dict.get("target_quota", 1000),
             requests_per_second_limit=database_dict.get(
                 "requests_per_second_limit"

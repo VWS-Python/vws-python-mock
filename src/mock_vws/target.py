@@ -6,7 +6,7 @@ import io
 import statistics
 import uuid
 from dataclasses import dataclass, field
-from typing import Self, TypedDict
+from typing import NotRequired, Self, TypedDict
 from zoneinfo import ZoneInfo
 
 from beartype import BeartypeConf, beartype
@@ -43,6 +43,10 @@ class ImageTargetDict(TypedDict):
     delete_date_optional: str | None
     upload_date: str
     tracking_rating: int
+    current_month_recos: NotRequired[int]
+    previous_month_recos: NotRequired[int]
+    total_recos: NotRequired[int]
+    reco_rating: NotRequired[str]
 
 
 @beartype
@@ -193,6 +197,10 @@ class ImageTarget:
             last_modified_date=last_modified_date,
             upload_date=upload_date,
             target_tracking_rater=target_tracking_rater,
+            current_month_recos=target_dict.get("current_month_recos", 0),
+            previous_month_recos=target_dict.get("previous_month_recos", 0),
+            total_recos=target_dict.get("total_recos", 0),
+            reco_rating=target_dict.get("reco_rating", ""),
         )
 
     def to_dict(self) -> ImageTargetDict:
@@ -215,6 +223,10 @@ class ImageTarget:
             "delete_date_optional": delete_date,
             "upload_date": self.upload_date.isoformat(),
             "tracking_rating": self.tracking_rating,
+            "current_month_recos": self.current_month_recos,
+            "previous_month_recos": self.previous_month_recos,
+            "total_recos": self.total_recos,
+            "reco_rating": self.reco_rating,
         }
 
 
