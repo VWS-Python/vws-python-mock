@@ -1,9 +1,8 @@
 """Choose which backends to use for the tests."""
 
 import contextlib
-import functools
 import logging
-from collections.abc import Callable, Generator
+from collections.abc import Generator
 from enum import Enum
 
 import pytest
@@ -23,11 +22,7 @@ from mock_vws._flask_server.vws import VWS_FLASK_APP
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.states import States
 from mock_vws.target import VuMarkTarget
-from tests.backend_harness import (
-    add_skip_options,
-    backend_ids,
-    running_backend,
-)
+from tests.backend_harness import add_skip_options, backend_fixture
 from tests.mock_vws.fixtures.credentials import (
     InactiveVuMarkCloudDatabase,
     VuMarkCloudDatabase,
@@ -381,135 +376,68 @@ def pytest_collection_modifyitems(
 
 
 @beartype
-def _bind_setup(
+def _setup_backend(
     *,
     backend: VuforiaBackend,
-    vuforia_database: CloudDatabase,
-    inactive_cloud_database: CloudDatabase,
-    vumark_vuforia_database: VuMarkCloudDatabase,
-    inactive_vumark_database: InactiveVuMarkCloudDatabase,
-    monkeypatch: pytest.MonkeyPatch,
-) -> Callable[[], Generator[None]]:
-    """Bind the setup function for a backend to the databases to set
-    up.
-
-    Returns:
-        A setup function which takes no arguments.
-    """
-    return functools.partial(
-        _SETUP_FUNCTIONS[backend],
-        working_database=vuforia_database,
-        inactive_cloud_database=inactive_cloud_database,
-        vumark_vuforia_database=vumark_vuforia_database,
-        inactive_vumark_database=inactive_vumark_database,
-        monkeypatch=monkeypatch,
-    )
-
-
-@pytest.fixture(
-    name="verify_mock_vuforia",
-    params=_ALL_BACKENDS,
-    ids=backend_ids(backends=_ALL_BACKENDS),
-)
-def fixture_verify_mock_vuforia(
-    *,
     request: pytest.FixtureRequest,
-    vuforia_database: CloudDatabase,
-    inactive_cloud_database: CloudDatabase,
-    vumark_vuforia_database: VuMarkCloudDatabase,
-    inactive_vumark_database: InactiveVuMarkCloudDatabase,
-    monkeypatch: pytest.MonkeyPatch,
-) -> Generator[VuforiaBackend]:
-    """Test functions which use this fixture are run multiple times. Once
-    with
-    the real Vuforia, and once with each mock.
-
-    This is useful for verifying the mocks.
-
-    Yields:
-        The backend which the test is running against.
-    """
-    backend: VuforiaBackend = request.param
-    setup = _bind_setup(
-        backend=backend,
-        vuforia_database=vuforia_database,
-        inactive_cloud_database=inactive_cloud_database,
-        vumark_vuforia_database=vumark_vuforia_database,
-        inactive_vumark_database=inactive_vumark_database,
-        monkeypatch=monkeypatch,
-    )
-
-    with running_backend(
-        backend=backend,
-        config=request.config,
-        setup=setup,
-    ):
-        yield backend
-
-
-@pytest.fixture(
-    name="verify_model_target_mock_vuforia",
-    params=_ALL_BACKENDS,
-    ids=backend_ids(backends=_ALL_BACKENDS),
-)
-def fixture_verify_model_target_mock_vuforia(
-    *,
-    request: pytest.FixtureRequest,
-    monkeypatch: pytest.MonkeyPatch,
-) -> Generator[VuforiaBackend]:
-    """Run Model Target Web API contract tests against real and mock
-    APIs.
-    """
-    backend: VuforiaBackend = request.param
-    setup = functools.partial(
-        _MODEL_TARGET_SETUP_FUNCTIONS[backend],
-        monkeypatch=monkeypatch,
-    )
-
-    with running_backend(
-        backend=backend,
-        config=request.config,
-        setup=setup,
-    ):
-        yield backend
-
-
-@pytest.fixture(
-    params=_MOCK_BACKENDS,
-    ids=backend_ids(backends=_MOCK_BACKENDS),
-)
-def mock_only_vuforia(
-    *,
-    request: pytest.FixtureRequest,
-    vuforia_database: CloudDatabase,
-    inactive_cloud_database: CloudDatabase,
-    vumark_vuforia_database: VuMarkCloudDatabase,
-    inactive_vumark_database: InactiveVuMarkCloudDatabase,
-    monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None]:
-    """Test functions which use this fixture are run multiple times. Once
-    with
-    the each mock.
-
-    This is useful for testing the mock using fixtures which connect to
-    Vuforia.
+    """Set a backend up with the databases which the tests use.
 
     Yields:
-        ``None``.
+        ``None``, once the backend is set up.
     """
-    backend: VuforiaBackend = request.param
-    setup = _bind_setup(
-        backend=backend,
-        vuforia_database=vuforia_database,
-        inactive_cloud_database=inactive_cloud_database,
-        vumark_vuforia_database=vumark_vuforia_database,
-        inactive_vumark_database=inactive_vumark_database,
-        monkeypatch=monkeypatch,
+    yield from _SETUP_FUNCTIONS[backend](
+        working_database=request.getfixturevalue(argname="vuforia_database"),
+        inactive_cloud_database=request.getfixturevalue(
+            argname="inactive_cloud_database",
+        ),
+        vumark_vuforia_database=request.getfixturevalue(
+            argname="vumark_vuforia_database",
+        ),
+        inactive_vumark_database=request.getfixturevalue(
+            argname="inactive_vumark_database",
+        ),
+        monkeypatch=request.getfixturevalue(argname="monkeypatch"),
     )
 
-    with running_backend(
-        backend=backend,
-        config=request.config,
-        setup=setup,
-    ):
-        yield
+
+@beartype
+def _setup_model_target_backend(
+    *,
+    backend: VuforiaBackend,
+    request: pytest.FixtureRequest,
+) -> Generator[None]:
+    """Set a backend up for the Model Target Web API tests.
+
+    Yields:
+        ``None``, once the backend is set up.
+    """
+    yield from _MODEL_TARGET_SETUP_FUNCTIONS[backend](
+        monkeypatch=request.getfixturevalue(argname="monkeypatch"),
+    )
+
+
+# Tests which use this are run against the real Vuforia and against each
+# mock. This is useful for verifying the mocks.
+fixture_verify_mock_vuforia = backend_fixture(
+    name="verify_mock_vuforia",
+    backends=_ALL_BACKENDS,
+    setup_for=_setup_backend,
+)
+
+# Model Target Web API contract tests, run against the real Vuforia and
+# against each mock.
+fixture_verify_model_target_mock_vuforia = backend_fixture(
+    name="verify_model_target_mock_vuforia",
+    backends=_ALL_BACKENDS,
+    setup_for=_setup_model_target_backend,
+)
+
+# Tests which use this are run against each mock, and not against the
+# real Vuforia. This is useful for testing the mock using fixtures which
+# connect to Vuforia.
+fixture_mock_only_vuforia = backend_fixture(
+    name="mock_only_vuforia",
+    backends=_MOCK_BACKENDS,
+    setup_for=_setup_backend,
+)

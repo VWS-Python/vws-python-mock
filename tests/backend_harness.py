@@ -17,10 +17,15 @@ it stays a move rather than a rewrite.
 """
 
 import contextlib
-from collections.abc import Callable, Generator, Iterable
+import functools
+from collections.abc import Callable, Generator, Iterable, Sequence
 from enum import Enum
 
 import pytest
+
+# ``pytest.fixture`` returns one of these, but ``pytest`` does not export
+# the type.
+from _pytest.fixtures import FixtureFunctionDefinition
 from beartype import beartype
 
 
@@ -64,7 +69,7 @@ def add_skip_options(
 
 
 @beartype
-def backend_ids(*, backends: Iterable[Enum]) -> list[str]:
+def _backend_ids(*, backends: Iterable[Enum]) -> list[str]:
     """The IDs which ``pytest`` shows for a set of backends.
 
     Args:
@@ -78,7 +83,7 @@ def backend_ids(*, backends: Iterable[Enum]) -> list[str]:
 
 @beartype
 @contextlib.contextmanager
-def running_backend(
+def _running_backend(
     *,
     backend: Enum,
     config: pytest.Config,
@@ -102,3 +107,50 @@ def running_backend(
 
     with contextlib.contextmanager(func=setup)():
         yield
+
+
+@beartype
+def backend_fixture(
+    *,
+    name: str,
+    backends: Sequence[Enum],
+    setup_for: Callable[..., Generator[None]],
+) -> FixtureFunctionDefinition:
+    """Make a fixture which runs each test once per backend.
+
+    Args:
+        name: The name which tests use to request the fixture.
+        backends: The backends to run each test against.
+        setup_for: A generator function which is called with the keyword
+            arguments ``backend`` and ``request``. It sets that backend
+            up, yields once while the test runs, and then tears it down.
+            Anything else it needs comes from
+            :meth:`~pytest.FixtureRequest.getfixturevalue`, because a
+            fixture made here requests no fixtures but ``request``.
+
+    Returns:
+        A fixture which yields the backend which the test is running
+        against.
+    """
+
+    @pytest.fixture(
+        name=name,
+        params=backends,
+        ids=_backend_ids(backends=backends),
+    )
+    def _fixture(*, request: pytest.FixtureRequest) -> Generator[Enum]:
+        """Run a test against one backend.
+
+        Yields:
+            The backend which the test is running against.
+        """
+        backend: Enum = request.param
+        setup = functools.partial(setup_for, backend=backend, request=request)
+        with _running_backend(
+            backend=backend,
+            config=request.config,
+            setup=setup,
+        ):
+            yield backend
+
+    return _fixture
