@@ -1,8 +1,9 @@
 """Choose which backends to use for the tests."""
 
 import contextlib
+import functools
 import logging
-from collections.abc import Generator
+from collections.abc import Callable, Generator
 from enum import Enum
 
 import pytest
@@ -22,6 +23,11 @@ from mock_vws._flask_server.vws import VWS_FLASK_APP
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.states import States
 from mock_vws.target import VuMarkTarget
+from tests.backend_harness import (
+    add_skip_options,
+    backend_ids,
+    running_backend,
+)
 from tests.mock_vws.fixtures.credentials import (
     InactiveVuMarkCloudDatabase,
     VuMarkCloudDatabase,
@@ -313,6 +319,31 @@ class VuforiaBackend(Enum):
     DOCKER_IN_MEMORY = "In Memory version of Docker application"
 
 
+_ALL_BACKENDS = list(VuforiaBackend)
+# The real Vuforia cannot be set up for tests which need to control the
+# state of the service.
+_MOCK_BACKENDS = [
+    backend for backend in _ALL_BACKENDS if backend != VuforiaBackend.REAL
+]
+
+# These deliberately have no type annotation, so that the keyword
+# arguments of the setup functions are still checked where they are
+# bound.
+_SETUP_FUNCTIONS = {
+    VuforiaBackend.REAL: _enable_use_real_vuforia,
+    VuforiaBackend.MOCK: _enable_use_mock_vuforia,
+    VuforiaBackend.DOCKER_IN_MEMORY: _enable_use_docker_in_memory,
+}
+
+_MODEL_TARGET_SETUP_FUNCTIONS = {
+    VuforiaBackend.REAL: _enable_use_real_model_target_vuforia,
+    VuforiaBackend.MOCK: _enable_use_mock_model_target_vuforia,
+    VuforiaBackend.DOCKER_IN_MEMORY: (
+        _enable_use_docker_in_memory_model_target_vuforia
+    ),
+}
+
+
 @beartype
 def pytest_addoption(parser: pytest.Parser) -> None:
     """
@@ -320,13 +351,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     particular
     backends.
     """
-    for backend in VuforiaBackend:
-        parser.addoption(
-            f"--skip-{backend.name.lower()}",
-            action="store_true",
-            default=False,
-            help=f"Skip tests for {backend.value}",
-        )
+    add_skip_options(parser=parser, backends=_ALL_BACKENDS)
 
     parser.addoption(
         "--skip-docker_build_tests",
@@ -355,10 +380,36 @@ def pytest_collection_modifyitems(
                 item.add_marker(marker=skip_docker_build_tests_marker)
 
 
+@beartype
+def _bind_setup(
+    *,
+    backend: VuforiaBackend,
+    vuforia_database: CloudDatabase,
+    inactive_cloud_database: CloudDatabase,
+    vumark_vuforia_database: VuMarkCloudDatabase,
+    inactive_vumark_database: InactiveVuMarkCloudDatabase,
+    monkeypatch: pytest.MonkeyPatch,
+) -> Callable[[], Generator[None]]:
+    """Bind the setup function for a backend to the databases to set
+    up.
+
+    Returns:
+        A setup function which takes no arguments.
+    """
+    return functools.partial(
+        _SETUP_FUNCTIONS[backend],
+        working_database=vuforia_database,
+        inactive_cloud_database=inactive_cloud_database,
+        vumark_vuforia_database=vumark_vuforia_database,
+        inactive_vumark_database=inactive_vumark_database,
+        monkeypatch=monkeypatch,
+    )
+
+
 @pytest.fixture(
     name="verify_mock_vuforia",
-    params=list(VuforiaBackend),
-    ids=[backend.value for backend in list(VuforiaBackend)],
+    params=_ALL_BACKENDS,
+    ids=backend_ids(backends=_ALL_BACKENDS),
 )
 def fixture_verify_mock_vuforia(
     *,
@@ -379,32 +430,27 @@ def fixture_verify_mock_vuforia(
         The backend which the test is running against.
     """
     backend: VuforiaBackend = request.param
-    should_skip = request.config.getoption(
-        name=f"--skip-{backend.name.lower()}",
-    )
-    if should_skip:
-        pytest.skip()
-
-    enable_function = {
-        VuforiaBackend.REAL: _enable_use_real_vuforia,
-        VuforiaBackend.MOCK: _enable_use_mock_vuforia,
-        VuforiaBackend.DOCKER_IN_MEMORY: _enable_use_docker_in_memory,
-    }[backend]
-
-    with contextlib.contextmanager(func=enable_function)(
-        working_database=vuforia_database,
+    setup = _bind_setup(
+        backend=backend,
+        vuforia_database=vuforia_database,
         inactive_cloud_database=inactive_cloud_database,
         vumark_vuforia_database=vumark_vuforia_database,
         inactive_vumark_database=inactive_vumark_database,
         monkeypatch=monkeypatch,
+    )
+
+    with running_backend(
+        backend=backend,
+        config=request.config,
+        setup=setup,
     ):
         yield backend
 
 
 @pytest.fixture(
     name="verify_model_target_mock_vuforia",
-    params=list(VuforiaBackend),
-    ids=[backend.value for backend in list(VuforiaBackend)],
+    params=_ALL_BACKENDS,
+    ids=backend_ids(backends=_ALL_BACKENDS),
 )
 def fixture_verify_model_target_mock_vuforia(
     *,
@@ -415,34 +461,22 @@ def fixture_verify_model_target_mock_vuforia(
     APIs.
     """
     backend: VuforiaBackend = request.param
-    should_skip = request.config.getoption(
-        name=f"--skip-{backend.name.lower()}",
-    )
-    if should_skip:
-        pytest.skip()
-
-    enable_function = {
-        VuforiaBackend.REAL: _enable_use_real_model_target_vuforia,
-        VuforiaBackend.MOCK: _enable_use_mock_model_target_vuforia,
-        VuforiaBackend.DOCKER_IN_MEMORY: (
-            _enable_use_docker_in_memory_model_target_vuforia
-        ),
-    }[backend]
-
-    with contextlib.contextmanager(func=enable_function)(
+    setup = functools.partial(
+        _MODEL_TARGET_SETUP_FUNCTIONS[backend],
         monkeypatch=monkeypatch,
+    )
+
+    with running_backend(
+        backend=backend,
+        config=request.config,
+        setup=setup,
     ):
         yield backend
 
 
 @pytest.fixture(
-    params=[item for item in VuforiaBackend if item != VuforiaBackend.REAL],
-    ids=[
-        backend.value
-        for backend in [
-            item for item in VuforiaBackend if item != VuforiaBackend.REAL
-        ]
-    ],
+    params=_MOCK_BACKENDS,
+    ids=backend_ids(backends=_MOCK_BACKENDS),
 )
 def mock_only_vuforia(
     *,
@@ -464,21 +498,18 @@ def mock_only_vuforia(
         ``None``.
     """
     backend: VuforiaBackend = request.param
-    should_skip = request.config.getoption(
-        name=f"--skip-{backend.name.lower()}",
-    )
-    if should_skip:
-        pytest.skip()
-
-    enable_function = {
-        VuforiaBackend.MOCK: _enable_use_mock_vuforia,
-        VuforiaBackend.DOCKER_IN_MEMORY: _enable_use_docker_in_memory,
-    }[backend]
-
-    yield from enable_function(
-        working_database=vuforia_database,
+    setup = _bind_setup(
+        backend=backend,
+        vuforia_database=vuforia_database,
         inactive_cloud_database=inactive_cloud_database,
         vumark_vuforia_database=vumark_vuforia_database,
         inactive_vumark_database=inactive_vumark_database,
         monkeypatch=monkeypatch,
     )
+
+    with running_backend(
+        backend=backend,
+        config=request.config,
+        setup=setup,
+    ):
+        yield
