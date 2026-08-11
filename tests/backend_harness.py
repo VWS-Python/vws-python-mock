@@ -25,6 +25,7 @@ import pytest
 
 # ``pytest.fixture`` returns one of these, but ``pytest`` does not export
 # the type.
+# See https://github.com/pytest-dev/pytest/issues/14853.
 from _pytest.fixtures import (  # pylint: disable=import-private-name
     FixtureFunctionDefinition,
 )
