@@ -25,7 +25,9 @@ import pytest
 
 # ``pytest.fixture`` returns one of these, but ``pytest`` does not export
 # the type.
-from _pytest.fixtures import FixtureFunctionDefinition
+from _pytest.fixtures import (  # pylint: disable=import-private-name
+    FixtureFunctionDefinition,
+)
 from beartype import beartype
 
 
