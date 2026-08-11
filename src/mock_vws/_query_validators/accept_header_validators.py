@@ -11,7 +11,7 @@ _LOGGER = logging.getLogger(name=__name__)
 
 
 @beartype
-def validate_accept_header(request_headers: Mapping[str, str]) -> None:
+def validate_accept_header(*, request_headers: Mapping[str, str]) -> None:
     """Validate the accept header.
 
     Args:

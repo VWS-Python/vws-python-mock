@@ -88,6 +88,7 @@ def validate_client_key_exists(
 
 @beartype
 def validate_auth_header_has_signature(
+    *,
     request_headers: Mapping[str, str],
 ) -> None:
     """Validate the authorization header includes a signature.
