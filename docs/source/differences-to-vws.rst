@@ -265,9 +265,14 @@ The mock does not validate the contents of each model further, such as whether
 For unknown Model Target datasets, the mock returns an error whose ``target`` is ``userId:mock``.
 Real Vuforia uses ``userId:<numeric-user-id>`` where the numeric portion is per-account.
 
-Two Model Target Web API error paths remain mock-only in ``tests/mock_vws/test_model_target_web_api.py::TestMockOnlyErrors``.
+Standard and advanced datasets are separate resources.
+A dataset created through the standard routes is not visible to the advanced routes, and the other way around: the mock returns the unknown-dataset error for status, download and delete requests made through the other dataset type's routes.
+Real Vuforia separates these by OAuth scope as well, which the mock does not model, so a client which lacks the advanced-dataset scope may see a different error.
+
+Three Model Target Web API error paths remain mock-only in ``tests/mock_vws/test_model_target_web_api.py::TestMockOnlyErrors``.
 Downloads of still-processing datasets are mock-only because exercising the path against real Vuforia would require creating a dataset on every test run; the mock drives the processing window deterministically.
 Advanced-dataset creation with more than 20 models is mock-only because the available test account lacks the advanced-dataset scope and real Vuforia rejects the request with a 403 before validating model counts.
+Cross-dataset-type access is mock-only for the same reason.
 
 Reco counts reports
 -------------------

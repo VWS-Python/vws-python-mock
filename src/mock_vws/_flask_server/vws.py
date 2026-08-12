@@ -332,6 +332,7 @@ def get_standard_model_target_dataset_status(
             request=_flask_request_data(),
             target_manager=_model_target_manager(),
             dataset_uuid=dataset_uuid,
+            dataset_type=ModelTargetDatasetType.STANDARD,
         ),
     )
 
@@ -350,6 +351,7 @@ def get_advanced_model_target_dataset_status(
             request=_flask_request_data(),
             target_manager=_model_target_manager(),
             dataset_uuid=dataset_uuid,
+            dataset_type=ModelTargetDatasetType.ADVANCED,
         ),
     )
 
@@ -368,6 +370,7 @@ def download_standard_model_target_dataset(
             request=_flask_request_data(),
             target_manager=_model_target_manager(),
             dataset_uuid=dataset_uuid,
+            dataset_type=ModelTargetDatasetType.STANDARD,
         ),
     )
 
@@ -386,6 +389,7 @@ def download_advanced_model_target_dataset(
             request=_flask_request_data(),
             target_manager=_model_target_manager(),
             dataset_uuid=dataset_uuid,
+            dataset_type=ModelTargetDatasetType.ADVANCED,
         ),
     )
 
@@ -402,6 +406,7 @@ def delete_standard_model_target_dataset(dataset_uuid: str) -> Response:
             request=_flask_request_data(),
             target_manager=_model_target_manager(),
             dataset_uuid=dataset_uuid,
+            dataset_type=ModelTargetDatasetType.STANDARD,
         ),
     )
 
@@ -418,6 +423,7 @@ def delete_advanced_model_target_dataset(dataset_uuid: str) -> Response:
             request=_flask_request_data(),
             target_manager=_model_target_manager(),
             dataset_uuid=dataset_uuid,
+            dataset_type=ModelTargetDatasetType.ADVANCED,
         ),
     )
 

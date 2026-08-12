@@ -241,6 +241,7 @@ class MockVuforiaWebServicesAPI:
             request=request,
             target_manager=self._target_manager,
             dataset_uuid=dataset_uuid,
+            dataset_type=ModelTargetDatasetType.STANDARD,
         )
 
     @route(
@@ -260,6 +261,7 @@ class MockVuforiaWebServicesAPI:
             request=request,
             target_manager=self._target_manager,
             dataset_uuid=dataset_uuid,
+            dataset_type=ModelTargetDatasetType.ADVANCED,
         )
 
     @route(
@@ -279,6 +281,7 @@ class MockVuforiaWebServicesAPI:
             request=request,
             target_manager=self._target_manager,
             dataset_uuid=dataset_uuid,
+            dataset_type=ModelTargetDatasetType.STANDARD,
         )
 
     @route(
@@ -298,6 +301,7 @@ class MockVuforiaWebServicesAPI:
             request=request,
             target_manager=self._target_manager,
             dataset_uuid=dataset_uuid,
+            dataset_type=ModelTargetDatasetType.ADVANCED,
         )
 
     @route(
@@ -316,6 +320,7 @@ class MockVuforiaWebServicesAPI:
             request=request,
             target_manager=self._target_manager,
             dataset_uuid=dataset_uuid,
+            dataset_type=ModelTargetDatasetType.STANDARD,
         )
 
     @route(
@@ -335,6 +340,7 @@ class MockVuforiaWebServicesAPI:
             request=request,
             target_manager=self._target_manager,
             dataset_uuid=dataset_uuid,
+            dataset_type=ModelTargetDatasetType.ADVANCED,
         )
 
     @route(
