@@ -40,6 +40,7 @@ dependencies = [
     "numpy>=2.4.4",
     "opencv-contrib-python-headless>=5.0.0.93",
     "pillow>=12.2.0",
+    "pydantic>=2.10.2",
     "pydantic-settings>=2.6.1",
     "pyteenybrisque>=0.1.1",
     "requests>=2.32.3",
@@ -396,6 +397,8 @@ ignore_names = [
     "pytest_plugins",
     "pytest_set_filtered_exceptions",
     "REQUEST_QUOTA_REACHED",
+    # docutils directives
+    "required_arguments",
     "rst_prolog",
     "source_suffix",
     "spelling_word_list_filename",

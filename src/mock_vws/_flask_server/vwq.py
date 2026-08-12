@@ -8,13 +8,18 @@ import email.utils
 import time
 from enum import StrEnum, auto
 from http import HTTPMethod, HTTPStatus
-from typing import assert_never
+from typing import Annotated, assert_never
 
 import requests
 from beartype import beartype
 from flask import Flask, Response, request
+from pydantic import Field
 from pydantic_settings import BaseSettings
 
+from mock_vws._flask_server import (
+    RESPONSE_DELAY_SECONDS_DESCRIPTION,
+    TARGET_MANAGER_BASE_URL_DESCRIPTION,
+)
 from mock_vws._query_tools import (
     get_query_match_response_text,
 )
@@ -55,12 +60,31 @@ class _ImageMatcherChoice(StrEnum):
 class VWQSettings(BaseSettings):
     """Settings for the VWQ Flask app."""
 
+    # The host interface which the server binds to.
+    # The images set this, so it is not documented as configuration.
     vwq_host: str = ""
-    target_manager_base_url: str
-    query_image_matcher: _ImageMatcherChoice = (
-        _ImageMatcherChoice.STRUCTURAL_SIMILARITY
-    )
-    response_delay_seconds: float = 0.0
+    target_manager_base_url: Annotated[
+        str,
+        Field(description=TARGET_MANAGER_BASE_URL_DESCRIPTION),
+    ]
+    query_image_matcher: Annotated[
+        _ImageMatcherChoice,
+        Field(
+            description="""\
+The matcher to use for the query endpoint.
+
+Options include:
+
+* ``exact``: The images must be exactly the same to match.
+* ``structural_similarity``: The images must have a similar structural
+  similarity to match.
+""",
+        ),
+    ] = _ImageMatcherChoice.STRUCTURAL_SIMILARITY
+    response_delay_seconds: Annotated[
+        float,
+        Field(description=RESPONSE_DELAY_SECONDS_DESCRIPTION),
+    ] = 0.0
 
 
 @beartype

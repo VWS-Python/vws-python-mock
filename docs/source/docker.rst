@@ -21,6 +21,7 @@ Creating containers
 ^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: console
+   :substitutions:
 
    $ docker network create -d bridge vws-bridge-network
    $ docker run \
@@ -32,13 +33,13 @@ Creating containers
    $ docker run \
        --detach \
        --publish 5006:5000 \
-       -e TARGET_MANAGER_BASE_URL=http://vuforia-target-manager-mock:5000 \
+       -e "|env-target-manager-base-url|=http://vuforia-target-manager-mock:5000" \
        --network vws-bridge-network \
        ghcr.io/vws-python/vuforia-vws-mock
    $ docker run \
        --detach \
        --publish 5007:5000 \
-       -e TARGET_MANAGER_BASE_URL=http://vuforia-target-manager-mock:5000 \
+       -e "|env-target-manager-base-url|=http://vuforia-target-manager-mock:5000" \
        --network vws-bridge-network \
        ghcr.io/vws-python/vuforia-vwq-mock
 
@@ -102,79 +103,12 @@ Configuration options
 Required configuration
 ^^^^^^^^^^^^^^^^^^^^^^
 
-.. envvar:: TARGET_MANAGER_BASE_URL
-
-   This is required by the VWS mock and the VWQ mock containers.
-   This is the base URL of the target manager container as seen from the other containers.
-   It must include a scheme, for example ``http://vuforia-target-manager-mock:5000``.
+.. pydantic-envvars:: required
 
 Optional configuration
 ^^^^^^^^^^^^^^^^^^^^^^
 
-VWS and Query containers
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. envvar:: RESPONSE_DELAY_SECONDS
-
-   The number of seconds to wait before sending each response.
-
-   Default: ``0.0``
-
-Target manager container
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. envvar:: TARGET_RATER
-
-   The rater to use for target tracking ratings.
-
-   Options include:
-
-   * ``brisque``: The rating is derived using the BRISQUE algorithm.
-   * ``perfect``: The rating is always 5.
-   * ``random``: The rating is random.
-
-   Default: ``brisque``
-
-Query container
-~~~~~~~~~~~~~~~
-
-.. envvar:: QUERY_IMAGE_MATCHER
-
-   The matcher to use for the query endpoint.
-
-   Options include:
-
-   * ``exact``: The images must be exactly the same to match.
-   * ``structural_similarity``: The images must have a similar structural similarity to match.
-
-   Default: ``structural_similarity``
-
-VWS container
-~~~~~~~~~~~~~
-
-.. envvar:: PROCESSING_TIME_SECONDS
-
-   The number of seconds to process each image for.
-
-   Default: ``2.0``
-
-.. envvar:: VWS_BASE_URL
-
-   The base URL which clients use to reach the VWS container.
-   The download URL of a reco counts report is built from this URL.
-
-   Default: ``https://vws.vuforia.com``
-
-.. envvar:: DUPLICATES_IMAGE_MATCHER
-
-   The matcher to use for the duplicates endpoint.
-
-   Options include:
-
-   * ``exact``: The images must be exactly the same to be duplicates.
-   * ``structural_similarity``: The images must have a similar structural similarity to be duplicates.
-
-   Default: ``structural_similarity``
+.. pydantic-envvars:: optional
 
 Building images from source
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^

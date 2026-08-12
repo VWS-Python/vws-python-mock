@@ -2,10 +2,14 @@
 """Configuration for Sphinx."""
 
 import importlib.metadata
+import sys
 from pathlib import Path
 
 from packaging.specifiers import SpecifierSet
 from sphinx_pyproject import SphinxConfig
+
+# Make the local ``settings_envvars`` extension importable.
+sys.path.insert(0, str(object=Path(__file__).parent))
 
 _pyproject_file = Path(__file__).parent.parent.parent / "pyproject.toml"
 _pyproject_config = SphinxConfig(
@@ -27,6 +31,28 @@ extensions = [
     "sphinxcontrib.towncrier.ext",
     "sphinxcontrib.autohttp.flask",
     "sphinx_toolbox.more_autodoc.autoprotocol",
+    # A local extension, in this directory, which documents pydantic
+    # settings as environment variables.
+    # It knows nothing about this project, so that it can move to a
+    # package of its own.
+    "settings_envvars",
+]
+
+# The Docker configuration documentation is generated from these.
+pydantic_envvars_settings = {
+    "the target manager container": (
+        "mock_vws._flask_server.target_manager:TargetManagerSettings"
+    ),
+    "the VWS container": "mock_vws._flask_server.vws:VWSSettings",
+    "the Query container": "mock_vws._flask_server.vwq:VWQSettings",
+}
+
+# The images set these, so they are not configuration for users of the
+# images.
+pydantic_envvars_undocumented = [
+    "target_manager_host",
+    "vws_host",
+    "vwq_host",
 ]
 
 # Render the unreleased ``newsfragments/`` entries into

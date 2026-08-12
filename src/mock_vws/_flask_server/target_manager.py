@@ -6,11 +6,12 @@ import datetime
 import json
 from enum import StrEnum, auto
 from http import HTTPMethod, HTTPStatus
-from typing import assert_never
+from typing import Annotated, assert_never
 from zoneinfo import ZoneInfo
 
 from beartype import beartype
 from flask import Flask, Response, request
+from pydantic import Field
 from pydantic_settings import BaseSettings
 
 from mock_vws.database import CloudDatabase, VuMarkDatabase
@@ -58,8 +59,23 @@ class _TargetRaterChoice(StrEnum):
 class TargetManagerSettings(BaseSettings):
     """Settings for the Target Manager Flask app."""
 
+    # The host interface which the server binds to.
+    # The images set this, so it is not documented as configuration.
     target_manager_host: str = ""
-    target_rater: _TargetRaterChoice = _TargetRaterChoice.BRISQUE
+    target_rater: Annotated[
+        _TargetRaterChoice,
+        Field(
+            description="""\
+The rater to use for target tracking ratings.
+
+Options include:
+
+* ``brisque``: The rating is derived using the BRISQUE algorithm.
+* ``perfect``: The rating is always 5.
+* ``random``: The rating is random.
+""",
+        ),
+    ] = _TargetRaterChoice.BRISQUE
 
 
 @TARGET_MANAGER_FLASK_APP.route(

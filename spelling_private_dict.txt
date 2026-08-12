@@ -81,6 +81,7 @@ png
 pragma
 presigned
 processable
+pydantic
 pyrefly
 pyright
 pytest
