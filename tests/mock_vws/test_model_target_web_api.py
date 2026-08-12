@@ -14,9 +14,9 @@ from beartype import beartype
 
 from mock_vws import MockVWS
 from mock_vws.model_target import ModelTargetDataset, ModelTargetDatasetType
-from tests.mock_vws.fixtures.credentials import (
-    ModelTargetCredentials,
-    get_model_target_credentials,
+from tests.mock_vws.fixtures.model_target_prepared_requests import (
+    credentials_for_backend,
+    get_access_token,
 )
 from tests.mock_vws.fixtures.vuforia_backends import VuforiaBackend
 
@@ -103,76 +103,6 @@ _UNAUTHENTICATED_DATASET_REQUEST: dict[str, Any] = {
 }
 
 
-def _credentials_for_backend(
-    *,
-    backend: VuforiaBackend,
-) -> ModelTargetCredentials:
-    """Return credentials for the chosen backend."""
-    if backend == VuforiaBackend.REAL:
-        return get_model_target_credentials()
-
-    return ModelTargetCredentials(
-        client_id="client-id",
-        client_secret="client-secret",
-        cad_data_url="https://example.com/model.glb",
-    )
-
-
-def _get_access_token(
-    *,
-    credentials: ModelTargetCredentials,
-    backend: VuforiaBackend,
-) -> str:
-    """Return an OAuth2 access token."""
-    response = requests.post(
-        url=f"{_VWS_HOST}/oauth2/token",
-        auth=(credentials.client_id, credentials.client_secret),
-        data={"grant_type": "client_credentials"},
-        timeout=30,
-    )
-
-    if (
-        backend == VuforiaBackend.REAL
-        and response.status_code == HTTPStatus.UNAUTHORIZED
-        and response.json() == {"error": "invalid_client"}
-    ):
-        pytest.xfail(
-            reason=(
-                "Real Model Target Web API credentials are not accepted; "
-                "authenticated behavior is verified against the mock "
-                "backends only until the credentials are rotated."
-            ),
-        )
-
-    assert response.status_code == HTTPStatus.OK
-    response_json: dict[str, Any] = json.loads(s=response.text)
-    access_token = response_json["access_token"]
-    assert isinstance(access_token, str)
-    assert response_json["token_type"] == "bearer"
-    return access_token
-
-
-def _assert_model_target_error(
-    *,
-    response: requests.Response,
-    status_code: HTTPStatus,
-    code: str,
-    message: str,
-    target: str,
-) -> None:
-    """Assert a Model Target Web API error response with the legacy
-    shape.
-    """
-    assert response.status_code == status_code
-    assert response.json() == {
-        "error": {
-            "code": code,
-            "message": message,
-            "target": target,
-        },
-    }
-
-
 def _assert_oauth2_error(
     *,
     response: requests.Response,
@@ -186,159 +116,11 @@ def _assert_oauth2_error(
 
 @pytest.mark.usefixtures("verify_model_target_mock_vuforia")
 class TestAuthentication:
-    """Tests for Model Target Web API authentication."""
+    """Tests for Model Target Web API authentication.
 
-    @staticmethod
-    @pytest.mark.parametrize(
-        argnames=("method", "path", "json_body"),
-        argvalues=[
-            pytest.param(
-                HTTPMethod.POST,
-                "/modeltargets/datasets",
-                _UNAUTHENTICATED_DATASET_REQUEST,
-                id="create-standard-dataset",
-            ),
-            pytest.param(
-                HTTPMethod.POST,
-                "/modeltargets/advancedDatasets",
-                _UNAUTHENTICATED_DATASET_REQUEST,
-                id="create-advanced-dataset",
-            ),
-            pytest.param(
-                HTTPMethod.GET,
-                f"/modeltargets/datasets/{_DATASET_UUID}/status",
-                None,
-                id="standard-dataset-status",
-            ),
-            pytest.param(
-                HTTPMethod.GET,
-                f"/modeltargets/advancedDatasets/{_DATASET_UUID}/status",
-                None,
-                id="advanced-dataset-status",
-            ),
-            pytest.param(
-                HTTPMethod.GET,
-                f"/modeltargets/datasets/{_DATASET_UUID}/dataset",
-                None,
-                id="download-standard-dataset",
-            ),
-            pytest.param(
-                HTTPMethod.GET,
-                f"/modeltargets/advancedDatasets/{_DATASET_UUID}/dataset",
-                None,
-                id="download-advanced-dataset",
-            ),
-            pytest.param(
-                HTTPMethod.DELETE,
-                f"/modeltargets/datasets/{_DATASET_UUID}",
-                None,
-                id="delete-standard-dataset",
-            ),
-            pytest.param(
-                HTTPMethod.DELETE,
-                f"/modeltargets/advancedDatasets/{_DATASET_UUID}",
-                None,
-                id="delete-advanced-dataset",
-            ),
-        ],
-    )
-    def test_missing_bearer_token(
-        *,
-        method: HTTPMethod,
-        path: str,
-        json_body: dict[str, object] | None,
-    ) -> None:
-        """Model Target routes require an OAuth2 bearer token."""
-        response = requests.request(
-            method=method,
-            url=f"{_VWS_HOST}{path}",
-            json=json_body,
-            timeout=30,
-        )
-
-        assert response.status_code == HTTPStatus.UNAUTHORIZED
-        assert response.json() == {
-            "error": {
-                "code": "401",
-                "message": "no Bearer token",
-                "target": "jwt",
-            },
-        }
-
-    @staticmethod
-    @pytest.mark.parametrize(
-        argnames=("authorization", "message"),
-        argvalues=[
-            pytest.param("Bearer ", "no Bearer token", id="blank"),
-            pytest.param(
-                "Bearer invalid-token",
-                "Invalid JWT serialization: Missing dot delimiter(s)",
-                id="malformed",
-            ),
-            pytest.param(
-                "Bearer ..",
-                "Invalid unsecured/JWS/JWE header: Invalid JSON object",
-                id="invalid-header-json",
-            ),
-            pytest.param(
-                "Bearer e30.e30.signature",
-                'Missing "alg" in header JSON object',
-                id="missing-algorithm",
-            ),
-            pytest.param(
-                "Bearer eyJhbGciOiJub25lIn0.e30.",
-                (
-                    "Unsecured (plain) JWTs are rejected, extend class to "
-                    "handle"
-                ),
-                id="unsecured",
-            ),
-            pytest.param(
-                "Bearer eyJhbGciOiJSUzI1NiJ9.%.signature",
-                "Payload of JWS object is not a valid JSON object",
-                id="payload-not-base64",
-            ),
-            pytest.param(
-                "Bearer eyJhbGciOiJSUzI1NiJ9..signature",
-                "Payload of JWS object is not a valid JSON object",
-                id="blank-payload",
-            ),
-            pytest.param(
-                "Bearer eyJhbGciOiJSUzI1NiJ9.InZhbHVlIg.signature",
-                "Payload of JWS object is not a valid JSON object",
-                id="payload-not-json-object",
-            ),
-            pytest.param(
-                "Bearer eyJhbGciOiJSUzI1NiJ9.e30.",
-                "The signature must not be empty",
-                id="blank-signature",
-            ),
-            pytest.param(
-                "Bearer eyJhbGciOiJSUzI1NiJ9.e30.%",
-                "Signed JWT rejected: Invalid signature",
-                id="signature-not-base64",
-            ),
-        ],
-    )
-    def test_invalid_bearer_token(
-        *,
-        authorization: str,
-        message: str,
-    ) -> None:
-        """Invalid bearer tokens are rejected."""
-        response = requests.get(
-            url=f"{_VWS_HOST}/modeltargets/datasets/{_DATASET_UUID}/status",
-            headers={"Authorization": authorization},
-            timeout=30,
-        )
-
-        _assert_model_target_error(
-            response=response,
-            status_code=HTTPStatus.UNAUTHORIZED,
-            code="401",
-            message=message,
-            target="jwt",
-        )
+    Bearer token concerns which apply to every Model Target endpoint are
+    covered by ``tests/mock_vws/test_model_target_cross_cutting.py``.
+    """
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -429,112 +211,6 @@ class TestErrorResponses:
                 "error_description": "Missing or invalid authorization header",
             },
         )
-
-    @staticmethod
-    def test_wrong_content_type(
-        *,
-        verify_model_target_mock_vuforia: VuforiaBackend,
-    ) -> None:
-        """Non-JSON dataset bodies are rejected with 415."""
-        credentials = _credentials_for_backend(
-            backend=verify_model_target_mock_vuforia,
-        )
-        access_token = _get_access_token(
-            credentials=credentials,
-            backend=verify_model_target_mock_vuforia,
-        )
-        response = requests.post(
-            url=f"{_VWS_HOST}/modeltargets/datasets",
-            headers={"Authorization": f"Bearer {access_token}"},
-            data="{}",
-            timeout=30,
-        )
-
-        assert response.status_code == HTTPStatus.UNSUPPORTED_MEDIA_TYPE
-        error = response.json()["error"]
-        assert error["code"] == "ERROR"
-        assert error["message"] == (
-            "Expecting text/json or application/json body"
-        )
-        assert "target" not in error
-
-    @staticmethod
-    def test_invalid_json(
-        *,
-        verify_model_target_mock_vuforia: VuforiaBackend,
-    ) -> None:
-        """Malformed JSON bodies are rejected with 400."""
-        credentials = _credentials_for_backend(
-            backend=verify_model_target_mock_vuforia,
-        )
-        access_token = _get_access_token(
-            credentials=credentials,
-            backend=verify_model_target_mock_vuforia,
-        )
-        response = requests.post(
-            url=f"{_VWS_HOST}/modeltargets/datasets",
-            headers={
-                "Authorization": f"Bearer {access_token}",
-                "Content-Type": "application/json",
-            },
-            data="{",
-            timeout=30,
-        )
-
-        assert response.status_code == HTTPStatus.BAD_REQUEST
-        error = response.json()["error"]
-        assert error["code"] == "ERROR"
-        assert error["message"].startswith("Invalid Json")
-        assert "target" not in error
-
-    @staticmethod
-    @pytest.mark.parametrize(
-        argnames="body",
-        argvalues=[
-            pytest.param("[]", id="array"),
-            pytest.param('"dataset"', id="string"),
-            pytest.param("1", id="number"),
-            pytest.param("true", id="boolean"),
-            pytest.param("null", id="null"),
-        ],
-    )
-    def test_body_not_json_object(
-        *,
-        verify_model_target_mock_vuforia: VuforiaBackend,
-        body: str,
-    ) -> None:
-        """JSON bodies which are not objects are missing every field."""
-        credentials = _credentials_for_backend(
-            backend=verify_model_target_mock_vuforia,
-        )
-        access_token = _get_access_token(
-            credentials=credentials,
-            backend=verify_model_target_mock_vuforia,
-        )
-        response = requests.post(
-            url=f"{_VWS_HOST}/modeltargets/datasets",
-            headers={
-                "Authorization": f"Bearer {access_token}",
-                "Content-Type": "application/json",
-            },
-            data=body,
-            timeout=30,
-        )
-
-        assert response.status_code == HTTPStatus.BAD_REQUEST
-        error = response.json()["error"]
-        assert error["code"] == "BAD_REQUEST"
-        assert error["message"] == (
-            f"Validation error for request {error['target']}"
-        )
-        actual_messages = {detail["message"] for detail in error["details"]}
-        assert actual_messages == {
-            "/models: element is required",
-            "/name: element is required",
-            "/targetSdk: element is required",
-        }
-        for detail in error["details"]:
-            assert detail["code"] == "VALIDATION_ERROR"
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -906,10 +582,10 @@ class TestErrorResponses:
         expected_messages: set[str],
     ) -> None:
         """Invalid standard dataset creation requests are rejected."""
-        credentials = _credentials_for_backend(
+        credentials = credentials_for_backend(
             backend=verify_model_target_mock_vuforia,
         )
-        access_token = _get_access_token(
+        access_token = get_access_token(
             credentials=credentials,
             backend=verify_model_target_mock_vuforia,
         )
@@ -959,10 +635,10 @@ class TestErrorResponses:
         path: str,
     ) -> None:
         """Unknown datasets are rejected with a NOT_FOUND error."""
-        credentials = _credentials_for_backend(
+        credentials = credentials_for_backend(
             backend=verify_model_target_mock_vuforia,
         )
-        access_token = _get_access_token(
+        access_token = get_access_token(
             credentials=credentials,
             backend=verify_model_target_mock_vuforia,
         )
@@ -1139,10 +815,10 @@ class TestStandardDataset:
         verify_model_target_mock_vuforia: VuforiaBackend,
     ) -> None:
         """A standard Model Target dataset can be created and deleted."""
-        credentials = _credentials_for_backend(
+        credentials = credentials_for_backend(
             backend=verify_model_target_mock_vuforia,
         )
-        access_token = _get_access_token(
+        access_token = get_access_token(
             credentials=credentials,
             backend=verify_model_target_mock_vuforia,
         )
@@ -1201,10 +877,10 @@ class TestStandardDataset:
         verify_model_target_mock_vuforia: VuforiaBackend,
     ) -> None:
         """A dataset can be created with inline CAD data."""
-        credentials = _credentials_for_backend(
+        credentials = credentials_for_backend(
             backend=verify_model_target_mock_vuforia,
         )
-        access_token = _get_access_token(
+        access_token = get_access_token(
             credentials=credentials,
             backend=verify_model_target_mock_vuforia,
         )

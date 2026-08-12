@@ -11,7 +11,7 @@ from vws import VWS, CloudRecoService
 from vws.reports import TargetStatuses
 
 from mock_vws.database import CloudDatabase
-from tests.mock_vws.utils import Endpoint
+from tests.mock_vws.utils import Endpoint, ModelTargetEndpoint
 from tests.mock_vws.utils.retries import RETRY_ON_TRANSIENT_VWS_FAILURE
 
 # The number of targets to add before giving up on getting one which
@@ -25,6 +25,9 @@ pytest_plugins = [
     "tests.mock_vws.fixtures.credentials",
     "tests.mock_vws.fixtures.prepared_requests",
     "tests.mock_vws.fixtures.vuforia_backends",
+    # ``model_target_prepared_requests`` imports from
+    # ``vuforia_backends``, so it must be listed after it.
+    "tests.mock_vws.fixtures.model_target_prepared_requests",
 ]
 
 
@@ -179,6 +182,34 @@ def endpoint(*, request: pytest.FixtureRequest) -> Endpoint:
     API.
     """
     endpoint_fixture: Endpoint = request.getfixturevalue(argname=request.param)
+    return endpoint_fixture
+
+
+@pytest.fixture(
+    params=[
+        "create_standard_dataset",
+        "create_advanced_dataset",
+        "standard_dataset_status",
+        "advanced_dataset_status",
+        "download_standard_dataset",
+        "download_advanced_dataset",
+        "delete_standard_dataset",
+        "delete_advanced_dataset",
+    ],
+)
+def model_target_endpoint(
+    *,
+    request: pytest.FixtureRequest,
+) -> ModelTargetEndpoint:
+    """Return details of an endpoint for the Model Target Web API.
+
+    The OAuth2 token endpoint is not included because it takes HTTP Basic
+    credentials rather than a bearer token, so the cross-cutting bearer
+    token concerns do not apply to it.
+    """
+    endpoint_fixture: ModelTargetEndpoint = request.getfixturevalue(
+        argname=request.param,
+    )
     return endpoint_fixture
 
 

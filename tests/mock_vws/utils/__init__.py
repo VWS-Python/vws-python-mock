@@ -16,6 +16,36 @@ from vws.response import Response
 from mock_vws._constants import ResultCodes
 
 
+@beartype
+def _send_request(
+    *,
+    method: str,
+    url: str,
+    headers: Mapping[str, str],
+    data: bytes | str,
+) -> Response:
+    """Send a request with exactly the given headers."""
+    request = requests.Request(
+        method=method,
+        url=url,
+        headers=headers,
+        data=data,
+    )
+    prepared_request = request.prepare()
+    prepared_request.headers = CaseInsensitiveDict(data=headers)
+    session = requests.Session()
+    requests_response = session.send(request=prepared_request)
+    return Response(
+        text=requests_response.text,
+        url=requests_response.url,
+        status_code=requests_response.status_code,
+        headers=dict(requests_response.headers),
+        request_body=requests_response.request.body,
+        tell_position=requests_response.raw.tell(),
+        content=requests_response.content,
+    )
+
+
 @dataclass(frozen=True, kw_only=True)
 class Endpoint:
     """Details of endpoints to be called in tests.
@@ -56,24 +86,11 @@ class Endpoint:
     @beartype
     def send(self) -> Response:
         """Send the request."""
-        request = requests.Request(
+        return _send_request(
             method=self.method,
             url=urljoin(base=self.base_url, url=self.path_url),
             headers=self.headers,
             data=self.data,
-        )
-        prepared_request = request.prepare()
-        prepared_request.headers = CaseInsensitiveDict(data=self.headers)
-        session = requests.Session()
-        requests_response = session.send(request=prepared_request)
-        return Response(
-            text=requests_response.text,
-            url=requests_response.url,
-            status_code=requests_response.status_code,
-            headers=dict(requests_response.headers),
-            request_body=requests_response.request.body,
-            tell_position=requests_response.raw.tell(),
-            content=requests_response.content,
         )
 
     @property
@@ -81,6 +98,49 @@ class Endpoint:
         """The content type to use for the `Authorization` header."""
         full_content_type = dict(self.headers).get("Content-Type", "")
         return full_content_type.split(sep=";")[0]
+
+
+@dataclass(frozen=True, kw_only=True)
+class ModelTargetEndpoint:
+    """Details of Model Target Web API endpoints to be called in tests.
+
+    Args:
+        base_url: The base URL of the endpoint.
+        path_url: The path of the endpoint.
+        method: The HTTP method of the endpoint.
+        headers: Headers to send to the endpoint. These do not include an
+            ``Authorization`` header; tests add a valid or invalid bearer
+            token themselves.
+        data: The body to send to the endpoint.
+        takes_json_body: Whether the endpoint reads a JSON request body.
+
+    Attributes:
+        base_url: The base URL of the endpoint.
+        path_url: The path of the endpoint.
+        method: The HTTP method of the endpoint.
+        headers: Headers to send to the endpoint. These do not include an
+            ``Authorization`` header; tests add a valid or invalid bearer
+            token themselves.
+        data: The body to send to the endpoint.
+        takes_json_body: Whether the endpoint reads a JSON request body.
+    """
+
+    base_url: str
+    path_url: str
+    method: str
+    headers: Mapping[str, str]
+    data: bytes
+    takes_json_body: bool
+
+    @beartype
+    def send(self) -> Response:
+        """Send the request."""
+        return _send_request(
+            method=self.method,
+            url=urljoin(base=self.base_url, url=self.path_url),
+            headers=self.headers,
+            data=self.data,
+        )
 
 
 @beartype
