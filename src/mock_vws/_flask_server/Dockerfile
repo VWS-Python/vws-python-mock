@@ -7,7 +7,6 @@ ENV SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0
 # the host being able to resolve the account name.
 RUN useradd --create-home --shell /bin/bash --uid 10001 myuser
 USER 10001
-COPY --chown=10001:10001 . /app
 
 # See https://pythonspeed.com/articles/activate-virtualenv-dockerfile/
 # For why we use this method of activating the virtual environment.
@@ -15,7 +14,12 @@ ENV UV_PROJECT_ENVIRONMENT=/app/docker_venvs/.venv
 ENV PATH="$UV_PROJECT_ENVIRONMENT/bin:$PATH"
 
 WORKDIR /app
-RUN uv sync --no-cache
+# Install the locked dependencies before copying the source, so that
+# source edits do not invalidate the dependency layer.
+COPY --chown=10001:10001 pyproject.toml uv.lock /app/
+RUN uv sync --locked --no-cache --no-install-project
+COPY --chown=10001:10001 . /app
+RUN uv sync --locked --no-cache
 EXPOSE 5000
 ENTRYPOINT ["python"]
 HEALTHCHECK --interval=1s --timeout=10s --start-period=5s --retries=3 CMD ["python", "/app/src/mock_vws/_flask_server/healthcheck.py"]
