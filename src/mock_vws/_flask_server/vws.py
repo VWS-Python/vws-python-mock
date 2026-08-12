@@ -12,12 +12,11 @@ import time
 import uuid
 from enum import StrEnum, auto
 from http import HTTPMethod, HTTPStatus
-from typing import Annotated, assert_never
+from typing import assert_never
 
 import requests
 from beartype import beartype
 from flask import Flask, Response, request
-from pydantic import Field
 from pydantic_settings import BaseSettings
 from werkzeug.exceptions import MethodNotAllowed, NotFound
 
@@ -29,10 +28,6 @@ from mock_vws._constants import (
     TargetStatuses,
 )
 from mock_vws._database_matchers import get_database_matching_server_keys
-from mock_vws._flask_server import (
-    RESPONSE_DELAY_SECONDS_DESCRIPTION,
-    TARGET_MANAGER_BASE_URL_DESCRIPTION,
-)
 from mock_vws._flask_server.target_manager import TARGET_MANAGER
 from mock_vws._mock_common import RequestData, json_dump, sorted_targets
 from mock_vws._model_target_web_api import (
@@ -100,45 +95,16 @@ class _ImageMatcherChoice(StrEnum):
 class VWSSettings(BaseSettings):
     """Settings for the VWS Flask app."""
 
-    target_manager_base_url: Annotated[
-        str,
-        Field(description=TARGET_MANAGER_BASE_URL_DESCRIPTION),
-    ]
-    processing_time_seconds: Annotated[
-        float,
-        Field(description="The number of seconds to process each image for."),
-    ] = 2.0
-    # The host interface which the server binds to.
-    # The images set this, so it is not documented as configuration.
+    target_manager_base_url: str
+    processing_time_seconds: float = 2.0
     vws_host: str = ""
-    vws_base_url: Annotated[
-        str,
-        Field(
-            description="""\
-The base URL which clients use to reach the VWS container.
-
-The download URL of a reco counts report is built from this URL.
-""",
-        ),
-    ] = "https://vws.vuforia.com"
-    duplicates_image_matcher: Annotated[
-        _ImageMatcherChoice,
-        Field(
-            description="""\
-The matcher to use for the duplicates endpoint.
-
-Options include:
-
-* ``exact``: The images must be exactly the same to be duplicates.
-* ``structural_similarity``: The images must have a similar structural
-  similarity to be duplicates.
-""",
-        ),
-    ] = _ImageMatcherChoice.STRUCTURAL_SIMILARITY
-    response_delay_seconds: Annotated[
-        float,
-        Field(description=RESPONSE_DELAY_SECONDS_DESCRIPTION),
-    ] = 0.0
+    # The base URL which clients use to reach this application.
+    # Generated reco counts reports are served from this URL.
+    vws_base_url: str = "https://vws.vuforia.com"
+    duplicates_image_matcher: _ImageMatcherChoice = (
+        _ImageMatcherChoice.STRUCTURAL_SIMILARITY
+    )
+    response_delay_seconds: float = 0.0
 
 
 @beartype
