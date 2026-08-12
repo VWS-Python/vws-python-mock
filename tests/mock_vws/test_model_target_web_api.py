@@ -10,6 +10,7 @@ from uuid import uuid4
 
 import pytest
 import requests
+from beartype import beartype
 
 from mock_vws import MockVWS
 from mock_vws.model_target import ModelTargetDataset, ModelTargetDatasetType
@@ -48,6 +49,7 @@ def _dataset_request(*, cad_data_url: str) -> dict[str, Any]:
     }
 
 
+@beartype
 def _cad_data_blob() -> str:
     """Return a base64-encoded zipped model for inline CAD data."""
     zip_buffer = io.BytesIO()
@@ -59,6 +61,7 @@ def _cad_data_blob() -> str:
     return base64.b64encode(s=zip_buffer.getvalue()).decode(encoding="ascii")
 
 
+@beartype
 def _blob_dataset_request() -> dict[str, Any]:
     """Return a standard dataset request with inline CAD data."""
     return {
