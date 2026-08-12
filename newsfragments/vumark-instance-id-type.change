@@ -1,1 +1,1 @@
-Reject VuMark instance generation requests whose ``instance_id`` is a JSON array or object with an ``InvalidInstanceId`` result, and move the ``instance_id`` check into a validator shared by both mock backends.
+Reject VuMark instance generation requests whose ``instance_id`` is not a string with a ``BadRequest`` result, as real Vuforia does, and move the ``instance_id`` checks into validators shared by both mock backends.
