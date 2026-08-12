@@ -6,10 +6,17 @@ import io
 import uuid
 
 import pytest
+from beartype import beartype
 from vws import VWS, CloudRecoService
+from vws.reports import TargetStatuses
 
 from mock_vws.database import CloudDatabase
 from tests.mock_vws.utils import Endpoint
+from tests.mock_vws.utils.retries import RETRY_ON_TRANSIENT_VWS_FAILURE
+
+# The number of targets to add before giving up on getting one which
+# processes with a 'success' status.
+_TARGET_SUCCESS_ATTEMPTS = 3
 
 # `credentials` must be listed before modules that import from it.
 # If listed later, those imports happen before pytest can register it for
@@ -63,23 +70,93 @@ def inactive_cloud_reco_client(
     )
 
 
-@pytest.fixture
-def target_id(
-    *,
-    image_file_success_state_low_rating: io.BytesIO,
-    vws_client: VWS,
-) -> str:
-    """Return the target ID of a target in the database.
+@beartype
+@RETRY_ON_TRANSIENT_VWS_FAILURE
+def _add_target(*, vws_client: VWS, image: io.BytesIO) -> str:
+    """Add a target, which is then in the processing state.
 
-    The target is one which will have a 'success' status when processed.
+    We retry on transient failures here because pytest-retry does not
+    retry on exceptions raised in fixtures.
+
+    See
+    https://github.com/str0zzapreti/pytest-retry/issues/33.
+
+    Returns:
+        The ID of the added target.
     """
     return vws_client.add_target(
         name=uuid.uuid4().hex,
         width=1,
-        image=image_file_success_state_low_rating,
+        image=image,
         active_flag=True,
         application_metadata=None,
     )
+
+
+@beartype
+@RETRY_ON_TRANSIENT_VWS_FAILURE
+def _add_target_which_processed_successfully(
+    *,
+    vws_client: VWS,
+    image: io.BytesIO,
+) -> str:
+    """Add a target which finishes processing with a 'success' status.
+
+    Real Vuforia sometimes rates the given image badly enough to give the
+    target a 'failed' status, so we delete such a target and add another
+    one.
+
+    Returns:
+        The ID of a target with a 'success' status.
+    """
+    for _ in range(_TARGET_SUCCESS_ATTEMPTS):
+        target_id_ = _add_target(vws_client=vws_client, image=image)
+        vws_client.wait_for_target_processed(target_id=target_id_)
+        target_details = vws_client.get_target_record(target_id=target_id_)
+        if target_details.status == TargetStatuses.SUCCESS:
+            return target_id_
+        # We do not cover the rest of this function because in most test
+        # runs no target gets a 'failed' status.
+        vws_client.delete_target(target_id=target_id_)  # pragma: no cover
+
+    message = (  # pragma: no cover
+        "No target processed with a 'success' status in "
+        f"{_TARGET_SUCCESS_ATTEMPTS} attempts."
+    )
+    raise AssertionError(message)  # pragma: no cover
+
+
+@pytest.fixture
+def target_id(*, high_quality_image: io.BytesIO, vws_client: VWS) -> str:
+    """Return the target ID of a target in the database which has finished
+    processing with a 'success' status.
+
+    We use ``high_quality_image`` rather than
+    ``image_file_success_state_low_rating``. The latter is a randomly
+    generated 5x5 image, and real Vuforia often gives such an image a
+    'failed' status. No test which uses this fixture needs a low rating.
+    """
+    return _add_target_which_processed_successfully(
+        vws_client=vws_client,
+        image=high_quality_image,
+    )
+
+
+@pytest.fixture
+def unprocessed_target_id(
+    *,
+    high_quality_image: io.BytesIO,
+    vws_client: VWS,
+) -> str:
+    """Return the target ID of a target which was just added to the
+    database.
+
+    The target is in the processing state, or it has just left it. Use
+    this rather than ``target_id`` for tests which do not need a
+    processed target, as waiting for processing is slow against real
+    Vuforia.
+    """
+    return _add_target(vws_client=vws_client, image=high_quality_image)
 
 
 @pytest.fixture(

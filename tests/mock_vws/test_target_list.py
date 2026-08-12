@@ -17,10 +17,10 @@ class TestTargetList:
     def test_includes_targets(
         *,
         vws_client: VWS,
-        target_id: str,
+        unprocessed_target_id: str,
     ) -> None:
         """Targets in the database are returned in the list."""
-        assert vws_client.list_targets() == [target_id]
+        assert vws_client.list_targets() == [unprocessed_target_id]
 
     @staticmethod
     def test_deleted(
@@ -29,7 +29,6 @@ class TestTargetList:
         target_id: str,
     ) -> None:
         """Deleted targets are not returned in the list."""
-        vws_client.wait_for_target_processed(target_id=target_id)
         vws_client.delete_target(target_id=target_id)
         assert not vws_client.list_targets()
 
