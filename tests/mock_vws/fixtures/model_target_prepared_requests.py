@@ -55,6 +55,7 @@ def credentials_for_backend(
     )
 
 
+@beartype
 def get_access_token(
     *,
     credentials: ModelTargetCredentials,

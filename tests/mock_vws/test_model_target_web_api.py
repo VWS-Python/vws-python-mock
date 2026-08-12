@@ -37,6 +37,7 @@ _VIEW: dict[str, Any] = {
 }
 
 
+@beartype
 def _dataset_request(*, cad_data_url: str) -> dict[str, Any]:
     """Return a standard Model Target dataset request."""
     return {
@@ -106,6 +107,7 @@ _UNAUTHENTICATED_DATASET_REQUEST: dict[str, Any] = {
 }
 
 
+@beartype
 def _assert_oauth2_error(
     *,
     response: requests.Response,
@@ -117,6 +119,7 @@ def _assert_oauth2_error(
     assert response.json() == body
 
 
+@beartype
 def _assert_model_target_error(
     *,
     response: Response,
@@ -138,6 +141,7 @@ def _assert_model_target_error(
     }
 
 
+@beartype
 def _assert_unknown_dataset(*, response: Response) -> None:
     """Assert a NOT_FOUND error for the unknown dataset UUID which the
     prepared requests use.
@@ -158,6 +162,7 @@ def _assert_unknown_dataset(*, response: Response) -> None:
     assert error["target"].startswith("userId:")
 
 
+@beartype
 def _access_token_for_backend(*, backend: VuforiaBackend) -> str:
     """Return a valid access token for the chosen backend."""
     credentials = credentials_for_backend(backend=backend)
