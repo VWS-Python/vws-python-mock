@@ -57,7 +57,6 @@ class TestDelete:
     @staticmethod
     def test_processed(*, target_id: str, vws_client: VWS) -> None:
         """When a target has finished processing, it can be deleted."""
-        vws_client.wait_for_target_processed(target_id=target_id)
         vws_client.delete_target(target_id=target_id)
 
         with pytest.raises(expected_exception=UnknownTargetError):

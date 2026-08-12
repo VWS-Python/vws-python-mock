@@ -6,11 +6,13 @@ import io
 import uuid
 
 import pytest
+from beartype import beartype
 from vws import VWS, CloudRecoService
 from vws.reports import TargetStatuses
 
 from mock_vws.database import CloudDatabase
 from tests.mock_vws.utils import Endpoint
+from tests.mock_vws.utils.retries import RETRY_ON_TRANSIENT_VWS_FAILURE
 
 # The number of targets to add before giving up on getting one which
 # processes with a 'success' status.
@@ -68,6 +70,49 @@ def inactive_cloud_reco_client(
     )
 
 
+@beartype
+@RETRY_ON_TRANSIENT_VWS_FAILURE
+def _add_target_which_processed_successfully(
+    *,
+    vws_client: VWS,
+    image: io.BytesIO,
+) -> str:
+    """Add a target which finishes processing with a 'success' status.
+
+    Real Vuforia sometimes rates the given image badly enough to give the
+    target a 'failed' status, so we delete such a target and add another
+    one.
+
+    We retry on transient failures here because pytest-retry does not
+    retry on exceptions raised in fixtures.
+
+    See
+    https://github.com/str0zzapreti/pytest-retry/issues/33.
+
+    Returns:
+        The ID of a target with a 'success' status.
+    """
+    for _ in range(_TARGET_SUCCESS_ATTEMPTS):
+        target_id_ = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=image,
+            active_flag=True,
+            application_metadata=None,
+        )
+        vws_client.wait_for_target_processed(target_id=target_id_)
+        target_details = vws_client.get_target_record(target_id=target_id_)
+        if target_details.status == TargetStatuses.SUCCESS:
+            return target_id_
+        vws_client.delete_target(target_id=target_id_)
+
+    message = (
+        "No target processed with a 'success' status in "
+        f"{_TARGET_SUCCESS_ATTEMPTS} attempts."
+    )
+    raise AssertionError(message)
+
+
 @pytest.fixture
 def target_id(
     *,
@@ -76,31 +121,11 @@ def target_id(
 ) -> str:
     """Return the target ID of a target in the database which has finished
     processing with a 'success' status.
-
-    Real Vuforia sometimes rates the image badly enough to give the
-    target a 'failed' status. That breaks the precondition of tests which
-    ask for a target which processed successfully, so we add another
-    target and try again.
     """
-    for _ in range(_TARGET_SUCCESS_ATTEMPTS):
-        new_target_id = vws_client.add_target(
-            name=uuid.uuid4().hex,
-            width=1,
-            image=image_file_success_state_low_rating,
-            active_flag=True,
-            application_metadata=None,
-        )
-        vws_client.wait_for_target_processed(target_id=new_target_id)
-        target_details = vws_client.get_target_record(target_id=new_target_id)
-        if target_details.status == TargetStatuses.SUCCESS:
-            return new_target_id
-        vws_client.delete_target(target_id=new_target_id)
-
-    message = (
-        "No target processed with a 'success' status in "
-        f"{_TARGET_SUCCESS_ATTEMPTS} attempts."
+    return _add_target_which_processed_successfully(
+        vws_client=vws_client,
+        image=image_file_success_state_low_rating,
     )
-    raise AssertionError(message)
 
 
 @pytest.fixture(

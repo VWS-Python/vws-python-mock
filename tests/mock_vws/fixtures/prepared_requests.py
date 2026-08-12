@@ -8,33 +8,16 @@ from typing import Any
 from uuid import uuid4
 
 import pytest
-from beartype import beartype
 from urllib3.filepost import encode_multipart_formdata
-from vws import VWS
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes
 from mock_vws.database import CloudDatabase
 from tests.mock_vws.fixtures.credentials import VuMarkCloudDatabase
 from tests.mock_vws.utils import Endpoint
-from tests.mock_vws.utils.retries import RETRY_ON_TRANSIENT_VWS_FAILURE
 
 VWS_HOST = "https://vws.vuforia.com"
 VWQ_HOST = "https://cloudreco.vuforia.com"
-
-
-@beartype
-@RETRY_ON_TRANSIENT_VWS_FAILURE
-def _wait_for_target_processed(*, vws_client: VWS, target_id: str) -> None:
-    """Wait for a target to be processed.
-
-    We retry here because pytest-retry does not retry on exceptions
-    raised in fixtures.
-
-    See
-    https://github.com/str0zzapreti/pytest-retry/issues/33.
-    """
-    vws_client.wait_for_target_processed(target_id=target_id)
 
 
 @pytest.fixture
@@ -97,10 +80,8 @@ def delete_target(
     *,
     vuforia_database: CloudDatabase,
     target_id: str,
-    vws_client: VWS,
 ) -> Endpoint:
     """Return details of the endpoint for deleting a target."""
-    _wait_for_target_processed(vws_client=vws_client, target_id=target_id)
     date = rfc_1123_date()
     request_path = f"/targets/{target_id}"
     method = HTTPMethod.DELETE
@@ -185,13 +166,11 @@ def get_duplicates(
     *,
     vuforia_database: CloudDatabase,
     target_id: str,
-    vws_client: VWS,
 ) -> Endpoint:
     """
     Return details of the endpoint for getting potential duplicates of a
     target.
     """
-    _wait_for_target_processed(vws_client=vws_client, target_id=target_id)
     date = rfc_1123_date()
     request_path = f"/duplicates/{target_id}"
     method = HTTPMethod.GET
@@ -234,10 +213,8 @@ def get_target(
     *,
     vuforia_database: CloudDatabase,
     target_id: str,
-    vws_client: VWS,
 ) -> Endpoint:
     """Return details of the endpoint for getting details of a target."""
-    _wait_for_target_processed(vws_client=vws_client, target_id=target_id)
     date = rfc_1123_date()
     request_path = f"/targets/{target_id}"
     method = HTTPMethod.GET
@@ -320,13 +297,11 @@ def target_summary(
     *,
     vuforia_database: CloudDatabase,
     target_id: str,
-    vws_client: VWS,
 ) -> Endpoint:
     """
     Return details of the endpoint for getting a summary report of a
     target.
     """
-    _wait_for_target_processed(vws_client=vws_client, target_id=target_id)
     date = rfc_1123_date()
     request_path = f"/summary/{target_id}"
     method = HTTPMethod.GET
@@ -369,10 +344,8 @@ def update_target(
     *,
     vuforia_database: CloudDatabase,
     target_id: str,
-    vws_client: VWS,
 ) -> Endpoint:
     """Return details of the endpoint for updating a target."""
-    _wait_for_target_processed(vws_client=vws_client, target_id=target_id)
     data: dict[str, Any] = {}
     request_path = f"/targets/{target_id}"
     content = json.dumps(obj=data).encode(encoding="utf-8")

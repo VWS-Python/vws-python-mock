@@ -154,8 +154,6 @@ class TestUpdate:
         target_id: str,
     ) -> None:
         """No data fields are required."""
-        vws_client.wait_for_target_processed(target_id=target_id)
-
         response = _update_target(
             vws_client=vws_client,
             data={},
@@ -197,8 +195,6 @@ class TestUnexpectedData:
         A `BAD_REQUEST` response is returned when unexpected data is
         given.
         """
-        vws_client.wait_for_target_processed(target_id=target_id)
-
         with pytest.raises(expected_exception=FailError) as exc:
             _update_target(
                 vws_client=vws_client,
@@ -231,8 +227,6 @@ class TestWidth:
         target_id: str,
     ) -> None:
         """The width must be a number greater than zero."""
-        vws_client.wait_for_target_processed(target_id=target_id)
-
         target_details = vws_client.get_target_record(target_id=target_id)
         original_width = target_details.target_record.width
 
@@ -256,8 +250,6 @@ class TestWidth:
     @staticmethod
     def test_width_valid(*, vws_client: VWS, target_id: str) -> None:
         """Positive numbers are valid widths."""
-        vws_client.wait_for_target_processed(target_id=target_id)
-
         width = 0.01
         vws_client.update_target(target_id=target_id, width=width)
         target_details = vws_client.get_target_record(target_id=target_id)
@@ -317,8 +309,6 @@ class TestActiveFlag:
         Values which are not Boolean values are not valid active
         flags.
         """
-        vws_client.wait_for_target_processed(target_id=target_id)
-
         with pytest.raises(expected_exception=FailError) as exc:
             _update_target(
                 vws_client=vws_client,
@@ -357,7 +347,6 @@ class TestApplicationMetadata:
         metadata_encoded = base64.b64encode(s=metadata).decode(
             encoding="ascii"
         )
-        vws_client.wait_for_target_processed(target_id=target_id)
         vws_client.update_target(
             target_id=target_id,
             application_metadata=metadata_encoded,
@@ -372,8 +361,6 @@ class TestApplicationMetadata:
         invalid_metadata: int | None,
     ) -> None:
         """Non-string values cannot be given as valid application metadata."""
-        vws_client.wait_for_target_processed(target_id=target_id)
-
         with pytest.raises(expected_exception=FailError) as exc:
             _update_target(
                 vws_client=vws_client,
@@ -400,8 +387,6 @@ class TestApplicationMetadata:
         allowed as
         application metadata.
         """
-        vws_client.wait_for_target_processed(target_id=target_id)
-
         vws_client.update_target(
             target_id=target_id,
             application_metadata=not_base64_encoded_processable,
@@ -419,8 +404,6 @@ class TestApplicationMetadata:
         allowed
         as application metadata.
         """
-        vws_client.wait_for_target_processed(target_id=target_id)
-
         with pytest.raises(expected_exception=FailError) as exc:
             vws_client.update_target(
                 target_id=target_id,
@@ -444,7 +427,6 @@ class TestApplicationMetadata:
         metadata_encoded = base64.b64encode(s=metadata).decode(
             encoding="ascii"
         )
-        vws_client.wait_for_target_processed(target_id=target_id)
 
         with pytest.raises(expected_exception=MetadataTooLargeError) as exc:
             vws_client.update_target(
@@ -490,7 +472,6 @@ class TestTargetName:
         We test characters out of range in another test as that gives a
         different error.
         """
-        vws_client.wait_for_target_processed(target_id=target_id)
         vws_client.update_target(target_id=target_id, name=name)
         target_details = vws_client.get_target_record(target_id=target_id)
         assert target_details.target_record.name == name
@@ -536,8 +517,6 @@ class TestTargetName:
         result_code: ResultCodes,
     ) -> None:
         """A target's name must be a string of length 0 < N < 65."""
-        vws_client.wait_for_target_processed(target_id=target_id)
-
         with pytest.raises(expected_exception=VWSError) as exc:
             _update_target(
                 vws_client=vws_client,
@@ -635,8 +614,6 @@ class TestImage:
         JPEG and PNG files in the RGB and greyscale color spaces are
         allowed.
         """
-        vws_client.wait_for_target_processed(target_id=target_id)
-
         vws_client.update_target(
             target_id=target_id,
             image=image_files_failed_state,
@@ -656,7 +633,6 @@ class TestImage:
         RGB
         color space.
         """
-        vws_client.wait_for_target_processed(target_id=target_id)
         with pytest.raises(expected_exception=BadImageError) as exc:
             vws_client.update_target(target_id=target_id, image=bad_image_file)
 
@@ -671,7 +647,6 @@ class TestImage:
         target_id: str,
     ) -> None:
         """An error is returned when the given image is corrupted."""
-        vws_client.wait_for_target_processed(target_id=target_id)
         with pytest.raises(expected_exception=BadImageError) as exc:
             vws_client.update_target(
                 target_id=target_id,
@@ -699,8 +674,6 @@ class TestImage:
             width=width,
             height=height,
         )
-
-        vws_client.wait_for_target_processed(target_id=target_id)
 
         image_data = png_not_too_large.getvalue()
         image_content_size = len(image_data)
@@ -758,8 +731,6 @@ class TestImage:
         This is because Vuforia treats them as valid base64, but then
         not a valid image.
         """
-        vws_client.wait_for_target_processed(target_id=target_id)
-
         with pytest.raises(expected_exception=BadImageError) as exc:
             _update_target(
                 vws_client=vws_client,
@@ -787,8 +758,6 @@ class TestImage:
         returns
         a "Fail" response.
         """
-        vws_client.wait_for_target_processed(target_id=target_id)
-
         with pytest.raises(expected_exception=FailError) as exc:
             _update_target(
                 vws_client=vws_client,
@@ -810,8 +779,6 @@ class TestImage:
         result
         is returned.
         """
-        vws_client.wait_for_target_processed(target_id=target_id)
-
         with pytest.raises(expected_exception=BadImageError) as exc:
             vws_client.update_target(
                 target_id=target_id,
@@ -836,8 +803,6 @@ class TestImage:
         vws_client: VWS,
     ) -> None:
         """If the given image is not a string, a `Fail` result is returned."""
-        vws_client.wait_for_target_processed(target_id=target_id)
-
         with pytest.raises(expected_exception=FailError) as exc:
             _update_target(
                 vws_client=vws_client,

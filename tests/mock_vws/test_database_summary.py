@@ -111,10 +111,11 @@ class TestDatabaseSummary:
         )
 
     @staticmethod
-    def test_active_images(*, vws_client: VWS, target_id: str) -> None:
+    # ``verify_mock_vuforia`` is given here as well as on the class so
+    # that the backend is set up before ``target_id`` adds a target.
+    @pytest.mark.usefixtures("verify_mock_vuforia", "target_id")
+    def test_active_images(*, vws_client: VWS) -> None:
         """The number of images in the active state is returned."""
-        vws_client.wait_for_target_processed(target_id=target_id)
-
         _wait_for_image_numbers(
             vws_client=vws_client,
             active_images=1,
