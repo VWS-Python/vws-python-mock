@@ -115,13 +115,15 @@ def _add_target_which_processed_successfully(
         target_details = vws_client.get_target_record(target_id=target_id_)
         if target_details.status == TargetStatuses.SUCCESS:
             return target_id_
-        vws_client.delete_target(target_id=target_id_)
+        # We do not cover the rest of this function because in most test
+        # runs no target gets a 'failed' status.
+        vws_client.delete_target(target_id=target_id_)  # pragma: no cover
 
-    message = (
+    message = (  # pragma: no cover
         "No target processed with a 'success' status in "
         f"{_TARGET_SUCCESS_ATTEMPTS} attempts."
     )
-    raise AssertionError(message)
+    raise AssertionError(message)  # pragma: no cover
 
 
 @pytest.fixture
