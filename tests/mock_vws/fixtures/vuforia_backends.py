@@ -313,13 +313,6 @@ def _enable_use_docker_in_memory_model_target_vuforia(
             base_url=target_manager_base_url,
         )
 
-        datasets_url = target_manager_base_url + "/model_target_datasets"
-        for dataset in requests.get(url=datasets_url, timeout=30).json():
-            requests.delete(
-                url=datasets_url + "/" + dataset["uuid"],
-                timeout=30,
-            )
-
         yield
 
 

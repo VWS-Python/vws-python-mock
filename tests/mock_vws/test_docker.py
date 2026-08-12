@@ -362,17 +362,25 @@ def _assert_model_target_round_trip(*, vws_container: Container) -> None:
     assert create_dataset_response.status_code == HTTPStatus.CREATED
     dataset_uuid = create_dataset_response.json()["uuid"]
 
+    _wait_for_model_target_dataset_done(
+        base_vws_url=base_vws_url,
+        dataset_uuid=dataset_uuid,
+        access_token=access_token,
+    )
+
     # The dataset is stored in the target manager container, so a restart
     # of the VWS container must not lose it.
     vws_container.restart()
     wait_for_health_check(container=vws_container)
     base_vws_url = _vws_base_url(vws_container=vws_container)
 
-    _wait_for_model_target_dataset_done(
-        base_vws_url=base_vws_url,
-        dataset_uuid=dataset_uuid,
-        access_token=access_token,
+    status_response = requests.get(
+        url=f"{base_vws_url}/modeltargets/datasets/{dataset_uuid}/status",
+        headers={"Authorization": f"Bearer {access_token}"},
+        timeout=30,
     )
+    assert status_response.status_code == HTTPStatus.OK
+    assert status_response.json()["status"] == "done"
 
     download_response = requests.get(
         url=f"{base_vws_url}/modeltargets/datasets/{dataset_uuid}/dataset",
