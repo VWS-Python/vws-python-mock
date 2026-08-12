@@ -1206,34 +1206,33 @@ class TestStandardDataset:
             backend=verify_model_target_mock_vuforia,
         )
         headers = {"Authorization": f"Bearer {access_token}"}
-        dataset_uuid: str | None = None
 
-        try:
-            create_response = requests.post(
-                url=f"{_VWS_HOST}/modeltargets/datasets",
-                headers=headers,
-                json=_blob_dataset_request(),
-                timeout=30,
-            )
+        create_response = requests.post(
+            url=f"{_VWS_HOST}/modeltargets/datasets",
+            headers=headers,
+            json=_blob_dataset_request(),
+            timeout=30,
+        )
 
-            assert create_response.status_code == HTTPStatus.CREATED
-            create_response_json: dict[str, Any] = json.loads(
-                s=create_response.text,
-            )
-            dataset_uuid_value = create_response_json["uuid"]
-            assert isinstance(dataset_uuid_value, str)
-            dataset_uuid = dataset_uuid_value
-        finally:
-            if dataset_uuid is not None:  # pragma: no branch
-                delete_response = requests.delete(
-                    url=f"{_VWS_HOST}/modeltargets/datasets/{dataset_uuid}",
-                    headers=headers,
-                    timeout=30,
-                )
-                assert delete_response.status_code in {
-                    HTTPStatus.OK,
-                    HTTPStatus.NO_CONTENT,
-                }
+        assert create_response.status_code == HTTPStatus.CREATED
+        create_response_json: dict[str, Any] = json.loads(
+            s=create_response.text,
+        )
+        dataset_uuid = create_response_json["uuid"]
+        assert isinstance(dataset_uuid, str)
+
+        # There is nothing to assert between creating and deleting the
+        # dataset, so the delete does not need a ``finally`` block to avoid
+        # leaving a dataset behind on real Vuforia.
+        delete_response = requests.delete(
+            url=f"{_VWS_HOST}/modeltargets/datasets/{dataset_uuid}",
+            headers=headers,
+            timeout=30,
+        )
+        assert delete_response.status_code in {
+            HTTPStatus.OK,
+            HTTPStatus.NO_CONTENT,
+        }
 
 
 class TestModelTargetDatasetStatus:
