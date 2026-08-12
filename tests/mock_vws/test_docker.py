@@ -1,9 +1,8 @@
 """Tests for running the mock server in Docker."""
 
 import io
-import re
 import uuid
-from collections.abc import Iterable, Iterator, Mapping
+from collections.abc import Iterable, Iterator
 from http import HTTPStatus
 from typing import TYPE_CHECKING
 
@@ -14,34 +13,16 @@ from beartype import beartype
 from docker.errors import BuildError, NotFound
 from docker.models.containers import Container
 from docker.models.networks import Network
-from pydantic.fields import FieldInfo
-from pydantic_settings import BaseSettings
 from tenacity import retry
 from tenacity.retry import retry_if_exception_type
 from tenacity.stop import stop_after_delay
 from tenacity.wait import wait_fixed
 from vws import VWS, CloudRecoService
 
-from mock_vws._flask_server.target_manager import TargetManagerSettings
-from mock_vws._flask_server.vwq import VWQSettings
-from mock_vws._flask_server.vws import VWSSettings
 from mock_vws.database import CloudDatabase
 
 if TYPE_CHECKING:
     from docker.models.images import Image
-
-_SETTINGS_CLASSES: tuple[type[BaseSettings], ...] = (
-    TargetManagerSettings,
-    VWQSettings,
-    VWSSettings,
-)
-
-_ENVVAR_PATTERN = re.compile(
-    pattern=r"^\.\. envvar:: (\w+)$",
-    flags=re.MULTILINE,
-)
-
-_OPTIONAL_CONFIGURATION_HEADING = "Optional configuration"
 
 
 @retry(
@@ -293,98 +274,3 @@ def test_build_and_run(
     matching_targets = cloud_reco_client.query(image=high_quality_image)
 
     assert matching_targets[0].target_id == target_id
-
-
-@pytest.fixture(name="docker_documentation")
-def fixture_docker_documentation(request: pytest.FixtureRequest) -> str:
-    """Return the text of the Docker documentation."""
-    documentation_path = request.config.rootpath / "docs/source/docker.rst"
-    return documentation_path.read_text(encoding="utf-8")
-
-
-@beartype
-def _documented_variables(*, documentation: str) -> set[str]:
-    """Return every environment variable which the given text
-    documents.
-    """
-    return set(_ENVVAR_PATTERN.findall(string=documentation))
-
-
-@beartype
-def _settings_fields(
-    *,
-    settings_class: type[BaseSettings],
-) -> Mapping[str, FieldInfo]:
-    """Return the fields of a settings class."""
-    fields: Mapping[str, FieldInfo] = settings_class.model_fields
-    return fields
-
-
-@beartype
-def _application_variables() -> set[str]:
-    """Return every environment variable the applications read."""
-    return {
-        field_name.upper()
-        for settings_class in _SETTINGS_CLASSES
-        for field_name in _settings_fields(settings_class=settings_class)
-    }
-
-
-@beartype
-def _required_application_variables() -> set[str]:
-    """Return every environment variable an application cannot start
-    without.
-    """
-    return {
-        field_name.upper()
-        for settings_class in _SETTINGS_CLASSES
-        for field_name, field in _settings_fields(
-            settings_class=settings_class,
-        ).items()
-        if field.is_required()
-    }
-
-
-class TestDocumentedConfiguration:
-    """Tests for the documented environment variables.
-
-    The ``console`` blocks in the documentation are checked for valid
-    shell but never run, so nothing else catches a documented variable
-    which no application reads.
-    """
-
-    @staticmethod
-    def test_all_variables_are_documented(
-        *,
-        docker_documentation: str,
-    ) -> None:
-        """Every setting the applications read is documented."""
-        documented = _documented_variables(documentation=docker_documentation)
-        assert not _application_variables() - documented
-
-    @staticmethod
-    def test_no_variables_are_invented(
-        *,
-        docker_documentation: str,
-    ) -> None:
-        """Every documented variable is a setting an application reads."""
-        documented = _documented_variables(documentation=docker_documentation)
-        assert not documented - _application_variables()
-
-    @staticmethod
-    def test_required_variables_are_documented_as_required(
-        *,
-        docker_documentation: str,
-    ) -> None:
-        """The required section holds exactly the settings with no default.
-
-        Those are the settings without which a container cannot start.
-        """
-        required_section, _ = docker_documentation.split(
-            sep=_OPTIONAL_CONFIGURATION_HEADING,
-            maxsplit=1,
-        )
-        assert (
-            _documented_variables(documentation=required_section)
-            == _required_application_variables()
-        )

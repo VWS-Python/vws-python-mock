@@ -123,13 +123,6 @@ VWS and Query containers
 Target manager container
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. envvar:: TARGET_MANAGER_HOST
-
-   The host interface which the target manager container's server binds to.
-   The provided images set this to ``0.0.0.0`` so that the server is reachable from outside the container.
-
-   Default: ``0.0.0.0``
-
 .. envvar:: TARGET_RATER
 
    The rater to use for target tracking ratings.
@@ -145,13 +138,6 @@ Target manager container
 Query container
 ~~~~~~~~~~~~~~~
 
-.. envvar:: VWQ_HOST
-
-   The host interface which the VWQ container's server binds to.
-   The provided images set this to ``0.0.0.0`` so that the server is reachable from outside the container.
-
-   Default: ``0.0.0.0``
-
 .. envvar:: QUERY_IMAGE_MATCHER
 
    The matcher to use for the query endpoint.
@@ -165,13 +151,6 @@ Query container
 
 VWS container
 ~~~~~~~~~~~~~
-
-.. envvar:: VWS_HOST
-
-   The host interface which the VWS container's server binds to.
-   The provided images set this to ``0.0.0.0`` so that the server is reachable from outside the container.
-
-   Default: ``0.0.0.0``
 
 .. envvar:: PROCESSING_TIME_SECONDS
 
