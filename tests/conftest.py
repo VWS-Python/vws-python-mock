@@ -7,9 +7,14 @@ import uuid
 
 import pytest
 from vws import VWS, CloudRecoService
+from vws.reports import TargetStatuses
 
 from mock_vws.database import CloudDatabase
 from tests.mock_vws.utils import Endpoint
+
+# The number of targets to add before giving up on getting one which
+# processes with a 'success' status.
+_TARGET_SUCCESS_ATTEMPTS = 3
 
 # `credentials` must be listed before modules that import from it.
 # If listed later, those imports happen before pytest can register it for
@@ -69,17 +74,33 @@ def target_id(
     image_file_success_state_low_rating: io.BytesIO,
     vws_client: VWS,
 ) -> str:
-    """Return the target ID of a target in the database.
+    """Return the target ID of a target in the database which has finished
+    processing with a 'success' status.
 
-    The target is one which will have a 'success' status when processed.
+    Real Vuforia sometimes rates the image badly enough to give the
+    target a 'failed' status. That breaks the precondition of tests which
+    ask for a target which processed successfully, so we add another
+    target and try again.
     """
-    return vws_client.add_target(
-        name=uuid.uuid4().hex,
-        width=1,
-        image=image_file_success_state_low_rating,
-        active_flag=True,
-        application_metadata=None,
+    for _ in range(_TARGET_SUCCESS_ATTEMPTS):
+        new_target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=image_file_success_state_low_rating,
+            active_flag=True,
+            application_metadata=None,
+        )
+        vws_client.wait_for_target_processed(target_id=new_target_id)
+        target_details = vws_client.get_target_record(target_id=new_target_id)
+        if target_details.status == TargetStatuses.SUCCESS:
+            return new_target_id
+        vws_client.delete_target(target_id=new_target_id)
+
+    message = (
+        "No target processed with a 'success' status in "
+        f"{_TARGET_SUCCESS_ATTEMPTS} attempts."
     )
+    raise AssertionError(message)
 
 
 @pytest.fixture(
