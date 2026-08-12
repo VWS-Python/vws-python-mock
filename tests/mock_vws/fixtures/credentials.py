@@ -5,11 +5,37 @@ from pathlib import Path
 from uuid import uuid4
 
 import pytest
-from pydantic import Field
+from pydantic import Field, ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from mock_vws.database import CloudDatabase
 from mock_vws.states import States
+
+_REPOSITORY_ROOT = Path(__file__).parents[3]
+_SECRETS_FILE = _REPOSITORY_ROOT / "vuforia_secrets.env"
+
+
+def load_settings[SettingsT: BaseSettings](
+    *,
+    settings_class: type[SettingsT],
+) -> SettingsT:
+    """Load settings, pointing at the secrets file if it is missing.
+
+    Without this, a missing secrets file gives a bare list of "Field
+    required" errors which never names the file to create.
+    """
+    try:
+        return settings_class.model_validate(obj={})
+    except ValidationError:
+        if _SECRETS_FILE.exists():
+            raise
+        message = (
+            f"{_SECRETS_FILE} not found. "
+            "Copy vuforia_secrets.env.example to vuforia_secrets.env in "
+            f"{_REPOSITORY_ROOT} and fill it in. "
+            "See the contributing documentation."
+        )
+        raise FileNotFoundError(message) from None
 
 
 class _CloudDatabaseSettings(BaseSettings):
@@ -23,7 +49,7 @@ class _CloudDatabaseSettings(BaseSettings):
 
     model_config = SettingsConfigDict(
         env_prefix="VUFORIA_",
-        env_file=Path("vuforia_secrets.env"),
+        env_file=_SECRETS_FILE,
         extra="allow",
     )
 
@@ -43,7 +69,7 @@ class _InactiveCloudDatabaseSettings(_CloudDatabaseSettings):
 
     model_config = SettingsConfigDict(
         env_prefix="INACTIVE_VUFORIA_",
-        env_file=Path("vuforia_secrets.env"),
+        env_file=_SECRETS_FILE,
         extra="allow",
     )
 
@@ -57,7 +83,7 @@ class _InactiveVuMarkDatabaseSettings(BaseSettings):
 
     model_config = SettingsConfigDict(
         env_prefix="INACTIVE_VUMARK_VUFORIA_",
-        env_file=Path("vuforia_secrets.env"),
+        env_file=_SECRETS_FILE,
         extra="allow",
     )
 
@@ -73,7 +99,7 @@ class _VuMarkCloudDatabaseSettings(BaseSettings):
 
     model_config = SettingsConfigDict(
         env_prefix="VUMARK_VUFORIA_",
-        env_file=Path("vuforia_secrets.env"),
+        env_file=_SECRETS_FILE,
         extra="allow",
     )
 
@@ -87,7 +113,7 @@ class _ModelTargetSettings(BaseSettings):
 
     model_config = SettingsConfigDict(
         env_prefix="MODEL_TARGET_VUFORIA_",
-        env_file=Path("vuforia_secrets.env"),
+        env_file=_SECRETS_FILE,
         extra="allow",
     )
 
@@ -125,7 +151,7 @@ def get_model_target_credentials() -> ModelTargetCredentials:
     """Return Model Target Web API credentials from environment
     variables.
     """
-    settings = _ModelTargetSettings.model_validate(obj={})
+    settings = load_settings(settings_class=_ModelTargetSettings)
     return ModelTargetCredentials(
         client_id=settings.client_id,
         client_secret=settings.client_secret,
@@ -136,7 +162,7 @@ def get_model_target_credentials() -> ModelTargetCredentials:
 @pytest.fixture
 def vuforia_database() -> CloudDatabase:
     """Return VWS credentials from environment variables."""
-    settings = _WorkingCloudDatabaseSettings.model_validate(obj={})
+    settings = load_settings(settings_class=_WorkingCloudDatabaseSettings)
     return CloudDatabase(
         database_id=settings.database_id,
         database_name=settings.target_manager_database_name,
@@ -154,7 +180,7 @@ def inactive_cloud_database() -> CloudDatabase:
     Return VWS credentials for an inactive project from environment
     variables.
     """
-    settings = _InactiveCloudDatabaseSettings.model_validate(obj={})
+    settings = load_settings(settings_class=_InactiveCloudDatabaseSettings)
     return CloudDatabase(
         database_name=settings.target_manager_database_name,
         server_access_key=settings.server_access_key,
@@ -168,7 +194,7 @@ def inactive_cloud_database() -> CloudDatabase:
 @pytest.fixture
 def inactive_vumark_database() -> InactiveVuMarkCloudDatabase:
     """Return inactive VuMark credentials from environment variables."""
-    settings = _InactiveVuMarkDatabaseSettings.model_validate(obj={})
+    settings = load_settings(settings_class=_InactiveVuMarkDatabaseSettings)
     return InactiveVuMarkCloudDatabase(
         target_manager_database_name=settings.target_manager_database_name,
         server_access_key=settings.server_access_key,
@@ -179,7 +205,7 @@ def inactive_vumark_database() -> InactiveVuMarkCloudDatabase:
 @pytest.fixture
 def vumark_vuforia_database() -> VuMarkCloudDatabase:
     """Return VuMark VWS credentials from environment variables."""
-    settings = _VuMarkCloudDatabaseSettings.model_validate(obj={})
+    settings = load_settings(settings_class=_VuMarkCloudDatabaseSettings)
 
     return VuMarkCloudDatabase(
         target_manager_database_name=settings.target_manager_database_name,

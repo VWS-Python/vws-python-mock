@@ -124,6 +124,7 @@ jobs:
           - tests/mock_vws/test_vumark_generation_api.py
           - tests/mock_vws/test_vumark_generation_failure.py
           - tests/mock_vws/test_target_validators.py
+          - tests/mock_vws/test_credentials_loading.py
           - tests/mock_vws/test_healthcheck.py
           - tests/mock_vws/test_docker.py
           - README.rst

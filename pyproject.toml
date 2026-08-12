@@ -403,6 +403,8 @@ ignore_names = [
     "towncrier_draft_autoversion_mode",
     "towncrier_draft_include_empty",
     "towncrier_draft_working_directory",
+    # A test settings field which nothing is ever meant to provide
+    "unsatisfiable_field",
     "VuMarkDatabaseDict",
     "VuMarkTargetDict",
     "warning_is_error",
