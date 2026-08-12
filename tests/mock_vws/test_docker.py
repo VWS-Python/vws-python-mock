@@ -2,6 +2,7 @@
 
 import io
 import uuid
+import zipfile
 from collections.abc import Iterable, Iterator
 from http import HTTPStatus
 from typing import TYPE_CHECKING
@@ -74,6 +75,32 @@ def wait_for_health_check(container: Container) -> None:
             f"{probes}"
         )
         raise ValueError(error_message) from exc
+
+
+@retry(
+    wait=wait_fixed(wait=0.5),
+    stop=stop_after_delay(max_delay=60),
+    retry=retry_if_exception_type(exception_types=(ValueError,)),
+    reraise=True,
+)
+@beartype
+def _wait_for_model_target_dataset_done(
+    *,
+    base_vws_url: str,
+    dataset_uuid: str,
+    access_token: str,
+) -> None:
+    """Poll a Model Target dataset until it finishes processing."""
+    response = requests.get(
+        url=f"{base_vws_url}/modeltargets/datasets/{dataset_uuid}/status",
+        headers={"Authorization": f"Bearer {access_token}"},
+        timeout=30,
+    )
+    assert response.status_code == HTTPStatus.OK
+    status = response.json()["status"]
+    if status != "done":
+        error_message = f"Dataset {dataset_uuid} status is {status!r}."
+        raise ValueError(error_message)
 
 
 @pytest.fixture(name="custom_bridge_network")
@@ -274,3 +301,67 @@ def test_build_and_run(
     matching_targets = cloud_reco_client.query(image=high_quality_image)
 
     assert matching_targets[0].target_id == target_id
+
+    _assert_model_target_round_trip(base_vws_url=base_vws_url)
+
+
+@beartype
+def _assert_model_target_round_trip(*, base_vws_url: str) -> None:
+    """Create a Model Target dataset in one request, poll its status in
+    others, then download the generated dataset.
+
+    Dataset state must survive across requests to the real containers.
+    """
+    oauth_response = requests.post(
+        url=f"{base_vws_url}/oauth2/token",
+        auth=("client-id", "client-secret"),
+        data={"grant_type": "client_credentials"},
+        timeout=30,
+    )
+    assert oauth_response.status_code == HTTPStatus.OK
+    access_token = oauth_response.json()["access_token"]
+
+    dataset_request = {
+        "name": "example-dataset",
+        "targetSdk": "10.18",
+        "models": [
+            {
+                "name": "model-name",
+                "cadDataUrl": "https://example.com/model.glb",
+                "views": [
+                    {
+                        "name": "view-name",
+                        "guideViewPosition": {
+                            "translation": [0, 0, 5],
+                            "rotation": [0, 0, 0, 1],
+                        },
+                    },
+                ],
+            },
+        ],
+    }
+    create_dataset_response = requests.post(
+        url=f"{base_vws_url}/modeltargets/datasets",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json=dataset_request,
+        timeout=30,
+    )
+    assert create_dataset_response.status_code == HTTPStatus.CREATED
+    dataset_uuid = create_dataset_response.json()["uuid"]
+
+    _wait_for_model_target_dataset_done(
+        base_vws_url=base_vws_url,
+        dataset_uuid=dataset_uuid,
+        access_token=access_token,
+    )
+
+    download_response = requests.get(
+        url=f"{base_vws_url}/modeltargets/datasets/{dataset_uuid}/dataset",
+        headers={"Authorization": f"Bearer {access_token}"},
+        timeout=30,
+    )
+    assert download_response.status_code == HTTPStatus.OK
+    with zipfile.ZipFile(
+        file=io.BytesIO(initial_bytes=download_response.content),
+    ) as downloaded_zip:
+        assert downloaded_zip.namelist() == ["dataset.json"]
