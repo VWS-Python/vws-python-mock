@@ -1,0 +1,1 @@
+Reject VuMark instance generation requests whose ``instance_id`` is not a string with a ``BadRequest`` result, as real Vuforia does, and move the ``instance_id`` checks into validators shared by both mock backends.
