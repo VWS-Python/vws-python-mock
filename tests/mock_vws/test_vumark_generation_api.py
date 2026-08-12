@@ -24,6 +24,10 @@ from tests.mock_vws.fixtures.credentials import (
 )
 from tests.mock_vws.utils import make_image_file
 
+type _JsonValue = (
+    str | int | float | bool | list[_JsonValue] | dict[str, _JsonValue] | None
+)
+
 _VWS_HOST = "https://vws.vuforia.com"
 _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 _PDF_SIGNATURE = b"%PDF"
@@ -49,7 +53,7 @@ def _make_vumark_request(
     server_access_key: str,
     server_secret_key: str,
     target_id: str,
-    instance_id: object,
+    instance_id: _JsonValue,
     accept: str,
 ) -> requests.Response:
     """Send a VuMark instance generation request and return the
@@ -220,7 +224,7 @@ class TestGenerateInstance:
     @staticmethod
     def test_non_string_instance_id(
         *,
-        instance_id: object,
+        instance_id: _JsonValue,
         vumark_vuforia_database: VuMarkCloudDatabase,
     ) -> None:
         """An instance_id which is not a string returns BadRequest."""
