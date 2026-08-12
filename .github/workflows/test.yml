@@ -328,16 +328,15 @@ jobs:
       - name: Require 100% Coverage
         id: coverage
         run: |
-          uv tool install 'coverage[toml]'
+          uv run --extra=dev coverage combine
+          uv run --extra=dev coverage html --skip-covered --skip-empty
 
-          coverage combine
-          coverage html --skip-covered --skip-empty
-
-          # Report and write to summary.
-          coverage report --format=markdown >> "$GITHUB_STEP_SUMMARY"
+          # Report and write to summary, without failing yet.
+          uv run --extra=dev coverage report --format=markdown \
+            >> "$GITHUB_STEP_SUMMARY" || true
 
           # Report again and fail if under 100%.
-          coverage report
+          uv run --extra=dev coverage report
 
       - name: Upload HTML report if check failed
         uses: actions/upload-artifact@v7

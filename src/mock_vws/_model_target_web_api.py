@@ -673,29 +673,56 @@ def create_model_target_dataset(
 
 
 @beartype
+def _unknown_dataset_response(*, dataset_uuid: str) -> _ResponseType:
+    """Return the error for a dataset which is not visible to a route."""
+    return _error_response(
+        status_code=HTTPStatus.NOT_FOUND,
+        code="NOT_FOUND",
+        message=(
+            f"Could not find a model-view database with uuid {dataset_uuid}"
+        ),
+        target=_MOCK_USER_TARGET,
+        details=None,
+    )
+
+
+@beartype
+def _find_dataset(
+    *,
+    target_manager: TargetManager,
+    dataset_uuid: str,
+    dataset_type: ModelTargetDatasetType,
+) -> ModelTargetDataset | None:
+    """Return a dataset which belongs to a route's dataset type.
+
+    Standard and advanced datasets are separate resources in real Vuforia, so
+    a dataset is invisible to the routes of the other dataset type.
+    """
+    dataset = target_manager.model_target_datasets.get(dataset_uuid)
+    if dataset is None or dataset.dataset_type != dataset_type:
+        return None
+    return dataset
+
+
+@beartype
 def get_model_target_dataset_status(
     *,
     request: RequestData,
     target_manager: TargetManager,
     dataset_uuid: str,
+    dataset_type: ModelTargetDatasetType,
 ) -> _ResponseType:
     """Return the status of a Model Target dataset."""
     auth_error = _require_bearer_token(request=request)
     if auth_error is not None:
         return auth_error
-    try:
-        dataset = target_manager.model_target_datasets[dataset_uuid]
-    except KeyError:
-        return _error_response(
-            status_code=HTTPStatus.NOT_FOUND,
-            code="NOT_FOUND",
-            message=(
-                "Could not find a model-view database with uuid "
-                f"{dataset_uuid}"
-            ),
-            target=_MOCK_USER_TARGET,
-            details=None,
-        )
+    dataset = _find_dataset(
+        target_manager=target_manager,
+        dataset_uuid=dataset_uuid,
+        dataset_type=dataset_type,
+    )
+    if dataset is None:
+        return _unknown_dataset_response(dataset_uuid=dataset_uuid)
     return _json_response(
         status_code=HTTPStatus.OK,
         body=dataset.status_body(),
@@ -732,24 +759,19 @@ def download_model_target_dataset(
     request: RequestData,
     target_manager: TargetManager,
     dataset_uuid: str,
+    dataset_type: ModelTargetDatasetType,
 ) -> _ResponseType:
     """Download a generated Model Target dataset."""
     auth_error = _require_bearer_token(request=request)
     if auth_error is not None:
         return auth_error
-    try:
-        dataset = target_manager.model_target_datasets[dataset_uuid]
-    except KeyError:
-        return _error_response(
-            status_code=HTTPStatus.NOT_FOUND,
-            code="NOT_FOUND",
-            message=(
-                "Could not find a model-view database with uuid "
-                f"{dataset_uuid}"
-            ),
-            target=_MOCK_USER_TARGET,
-            details=None,
-        )
+    dataset = _find_dataset(
+        target_manager=target_manager,
+        dataset_uuid=dataset_uuid,
+        dataset_type=dataset_type,
+    )
+    if dataset is None:
+        return _unknown_dataset_response(dataset_uuid=dataset_uuid)
     if dataset.status != "done":
         return _error_response(
             status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
@@ -779,22 +801,18 @@ def delete_model_target_dataset(
     request: RequestData,
     target_manager: TargetManager,
     dataset_uuid: str,
+    dataset_type: ModelTargetDatasetType,
 ) -> _ResponseType:
     """Delete a Model Target dataset."""
     auth_error = _require_bearer_token(request=request)
     if auth_error is not None:
         return auth_error
-    try:
-        target_manager.remove_model_target_dataset(dataset_uuid=dataset_uuid)
-    except KeyError:
-        return _error_response(
-            status_code=HTTPStatus.NOT_FOUND,
-            code="NOT_FOUND",
-            message=(
-                "Could not find a model-view database with uuid "
-                f"{dataset_uuid}"
-            ),
-            target=_MOCK_USER_TARGET,
-            details=None,
-        )
+    dataset = _find_dataset(
+        target_manager=target_manager,
+        dataset_uuid=dataset_uuid,
+        dataset_type=dataset_type,
+    )
+    if dataset is None:
+        return _unknown_dataset_response(dataset_uuid=dataset_uuid)
+    target_manager.remove_model_target_dataset(dataset_uuid=dataset_uuid)
     return HTTPStatus.OK, {"Content-Length": "0"}, ""

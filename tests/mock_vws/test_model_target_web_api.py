@@ -950,6 +950,84 @@ class TestMockOnlyErrors:
         )
         assert error["target"] == dataset_uuid
 
+    @staticmethod
+    @pytest.mark.parametrize(
+        argnames=("created_path", "other_path"),
+        argvalues=[
+            pytest.param(
+                "/modeltargets/datasets",
+                "/modeltargets/advancedDatasets",
+                id="standard-dataset-via-advanced-routes",
+            ),
+            pytest.param(
+                "/modeltargets/advancedDatasets",
+                "/modeltargets/datasets",
+                id="advanced-dataset-via-standard-routes",
+            ),
+        ],
+    )
+    def test_dataset_is_not_visible_to_the_other_dataset_type(
+        *,
+        created_path: str,
+        other_path: str,
+    ) -> None:
+        """A dataset is not reachable through the other type's routes.
+
+        Standard and advanced datasets are separate resources in real
+        Vuforia, with separate OAuth scopes. This is mock-only because the
+        available test account lacks the advanced-dataset scope, so real
+        Vuforia rejects advanced routes with a 403 before looking a dataset
+        up.
+        """
+        headers = {"Authorization": f"Bearer {_MOCK_BEARER_TOKEN}"}
+        with MockVWS():
+            create_response = requests.post(
+                url=f"{_VWS_HOST}{created_path}",
+                headers=headers,
+                json=_UNAUTHENTICATED_DATASET_REQUEST,
+                timeout=30,
+            )
+            assert create_response.status_code == HTTPStatus.CREATED
+            dataset_uuid = create_response.json()["uuid"]
+
+            other_responses = [
+                requests.get(
+                    url=f"{_VWS_HOST}{other_path}/{dataset_uuid}/status",
+                    headers=headers,
+                    timeout=30,
+                ),
+                requests.get(
+                    url=f"{_VWS_HOST}{other_path}/{dataset_uuid}/dataset",
+                    headers=headers,
+                    timeout=30,
+                ),
+                requests.delete(
+                    url=f"{_VWS_HOST}{other_path}/{dataset_uuid}",
+                    headers=headers,
+                    timeout=30,
+                ),
+            ]
+
+            # The dataset survives the delete attempt made through the other
+            # type's routes.
+            own_status_response = requests.get(
+                url=f"{_VWS_HOST}{created_path}/{dataset_uuid}/status",
+                headers=headers,
+                timeout=30,
+            )
+
+        for response in other_responses:
+            assert response.status_code == HTTPStatus.NOT_FOUND
+            error = response.json()["error"]
+            assert error["code"] == "NOT_FOUND"
+            assert error["message"] == (
+                "Could not find a model-view database with uuid "
+                f"{dataset_uuid}"
+            )
+            assert error["target"].startswith("userId:")
+
+        assert own_status_response.status_code == HTTPStatus.OK
+
 
 class TestStandardDataset:
     """Tests for standard Model Target datasets."""
