@@ -5,7 +5,11 @@ FROM ghcr.io/astral-sh/uv:0.11.7-python3.14-trixie-slim AS base
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0
 # Avoid using root user. Use an explicit UID so the container does not rely on
 # the host being able to resolve the account name.
-RUN useradd --create-home --shell /bin/bash --uid 10001 myuser
+# Create /app here because the legacy (non-BuildKit) builder creates
+# WORKDIR directories owned by root, not the current user.
+RUN useradd --create-home --shell /bin/bash --uid 10001 myuser \
+    && mkdir /app \
+    && chown 10001:10001 /app
 USER 10001
 
 # See https://pythonspeed.com/articles/activate-virtualenv-dockerfile/
