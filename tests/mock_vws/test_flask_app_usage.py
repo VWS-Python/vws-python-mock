@@ -8,6 +8,7 @@ import uuid
 import zipfile
 from collections.abc import Iterator
 from http import HTTPMethod, HTTPStatus
+from typing import Any
 
 import pytest
 import requests
@@ -30,6 +31,12 @@ from mock_vws._flask_server.target_manager import (
 from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
 from mock_vws._flask_server.vws import VWS_FLASK_APP
 from mock_vws.database import CloudDatabase, VuMarkDatabase
+from mock_vws.model_target import (
+    ModelTargetDataset,
+    ModelTargetDatasetType,
+    ModelTargetGenerationFailure,
+    ModelTargetGenerationWarning,
+)
 from mock_vws.request_rate_limits import RequestRateLimit, RequestRateLimits
 from mock_vws.target import VuMarkTarget
 from tests.mock_vws.utils.usage_test_helpers import (
@@ -987,6 +994,97 @@ class TestModelTargetWebAPI:
             file=io.BytesIO(initial_bytes=dataset_response.content),
         ) as dataset_zip:
             assert dataset_zip.namelist() == ["dataset.json"]
+
+    @staticmethod
+    def _dataset_status(dataset_uuid: str) -> dict[str, Any]:
+        """Return a dataset's status response body from the VWS app."""
+        token_response = requests.post(
+            url="https://vws.vuforia.com/oauth2/token",
+            auth=("client-id", "client-secret"),
+            data={"grant_type": "client_credentials"},
+            timeout=30,
+        )
+        token = token_response.json()["access_token"]
+        status_response = requests.get(
+            url=(
+                "https://vws.vuforia.com/modeltargets/datasets/"
+                f"{dataset_uuid}/status"
+            ),
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=30,
+        )
+        assert status_response.status_code == HTTPStatus.OK
+        status_body: dict[str, Any] = status_response.json()
+        return status_body
+
+    def test_seeded_generation_failure(self) -> None:
+        """A dataset seeded with a generation failure through the target
+        manager API reports the failure through the VWS app.
+        """
+        dataset = ModelTargetDataset(
+            request_body=_MODEL_TARGET_DATASET_REQUEST,
+            dataset_type=ModelTargetDatasetType.STANDARD,
+            processing_time_seconds=0.0,
+            generation_failure=ModelTargetGenerationFailure(
+                message="Seeded failure",
+            ),
+            generation_warning=None,
+        )
+        datasets_url = (
+            _EXAMPLE_URL_FOR_TARGET_MANAGER + "/model_target_datasets"
+        )
+        create_response = requests.post(
+            url=datasets_url,
+            json=dataset.to_dict(),
+            timeout=30,
+        )
+
+        assert create_response.status_code == HTTPStatus.CREATED
+        status_body = self._dataset_status(dataset_uuid=dataset.uuid_)
+        assert status_body["status"] == "failed"
+        assert status_body["error"]["message"] == "Seeded failure"
+
+    def test_seeded_generation_warning(self) -> None:
+        """A dataset seeded with a generation warning through the target
+        manager API reports the warning through the VWS app.
+        """
+        dataset = ModelTargetDataset(
+            request_body=_MODEL_TARGET_DATASET_REQUEST,
+            dataset_type=ModelTargetDatasetType.STANDARD,
+            processing_time_seconds=0.0,
+            generation_failure=None,
+            generation_warning=ModelTargetGenerationWarning(
+                message="Seeded warning",
+            ),
+        )
+        datasets_url = (
+            _EXAMPLE_URL_FOR_TARGET_MANAGER + "/model_target_datasets"
+        )
+        create_response = requests.post(
+            url=datasets_url,
+            json=dataset.to_dict(),
+            timeout=30,
+        )
+
+        assert create_response.status_code == HTTPStatus.CREATED
+        status_body = self._dataset_status(dataset_uuid=dataset.uuid_)
+        assert status_body["status"] == "done"
+        assert status_body["warning"]["message"] == "Seeded warning"
+
+    @staticmethod
+    def test_delete_unknown_dataset() -> None:
+        """Deleting an unknown dataset from the target manager returns a
+        404 response.
+        """
+        datasets_url = (
+            _EXAMPLE_URL_FOR_TARGET_MANAGER + "/model_target_datasets"
+        )
+        delete_response = requests.delete(
+            url=datasets_url + "/" + uuid.uuid4().hex,
+            timeout=30,
+        )
+
+        assert delete_response.status_code == HTTPStatus.NOT_FOUND
 
 
 class TestResponseDelay:

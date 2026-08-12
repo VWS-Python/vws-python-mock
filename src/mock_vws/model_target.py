@@ -5,10 +5,22 @@ import datetime
 import uuid
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Any
+from typing import Any, Self, TypedDict
 from zoneinfo import ZoneInfo
 
 from beartype import beartype
+
+
+class ModelTargetDatasetDict(TypedDict):
+    """A dictionary type which represents a Model Target dataset."""
+
+    request_body: dict[str, Any]
+    dataset_type_name: str
+    processing_time_seconds: float
+    generation_failure_message: str | None
+    generation_warning: dict[str, Any] | None
+    uuid: str
+    created_at: str
 
 
 @beartype
@@ -91,6 +103,62 @@ class ModelTargetDataset:
     generation_warning: ModelTargetGenerationWarning | None = field(hash=False)
     uuid_: str = field(default_factory=lambda: uuid.uuid4().hex)
     created_at: datetime.datetime = field(default_factory=_now)
+
+    @classmethod
+    def from_dict(cls, dataset_dict: ModelTargetDatasetDict) -> Self:
+        """Load a dataset from a dictionary."""
+        generation_failure_message = dataset_dict["generation_failure_message"]
+        if generation_failure_message is None:
+            generation_failure = None
+        else:
+            generation_failure = ModelTargetGenerationFailure(
+                message=generation_failure_message,
+            )
+
+        generation_warning_dict = dataset_dict["generation_warning"]
+        if generation_warning_dict is None:
+            generation_warning = None
+        else:
+            generation_warning = ModelTargetGenerationWarning(
+                message=generation_warning_dict["message"],
+                details=generation_warning_dict["details"],
+            )
+
+        dataset_type_name = dataset_dict["dataset_type_name"]
+        return cls(
+            request_body=dataset_dict["request_body"],
+            dataset_type=ModelTargetDatasetType[dataset_type_name],
+            processing_time_seconds=dataset_dict["processing_time_seconds"],
+            generation_failure=generation_failure,
+            generation_warning=generation_warning,
+            uuid_=dataset_dict["uuid"],
+            created_at=datetime.datetime.fromisoformat(
+                dataset_dict["created_at"],
+            ),
+        )
+
+    def to_dict(self) -> ModelTargetDatasetDict:
+        """Dump a dataset to a dictionary which can be loaded as JSON."""
+        generation_failure_message: str | None = None
+        if self.generation_failure is not None:
+            generation_failure_message = self.generation_failure.message
+
+        generation_warning: dict[str, Any] | None = None
+        if self.generation_warning is not None:
+            generation_warning = {
+                "message": self.generation_warning.message,
+                "details": copy.deepcopy(x=self.generation_warning.details),
+            }
+
+        return {
+            "request_body": copy.deepcopy(x=self.request_body),
+            "dataset_type_name": self.dataset_type.name,
+            "processing_time_seconds": self.processing_time_seconds,
+            "generation_failure_message": generation_failure_message,
+            "generation_warning": generation_warning,
+            "uuid": self.uuid_,
+            "created_at": self.created_at.isoformat(),
+        }
 
     @property
     def completed_at(self) -> datetime.datetime:

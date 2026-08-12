@@ -28,7 +28,6 @@ from mock_vws._constants import (
     TargetStatuses,
 )
 from mock_vws._database_matchers import get_database_matching_server_keys
-from mock_vws._flask_server.target_manager import TARGET_MANAGER
 from mock_vws._mock_common import RequestData, json_dump, sorted_targets
 from mock_vws._model_target_web_api import (
     create_model_target_dataset,
@@ -52,21 +51,30 @@ from mock_vws._services_validators.exceptions import (
     TargetStatusProcessingError,
     ValidatorError,
 )
+from mock_vws._services_validators.request_rate_validators import (
+    RequestRateLimiter,
+)
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.image_matchers import (
     ExactMatcher,
     ImageMatcher,
     StructuralSimilarityMatcher,
 )
-from mock_vws.model_target import ModelTargetDatasetType
+from mock_vws.model_target import ModelTargetDataset, ModelTargetDatasetType
+from mock_vws.reco_counts import RecoCountsReport
 from mock_vws.target import ImageTarget
-from mock_vws.target_manager import TargetManager
 from mock_vws.target_raters import (
     HardcodedTargetTrackingRater,
 )
 
 VWS_FLASK_APP = Flask(import_name=__name__, static_folder=None)
 VWS_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
+
+# In the Docker deployment the target manager service owns all database and
+# target state, and each VWS app instance is otherwise stateless.
+# Request rate limit history is deliberately an exception: it is tracked per
+# VWS app instance, so it is lost when the app restarts.
+_REQUEST_RATE_LIMITER = RequestRateLimiter(time_function=time.monotonic)
 
 
 _LOGGER = logging.getLogger(name=__name__)
@@ -148,9 +156,92 @@ def _flask_request_data() -> RequestData:
 
 
 @beartype
-def _model_target_manager() -> TargetManager:
-    """Return the target manager backing the Flask app."""
-    return TARGET_MANAGER
+class _HTTPModelTargetDatasetStore:
+    """Model Target dataset storage backed by the target manager
+    service.
+    """
+
+    def __init__(self, *, base_url: str) -> None:
+        """
+        Args:
+            base_url: The base URL of the target manager service.
+        """
+        self._datasets_url = f"{base_url}/model_target_datasets"
+
+    @property
+    def model_target_datasets(self) -> dict[str, ModelTargetDataset]:
+        """All Model Target datasets, keyed by UUID."""
+        timeout_seconds = 30
+        response = requests.get(
+            url=self._datasets_url,
+            timeout=timeout_seconds,
+        )
+        datasets = (
+            ModelTargetDataset.from_dict(dataset_dict=dataset_dict)
+            for dataset_dict in response.json()
+        )
+        return {dataset.uuid_: dataset for dataset in datasets}
+
+    def add_model_target_dataset(
+        self,
+        model_target_dataset: ModelTargetDataset,
+    ) -> None:
+        """Add a Model Target dataset."""
+        timeout_seconds = 30
+        requests.post(
+            url=self._datasets_url,
+            json=model_target_dataset.to_dict(),
+            timeout=timeout_seconds,
+        )
+
+    def remove_model_target_dataset(self, dataset_uuid: str) -> None:
+        """Remove a Model Target dataset."""
+        timeout_seconds = 30
+        requests.delete(
+            url=f"{self._datasets_url}/{dataset_uuid}",
+            timeout=timeout_seconds,
+        )
+
+
+@beartype
+def _model_target_dataset_store() -> _HTTPModelTargetDatasetStore:
+    """Return the dataset store backing the Model Target routes."""
+    settings = VWSSettings.model_validate(obj={})
+    return _HTTPModelTargetDatasetStore(
+        base_url=settings.target_manager_base_url,
+    )
+
+
+@beartype
+class _InMemoryRecoCountsReportStore:
+    """Reco counts report storage for this app instance.
+
+    Generated reports are served by this app, standing in for the presigned
+    cloud storage URLs which real Vuforia returns, so reports are stored in
+    this app rather than in the target manager service.
+    """
+
+    def __init__(self) -> None:
+        """Create a store with no reports."""
+        self._reports: dict[str, RecoCountsReport] = {}
+
+    @property
+    def reco_counts_reports(self) -> dict[str, RecoCountsReport]:
+        """All reco counts reports, keyed by report identifier."""
+        return dict(self._reports)
+
+    def add_reco_counts_report(
+        self,
+        # The parameter name matches the ``RecoCountsReportStore`` protocol,
+        # and also happens to match the name of a route function in this
+        # module.
+        reco_counts_report: RecoCountsReport,  # pylint: disable=redefined-outer-name
+    ) -> None:
+        """Add a reco counts report."""
+        self._reports[reco_counts_report.uuid_] = reco_counts_report
+
+
+_RECO_COUNTS_REPORT_STORE = _InMemoryRecoCountsReportStore()
 
 
 @beartype
@@ -221,7 +312,7 @@ def validate_request() -> None:
         request_method=request.method,
         request_path=request.path,
         databases=get_all_cloud_databases(),
-        request_rate_limiter=TARGET_MANAGER.request_rate_limiter,
+        request_rate_limiter=_REQUEST_RATE_LIMITER,
     )
 
 
@@ -288,7 +379,7 @@ def create_standard_model_target_dataset() -> Response:
     return _to_flask_response(
         api_response=create_model_target_dataset(
             request=_flask_request_data(),
-            target_manager=_model_target_manager(),
+            dataset_store=_model_target_dataset_store(),
             processing_time_seconds=settings.processing_time_seconds,
             dataset_type=ModelTargetDatasetType.STANDARD,
             generation_failure=None,
@@ -308,7 +399,7 @@ def create_advanced_model_target_dataset() -> Response:
     return _to_flask_response(
         api_response=create_model_target_dataset(
             request=_flask_request_data(),
-            target_manager=_model_target_manager(),
+            dataset_store=_model_target_dataset_store(),
             processing_time_seconds=settings.processing_time_seconds,
             dataset_type=ModelTargetDatasetType.ADVANCED,
             generation_failure=None,
@@ -329,7 +420,7 @@ def get_standard_model_target_dataset_status(
     return _to_flask_response(
         api_response=get_model_target_dataset_status(
             request=_flask_request_data(),
-            target_manager=_model_target_manager(),
+            dataset_store=_model_target_dataset_store(),
             dataset_uuid=dataset_uuid,
             dataset_type=ModelTargetDatasetType.STANDARD,
         ),
@@ -348,7 +439,7 @@ def get_advanced_model_target_dataset_status(
     return _to_flask_response(
         api_response=get_model_target_dataset_status(
             request=_flask_request_data(),
-            target_manager=_model_target_manager(),
+            dataset_store=_model_target_dataset_store(),
             dataset_uuid=dataset_uuid,
             dataset_type=ModelTargetDatasetType.ADVANCED,
         ),
@@ -367,7 +458,7 @@ def download_standard_model_target_dataset(
     return _to_flask_response(
         api_response=download_model_target_dataset(
             request=_flask_request_data(),
-            target_manager=_model_target_manager(),
+            dataset_store=_model_target_dataset_store(),
             dataset_uuid=dataset_uuid,
             dataset_type=ModelTargetDatasetType.STANDARD,
         ),
@@ -386,7 +477,7 @@ def download_advanced_model_target_dataset(
     return _to_flask_response(
         api_response=download_model_target_dataset(
             request=_flask_request_data(),
-            target_manager=_model_target_manager(),
+            dataset_store=_model_target_dataset_store(),
             dataset_uuid=dataset_uuid,
             dataset_type=ModelTargetDatasetType.ADVANCED,
         ),
@@ -403,7 +494,7 @@ def delete_standard_model_target_dataset(dataset_uuid: str) -> Response:
     return _to_flask_response(
         api_response=delete_model_target_dataset(
             request=_flask_request_data(),
-            target_manager=_model_target_manager(),
+            dataset_store=_model_target_dataset_store(),
             dataset_uuid=dataset_uuid,
             dataset_type=ModelTargetDatasetType.STANDARD,
         ),
@@ -420,7 +511,7 @@ def delete_advanced_model_target_dataset(dataset_uuid: str) -> Response:
     return _to_flask_response(
         api_response=delete_model_target_dataset(
             request=_flask_request_data(),
-            target_manager=_model_target_manager(),
+            dataset_store=_model_target_dataset_store(),
             dataset_uuid=dataset_uuid,
             dataset_type=ModelTargetDatasetType.ADVANCED,
         ),
@@ -445,7 +536,7 @@ def reco_counts_report(database_id: str) -> Response:
     return _to_flask_response(
         api_response=create_reco_counts_report(
             request_body=request.data,
-            target_manager=TARGET_MANAGER,
+            report_store=_RECO_COUNTS_REPORT_STORE,
             generation_time_seconds=settings.processing_time_seconds,
             base_url=settings.vws_base_url.rstrip("/"),
         ),
@@ -465,7 +556,7 @@ def download_reco_counts_report(report_id: str) -> Response:
     """
     return _to_flask_response(
         api_response=download_report(
-            target_manager=TARGET_MANAGER,
+            report_store=_RECO_COUNTS_REPORT_STORE,
             report_id=report_id,
         ),
     )
@@ -681,7 +772,7 @@ def generate_vumark_instance(target_id: str) -> Response:
         request_method=request.method,
         request_path=request.path,
         databases=all_databases,
-        request_rate_limiter=TARGET_MANAGER.request_rate_limiter,
+        request_rate_limiter=_REQUEST_RATE_LIMITER,
     )
 
     database = get_database_matching_server_keys(

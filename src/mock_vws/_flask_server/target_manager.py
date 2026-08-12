@@ -15,6 +15,7 @@ from pydantic_settings import BaseSettings
 
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.database_type import DatabaseType
+from mock_vws.model_target import ModelTargetDataset
 from mock_vws.request_rate_limits import RequestRateLimits
 from mock_vws.states import States
 from mock_vws.target import ImageTarget, VuMarkTarget
@@ -342,6 +343,59 @@ def create_vumark_database() -> Response:
         response=json.dumps(obj=database.to_dict()),
         status=HTTPStatus.CREATED,
     )
+
+
+@TARGET_MANAGER_FLASK_APP.route(
+    rule="/model_target_datasets",
+    methods=[HTTPMethod.GET],
+)
+@beartype
+def get_model_target_datasets() -> Response:
+    """Return a list of all Model Target datasets."""
+    datasets = [
+        dataset.to_dict()
+        for dataset in TARGET_MANAGER.model_target_datasets.values()
+    ]
+    return Response(
+        response=json.dumps(obj=datasets),
+        status=HTTPStatus.OK,
+    )
+
+
+@TARGET_MANAGER_FLASK_APP.route(
+    rule="/model_target_datasets",
+    methods=[HTTPMethod.POST],
+)
+@beartype
+def create_model_target_dataset() -> Response:
+    """Create a new Model Target dataset.
+
+    :status 201: The Model Target dataset has been successfully created.
+    """
+    request_json = json.loads(s=request.data)
+    dataset = ModelTargetDataset.from_dict(dataset_dict=request_json)
+    TARGET_MANAGER.add_model_target_dataset(model_target_dataset=dataset)
+    return Response(
+        response=json.dumps(obj=dataset.to_dict()),
+        status=HTTPStatus.CREATED,
+    )
+
+
+@TARGET_MANAGER_FLASK_APP.route(
+    rule="/model_target_datasets/<string:dataset_uuid>",
+    methods=[HTTPMethod.DELETE],
+)
+@beartype
+def delete_model_target_dataset(dataset_uuid: str) -> Response:
+    """Delete a Model Target dataset.
+
+    :status 200: The Model Target dataset has been deleted.
+    """
+    if dataset_uuid not in TARGET_MANAGER.model_target_datasets:
+        return Response(response="", status=HTTPStatus.NOT_FOUND)
+
+    TARGET_MANAGER.remove_model_target_dataset(dataset_uuid=dataset_uuid)
+    return Response(response="", status=HTTPStatus.OK)
 
 
 @TARGET_MANAGER_FLASK_APP.route(

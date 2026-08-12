@@ -292,9 +292,10 @@ def _enable_use_docker_in_memory_model_target_vuforia(
     """Test against the Flask-backed mock Model Target Web API."""
     assert monkeypatch
     VWS_FLASK_APP.config["VWS_MOCK_TERMINATE_WSGI_INPUT"] = True
+    target_manager_base_url = "http://example.com"
     monkeypatch.setenv(
         name="TARGET_MANAGER_BASE_URL",
-        value="http://example.com",
+        value=target_manager_base_url,
     )
 
     with responses.RequestsMock(assert_all_requests_are_fired=False) as mock:
@@ -303,6 +304,15 @@ def _enable_use_docker_in_memory_model_target_vuforia(
             flask_app=VWS_FLASK_APP,
             base_url="https://vws.vuforia.com",
         )
+
+        # The VWS app stores Model Target datasets in the target manager
+        # service, just as it does cloud databases.
+        add_flask_app_to_mock(
+            mock_obj=mock,
+            flask_app=TARGET_MANAGER_FLASK_APP,
+            base_url=target_manager_base_url,
+        )
+
         yield
 
 
