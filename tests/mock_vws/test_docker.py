@@ -103,6 +103,20 @@ def _wait_for_model_target_dataset_done(
         raise ValueError(error_message)
 
 
+@beartype
+def _vws_base_url(*, vws_container: Container) -> str:
+    """Return the host-reachable base URL of the VWS container.
+
+    The container publishes its port to an ephemeral host port, so this
+    must be re-read after a container restart.
+    """
+    vws_container.reload()
+    port_attrs = vws_container.attrs["NetworkSettings"]["Ports"]
+    host_ip = port_attrs["5000/tcp"][0]["HostIp"]
+    host_port = port_attrs["5000/tcp"][0]["HostPort"]
+    return f"http://{host_ip}:{host_port}"
+
+
 @pytest.fixture(name="custom_bridge_network")
 def fixture_custom_bridge_network() -> Iterator[Network]:
     """Yield a custom bridge network which containers can connect to.
@@ -254,15 +268,11 @@ def test_build_and_run(
         "HostPort"
     ]
 
-    vws_port_attrs = vws_container.attrs["NetworkSettings"]["Ports"]
-    vws_host_ip = vws_port_attrs["5000/tcp"][0]["HostIp"]
-    vws_host_port = vws_port_attrs["5000/tcp"][0]["HostPort"]
-
     vwq_port_attrs = vwq_container.attrs["NetworkSettings"]["Ports"]
     vwq_host_ip = vwq_port_attrs["5000/tcp"][0]["HostIp"]
     vwq_host_port = vwq_port_attrs["5000/tcp"][0]["HostPort"]
 
-    base_vws_url = f"http://{vws_host_ip}:{vws_host_port}"
+    base_vws_url = _vws_base_url(vws_container=vws_container)
     base_vwq_url = f"http://{vwq_host_ip}:{vwq_host_port}"
     base_target_manager_url = (
         f"http://{target_manager_host_ip}:{target_manager_host_port}"
@@ -302,16 +312,19 @@ def test_build_and_run(
 
     assert matching_targets[0].target_id == target_id
 
-    _assert_model_target_round_trip(base_vws_url=base_vws_url)
+    _assert_model_target_round_trip(vws_container=vws_container)
 
 
 @beartype
-def _assert_model_target_round_trip(*, base_vws_url: str) -> None:
+def _assert_model_target_round_trip(*, vws_container: Container) -> None:
     """Create a Model Target dataset in one request, poll its status in
     others, then download the generated dataset.
 
-    Dataset state must survive across requests to the real containers.
+    The VWS container is restarted after the dataset is created: datasets
+    are stored in the target manager container, so they must survive a
+    restart of the VWS container.
     """
+    base_vws_url = _vws_base_url(vws_container=vws_container)
     oauth_response = requests.post(
         url=f"{base_vws_url}/oauth2/token",
         auth=("client-id", "client-secret"),
@@ -348,6 +361,12 @@ def _assert_model_target_round_trip(*, base_vws_url: str) -> None:
     )
     assert create_dataset_response.status_code == HTTPStatus.CREATED
     dataset_uuid = create_dataset_response.json()["uuid"]
+
+    # The dataset is stored in the target manager container, so a restart
+    # of the VWS container must not lose it.
+    vws_container.restart()
+    wait_for_health_check(container=vws_container)
+    base_vws_url = _vws_base_url(vws_container=vws_container)
 
     _wait_for_model_target_dataset_done(
         base_vws_url=base_vws_url,
