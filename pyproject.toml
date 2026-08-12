@@ -371,6 +371,7 @@ ignore_names = [
     "DatabaseDict",
     # Too difficult to test (see notes in the code)
     "DATE_RANGE_ERROR",
+    "exclude_patterns",
     "extensions",
     # pytest fixtures - we name fixtures like this for this purpose
     "fixture_*",

@@ -42,6 +42,11 @@ towncrier_draft_working_directory = f"{_pyproject_file.parent}"
 autodoc_use_legacy_class_based = True
 
 templates_path = ["_templates"]
+
+# These fragments are pulled into ``index.rst`` with ``include`` directives
+# rather than a toctree, so keep them out of the document collection to avoid
+# ``toc.not_included`` warnings.
+exclude_patterns = ["basic-example.rst", "httpx-example.rst"]
 source_suffix = ".rst"
 master_doc = "index"
 
