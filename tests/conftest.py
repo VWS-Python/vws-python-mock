@@ -72,6 +72,29 @@ def inactive_cloud_reco_client(
 
 @beartype
 @RETRY_ON_TRANSIENT_VWS_FAILURE
+def _add_target(*, vws_client: VWS, image: io.BytesIO) -> str:
+    """Add a target, which is then in the processing state.
+
+    We retry on transient failures here because pytest-retry does not
+    retry on exceptions raised in fixtures.
+
+    See
+    https://github.com/str0zzapreti/pytest-retry/issues/33.
+
+    Returns:
+        The ID of the added target.
+    """
+    return vws_client.add_target(
+        name=uuid.uuid4().hex,
+        width=1,
+        image=image,
+        active_flag=True,
+        application_metadata=None,
+    )
+
+
+@beartype
+@RETRY_ON_TRANSIENT_VWS_FAILURE
 def _add_target_which_processed_successfully(
     *,
     vws_client: VWS,
@@ -83,23 +106,11 @@ def _add_target_which_processed_successfully(
     target a 'failed' status, so we delete such a target and add another
     one.
 
-    We retry on transient failures here because pytest-retry does not
-    retry on exceptions raised in fixtures.
-
-    See
-    https://github.com/str0zzapreti/pytest-retry/issues/33.
-
     Returns:
         The ID of a target with a 'success' status.
     """
     for _ in range(_TARGET_SUCCESS_ATTEMPTS):
-        target_id_ = vws_client.add_target(
-            name=uuid.uuid4().hex,
-            width=1,
-            image=image,
-            active_flag=True,
-            application_metadata=None,
-        )
+        target_id_ = _add_target(vws_client=vws_client, image=image)
         vws_client.wait_for_target_processed(target_id=target_id_)
         target_details = vws_client.get_target_record(target_id=target_id_)
         if target_details.status == TargetStatuses.SUCCESS:
@@ -123,6 +134,26 @@ def target_id(
     processing with a 'success' status.
     """
     return _add_target_which_processed_successfully(
+        vws_client=vws_client,
+        image=image_file_success_state_low_rating,
+    )
+
+
+@pytest.fixture
+def unprocessed_target_id(
+    *,
+    image_file_success_state_low_rating: io.BytesIO,
+    vws_client: VWS,
+) -> str:
+    """Return the target ID of a target which was just added to the
+    database.
+
+    The target is in the processing state, or it has just left it. Use
+    this rather than ``target_id`` for tests which do not need a
+    processed target, as waiting for processing is slow against real
+    Vuforia.
+    """
+    return _add_target(
         vws_client=vws_client,
         image=image_file_success_state_low_rating,
     )

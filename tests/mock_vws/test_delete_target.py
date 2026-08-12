@@ -1,7 +1,5 @@
 """Tests for deleting targets."""
 
-import io
-import uuid
 from http import HTTPStatus
 
 import pytest
@@ -23,7 +21,7 @@ class TestDelete:
     @staticmethod
     def test_no_wait(
         *,
-        image_file_success_state_low_rating: io.BytesIO,
+        unprocessed_target_id: str,
         vws_client: VWS,
     ) -> None:
         """When attempting to delete a target immediately after creating
@@ -35,18 +33,10 @@ class TestDelete:
         There is a race condition here - if the target goes into a success or
         fail state before the deletion attempt.
         """
-        target_id = vws_client.add_target(
-            name=uuid.uuid4().hex,
-            width=1,
-            image=image_file_success_state_low_rating,
-            active_flag=True,
-            application_metadata=None,
-        )
-
         with pytest.raises(
             expected_exception=TargetStatusProcessingError
         ) as exc:
-            vws_client.delete_target(target_id=target_id)
+            vws_client.delete_target(target_id=unprocessed_target_id)
 
         assert_vws_failure(
             response=exc.value.response,

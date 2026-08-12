@@ -17,10 +17,10 @@ class TestTargetList:
     def test_includes_targets(
         *,
         vws_client: VWS,
-        target_id: str,
+        unprocessed_target_id: str,
     ) -> None:
         """Targets in the database are returned in the list."""
-        assert vws_client.list_targets() == [target_id]
+        assert vws_client.list_targets() == [unprocessed_target_id]
 
     @staticmethod
     def test_deleted(
