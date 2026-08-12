@@ -251,16 +251,22 @@ reported as missing every required top-level field.
 Dataset creation requests are validated for the required top-level ``models``,
 ``name`` and ``targetSdk`` fields, for those fields' types, for each ``models``
 entry being a JSON object, and for the number of models.
-Each model is validated for the required ``cadDataUrl`` and ``name`` fields,
-for those fields' types, and for ``views`` being a JSON array when it is given.
+Each model is validated for the required ``name`` field, for exactly one of
+``cadDataUrl`` and ``cadDataBlob`` being given, for the types of the
+``cadDataBlob``, ``cadDataFormat``, ``cadDataUrl`` and ``name`` fields, for
+``cadDataFormat`` being one of ``DAE``, ``FBX``, ``GLB``, ``IGES``, ``OBJ``,
+``PVZ``, ``STL``, ``VRML`` and ``ZIP`` when it is given, and for ``views``
+being a JSON array when it is given.
 Each ``views`` entry is validated for being a JSON object, for the required
 ``guideViewPosition`` and ``name`` fields, and for those fields' types.
 Each ``guideViewPosition`` object is validated for the required ``rotation``
 and ``translation`` fields, for those fields being JSON arrays, and for the
 elements of those arrays being JSON numbers.
 The mock does not validate the contents of each model further, such as whether
-``cadDataUrl`` values are reachable, the lengths of ``rotation`` and
-``translation`` arrays, or ``targetSdk`` version numbers.
+``cadDataUrl`` values are reachable, whether ``cadDataBlob`` values are valid
+base64-encoded archives of the named ``cadDataFormat``, whether
+``cadDataFormat`` is given alongside ``cadDataBlob``, the lengths of
+``rotation`` and ``translation`` arrays, or ``targetSdk`` version numbers.
 
 For unknown Model Target datasets, the mock returns an error whose ``target`` is ``userId:mock``.
 Real Vuforia uses ``userId:<numeric-user-id>`` where the numeric portion is per-account.

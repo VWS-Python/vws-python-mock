@@ -1,0 +1,1 @@
+Support ``cadDataBlob`` and ``cadDataFormat`` in Model Target dataset creation requests, and require exactly one of ``cadDataUrl`` and ``cadDataBlob`` for each model.
