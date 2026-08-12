@@ -1,0 +1,52 @@
+# Keep the Docker build context to what the image needs: the package
+# source, ``pyproject.toml``, ``uv.lock`` and the ``README.rst`` that
+# ``pyproject.toml`` references.  This list follows the
+# ``[tool.check-manifest]`` ignore list in ``pyproject.toml``, plus
+# VCS data, local virtual environments and secrets.
+*.enc
+.checkmake-config.ini
+.dockerignore
+.git
+.git_archival.txt
+.gitattributes
+.github
+.gitignore
+.pre-commit-config.yaml
+.vscode
+.prettierrc
+.vale.ini
+.yamlfmt
+admin
+CHANGELOG.rst
+ci
+CODE_OF_CONDUCT.rst
+CONTRIBUTING.rst
+docker-bake.hcl
+docs
+LICENSE
+lint.mk
+Makefile
+MANIFEST.in
+newsfragments
+secrets.tar.gpg
+spelling_private_dict.txt
+tests
+vuforia_secrets.env.example
+zizmor.yml
+
+# Local development leftovers.
+**/__pycache__
+**/.DS_Store
+*.egg-info
+.claude
+.context
+.coverage*
+.mypy_cache
+.pytest_cache
+.venv
+ci_secrets
+conftest.py
+docker_venvs
+secrets.tar
+styles
+vuforia_secrets.env

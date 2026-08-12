@@ -2,7 +2,10 @@
 version: 2
 
 updates:
-  - package-ecosystem: pip
+  # The ``uv`` ecosystem updates ``pyproject.toml`` and ``uv.lock``
+  # together, keeping the lockfile in sync so that
+  # ``uv sync --locked`` in the Dockerfile keeps working.
+  - package-ecosystem: uv
     directory: /
     schedule:
       interval: daily

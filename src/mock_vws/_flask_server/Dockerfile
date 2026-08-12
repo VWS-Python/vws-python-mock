@@ -5,9 +5,12 @@ FROM ghcr.io/astral-sh/uv:0.11.7-python3.14-trixie-slim AS base
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0
 # Avoid using root user. Use an explicit UID so the container does not rely on
 # the host being able to resolve the account name.
-RUN useradd --create-home --shell /bin/bash --uid 10001 myuser
+# Create /app here because the legacy (non-BuildKit) builder creates
+# WORKDIR directories owned by root, not the current user.
+RUN useradd --create-home --shell /bin/bash --uid 10001 myuser \
+    && mkdir /app \
+    && chown 10001:10001 /app
 USER 10001
-COPY --chown=10001:10001 . /app
 
 # See https://pythonspeed.com/articles/activate-virtualenv-dockerfile/
 # For why we use this method of activating the virtual environment.
@@ -15,7 +18,12 @@ ENV UV_PROJECT_ENVIRONMENT=/app/docker_venvs/.venv
 ENV PATH="$UV_PROJECT_ENVIRONMENT/bin:$PATH"
 
 WORKDIR /app
-RUN uv sync --no-cache
+# Install the locked dependencies before copying the source, so that
+# source edits do not invalidate the dependency layer.
+COPY --chown=10001:10001 pyproject.toml uv.lock /app/
+RUN uv sync --locked --no-cache --no-install-project
+COPY --chown=10001:10001 . /app
+RUN uv sync --locked --no-cache
 EXPOSE 5000
 ENTRYPOINT ["python"]
 HEALTHCHECK --interval=1s --timeout=10s --start-period=5s --retries=3 CMD ["python", "/app/src/mock_vws/_flask_server/healthcheck.py"]

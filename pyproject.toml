@@ -316,6 +316,7 @@ omit-covered-files = true
 ignore = [
     "*.enc",
     ".checkmake-config.ini",
+    ".dockerignore",
     ".git_archival.txt",
     ".prettierrc",
     ".vale.ini",
@@ -338,6 +339,7 @@ ignore = [
     "src/mock_vws/_flask_server/Dockerfile",
     "tests",
     "tests/**",
+    "uv.lock",
     "vuforia_secrets.env.example",
 ]
 
