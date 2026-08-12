@@ -6,7 +6,7 @@ import json
 import uuid
 import zipfile
 from http import HTTPStatus
-from typing import Any
+from typing import Any, Protocol, runtime_checkable
 from urllib.parse import parse_qs
 
 from beartype import beartype
@@ -18,9 +18,37 @@ from mock_vws.model_target import (
     ModelTargetGenerationFailure,
     ModelTargetGenerationWarning,
 )
-from mock_vws.target_manager import TargetManager
 
 _ResponseType = tuple[int, dict[str, str], str | bytes]
+
+
+@runtime_checkable
+class ModelTargetDatasetStore(Protocol):
+    """Storage for Model Target datasets."""
+
+    @property
+    def model_target_datasets(self) -> dict[str, ModelTargetDataset]:
+        """All Model Target datasets, keyed by UUID."""
+        # We disable a pylint warning here because the ellipsis is required
+        # for pyright to recognize this as a protocol.
+        ...  # pylint: disable=unnecessary-ellipsis
+
+    def add_model_target_dataset(
+        self,
+        model_target_dataset: ModelTargetDataset,
+    ) -> None:
+        """Add a Model Target dataset."""
+        # We disable a pylint warning here because the ellipsis is required
+        # for pyright to recognize this as a protocol.
+        ...  # pylint: disable=unnecessary-ellipsis
+
+    def remove_model_target_dataset(self, dataset_uuid: str) -> None:
+        """Remove a Model Target dataset."""
+        # We disable a pylint warning here because the ellipsis is required
+        # for pyright to recognize this as a protocol.
+        ...  # pylint: disable=unnecessary-ellipsis
+
+
 _MAX_ADVANCED_MODEL_COUNT = 20
 _JWT_DOT_COUNT = 2
 _ZIP_EPOCH = (1980, 1, 1, 0, 0, 0)
@@ -685,7 +713,7 @@ def _validate_dataset_request(
 def create_model_target_dataset(
     *,
     request: RequestData,
-    target_manager: TargetManager,
+    dataset_store: ModelTargetDatasetStore,
     processing_time_seconds: float,
     dataset_type: ModelTargetDatasetType,
     generation_failure: ModelTargetGenerationFailure | None,
@@ -714,7 +742,7 @@ def create_model_target_dataset(
         generation_failure=generation_failure,
         generation_warning=generation_warning,
     )
-    target_manager.add_model_target_dataset(model_target_dataset=dataset)
+    dataset_store.add_model_target_dataset(model_target_dataset=dataset)
     return _json_response(
         status_code=HTTPStatus.CREATED,
         body={"uuid": dataset.uuid_},
@@ -738,7 +766,7 @@ def _unknown_dataset_response(*, dataset_uuid: str) -> _ResponseType:
 @beartype
 def _find_dataset(
     *,
-    target_manager: TargetManager,
+    dataset_store: ModelTargetDatasetStore,
     dataset_uuid: str,
     dataset_type: ModelTargetDatasetType,
 ) -> ModelTargetDataset | None:
@@ -747,7 +775,7 @@ def _find_dataset(
     Standard and advanced datasets are separate resources in real Vuforia, so
     a dataset is invisible to the routes of the other dataset type.
     """
-    dataset = target_manager.model_target_datasets.get(dataset_uuid)
+    dataset = dataset_store.model_target_datasets.get(dataset_uuid)
     if dataset is None or dataset.dataset_type != dataset_type:
         return None
     return dataset
@@ -757,7 +785,7 @@ def _find_dataset(
 def get_model_target_dataset_status(
     *,
     request: RequestData,
-    target_manager: TargetManager,
+    dataset_store: ModelTargetDatasetStore,
     dataset_uuid: str,
     dataset_type: ModelTargetDatasetType,
 ) -> _ResponseType:
@@ -766,7 +794,7 @@ def get_model_target_dataset_status(
     if auth_error is not None:
         return auth_error
     dataset = _find_dataset(
-        target_manager=target_manager,
+        dataset_store=dataset_store,
         dataset_uuid=dataset_uuid,
         dataset_type=dataset_type,
     )
@@ -806,7 +834,7 @@ def _dataset_zip_bytes(dataset: ModelTargetDataset) -> bytes:
 def download_model_target_dataset(
     *,
     request: RequestData,
-    target_manager: TargetManager,
+    dataset_store: ModelTargetDatasetStore,
     dataset_uuid: str,
     dataset_type: ModelTargetDatasetType,
 ) -> _ResponseType:
@@ -815,7 +843,7 @@ def download_model_target_dataset(
     if auth_error is not None:
         return auth_error
     dataset = _find_dataset(
-        target_manager=target_manager,
+        dataset_store=dataset_store,
         dataset_uuid=dataset_uuid,
         dataset_type=dataset_type,
     )
@@ -848,7 +876,7 @@ def download_model_target_dataset(
 def delete_model_target_dataset(
     *,
     request: RequestData,
-    target_manager: TargetManager,
+    dataset_store: ModelTargetDatasetStore,
     dataset_uuid: str,
     dataset_type: ModelTargetDatasetType,
 ) -> _ResponseType:
@@ -857,11 +885,11 @@ def delete_model_target_dataset(
     if auth_error is not None:
         return auth_error
     dataset = _find_dataset(
-        target_manager=target_manager,
+        dataset_store=dataset_store,
         dataset_uuid=dataset_uuid,
         dataset_type=dataset_type,
     )
     if dataset is None:
         return _unknown_dataset_response(dataset_uuid=dataset_uuid)
-    target_manager.remove_model_target_dataset(dataset_uuid=dataset_uuid)
+    dataset_store.remove_model_target_dataset(dataset_uuid=dataset_uuid)
     return HTTPStatus.OK, {"Content-Length": "0"}, ""

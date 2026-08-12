@@ -1,0 +1,1 @@
+Store Model Target datasets in the target manager service rather than in the VWS application. In the Docker deployment, datasets now survive a restart of the VWS container, matching how cloud databases and their targets are stored. The VWS application also no longer imports the target manager module's state: it constructs its own request rate limiter and reco counts report store.

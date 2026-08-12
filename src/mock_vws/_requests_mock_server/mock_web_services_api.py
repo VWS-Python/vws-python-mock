@@ -198,7 +198,7 @@ class MockVuforiaWebServicesAPI:
         """Create a standard Model Target dataset."""
         return create_model_target_dataset(
             request=request,
-            target_manager=self._target_manager,
+            dataset_store=self._target_manager,
             processing_time_seconds=self._processing_time_seconds,
             dataset_type=ModelTargetDatasetType.STANDARD,
             generation_failure=self._model_target_generation_failure,
@@ -216,7 +216,7 @@ class MockVuforiaWebServicesAPI:
         """Create an advanced Model Target dataset."""
         return create_model_target_dataset(
             request=request,
-            target_manager=self._target_manager,
+            dataset_store=self._target_manager,
             processing_time_seconds=self._processing_time_seconds,
             dataset_type=ModelTargetDatasetType.ADVANCED,
             generation_failure=self._model_target_generation_failure,
@@ -238,7 +238,7 @@ class MockVuforiaWebServicesAPI:
         dataset_uuid = request.path.split(sep="/")[-2]
         return get_model_target_dataset_status(
             request=request,
-            target_manager=self._target_manager,
+            dataset_store=self._target_manager,
             dataset_uuid=dataset_uuid,
             dataset_type=ModelTargetDatasetType.STANDARD,
         )
@@ -258,7 +258,7 @@ class MockVuforiaWebServicesAPI:
         dataset_uuid = request.path.split(sep="/")[-2]
         return get_model_target_dataset_status(
             request=request,
-            target_manager=self._target_manager,
+            dataset_store=self._target_manager,
             dataset_uuid=dataset_uuid,
             dataset_type=ModelTargetDatasetType.ADVANCED,
         )
@@ -278,7 +278,7 @@ class MockVuforiaWebServicesAPI:
         dataset_uuid = request.path.split(sep="/")[-2]
         return download_model_target_dataset(
             request=request,
-            target_manager=self._target_manager,
+            dataset_store=self._target_manager,
             dataset_uuid=dataset_uuid,
             dataset_type=ModelTargetDatasetType.STANDARD,
         )
@@ -298,7 +298,7 @@ class MockVuforiaWebServicesAPI:
         dataset_uuid = request.path.split(sep="/")[-2]
         return download_model_target_dataset(
             request=request,
-            target_manager=self._target_manager,
+            dataset_store=self._target_manager,
             dataset_uuid=dataset_uuid,
             dataset_type=ModelTargetDatasetType.ADVANCED,
         )
@@ -317,7 +317,7 @@ class MockVuforiaWebServicesAPI:
         dataset_uuid = request.path.split(sep="/")[-1]
         return delete_model_target_dataset(
             request=request,
-            target_manager=self._target_manager,
+            dataset_store=self._target_manager,
             dataset_uuid=dataset_uuid,
             dataset_type=ModelTargetDatasetType.STANDARD,
         )
@@ -337,7 +337,7 @@ class MockVuforiaWebServicesAPI:
         dataset_uuid = request.path.split(sep="/")[-1]
         return delete_model_target_dataset(
             request=request,
-            target_manager=self._target_manager,
+            dataset_store=self._target_manager,
             dataset_uuid=dataset_uuid,
             dataset_type=ModelTargetDatasetType.ADVANCED,
         )
@@ -363,7 +363,7 @@ class MockVuforiaWebServicesAPI:
             )
             return create_reco_counts_report(
                 request_body=request.body,
-                target_manager=self._target_manager,
+                report_store=self._target_manager,
                 generation_time_seconds=self._processing_time_seconds,
                 base_url=self._base_vws_url.rstrip("/"),
             )
@@ -385,7 +385,7 @@ class MockVuforiaWebServicesAPI:
         """
         report_id = request.path.split(sep="/")[-1]
         return download_reco_counts_report(
-            target_manager=self._target_manager,
+            report_store=self._target_manager,
             report_id=report_id,
         )
 

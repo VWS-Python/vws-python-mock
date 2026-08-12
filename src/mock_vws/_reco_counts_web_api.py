@@ -7,7 +7,7 @@ import logging
 import re
 import uuid
 from http import HTTPStatus
-from typing import Any
+from typing import Any, Protocol, runtime_checkable
 from zoneinfo import ZoneInfo
 
 from beartype import beartype
@@ -16,11 +16,31 @@ from mock_vws._constants import ResultCodes
 from mock_vws._mock_common import json_dump
 from mock_vws._services_validators.exceptions import FailError
 from mock_vws.reco_counts import RecoCountsReport
-from mock_vws.target_manager import TargetManager
 
 _ResponseType = tuple[int, dict[str, str], str | bytes]
 _LOGGER = logging.getLogger(name=__name__)
 _MONTH_PATTERN = re.compile(pattern=r"[0-9]{4}-[0-9]{2}")
+
+
+@runtime_checkable
+class RecoCountsReportStore(Protocol):
+    """Storage for generated reco counts reports."""
+
+    @property
+    def reco_counts_reports(self) -> dict[str, RecoCountsReport]:
+        """All reco counts reports, keyed by report identifier."""
+        # We disable a pylint warning here because the ellipsis is required
+        # for pyright to recognize this as a protocol.
+        ...  # pylint: disable=unnecessary-ellipsis
+
+    def add_reco_counts_report(
+        self,
+        reco_counts_report: RecoCountsReport,
+    ) -> None:
+        """Add a reco counts report."""
+        # We disable a pylint warning here because the ellipsis is required
+        # for pyright to recognize this as a protocol.
+        ...  # pylint: disable=unnecessary-ellipsis
 
 
 @beartype
@@ -76,7 +96,7 @@ def _months_in_range() -> set[str]:
 def create_reco_counts_report(
     *,
     request_body: bytes,
-    target_manager: TargetManager,
+    report_store: RecoCountsReportStore,
     generation_time_seconds: float,
     base_url: str,
 ) -> _ResponseType:
@@ -84,7 +104,7 @@ def create_reco_counts_report(
 
     Args:
         request_body: The body of the request.
-        target_manager: The target manager which stores generated reports.
+        report_store: The store which holds generated reports.
         generation_time_seconds: The number of seconds before a generated
             report is available to download.
         base_url: The base URL to serve the generated report from.
@@ -116,7 +136,7 @@ def create_reco_counts_report(
     report = RecoCountsReport(
         generation_time_seconds=generation_time_seconds,
     )
-    target_manager.add_reco_counts_report(reco_counts_report=report)
+    report_store.add_reco_counts_report(reco_counts_report=report)
 
     body = {
         "result_code": ResultCodes.SUCCESS.value,
@@ -134,20 +154,20 @@ def create_reco_counts_report(
 @beartype
 def download_reco_counts_report(
     *,
-    target_manager: TargetManager,
+    report_store: RecoCountsReportStore,
     report_id: str,
 ) -> _ResponseType:
     """Download a generated reco counts report.
 
     Args:
-        target_manager: The target manager which stores generated reports.
+        report_store: The store which holds generated reports.
         report_id: The identifier of the report to download.
 
     Returns:
         The CSV content of the report, or a 404 response while the report is
         not ready.
     """
-    report = target_manager.reco_counts_reports.get(report_id)
+    report = report_store.reco_counts_reports.get(report_id)
     if report is None or not report.is_available:
         return (
             HTTPStatus.NOT_FOUND,
