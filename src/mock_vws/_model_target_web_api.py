@@ -31,6 +31,21 @@ _MOCK_MODEL_TARGET_CLIENT_SECRET = "client-secret"  # noqa: S105
 # ``userId:7635391``. The numeric portion is per-account in real Vuforia;
 # the mock uses a fixed placeholder.
 _MOCK_USER_TARGET = "userId:mock"
+# The CAD data formats documented by the Model Target Web API OpenAPI
+# specification.
+_CAD_DATA_FORMATS = frozenset(
+    {
+        "DAE",
+        "FBX",
+        "GLB",
+        "IGES",
+        "OBJ",
+        "PVZ",
+        "STL",
+        "VRML",
+        "ZIP",
+    },
+)
 
 
 @beartype
@@ -359,19 +374,39 @@ def _load_request_json(request: RequestData) -> dict[str, Any] | _ResponseType:
 
 
 @beartype
+def _cad_data_source_details(*, models: list[Any]) -> list[dict[str, str]]:
+    """Return validation details for each model's CAD data source.
+
+    One and only one of ``cadDataUrl`` and ``cadDataBlob`` may be given per
+    model.
+    """
+    return [
+        {
+            "code": "VALIDATION_ERROR",
+            "message": (
+                f"/models({index}): one and only one of cadDataUrl and "
+                "cadDataBlob is required"
+            ),
+        }
+        for index, model in enumerate(iterable=models)
+        if ("cadDataUrl" in model) == ("cadDataBlob" in model)
+    ]
+
+
+@beartype
 def _model_field_details(*, models: list[Any]) -> list[dict[str, str]]:
     """Return validation details for the fields of each model."""
     missing_details = [
         {
             "code": "VALIDATION_ERROR",
-            "message": f"/models({index})/{field}: element is required",
+            "message": f"/models({index})/name: element is required",
         }
         for index, model in enumerate(iterable=models)
-        for field in ("cadDataUrl", "name")
-        if field not in model
+        if "name" not in model
     ]
-    if missing_details:
-        return missing_details
+    cad_data_source_details = _cad_data_source_details(models=models)
+    if missing_details or cad_data_source_details:
+        return missing_details + cad_data_source_details
 
     string_details = [
         {
@@ -379,8 +414,22 @@ def _model_field_details(*, models: list[Any]) -> list[dict[str, str]]:
             "message": f"/models({index})/{field}: error.expected.jsstring",
         }
         for index, model in enumerate(iterable=models)
-        for field in ("cadDataUrl", "name")
-        if not isinstance(model[field], str)
+        for field in ("cadDataBlob", "cadDataFormat", "cadDataUrl", "name")
+        if field in model and not isinstance(model[field], str)
+    ]
+    if string_details:
+        return string_details
+
+    format_details = [
+        {
+            "code": "VALIDATION_ERROR",
+            "message": (
+                f"/models({index})/cadDataFormat: error.expected.validenum"
+            ),
+        }
+        for index, model in enumerate(iterable=models)
+        if "cadDataFormat" in model
+        and model["cadDataFormat"] not in _CAD_DATA_FORMATS
     ]
     views_details = [
         {
@@ -390,7 +439,7 @@ def _model_field_details(*, models: list[Any]) -> list[dict[str, str]]:
         for index, model in enumerate(iterable=models)
         if "views" in model and not isinstance(model["views"], list)
     ]
-    return string_details + views_details
+    return format_details + views_details
 
 
 @beartype

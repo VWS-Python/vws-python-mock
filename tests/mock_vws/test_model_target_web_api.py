@@ -1,7 +1,9 @@
 """Verified fake tests for the Model Target Web API."""
 
 import base64
+import io
 import json
+import zipfile
 from http import HTTPMethod, HTTPStatus
 from typing import Any
 from uuid import uuid4
@@ -46,10 +48,41 @@ def _dataset_request(*, cad_data_url: str) -> dict[str, Any]:
     }
 
 
+def _cad_data_blob() -> str:
+    """Return a base64-encoded zipped model for inline CAD data."""
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(file=zip_buffer, mode="w") as zip_file:
+        zip_file.writestr(
+            zinfo_or_arcname="model.gltf",
+            data=json.dumps(obj={"asset": {"version": "2.0"}}),
+        )
+    return base64.b64encode(s=zip_buffer.getvalue()).decode(encoding="ascii")
+
+
+def _blob_dataset_request() -> dict[str, Any]:
+    """Return a standard dataset request with inline CAD data."""
+    return {
+        "name": f"dataset-{uuid4().hex}",
+        "targetSdk": "10.18",
+        "models": [
+            {
+                "name": "model-name",
+                "cadDataBlob": _cad_data_blob(),
+                "cadDataFormat": "ZIP",
+                "views": [_VIEW],
+            },
+        ],
+    }
+
+
 _MODEL: dict[str, Any] = {
     "name": "model-name",
     "cadDataUrl": "https://example.com/model.glb",
     "views": [_VIEW],
+}
+
+_MODEL_WITHOUT_CAD_DATA: dict[str, Any] = {
+    key: value for key, value in _MODEL.items() if key != "cadDataUrl"
 }
 
 _EMPTY_MODEL: dict[str, Any] = {}
@@ -571,10 +604,45 @@ class TestErrorResponses:
                     "models": [_EMPTY_MODEL],
                 },
                 {
-                    "/models(0)/cadDataUrl: element is required",
+                    (
+                        "/models(0): one and only one of cadDataUrl and "
+                        "cadDataBlob is required"
+                    ),
                     "/models(0)/name: element is required",
                 },
                 id="model-missing-fields",
+            ),
+            pytest.param(
+                {
+                    **_UNAUTHENTICATED_DATASET_REQUEST,
+                    "models": [_MODEL_WITHOUT_CAD_DATA],
+                },
+                {
+                    (
+                        "/models(0): one and only one of cadDataUrl and "
+                        "cadDataBlob is required"
+                    ),
+                },
+                id="model-without-cad-data",
+            ),
+            pytest.param(
+                {
+                    **_UNAUTHENTICATED_DATASET_REQUEST,
+                    "models": [
+                        {
+                            **_MODEL,
+                            "cadDataBlob": "ZmFrZQ==",
+                            "cadDataFormat": "ZIP",
+                        },
+                    ],
+                },
+                {
+                    (
+                        "/models(0): one and only one of cadDataUrl and "
+                        "cadDataBlob is required"
+                    ),
+                },
+                id="model-with-both-cad-data-sources",
             ),
             pytest.param(
                 {
@@ -588,6 +656,36 @@ class TestErrorResponses:
                 },
                 {"/models(0)/cadDataUrl: error.expected.jsstring"},
                 id="model-cad-data-url-not-string",
+            ),
+            pytest.param(
+                {
+                    **_UNAUTHENTICATED_DATASET_REQUEST,
+                    "models": [
+                        {
+                            **_MODEL_WITHOUT_CAD_DATA,
+                            "cadDataBlob": 1,
+                            "cadDataFormat": "ZIP",
+                        },
+                    ],
+                },
+                {"/models(0)/cadDataBlob: error.expected.jsstring"},
+                id="model-cad-data-blob-not-string",
+            ),
+            pytest.param(
+                {
+                    **_UNAUTHENTICATED_DATASET_REQUEST,
+                    "models": [{**_MODEL, "cadDataFormat": 1}],
+                },
+                {"/models(0)/cadDataFormat: error.expected.jsstring"},
+                id="model-cad-data-format-not-string",
+            ),
+            pytest.param(
+                {
+                    **_UNAUTHENTICATED_DATASET_REQUEST,
+                    "models": [{**_MODEL, "cadDataFormat": "gltf"}],
+                },
+                {"/models(0)/cadDataFormat: error.expected.validenum"},
+                id="model-cad-data-format-not-in-enum",
             ),
             pytest.param(
                 {
@@ -1082,6 +1180,49 @@ class TestStandardDataset:
                 "failed",
             }
             assert isinstance(status_response_json["createdAt"], str)
+        finally:
+            if dataset_uuid is not None:  # pragma: no branch
+                delete_response = requests.delete(
+                    url=f"{_VWS_HOST}/modeltargets/datasets/{dataset_uuid}",
+                    headers=headers,
+                    timeout=30,
+                )
+                assert delete_response.status_code in {
+                    HTTPStatus.OK,
+                    HTTPStatus.NO_CONTENT,
+                }
+
+    @staticmethod
+    def test_create_with_cad_data_blob(
+        *,
+        verify_model_target_mock_vuforia: VuforiaBackend,
+    ) -> None:
+        """A dataset can be created with inline CAD data."""
+        credentials = _credentials_for_backend(
+            backend=verify_model_target_mock_vuforia,
+        )
+        access_token = _get_access_token(
+            credentials=credentials,
+            backend=verify_model_target_mock_vuforia,
+        )
+        headers = {"Authorization": f"Bearer {access_token}"}
+        dataset_uuid: str | None = None
+
+        try:
+            create_response = requests.post(
+                url=f"{_VWS_HOST}/modeltargets/datasets",
+                headers=headers,
+                json=_blob_dataset_request(),
+                timeout=30,
+            )
+
+            assert create_response.status_code == HTTPStatus.CREATED
+            create_response_json: dict[str, Any] = json.loads(
+                s=create_response.text,
+            )
+            dataset_uuid_value = create_response_json["uuid"]
+            assert isinstance(dataset_uuid_value, str)
+            dataset_uuid = dataset_uuid_value
         finally:
             if dataset_uuid is not None:  # pragma: no branch
                 delete_response = requests.delete(
