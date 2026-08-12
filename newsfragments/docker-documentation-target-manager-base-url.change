@@ -1,0 +1,1 @@
+Document the Docker containers' configuration with the environment variable names and values which the applications actually read, starting with ``TARGET_MANAGER_BASE_URL``.

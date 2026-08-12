@@ -13,7 +13,7 @@ One container mocks the VWS services, one container mocks the VWQ services and o
 
 Each of these containers run their services on port 5000.
 
-The VWS and VWQ containers must point to the target manager container using the :envvar:`TARGET_MANAGER_BACKEND` variable.
+The VWS and VWQ containers must point to the target manager container using the :envvar:`TARGET_MANAGER_BASE_URL` variable.
 
 .. _creating-containers:
 
@@ -32,13 +32,13 @@ Creating containers
    $ docker run \
        --detach \
        --publish 5006:5000 \
-       -e TARGET_MANAGER_BACKEND=vuforia-target-manager-mock:5000 \
+       -e TARGET_MANAGER_BASE_URL=http://vuforia-target-manager-mock:5000 \
        --network vws-bridge-network \
        ghcr.io/vws-python/vuforia-vws-mock
    $ docker run \
        --detach \
        --publish 5007:5000 \
-       -e TARGET_MANAGER_BACKEND=vuforia-target-manager-mock:5000 \
+       -e TARGET_MANAGER_BASE_URL=http://vuforia-target-manager-mock:5000 \
        --network vws-bridge-network \
        ghcr.io/vws-python/vuforia-vwq-mock
 
@@ -65,13 +65,23 @@ For example, with the containers set up as in :ref:`creating-containers`, use ``
        --data '{}' \
        '127.0.0.1:5005/cloud_databases'
    {
-       "client_access_key": "2d61c1d17bb94694bee77c1f1f41e5d9",
-       "client_secret_key": "b73f8170cf7d42728fa8ce66221ad147",
+       "database_id": "ca6e48ed25a340d998905ac59747a1f8",
        "database_name": "e515df24ba944f43b8f7969bc98af107",
        "server_access_key": "cb1759871a504875ab5f96d6db5ff79b",
        "server_secret_key": "9b8533d912ad4aa79cb61b6ee197ece2",
+       "client_access_key": "2d61c1d17bb94694bee77c1f1f41e5d9",
+       "client_secret_key": "b73f8170cf7d42728fa8ce66221ad147",
        "state_name": "WORKING",
-       "targets": []
+       "database_type_name": "CLOUD_RECO",
+       "targets": [],
+       "request_quota": 100000,
+       "reco_threshold": 1000,
+       "current_month_recos": 0,
+       "previous_month_recos": 0,
+       "total_recos": 0,
+       "target_quota": 1000,
+       "requests_per_second_limit": null,
+       "request_rate_limits": null
    }
 
 Deleting a database
@@ -92,16 +102,33 @@ Configuration options
 Required configuration
 ^^^^^^^^^^^^^^^^^^^^^^
 
-.. envvar:: TARGET_MANAGER_BACKEND
+.. envvar:: TARGET_MANAGER_BASE_URL
 
    This is required by the VWS mock and the VWQ mock containers.
-   This is the route to the target manager container from the other containers.
+   This is the base URL of the target manager container as seen from the other containers.
+   It must include a scheme, for example ``http://vuforia-target-manager-mock:5000``.
 
 Optional configuration
 ^^^^^^^^^^^^^^^^^^^^^^
 
+VWS and Query containers
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. envvar:: RESPONSE_DELAY_SECONDS
+
+   The number of seconds to wait before sending each response.
+
+   Default: ``0.0``
+
 Target manager container
 ~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. envvar:: TARGET_MANAGER_HOST
+
+   The host interface which the target manager container's server binds to.
+   The provided images set this to ``0.0.0.0`` so that the server is reachable from outside the container.
+
+   Default: ``0.0.0.0``
 
 .. envvar:: TARGET_RATER
 
@@ -118,6 +145,13 @@ Target manager container
 Query container
 ~~~~~~~~~~~~~~~
 
+.. envvar:: VWQ_HOST
+
+   The host interface which the VWQ container's server binds to.
+   The provided images set this to ``0.0.0.0`` so that the server is reachable from outside the container.
+
+   Default: ``0.0.0.0``
+
 .. envvar:: QUERY_IMAGE_MATCHER
 
    The matcher to use for the query endpoint.
@@ -131,6 +165,13 @@ Query container
 
 VWS container
 ~~~~~~~~~~~~~
+
+.. envvar:: VWS_HOST
+
+   The host interface which the VWS container's server binds to.
+   The provided images set this to ``0.0.0.0`` so that the server is reachable from outside the container.
+
+   Default: ``0.0.0.0``
 
 .. envvar:: PROCESSING_TIME_SECONDS
 
