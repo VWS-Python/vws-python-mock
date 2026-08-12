@@ -47,7 +47,6 @@ from mock_vws._services_validators import run_services_validators
 from mock_vws._services_validators.exceptions import (
     FailError,
     InvalidAcceptHeaderError,
-    InvalidInstanceIdError,
     InvalidTargetTypeError,
     TargetStatusNotSuccessError,
     TargetStatusProcessingError,
@@ -707,11 +706,6 @@ def generate_vumark_instance(target_id: str) -> Response:
     }
     if accept not in valid_accept_types:
         raise InvalidAcceptHeaderError
-
-    request_json = json.loads(s=request.data)
-    instance_id = request_json.get("instance_id", "")
-    if not instance_id:
-        raise InvalidInstanceIdError
 
     response_body = valid_accept_types[accept]
     content_type = accept

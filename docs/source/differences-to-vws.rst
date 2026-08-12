@@ -224,6 +224,15 @@ The mock returns a fixed minimal image in the requested format.
 The ``instance_id`` value is not encoded into the response image.
 Real Vuforia encodes the instance ID into the VuMark pattern.
 
+The mock returns an ``InvalidInstanceId`` result when the ``instance_id``
+value is a JSON array or object, or when it is an empty scalar value such as
+``""``, ``0``, ``false``, or ``null``.
+Other non-string scalar values, such as non-zero numbers and ``true``, are
+accepted.
+Real Vuforia's behavior for non-string instance IDs has not been verified,
+in particular for ``0`` against a VuMark template with a numeric instance ID
+type.
+
 Model Target datasets
 ---------------------
 

@@ -35,6 +35,7 @@ from .image_validators import (
     validate_image_pixel_count,
     validate_image_size,
 )
+from .instance_id_validators import validate_instance_id
 from .json_validators import validate_body_given, validate_json
 from .key_validators import validate_keys
 from .metadata_validators import (
@@ -157,6 +158,7 @@ def run_services_validators(
     validate_metadata_encoding(request_body=request_body)
     validate_metadata_size(request_body=request_body)
     validate_active_flag(request_body=request_body)
+    validate_instance_id(request_body=request_body)
 
     validate_image_data_type(request_body=request_body)
     validate_image_encoding(request_body=request_body)

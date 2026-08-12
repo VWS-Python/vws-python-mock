@@ -49,7 +49,7 @@ def _make_vumark_request(
     server_access_key: str,
     server_secret_key: str,
     target_id: str,
-    instance_id: str,
+    instance_id: object,
     accept: str,
 ) -> requests.Response:
     """Send a VuMark instance generation request and return the
@@ -200,6 +200,71 @@ class TestGenerateInstance:
             response_json["result_code"]
             == ResultCodes.INVALID_INSTANCE_ID.value
         )
+
+    @pytest.mark.parametrize(
+        argnames="instance_id",
+        argvalues=[
+            pytest.param([1], id="array"),
+            pytest.param([], id="empty_array"),
+            pytest.param({"a": 1}, id="object"),
+            pytest.param({}, id="empty_object"),
+            pytest.param(0, id="zero"),
+            pytest.param(0.0, id="zero_float"),
+            pytest.param(False, id="false"),
+            pytest.param(None, id="null"),
+        ],
+    )
+    @staticmethod
+    def test_invalid_instance_id(
+        *,
+        instance_id: object,
+        vumark_vuforia_database: VuMarkCloudDatabase,
+    ) -> None:
+        """A JSON array or object instance_id, or an empty scalar
+        instance_id, returns InvalidInstanceId.
+        """
+        response = _make_vumark_request(
+            server_access_key=vumark_vuforia_database.server_access_key,
+            server_secret_key=vumark_vuforia_database.server_secret_key,
+            target_id=vumark_vuforia_database.target_id,
+            instance_id=instance_id,
+            accept="image/png",
+        )
+
+        assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+        response_json = response.json()
+        assert (
+            response_json["result_code"]
+            == ResultCodes.INVALID_INSTANCE_ID.value
+        )
+
+    @pytest.mark.parametrize(
+        argnames="instance_id",
+        argvalues=[
+            pytest.param(5, id="int"),
+            pytest.param(1.5, id="float"),
+            pytest.param(True, id="true"),
+        ],
+    )
+    @staticmethod
+    def test_non_string_scalar_instance_id(
+        *,
+        instance_id: object,
+        vumark_vuforia_database: VuMarkCloudDatabase,
+    ) -> None:
+        """A non-empty scalar instance_id which is not a string is
+        accepted.
+        """
+        response = _make_vumark_request(
+            server_access_key=vumark_vuforia_database.server_access_key,
+            server_secret_key=vumark_vuforia_database.server_secret_key,
+            target_id=vumark_vuforia_database.target_id,
+            instance_id=instance_id,
+            accept="image/png",
+        )
+
+        assert response.status_code == HTTPStatus.OK
+        assert response.content.startswith(_PNG_SIGNATURE)
 
     @staticmethod
     def test_unknown_target(

@@ -48,7 +48,6 @@ from mock_vws._services_validators import run_services_validators
 from mock_vws._services_validators.exceptions import (
     FailError,
     InvalidAcceptHeaderError,
-    InvalidInstanceIdError,
     InvalidTargetTypeError,
     TargetStatusNotSuccessError,
     TargetStatusProcessingError,
@@ -604,11 +603,6 @@ class MockVuforiaWebServicesAPI:
             accept = dict(request.headers).get("Accept", "")
             if accept not in valid_accept_types:
                 raise InvalidAcceptHeaderError
-
-            request_json = json.loads(s=request.body)
-            instance_id = request_json.get("instance_id", "")
-            if not instance_id:
-                raise InvalidInstanceIdError
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
 
