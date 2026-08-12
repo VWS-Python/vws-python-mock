@@ -59,21 +59,36 @@ _MOCK_MODEL_TARGET_CLIENT_SECRET = "client-secret"  # noqa: S105
 # ``userId:7635391``. The numeric portion is per-account in real Vuforia;
 # the mock uses a fixed placeholder.
 _MOCK_USER_TARGET = "userId:mock"
-# The CAD data formats documented by the Model Target Web API OpenAPI
-# specification.
-_CAD_DATA_FORMATS = frozenset(
-    {
-        "DAE",
-        "FBX",
-        "GLB",
-        "IGES",
-        "OBJ",
-        "PVZ",
-        "STL",
-        "VRML",
-        "ZIP",
-    },
-)
+# The enumerated model field values documented by the Model Target Web API
+# OpenAPI specification.
+_MODEL_ENUM_FIELD_VALUES: dict[str, frozenset[str]] = {
+    "automaticColoring": frozenset({"always", "auto", "never"}),
+    "cadDataFormat": frozenset(
+        {
+            "DAE",
+            "FBX",
+            "GLB",
+            "IGES",
+            "OBJ",
+            "PVZ",
+            "STL",
+            "VRML",
+            "ZIP",
+        },
+    ),
+    "motionHint": frozenset({"adaptive", "dynamic", "static"}),
+    "optimizeTrackingFor": frozenset(
+        {"ar_controller", "default", "low_feature_objects"},
+    ),
+    "simplify": frozenset({"always", "auto", "never"}),
+    "trackingMode": frozenset({"car", "default", "scan"}),
+}
+# ``realisticAppearance`` is documented as an enumerated model field for
+# advanced datasets only.
+_ADVANCED_MODEL_ENUM_FIELD_VALUES: dict[str, frozenset[str]] = {
+    **_MODEL_ENUM_FIELD_VALUES,
+    "realisticAppearance": frozenset({"auto", "false", "true"}),
+}
 
 
 @beartype
@@ -422,8 +437,17 @@ def _cad_data_source_details(*, models: list[Any]) -> list[dict[str, str]]:
 
 
 @beartype
-def _model_field_details(*, models: list[Any]) -> list[dict[str, str]]:
+def _model_field_details(
+    *,
+    models: list[Any],
+    dataset_type: ModelTargetDatasetType,
+) -> list[dict[str, str]]:
     """Return validation details for the fields of each model."""
+    enum_field_values = (
+        _ADVANCED_MODEL_ENUM_FIELD_VALUES
+        if dataset_type == ModelTargetDatasetType.ADVANCED
+        else _MODEL_ENUM_FIELD_VALUES
+    )
     missing_details = [
         {
             "code": "VALIDATION_ERROR",
@@ -436,28 +460,29 @@ def _model_field_details(*, models: list[Any]) -> list[dict[str, str]]:
     if missing_details or cad_data_source_details:
         return missing_details + cad_data_source_details
 
+    string_fields = sorted(
+        {"cadDataBlob", "cadDataUrl", "name", *enum_field_values},
+    )
     string_details = [
         {
             "code": "VALIDATION_ERROR",
             "message": f"/models({index})/{field}: error.expected.jsstring",
         }
         for index, model in enumerate(iterable=models)
-        for field in ("cadDataBlob", "cadDataFormat", "cadDataUrl", "name")
+        for field in string_fields
         if field in model and not isinstance(model[field], str)
     ]
     if string_details:
         return string_details
 
-    format_details = [
+    enum_details = [
         {
             "code": "VALIDATION_ERROR",
-            "message": (
-                f"/models({index})/cadDataFormat: error.expected.validenum"
-            ),
+            "message": f"/models({index})/{field}: error.expected.validenum",
         }
         for index, model in enumerate(iterable=models)
-        if "cadDataFormat" in model
-        and model["cadDataFormat"] not in _CAD_DATA_FORMATS
+        for field, allowed_values in sorted(enum_field_values.items())
+        if field in model and model[field] not in allowed_values
     ]
     views_details = [
         {
@@ -467,7 +492,7 @@ def _model_field_details(*, models: list[Any]) -> list[dict[str, str]]:
         for index, model in enumerate(iterable=models)
         if "views" in model and not isinstance(model["views"], list)
     ]
-    return format_details + views_details
+    return enum_details + views_details
 
 
 @beartype
@@ -694,7 +719,7 @@ def _validate_dataset_request(
     if not details:
         models: list[Any] = [*request_json["models"]]
         details = (
-            _model_field_details(models=models)
+            _model_field_details(models=models, dataset_type=dataset_type)
             or _view_details(models=models)
             or _guide_view_position_details(models=models)
             or _model_count_details(

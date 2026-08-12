@@ -1,0 +1,1 @@
+Reject Model Target dataset creation requests with values outside the documented enumerations for the ``automaticColoring``, ``motionHint``, ``optimizeTrackingFor``, ``realisticAppearance``, ``simplify`` and ``trackingMode`` model fields.

@@ -680,6 +680,71 @@ class TestErrorResponses:
             pytest.param(
                 {
                     **_UNAUTHENTICATED_DATASET_REQUEST,
+                    "models": [{**_MODEL, "simplify": 1}],
+                },
+                {"/models(0)/simplify: error.expected.jsstring"},
+                id="model-simplify-not-string",
+            ),
+            pytest.param(
+                {
+                    **_UNAUTHENTICATED_DATASET_REQUEST,
+                    "models": [{**_MODEL, "simplify": "sometimes"}],
+                },
+                {"/models(0)/simplify: error.expected.validenum"},
+                id="model-simplify-not-in-enum",
+            ),
+            pytest.param(
+                {
+                    **_UNAUTHENTICATED_DATASET_REQUEST,
+                    "models": [{**_MODEL, "automaticColoring": "sometimes"}],
+                },
+                {"/models(0)/automaticColoring: error.expected.validenum"},
+                id="model-automatic-coloring-not-in-enum",
+            ),
+            pytest.param(
+                {
+                    **_UNAUTHENTICATED_DATASET_REQUEST,
+                    "models": [{**_MODEL, "motionHint": "still"}],
+                },
+                {"/models(0)/motionHint: error.expected.validenum"},
+                id="model-motion-hint-not-in-enum",
+            ),
+            pytest.param(
+                {
+                    **_UNAUTHENTICATED_DATASET_REQUEST,
+                    "models": [{**_MODEL, "optimizeTrackingFor": "cars"}],
+                },
+                {"/models(0)/optimizeTrackingFor: error.expected.validenum"},
+                id="model-optimize-tracking-for-not-in-enum",
+            ),
+            pytest.param(
+                {
+                    **_UNAUTHENTICATED_DATASET_REQUEST,
+                    "models": [{**_MODEL, "trackingMode": "boat"}],
+                },
+                {"/models(0)/trackingMode: error.expected.validenum"},
+                id="model-tracking-mode-not-in-enum",
+            ),
+            pytest.param(
+                {
+                    **_UNAUTHENTICATED_DATASET_REQUEST,
+                    "models": [
+                        {
+                            **_MODEL,
+                            "motionHint": "still",
+                            "simplify": "sometimes",
+                        },
+                    ],
+                },
+                {
+                    "/models(0)/motionHint: error.expected.validenum",
+                    "/models(0)/simplify: error.expected.validenum",
+                },
+                id="model-multiple-enum-errors",
+            ),
+            pytest.param(
+                {
+                    **_UNAUTHENTICATED_DATASET_REQUEST,
                     "models": [{**_MODEL, "views": "view-name"}],
                 },
                 {"/models(0)/views: error.expected.jsarray"},
@@ -997,6 +1062,47 @@ class TestMockOnlyErrors:
         error = response.json()["error"]
         assert error["code"] == "BAD_REQUEST"
         assert error["details"][0]["code"] == "VALIDATION_ERROR"
+
+    @staticmethod
+    def test_advanced_realistic_appearance_not_in_enum() -> None:
+        """Advanced dataset requests with a ``realisticAppearance`` value
+        outside the documented enumeration are rejected.
+
+        The Model Target OpenAPI specification documents
+        ``realisticAppearance`` as a model field for advanced datasets
+        only, so standard dataset creation does not validate it. This is
+        mock-only because the available test account lacks the
+        advanced-dataset scope, so real Vuforia rejects the request with a
+        403 before validating the body.
+        """
+        body = {
+            **_UNAUTHENTICATED_DATASET_REQUEST,
+            "models": [{**_MODEL, "realisticAppearance": "yes"}],
+        }
+        headers = {"Authorization": f"Bearer {_MOCK_BEARER_TOKEN}"}
+        with MockVWS():
+            advanced_response = requests.post(
+                url=f"{_VWS_HOST}/modeltargets/advancedDatasets",
+                headers=headers,
+                json=body,
+                timeout=30,
+            )
+            standard_response = requests.post(
+                url=f"{_VWS_HOST}/modeltargets/datasets",
+                headers=headers,
+                json=body,
+                timeout=30,
+            )
+
+        assert advanced_response.status_code == HTTPStatus.BAD_REQUEST
+        error = advanced_response.json()["error"]
+        assert error["code"] == "BAD_REQUEST"
+        assert [detail["message"] for detail in error["details"]] == [
+            "/models(0)/realisticAppearance: error.expected.validenum",
+        ]
+        assert error["details"][0]["code"] == "VALIDATION_ERROR"
+
+        assert standard_response.status_code == HTTPStatus.CREATED
 
     @staticmethod
     def test_processing_dataset_cannot_be_downloaded() -> None:

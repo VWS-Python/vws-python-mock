@@ -253,10 +253,17 @@ Dataset creation requests are validated for the required top-level ``models``,
 entry being a JSON object, and for the number of models.
 Each model is validated for the required ``name`` field, for exactly one of
 ``cadDataUrl`` and ``cadDataBlob`` being given, for the types of the
-``cadDataBlob``, ``cadDataFormat``, ``cadDataUrl`` and ``name`` fields, for
-``cadDataFormat`` being one of ``DAE``, ``FBX``, ``GLB``, ``IGES``, ``OBJ``,
-``PVZ``, ``STL``, ``VRML`` and ``ZIP`` when it is given, and for ``views``
+``automaticColoring``, ``cadDataBlob``, ``cadDataFormat``, ``cadDataUrl``,
+``motionHint``, ``name``, ``optimizeTrackingFor``, ``simplify`` and
+``trackingMode`` fields, for each of the ``automaticColoring``,
+``cadDataFormat``, ``motionHint``, ``optimizeTrackingFor``, ``simplify`` and
+``trackingMode`` fields being one of the values which the Model Target OpenAPI
+specification documents for it when the field is given, and for ``views``
 being a JSON array when it is given.
+The ``realisticAppearance`` model field is validated in the same way for
+advanced datasets; the OpenAPI specification does not document it as a
+standard dataset model field, so standard dataset creation does not validate
+it.
 Each ``views`` entry is validated for being a JSON object, for the required
 ``guideViewPosition`` and ``name`` fields, and for those fields' types.
 Each ``guideViewPosition`` object is validated for the required ``rotation``
