@@ -125,24 +125,25 @@ def _add_target_which_processed_successfully(
 
 
 @pytest.fixture
-def target_id(
-    *,
-    image_file_success_state_low_rating: io.BytesIO,
-    vws_client: VWS,
-) -> str:
+def target_id(*, high_quality_image: io.BytesIO, vws_client: VWS) -> str:
     """Return the target ID of a target in the database which has finished
     processing with a 'success' status.
+
+    We use ``high_quality_image`` rather than
+    ``image_file_success_state_low_rating``. The latter is a randomly
+    generated 5x5 image, and real Vuforia often gives such an image a
+    'failed' status. No test which uses this fixture needs a low rating.
     """
     return _add_target_which_processed_successfully(
         vws_client=vws_client,
-        image=image_file_success_state_low_rating,
+        image=high_quality_image,
     )
 
 
 @pytest.fixture
 def unprocessed_target_id(
     *,
-    image_file_success_state_low_rating: io.BytesIO,
+    high_quality_image: io.BytesIO,
     vws_client: VWS,
 ) -> str:
     """Return the target ID of a target which was just added to the
@@ -153,10 +154,7 @@ def unprocessed_target_id(
     processed target, as waiting for processing is slow against real
     Vuforia.
     """
-    return _add_target(
-        vws_client=vws_client,
-        image=image_file_success_state_low_rating,
-    )
+    return _add_target(vws_client=vws_client, image=high_quality_image)
 
 
 @pytest.fixture(
