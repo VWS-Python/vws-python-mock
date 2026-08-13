@@ -86,6 +86,18 @@ _MODEL_ENUM_FIELD_VALUES: dict[str, frozenset[str]] = {
     "simplify": frozenset({"always", "auto", "never"}),
     "trackingMode": frozenset({"car", "default", "scan"}),
 }
+# The training status which the download route reports for a dataset which
+# is not ready to download, keyed by the status which the status route
+# reports.
+#
+# Real Vuforia reports ``not-started`` for a dataset which was created just
+# before the download request, so the mock uses that name for the whole
+# processing window. The name for a dataset whose generation failed has not
+# been observed.
+_TRAINING_STATUSES: dict[str, str] = {
+    "processing": "not-started",
+    "failed": "failed",
+}
 # ``realisticAppearance`` is documented as an enumerated model field for
 # advanced datasets only.
 _ADVANCED_MODEL_ENUM_FIELD_VALUES: dict[str, frozenset[str]] = {
@@ -1057,12 +1069,13 @@ def download_model_target_dataset(
     if dataset is None:
         return _unknown_dataset_response(dataset_uuid=dataset_uuid)
     if dataset.status != "done":
+        training_status = _TRAINING_STATUSES[dataset.status]
         return _error_response(
             status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             code="UNSUPPORTED_STATE",
             message=(
                 f"Training status for dataset {dataset_uuid} is "
-                "not-started != done"
+                f"{training_status} != done"
             ),
             target=dataset_uuid,
             details=None,

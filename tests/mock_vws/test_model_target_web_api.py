@@ -15,7 +15,7 @@ import requests
 from beartype import beartype
 from vws.response import Response
 
-from mock_vws import MockVWS
+from mock_vws import MockVWS, ModelTargetGenerationFailure
 from mock_vws.model_target import ModelTargetDataset, ModelTargetDatasetType
 from tests.mock_vws.fixtures.model_target_prepared_requests import (
     MODEL_TARGET_DATASET_UUID,
@@ -1498,6 +1498,50 @@ class TestMockOnlyErrors:
         assert error["message"] == (
             f"Training status for dataset {dataset_uuid} is "
             "not-started != done"
+        )
+        assert error["target"] == dataset_uuid
+
+    @staticmethod
+    def test_failed_dataset_cannot_be_downloaded() -> None:
+        """A dataset which failed generation cannot be downloaded, and the
+        error reports the failed training status rather than the
+        ``not-started`` status which a still-processing dataset reports.
+
+        Mock-only because a generation failure cannot be provoked on demand
+        against real Vuforia, so the training status name it reports for a
+        failed dataset has not been observed.
+        """
+        failure = ModelTargetGenerationFailure(message="CAD model is invalid")
+        with MockVWS(
+            processing_time_seconds=0,
+            model_target_generation_failure=failure,
+        ):
+            create_response = requests.post(
+                url=f"{_VWS_HOST}/modeltargets/datasets",
+                headers={"Authorization": f"Bearer {_MOCK_BEARER_TOKEN}"},
+                json=_UNAUTHENTICATED_DATASET_REQUEST,
+                timeout=30,
+            )
+            dataset_uuid = create_response.json()["uuid"]
+            status_response = requests.get(
+                url=f"{_VWS_HOST}/modeltargets/datasets/{dataset_uuid}/status",
+                headers={"Authorization": f"Bearer {_MOCK_BEARER_TOKEN}"},
+                timeout=30,
+            )
+            response = requests.get(
+                url=(
+                    f"{_VWS_HOST}/modeltargets/datasets/{dataset_uuid}/dataset"
+                ),
+                headers={"Authorization": f"Bearer {_MOCK_BEARER_TOKEN}"},
+                timeout=30,
+            )
+
+        assert status_response.json()["status"] == "failed"
+        assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+        error = response.json()["error"]
+        assert error["code"] == "UNSUPPORTED_STATE"
+        assert error["message"] == (
+            f"Training status for dataset {dataset_uuid} is failed != done"
         )
         assert error["target"] == dataset_uuid
 

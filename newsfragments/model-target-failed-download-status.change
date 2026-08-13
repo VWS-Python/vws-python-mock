@@ -1,0 +1,1 @@
+Report the ``failed`` training status when downloading a Model Target dataset whose generation failed, rather than the ``not-started`` status which a still-processing dataset reports.
