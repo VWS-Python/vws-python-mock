@@ -4,6 +4,7 @@ import base64
 import dataclasses
 import io
 import json
+import textwrap
 import zipfile
 from http import HTTPMethod, HTTPStatus
 from typing import Any
@@ -23,6 +24,7 @@ from tests.mock_vws.fixtures.model_target_prepared_requests import (
 )
 from tests.mock_vws.fixtures.vuforia_backends import VuforiaBackend
 from tests.mock_vws.utils import ModelTargetEndpoint
+from tests.mock_vws.utils.assertions import assert_valid_date_header
 
 _VWS_HOST = "https://vws.vuforia.com"
 _MOCK_BEARER_TOKEN = "eyJhbGciOiJtb2NrIn0.e30.c2lnbmF0dXJl"
@@ -149,6 +151,36 @@ def _assert_model_target_error(
             "message": message,
             "target": target,
         },
+    }
+
+
+@beartype
+def _assert_load_balancer_bad_request(*, response: Response) -> None:
+    """Assert the ``BAD_REQUEST`` response from the load balancer.
+
+    The load balancer in front of Vuforia rejects some requests before
+    they reach an API, with an HTML error page rather than a Model Target
+    Web API error body.
+    """
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert_valid_date_header(response=response)
+    expected_response_text = textwrap.dedent(
+        text="""\
+        <html>\r
+        <head><title>400 Bad Request</title></head>\r
+        <body>\r
+        <center><h1>400 Bad Request</h1></center>\r
+        </body>\r
+        </html>\r
+        """,
+    )
+    assert response.text == expected_response_text
+    assert response.headers == {
+        "Content-Length": str(object=len(response.text)),
+        "Content-Type": "text/html",
+        "Connection": "close",
+        "Server": "awselb/2.0",
+        "Date": response.headers["Date"],
     }
 
 
@@ -354,6 +386,100 @@ class TestAuthorizationHeader:
             status_code=HTTPStatus.UNAUTHORIZED,
             code="401",
             message=message,
+            target="jwt",
+        )
+
+
+@pytest.mark.usefixtures("verify_model_target_mock_vuforia")
+class TestContentLength:
+    """Tests for the ``Content-Length`` header on every Model Target
+    endpoint.
+
+    These mirror the cross-cutting tests which the ``endpoint`` fixture
+    supports for the VWS and Query APIs.
+
+    A ``Content-Length`` header which is too large is not covered, for the
+    same reason as it is not covered for the VWS API: real Vuforia waits
+    for the body it was promised before timing out, which takes too long
+    to run in a test.
+    """
+
+    @staticmethod
+    def test_not_integer(
+        *,
+        model_target_endpoint: ModelTargetEndpoint,
+    ) -> None:
+        """A ``Content-Length`` header which is not an integer is rejected
+        by the load balancer in front of Vuforia, before any bearer token
+        is looked at.
+        """
+        new_endpoint = dataclasses.replace(
+            model_target_endpoint,
+            headers={
+                **model_target_endpoint.headers,
+                "Content-Length": "0.4",
+            },
+        )
+
+        response = new_endpoint.send()
+
+        _assert_load_balancer_bad_request(response=response)
+
+    @staticmethod
+    def test_not_integer_oauth2_token() -> None:
+        """The OAuth2 token endpoint is behind the same load balancer.
+
+        It is not in the ``model_target_endpoint`` fixture because it takes
+        HTTP Basic credentials rather than a bearer token.
+        """
+        endpoint = ModelTargetEndpoint(
+            base_url=_VWS_HOST,
+            path_url="/oauth2/token",
+            method=HTTPMethod.POST,
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Content-Length": "0.4",
+            },
+            data=b"grant_type=client_credentials",
+            takes_json_body=False,
+        )
+
+        response = endpoint.send()
+
+        _assert_load_balancer_bad_request(response=response)
+
+    @staticmethod
+    def test_too_small(
+        *,
+        model_target_endpoint: ModelTargetEndpoint,
+    ) -> None:
+        """A ``Content-Length`` header which is too small truncates the
+        body, and the request is still rejected for having no bearer
+        token.
+
+        The Model Target Web API does not sign the request body, so unlike
+        the VWS API it has no reason to notice the truncation before it
+        looks at the ``Authorization`` header.
+        """
+        if not model_target_endpoint.takes_json_body:
+            return
+
+        content_length = len(model_target_endpoint.data) - 1
+        new_endpoint = dataclasses.replace(
+            model_target_endpoint,
+            headers={
+                **model_target_endpoint.headers,
+                "Content-Length": str(object=content_length),
+            },
+        )
+
+        response = new_endpoint.send()
+
+        _assert_model_target_error(
+            response=response,
+            status_code=HTTPStatus.UNAUTHORIZED,
+            code="401",
+            message="no Bearer token",
             target="jwt",
         )
 
