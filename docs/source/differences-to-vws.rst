@@ -259,13 +259,18 @@ Each model is validated for the required ``name`` field, for exactly one of
 ``cadDataFormat``, ``motionHint``, ``optimizeTrackingFor``, ``simplify`` and
 ``trackingMode`` fields being one of the values which the Model Target OpenAPI
 specification documents for it when the field is given, and for ``views``
-being a JSON array when it is given.
+being a JSON array when it is given. The optional
+``stateBasedConfigurationJsonString`` field must be a string containing a JSON
+object with a ``states`` object.
 The ``realisticAppearance`` model field is validated in the same way for
 advanced datasets; the OpenAPI specification does not document it as a
 standard dataset model field, so standard dataset creation does not validate
 it.
 Each ``views`` entry is validated for being a JSON object, for the required
 ``guideViewPosition`` and ``name`` fields, and for those fields' types.
+An optional ``states`` field must be an array of strings. Each named state must
+be declared by the model's ``stateBasedConfigurationJsonString``. Omitting the
+field makes the view available to every configured state.
 Each ``guideViewPosition`` object is validated for the required ``rotation``
 and ``translation`` fields, for those fields being JSON arrays, and for the
 elements of those arrays being JSON numbers.
@@ -274,6 +279,8 @@ The mock does not validate the contents of each model further, such as whether
 base64-encoded archives of the named ``cadDataFormat``, whether
 ``cadDataFormat`` is given alongside ``cadDataBlob``, the lengths of
 ``rotation`` and ``translation`` arrays, or ``targetSdk`` version numbers.
+It also does not validate the state configuration beyond its top-level
+``states`` object.
 
 For unknown Model Target datasets, the mock returns an error whose ``target`` is ``userId:mock``.
 Real Vuforia uses ``userId:<numeric-user-id>`` where the numeric portion is per-account.
@@ -282,10 +289,12 @@ Standard and advanced datasets are separate resources.
 A dataset created through the standard routes is not visible to the advanced routes, and the other way around: the mock returns the unknown-dataset error for status, download and delete requests made through the other dataset type's routes.
 Real Vuforia separates these by OAuth scope as well, which the mock does not model, so a client which lacks the advanced-dataset scope may see a different error.
 
-Three Model Target Web API error paths remain mock-only in ``tests/mock_vws/test_model_target_web_api.py::TestMockOnlyErrors``.
+Some Model Target Web API paths remain mock-only in ``tests/mock_vws/test_model_target_web_api.py::TestMockOnlyErrors``.
 Downloads of still-processing datasets are mock-only because exercising the path against real Vuforia would require creating a dataset on every test run; the mock drives the processing window deterministically.
 Advanced-dataset creation with more than 20 models is mock-only because the available test account lacks the advanced-dataset scope and real Vuforia rejects the request with a 403 before validating model counts.
 Cross-dataset-type access is mock-only for the same reason.
+State-Based Model Target creation and validation are also mock-only because the
+available test account lacks the State-Based Model Target scopes.
 
 Reco counts reports
 -------------------

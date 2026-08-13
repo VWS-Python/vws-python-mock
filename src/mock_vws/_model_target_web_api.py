@@ -461,7 +461,13 @@ def _model_field_details(
         return missing_details + cad_data_source_details
 
     string_fields = sorted(
-        {"cadDataBlob", "cadDataUrl", "name", *enum_field_values},
+        {
+            "cadDataBlob",
+            "cadDataUrl",
+            "name",
+            "stateBasedConfigurationJsonString",
+            *enum_field_values,
+        },
     )
     string_details = [
         {
@@ -627,6 +633,129 @@ def _guide_view_position_details(
 
 
 @beartype
+def _configuration_states(
+    *,
+    model_index: int,
+    configuration_string: str,
+) -> tuple[frozenset[str] | None, dict[str, str] | None]:
+    """Load the state names from a State-Based Model Target config."""
+    try:
+        configuration: Any = json.loads(s=configuration_string)
+    except json.JSONDecodeError:
+        return None, {
+            "code": "VALIDATION_ERROR",
+            "message": (
+                f"/models({model_index})/stateBasedConfigurationJsonString: "
+                "error.expected.validjson"
+            ),
+        }
+    if not _is_json_object(value=configuration):
+        return None, {
+            "code": "VALIDATION_ERROR",
+            "message": (
+                f"/models({model_index})/stateBasedConfigurationJsonString/"
+                "states: error.expected.jsobject"
+            ),
+        }
+    configuration_states_value: object = configuration.get("states")
+    if not _is_json_object(value=configuration_states_value):
+        return None, {
+            "code": "VALIDATION_ERROR",
+            "message": (
+                f"/models({model_index})/stateBasedConfigurationJsonString/"
+                "states: error.expected.jsobject"
+            ),
+        }
+    configuration_states: dict[str, Any] = configuration["states"]
+    state_names = frozenset(configuration_states)
+    return state_names, None
+
+
+@beartype
+def _state_based_details(*, models: list[Any]) -> list[dict[str, str]]:
+    """Return validation details for State-Based Model Targets."""
+    state_fields = [
+        (model_index, view_index, view["states"])
+        for model_index, model in enumerate(iterable=models)
+        for view_index, view in enumerate(iterable=model.get("views", []))
+        if "states" in view
+    ]
+    array_details = [
+        {
+            "code": "VALIDATION_ERROR",
+            "message": (
+                f"/models({model_index})/views({view_index})/states: "
+                "error.expected.jsarray"
+            ),
+        }
+        for model_index, view_index, states in state_fields
+        if not isinstance(states, list)
+    ]
+    if array_details:
+        return array_details
+
+    element_details = [
+        {
+            "code": "VALIDATION_ERROR",
+            "message": (
+                f"/models({model_index})/views({view_index})/states"
+                f"({state_index}): error.expected.jsstring"
+            ),
+        }
+        for model_index, view_index, states in state_fields
+        for state_index, state in enumerate(iterable=states)
+        if not isinstance(state, str)
+    ]
+    if element_details:
+        return element_details
+
+    details: list[dict[str, str]] = []
+    configured_states: dict[int, frozenset[str]] = {}
+    for model_index, model in enumerate(iterable=models):
+        configuration_string = model.get("stateBasedConfigurationJsonString")
+        if not isinstance(configuration_string, str):
+            continue
+        state_names, detail = _configuration_states(
+            model_index=model_index,
+            configuration_string=configuration_string,
+        )
+        if detail is not None:
+            details.append(detail)
+        if state_names is not None:
+            configured_states[model_index] = state_names
+
+    if details:
+        return details
+
+    for model_index, view_index, states in state_fields:
+        if model_index not in configured_states:
+            details.append(
+                {
+                    "code": "VALIDATION_ERROR",
+                    "message": (
+                        f"/models({model_index})/"
+                        "stateBasedConfigurationJsonString: element is "
+                        "required when view states are given"
+                    ),
+                },
+            )
+            continue
+        details.extend(
+            {
+                "code": "VALIDATION_ERROR",
+                "message": (
+                    f"/models({model_index})/views({view_index})/states"
+                    f"({state_index}): error.expected.validenum"
+                ),
+            }
+            for state_index, state in enumerate(iterable=states)
+            if state not in configured_states[model_index]
+        )
+
+    return details
+
+
+@beartype
 def _model_count_details(
     *,
     models: list[Any],
@@ -722,6 +851,7 @@ def _validate_dataset_request(
             _model_field_details(models=models, dataset_type=dataset_type)
             or _view_details(models=models)
             or _guide_view_position_details(models=models)
+            or _state_based_details(models=models)
             or _model_count_details(
                 models=models,
                 dataset_type=dataset_type,
