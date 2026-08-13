@@ -443,6 +443,14 @@ fixture_verify_model_target_mock_vuforia = backend_fixture(
     setup_for=_setup_model_target_backend,
 )
 
+# Model Target Web API tests which need scopes that the real test account does
+# not have, run against each mock only.
+fixture_model_target_mock_only_vuforia = backend_fixture(
+    name="model_target_mock_only_vuforia",
+    backends=_MOCK_BACKENDS,
+    setup_for=_setup_model_target_backend,
+)
+
 # Tests which use this are run against each mock, and not against the
 # real Vuforia. This is useful for testing the mock using fixtures which
 # connect to Vuforia.

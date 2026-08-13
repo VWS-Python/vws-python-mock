@@ -106,6 +106,17 @@ _UNAUTHENTICATED_DATASET_REQUEST: dict[str, Any] = {
     "models": [_MODEL],
 }
 
+_STATE_CONFIGURATION = json.dumps(
+    obj={
+        "version": "1.0",
+        "default_state": "assembled",
+        "states": {
+            "assembled": {"base_scene": 0},
+            "disassembled": {"base_scene": 0},
+        },
+    },
+)
+
 
 @beartype
 def _assert_oauth2_error(
@@ -1035,6 +1046,173 @@ class TestMockOnlyErrors:
     These cases cannot easily be verified against real Vuforia with the
     currently available test account and are kept mock-only by design.
     """
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        argnames="dataset_path",
+        argvalues=[
+            pytest.param("/modeltargets/datasets", id="standard"),
+            pytest.param(
+                "/modeltargets/advancedDatasets",
+                id="advanced",
+            ),
+        ],
+    )
+    @pytest.mark.parametrize(
+        argnames="view_updates",
+        argvalues=[
+            pytest.param({}, id="all-states"),
+            pytest.param(
+                {"states": ["assembled"]},
+                id="selected-states",
+            ),
+        ],
+    )
+    def test_state_based_dataset(
+        *,
+        model_target_mock_only_vuforia: VuforiaBackend,
+        dataset_path: str,
+        view_updates: dict[str, object],
+    ) -> None:
+        """State-Based Model Target fields survive a dataset round
+        trip.
+        """
+        body = {
+            **_UNAUTHENTICATED_DATASET_REQUEST,
+            "models": [
+                {
+                    **_MODEL,
+                    "stateBasedConfigurationJsonString": (
+                        _STATE_CONFIGURATION
+                    ),
+                    "views": [{**_VIEW, **view_updates}],
+                },
+            ],
+        }
+        access_token = _access_token_for_backend(
+            backend=model_target_mock_only_vuforia,
+        )
+        headers = {"Authorization": f"Bearer {access_token}"}
+        create_response = requests.post(
+            url=f"{_VWS_HOST}{dataset_path}",
+            headers=headers,
+            json=body,
+            timeout=30,
+        )
+
+        assert create_response.status_code == HTTPStatus.CREATED
+        dataset_uuid = create_response.json()["uuid"]
+        delete_response = requests.delete(
+            url=f"{_VWS_HOST}{dataset_path}/{dataset_uuid}",
+            headers=headers,
+            timeout=30,
+        )
+        assert delete_response.status_code == HTTPStatus.OK
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        argnames=("model_updates", "view_updates", "expected_message"),
+        argvalues=[
+            pytest.param(
+                {"stateBasedConfigurationJsonString": 1},
+                {},
+                (
+                    "/models(0)/stateBasedConfigurationJsonString: "
+                    "error.expected.jsstring"
+                ),
+                id="configuration-not-string",
+            ),
+            pytest.param(
+                {"stateBasedConfigurationJsonString": "{"},
+                {},
+                (
+                    "/models(0)/stateBasedConfigurationJsonString: "
+                    "error.expected.validjson"
+                ),
+                id="configuration-not-json",
+            ),
+            pytest.param(
+                {"stateBasedConfigurationJsonString": "{}"},
+                {},
+                (
+                    "/models(0)/stateBasedConfigurationJsonString/states: "
+                    "error.expected.jsobject"
+                ),
+                id="configuration-states-not-object",
+            ),
+            pytest.param(
+                {"stateBasedConfigurationJsonString": "[]"},
+                {},
+                (
+                    "/models(0)/stateBasedConfigurationJsonString/states: "
+                    "error.expected.jsobject"
+                ),
+                id="configuration-not-object",
+            ),
+            pytest.param(
+                {"stateBasedConfigurationJsonString": _STATE_CONFIGURATION},
+                {"states": "assembled"},
+                "/models(0)/views(0)/states: error.expected.jsarray",
+                id="view-states-not-array",
+            ),
+            pytest.param(
+                {"stateBasedConfigurationJsonString": _STATE_CONFIGURATION},
+                {"states": ["assembled", 1]},
+                ("/models(0)/views(0)/states(1): error.expected.jsstring"),
+                id="view-state-not-string",
+            ),
+            pytest.param(
+                {"stateBasedConfigurationJsonString": _STATE_CONFIGURATION},
+                {"states": ["unknown"]},
+                ("/models(0)/views(0)/states(0): error.expected.validenum"),
+                id="view-state-not-declared",
+            ),
+            pytest.param(
+                {},
+                {"states": ["assembled"]},
+                (
+                    "/models(0)/stateBasedConfigurationJsonString: element "
+                    "is required when view states are given"
+                ),
+                id="view-states-without-configuration",
+            ),
+        ],
+    )
+    def test_invalid_state_based_dataset(
+        *,
+        model_target_mock_only_vuforia: VuforiaBackend,
+        model_updates: dict[str, object],
+        view_updates: dict[str, object],
+        expected_message: str,
+    ) -> None:
+        """Invalid State-Based Model Target fields are rejected."""
+        body = {
+            **_UNAUTHENTICATED_DATASET_REQUEST,
+            "models": [
+                {
+                    **_MODEL,
+                    **model_updates,
+                    "views": [{**_VIEW, **view_updates}],
+                },
+            ],
+        }
+        access_token = _access_token_for_backend(
+            backend=model_target_mock_only_vuforia,
+        )
+        response = requests.post(
+            url=f"{_VWS_HOST}/modeltargets/datasets",
+            headers={"Authorization": f"Bearer {access_token}"},
+            json=body,
+            timeout=30,
+        )
+
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        error = response.json()["error"]
+        assert error["code"] == "BAD_REQUEST"
+        assert [detail["message"] for detail in error["details"]] == [
+            expected_message,
+        ]
+        assert error["details"][0]["code"] == "VALIDATION_ERROR"
 
     @staticmethod
     def test_advanced_model_count_exceeds_limit() -> None:
