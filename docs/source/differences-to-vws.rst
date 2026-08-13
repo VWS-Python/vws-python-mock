@@ -296,6 +296,11 @@ Real Vuforia separates these by OAuth scope as well, which the mock does not mod
 
 Some Model Target Web API paths remain mock-only in ``tests/mock_vws/test_model_target_web_api.py::TestMockOnlyErrors``.
 Downloads of still-processing datasets are mock-only because exercising the path against real Vuforia would require creating a dataset on every test run; the mock drives the processing window deterministically.
+A download request for a dataset which is not ready reports the dataset's
+training status. The mock reports ``not-started`` for the whole processing
+window, as real Vuforia does for a dataset which was just created, and
+``failed`` for a dataset whose generation failed. The name which real Vuforia
+reports for a failed dataset has not been observed.
 Advanced-dataset creation with more than 20 models is mock-only because the available test account lacks the advanced-dataset scope and real Vuforia rejects the request with a 403 before validating model counts.
 Cross-dataset-type access is mock-only for the same reason.
 State-Based Model Target creation and validation are also mock-only because the
