@@ -92,7 +92,7 @@ optional-dependencies.dev = [
     "sphinx-lint==1.0.2",
     "sphinx-paramlinks==0.6",
     "sphinx-pyproject==0.3.0",
-    "sphinx-substitution-extensions==2026.8.5",
+    "sphinx-substitution-extensions==2026.8.13",
     "sphinx-toolbox==4.3.0",
     "sphinxcontrib-httpdomain==2.0.0",
     "sphinxcontrib-spelling==8.0.2",
@@ -371,7 +371,6 @@ ignore_names = [
     "DatabaseDict",
     # Too difficult to test (see notes in the code)
     "DATE_RANGE_ERROR",
-    "exclude_patterns",
     "extensions",
     # pytest fixtures - we name fixtures like this for this purpose
     "fixture_*",

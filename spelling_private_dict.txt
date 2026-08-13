@@ -113,7 +113,6 @@ str
 stringify
 subprocess
 timestamp
-toctree
 todo
 travis
 txt
