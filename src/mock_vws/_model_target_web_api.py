@@ -338,7 +338,12 @@ def _fake_jwt(*, token_source: bytes) -> str:
 def oauth2_token(request: RequestData) -> _ResponseType:
     """Return a fake OAuth2 access token."""
     auth_header = _get_header(request=request, name="Authorization")
-    form = parse_qs(qs=request.body.decode(encoding="utf-8"))
+    # A form body which is not valid UTF-8 is decoded leniently rather than
+    # raising, so that a body which cannot be decoded is treated as one which
+    # does not name a grant type.
+    form = parse_qs(
+        qs=request.body.decode(encoding="utf-8", errors="replace"),
+    )
     grant_type = form.get("grant_type", ["client_credentials"])[0]
     if grant_type != "client_credentials":
         return _oauth2_error_response(
@@ -397,8 +402,10 @@ def _load_request_json(request: RequestData) -> dict[str, Any] | _ResponseType:
             details=None,
         )
     try:
-        request_json: dict[str, Any] = json.loads(s=request.body)
-    except json.JSONDecodeError as exc:
+        request_json: dict[str, Any] = json.loads(
+            s=request.body.decode(encoding="utf-8"),
+        )
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         return _error_response(
             status_code=HTTPStatus.BAD_REQUEST,
             code="ERROR",

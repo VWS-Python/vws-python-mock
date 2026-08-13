@@ -248,6 +248,11 @@ token revocation.
 
 Dataset creation request bodies which are valid JSON but not JSON objects are
 reported as missing every required top-level field.
+Dataset creation request bodies which cannot be decoded as UTF-8 are reported
+as invalid JSON, as malformed JSON bodies are.
+An OAuth2 token request body which cannot be decoded as UTF-8 is treated as one
+which does not name a grant type; the real response to such a body has not been
+observed.
 Dataset creation requests are validated for the required top-level ``models``,
 ``name`` and ``targetSdk`` fields, for those fields' types, for each ``models``
 entry being a JSON object, and for the number of models.
