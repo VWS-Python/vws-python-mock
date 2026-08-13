@@ -12,6 +12,9 @@ from urllib.parse import parse_qs
 from beartype import beartype
 
 from mock_vws._mock_common import RequestData, json_dump
+from mock_vws._services_validators.exceptions import (
+    ContentLengthHeaderNotIntError,
+)
 from mock_vws.model_target import (
     ModelTargetDataset,
     ModelTargetDatasetType,
@@ -165,6 +168,32 @@ def _get_header(request: RequestData, name: str) -> str | None:
     for key, value in request.headers.items():
         if key.casefold() == lower_name:
             return value
+    return None
+
+
+@beartype
+def _content_length_error(request: RequestData) -> _ResponseType | None:
+    """Return an error response if ``Content-Length`` is not an integer.
+
+    The load balancer in front of real Vuforia rejects a request with a
+    ``Content-Length`` header which is not an integer before the request
+    reaches any API, so the Model Target Web API gives the same response
+    as the VWS API does.
+
+    A ``Content-Length`` header which is too large is not handled here.
+    Real Vuforia waits for the body it was promised and then times out,
+    which is too slow to verify in a test.
+    """
+    given_content_length = _get_header(request=request, name="Content-Length")
+    if given_content_length is None:
+        return None
+
+    try:
+        int(given_content_length)
+    except ValueError:
+        error = ContentLengthHeaderNotIntError()
+        return (error.status_code, dict(error.headers), error.response_text)
+
     return None
 
 
@@ -337,6 +366,10 @@ def _fake_jwt(*, token_source: bytes) -> str:
 @beartype
 def oauth2_token(request: RequestData) -> _ResponseType:
     """Return a fake OAuth2 access token."""
+    content_length_error = _content_length_error(request=request)
+    if content_length_error is not None:
+        return content_length_error
+
     auth_header = _get_header(request=request, name="Authorization")
     # A form body which is not valid UTF-8 is decoded leniently rather than
     # raising, so that a body which cannot be decoded is treated as one which
@@ -882,6 +915,10 @@ def create_model_target_dataset(
     generation_warning: ModelTargetGenerationWarning | None,
 ) -> _ResponseType:
     """Create a standard or advanced Model Target dataset."""
+    content_length_error = _content_length_error(request=request)
+    if content_length_error is not None:
+        return content_length_error
+
     auth_error = _require_bearer_token(request=request)
     if auth_error is not None:
         return auth_error
@@ -952,6 +989,10 @@ def get_model_target_dataset_status(
     dataset_type: ModelTargetDatasetType,
 ) -> _ResponseType:
     """Return the status of a Model Target dataset."""
+    content_length_error = _content_length_error(request=request)
+    if content_length_error is not None:
+        return content_length_error
+
     auth_error = _require_bearer_token(request=request)
     if auth_error is not None:
         return auth_error
@@ -1001,6 +1042,10 @@ def download_model_target_dataset(
     dataset_type: ModelTargetDatasetType,
 ) -> _ResponseType:
     """Download a generated Model Target dataset."""
+    content_length_error = _content_length_error(request=request)
+    if content_length_error is not None:
+        return content_length_error
+
     auth_error = _require_bearer_token(request=request)
     if auth_error is not None:
         return auth_error
@@ -1043,6 +1088,10 @@ def delete_model_target_dataset(
     dataset_type: ModelTargetDatasetType,
 ) -> _ResponseType:
     """Delete a Model Target dataset."""
+    content_length_error = _content_length_error(request=request)
+    if content_length_error is not None:
+        return content_length_error
+
     auth_error = _require_bearer_token(request=request)
     if auth_error is not None:
         return auth_error

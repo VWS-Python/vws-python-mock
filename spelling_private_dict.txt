@@ -15,6 +15,7 @@ ascii
 auth
 backend
 backends
+balancer
 beartype
 binascii
 bool
