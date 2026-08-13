@@ -435,6 +435,41 @@ class TestInvalidJson:
         assert "target" not in error
 
     @staticmethod
+    def test_body_not_utf_8(
+        *,
+        verify_model_target_mock_vuforia: VuforiaBackend,
+        model_target_endpoint: ModelTargetEndpoint,
+    ) -> None:
+        """Bodies which are not valid UTF-8 are rejected with 400 by
+        endpoints which read a body, and are ignored elsewhere.
+        """
+        access_token = _access_token_for_backend(
+            backend=verify_model_target_mock_vuforia,
+        )
+        content = b"\xff{}"
+        new_endpoint = dataclasses.replace(
+            model_target_endpoint,
+            headers={
+                **model_target_endpoint.headers,
+                "Authorization": f"Bearer {access_token}",
+                "Content-Length": str(object=len(content)),
+            },
+            data=content,
+        )
+
+        response = new_endpoint.send()
+
+        if not model_target_endpoint.takes_json_body:
+            _assert_unknown_dataset(response=response)
+            return
+
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        error = json.loads(s=response.text)["error"]
+        assert error["code"] == "ERROR"
+        assert error["message"].startswith("Invalid Json")
+        assert "target" not in error
+
+    @staticmethod
     @pytest.mark.parametrize(
         argnames="body",
         argvalues=[
@@ -1281,6 +1316,31 @@ class TestMockOnlyErrors:
         assert error["details"][0]["code"] == "VALIDATION_ERROR"
 
         assert standard_response.status_code == HTTPStatus.CREATED
+
+    @staticmethod
+    def test_oauth2_token_body_not_utf_8(
+        *,
+        model_target_mock_only_vuforia: VuforiaBackend,
+    ) -> None:
+        """An OAuth2 token request with a body which is not valid UTF-8 is
+        treated as one which does not name a grant type.
+
+        Mock-only because the real response to a form body which cannot be
+        decoded has not been observed.
+        """
+        credentials = credentials_for_backend(
+            backend=model_target_mock_only_vuforia,
+        )
+
+        response = requests.post(
+            url=f"{_VWS_HOST}/oauth2/token",
+            auth=(credentials.client_id, credentials.client_secret),
+            data=b"\xff",
+            timeout=30,
+        )
+
+        assert response.status_code == HTTPStatus.OK
+        assert response.json()["token_type"] == "bearer"
 
     @staticmethod
     def test_processing_dataset_cannot_be_downloaded() -> None:
