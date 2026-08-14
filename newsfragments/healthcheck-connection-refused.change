@@ -1,1 +1,0 @@
-Report the Docker containers as unhealthy without a traceback in the health check probe output while nothing is yet listening on the port.

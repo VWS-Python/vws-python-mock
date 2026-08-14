@@ -1,1 +1,0 @@
-Build the Docker images from a committed ``uv.lock`` with a ``.dockerignore``, so that image contents are reproducible from a commit, source edits no longer invalidate the dependency layer, and repository files such as tests and documentation are no longer copied into the images.

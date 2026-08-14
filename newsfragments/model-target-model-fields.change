@@ -1,1 +1,0 @@
-Reject Model Target dataset creation requests with models which are missing ``name``, or which have wrongly typed ``cadDataUrl``, ``name`` or ``views`` values.

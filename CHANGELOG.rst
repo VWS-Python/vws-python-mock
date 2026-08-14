@@ -3,6 +3,78 @@ Changelog
 
 .. towncrier release notes start
 
+2026.08.14
+----------
+
+- Give ``CloudDatabase`` a ``database_id``, and reject a reco counts report request whose path names a database which the request's server keys do not belong to, as real Vuforia does.
+
+- Return a response, rather than raising an uncaught ``PIL.Image.DecompressionBombError``, when an image with a small file size but a huge number of pixels is given to ``POST /targets`` or ``POST /v1/query``.
+  As real Vuforia does, ``POST /targets`` now returns the ``ImageTooLarge`` result code for an image with more than 37748736 pixels, and the Query API applies no pixel count limit.
+
+- Return targets in a deterministic order from the Query API, ``GET /targets``
+  and ``GET /duplicates/{target_id}``.  Targets are ordered by upload date and
+  then by target ID, so repeated runs agree with each other.  This order is not
+  Vuforia's match score order.
+
+- Document the Docker containers' configuration with the environment variable names and values which the applications actually read, starting with ``TARGET_MANAGER_BASE_URL``.
+
+- Build the Docker images from a committed ``uv.lock`` with a ``.dockerignore``, so that image contents are reproducible from a commit, source edits no longer invalidate the dependency layer, and repository files such as tests and documentation are no longer copied into the images.
+
+- Store Model Target datasets in the target manager service rather than in the VWS application. In the Docker deployment, datasets now survive a restart of the VWS container, matching how cloud databases and their targets are stored. The VWS application also no longer imports the target manager module's state: it constructs its own request rate limiter and reco counts report store.
+
+- Report the Docker containers as unhealthy without a traceback in the health check probe output while nothing is yet listening on the port.
+
+- Support ``cadDataBlob`` and ``cadDataFormat`` in Model Target dataset creation requests, and require exactly one of ``cadDataUrl`` and ``cadDataBlob`` for each model.
+
+- Reject Model Target Web API and OAuth2 token requests with a ``Content-Length`` header which is not an integer, matching the load balancer in front of real Vuforia.
+
+- Reject Model Target dataset creation requests with wrongly typed ``name``, ``targetSdk`` or ``models`` entry values.
+
+- Treat standard and advanced Model Target datasets as separate resources: status, download and delete requests made through the other dataset type's routes now return the unknown-dataset error rather than acting on the dataset.
+
+- Reject Model Target dataset creation requests with values outside the documented enumerations for the ``automaticColoring``, ``motionHint``, ``optimizeTrackingFor``, ``realisticAppearance``, ``simplify`` and ``trackingMode`` model fields.
+
+- Report the ``failed`` training status when downloading a Model Target dataset whose generation failed, rather than the ``not-started`` status which a still-processing dataset reports.
+
+- Add configurable failed Model Target dataset status responses.
+
+- Add configurable Model Target dataset generation warning responses.
+
+- Reject Model Target dataset creation requests with ``guideViewPosition`` objects which are missing ``rotation`` or ``translation``, or which have ``rotation`` or ``translation`` values that are not JSON arrays.
+
+- Reject Model Target dataset creation requests with ``guideViewPosition`` ``rotation`` or ``translation`` arrays which contain values that are not JSON numbers.
+
+- Reject Model Target bearer tokens whose JWT payload is not a JSON object.
+
+- Reject Model Target bearer tokens with empty or malformed JWT signatures.
+
+- Reject Model Target dataset creation requests with models which are missing ``name``, or which have wrongly typed ``cadDataUrl``, ``name`` or ``views`` values.
+
+- Reject Model Target dataset creation requests with a body which is valid JSON but not a JSON object, rather than raising an error in the mock.
+
+- Accept State-Based Model Target configuration and validate per-view state selections against its declared states.
+
+- Reject Model Target dataset creation requests with ``views`` entries which are not JSON objects, which are missing ``guideViewPosition`` or ``name``, or which have wrongly typed ``guideViewPosition`` or ``name`` values.
+
+- Model VWS request rate limits per endpoint with the new
+  ``CloudDatabase.request_rate_limits`` setting, including the limits which
+  Vuforia documents as ``mock_vws.request_rate_limits.DOCUMENTED_REQUEST_RATE_LIMITS``.
+  No request rate limit is applied by default.
+
+- Change the ``ProjectHasNoAPIAccess`` result code to ``ProjectHasNoApiAccess``, matching Vuforia's result codes table.
+
+- Add the reco counts report endpoint, and a download URL for the generated CSV report.
+
+- Preserve the recognition count fields, the reco rating and the reco threshold when dumping a ``CloudDatabase`` or an ``ImageTarget`` to a dictionary and loading it back.
+
+- Rate an image of a single color as ``0`` rather than raising an uncaught ``ZeroDivisionError``.
+
+- Return a 404 response from the Flask and Docker mock for a request to a path which it does not serve, and for a request to a served path with a method which that path does not serve, as real Vuforia does, rather than raising an error.
+
+- Reject VuMark instance generation requests whose ``instance_id`` is not a string with a ``BadRequest`` result, as real Vuforia does, and move the ``instance_id`` checks into validators shared by both mock backends.
+
+- Reject Model Target dataset creation requests with a body which cannot be decoded as UTF-8, rather than raising an error in the mock, and decode OAuth2 token request bodies leniently.
+
 2026.08.04.2
 ------------
 

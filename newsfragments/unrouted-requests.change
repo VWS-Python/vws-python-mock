@@ -1,1 +1,0 @@
-Return a 404 response from the Flask and Docker mock for a request to a path which it does not serve, and for a request to a served path with a method which that path does not serve, as real Vuforia does, rather than raising an error.

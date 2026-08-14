@@ -1,4 +1,0 @@
-Model VWS request rate limits per endpoint with the new
-``CloudDatabase.request_rate_limits`` setting, including the limits which
-Vuforia documents as ``mock_vws.request_rate_limits.DOCUMENTED_REQUEST_RATE_LIMITS``.
-No request rate limit is applied by default.

@@ -1,1 +1,0 @@
-Reject Model Target Web API and OAuth2 token requests with a ``Content-Length`` header which is not an integer, matching the load balancer in front of real Vuforia.
