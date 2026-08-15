@@ -73,16 +73,18 @@ def delete_cloud_database(database_name: str) -> Response:
 
     :status 200: The cloud database has been deleted.
     """
-    try:
-        (matching_database,) = {
-            database
-            for database in TARGET_MANAGER.cloud_databases
-            if database_name == database.database_name
-        }
-    except ValueError:
-        return Response(response="", status=HTTPStatus.NOT_FOUND)
+    with TARGET_MANAGER.lock:
+        try:
+            (matching_database,) = {
+                database
+                for database in TARGET_MANAGER.cloud_databases
+                if database_name == database.database_name
+            }
+        except ValueError:
+            return Response(response="", status=HTTPStatus.NOT_FOUND)
 
-    TARGET_MANAGER.remove_cloud_database(cloud_database=matching_database)
+        TARGET_MANAGER.remove_cloud_database(cloud_database=matching_database)
+
     return Response(response="", status=HTTPStatus.OK)
 
 
@@ -96,16 +98,20 @@ def delete_vumark_database(database_name: str) -> Response:
 
     :status 200: The VuMark database has been deleted.
     """
-    try:
-        (matching_database,) = {
-            database
-            for database in TARGET_MANAGER.vumark_databases
-            if database_name == database.database_name
-        }
-    except ValueError:
-        return Response(response="", status=HTTPStatus.NOT_FOUND)
+    with TARGET_MANAGER.lock:
+        try:
+            (matching_database,) = {
+                database
+                for database in TARGET_MANAGER.vumark_databases
+                if database_name == database.database_name
+            }
+        except ValueError:
+            return Response(response="", status=HTTPStatus.NOT_FOUND)
 
-    TARGET_MANAGER.remove_vumark_database(vumark_database=matching_database)
+        TARGET_MANAGER.remove_vumark_database(
+            vumark_database=matching_database,
+        )
+
     return Response(response="", status=HTTPStatus.OK)
 
 
@@ -115,9 +121,11 @@ def delete_vumark_database(database_name: str) -> Response:
 @beartype
 def get_cloud_databases() -> Response:
     """Return a list of all cloud databases."""
-    databases = [
-        database.to_dict() for database in TARGET_MANAGER.cloud_databases
-    ]
+    with TARGET_MANAGER.lock:
+        databases = [
+            database.to_dict() for database in TARGET_MANAGER.cloud_databases
+        ]
+
     return Response(
         response=json.dumps(obj=databases),
         status=HTTPStatus.OK,
@@ -131,9 +139,11 @@ def get_cloud_databases() -> Response:
 @beartype
 def get_vumark_databases() -> Response:
     """Return a list of all VuMark databases."""
-    databases = [
-        database.to_dict() for database in TARGET_MANAGER.vumark_databases
-    ]
+    with TARGET_MANAGER.lock:
+        databases = [
+            database.to_dict() for database in TARGET_MANAGER.vumark_databases
+        ]
+
     return Response(
         response=json.dumps(obj=databases),
         status=HTTPStatus.OK,
@@ -285,16 +295,19 @@ def create_cloud_database() -> Response:
         requests_per_second_limit=requests_per_second_limit,
         request_rate_limits=request_rate_limits,
     )
-    try:
-        TARGET_MANAGER.add_cloud_database(cloud_database=database)
-    except ValueError as exc:
-        return Response(
-            response=str(object=exc),
-            status=HTTPStatus.CONFLICT,
-        )
+    with TARGET_MANAGER.lock:
+        try:
+            TARGET_MANAGER.add_cloud_database(cloud_database=database)
+        except ValueError as exc:
+            return Response(
+                response=str(object=exc),
+                status=HTTPStatus.CONFLICT,
+            )
+
+        database_dict = database.to_dict()
 
     return Response(
-        response=json.dumps(obj=database.to_dict()),
+        response=json.dumps(obj=database_dict),
         status=HTTPStatus.CREATED,
     )
 
@@ -331,16 +344,19 @@ def create_vumark_database() -> Response:
         state=States[state_name],
     )
 
-    try:
-        TARGET_MANAGER.add_vumark_database(vumark_database=database)
-    except ValueError as exc:
-        return Response(
-            response=str(object=exc),
-            status=HTTPStatus.CONFLICT,
-        )
+    with TARGET_MANAGER.lock:
+        try:
+            TARGET_MANAGER.add_vumark_database(vumark_database=database)
+        except ValueError as exc:
+            return Response(
+                response=str(object=exc),
+                status=HTTPStatus.CONFLICT,
+            )
+
+        database_dict = database.to_dict()
 
     return Response(
-        response=json.dumps(obj=database.to_dict()),
+        response=json.dumps(obj=database_dict),
         status=HTTPStatus.CREATED,
     )
 
@@ -391,10 +407,12 @@ def delete_model_target_dataset(dataset_uuid: str) -> Response:
 
     :status 200: The Model Target dataset has been deleted.
     """
-    if dataset_uuid not in TARGET_MANAGER.model_target_datasets:
-        return Response(response="", status=HTTPStatus.NOT_FOUND)
+    with TARGET_MANAGER.lock:
+        if dataset_uuid not in TARGET_MANAGER.model_target_datasets:
+            return Response(response="", status=HTTPStatus.NOT_FOUND)
 
-    TARGET_MANAGER.remove_model_target_dataset(dataset_uuid=dataset_uuid)
+        TARGET_MANAGER.remove_model_target_dataset(dataset_uuid=dataset_uuid)
+
     return Response(response="", status=HTTPStatus.OK)
 
 
@@ -405,11 +423,6 @@ def delete_model_target_dataset(dataset_uuid: str) -> Response:
 @beartype
 def create_target(database_name: str) -> Response:
     """Create a new target in a given cloud database."""
-    (database,) = (
-        database
-        for database in TARGET_MANAGER.cloud_databases
-        if database.database_name == database_name
-    )
     request_json = json.loads(s=request.data)
     settings = TargetManagerSettings.model_validate(obj={})
 
@@ -425,7 +438,13 @@ def create_target(database_name: str) -> Response:
         target_id=request_json["target_id"],
         target_tracking_rater=target_tracking_rater,
     )
-    database.targets.add(target)
+    with TARGET_MANAGER.lock:
+        (database,) = (
+            database
+            for database in TARGET_MANAGER.cloud_databases
+            if database.database_name == database_name
+        )
+        database.targets.add(target)
 
     return Response(
         response=json.dumps(obj=target.to_dict()),
@@ -440,14 +459,15 @@ def create_target(database_name: str) -> Response:
 @beartype
 def create_vumark_target(database_name: str) -> Response:
     """Create a new VuMark target in a given database."""
-    (database,) = (
-        database
-        for database in TARGET_MANAGER.vumark_databases
-        if database.database_name == database_name
-    )
     request_json = json.loads(s=request.data)
     target = VuMarkTarget.from_dict(target_dict=request_json)
-    database.vumark_targets.add(target)
+    with TARGET_MANAGER.lock:
+        (database,) = (
+            database
+            for database in TARGET_MANAGER.vumark_databases
+            if database.database_name == database_name
+        )
+        database.vumark_targets.add(target)
 
     return Response(
         response=json.dumps(obj=target.to_dict()),
@@ -462,20 +482,22 @@ def create_vumark_target(database_name: str) -> Response:
 @beartype
 def delete_target(database_name: str, target_id: str) -> Response:
     """Delete a target."""
-    (database,) = (
-        database
-        for database in TARGET_MANAGER.cloud_databases
-        if database.database_name == database_name
-    )
-    target = database.get_target(target_id=target_id)
-    now = datetime.datetime.now(tz=target.upload_date.tzinfo)
-    # See https://github.com/facebook/pyrefly/issues/1897
-    new_target: ImageTarget = copy.replace(
-        target,  # pyrefly: ignore[bad-argument-type]
-        delete_date=now,
-    )
-    database.targets.remove(target)
-    database.targets.add(new_target)
+    with TARGET_MANAGER.lock:
+        (database,) = (
+            database
+            for database in TARGET_MANAGER.cloud_databases
+            if database.database_name == database_name
+        )
+        target = database.get_target(target_id=target_id)
+        now = datetime.datetime.now(tz=target.upload_date.tzinfo)
+        # See https://github.com/facebook/pyrefly/issues/1897
+        new_target: ImageTarget = copy.replace(
+            target,  # pyrefly: ignore[bad-argument-type]
+            delete_date=now,
+        )
+        database.targets.remove(target)
+        database.targets.add(new_target)
+
     return Response(
         response=json.dumps(obj=new_target.to_dict()),
         status=HTTPStatus.OK,
@@ -489,41 +511,43 @@ def delete_target(database_name: str, target_id: str) -> Response:
 @beartype
 def update_target(database_name: str, target_id: str) -> Response:
     """Update a target."""
-    (database,) = (
-        database
-        for database in TARGET_MANAGER.cloud_databases
-        if database.database_name == database_name
-    )
-    target = database.get_target(target_id=target_id)
-
     request_json = json.loads(s=request.data)
-    name = request_json.get("name", target.name)
-    active_flag = request_json.get("active_flag", target.active_flag)
 
-    gmt = ZoneInfo(key="GMT")
-    last_modified_date = datetime.datetime.now(tz=gmt)
+    with TARGET_MANAGER.lock:
+        (database,) = (
+            database
+            for database in TARGET_MANAGER.cloud_databases
+            if database.database_name == database_name
+        )
+        target = database.get_target(target_id=target_id)
 
-    width = request_json.get("width", target.width)
-    application_metadata = request_json.get(
-        "application_metadata",
-        target.application_metadata,
-    )
-    image_value = target.image_value
-    if "image" in request_json:
-        image_value = base64.b64decode(s=request_json["image"])
-    # See https://github.com/facebook/pyrefly/issues/1897
-    new_target: ImageTarget = copy.replace(
-        target,  # pyrefly: ignore[bad-argument-type]
-        name=name,
-        width=width,
-        active_flag=active_flag,
-        application_metadata=application_metadata,
-        image_value=image_value,
-        last_modified_date=last_modified_date,
-    )
+        name = request_json.get("name", target.name)
+        active_flag = request_json.get("active_flag", target.active_flag)
 
-    database.targets.remove(target)
-    database.targets.add(new_target)
+        gmt = ZoneInfo(key="GMT")
+        last_modified_date = datetime.datetime.now(tz=gmt)
+
+        width = request_json.get("width", target.width)
+        application_metadata = request_json.get(
+            "application_metadata",
+            target.application_metadata,
+        )
+        image_value = target.image_value
+        if "image" in request_json:
+            image_value = base64.b64decode(s=request_json["image"])
+        # See https://github.com/facebook/pyrefly/issues/1897
+        new_target: ImageTarget = copy.replace(
+            target,  # pyrefly: ignore[bad-argument-type]
+            name=name,
+            width=width,
+            active_flag=active_flag,
+            application_metadata=application_metadata,
+            image_value=image_value,
+            last_modified_date=last_modified_date,
+        )
+
+        database.targets.remove(target)
+        database.targets.add(new_target)
 
     return Response(
         response=json.dumps(obj=new_target.to_dict()),
