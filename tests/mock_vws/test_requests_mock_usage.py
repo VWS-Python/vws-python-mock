@@ -24,6 +24,8 @@ from vws.exceptions.vws_exceptions import (
     TargetQuotaReachedError,
     TooManyRequestsError,
 )
+from vws.reports import TargetStatuses
+from vws.transports import HTTPXTransport
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws import MissingSchemeError, MockVWS
@@ -81,6 +83,16 @@ def _not_exact_matcher(
 ) -> bool:
     """A matcher which returns True if the images are not the same."""
     return first_image_content != second_image_content
+
+
+@beartype
+def _unused_local_url() -> str:
+    """Return a URL for a local address with nothing listening on it."""
+    sock = socket.socket()
+    sock.bind(("", 0))
+    port = sock.getsockname()[1]
+    sock.close()
+    return f"http://localhost:{port}"
 
 
 @beartype
@@ -1831,3 +1843,227 @@ class TestModelTargetWebAPI:
             "message": "no Bearer token",
             "target": "jwt",
         }
+
+
+class TestDecorator:
+    """Tests for using the mock as a decorator."""
+
+    @staticmethod
+    def test_requests_are_mocked_only_within_the_function() -> None:
+        """Requests to Vuforia are mocked within the decorated function,
+        and
+        they are not mocked once the decorated function has returned.
+        """
+        base_vws_url = _unused_local_url()
+        summary_url = base_vws_url + "/summary"
+
+        @MockVWS(base_vws_url=base_vws_url)
+        def make_request() -> requests.Response:
+            """Make a request to the mocked VWS API."""
+            return requests.get(
+                url=summary_url,
+                headers={
+                    "Date": rfc_1123_date(),
+                    "Authorization": "bad_auth_token",
+                },
+                data=b"",
+                timeout=30,
+            )
+
+        response = make_request()
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+
+        # Nothing is listening on the given address, so this shows that the
+        # mocking stops when the decorated function returns.
+        with pytest.raises(
+            expected_exception=requests.exceptions.ConnectionError
+        ):
+            requests.get(url=summary_url, timeout=30)
+
+    @staticmethod
+    def test_httpx_requests_are_mocked() -> None:
+        """Requests made with ``httpx`` are mocked within the decorated
+        function.
+        """
+        base_vws_url = _unused_local_url()
+        summary_url = base_vws_url + "/summary"
+
+        @MockVWS(base_vws_url=base_vws_url)
+        def make_request() -> httpx.Response:
+            """Make a request to the mocked VWS API."""
+            return httpx.get(
+                url=summary_url,
+                headers={
+                    "Date": rfc_1123_date(),
+                    "Authorization": "bad_auth_token",
+                },
+                timeout=30,
+            )
+
+        response = make_request()
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+
+        with pytest.raises(expected_exception=httpx.ConnectError):
+            httpx.get(url=summary_url, timeout=30)
+
+    @staticmethod
+    def test_arguments_and_return_value() -> None:
+        """Arguments are passed to the decorated function, and its return
+        value is returned.
+        """
+
+        @MockVWS()
+        def join(*parts: str, separator: str) -> str:
+            """Join the given parts."""
+            return separator.join(parts)
+
+        assert join("a", "b", separator="-") == "a-b"
+
+    @staticmethod
+    def test_function_metadata_is_preserved() -> None:
+        """The decorated function keeps its name and docstring."""
+
+        @MockVWS()
+        def my_function() -> None:
+            """My docstring."""
+
+        assert my_function.__name__ == "my_function"
+        assert my_function.__doc__ == "My docstring."
+
+    @staticmethod
+    def test_databases_added_before_decorating() -> None:
+        """Databases added to the mock are available within the decorated
+        function.
+        """
+        database = CloudDatabase()
+        mock = MockVWS()
+        mock.add_cloud_database(cloud_database=database)
+
+        @mock
+        def get_database_name() -> str:
+            """Get the name of the database from the mock."""
+            vws_client = VWS(
+                server_access_key=database.server_access_key,
+                server_secret_key=database.server_secret_key,
+            )
+            return vws_client.get_database_summary_report().name
+
+        assert get_database_name() == database.database_name
+
+    @staticmethod
+    def test_options_are_used(image_file_failed_state: io.BytesIO) -> None:
+        """Options given to the mock are used within the decorated
+        function.
+        """
+        database = CloudDatabase()
+        mock = MockVWS(processing_time_seconds=0)
+        mock.add_cloud_database(cloud_database=database)
+
+        @mock
+        def add_target() -> TargetStatuses:
+            """Add a target and return its status immediately."""
+            vws_client = VWS(
+                server_access_key=database.server_access_key,
+                server_secret_key=database.server_secret_key,
+            )
+            target_id = vws_client.add_target(
+                name="example",
+                width=1,
+                image=image_file_failed_state,
+                active_flag=True,
+                application_metadata=None,
+            )
+            return vws_client.get_target_record(target_id=target_id).status
+
+        # The given processing time of zero seconds means that the target is
+        # processed immediately.
+        assert add_target() == TargetStatuses.FAILED
+
+    @staticmethod
+    def test_targets_persist_between_calls(
+        high_quality_image: io.BytesIO,
+    ) -> None:
+        """A mock instance keeps its targets between calls of a decorated
+        function.
+        """
+        database = CloudDatabase()
+        mock = MockVWS(processing_time_seconds=0)
+        mock.add_cloud_database(cloud_database=database)
+
+        @mock
+        def add_target_and_list_targets() -> list[str]:
+            """Add a target and return the identifiers of all targets."""
+            vws_client = VWS(
+                server_access_key=database.server_access_key,
+                server_secret_key=database.server_secret_key,
+            )
+            vws_client.add_target(
+                name=f"example-{len(vws_client.list_targets())}",
+                width=1,
+                image=high_quality_image,
+                active_flag=True,
+                application_metadata=None,
+            )
+            return vws_client.list_targets()
+
+        expected_targets_after_second_call = 2
+        assert len(add_target_and_list_targets()) == 1
+        assert (
+            len(add_target_and_list_targets())
+            == expected_targets_after_second_call
+        )
+
+    @staticmethod
+    def test_query(high_quality_image: io.BytesIO) -> None:
+        """Query requests are mocked within the decorated function."""
+        database = CloudDatabase()
+        mock = MockVWS(processing_time_seconds=0)
+        mock.add_cloud_database(cloud_database=database)
+
+        @mock
+        def query() -> tuple[str, list[str]]:
+            """Add a target and query for it."""
+            vws_client = VWS(
+                server_access_key=database.server_access_key,
+                server_secret_key=database.server_secret_key,
+            )
+            target_id = vws_client.add_target(
+                name="example",
+                width=1,
+                image=high_quality_image,
+                active_flag=True,
+                application_metadata=None,
+            )
+            vws_client.wait_for_target_processed(target_id=target_id)
+            cloud_reco_client = CloudRecoService(
+                client_access_key=database.client_access_key,
+                client_secret_key=database.client_secret_key,
+                transport=HTTPXTransport(),
+            )
+            matches = cloud_reco_client.query(image=high_quality_image)
+            return target_id, [match.target_id for match in matches]
+
+        added_target_id, matching_target_ids = query()
+        assert matching_target_ids == [added_target_id]
+
+    @staticmethod
+    def test_decorating_a_method() -> None:
+        """It is possible to decorate a method."""
+        database = CloudDatabase()
+        mock = MockVWS()
+        mock.add_cloud_database(cloud_database=database)
+
+        class _Example:
+            """A class with a decorated method."""
+
+            @mock
+            def get_database_name(self) -> str:
+                """Get the name of the database from the mock."""
+                assert self is not None
+                vws_client = VWS(
+                    server_access_key=database.server_access_key,
+                    server_secret_key=database.server_secret_key,
+                )
+                return vws_client.get_database_summary_report().name
+
+        assert _Example().get_database_name() == database.database_name
