@@ -134,7 +134,7 @@ def route(
 
 
 @beartype(conf=BeartypeConf(is_pep484_tower=True))
-class MockVuforiaWebServicesAPI:
+class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
     """A fake implementation of the Vuforia Web Services API."""
 
     def __init__(
@@ -184,7 +184,7 @@ class MockVuforiaWebServicesAPI:
         self._vumark_generation_failure = vumark_generation_failure
 
     @route(path_pattern="/oauth2/token", http_methods={HTTPMethod.POST})
-    def oauth2_token(  # pylint: disable=no-self-use
+    def oauth2_token(
         self,
         request: RequestData,
     ) -> _ResponseType:

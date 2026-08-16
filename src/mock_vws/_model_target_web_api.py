@@ -333,7 +333,7 @@ def _jwt_signature_error(*, bearer_token: str) -> str | None:
 
 @beartype
 def _jwt_scopes(*, bearer_token: str) -> frozenset[str]:
-    """Return the scopes carried by a valid mock JWT."""
+    """Return scopes from a valid mock JSON Web Token."""
     encoded_payload = bearer_token.split(sep=".")[1]
     padding = "=" * (-len(encoded_payload) % 4)
     payload = json.loads(
@@ -474,7 +474,7 @@ def _fake_jwt(*, token_source: bytes, scopes: frozenset[str]) -> str:
 
 
 @beartype
-def oauth2_token(  # noqa: PLR0911
+def oauth2_token(  # noqa: PLR0911  # pylint: disable=too-many-return-statements
     *,
     request: RequestData,
     credential_store: ModelTargetDatasetStore,

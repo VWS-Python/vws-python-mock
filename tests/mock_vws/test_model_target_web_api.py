@@ -1771,7 +1771,8 @@ class TestAdditionalBehaviors:
         """An OAuth2 token request with a body which is not valid UTF-8 is
         treated as one which does not name a grant type.
 
-        Real Vuforia also treats the undecodable body as an empty form.
+        Real Vuforia also treats a body that cannot be decoded as an empty
+        form.
         """
         credentials = credentials_for_backend(
             backend=verify_model_target_mock_vuforia,
