@@ -1,9 +1,11 @@
 """Decorators for using the mock."""
 
+import functools
 import re
 import time
-from collections.abc import Callable, Mapping
-from contextlib import ContextDecorator
+from collections.abc import Callable, Generator, Mapping
+from contextlib import contextmanager
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Literal, Self
 from urllib.parse import urlparse
 
@@ -49,10 +51,46 @@ _BRISQUE_TRACKING_RATER = BrisqueTargetTrackingRater()
 
 
 @beartype(conf=BeartypeConf(is_pep484_tower=True))
-class MockVWS(ContextDecorator):
+@dataclass(eq=True, frozen=True, kw_only=True)
+class _MockVWSOptions:
+    """The options which configure a mock.
+
+    These are everything a mock is given when it is created, as opposed to
+    the databases and targets which it accumulates as it is used.
+    """
+
+    base_vws_url: str
+    base_vwq_url: str
+    cloud_query_failure_response: CloudQueryFailureResponse | None
+    duplicate_match_checker: ImageMatcher
+    query_match_checker: ImageMatcher
+    processing_time_seconds: float
+    model_target_generation_failure: ModelTargetGenerationFailure | None
+    model_target_generation_warning: ModelTargetGenerationWarning | None
+    model_target_training_allowance_exceeded: bool
+    target_tracking_rater: TargetTrackingRater
+    real_http: bool
+    response_delay_seconds: float
+    sleep_fn: Callable[[float], None]
+    vumark_generation_failure: VuMarkGenerationFailure | None
+
+
+@beartype(conf=BeartypeConf(is_pep484_tower=True))
+class MockVWS:
     """Route requests to Vuforia's Web Service APIs to fakes of those APIs.
 
     Works with both ``requests`` and ``httpx``.
+
+    An instance is usable as a context manager and as a decorator.
+
+    A context manager block shares one set of databases and targets with
+    every other use of the same instance, so state created in one ``with``
+    block is still there in the next one.
+
+    A decorated function instead gets its own databases and targets for the
+    duration of each call. The databases added to the instance are available
+    inside the call, and the targets created during the call are discarded
+    when it returns, so decorated functions do not affect each other.
     """
 
     def __init__(
@@ -128,7 +166,6 @@ class MockVWS(ContextDecorator):
             ValueError: Both a Model Target generation failure and warning are
                 configured.
         """
-        super().__init__()
         if (
             model_target_generation_failure is not None
             and model_target_generation_warning is not None
@@ -138,39 +175,115 @@ class MockVWS(ContextDecorator):
                 "are mutually exclusive"
             )
             raise ValueError(msg)
-        self._real_http = real_http
-        self._response_delay_seconds = response_delay_seconds
-        self._sleep_fn = sleep_fn
-        self._mock: RequestsMock
-        self._router: respx.MockRouter
-        self._target_manager = TargetManager()
 
-        self._base_vws_url = base_vws_url
-        self._base_vwq_url = base_vwq_url
         for url in (base_vwq_url, base_vws_url):
             parse_result = urlparse(url=url)
             if not parse_result.scheme:
                 raise MissingSchemeError(url=url)
 
-        self._mock_vws_api = MockVuforiaWebServicesAPI(
-            target_manager=self._target_manager,
+        # The options are kept so that decorating a function can build an
+        # equivalently configured set of fakes, with their own databases and
+        # targets, for each call of that function.
+        self._options = _MockVWSOptions(
             base_vws_url=base_vws_url,
+            base_vwq_url=base_vwq_url,
+            cloud_query_failure_response=cloud_query_failure_response,
+            duplicate_match_checker=duplicate_match_checker,
+            query_match_checker=query_match_checker,
             processing_time_seconds=float(processing_time_seconds),
             model_target_generation_failure=model_target_generation_failure,
             model_target_generation_warning=model_target_generation_warning,
             model_target_training_allowance_exceeded=(
                 model_target_training_allowance_exceeded
             ),
-            duplicate_match_checker=duplicate_match_checker,
             target_tracking_rater=target_tracking_rater,
+            real_http=real_http,
+            response_delay_seconds=response_delay_seconds,
+            sleep_fn=sleep_fn,
             vumark_generation_failure=vumark_generation_failure,
         )
-
-        self._mock_vwq_api = MockVuforiaWebQueryAPI(
+        # A mock can be started while it is already started, for example
+        # when a decorated function calls another decorated function, so the
+        # started mocks are kept as a stack.
+        self._started: list[tuple[RequestsMock, respx.MockRouter]] = []
+        self._added_cloud_databases: list[CloudDatabase] = []
+        self._added_vumark_databases: list[VuMarkDatabase] = []
+        self._target_manager = TargetManager()
+        self._mock_vws_api, self._mock_vwq_api = self._build_apis(
             target_manager=self._target_manager,
-            query_match_checker=query_match_checker,
-            failure_response=cloud_query_failure_response,
         )
+
+    def _build_apis(
+        self,
+        *,
+        target_manager: TargetManager,
+    ) -> tuple[MockVuforiaWebServicesAPI, MockVuforiaWebQueryAPI]:
+        """Build fakes of the Vuforia APIs, backed by a target manager.
+
+        Args:
+            target_manager: The target manager which the fakes use.
+
+        Returns:
+            A fake of the VWS API and a fake of the VWQ API.
+        """
+        options = self._options
+        mock_vws_api = MockVuforiaWebServicesAPI(
+            target_manager=target_manager,
+            base_vws_url=options.base_vws_url,
+            processing_time_seconds=options.processing_time_seconds,
+            model_target_generation_failure=(
+                options.model_target_generation_failure
+            ),
+            model_target_generation_warning=(
+                options.model_target_generation_warning
+            ),
+            model_target_training_allowance_exceeded=(
+                options.model_target_training_allowance_exceeded
+            ),
+            duplicate_match_checker=options.duplicate_match_checker,
+            target_tracking_rater=options.target_tracking_rater,
+            vumark_generation_failure=options.vumark_generation_failure,
+        )
+        mock_vwq_api = MockVuforiaWebQueryAPI(
+            target_manager=target_manager,
+            query_match_checker=options.query_match_checker,
+            failure_response=options.cloud_query_failure_response,
+        )
+        return mock_vws_api, mock_vwq_api
+
+    @contextmanager
+    def _fresh_state(self) -> Generator[None]:
+        """Swap in databases and targets which are used only in this block.
+
+        The databases added to this instance are added to the new state, and
+        the state which was there before the block is back once it ends.
+
+        Yields:
+            ``None``.
+        """
+        original_target_manager = self._target_manager
+        original_mock_vws_api = self._mock_vws_api
+        original_mock_vwq_api = self._mock_vwq_api
+
+        self._target_manager = TargetManager()
+        self._mock_vws_api, self._mock_vwq_api = self._build_apis(
+            target_manager=self._target_manager,
+        )
+        for cloud_database in self._added_cloud_databases:
+            self._target_manager.add_cloud_database(
+                cloud_database=cloud_database,
+            )
+        for vumark_database in self._added_vumark_databases:
+            self._target_manager.add_vumark_database(
+                vumark_database=vumark_database,
+            )
+
+        try:
+            yield
+        finally:
+            self._target_manager = original_target_manager
+            self._mock_vws_api = original_mock_vws_api
+            self._mock_vwq_api = original_mock_vwq_api
 
     def add_cloud_database(self, cloud_database: CloudDatabase) -> None:
         """Add a cloud database.
@@ -185,6 +298,7 @@ class MockVWS(ContextDecorator):
         self._target_manager.add_cloud_database(
             cloud_database=cloud_database,
         )
+        self._added_cloud_databases.append(cloud_database)
 
     def add_vumark_database(self, vumark_database: VuMarkDatabase) -> None:
         """Add a VuMark database.
@@ -199,6 +313,67 @@ class MockVWS(ContextDecorator):
         self._target_manager.add_vumark_database(
             vumark_database=vumark_database,
         )
+        self._added_vumark_databases.append(vumark_database)
+
+    def __call__[**P, T](
+        self,
+        function: Callable[P, T],
+    ) -> Callable[P, T]:
+        """Wrap a function so that each call of it runs against the mock.
+
+        Each call gets its own databases and targets, so that decorated
+        functions do not affect each other. The databases added to this
+        instance are available inside the call, and their targets are what
+        they were before the call again once it returns.
+
+        Args:
+            function: The function to wrap.
+
+        Returns:
+            The wrapped function.
+        """
+
+        @functools.wraps(wrapped=function)
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            """Run the given function against a mock of its own.
+
+            Returns:
+                The return value of the given function.
+            """
+            # The targets of a database are stored on the database object
+            # itself, and that object belongs to the caller, so a new target
+            # manager is not enough to isolate one call from the next. We
+            # therefore put the targets back as they were afterwards.
+            #
+            # ``CloudDatabase`` equality includes the targets, which change
+            # during the call, so the snapshots are held in a list rather
+            # than in a dictionary keyed by database.
+            #
+            # Reading and writing the targets in a database is guarded by
+            # the target manager's lock, as documented on that lock.
+            with self._target_manager.lock:
+                cloud_snapshots = [
+                    (database, set(database.targets))
+                    for database in self._added_cloud_databases
+                ]
+                vumark_snapshots = [
+                    (database, set(database.vumark_targets))
+                    for database in self._added_vumark_databases
+                ]
+
+            try:
+                with self._fresh_state(), self:
+                    return function(*args, **kwargs)
+            finally:
+                with self._target_manager.lock:
+                    for cloud_database, cloud_targets in cloud_snapshots:
+                        cloud_database.targets.clear()
+                        cloud_database.targets.update(cloud_targets)
+                    for vumark_database, vumark_targets in vumark_snapshots:
+                        vumark_database.vumark_targets.clear()
+                        vumark_database.vumark_targets.update(vumark_targets)
+
+        return wrapper
 
     @staticmethod
     def _wrap_callback(
@@ -272,8 +447,8 @@ class MockVWS(ContextDecorator):
         mock = RequestsMock(assert_all_requests_are_fired=False)
 
         for api, base_url in (
-            (self._mock_vws_api, self._base_vws_url),
-            (self._mock_vwq_api, self._base_vwq_url),
+            (self._mock_vws_api, self._options.base_vws_url),
+            (self._mock_vwq_api, self._options.base_vwq_url),
         ):
             base_path = urlparse(url=base_url).path.rstrip("/")
             for route in api.routes:
@@ -290,30 +465,30 @@ class MockVWS(ContextDecorator):
                         url=compiled_url_pattern,
                         callback=self._wrap_callback(
                             callback=original_callback,
-                            delay_seconds=self._response_delay_seconds,
-                            sleep_fn=self._sleep_fn,
+                            delay_seconds=self._options.response_delay_seconds,
+                            sleep_fn=self._options.sleep_fn,
                             base_path=base_path,
                         ),
                         content_type=None,
                     )
 
-        if self._real_http:
+        if self._options.real_http:
             all_requests_pattern = re.compile(pattern=".*")
             mock.add_passthru(prefix=all_requests_pattern)
 
-        self._mock = mock
-        self._mock.start()
+        mock.start()
 
-        self._router = start_respx_router(
+        router = start_respx_router(
             mock_vws_api=self._mock_vws_api,
             mock_vwq_api=self._mock_vwq_api,
-            base_vws_url=self._base_vws_url,
-            base_vwq_url=self._base_vwq_url,
-            response_delay_seconds=self._response_delay_seconds,
-            sleep_fn=self._sleep_fn,
-            real_http=self._real_http,
+            base_vws_url=self._options.base_vws_url,
+            base_vwq_url=self._options.base_vwq_url,
+            response_delay_seconds=self._options.response_delay_seconds,
+            sleep_fn=self._options.sleep_fn,
+            real_http=self._options.real_http,
         )
 
+        self._started.append((mock, router))
         return self
 
     def __exit__(self, *exc: object) -> Literal[False]:
@@ -326,6 +501,7 @@ class MockVWS(ContextDecorator):
         # unused, so we "use" it here.
         del exc
 
-        self._mock.stop()
-        self._router.stop()
+        mock, router = self._started.pop()
+        mock.stop()
+        router.stop()
         return False
