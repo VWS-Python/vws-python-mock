@@ -12,6 +12,7 @@ from beartype import beartype
 from requests_mock_flask import add_flask_app_to_mock
 from vws import VWS
 from vws.exceptions.vws_exceptions import (
+    ProjectSuspendedError,
     TargetStatusNotSuccessError,
 )
 
@@ -98,12 +99,28 @@ def _enable_use_real_vuforia(
     inactive_vumark_database: InactiveVuMarkCloudDatabase,
     monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None]:
-    """Test against the real Vuforia."""
+    """Test against the real Vuforia.
+
+    A suspended database cannot be used until it is reactivated in the
+    Vuforia Target Manager. Tests which need such a database are skipped
+    rather than failing, as there is nothing which the tests can do about
+    a suspended database.
+    """
     assert monkeypatch
     assert inactive_cloud_database
     assert vumark_vuforia_database
     assert inactive_vumark_database
-    _delete_all_targets(database_keys=working_database)
+    try:
+        _delete_all_targets(database_keys=working_database)
+    except ProjectSuspendedError:  # pragma: no cover
+        pytest.skip(
+            reason=(
+                "The real Vuforia database "
+                f"'{working_database.database_name}' is suspended. "
+                "Reactivate it in the Vuforia Target Manager to run tests "
+                "against the real Vuforia."
+            ),
+        )
     yield
 
 
