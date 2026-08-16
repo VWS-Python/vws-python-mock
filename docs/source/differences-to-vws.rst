@@ -374,7 +374,7 @@ path which does not start with a served path, such as
 For any other request which it does not serve, such as ``DELETE /summary`` or
 ``GET /targetsfoo``, it gives an HTML "Not Found" page which names the method
 and the path of the request.
-The Flask and Docker mock gives an empty body for all of these.
+The Flask and Docker mock reproduces both response shapes.
 
 The ``requests`` and ``httpx`` backends mock only the paths which the mock
 serves, so a request to any other path raises a connection error rather than

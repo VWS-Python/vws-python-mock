@@ -6,6 +6,8 @@ https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api
 
 import base64
 import email.utils
+import gzip
+import html
 import json
 import logging
 import threading
@@ -401,14 +403,39 @@ def handle_exceptions(exc: ValidatorError) -> Response:
 @VWS_FLASK_APP.errorhandler(code_or_exception=HTTPStatus.METHOD_NOT_ALLOWED)
 @beartype
 def handle_unrouted_request(exc: NotFound | MethodNotAllowed) -> Response:
-    """Return a 404 response with no body for a request which no route
-    serves.
+    """Return the real Vuforia 404 shape for an unrouted request.
 
-    Real Vuforia returns a 404 response for a request to a path which it does
-    not serve, and for a request to a served path with a method which that
-    path does not serve.
+    Vuforia's edge returns an empty response for unknown path prefixes. Paths
+    routed to the Cloud Targets application return its HTML Not Found page.
     """
     del exc
+    application_prefixes = ("/duplicates", "/summary", "/targets")
+    if request.path.startswith(application_prefixes):
+        request_description = html.escape(
+            s=f"{request.method} {request.path}",
+            quote=True,
+        )
+        body = f"""<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Not Found</title>
+    </head>
+    <body>
+        <h1>Not Found</h1>
+        <p id="detail">For request '{request_description}'</p>
+    </body>
+</html>
+""".encode()
+        return Response(
+            status=HTTPStatus.NOT_FOUND,
+            response=gzip.compress(data=body),
+            headers={
+                "Content-Type": "text/html; charset=UTF-8",
+                "Content-Encoding": "gzip",
+                "x-envoy-upstream-service-time": "5",
+            },
+        )
+
     response = Response(status=HTTPStatus.NOT_FOUND, response=b"")
     del response.headers["Content-Type"]
     return response
