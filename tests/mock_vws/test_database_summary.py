@@ -300,11 +300,7 @@ class TestRecos:
         high_quality_image: io.BytesIO,
         vws_client: VWS,
     ) -> None:
-        """Recognition counts are unchanged or incremented after a query.
-
-        Vuforia used to update these counts after a significant delay, but it
-        can now expose the increment immediately.
-        """
+        """Recognition counts update asynchronously after a query."""
         target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
             width=1,
