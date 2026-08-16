@@ -14,7 +14,11 @@ from mock_vws import (
     ModelTargetGenerationWarning,
 )
 
-_AUTHORIZATION = "Bearer eyJhbGciOiJtb2NrIn0.e30.c2lnbmF0dXJl"
+_AUTHORIZATION = (
+    "Bearer eyJhbGciOiJtb2NrIn0."
+    "eyJzY29wZSI6Im1vZGVsdGFyZ2V0cy5zdGFuZGFyZG1vZGVsdGFyZ2V0LmFsbCJ9."
+    "c2lnbmF0dXJl"
+)
 _CREATE_URL = "https://vws.vuforia.com/modeltargets/datasets"
 _REQUEST_BODY: dict[str, Any] = {
     "name": "dataset-name",

@@ -90,6 +90,8 @@ def _generate_secrets_file_content(
     inactive_vumark_details: VuMarkDatabaseDict,
     vumark_target_id: str,
     model_target_web_api_details: ModelTargetWebAPIDict,
+    model_target_username: str,
+    model_target_password: str,
 ) -> str:
     """Generate the content of a secrets file."""
     return textwrap.dedent(
@@ -119,6 +121,8 @@ def _generate_secrets_file_content(
         MODEL_TARGET_VUFORIA_CLIENT_ID={model_target_web_api_details["client_id"]}
         MODEL_TARGET_VUFORIA_CLIENT_SECRET={model_target_web_api_details["client_secret"]}
         MODEL_TARGET_VUFORIA_CAD_DATA_URL={model_target_web_api_details["cad_data_url"]}
+        MODEL_TARGET_VUFORIA_USERNAME={model_target_username}
+        MODEL_TARGET_VUFORIA_PASSWORD={model_target_password}
         """,
     )
 
@@ -336,6 +340,8 @@ def main() -> None:
             inactive_vumark_details=inactive_vumark_details,
             vumark_target_id=vumark_target_id,
             model_target_web_api_details=model_target_web_api_details,
+            model_target_username=email_address,
+            model_target_password=password,
         )
         file.write_text(data=file_contents)
         sys.stdout.write(f"Created database {file.name}\n")
