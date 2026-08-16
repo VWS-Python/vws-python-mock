@@ -99,6 +99,13 @@ The mock does not do this.
 The real Query API sends some responses with ``Content-Encoding: gzip``.
 The mock Query API sends all responses with ``Content-Encoding: gzip``.
 
+``x-aws-region`` headers
+------------------------
+
+The mock uses the fixed sample value ``us-east-2, us-west-2`` for
+``x-aws-region`` response headers. The regions returned by the real Vuforia
+Web Services can differ, so tests should not rely on the mock's exact value.
+
 NGINX Error cases
 -----------------
 
