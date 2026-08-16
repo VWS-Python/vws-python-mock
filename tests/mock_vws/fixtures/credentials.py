@@ -84,6 +84,8 @@ class _ModelTargetSettings(BaseSettings):
     client_id: str
     client_secret: str
     cad_data_url: str
+    username: str
+    password: str
 
     model_config = SettingsConfigDict(
         env_prefix="MODEL_TARGET_VUFORIA_",
@@ -119,6 +121,8 @@ class ModelTargetCredentials:
     client_id: str = field(repr=False)
     client_secret: str = field(repr=False)
     cad_data_url: str = field(repr=False)
+    username: str = field(repr=False)
+    password: str = field(repr=False)
 
 
 def get_model_target_credentials() -> ModelTargetCredentials:
@@ -130,6 +134,8 @@ def get_model_target_credentials() -> ModelTargetCredentials:
         client_id=settings.client_id,
         client_secret=settings.client_secret,
         cad_data_url=settings.cad_data_url,
+        username=settings.username,
+        password=settings.password,
     )
 
 

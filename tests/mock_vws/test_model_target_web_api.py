@@ -5,6 +5,7 @@ import dataclasses
 import io
 import json
 import textwrap
+import time
 import zipfile
 from http import HTTPMethod, HTTPStatus
 from typing import Any
@@ -27,7 +28,11 @@ from tests.mock_vws.utils import ModelTargetEndpoint
 from tests.mock_vws.utils.assertions import assert_valid_date_header
 
 _VWS_HOST = "https://vws.vuforia.com"
-_MOCK_BEARER_TOKEN = "eyJhbGciOiJtb2NrIn0.e30.c2lnbmF0dXJl"
+_MOCK_BEARER_TOKEN = (
+    "eyJhbGciOiJtb2NrIn0."
+    "eyJzY29wZSI6Im1vZGVsdGFyZ2V0cy5zdGFuZGFyZG1vZGVsdGFyZ2V0LmFsbCJ9."
+    "c2lnbmF0dXJl"
+)
 
 
 _VIEW: dict[str, Any] = {
@@ -251,6 +256,29 @@ class TestAuthentication:
                 {"error": "unsupported_grant_type"},
                 id="unsupported-grant-type",
             ),
+            pytest.param(
+                None,
+                {"grant_type": "password", "password": "password"},
+                HTTPStatus.BAD_REQUEST,
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing username and/or password",
+                },
+                id="password-grant-missing-username",
+            ),
+            pytest.param(
+                None,
+                {
+                    "grant_type": "password",
+                    "username": "user@example.com",
+                },
+                HTTPStatus.BAD_REQUEST,
+                {
+                    "error": "invalid_request",
+                    "error_description": "Missing username and/or password",
+                },
+                id="password-grant-missing-password",
+            ),
         ],
     )
     def test_invalid_oauth2_token_request(
@@ -273,6 +301,206 @@ class TestAuthentication:
             status_code=status_code,
             body=body,
         )
+
+    @staticmethod
+    def test_password_grant(
+        *,
+        verify_model_target_mock_vuforia: VuforiaBackend,
+    ) -> None:
+        """A username and password can be exchanged for a scoped token."""
+        credentials = credentials_for_backend(
+            backend=verify_model_target_mock_vuforia,
+        )
+        response = requests.post(
+            url=f"{_VWS_HOST}/oauth2/token",
+            data={
+                "grant_type": "password",
+                "username": credentials.username,
+                "password": credentials.password,
+                "scope": "modeltargets.standardmodeltarget.all",
+            },
+            timeout=30,
+        )
+
+        assert response.status_code == HTTPStatus.OK
+        assert isinstance(response.json()["access_token"], str)
+        assert response.json()["token_type"] == "bearer"
+
+    @staticmethod
+    def test_scoped_client_credentials_grant(
+        *,
+        verify_model_target_mock_vuforia: VuforiaBackend,
+    ) -> None:
+        """A client credentials request accepts an explicit scope."""
+        credentials = credentials_for_backend(
+            backend=verify_model_target_mock_vuforia,
+        )
+        response = requests.post(
+            url=f"{_VWS_HOST}/oauth2/token",
+            auth=(credentials.client_id, credentials.client_secret),
+            data={
+                "grant_type": "client_credentials",
+                "scope": "modeltargets.standardmodeltarget.all",
+            },
+            timeout=30,
+        )
+
+        assert response.status_code == HTTPStatus.OK
+        assert isinstance(response.json()["access_token"], str)
+        assert response.json()["token_type"] == "bearer"
+
+    @staticmethod
+    def test_insufficient_scope(
+        *,
+        verify_model_target_mock_vuforia: VuforiaBackend,
+    ) -> None:
+        """A route rejects a token carrying only another route's scope."""
+        credentials = credentials_for_backend(
+            backend=verify_model_target_mock_vuforia,
+        )
+        token_response = requests.post(
+            url=f"{_VWS_HOST}/oauth2/token",
+            auth=(credentials.client_id, credentials.client_secret),
+            data={
+                "grant_type": "client_credentials",
+                "scope": "modeltargets.standardmodeltarget.all",
+            },
+            timeout=30,
+        )
+        assert token_response.status_code == HTTPStatus.OK
+
+        response = requests.post(
+            url=f"{_VWS_HOST}/modeltargets/advancedDatasets",
+            headers={
+                "Authorization": (
+                    f"Bearer {token_response.json()['access_token']}"
+                ),
+            },
+            json={},
+            timeout=30,
+        )
+
+        assert response.status_code == HTTPStatus.FORBIDDEN
+        assert response.text == (
+            "User does not have the required scopes to perform this action"
+        )
+
+    @staticmethod
+    def test_client_credentials_management(
+        *,
+        verify_model_target_mock_vuforia: VuforiaBackend,
+    ) -> None:
+        """Client credentials can be created, listed, updated and
+        deleted.
+        """
+        credentials = credentials_for_backend(
+            backend=verify_model_target_mock_vuforia,
+        )
+        password_token_response = requests.post(
+            url=f"{_VWS_HOST}/oauth2/token",
+            data={
+                "grant_type": "password",
+                "username": credentials.username,
+                "password": credentials.password,
+                "scope": "oauth2.clientcredentials.all",
+            },
+            timeout=30,
+        )
+        assert password_token_response.status_code == HTTPStatus.OK
+        headers = {
+            "Authorization": (
+                f"Bearer {password_token_response.json()['access_token']}"
+            ),
+        }
+        client_id: str | None = None
+
+        try:
+            create_response = requests.post(
+                url=f"{_VWS_HOST}/oauth2/clientcredentials",
+                headers=headers,
+                json={
+                    "scopes": ["modeltargets.standardmodeltarget.all"],
+                },
+                timeout=30,
+            )
+            assert create_response.status_code == HTTPStatus.CREATED
+            client_id = create_response.json()["client_id"]
+            client_secret = create_response.json()["client_secret"]
+
+            list_response = requests.get(
+                url=f"{_VWS_HOST}/oauth2/clientcredentials",
+                headers=headers,
+                timeout=30,
+            )
+            assert list_response.status_code == HTTPStatus.OK
+            created_entries = [
+                entry
+                for entry in list_response.json()
+                if entry["clientId"] == client_id
+            ]
+            assert len(created_entries) == 1
+            assert created_entries[0]["scopes"] == [
+                "modeltargets.standardmodeltarget.all",
+            ]
+
+            update_response = requests.put(
+                url=(
+                    f"{_VWS_HOST}/oauth2/clientcredentials/{client_id}/scopes"
+                ),
+                headers=headers,
+                json=["modeltargets.advancedmodeltarget.all"],
+                timeout=30,
+            )
+            assert update_response.status_code == HTTPStatus.OK
+            assert update_response.json() == {
+                "clientId": client_id,
+                "scopes": ["modeltargets.advancedmodeltarget.all"],
+            }
+
+            assert client_id is not None
+            assert isinstance(client_secret, str)
+            client_token_response = requests.post(
+                url=f"{_VWS_HOST}/oauth2/token",
+                auth=(client_id, client_secret),
+                data={"grant_type": "client_credentials"},
+                timeout=30,
+            )
+            assert client_token_response.status_code == HTTPStatus.OK
+            client_access_token = client_token_response.json()["access_token"]
+            insufficient_response = requests.post(
+                url=f"{_VWS_HOST}/modeltargets/datasets",
+                headers={
+                    "Authorization": f"Bearer {client_access_token}",
+                },
+                json={},
+                timeout=30,
+            )
+            assert insufficient_response.status_code == HTTPStatus.FORBIDDEN
+        finally:
+            if client_id is not None:
+                delete_response = requests.delete(
+                    url=(f"{_VWS_HOST}/oauth2/clientcredentials/{client_id}"),
+                    headers=headers,
+                    timeout=30,
+                )
+                assert delete_response.status_code == HTTPStatus.NO_CONTENT
+
+        missing_client_id = "000000000000000000000"
+        missing_response = requests.delete(
+            url=(f"{_VWS_HOST}/oauth2/clientcredentials/{missing_client_id}"),
+            headers=headers,
+            timeout=30,
+        )
+        assert missing_response.status_code == HTTPStatus.NOT_FOUND
+        assert missing_response.json() == {
+            "error": {
+                "code": "NOT_FOUND",
+                "message": (
+                    f"Clientcredential with ID={missing_client_id} not found"
+                ),
+                "target": "clientcredential",
+            },
+        }
 
 
 @pytest.mark.usefixtures("verify_model_target_mock_vuforia")
@@ -490,10 +718,18 @@ class TestInvalidJson:
     """
 
     @staticmethod
+    @pytest.mark.parametrize(
+        argnames="content_type",
+        argvalues=[
+            pytest.param(None, id="missing"),
+            pytest.param("", id="empty"),
+        ],
+    )
     def test_wrong_content_type(
         *,
         verify_model_target_mock_vuforia: VuforiaBackend,
         model_target_endpoint: ModelTargetEndpoint,
+        content_type: str | None,
     ) -> None:
         """Requests without a JSON content type are rejected with 415 by
         endpoints which read a body, and are unaffected elsewhere.
@@ -505,7 +741,10 @@ class TestInvalidJson:
             **model_target_endpoint.headers,
             "Authorization": f"Bearer {access_token}",
         }
-        new_headers.pop("Content-Type", None)
+        if content_type is None:
+            new_headers.pop("Content-Type", None)
+        else:
+            new_headers["Content-Type"] = content_type
         new_endpoint = dataclasses.replace(
             model_target_endpoint,
             headers=new_headers,
@@ -738,7 +977,10 @@ class TestErrorResponses:
             ),
             pytest.param(
                 {**_UNAUTHENTICATED_DATASET_REQUEST, "models": ["model"]},
-                {"/models(0): error.expected.jsobject"},
+                {
+                    "/models(0)/name: element is required",
+                    "/models(0)/views: element is required",
+                },
                 id="model-not-object",
             ),
             pytest.param(
@@ -749,7 +991,10 @@ class TestErrorResponses:
                         "model",
                     ],
                 },
-                {"/models(1): error.expected.jsobject"},
+                {
+                    "/models(1)/name: element is required",
+                    "/models(1)/views: element is required",
+                },
                 id="second-model-not-object",
             ),
             pytest.param(
@@ -758,11 +1003,8 @@ class TestErrorResponses:
                     "models": [_EMPTY_MODEL],
                 },
                 {
-                    (
-                        "/models(0): one and only one of cadDataUrl and "
-                        "cadDataBlob is required"
-                    ),
                     "/models(0)/name: element is required",
+                    "/models(0)/views: element is required",
                 },
                 id="model-missing-fields",
             ),
@@ -773,8 +1015,8 @@ class TestErrorResponses:
                 },
                 {
                     (
-                        "/models(0): one and only one of cadDataUrl and "
-                        "cadDataBlob is required"
+                        "model 'model-name' is invalid. One of `cadDataBlob`, "
+                        "`cadDataUrl`, `cadDataUuid` need to be provided"
                     ),
                 },
                 id="model-without-cad-data",
@@ -792,8 +1034,9 @@ class TestErrorResponses:
                 },
                 {
                     (
-                        "/models(0): one and only one of cadDataUrl and "
-                        "cadDataBlob is required"
+                        "model 'model-name' is invalid. Only one of "
+                        "`cadDataBlob`, `cadDataUrl`, `cadDataUuid` need to "
+                        "be provided"
                     ),
                 },
                 id="model-with-both-cad-data-sources",
@@ -838,7 +1081,14 @@ class TestErrorResponses:
                     **_UNAUTHENTICATED_DATASET_REQUEST,
                     "models": [{**_MODEL, "cadDataFormat": "gltf"}],
                 },
-                {"/models(0)/cadDataFormat: error.expected.validenum"},
+                {
+                    (
+                        "Unrecognized cadDataFormat 'GLTF'.  Allowed values "
+                        "are: ZIP, GLB, DRC_GLB, DRC_GLTF, DAE, FBX, IGES, "
+                        "OBJ, PVS, PVZ, STL, VRML, or specify no "
+                        "cadDataFormat to auto-detect GLB and zipped glTFs."
+                    ),
+                },
                 id="model-cad-data-format-not-in-enum",
             ),
             pytest.param(
@@ -862,7 +1112,12 @@ class TestErrorResponses:
                     **_UNAUTHENTICATED_DATASET_REQUEST,
                     "models": [{**_MODEL, "simplify": "sometimes"}],
                 },
-                {"/models(0)/simplify: error.expected.validenum"},
+                {
+                    (
+                        "invalid simplify. Should be one of 'never', "
+                        "'always', 'auto'. You provided 'Some(sometimes)'"
+                    ),
+                },
                 id="model-simplify-not-in-enum",
             ),
             pytest.param(
@@ -870,7 +1125,12 @@ class TestErrorResponses:
                     **_UNAUTHENTICATED_DATASET_REQUEST,
                     "models": [{**_MODEL, "automaticColoring": "sometimes"}],
                 },
-                {"/models(0)/automaticColoring: error.expected.validenum"},
+                {
+                    (
+                        "invalid automaticColoring. Should be one of 'never', "
+                        "'always', 'auto'. You provided 'sometimes'"
+                    ),
+                },
                 id="model-automatic-coloring-not-in-enum",
             ),
             pytest.param(
@@ -878,7 +1138,13 @@ class TestErrorResponses:
                     **_UNAUTHENTICATED_DATASET_REQUEST,
                     "models": [{**_MODEL, "motionHint": "still"}],
                 },
-                {"/models(0)/motionHint: error.expected.validenum"},
+                {
+                    (
+                        "`motionHint` and `trackingMode` are no longer "
+                        "supported when using `targetsSdk` 10.9 or later. "
+                        "Please use the `optimizeTrackingFor` setting instead."
+                    ),
+                },
                 id="model-motion-hint-not-in-enum",
             ),
             pytest.param(
@@ -886,7 +1152,12 @@ class TestErrorResponses:
                     **_UNAUTHENTICATED_DATASET_REQUEST,
                     "models": [{**_MODEL, "optimizeTrackingFor": "cars"}],
                 },
-                {"/models(0)/optimizeTrackingFor: error.expected.validenum"},
+                {
+                    (
+                        "`optimizeTrackingFor` must be one of "
+                        "default,low_feature_objects,ar_controller"
+                    ),
+                },
                 id="model-optimize-tracking-for-not-in-enum",
             ),
             pytest.param(
@@ -894,7 +1165,13 @@ class TestErrorResponses:
                     **_UNAUTHENTICATED_DATASET_REQUEST,
                     "models": [{**_MODEL, "trackingMode": "boat"}],
                 },
-                {"/models(0)/trackingMode: error.expected.validenum"},
+                {
+                    (
+                        "`motionHint` and `trackingMode` are no longer "
+                        "supported when using `targetsSdk` 10.9 or later. "
+                        "Please use the `optimizeTrackingFor` setting instead."
+                    ),
+                },
                 id="model-tracking-mode-not-in-enum",
             ),
             pytest.param(
@@ -909,8 +1186,15 @@ class TestErrorResponses:
                     ],
                 },
                 {
-                    "/models(0)/motionHint: error.expected.validenum",
-                    "/models(0)/simplify: error.expected.validenum",
+                    (
+                        "`motionHint` and `trackingMode` are no longer "
+                        "supported when using `targetsSdk` 10.9 or later. "
+                        "Please use the `optimizeTrackingFor` setting instead."
+                    ),
+                    (
+                        "invalid simplify. Should be one of 'never', "
+                        "'always', 'auto'. You provided 'Some(sometimes)'"
+                    ),
                 },
                 id="model-multiple-enum-errors",
             ),
@@ -927,7 +1211,7 @@ class TestErrorResponses:
                     **_UNAUTHENTICATED_DATASET_REQUEST,
                     "models": [{**_MODEL, "views": ["view-name"]}],
                 },
-                {"/models(0)/views(0): error.expected.jsobject"},
+                {"/models(0)/views(0)/name: element is required"},
                 id="view-not-object",
             ),
             pytest.param(
@@ -935,13 +1219,7 @@ class TestErrorResponses:
                     **_UNAUTHENTICATED_DATASET_REQUEST,
                     "models": [{**_MODEL, "views": [_EMPTY_VIEW]}],
                 },
-                {
-                    (
-                        "/models(0)/views(0)/guideViewPosition: "
-                        "element is required"
-                    ),
-                    "/models(0)/views(0)/name: element is required",
-                },
+                {"/models(0)/views(0)/name: element is required"},
                 id="view-missing-fields",
             ),
             pytest.param(
@@ -1148,6 +1426,42 @@ class TestErrorResponses:
             assert detail["code"] == "VALIDATION_ERROR"
 
     @staticmethod
+    def test_advanced_model_count_exceeds_limit(
+        *,
+        verify_model_target_mock_vuforia: VuforiaBackend,
+    ) -> None:
+        """Advanced datasets reject more than 20 uniquely named models."""
+        models = [{**_MODEL, "name": f"model-{index}"} for index in range(21)]
+        # Include a duplicate to verify the two validation details which real
+        # Vuforia returns together for this request.
+        models[-1]["name"] = models[0]["name"]
+        body = {**_UNAUTHENTICATED_DATASET_REQUEST, "models": models}
+        credentials = credentials_for_backend(
+            backend=verify_model_target_mock_vuforia,
+        )
+        access_token = get_access_token(
+            credentials=credentials,
+            backend=verify_model_target_mock_vuforia,
+        )
+        response = requests.post(
+            url=f"{_VWS_HOST}/modeltargets/advancedDatasets",
+            headers={"Authorization": f"Bearer {access_token}"},
+            json=body,
+            timeout=30,
+        )
+
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        error = response.json()["error"]
+        assert error["code"] == "BAD_REQUEST"
+        assert {detail["message"] for detail in error["details"]} == {
+            "names of models must be unique within a Target.",
+            "total number of models must be maximum 20",
+        }
+        assert all(
+            detail["code"] == "VALIDATION_ERROR" for detail in error["details"]
+        )
+
+    @staticmethod
     @pytest.mark.parametrize(
         argnames=("method", "path"),
         argvalues=[
@@ -1201,12 +1515,8 @@ class TestErrorResponses:
         assert error["target"].startswith("userId:")
 
 
-class TestMockOnlyErrors:
-    """Mock-only Model Target Web API error paths.
-
-    These cases cannot easily be verified against real Vuforia with the
-    currently available test account and are kept mock-only by design.
-    """
+class TestStateBasedDatasets:
+    """Verified fake tests for State-Based Model Targets."""
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -1231,7 +1541,7 @@ class TestMockOnlyErrors:
     )
     def test_state_based_dataset(
         *,
-        model_target_mock_only_vuforia: VuforiaBackend,
+        verify_model_target_mock_vuforia: VuforiaBackend,
         dataset_path: str,
         view_updates: dict[str, object],
     ) -> None:
@@ -1251,7 +1561,7 @@ class TestMockOnlyErrors:
             ],
         }
         access_token = _access_token_for_backend(
-            backend=model_target_mock_only_vuforia,
+            backend=verify_model_target_mock_vuforia,
         )
         headers = {"Authorization": f"Bearer {access_token}"}
         create_response = requests.post(
@@ -1269,6 +1579,46 @@ class TestMockOnlyErrors:
             timeout=30,
         )
         assert delete_response.status_code == HTTPStatus.OK
+
+    @staticmethod
+    def test_view_states_are_a_subset(
+        *,
+        verify_model_target_mock_vuforia: VuforiaBackend,
+    ) -> None:
+        """A view cannot select a state absent from the configuration."""
+        body = {
+            **_UNAUTHENTICATED_DATASET_REQUEST,
+            "models": [
+                {
+                    **_MODEL,
+                    "stateBasedConfigurationJsonString": (
+                        _STATE_CONFIGURATION
+                    ),
+                    "views": [{**_VIEW, "states": ["unknown"]}],
+                },
+            ],
+        }
+        access_token = _access_token_for_backend(
+            backend=verify_model_target_mock_vuforia,
+        )
+        response = requests.post(
+            url=f"{_VWS_HOST}/modeltargets/datasets",
+            headers={"Authorization": f"Bearer {access_token}"},
+            json=body,
+            timeout=30,
+        )
+
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        error = response.json()["error"]
+        assert error["code"] == "BAD_REQUEST"
+        assert [detail["message"] for detail in error["details"]] == [
+            "states in entrypoint view-name' must be a subset of all states",
+        ]
+        assert error["details"][0]["code"] == "VALIDATION_ERROR"
+
+
+class TestAdditionalBehaviors:
+    """Additional verified and mock-only Model Target behaviors."""
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -1323,12 +1673,6 @@ class TestMockOnlyErrors:
                 id="view-state-not-string",
             ),
             pytest.param(
-                {"stateBasedConfigurationJsonString": _STATE_CONFIGURATION},
-                {"states": ["unknown"]},
-                ("/models(0)/views(0)/states(0): error.expected.validenum"),
-                id="view-state-not-declared",
-            ),
-            pytest.param(
                 {},
                 {"states": ["assembled"]},
                 (
@@ -1376,86 +1720,61 @@ class TestMockOnlyErrors:
         assert error["details"][0]["code"] == "VALIDATION_ERROR"
 
     @staticmethod
-    def test_advanced_model_count_exceeds_limit() -> None:
-        """Advanced dataset requests with too many models are rejected.
-
-        Real Vuforia returns a 403 for the currently available test account
-        because the account lacks the advanced-dataset scope, so the
-        validation-error shape cannot be observed end-to-end. The mock
-        therefore enforces the documented advanced-dataset model count
-        limit on its own.
-        """
-        body = {
-            **_UNAUTHENTICATED_DATASET_REQUEST,
-            "models": [*_UNAUTHENTICATED_DATASET_REQUEST["models"]] * 21,
-        }
-        with MockVWS():
-            response = requests.post(
-                url=f"{_VWS_HOST}/modeltargets/advancedDatasets",
-                headers={"Authorization": f"Bearer {_MOCK_BEARER_TOKEN}"},
-                json=body,
-                timeout=30,
-            )
-
-        assert response.status_code == HTTPStatus.BAD_REQUEST
-        error = response.json()["error"]
-        assert error["code"] == "BAD_REQUEST"
-        assert error["details"][0]["code"] == "VALIDATION_ERROR"
-
-    @staticmethod
-    def test_advanced_realistic_appearance_not_in_enum() -> None:
+    def test_advanced_realistic_appearance_not_in_enum(
+        *,
+        verify_model_target_mock_vuforia: VuforiaBackend,
+    ) -> None:
         """Advanced dataset requests with a ``realisticAppearance`` value
         outside the documented enumeration are rejected.
 
         The Model Target OpenAPI specification documents
         ``realisticAppearance`` as a model field for advanced datasets
-        only, so standard dataset creation does not validate it. This is
-        mock-only because the available test account lacks the
-        advanced-dataset scope, so real Vuforia rejects the request with a
-        403 before validating the body.
+        only.
         """
+        credentials = credentials_for_backend(
+            backend=verify_model_target_mock_vuforia,
+        )
         body = {
             **_UNAUTHENTICATED_DATASET_REQUEST,
-            "models": [{**_MODEL, "realisticAppearance": "yes"}],
+            "models": [
+                {
+                    **_MODEL,
+                    "cadDataUrl": credentials.cad_data_url,
+                    "realisticAppearance": "yes",
+                },
+            ],
         }
-        headers = {"Authorization": f"Bearer {_MOCK_BEARER_TOKEN}"}
-        with MockVWS():
-            advanced_response = requests.post(
-                url=f"{_VWS_HOST}/modeltargets/advancedDatasets",
-                headers=headers,
-                json=body,
-                timeout=30,
-            )
-            standard_response = requests.post(
-                url=f"{_VWS_HOST}/modeltargets/datasets",
-                headers=headers,
-                json=body,
-                timeout=30,
-            )
+        access_token = get_access_token(
+            credentials=credentials,
+            backend=verify_model_target_mock_vuforia,
+        )
+        advanced_response = requests.post(
+            url=f"{_VWS_HOST}/modeltargets/advancedDatasets",
+            headers={"Authorization": f"Bearer {access_token}"},
+            json=body,
+            timeout=30,
+        )
 
         assert advanced_response.status_code == HTTPStatus.BAD_REQUEST
         error = advanced_response.json()["error"]
         assert error["code"] == "BAD_REQUEST"
         assert [detail["message"] for detail in error["details"]] == [
-            "/models(0)/realisticAppearance: error.expected.validenum",
+            '`realisticAppearance` must be one of "true", "false", "auto".` ',
         ]
         assert error["details"][0]["code"] == "VALIDATION_ERROR"
-
-        assert standard_response.status_code == HTTPStatus.CREATED
 
     @staticmethod
     def test_oauth2_token_body_not_utf_8(
         *,
-        model_target_mock_only_vuforia: VuforiaBackend,
+        verify_model_target_mock_vuforia: VuforiaBackend,
     ) -> None:
         """An OAuth2 token request with a body which is not valid UTF-8 is
         treated as one which does not name a grant type.
 
-        Mock-only because the real response to a form body which cannot be
-        decoded has not been observed.
+        Real Vuforia also treats the undecodable body as an empty form.
         """
         credentials = credentials_for_backend(
-            backend=model_target_mock_only_vuforia,
+            backend=verify_model_target_mock_vuforia,
         )
 
         response = requests.post(
@@ -1561,66 +1880,67 @@ class TestMockOnlyErrors:
             ),
         ],
     )
-    def test_dataset_is_not_visible_to_the_other_dataset_type(
+    def test_dataset_is_visible_to_the_other_dataset_type(
         *,
+        verify_model_target_mock_vuforia: VuforiaBackend,
         created_path: str,
         other_path: str,
     ) -> None:
-        """A dataset is not reachable through the other type's routes.
-
-        Standard and advanced datasets are separate resources in real
-        Vuforia, with separate OAuth scopes. This is mock-only because the
-        available test account lacks the advanced-dataset scope, so real
-        Vuforia rejects advanced routes with a 403 before looking a dataset
-        up.
-        """
-        headers = {"Authorization": f"Bearer {_MOCK_BEARER_TOKEN}"}
-        with MockVWS():
+        """Standard and advanced routes share datasets by UUID."""
+        access_token = _access_token_for_backend(
+            backend=verify_model_target_mock_vuforia,
+        )
+        headers = {"Authorization": f"Bearer {access_token}"}
+        dataset_uuid: str | None = None
+        try:
             create_response = requests.post(
                 url=f"{_VWS_HOST}{created_path}",
                 headers=headers,
-                json=_UNAUTHENTICATED_DATASET_REQUEST,
+                json=_dataset_request(
+                    cad_data_url=credentials_for_backend(
+                        backend=verify_model_target_mock_vuforia,
+                    ).cad_data_url,
+                ),
                 timeout=30,
             )
             assert create_response.status_code == HTTPStatus.CREATED
             dataset_uuid = create_response.json()["uuid"]
 
-            other_responses = [
-                requests.get(
-                    url=f"{_VWS_HOST}{other_path}/{dataset_uuid}/status",
-                    headers=headers,
-                    timeout=30,
-                ),
-                requests.get(
-                    url=f"{_VWS_HOST}{other_path}/{dataset_uuid}/dataset",
-                    headers=headers,
-                    timeout=30,
-                ),
-                requests.delete(
-                    url=f"{_VWS_HOST}{other_path}/{dataset_uuid}",
-                    headers=headers,
-                    timeout=30,
-                ),
-            ]
-
-            # The dataset survives the delete attempt made through the other
-            # type's routes.
-            own_status_response = requests.get(
-                url=f"{_VWS_HOST}{created_path}/{dataset_uuid}/status",
+            other_status_response = requests.get(
+                url=f"{_VWS_HOST}{other_path}/{dataset_uuid}/status",
                 headers=headers,
                 timeout=30,
             )
-
-        for response in other_responses:
-            assert response.status_code == HTTPStatus.NOT_FOUND
-            error = response.json()["error"]
-            assert error["code"] == "NOT_FOUND"
-            assert error["message"] == (
-                "Could not find a model-view database with uuid "
-                f"{dataset_uuid}"
+            other_delete_response = requests.delete(
+                url=f"{_VWS_HOST}{other_path}/{dataset_uuid}",
+                headers=headers,
+                timeout=30,
             )
-            assert error["target"].startswith("userId:")
+            own_status_response = requests.get(
+                url=(
+                    f"{_VWS_HOST}{created_path}/"
+                    f"{create_response.json()['uuid']}/status"
+                ),
+                headers=headers,
+                timeout=30,
+            )
+        finally:
+            if dataset_uuid is not None:
+                delete_response = requests.delete(
+                    url=f"{_VWS_HOST}{created_path}/{dataset_uuid}",
+                    headers=headers,
+                    timeout=30,
+                )
+                assert delete_response.status_code in {
+                    HTTPStatus.OK,
+                    HTTPStatus.NO_CONTENT,
+                }
 
+        assert other_status_response.status_code == HTTPStatus.OK
+        assert other_delete_response.status_code in {
+            HTTPStatus.OK,
+            HTTPStatus.NO_CONTENT,
+        }
         assert own_status_response.status_code == HTTPStatus.OK
 
 
@@ -1632,7 +1952,12 @@ class TestStandardDataset:
         *,
         verify_model_target_mock_vuforia: VuforiaBackend,
     ) -> None:
-        """A standard Model Target dataset can be created and deleted."""
+        """A standard dataset works through the shared advanced routes.
+
+        Standard generation is fast enough for verified CI coverage. Real
+        Vuforia exposes its completed artifact through both route families,
+        so this also verifies the advanced status and download endpoints.
+        """
         credentials = credentials_for_backend(
             backend=verify_model_target_mock_vuforia,
         )
@@ -1661,7 +1986,8 @@ class TestStandardDataset:
 
             status_response = requests.get(
                 url=(
-                    f"{_VWS_HOST}/modeltargets/datasets/{dataset_uuid}/status"
+                    f"{_VWS_HOST}/modeltargets/advancedDatasets/"
+                    f"{dataset_uuid}/status"
                 ),
                 headers=headers,
                 timeout=30,
@@ -1677,6 +2003,52 @@ class TestStandardDataset:
                 "failed",
             }
             assert isinstance(status_response_json["createdAt"], str)
+
+            deadline = time.monotonic() + 60
+            while (
+                status_response_json["status"] == "processing"
+                and time.monotonic() < deadline
+            ):
+                time.sleep(1)
+                status_response = requests.get(
+                    url=(
+                        f"{_VWS_HOST}/modeltargets/advancedDatasets/"
+                        f"{dataset_uuid}/status"
+                    ),
+                    headers=headers,
+                    timeout=30,
+                )
+                assert status_response.status_code == HTTPStatus.OK
+                status_response_json = status_response.json()
+
+            assert status_response_json["status"] == "done"
+            assert isinstance(status_response_json["completedAt"], str)
+            assert set(status_response_json) == {
+                "completedAt",
+                "createdAt",
+                "status",
+                "uuid",
+            }
+
+            download_response = requests.get(
+                url=(
+                    f"{_VWS_HOST}/modeltargets/advancedDatasets/"
+                    f"{dataset_uuid}/dataset"
+                ),
+                headers=headers,
+                timeout=30,
+            )
+            assert download_response.status_code == HTTPStatus.OK
+            assert download_response.headers["Content-Type"] == (
+                "application/zip"
+            )
+            assert download_response.headers["Content-Disposition"] == (
+                "attachment; filename=full-dataset.zip"
+            )
+            with zipfile.ZipFile(
+                file=io.BytesIO(initial_bytes=download_response.content),
+            ) as archive:
+                assert archive.namelist() == ["MTDataset.dat", "MTDataset.xml"]
         finally:
             if dataset_uuid is not None:  # pragma: no branch
                 delete_response = requests.delete(

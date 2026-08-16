@@ -35,10 +35,14 @@ from mock_vws._mock_common import (
 )
 from mock_vws._model_target_web_api import (
     create_model_target_dataset,
+    create_oauth2_client_credential,
     delete_model_target_dataset,
+    delete_oauth2_client_credential,
     download_model_target_dataset,
     get_model_target_dataset_status,
+    list_oauth2_client_credentials,
     oauth2_token,
+    update_oauth2_client_credential_scopes,
 )
 from mock_vws._reco_counts_web_api import (
     create_reco_counts_report,
@@ -185,7 +189,70 @@ class MockVuforiaWebServicesAPI:
         request: RequestData,
     ) -> _ResponseType:
         """Obtain an OAuth2 token for the Model Target Web API."""
-        return oauth2_token(request=request)
+        return oauth2_token(
+            request=request,
+            credential_store=self._target_manager,
+        )
+
+    @route(
+        path_pattern="/oauth2/clientcredentials",
+        http_methods={HTTPMethod.POST},
+    )
+    def create_oauth2_client_credential(
+        self,
+        request: RequestData,
+    ) -> _ResponseType:
+        """Create an OAuth2 client credential."""
+        return create_oauth2_client_credential(
+            request=request,
+            credential_store=self._target_manager,
+        )
+
+    @route(
+        path_pattern="/oauth2/clientcredentials",
+        http_methods={HTTPMethod.GET},
+    )
+    def list_oauth2_client_credentials(
+        self,
+        request: RequestData,
+    ) -> _ResponseType:
+        """List OAuth2 client credentials."""
+        return list_oauth2_client_credentials(
+            request=request,
+            credential_store=self._target_manager,
+        )
+
+    @route(
+        path_pattern=("/oauth2/clientcredentials/(?P<client_id>[^/]+)/scopes"),
+        http_methods={HTTPMethod.PUT},
+    )
+    def update_oauth2_client_credential_scopes(
+        self,
+        request: RequestData,
+    ) -> _ResponseType:
+        """Update an OAuth2 client credential's scopes."""
+        client_id = request.path.split(sep="/")[-2]
+        return update_oauth2_client_credential_scopes(
+            request=request,
+            credential_store=self._target_manager,
+            client_id=client_id,
+        )
+
+    @route(
+        path_pattern="/oauth2/clientcredentials/(?P<client_id>[^/]+)",
+        http_methods={HTTPMethod.DELETE},
+    )
+    def delete_oauth2_client_credential(
+        self,
+        request: RequestData,
+    ) -> _ResponseType:
+        """Delete an OAuth2 client credential."""
+        client_id = request.path.rsplit(sep="/", maxsplit=1)[-1]
+        return delete_oauth2_client_credential(
+            request=request,
+            credential_store=self._target_manager,
+            client_id=client_id,
+        )
 
     @route(
         path_pattern="/modeltargets/datasets",

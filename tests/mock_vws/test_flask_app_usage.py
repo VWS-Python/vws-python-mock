@@ -993,7 +993,7 @@ class TestModelTargetWebAPI:
         with zipfile.ZipFile(
             file=io.BytesIO(initial_bytes=dataset_response.content),
         ) as dataset_zip:
-            assert dataset_zip.namelist() == ["dataset.json"]
+            assert dataset_zip.namelist() == ["MTDataset.dat", "MTDataset.xml"]
 
     @staticmethod
     def _dataset_status(dataset_uuid: str) -> dict[str, Any]:

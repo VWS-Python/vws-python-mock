@@ -9,7 +9,7 @@ from mock_vws._services_validators.request_rate_validators import (
     RequestRateLimiter,
 )
 from mock_vws.database import CloudDatabase, VuMarkDatabase
-from mock_vws.model_target import ModelTargetDataset
+from mock_vws.model_target import ModelTargetDataset, OAuth2ClientCredential
 from mock_vws.reco_counts import RecoCountsReport
 
 if TYPE_CHECKING:
@@ -29,6 +29,7 @@ class TargetManager:
         self._cloud_databases: set[CloudDatabase] = set()
         self._vumark_databases: set[VuMarkDatabase] = set()
         self._model_target_datasets: dict[str, ModelTargetDataset] = {}
+        self._oauth2_client_credentials: dict[str, OAuth2ClientCredential] = {}
         self._reco_counts_reports: dict[str, RecoCountsReport] = {}
         self._request_rate_limiter = RequestRateLimiter(
             time_function=time.monotonic,
@@ -58,6 +59,22 @@ class TargetManager:
     def reco_counts_reports(self) -> dict[str, RecoCountsReport]:
         """All reco counts reports, keyed by report identifier."""
         return dict(self._reco_counts_reports)
+
+    @property
+    def oauth2_client_credentials(self) -> dict[str, OAuth2ClientCredential]:
+        """All dynamically created OAuth2 client credentials."""
+        return dict(self._oauth2_client_credentials)
+
+    def add_oauth2_client_credential(
+        self,
+        credential: OAuth2ClientCredential,
+    ) -> None:
+        """Add an OAuth2 client credential."""
+        self._oauth2_client_credentials[credential.client_id] = credential
+
+    def remove_oauth2_client_credential(self, client_id: str) -> None:
+        """Remove an OAuth2 client credential."""
+        del self._oauth2_client_credentials[client_id]
 
     def add_reco_counts_report(
         self,

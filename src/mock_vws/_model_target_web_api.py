@@ -3,6 +3,7 @@
 import base64
 import io
 import json
+import secrets
 import uuid
 import zipfile
 from http import HTTPStatus
@@ -20,6 +21,7 @@ from mock_vws.model_target import (
     ModelTargetDatasetType,
     ModelTargetGenerationFailure,
     ModelTargetGenerationWarning,
+    OAuth2ClientCredential,
 )
 
 _ResponseType = tuple[int, dict[str, str], str | bytes]
@@ -51,12 +53,41 @@ class ModelTargetDatasetStore(Protocol):
         # for pyright to recognize this as a protocol.
         ...  # pylint: disable=unnecessary-ellipsis
 
+    @property
+    def oauth2_client_credentials(self) -> dict[str, OAuth2ClientCredential]:
+        """All dynamically created OAuth2 client credentials."""
+        ...  # pylint: disable=unnecessary-ellipsis
+
+    def add_oauth2_client_credential(
+        self,
+        credential: OAuth2ClientCredential,
+    ) -> None:
+        """Add an OAuth2 client credential."""
+        ...  # pylint: disable=unnecessary-ellipsis
+
+    def remove_oauth2_client_credential(self, client_id: str) -> None:
+        """Remove an OAuth2 client credential."""
+        ...  # pylint: disable=unnecessary-ellipsis
+
 
 _MAX_ADVANCED_MODEL_COUNT = 20
 _JWT_DOT_COUNT = 2
 _ZIP_EPOCH = (1980, 1, 1, 0, 0, 0)
 _MOCK_MODEL_TARGET_CLIENT_ID = "client-id"
 _MOCK_MODEL_TARGET_CLIENT_SECRET = "client-secret"  # noqa: S105
+_MOCK_MODEL_TARGET_USERNAME = "user@example.com"
+_MOCK_MODEL_TARGET_PASSWORD = "password"  # noqa: S105
+_MODEL_TARGET_SCOPES = frozenset(
+    {
+        "modeltargets.all",
+        "modeltargets.standardmodeltarget.all",
+        "modeltargets.advancedmodeltarget.all",
+        "modeltargets.statebasedmodeltarget.all",
+        "modeltargets.advancedstatebasedmodeltarget.all",
+    },
+)
+_CLIENT_CREDENTIALS_SCOPE = "oauth2.clientcredentials.all"
+_MAX_CLIENT_CREDENTIALS = 100
 # A stable mock value standing in for the user-id segment that real
 # Vuforia embeds in some Model Target error targets such as
 # ``userId:7635391``. The numeric portion is per-account in real Vuforia;
@@ -69,10 +100,13 @@ _MODEL_ENUM_FIELD_VALUES: dict[str, frozenset[str]] = {
     "cadDataFormat": frozenset(
         {
             "DAE",
+            "DRC_GLB",
+            "DRC_GLTF",
             "FBX",
             "GLB",
             "IGES",
             "OBJ",
+            "PVS",
             "PVZ",
             "STL",
             "VRML",
@@ -298,7 +332,28 @@ def _jwt_signature_error(*, bearer_token: str) -> str | None:
 
 
 @beartype
-def _require_bearer_token(request: RequestData) -> _ResponseType | None:
+def _jwt_scopes(*, bearer_token: str) -> frozenset[str]:
+    """Return the scopes carried by a valid mock JWT."""
+    encoded_payload = bearer_token.split(sep=".")[1]
+    padding = "=" * (-len(encoded_payload) % 4)
+    payload = json.loads(
+        s=base64.b64decode(
+            s=encoded_payload + padding,
+            altchars=b"-_",
+            validate=True,
+        ),
+    )
+    scope = payload.get("scope", "")
+    if not isinstance(scope, str):
+        return frozenset()
+    return frozenset(scope.split())
+
+
+@beartype
+def _require_bearer_token(
+    request: RequestData,
+    dataset_type: ModelTargetDatasetType,
+) -> _ResponseType | None:
     """Return an error response if the request has no bearer token."""
     auth_header = _get_header(request=request, name="Authorization")
     if auth_header is None or not auth_header.startswith("Bearer "):
@@ -339,11 +394,53 @@ def _require_bearer_token(request: RequestData) -> _ResponseType | None:
             target="jwt",
             details=None,
         )
+    required_scope = (
+        "modeltargets.standardmodeltarget.all"
+        if dataset_type == ModelTargetDatasetType.STANDARD
+        else "modeltargets.advancedmodeltarget.all"
+    )
+    scopes = _jwt_scopes(bearer_token=bearer_token)
+    if required_scope not in scopes and "modeltargets.all" not in scopes:
+        body = "User does not have the required scopes to perform this action"
+        return (
+            HTTPStatus.FORBIDDEN,
+            {
+                "Content-Length": str(object=len(body)),
+                "Content-Type": "text/plain",
+            },
+            body,
+        )
     return None
 
 
 @beartype
-def _fake_jwt(*, token_source: bytes) -> str:
+def _require_state_based_scope(
+    request: RequestData,
+    dataset_type: ModelTargetDatasetType,
+) -> _ResponseType | None:
+    """Return an error when a token lacks the State-Based MT scope."""
+    auth_header = _get_header(request=request, name="Authorization")
+    assert auth_header is not None  # noqa: S101
+    bearer_token = auth_header.removeprefix("Bearer ").strip()
+    required_scope = (
+        "modeltargets.statebasedmodeltarget.all"
+        if dataset_type == ModelTargetDatasetType.STANDARD
+        else "modeltargets.advancedstatebasedmodeltarget.all"
+    )
+    scopes = _jwt_scopes(bearer_token=bearer_token)
+    if required_scope in scopes or "modeltargets.all" in scopes:
+        return None
+    return _error_response(
+        status_code=HTTPStatus.FORBIDDEN,
+        code="ERROR",
+        message="User not allowed to create State Based Model Targets",
+        target=_MOCK_USER_TARGET,
+        details=None,
+    )
+
+
+@beartype
+def _fake_jwt(*, token_source: bytes, scopes: frozenset[str]) -> str:
     """Return a deterministic bearer token for the mock."""
 
     def encode_part(value: dict[str, Any]) -> str:
@@ -370,13 +467,18 @@ def _fake_jwt(*, token_source: bytes) -> str:
                 encoding="ascii",
             )
             .rstrip("="),
+            "scope": " ".join(sorted(scopes)),
         },
     )
     return f"{header}.{payload}.mock-signature"
 
 
 @beartype
-def oauth2_token(request: RequestData) -> _ResponseType:
+def oauth2_token(  # noqa: PLR0911
+    *,
+    request: RequestData,
+    credential_store: ModelTargetDatasetStore,
+) -> _ResponseType:
     """Return a fake OAuth2 access token."""
     content_length_error = _content_length_error(request=request)
     if content_length_error is not None:
@@ -390,42 +492,298 @@ def oauth2_token(request: RequestData) -> _ResponseType:
         qs=request.body.decode(encoding="utf-8", errors="replace"),
     )
     grant_type = form.get("grant_type", ["client_credentials"])[0]
-    if grant_type != "client_credentials":
+    if grant_type not in {"client_credentials", "password"}:
         return _oauth2_error_response(
             status_code=HTTPStatus.BAD_REQUEST,
             body={"error": "unsupported_grant_type"},
         )
 
-    basic_credentials = _basic_auth_credentials(auth_header=auth_header)
-    if basic_credentials is None:
-        return _oauth2_error_response(
-            status_code=HTTPStatus.UNAUTHORIZED,
-            body={
-                "error": "invalid_request",
-                "error_description": (
-                    "Missing or invalid authorization header"
-                ),
-            },
-        )
+    dynamic_credential: OAuth2ClientCredential | None = None
+    if grant_type == "client_credentials":
+        basic_credentials = _basic_auth_credentials(auth_header=auth_header)
+        if basic_credentials is None:
+            return _oauth2_error_response(
+                status_code=HTTPStatus.UNAUTHORIZED,
+                body={
+                    "error": "invalid_request",
+                    "error_description": (
+                        "Missing or invalid authorization header"
+                    ),
+                },
+            )
 
-    if basic_credentials != (
-        _MOCK_MODEL_TARGET_CLIENT_ID,
-        _MOCK_MODEL_TARGET_CLIENT_SECRET,
-    ):
-        return _oauth2_error_response(
-            status_code=HTTPStatus.UNAUTHORIZED,
-            body={"error": "invalid_client"},
+        dynamic_credential = credential_store.oauth2_client_credentials.get(
+            basic_credentials[0],
         )
+        fixed_credential_matches = basic_credentials == (
+            _MOCK_MODEL_TARGET_CLIENT_ID,
+            _MOCK_MODEL_TARGET_CLIENT_SECRET,
+        )
+        dynamic_credential_matches = (
+            dynamic_credential is not None
+            and dynamic_credential.client_secret == basic_credentials[1]
+        )
+        if not fixed_credential_matches and not dynamic_credential_matches:
+            return _oauth2_error_response(
+                status_code=HTTPStatus.UNAUTHORIZED,
+                body={"error": "invalid_client"},
+            )
+    else:
+        username = form.get("username", [""])[0]
+        password = form.get("password", [""])[0]
+        if not username or not password:
+            return _oauth2_error_response(
+                status_code=HTTPStatus.BAD_REQUEST,
+                body={
+                    "error": "invalid_request",
+                    "error_description": "Missing username and/or password",
+                },
+            )
+        if (username, password) != (
+            _MOCK_MODEL_TARGET_USERNAME,
+            _MOCK_MODEL_TARGET_PASSWORD,
+        ):
+            return _oauth2_error_response(
+                status_code=HTTPStatus.UNAUTHORIZED,
+                body={
+                    "error": "invalid_grant",
+                    "error_description": "Invalid username and/or password",
+                },
+            )
 
     token_source = request.body or (auth_header or "").encode()
+    requested_scope = form.get("scope", [""])[0]
+    if grant_type == "client_credentials" and dynamic_credential is not None:
+        credential_scopes = frozenset(dynamic_credential.scopes)
+    else:
+        credential_scopes = _MODEL_TARGET_SCOPES | {
+            _CLIENT_CREDENTIALS_SCOPE,
+        }
+    scopes = frozenset(requested_scope.split()) or credential_scopes
+    if not scopes.issubset(credential_scopes):
+        return _oauth2_error_response(
+            status_code=HTTPStatus.BAD_REQUEST,
+            body={"error": "invalid_scope"},
+        )
     return _json_response(
         status_code=HTTPStatus.OK,
         body={
-            "access_token": _fake_jwt(token_source=token_source),
+            "access_token": _fake_jwt(
+                token_source=token_source,
+                scopes=scopes,
+            ),
             "token_type": "bearer",
             "expires_in": 3600,
         },
     )
+
+
+@beartype
+def _require_client_credentials_scope(
+    request: RequestData,
+) -> _ResponseType | None:
+    """Require a valid bearer token with the credential-management
+    scope.
+    """
+    auth_header = _get_header(request=request, name="Authorization")
+    if auth_header is None or not auth_header.startswith("Bearer "):
+        return _error_response(
+            status_code=HTTPStatus.UNAUTHORIZED,
+            code="401",
+            message="no Bearer token",
+            target="jwt",
+            details=None,
+        )
+    bearer_token = auth_header.removeprefix("Bearer ").strip()
+    if bearer_token.count(".") != _JWT_DOT_COUNT:
+        return _error_response(
+            status_code=HTTPStatus.UNAUTHORIZED,
+            code="401",
+            message="Invalid JWT serialization: Missing dot delimiter(s)",
+            target="jwt",
+            details=None,
+        )
+    jwt_error = (
+        _jwt_header_error(bearer_token=bearer_token)
+        or _jwt_payload_error(bearer_token=bearer_token)
+        or _jwt_signature_error(bearer_token=bearer_token)
+    )
+    if jwt_error is not None:
+        return _error_response(
+            status_code=HTTPStatus.UNAUTHORIZED,
+            code="401",
+            message=jwt_error,
+            target="jwt",
+            details=None,
+        )
+    if _CLIENT_CREDENTIALS_SCOPE not in _jwt_scopes(
+        bearer_token=bearer_token,
+    ):
+        body = "User does not have the required scopes to perform this action"
+        return (
+            HTTPStatus.FORBIDDEN,
+            {
+                "Content-Length": str(object=len(body)),
+                "Content-Type": "text/plain",
+            },
+            body,
+        )
+    return None
+
+
+@beartype
+def _client_credential_not_found(*, client_id: str) -> _ResponseType:
+    """Return Vuforia's missing-client-credential response."""
+    return _error_response(
+        status_code=HTTPStatus.NOT_FOUND,
+        code="NOT_FOUND",
+        message=f"Clientcredential with ID={client_id} not found",
+        target="clientcredential",
+        details=None,
+    )
+
+
+@beartype
+def _string_list(value: object) -> list[str] | None:
+    """Return a string list when ``value`` contains only strings."""
+    if not isinstance(value, list):
+        return None
+    strings: list[str] = []
+    for item in value:  # pyright: ignore[reportUnknownVariableType]
+        if not isinstance(item, str):
+            return None
+        strings.append(item)
+    return strings
+
+
+@beartype
+def create_oauth2_client_credential(
+    *,
+    request: RequestData,
+    credential_store: ModelTargetDatasetStore,
+) -> _ResponseType:
+    """Create an OAuth2 client credential."""
+    auth_error = _require_client_credentials_scope(request=request)
+    if auth_error is not None:
+        return auth_error
+    request_json_or_error = _load_request_json(request=request)
+    if not isinstance(request_json_or_error, dict):
+        return request_json_or_error
+    scopes = _string_list(value=request_json_or_error.get("scopes"))
+    if scopes is None:
+        return _validation_error_response(
+            details=[
+                {
+                    "code": "VALIDATION_ERROR",
+                    "message": "/scopes: error.expected.jsarray",
+                },
+            ],
+        )
+    if len(credential_store.oauth2_client_credentials) >= (
+        _MAX_CLIENT_CREDENTIALS
+    ):
+        return _error_response(
+            status_code=HTTPStatus.CONFLICT,
+            code="CONFLICT",
+            message="Maximum number of client credentials reached",
+            target="clientcredential",
+            details=None,
+        )
+    client_id = uuid.uuid4().hex.upper()[:21]
+    client_secret = secrets.token_urlsafe(nbytes=25)[:33]
+    credential_store.add_oauth2_client_credential(
+        credential=OAuth2ClientCredential(
+            client_id=client_id,
+            client_secret=client_secret,
+            scopes=tuple(scopes),
+        ),
+    )
+    return _json_response(
+        status_code=HTTPStatus.CREATED,
+        body={"client_id": client_id, "client_secret": client_secret},
+    )
+
+
+@beartype
+def list_oauth2_client_credentials(
+    *,
+    request: RequestData,
+    credential_store: ModelTargetDatasetStore,
+) -> _ResponseType:
+    """List OAuth2 client credentials."""
+    auth_error = _require_client_credentials_scope(request=request)
+    if auth_error is not None:
+        return auth_error
+    credentials = [
+        {"clientId": credential.client_id, "scopes": list(credential.scopes)}
+        for credential in credential_store.oauth2_client_credentials.values()
+    ]
+    body = json.dumps(obj=credentials, separators=(",", ":"))
+    return (
+        HTTPStatus.OK,
+        {
+            "Content-Length": str(object=len(body)),
+            "Content-Type": "application/json",
+        },
+        body,
+    )
+
+
+@beartype
+def update_oauth2_client_credential_scopes(
+    *,
+    request: RequestData,
+    credential_store: ModelTargetDatasetStore,
+    client_id: str,
+) -> _ResponseType:
+    """Replace the scopes assigned to an OAuth2 client credential."""
+    auth_error = _require_client_credentials_scope(request=request)
+    if auth_error is not None:
+        return auth_error
+    credential = credential_store.oauth2_client_credentials.get(client_id)
+    if credential is None:
+        return _client_credential_not_found(client_id=client_id)
+    try:
+        scopes_value: object = json.loads(s=request.body)
+    except UnicodeDecodeError, json.JSONDecodeError:
+        scopes_value = None
+    scopes = _string_list(value=scopes_value)
+    if scopes is None:
+        return _error_response(
+            status_code=HTTPStatus.BAD_REQUEST,
+            code="BAD_REQUEST",
+            message="Invalid scopes",
+            target="scopes",
+            details=None,
+        )
+    credential_store.add_oauth2_client_credential(
+        credential=OAuth2ClientCredential(
+            client_id=credential.client_id,
+            client_secret=credential.client_secret,
+            scopes=tuple(scopes),
+        ),
+    )
+    return _json_response(
+        status_code=HTTPStatus.OK,
+        body={"clientId": client_id, "scopes": scopes},
+    )
+
+
+@beartype
+def delete_oauth2_client_credential(
+    *,
+    request: RequestData,
+    credential_store: ModelTargetDatasetStore,
+    client_id: str,
+) -> _ResponseType:
+    """Delete an OAuth2 client credential."""
+    auth_error = _require_client_credentials_scope(request=request)
+    if auth_error is not None:
+        return auth_error
+    if client_id not in credential_store.oauth2_client_credentials:
+        return _client_credential_not_found(client_id=client_id)
+    credential_store.remove_oauth2_client_credential(client_id=client_id)
+    return HTTPStatus.NO_CONTENT, {"Content-Length": "0"}, ""
 
 
 @beartype
@@ -472,19 +830,32 @@ def _load_request_json(request: RequestData) -> dict[str, Any] | _ResponseType:
 def _cad_data_source_details(*, models: list[Any]) -> list[dict[str, str]]:
     """Return validation details for each model's CAD data source.
 
-    One and only one of ``cadDataUrl`` and ``cadDataBlob`` may be given per
-    model.
+    One and only one of ``cadDataUrl``, ``cadDataBlob`` and ``cadDataUuid``
+    may be given per model.
     """
     return [
         {
             "code": "VALIDATION_ERROR",
             "message": (
-                f"/models({index}): one and only one of cadDataUrl and "
-                "cadDataBlob is required"
+                f"model '{model['name']}' is invalid. "
+                + (
+                    "One of `cadDataBlob`, `cadDataUrl`, `cadDataUuid` need "
+                    "to be provided"
+                    if not sources
+                    else "Only one of `cadDataBlob`, `cadDataUrl`, "
+                    "`cadDataUuid` need to be provided"
+                )
             ),
         }
-        for index, model in enumerate(iterable=models)
-        if ("cadDataUrl" in model) == ("cadDataBlob" in model)
+        for model in models
+        if len(
+            sources := {
+                field
+                for field in ("cadDataBlob", "cadDataUrl", "cadDataUuid")
+                if field in model
+            },
+        )
+        != 1
     ]
 
 
@@ -503,14 +874,18 @@ def _model_field_details(
     missing_details = [
         {
             "code": "VALIDATION_ERROR",
-            "message": f"/models({index})/name: element is required",
+            "message": f"/models({index})/{field}: element is required",
         }
         for index, model in enumerate(iterable=models)
-        if "name" not in model
+        for field in ("name", "views")
+        if field not in model
     ]
+    if missing_details:
+        return missing_details
+
     cad_data_source_details = _cad_data_source_details(models=models)
-    if missing_details or cad_data_source_details:
-        return missing_details + cad_data_source_details
+    if cad_data_source_details:
+        return cad_data_source_details
 
     string_fields = sorted(
         {
@@ -533,15 +908,57 @@ def _model_field_details(
     if string_details:
         return string_details
 
-    enum_details = [
-        {
-            "code": "VALIDATION_ERROR",
-            "message": f"/models({index})/{field}: error.expected.validenum",
-        }
-        for index, model in enumerate(iterable=models)
-        for field, allowed_values in sorted(enum_field_values.items())
-        if field in model and model[field] not in allowed_values
-    ]
+    enum_details: list[dict[str, str]] = []
+    for index, model in enumerate(iterable=models):
+        for field, allowed_values in sorted(enum_field_values.items()):
+            if field in {"motionHint", "trackingMode"}:
+                continue
+            if field not in model or model[field] in allowed_values:
+                continue
+            value = model[field]
+            messages = {
+                "automaticColoring": (
+                    "invalid automaticColoring. Should be one of 'never', "
+                    f"'always', 'auto'. You provided '{value}'"
+                ),
+                "cadDataFormat": (
+                    "Unrecognized cadDataFormat '"
+                    f"{str(object=value).upper()}'.  "
+                    "Allowed values are: ZIP, GLB, DRC_GLB, DRC_GLTF, DAE, "
+                    "FBX, IGES, OBJ, PVS, PVZ, STL, VRML, or specify no "
+                    "cadDataFormat to auto-detect GLB and zipped glTFs."
+                ),
+                "optimizeTrackingFor": (
+                    "`optimizeTrackingFor` must be one of "
+                    "default,low_feature_objects,ar_controller"
+                ),
+                "realisticAppearance": (
+                    '`realisticAppearance` must be one of "true", "false", '
+                    '"auto".` '
+                ),
+                "simplify": (
+                    "invalid simplify. Should be one of 'never', 'always', "
+                    f"'auto'. You provided 'Some({value})'"
+                ),
+            }
+            message = messages.get(
+                field,
+                f"/models({index})/{field}: error.expected.validenum",
+            )
+            enum_details.append(
+                {"code": "VALIDATION_ERROR", "message": message},
+            )
+        if "motionHint" in model or "trackingMode" in model:
+            enum_details.append(
+                {
+                    "code": "VALIDATION_ERROR",
+                    "message": (
+                        "`motionHint` and `trackingMode` are no longer "
+                        "supported when using `targetsSdk` 10.9 or later. "
+                        "Please use the `optimizeTrackingFor` setting instead."
+                    ),
+                },
+            )
     views_details = [
         {
             "code": "VALIDATION_ERROR",
@@ -585,7 +1002,7 @@ def _view_details(*, models: list[Any]) -> list[dict[str, str]]:
             ),
         }
         for model_index, view_index, view in views
-        for field in ("guideViewPosition", "name")
+        for field in ("name",)
         if field not in view
     ]
     if missing_details:
@@ -611,7 +1028,8 @@ def _view_details(*, models: list[Any]) -> list[dict[str, str]]:
             ),
         }
         for model_index, view_index, view in views
-        if not isinstance(view["guideViewPosition"], dict)
+        if "guideViewPosition" in view
+        and not isinstance(view["guideViewPosition"], dict)
     ]
     return name_details + position_details
 
@@ -636,6 +1054,7 @@ def _guide_view_position_details(
         (model_index, view_index, view["guideViewPosition"])
         for model_index, model in enumerate(iterable=models)
         for view_index, view in enumerate(iterable=model.get("views", []))
+        if "guideViewPosition" in view
     ]
 
     missing_details = [
@@ -796,11 +1215,12 @@ def _state_based_details(*, models: list[Any]) -> list[dict[str, str]]:
             {
                 "code": "VALIDATION_ERROR",
                 "message": (
-                    f"/models({model_index})/views({view_index})/states"
-                    f"({state_index}): error.expected.validenum"
+                    "states in entrypoint "
+                    f"{models[model_index]['views'][view_index]['name']}' "
+                    "must be a subset of all states"
                 ),
             }
-            for state_index, state in enumerate(iterable=states)
+            for state in states
             if state not in configured_states[model_index]
         )
 
@@ -824,19 +1244,36 @@ def _model_count_details(
             },
         ]
 
-    if (
-        dataset_type == ModelTargetDatasetType.ADVANCED
-        and not 1 <= model_count <= _MAX_ADVANCED_MODEL_COUNT
-    ):
-        return [
-            {
-                "code": "VALIDATION_ERROR",
-                "message": (
-                    "models must contain between 1 and "
-                    f"{_MAX_ADVANCED_MODEL_COUNT} entries"
-                ),
-            },
-        ]
+    if dataset_type == ModelTargetDatasetType.ADVANCED:
+        details: list[dict[str, str]] = []
+        names = [model["name"] for model in models]
+        if len(set(names)) != len(names):
+            details.append(
+                {
+                    "code": "VALIDATION_ERROR",
+                    "message": (
+                        "names of models must be unique within a Target."
+                    ),
+                },
+            )
+        if model_count > _MAX_ADVANCED_MODEL_COUNT:
+            details.append(
+                {
+                    "code": "VALIDATION_ERROR",
+                    "message": (
+                        "total number of models must be maximum "
+                        f"{_MAX_ADVANCED_MODEL_COUNT}"
+                    ),
+                },
+            )
+        if model_count == 0:
+            details.append(
+                {
+                    "code": "VALIDATION_ERROR",
+                    "message": "models must contain at least one entry",
+                },
+            )
+        return details
 
     return []
 
@@ -877,15 +1314,6 @@ def _top_level_details(
         )
         return type_details
 
-    models: list[Any] = [*models_value]
-    type_details.extend(
-        {
-            "code": "VALIDATION_ERROR",
-            "message": f"/models({index}): error.expected.jsobject",
-        }
-        for index, model in enumerate(iterable=models)
-        if not isinstance(model, dict)
-    )
     return type_details
 
 
@@ -898,7 +1326,18 @@ def _validate_dataset_request(
     """Validate the dataset request enough for useful mock feedback."""
     details = _top_level_details(request_json=request_json)
     if not details:
-        models: list[Any] = [*request_json["models"]]
+        # Vuforia's schema validator reads fields from non-object model and
+        # view values as though they were empty objects.
+        models: list[Any] = [
+            model if isinstance(model, dict) else {}
+            for model in request_json["models"]
+        ]
+        for model in models:
+            if isinstance(model.get("views"), list):
+                model["views"] = [
+                    view if isinstance(view, dict) else {}
+                    for view in model["views"]
+                ]
         details = (
             _model_field_details(models=models, dataset_type=dataset_type)
             or _view_details(models=models)
@@ -931,13 +1370,30 @@ def create_model_target_dataset(
     if content_length_error is not None:
         return content_length_error
 
-    auth_error = _require_bearer_token(request=request)
+    auth_error = _require_bearer_token(
+        request=request,
+        dataset_type=dataset_type,
+    )
     if auth_error is not None:
         return auth_error
 
     request_json_or_error = _load_request_json(request=request)
     if not isinstance(request_json_or_error, dict):
         return request_json_or_error
+
+    models_value = request_json_or_error.get("models")
+    is_state_based = isinstance(models_value, list) and any(
+        isinstance(model, dict)
+        and "stateBasedConfigurationJsonString" in model
+        for model in models_value  # pyright: ignore[reportUnknownVariableType]
+    )
+    if is_state_based:
+        state_scope_error = _require_state_based_scope(
+            request=request,
+            dataset_type=dataset_type,
+        )
+        if state_scope_error is not None:
+            return state_scope_error
 
     validation_error = _validate_dataset_request(
         request_json=request_json_or_error,
@@ -979,17 +1435,9 @@ def _find_dataset(
     *,
     dataset_store: ModelTargetDatasetStore,
     dataset_uuid: str,
-    dataset_type: ModelTargetDatasetType,
 ) -> ModelTargetDataset | None:
-    """Return a dataset which belongs to a route's dataset type.
-
-    Standard and advanced datasets are separate resources in real Vuforia, so
-    a dataset is invisible to the routes of the other dataset type.
-    """
-    dataset = dataset_store.model_target_datasets.get(dataset_uuid)
-    if dataset is None or dataset.dataset_type != dataset_type:
-        return None
-    return dataset
+    """Return a Model Target dataset by UUID."""
+    return dataset_store.model_target_datasets.get(dataset_uuid)
 
 
 @beartype
@@ -1005,13 +1453,15 @@ def get_model_target_dataset_status(
     if content_length_error is not None:
         return content_length_error
 
-    auth_error = _require_bearer_token(request=request)
+    auth_error = _require_bearer_token(
+        request=request,
+        dataset_type=dataset_type,
+    )
     if auth_error is not None:
         return auth_error
     dataset = _find_dataset(
         dataset_store=dataset_store,
         dataset_uuid=dataset_uuid,
-        dataset_type=dataset_type,
     )
     if dataset is None:
         return _unknown_dataset_response(dataset_uuid=dataset_uuid)
@@ -1023,15 +1473,15 @@ def get_model_target_dataset_status(
 
 @beartype
 def _dataset_zip_bytes(dataset: ModelTargetDataset) -> bytes:
-    """Return a small valid zip file for a generated dataset."""
+    """Return a deterministic Vuforia-shaped generated dataset zip."""
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(file=zip_buffer, mode="w") as zip_file:
-        dataset_file = zipfile.ZipInfo(
-            filename="dataset.json",
+        dat_file = zipfile.ZipInfo(
+            filename="MTDataset.dat",
             date_time=_ZIP_EPOCH,
         )
         zip_file.writestr(
-            zinfo_or_arcname=dataset_file,
+            zinfo_or_arcname=dat_file,
             data=json.dumps(
                 obj={
                     "uuid": dataset.uuid_,
@@ -1040,6 +1490,18 @@ def _dataset_zip_bytes(dataset: ModelTargetDataset) -> bytes:
                 },
                 separators=(",", ":"),
                 sort_keys=True,
+            ),
+        )
+        xml_file = zipfile.ZipInfo(
+            filename="MTDataset.xml",
+            date_time=_ZIP_EPOCH,
+        )
+        zip_file.writestr(
+            zinfo_or_arcname=xml_file,
+            data=(
+                '<?xml version="1.0" encoding="UTF-8"?>'
+                '<QCARConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'
+                "<Tracking /></QCARConfig>"
             ),
         )
     return zip_buffer.getvalue()
@@ -1058,13 +1520,15 @@ def download_model_target_dataset(
     if content_length_error is not None:
         return content_length_error
 
-    auth_error = _require_bearer_token(request=request)
+    auth_error = _require_bearer_token(
+        request=request,
+        dataset_type=dataset_type,
+    )
     if auth_error is not None:
         return auth_error
     dataset = _find_dataset(
         dataset_store=dataset_store,
         dataset_uuid=dataset_uuid,
-        dataset_type=dataset_type,
     )
     if dataset is None:
         return _unknown_dataset_response(dataset_uuid=dataset_uuid)
@@ -1086,6 +1550,7 @@ def download_model_target_dataset(
         HTTPStatus.OK,
         {
             "Content-Length": str(object=len(body)),
+            "Content-Disposition": "attachment; filename=full-dataset.zip",
             "Content-Type": "application/zip",
         },
         body,
@@ -1105,15 +1570,21 @@ def delete_model_target_dataset(
     if content_length_error is not None:
         return content_length_error
 
-    auth_error = _require_bearer_token(request=request)
+    auth_error = _require_bearer_token(
+        request=request,
+        dataset_type=dataset_type,
+    )
     if auth_error is not None:
         return auth_error
     dataset = _find_dataset(
         dataset_store=dataset_store,
         dataset_uuid=dataset_uuid,
-        dataset_type=dataset_type,
     )
     if dataset is None:
         return _unknown_dataset_response(dataset_uuid=dataset_uuid)
+    if dataset.dataset_type != dataset_type:
+        # Real Vuforia returns success when deleting through the other route,
+        # but leaves the dataset available through its creation route.
+        return HTTPStatus.OK, {"Content-Length": "0"}, ""
     dataset_store.remove_model_target_dataset(dataset_uuid=dataset_uuid)
     return HTTPStatus.OK, {"Content-Length": "0"}, ""
