@@ -154,7 +154,7 @@ jobs:
 
       # We have seen issues with running out of disk space on test_docker
       - name: Free Disk Space (Ubuntu)
-        uses: jlumbroso/free-disk-space@main
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be  # main
         if: matrix.ci_pattern == 'tests/mock_vws/test_docker.py'
         with:
           # All of these default to true (meaning they are removed).
