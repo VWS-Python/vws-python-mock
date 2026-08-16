@@ -22,6 +22,13 @@ VUMARK_TEMPLATE_SVG_FILE_PATH = Path(__file__).with_name(
     name="vumark_template.svg",
 )
 
+MODEL_TARGET_WEB_API_SCOPES = (
+    "modeltargets.standardmodeltarget.all",
+    "modeltargets.advancedmodeltarget.all",
+    "modeltargets.statebasedmodeltarget.all",
+    "modeltargets.advancedstatebasedmodeltarget.all",
+)
+
 
 def _create_and_get_cloud_database_details(
     driver: WebDriver,
@@ -216,7 +223,10 @@ def _get_model_target_web_api_details(
         password=password,
     )
     vws_web_tools.wait_for_logged_in(driver=driver)
-    return vws_web_tools.get_model_target_web_api_details(driver=driver)
+    return vws_web_tools.get_model_target_web_api_details(
+        driver=driver,
+        scopes=MODEL_TARGET_WEB_API_SCOPES,
+    )
 
 
 def _create_vuforia_resource_names() -> tuple[str, str, str, str]:
