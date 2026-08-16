@@ -1,5 +1,7 @@
 """Verified fake tests for the Model Target Web API."""
 
+# pyright: reportPrivateUsage=false
+
 import base64
 import dataclasses
 import io
@@ -16,7 +18,12 @@ import requests
 from beartype import beartype
 from vws.response import Response
 
-from mock_vws import MockVWS, ModelTargetGenerationFailure
+from mock_vws import (
+    MockVWS,
+    ModelTargetGenerationFailure,
+    _model_target_web_api,
+)
+from mock_vws._flask_server import target_manager as flask_target_manager
 from mock_vws.model_target import ModelTargetDataset, ModelTargetDatasetType
 from tests.mock_vws.fixtures.model_target_prepared_requests import (
     MODEL_TARGET_DATASET_UUID,
@@ -2137,3 +2144,269 @@ class TestModelTargetDatasetStatus:
         assert body["status"] == status
         assert body["uuid"] == "dataset-uuid"
         assert {"eta", "completedAt"} & body.keys() == {time_field}
+
+
+class TestMockOnlyOAuth2EdgeCases:
+    """Cover mock-only OAuth2 and validation error paths."""
+
+    @staticmethod
+    def _management_token() -> str:
+        """Return a token which can manage client credentials."""
+        response = requests.post(
+            url=f"{_VWS_HOST}/oauth2/token",
+            data={
+                "grant_type": "password",
+                "username": "user@example.com",
+                "password": "password",
+                "scope": "oauth2.clientcredentials.all",
+            },
+            timeout=30,
+        )
+        assert response.status_code == HTTPStatus.OK
+        access_token: object = response.json()["access_token"]
+        assert isinstance(access_token, str)
+        return access_token
+
+    @staticmethod
+    def test_oauth2_grant_errors() -> None:
+        """Invalid passwords and scopes are rejected."""
+        with MockVWS():
+            invalid_password = requests.post(
+                url=f"{_VWS_HOST}/oauth2/token",
+                data={
+                    "grant_type": "password",
+                    "username": "user@example.com",
+                    "password": "wrong",
+                },
+                timeout=30,
+            )
+            assert invalid_password.status_code == HTTPStatus.UNAUTHORIZED
+            assert invalid_password.json()["error"] == "invalid_grant"
+
+            invalid_scope = requests.post(
+                url=f"{_VWS_HOST}/oauth2/token",
+                auth=("client-id", "client-secret"),
+                data={"scope": "not.a.scope"},
+                timeout=30,
+            )
+            assert invalid_scope.status_code == HTTPStatus.BAD_REQUEST
+            assert invalid_scope.json()["error"] == "invalid_scope"
+
+    @staticmethod
+    def test_client_credential_authentication_errors() -> None:
+        """Credential-management routes enforce bearer-token validity and
+        scope.
+        """
+        headers = [
+            {},
+            {"Authorization": "Bearer malformed"},
+            {"Authorization": "Bearer e30.e30.signature"},
+            {"Authorization": f"Bearer {_MOCK_BEARER_TOKEN}"},
+        ]
+        with MockVWS():
+            for request_headers in headers:
+                response = requests.get(
+                    url=f"{_VWS_HOST}/oauth2/clientcredentials",
+                    headers=request_headers,
+                    timeout=30,
+                )
+                assert response.status_code in {
+                    HTTPStatus.UNAUTHORIZED,
+                    HTTPStatus.FORBIDDEN,
+                }
+
+            delete_response = requests.delete(
+                url=f"{_VWS_HOST}/oauth2/clientcredentials/client-id",
+                timeout=30,
+            )
+            assert delete_response.status_code == HTTPStatus.UNAUTHORIZED
+
+            create_response = requests.post(
+                url=f"{_VWS_HOST}/oauth2/clientcredentials",
+                json={"scopes": []},
+                timeout=30,
+            )
+            assert create_response.status_code == HTTPStatus.UNAUTHORIZED
+
+            update_response = requests.put(
+                url=f"{_VWS_HOST}/oauth2/clientcredentials/client-id/scopes",
+                json=[],
+                timeout=30,
+            )
+            assert update_response.status_code == HTTPStatus.UNAUTHORIZED
+
+    @staticmethod
+    def test_non_string_token_scope() -> None:
+        """A token with a non-string scope has no usable scopes."""
+        encoded_header = (
+            base64.urlsafe_b64encode(
+                s=b'{"alg":"mock"}',
+            )
+            .decode(encoding="ascii")
+            .rstrip("=")
+        )
+        encoded_payload = (
+            base64.urlsafe_b64encode(
+                s=b'{"scope":[]}',
+            )
+            .decode(encoding="ascii")
+            .rstrip("=")
+        )
+        token = f"{encoded_header}.{encoded_payload}.c2lnbmF0dXJl"
+        with MockVWS():
+            response = requests.get(
+                url=f"{_VWS_HOST}/oauth2/clientcredentials",
+                headers={"Authorization": f"Bearer {token}"},
+                timeout=30,
+            )
+            assert response.status_code == HTTPStatus.FORBIDDEN
+
+    @staticmethod
+    def test_client_credential_validation_errors() -> None:
+        """Credential creation and updates reject invalid request
+        bodies.
+        """
+        with MockVWS():
+            headers = {
+                "Authorization": (
+                    f"Bearer {TestMockOnlyOAuth2EdgeCases._management_token()}"
+                ),
+            }
+            for content in (b"{", b'{"scopes":"scope"}', b'{"scopes":[1]}'):
+                response = requests.post(
+                    url=f"{_VWS_HOST}/oauth2/clientcredentials",
+                    headers={**headers, "Content-Type": "application/json"},
+                    data=content,
+                    timeout=30,
+                )
+                assert response.status_code == HTTPStatus.BAD_REQUEST
+
+            missing = requests.put(
+                url=f"{_VWS_HOST}/oauth2/clientcredentials/missing/scopes",
+                headers=headers,
+                json=[],
+                timeout=30,
+            )
+            assert missing.status_code == HTTPStatus.NOT_FOUND
+
+            created = requests.post(
+                url=f"{_VWS_HOST}/oauth2/clientcredentials",
+                headers=headers,
+                json={"scopes": []},
+                timeout=30,
+            )
+            client_id = created.json()["client_id"]
+            for content in (b"{", b'"scope"', b"[1]"):
+                response = requests.put(
+                    url=(
+                        f"{_VWS_HOST}/oauth2/clientcredentials/"
+                        f"{client_id}/scopes"
+                    ),
+                    headers={**headers, "Content-Type": "application/json"},
+                    data=content,
+                    timeout=30,
+                )
+                assert response.status_code == HTTPStatus.BAD_REQUEST
+
+    @staticmethod
+    def test_client_credential_limit(
+        *,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """Credential creation rejects stores at their configured
+        limit.
+        """
+        monkeypatch.setattr(
+            target=_model_target_web_api,
+            name="_MAX_CLIENT_CREDENTIALS",
+            value=0,
+        )
+        with MockVWS():
+            headers = {
+                "Authorization": (
+                    f"Bearer {TestMockOnlyOAuth2EdgeCases._management_token()}"
+                ),
+            }
+            response = requests.post(
+                url=f"{_VWS_HOST}/oauth2/clientcredentials",
+                headers=headers,
+                json={"scopes": []},
+                timeout=30,
+            )
+            assert response.status_code == HTTPStatus.CONFLICT
+
+    @staticmethod
+    def test_dataset_scope_and_shape_errors() -> None:
+        """State-based scope and less common model shapes are
+        validated.
+        """
+        with MockVWS():
+            state_based = {
+                **_UNAUTHENTICATED_DATASET_REQUEST,
+                "models": [
+                    {
+                        **_MODEL,
+                        "stateBasedConfigurationJsonString": (
+                            _STATE_CONFIGURATION
+                        ),
+                    },
+                ],
+            }
+            forbidden = requests.post(
+                url=f"{_VWS_HOST}/modeltargets/datasets",
+                headers={"Authorization": f"Bearer {_MOCK_BEARER_TOKEN}"},
+                json=state_based,
+                timeout=30,
+            )
+            assert forbidden.status_code == HTTPStatus.FORBIDDEN
+
+            invalid_view = requests.post(
+                url=f"{_VWS_HOST}/modeltargets/datasets",
+                headers={"Authorization": f"Bearer {_MOCK_BEARER_TOKEN}"},
+                json={
+                    **_UNAUTHENTICATED_DATASET_REQUEST,
+                    "models": [{**_MODEL, "views": [1]}],
+                },
+                timeout=30,
+            )
+            assert invalid_view.status_code == HTTPStatus.BAD_REQUEST
+
+            advanced_empty = requests.post(
+                url=f"{_VWS_HOST}/modeltargets/advancedDatasets",
+                headers={
+                    "Authorization": (
+                        "Bearer eyJhbGciOiJtb2NrIn0."
+                        "eyJzY29wZSI6Im1vZGVsdGFyZ2V0cy5hZHZhbmNlZG1vZGVs"
+                        "dGFyZ2V0LmFsbCJ9.c2lnbmF0dXJl"
+                    ),
+                },
+                json={"name": "name", "targetSdk": "10.18", "models": []},
+                timeout=30,
+            )
+            assert advanced_empty.status_code == HTTPStatus.BAD_REQUEST
+
+    @staticmethod
+    def test_view_helper_rejects_non_objects() -> None:
+        """The view validator reports view values which are not
+        objects.
+        """
+        # pylint: disable=protected-access
+        details = _model_target_web_api._view_details(  # noqa: SLF001
+            models=[{"views": [1]}],
+        )
+        assert details == [
+            {
+                "code": "VALIDATION_ERROR",
+                "message": "/models(0)/views(0): error.expected.jsobject",
+            },
+        ]
+
+    @staticmethod
+    def test_target_manager_missing_credential_delete() -> None:
+        """The internal target manager returns 404 for an unknown
+        credential.
+        """
+        response = flask_target_manager.remove_oauth2_client_credential(
+            client_id="missing",
+        )
+        assert response.status_code == HTTPStatus.NOT_FOUND
