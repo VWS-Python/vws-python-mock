@@ -1835,7 +1835,7 @@ wheels = [
 
 [[package]]
 name = "requests-mock-flask"
-version = "2026.4.2"
+version = "2026.8.16"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpretty" },
@@ -1843,11 +1843,12 @@ dependencies = [
     { name = "requests-mock" },
     { name = "responses" },
     { name = "respx" },
+    { name = "urllib3" },
     { name = "werkzeug" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/51/36/dab370235de8fe5404d79eab4f53e724b1e653568e4a77afb75f14c807d1/requests_mock_flask-2026.4.2.tar.gz", hash = "sha256:0fada5104d187cc5ebb22c27dec367cc2174114c2152c8c57c4e0f96fd9dcb49", size = 26481, upload-time = "2026-04-02T03:43:36.145Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/40/aa/1418809d073bdb36667baa251fdf739a68c63732541adb64d5a7b144b44b/requests_mock_flask-2026.8.16.tar.gz", hash = "sha256:24c406d8201d2f730c35b0f037c74ccfef3db0fac510fde2f9deb15a9e67baf9", size = 38580, upload-time = "2026-08-16T09:17:43.347Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/05/e7/2955c6b40be56786a788029f354e5d7e4c5f56b75cdd62b6a29cc4cdb5bd/requests_mock_flask-2026.4.2-py2.py3-none-any.whl", hash = "sha256:ea88de696f4c33ef77f544fd5a05d3ac123b066e5d4fa83468293e174caefc56", size = 6734, upload-time = "2026-04-02T03:43:34.359Z" },
+    { url = "https://files.pythonhosted.org/packages/d3/37/70cbffe881571599fd63f5ec4e98e13e2a592156ab293a648c93c63158fa/requests_mock_flask-2026.8.16-py3-none-any.whl", hash = "sha256:41d40c5da57e41b4fa75f4ac3f216bd6ab2f0b55d4089e133d74584b0d72eefa", size = 9535, upload-time = "2026-08-16T09:17:41.742Z" },
 ]
 
 [[package]]
@@ -2832,7 +2833,7 @@ requires-dist = [
     { name = "pytest-xdist", marker = "extra == 'dev'", specifier = "==3.8.0" },
     { name = "pyyaml", marker = "extra == 'dev'", specifier = "==6.0.3" },
     { name = "requests", specifier = ">=2.32.3" },
-    { name = "requests-mock-flask", marker = "extra == 'dev'", specifier = "==2026.4.2" },
+    { name = "requests-mock-flask", marker = "extra == 'dev'", specifier = "==2026.8.16" },
     { name = "responses", specifier = ">=0.25.3" },
     { name = "respx", specifier = ">=0.21.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = "==0.16.2" },
