@@ -484,7 +484,7 @@ class TestAuthentication:
             )
             assert insufficient_response.status_code == HTTPStatus.FORBIDDEN
         finally:
-            if client_id is not None:
+            if client_id is not None:  # pragma: no branch
                 delete_response = requests.delete(
                     url=(f"{_VWS_HOST}/oauth2/clientcredentials/{client_id}"),
                     headers=headers,
@@ -1933,7 +1933,7 @@ class TestAdditionalBehaviors:
                 timeout=30,
             )
         finally:
-            if dataset_uuid is not None:
+            if dataset_uuid is not None:  # pragma: no branch
                 delete_response = requests.delete(
                     url=f"{_VWS_HOST}{created_path}/{dataset_uuid}",
                     headers=headers,
