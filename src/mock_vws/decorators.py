@@ -70,6 +70,7 @@ class MockVWS(ContextDecorator):
         model_target_generation_warning: (
             ModelTargetGenerationWarning | None
         ) = None,
+        model_target_training_allowance_exceeded: bool = False,
         target_tracking_rater: TargetTrackingRater = _BRISQUE_TRACKING_RATER,
         real_http: bool = False,
         response_delay_seconds: float = 0.0,
@@ -96,6 +97,10 @@ class MockVWS(ContextDecorator):
                 Model Target dataset finishes processing. By default, Model
                 Target datasets finish without warnings. This cannot be
                 combined with ``model_target_generation_failure``.
+            model_target_training_allowance_exceeded: Whether Model Target
+                dataset creation returns Vuforia's
+                ``TRAINING_ALLOWANCE_EXCEEDED`` response. By default, creation
+                is allowed.
             base_vwq_url: The base URL for the VWQ API.
             base_vws_url: The base URL for the VWS API.
             cloud_query_failure_response: A response to return for every Cloud
@@ -153,6 +158,9 @@ class MockVWS(ContextDecorator):
             processing_time_seconds=float(processing_time_seconds),
             model_target_generation_failure=model_target_generation_failure,
             model_target_generation_warning=model_target_generation_warning,
+            model_target_training_allowance_exceeded=(
+                model_target_training_allowance_exceeded
+            ),
             duplicate_match_checker=duplicate_match_checker,
             target_tracking_rater=target_tracking_rater,
             vumark_generation_failure=vumark_generation_failure,

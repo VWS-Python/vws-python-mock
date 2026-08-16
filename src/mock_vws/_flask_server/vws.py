@@ -129,6 +129,7 @@ class VWSSettings(BaseSettings):
         _ImageMatcherChoice.STRUCTURAL_SIMILARITY
     )
     response_delay_seconds: float = 0.0
+    model_target_training_allowance_exceeded: bool = False
 
 
 @beartype
@@ -504,6 +505,9 @@ def create_standard_model_target_dataset() -> Response:
             dataset_type=ModelTargetDatasetType.STANDARD,
             generation_failure=None,
             generation_warning=None,
+            training_allowance_exceeded=(
+                settings.model_target_training_allowance_exceeded
+            ),
         ),
     )
 
@@ -524,6 +528,9 @@ def create_advanced_model_target_dataset() -> Response:
             dataset_type=ModelTargetDatasetType.ADVANCED,
             generation_failure=None,
             generation_warning=None,
+            training_allowance_exceeded=(
+                settings.model_target_training_allowance_exceeded
+            ),
         ),
     )
 

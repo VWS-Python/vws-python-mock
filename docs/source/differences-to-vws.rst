@@ -238,6 +238,12 @@ in-process Model Target datasets finish with a ``failed`` status and an
 :paramref:`~mock_vws.MockVWS.processing_time_seconds`, so callers can test
 both processing and failed states. This configuration is not supported by the
 Flask/Docker backend.
+Use
+:paramref:`mock_vws.MockVWS.model_target_training_allowance_exceeded` to make
+in-process Model Target dataset creation return Vuforia's
+``TRAINING_ALLOWANCE_EXCEEDED`` response. Set the
+:envvar:`MODEL_TARGET_TRAINING_ALLOWANCE_EXCEEDED` environment variable to
+``true`` to configure the same response in the Flask/Docker backend.
 Use :paramref:`mock_vws.MockVWS.model_target_generation_warning` to make
 successful in-process Model Target datasets include a Vuforia-shaped
 ``warning`` object after processing completes. This configuration is not
