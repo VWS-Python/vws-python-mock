@@ -8,6 +8,7 @@ import base64
 import email.utils
 import json
 import logging
+import threading
 import time
 import uuid
 from enum import StrEnum, auto
@@ -277,11 +278,13 @@ class _InMemoryRecoCountsReportStore:
     def __init__(self) -> None:
         """Create a store with no reports."""
         self._reports: dict[str, RecoCountsReport] = {}
+        self._lock = threading.Lock()
 
     @property
     def reco_counts_reports(self) -> dict[str, RecoCountsReport]:
         """All reco counts reports, keyed by report identifier."""
-        return dict(self._reports)
+        with self._lock:
+            return dict(self._reports)
 
     def add_reco_counts_report(
         self,
@@ -291,7 +294,8 @@ class _InMemoryRecoCountsReportStore:
         reco_counts_report: RecoCountsReport,  # pylint: disable=redefined-outer-name
     ) -> None:
         """Add a reco counts report."""
-        self._reports[reco_counts_report.uuid_] = reco_counts_report
+        with self._lock:
+            self._reports[reco_counts_report.uuid_] = reco_counts_report
 
 
 _RECO_COUNTS_REPORT_STORE = _InMemoryRecoCountsReportStore()
