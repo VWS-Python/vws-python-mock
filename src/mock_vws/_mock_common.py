@@ -1,12 +1,15 @@
 """Common utilities for creating mock routes."""
 
+import email.utils
 import json
+import uuid
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from typing import Any
 
 from beartype import beartype
 
+from mock_vws._constants import ResultCodes
 from mock_vws.target import ImageTarget
 
 # A database ID as it appears in the path of a reco counts report request.
@@ -95,6 +98,31 @@ def sorted_targets(*, targets: Iterable[ImageTarget]) -> list[ImageTarget]:
         targets,
         key=lambda target: (target.upload_date, target.target_id),
     )
+
+
+@beartype
+def result_code_response_text(*, result_code: ResultCodes) -> str:
+    """
+    Args:
+        result_code: The result code to give in the response body.
+
+    Returns:
+        The body of a Vuforia error response, with a new transaction ID.
+    """
+    body = {
+        "transaction_id": uuid.uuid4().hex,
+        "result_code": result_code.value,
+    }
+    return json_dump(body=body)
+
+
+@beartype
+def http_date() -> str:
+    """
+    Returns:
+        The current time, formatted for an HTTP ``Date`` header.
+    """
+    return email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
 
 
 @beartype
