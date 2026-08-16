@@ -93,7 +93,7 @@ To delete a database use the following endpoint:
    :endpoints: delete_cloud_database
 
 
-.. _Target Manager: https://developer.vuforia.com/target-manager
+.. _Target Manager: https://developer.vuforia.com/library/vuforia-engine/getting-started/engine-developer-portal/vuforia-target-manager/
 
 
 Configuration options
