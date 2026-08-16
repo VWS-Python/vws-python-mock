@@ -391,4 +391,4 @@ def _assert_model_target_round_trip(*, vws_container: Container) -> None:
     with zipfile.ZipFile(
         file=io.BytesIO(initial_bytes=download_response.content),
     ) as downloaded_zip:
-        assert downloaded_zip.namelist() == ["dataset.json"]
+        assert downloaded_zip.namelist() == ["MTDataset.dat", "MTDataset.xml"]
