@@ -19,7 +19,11 @@ from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.image_matchers import ExactMatcher
 from mock_vws.target import VuMarkTarget
 
-_MODEL_TARGET_AUTHORIZATION = "Bearer eyJhbGciOiJtb2NrIn0.e30.c2lnbmF0dXJl"
+_MODEL_TARGET_AUTHORIZATION = (
+    "Bearer eyJhbGciOiJtb2NrIn0."
+    "eyJzY29wZSI6Im1vZGVsdGFyZ2V0cy5zdGFuZGFyZG1vZGVsdGFyZ2V0LmFsbCJ9."
+    "c2lnbmF0dXJl"
+)
 _MODEL_TARGET_DATASET_REQUEST = {
     "name": "dataset-name",
     "targetSdk": "10.18",

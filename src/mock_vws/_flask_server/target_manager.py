@@ -15,7 +15,7 @@ from pydantic_settings import BaseSettings
 
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.database_type import DatabaseType
-from mock_vws.model_target import ModelTargetDataset
+from mock_vws.model_target import ModelTargetDataset, OAuth2ClientCredential
 from mock_vws.request_rate_limits import RequestRateLimits
 from mock_vws.states import States
 from mock_vws.target import ImageTarget, VuMarkTarget
@@ -396,6 +396,57 @@ def delete_model_target_dataset(dataset_uuid: str) -> Response:
 
     TARGET_MANAGER.remove_model_target_dataset(dataset_uuid=dataset_uuid)
     return Response(response="", status=HTTPStatus.OK)
+
+
+@TARGET_MANAGER_FLASK_APP.route(
+    rule="/oauth2_client_credentials",
+    methods=[HTTPMethod.GET],
+)
+@beartype
+def get_oauth2_client_credentials() -> Response:
+    """Return all OAuth2 client credentials."""
+    credentials = [
+        {
+            "client_id": credential.client_id,
+            "client_secret": credential.client_secret,
+            "scopes": list(credential.scopes),
+        }
+        for credential in TARGET_MANAGER.oauth2_client_credentials.values()
+    ]
+    return Response(
+        response=json.dumps(obj=credentials),
+        status=HTTPStatus.OK,
+    )
+
+
+@TARGET_MANAGER_FLASK_APP.route(
+    rule="/oauth2_client_credentials",
+    methods=[HTTPMethod.POST],
+)
+@beartype
+def put_oauth2_client_credential() -> Response:
+    """Add or replace an OAuth2 client credential."""
+    value = json.loads(s=request.data)
+    credential = OAuth2ClientCredential(
+        client_id=value["client_id"],
+        client_secret=value["client_secret"],
+        scopes=tuple(value["scopes"]),
+    )
+    TARGET_MANAGER.add_oauth2_client_credential(credential=credential)
+    return Response(response="", status=HTTPStatus.NO_CONTENT)
+
+
+@TARGET_MANAGER_FLASK_APP.route(
+    rule="/oauth2_client_credentials/<string:client_id>",
+    methods=[HTTPMethod.DELETE],
+)
+@beartype
+def remove_oauth2_client_credential(client_id: str) -> Response:
+    """Remove an OAuth2 client credential."""
+    if client_id not in TARGET_MANAGER.oauth2_client_credentials:
+        return Response(response="", status=HTTPStatus.NOT_FOUND)
+    TARGET_MANAGER.remove_oauth2_client_credential(client_id=client_id)
+    return Response(response="", status=HTTPStatus.NO_CONTENT)
 
 
 @TARGET_MANAGER_FLASK_APP.route(

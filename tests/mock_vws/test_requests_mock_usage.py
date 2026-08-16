@@ -52,7 +52,11 @@ from tests.mock_vws.utils.usage_test_helpers import (
     processing_time_seconds,
 )
 
-_MODEL_TARGET_AUTHORIZATION = "Bearer eyJhbGciOiJtb2NrIn0.e30.c2lnbmF0dXJl"
+_MODEL_TARGET_AUTHORIZATION = (
+    "Bearer eyJhbGciOiJtb2NrIn0."
+    "eyJzY29wZSI6Im1vZGVsdGFyZ2V0cy5hbGwifQ."
+    "c2lnbmF0dXJl"
+)
 _MODEL_TARGET_DATASET_REQUEST = {
     "name": "dataset-name",
     "targetSdk": "10.18",
@@ -1756,7 +1760,7 @@ class TestModelTargetWebAPI:
         with zipfile.ZipFile(
             file=io.BytesIO(initial_bytes=dataset_response.content),
         ) as dataset_zip:
-            assert dataset_zip.namelist() == ["dataset.json"]
+            assert dataset_zip.namelist() == ["MTDataset.dat", "MTDataset.xml"]
 
     @staticmethod
     def test_advanced_dataset_workflow() -> None:

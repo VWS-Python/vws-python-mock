@@ -52,6 +52,8 @@ def credentials_for_backend(
         client_id="client-id",
         client_secret="client-secret",
         cad_data_url="https://example.com/model.glb",
+        username="user@example.com",
+        password="password",
     )
 
 
@@ -62,25 +64,13 @@ def get_access_token(
     backend: VuforiaBackend,
 ) -> str:
     """Return an OAuth2 access token."""
+    del backend
     response = requests.post(
         url=f"{MODEL_TARGET_VWS_HOST}/oauth2/token",
         auth=(credentials.client_id, credentials.client_secret),
         data={"grant_type": "client_credentials"},
         timeout=30,
     )
-
-    if (
-        backend == VuforiaBackend.REAL
-        and response.status_code == HTTPStatus.UNAUTHORIZED
-        and response.json() == {"error": "invalid_client"}
-    ):
-        pytest.xfail(
-            reason=(
-                "Real Model Target Web API credentials are not accepted; "
-                "authenticated behavior is verified against the mock "
-                "backends only until the credentials are rotated."
-            ),
-        )
 
     assert response.status_code == HTTPStatus.OK
     response_json: dict[str, Any] = json.loads(s=response.text)
