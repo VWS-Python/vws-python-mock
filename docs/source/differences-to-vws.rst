@@ -228,7 +228,10 @@ Model Target datasets
 ---------------------
 
 The Model Target Web API mock supports OAuth2 token requests, standard and advanced dataset creation, status polling, dataset downloads, and deletion.
-The generated dataset download is a small valid zip file containing request metadata, not a real Vuforia Engine Model Target dataset.
+The generated dataset download is a small valid ``full-dataset.zip`` with the
+same ``MTDataset.dat`` and ``MTDataset.xml`` filenames as Vuforia. Its contents
+are synthetic request metadata and minimal XML, not a real Vuforia Engine
+Model Target dataset.
 Use :paramref:`mock_vws.MockVWS.model_target_generation_failure` to make
 in-process Model Target datasets finish with a ``failed`` status and an
 ``error`` object. The failure is returned after the configured
@@ -245,14 +248,20 @@ base64url-encoded signature, such as the token returned by the mock OAuth2
 route.
 The mock does not verify token signatures, payload claims such as expiry, or
 token revocation.
+The OAuth2 route supports both the ``client_credentials`` and ``password``
+grants. Tokens returned by the mock contain explicit scopes, and
+standard and advanced dataset routes require their corresponding Model Target
+scope. A token carrying ``modeltargets.all`` can access both route families.
+The OAuth2 client-credentials management routes support creating, listing,
+updating and deleting credentials, including Vuforia's limit of 100 created
+credentials per account.
 
 Dataset creation request bodies which are valid JSON but not JSON objects are
 reported as missing every required top-level field.
 Dataset creation request bodies which cannot be decoded as UTF-8 are reported
 as invalid JSON, as malformed JSON bodies are.
 An OAuth2 token request body which cannot be decoded as UTF-8 is treated as one
-which does not name a grant type; the real response to such a body has not been
-observed.
+which does not name a grant type.
 Dataset creation requests are validated for the required top-level ``models``,
 ``name`` and ``targetSdk`` fields, for those fields' types, for each ``models``
 entry being a JSON object, and for the number of models.
@@ -272,7 +281,10 @@ advanced datasets; the OpenAPI specification does not document it as a
 standard dataset model field, so standard dataset creation does not validate
 it.
 Each ``views`` entry is validated for being a JSON object, for the required
-``guideViewPosition`` and ``name`` fields, and for those fields' types.
+``name`` field, and for the types of ``name`` and the optional
+``guideViewPosition`` field.
+State-Based Model Target views require ``guideViewPosition``, matching real
+Vuforia.
 An optional ``states`` field must be an array of strings. Each named state must
 be declared by the model's ``stateBasedConfigurationJsonString``. Omitting the
 field makes the view available to every configured state.
@@ -290,21 +302,19 @@ It also does not validate the state configuration beyond its top-level
 For unknown Model Target datasets, the mock returns an error whose ``target`` is ``userId:mock``.
 Real Vuforia uses ``userId:<numeric-user-id>`` where the numeric portion is per-account.
 
-Standard and advanced datasets are separate resources.
-A dataset created through the standard routes is not visible to the advanced routes, and the other way around: the mock returns the unknown-dataset error for status, download and delete requests made through the other dataset type's routes.
-Real Vuforia separates these by OAuth scope as well, which the mock does not model, so a client which lacks the advanced-dataset scope may see a different error.
+Standard and advanced routes share datasets by UUID. Access to each route
+family is separated by its corresponding OAuth scope.
 
-Some Model Target Web API paths remain mock-only in ``tests/mock_vws/test_model_target_web_api.py::TestMockOnlyErrors``.
+Some Model Target Web API paths remain mock-only in
+``tests/mock_vws/test_model_target_web_api.py::TestAdditionalBehaviors``.
 Downloads of still-processing datasets are mock-only because exercising the path against real Vuforia would require creating a dataset on every test run; the mock drives the processing window deterministically.
 A download request for a dataset which is not ready reports the dataset's
 training status. The mock reports ``not-started`` for the whole processing
 window, as real Vuforia does for a dataset which was just created, and
 ``failed`` for a dataset whose generation failed. The name which real Vuforia
 reports for a failed dataset has not been observed.
-Advanced-dataset creation with more than 20 models is mock-only because the available test account lacks the advanced-dataset scope and real Vuforia rejects the request with a 403 before validating model counts.
-Cross-dataset-type access is mock-only for the same reason.
-State-Based Model Target creation and validation are also mock-only because the
-available test account lacks the State-Based Model Target scopes.
+Some malformed State-Based Model Target configuration documents remain
+mock-only because real Vuforia returns an internal server error for them.
 
 Reco counts reports
 -------------------

@@ -33,6 +33,16 @@ class ModelTargetDatasetType(StrEnum):
 
 @beartype
 @dataclass(frozen=True, kw_only=True)
+class OAuth2ClientCredential:
+    """An OAuth2 client credential managed through the Vuforia Web API."""
+
+    client_id: str
+    client_secret: str
+    scopes: tuple[str, ...]
+
+
+@beartype
+@dataclass(frozen=True, kw_only=True)
 class ModelTargetGenerationFailure:
     """A configured Model Target dataset generation failure.
 

@@ -37,7 +37,19 @@ from mock_vws._model_target_web_api import (
     get_model_target_dataset_status,
 )
 from mock_vws._model_target_web_api import (
+    create_oauth2_client_credential as model_target_create_oauth2_credential,
+)
+from mock_vws._model_target_web_api import (
+    delete_oauth2_client_credential as model_target_delete_oauth2_credential,
+)
+from mock_vws._model_target_web_api import (
+    list_oauth2_client_credentials as model_target_list_oauth2_credentials,
+)
+from mock_vws._model_target_web_api import (
     oauth2_token as model_target_oauth2_token,
+)
+from mock_vws._model_target_web_api import (
+    update_oauth2_client_credential_scopes as update_oauth2_scopes,
 )
 from mock_vws._reco_counts_web_api import create_reco_counts_report
 from mock_vws._reco_counts_web_api import (
@@ -61,7 +73,11 @@ from mock_vws.image_matchers import (
     ImageMatcher,
     StructuralSimilarityMatcher,
 )
-from mock_vws.model_target import ModelTargetDataset, ModelTargetDatasetType
+from mock_vws.model_target import (
+    ModelTargetDataset,
+    ModelTargetDatasetType,
+    OAuth2ClientCredential,
+)
 from mock_vws.reco_counts import RecoCountsReport
 from mock_vws.target import ImageTarget
 from mock_vws.target_raters import (
@@ -168,6 +184,7 @@ class _HTTPModelTargetDatasetStore:
             base_url: The base URL of the target manager service.
         """
         self._datasets_url = f"{base_url}/model_target_datasets"
+        self._credentials_url = f"{base_url}/oauth2_client_credentials"
 
     @property
     def model_target_datasets(self) -> dict[str, ModelTargetDataset]:
@@ -201,6 +218,42 @@ class _HTTPModelTargetDatasetStore:
         requests.delete(
             url=f"{self._datasets_url}/{dataset_uuid}",
             timeout=timeout_seconds,
+        )
+
+    @property
+    def oauth2_client_credentials(self) -> dict[str, OAuth2ClientCredential]:
+        """All dynamically created OAuth2 client credentials."""
+        response = requests.get(url=self._credentials_url, timeout=30)
+        credentials = (
+            OAuth2ClientCredential(
+                client_id=value["client_id"],
+                client_secret=value["client_secret"],
+                scopes=tuple(value["scopes"]),
+            )
+            for value in response.json()
+        )
+        return {credential.client_id: credential for credential in credentials}
+
+    def add_oauth2_client_credential(
+        self,
+        credential: OAuth2ClientCredential,
+    ) -> None:
+        """Add or replace an OAuth2 client credential."""
+        requests.post(
+            url=self._credentials_url,
+            json={
+                "client_id": credential.client_id,
+                "client_secret": credential.client_secret,
+                "scopes": list(credential.scopes),
+            },
+            timeout=30,
+        )
+
+    def remove_oauth2_client_credential(self, client_id: str) -> None:
+        """Remove an OAuth2 client credential."""
+        requests.delete(
+            url=f"{self._credentials_url}/{client_id}",
+            timeout=30,
         )
 
 
@@ -305,7 +358,7 @@ def validate_request() -> None:
     if request.endpoint == "generate_vumark_instance":
         return
     if (
-        request.path == "/oauth2/token"
+        request.path.startswith("/oauth2/")
         or request.path.startswith("/modeltargets/")
         or request.path.startswith("/reports/recoCounts/")
     ):
@@ -368,6 +421,69 @@ def oauth2_token() -> Response:
     return _to_flask_response(
         api_response=model_target_oauth2_token(
             request=_flask_request_data(),
+            credential_store=_model_target_dataset_store(),
+        ),
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/oauth2/clientcredentials",
+    methods=[HTTPMethod.POST],
+)
+@beartype
+def create_oauth2_client_credential() -> Response:
+    """Create an OAuth2 client credential."""
+    return _to_flask_response(
+        api_response=model_target_create_oauth2_credential(
+            request=_flask_request_data(),
+            credential_store=_model_target_dataset_store(),
+        ),
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/oauth2/clientcredentials",
+    methods=[HTTPMethod.GET],
+)
+@beartype
+def list_oauth2_client_credentials() -> Response:
+    """List OAuth2 client credentials."""
+    return _to_flask_response(
+        api_response=model_target_list_oauth2_credentials(
+            request=_flask_request_data(),
+            credential_store=_model_target_dataset_store(),
+        ),
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/oauth2/clientcredentials/<string:client_id>/scopes",
+    methods=[HTTPMethod.PUT],
+)
+@beartype
+def update_oauth2_client_credential_scopes(client_id: str) -> Response:
+    """Update an OAuth2 client credential's scopes."""
+    return _to_flask_response(
+        api_response=update_oauth2_scopes(
+            request=_flask_request_data(),
+            credential_store=_model_target_dataset_store(),
+            client_id=client_id,
+        ),
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/oauth2/clientcredentials/<string:client_id>",
+    methods=[HTTPMethod.DELETE],
+)
+@beartype
+def delete_oauth2_client_credential(client_id: str) -> Response:
+    """Delete an OAuth2 client credential."""
+    return _to_flask_response(
+        api_response=model_target_delete_oauth2_credential(
+            request=_flask_request_data(),
+            credential_store=_model_target_dataset_store(),
+            client_id=client_id,
         ),
     )
 
