@@ -23,7 +23,7 @@ class TargetManager:
     """
     A target manager.
 
-    See https://developer.vuforia.com/target-manager.
+    See https://developer.vuforia.com/library/vuforia-engine/getting-started/engine-developer-portal/vuforia-target-manager/.
     """
 
     def __init__(self) -> None:

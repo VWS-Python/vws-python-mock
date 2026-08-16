@@ -66,9 +66,7 @@ def _time_now() -> datetime.datetime:
 @beartype(conf=BeartypeConf(is_pep484_tower=True))
 @dataclass(frozen=True, eq=True, kw_only=True)
 class ImageTarget:
-    """A Vuforia image target as managed in
-    https://developer.vuforia.com/target-manager.
-    """
+    """A Vuforia image target as managed in the Vuforia Target Manager."""
 
     active_flag: bool
     application_metadata: str | None
@@ -235,8 +233,7 @@ class ImageTarget:
 @dataclass(frozen=True, eq=True, kw_only=True)
 class VuMarkTarget:
     """
-    A VuMark target as managed in
-    https://developer.vuforia.com/target-manager.
+    A VuMark target as managed in the Vuforia Target Manager.
 
     Unlike ImageTarget, VuMark targets do not require an image — they use a
     VuMark template.
