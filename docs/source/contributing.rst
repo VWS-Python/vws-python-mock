@@ -102,17 +102,10 @@ To create databases without using the browser, use :file:`admin/create_secrets_f
       $ export NEW_SECRETS_DIR=...
       # You may have to run this a few times, but it is idempotent.
       $ python admin/create_secrets_files.py
-      # Each generated file gets its own Cloud database credentials and shares
-      # one VuMark database credential set.
-      # After creating the secrets, update the encrypted archive:
-      $ tar cvf secrets.tar "${NEW_SECRETS_DIR}"
-      $ gpg \
-         --yes \
-         --batch \
-         --passphrase="${PASSPHRASE_FOR_VUFORIA_SECRETS}" \
-         --symmetric \
-         --cipher-algo AES256 \
-         secrets.tar
+      # Each generated file gets its own active Cloud database credentials.
+
+For the complete archive and GitHub Actions setup procedure, see
+:doc:`ci-setup`.
 
 .. _Vuforia License Manager: https://developer.vuforia.com/vui/develop/licenses
 .. _Vuforia Target Manager: https://developer.vuforia.com/vui/develop/databases
