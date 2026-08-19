@@ -1578,6 +1578,14 @@ class TestStateBasedDatasets:
             timeout=30,
         )
 
+        if (
+            verify_model_target_mock_vuforia is VuforiaBackend.REAL
+            and create_response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+            and create_response.json().get("error", {}).get("code")
+            == "TRAINING_ALLOWANCE_EXCEEDED"
+        ):
+            pytest.skip(reason="Vuforia training allowance is exhausted.")
+
         assert create_response.status_code == HTTPStatus.CREATED
         dataset_uuid = create_response.json()["uuid"]
         delete_response = requests.delete(
