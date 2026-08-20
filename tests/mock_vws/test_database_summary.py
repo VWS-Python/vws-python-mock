@@ -300,13 +300,7 @@ class TestRecos:
         high_quality_image: io.BytesIO,
         vws_client: VWS,
     ) -> None:
-        """The ``*_recos`` counts seem to be delayed by a significant
-        amount of
-        time.
-
-        We therefore test that they exist, are integers and do not
-        change between quick requests.
-        """
+        """Recognition counts update asynchronously after a query."""
         target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
             width=1,
@@ -320,11 +314,15 @@ class TestRecos:
         cloud_reco_client.query(image=high_quality_image)
 
         report_after = vws_client.get_database_summary_report()
-        assert report_before.total_recos == report_after.total_recos
-        assert (
-            report_before.current_month_recos
-            == report_after.current_month_recos
+        total_recos_change = (
+            report_after.total_recos - report_before.total_recos
         )
+        current_month_recos_change = (
+            report_after.current_month_recos
+            - report_before.current_month_recos
+        )
+        assert total_recos_change in {0, 1}
+        assert current_month_recos_change == total_recos_change
         assert (
             report_before.previous_month_recos
             == report_after.previous_month_recos
