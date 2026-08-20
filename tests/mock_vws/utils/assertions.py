@@ -4,10 +4,13 @@ import copy
 import datetime
 import email.utils
 import json
+import textwrap
+from collections.abc import Set as AbstractSet
 from http import HTTPStatus
 from string import hexdigits
 from zoneinfo import ZoneInfo
 
+import requests
 from beartype import beartype
 from vws.response import Response
 
@@ -163,6 +166,87 @@ def assert_vws_response(
     assert_json_separators(response=response)
     assert_valid_transaction_id(response=response)
     assert_valid_date_header(response=response)
+
+
+_TRAINING_ALLOWANCE_EXCEEDED = "TRAINING_ALLOWANCE_EXCEEDED"
+
+# The first line of the failure message, because a truncated failure summary
+# in a CI log has to be enough to tell this apart from a real regression.
+_TRAINING_ALLOWANCE_EXCEEDED_HEADLINE = (
+    "The Vuforia account is out of Model Target training allowance - "
+    "this is not a failure of the code under test."
+)
+
+_TRAINING_ALLOWANCE_EXCEEDED_EXPLANATION = textwrap.dedent(
+    text="""\
+    ``TRAINING_ALLOWANCE_EXCEEDED`` is a quota on the Vuforia account behind
+    ``MODEL_TARGET_VUFORIA_CLIENT_ID``, not a fault in the code under test or
+    in this request. Every CI job shares one set of Model Target credentials,
+    so the allowance is consumed across all jobs and all concurrent runs.
+
+    The allowance has to be raised, or reset, on the Vuforia account for this
+    test to pass against the real backend again. Signed dataset types, such as
+    an advanced dataset with a state-based configuration, exhaust it first: the
+    equivalent unsigned request keeps succeeding while this one fails.""",
+)
+
+
+@beartype
+def assert_model_target_status(
+    *,
+    response: Response | requests.Response,
+    status_codes: HTTPStatus | AbstractSet[HTTPStatus],
+) -> None:
+    """Assert the status code of a Model Target Web API response.
+
+    A bare ``assert response.status_code == ...`` hides the response body,
+    which is where the real Model Target Web API says *why* it rejected a
+    request. That matters most when the reason has nothing to do with the
+    request, such as an exhausted account allowance, so this helper always
+    reports the body and calls out that case by name.
+
+    Args:
+        response: The response returned by a request to the Model Target Web
+            API.
+        status_codes: The expected status code, or the status codes any of
+            which is expected.
+
+    Raises:
+        AssertionError: The response does not have one of the expected status
+            codes.
+    """
+    expected = (
+        frozenset({status_codes})
+        if isinstance(status_codes, HTTPStatus)
+        else frozenset(status_codes)
+    )
+    if response.status_code in expected:
+        return
+
+    expected_description = " or ".join(
+        sorted(f"{item} {item.name}" for item in expected)
+    )
+    allowance_exceeded = _TRAINING_ALLOWANCE_EXCEEDED in response.text
+    headline = (
+        [_TRAINING_ALLOWANCE_EXCEEDED_HEADLINE] if allowance_exceeded else []
+    )
+    explanation = (
+        [_TRAINING_ALLOWANCE_EXCEEDED_EXPLANATION]
+        if allowance_exceeded
+        else []
+    )
+    message = "\n\n".join(
+        [
+            *headline,
+            (
+                f"Expected {expected_description} from {response.url}, "
+                f"got {response.status_code}."
+            ),
+            f"Response body:\n{response.text}",
+            *explanation,
+        ],
+    )
+    raise AssertionError(message)
 
 
 @beartype
