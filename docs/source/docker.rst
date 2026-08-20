@@ -158,6 +158,13 @@ VWS container
 
    Default: ``2.0``
 
+.. envvar:: MODEL_TARGET_TRAINING_ALLOWANCE_EXCEEDED
+
+   Whether Model Target dataset creation returns Vuforia's
+   ``TRAINING_ALLOWANCE_EXCEEDED`` response.
+
+   Default: ``false``
+
 .. envvar:: VWS_BASE_URL
 
    The base URL which clients use to reach the VWS container.
