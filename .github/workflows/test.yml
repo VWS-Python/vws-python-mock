@@ -151,7 +151,10 @@ jobs:
           # See the "CI Setup" document for details of how this was set up.
           ci/decrypt_secret.sh
           tar xvf "${HOME}"/secrets/secrets.tar
-          cp "./ci_secrets/vuforia_secrets_${JOB_INDEX}.env" ./vuforia_secrets.env
+          # There are 100 packaged credential files (indices 0-99). When the
+          # matrix grows past that, reuse file 0 for the leftover jobs.
+          SECRETS_FILE="./ci_secrets/vuforia_secrets_$((JOB_INDEX % 100)).env"
+          cp "${SECRETS_FILE}" ./vuforia_secrets.env
 
       # We have seen issues with running out of disk space on test_docker
       - name: Free Disk Space (Ubuntu)
