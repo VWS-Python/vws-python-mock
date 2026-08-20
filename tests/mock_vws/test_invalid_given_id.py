@@ -10,6 +10,7 @@ files in ``secrets.tar.gpg``, and there are exactly as many of those files as
 there are entries.
 """
 
+import gzip
 from dataclasses import dataclass
 from http import HTTPMethod, HTTPStatus
 
@@ -38,6 +39,8 @@ class _UnroutedResponse:
     status_code: int
     body: bytes
     content_type: str | None
+    content_encoding: str | None
+    upstream_service_time: str | None
 
 
 @beartype
@@ -77,11 +80,21 @@ def _send_unrouted_request(
             method=method,
             headers=headers,
         )
+        response_body = test_client_response.data
+        content_encoding = test_client_response.headers.get(
+            key="Content-Encoding",
+        )
+        if content_encoding == "gzip":
+            response_body = gzip.decompress(data=response_body)
         return _UnroutedResponse(
             status_code=test_client_response.status_code,
-            body=test_client_response.data,
+            body=response_body,
             content_type=test_client_response.headers.get(
                 key="Content-Type",
+            ),
+            content_encoding=content_encoding,
+            upstream_service_time=test_client_response.headers.get(
+                key="x-envoy-upstream-service-time",
             ),
         )
 
@@ -99,6 +112,10 @@ def _send_unrouted_request(
         status_code=response.status_code,
         body=response.content,
         content_type=response.headers.get("Content-Type"),
+        content_encoding=response.headers.get("Content-Encoding"),
+        upstream_service_time=response.headers.get(
+            "x-envoy-upstream-service-time",
+        ),
     )
 
 
@@ -171,6 +188,8 @@ class TestUnroutedRequests:
         assert response.status_code == HTTPStatus.NOT_FOUND
         assert response.body == b""
         assert response.content_type is None
+        assert response.content_encoding is None
+        assert response.upstream_service_time is None
 
     @staticmethod
     def test_unknown_method(
@@ -194,3 +213,8 @@ class TestUnroutedRequests:
 
         assert response is not None
         assert response.status_code == HTTPStatus.NOT_FOUND
+        assert response.content_type == "text/html; charset=UTF-8"
+        assert response.content_encoding == "gzip"
+        assert response.upstream_service_time is not None
+        assert b"<h1>Not Found</h1>" in response.body
+        assert b"For request 'DELETE /summary'" in response.body
