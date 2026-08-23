@@ -1462,9 +1462,22 @@ class TestBadImage:
         corrupted_image_file: io.BytesIO,
         cloud_reco_client: CloudRecoService,
     ) -> None:
-        """No error is returned when a corrupted image is given."""
-        results = cloud_reco_client.query(image=corrupted_image_file)
-        assert results == []
+        """A ``BadImage`` response is returned when a corrupted image is
+        given.
+        """
+        with pytest.raises(expected_exception=BadImageError) as exc_info:
+            cloud_reco_client.query(image=corrupted_image_file)
+
+        response = exc_info.value.response
+
+        assert_vwq_failure(
+            response=response,
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
+            content_type="application/json",
+            cache_control=None,
+            www_authenticate=None,
+            connection="keep-alive",
+        )
 
     @staticmethod
     def test_not_image(cloud_reco_client: CloudRecoService) -> None:
