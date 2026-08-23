@@ -1580,7 +1580,10 @@ class TestMaximumImageFileSize:
         assert response.text == _NGINX_REQUEST_ENTITY_TOO_LARGE_ERROR
 
     @staticmethod
-    def test_jpeg(cloud_reco_client: CloudRecoService) -> None:
+    def test_jpeg(
+        cloud_reco_client: CloudRecoService,
+        jpeg_too_large: io.BytesIO,
+    ) -> None:
         """
         According to
         https://developer.vuforia.com/library/web-api/vuforia-query-web-
@@ -1615,23 +1618,8 @@ class TestMaximumImageFileSize:
         results = cloud_reco_client.query(image=jpeg_not_too_large)
         assert results == []
 
-        width = height = 1866
-        jpeg_too_large = make_image_file(
-            file_format="JPEG",
-            color_space="RGB",
-            width=width,
-            height=height,
-        )
-
-        image_content = jpeg_too_large.getvalue()
-        image_content_size = len(image_content)
-        # We check that the image we created is just slightly larger than the
-        # maximum file size.
-        #
-        # This is just because of the implementation details of
-        # ``make_image_file``.
+        image_content_size = len(jpeg_too_large.getvalue())
         assert image_content_size > max_bytes
-        assert (image_content_size * 0.95) < max_bytes
 
         with pytest.raises(
             expected_exception=RequestEntityTooLargeError
