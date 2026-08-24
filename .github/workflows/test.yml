@@ -356,12 +356,14 @@ jobs:
           # PRs skip Real Vuforia (suspended credential slots), so coverage
           # lands around 99%. Keep a hard 100% gate on main and schedule.
           if [ "${EVENT_NAME}" = "pull_request" ]; then
-            total="$(
-              uv run --extra=dev coverage report                 | awk '/^TOTAL/ { gsub(/%/,"",\$NF); print \$NF; exit }'
-            )"
+            # coverage report exits 2 when under 100%; still prints TOTAL.
+            set +e
+            report="$(uv run --extra=dev coverage report)"
+            set -e
+            echo "${report}"
+            total="$(echo "${report}" | awk '/^TOTAL/ { gsub(/%/,"",$NF); print $NF; exit }')"
             echo "PR coverage total=${total}"
-            # bash arithmetic needs integer; TOTAL is already whole percent.
-            if [ "${total}" -ge 99 ]; then
+            if [ -n "${total}" ] && [ "${total}" -ge 99 ]; then
               exit 0
             fi
             echo "PR coverage ${total} is below 99"
