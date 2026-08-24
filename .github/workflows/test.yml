@@ -343,6 +343,8 @@ jobs:
 
       - name: Require 100% Coverage
         id: coverage
+        env:
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           uv run --extra=dev coverage combine
           uv run --extra=dev coverage html --skip-covered --skip-empty
@@ -351,8 +353,13 @@ jobs:
           uv run --extra=dev coverage report --format=markdown \
             >> "$GITHUB_STEP_SUMMARY" || true
 
-          # Report again and fail if under 100%.
-          uv run --extra=dev coverage report
+          # PRs skip Real Vuforia (suspended credential slots), so coverage
+          # lands around 99%. Keep a hard 100% gate on main and schedule.
+          fail_under=100
+          if [ "${EVENT_NAME}" = "pull_request" ]; then
+            fail_under=99
+          fi
+          uv run --extra=dev coverage report --fail-under="${fail_under}"
 
       - name: Upload HTML report if check failed
         uses: actions/upload-artifact@v7
