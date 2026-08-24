@@ -175,13 +175,15 @@ jobs:
         env:
           UV_PYTHON: ${{ matrix.python-version }}
           EVENT_NAME: ${{ github.event_name }}
+          CI_PATTERN: ${{ matrix.ci_pattern }}
         run: |
           # Several encrypted Vuforia projects are suspended, which fails Real
           # Vuforia parametrization on a stable subset of matrix jobs. Keep Real
           # coverage on main pushes and the daily schedule; skip it on PRs so
           # dependency bumps are not permanently blocked.
+          # --skip-real is only registered for mock_vws tests.
           extra_args=()
-          if [ "${EVENT_NAME}" = "pull_request" ]; then
+          if [ "${EVENT_NAME}" = "pull_request" ] && [[ "${CI_PATTERN}" == tests/mock_vws/* ]]; then
             extra_args+=(--skip-real)
           fi
           uv run --extra=dev \
