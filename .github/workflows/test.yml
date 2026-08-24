@@ -151,7 +151,10 @@ jobs:
           # See the "CI Setup" document for details of how this was set up.
           ci/decrypt_secret.sh
           tar xvf "${HOME}"/secrets/secrets.tar
-          cp "./ci_secrets/vuforia_secrets_${JOB_INDEX}.env" ./vuforia_secrets.env
+          # Matrix jobs are 0-based; only secrets 0-99 exist. Wrap for overflow
+          # (e.g. docs/ at index 100 after the suite grew past 100 patterns).
+          SECRET_INDEX=$((JOB_INDEX % 100))
+          cp "./ci_secrets/vuforia_secrets_${SECRET_INDEX}.env" ./vuforia_secrets.env
 
       # We have seen issues with running out of disk space on test_docker
       - name: Free Disk Space (Ubuntu)
