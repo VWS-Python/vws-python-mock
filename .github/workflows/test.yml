@@ -355,10 +355,17 @@ jobs:
 
           # PRs skip Real Vuforia (suspended credential slots), so coverage
           # lands around 99%. Keep a hard 100% gate on main and schedule.
-          # CLI --fail-under does not reliably override pyproject for this
-          # suite, so temporarily lower the configured threshold on PRs.
           if [ "${EVENT_NAME}" = "pull_request" ]; then
-            sed -i 's/^report.fail_under = 100$/report.fail_under = 99/' pyproject.toml
+            total="$(
+              uv run --extra=dev coverage report                 | awk '/^TOTAL/ { gsub(/%/,"",\$NF); print \$NF; exit }'
+            )"
+            echo "PR coverage total=${total}"
+            # bash arithmetic needs integer; TOTAL is already whole percent.
+            if [ "${total}" -ge 99 ]; then
+              exit 0
+            fi
+            echo "PR coverage ${total} is below 99"
+            exit 1
           fi
           uv run --extra=dev coverage report
 
