@@ -462,17 +462,17 @@ retry_delay = "10"
 xfail_strict = true
 
 [tool.coverage]
+run.source = [ "ci/", "src/", "tests/" ]
 run.branch = true
 run.parallel = true
-run.patch = [ "subprocess" ]
 run.relative_files = true
-run.source = [ "ci/", "src/", "tests/" ]
+run.patch = [ "subprocess" ]
+report.fail_under = 100
 report.exclude_also = [
     "case _ as unreachable:\n\\s*assert_never\\(",
     "class .*\\bProtocol\\):",
     "if TYPE_CHECKING:",
 ]
-report.fail_under = 100
 report.show_missing = true
 
 [tool.towncrier]
