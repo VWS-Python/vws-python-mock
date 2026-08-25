@@ -1,15 +1,26 @@
 """Exceptions to raise from validators."""
 
-import email.utils
 import textwrap
-import uuid
 from collections.abc import Mapping
 from http import HTTPStatus
+from typing import Final
 
 from beartype import beartype
 
 from mock_vws._constants import ResultCodes
-from mock_vws._mock_common import json_dump
+from mock_vws._mock_common import http_date, result_code_response_text
+
+# The headers which VWS gives with a JSON error response, apart from those
+# which depend on the response itself.
+_STANDARD_HEADERS: Final[Mapping[str, str]] = {
+    "Connection": "keep-alive",
+    "Content-Type": "application/json",
+    "server": "envoy",
+    "x-envoy-upstream-service-time": "5",
+    "strict-transport-security": "max-age=31536000",
+    "x-aws-region": "us-east-2, us-west-2",
+    "x-content-type-options": "nosniff",
+}
 
 
 @beartype
@@ -31,36 +42,16 @@ class UnknownTargetError(ValidatorError):
     """
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize an ``UnknownTarget`` response."""
         super().__init__()
         self.status_code = HTTPStatus.NOT_FOUND
-        body = {
-            "transaction_id": uuid.uuid4().hex,
-            "result_code": ResultCodes.UNKNOWN_TARGET.value,
-        }
-        self.response_text = json_dump(body=body)
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
+        self.response_text = result_code_response_text(
+            result_code=ResultCodes.UNKNOWN_TARGET,
         )
         self.headers = {
-            "Connection": "keep-alive",
-            "Content-Type": "application/json",
-            "server": "envoy",
-            "Date": date,
-            "x-envoy-upstream-service-time": "5",
+            **_STANDARD_HEADERS,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
-            "strict-transport-security": "max-age=31536000",
-            "x-aws-region": "us-east-2, us-west-2",
-            "x-content-type-options": "nosniff",
         }
 
 
@@ -71,36 +62,16 @@ class ProjectInactiveError(ValidatorError):
     """
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize a ``ProjectInactive`` response."""
         super().__init__()
         self.status_code = HTTPStatus.FORBIDDEN
-        body = {
-            "transaction_id": uuid.uuid4().hex,
-            "result_code": ResultCodes.PROJECT_INACTIVE.value,
-        }
-        self.response_text = json_dump(body=body)
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
+        self.response_text = result_code_response_text(
+            result_code=ResultCodes.PROJECT_INACTIVE,
         )
         self.headers = {
-            "Connection": "keep-alive",
-            "Content-Type": "application/json",
-            "server": "envoy",
-            "Date": date,
-            "x-envoy-upstream-service-time": "5",
+            **_STANDARD_HEADERS,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
-            "strict-transport-security": "max-age=31536000",
-            "x-aws-region": "us-east-2, us-west-2",
-            "x-content-type-options": "nosniff",
         }
 
 
@@ -114,34 +85,16 @@ class RequestQuotaReachedError(ValidatorError):
     """
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in the response.
-            response_text: The response text to use in the response.
-            headers: The response headers.
-        """
+        """Initialize a ``RequestQuotaReached`` response."""
         super().__init__()
         self.status_code = HTTPStatus.FORBIDDEN
-        body = {
-            "transaction_id": uuid.uuid4().hex,
-            "result_code": ResultCodes.REQUEST_QUOTA_REACHED.value,
-        }
-        self.response_text = json_dump(body=body)
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
+        self.response_text = result_code_response_text(
+            result_code=ResultCodes.REQUEST_QUOTA_REACHED,
         )
         self.headers = {
-            "Connection": "keep-alive",
-            "Content-Type": "application/json",
-            "server": "envoy",
-            "Date": date,
-            "x-envoy-upstream-service-time": "5",
+            **_STANDARD_HEADERS,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
-            "strict-transport-security": "max-age=31536000",
-            "x-aws-region": "us-east-2, us-west-2",
-            "x-content-type-options": "nosniff",
         }
 
 
@@ -153,26 +106,13 @@ class TooManyRequestsError(ValidatorError):
         """Initialize a ``TooManyRequests`` response."""
         super().__init__()
         self.status_code = HTTPStatus.TOO_MANY_REQUESTS
-        body = {
-            "transaction_id": uuid.uuid4().hex,
-            "result_code": ResultCodes.TOO_MANY_REQUESTS.value,
-        }
-        self.response_text = json_dump(body=body)
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
+        self.response_text = result_code_response_text(
+            result_code=ResultCodes.TOO_MANY_REQUESTS,
         )
         self.headers = {
-            "Connection": "keep-alive",
-            "Content-Type": "application/json",
-            "server": "envoy",
-            "Date": date,
-            "x-envoy-upstream-service-time": "5",
+            **_STANDARD_HEADERS,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
-            "strict-transport-security": "max-age=31536000",
-            "x-aws-region": "us-east-2, us-west-2",
-            "x-content-type-options": "nosniff",
         }
 
 
@@ -184,26 +124,13 @@ class TargetQuotaReachedError(ValidatorError):
         """Initialize a ``TargetQuotaReached`` response."""
         super().__init__()
         self.status_code = HTTPStatus.FORBIDDEN
-        body = {
-            "transaction_id": uuid.uuid4().hex,
-            "result_code": ResultCodes.TARGET_QUOTA_REACHED.value,
-        }
-        self.response_text = json_dump(body=body)
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
+        self.response_text = result_code_response_text(
+            result_code=ResultCodes.TARGET_QUOTA_REACHED,
         )
         self.headers = {
-            "Connection": "keep-alive",
-            "Content-Type": "application/json",
-            "server": "envoy",
-            "Date": date,
-            "x-envoy-upstream-service-time": "5",
+            **_STANDARD_HEADERS,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
-            "strict-transport-security": "max-age=31536000",
-            "x-aws-region": "us-east-2, us-west-2",
-            "x-content-type-options": "nosniff",
         }
 
 
@@ -215,26 +142,13 @@ class ProjectSuspendedError(ValidatorError):
         """Initialize a ``ProjectSuspended`` response."""
         super().__init__()
         self.status_code = HTTPStatus.FORBIDDEN
-        body = {
-            "transaction_id": uuid.uuid4().hex,
-            "result_code": ResultCodes.PROJECT_SUSPENDED.value,
-        }
-        self.response_text = json_dump(body=body)
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
+        self.response_text = result_code_response_text(
+            result_code=ResultCodes.PROJECT_SUSPENDED,
         )
         self.headers = {
-            "Connection": "keep-alive",
-            "Content-Type": "application/json",
-            "server": "envoy",
-            "Date": date,
-            "x-envoy-upstream-service-time": "5",
+            **_STANDARD_HEADERS,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
-            "strict-transport-security": "max-age=31536000",
-            "x-aws-region": "us-east-2, us-west-2",
-            "x-content-type-options": "nosniff",
         }
 
 
@@ -246,26 +160,13 @@ class ProjectHasNoApiAccessError(ValidatorError):
         """Initialize a ``ProjectHasNoApiAccess`` response."""
         super().__init__()
         self.status_code = HTTPStatus.FORBIDDEN
-        body = {
-            "transaction_id": uuid.uuid4().hex,
-            "result_code": ResultCodes.PROJECT_HAS_NO_API_ACCESS.value,
-        }
-        self.response_text = json_dump(body=body)
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
+        self.response_text = result_code_response_text(
+            result_code=ResultCodes.PROJECT_HAS_NO_API_ACCESS,
         )
         self.headers = {
-            "Connection": "keep-alive",
-            "Content-Type": "application/json",
-            "server": "envoy",
-            "Date": date,
-            "x-envoy-upstream-service-time": "5",
+            **_STANDARD_HEADERS,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
-            "strict-transport-security": "max-age=31536000",
-            "x-aws-region": "us-east-2, us-west-2",
-            "x-content-type-options": "nosniff",
         }
 
 
@@ -276,36 +177,16 @@ class AuthenticationFailureError(ValidatorError):
     """
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize an ``AuthenticationFailure`` response."""
         super().__init__()
         self.status_code = HTTPStatus.UNAUTHORIZED
-        body = {
-            "transaction_id": uuid.uuid4().hex,
-            "result_code": ResultCodes.AUTHENTICATION_FAILURE.value,
-        }
-        self.response_text = json_dump(body=body)
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
+        self.response_text = result_code_response_text(
+            result_code=ResultCodes.AUTHENTICATION_FAILURE,
         )
         self.headers = {
-            "Connection": "keep-alive",
-            "Content-Type": "application/json",
-            "server": "envoy",
-            "Date": date,
-            "x-envoy-upstream-service-time": "5",
+            **_STANDARD_HEADERS,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
-            "strict-transport-security": "max-age=31536000",
-            "x-aws-region": "us-east-2, us-west-2",
-            "x-content-type-options": "nosniff",
         }
 
 
@@ -317,35 +198,19 @@ class FailError(ValidatorError):
 
     def __init__(self, *, status_code: HTTPStatus) -> None:
         """
-        Attributes:
+        Args:
             status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
                 raised.
         """
         super().__init__()
         self.status_code = status_code
-        body = {
-            "transaction_id": uuid.uuid4().hex,
-            "result_code": ResultCodes.FAIL.value,
-        }
-        self.response_text = json_dump(body=body)
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
+        self.response_text = result_code_response_text(
+            result_code=ResultCodes.FAIL,
         )
         self.headers = {
-            "Connection": "keep-alive",
-            "Content-Type": "application/json",
-            "server": "envoy",
-            "Date": date,
-            "x-envoy-upstream-service-time": "5",
+            **_STANDARD_HEADERS,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
-            "strict-transport-security": "max-age=31536000",
-            "x-aws-region": "us-east-2, us-west-2",
-            "x-content-type-options": "nosniff",
         }
 
 
@@ -356,36 +221,16 @@ class BadRequestError(ValidatorError):
     """
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize a ``BadRequest`` response."""
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
-        body = {
-            "transaction_id": uuid.uuid4().hex,
-            "result_code": ResultCodes.BAD_REQUEST.value,
-        }
-        self.response_text = json_dump(body=body)
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
+        self.response_text = result_code_response_text(
+            result_code=ResultCodes.BAD_REQUEST,
         )
         self.headers = {
-            "Connection": "keep-alive",
-            "Content-Type": "application/json",
-            "server": "envoy",
-            "Date": date,
-            "x-envoy-upstream-service-time": "5",
+            **_STANDARD_HEADERS,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
-            "strict-transport-security": "max-age=31536000",
-            "x-aws-region": "us-east-2, us-west-2",
-            "x-content-type-options": "nosniff",
         }
 
 
@@ -396,36 +241,16 @@ class MetadataTooLargeError(ValidatorError):
     """
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize a ``MetadataTooLarge`` response."""
         super().__init__()
         self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
-        body = {
-            "transaction_id": uuid.uuid4().hex,
-            "result_code": ResultCodes.METADATA_TOO_LARGE.value,
-        }
-        self.response_text = json_dump(body=body)
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
+        self.response_text = result_code_response_text(
+            result_code=ResultCodes.METADATA_TOO_LARGE,
         )
         self.headers = {
-            "Connection": "keep-alive",
-            "Content-Type": "application/json",
-            "server": "envoy",
-            "Date": date,
-            "x-envoy-upstream-service-time": "5",
+            **_STANDARD_HEADERS,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
-            "strict-transport-security": "max-age=31536000",
-            "x-aws-region": "us-east-2, us-west-2",
-            "x-content-type-options": "nosniff",
         }
 
 
@@ -436,36 +261,16 @@ class TargetNameExistError(ValidatorError):
     """
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize a ``TargetNameExist`` response."""
         super().__init__()
         self.status_code = HTTPStatus.FORBIDDEN
-        body = {
-            "transaction_id": uuid.uuid4().hex,
-            "result_code": ResultCodes.TARGET_NAME_EXIST.value,
-        }
-        self.response_text = json_dump(body=body)
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
+        self.response_text = result_code_response_text(
+            result_code=ResultCodes.TARGET_NAME_EXIST,
         )
         self.headers = {
-            "Connection": "keep-alive",
-            "Content-Type": "application/json",
-            "server": "envoy",
-            "Date": date,
-            "x-envoy-upstream-service-time": "5",
+            **_STANDARD_HEADERS,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
-            "strict-transport-security": "max-age=31536000",
-            "x-aws-region": "us-east-2, us-west-2",
-            "x-content-type-options": "nosniff",
         }
 
 
@@ -476,36 +281,16 @@ class BadImageError(ValidatorError):
     """
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize a ``BadImage`` response."""
         super().__init__()
         self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
-        body = {
-            "transaction_id": uuid.uuid4().hex,
-            "result_code": ResultCodes.BAD_IMAGE.value,
-        }
-        self.response_text = json_dump(body=body)
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
+        self.response_text = result_code_response_text(
+            result_code=ResultCodes.BAD_IMAGE,
         )
         self.headers = {
-            "Connection": "keep-alive",
-            "Content-Type": "application/json",
-            "server": "envoy",
-            "Date": date,
-            "x-envoy-upstream-service-time": "5",
+            **_STANDARD_HEADERS,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
-            "strict-transport-security": "max-age=31536000",
-            "x-aws-region": "us-east-2, us-west-2",
-            "x-content-type-options": "nosniff",
         }
 
 
@@ -516,36 +301,16 @@ class ImageTooLargeError(ValidatorError):
     """
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize an ``ImageTooLarge`` response."""
         super().__init__()
         self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
-        body = {
-            "transaction_id": uuid.uuid4().hex,
-            "result_code": ResultCodes.IMAGE_TOO_LARGE.value,
-        }
-        self.response_text = json_dump(body=body)
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
+        self.response_text = result_code_response_text(
+            result_code=ResultCodes.IMAGE_TOO_LARGE,
         )
         self.headers = {
-            "Connection": "keep-alive",
-            "Content-Type": "application/json",
-            "server": "envoy",
-            "Date": date,
-            "x-envoy-upstream-service-time": "5",
+            **_STANDARD_HEADERS,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
-            "strict-transport-security": "max-age=31536000",
-            "x-aws-region": "us-east-2, us-west-2",
-            "x-content-type-options": "nosniff",
         }
 
 
@@ -556,36 +321,16 @@ class RequestTimeTooSkewedError(ValidatorError):
     """
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize a ``RequestTimeTooSkewed`` response."""
         super().__init__()
         self.status_code = HTTPStatus.FORBIDDEN
-        body = {
-            "transaction_id": uuid.uuid4().hex,
-            "result_code": ResultCodes.REQUEST_TIME_TOO_SKEWED.value,
-        }
-        self.response_text = json_dump(body=body)
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
+        self.response_text = result_code_response_text(
+            result_code=ResultCodes.REQUEST_TIME_TOO_SKEWED,
         )
         self.headers = {
-            "Connection": "keep-alive",
-            "Content-Type": "application/json",
-            "server": "envoy",
-            "Date": date,
-            "x-envoy-upstream-service-time": "5",
+            **_STANDARD_HEADERS,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
-            "strict-transport-security": "max-age=31536000",
-            "x-aws-region": "us-east-2, us-west-2",
-            "x-content-type-options": "nosniff",
         }
 
 
@@ -598,25 +343,13 @@ class ContentLengthHeaderTooLargeError(ValidatorError):
 
     # We skip coverage here as running a test to cover this is very slow.
     def __init__(self) -> None:  # pragma: no cover
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize a stream timeout response."""
         super().__init__()
         self.status_code = HTTPStatus.REQUEST_TIMEOUT
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
-        )
         self.response_text = "stream timeout"
         self.headers = {
             "Content-Length": str(object=len(self.response_text)),
-            "Date": date,
+            "Date": http_date(),
             "server": "envoy",
             "Content-Type": "text/plain",
             "Connection": "close",
@@ -631,14 +364,7 @@ class ContentLengthHeaderNotIntError(ValidatorError):
     """
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize a load balancer bad request response."""
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
         self.response_text = textwrap.dedent(
@@ -651,15 +377,10 @@ class ContentLengthHeaderNotIntError(ValidatorError):
             </html>\r
             """,
         )
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
-        )
         self.headers = {
             "Connection": "close",
             "Content-Length": str(object=len(self.response_text)),
-            "Date": date,
+            "Date": http_date(),
             "Server": "awselb/2.0",
             "Content-Type": "text/html",
         }
@@ -670,25 +391,13 @@ class UnnecessaryRequestBodyError(ValidatorError):
     """Exception raised when a request body is given but not necessary."""
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize an empty bad request response."""
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
         self.response_text = ""
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
-        )
         self.headers = {
             "server": "envoy",
-            "Date": date,
+            "Date": http_date(),
             "x-envoy-upstream-service-time": "5",
             "Content-Length": str(object=len(self.response_text)),
         }
@@ -702,36 +411,16 @@ class TargetStatusNotSuccessError(ValidatorError):
     """
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize a ``TargetStatusNotSuccess`` response."""
         super().__init__()
         self.status_code = HTTPStatus.FORBIDDEN
-        body = {
-            "transaction_id": uuid.uuid4().hex,
-            "result_code": ResultCodes.TARGET_STATUS_NOT_SUCCESS.value,
-        }
-        self.response_text = json_dump(body=body)
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
+        self.response_text = result_code_response_text(
+            result_code=ResultCodes.TARGET_STATUS_NOT_SUCCESS,
         )
         self.headers = {
-            "Connection": "keep-alive",
-            "Content-Type": "application/json",
-            "server": "envoy",
-            "Date": date,
-            "x-envoy-upstream-service-time": "5",
+            **_STANDARD_HEADERS,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
-            "strict-transport-security": "max-age=31536000",
-            "x-aws-region": "us-east-2, us-west-2",
-            "x-content-type-options": "nosniff",
         }
 
 
@@ -740,36 +429,16 @@ class InvalidAcceptHeaderError(ValidatorError):
     """Exception raised when an unsupported Accept header is given."""
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize an ``InvalidAcceptHeader`` response."""
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
-        body = {
-            "transaction_id": uuid.uuid4().hex,
-            "result_code": ResultCodes.INVALID_ACCEPT_HEADER.value,
-        }
-        self.response_text = json_dump(body=body)
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
+        self.response_text = result_code_response_text(
+            result_code=ResultCodes.INVALID_ACCEPT_HEADER,
         )
         self.headers = {
-            "Connection": "keep-alive",
-            "Content-Type": "application/json",
-            "server": "envoy",
-            "Date": date,
-            "x-envoy-upstream-service-time": "5",
+            **_STANDARD_HEADERS,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
-            "strict-transport-security": "max-age=31536000",
-            "x-aws-region": "us-east-2, us-west-2",
-            "x-content-type-options": "nosniff",
         }
 
 
@@ -778,36 +447,16 @@ class InvalidInstanceIdError(ValidatorError):
     """Exception raised when an invalid instance_id is given."""
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize an ``InvalidInstanceId`` response."""
         super().__init__()
         self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
-        body = {
-            "transaction_id": uuid.uuid4().hex,
-            "result_code": ResultCodes.INVALID_INSTANCE_ID.value,
-        }
-        self.response_text = json_dump(body=body)
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
+        self.response_text = result_code_response_text(
+            result_code=ResultCodes.INVALID_INSTANCE_ID,
         )
         self.headers = {
-            "Connection": "keep-alive",
-            "Content-Type": "application/json",
-            "server": "envoy",
-            "Date": date,
-            "x-envoy-upstream-service-time": "5",
+            **_STANDARD_HEADERS,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
-            "strict-transport-security": "max-age=31536000",
-            "x-aws-region": "us-east-2, us-west-2",
-            "x-content-type-options": "nosniff",
         }
 
 
@@ -818,36 +467,16 @@ class InvalidTargetTypeError(ValidatorError):
     """
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize an ``InvalidTargetType`` response."""
         super().__init__()
         self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
-        body = {
-            "transaction_id": uuid.uuid4().hex,
-            "result_code": ResultCodes.INVALID_TARGET_TYPE.value,
-        }
-        self.response_text = json_dump(body=body)
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
+        self.response_text = result_code_response_text(
+            result_code=ResultCodes.INVALID_TARGET_TYPE,
         )
         self.headers = {
-            "Connection": "keep-alive",
-            "Content-Type": "application/json",
-            "server": "envoy",
-            "Date": date,
-            "x-envoy-upstream-service-time": "5",
+            **_STANDARD_HEADERS,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
-            "strict-transport-security": "max-age=31536000",
-            "x-aws-region": "us-east-2, us-west-2",
-            "x-content-type-options": "nosniff",
         }
 
 
@@ -856,34 +485,14 @@ class TargetStatusProcessingError(ValidatorError):
     """Exception raised when trying to delete a target which is processing."""
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize a ``TargetStatusProcessing`` response."""
         super().__init__()
         self.status_code = HTTPStatus.FORBIDDEN
-        body = {
-            "transaction_id": uuid.uuid4().hex,
-            "result_code": ResultCodes.TARGET_STATUS_PROCESSING.value,
-        }
-        self.response_text = json_dump(body=body)
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
+        self.response_text = result_code_response_text(
+            result_code=ResultCodes.TARGET_STATUS_PROCESSING,
         )
         self.headers = {
-            "Connection": "keep-alive",
-            "Content-Type": "application/json",
-            "server": "envoy",
-            "Date": date,
-            "x-envoy-upstream-service-time": "5",
+            **_STANDARD_HEADERS,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
-            "strict-transport-security": "max-age=31536000",
-            "x-aws-region": "us-east-2, us-west-2",
-            "x-content-type-options": "nosniff",
         }
