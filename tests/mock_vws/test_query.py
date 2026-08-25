@@ -1462,9 +1462,22 @@ class TestBadImage:
         corrupted_image_file: io.BytesIO,
         cloud_reco_client: CloudRecoService,
     ) -> None:
-        """No error is returned when a corrupted image is given."""
-        results = cloud_reco_client.query(image=corrupted_image_file)
-        assert results == []
+        """A ``BadImage`` response is returned when a corrupted image is
+        given.
+        """
+        with pytest.raises(expected_exception=BadImageError) as exc_info:
+            cloud_reco_client.query(image=corrupted_image_file)
+
+        response = exc_info.value.response
+
+        assert_vwq_failure(
+            response=response,
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
+            content_type="application/json",
+            cache_control=None,
+            www_authenticate=None,
+            connection="keep-alive",
+        )
 
     @staticmethod
     def test_not_image(cloud_reco_client: CloudRecoService) -> None:
@@ -1580,7 +1593,10 @@ class TestMaximumImageFileSize:
         assert response.text == _NGINX_REQUEST_ENTITY_TOO_LARGE_ERROR
 
     @staticmethod
-    def test_jpeg(cloud_reco_client: CloudRecoService) -> None:
+    def test_jpeg(
+        cloud_reco_client: CloudRecoService,
+        jpeg_too_large: io.BytesIO,
+    ) -> None:
         """
         According to
         https://developer.vuforia.com/library/web-api/vuforia-query-web-
@@ -1615,23 +1631,8 @@ class TestMaximumImageFileSize:
         results = cloud_reco_client.query(image=jpeg_not_too_large)
         assert results == []
 
-        width = height = 1866
-        jpeg_too_large = make_image_file(
-            file_format="JPEG",
-            color_space="RGB",
-            width=width,
-            height=height,
-        )
-
-        image_content = jpeg_too_large.getvalue()
-        image_content_size = len(image_content)
-        # We check that the image we created is just slightly larger than the
-        # maximum file size.
-        #
-        # This is just because of the implementation details of
-        # ``make_image_file``.
+        image_content_size = len(jpeg_too_large.getvalue())
         assert image_content_size > max_bytes
-        assert (image_content_size * 0.95) < max_bytes
 
         with pytest.raises(
             expected_exception=RequestEntityTooLargeError

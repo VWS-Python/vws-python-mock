@@ -2864,7 +2864,7 @@ requires-dist = [
     { name = "vulture", marker = "extra == 'dev'", specifier = "==2.16" },
     { name = "vws-auth-tools", specifier = ">=2024.7.12" },
     { name = "vws-python", marker = "extra == 'dev'", specifier = "==2026.2.25.1" },
-    { name = "vws-test-fixtures", marker = "extra == 'dev'", specifier = "==2026.8.16" },
+    { name = "vws-test-fixtures", marker = "extra == 'dev'", specifier = "==2026.8.23" },
     { name = "vws-web-tools", marker = "extra == 'dev'", specifier = "==2026.8.7" },
     { name = "werkzeug", specifier = ">=3.1.2" },
     { name = "yamlfix", marker = "extra == 'dev'", specifier = "==1.19.1" },
@@ -2877,15 +2877,15 @@ dev = []
 
 [[package]]
 name = "vws-test-fixtures"
-version = "2026.8.16"
+version = "2026.8.23"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pillow" },
     { name = "pytest" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/1c/62/b788605d463c8c06ff619b9e2839de073852c95eb271a166e689b1482fa2/vws_test_fixtures-2026.8.16.tar.gz", hash = "sha256:9f546e706e1d0c09ac1c1a76cfa289a879d268c206a63d30e45326ee68730b44", size = 67384, upload-time = "2026-08-16T09:17:39.223Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/87/aa/80f6eff03d0dd13f1ca6c8ee40f0fd1da529359b42f845d2b340b7539d2f/vws_test_fixtures-2026.8.23.tar.gz", hash = "sha256:fae520031fcafdab2a8eb9ba1c8a9bf9a7dca07ce3292a8bb7ecda524459d249", size = 73440, upload-time = "2026-08-23T13:31:50.86Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/07/12/423093602526eeefa22e59c60f6892ed90e304ad4a5ab78d2e2f2a4e4fde/vws_test_fixtures-2026.8.16-py3-none-any.whl", hash = "sha256:eb6654a6612b7e7f44dfeea2596f4e3d1dfaa2a2867c655792c790b5fc67a984", size = 49047, upload-time = "2026-08-16T09:17:37.921Z" },
+    { url = "https://files.pythonhosted.org/packages/bb/02/575819f7d3d7179b5dafb36dccc724bd2cdd848343e8d7fcad95b711503e/vws_test_fixtures-2026.8.23-py3-none-any.whl", hash = "sha256:e9f0b9c71c7fe398d8631145fe322060eb80c95efb2362a89f57520cae7ddb15", size = 52208, upload-time = "2026-08-23T13:31:49.53Z" },
 ]
 
 [[package]]
