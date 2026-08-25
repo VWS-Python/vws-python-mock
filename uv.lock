@@ -2219,7 +2219,7 @@ wheels = [
 
 [[package]]
 name = "sphinx-substitution-extensions"
-version = "2026.8.13"
+version = "2026.8.13.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "beartype" },
@@ -2227,9 +2227,9 @@ dependencies = [
     { name = "myst-parser" },
     { name = "sphinx" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/fc/39/d59f3efeea7bf81116f2cc832b6f7441b2cc1529082559de7bc0abd6a7ee/sphinx_substitution_extensions-2026.8.13.tar.gz", hash = "sha256:69c4f4aba98cf0546fe68e1676c9984bf164bf5ea78cddf899c748547dba412d", size = 44305, upload-time = "2026-08-13T09:09:04.738Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ae/bc/50d6cc6ddb2249843edaa15857f4292c486304d6ea957d752a5a0118f19a/sphinx_substitution_extensions-2026.8.13.1.tar.gz", hash = "sha256:a4c64ed45614af028b6e397f001852e3968d8d06db2e02f79cceec8de53623a8", size = 44974, upload-time = "2026-08-13T10:01:38.054Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/81/df/ccecfbfef61f007f9831d47f00f7c3a63e3b2f50bc65fc68fc1522a3ace7/sphinx_substitution_extensions-2026.8.13-py3-none-any.whl", hash = "sha256:31963b1364aea56661b4085d32555983ac44f5ac263f77a310bc34b9d00a9de6", size = 12078, upload-time = "2026-08-13T09:09:03.536Z" },
+    { url = "https://files.pythonhosted.org/packages/d5/55/c28ec57ed403496dcb688c49110d77259b916e715178d78391299def33a7/sphinx_substitution_extensions-2026.8.13.1-py3-none-any.whl", hash = "sha256:6006ee556fed311f57113337cb095b31aef5014875ba2d905e9271e6210c8e04", size = 12333, upload-time = "2026-08-13T10:01:36.923Z" },
 ]
 
 [[package]]
@@ -2844,7 +2844,7 @@ requires-dist = [
     { name = "sphinx-lint", marker = "extra == 'dev'", specifier = "==1.0.2" },
     { name = "sphinx-paramlinks", marker = "extra == 'dev'", specifier = "==0.6" },
     { name = "sphinx-pyproject", marker = "extra == 'dev'", specifier = "==0.3.0" },
-    { name = "sphinx-substitution-extensions", marker = "extra == 'dev'", specifier = "==2026.8.13" },
+    { name = "sphinx-substitution-extensions", marker = "extra == 'dev'", specifier = "==2026.8.13.1" },
     { name = "sphinx-toolbox", marker = "extra == 'dev'", specifier = "==4.3.0" },
     { name = "sphinxcontrib-httpdomain", marker = "extra == 'dev'", specifier = "==2.0.0" },
     { name = "sphinxcontrib-spelling", marker = "extra == 'dev'", specifier = "==8.0.2" },
