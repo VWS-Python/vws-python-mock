@@ -1393,6 +1393,38 @@ class TestAddDatabase:
                     mock.add_vumark_database(vumark_database=bad_database)
 
 
+class TestContextManagerReuse:
+    """Tests for reusing a ``MockVWS`` instance as a context manager."""
+
+    @staticmethod
+    def test_state_is_kept_between_uses(
+        high_quality_image: io.BytesIO,
+    ) -> None:
+        """A ``MockVWS`` instance keeps its databases, and the targets in
+        them, between ``with`` blocks.
+        """
+        database = CloudDatabase()
+        vws_client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+        mock = MockVWS()
+        mock.add_cloud_database(cloud_database=database)
+
+        with mock:
+            vws_client.add_target(
+                name="my-target",
+                width=1,
+                image=high_quality_image,
+                active_flag=True,
+                application_metadata=None,
+            )
+            assert len(vws_client.list_targets()) == 1
+
+        with mock:
+            assert len(vws_client.list_targets()) == 1
+
+
 class TestQueryImageMatchers:
     """Tests for query image matchers."""
 
@@ -1984,38 +2016,169 @@ class TestDecorator:
         assert add_target() == TargetStatuses.FAILED
 
     @staticmethod
-    def test_targets_persist_between_calls(
-        high_quality_image: io.BytesIO,
-    ) -> None:
-        """A mock instance keeps its targets between calls of a decorated
-        function.
+    def test_each_call_is_isolated(high_quality_image: io.BytesIO) -> None:
+        """Each call of a decorated function has its own targets.
+
+        Targets created by one call are not there in the next call, or in a
+        call of another function decorated with the same instance.
         """
         database = CloudDatabase()
+        vws_client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
         mock = MockVWS(processing_time_seconds=0)
         mock.add_cloud_database(cloud_database=database)
 
         @mock
-        def add_target_and_list_targets() -> list[str]:
-            """Add a target and return the identifiers of all targets."""
-            vws_client = VWS(
-                server_access_key=database.server_access_key,
-                server_secret_key=database.server_secret_key,
-            )
+        def add_one_target() -> None:
+            """Add a target with a name used only once per call."""
             vws_client.add_target(
-                name=f"example-{len(vws_client.list_targets())}",
+                name="only-one",
                 width=1,
                 image=high_quality_image,
                 active_flag=True,
                 application_metadata=None,
             )
-            return vws_client.list_targets()
+            assert len(vws_client.list_targets()) == 1
 
-        expected_targets_after_second_call = 2
-        assert len(add_target_and_list_targets()) == 1
-        assert (
-            len(add_target_and_list_targets())
-            == expected_targets_after_second_call
+        @mock
+        def count_targets() -> int:
+            """Return the number of targets in the database."""
+            return len(vws_client.list_targets())
+
+        add_one_target()
+        assert count_targets() == 0
+        add_one_target()
+        assert count_targets() == 0
+
+    @staticmethod
+    def test_nested_calls(high_quality_image: io.BytesIO) -> None:
+        """A decorated function can call another decorated function.
+
+        The inner call starts from the targets which are there when it is
+        called, and the targets it creates are gone once it has returned. The
+        outer call keeps its own targets and its mocking.
+        """
+        database = CloudDatabase()
+        vws_client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
         )
+        mock = MockVWS(processing_time_seconds=0)
+        mock.add_cloud_database(cloud_database=database)
+
+        @mock
+        def add_inner_target() -> int:
+            """Add a target and return the number of targets.
+
+            Returns:
+                The number of targets, including the one added here.
+            """
+            vws_client.add_target(
+                name="inner",
+                width=1,
+                image=high_quality_image,
+                active_flag=True,
+                application_metadata=None,
+            )
+            return len(vws_client.list_targets())
+
+        @mock
+        def add_outer_target() -> tuple[int, int]:
+            """Add a target and make an inner call.
+
+            Returns:
+                The number of targets seen by the inner call, and the number
+                of targets seen here once the inner call has returned.
+            """
+            vws_client.add_target(
+                name="outer",
+                width=1,
+                image=high_quality_image,
+                active_flag=True,
+                application_metadata=None,
+            )
+            return add_inner_target(), len(vws_client.list_targets())
+
+        targets_seen_by_inner_call = 2
+        inner_count, outer_count = add_outer_target()
+        assert inner_count == targets_seen_by_inner_call
+        assert outer_count == 1
+        assert not database.targets
+
+    @staticmethod
+    def test_database_targets_are_restored(
+        high_quality_image: io.BytesIO,
+    ) -> None:
+        """A database is restored to the targets it had before a call.
+
+        The targets can be inspected during the call, and they are what they
+        were before the call again once it returns.
+        """
+        database = CloudDatabase()
+        vws_client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+        mock = MockVWS(processing_time_seconds=0)
+        mock.add_cloud_database(cloud_database=database)
+
+        @mock
+        def add_one_target() -> None:
+            """Add a target and inspect it on the database object."""
+            vws_client.add_target(
+                name="only-one",
+                width=1,
+                image=high_quality_image,
+                active_flag=True,
+                application_metadata=None,
+            )
+            (target,) = database.targets
+            assert target.name == "only-one"
+
+        add_one_target()
+        assert not database.targets
+
+    @staticmethod
+    def test_exception_restores_database_targets(
+        high_quality_image: io.BytesIO,
+    ) -> None:
+        """The targets of a database are restored even when the decorated
+        function raises.
+        """
+        database = CloudDatabase()
+        vws_client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+        mock = MockVWS(processing_time_seconds=0)
+        mock.add_cloud_database(cloud_database=database)
+
+        @mock
+        def add_one_target_then_raise() -> None:
+            """Add a target and then raise an exception.
+
+            Raises:
+                ValueError: Always.
+            """
+            vws_client.add_target(
+                name="only-one",
+                width=1,
+                image=high_quality_image,
+                active_flag=True,
+                application_metadata=None,
+            )
+            message = "Something went wrong."
+            raise ValueError(message)
+
+        with pytest.raises(
+            expected_exception=ValueError,
+            match=r"^Something went wrong\.$",
+        ):
+            add_one_target_then_raise()
+
+        assert not database.targets
 
     @staticmethod
     def test_query(high_quality_image: io.BytesIO) -> None:

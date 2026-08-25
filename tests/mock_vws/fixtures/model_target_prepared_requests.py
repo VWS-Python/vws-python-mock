@@ -14,6 +14,7 @@ from tests.mock_vws.fixtures.credentials import (
 )
 from tests.mock_vws.fixtures.vuforia_backends import VuforiaBackend
 from tests.mock_vws.utils import ModelTargetEndpoint
+from tests.mock_vws.utils.assertions import assert_model_target_status
 
 MODEL_TARGET_VWS_HOST = "https://vws.vuforia.com"
 MODEL_TARGET_DATASET_UUID = "0b12466eee5d49409a440927006ff5d8"
@@ -72,7 +73,10 @@ def get_access_token(
         timeout=30,
     )
 
-    assert response.status_code == HTTPStatus.OK
+    assert_model_target_status(
+        response=response,
+        status_codes=HTTPStatus.OK,
+    )
     response_json: dict[str, Any] = json.loads(s=response.text)
     access_token = response_json["access_token"]
     assert isinstance(access_token, str)

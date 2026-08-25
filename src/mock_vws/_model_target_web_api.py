@@ -1364,6 +1364,7 @@ def create_model_target_dataset(
     dataset_type: ModelTargetDatasetType,
     generation_failure: ModelTargetGenerationFailure | None,
     generation_warning: ModelTargetGenerationWarning | None,
+    training_allowance_exceeded: bool,
 ) -> _ResponseType:
     """Create a standard or advanced Model Target dataset."""
     content_length_error = _content_length_error(request=request)
@@ -1395,12 +1396,20 @@ def create_model_target_dataset(
         if state_scope_error is not None:
             return state_scope_error
 
-    validation_error = _validate_dataset_request(
+    creation_error = _validate_dataset_request(
         request_json=request_json_or_error,
         dataset_type=dataset_type,
     )
-    if validation_error is not None:
-        return validation_error
+    if creation_error is None and training_allowance_exceeded:
+        creation_error = _error_response(
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
+            code="TRAINING_ALLOWANCE_EXCEEDED",
+            message="User has reached total number of allowed trainings",
+            target=_MOCK_USER_TARGET,
+            details=None,
+        )
+    if creation_error is not None:
+        return creation_error
 
     dataset = ModelTargetDataset(
         request_body=request_json_or_error,

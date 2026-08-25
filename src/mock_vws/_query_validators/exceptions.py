@@ -1,15 +1,58 @@
 """Exceptions to raise from validators."""
 
-import email.utils
 import textwrap
 import uuid
 from collections.abc import Mapping
 from http import HTTPStatus
+from typing import Final
 
 from beartype import beartype
 
 from mock_vws._constants import ResultCodes
-from mock_vws._mock_common import json_dump
+from mock_vws._mock_common import http_date, result_code_response_text
+
+# The headers which the cloud recognition API gives with an error response,
+# apart from those which depend on the response itself.
+_BASE_HEADERS: Final[Mapping[str, str]] = {
+    "Connection": "keep-alive",
+    "Server": "nginx",
+}
+
+# The base headers, with the content types which most error responses use.
+_JSON_HEADERS: Final[Mapping[str, str]] = {
+    **_BASE_HEADERS,
+    "Content-Type": "application/json",
+}
+_TEXT_HEADERS: Final[Mapping[str, str]] = {
+    **_BASE_HEADERS,
+    "Content-Type": "text/plain;charset=iso-8859-1",
+}
+
+
+@beartype
+def _unusual_separators_response_text(
+    *,
+    result_code: ResultCodes,
+    space_after_transaction_id_key: bool,
+) -> str:
+    """Give a response body with the separators which some cloud reco
+    responses use, rather than the separators used elsewhere.
+
+    Args:
+        result_code: The result code to give in the response body.
+        space_after_transaction_id_key: Whether to put a space after the
+            ``transaction_id`` key.
+
+    Returns:
+        The body of a cloud recognition error response, with a new transaction
+        ID.
+    """
+    space = " " if space_after_transaction_id_key else ""
+    transaction_id = uuid.uuid4().hex
+    return (
+        f'{{"transaction_id":{space}"{transaction_id}",'
+        f'"result_code":"{result_code.value}"}}'
+    )
 
 
 @beartype
@@ -30,27 +73,13 @@ class DateHeaderNotGivenError(ValidatorError):
     """Exception raised when a date header is not given."""
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize a missing date header response."""
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
         self.response_text = "Date header required."
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
-        )
         self.headers = {
-            "Content-Type": "text/plain;charset=iso-8859-1",
-            "Connection": "keep-alive",
-            "Server": "nginx",
-            "Date": date,
+            **_TEXT_HEADERS,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
         }
 
@@ -60,27 +89,13 @@ class DateFormatNotValidError(ValidatorError):
     """Exception raised when the date format is not valid."""
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize a malformed date header response."""
         super().__init__()
         self.status_code = HTTPStatus.UNAUTHORIZED
         self.response_text = "Malformed date header."
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
-        )
         self.headers = {
-            "Content-Type": "text/plain;charset=iso-8859-1",
-            "Connection": "keep-alive",
-            "Server": "nginx",
-            "Date": date,
+            **_TEXT_HEADERS,
+            "Date": http_date(),
             "WWW-Authenticate": "KWS",
             "Content-Length": str(object=len(self.response_text)),
         }
@@ -93,31 +108,15 @@ class RequestTimeTooSkewedError(ValidatorError):
     """
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize a ``RequestTimeTooSkewed`` response."""
         super().__init__()
         self.status_code = HTTPStatus.FORBIDDEN
-        body = {
-            "transaction_id": uuid.uuid4().hex,
-            "result_code": ResultCodes.REQUEST_TIME_TOO_SKEWED.value,
-        }
-        self.response_text = json_dump(body=body)
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
+        self.response_text = result_code_response_text(
+            result_code=ResultCodes.REQUEST_TIME_TOO_SKEWED,
         )
         self.headers = {
-            "Content-Type": "application/json",
-            "Connection": "keep-alive",
-            "Server": "nginx",
-            "Date": date,
+            **_JSON_HEADERS,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
         }
 
@@ -129,38 +128,16 @@ class BadImageError(ValidatorError):
     """
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize a ``BadImage`` response."""
         super().__init__()
         self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
-        transaction_id = uuid.uuid4().hex
-        result_code = ResultCodes.BAD_IMAGE.value
-
-        # The response has an unusual format of separators, so we construct it
-        # manually.
-        self.response_text = (
-            '{"transaction_id": '
-            f'"{transaction_id}",'
-            f'"result_code":"{result_code}"'
-            "}"
-        )
-
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
+        self.response_text = _unusual_separators_response_text(
+            result_code=ResultCodes.BAD_IMAGE,
+            space_after_transaction_id_key=True,
         )
         self.headers = {
-            "Content-Type": "application/json",
-            "Connection": "keep-alive",
-            "Server": "nginx",
-            "Date": date,
+            **_JSON_HEADERS,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
         }
 
@@ -172,37 +149,16 @@ class AuthenticationFailureError(ValidatorError):
     """
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize an ``AuthenticationFailure`` response."""
         super().__init__()
         self.status_code = HTTPStatus.UNAUTHORIZED
-        transaction_id = uuid.uuid4().hex
-        result_code = ResultCodes.AUTHENTICATION_FAILURE.value
-
-        # The response has an unusual format of separators, so we construct it
-        # manually.
-        self.response_text = (
-            '{"transaction_id":'
-            f'"{transaction_id}",'
-            f'"result_code":"{result_code}"'
-            "}"
-        )
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
+        self.response_text = _unusual_separators_response_text(
+            result_code=ResultCodes.AUTHENTICATION_FAILURE,
+            space_after_transaction_id_key=False,
         )
         self.headers = {
-            "Content-Type": "application/json",
-            "Connection": "keep-alive",
-            "Server": "nginx",
-            "Date": date,
+            **_JSON_HEADERS,
+            "Date": http_date(),
             "WWW-Authenticate": "VWS",
             "Content-Length": str(object=len(self.response_text)),
         }
@@ -215,32 +171,15 @@ class AuthenticationFailureGoodFormattingError(ValidatorError):
     """
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize a well formatted ``AuthenticationFailure`` body."""
         super().__init__()
         self.status_code = HTTPStatus.UNAUTHORIZED
-
-        body = {
-            "transaction_id": uuid.uuid4().hex,
-            "result_code": ResultCodes.AUTHENTICATION_FAILURE.value,
-        }
-        self.response_text = json_dump(body=body)
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
+        self.response_text = result_code_response_text(
+            result_code=ResultCodes.AUTHENTICATION_FAILURE,
         )
         self.headers = {
-            "Content-Type": "application/json",
-            "Connection": "keep-alive",
-            "Server": "nginx",
-            "Date": date,
+            **_JSON_HEADERS,
+            "Date": http_date(),
             "WWW-Authenticate": "VWS",
             "Content-Length": str(object=len(self.response_text)),
         }
@@ -251,28 +190,13 @@ class ImageNotGivenError(ValidatorError):
     """Exception raised when an image is not given."""
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize a missing image response."""
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
         self.response_text = "No image."
-
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
-        )
         self.headers = {
-            "Content-Type": "application/json",
-            "Connection": "keep-alive",
-            "Server": "nginx",
-            "Date": date,
+            **_JSON_HEADERS,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
         }
 
@@ -282,28 +206,13 @@ class AuthHeaderMissingError(ValidatorError):
     """Exception raised when an auth header is not given."""
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize a missing authorization header response."""
         super().__init__()
         self.status_code = HTTPStatus.UNAUTHORIZED
         self.response_text = "Authorization header missing."
-
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
-        )
         self.headers = {
-            "Content-Type": "text/plain;charset=iso-8859-1",
-            "Connection": "keep-alive",
-            "Server": "nginx",
-            "Date": date,
+            **_TEXT_HEADERS,
+            "Date": http_date(),
             "WWW-Authenticate": "KWS",
             "Content-Length": str(object=len(self.response_text)),
         }
@@ -314,29 +223,13 @@ class MalformedAuthHeaderError(ValidatorError):
     """Exception raised when an auth header is not given."""
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-            www_authenticate: The WWW-Authenticate header value.
-        """
+        """Initialize a malformed authorization header response."""
         super().__init__()
         self.status_code = HTTPStatus.UNAUTHORIZED
         self.response_text = "Malformed authorization header."
-
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
-        )
         self.headers = {
-            "Content-Type": "text/plain;charset=iso-8859-1",
-            "Connection": "keep-alive",
-            "Server": "nginx",
-            "Date": date,
+            **_TEXT_HEADERS,
+            "Date": http_date(),
             "WWW-Authenticate": "KWS",
             "Content-Length": str(object=len(self.response_text)),
         }
@@ -347,28 +240,13 @@ class UnknownParametersError(ValidatorError):
     """Exception raised when unknown parameters are given."""
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize an unknown parameters response."""
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
         self.response_text = "Unknown parameters in the request."
-
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
-        )
         self.headers = {
-            "Content-Type": "application/json",
-            "Connection": "keep-alive",
-            "Server": "nginx",
-            "Date": date,
+            **_JSON_HEADERS,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
         }
 
@@ -380,37 +258,16 @@ class InactiveProjectError(ValidatorError):
     """
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize an ``InactiveProject`` response."""
         super().__init__()
         self.status_code = HTTPStatus.FORBIDDEN
-        transaction_id = uuid.uuid4().hex
-        result_code = ResultCodes.INACTIVE_PROJECT.value
-        # The response has an unusual format of separators, so we construct it
-        # manually.
-        self.response_text = (
-            '{"transaction_id": '
-            f'"{transaction_id}",'
-            f'"result_code":"{result_code}"'
-            "}"
-        )
-
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
+        self.response_text = _unusual_separators_response_text(
+            result_code=ResultCodes.INACTIVE_PROJECT,
+            space_after_transaction_id_key=True,
         )
         self.headers = {
-            "Content-Type": "application/json",
-            "Connection": "keep-alive",
-            "Server": "nginx",
-            "Date": date,
+            **_JSON_HEADERS,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
         }
 
@@ -424,31 +281,18 @@ class InvalidMaxNumResultsError(ValidatorError):
 
     def __init__(self, given_value: str) -> None:
         """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
+        Args:
+            given_value: The given value of the "max_num_results" field.
         """
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
-        invalid_value_message = (
+        self.response_text = (
             f"Invalid value '{given_value}' in form data part 'max_result'. "
             "Expecting integer value in range from 1 to 50 (inclusive)."
         )
-        self.response_text = invalid_value_message
-
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
-        )
         self.headers = {
-            "Content-Type": "application/json",
-            "Connection": "keep-alive",
-            "Server": "nginx",
-            "Date": date,
+            **_JSON_HEADERS,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
         }
 
@@ -462,31 +306,18 @@ class MaxNumResultsOutOfRangeError(ValidatorError):
 
     def __init__(self, given_value: str) -> None:
         """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
+        Args:
+            given_value: The given value of the "max_num_results" field.
         """
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
-        integer_out_of_range_message = (
+        self.response_text = (
             f"Integer out of range ({given_value}) in form data part "
             "'max_result'. Accepted range is from 1 to 50 (inclusive)."
         )
-        self.response_text = integer_out_of_range_message
-
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
-        )
         self.headers = {
-            "Content-Type": "application/json",
-            "Connection": "keep-alive",
-            "Server": "nginx",
-            "Date": date,
+            **_JSON_HEADERS,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
         }
 
@@ -499,33 +330,20 @@ class InvalidIncludeTargetDataError(ValidatorError):
 
     def __init__(self, given_value: str) -> None:
         """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
+        Args:
+            given_value: The given "include_target_data" value.
         """
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
-        unexpected_target_data_message = (
+        self.response_text = (
             f"Invalid value '{given_value.lower()}' in form data part "
             "'include_target_data'. "
             "Expecting one of the (unquoted) string values 'all', 'none' or "
             "'top'."
         )
-        self.response_text = unexpected_target_data_message
-
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
-        )
         self.headers = {
-            "Content-Type": "application/json",
-            "Connection": "keep-alive",
-            "Server": "nginx",
-            "Date": date,
+            **_JSON_HEADERS,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
         }
 
@@ -535,27 +353,13 @@ class UnsupportedMediaTypeError(ValidatorError):
     """Exception raised when no boundary is found for multipart data."""
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize an unsupported media type response."""
         super().__init__()
         self.status_code = HTTPStatus.UNSUPPORTED_MEDIA_TYPE
         self.response_text = ""
-
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
-        )
         self.headers = {
-            "Connection": "keep-alive",
-            "Server": "nginx",
-            "Date": date,
+            **_BASE_HEADERS,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
         }
 
@@ -565,27 +369,13 @@ class InvalidAcceptHeaderError(ValidatorError):
     """Exception raised when there is an invalid accept header given."""
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize an invalid accept header response."""
         super().__init__()
         self.status_code = HTTPStatus.NOT_ACCEPTABLE
         self.response_text = ""
-
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
-        )
         self.headers = {
-            "Connection": "keep-alive",
-            "Server": "nginx",
-            "Date": date,
+            **_BASE_HEADERS,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
         }
 
@@ -595,28 +385,14 @@ class NoBoundaryFoundError(ValidatorError):
     """Exception raised when an invalid media type is given."""
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize a missing multipart boundary response."""
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
         self.response_text = "Unable to get boundary for multipart"
-
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
-        )
         self.headers = {
+            **_BASE_HEADERS,
             "Content-Type": "text/plain;charset=utf-8",
-            "Connection": "keep-alive",
-            "Server": "nginx",
-            "Date": date,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
         }
 
@@ -630,14 +406,7 @@ class ContentLengthHeaderTooLargeError(ValidatorError):
 
     # We skip coverage here as running a test to cover this is very slow.
     def __init__(self) -> None:  # pragma: no cover
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize a gateway timeout response."""
         super().__init__()
         self.status_code = HTTPStatus.GATEWAY_TIMEOUT
         self.response_text = ""
@@ -655,14 +424,7 @@ class ContentLengthHeaderNotIntError(ValidatorError):
     """
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize an empty bad request response."""
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
         self.response_text = ""
@@ -680,14 +442,7 @@ class RequestEntityTooLargeError(ValidatorError):
     # do not trigger this exception.
     # See https://github.com/urllib3/urllib3/issues/2733.
     def __init__(self) -> None:  # pragma: no cover
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize a request entity too large response."""
         super().__init__()
         self.status_code = HTTPStatus.REQUEST_ENTITY_TOO_LARGE
         self.response_text = textwrap.dedent(
@@ -701,14 +456,9 @@ class RequestEntityTooLargeError(ValidatorError):
             </html>\r
             """,
         )
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
-        )
         self.headers = {
             "Connection": "Close",
-            "Date": date,
+            "Date": http_date(),
             "Server": "nginx",
             "Content-Type": "text/html",
             "Content-Length": str(object=len(self.response_text)),
@@ -723,21 +473,9 @@ class NoContentTypeError(ValidatorError):
     """
 
     def __init__(self) -> None:
-        """
-        Attributes:
-            status_code: The status code to use in a response if this is
-                raised.
-            response_text: The response text to use in a response if this
-        is
-                raised.
-        """
+        """Initialize a missing content type response."""
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
-        date = email.utils.formatdate(
-            timeval=None,
-            localtime=False,
-            usegmt=True,
-        )
         jetty_content_type_error = textwrap.dedent(
             text="""\
             <html>
@@ -764,6 +502,6 @@ class NoContentTypeError(ValidatorError):
             "Content-Type": "text/html;charset=iso-8859-1",
             "Server": "nginx",
             "Cache-Control": "must-revalidate,no-cache,no-store",
-            "Date": date,
+            "Date": http_date(),
             "Content-Length": str(object=len(self.response_text)),
         }

@@ -99,6 +99,13 @@ The mock does not do this.
 The real Query API sends some responses with ``Content-Encoding: gzip``.
 The mock Query API sends all responses with ``Content-Encoding: gzip``.
 
+``x-aws-region`` headers
+------------------------
+
+The mock uses the fixed sample value ``us-east-2, us-west-2`` for
+``x-aws-region`` response headers. The regions returned by the real Vuforia
+Web Services can differ, so tests should not rely on the mock's exact value.
+
 NGINX Error cases
 -----------------
 
@@ -238,6 +245,12 @@ in-process Model Target datasets finish with a ``failed`` status and an
 :paramref:`~mock_vws.MockVWS.processing_time_seconds`, so callers can test
 both processing and failed states. This configuration is not supported by the
 Flask/Docker backend.
+Use
+:paramref:`mock_vws.MockVWS.model_target_training_allowance_exceeded` to make
+in-process Model Target dataset creation return Vuforia's
+``TRAINING_ALLOWANCE_EXCEEDED`` response. Set the
+:envvar:`MODEL_TARGET_TRAINING_ALLOWANCE_EXCEEDED` environment variable to
+``true`` to configure the same response in the Flask/Docker backend.
 Use :paramref:`mock_vws.MockVWS.model_target_generation_warning` to make
 successful in-process Model Target datasets include a Vuforia-shaped
 ``warning`` object after processing completes. This configuration is not
@@ -374,7 +387,7 @@ path which does not start with a served path, such as
 For any other request which it does not serve, such as ``DELETE /summary`` or
 ``GET /targetsfoo``, it gives an HTML "Not Found" page which names the method
 and the path of the request.
-The Flask and Docker mock gives an empty body for all of these.
+The Flask and Docker mock reproduces both response shapes.
 
 The ``requests`` and ``httpx`` backends mock only the paths which the mock
 serves, so a request to any other path raises a connection error rather than
