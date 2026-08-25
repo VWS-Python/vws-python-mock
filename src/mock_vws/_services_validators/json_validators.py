@@ -61,9 +61,15 @@ def validate_json(*, request_body: bytes, request_path: str) -> None:
         return
 
     try:
-        json.loads(s=request_body.decode())
+        request_json = json.loads(s=request_body.decode())
     except JSONDecodeError as exc:
         _LOGGER.warning(msg="The request body is not valid JSON.")
         if request_path.endswith("/instances"):
             raise BadRequestError from exc
         raise FailError(status_code=HTTPStatus.BAD_REQUEST) from exc
+
+    if not isinstance(request_json, dict):
+        _LOGGER.warning(msg="The request body is not a JSON object.")
+        if request_path.endswith("/instances"):
+            raise BadRequestError
+        raise FailError(status_code=HTTPStatus.BAD_REQUEST)

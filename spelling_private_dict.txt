@@ -119,6 +119,7 @@ travis
 txt
 unlinks
 unmocked
+unrouted
 untagged
 url
 usefixtures
