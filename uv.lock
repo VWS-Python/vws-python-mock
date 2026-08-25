@@ -2680,11 +2680,14 @@ wheels = [
 
 [[package]]
 name = "vws-auth-tools"
-version = "2024.7.12"
+version = "2026.8.16"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/a9/17/421ff3a46cee7d952e3da3126160fb75ab7cb54e3fbbfa718a7ee9e120d4/vws_auth_tools-2024.7.12.tar.gz", hash = "sha256:e3949606f2366053ea97883992f8ecaf95030ea33f1b3cf769f99f9d43c0914b", size = 19097, upload-time = "2024-07-12T16:59:31.845Z" }
+dependencies = [
+    { name = "beartype" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/5d/e7/ada1334e67ca97158f59e486a885bf15e04188e03f243aeac79ab3c716dc/vws_auth_tools-2026.8.16.tar.gz", hash = "sha256:8058166e3715cdd407d3894e45c173d11034388accc1e57be847daf15255edb8", size = 27779, upload-time = "2026-08-16T09:17:33.851Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ff/34/d6c791bffdc3cb2e920468d255d0fa23366cb8415c1ba3db26127cc1c789/vws_auth_tools-2024.7.12-py2.py3-none-any.whl", hash = "sha256:673bb0be98e2112a008f3146ab24a0276dc26de8c43cb40546d9a54821cb9e48", size = 5327, upload-time = "2024-07-12T16:59:30.287Z" },
+    { url = "https://files.pythonhosted.org/packages/ff/f3/ec5bf9b75674bda643200fe8da42fed06ec76be2982ccf3edb8c49553332/vws_auth_tools-2026.8.16-py3-none-any.whl", hash = "sha256:1464b7db4bb467c4636d41bbf7d6a89f22241a2b66a23fa26ef9572933d475e2", size = 5944, upload-time = "2026-08-16T09:17:32.535Z" },
 ]
 
 [[package]]
