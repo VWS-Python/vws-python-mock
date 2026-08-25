@@ -23,11 +23,11 @@ from vws.exceptions.vws_exceptions import (
     TargetNameExistError,
 )
 from vws.response import Response
+from vws_test_fixtures.images import VWS_MAX_IMAGE_FILE_SIZE
 
 from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import (
     make_decompression_bomb_image_file,
-    make_image_file,
     make_single_color_image_file,
 )
 from tests.mock_vws.utils.assertions import (
@@ -531,7 +531,11 @@ class TestImage:
         )
 
     @staticmethod
-    def test_image_pixel_count_too_large(vws_client: VWS) -> None:
+    def test_image_pixel_count_too_large(
+        *,
+        vws_client: VWS,
+        pixel_count_too_large: io.BytesIO,
+    ) -> None:
         """
         An ``ImageTooLargeError`` result is returned if the image has
         more than 37748736 pixels, whatever its file size.
@@ -555,16 +559,11 @@ class TestImage:
             active_flag=True,
         )
 
-        image_too_many_pixels = make_single_color_image_file(
-            width=width + 1,
-            height=height,
-        )
-
         with pytest.raises(expected_exception=ImageTooLargeError) as exc:
             vws_client.add_target(
                 name="example_name_2",
                 width=1,
-                image=image_too_many_pixels,
+                image=pixel_count_too_large,
                 application_metadata=None,
                 active_flag=True,
             )
@@ -576,57 +575,33 @@ class TestImage:
         )
 
     @staticmethod
-    def test_image_file_size_too_large(vws_client: VWS) -> None:
+    def test_image_file_size_too_large(
+        *,
+        vws_client: VWS,
+        png_just_under_max_size: io.BytesIO,
+        png_too_large: io.BytesIO,
+    ) -> None:
         """
         An ``ImageTooLargeError`` result is returned if the image file
         size is
         above a certain threshold.
         """
-        max_bytes = 2.3 * 1024 * 1024
-        width = height = 886
-        png_not_too_large = make_image_file(
-            file_format="PNG",
-            color_space="RGB",
-            width=width,
-            height=height,
-        )
+        max_bytes = VWS_MAX_IMAGE_FILE_SIZE
 
-        image_data = png_not_too_large.getvalue()
-        image_content_size = len(image_data)
-        # We check that the image we created is just slightly smaller than the
-        # maximum file size.
-        #
-        # This is just because of the implementation details of
-        # ``max_image_file``.
+        image_content_size = len(png_just_under_max_size.getvalue())
         assert image_content_size < max_bytes
         assert (image_content_size * 1.05) > max_bytes
 
         vws_client.add_target(
             name="example_name",
             width=1,
-            image=png_not_too_large,
+            image=png_just_under_max_size,
             application_metadata=None,
             active_flag=True,
         )
 
-        width = width + 1
-        height = height + 1
-        png_too_large = make_image_file(
-            file_format="PNG",
-            color_space="RGB",
-            width=width,
-            height=height,
-        )
-
-        image_data = png_too_large.getvalue()
-        image_content_size = len(image_data)
-        # We check that the image we created is just slightly smaller than the
-        # maximum file size.
-        #
-        # This is just because of the implementation details of
-        # ``max_image_file``.
-        assert image_content_size < max_bytes
-        assert (image_content_size * 1.05) > max_bytes
+        image_content_size = len(png_too_large.getvalue())
+        assert image_content_size > max_bytes
 
         with pytest.raises(expected_exception=ImageTooLargeError) as exc:
             vws_client.add_target(
@@ -1077,16 +1052,19 @@ class TestApplicationMetadata:
         *,
         image_file_failed_state: io.BytesIO,
         vws_client: VWS,
+        application_metadata_near_size_limit: str,
     ) -> None:
         """
         A base64 encoded string of greater than 1024 * 1024 bytes is too
         large
         for application metadata.
         """
-        metadata = b"a" * (_MAX_METADATA_BYTES + 1)
-        metadata_encoded = base64.b64encode(s=metadata).decode(
-            encoding="ascii"
+        decoded_metadata = base64.b64decode(
+            s=application_metadata_near_size_limit.encode(encoding="ascii"),
         )
+        metadata_encoded = base64.b64encode(
+            s=decoded_metadata + b"x",
+        ).decode(encoding="ascii")
 
         with pytest.raises(expected_exception=MetadataTooLargeError) as exc:
             vws_client.add_target(

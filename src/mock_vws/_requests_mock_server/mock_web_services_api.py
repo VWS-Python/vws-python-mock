@@ -145,6 +145,7 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
         processing_time_seconds: float,
         model_target_generation_failure: (ModelTargetGenerationFailure | None),
         model_target_generation_warning: (ModelTargetGenerationWarning | None),
+        model_target_training_allowance_exceeded: bool,
         duplicate_match_checker: ImageMatcher,
         target_tracking_rater: TargetTrackingRater,
         vumark_generation_failure: VuMarkGenerationFailure | None,
@@ -162,6 +163,9 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
                 after Model Target dataset processing completes.
             model_target_generation_warning: A configured warning returned
                 after Model Target dataset processing completes.
+            model_target_training_allowance_exceeded: Whether Model Target
+                dataset creation is rejected because the account has no
+                training allowance remaining.
             duplicate_match_checker: A callable which takes two image
         values
               and returns whether they are duplicates.
@@ -179,6 +183,9 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
         self._processing_time_seconds = processing_time_seconds
         self._model_target_generation_failure = model_target_generation_failure
         self._model_target_generation_warning = model_target_generation_warning
+        self._model_target_training_allowance_exceeded = (
+            model_target_training_allowance_exceeded
+        )
         self._duplicate_match_checker = duplicate_match_checker
         self._target_tracking_rater = target_tracking_rater
         self._vumark_generation_failure = vumark_generation_failure
@@ -270,6 +277,9 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
             dataset_type=ModelTargetDatasetType.STANDARD,
             generation_failure=self._model_target_generation_failure,
             generation_warning=self._model_target_generation_warning,
+            training_allowance_exceeded=(
+                self._model_target_training_allowance_exceeded
+            ),
         )
 
     @route(
@@ -288,6 +298,9 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
             dataset_type=ModelTargetDatasetType.ADVANCED,
             generation_failure=self._model_target_generation_failure,
             generation_warning=self._model_target_generation_warning,
+            training_allowance_exceeded=(
+                self._model_target_training_allowance_exceeded
+            ),
         )
 
     @route(
