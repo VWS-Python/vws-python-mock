@@ -1094,14 +1094,14 @@ wheels = [
 
 [[package]]
 name = "mypy-strict-kwargs"
-version = "2026.7.19.1"
+version = "2026.8.25"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "mypy" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/67/ff/c7100891e45af1ce05db4644ea4a6e3f53aa6a019ab9defecd5fde9e7d69/mypy_strict_kwargs-2026.7.19.1.tar.gz", hash = "sha256:735a1956937365daaea84a6a3a556fde7255575e6fabc5336e499bb890abe44f", size = 30368, upload-time = "2026-07-19T11:59:40.177Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/77/d7/4abbb7f635d60797741f49519d0145b642c78b5ce99dbcdd7adc590a7004/mypy_strict_kwargs-2026.8.25.tar.gz", hash = "sha256:b755720b0f721605b8d5d7569a25908d34c4fb9df29d2f83b80006c7eaec3c88", size = 56086, upload-time = "2026-08-25T05:54:58.365Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/50/8a/0f55537fcfe8d358f681059be0ea158df2066d629215cd9090eae4937e17/mypy_strict_kwargs-2026.7.19.1-py3-none-any.whl", hash = "sha256:80c56a7792bb4f0880f7686a8f576022514b219ff8c7c1a8c6e5096c0d64cae2", size = 14064, upload-time = "2026-07-19T11:59:39.009Z" },
+    { url = "https://files.pythonhosted.org/packages/0c/b5/bcc2a9a3b648039f38808b86232e14864201b15292bea5d6cb4574da3b4c/mypy_strict_kwargs-2026.8.25-py3-none-any.whl", hash = "sha256:5054921b3b693ed40833cb70756e824b2bdd4e0143ec2c01f0879b4c5fae3ce5", size = 26906, upload-time = "2026-08-25T05:54:57.227Z" },
 ]
 
 [[package]]
@@ -2824,7 +2824,7 @@ requires-dist = [
     { name = "httpx", specifier = ">=0.27.0" },
     { name = "interrogate", marker = "extra == 'dev'", specifier = "==1.7.0" },
     { name = "mypy", extras = ["faster-cache"], marker = "extra == 'dev'", specifier = "==2.3.1" },
-    { name = "mypy-strict-kwargs", marker = "extra == 'dev'", specifier = "==2026.7.19.1" },
+    { name = "mypy-strict-kwargs", marker = "extra == 'dev'", specifier = "==2026.8.25" },
     { name = "no-defaults", marker = "extra == 'dev'", specifier = "==2.1.0" },
     { name = "numpy", specifier = ">=2.4.4" },
     { name = "opencv-contrib-python-headless", specifier = ">=5.0.0.93" },
