@@ -11,7 +11,7 @@
 .gitattributes
 .github
 .gitignore
-.pre-commit-config.yaml
+prek.toml
 .vscode
 .prettierrc
 .vale.ini
