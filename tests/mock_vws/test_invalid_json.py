@@ -26,9 +26,12 @@ class TestInvalidJSON:
     """Tests for giving invalid JSON to endpoints."""
 
     @staticmethod
-    def test_invalid_json(endpoint: Endpoint) -> None:
-        """Giving invalid JSON to endpoints returns error responses."""
-        content = b"a"
+    @pytest.mark.parametrize(
+        argnames="content",
+        argvalues=[b"a", b"[]", b'"hello"', b"5", b"null", b"true"],
+    )
+    def test_invalid_json(endpoint: Endpoint, content: bytes) -> None:
+        """Giving invalid or non-object JSON returns error responses."""
         gmt = ZoneInfo(key="GMT")
         now = datetime.now(tz=gmt)
         time_to_freeze = now

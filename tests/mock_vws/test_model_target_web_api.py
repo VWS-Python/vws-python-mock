@@ -9,6 +9,7 @@ import json
 import textwrap
 import time
 import zipfile
+from collections.abc import Set as AbstractSet
 from http import HTTPMethod, HTTPStatus
 from typing import Any
 from uuid import uuid4
@@ -32,7 +33,10 @@ from tests.mock_vws.fixtures.model_target_prepared_requests import (
 )
 from tests.mock_vws.fixtures.vuforia_backends import VuforiaBackend
 from tests.mock_vws.utils import ModelTargetEndpoint
-from tests.mock_vws.utils.assertions import assert_valid_date_header
+from tests.mock_vws.utils.assertions import (
+    assert_model_target_status,
+    assert_valid_date_header,
+)
 
 _VWS_HOST = "https://vws.vuforia.com"
 _MOCK_BEARER_TOKEN = (
@@ -140,7 +144,10 @@ def _assert_oauth2_error(
     body: dict[str, str],
 ) -> None:
     """Assert an OAuth2 error response."""
-    assert response.status_code == status_code
+    assert_model_target_status(
+        response=response,
+        status_codes=status_code,
+    )
     assert response.json() == body
 
 
@@ -156,7 +163,10 @@ def _assert_model_target_error(
     """Assert a Model Target Web API error response with the legacy
     shape.
     """
-    assert response.status_code == status_code
+    assert_model_target_status(
+        response=response,
+        status_codes=status_code,
+    )
     assert json.loads(s=response.text) == {
         "error": {
             "code": code,
@@ -174,7 +184,10 @@ def _assert_load_balancer_bad_request(*, response: Response) -> None:
     they reach an API, with an HTML error page rather than a Model Target
     Web API error body.
     """
-    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert_model_target_status(
+        response=response,
+        status_codes=HTTPStatus.BAD_REQUEST,
+    )
     assert_valid_date_header(response=response)
     expected_response_text = textwrap.dedent(
         text="""\
@@ -205,7 +218,10 @@ def _assert_unknown_dataset(*, response: Response) -> None:
     request with a valid bearer token and an unexpected or malformed body
     reaches the dataset lookup.
     """
-    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert_model_target_status(
+        response=response,
+        status_codes=HTTPStatus.NOT_FOUND,
+    )
     error = json.loads(s=response.text)["error"]
     assert error["code"] == "NOT_FOUND"
     assert error["message"] == (
@@ -329,7 +345,10 @@ class TestAuthentication:
             timeout=30,
         )
 
-        assert response.status_code == HTTPStatus.OK
+        assert_model_target_status(
+            response=response,
+            status_codes=HTTPStatus.OK,
+        )
         assert isinstance(response.json()["access_token"], str)
         assert response.json()["token_type"] == "bearer"
 
@@ -352,7 +371,10 @@ class TestAuthentication:
             timeout=30,
         )
 
-        assert response.status_code == HTTPStatus.OK
+        assert_model_target_status(
+            response=response,
+            status_codes=HTTPStatus.OK,
+        )
         assert isinstance(response.json()["access_token"], str)
         assert response.json()["token_type"] == "bearer"
 
@@ -374,7 +396,10 @@ class TestAuthentication:
             },
             timeout=30,
         )
-        assert token_response.status_code == HTTPStatus.OK
+        assert_model_target_status(
+            response=token_response,
+            status_codes=HTTPStatus.OK,
+        )
 
         response = requests.post(
             url=f"{_VWS_HOST}/modeltargets/advancedDatasets",
@@ -387,7 +412,10 @@ class TestAuthentication:
             timeout=30,
         )
 
-        assert response.status_code == HTTPStatus.FORBIDDEN
+        assert_model_target_status(
+            response=response,
+            status_codes=HTTPStatus.FORBIDDEN,
+        )
         assert response.text == (
             "User does not have the required scopes to perform this action"
         )
@@ -413,7 +441,10 @@ class TestAuthentication:
             },
             timeout=30,
         )
-        assert password_token_response.status_code == HTTPStatus.OK
+        assert_model_target_status(
+            response=password_token_response,
+            status_codes=HTTPStatus.OK,
+        )
         headers = {
             "Authorization": (
                 f"Bearer {password_token_response.json()['access_token']}"
@@ -430,7 +461,10 @@ class TestAuthentication:
                 },
                 timeout=30,
             )
-            assert create_response.status_code == HTTPStatus.CREATED
+            assert_model_target_status(
+                response=create_response,
+                status_codes=HTTPStatus.CREATED,
+            )
             client_id = create_response.json()["client_id"]
             client_secret = create_response.json()["client_secret"]
 
@@ -439,7 +473,10 @@ class TestAuthentication:
                 headers=headers,
                 timeout=30,
             )
-            assert list_response.status_code == HTTPStatus.OK
+            assert_model_target_status(
+                response=list_response,
+                status_codes=HTTPStatus.OK,
+            )
             created_entries = [
                 entry
                 for entry in list_response.json()
@@ -458,7 +495,10 @@ class TestAuthentication:
                 json=["modeltargets.advancedmodeltarget.all"],
                 timeout=30,
             )
-            assert update_response.status_code == HTTPStatus.OK
+            assert_model_target_status(
+                response=update_response,
+                status_codes=HTTPStatus.OK,
+            )
             assert update_response.json() == {
                 "clientId": client_id,
                 "scopes": ["modeltargets.advancedmodeltarget.all"],
@@ -472,7 +512,10 @@ class TestAuthentication:
                 data={"grant_type": "client_credentials"},
                 timeout=30,
             )
-            assert client_token_response.status_code == HTTPStatus.OK
+            assert_model_target_status(
+                response=client_token_response,
+                status_codes=HTTPStatus.OK,
+            )
             client_access_token = client_token_response.json()["access_token"]
             insufficient_response = requests.post(
                 url=f"{_VWS_HOST}/modeltargets/datasets",
@@ -482,7 +525,10 @@ class TestAuthentication:
                 json={},
                 timeout=30,
             )
-            assert insufficient_response.status_code == HTTPStatus.FORBIDDEN
+            assert_model_target_status(
+                response=insufficient_response,
+                status_codes=HTTPStatus.FORBIDDEN,
+            )
         finally:
             if client_id is not None:  # pragma: no branch
                 delete_response = requests.delete(
@@ -490,7 +536,10 @@ class TestAuthentication:
                     headers=headers,
                     timeout=30,
                 )
-                assert delete_response.status_code == HTTPStatus.NO_CONTENT
+                assert_model_target_status(
+                    response=delete_response,
+                    status_codes=HTTPStatus.NO_CONTENT,
+                )
 
         missing_client_id = "000000000000000000000"
         missing_response = requests.delete(
@@ -498,7 +547,10 @@ class TestAuthentication:
             headers=headers,
             timeout=30,
         )
-        assert missing_response.status_code == HTTPStatus.NOT_FOUND
+        assert_model_target_status(
+            response=missing_response,
+            status_codes=HTTPStatus.NOT_FOUND,
+        )
         assert missing_response.json() == {
             "error": {
                 "code": "NOT_FOUND",
@@ -763,7 +815,10 @@ class TestInvalidJson:
             _assert_unknown_dataset(response=response)
             return
 
-        assert response.status_code == HTTPStatus.UNSUPPORTED_MEDIA_TYPE
+        assert_model_target_status(
+            response=response,
+            status_codes=HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
+        )
         error = json.loads(s=response.text)["error"]
         assert error["code"] == "ERROR"
         assert error["message"] == (
@@ -800,7 +855,10 @@ class TestInvalidJson:
             _assert_unknown_dataset(response=response)
             return
 
-        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert_model_target_status(
+            response=response,
+            status_codes=HTTPStatus.BAD_REQUEST,
+        )
         error = json.loads(s=response.text)["error"]
         assert error["code"] == "ERROR"
         assert error["message"].startswith("Invalid Json")
@@ -835,7 +893,10 @@ class TestInvalidJson:
             _assert_unknown_dataset(response=response)
             return
 
-        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert_model_target_status(
+            response=response,
+            status_codes=HTTPStatus.BAD_REQUEST,
+        )
         error = json.loads(s=response.text)["error"]
         assert error["code"] == "ERROR"
         assert error["message"].startswith("Invalid Json")
@@ -881,7 +942,10 @@ class TestInvalidJson:
             _assert_unknown_dataset(response=response)
             return
 
-        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert_model_target_status(
+            response=response,
+            status_codes=HTTPStatus.BAD_REQUEST,
+        )
         error = json.loads(s=response.text)["error"]
         assert error["code"] == "BAD_REQUEST"
         assert error["message"] == (
@@ -1421,7 +1485,10 @@ class TestErrorResponses:
             timeout=30,
         )
 
-        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert_model_target_status(
+            response=response,
+            status_codes=HTTPStatus.BAD_REQUEST,
+        )
         error = response.json()["error"]
         assert error["code"] == "BAD_REQUEST"
         assert error["message"] == (
@@ -1457,7 +1524,10 @@ class TestErrorResponses:
             timeout=30,
         )
 
-        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert_model_target_status(
+            response=response,
+            status_codes=HTTPStatus.BAD_REQUEST,
+        )
         error = response.json()["error"]
         assert error["code"] == "BAD_REQUEST"
         assert {detail["message"] for detail in error["details"]} == {
@@ -1510,7 +1580,10 @@ class TestErrorResponses:
             timeout=30,
         )
 
-        assert response.status_code == HTTPStatus.NOT_FOUND
+        assert_model_target_status(
+            response=response,
+            status_codes=HTTPStatus.NOT_FOUND,
+        )
         error = response.json()["error"]
         assert error["code"] == "NOT_FOUND"
         assert error["message"] == (
@@ -1578,14 +1651,20 @@ class TestStateBasedDatasets:
             timeout=30,
         )
 
-        assert create_response.status_code == HTTPStatus.CREATED
+        assert_model_target_status(
+            response=create_response,
+            status_codes=HTTPStatus.CREATED,
+        )
         dataset_uuid = create_response.json()["uuid"]
         delete_response = requests.delete(
             url=f"{_VWS_HOST}{dataset_path}/{dataset_uuid}",
             headers=headers,
             timeout=30,
         )
-        assert delete_response.status_code == HTTPStatus.OK
+        assert_model_target_status(
+            response=delete_response,
+            status_codes=HTTPStatus.OK,
+        )
 
     @staticmethod
     def test_view_states_are_a_subset(
@@ -1615,7 +1694,10 @@ class TestStateBasedDatasets:
             timeout=30,
         )
 
-        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert_model_target_status(
+            response=response,
+            status_codes=HTTPStatus.BAD_REQUEST,
+        )
         error = response.json()["error"]
         assert error["code"] == "BAD_REQUEST"
         assert [detail["message"] for detail in error["details"]] == [
@@ -1718,7 +1800,10 @@ class TestAdditionalBehaviors:
             timeout=30,
         )
 
-        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert_model_target_status(
+            response=response,
+            status_codes=HTTPStatus.BAD_REQUEST,
+        )
         error = response.json()["error"]
         assert error["code"] == "BAD_REQUEST"
         assert [detail["message"] for detail in error["details"]] == [
@@ -1762,7 +1847,10 @@ class TestAdditionalBehaviors:
             timeout=30,
         )
 
-        assert advanced_response.status_code == HTTPStatus.BAD_REQUEST
+        assert_model_target_status(
+            response=advanced_response,
+            status_codes=HTTPStatus.BAD_REQUEST,
+        )
         error = advanced_response.json()["error"]
         assert error["code"] == "BAD_REQUEST"
         assert [detail["message"] for detail in error["details"]] == [
@@ -1792,7 +1880,10 @@ class TestAdditionalBehaviors:
             timeout=30,
         )
 
-        assert response.status_code == HTTPStatus.OK
+        assert_model_target_status(
+            response=response,
+            status_codes=HTTPStatus.OK,
+        )
         assert response.json()["token_type"] == "bearer"
 
     @staticmethod
@@ -1819,7 +1910,10 @@ class TestAdditionalBehaviors:
                 timeout=30,
             )
 
-        assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+        assert_model_target_status(
+            response=response,
+            status_codes=HTTPStatus.UNPROCESSABLE_ENTITY,
+        )
         error = response.json()["error"]
         assert error["code"] == "UNSUPPORTED_STATE"
         assert error["message"] == (
@@ -1864,7 +1958,10 @@ class TestAdditionalBehaviors:
             )
 
         assert status_response.json()["status"] == "failed"
-        assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+        assert_model_target_status(
+            response=response,
+            status_codes=HTTPStatus.UNPROCESSABLE_ENTITY,
+        )
         error = response.json()["error"]
         assert error["code"] == "UNSUPPORTED_STATE"
         assert error["message"] == (
@@ -1911,7 +2008,10 @@ class TestAdditionalBehaviors:
                 ),
                 timeout=30,
             )
-            assert create_response.status_code == HTTPStatus.CREATED
+            assert_model_target_status(
+                response=create_response,
+                status_codes=HTTPStatus.CREATED,
+            )
             dataset_uuid = create_response.json()["uuid"]
 
             other_status_response = requests.get(
@@ -1939,17 +2039,29 @@ class TestAdditionalBehaviors:
                     headers=headers,
                     timeout=30,
                 )
-                assert delete_response.status_code in {
-                    HTTPStatus.OK,
-                    HTTPStatus.NO_CONTENT,
-                }
+                assert_model_target_status(
+                    response=delete_response,
+                    status_codes={
+                        HTTPStatus.OK,
+                        HTTPStatus.NO_CONTENT,
+                    },
+                )
 
-        assert other_status_response.status_code == HTTPStatus.OK
-        assert other_delete_response.status_code in {
-            HTTPStatus.OK,
-            HTTPStatus.NO_CONTENT,
-        }
-        assert own_status_response.status_code == HTTPStatus.OK
+        assert_model_target_status(
+            response=other_status_response,
+            status_codes=HTTPStatus.OK,
+        )
+        assert_model_target_status(
+            response=other_delete_response,
+            status_codes={
+                HTTPStatus.OK,
+                HTTPStatus.NO_CONTENT,
+            },
+        )
+        assert_model_target_status(
+            response=own_status_response,
+            status_codes=HTTPStatus.OK,
+        )
 
 
 class TestStandardDataset:
@@ -1984,7 +2096,10 @@ class TestStandardDataset:
                 timeout=30,
             )
 
-            assert create_response.status_code == HTTPStatus.CREATED
+            assert_model_target_status(
+                response=create_response,
+                status_codes=HTTPStatus.CREATED,
+            )
             create_response_json: dict[str, Any] = json.loads(
                 s=create_response.text,
             )
@@ -2001,7 +2116,10 @@ class TestStandardDataset:
                 timeout=30,
             )
 
-            assert status_response.status_code == HTTPStatus.OK
+            assert_model_target_status(
+                response=status_response,
+                status_codes=HTTPStatus.OK,
+            )
             status_response_json: dict[str, Any] = json.loads(
                 s=status_response.text,
             )
@@ -2026,7 +2144,10 @@ class TestStandardDataset:
                     headers=headers,
                     timeout=30,
                 )
-                assert status_response.status_code == HTTPStatus.OK
+                assert_model_target_status(
+                    response=status_response,
+                    status_codes=HTTPStatus.OK,
+                )
                 status_response_json = status_response.json()
 
             assert status_response_json["status"] == "done"
@@ -2046,7 +2167,10 @@ class TestStandardDataset:
                 headers=headers,
                 timeout=30,
             )
-            assert download_response.status_code == HTTPStatus.OK
+            assert_model_target_status(
+                response=download_response,
+                status_codes=HTTPStatus.OK,
+            )
             assert download_response.headers["Content-Type"] == (
                 "application/zip"
             )
@@ -2064,10 +2188,13 @@ class TestStandardDataset:
                     headers=headers,
                     timeout=30,
                 )
-                assert delete_response.status_code in {
-                    HTTPStatus.OK,
-                    HTTPStatus.NO_CONTENT,
-                }
+                assert_model_target_status(
+                    response=delete_response,
+                    status_codes={
+                        HTTPStatus.OK,
+                        HTTPStatus.NO_CONTENT,
+                    },
+                )
 
     @staticmethod
     def test_create_with_cad_data_blob(
@@ -2091,7 +2218,10 @@ class TestStandardDataset:
             timeout=30,
         )
 
-        assert create_response.status_code == HTTPStatus.CREATED
+        assert_model_target_status(
+            response=create_response,
+            status_codes=HTTPStatus.CREATED,
+        )
         create_response_json: dict[str, Any] = json.loads(
             s=create_response.text,
         )
@@ -2106,10 +2236,13 @@ class TestStandardDataset:
             headers=headers,
             timeout=30,
         )
-        assert delete_response.status_code in {
-            HTTPStatus.OK,
-            HTTPStatus.NO_CONTENT,
-        }
+        assert_model_target_status(
+            response=delete_response,
+            status_codes={
+                HTTPStatus.OK,
+                HTTPStatus.NO_CONTENT,
+            },
+        )
 
 
 class TestModelTargetDatasetStatus:
@@ -2162,7 +2295,10 @@ class TestMockOnlyOAuth2EdgeCases:
             },
             timeout=30,
         )
-        assert response.status_code == HTTPStatus.OK
+        assert_model_target_status(
+            response=response,
+            status_codes=HTTPStatus.OK,
+        )
         access_token: object = response.json()["access_token"]
         assert isinstance(access_token, str)
         return access_token
@@ -2180,7 +2316,10 @@ class TestMockOnlyOAuth2EdgeCases:
                 },
                 timeout=30,
             )
-            assert invalid_password.status_code == HTTPStatus.UNAUTHORIZED
+            assert_model_target_status(
+                response=invalid_password,
+                status_codes=HTTPStatus.UNAUTHORIZED,
+            )
             assert invalid_password.json()["error"] == "invalid_grant"
 
             invalid_scope = requests.post(
@@ -2189,7 +2328,10 @@ class TestMockOnlyOAuth2EdgeCases:
                 data={"scope": "not.a.scope"},
                 timeout=30,
             )
-            assert invalid_scope.status_code == HTTPStatus.BAD_REQUEST
+            assert_model_target_status(
+                response=invalid_scope,
+                status_codes=HTTPStatus.BAD_REQUEST,
+            )
             assert invalid_scope.json()["error"] == "invalid_scope"
 
     @staticmethod
@@ -2210,30 +2352,42 @@ class TestMockOnlyOAuth2EdgeCases:
                     headers=request_headers,
                     timeout=30,
                 )
-                assert response.status_code in {
-                    HTTPStatus.UNAUTHORIZED,
-                    HTTPStatus.FORBIDDEN,
-                }
+                assert_model_target_status(
+                    response=response,
+                    status_codes={
+                        HTTPStatus.UNAUTHORIZED,
+                        HTTPStatus.FORBIDDEN,
+                    },
+                )
 
             delete_response = requests.delete(
                 url=f"{_VWS_HOST}/oauth2/clientcredentials/client-id",
                 timeout=30,
             )
-            assert delete_response.status_code == HTTPStatus.UNAUTHORIZED
+            assert_model_target_status(
+                response=delete_response,
+                status_codes=HTTPStatus.UNAUTHORIZED,
+            )
 
             create_response = requests.post(
                 url=f"{_VWS_HOST}/oauth2/clientcredentials",
                 json={"scopes": []},
                 timeout=30,
             )
-            assert create_response.status_code == HTTPStatus.UNAUTHORIZED
+            assert_model_target_status(
+                response=create_response,
+                status_codes=HTTPStatus.UNAUTHORIZED,
+            )
 
             update_response = requests.put(
                 url=f"{_VWS_HOST}/oauth2/clientcredentials/client-id/scopes",
                 json=[],
                 timeout=30,
             )
-            assert update_response.status_code == HTTPStatus.UNAUTHORIZED
+            assert_model_target_status(
+                response=update_response,
+                status_codes=HTTPStatus.UNAUTHORIZED,
+            )
 
     @staticmethod
     def test_non_string_token_scope() -> None:
@@ -2259,7 +2413,10 @@ class TestMockOnlyOAuth2EdgeCases:
                 headers={"Authorization": f"Bearer {token}"},
                 timeout=30,
             )
-            assert response.status_code == HTTPStatus.FORBIDDEN
+            assert_model_target_status(
+                response=response,
+                status_codes=HTTPStatus.FORBIDDEN,
+            )
 
     @staticmethod
     def test_client_credential_validation_errors() -> None:
@@ -2279,7 +2436,10 @@ class TestMockOnlyOAuth2EdgeCases:
                     data=content,
                     timeout=30,
                 )
-                assert response.status_code == HTTPStatus.BAD_REQUEST
+                assert_model_target_status(
+                    response=response,
+                    status_codes=HTTPStatus.BAD_REQUEST,
+                )
 
             missing = requests.put(
                 url=f"{_VWS_HOST}/oauth2/clientcredentials/missing/scopes",
@@ -2287,7 +2447,10 @@ class TestMockOnlyOAuth2EdgeCases:
                 json=[],
                 timeout=30,
             )
-            assert missing.status_code == HTTPStatus.NOT_FOUND
+            assert_model_target_status(
+                response=missing,
+                status_codes=HTTPStatus.NOT_FOUND,
+            )
 
             created = requests.post(
                 url=f"{_VWS_HOST}/oauth2/clientcredentials",
@@ -2306,7 +2469,10 @@ class TestMockOnlyOAuth2EdgeCases:
                     data=content,
                     timeout=30,
                 )
-                assert response.status_code == HTTPStatus.BAD_REQUEST
+                assert_model_target_status(
+                    response=response,
+                    status_codes=HTTPStatus.BAD_REQUEST,
+                )
 
     @staticmethod
     def test_client_credential_limit(
@@ -2333,7 +2499,10 @@ class TestMockOnlyOAuth2EdgeCases:
                 json={"scopes": []},
                 timeout=30,
             )
-            assert response.status_code == HTTPStatus.CONFLICT
+            assert_model_target_status(
+                response=response,
+                status_codes=HTTPStatus.CONFLICT,
+            )
 
     @staticmethod
     def test_dataset_scope_and_shape_errors() -> None:
@@ -2358,7 +2527,10 @@ class TestMockOnlyOAuth2EdgeCases:
                 json=state_based,
                 timeout=30,
             )
-            assert forbidden.status_code == HTTPStatus.FORBIDDEN
+            assert_model_target_status(
+                response=forbidden,
+                status_codes=HTTPStatus.FORBIDDEN,
+            )
 
             invalid_view = requests.post(
                 url=f"{_VWS_HOST}/modeltargets/datasets",
@@ -2369,7 +2541,10 @@ class TestMockOnlyOAuth2EdgeCases:
                 },
                 timeout=30,
             )
-            assert invalid_view.status_code == HTTPStatus.BAD_REQUEST
+            assert_model_target_status(
+                response=invalid_view,
+                status_codes=HTTPStatus.BAD_REQUEST,
+            )
 
             advanced_empty = requests.post(
                 url=f"{_VWS_HOST}/modeltargets/advancedDatasets",
@@ -2383,7 +2558,10 @@ class TestMockOnlyOAuth2EdgeCases:
                 json={"name": "name", "targetSdk": "10.18", "models": []},
                 timeout=30,
             )
-            assert advanced_empty.status_code == HTTPStatus.BAD_REQUEST
+            assert_model_target_status(
+                response=advanced_empty,
+                status_codes=HTTPStatus.BAD_REQUEST,
+            )
 
     @staticmethod
     def test_view_helper_rejects_non_objects() -> None:
@@ -2410,3 +2588,112 @@ class TestMockOnlyOAuth2EdgeCases:
             client_id="missing",
         )
         assert response.status_code == HTTPStatus.NOT_FOUND
+
+
+@beartype
+def _fake_response(*, status_code: HTTPStatus, text: str) -> Response:
+    """Return a response for testing the status assertion helper."""
+    return Response(
+        text=text,
+        url=f"{_VWS_HOST}/modeltargets/advancedDatasets",
+        status_code=status_code,
+        headers={},
+        request_body=None,
+        tell_position=len(text),
+        content=text.encode(encoding="utf-8"),
+    )
+
+
+class TestAssertModelTargetStatus:
+    """Tests for the Model Target status assertion helper.
+
+    The helper exists to make real Vuforia failures legible, so its
+    messages are worth testing.
+    """
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        argnames="status_codes",
+        argvalues=[
+            pytest.param(HTTPStatus.OK, id="single"),
+            pytest.param(
+                {HTTPStatus.OK, HTTPStatus.NO_CONTENT},
+                id="set",
+            ),
+        ],
+    )
+    def test_expected_status(
+        *,
+        status_codes: HTTPStatus | AbstractSet[HTTPStatus],
+    ) -> None:
+        """An expected status code does not raise."""
+        response = _fake_response(status_code=HTTPStatus.OK, text="{}")
+        assert_model_target_status(
+            response=response,
+            status_codes=status_codes,
+        )
+
+    @staticmethod
+    def test_unexpected_status_shows_the_body() -> None:
+        """An unexpected status code reports the URL and the body."""
+        text = '{"error":{"code":"VALIDATION_ERROR"}}'
+        response = _fake_response(
+            status_code=HTTPStatus.BAD_REQUEST,
+            text=text,
+        )
+        with pytest.raises(expected_exception=AssertionError) as exc:
+            assert_model_target_status(
+                response=response,
+                status_codes=HTTPStatus.CREATED,
+            )
+
+        message = str(object=exc.value)
+        assert message == (
+            "Expected 201 CREATED from "
+            f"{_VWS_HOST}/modeltargets/advancedDatasets, got 400.\n"
+            f"\nResponse body:\n{text}"
+        )
+
+    @staticmethod
+    def test_multiple_expected_statuses() -> None:
+        """Every expected status code is named in the message."""
+        response = _fake_response(
+            status_code=HTTPStatus.BAD_REQUEST,
+            text="{}",
+        )
+        with pytest.raises(expected_exception=AssertionError) as exc:
+            assert_model_target_status(
+                response=response,
+                status_codes={HTTPStatus.OK, HTTPStatus.NO_CONTENT},
+            )
+
+        assert "Expected 200 OK or 204 NO_CONTENT from " in str(
+            object=exc.value
+        )
+
+    @staticmethod
+    def test_training_allowance_exceeded() -> None:
+        """An exhausted account allowance is called out as such, in the
+        first line so that a truncated CI summary still shows it.
+        """
+        response = _fake_response(
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
+            text=(
+                '{"error":{"code":"TRAINING_ALLOWANCE_EXCEEDED",'
+                '"message":"Signing quota reached","target":"7635391"}}'
+            ),
+        )
+        with pytest.raises(expected_exception=AssertionError) as exc:
+            assert_model_target_status(
+                response=response,
+                status_codes=HTTPStatus.CREATED,
+            )
+
+        message = str(object=exc.value)
+        first_line = message.splitlines()[0]
+        assert first_line == (
+            "The Vuforia account is out of Model Target training allowance - "
+            "this is not a failure of the code under test."
+        )
+        assert "MODEL_TARGET_VUFORIA_CLIENT_ID" in message
+        assert "has to be raised, or reset, on the Vuforia account" in message
