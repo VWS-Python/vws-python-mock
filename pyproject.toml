@@ -61,6 +61,10 @@ optional-dependencies.dev = [
     "docker==7.2.0",
     "freezegun==1.5.5",
     "furo==2025.12.19",
+    # We use ``hadolint-coatl`` rather than ``hadolint-py`` because the
+    # ``hadolint-py`` macOS wheel published on PyPI is a corrupt archive and
+    # cannot be installed.
+    "hadolint-coatl==2.15.1",
     "interrogate==1.7.0",
     "mypy[faster-cache]==2.3.1",
     "mypy-strict-kwargs==2026.8.25.1",
