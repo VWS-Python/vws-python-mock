@@ -3,6 +3,19 @@ Changelog
 
 .. towncrier release notes start
 
+2026.08.26
+----------
+
+- Guard the state which the Docker containers share between requests with a lock.
+  The containers serve requests on threads, so concurrent requests, such as those made by a test suite which runs in parallel, could previously race with each other: listing databases while a target was added could return a 500 response, and a target which was being updated or deleted could briefly be missing from a database.
+
+- Give each call of a function decorated with a ``MockVWS`` instance its own databases and targets.
+  Previously, every use of an instance shared one set of databases and targets, so decorating two test functions with one instance made them affect each other.
+  A database can still be inspected during a call, and its targets are what they were before the call again once it returns.
+  Using an instance as a context manager is unchanged: a ``with`` block still shares its state with every other use of the same instance.
+
+- - Add configurable Model Target ``TRAINING_ALLOWANCE_EXCEEDED`` responses to the in-process and Flask/Docker mocks.
+
 2026.08.14
 ----------
 

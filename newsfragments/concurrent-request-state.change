@@ -1,2 +1,0 @@
-Guard the state which the Docker containers share between requests with a lock.
-The containers serve requests on threads, so concurrent requests, such as those made by a test suite which runs in parallel, could previously race with each other: listing databases while a target was added could return a 500 response, and a target which was being updated or deleted could briefly be missing from a database.
