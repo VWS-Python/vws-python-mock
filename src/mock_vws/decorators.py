@@ -29,6 +29,7 @@ from mock_vws.image_matchers import (
     StructuralSimilarityMatcher,
 )
 from mock_vws.model_target import (
+    ModelTargetFailureResponse,
     ModelTargetGenerationFailure,
     ModelTargetGenerationWarning,
 )
@@ -66,6 +67,7 @@ class _MockVWSOptions:
     query_match_checker: ImageMatcher
     processing_time_seconds: float
     model_target_generation_failure: ModelTargetGenerationFailure | None
+    model_target_failure_response: ModelTargetFailureResponse | None
     model_target_generation_warning: ModelTargetGenerationWarning | None
     model_target_training_allowance_exceeded: bool
     target_tracking_rater: TargetTrackingRater
@@ -105,6 +107,9 @@ class MockVWS:
         model_target_generation_failure: (
             ModelTargetGenerationFailure | None
         ) = None,
+        model_target_failure_response: (
+            ModelTargetFailureResponse | None
+        ) = None,
         model_target_generation_warning: (
             ModelTargetGenerationWarning | None
         ) = None,
@@ -131,6 +136,10 @@ class MockVWS:
             model_target_generation_failure: A failure to return after every
                 Model Target dataset finishes processing. By default, Model
                 Target datasets finish successfully.
+            model_target_failure_response: A response to return for the
+                selected Model Target dataset request phases, after OAuth2
+                token acquisition and before normal request validation. By
+                default, Model Target dataset requests are handled normally.
             model_target_generation_warning: A warning to return after every
                 Model Target dataset finishes processing. By default, Model
                 Target datasets finish without warnings. This cannot be
@@ -192,6 +201,7 @@ class MockVWS:
             query_match_checker=query_match_checker,
             processing_time_seconds=float(processing_time_seconds),
             model_target_generation_failure=model_target_generation_failure,
+            model_target_failure_response=model_target_failure_response,
             model_target_generation_warning=model_target_generation_warning,
             model_target_training_allowance_exceeded=(
                 model_target_training_allowance_exceeded
@@ -234,6 +244,7 @@ class MockVWS:
             model_target_generation_failure=(
                 options.model_target_generation_failure
             ),
+            model_target_failure_response=options.model_target_failure_response,
             model_target_generation_warning=(
                 options.model_target_generation_warning
             ),
