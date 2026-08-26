@@ -168,7 +168,7 @@ VWS endpoints together, and it is tracked separately from the per-endpoint
 limits.
 
 Vuforia also documents that ``GET /targets`` fails for databases with more than
-1 million images. The mock does not implement this, as the behavior is not
+1 million images, but the mock does not implement this, as the behavior is not
 reproducible against a test account.
 
 Configurable Cloud Query failures
