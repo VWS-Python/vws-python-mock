@@ -120,6 +120,7 @@ jobs:
           - tests/mock_vws/test_flask_app_usage.py
           - tests/mock_vws/test_model_target_generation_failure.py
           - tests/mock_vws/test_model_target_generation_warning.py
+          - tests/mock_vws/test_model_target_failure_response.py
           - tests/mock_vws/test_model_target_training_allowance.py
           - tests/mock_vws/test_model_target_web_api.py
           - tests/mock_vws/test_vumark_generation_api.py

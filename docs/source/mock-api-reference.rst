@@ -15,6 +15,14 @@ API Reference
    :members:
    :undoc-members:
 
+.. autoclass:: mock_vws.ModelTargetFailureResponse(*, status_code, headers={}, body=b'', requests=...)
+   :members:
+   :undoc-members:
+
+.. autoclass:: mock_vws.ModelTargetRequest
+   :members:
+   :undoc-members:
+
 .. autoclass:: mock_vws.VuMarkGenerationFailure
    :members:
    :undoc-members:

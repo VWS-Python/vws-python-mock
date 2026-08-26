@@ -32,6 +32,41 @@ class ModelTargetDatasetType(StrEnum):
 
 
 @beartype
+class ModelTargetRequest(StrEnum):
+    """A Model Target dataset request phase."""
+
+    CREATE = "create"
+    STATUS = "status"
+    DOWNLOAD = "download"
+    DELETE = "delete"
+
+
+@beartype
+@dataclass(frozen=True, kw_only=True)
+class ModelTargetFailureResponse:
+    """A configured failure returned by Model Target dataset requests.
+
+    OAuth2 token requests are always handled normally, so clients obtain a
+    token before a configured dataset-request failure is returned.
+
+    Args:
+        status_code: The HTTP status code to return.
+        headers: The HTTP response headers to return.
+        body: The raw response body. String bodies are encoded as UTF-8 by
+            the HTTP backend; byte bodies are returned unchanged.
+        requests: The dataset request phases which return this response.
+            By default, every dataset request phase returns it.
+    """
+
+    status_code: int
+    headers: dict[str, str] = field(default_factory=dict[str, str])
+    body: str | bytes = b""
+    requests: frozenset[ModelTargetRequest] = field(
+        default_factory=lambda: frozenset(ModelTargetRequest),
+    )
+
+
+@beartype
 @dataclass(frozen=True, kw_only=True)
 class OAuth2ClientCredential:
     """An OAuth2 client credential managed through the Vuforia Web API."""

@@ -196,6 +196,36 @@ The configured response bypasses normal Cloud Query validation and image
 matching. Omitting it preserves the normal successful-query behavior. This
 configuration is not supported by the Flask/Docker backend.
 
+Configurable Model Target failures
+----------------------------------
+
+Use :paramref:`mock_vws.MockVWS.model_target_failure_response` to return a
+particular HTTP failure from selected Model Target dataset request phases. The
+OAuth2 token request is still handled normally, so this exercises client
+behavior after successful token acquisition::
+
+    from mock_vws import (
+        MockVWS,
+        ModelTargetFailureResponse,
+        ModelTargetRequest,
+    )
+
+    failure = ModelTargetFailureResponse(
+        status_code=503,
+        headers={"Content-Type": "text/plain", "Retry-After": "10"},
+        body=b"Temporarily unavailable",
+        requests=frozenset({ModelTargetRequest.STATUS}),
+    )
+
+    with MockVWS(model_target_failure_response=failure):
+        # Model Target status calls return the configured response.
+        ...
+
+Omit ``requests`` to affect create, status, download, and delete requests.
+Other phases retain their normal behavior. This configuration works with
+the in-process ``requests`` and ``httpx`` backends and is not supported by the
+Flask/Docker backend.
+
 Other configurable result codes
 -------------------------------
 
