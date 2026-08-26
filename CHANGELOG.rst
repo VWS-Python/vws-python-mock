@@ -3,6 +3,11 @@ Changelog
 
 .. towncrier release notes start
 
+2026.08.26.1
+------------
+
+- Add configurable Model Target HTTP failure responses for selected dataset request phases.
+
 2026.08.26
 ----------
 
