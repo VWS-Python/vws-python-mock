@@ -43,7 +43,13 @@ def validate_image_integrity(*, request_body: bytes) -> None:
     with open_image(fp=image_file) as pil_image:
         try:
             pil_image.verify()
-        except SyntaxError as exc:
+        except (OSError, SyntaxError) as exc:
+            # ``verify`` raises ``SyntaxError`` for a damaged header and
+            # ``OSError`` for damaged image data, such as a PNG which is
+            # truncated before its ``IEND`` chunk.
+            # ``open_image`` runs outside this ``try``, so anything which
+            # cannot be opened at all is already rejected by
+            # ``validate_image_is_image``.
             _LOGGER.warning(msg="The image is not a valid image file.")
             raise BadImageError from exc
 

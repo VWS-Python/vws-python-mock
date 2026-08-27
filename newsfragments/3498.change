@@ -1,0 +1,1 @@
+Return a ``BadImage`` response, rather than failing to respond, when an image given to the Target API is truncated before the end of its image data.

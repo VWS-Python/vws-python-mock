@@ -29,6 +29,7 @@ from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import (
     make_decompression_bomb_image_file,
     make_single_color_image_file,
+    make_truncated_png_file,
 )
 from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
@@ -495,6 +496,30 @@ class TestImage:
                 name="example_name",
                 width=1,
                 image=corrupted_image_file,
+                application_metadata=None,
+                active_flag=True,
+            )
+
+        assert_vws_failure(
+            response=exc.value.response,
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
+            result_code=ResultCodes.BAD_IMAGE,
+        )
+
+    @staticmethod
+    def test_truncated(vws_client: VWS) -> None:
+        """
+        An error is returned when the given image is truncated before
+        the
+        end of its image data.
+        """
+        image_file = make_truncated_png_file()
+
+        with pytest.raises(expected_exception=BadImageError) as exc:
+            vws_client.add_target(
+                name="example_name",
+                width=1,
+                image=image_file,
                 application_metadata=None,
                 active_flag=True,
             )
