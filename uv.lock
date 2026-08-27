@@ -717,6 +717,18 @@ wheels = [
 ]
 
 [[package]]
+name = "hadolint-coatl"
+version = "2.15.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/79/9c/d5c7304f7eae433c297d151bea7090913c4866361cb9dde3246580802e09/hadolint_coatl-2.15.1.tar.gz", hash = "sha256:35b508dc4e7df9e5c43d5f721534c2bfa241cd31d55c9d7f7d423be8534db772", size = 3265, upload-time = "2026-08-01T00:01:03.41Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/cd/e9/7e47a418d975af8752bc85c5c28850c01fcfeb6990895039e6d400c1c63e/hadolint_coatl-2.15.1-py3-none-macosx_26_0_arm64.whl", hash = "sha256:07ef14b93b2b1016a5016149702694c9cb455c7c1c3e75fb0712ac632747df51", size = 21350942, upload-time = "2026-08-01T00:00:54.317Z" },
+    { url = "https://files.pythonhosted.org/packages/f6/cc/e2bde65810148797e542adb1f39bd7164c4f15cf1a73666b561f96dbee61/hadolint_coatl-2.15.1-py3-none-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl", hash = "sha256:3bc8b467f14a648612bc34612484e94d877ea40aa59ddd54d18461ec61095aea", size = 12156037, upload-time = "2026-08-01T00:00:56.808Z" },
+    { url = "https://files.pythonhosted.org/packages/ac/15/e37f4ff4af50035883648ba4229fde87c19fd37a2b0e0ef016b3aa63bfa1/hadolint_coatl-2.15.1-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:5e51d16f7ea8fcc3ca3535ed013ce2bda549f45d8d939c01e5eba25b56d6f8ef", size = 13063941, upload-time = "2026-08-01T00:00:58.9Z" },
+    { url = "https://files.pythonhosted.org/packages/1d/81/c965d62f9c1999e6eac1d8def73bf14e3671441f5db8b9879b1b4e597f3b/hadolint_coatl-2.15.1-py3-none-win_amd64.whl", hash = "sha256:995659a68adb867633d48f08fe3745a3d0f5703a907cf23c968f81814bc80ce3", size = 15465006, upload-time = "2026-08-01T00:01:01.452Z" },
+]
+
+[[package]]
 name = "html5lib"
 version = "1.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2750,6 +2762,7 @@ dev = [
     { name = "docker" },
     { name = "freezegun" },
     { name = "furo" },
+    { name = "hadolint-coatl" },
     { name = "interrogate" },
     { name = "mypy", extra = ["faster-cache"] },
     { name = "mypy-strict-kwargs" },
@@ -2821,6 +2834,7 @@ requires-dist = [
     { name = "flask", specifier = ">=3.0.3" },
     { name = "freezegun", marker = "extra == 'dev'", specifier = "==1.5.5" },
     { name = "furo", marker = "extra == 'dev'", specifier = "==2025.12.19" },
+    { name = "hadolint-coatl", marker = "extra == 'dev'", specifier = "==2.15.1" },
     { name = "httpx", specifier = ">=0.27.0" },
     { name = "interrogate", marker = "extra == 'dev'", specifier = "==1.7.0" },
     { name = "mypy", extras = ["faster-cache"], marker = "extra == 'dev'", specifier = "==2.3.1" },

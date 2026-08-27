@@ -99,16 +99,6 @@ hooks = [
 ]
 
 [[repos]]
-repo = "https://github.com/AleksaC/hadolint-py"
-rev = "v2.15.1"
-hooks = [
-  {
-    id = "hadolint",
-    stages = ["pre-commit"]
-  }
-]
-
-[[repos]]
 repo = "local"
 hooks = [
   {
@@ -131,6 +121,15 @@ hooks = [
     language = "python",
     pass_filenames = false,
     types_or = ["yaml"],
+    additional_dependencies = ["uv==0.11.7"],
+    stages = ["pre-commit"]
+  },
+  {
+    id = "hadolint",
+    name = "hadolint",
+    entry = "uv run --extra=dev hadolint",
+    language = "python",
+    types_or = ["dockerfile"],
     additional_dependencies = ["uv==0.11.7"],
     stages = ["pre-commit"]
   },
