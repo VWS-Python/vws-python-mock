@@ -1681,15 +1681,15 @@ wheels = [
 
 [[package]]
 name = "pytest-partition-check"
-version = "2026.8.10.1"
+version = "2026.8.23"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "beartype" },
     { name = "pytest" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/7b/24/abc56101c2c1aa27df3292489131e1c236d656e7916194d568a49c01d27b/pytest_partition_check-2026.8.10.1.tar.gz", hash = "sha256:aff56486057490b5596805ebdf780473003c304e4aa046a66862e20b3235894f", size = 20383, upload-time = "2026-08-10T16:17:15.213Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/6e/0a/e1957a2ae00f72f4b5678066130343c1f9a43fc65e69e6242040dbf8afdd/pytest_partition_check-2026.8.23.tar.gz", hash = "sha256:1895b2bfcb9a728f76bb63eba3b6a30acd8c8cbbd5962220a89c7c36379874b9", size = 26473, upload-time = "2026-08-23T13:57:29.749Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a1/90/eb3568a318b7cef2e1dcfe04f00c4a871e00ff850e692d402879ef7be4e7/pytest_partition_check-2026.8.10.1-py3-none-any.whl", hash = "sha256:d73ea48f1a3a739410976731ce7829ce96de842b64f1f81ea165c360ab4aab38", size = 9897, upload-time = "2026-08-10T16:17:13.754Z" },
+    { url = "https://files.pythonhosted.org/packages/41/ca/dc69d87b7eb4adc164170cb5880f877c29318f73d870d24b9ba3513c96fb/pytest_partition_check-2026.8.23-py3-none-any.whl", hash = "sha256:21bb8ce90fc76d2f72c4623df53b04ef390728b143a8ef46ff447fcc204842c8", size = 11666, upload-time = "2026-08-23T13:57:28.533Z" },
 ]
 
 [[package]]
@@ -2842,7 +2842,7 @@ requires-dist = [
     { name = "pyteenybrisque", specifier = ">=0.1.1" },
     { name = "pytest", marker = "extra == 'dev'", specifier = "==9.1.1" },
     { name = "pytest-beartype-tests", marker = "extra == 'dev'", specifier = "==2026.8.16" },
-    { name = "pytest-partition-check", marker = "extra == 'dev'", specifier = "==2026.8.10.1" },
+    { name = "pytest-partition-check", marker = "extra == 'dev'", specifier = "==2026.8.23" },
     { name = "pytest-retry", marker = "extra == 'dev'", specifier = "==1.7.0" },
     { name = "pytest-xdist", marker = "extra == 'dev'", specifier = "==3.8.0" },
     { name = "pyyaml", marker = "extra == 'dev'", specifier = "==6.0.3" },
