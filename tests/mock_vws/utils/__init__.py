@@ -204,6 +204,27 @@ def make_single_color_image_file(*, width: int, height: int) -> io.BytesIO:
 
 
 @beartype
+def make_truncated_png_file() -> io.BytesIO:
+    """Return a PNG file whose image data is cut off before the end.
+
+    The file keeps a valid signature and header, so Pillow opens it, but the
+    ``IEND`` chunk which marks the end of the image is missing, so decoding
+    the image data fails.
+
+    Returns:
+        A PNG file which is truncated before its ``IEND`` chunk.
+    """
+    image = Image.frombytes(mode="RGB", size=(1, 1), data=b"\x01\x02\x03")
+    image_buffer = io.BytesIO()
+    image.save(fp=image_buffer, format="PNG", optimize=True)
+    image_bytes = image_buffer.getvalue()
+    # Remove the ``IEND`` chunk: its four length bytes, its four type bytes
+    # and its four checksum bytes.
+    truncated = image_bytes[: image_bytes.rindex(b"IEND") - 4]
+    return io.BytesIO(initial_bytes=truncated)
+
+
+@beartype
 def make_decompression_bomb_image_file() -> io.BytesIO:
     """Return a PNG file which is tiny on disk but huge when decoded.
 

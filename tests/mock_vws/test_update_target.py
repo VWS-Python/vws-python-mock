@@ -25,6 +25,7 @@ from vws.response import Response
 from vws_test_fixtures.images import VWS_MAX_IMAGE_FILE_SIZE
 
 from mock_vws._constants import ResultCodes
+from tests.mock_vws.utils import make_truncated_png_file
 from tests.mock_vws.utils.assertions import (
     assert_vws_failure,
     assert_vws_response,
@@ -658,6 +659,31 @@ class TestImage:
             vws_client.update_target(
                 target_id=target_id,
                 image=corrupted_image_file,
+            )
+
+        assert_vws_failure(
+            response=exc.value.response,
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
+            result_code=ResultCodes.BAD_IMAGE,
+        )
+
+    @staticmethod
+    def test_truncated(
+        *,
+        vws_client: VWS,
+        target_id: str,
+    ) -> None:
+        """
+        An error is returned when the given image is truncated before
+        the
+        end of its image data.
+        """
+        image_file = make_truncated_png_file()
+
+        with pytest.raises(expected_exception=BadImageError) as exc:
+            vws_client.update_target(
+                target_id=target_id,
+                image=image_file,
             )
 
         assert_vws_failure(

@@ -101,6 +101,7 @@ jobs:
           - tests/mock_vws/test_update_target.py::TestImage::test_image_valid
           - tests/mock_vws/test_update_target.py::TestImage::test_bad_image_format_or_color_space
           - tests/mock_vws/test_update_target.py::TestImage::test_corrupted
+          - tests/mock_vws/test_update_target.py::TestImage::test_truncated
           - tests/mock_vws/test_update_target.py::TestImage::test_image_too_large
           - tests/mock_vws/test_update_target.py::TestImage::test_not_base64_encoded_processable
           - tests/mock_vws/test_update_target.py::TestImage::test_not_base64_encoded_not_processable
