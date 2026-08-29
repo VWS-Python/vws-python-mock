@@ -15,6 +15,7 @@ from beartype import beartype
 from mock_vws._constants import ResultCodes
 from mock_vws._mock_common import json_dump
 from mock_vws._services_validators.exceptions import FailError
+from mock_vws.database import CloudDatabase
 from mock_vws.reco_counts import RecoCountsReport
 
 _ResponseType = tuple[int, dict[str, str], str | bytes]
@@ -78,6 +79,13 @@ def _download_headers(
 
 
 @beartype
+def _current_month() -> str:
+    """Return the current month in the ``YYYY-mm`` form."""
+    now = datetime.datetime.now(tz=ZoneInfo(key="UTC"))
+    return now.strftime(format="%Y-%m")
+
+
+@beartype
 def _months_in_range() -> set[str]:
     """Return the months which a report can be requested for.
 
@@ -87,8 +95,41 @@ def _months_in_range() -> set[str]:
     first_of_month = now.replace(day=1)
     last_of_previous_month = first_of_month - datetime.timedelta(days=1)
     return {
-        now.strftime(format="%Y-%m"),
+        _current_month(),
         last_of_previous_month.strftime(format="%Y-%m"),
+    }
+
+
+@beartype
+def _reco_counts_for_month(
+    *,
+    database: CloudDatabase,
+    month: str,
+) -> dict[str, int]:
+    """Return the recognition count of each target in the given month.
+
+    Args:
+        database: The database to report on.
+        month: The month to report on, in the ``YYYY-mm`` form. This is either
+            the current month or the previous month.
+
+    Returns:
+        The recognition count of each target which has any recognitions in the
+        given month, keyed by target ID.
+    """
+    is_current_month = month == _current_month()
+    reco_counts = {
+        target.target_id: (
+            target.current_month_recos
+            if is_current_month
+            else target.previous_month_recos
+        )
+        for target in database.targets
+    }
+    return {
+        target_id: reco_count
+        for target_id, reco_count in reco_counts.items()
+        if reco_count
     }
 
 
@@ -96,6 +137,7 @@ def _months_in_range() -> set[str]:
 def create_reco_counts_report(
     *,
     request_body: bytes,
+    database: CloudDatabase,
     report_store: RecoCountsReportStore,
     generation_time_seconds: float,
     base_url: str,
@@ -104,6 +146,7 @@ def create_reco_counts_report(
 
     Args:
         request_body: The body of the request.
+        database: The database to report on.
         report_store: The store which holds generated reports.
         generation_time_seconds: The number of seconds before a generated
             report is available to download.
@@ -135,6 +178,7 @@ def create_reco_counts_report(
 
     report = RecoCountsReport(
         generation_time_seconds=generation_time_seconds,
+        reco_counts=_reco_counts_for_month(database=database, month=month),
     )
     report_store.add_reco_counts_report(reco_counts_report=report)
 

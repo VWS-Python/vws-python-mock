@@ -1,6 +1,7 @@
 """Tests for the mock of the reco counts report endpoint."""
 
 import datetime
+import io
 import json
 import time
 import uuid
@@ -11,15 +12,22 @@ from zoneinfo import ZoneInfo
 import pytest
 import requests
 from beartype import beartype
+from vws import VWS
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws._constants import ResultCodes
 from mock_vws.database import CloudDatabase
+from tests.mock_vws.fixtures.vuforia_backends import VuforiaBackend
+from tests.mock_vws.utils.recognition_counts import seed_recognition_counts
 
 _VWS_HOST = "https://vws.vuforia.com"
 # The number of seconds which the mocks take to generate a report.
 # This matches the default processing time of the mocks.
 _GENERATION_TIME_SECONDS = 2
+# The recognition counts which the seeded tests set on a target.
+_CURRENT_MONTH_RECOS = 3
+_PREVIOUS_MONTH_RECOS = 5
+_TOTAL_RECOS = 8
 
 
 @beartype
@@ -218,6 +226,70 @@ class TestDownloadReport:
         assert ready_response.status_code == HTTPStatus.OK
         assert ready_response.headers["Content-Type"] == "text/plain"
         assert ready_response.text == "target_id,reco_count\r\n"
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        argnames=("months_ago", "expected_reco_count"),
+        argvalues=[
+            (0, _CURRENT_MONTH_RECOS),
+            (1, _PREVIOUS_MONTH_RECOS),
+        ],
+        ids=["current_month", "previous_month"],
+    )
+    def test_seeded_recognition_counts(
+        *,
+        mock_only_vuforia: VuforiaBackend,
+        vws_client: VWS,
+        vuforia_database: CloudDatabase,
+        high_quality_image: io.BytesIO,
+        image_file_failed_state: io.BytesIO,
+        months_ago: int,
+        expected_reco_count: int,
+    ) -> None:
+        """The report has a row for each target recognized in the month.
+
+        Nothing sets recognition counts on real Vuforia, so this runs
+        against the mocks only.
+        """
+        recognized_target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=high_quality_image,
+            active_flag=True,
+            application_metadata=None,
+        )
+        unrecognized_target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=image_file_failed_state,
+            active_flag=True,
+            application_metadata=None,
+        )
+        seed_recognition_counts(
+            backend=mock_only_vuforia,
+            vuforia_database=vuforia_database,
+            target_id=recognized_target_id,
+            current_month_recos=_CURRENT_MONTH_RECOS,
+            previous_month_recos=_PREVIOUS_MONTH_RECOS,
+            total_recos=_TOTAL_RECOS,
+        )
+
+        response = _request_reco_counts_report(
+            vuforia_database=vuforia_database,
+            database_id=vuforia_database.database_id,
+            month=_month_offset_from_now(months=-months_ago),
+        )
+        presigned_url = json.loads(s=response.text)["presigned_url"]
+
+        time.sleep(_GENERATION_TIME_SECONDS + 1)
+
+        ready_response = requests.get(url=presigned_url, timeout=30)
+        assert ready_response.status_code == HTTPStatus.OK
+        assert ready_response.text == (
+            "target_id,reco_count\r\n"
+            f"{recognized_target_id},{expected_reco_count}\r\n"
+        )
+        assert unrecognized_target_id not in ready_response.text
 
     @staticmethod
     def test_unknown_report() -> None:

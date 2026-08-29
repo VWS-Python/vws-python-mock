@@ -66,7 +66,16 @@ def _time_now() -> datetime.datetime:
 @beartype(conf=BeartypeConf(is_pep484_tower=True))
 @dataclass(frozen=True, eq=True, kw_only=True)
 class ImageTarget:
-    """A Vuforia image target as managed in the Vuforia Target Manager."""
+    """A Vuforia image target as managed in the Vuforia Target Manager.
+
+    ``current_month_recos``, ``previous_month_recos`` and ``total_recos`` are
+    the recognition counts which the target summary report and the reco counts
+    report show for this target. The mock does not count recognitions, so
+    these are whatever they are set to. Targets are created by API requests,
+    so set them with
+    :meth:`mock_vws.MockVWS.set_target_recognition_counts` rather than by
+    constructing a target.
+    """
 
     active_flag: bool
     application_metadata: str | None

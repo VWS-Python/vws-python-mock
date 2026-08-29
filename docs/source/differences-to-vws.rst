@@ -23,7 +23,22 @@ In the real Vuforia Web Services, the processing stage takes varying lengths of 
 The database summary in the real Vuforia Web Services takes some time to account for images and recognitions.
 Sometimes the real summary skips image states such as the processing state.
 The mock is accurate immediately with regards to images.
+
 The mock does not count recognitions.
+Real Vuforia's recognition counts lag behind its queries by far longer than a
+test runs, so a query in the mock does not change any count either.
+Set the counts you want to see instead:
+:paramref:`mock_vws.database.CloudDatabase.total_recos`,
+:paramref:`mock_vws.database.CloudDatabase.current_month_recos`,
+:paramref:`mock_vws.database.CloudDatabase.previous_month_recos` and
+:paramref:`mock_vws.database.CloudDatabase.reco_threshold` for the database
+summary report, and
+:meth:`mock_vws.MockVWS.set_target_recognition_counts` for the counts of a
+target, which the target summary report and the reco counts report show.
+Targets are created by API requests, so their counts are set after the target
+is created.
+The Flask and Docker mock has an equivalent target manager endpoint, described
+in :doc:`docker`.
 
 Image quality and ratings
 -------------------------
@@ -364,9 +379,21 @@ Reco counts reports
 
 The mock does not count recognitions, so a generated reco counts report
 contains only the ``target_id,reco_count`` header row, ending with a carriage
-return and a line feed.
+return and a line feed, until recognition counts are set on targets.
 That is what real Vuforia returns for a database with no recognitions.
-The mock returns the same report for the current month and the previous month.
+
+A report for the current month has a row for each target with a non-zero
+``current_month_recos``, and a report for the previous month has a row for
+each target with a non-zero ``previous_month_recos``.
+Each row ends with a carriage return and a line feed, as the header row does.
+The mock takes the counts when the report is requested, so counts which are
+set after that are not in that report.
+The mock orders the rows by target ID.
+Real Vuforia's order is not known, because no report with rows has been
+observed.
+Setting recognition counts is mock-only, because real Vuforia's counts are
+delayed for longer than a test runs, so the tests for reports with rows in
+``tests/mock_vws/test_reco_counts_report.py`` run against the mocks only.
 As with real Vuforia, the report is served with a ``text/plain`` content type
 rather than a CSV one.
 

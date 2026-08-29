@@ -1,5 +1,6 @@
 """Decorators for using the mock."""
 
+import copy
 import functools
 import re
 import time
@@ -33,6 +34,7 @@ from mock_vws.model_target import (
     ModelTargetGenerationFailure,
     ModelTargetGenerationWarning,
 )
+from mock_vws.target import ImageTarget
 from mock_vws.target_manager import TargetManager
 from mock_vws.target_raters import (
     BrisqueTargetTrackingRater,
@@ -327,6 +329,70 @@ class MockVWS:
             vumark_database=vumark_database,
         )
         self._added_vumark_databases.append(vumark_database)
+
+    def set_target_recognition_counts(
+        self,
+        *,
+        target_id: str,
+        current_month_recos: int | None = None,
+        previous_month_recos: int | None = None,
+        total_recos: int | None = None,
+    ) -> None:
+        """Set the recognition counts of a target.
+
+        Queries do not change these counts, because the counts which real
+        Vuforia reports lag behind its queries by longer than a test runs, so
+        this is the only way to make them anything but zero.
+
+        Args:
+            target_id: The ID of the target to set recognition counts of.
+            current_month_recos: The number of recognitions of the target in
+                the current month, or ``None`` to leave that count as it is.
+            previous_month_recos: The number of recognitions of the target in
+                the previous month, or ``None`` to leave that count as it is.
+            total_recos: The total number of recognitions of the target, or
+                ``None`` to leave that count as it is.
+
+        Raises:
+            ValueError: No target in any added cloud database has the given ID.
+        """
+        with self._target_manager.lock:
+            matches = [
+                (cloud_database, target)
+                for cloud_database in self._target_manager.cloud_databases
+                for target in cloud_database.targets
+                if target.target_id == target_id
+            ]
+
+            if not matches:
+                msg = f'No target has the ID "{target_id}".'
+                raise ValueError(msg)
+
+            for cloud_database, target in matches:
+                # Recognizing a target does not change it, so the target's
+                # last modified date is not changed here.
+                #
+                # See https://github.com/facebook/pyrefly/issues/1897
+                new_target: ImageTarget = copy.replace(
+                    target,  # pyrefly: ignore[bad-argument-type]
+                    current_month_recos=(
+                        target.current_month_recos
+                        if current_month_recos is None
+                        else current_month_recos
+                    ),
+                    previous_month_recos=(
+                        target.previous_month_recos
+                        if previous_month_recos is None
+                        else previous_month_recos
+                    ),
+                    total_recos=(
+                        target.total_recos
+                        if total_recos is None
+                        else total_recos
+                    ),
+                )
+                cloud_database.targets.remove(target)
+                cloud_database.targets.add(new_target)
 
     def __call__[**P, T](
         self,

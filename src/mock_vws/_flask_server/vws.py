@@ -688,9 +688,17 @@ def reco_counts_report(database_id: str) -> Response:
     # keys before the request reaches this route.
     del database_id
     settings = VWSSettings.model_validate(obj={})
+    database = get_database_matching_server_keys(
+        request_headers=dict(request.headers),
+        request_body=request.data,
+        request_method=request.method,
+        request_path=request.path,
+        databases=get_all_cloud_databases(),
+    )
     return _to_flask_response(
         api_response=create_reco_counts_report(
             request_body=request.data,
+            database=database,
             report_store=_RECO_COUNTS_REPORT_STORE,
             generation_time_seconds=settings.processing_time_seconds,
             base_url=settings.vws_base_url.rstrip("/"),

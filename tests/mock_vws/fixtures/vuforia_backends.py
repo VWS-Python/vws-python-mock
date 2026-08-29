@@ -32,6 +32,24 @@ from tests.mock_vws.utils.retries import RETRY_ON_TRANSIENT_VWS_FAILURE
 LOGGER = logging.getLogger(name=__name__)
 LOGGER.setLevel(level=logging.DEBUG)
 
+# The in-memory mock which the ``MOCK`` backend is running, if any.
+#
+# Tests which use APIs of the mock itself, such as seeding recognition counts,
+# need the mock which the fixture created. This is a list so that the fixture
+# can set and unset it without a ``global`` statement.
+_RUNNING_IN_MEMORY_MOCKS: list[MockVWS] = []
+
+
+@beartype
+def running_in_memory_mock() -> MockVWS:
+    """The in-memory mock which the ``MOCK`` backend is running.
+
+    Returns:
+        The mock which the ``MOCK`` backend set up for the running test.
+        Indexing fails if the ``MOCK`` backend is not running.
+    """
+    return _RUNNING_IN_MEMORY_MOCKS[0]
+
 
 @beartype
 @RETRY_ON_TRANSIENT_VWS_FAILURE
@@ -150,7 +168,11 @@ def _enable_use_mock_vuforia(
         mock.add_cloud_database(cloud_database=inactive_cloud_database)
         mock.add_vumark_database(vumark_database=vumark_database)
         mock.add_vumark_database(vumark_database=inactive_vumark_db)
-        yield
+        _RUNNING_IN_MEMORY_MOCKS.append(mock)
+        try:
+            yield
+        finally:
+            _RUNNING_IN_MEMORY_MOCKS.remove(mock)
 
 
 @beartype

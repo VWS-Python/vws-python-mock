@@ -6,6 +6,7 @@ import email.utils
 import io
 import json
 import socket
+import uuid
 import zipfile
 from http import HTTPStatus
 from urllib.parse import urlparse
@@ -1102,6 +1103,105 @@ class TestTargets:
 
         new_target = VuMarkTarget.from_dict(target_dict=target_dict)
         assert new_target == vumark_target
+
+
+class TestSetTargetRecognitionCounts:
+    """Tests for setting the recognition counts of a target."""
+
+    CURRENT_MONTH_RECOS = 3
+    PREVIOUS_MONTH_RECOS = 5
+    TOTAL_RECOS = 8
+
+    def test_set_one_count(self, high_quality_image: io.BytesIO) -> None:
+        """Counts which are not given are left as they are."""
+        database = CloudDatabase()
+        vws_client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+
+        with MockVWS() as mock:
+            mock.add_cloud_database(cloud_database=database)
+            target_id = vws_client.add_target(
+                name="example",
+                width=1,
+                image=high_quality_image,
+                active_flag=True,
+                application_metadata=None,
+            )
+            mock.set_target_recognition_counts(
+                target_id=target_id,
+                total_recos=self.TOTAL_RECOS,
+            )
+            mock.set_target_recognition_counts(
+                target_id=target_id,
+                current_month_recos=self.CURRENT_MONTH_RECOS,
+            )
+
+            report = vws_client.get_target_summary_report(target_id=target_id)
+
+        assert report.total_recos == self.TOTAL_RECOS
+        assert report.current_month_recos == self.CURRENT_MONTH_RECOS
+        assert report.previous_month_recos == 0
+
+    def test_recognition_counts_do_not_change_the_target(
+        self,
+        high_quality_image: io.BytesIO,
+    ) -> None:
+        """Setting recognition counts does not change the target itself.
+
+        A target which is being recognized is not being modified, so its
+        last modified date does not change, and it does not go back to
+        being processed.
+        """
+        database = CloudDatabase()
+        vws_client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+
+        with MockVWS() as mock:
+            mock.add_cloud_database(cloud_database=database)
+            target_id = vws_client.add_target(
+                name="example",
+                width=1,
+                image=high_quality_image,
+                active_flag=True,
+                application_metadata=None,
+            )
+            vws_client.wait_for_target_processed(target_id=target_id)
+            (target,) = database.targets
+            last_modified_date = target.last_modified_date
+
+            mock.set_target_recognition_counts(
+                target_id=target_id,
+                current_month_recos=self.CURRENT_MONTH_RECOS,
+                previous_month_recos=self.PREVIOUS_MONTH_RECOS,
+                total_recos=self.TOTAL_RECOS,
+            )
+
+            report = vws_client.get_target_summary_report(target_id=target_id)
+
+        (new_target,) = database.targets
+        assert new_target.last_modified_date == last_modified_date
+        assert report.status == TargetStatuses.SUCCESS
+
+    @staticmethod
+    def test_unknown_target() -> None:
+        """Setting the counts of an unknown target is an error."""
+        database = CloudDatabase()
+        target_id = uuid.uuid4().hex
+
+        with MockVWS() as mock:
+            mock.add_cloud_database(cloud_database=database)
+            with pytest.raises(
+                expected_exception=ValueError,
+                match=f'No target has the ID "{target_id}".',
+            ):
+                mock.set_target_recognition_counts(
+                    target_id=target_id,
+                    total_recos=1,
+                )
 
 
 class TestDatabaseToDict:
