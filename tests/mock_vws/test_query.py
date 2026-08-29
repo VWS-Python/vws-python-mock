@@ -1051,14 +1051,18 @@ class TestResultOrder:
         vws_client: VWS,
         vuforia_database: CloudDatabase,
     ) -> None:
-        """The mock returns matches ordered by upload date.
+        """Matches with the same score are ordered by upload date.
 
-        The real Query API orders results by match score, which the mock
-        does not model, so we do not verify this against the real Vuforia
-        Web Services.
+        Every target here has the same image, so the mock's image matcher
+        gives them all the same score and the tie-break decides the order.
+        The real Query API scores matches with Vuforia's own proprietary
+        matcher, so we do not verify this against the real Vuforia Web
+        Services.
         """
         if verify_mock_vuforia == VuforiaBackend.REAL:
-            pytest.skip(reason="The real Query API orders by match score.")
+            pytest.skip(
+                reason="The real Query API uses Vuforia's match scores.",
+            )
 
         target_ids = [
             vws_client.add_target(
@@ -1104,7 +1108,9 @@ class TestResultOrder:
         between runs.
         """
         if verify_mock_vuforia == VuforiaBackend.REAL:
-            pytest.skip(reason="The real Query API orders by match score.")
+            pytest.skip(
+                reason="The real Query API uses Vuforia's match scores.",
+            )
 
         target_ids = [
             vws_client.add_target(
