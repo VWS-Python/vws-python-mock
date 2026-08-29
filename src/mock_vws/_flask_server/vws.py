@@ -31,6 +31,7 @@ from mock_vws._constants import (
     TargetStatuses,
 )
 from mock_vws._database_matchers import get_database_matching_server_keys
+from mock_vws._matching import matching_targets
 from mock_vws._mock_common import RequestData, json_dump, sorted_targets
 from mock_vws._model_target_web_api import (
     create_model_target_dataset,
@@ -1108,18 +1109,21 @@ def get_duplicates(target_id: str) -> Response:
     (target,) = (
         target for target in database.targets if target.target_id == target_id
     )
-    other_targets = sorted_targets(targets=database.targets - {target})
+    other_targets = {
+        other
+        for other in database.targets - {target}
+        if TargetStatuses.FAILED.value not in {target.status, other.status}
+        and TargetStatuses.PROCESSING.value != other.status
+        and other.active_flag
+    }
 
     similar_targets = [
         other.target_id
-        for other in other_targets
-        if image_match_checker(
-            first_image_content=target.image_value,
-            second_image_content=other.image_value,
+        for other in matching_targets(
+            matcher=image_match_checker,
+            image_content=target.image_value,
+            targets=other_targets,
         )
-        and TargetStatuses.FAILED.value not in {target.status, other.status}
-        and TargetStatuses.PROCESSING.value != other.status
-        and other.active_flag
     ]
 
     body = {

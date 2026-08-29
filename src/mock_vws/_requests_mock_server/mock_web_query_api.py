@@ -94,7 +94,7 @@ class MockVuforiaWebQueryAPI:
             target_manager: The target manager which holds all databases.
             query_match_checker: A callable which takes two image values
                 and
-                returns whether they match.
+                returns a match score, or ``None`` if they do not match.
             failure_response: A configured failure response which takes
                 precedence over normal query handling.
 

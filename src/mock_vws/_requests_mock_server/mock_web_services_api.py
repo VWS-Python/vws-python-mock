@@ -25,6 +25,7 @@ from mock_vws._constants import (
     TargetStatuses,
 )
 from mock_vws._database_matchers import get_database_matching_server_keys
+from mock_vws._matching import matching_targets
 from mock_vws._mock_common import (
     RECO_COUNTS_DOWNLOAD_PATH_PATTERN,
     RECO_COUNTS_REPORT_PATH_PATTERN,
@@ -174,7 +175,8 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
                 training allowance remaining.
             duplicate_match_checker: A callable which takes two image
         values
-              and returns whether they are duplicates.
+              and returns a match score, or ``None`` if they are not
+              duplicates.
             target_tracking_rater: A callable for rating targets for
         tracking.
             vumark_generation_failure: A configured failure which takes
@@ -976,19 +978,21 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
         target_id = request.path.split(sep="/")[-1]
         target = database.get_target(target_id=target_id)
 
-        other_targets = sorted_targets(targets=database.targets - {target})
+        other_targets = {
+            other
+            for other in database.targets - {target}
+            if TargetStatuses.FAILED.value not in {target.status, other.status}
+            and TargetStatuses.PROCESSING.value != other.status
+            and other.active_flag
+        }
 
         similar_targets = [
             other.target_id
-            for other in other_targets
-            if self._duplicate_match_checker(
-                first_image_content=target.image_value,
-                second_image_content=other.image_value,
+            for other in matching_targets(
+                matcher=self._duplicate_match_checker,
+                image_content=target.image_value,
+                targets=other_targets,
             )
-            and TargetStatuses.FAILED.value
-            not in {target.status, other.status}
-            and TargetStatuses.PROCESSING.value != other.status
-            and other.active_flag
         ]
 
         date = email.utils.formatdate(

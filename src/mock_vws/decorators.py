@@ -159,9 +159,11 @@ class MockVWS:
                 instance generation. By default, VuMark generation requests
                 are handled normally.
             query_match_checker: A callable which takes two image values and
-                returns whether they will match in a query request.
+                returns a match score for a query request, or ``None`` if
+                they do not match.
             duplicate_match_checker: A callable which takes two image values
-                and returns whether they are duplicates.
+                and returns a match score, or ``None`` if they are not
+                duplicates.
             target_tracking_rater: A callable for rating targets for tracking.
             response_delay_seconds: The number of seconds to delay each
                 response by. This can be used to test timeout handling.
