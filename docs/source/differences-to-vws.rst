@@ -9,7 +9,7 @@ Image matching
 
 Vuforia's image matching is proprietary and we do not intend to accurately copy it.
 Instead, we aim for simple algorithms which are fast and are good enough for testing purposes.
-The image matcher is configurable, using :paramref:`~mock_vws.MockVWS.match_checker`.
+The image matchers are configurable, using :paramref:`~mock_vws.MockVWS.query_match_checker` and :paramref:`~mock_vws.MockVWS.duplicate_match_checker`.
 
 Speed and summary accuracy
 --------------------------
@@ -41,14 +41,14 @@ Result ordering
 ---------------
 
 The real Query API orders results by match score, with the best match first.
-The mock has no match score, so it cannot reproduce that order.
-Instead, the mock orders the targets it returns by upload date and then by target ID.
-This makes repeated runs agree with each other, but it means that the mock's order is not a ranking.
-Do not rely on the first result of a mock query being the best match.
+The mock does the same, with the score which its image matcher gives each match.
+That matcher is not Vuforia's, so the mock's ranking is not Vuforia's ranking.
+The order decides which results survive ``max_num_results``, and which result gets target data with ``include_target_data=top``.
 
-This affects which results survive ``max_num_results``, and which result gets target data with ``include_target_data=top``.
+Matches with the same score, which is every match of :class:`~mock_vws.image_matchers.ExactMatcher`, are ordered by upload date and then by target ID.
+The real Vuforia Web Services give no such guarantee.
 
-``GET /targets`` and ``GET /duplicates/{target_id}`` use the same order.
+``GET /duplicates/{target_id}`` is ordered by match score too, and ``GET /targets`` by upload date and then by target ID.
 The real Vuforia Web Services do not document an order for those endpoints.
 
 Matching recently deleted targets

@@ -1,0 +1,7 @@
+Order Query API and ``GET /duplicates/{target_id}`` results by match score, with the best match first, as the real Query API does.
+Matches with equal scores keep the existing upload date and then target ID order.
+
+Image matchers now return a score, or ``None`` for no match, rather than a ``bool``.
+``StructuralSimilarityMatcher`` returns the images' SSIM score, and ``ExactMatcher`` gives every match the same score.
+A custom ``query_match_checker`` or ``duplicate_match_checker`` which returns a ``bool`` now raises a ``TypeError``; return a score, such as ``1.0``, for a match and ``None`` for no match instead.
+The mock's ranking is its matcher's opinion, not Vuforia's proprietary one, so the mock's order still need not agree with the real Query API's order.

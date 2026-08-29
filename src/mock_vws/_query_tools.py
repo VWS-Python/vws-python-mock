@@ -13,7 +13,8 @@ from werkzeug.formparser import MultiPartParser
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_client_keys
-from mock_vws._mock_common import json_dump, sorted_targets
+from mock_vws._matching import matching_targets
+from mock_vws._mock_common import json_dump
 from mock_vws.database import CloudDatabase
 from mock_vws.image_matchers import ImageMatcher
 
@@ -36,7 +37,7 @@ def get_query_match_response_text(
         request_method: The HTTP method of the request.
         databases: All Vuforia databases.
         query_match_checker: A callable which takes two image values and
-            returns whether they match.
+            returns a match score, or ``None`` if they do not match.
 
     Returns:
         The response text for a query endpoint request.
@@ -69,18 +70,15 @@ def get_query_match_response_text(
         databases=databases,
     )
 
-    matching_targets = [
-        target
-        for target in sorted_targets(targets=database.targets)
-        if query_match_checker(
-            first_image_content=target.image_value,
-            second_image_content=image_value,
-        )
-    ]
+    matches_best_first = matching_targets(
+        matcher=query_match_checker,
+        image_content=image_value,
+        targets=database.targets,
+    )
 
     not_deleted_matches = [
         target
-        for target in matching_targets
+        for target in matches_best_first
         if target.active_flag
         # In the real Vuforia, targets which have just
         # been deleted may still get recognized.
