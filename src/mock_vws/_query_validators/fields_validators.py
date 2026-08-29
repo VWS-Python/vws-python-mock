@@ -1,14 +1,12 @@
 """Validators for the fields given."""
 
-import io
 import logging
 from collections.abc import Mapping
-from email.message import EmailMessage
 
 from beartype import beartype
-from werkzeug.formparser import MultiPartParser
 
 from mock_vws._query_validators.exceptions import UnknownParametersError
+from mock_vws._query_validators.multipart import parse_multipart
 
 _LOGGER = logging.getLogger(name=__name__)
 
@@ -27,15 +25,12 @@ def validate_extra_fields(
 
     Raises:
         UnknownParametersError: Extra fields are given.
+        NoContentDispositionError: A part of the body has no
+            ``Content-Disposition`` header.
     """
-    email_message = EmailMessage()
-    email_message["Content-Type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary(failobj="")
-    parser = MultiPartParser()
-    fields, files = parser.parse(
-        stream=io.BytesIO(initial_bytes=request_body),
-        boundary=boundary.encode(encoding="utf-8"),
-        content_length=len(request_body),
+    fields, files = parse_multipart(
+        request_headers=request_headers,
+        request_body=request_body,
     )
     parsed_keys = fields.keys() | files.keys()
     known_parameters = {"image", "max_num_results", "include_target_data"}

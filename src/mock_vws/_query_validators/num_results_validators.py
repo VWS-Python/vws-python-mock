@@ -1,17 +1,15 @@
 """Validators for the ``max_num_results`` fields."""
 
-import io
 import logging
 from collections.abc import Mapping
-from email.message import EmailMessage
 
 from beartype import beartype
-from werkzeug.formparser import MultiPartParser
 
 from mock_vws._query_validators.exceptions import (
     InvalidMaxNumResultsError,
     MaxNumResultsOutOfRangeError,
 )
+from mock_vws._query_validators.multipart import parse_multipart
 
 _LOGGER = logging.getLogger(name=__name__)
 
@@ -36,14 +34,9 @@ def validate_max_num_results(
         MaxNumResultsOutOfRangeError: The ``max_num_results`` given is not in
             range.
     """
-    email_message = EmailMessage()
-    email_message["Content-Type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary(failobj="")
-    parser = MultiPartParser()
-    fields, _ = parser.parse(
-        stream=io.BytesIO(initial_bytes=request_body),
-        boundary=boundary.encode(encoding="utf-8"),
-        content_length=len(request_body),
+    fields, _ = parse_multipart(
+        request_headers=request_headers,
+        request_body=request_body,
     )
     max_num_results = fields.get(key="max_num_results", default="1")
 

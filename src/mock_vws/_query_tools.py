@@ -1,19 +1,17 @@
 """Tools for making Vuforia queries."""
 
 import base64
-import io
 import uuid
 from collections.abc import Iterable, Mapping
-from email.message import EmailMessage
 from typing import Any
 
 from beartype import beartype
-from werkzeug.formparser import MultiPartParser
 
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._constants import ResultCodes, TargetStatuses
 from mock_vws._database_matchers import get_database_matching_client_keys
 from mock_vws._mock_common import json_dump, sorted_targets
+from mock_vws._query_validators.multipart import parse_multipart
 from mock_vws.database import CloudDatabase
 from mock_vws.image_matchers import ImageMatcher
 
@@ -41,15 +39,9 @@ def get_query_match_response_text(
     Returns:
         The response text for a query endpoint request.
     """
-    email_message = EmailMessage()
-    email_message["Content-Type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary(failobj="")
-
-    parser = MultiPartParser()
-    fields, files = parser.parse(
-        stream=io.BytesIO(initial_bytes=request_body),
-        boundary=boundary.encode(encoding="utf-8"),
-        content_length=len(request_body),
+    fields, files = parse_multipart(
+        request_headers=request_headers,
+        request_body=request_body,
     )
 
     max_num_results = fields.get(key="max_num_results", default="1")
