@@ -1,14 +1,12 @@
 """Validators for the ``include_target_data`` field."""
 
-import io
 import logging
 from collections.abc import Mapping
-from email.message import EmailMessage
 
 from beartype import beartype
-from werkzeug.formparser import MultiPartParser
 
 from mock_vws._query_validators.exceptions import InvalidIncludeTargetDataError
+from mock_vws._query_validators.multipart import parse_multipart
 
 _LOGGER = logging.getLogger(name=__name__)
 
@@ -31,14 +29,9 @@ def validate_include_target_data(
         InvalidIncludeTargetDataError: The ``include_target_data`` field is not
             an accepted value.
     """
-    email_message = EmailMessage()
-    email_message["Content-Type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary(failobj="")
-    parser = MultiPartParser()
-    fields, _ = parser.parse(
-        stream=io.BytesIO(initial_bytes=request_body),
-        boundary=boundary.encode(encoding="utf-8"),
-        content_length=len(request_body),
+    fields, _ = parse_multipart(
+        request_headers=request_headers,
+        request_body=request_body,
     )
     include_target_data = fields.get(key="include_target_data", default="top")
     allowed_included_target_data = {"top", "all", "none"}

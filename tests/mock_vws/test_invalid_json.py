@@ -28,10 +28,22 @@ class TestInvalidJSON:
     @staticmethod
     @pytest.mark.parametrize(
         argnames="content",
-        argvalues=[b"a", b"[]", b'"hello"', b"5", b"null", b"true"],
+        argvalues=[
+            b"a",
+            b"[]",
+            b'"hello"',
+            b"5",
+            b"null",
+            b"true",
+            # JSON which is an object, but which is encoded as latin-1 rather
+            # than UTF-8.
+            '{"name": "café"}'.encode(encoding="latin-1"),
+        ],
     )
     def test_invalid_json(endpoint: Endpoint, content: bytes) -> None:
-        """Giving invalid or non-object JSON returns error responses."""
+        """Giving invalid, non-object or non-UTF-8 JSON returns error
+        responses.
+        """
         gmt = ZoneInfo(key="GMT")
         now = datetime.now(tz=gmt)
         time_to_freeze = now

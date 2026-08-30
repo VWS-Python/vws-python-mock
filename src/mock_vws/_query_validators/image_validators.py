@@ -3,11 +3,9 @@
 import io
 import logging
 from collections.abc import Mapping
-from email.message import EmailMessage
 
 from beartype import beartype
 from werkzeug.datastructures import FileStorage, MultiDict
-from werkzeug.formparser import MultiPartParser
 
 from mock_vws._image_opening import open_image
 from mock_vws._query_validators.exceptions import (
@@ -15,6 +13,7 @@ from mock_vws._query_validators.exceptions import (
     ImageNotGivenError,
     RequestEntityTooLargeError,
 )
+from mock_vws._query_validators.multipart import parse_multipart
 
 _LOGGER = logging.getLogger(name=__name__)
 
@@ -34,14 +33,9 @@ def _parse_multipart_files(
     Returns:
         The files parsed from the multipart body.
     """
-    email_message = EmailMessage()
-    email_message["Content-Type"] = request_headers["Content-Type"]
-    boundary = email_message.get_boundary(failobj="")
-    parser = MultiPartParser()
-    _, files = parser.parse(
-        stream=io.BytesIO(initial_bytes=request_body),
-        boundary=boundary.encode(encoding="utf-8"),
-        content_length=len(request_body),
+    _, files = parse_multipart(
+        request_headers=request_headers,
+        request_body=request_body,
     )
     return files
 

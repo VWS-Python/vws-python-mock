@@ -202,6 +202,29 @@ class ImageNotGivenError(ValidatorError):
 
 
 @beartype
+class NoContentDispositionError(ValidatorError):
+    """Exception raised when a part of a multipart body has no
+    ``Content-Disposition`` header.
+    """
+
+    def __init__(self) -> None:
+        """Initialize a missing ``Content-Disposition`` header
+        response.
+        """
+        super().__init__()
+        self.status_code = HTTPStatus.BAD_REQUEST
+        self.response_text = (
+            "Could find no Content-Disposition header within part"
+        )
+        self.headers = {
+            **_BASE_HEADERS,
+            "Content-Type": "text/plain;charset=utf-8",
+            "Date": http_date(),
+            "Content-Length": str(object=len(self.response_text)),
+        }
+
+
+@beartype
 class AuthHeaderMissingError(ValidatorError):
     """Exception raised when an auth header is not given."""
 

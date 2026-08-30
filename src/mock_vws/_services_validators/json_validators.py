@@ -52,17 +52,20 @@ def validate_json(*, request_body: bytes, request_path: str) -> None:
         request_path: The path of the request.
 
     Raises:
-        BadRequestError: The request body includes invalid JSON for the
-            VuMark instance generation endpoint.
-        FailError: The request body includes invalid JSON for other
-            endpoints.
+        BadRequestError: The request body is not valid UTF-8, or includes
+            invalid JSON, for the VuMark instance generation endpoint.
+        FailError: The request body is not valid UTF-8, or includes invalid
+            JSON, for other endpoints.
     """
     if not request_body:
         return
 
     try:
-        request_json = json.loads(s=request_body.decode())
-    except JSONDecodeError as exc:
+        # Vuforia gives the same response for a body which is not UTF-8, such
+        # as JSON encoded as latin-1, as it gives for a body which is not
+        # valid JSON.
+        request_json = json.loads(s=request_body.decode(encoding="utf-8"))
+    except (JSONDecodeError, UnicodeDecodeError) as exc:
         _LOGGER.warning(msg="The request body is not valid JSON.")
         if request_path.endswith("/instances"):
             raise BadRequestError from exc

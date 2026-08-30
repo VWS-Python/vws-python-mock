@@ -1,0 +1,1 @@
+Respond, rather than failing to respond, to a request body which is not UTF-8 and to a query request whose ``multipart/form-data`` body ends before its closing boundary.
