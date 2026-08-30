@@ -174,6 +174,18 @@ def create_cloud_database() -> Response:
     :reqjson int target_quota: (Optional) The target quota. Once this many
       targets exist, adding another returns ``TargetQuotaReached``.
 
+    :reqjson int reco_threshold: (Optional) The recognition threshold shown in
+      the database summary report.
+
+    :reqjson int current_month_recos: (Optional) The number of recognitions in
+      the current month, shown in the database summary report.
+
+    :reqjson int previous_month_recos: (Optional) The number of recognitions in
+      the previous month, shown in the database summary report.
+
+    :reqjson int total_recos: (Optional) The total number of recognitions,
+      shown in the database summary report.
+
     :reqjson int requests_per_second_limit: (Optional) The maximum number of
       VWS requests accepted in a rolling one-second window, across all VWS
       endpoints. Set this to zero to make VWS endpoints return
@@ -267,6 +279,22 @@ def create_cloud_database() -> Response:
         "target_quota",
         random_database.target_quota,
     )
+    reco_threshold = request_json.get(
+        "reco_threshold",
+        random_database.reco_threshold,
+    )
+    current_month_recos = request_json.get(
+        "current_month_recos",
+        random_database.current_month_recos,
+    )
+    previous_month_recos = request_json.get(
+        "previous_month_recos",
+        random_database.previous_month_recos,
+    )
+    total_recos = request_json.get(
+        "total_recos",
+        random_database.total_recos,
+    )
     requests_per_second_limit = request_json.get(
         "requests_per_second_limit",
         random_database.requests_per_second_limit,
@@ -292,6 +320,10 @@ def create_cloud_database() -> Response:
         database_type=database_type,
         request_quota=request_quota,
         target_quota=target_quota,
+        reco_threshold=reco_threshold,
+        current_month_recos=current_month_recos,
+        previous_month_recos=previous_month_recos,
+        total_recos=total_recos,
         requests_per_second_limit=requests_per_second_limit,
         request_rate_limits=request_rate_limits,
     )
@@ -595,6 +627,70 @@ def update_target(database_name: str, target_id: str) -> Response:
             application_metadata=application_metadata,
             image_value=image_value,
             last_modified_date=last_modified_date,
+        )
+
+        database.targets.remove(target)
+        database.targets.add(new_target)
+
+    return Response(
+        response=json.dumps(obj=new_target.to_dict()),
+        status=HTTPStatus.OK,
+    )
+
+
+@TARGET_MANAGER_FLASK_APP.route(
+    rule=(
+        "/cloud_databases/<string:database_name>/targets/<string:target_id>"
+        "/recognition_counts"
+    ),
+    methods=[HTTPMethod.POST],
+)
+@beartype
+def set_target_recognition_counts(
+    database_name: str,
+    target_id: str,
+) -> Response:
+    """Set the recognition counts of a target.
+
+    A recognition is not a change to the target, so unlike a target update
+    this does not change the target's last modified date, and a processed
+    target does not go back to being processed.
+
+    :reqjson int current_month_recos: (Optional) The number of recognitions of
+      this target in the current month. If not given, the count is left as it
+      is.
+
+    :reqjson int previous_month_recos: (Optional) The number of recognitions of
+      this target in the previous month. If not given, the count is left as it
+      is.
+
+    :reqjson int total_recos: (Optional) The total number of recognitions of
+      this target. If not given, the count is left as it is.
+
+    :status 200: The recognition counts have been set.
+    """
+    request_json = json.loads(s=request.data)
+
+    with TARGET_MANAGER.lock:
+        (database,) = (
+            database
+            for database in TARGET_MANAGER.cloud_databases
+            if database.database_name == database_name
+        )
+        target = database.get_target(target_id=target_id)
+
+        # See https://github.com/facebook/pyrefly/issues/1897
+        new_target: ImageTarget = copy.replace(
+            target,  # pyrefly: ignore[bad-argument-type]
+            current_month_recos=request_json.get(
+                "current_month_recos",
+                target.current_month_recos,
+            ),
+            previous_month_recos=request_json.get(
+                "previous_month_recos",
+                target.previous_month_recos,
+            ),
+            total_recos=request_json.get("total_recos", target.total_recos),
         )
 
         database.targets.remove(target)

@@ -1,0 +1,2 @@
+Add ``MockVWS.set_target_recognition_counts`` and a matching target manager endpoint for the Flask and Docker mock, for setting the recognition counts which the target summary report and the reco counts report show for a target.
+A reco counts report now has a row for each target with recognitions in the requested month, and the recognition counts and recognition threshold of a cloud database are kept when the database is created in the Flask and Docker mock.

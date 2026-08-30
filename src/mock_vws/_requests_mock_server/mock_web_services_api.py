@@ -494,8 +494,16 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
                 databases=self._target_manager.cloud_databases,
                 request_rate_limiter=self._target_manager.request_rate_limiter,
             )
+            database = get_database_matching_server_keys(
+                request_headers=request.headers,
+                request_body=request.body,
+                request_method=request.method,
+                request_path=request.path,
+                databases=self._target_manager.cloud_databases,
+            )
             return create_reco_counts_report(
                 request_body=request.body,
+                database=database,
                 report_store=self._target_manager,
                 generation_time_seconds=self._processing_time_seconds,
                 base_url=self._base_vws_url.rstrip("/"),

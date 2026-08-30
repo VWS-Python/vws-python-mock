@@ -2,15 +2,15 @@
 
 import datetime
 import uuid
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from zoneinfo import ZoneInfo
 
 from beartype import beartype
 
-# The mock does not count recognitions, so a generated report never has any
-# rows for targets.
-# Real Vuforia ends the header row with a carriage return and a line feed.
-_CSV_CONTENT = "target_id,reco_count\r\n"
+# Real Vuforia ends each row, including the header row, with a carriage
+# return and a line feed.
+_CSV_HEADER = "target_id,reco_count\r\n"
 
 
 @beartype
@@ -27,11 +27,18 @@ class RecoCountsReport:
     Args:
         generation_time_seconds: The number of seconds before the report is
             available to download.
+        reco_counts: The number of recognitions to report for each target,
+            keyed by target ID. Targets with no recognitions in the requested
+            month are not in the report.
         uuid_: The report identifier, used in the report's download URL.
         created_at: When the report was requested.
     """
 
     generation_time_seconds: float = field(hash=False)
+    reco_counts: Mapping[str, int] = field(
+        default_factory=dict[str, int],
+        hash=False,
+    )
     uuid_: str = field(default_factory=lambda: uuid.uuid4().hex)
     created_at: datetime.datetime = field(default_factory=_now)
 
@@ -49,5 +56,13 @@ class RecoCountsReport:
 
     @property
     def csv_content(self) -> str:
-        """The content of the generated CSV report."""
-        return _CSV_CONTENT
+        """The content of the generated CSV report.
+
+        The rows are ordered by target ID, which is not an order which real
+        Vuforia is known to use.
+        """
+        rows = "".join(
+            f"{target_id},{reco_count}\r\n"
+            for target_id, reco_count in sorted(self.reco_counts.items())
+        )
+        return _CSV_HEADER + rows

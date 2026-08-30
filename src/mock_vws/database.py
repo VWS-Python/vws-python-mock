@@ -87,6 +87,17 @@ class CloudDatabase:
             endpoints return ``RequestQuotaReached``.
         target_quota: The target quota. When the database contains this many
             targets, adding another returns ``TargetQuotaReached``.
+        reco_threshold: The recognition threshold shown in the database
+            summary report.
+        current_month_recos: The number of recognitions in the current month,
+            shown in the database summary report. The mock does not count
+            recognitions, so this is whatever it is set to.
+        previous_month_recos: The number of recognitions in the previous
+            month, shown in the database summary report. The mock does not
+            count recognitions, so this is whatever it is set to.
+        total_recos: The total number of recognitions, shown in the database
+            summary report. The mock does not count recognitions, so this is
+            whatever it is set to.
         requests_per_second_limit: The maximum number of VWS requests accepted
             in a rolling one-second window, across all VWS endpoints. Set this
             to ``0`` to make VWS endpoints return ``TooManyRequests``. By
