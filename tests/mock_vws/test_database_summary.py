@@ -70,8 +70,8 @@ def _wait_for_image_numbers(
     Raises:
         AssertionError: The numbers of images in various categories do not
             match within the time limit.
-        requests.exceptions.RequestException: The real service remains
-            unavailable for the full retry period.
+        Exception: A request to the real service remains unavailable for the
+            full retry period.
     """
     database_summary_report = vws_client.get_database_summary_report()
 
