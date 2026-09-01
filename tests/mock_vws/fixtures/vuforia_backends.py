@@ -371,6 +371,14 @@ _MODEL_TARGET_SETUP_FUNCTIONS = {
 }
 
 
+# Signed Model Target requests (advanced datasets with a state-based
+# configuration) consume the Vuforia account's Model Target training
+# allowance.  The allowance is small, shared across all CI jobs, and
+# cannot be raised or reset, so signed requests run against the real
+# Vuforia only when this option is given.
+VERIFY_MODEL_TARGET_SIGNING_OPTION = "--verify-model-target-signing"
+
+
 @beartype
 def pytest_addoption(parser: pytest.Parser) -> None:
     """
@@ -385,6 +393,18 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         action="store_true",
         default=False,
         help="Skip tests for building Docker images",
+    )
+
+    parser.addoption(
+        VERIFY_MODEL_TARGET_SIGNING_OPTION,
+        action="store_true",
+        default=False,
+        help=(
+            "Run signed Model Target dataset tests against the real "
+            "Vuforia. These consume the account's small, shared, "
+            "non-resettable Model Target training allowance, so they "
+            "run against the mock backends only by default."
+        ),
     )
 
 
