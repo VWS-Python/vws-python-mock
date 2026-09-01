@@ -15,6 +15,8 @@ from vws.response import Response
 
 from mock_vws._constants import ResultCodes
 
+_REQUEST_TIMEOUT_SECONDS = 30
+
 
 @beartype
 def _send_request(
@@ -34,7 +36,10 @@ def _send_request(
     prepared_request = request.prepare()
     prepared_request.headers = CaseInsensitiveDict(data=headers)
     session = requests.Session()
-    requests_response = session.send(request=prepared_request)
+    requests_response = session.send(
+        request=prepared_request,
+        timeout=_REQUEST_TIMEOUT_SECONDS,
+    )
     return Response(
         text=requests_response.text,
         url=requests_response.url,
