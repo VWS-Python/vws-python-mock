@@ -1608,7 +1608,10 @@ class TestErrorResponses:
 # with ``TRAINING_ALLOWANCE_EXCEEDED`` - which is exactly what happened
 # when it ran unconditionally.  The equivalent unsigned requests (a
 # standard dataset, or an advanced dataset without a state-based
-# configuration) consume nothing and stay verified on every run.
+# configuration) are far cheaper and stay enabled, though with enough
+# traffic they can also hit the allowance; an unexpected allowance
+# rejection is reported as an expected failure (xfail) by
+# ``assert_model_target_status`` rather than failing the run.
 _SIGNED_REQUEST_SKIP_REASON = (
     "Signed Model Target requests consume the real Vuforia account's "
     "small, shared, non-resettable training allowance, so they are not "
@@ -2711,8 +2714,9 @@ class TestAssertModelTargetStatus:
 
     @staticmethod
     def test_training_allowance_exceeded() -> None:
-        """An exhausted account allowance is called out as such, in the
-        first line so that a truncated CI summary still shows it.
+        """An exhausted account allowance is an expected failure, called
+        out as such in the first line so that a truncated CI summary
+        still shows it.
         """
         response = _fake_response(
             status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
@@ -2721,7 +2725,7 @@ class TestAssertModelTargetStatus:
                 '"message":"Signing quota reached","target":"7635391"}}'
             ),
         )
-        with pytest.raises(expected_exception=AssertionError) as exc:
+        with pytest.raises(expected_exception=pytest.xfail.Exception) as exc:
             assert_model_target_status(
                 response=response,
                 status_codes=HTTPStatus.CREATED,
@@ -2735,3 +2739,4 @@ class TestAssertModelTargetStatus:
         )
         assert "MODEL_TARGET_VUFORIA_CLIENT_ID" in message
         assert "has to be raised, or reset, on the Vuforia account" in message
+        assert "expected failure" in message
