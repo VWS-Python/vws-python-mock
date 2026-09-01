@@ -380,10 +380,10 @@ _MODEL_TARGET_SETUP_FUNCTIONS = {
 }
 
 
-# Signed Model Target requests (advanced datasets with a state-based
-# configuration) consume the Vuforia account's Model Target training
-# allowance.  The allowance is small, shared across all CI jobs, and
-# cannot be raised or reset, so signed requests run against the real
+# Signed Model Target requests, including state-based advanced datasets and
+# standard datasets with inline CAD data, consume the Vuforia account's Model
+# Target training allowance. The allowance is small, shared across all CI
+# jobs, and cannot be raised or reset, so signed requests run against the real
 # Vuforia only when this option is given.
 VERIFY_MODEL_TARGET_SIGNING_OPTION = "--verify-model-target-signing"
 

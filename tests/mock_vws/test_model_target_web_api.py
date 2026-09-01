@@ -1599,9 +1599,9 @@ class TestErrorResponses:
         assert error["target"].startswith("userId:")
 
 
-# Creating an advanced dataset with a state-based configuration is a
-# "signed" request: the real Vuforia signs the trained dataset, and each
-# signing consumes the account's Model Target training allowance.  The
+# Creating an advanced dataset with a state-based configuration or a standard
+# dataset with inline CAD data is a "signed" request: the real Vuforia signs
+# the trained dataset, and each signing consumes the account's allowance. The
 # allowance is tiny (roughly 20 signings, under ten CI runs' worth), it
 # is shared by every CI job and every concurrent run, and it cannot be
 # raised or reset by us.  Verifying this behavior on every run therefore
@@ -1621,6 +1621,18 @@ _SIGNED_REQUEST_SKIP_REASON = (
     "after the allowance has recovered. The mock backends always run "
     "this test."
 )
+
+
+def _skip_unrequested_real_signing(
+    *,
+    request: pytest.FixtureRequest,
+    backend: VuforiaBackend,
+) -> None:
+    """Skip a signing request against real Vuforia unless opted in."""
+    if backend is VuforiaBackend.REAL and not request.config.getoption(
+        name=VERIFY_MODEL_TARGET_SIGNING_OPTION,
+    ):
+        pytest.skip(reason=_SIGNED_REQUEST_SKIP_REASON)
 
 
 class TestStateBasedDatasets:
@@ -1662,14 +1674,11 @@ class TestStateBasedDatasets:
         """State-Based Model Target fields survive a dataset round
         trip.
         """
-        if (
-            verify_model_target_mock_vuforia is VuforiaBackend.REAL
-            and dataset_path == "/modeltargets/advancedDatasets"
-            and not request.config.getoption(
-                name=VERIFY_MODEL_TARGET_SIGNING_OPTION,
+        if dataset_path == "/modeltargets/advancedDatasets":
+            _skip_unrequested_real_signing(
+                request=request,
+                backend=verify_model_target_mock_vuforia,
             )
-        ):
-            pytest.skip(reason=_SIGNED_REQUEST_SKIP_REASON)
         body = {
             **_UNAUTHENTICATED_DATASET_REQUEST,
             "models": [
@@ -2241,9 +2250,14 @@ class TestStandardDataset:
     @staticmethod
     def test_create_with_cad_data_blob(
         *,
+        request: pytest.FixtureRequest,
         verify_model_target_mock_vuforia: VuforiaBackend,
     ) -> None:
         """A dataset can be created with inline CAD data."""
+        _skip_unrequested_real_signing(
+            request=request,
+            backend=verify_model_target_mock_vuforia,
+        )
         credentials = credentials_for_backend(
             backend=verify_model_target_mock_vuforia,
         )
