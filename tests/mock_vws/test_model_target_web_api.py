@@ -2646,11 +2646,16 @@ class TestMockOnlyOAuth2EdgeCases:
 
 
 @beartype
-def _fake_response(*, status_code: HTTPStatus, text: str) -> Response:
+def _fake_response(
+    *,
+    status_code: HTTPStatus,
+    text: str,
+    url: str,
+) -> Response:
     """Return a response for testing the status assertion helper."""
     return Response(
         text=text,
-        url=f"{_VWS_HOST}/modeltargets/advancedDatasets",
+        url=url,
         status_code=status_code,
         headers={},
         request_body=None,
@@ -2682,7 +2687,11 @@ class TestAssertModelTargetStatus:
         status_codes: HTTPStatus | AbstractSet[HTTPStatus],
     ) -> None:
         """An expected status code does not raise."""
-        response = _fake_response(status_code=HTTPStatus.OK, text="{}")
+        response = _fake_response(
+            status_code=HTTPStatus.OK,
+            text="{}",
+            url=f"{_VWS_HOST}/modeltargets/advancedDatasets",
+        )
         assert_model_target_status(
             response=response,
             status_codes=status_codes,
@@ -2695,6 +2704,7 @@ class TestAssertModelTargetStatus:
         response = _fake_response(
             status_code=HTTPStatus.BAD_REQUEST,
             text=text,
+            url=f"{_VWS_HOST}/modeltargets/advancedDatasets",
         )
         with pytest.raises(expected_exception=AssertionError) as exc:
             assert_model_target_status(
@@ -2715,6 +2725,7 @@ class TestAssertModelTargetStatus:
         response = _fake_response(
             status_code=HTTPStatus.BAD_REQUEST,
             text="{}",
+            url=f"{_VWS_HOST}/modeltargets/advancedDatasets",
         )
         with pytest.raises(expected_exception=AssertionError) as exc:
             assert_model_target_status(
@@ -2738,6 +2749,7 @@ class TestAssertModelTargetStatus:
                 '{"error":{"code":"TRAINING_ALLOWANCE_EXCEEDED",'
                 '"message":"Signing quota reached","target":"7635391"}}'
             ),
+            url="http://example.com/modeltargets/datasets",
         )
         with pytest.raises(expected_exception=pytest.xfail.Exception) as exc:
             assert_model_target_status(
