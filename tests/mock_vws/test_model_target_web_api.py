@@ -1674,11 +1674,10 @@ class TestStateBasedDatasets:
         """State-Based Model Target fields survive a dataset round
         trip.
         """
-        if dataset_path == "/modeltargets/advancedDatasets":
-            _skip_unrequested_real_signing(
-                request=request,
-                backend=verify_model_target_mock_vuforia,
-            )
+        _skip_unrequested_real_signing(
+            request=request,
+            backend=verify_model_target_mock_vuforia,
+        )
         body = {
             **_UNAUTHENTICATED_DATASET_REQUEST,
             "models": [
