@@ -20,7 +20,7 @@ from tests.mock_vws.utils.model_target_retries import (
     send_with_transient_retries,
 )
 
-_REQUEST_TIMEOUT_SECONDS = 30
+_REQUEST_TIMEOUT_SECONDS = 5
 
 
 @beartype
