@@ -7,9 +7,11 @@ from dataclasses import dataclass
 from typing import Literal
 from urllib.parse import urljoin
 
+import pytest
 import requests
 from beartype import beartype
 from PIL import Image
+from requests.exceptions import Timeout as RequestsTimeout
 from requests.structures import CaseInsensitiveDict
 from vws.response import Response
 
@@ -39,10 +41,17 @@ def _send_request(
     prepared_request = request.prepare()
     prepared_request.headers = CaseInsensitiveDict(data=headers)
     session = requests.Session()
-    requests_response = session.send(
-        request=prepared_request,
-        timeout=_REQUEST_TIMEOUT_SECONDS,
-    )
+    try:
+        requests_response = session.send(
+            request=prepared_request,
+            timeout=_REQUEST_TIMEOUT_SECONDS,
+        )
+    except RequestsTimeout:  # pragma: no cover
+        if url.startswith(
+            ("https://vws.vuforia.com/", "https://cloudreco.vuforia.com/"),
+        ):
+            pytest.skip(reason="The real Vuforia service timed out.")
+        raise
     return Response(
         text=requests_response.text,
         url=requests_response.url,
