@@ -31,7 +31,10 @@ from tests.mock_vws.fixtures.model_target_prepared_requests import (
     credentials_for_backend,
     get_access_token,
 )
-from tests.mock_vws.fixtures.vuforia_backends import VuforiaBackend
+from tests.mock_vws.fixtures.vuforia_backends import (
+    VERIFY_MODEL_TARGET_SIGNING_OPTION,
+    VuforiaBackend,
+)
 from tests.mock_vws.utils import ModelTargetEndpoint
 from tests.mock_vws.utils.assertions import (
     assert_model_target_status,
@@ -1595,8 +1598,37 @@ class TestErrorResponses:
         assert error["target"].startswith("userId:")
 
 
+# Creating an advanced dataset with a state-based configuration is a
+# "signed" request: the real Vuforia signs the trained dataset, and each
+# signing consumes the account's Model Target training allowance.  The
+# allowance is tiny (roughly 20 signings, under ten CI runs' worth), it
+# is shared by every CI job and every concurrent run, and it cannot be
+# raised or reset by us.  Verifying this behavior on every run therefore
+# burns the whole allowance within hours and then turns every CI run red
+# with ``TRAINING_ALLOWANCE_EXCEEDED`` - which is exactly what happened
+# when it ran unconditionally.  The equivalent unsigned requests (a
+# standard dataset, or an advanced dataset without a state-based
+# configuration) are far cheaper and stay enabled, though with enough
+# traffic they can also hit the allowance; an unexpected allowance
+# rejection is reported as an expected failure by
+# ``assert_model_target_status`` rather than failing the run.
+_SIGNED_REQUEST_SKIP_REASON = (
+    "Signed Model Target requests consume the real Vuforia account's "
+    "small, shared, non-resettable training allowance, so they are not "
+    "verified against the real Vuforia by default. Pass "
+    f"{VERIFY_MODEL_TARGET_SIGNING_OPTION} to verify them, for example "
+    "after the allowance has recovered. The mock backends always run "
+    "this test."
+)
+
+
 class TestStateBasedDatasets:
-    """Verified fake tests for State-Based Model Targets."""
+    """Verified fake tests for State-Based Model Targets.
+
+    The advanced (signed) cases are verified against the real Vuforia
+    only when ``--verify-model-target-signing`` is given: see
+    ``_SIGNED_REQUEST_SKIP_REASON``.
+    """
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -1621,6 +1653,7 @@ class TestStateBasedDatasets:
     )
     def test_state_based_dataset(
         *,
+        request: pytest.FixtureRequest,
         verify_model_target_mock_vuforia: VuforiaBackend,
         dataset_path: str,
         view_updates: dict[str, object],
@@ -1628,6 +1661,14 @@ class TestStateBasedDatasets:
         """State-Based Model Target fields survive a dataset round
         trip.
         """
+        if (
+            verify_model_target_mock_vuforia is VuforiaBackend.REAL
+            and dataset_path == "/modeltargets/advancedDatasets"
+            and not request.config.getoption(
+                name=VERIFY_MODEL_TARGET_SIGNING_OPTION,
+            )
+        ):
+            pytest.skip(reason=_SIGNED_REQUEST_SKIP_REASON)
         body = {
             **_UNAUTHENTICATED_DATASET_REQUEST,
             "models": [
@@ -2673,8 +2714,9 @@ class TestAssertModelTargetStatus:
 
     @staticmethod
     def test_training_allowance_exceeded() -> None:
-        """An exhausted account allowance is called out as such, in the
-        first line so that a truncated CI summary still shows it.
+        """An exhausted account allowance is an expected failure, called
+        out as such in the first line so that a truncated CI summary
+        still shows it.
         """
         response = _fake_response(
             status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
@@ -2683,7 +2725,7 @@ class TestAssertModelTargetStatus:
                 '"message":"Signing quota reached","target":"7635391"}}'
             ),
         )
-        with pytest.raises(expected_exception=AssertionError) as exc:
+        with pytest.raises(expected_exception=pytest.xfail.Exception) as exc:
             assert_model_target_status(
                 response=response,
                 status_codes=HTTPStatus.CREATED,
@@ -2697,3 +2739,4 @@ class TestAssertModelTargetStatus:
         )
         assert "MODEL_TARGET_VUFORIA_CLIENT_ID" in message
         assert "has to be raised, or reset, on the Vuforia account" in message
+        assert "expected failure" in message

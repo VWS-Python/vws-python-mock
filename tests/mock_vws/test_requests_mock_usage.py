@@ -18,7 +18,7 @@ import requests
 from beartype import beartype
 from freezegun import freeze_time
 from PIL import Image
-from vws import VWS, CloudRecoService
+from vws import VWS, CloudRecoService, VuMarkService
 from vws.exceptions.vws_exceptions import (
     ProjectSuspendedError,
     RequestQuotaReachedError,
@@ -27,6 +27,7 @@ from vws.exceptions.vws_exceptions import (
 )
 from vws.reports import TargetStatuses
 from vws.transports import HTTPXTransport
+from vws.vumark_accept import VuMarkAccept
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws import MissingSchemeError, MockVWS
@@ -263,6 +264,28 @@ class TestResponseDelay:
                 timeout=2.0,
             )
             assert response.status_code is not None
+
+    @staticmethod
+    def test_delay_without_timeout() -> None:
+        """A request without a timeout waits for the configured delay."""
+        calls: list[float] = []
+        with MockVWS(
+            response_delay_seconds=0.1,
+            sleep_fn=calls.append,
+        ):
+            # Omitting the timeout is the behavior under test.
+            # pylint: disable-next=missing-timeout
+            response = requests.get(  # noqa: S113
+                url="https://vws.vuforia.com/summary",
+                headers={
+                    "Date": rfc_1123_date(),
+                    "Authorization": "bad_auth_token",
+                },
+                data=b"",
+            )
+
+        assert response.status_code is not None
+        assert calls == [0.1]
 
     @staticmethod
     def test_delay_with_tuple_timeout() -> None:
@@ -1517,6 +1540,33 @@ class TestAddDatabase:
                 ):
                     mock.add_vumark_database(vumark_database=bad_database)
 
+    @staticmethod
+    def test_vumark_database_added_before_entering() -> None:
+        """A VuMark database added before the mock starts is available
+        while the mock is running.
+        """
+        database = VuMarkDatabase(database_name="vumark-before-enter")
+        mock = MockVWS()
+        mock.add_vumark_database(vumark_database=database)
+        conflicting_database = VuMarkDatabase(
+            database_name="vumark-before-enter",
+        )
+        expected_message = (
+            "All names must be unique. "
+            "There is already a database with the name "
+            '"vumark-before-enter".'
+        )
+        with (
+            mock,
+            pytest.raises(
+                expected_exception=ValueError,
+                match=expected_message + "$",
+            ),
+        ):
+            mock.add_vumark_database(
+                vumark_database=conflicting_database,
+            )
+
 
 class TestContextManagerReuse:
     """Tests for reusing a ``MockVWS`` instance as a context manager."""
@@ -2253,6 +2303,29 @@ class TestDecorator:
         assert get_database_name() == database.database_name
 
     @staticmethod
+    def test_vumark_database_added_before_decorating() -> None:
+        """VuMark databases are available within a decorated function."""
+        vumark_target = VuMarkTarget(name="test-target")
+        database = VuMarkDatabase(vumark_targets={vumark_target})
+        mock = MockVWS()
+        mock.add_vumark_database(vumark_database=database)
+
+        @mock
+        def generate_vumark_instance() -> bytes:
+            """Generate a VuMark instance from the configured database."""
+            client = VuMarkService(
+                server_access_key=database.server_access_key,
+                server_secret_key=database.server_secret_key,
+            )
+            return client.generate_vumark_instance(
+                target_id=vumark_target.target_id,
+                instance_id=uuid.uuid4().hex,
+                accept=VuMarkAccept.PNG,
+            )
+
+        assert generate_vumark_instance().startswith(b"\x89PNG")
+
+    @staticmethod
     def test_options_are_used(image_file_failed_state: io.BytesIO) -> None:
         """Options given to the mock are used within the decorated
         function.
@@ -2280,6 +2353,31 @@ class TestDecorator:
         # The given processing time of zero seconds means that the target is
         # processed immediately.
         assert add_target() == TargetStatuses.FAILED
+
+    @staticmethod
+    def test_vumark_targets_are_restored() -> None:
+        """VuMark targets changed during a call of a decorated function
+        are put back as they were afterwards, just as Cloud targets
+        are.
+        """
+        vumark_target = VuMarkTarget(name="existing-target")
+        database = VuMarkDatabase(vumark_targets={vumark_target})
+        mock = MockVWS()
+        mock.add_vumark_database(vumark_database=database)
+
+        temporary_target = VuMarkTarget(name="temporary")
+
+        @mock
+        def add_temporary_target() -> None:
+            """Add a target to the database object directly."""
+            database.vumark_targets.add(temporary_target)
+            assert database.vumark_targets == {
+                vumark_target,
+                temporary_target,
+            }
+
+        add_temporary_target()
+        assert database.vumark_targets == {vumark_target}
 
     @staticmethod
     def test_each_call_is_isolated(high_quality_image: io.BytesIO) -> None:

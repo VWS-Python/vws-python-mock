@@ -124,6 +124,25 @@ Use the following custom ``pytest`` options to skip some tests:
    --skip-docker_build_tests
                          Skip tests for building Docker images
 
+Verifying signed Model Target requests
+--------------------------------------
+
+Creating an advanced Model Target dataset with a state-based configuration is a "signed" request: the real Vuforia signs the trained dataset, and each signing consumes the account's Model Target training allowance.
+The allowance is small (roughly 20 signings), it is shared by every CI job and every concurrent run, and it cannot be raised or reset.
+Verifying signed requests on every run exhausted the allowance within hours and then made every CI run fail with ``TRAINING_ALLOWANCE_EXCEEDED``.
+
+The signed test cases therefore run against the mock backends on every run, but are skipped against the real Vuforia by default.
+To verify them against the real Vuforia, for example after the allowance has recovered, opt in with:
+
+.. code-block:: text
+
+   --verify-model-target-signing
+                         Run signed Model Target dataset tests against
+                         the real Vuforia
+
+The equivalent unsigned requests (a standard dataset, or an advanced dataset without a state-based configuration) are far cheaper and are verified against the real Vuforia on every run.
+With enough traffic even unsigned dataset creation can be rejected with ``TRAINING_ALLOWANCE_EXCEEDED``; an unexpected allowance rejection is reported as an expected failure rather than a test failure, and the affected tests pass again automatically once the allowance recovers.
+
 Documentation
 -------------
 
