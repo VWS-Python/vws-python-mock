@@ -1540,6 +1540,33 @@ class TestAddDatabase:
                 ):
                     mock.add_vumark_database(vumark_database=bad_database)
 
+    @staticmethod
+    def test_vumark_database_added_before_entering() -> None:
+        """A VuMark database added before the mock starts is available
+        while the mock is running.
+        """
+        database = VuMarkDatabase(database_name="vumark-before-enter")
+        mock = MockVWS()
+        mock.add_vumark_database(vumark_database=database)
+        conflicting_database = VuMarkDatabase(
+            database_name="vumark-before-enter",
+        )
+        expected_message = (
+            "All names must be unique. "
+            "There is already a database with the name "
+            '"vumark-before-enter".'
+        )
+        with (
+            mock,
+            pytest.raises(
+                expected_exception=ValueError,
+                match=expected_message + "$",
+            ),
+        ):
+            mock.add_vumark_database(
+                vumark_database=conflicting_database,
+            )
+
 
 class TestContextManagerReuse:
     """Tests for reusing a ``MockVWS`` instance as a context manager."""
@@ -2326,6 +2353,31 @@ class TestDecorator:
         # The given processing time of zero seconds means that the target is
         # processed immediately.
         assert add_target() == TargetStatuses.FAILED
+
+    @staticmethod
+    def test_vumark_targets_are_restored() -> None:
+        """VuMark targets changed during a call of a decorated function
+        are put back as they were afterwards, just as Cloud targets
+        are.
+        """
+        vumark_target = VuMarkTarget(name="existing-target")
+        database = VuMarkDatabase(vumark_targets={vumark_target})
+        mock = MockVWS()
+        mock.add_vumark_database(vumark_database=database)
+
+        temporary_target = VuMarkTarget(name="temporary")
+
+        @mock
+        def add_temporary_target() -> None:
+            """Add a target to the database object directly."""
+            database.vumark_targets.add(temporary_target)
+            assert database.vumark_targets == {
+                vumark_target,
+                temporary_target,
+            }
+
+        add_temporary_target()
+        assert database.vumark_targets == {vumark_target}
 
     @staticmethod
     def test_each_call_is_isolated(high_quality_image: io.BytesIO) -> None:
