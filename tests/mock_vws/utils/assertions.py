@@ -220,7 +220,7 @@ def assert_model_target_status(
     Raises:
         AssertionError: The response does not have one of the expected status
             codes.
-        pytest.xfail.Exception: The response is an unexpected
+        Exception: The response unexpectedly reports a
             ``TRAINING_ALLOWANCE_EXCEEDED`` rejection. That is the shared
             Vuforia account running out of Model Target training allowance,
             not a fault in the code under test, so it is an expected failure

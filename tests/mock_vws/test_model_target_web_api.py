@@ -1610,7 +1610,7 @@ class TestErrorResponses:
 # standard dataset, or an advanced dataset without a state-based
 # configuration) are far cheaper and stay enabled, though with enough
 # traffic they can also hit the allowance; an unexpected allowance
-# rejection is reported as an expected failure (xfail) by
+# rejection is reported as an expected failure by
 # ``assert_model_target_status`` rather than failing the run.
 _SIGNED_REQUEST_SKIP_REASON = (
     "Signed Model Target requests consume the real Vuforia account's "

@@ -141,7 +141,7 @@ To verify them against the real Vuforia, for example after the allowance has rec
                          the real Vuforia
 
 The equivalent unsigned requests (a standard dataset, or an advanced dataset without a state-based configuration) are far cheaper and are verified against the real Vuforia on every run.
-With enough traffic even unsigned dataset creation can be rejected with ``TRAINING_ALLOWANCE_EXCEEDED``; an unexpected allowance rejection is reported as an expected failure (xfail) rather than a test failure, and the affected tests pass again automatically once the allowance recovers.
+With enough traffic even unsigned dataset creation can be rejected with ``TRAINING_ALLOWANCE_EXCEEDED``; an unexpected allowance rejection is reported as an expected failure rather than a test failure, and the affected tests pass again automatically once the allowance recovers.
 
 Documentation
 -------------

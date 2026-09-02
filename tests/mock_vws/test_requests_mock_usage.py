@@ -18,7 +18,7 @@ import requests
 from beartype import beartype
 from freezegun import freeze_time
 from PIL import Image
-from vws import VWS, CloudRecoService
+from vws import VWS, CloudRecoService, VuMarkService
 from vws.exceptions.vws_exceptions import (
     ProjectSuspendedError,
     RequestQuotaReachedError,
@@ -27,6 +27,7 @@ from vws.exceptions.vws_exceptions import (
 )
 from vws.reports import TargetStatuses
 from vws.transports import HTTPXTransport
+from vws.vumark_accept import VuMarkAccept
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws import MissingSchemeError, MockVWS
@@ -263,6 +264,28 @@ class TestResponseDelay:
                 timeout=2.0,
             )
             assert response.status_code is not None
+
+    @staticmethod
+    def test_delay_without_timeout() -> None:
+        """A request without a timeout waits for the configured delay."""
+        calls: list[float] = []
+        with MockVWS(
+            response_delay_seconds=0.1,
+            sleep_fn=calls.append,
+        ):
+            # Omitting the timeout is the behavior under test.
+            # pylint: disable-next=missing-timeout
+            response = requests.get(  # noqa: S113
+                url="https://vws.vuforia.com/summary",
+                headers={
+                    "Date": rfc_1123_date(),
+                    "Authorization": "bad_auth_token",
+                },
+                data=b"",
+            )
+
+        assert response.status_code is not None
+        assert calls == [0.1]
 
     @staticmethod
     def test_delay_with_tuple_timeout() -> None:
@@ -2251,6 +2274,29 @@ class TestDecorator:
             return vws_client.get_database_summary_report().name
 
         assert get_database_name() == database.database_name
+
+    @staticmethod
+    def test_vumark_database_added_before_decorating() -> None:
+        """VuMark databases are available within a decorated function."""
+        vumark_target = VuMarkTarget(name="test-target")
+        database = VuMarkDatabase(vumark_targets={vumark_target})
+        mock = MockVWS()
+        mock.add_vumark_database(vumark_database=database)
+
+        @mock
+        def generate_vumark_instance() -> bytes:
+            """Generate a VuMark instance from the configured database."""
+            client = VuMarkService(
+                server_access_key=database.server_access_key,
+                server_secret_key=database.server_secret_key,
+            )
+            return client.generate_vumark_instance(
+                target_id=vumark_target.target_id,
+                instance_id=uuid.uuid4().hex,
+                accept=VuMarkAccept.PNG,
+            )
+
+        assert generate_vumark_instance().startswith(b"\x89PNG")
 
     @staticmethod
     def test_options_are_used(image_file_failed_state: io.BytesIO) -> None:
