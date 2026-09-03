@@ -50,6 +50,7 @@ from tests.mock_vws.utils.assertions import (
     assert_valid_transaction_id,
     assert_vwq_failure,
 )
+from tests.mock_vws.utils.retries import TRANSIENT_VWS_EXCEPTIONS
 from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
 if TYPE_CHECKING:
@@ -2051,7 +2052,7 @@ class TestDeleted:
             wait=wait_fixed(wait=0.1),
             stop=stop_after_delay(max_delay=3),
             retry=retry_if_exception_type(
-                exception_types=(AssertionError,),
+                exception_types=(AssertionError, *TRANSIENT_VWS_EXCEPTIONS),
             ),
             reraise=True,
         ):
