@@ -1,11 +1,7 @@
 """Tests for target ID validators."""
 
-from collections.abc import Iterable, Mapping
-from functools import partial
-
 import pytest
 
-from mock_vws._services_validators import target_validators
 from mock_vws._services_validators.target_validators import (
     validate_target_id_exists,
 )
@@ -35,24 +31,6 @@ def _database_with_target(*, target_id: str) -> CloudDatabase:
     return CloudDatabase(targets={target})
 
 
-def _always_match_database(
-    *,
-    database: CloudDatabase,
-    request_headers: Mapping[str, str],
-    request_body: bytes | None,
-    request_method: str,
-    request_path: str,
-    databases: Iterable[CloudDatabase],
-) -> CloudDatabase:
-    """Return the given database regardless of request details."""
-    del request_headers
-    del request_body
-    del request_method
-    del request_path
-    del databases
-    return database
-
-
 @pytest.mark.parametrize(
     argnames=("request_path", "target_id"),
     argvalues=[
@@ -64,23 +42,13 @@ def test_validate_target_id_exists_uses_correct_path_segment(
     *,
     request_path: str,
     target_id: str,
-    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Validation uses the right target segment for both endpoint
     shapes.
     """
     database = _database_with_target(target_id=target_id)
 
-    monkeypatch.setattr(
-        target=target_validators,
-        name="get_database_matching_server_keys",
-        value=partial(_always_match_database, database=database),
-    )
-
     validate_target_id_exists(
         request_path=request_path,
-        request_headers={},
-        request_body=b"",
-        request_method="GET",
-        databases={database},
+        database=database,
     )

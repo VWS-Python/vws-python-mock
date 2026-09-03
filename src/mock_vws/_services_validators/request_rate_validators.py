@@ -3,15 +3,12 @@
 import re
 import threading
 from collections import deque
-from collections.abc import Callable, Iterable, Mapping
+from collections.abc import Callable
 from http import HTTPMethod
 
 from beartype import beartype
 
-from mock_vws._database_matchers import (
-    AnyDatabase,
-    get_database_matching_server_keys,
-)
+from mock_vws._database_matchers import AnyDatabase
 from mock_vws.database import CloudDatabase
 from mock_vws.request_rate_limits import (
     RateLimitedEndpoint,
@@ -130,23 +127,14 @@ class RequestRateLimiter:
 @beartype
 def validate_request_rate(
     *,
-    request_headers: Mapping[str, str],
-    request_body: bytes,
     request_method: str,
     request_path: str,
-    databases: Iterable[AnyDatabase],
+    database: AnyDatabase,
     request_rate_limiter: RequestRateLimiter,
 ) -> None:
     """Apply the configured request rates to the matching cloud
     database.
     """
-    database = get_database_matching_server_keys(
-        request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
-    )
     if isinstance(database, CloudDatabase):
         endpoint = _rate_limited_endpoint(
             request_method=request_method,
