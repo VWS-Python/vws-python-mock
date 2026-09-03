@@ -4,6 +4,7 @@ MPixel
 MiB
 MissingSchema
 OAuth
+Pydantic
 Reco
 Ubuntu
 VuMark
@@ -35,6 +36,8 @@ dev
 dict
 docstring
 docstrings
+enum
+enums
 eof
 exc
 filename
@@ -84,6 +87,7 @@ png
 pragma
 presigned
 processable
+pydantic
 pyrefly
 pyright
 pytest
