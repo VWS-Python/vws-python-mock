@@ -16,6 +16,7 @@ from vws.exceptions.vws_exceptions import FailError
 
 from mock_vws import MockVWS
 from mock_vws.database import CloudDatabase
+from tests.mock_vws.utils.retries import TRANSIENT_VWS_EXCEPTIONS
 
 LOGGER = logging.getLogger(name=__name__)
 LOGGER.setLevel(level=logging.DEBUG)
@@ -39,7 +40,13 @@ def _log_attempt_number(retry_state: RetryCallState) -> None:
     # expected number. This is necessary because the database summary endpoint
     # lags behind the real data.
     stop=stop_after_delay(max_delay=700),
-    retry=retry_if_exception_type(exception_types=(AssertionError,)),
+    # Retry a stale summary, and also retry a poll which fails transiently.
+    # ``pytest-retry`` would retry the whole test on a transient failure, but
+    # that restarts the 700 second clock and adds another target, so it is
+    # better to retry just the one poll which failed.
+    retry=retry_if_exception_type(
+        exception_types=(AssertionError, *TRANSIENT_VWS_EXCEPTIONS),
+    ),
     before=_log_attempt_number,
 )
 def _wait_for_image_numbers(
