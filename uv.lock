@@ -2893,7 +2893,7 @@ requires-dist = [
     { name = "vws-auth-tools", specifier = ">=2024.7.12" },
     { name = "vws-python", marker = "extra == 'dev'", specifier = "==2026.8.14" },
     { name = "vws-test-fixtures", marker = "extra == 'dev'", specifier = "==2026.8.26" },
-    { name = "vws-web-tools", marker = "extra == 'dev'", specifier = "==2026.8.7" },
+    { name = "vws-web-tools", marker = "extra == 'dev'", specifier = "==2026.8.27" },
     { name = "werkzeug", specifier = ">=3.1.2" },
     { name = "yamlfix", marker = "extra == 'dev'", specifier = "==1.19.1" },
     { name = "zizmor", marker = "extra == 'dev'", specifier = "==1.29.0" },
@@ -2918,7 +2918,7 @@ wheels = [
 
 [[package]]
 name = "vws-web-tools"
-version = "2026.8.7"
+version = "2026.8.27"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "beartype" },
@@ -2928,9 +2928,9 @@ dependencies = [
     { name = "selenium" },
     { name = "tenacity" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/c9/87/f5fb050d9fabb53dab9f7ea1458d9e03bc5aa404cad40ee769614f3596f3/vws_web_tools-2026.8.7.tar.gz", hash = "sha256:2e25a123b07cc3afb4edb653459b5a3fb13c8f62c37588f861c0adeaf50d2bdb", size = 49308, upload-time = "2026-08-07T22:30:35.042Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/80/2f/bc0fdcde0fb0d851cc9331e2c5da31ec3d9c67ea6f13a834cad864e403f0/vws_web_tools-2026.8.27.tar.gz", hash = "sha256:316a837b903b1b736d25cbc4835f7eed70597f8d30bc257dbab7ef3748d8751e", size = 56322, upload-time = "2026-08-27T12:08:48.595Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/48/58/003339fc706d870459e6b190e1bd81006cf810dd3cf9a187bc9481360287/vws_web_tools-2026.8.7-py3-none-any.whl", hash = "sha256:1574270c392c0d7558fe7527ec97f178c93ab27b347efd9ef590e6ab0ecf116e", size = 12749, upload-time = "2026-08-07T22:30:33.549Z" },
+    { url = "https://files.pythonhosted.org/packages/8a/7b/874a01af7b8651507a80e590d908a984dc19469833facc1d0885d19d9d26/vws_web_tools-2026.8.27-py3-none-any.whl", hash = "sha256:7e5cc0a68e9753824c4c703aaf149c566994fe8f30750b8e7e4d09ab42d86951", size = 16192, upload-time = "2026-08-27T12:08:47.161Z" },
 ]
 
 [[package]]
