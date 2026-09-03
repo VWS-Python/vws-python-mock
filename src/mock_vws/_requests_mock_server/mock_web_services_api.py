@@ -24,7 +24,6 @@ from mock_vws._constants import (
     ResultCodes,
     TargetStatuses,
 )
-from mock_vws._database_matchers import get_database_matching_server_keys
 from mock_vws._matching import matching_targets
 from mock_vws._mock_common import (
     RECO_COUNTS_DOWNLOAD_PATH_PATTERN,
@@ -486,20 +485,13 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
         https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api
         """
         try:
-            run_services_validators(
+            database = run_services_validators(
                 request_headers=request.headers,
                 request_body=request.body,
                 request_method=request.method,
                 request_path=request.path,
                 databases=self._target_manager.cloud_databases,
                 request_rate_limiter=self._target_manager.request_rate_limiter,
-            )
-            database = get_database_matching_server_keys(
-                request_headers=request.headers,
-                request_body=request.body,
-                request_method=request.method,
-                request_path=request.path,
-                databases=self._target_manager.cloud_databases,
             )
             return create_reco_counts_report(
                 request_body=request.body,
@@ -541,7 +533,7 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
         https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#add
         """
         try:
-            run_services_validators(
+            database = run_services_validators(
                 request_headers=request.headers,
                 request_body=request.body,
                 request_method=request.method,
@@ -551,14 +543,6 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
-
-        database = get_database_matching_server_keys(
-            request_headers=request.headers,
-            request_body=request.body,
-            request_method=request.method,
-            request_path=request.path,
-            databases=self._target_manager.cloud_databases,
-        )
 
         request_json: dict[str, Any] = json.loads(s=request.body)
         given_active_flag = request_json.get("active_flag")
@@ -617,7 +601,7 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
         https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#delete
         """
         try:
-            run_services_validators(
+            database = run_services_validators(
                 request_headers=request.headers,
                 request_body=request.body,
                 request_method=request.method,
@@ -627,14 +611,6 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
-
-        database = get_database_matching_server_keys(
-            request_headers=request.headers,
-            request_body=request.body,
-            request_method=request.method,
-            request_path=request.path,
-            databases=self._target_manager.cloud_databases,
-        )
 
         target_id = request.path.split(sep="/")[-1]
         target = database.get_target(target_id=target_id)
@@ -717,21 +693,13 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
                 *self._target_manager.cloud_databases,
                 *self._target_manager.vumark_databases,
             ]
-            run_services_validators(
+            database = run_services_validators(
                 request_headers=request.headers,
                 request_body=request.body,
                 request_method=request.method,
                 request_path=request.path,
                 databases=all_databases,
                 request_rate_limiter=self._target_manager.request_rate_limiter,
-            )
-
-            database = get_database_matching_server_keys(
-                request_headers=request.headers,
-                request_body=request.body,
-                request_method=request.method,
-                request_path=request.path,
-                databases=all_databases,
             )
             if not isinstance(database, VuMarkDatabase):
                 raise InvalidTargetTypeError
@@ -774,7 +742,7 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
         https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#summary-report
         """
         try:
-            run_services_validators(
+            database = run_services_validators(
                 request_headers=request.headers,
                 request_body=request.body,
                 request_method=request.method,
@@ -784,14 +752,6 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
-
-        database = get_database_matching_server_keys(
-            request_headers=request.headers,
-            request_body=request.body,
-            request_method=request.method,
-            request_path=request.path,
-            databases=self._target_manager.cloud_databases,
-        )
 
         date = email.utils.formatdate(
             timeval=None,
@@ -836,7 +796,7 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
         https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#details-list
         """
         try:
-            run_services_validators(
+            database = run_services_validators(
                 request_headers=request.headers,
                 request_body=request.body,
                 request_method=request.method,
@@ -846,14 +806,6 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
-
-        database = get_database_matching_server_keys(
-            request_headers=request.headers,
-            request_body=request.body,
-            request_method=request.method,
-            request_path=request.path,
-            databases=self._target_manager.cloud_databases,
-        )
 
         date = email.utils.formatdate(
             timeval=None,
@@ -895,7 +847,7 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
         https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#target-record
         """
         try:
-            run_services_validators(
+            database = run_services_validators(
                 request_headers=request.headers,
                 request_body=request.body,
                 request_method=request.method,
@@ -905,14 +857,6 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
-
-        database = get_database_matching_server_keys(
-            request_headers=request.headers,
-            request_body=request.body,
-            request_method=request.method,
-            request_path=request.path,
-            databases=self._target_manager.cloud_databases,
-        )
         target_id = request.path.split(sep="/")[-1]
         target = database.get_target(target_id=target_id)
 
@@ -965,7 +909,7 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
         https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#check
         """
         try:
-            run_services_validators(
+            database = run_services_validators(
                 request_headers=request.headers,
                 request_body=request.body,
                 request_method=request.method,
@@ -975,14 +919,6 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
-
-        database = get_database_matching_server_keys(
-            request_headers=request.headers,
-            request_body=request.body,
-            request_method=request.method,
-            request_path=request.path,
-            databases=self._target_manager.cloud_databases,
-        )
         target_id = request.path.split(sep="/")[-1]
         target = database.get_target(target_id=target_id)
 
@@ -1039,7 +975,7 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
         https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#update
         """
         try:
-            run_services_validators(
+            database = run_services_validators(
                 request_headers=request.headers,
                 request_body=request.body,
                 request_method=request.method,
@@ -1049,14 +985,6 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
-
-        database = get_database_matching_server_keys(
-            request_headers=request.headers,
-            request_body=request.body,
-            request_method=request.method,
-            request_path=request.path,
-            databases=self._target_manager.cloud_databases,
-        )
 
         target_id = request.path.split(sep="/")[-1]
         target = database.get_target(target_id=target_id)
@@ -1154,7 +1082,7 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
         https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#retrieve-report
         """
         try:
-            run_services_validators(
+            database = run_services_validators(
                 request_headers=request.headers,
                 request_body=request.body,
                 request_method=request.method,
@@ -1164,14 +1092,6 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
             )
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
-
-        database = get_database_matching_server_keys(
-            request_headers=request.headers,
-            request_body=request.body,
-            request_method=request.method,
-            request_path=request.path,
-            databases=self._target_manager.cloud_databases,
-        )
         target_id = request.path.split(sep="/")[-1]
         target = database.get_target(target_id=target_id)
 

@@ -88,14 +88,14 @@ def validate_auth_header_has_signature(
 
 
 @beartype
-def validate_authorization(
+def validate_authorization[DatabaseT: AnyDatabase](
     *,
     request_path: str,
     request_headers: Mapping[str, str],
     request_body: bytes,
     request_method: str,
-    databases: Iterable[AnyDatabase],
-) -> None:
+    databases: Iterable[DatabaseT],
+) -> DatabaseT:
     """Validate the authorization header given to a VWS endpoint.
 
     Args:
@@ -105,12 +105,15 @@ def validate_authorization(
         request_method: The HTTP method of the request.
         databases: All Vuforia databases.
 
+    Returns:
+        The database which the request's server keys belong to.
+
     Raises:
         AuthenticationFailureError: No database matches the given authorization
             header.
     """
     try:
-        get_database_matching_server_keys(
+        return get_database_matching_server_keys(
             request_headers=request_headers,
             request_body=request_body,
             request_method=request_method,

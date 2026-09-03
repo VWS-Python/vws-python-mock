@@ -1,15 +1,11 @@
 """Validators for the project state."""
 
 import logging
-from collections.abc import Iterable, Mapping
 from http import HTTPMethod
 
 from beartype import beartype
 
-from mock_vws._database_matchers import (
-    AnyDatabase,
-    get_database_matching_server_keys,
-)
+from mock_vws._database_matchers import AnyDatabase
 from mock_vws._services_validators.exceptions import (
     ProjectHasNoApiAccessError,
     ProjectInactiveError,
@@ -26,32 +22,20 @@ _LOGGER = logging.getLogger(name=__name__)
 def validate_project_state(
     *,
     request_path: str,
-    request_headers: Mapping[str, str],
-    request_body: bytes,
     request_method: str,
-    databases: Iterable[AnyDatabase],
+    database: AnyDatabase,
 ) -> None:
     """Validate the state of the project.
 
     Args:
         request_path: The path of the request.
-        request_headers: The headers sent with the request.
-        request_body: The body of the request.
         request_method: The HTTP method of the request.
-        databases: All Vuforia databases.
+        database: The database which the request's server keys belong to.
 
     Raises:
         ProjectInactiveError: The project is inactive and this endpoint does
             not work with inactive projects.
     """
-    database = get_database_matching_server_keys(
-        request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
-    )
-
     state_errors: dict[States, type[ValidatorError]] = {
         States.PROJECT_HAS_NO_API_ACCESS: ProjectHasNoApiAccessError,
         States.PROJECT_SUSPENDED: ProjectSuspendedError,

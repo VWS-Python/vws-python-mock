@@ -2,15 +2,11 @@
 
 import json
 import logging
-from collections.abc import Iterable, Mapping
 from http import HTTPMethod, HTTPStatus
 
 from beartype import beartype
 
-from mock_vws._database_matchers import (
-    AnyDatabase,
-    get_database_matching_server_keys,
-)
+from mock_vws._database_matchers import AnyDatabase
 from mock_vws._services_validators.exceptions import (
     FailError,
     TargetNameExistError,
@@ -118,19 +114,15 @@ def validate_name_length(*, request_body: bytes) -> None:
 @beartype
 def validate_name_does_not_exist_new_target(
     *,
-    databases: Iterable[AnyDatabase],
+    database: AnyDatabase,
     request_body: bytes,
-    request_headers: Mapping[str, str],
-    request_method: str,
     request_path: str,
 ) -> None:
     """Validate that the name does not exist for any existing target.
 
     Args:
-        databases: All Vuforia databases.
+        database: The database which the request's server keys belong to.
         request_body: The body of the request.
-        request_headers: The headers sent with the request.
-        request_method: The HTTP method the request is using.
         request_path: The path to the endpoint.
 
     Raises:
@@ -150,13 +142,6 @@ def validate_name_does_not_exist_new_target(
         return
 
     name = json.loads(s=request_text)["name"]
-    database = get_database_matching_server_keys(
-        request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
-    )
 
     matching_name_targets = [
         target
@@ -174,21 +159,17 @@ def validate_name_does_not_exist_new_target(
 @beartype
 def validate_name_does_not_exist_existing_target(
     *,
-    request_headers: Mapping[str, str],
     request_body: bytes,
-    request_method: str,
     request_path: str,
-    databases: Iterable[AnyDatabase],
+    database: AnyDatabase,
 ) -> None:
     """Validate that the name does not exist for any existing target apart
     from
     the one being updated.
 
     Args:
-        databases: All Vuforia databases.
+        database: The database which the request's server keys belong to.
         request_body: The body of the request.
-        request_headers: The headers sent with the request.
-        request_method: The HTTP method the request is using.
         request_path: The path to the endpoint.
 
     Raises:
@@ -210,13 +191,6 @@ def validate_name_does_not_exist_existing_target(
     target_id = split_path[-1]
 
     name = json.loads(s=request_text)["name"]
-    database = get_database_matching_server_keys(
-        request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
-    )
 
     matching_name_targets = [
         target

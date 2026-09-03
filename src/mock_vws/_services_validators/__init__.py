@@ -65,15 +65,15 @@ from .width_validators import validate_width
 
 
 @beartype
-def run_services_validators(
+def run_services_validators[DatabaseT: AnyDatabase](
     *,
     request_path: str,
     request_headers: Mapping[str, str],
     request_body: bytes,
     request_method: str,
-    databases: Iterable[AnyDatabase],
+    databases: Iterable[DatabaseT],
     request_rate_limiter: RequestRateLimiter,
-) -> None:
+) -> DatabaseT:
     """Run all validators.
 
     Args:
@@ -83,6 +83,9 @@ def run_services_validators(
         request_method: The HTTP method of the request.
         databases: All Vuforia databases.
         request_rate_limiter: The rate limiter tracking recent requests.
+
+    Returns:
+        The database which the request's server keys belong to.
     """
     validate_auth_header_exists(request_headers=request_headers)
     validate_auth_header_has_signature(request_headers=request_headers)
@@ -90,7 +93,7 @@ def run_services_validators(
         request_headers=request_headers,
         databases=databases,
     )
-    validate_authorization(
+    database = validate_authorization(
         request_headers=request_headers,
         request_body=request_body,
         request_method=request_method,
@@ -98,47 +101,29 @@ def run_services_validators(
         databases=databases,
     )
     validate_database_id_matches_keys(
-        request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
         request_path=request_path,
-        databases=databases,
+        database=database,
     )
-    validate_request_quota(
-        request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
-    )
+    validate_request_quota(database=database)
     validate_request_rate(
-        request_headers=request_headers,
-        request_body=request_body,
         request_method=request_method,
         request_path=request_path,
-        databases=databases,
+        database=database,
         request_rate_limiter=request_rate_limiter,
     )
     validate_project_state(
-        request_headers=request_headers,
-        request_body=request_body,
         request_method=request_method,
         request_path=request_path,
-        databases=databases,
+        database=database,
     )
     validate_target_quota(
-        request_headers=request_headers,
-        request_body=request_body,
         request_method=request_method,
         request_path=request_path,
-        databases=databases,
+        database=database,
     )
     validate_target_id_exists(
-        request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
         request_path=request_path,
-        databases=databases,
+        database=database,
     )
 
     validate_body_given(
@@ -181,18 +166,14 @@ def run_services_validators(
         request_path=request_path,
     )
     validate_name_does_not_exist_new_target(
-        request_headers=request_headers,
         request_body=request_body,
-        request_method=request_method,
         request_path=request_path,
-        databases=databases,
+        database=database,
     )
     validate_name_does_not_exist_existing_target(
-        request_headers=request_headers,
         request_body=request_body,
-        request_method=request_method,
         request_path=request_path,
-        databases=databases,
+        database=database,
     )
 
     validate_width(request_body=request_body)
@@ -214,3 +195,5 @@ def run_services_validators(
         request_headers=request_headers,
         request_body=request_body,
     )
+
+    return database
