@@ -2715,7 +2715,7 @@ wheels = [
 
 [[package]]
 name = "vws-python"
-version = "2026.8.14"
+version = "2026.8.26"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "beartype" },
@@ -2724,9 +2724,9 @@ dependencies = [
     { name = "urllib3" },
     { name = "vws-auth-tools" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3f/50/b65d70abb437082f723fc71f01003c0fa7a5ff4ee0aff990ec9878609a9a/vws_python-2026.8.14.tar.gz", hash = "sha256:bfcfc6196cbecb0e0c8f11fd7c358d53a8453a102078e8482ac6cc4c885239ca", size = 80716, upload-time = "2026-08-14T14:23:32.104Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/0d/6b/89de512a99ab736c288d98181e6309419f51db5b5238209575c2612ac0e4/vws_python-2026.8.26.tar.gz", hash = "sha256:a02898c776537992fd83b11eda0df8ccf7e7341d399ca8250b99eb53c4225635", size = 81481, upload-time = "2026-08-26T10:41:23.5Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d0/b0/f8b44fd494abaade88eb396c73c729546d1db1bb13792cd79eb363514f71/vws_python-2026.8.14-py3-none-any.whl", hash = "sha256:e80f9fb64f3190eef82bc7a1685fecb6670795a70169c2546088ccb68b135381", size = 47366, upload-time = "2026-08-14T14:23:30.846Z" },
+    { url = "https://files.pythonhosted.org/packages/40/21/22384bc956aa2da75f10246fd74e5333bcbc9aeac2874f18439b9fad23a8/vws_python-2026.8.26-py3-none-any.whl", hash = "sha256:066428c51411256e9fb34e4ffcfbd5049b95b86ce1f060f36263e88c48168dd3", size = 47342, upload-time = "2026-08-26T10:41:21.847Z" },
 ]
 
 [[package]]
@@ -2891,7 +2891,7 @@ requires-dist = [
     { name = "vale", marker = "extra == 'dev'", specifier = "==3.18.0.0" },
     { name = "vulture", marker = "extra == 'dev'", specifier = "==2.16" },
     { name = "vws-auth-tools", specifier = ">=2024.7.12" },
-    { name = "vws-python", marker = "extra == 'dev'", specifier = "==2026.8.14" },
+    { name = "vws-python", marker = "extra == 'dev'", specifier = "==2026.8.26" },
     { name = "vws-test-fixtures", marker = "extra == 'dev'", specifier = "==2026.8.26" },
     { name = "vws-web-tools", marker = "extra == 'dev'", specifier = "==2026.8.27" },
     { name = "werkzeug", specifier = ">=3.1.2" },
