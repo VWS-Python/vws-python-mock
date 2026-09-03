@@ -40,6 +40,7 @@ dependencies = [
     "numpy>=2.4.4",
     "opencv-contrib-python-headless>=5.0.0.93",
     "pillow>=12.2.0",
+    "pydantic>=2.6",
     "pydantic-settings>=2.6.1",
     "pyteenybrisque>=0.1.1",
     "requests>=2.32.3",
@@ -421,6 +422,8 @@ ignore_decorators = [
     "@*APP.errorhandler",
     # Flask
     "@*APP.route",
+    # pydantic
+    "@model_validator",
     "@pytest.fixture",
     "@route",
 ]

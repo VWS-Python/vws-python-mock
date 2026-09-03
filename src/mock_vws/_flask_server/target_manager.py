@@ -4,19 +4,27 @@ import base64
 import copy
 import datetime
 import json
-from enum import StrEnum, auto
+from collections.abc import Callable, Mapping, Sequence
+from enum import Enum, StrEnum, auto
 from http import HTTPMethod, HTTPStatus
-from typing import assert_never
+from typing import Annotated, TypeIs, assert_never
 from zoneinfo import ZoneInfo
 
 from beartype import beartype
 from flask import Flask, Response, request
+from pydantic import (
+    BaseModel,
+    BeforeValidator,
+    ConfigDict,
+    ValidationError,
+    model_validator,
+)
 from pydantic_settings import BaseSettings
 
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.database_type import DatabaseType
 from mock_vws.model_target import ModelTargetDataset, OAuth2ClientCredential
-from mock_vws.request_rate_limits import RequestRateLimits
+from mock_vws.request_rate_limits import RequestRateLimit, RequestRateLimits
 from mock_vws.states import States
 from mock_vws.target import ImageTarget, VuMarkTarget
 from mock_vws.target_manager import TargetManager
@@ -63,6 +71,284 @@ class TargetManagerSettings(BaseSettings):
     target_rater: _TargetRaterChoice = _TargetRaterChoice.BRISQUE
 
 
+@beartype
+def _enum_by_name[T: Enum](*, enum_type: type[T]) -> Callable[[object], T]:
+    """Return a validator which looks an enum member up by its name.
+
+    Pydantic validates enums by value, but the target manager API takes
+    the member name, such as ``"WORKING"``, so that the request matches
+    the response.
+    """
+
+    def validate(value: object) -> T:
+        """Return the member with the given name."""
+        if isinstance(value, str) and value in enum_type.__members__:
+            return enum_type[value]
+        accepted = ", ".join(repr(name) for name in enum_type.__members__)
+        msg = f"Input should be one of {accepted}"
+        raise ValueError(msg)
+
+    return validate
+
+
+_StateName = Annotated[
+    States,
+    BeforeValidator(func=_enum_by_name(enum_type=States)),
+]
+_DatabaseTypeName = Annotated[
+    DatabaseType,
+    BeforeValidator(func=_enum_by_name(enum_type=DatabaseType)),
+]
+
+
+@beartype
+def _is_json_object(value: object, /) -> TypeIs[dict[str, object]]:
+    """Whether a value parsed from JSON is an object.
+
+    JSON object keys are always strings.
+    """
+    return isinstance(value, dict)
+
+
+class RequestRateLimitBody(BaseModel):
+    """A single request rate limit in a create cloud database request."""
+
+    model_config = ConfigDict(strict=True, extra="forbid")
+
+    max_requests: int
+    window_seconds: float
+
+
+@beartype
+def _to_request_rate_limit(
+    *,
+    limit: RequestRateLimitBody | None,
+) -> RequestRateLimit | None:
+    """Create a request rate limit from a request body, or ``None``."""
+    if limit is None:
+        return None
+    return RequestRateLimit(
+        max_requests=limit.max_requests,
+        window_seconds=limit.window_seconds,
+    )
+
+
+class RequestRateLimitsBody(BaseModel):
+    """Per-endpoint request rate limits in a create cloud database
+    request.
+
+    A group of endpoints which is not given has no limit of its own.
+    """
+
+    model_config = ConfigDict(strict=True, extra="forbid")
+
+    other: RequestRateLimitBody | None
+    get_target: RequestRateLimitBody | None
+    get_duplicates: RequestRateLimitBody | None
+    list_targets: RequestRateLimitBody | None
+
+    @model_validator(mode="before")
+    @classmethod
+    def _treat_missing_limits_as_none(cls, data: object) -> object:
+        """Treat a group of endpoints which is not given as having no limit
+        of its own.
+
+        The value is whatever was given for ``request_rate_limits``, which
+        pydantic validates after this fills in the missing groups.
+        """
+        if _is_json_object(data):
+            return dict.fromkeys(cls.model_fields) | data
+        return data
+
+    def to_request_rate_limits(self) -> RequestRateLimits:
+        """Create the request rate limits which this body describes."""
+        return RequestRateLimits(
+            other=_to_request_rate_limit(limit=self.other),
+            get_target=_to_request_rate_limit(limit=self.get_target),
+            get_duplicates=_to_request_rate_limit(limit=self.get_duplicates),
+            list_targets=_to_request_rate_limit(limit=self.list_targets),
+        )
+
+
+class CloudDatabaseRequestBody(BaseModel):
+    """The body of a request to create a cloud database.
+
+    The defaults for fields which were not given have been filled in.
+    """
+
+    model_config = ConfigDict(strict=True)
+
+    server_access_key: str
+    server_secret_key: str
+    client_access_key: str
+    client_secret_key: str
+    database_id: str
+    database_name: str
+    state_name: _StateName
+    database_type_name: _DatabaseTypeName
+    request_quota: int
+    target_quota: int
+    reco_threshold: int
+    current_month_recos: int
+    previous_month_recos: int
+    total_recos: int
+    requests_per_second_limit: int | None
+    request_rate_limits: RequestRateLimitsBody | None
+
+    def to_cloud_database(self) -> CloudDatabase:
+        """Create the cloud database which this body describes."""
+        return CloudDatabase(
+            server_access_key=self.server_access_key,
+            server_secret_key=self.server_secret_key,
+            client_access_key=self.client_access_key,
+            client_secret_key=self.client_secret_key,
+            database_id=self.database_id,
+            database_name=self.database_name,
+            state=self.state_name,
+            database_type=self.database_type_name,
+            request_quota=self.request_quota,
+            target_quota=self.target_quota,
+            reco_threshold=self.reco_threshold,
+            current_month_recos=self.current_month_recos,
+            previous_month_recos=self.previous_month_recos,
+            total_recos=self.total_recos,
+            requests_per_second_limit=self.requests_per_second_limit,
+            request_rate_limits=(
+                None
+                if self.request_rate_limits is None
+                else self.request_rate_limits.to_request_rate_limits()
+            ),
+        )
+
+
+class VuMarkDatabaseRequestBody(BaseModel):
+    """The body of a request to create a VuMark database.
+
+    The defaults for fields which were not given have been filled in.
+    """
+
+    model_config = ConfigDict(strict=True)
+
+    server_access_key: str
+    server_secret_key: str
+    database_name: str
+    state_name: _StateName
+
+    def to_vumark_database(self) -> VuMarkDatabase:
+        """Create the VuMark database which this body describes."""
+        return VuMarkDatabase(
+            server_access_key=self.server_access_key,
+            server_secret_key=self.server_secret_key,
+            database_name=self.database_name,
+            state=self.state_name,
+        )
+
+
+@beartype
+class _InvalidRequestBodyError(Exception):
+    """A request body which cannot be used to create a resource.
+
+    Args:
+        errors: One entry per problem, in the form which
+            :meth:`pydantic.ValidationError.errors` gives: each names the
+            location of the problem within the body as ``loc``, which is
+            empty when the body as a whole is the problem, and describes it
+            in ``msg``.
+    """
+
+    def __init__(self, *, errors: Sequence[object]) -> None:
+        """Record the problems with the body."""
+        super().__init__(errors)
+        self.errors = errors
+
+
+@beartype
+def _whole_body_error(*, msg: str) -> dict[str, object]:
+    """Describe a problem with a request body as a whole, in the form which
+    :meth:`pydantic.ValidationError.errors` gives.
+    """
+    return {"type": "value_error", "loc": [], "msg": msg}
+
+
+@beartype
+def _validate_request_body[T: BaseModel](
+    *,
+    model: type[T],
+    data: bytes,
+    defaults: Mapping[str, object],
+) -> T:
+    """Parse a request body as a JSON object and validate it as a model.
+
+    Args:
+        model: The model to validate the body against.
+        data: The raw request body.
+        defaults: Values for fields which the body does not give.
+
+    Raises:
+        _InvalidRequestBodyError: The body is not a JSON object, or a field
+            has a value which the model does not accept.
+    """
+    try:
+        parsed = json.loads(s=data)
+    except json.JSONDecodeError as exc:
+        raise _InvalidRequestBodyError(
+            errors=[_whole_body_error(msg=str(object=exc))],
+        ) from exc
+
+    if not _is_json_object(parsed):
+        raise _InvalidRequestBodyError(
+            errors=[_whole_body_error(msg="Input should be an object")],
+        )
+
+    try:
+        return model.model_validate(obj=dict(defaults) | parsed)
+    except ValidationError as exc:
+        raise _InvalidRequestBodyError(
+            errors=exc.errors(
+                include_url=False,
+                include_context=False,
+                include_input=False,
+            ),
+        ) from exc
+
+
+@beartype
+def _bad_request_response(*, errors: Sequence[object]) -> Response:
+    """Return a response describing why a request body was rejected.
+
+    The response is a JSON object with an ``errors`` list.
+    """
+    return Response(
+        response=json.dumps(obj={"errors": list(errors)}),
+        status=HTTPStatus.BAD_REQUEST,
+        mimetype="application/json",
+    )
+
+
+@beartype
+def _find_cloud_database(*, database_name: str) -> CloudDatabase | None:
+    """Return the cloud database with the given name, if there is one.
+
+    This must be called while holding the target manager's lock.
+    """
+    for database in TARGET_MANAGER.cloud_databases:
+        if database.database_name == database_name:
+            return database
+    return None
+
+
+@beartype
+def _find_vumark_database(*, database_name: str) -> VuMarkDatabase | None:
+    """Return the VuMark database with the given name, if there is one.
+
+    This must be called while holding the target manager's lock.
+    """
+    for database in TARGET_MANAGER.vumark_databases:
+        if database.database_name == database_name:
+            return database
+    return None
+
+
 @TARGET_MANAGER_FLASK_APP.route(
     rule="/cloud_databases/<string:database_name>",
     methods=[HTTPMethod.DELETE],
@@ -74,13 +360,8 @@ def delete_cloud_database(database_name: str) -> Response:
     :status 200: The cloud database has been deleted.
     """
     with TARGET_MANAGER.lock:
-        try:
-            (matching_database,) = {
-                database
-                for database in TARGET_MANAGER.cloud_databases
-                if database_name == database.database_name
-            }
-        except ValueError:
+        matching_database = _find_cloud_database(database_name=database_name)
+        if matching_database is None:
             return Response(response="", status=HTTPStatus.NOT_FOUND)
 
         TARGET_MANAGER.remove_cloud_database(cloud_database=matching_database)
@@ -99,13 +380,8 @@ def delete_vumark_database(database_name: str) -> Response:
     :status 200: The VuMark database has been deleted.
     """
     with TARGET_MANAGER.lock:
-        try:
-            (matching_database,) = {
-                database
-                for database in TARGET_MANAGER.vumark_databases
-                if database_name == database.database_name
-            }
-        except ValueError:
+        matching_database = _find_vumark_database(database_name=database_name)
+        if matching_database is None:
             return Response(response="", status=HTTPStatus.NOT_FOUND)
 
         TARGET_MANAGER.remove_vumark_database(
@@ -236,97 +512,23 @@ def create_cloud_database() -> Response:
     :reqjsonarr targets: The targets in the cloud database.
 
     :status 201: The cloud database has been successfully created.
+    :status 400: The request body is not a JSON object, or a field has a
+      value which is not accepted. The response body is a JSON object with
+      an ``errors`` list which names each offending field and the accepted
+      values.
+    :status 409: A cloud database with one of the given keys or the given
+      name already exists.
     """
-    random_database = CloudDatabase()
-    request_json = json.loads(s=request.data)
-    server_access_key = request_json.get(
-        "server_access_key",
-        random_database.server_access_key,
-    )
-    server_secret_key = request_json.get(
-        "server_secret_key",
-        random_database.server_secret_key,
-    )
-    client_access_key = request_json.get(
-        "client_access_key",
-        random_database.client_access_key,
-    )
-    client_secret_key = request_json.get(
-        "client_secret_key",
-        random_database.client_secret_key,
-    )
-    database_id = request_json.get(
-        "database_id",
-        random_database.database_id,
-    )
-    database_name = request_json.get(
-        "database_name",
-        random_database.database_name,
-    )
-    state_name = request_json.get(
-        "state_name",
-        random_database.state.name,
-    )
-    database_type_name = request_json.get(
-        "database_type_name",
-        random_database.database_type.name,
-    )
-    request_quota = request_json.get(
-        "request_quota",
-        random_database.request_quota,
-    )
-    target_quota = request_json.get(
-        "target_quota",
-        random_database.target_quota,
-    )
-    reco_threshold = request_json.get(
-        "reco_threshold",
-        random_database.reco_threshold,
-    )
-    current_month_recos = request_json.get(
-        "current_month_recos",
-        random_database.current_month_recos,
-    )
-    previous_month_recos = request_json.get(
-        "previous_month_recos",
-        random_database.previous_month_recos,
-    )
-    total_recos = request_json.get(
-        "total_recos",
-        random_database.total_recos,
-    )
-    requests_per_second_limit = request_json.get(
-        "requests_per_second_limit",
-        random_database.requests_per_second_limit,
-    )
-    request_rate_limits_dict = request_json.get("request_rate_limits")
-    request_rate_limits = (
-        None
-        if request_rate_limits_dict is None
-        else RequestRateLimits.from_dict(limits_dict=request_rate_limits_dict)
-    )
+    try:
+        body = _validate_request_body(
+            model=CloudDatabaseRequestBody,
+            data=request.data,
+            defaults=CloudDatabase().to_dict(),
+        )
+    except _InvalidRequestBodyError as exc:
+        return _bad_request_response(errors=exc.errors)
 
-    state = States[state_name]
-    database_type = DatabaseType[database_type_name]
-
-    database = CloudDatabase(
-        server_access_key=server_access_key,
-        server_secret_key=server_secret_key,
-        client_access_key=client_access_key,
-        client_secret_key=client_secret_key,
-        database_id=database_id,
-        database_name=database_name,
-        state=state,
-        database_type=database_type,
-        request_quota=request_quota,
-        target_quota=target_quota,
-        reco_threshold=reco_threshold,
-        current_month_recos=current_month_recos,
-        previous_month_recos=previous_month_recos,
-        total_recos=total_recos,
-        requests_per_second_limit=requests_per_second_limit,
-        request_rate_limits=request_rate_limits,
-    )
+    database = body.to_cloud_database()
     with TARGET_MANAGER.lock:
         try:
             TARGET_MANAGER.add_cloud_database(cloud_database=database)
@@ -352,29 +554,36 @@ def create_cloud_database() -> Response:
 def create_vumark_database() -> Response:
     """Create a new VuMark database.
 
+    :reqjson string server_access_key: (Optional) The server access key for the
+      VuMark database.
+
+    :reqjson string server_secret_key: (Optional) The server secret key for the
+      VuMark database.
+
+    :reqjson string database_name: (Optional) The name of the VuMark database.
+
+    :reqjson string state_name: (Optional) The state of the VuMark database.
+     This can be "WORKING", "PROJECT_INACTIVE", "PROJECT_SUSPENDED", or
+     "PROJECT_HAS_NO_API_ACCESS". This defaults to "WORKING".
+
     :status 201: The database has been successfully created.
+    :status 400: The request body is not a JSON object, or a field has a
+      value which is not accepted. The response body is a JSON object with
+      an ``errors`` list which names each offending field and the accepted
+      values.
+    :status 409: A VuMark database with one of the given keys or the given
+      name already exists.
     """
-    request_json = json.loads(s=request.data)
-    random_vumark_database = VuMarkDatabase()
-    state_name = request_json.get(
-        "state_name",
-        random_vumark_database.state.name,
-    )
-    database = VuMarkDatabase(
-        server_access_key=request_json.get(
-            "server_access_key",
-            random_vumark_database.server_access_key,
-        ),
-        server_secret_key=request_json.get(
-            "server_secret_key",
-            random_vumark_database.server_secret_key,
-        ),
-        database_name=request_json.get(
-            "database_name",
-            random_vumark_database.database_name,
-        ),
-        state=States[state_name],
-    )
+    try:
+        body = _validate_request_body(
+            model=VuMarkDatabaseRequestBody,
+            data=request.data,
+            defaults=VuMarkDatabase().to_dict(),
+        )
+    except _InvalidRequestBodyError as exc:
+        return _bad_request_response(errors=exc.errors)
+
+    database = body.to_vumark_database()
 
     with TARGET_MANAGER.lock:
         try:
@@ -505,7 +714,11 @@ def remove_oauth2_client_credential(client_id: str) -> Response:
 )
 @beartype
 def create_target(database_name: str) -> Response:
-    """Create a new target in a given cloud database."""
+    """Create a new target in a given cloud database.
+
+    :status 201: The target has been created.
+    :status 404: There is no cloud database with the given name.
+    """
     request_json = json.loads(s=request.data)
     settings = TargetManagerSettings.model_validate(obj={})
 
@@ -522,11 +735,10 @@ def create_target(database_name: str) -> Response:
         target_tracking_rater=target_tracking_rater,
     )
     with TARGET_MANAGER.lock:
-        (database,) = (
-            database
-            for database in TARGET_MANAGER.cloud_databases
-            if database.database_name == database_name
-        )
+        database = _find_cloud_database(database_name=database_name)
+        if database is None:
+            return Response(response="", status=HTTPStatus.NOT_FOUND)
+
         database.targets.add(target)
 
     return Response(
@@ -541,15 +753,18 @@ def create_target(database_name: str) -> Response:
 )
 @beartype
 def create_vumark_target(database_name: str) -> Response:
-    """Create a new VuMark target in a given database."""
+    """Create a new VuMark target in a given database.
+
+    :status 201: The VuMark target has been created.
+    :status 404: There is no VuMark database with the given name.
+    """
     request_json = json.loads(s=request.data)
     target = VuMarkTarget.from_dict(target_dict=request_json)
     with TARGET_MANAGER.lock:
-        (database,) = (
-            database
-            for database in TARGET_MANAGER.vumark_databases
-            if database.database_name == database_name
-        )
+        database = _find_vumark_database(database_name=database_name)
+        if database is None:
+            return Response(response="", status=HTTPStatus.NOT_FOUND)
+
         database.vumark_targets.add(target)
 
     return Response(
@@ -566,11 +781,10 @@ def create_vumark_target(database_name: str) -> Response:
 def delete_target(database_name: str, target_id: str) -> Response:
     """Delete a target."""
     with TARGET_MANAGER.lock:
-        (database,) = (
-            database
-            for database in TARGET_MANAGER.cloud_databases
-            if database.database_name == database_name
-        )
+        database = _find_cloud_database(database_name=database_name)
+        if database is None:
+            return Response(response="", status=HTTPStatus.NOT_FOUND)
+
         target = database.get_target(target_id=target_id)
         now = datetime.datetime.now(tz=target.upload_date.tzinfo)
         # See https://github.com/facebook/pyrefly/issues/1897
@@ -597,11 +811,10 @@ def update_target(database_name: str, target_id: str) -> Response:
     request_json = json.loads(s=request.data)
 
     with TARGET_MANAGER.lock:
-        (database,) = (
-            database
-            for database in TARGET_MANAGER.cloud_databases
-            if database.database_name == database_name
-        )
+        database = _find_cloud_database(database_name=database_name)
+        if database is None:
+            return Response(response="", status=HTTPStatus.NOT_FOUND)
+
         target = database.get_target(target_id=target_id)
 
         name = request_json.get("name", target.name)
@@ -672,11 +885,10 @@ def set_target_recognition_counts(
     request_json = json.loads(s=request.data)
 
     with TARGET_MANAGER.lock:
-        (database,) = (
-            database
-            for database in TARGET_MANAGER.cloud_databases
-            if database.database_name == database_name
-        )
+        database = _find_cloud_database(database_name=database_name)
+        if database is None:
+            return Response(response="", status=HTTPStatus.NOT_FOUND)
+
         target = database.get_target(target_id=target_id)
 
         # See https://github.com/facebook/pyrefly/issues/1897

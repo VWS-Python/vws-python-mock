@@ -417,6 +417,154 @@ class TestAddCloudDatabase:
         assert not vws_client.list_targets()
         assert not cloud_reco_client.query(image=high_quality_image)
 
+    @staticmethod
+    @pytest.mark.parametrize(
+        argnames=("body", "expected_loc", "expected_message"),
+        argvalues=[
+            (
+                {"state_name": "inactive"},
+                ["state_name"],
+                (
+                    "Value error, Input should be one of 'WORKING', "
+                    "'PROJECT_SUSPENDED', 'PROJECT_INACTIVE', "
+                    "'PROJECT_HAS_NO_API_ACCESS'"
+                ),
+            ),
+            (
+                {"state_name": "project_inactive"},
+                ["state_name"],
+                (
+                    "Value error, Input should be one of 'WORKING', "
+                    "'PROJECT_SUSPENDED', 'PROJECT_INACTIVE', "
+                    "'PROJECT_HAS_NO_API_ACCESS'"
+                ),
+            ),
+            (
+                {"database_type_name": "cloud"},
+                ["database_type_name"],
+                "Value error, Input should be one of 'CLOUD_RECO'",
+            ),
+            (
+                {"request_quota": "100"},
+                ["request_quota"],
+                "Input should be a valid integer",
+            ),
+            (
+                {"request_rate_limits": {"other": {"max_requests": 1}}},
+                ["request_rate_limits", "other", "window_seconds"],
+                "Field required",
+            ),
+            (
+                {"request_rate_limits": [1, 2]},
+                ["request_rate_limits"],
+                (
+                    "Input should be a valid dictionary or instance of "
+                    "RequestRateLimitsBody"
+                ),
+            ),
+        ],
+        ids=[
+            "unknown_state_name",
+            "lowercase_state_name",
+            "unknown_database_type_name",
+            "request_quota_is_a_string",
+            "request_rate_limit_missing_a_key",
+            "request_rate_limits_wrong_type",
+        ],
+    )
+    def test_invalid_field(
+        body: dict[str, Any],
+        expected_loc: list[str],
+        expected_message: str,
+    ) -> None:
+        """A field with an unaccepted value gives a 400 response which
+        names the field and describes what is accepted.
+        """
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+        response = requests.post(url=databases_url, json=body, timeout=30)
+
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        assert response.headers["Content-Type"] == "application/json"
+        (error,) = response.json()["errors"]
+        assert error["loc"] == expected_loc
+        assert error["msg"] == expected_message
+        assert not TARGET_MANAGER.cloud_databases
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        argnames=("data", "expected_message"),
+        argvalues=[
+            ("not json", "Expecting value: line 1 column 1 (char 0)"),
+            ("[]", "Input should be an object"),
+        ],
+        ids=["not_json", "not_an_object"],
+    )
+    def test_body_not_an_object(data: str, expected_message: str) -> None:
+        """A body which is not a JSON object gives a 400 response."""
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+        response = requests.post(
+            url=databases_url,
+            data=data,
+            headers={"Content-Type": "application/json"},
+            timeout=30,
+        )
+
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        (error,) = response.json()["errors"]
+        assert error["type"] == "value_error"
+        assert error["loc"] == []
+        assert error["msg"] == expected_message
+
+    @staticmethod
+    def test_null_field() -> None:
+        """A field which cannot be null is rejected when given as null, and
+        a field which can be null is accepted.
+        """
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+        response = requests.post(
+            url=databases_url,
+            json={"request_quota": None},
+            timeout=30,
+        )
+
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        (error,) = response.json()["errors"]
+        assert error["loc"] == ["request_quota"]
+        assert error["msg"] == "Input should be a valid integer"
+
+        response = requests.post(
+            url=databases_url,
+            json={"requests_per_second_limit": None},
+            timeout=30,
+        )
+
+        assert response.status_code == HTTPStatus.CREATED
+        assert response.json()["requests_per_second_limit"] is None
+
+    @staticmethod
+    def test_partial_request_rate_limits() -> None:
+        """Groups of endpoints which are not given in the request rate
+        limits have no limit of their own.
+        """
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+        response = requests.post(
+            url=databases_url,
+            json={
+                "request_rate_limits": {
+                    "get_target": {"max_requests": 3, "window_seconds": 1},
+                },
+            },
+            timeout=30,
+        )
+
+        assert response.status_code == HTTPStatus.CREATED
+        assert response.json()["request_rate_limits"] == {
+            "other": None,
+            "get_target": {"max_requests": 3, "window_seconds": 1.0},
+            "get_duplicates": None,
+            "list_targets": None,
+        }
+
 
 class TestAddVuMarkDatabase:
     """Tests for adding VuMark databases to the mock."""
@@ -467,6 +615,107 @@ class TestAddVuMarkDatabase:
 
             assert response.status_code == HTTPStatus.CONFLICT
             assert response.text == expected_message
+
+    @staticmethod
+    def test_invalid_state_name() -> None:
+        """A state name which is not accepted gives a 400 response which
+        names the field and the accepted values.
+        """
+        databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/vumark_databases"
+        response = requests.post(
+            url=databases_url,
+            json={"state_name": "working"},
+            timeout=30,
+        )
+
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        (error,) = response.json()["errors"]
+        assert error["loc"] == ["state_name"]
+        assert error["msg"] == (
+            "Value error, Input should be one of 'WORKING', "
+            "'PROJECT_SUSPENDED', 'PROJECT_INACTIVE', "
+            "'PROJECT_HAS_NO_API_ACCESS'"
+        )
+        assert not TARGET_MANAGER.vumark_databases
+
+
+class TestTargetInUnknownDatabase:
+    """Tests for target requests which name a database which does not
+    exist.
+    """
+
+    @staticmethod
+    def test_add_to_cloud_database(high_quality_image: io.BytesIO) -> None:
+        """Adding a target to an unknown cloud database gives a 404
+        response.
+        """
+        target_url = (
+            _EXAMPLE_URL_FOR_TARGET_MANAGER
+            + "/cloud_databases/unknown/targets"
+        )
+        image_base64 = base64.b64encode(
+            s=high_quality_image.getvalue(),
+        ).decode()
+        response = requests.post(
+            url=target_url,
+            json={
+                "name": "example",
+                "width": 1,
+                "image_base64": image_base64,
+                "active_flag": True,
+                "processing_time_seconds": 0,
+                "application_metadata": None,
+                "target_id": uuid.uuid4().hex,
+            },
+            timeout=30,
+        )
+
+        assert response.status_code == HTTPStatus.NOT_FOUND
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        argnames=("method", "path"),
+        argvalues=[
+            (HTTPMethod.DELETE, "/targets/example-target-id"),
+            (HTTPMethod.PUT, "/targets/example-target-id"),
+            (HTTPMethod.POST, "/targets/example-target-id/recognition_counts"),
+        ],
+        ids=["delete", "update", "set_recognition_counts"],
+    )
+    def test_change_target_in_cloud_database(
+        method: HTTPMethod,
+        path: str,
+    ) -> None:
+        """Changing a target in an unknown cloud database gives a 404
+        response.
+        """
+        response = requests.request(
+            method=method,
+            url=_EXAMPLE_URL_FOR_TARGET_MANAGER
+            + "/cloud_databases/unknown"
+            + path,
+            json={},
+            timeout=30,
+        )
+
+        assert response.status_code == HTTPStatus.NOT_FOUND
+
+    @staticmethod
+    def test_add_to_vumark_database() -> None:
+        """Adding a VuMark target to an unknown VuMark database gives a 404
+        response.
+        """
+        target_url = (
+            _EXAMPLE_URL_FOR_TARGET_MANAGER
+            + "/vumark_databases/unknown/vumark_targets"
+        )
+        response = requests.post(
+            url=target_url,
+            json=VuMarkTarget(name="example").to_dict(),
+            timeout=30,
+        )
+
+        assert response.status_code == HTTPStatus.NOT_FOUND
 
 
 class TestDeleteCloudDatabase:
