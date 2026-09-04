@@ -1,0 +1,2 @@
+Return a ``400`` response which names the offending field and the accepted values, rather than a ``500`` response, when the target manager container is given an invalid cloud database or VuMark database to create.
+Return a ``404`` response, rather than a ``500`` response, when the target manager container is asked to add a target to a database which does not exist.
