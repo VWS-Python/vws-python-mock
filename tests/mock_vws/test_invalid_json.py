@@ -111,8 +111,8 @@ def _assert_body_rejected(*, endpoint: Endpoint, content: bytes) -> None:
 class TestInvalidJSON:
     """Tests for giving invalid JSON to endpoints.
 
-    The three cases are separate tests, rather than one test parametrised
-    over every body, because each one costs a request per endpoint against
+    The three cases are separate tests, rather than one test covering
+    every body, because each body costs a request per endpoint against
     Real Vuforia and CI runs one ``ci_pattern`` per job. See
     https://github.com/VWS-Python/vws-python-mock/issues/3540.
     """
