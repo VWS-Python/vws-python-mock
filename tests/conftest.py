@@ -12,7 +12,10 @@ from vws.reports import TargetStatuses
 
 from mock_vws.database import CloudDatabase
 from tests.mock_vws.utils import Endpoint, ModelTargetEndpoint
-from tests.mock_vws.utils.retries import RETRY_ON_TRANSIENT_VWS_FAILURE
+from tests.mock_vws.utils.retries import (
+    RETRY_ON_TARGET_NOT_YET_VISIBLE,
+    RETRY_ON_TRANSIENT_VWS_FAILURE,
+)
 
 # The number of targets to add before giving up on getting one which
 # processes with a 'success' status.
@@ -97,6 +100,19 @@ def _add_target(*, vws_client: VWS, image: io.BytesIO) -> str:
 
 
 @beartype
+@RETRY_ON_TARGET_NOT_YET_VISIBLE
+def _wait_for_target_processed(*, vws_client: VWS, target_id_: str) -> None:
+    """Wait for a target to finish processing.
+
+    Real Vuforia sometimes reports a target which it has just created as
+    unknown, because the target is not yet visible to the read path. We know
+    the target exists, because Vuforia gave us its ID, so we retry rather
+    than fail.
+    """
+    vws_client.wait_for_target_processed(target_id=target_id_)
+
+
+@beartype
 @RETRY_ON_TRANSIENT_VWS_FAILURE
 def _add_target_which_processed_successfully(
     *,
@@ -114,7 +130,10 @@ def _add_target_which_processed_successfully(
     """
     for _ in range(_TARGET_SUCCESS_ATTEMPTS):
         target_id_ = _add_target(vws_client=vws_client, image=image)
-        vws_client.wait_for_target_processed(target_id=target_id_)
+        _wait_for_target_processed(
+            vws_client=vws_client,
+            target_id_=target_id_,
+        )
         target_details = vws_client.get_target_record(target_id=target_id_)
         if target_details.status == TargetStatuses.SUCCESS:
             return target_id_
