@@ -19,13 +19,15 @@ ambiguous, so mutating requests are sent exactly once.
 """
 
 import contextlib
-import secrets
-import time
 from collections.abc import Callable, Generator, Mapping
 from http import HTTPMethod, HTTPStatus
 
 import requests
 from beartype import beartype
+from tenacity import RetryCallState, Retrying
+from tenacity.retry import retry_if_exception_type, retry_if_result
+from tenacity.stop import stop_after_attempt
+from tenacity.wait import wait_exponential_jitter
 from vws.response import Response
 
 # Status codes which mean "the gateway could not get an answer from
@@ -49,15 +51,6 @@ TRANSIENT_MODEL_TARGET_EXCEPTIONS = (
 # attempt.  This is deliberately small: a persistent upstream failure
 # must still fail the test quickly.
 MODEL_TARGET_RETRY_ATTEMPTS = 3
-
-_FIRST_BACKOFF_SECONDS = 1.0
-# The longest this policy waits between two attempts, whether the wait
-# comes from the backoff or from a ``Retry-After`` header.
-MAXIMUM_BACKOFF_SECONDS = 10.0
-# The fraction of the backoff which is randomized, so that requests
-# from concurrent CI jobs do not line up on the same retry instant.
-_JITTER_FRACTION = 0.25
-_JITTER_RESOLUTION = 1000
 
 # Whether requests are going to the real Model Target backend.
 #
@@ -84,57 +77,35 @@ def retrying_transient_real_backend_failures() -> Generator[None]:
 
 
 @beartype
-def _retry_after_seconds(*, headers: Mapping[str, str]) -> float | None:
-    """The wait asked for by a ``Retry-After`` header, if it is usable.
-
-    Only the delay-seconds form is honored.  The HTTP-date form is not,
-    because nothing has been observed sending it and a wrong reading of
-    it could pause a test for a long time.
-
-    Args:
-        headers: The headers of the response.
-
-    Returns:
-        The number of seconds to wait, capped at
-        :py:data:`MAXIMUM_BACKOFF_SECONDS`, or ``None`` if the header is
-        absent or is not a usable number of seconds.
-    """
-    values = [
-        value
-        for key, value in headers.items()
-        if str.lower(key) == "retry-after"
-    ]
-    if not values:
-        return None
-
-    (value,) = values
-    if not str.isdigit(str.strip(value)):
-        return None
-
-    return min(float(value), MAXIMUM_BACKOFF_SECONDS)
+def _is_transient(response: Response | requests.Response) -> bool:
+    """Whether a response is a transient gateway failure."""
+    return response.status_code in TRANSIENT_MODEL_TARGET_STATUS_CODES
 
 
 @beartype
-def _backoff_seconds(*, attempt: int) -> float:
-    """The wait after a given attempt, with jitter.
+def _last_outcome(retry_state: RetryCallState) -> Response | requests.Response:
+    """Give up with the outcome of the last attempt.
 
-    Args:
-        attempt: The number of the attempt which just failed, counting
-            from one.
-
-    Returns:
-        The number of seconds to wait before the next attempt.
+    A transient failure on the last attempt is not hidden: a response is
+    returned as it is, so that the caller's assertion reports the real
+    status and body, and a transport failure propagates.
     """
-    growth: float = 2 ** (attempt - 1)
-    unjittered = min(
-        _FIRST_BACKOFF_SECONDS * growth,
-        MAXIMUM_BACKOFF_SECONDS,
-    )
-    jitter_multiplier = (
-        secrets.randbelow(exclusive_upper_bound=_JITTER_RESOLUTION)
-        / _JITTER_RESOLUTION
-    )
-    return unjittered * (1 + _JITTER_FRACTION * jitter_multiplier)
+    assert retry_state.outcome is not None
+    outcome: Response | requests.Response = retry_state.outcome.result()
+    return outcome
+
+
+_RETRYING = Retrying(
+    retry=(
+        retry_if_exception_type(
+            exception_types=TRANSIENT_MODEL_TARGET_EXCEPTIONS,
+        )
+        | retry_if_result(predicate=_is_transient)
+    ),
+    stop=stop_after_attempt(max_attempt_number=MODEL_TARGET_RETRY_ATTEMPTS),
+    wait=wait_exponential_jitter(initial=1, max=10),
+    retry_error_callback=_last_outcome,
+)
 
 
 @beartype
@@ -148,10 +119,6 @@ def send_with_transient_retries[ResponseT: (Response, requests.Response)](
     The request is sent exactly once unless it is a ``GET`` sent while
     :py:func:`retrying_transient_real_backend_failures` is active.
 
-    A transient failure on the last attempt is not hidden: the response
-    is returned as it is, so that the caller's assertion reports the
-    real status and body, and a transport failure propagates.
-
     Args:
         method: The HTTP method of the request.
         send: A callable which sends the request and returns the
@@ -164,22 +131,7 @@ def send_with_transient_retries[ResponseT: (Response, requests.Response)](
     if not retryable:
         return send()
 
-    for attempt in range(1, MODEL_TARGET_RETRY_ATTEMPTS):
-        try:
-            response = send()
-        except TRANSIENT_MODEL_TARGET_EXCEPTIONS:
-            time.sleep(_backoff_seconds(attempt=attempt))
-            continue
-
-        if response.status_code not in TRANSIENT_MODEL_TARGET_STATUS_CODES:
-            return response
-
-        wait_seconds = _retry_after_seconds(headers=response.headers)
-        if wait_seconds is None:
-            wait_seconds = _backoff_seconds(attempt=attempt)
-        time.sleep(wait_seconds)
-
-    return send()
+    return _RETRYING(send)
 
 
 @beartype

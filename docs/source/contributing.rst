@@ -151,7 +151,7 @@ That is nothing to do with the contract under test, and a rerun of the same job 
 
 The policy is in ``tests/mock_vws/utils/model_target_retries.py``.
 It applies only while a test is running against the real Model Target backend, and only to ``GET`` requests: repeating a dataset creation can create a second dataset and can consume the account's Model Target training allowance, so mutating requests are sent exactly once.
-Three attempts are made, with a backoff which has jitter and which honors a ``Retry-After`` header given in seconds, up to ten seconds.
+Three attempts are made, with an exponential backoff with jitter of up to ten seconds, using ``tenacity``.
 A request which still fails transiently on the last attempt is not hidden: the response is returned as it is, so the assertion reports the real status and body.
 
 The mock backends are unaffected, so tests which configure a mock to answer with a 5xx still get that response immediately.
