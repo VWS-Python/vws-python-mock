@@ -9,6 +9,7 @@ Reco
 Ubuntu
 VuMark
 admin
+allowlist
 another's
 api
 args
