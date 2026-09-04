@@ -1,11 +1,13 @@
 """Fixtures which prepare requests."""
 
 import base64
+import datetime
 import io
 import json
 from http import HTTPMethod, HTTPStatus
 from typing import Any
 from uuid import uuid4
+from zoneinfo import ZoneInfo
 
 import pytest
 from urllib3.filepost import encode_multipart_formdata
@@ -474,6 +476,52 @@ def vumark_generate_instance(
     return Endpoint(
         successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=None,
+        base_url=VWS_HOST,
+        path_url=request_path,
+        method=method,
+        headers=headers,
+        data=content,
+        access_key=access_key,
+        secret_key=secret_key,
+    )
+
+
+@pytest.fixture
+def reco_counts_report(*, vuforia_database: CloudDatabase) -> Endpoint:
+    """Return details of the endpoint for requesting a reco counts
+    report.
+    """
+    database_id = vuforia_database.database_id
+    request_path = f"/imagetargets/databases/{database_id}/reports/recoCounts"
+    content_type = "application/json"
+    method = HTTPMethod.POST
+    now = datetime.datetime.now(tz=ZoneInfo(key="UTC"))
+    current_month = now.strftime(format="%Y-%m")
+    content = json.dumps(obj={"month": current_month}).encode(encoding="utf-8")
+    date = rfc_1123_date()
+
+    access_key = vuforia_database.server_access_key
+    secret_key = vuforia_database.server_secret_key
+    authorization_string = authorization_header(
+        access_key=access_key,
+        secret_key=secret_key,
+        method=method,
+        content=content,
+        content_type=content_type,
+        date=date,
+        request_path=request_path,
+    )
+
+    headers = {
+        "Authorization": authorization_string,
+        "Content-Length": str(object=len(content)),
+        "Content-Type": content_type,
+        "Date": date,
+    }
+
+    return Endpoint(
+        successful_headers_status_code=HTTPStatus.OK,
+        successful_headers_result_code=ResultCodes.SUCCESS,
         base_url=VWS_HOST,
         path_url=request_path,
         method=method,

@@ -174,12 +174,18 @@ def unprocessed_target_id(
         "update_target",
         "query",
         "vumark_generate_instance",
+        "reco_counts_report",
     ],
 )
 def endpoint(*, request: pytest.FixtureRequest) -> Endpoint:
     """
     Return details of an endpoint for the Target API or the Query
     API.
+
+    The reco counts report download endpoint is not included because it
+    deliberately takes no authorization, standing in for a presigned URL, so
+    the cross-cutting ``Authorization`` and ``Date`` header concerns do not
+    apply to it.
     """
     endpoint_fixture: Endpoint = request.getfixturevalue(argname=request.param)
     return endpoint_fixture
