@@ -143,6 +143,23 @@ To verify them against the real Vuforia, for example after the allowance has rec
 The equivalent unsigned requests (a standard dataset, or an advanced dataset without a state-based configuration) are far cheaper and are verified against the real Vuforia on every run.
 With enough traffic even unsigned dataset creation can be rejected with ``TRAINING_ALLOWANCE_EXCEEDED``; an unexpected allowance rejection is reported as an expected failure rather than a test failure, and the affected tests pass again automatically once the allowance recovers.
 
+Retrying transient real Model Target failures
+---------------------------------------------
+
+The load balancer in front of the real Model Target Web API sometimes answers a perfectly good request with a gateway error, or drops the connection.
+That is nothing to do with the contract under test, and a rerun of the same job passes, so a small number of retries is applied to requests which are safe to repeat.
+
+The policy is in ``tests/mock_vws/utils/model_target_retries.py``.
+It applies only while a test is running against the real Model Target backend, and only to ``GET`` requests: repeating a dataset creation can create a second dataset and can consume the account's Model Target training allowance, so mutating requests are sent exactly once.
+Three attempts are made, with an exponential backoff with jitter of up to ten seconds, using ``tenacity``.
+A request which still fails transiently on the last attempt is not hidden: the response is returned as it is, so the assertion reports the real status and body.
+
+The mock backends are unaffected, so tests which configure a mock to answer with a 5xx still get that response immediately.
+
+This is separate from the repository-wide ``pytest-retry`` configuration, which retries a test only when it fails with one of the exception types returned by ``pytest_set_filtered_exceptions`` in the top level ``conftest.py``.
+The Model Target tests assert on ``requests.Response`` objects, so a gateway error reaches ``pytest-retry`` as an ``AssertionError`` and is never retried by it.
+Widening that allowlist would retry every failing assertion in the suite, which is why the Model Target policy sits in the request helper instead, before the assertion.
+
 Documentation
 -------------
 

@@ -40,6 +40,7 @@ from tests.mock_vws.utils.assertions import (
     assert_model_target_status,
     assert_valid_date_header,
 )
+from tests.mock_vws.utils.model_target_retries import model_target_get
 
 _VWS_HOST = "https://vws.vuforia.com"
 _MOCK_BEARER_TOKEN = (
@@ -471,7 +472,7 @@ class TestAuthentication:
             client_id = create_response.json()["client_id"]
             client_secret = create_response.json()["client_secret"]
 
-            list_response = requests.get(
+            list_response = model_target_get(
                 url=f"{_VWS_HOST}/oauth2/clientcredentials",
                 headers=headers,
                 timeout=30,
@@ -2055,7 +2056,7 @@ class TestAdditionalBehaviors:
             )
             dataset_uuid = create_response.json()["uuid"]
 
-            other_status_response = requests.get(
+            other_status_response = model_target_get(
                 url=f"{_VWS_HOST}{other_path}/{dataset_uuid}/status",
                 headers=headers,
                 timeout=30,
@@ -2065,7 +2066,7 @@ class TestAdditionalBehaviors:
                 headers=headers,
                 timeout=30,
             )
-            own_status_response = requests.get(
+            own_status_response = model_target_get(
                 url=(
                     f"{_VWS_HOST}{created_path}/"
                     f"{create_response.json()['uuid']}/status"
@@ -2148,7 +2149,7 @@ class TestStandardDataset:
             assert isinstance(dataset_uuid_value, str)
             dataset_uuid = dataset_uuid_value
 
-            status_response = requests.get(
+            status_response = model_target_get(
                 url=(
                     f"{_VWS_HOST}/modeltargets/advancedDatasets/"
                     f"{dataset_uuid}/status"
@@ -2177,7 +2178,7 @@ class TestStandardDataset:
                 and time.monotonic() < deadline
             ):
                 time.sleep(1)
-                status_response = requests.get(
+                status_response = model_target_get(
                     url=(
                         f"{_VWS_HOST}/modeltargets/advancedDatasets/"
                         f"{dataset_uuid}/status"
@@ -2200,7 +2201,7 @@ class TestStandardDataset:
                 "uuid",
             }
 
-            download_response = requests.get(
+            download_response = model_target_get(
                 url=(
                     f"{_VWS_HOST}/modeltargets/advancedDatasets/"
                     f"{dataset_uuid}/dataset"

@@ -28,5 +28,18 @@ def pytest_set_filtered_exceptions() -> tuple[type[Exception], ...]:
 
     This is for ``pytest-retry``.
     The configuration for retries is in ``pyproject.toml``.
+
+    ``pytest-retry`` treats this as an allowlist: a test which fails
+    with anything else is not retried, whatever ``retries`` is set to.
+    That is deliberate, because widening it to ``AssertionError`` would
+    retry every failing assertion in the suite ten times.
+
+    The consequence is that a test which turns a response into an
+    ``AssertionError`` itself, rather than letting an exception out of
+    the client, is never retried here. The Model Target Web API tests
+    assert on ``requests.Response`` objects and so are in that
+    position; they get their own, narrower policy, applied before the
+    assertion, in
+    :py:mod:`tests.mock_vws.utils.model_target_retries`.
     """
     return TRANSIENT_VWS_EXCEPTIONS
