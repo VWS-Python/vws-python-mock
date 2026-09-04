@@ -27,6 +27,9 @@ from tests.mock_vws.fixtures.credentials import (
     InactiveVuMarkCloudDatabase,
     VuMarkCloudDatabase,
 )
+from tests.mock_vws.utils.model_target_retries import (
+    retrying_transient_real_backend_failures,
+)
 from tests.mock_vws.utils.retries import RETRY_ON_TRANSIENT_VWS_FAILURE
 
 LOGGER = logging.getLogger(name=__name__)
@@ -290,9 +293,15 @@ def _enable_use_real_model_target_vuforia(
     *,
     monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None]:
-    """Test against the real Model Target Web API."""
+    """Test against the real Model Target Web API.
+
+    Safe requests are retried past a transient gateway failure, which
+    the load balancer in front of the real Model Target Web API
+    occasionally returns for a request which is not at fault.
+    """
     assert monkeypatch
-    yield
+    with retrying_transient_real_backend_failures():
+        yield
 
 
 @beartype

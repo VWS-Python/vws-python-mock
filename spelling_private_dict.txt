@@ -16,6 +16,7 @@ ascii
 auth
 backend
 backends
+backoff
 balancer
 beartype
 binascii
@@ -57,6 +58,7 @@ httpx
 iff
 io
 issuecomment
+jitter
 jpeg
 json
 keyring

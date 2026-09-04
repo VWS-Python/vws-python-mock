@@ -14,6 +14,9 @@ from requests.structures import CaseInsensitiveDict
 from vws.response import Response
 
 from mock_vws._constants import ResultCodes
+from tests.mock_vws.utils.model_target_retries import (
+    send_with_transient_retries,
+)
 
 _REQUEST_TIMEOUT_SECONDS = 30
 
@@ -139,12 +142,20 @@ class ModelTargetEndpoint:
 
     @beartype
     def send(self) -> Response:
-        """Send the request."""
-        return _send_request(
+        """Send the request.
+
+        A safe request to the real Model Target Web API is retried if it
+        hits a transient gateway failure. See
+        :py:mod:`tests.mock_vws.utils.model_target_retries`.
+        """
+        return send_with_transient_retries(
             method=self.method,
-            url=urljoin(base=self.base_url, url=self.path_url),
-            headers=self.headers,
-            data=self.data,
+            send=lambda: _send_request(
+                method=self.method,
+                url=urljoin(base=self.base_url, url=self.path_url),
+                headers=self.headers,
+                data=self.data,
+            ),
         )
 
 
