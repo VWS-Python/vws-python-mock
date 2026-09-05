@@ -404,6 +404,7 @@ ignore_names = [
     "pytest_collection_modifyitems",
     "pytest_plugins",
     "pytest_set_filtered_exceptions",
+    "pytestmark",
     "REQUEST_QUOTA_REACHED",
     "rst_prolog",
     "source_suffix",
