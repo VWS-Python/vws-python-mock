@@ -119,7 +119,7 @@ optional-dependencies.dev = [
     "vws-test-fixtures==2026.8.26",
     "vws-web-tools==2026.8.27",
     "yamlfix==1.19.1",
-    "zizmor==1.29.0",
+    "zizmor==1.30.0",
 ]
 optional-dependencies.release = [ "check-wheel-contents==0.6.3", "towncrier==25.8.0" ]
 urls.Documentation = "https://vws-python.github.io/vws-python-mock/"
