@@ -179,8 +179,8 @@ class TestUnroutedRequests:
         )
 
         if verify_mock_vuforia == VuforiaBackend.MOCK:
-            # The ``requests`` and ``httpx`` backends mock only the paths
-            # which they serve, so they give no response at all.
+            # The ``requests``, ``httpx`` and ``httpx2`` backends mock only
+            # the paths which they serve, so they give no response at all.
             assert response is None
             return
 

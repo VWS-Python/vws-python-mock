@@ -4,6 +4,7 @@ from collections.abc import Callable
 from http import HTTPStatus
 
 import httpx
+import httpx2
 import pytest
 import requests
 
@@ -11,7 +12,7 @@ from mock_vws import MockVWS, VuMarkGenerationFailure
 
 _VUMARK_URL = "https://vws.vuforia.com/targets/example/instances"
 _REQUEST_BODY = b'{"instance_id":"example"}'
-type _HTTPResponse = requests.Response | httpx.Response
+type _HTTPResponse = requests.Response | httpx.Response | httpx2.Response
 type _RequestSender = Callable[[], _HTTPResponse]
 
 
@@ -41,10 +42,23 @@ def _httpx_request() -> _HTTPResponse:
     )
 
 
+def _httpx2_request() -> _HTTPResponse:
+    """Send a VuMark generation request with ``httpx2``."""
+    return httpx2.post(
+        url=_VUMARK_URL,
+        headers={
+            "Accept": "image/png",
+            "Content-Type": "application/json",
+        },
+        content=_REQUEST_BODY,
+        timeout=30,
+    )
+
+
 @pytest.mark.parametrize(
     argnames="send_request",
-    argvalues=[_requests_request, _httpx_request],
-    ids=["requests", "httpx"],
+    argvalues=[_requests_request, _httpx_request, _httpx2_request],
+    ids=["requests", "httpx", "httpx2"],
 )
 @pytest.mark.parametrize(
     argnames=("failure", "expected_status_code"),
@@ -69,7 +83,7 @@ def test_configured_failure_response(
     failure: VuMarkGenerationFailure,
     expected_status_code: HTTPStatus,
 ) -> None:
-    """Both in-process backends return the configured failure."""
+    """Every in-process backend returns the configured failure."""
     with MockVWS(vumark_generation_failure=failure):
         response = send_request()
 

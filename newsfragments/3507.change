@@ -1,0 +1,1 @@
+``MockVWS`` now intercepts ``httpx2`` requests, synchronous and asynchronous, alongside ``requests`` and ``httpx``. The ``httpx2`` path uses native ``httpx2`` requests and responses, and does not need ``httpx2.alias_httpx()``.

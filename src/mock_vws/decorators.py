@@ -15,6 +15,10 @@ from beartype import BeartypeConf, beartype
 from requests import PreparedRequest
 from responses import RequestsMock
 
+from mock_vws._httpx2_mock_server.decorators import (
+    Httpx2Router,
+    start_httpx2_router,
+)
 from mock_vws._mock_common import MissingSchemeError, RequestData
 from mock_vws._requests_mock_server.mock_web_query_api import (
     MockVuforiaWebQueryAPI,
@@ -83,7 +87,7 @@ class _MockVWSOptions:
 class MockVWS:
     """Route requests to Vuforia's Web Service APIs to fakes of those APIs.
 
-    Works with both ``requests`` and ``httpx``.
+    Works with ``requests``, ``httpx`` and ``httpx2``.
 
     An instance is usable as a context manager and as a decorator.
 
@@ -125,7 +129,7 @@ class MockVWS:
         """Route requests to Vuforia's Web Service APIs to fakes of those
         APIs.
 
-        Works with both ``requests`` and ``httpx``.
+        Works with ``requests``, ``httpx`` and ``httpx2``.
 
         Args:
             real_http: Whether or not to forward requests to the real
@@ -219,7 +223,9 @@ class MockVWS:
         # A mock can be started while it is already started, for example
         # when a decorated function calls another decorated function, so the
         # started mocks are kept as a stack.
-        self._started: list[tuple[RequestsMock, respx.MockRouter]] = []
+        self._started: list[
+            tuple[RequestsMock, respx.MockRouter, Httpx2Router]
+        ] = []
         self._added_cloud_databases: list[CloudDatabase] = []
         self._added_vumark_databases: list[VuMarkDatabase] = []
         self._target_manager = TargetManager()
@@ -567,7 +573,17 @@ class MockVWS:
             real_http=self._options.real_http,
         )
 
-        self._started.append((mock, router))
+        httpx2_router = start_httpx2_router(
+            mock_vws_api=self._mock_vws_api,
+            mock_vwq_api=self._mock_vwq_api,
+            base_vws_url=self._options.base_vws_url,
+            base_vwq_url=self._options.base_vwq_url,
+            response_delay_seconds=self._options.response_delay_seconds,
+            sleep_fn=self._options.sleep_fn,
+            real_http=self._options.real_http,
+        )
+
+        self._started.append((mock, router, httpx2_router))
         return self
 
     def __exit__(self, *exc: object) -> Literal[False]:
@@ -580,7 +596,8 @@ class MockVWS:
         # unused, so we "use" it here.
         del exc
 
-        mock, router = self._started.pop()
+        mock, router, httpx2_router = self._started.pop()
         mock.stop()
         router.stop()
+        httpx2_router.stop()
         return False

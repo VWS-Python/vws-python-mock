@@ -11,7 +11,7 @@ Mock for the Vuforia Web Services (VWS) API, the Vuforia Web Query API, and the 
 Mocking calls made to Vuforia
 ------------------------------
 
-``MockVWS`` intercepts requests made with `requests`_ or `httpx`_.
+``MockVWS`` intercepts requests made with `requests`_, `httpx`_ or `HTTPX2`_.
 
 .. code-block:: shell
 
@@ -51,10 +51,30 @@ This requires Python |minimum-python-version|\+.
         # This will use the Vuforia mock.
         httpx.get(url="https://vws.vuforia.com/summary", timeout=30)
 
+``MockVWS`` also intercepts `HTTPX2`_ requests, with no need for ``httpx2.alias_httpx()``:
+
+.. code-block:: python
+
+    """Make a request to the Vuforia Web Services API mock using httpx2."""
+
+    import httpx2
+
+    from mock_vws import MockVWS
+    from mock_vws.database import CloudDatabase
+
+    with MockVWS() as mock:
+        database = CloudDatabase()
+        mock.add_cloud_database(cloud_database=database)
+        # This will use the Vuforia mock.
+        httpx2.get(url="https://vws.vuforia.com/summary", timeout=30)
+
+Asynchronous ``httpx`` and `HTTPX2`_ clients are intercepted as well.
+
 By default, an exception will be raised if any requests to unmocked addresses are made.
 
 .. _requests: https://pypi.org/project/requests/
 .. _httpx: https://pypi.org/project/httpx/
+.. _HTTPX2: https://httpx2.pydantic.dev/
 
 Using Docker to mock calls to Vuforia from any language
 -------------------------------------------------------
