@@ -380,12 +380,21 @@ _MODEL_TARGET_SETUP_FUNCTIONS = {
 }
 
 
-# Signed Model Target requests (advanced datasets with a state-based
-# configuration) consume the Vuforia account's Model Target training
-# allowance.  The allowance is small, shared across all CI jobs, and
-# cannot be raised or reset, so signed requests run against the real
+# Signed Model Target requests, including state-based advanced datasets and
+# standard datasets with inline CAD data, consume the Vuforia account's Model
+# Target training allowance. The allowance is small, shared across all CI
+# jobs, and cannot be raised or reset, so signed requests run against the real
 # Vuforia only when this option is given.
 VERIFY_MODEL_TARGET_SIGNING_OPTION = "--verify-model-target-signing"
+_INVALID_JSON_REAL_NODE_ID_PREFIXES = tuple(
+    f"tests/mock_vws/test_invalid_json.py::TestInvalidJSON::{test_name}["
+    "Real Vuforia-"
+    for test_name in ("test_not_json", "test_not_an_object", "test_not_utf_8")
+)
+_INVALID_JSON_REAL_SKIP_REASON = (
+    "Real Vuforia can leave malformed-body requests open indefinitely; the "
+    "mock backends still verify this contract."
+)
 
 
 @beartype
@@ -422,7 +431,7 @@ def pytest_collection_modifyitems(
     config: pytest.Config,
     items: list[pytest.Item],
 ) -> None:
-    """Skip Docker tests if requested."""
+    """Apply configured and infrastructure-specific test skips."""
     skip_docker_build_tests_option = "--skip-docker_build_tests"
     skip_docker_build_tests_marker = pytest.mark.skip(
         reason=(
@@ -434,6 +443,13 @@ def pytest_collection_modifyitems(
         for item in items:
             if "requires_docker_build" in item.keywords:
                 item.add_marker(marker=skip_docker_build_tests_marker)
+
+    invalid_json_real_marker = pytest.mark.skip(
+        reason=_INVALID_JSON_REAL_SKIP_REASON,
+    )
+    for item in items:
+        if item.nodeid.startswith(_INVALID_JSON_REAL_NODE_ID_PREFIXES):
+            item.add_marker(marker=invalid_json_real_marker)
 
 
 @beartype

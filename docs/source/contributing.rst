@@ -127,7 +127,7 @@ Use the following custom ``pytest`` options to skip some tests:
 Verifying signed Model Target requests
 --------------------------------------
 
-Creating an advanced Model Target dataset with a state-based configuration is a "signed" request: the real Vuforia signs the trained dataset, and each signing consumes the account's Model Target training allowance.
+Creating an advanced Model Target dataset with a state-based configuration or a standard dataset with inline CAD data is a "signed" request: the real Vuforia signs the trained dataset, and each signing consumes the account's Model Target training allowance.
 The allowance is small (roughly 20 signings), it is shared by every CI job and every concurrent run, and it cannot be raised or reset.
 Verifying signed requests on every run exhausted the allowance within hours and then made every CI run fail with ``TRAINING_ALLOWANCE_EXCEEDED``.
 

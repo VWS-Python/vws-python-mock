@@ -8,6 +8,7 @@ import textwrap
 from collections.abc import Set as AbstractSet
 from http import HTTPStatus
 from string import hexdigits
+from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -238,6 +239,11 @@ def assert_model_target_status(
         sorted(f"{item} {item.name}" for item in expected)
     )
     allowance_exceeded = _TRAINING_ALLOWANCE_EXCEEDED in response.text
+    if (
+        allowance_exceeded
+        and urlparse(url=response.url).hostname == "vws.vuforia.com"
+    ):
+        pytest.skip(reason=_TRAINING_ALLOWANCE_EXCEEDED_HEADLINE)
     headline = (
         [_TRAINING_ALLOWANCE_EXCEEDED_HEADLINE] if allowance_exceeded else []
     )
