@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 
 import httpx
 import respx
+from respx.mocks import Mocker
 
 from mock_vws._mock_common import RequestData, Route
 
@@ -122,6 +123,29 @@ def _make_respx_callback(
     return callback
 
 
+def _make_router_first_consulted(*, router: respx.MockRouter) -> None:
+    """Make a started router the first one ``respx`` consults.
+
+    ``respx`` keeps every started router in a single process-wide list and
+    tries them in the order they were started, so an outer mock would answer
+    requests which an inner, more recently started, mock was created for.
+    The catch-all route means the outer mock always answers, so the inner one
+    would never be consulted at all.
+
+    Moving the newest router to the front of that list makes nested mocks
+    resolve innermost-first, matching the ``requests`` and ``httpx2``
+    backends, whose patches form a LIFO stack.
+
+    Args:
+        router: A started router to consult before any other.
+    """
+    # ``respx.Router.start`` looks its mocker up by name, and this router is
+    # created with the default name, so the lookup cannot fail.
+    mocker = Mocker.registry[router.using or ""]
+    mocker.routers.remove(router)
+    mocker.routers.insert(0, router)
+
+
 def start_respx_router(
     *,
     mock_vws_api: _APIHandler,
@@ -183,4 +207,5 @@ def start_respx_router(
         router.route().mock(side_effect=_block_unmatched)
 
     router.start()
+    _make_router_first_consulted(router=router)
     return router
