@@ -33,6 +33,16 @@ from tests.mock_vws.utils.httpx2_transports import (
     AsyncHTTPX2Transport,
     HTTPX2Transport,
 )
+from tests.mock_vws.verification import UnverifiedReason, mock_only
+
+pytestmark = mock_only(
+    reason=UnverifiedReason.NO_VUFORIA_CLAIM,
+    detail=(
+        "These exercise the mock's interception of ``httpx2``. The Vuforia "
+        "behavior which the mock then shows is verified by the tests which "
+        "run against every backend."
+    ),
+)
 
 _MODEL_TARGET_AUTHORIZATION = (
     "Bearer eyJhbGciOiJtb2NrIn0."

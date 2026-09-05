@@ -19,6 +19,15 @@ from tests.mock_vws.utils.model_target_retries import (
     retrying_transient_real_backend_failures,
     send_with_transient_retries,
 )
+from tests.mock_vws.verification import UnverifiedReason, mock_only
+
+pytestmark = mock_only(
+    reason=UnverifiedReason.NO_VUFORIA_CLAIM,
+    detail=(
+        "These cover this test suite's own retry policy for transient Model "
+        "Target Web API failures."
+    ),
+)
 
 _URL = "https://vws.vuforia.com/modeltargets/datasets/uuid/dataset"
 

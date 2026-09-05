@@ -19,6 +19,7 @@ from mock_vws._constants import ResultCodes
 from mock_vws.database import CloudDatabase
 from tests.mock_vws.fixtures.vuforia_backends import VuforiaBackend
 from tests.mock_vws.utils.recognition_counts import seed_recognition_counts
+from tests.mock_vws.verification import UnverifiedReason, mock_only
 
 _VWS_HOST = "https://vws.vuforia.com"
 # The number of seconds which the mocks take to generate a report.
@@ -199,6 +200,14 @@ class TestRecoCountsReport:
 
 
 @pytest.mark.usefixtures("mock_only_vuforia")
+@mock_only(
+    reason=UnverifiedReason.INHERENTLY_UNVERIFIABLE,
+    detail=(
+        "A real report takes between a few seconds and one hour to generate, "
+        "and real recognition counts lag behind queries by longer than a test "
+        "runs, so no test can download a real report with rows in it."
+    ),
+)
 class TestDownloadReport:
     """Tests for downloading a generated reco counts report.
 

@@ -1,0 +1,1 @@
+Say which claims about the real Vuforia Web Services the mock has not had checked against them. :doc:`unverified-behavior` lists each such claim and what would verify it, ``differences-to-vws`` marks the unverified assumptions among its deliberate differences, and every test which never runs against the real Vuforia now declares which of the three reasons applies.

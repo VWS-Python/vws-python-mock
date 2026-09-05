@@ -18,6 +18,15 @@ from mock_vws import MockVWS
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.image_matchers import ExactMatcher
 from mock_vws.target import VuMarkTarget
+from tests.mock_vws.verification import UnverifiedReason, mock_only
+
+pytestmark = mock_only(
+    reason=UnverifiedReason.NO_VUFORIA_CLAIM,
+    detail=(
+        "These exercise the mock's interception of ``httpx`` through "
+        "``respx``."
+    ),
+)
 
 _MODEL_TARGET_AUTHORIZATION = (
     "Bearer eyJhbGciOiJtb2NrIn0."

@@ -10,7 +10,7 @@ from vws import VWS
 from vws.exceptions.vws_exceptions import ProjectInactiveError
 from vws.reports import TargetStatuses
 
-from tests.mock_vws.fixtures.vuforia_backends import VuforiaBackend
+from tests.mock_vws.verification import UnverifiedReason, mock_only
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -139,10 +139,17 @@ class TestDuplicates:
 
         assert duplicates == []
 
+    @mock_only(
+        reason=UnverifiedReason.NO_VUFORIA_CLAIM,
+        detail=(
+            "The real Vuforia Web Services document no order for these "
+            "results, so the mock's order is a deliberate difference rather "
+            "than a claim about Vuforia."
+        ),
+    )
     @staticmethod
     def test_order_is_upload_date_then_target_id(
         *,
-        verify_mock_vuforia: VuforiaBackend,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
     ) -> None:
@@ -151,9 +158,6 @@ class TestDuplicates:
         The real Vuforia Web Services do not document an order, so we do
         not verify this against them.
         """
-        if verify_mock_vuforia == VuforiaBackend.REAL:
-            pytest.skip(reason="The real Vuforia does not document an order.")
-
         target_ids = [
             vws_client.add_target(
                 name=uuid.uuid4().hex,

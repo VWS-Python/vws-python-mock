@@ -28,6 +28,7 @@ changelog
 chunked
 cmyk
 config
+conftest
 connectionerror
 coroutine
 customizable
@@ -80,12 +81,16 @@ metadata
 mib
 mock's
 mockvws
+monkeypatch
 multipart
 mypy
 nat
 noqa
 outerboundary
 overridable
+parametrization
+parametrize
+parametrized
 pdict
 plugins
 png
@@ -96,6 +101,7 @@ pydantic
 pyrefly
 pyright
 pytest
+pytester
 readme
 readthedocs
 reco

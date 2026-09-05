@@ -65,6 +65,16 @@ Then run ``pytest``:
 
    $ pytest
 
+Adding a test
+-------------
+
+A test which never runs against the real Vuforia Web Services must say why,
+with the ``mock_only`` marker.
+Collection fails otherwise, and ``verification.toml`` records the resulting
+split so that a change in how much the suite verifies shows up in the diff of
+whatever caused it.
+See :doc:`unverified-behavior`.
+
 .. _connecting-to-vuforia:
 
 Connecting to Vuforia

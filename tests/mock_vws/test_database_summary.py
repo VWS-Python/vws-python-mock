@@ -17,6 +17,7 @@ from vws.exceptions.vws_exceptions import FailError
 from mock_vws import MockVWS
 from mock_vws.database import CloudDatabase
 from tests.mock_vws.utils.retries import TRANSIENT_VWS_EXCEPTIONS
+from tests.mock_vws.verification import UnverifiedReason, mock_only
 
 LOGGER = logging.getLogger(name=__name__)
 LOGGER.setLevel(level=logging.DEBUG)
@@ -239,6 +240,14 @@ class TestDatabaseSummary:
         )
 
 
+@mock_only(
+    reason=UnverifiedReason.INHERENTLY_UNVERIFIABLE,
+    detail=(
+        "The real database summary lags behind the targets in it, and "
+        "sometimes skips the processing state altogether, so a real summary "
+        "cannot be relied on to show a processing image."
+    ),
+)
 class TestProcessingImages:
     """Tests for processing images.
 

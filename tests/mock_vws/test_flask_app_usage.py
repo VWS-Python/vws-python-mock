@@ -46,6 +46,16 @@ from mock_vws.target import VuMarkTarget
 from tests.mock_vws.utils.usage_test_helpers import (
     processing_time_seconds,
 )
+from tests.mock_vws.verification import UnverifiedReason, mock_only
+
+pytestmark = mock_only(
+    reason=UnverifiedReason.NO_VUFORIA_CLAIM,
+    detail=(
+        "These exercise the Flask mock's own target manager API and "
+        "configuration. The Vuforia behavior which the configured mock then "
+        "shows is verified by the tests which run against every backend."
+    ),
+)
 
 _EXAMPLE_URL_FOR_TARGET_MANAGER = "http://" + uuid.uuid4().hex + ".com"
 _MODEL_TARGET_DATASET_REQUEST = {
@@ -162,6 +172,15 @@ class TestProcessingTime:
         assert expected - self.LEEWAY < time_taken < expected + self.LEEWAY
 
 
+@mock_only(
+    reason=UnverifiedReason.NEVER_ATTEMPTED,
+    detail=(
+        "The ``RequestQuotaReached`` and ``TargetQuotaReached`` responses, "
+        "and the rate limited ``TooManyRequests`` response, follow Vuforia's "
+        "documentation. No response from a real database with an exhausted "
+        "quota, or over a rate limit, has been seen."
+    ),
+)
 class TestRequestQuota:
     """Tests for request quota exhaustion in the Flask mock."""
 

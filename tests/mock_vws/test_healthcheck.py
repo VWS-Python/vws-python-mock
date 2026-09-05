@@ -12,6 +12,12 @@ from flask import Flask, Response
 from werkzeug.serving import make_server
 
 from mock_vws._flask_server.healthcheck import flask_app_healthy
+from tests.mock_vws.verification import UnverifiedReason, mock_only
+
+pytestmark = mock_only(
+    reason=UnverifiedReason.NO_VUFORIA_CLAIM,
+    detail="The health check is the mock's own, for its container.",
+)
 
 
 @beartype

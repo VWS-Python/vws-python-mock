@@ -9,6 +9,12 @@ from mock_vws.database import CloudDatabase
 from mock_vws.target import ImageTarget
 from mock_vws.target_raters import HardcodedTargetTrackingRater
 from tests.mock_vws.utils import make_image_file
+from tests.mock_vws.verification import UnverifiedReason, mock_only
+
+pytestmark = mock_only(
+    reason=UnverifiedReason.NO_VUFORIA_CLAIM,
+    detail="This covers an internal validator of the mock directly.",
+)
 
 
 def _database_with_target(*, target_id: str) -> CloudDatabase:

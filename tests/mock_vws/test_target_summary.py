@@ -13,6 +13,7 @@ from vws.reports import TargetStatuses
 from mock_vws.database import CloudDatabase
 from tests.mock_vws.fixtures.vuforia_backends import VuforiaBackend
 from tests.mock_vws.utils.recognition_counts import seed_recognition_counts
+from tests.mock_vws.verification import UnverifiedReason, mock_only
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -151,6 +152,14 @@ class TestRecognitionCounts:
         assert report.previous_month_recos == 0
 
 
+@mock_only(
+    reason=UnverifiedReason.INHERENTLY_UNVERIFIABLE,
+    detail=(
+        "Real Vuforia's recognition counts lag behind its queries by far "
+        "longer than a test runs, so no test can make a real summary show a "
+        "recognition."
+    ),
+)
 class TestSeededRecognitionCounts:
     """Tests for the recognition counts which are set on a target.
 

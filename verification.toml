@@ -1,0 +1,41 @@
+# The verified and unverified split of the test suite, per API.
+#
+# Rewrite this file with:
+#
+#     python -m admin.verification_report --update
+#
+# A change here is a change in how much of the mock is checked
+# against real Vuforia, so it belongs in the diff of whatever
+# caused it. The claims behind the unverified counts are listed
+# in docs/source/unverified-behavior.rst.
+
+[counts."VWS Target API"]
+"verified" = 96
+"inherently-unverifiable" = 2
+"no-vuforia-claim" = 2
+
+[counts."Vuforia Query API"]
+"verified" = 49
+"inherently-unverifiable" = 1
+"no-vuforia-claim" = 2
+
+[counts."VuMark Instance Generation API"]
+"verified" = 9
+"inherently-unverifiable" = 3
+
+[counts."Model Target Web API"]
+"verified" = 25
+"temporarily-unverifiable" = 5
+"inherently-unverifiable" = 11
+"no-vuforia-claim" = 16
+
+[counts."Reco Counts Report API"]
+"verified" = 5
+"inherently-unverifiable" = 3
+
+[counts."Cross-cutting request handling"]
+"verified" = 22
+
+[counts."Mock tooling"]
+"never-attempted" = 18
+"no-vuforia-claim" = 160

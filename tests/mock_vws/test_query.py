@@ -40,7 +40,6 @@ from vws.response import Response
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws.database import CloudDatabase
-from tests.mock_vws.fixtures.vuforia_backends import VuforiaBackend
 from tests.mock_vws.utils import (
     make_decompression_bomb_image_file,
     make_image_file,
@@ -52,6 +51,7 @@ from tests.mock_vws.utils.assertions import (
 )
 from tests.mock_vws.utils.retries import TRANSIENT_VWS_EXCEPTIONS
 from tests.mock_vws.utils.too_many_requests import handle_server_errors
+from tests.mock_vws.verification import UnverifiedReason, mock_only
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -1044,10 +1044,17 @@ def _add_and_wait_for_targets(
 class TestResultOrder:
     """Tests for the order of query results."""
 
+    @mock_only(
+        reason=UnverifiedReason.NO_VUFORIA_CLAIM,
+        detail=(
+            "The real Query API orders by Vuforia's own proprietary match "
+            "scores, so the mock's tie-break is a deliberate difference "
+            "rather than a claim about Vuforia."
+        ),
+    )
     @staticmethod
     def test_order_is_upload_date_then_target_id(
         *,
-        verify_mock_vuforia: VuforiaBackend,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
         vuforia_database: CloudDatabase,
@@ -1060,11 +1067,6 @@ class TestResultOrder:
         matcher, so we do not verify this against the real Vuforia Web
         Services.
         """
-        if verify_mock_vuforia == VuforiaBackend.REAL:
-            pytest.skip(
-                reason="The real Query API uses Vuforia's match scores.",
-            )
-
         target_ids = [
             vws_client.add_target(
                 name=uuid.uuid4().hex,
@@ -1094,10 +1096,17 @@ class TestResultOrder:
         ]
         assert result_target_ids == target_ids
 
+    @mock_only(
+        reason=UnverifiedReason.NO_VUFORIA_CLAIM,
+        detail=(
+            "The real Query API orders by Vuforia's own proprietary match "
+            "scores, so the mock's tie-break is a deliberate difference "
+            "rather than a claim about Vuforia."
+        ),
+    )
     @staticmethod
     def test_max_num_results_keeps_the_first_results(
         *,
-        verify_mock_vuforia: VuforiaBackend,
         high_quality_image: io.BytesIO,
         vws_client: VWS,
         vuforia_database: CloudDatabase,
@@ -1108,11 +1117,6 @@ class TestResultOrder:
         Which matches survive the truncation therefore does not vary
         between runs.
         """
-        if verify_mock_vuforia == VuforiaBackend.REAL:
-            pytest.skip(
-                reason="The real Query API uses Vuforia's match scores.",
-            )
-
         target_ids = [
             vws_client.add_target(
                 name=uuid.uuid4().hex,

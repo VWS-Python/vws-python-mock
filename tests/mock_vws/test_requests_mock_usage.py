@@ -56,6 +56,17 @@ from tests.mock_vws.utils.assertions import assert_vws_failure
 from tests.mock_vws.utils.usage_test_helpers import (
     processing_time_seconds,
 )
+from tests.mock_vws.verification import UnverifiedReason, mock_only
+
+pytestmark = mock_only(
+    reason=UnverifiedReason.NO_VUFORIA_CLAIM,
+    detail=(
+        "These exercise the mock's own Python API, its configuration and its "
+        "interception of ``requests`` and ``httpx``. The Vuforia behavior "
+        "which the configured mock then shows is verified by the tests which "
+        "run against every backend."
+    ),
+)
 
 _MODEL_TARGET_AUTHORIZATION = (
     "Bearer eyJhbGciOiJtb2NrIn0."
@@ -414,6 +425,15 @@ class TestDatabaseName:
         assert database_details.database_name == "foo"
 
 
+@mock_only(
+    reason=UnverifiedReason.NEVER_ATTEMPTED,
+    detail=(
+        "The ``RequestQuotaReached`` and ``TargetQuotaReached`` responses, "
+        "and the rate limited ``TooManyRequests`` response, follow Vuforia's "
+        "documentation. No response from a real database with an exhausted "
+        "quota, or over a rate limit, has been seen."
+    ),
+)
 class TestRequestQuota:
     """Tests for request quota exhaustion.
 
@@ -460,6 +480,14 @@ class TestRequestQuota:
         )
 
 
+@mock_only(
+    reason=UnverifiedReason.NEVER_ATTEMPTED,
+    detail=(
+        "Vuforia documents these request rate limits, and the mock applies "
+        "the documented numbers, but no rejection by a real database has been "
+        "seen."
+    ),
+)
 class TestRequestRateLimit:
     """Tests for configurable per-second VWS request limits."""
 
@@ -528,6 +556,14 @@ class TestRequestRateLimit:
             )
 
 
+@mock_only(
+    reason=UnverifiedReason.NEVER_ATTEMPTED,
+    detail=(
+        "Vuforia documents these request rate limits, and the mock applies "
+        "the documented numbers, but no rejection by a real database has been "
+        "seen."
+    ),
+)
 class TestPerEndpointRequestRateLimits:
     """Tests for per-endpoint VWS request rate limits."""
 
@@ -730,6 +766,14 @@ class TestPerEndpointRequestRateLimits:
                 client.get_target_record(target_id=target_id)
 
 
+@mock_only(
+    reason=UnverifiedReason.NEVER_ATTEMPTED,
+    detail=(
+        "``ProjectSuspended``, ``ProjectHasNoApiAccess`` and "
+        "``TargetQuotaReached`` come from Vuforia's result codes table. No "
+        "response from a real database in any of those states has been seen."
+    ),
+)
 class TestAdditionalResultCodes:
     """Tests for configurable, mock-only VWS result codes."""
 

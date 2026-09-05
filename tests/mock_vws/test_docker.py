@@ -39,8 +39,15 @@ from vws_auth_tools import authorization_header, rfc_1123_date
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.request_rate_limits import RequestRateLimit, RequestRateLimits
 from mock_vws.target import VuMarkTarget
+from tests.mock_vws.verification import UnverifiedReason, mock_only
 
-pytestmark = pytest.mark.requires_docker_build
+pytestmark = [
+    pytest.mark.requires_docker_build,
+    mock_only(
+        reason=UnverifiedReason.NO_VUFORIA_CLAIM,
+        detail="These build and run the mock's own containers.",
+    ),
+]
 
 _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 # The number of recognitions of a target which the reco counts report test
