@@ -4,6 +4,9 @@
 transports are not released yet, so these stand in for them, and they are
 what the tests use to show that ``vws-python`` clients work against the
 mock over ``httpx2``.
+
+These go away once the released transports can be used instead. See
+https://github.com/VWS-Python/vws-python-mock/issues/3546.
 """
 
 import httpx2
