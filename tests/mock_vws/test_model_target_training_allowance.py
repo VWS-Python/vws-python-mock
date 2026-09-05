@@ -8,6 +8,16 @@ import requests
 
 from mock_vws import MockVWS
 from mock_vws._flask_server.vws import VWS_FLASK_APP
+from tests.mock_vws.verification import UnverifiedReason, mock_only
+
+pytestmark = mock_only(
+    reason=UnverifiedReason.INHERENTLY_UNVERIFIABLE,
+    detail=(
+        "The account's Model Target training allowance cannot be exhausted on "
+        "demand, and cannot be restored afterwards. The response shape comes "
+        "from a real rejection seen in CI."
+    ),
+)
 
 _AUTHORIZATION = (
     "Bearer eyJhbGciOiJtb2NrIn0."

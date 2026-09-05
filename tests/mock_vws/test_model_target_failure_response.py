@@ -9,6 +9,15 @@ import pytest
 import requests
 
 from mock_vws import MockVWS, ModelTargetFailureResponse, ModelTargetRequest
+from tests.mock_vws.verification import UnverifiedReason, mock_only
+
+pytestmark = mock_only(
+    reason=UnverifiedReason.INHERENTLY_UNVERIFIABLE,
+    detail=(
+        "A configured Model Target failure response is a mock feature: real "
+        "Vuforia cannot be asked to return a chosen failure shape."
+    ),
+)
 
 _BASE_URL = "https://vws.vuforia.com"
 _CLIENT_ID = "client-id"

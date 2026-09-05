@@ -41,6 +41,11 @@ from tests.mock_vws.utils.assertions import (
     assert_valid_date_header,
 )
 from tests.mock_vws.utils.model_target_retries import model_target_get
+from tests.mock_vws.verification import (
+    RUNTIME_UNVERIFIED,
+    UnverifiedReason,
+    mock_only,
+)
 
 _VWS_HOST = "https://vws.vuforia.com"
 _MOCK_BEARER_TOKEN = (
@@ -1759,6 +1764,14 @@ class TestStateBasedDatasets:
 class TestAdditionalBehaviors:
     """Additional verified and mock-only Model Target behaviors."""
 
+    @mock_only(
+        reason=UnverifiedReason.INHERENTLY_UNVERIFIABLE,
+        detail=(
+            "Real Vuforia returns an internal server error for these "
+            "malformed State-Based configuration documents, so there is no "
+            "documented behavior to match."
+        ),
+    )
     @staticmethod
     @pytest.mark.parametrize(
         argnames=("model_updates", "view_updates", "expected_message"),
@@ -1936,6 +1949,14 @@ class TestAdditionalBehaviors:
         )
         assert response.json()["token_type"] == "bearer"
 
+    @mock_only(
+        reason=UnverifiedReason.INHERENTLY_UNVERIFIABLE,
+        detail=(
+            "Catching a real dataset mid-generation would mean creating one "
+            "on every test run, at the cost of the account's training "
+            "allowance, and then racing its generation."
+        ),
+    )
     @staticmethod
     def test_processing_dataset_cannot_be_downloaded() -> None:
         """A dataset cannot be downloaded while it is still processing.
@@ -1972,6 +1993,12 @@ class TestAdditionalBehaviors:
         )
         assert error["target"] == dataset_uuid
 
+    @mock_only(
+        reason=UnverifiedReason.INHERENTLY_UNVERIFIABLE,
+        detail=(
+            "Real Vuforia cannot be made to fail dataset generation on demand."
+        ),
+    )
     @staticmethod
     def test_failed_dataset_cannot_be_downloaded() -> None:
         """A dataset which failed generation cannot be downloaded, and the
@@ -2300,6 +2327,14 @@ class TestStandardDataset:
         )
 
 
+@mock_only(
+    reason=UnverifiedReason.NO_VUFORIA_CLAIM,
+    detail=(
+        "This builds the mock's own dataset object and reads its status body. "
+        "The status bodies which real Vuforia returns are verified by the "
+        "dataset status tests."
+    ),
+)
 class TestModelTargetDatasetStatus:
     """Tests for Model Target dataset status response bodies."""
 
@@ -2334,6 +2369,15 @@ class TestModelTargetDatasetStatus:
         assert {"eta", "completedAt"} & body.keys() == {time_field}
 
 
+@mock_only(
+    reason=UnverifiedReason.TEMPORARILY_UNVERIFIABLE,
+    detail=(
+        "The Model Target test account does not have the OAuth2 "
+        "client-credential management scope, so these routes cannot be "
+        "reached "
+        "against real Vuforia with the credentials in CI."
+    ),
+)
 class TestMockOnlyOAuth2EdgeCases:
     """Cover mock-only OAuth2 and validation error paths."""
 
@@ -2444,6 +2488,10 @@ class TestMockOnlyOAuth2EdgeCases:
                 status_codes=HTTPStatus.UNAUTHORIZED,
             )
 
+    @mock_only(
+        reason=UnverifiedReason.NO_VUFORIA_CLAIM,
+        detail="This covers the mock's own token scope parsing.",
+    )
     @staticmethod
     def test_non_string_token_scope() -> None:
         """A token with a non-string scope has no usable scopes."""
@@ -2618,6 +2666,10 @@ class TestMockOnlyOAuth2EdgeCases:
                 status_codes=HTTPStatus.BAD_REQUEST,
             )
 
+    @mock_only(
+        reason=UnverifiedReason.NO_VUFORIA_CLAIM,
+        detail="This covers an internal validator of the mock directly.",
+    )
     @staticmethod
     def test_view_helper_rejects_non_objects() -> None:
         """The view validator reports view values which are not
@@ -2634,6 +2686,13 @@ class TestMockOnlyOAuth2EdgeCases:
             },
         ]
 
+    @mock_only(
+        reason=UnverifiedReason.NO_VUFORIA_CLAIM,
+        detail=(
+            "The target manager is the mock's own service, not one which "
+            "Vuforia has."
+        ),
+    )
     @staticmethod
     def test_target_manager_missing_credential_delete() -> None:
         """The internal target manager returns 404 for an unknown
@@ -2664,6 +2723,10 @@ def _fake_response(
     )
 
 
+@mock_only(
+    reason=UnverifiedReason.NO_VUFORIA_CLAIM,
+    detail="These cover this test suite's own assertion helper.",
+)
 class TestAssertModelTargetStatus:
     """Tests for the Model Target status assertion helper.
 
@@ -2766,3 +2829,11 @@ class TestAssertModelTargetStatus:
         assert "MODEL_TARGET_VUFORIA_CLIENT_ID" in message
         assert "has to be raised, or reset, on the Vuforia account" in message
         assert "expected failure" in message
+
+        # The helper records the test it gave up on, so that the run
+        # reports how much it stopped verifying.  This deliberate
+        # rejection is taken back off the record, so that it does not
+        # dilute the report of real ones.
+        node_id, reason, _ = RUNTIME_UNVERIFIED.pop()
+        assert node_id.endswith("test_training_allowance_exceeded")
+        assert reason == UnverifiedReason.TEMPORARILY_UNVERIFIABLE

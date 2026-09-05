@@ -9,6 +9,12 @@ import pytest
 import requests
 
 from mock_vws import MockVWS, ModelTargetGenerationFailure
+from tests.mock_vws.verification import UnverifiedReason, mock_only
+
+pytestmark = mock_only(
+    reason=UnverifiedReason.INHERENTLY_UNVERIFIABLE,
+    detail="Real Vuforia cannot be made to fail dataset generation on demand.",
+)
 
 _AUTHORIZATION = (
     "Bearer eyJhbGciOiJtb2NrIn0."

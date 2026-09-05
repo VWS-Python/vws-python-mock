@@ -21,9 +21,15 @@ from tenacity.wait import wait_fixed
 from vws import VWS, CloudRecoService
 
 from mock_vws.database import CloudDatabase
+from tests.mock_vws.verification import UnverifiedReason, mock_only
 
 if TYPE_CHECKING:
     from docker.models.images import Image
+
+pytestmark = mock_only(
+    reason=UnverifiedReason.NO_VUFORIA_CLAIM,
+    detail="This builds and runs the mock's own container.",
+)
 
 
 @retry(

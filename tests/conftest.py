@@ -31,6 +31,10 @@ pytest_plugins = [
     # ``model_target_prepared_requests`` imports from
     # ``vuforia_backends``, so it must be listed after it.
     "tests.mock_vws.fixtures.model_target_prepared_requests",
+    # ``verification`` imports from ``vuforia_backends`` too.
+    "tests.mock_vws.fixtures.verification",
+    # ``pytester`` is used by the tests for the ``verification`` plugin.
+    "pytester",
 ]
 
 

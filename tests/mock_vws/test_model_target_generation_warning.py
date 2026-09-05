@@ -13,6 +13,15 @@ from mock_vws import (
     ModelTargetGenerationFailure,
     ModelTargetGenerationWarning,
 )
+from tests.mock_vws.verification import UnverifiedReason, mock_only
+
+pytestmark = mock_only(
+    reason=UnverifiedReason.INHERENTLY_UNVERIFIABLE,
+    detail=(
+        "Real Vuforia cannot be made to warn about a dataset on demand. The "
+        "shape of the warning object comes from Vuforia's documentation."
+    ),
+)
 
 _AUTHORIZATION = (
     "Bearer eyJhbGciOiJtb2NrIn0."

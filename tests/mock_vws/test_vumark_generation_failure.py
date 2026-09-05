@@ -8,6 +8,15 @@ import pytest
 import requests
 
 from mock_vws import MockVWS, VuMarkGenerationFailure
+from tests.mock_vws.verification import UnverifiedReason, mock_only
+
+pytestmark = mock_only(
+    reason=UnverifiedReason.INHERENTLY_UNVERIFIABLE,
+    detail=(
+        "A configured VuMark generation failure is a mock feature: real "
+        "Vuforia cannot be asked to return a chosen failure shape."
+    ),
+)
 
 _VUMARK_URL = "https://vws.vuforia.com/targets/example/instances"
 _REQUEST_BODY = b'{"instance_id":"example"}'

@@ -23,6 +23,7 @@ from tests.mock_vws.fixtures.credentials import (
     VuMarkCloudDatabase,
 )
 from tests.mock_vws.utils import make_image_file
+from tests.mock_vws.verification import UnverifiedReason, mock_only
 
 type _JsonValue = (
     str | int | float | bool | list[_JsonValue] | dict[str, _JsonValue] | None
@@ -328,6 +329,14 @@ class TestGenerateInstance:
 # ``processing_time_seconds`` attribute on ``VuMarkTarget``, so these
 # tests are inherently mock-only.
 @pytest.mark.usefixtures("mock_only_vuforia")
+@mock_only(
+    reason=UnverifiedReason.INHERENTLY_UNVERIFIABLE,
+    detail=(
+        "VuMark targets are created through the Target Manager portal rather "
+        "than through the API, so no test can hold a real VuMark target in "
+        "the processing state."
+    ),
+)
 class TestProcessingTarget:
     """Tests for VuMark generation when the target is still processing.
 

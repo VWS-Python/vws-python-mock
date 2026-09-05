@@ -9,6 +9,15 @@ from mock_vws.target_raters import (
     HardcodedTargetTrackingRater,
     RandomTargetTrackingRater,
 )
+from tests.mock_vws.verification import UnverifiedReason, mock_only
+
+pytestmark = mock_only(
+    reason=UnverifiedReason.NO_VUFORIA_CLAIM,
+    detail=(
+        "Target tracking ratings are a deliberate difference: the mock's "
+        "raters are not Vuforia's, and are documented as such."
+    ),
+)
 
 
 def test_random_target_tracking_rater() -> None:

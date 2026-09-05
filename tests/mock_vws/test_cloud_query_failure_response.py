@@ -12,6 +12,15 @@ from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws import CloudQueryFailureResponse, MockVWS
 from mock_vws.database import CloudDatabase
+from tests.mock_vws.verification import UnverifiedReason, mock_only
+
+pytestmark = mock_only(
+    reason=UnverifiedReason.INHERENTLY_UNVERIFIABLE,
+    detail=(
+        "A configured Cloud Query failure response is a mock feature: real "
+        "Vuforia cannot be asked to return a chosen failure shape."
+    ),
+)
 
 _QUERY_URL = "https://cloudreco.vuforia.com/v1/query"
 type _HTTPResponse = requests.Response | httpx.Response

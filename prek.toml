@@ -115,6 +115,20 @@ hooks = [
     additional_dependencies = ["uv==0.11.7"]
   },
   {
+    id = "verification-report",
+    name = "verification-report",
+    entry = "uv run --extra=dev python -m admin.verification_report",
+    language = "python",
+    types_or = [
+      "python",
+      "rst",
+      "toml"
+    ],
+    pass_filenames = false,
+    additional_dependencies = ["uv==0.11.7"],
+    stages = ["pre-push"]
+  },
+  {
     id = "actionlint",
     name = "actionlint",
     entry = "uv run --extra=dev actionlint",

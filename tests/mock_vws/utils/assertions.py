@@ -8,15 +8,17 @@ import textwrap
 from collections.abc import Set as AbstractSet
 from http import HTTPStatus
 from string import hexdigits
-from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
-import pytest
 import requests
 from beartype import beartype
 from vws.response import Response
 
 from mock_vws._constants import ResultCodes
+from tests.mock_vws.verification import (
+    UnverifiedReason,
+    unverified_at_runtime,
+)
 
 
 @beartype
@@ -194,7 +196,9 @@ _TRAINING_ALLOWANCE_EXCEEDED_EXPLANATION = textwrap.dedent(
     An unexpected allowance rejection is reported as an expected failure
     (xfail) rather than a test failure, so that the shared account running
     dry does not turn CI red: the test passes again automatically once the
-    allowance recovers.""",
+    allowance recovers. Each such test is counted, and named in the
+    ``stopped verifying anything while running`` section of the run, so
+    that an account which stays dry is visible rather than silent.""",
 )
 
 
@@ -239,11 +243,6 @@ def assert_model_target_status(
         sorted(f"{item} {item.name}" for item in expected)
     )
     allowance_exceeded = _TRAINING_ALLOWANCE_EXCEEDED in response.text
-    if (
-        allowance_exceeded
-        and urlparse(url=response.url).hostname == "vws.vuforia.com"
-    ):
-        pytest.skip(reason=_TRAINING_ALLOWANCE_EXCEEDED_HEADLINE)
     headline = (
         [_TRAINING_ALLOWANCE_EXCEEDED_HEADLINE] if allowance_exceeded else []
     )
@@ -264,7 +263,10 @@ def assert_model_target_status(
         ],
     )
     if allowance_exceeded:
-        pytest.xfail(reason=message)
+        unverified_at_runtime(
+            reason=UnverifiedReason.TEMPORARILY_UNVERIFIABLE,
+            detail=message,
+        )
     raise AssertionError(message)
 
 
