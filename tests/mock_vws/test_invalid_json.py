@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
 import pytest
+from beartype import beartype
 from freezegun import freeze_time
 from vws_auth_tools import authorization_header, rfc_1123_date
 
@@ -21,104 +22,124 @@ from tests.mock_vws.utils.assertions import (
 from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
 
+@beartype
+def _assert_body_rejected(*, endpoint: Endpoint, content: bytes) -> None:
+    """Send the given body to the given endpoint and assert that it is
+    rejected.
+
+    Args:
+        endpoint: The endpoint to send the body to.
+        content: The body to send, which is not a JSON object encoded as
+            UTF-8.
+    """
+    gmt = ZoneInfo(key="GMT")
+    now = datetime.now(tz=gmt)
+    time_to_freeze = now
+    with freeze_time(time_to_freeze=time_to_freeze):
+        date = rfc_1123_date()
+
+    authorization_string = authorization_header(
+        access_key=endpoint.access_key,
+        secret_key=endpoint.secret_key,
+        method=endpoint.method,
+        content=content,
+        content_type=endpoint.auth_header_content_type,
+        date=date,
+        request_path=endpoint.path_url,
+    )
+
+    new_headers = {
+        **endpoint.headers,
+        "Authorization": authorization_string,
+        "Date": date,
+        "Content-Length": str(object=len(content)),
+    }
+
+    new_endpoint = Endpoint(
+        base_url=endpoint.base_url,
+        path_url=endpoint.path_url,
+        method=endpoint.method,
+        headers=new_headers,
+        data=content,
+        successful_headers_result_code=endpoint.successful_headers_result_code,
+        successful_headers_status_code=endpoint.successful_headers_status_code,
+        access_key=endpoint.access_key,
+        secret_key=endpoint.secret_key,
+    )
+
+    response = new_endpoint.send()
+
+    handle_server_errors(response=response)
+
+    takes_json_data = endpoint.auth_header_content_type == "application/json"
+
+    assert_valid_date_header(response=response)
+
+    if takes_json_data:
+        expected_result_code = (
+            ResultCodes.BAD_REQUEST
+            if endpoint.path_url.endswith("/instances")
+            else ResultCodes.FAIL
+        )
+        assert_vws_failure(
+            response=response,
+            status_code=HTTPStatus.BAD_REQUEST,
+            result_code=expected_result_code,
+        )
+        return
+
+    netloc = urlparse(url=endpoint.base_url).netloc
+    if netloc == "cloudreco.vuforia.com":
+        assert_vwq_failure(
+            response=response,
+            status_code=HTTPStatus.BAD_REQUEST,
+            content_type="application/json",
+            cache_control=None,
+            www_authenticate=None,
+            connection="keep-alive",
+        )
+        expected_text = "No image."
+        assert response.text == expected_text
+        return
+
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert not response.text
+    assert "Content-Type" not in response.headers
+
+
 @pytest.mark.usefixtures("verify_mock_vuforia")
 class TestInvalidJSON:
-    """Tests for giving invalid JSON to endpoints."""
+    """Tests for giving invalid JSON to endpoints.
+
+    The three cases are separate tests, rather than one test covering
+    every body, because each body costs a request per endpoint against
+    Real Vuforia and CI runs one ``ci_pattern`` per job. See
+    https://github.com/VWS-Python/vws-python-mock/issues/3540.
+    """
+
+    @staticmethod
+    def test_not_json(endpoint: Endpoint) -> None:
+        """Giving a body which is not JSON returns an error response."""
+        _assert_body_rejected(endpoint=endpoint, content=b"a")
 
     @staticmethod
     @pytest.mark.parametrize(
         argnames="content",
-        argvalues=[
-            b"a",
-            b"[]",
-            b'"hello"',
-            b"5",
-            b"null",
-            b"true",
-            # JSON which is an object, but which is encoded as latin-1 rather
-            # than UTF-8.
-            '{"name": "café"}'.encode(encoding="latin-1"),
-        ],
+        argvalues=[b"[]", b'"hello"', b"5", b"null", b"true"],
     )
-    def test_invalid_json(endpoint: Endpoint, content: bytes) -> None:
-        """Giving invalid, non-object or non-UTF-8 JSON returns error
-        responses.
+    def test_not_an_object(endpoint: Endpoint, content: bytes) -> None:
+        """Giving valid JSON which is not an object returns an error
+        response.
         """
-        gmt = ZoneInfo(key="GMT")
-        now = datetime.now(tz=gmt)
-        time_to_freeze = now
-        with freeze_time(time_to_freeze=time_to_freeze):
-            date = rfc_1123_date()
+        _assert_body_rejected(endpoint=endpoint, content=content)
 
-        authorization_string = authorization_header(
-            access_key=endpoint.access_key,
-            secret_key=endpoint.secret_key,
-            method=endpoint.method,
-            content=content,
-            content_type=endpoint.auth_header_content_type,
-            date=date,
-            request_path=endpoint.path_url,
-        )
-
-        new_headers = {
-            **endpoint.headers,
-            "Authorization": authorization_string,
-            "Date": date,
-            "Content-Length": str(object=len(content)),
-        }
-
-        new_endpoint = Endpoint(
-            base_url=endpoint.base_url,
-            path_url=endpoint.path_url,
-            method=endpoint.method,
-            headers=new_headers,
-            data=content,
-            successful_headers_result_code=endpoint.successful_headers_result_code,
-            successful_headers_status_code=endpoint.successful_headers_status_code,
-            access_key=endpoint.access_key,
-            secret_key=endpoint.secret_key,
-        )
-
-        response = new_endpoint.send()
-
-        handle_server_errors(response=response)
-
-        takes_json_data = (
-            endpoint.auth_header_content_type == "application/json"
-        )
-
-        assert_valid_date_header(response=response)
-
-        if takes_json_data:
-            expected_result_code = (
-                ResultCodes.BAD_REQUEST
-                if endpoint.path_url.endswith("/instances")
-                else ResultCodes.FAIL
-            )
-            assert_vws_failure(
-                response=response,
-                status_code=HTTPStatus.BAD_REQUEST,
-                result_code=expected_result_code,
-            )
-            return
-
-        netloc = urlparse(url=endpoint.base_url).netloc
-        if netloc == "cloudreco.vuforia.com":
-            assert_vwq_failure(
-                response=response,
-                status_code=HTTPStatus.BAD_REQUEST,
-                content_type="application/json",
-                cache_control=None,
-                www_authenticate=None,
-                connection="keep-alive",
-            )
-            expected_text = "No image."
-            assert response.text == expected_text
-            return
-
-        assert response.status_code == HTTPStatus.BAD_REQUEST
-        assert not response.text
-        assert "Content-Type" not in response.headers
+    @staticmethod
+    def test_not_utf_8(endpoint: Endpoint) -> None:
+        """Giving a JSON object which is not encoded as UTF-8 returns an
+        error response.
+        """
+        content = '{"name": "café"}'.encode(encoding="latin-1")
+        _assert_body_rejected(endpoint=endpoint, content=content)
 
     @staticmethod
     def test_invalid_json_with_skewed_time(endpoint: Endpoint) -> None:

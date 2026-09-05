@@ -86,7 +86,9 @@ jobs:
           - tests/mock_vws/test_get_duplicates.py
           - tests/mock_vws/test_get_target.py
           - tests/mock_vws/test_invalid_given_id.py
-          - tests/mock_vws/test_invalid_json.py::TestInvalidJSON::test_invalid_json
+          - tests/mock_vws/test_invalid_json.py::TestInvalidJSON::test_not_json
+          - tests/mock_vws/test_invalid_json.py::TestInvalidJSON::test_not_an_object
+          - tests/mock_vws/test_invalid_json.py::TestInvalidJSON::test_not_utf_8
           - tests/mock_vws/test_invalid_json.py::TestInvalidJSON::test_invalid_json_with_skewed_time
           - tests/mock_vws/test_target_list.py
           - tests/mock_vws/test_reco_counts_report.py
@@ -117,9 +119,6 @@ jobs:
           - tests/mock_vws/test_update_target.py::TestUpdate
           - tests/mock_vws/test_update_target.py::TestWidth
           - tests/mock_vws/test_update_target.py::TestInactiveProject
-          - tests/mock_vws/test_requests_mock_usage.py
-          - tests/mock_vws/test_respx_mock_usage.py
-          - tests/mock_vws/test_flask_app_usage.py
           - tests/mock_vws/test_model_target_generation_failure.py
           - tests/mock_vws/test_model_target_generation_warning.py
           - tests/mock_vws/test_model_target_failure_response.py
@@ -129,6 +128,9 @@ jobs:
           - tests/mock_vws/test_vumark_generation_api.py
           - tests/mock_vws/test_vumark_generation_failure.py
           - tests/mock_vws/test_target_validators.py
+          - tests/mock_vws/test_requests_mock_usage.py
+          - tests/mock_vws/test_respx_mock_usage.py
+          - tests/mock_vws/test_flask_app_usage.py
           - tests/mock_vws/test_healthcheck.py
           - tests/mock_vws/test_docker.py
           - README.rst
@@ -155,8 +157,11 @@ jobs:
           # See the "CI Setup" document for details of how this was set up.
           ci/decrypt_secret.sh
           tar xvf "${HOME}"/secrets/secrets.tar
-          # Matrix jobs are 0-based; only secrets 0-99 exist. Wrap for overflow
-          # (e.g. docs/ at index 100 after the suite grew past 100 patterns).
+          # Matrix jobs are 0-based; only secrets 0-99 exist, so patterns
+          # past index 99 wrap and share a database with an earlier job.
+          # The ci_pattern list is therefore ordered so that every pattern
+          # from index 100 on is one which never parametrises over the Real
+          # Vuforia backend, and so never uses these credentials.
           SECRET_INDEX=$((JOB_INDEX % 100))
           cp "./ci_secrets/vuforia_secrets_${SECRET_INDEX}.env" ./vuforia_secrets.env
 
