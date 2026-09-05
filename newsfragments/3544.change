@@ -1,0 +1,1 @@
+Fix nested ``MockVWS`` instances on the ``httpx`` backend: an inner mock is now the only one which answers while it is running, matching the ``requests`` and ``httpx2`` backends. Previously the outer mock kept answering and requests to the inner mock's URL were refused.
