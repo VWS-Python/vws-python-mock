@@ -486,6 +486,11 @@ run.branch = true
 run.parallel = true
 run.relative_files = true
 run.patch = [ "subprocess" ]
+# Subprocesses started by ``pytester`` record absolute paths, because
+# their working directory is a temporary directory rather than the
+# repository. Map the GitHub Actions checkout on every runner back to
+# the repository root so that data measured on Windows combines on Linux.
+paths.source = [ ".", "*/vws-python-mock/vws-python-mock" ]
 report.fail_under = 100
 report.exclude_also = [
     "case _ as unreachable:\n\\s*assert_never\\(",
