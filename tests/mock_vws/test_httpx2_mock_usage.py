@@ -2,6 +2,7 @@
 
 import asyncio
 import io
+import socket
 import uuid
 from collections.abc import Coroutine
 from http import HTTPStatus
@@ -74,6 +75,32 @@ def _run[T](*, coroutine: Coroutine[Any, Any, T]) -> T:
     return asyncio.run(main=coroutine)
 
 
+def _unused_local_url() -> str:
+    """A URL of a local port which nothing is listening on.
+
+    Returns:
+        The URL of a port which was free when this was called.
+    """
+    sock = socket.socket()
+    sock.bind(("", 0))
+    port = sock.getsockname()[1]
+    sock.close()
+    return f"http://localhost:{port}"
+
+
+async def _async_get(*, url: str) -> httpx2.Response:
+    """Make an asynchronous ``httpx2`` request.
+
+    Args:
+        url: The URL to request.
+
+    Returns:
+        The response to the request.
+    """
+    async with httpx2.AsyncClient() as client:
+        return await client.get(url=url, timeout=30)
+
+
 class TestVWS:
     """Synchronous ``vws-python`` client usage through the mock via
     ``httpx2``.
@@ -94,7 +121,9 @@ class TestVWS:
             client = VWS(
                 server_access_key=database.server_access_key,
                 server_secret_key=database.server_secret_key,
-                request_timeout_seconds=0.1,
+                # A ``(connect, read)`` tuple, so that the read timeout
+                # is the one which the response delay exceeds.
+                request_timeout_seconds=(30.0, 0.1),
                 transport=HTTPX2Transport(),
             )
             with pytest.raises(expected_exception=httpx2.ReadTimeout):
@@ -412,6 +441,74 @@ class TestVuMarkService:
             response_content = _run(coroutine=generate())
 
         assert response_content.startswith(b"\x89PNG")
+
+
+class TestTransportClose:
+    """Closing a transport closes the ``httpx2`` client underneath it."""
+
+    @staticmethod
+    def test_close() -> None:
+        """A closed ``HTTPX2Transport`` cannot make a request."""
+        transport = HTTPX2Transport()
+        transport.close()
+
+        with MockVWS(), pytest.raises(expected_exception=RuntimeError):
+            transport(
+                method="GET",
+                url="https://vws.vuforia.com/summary",
+                headers={},
+                data=b"",
+                request_timeout=30.0,
+            )
+
+    @staticmethod
+    def test_aclose() -> None:
+        """A closed ``AsyncHTTPX2Transport`` cannot make a request."""
+
+        async def close_then_request() -> None:
+            """Close the transport and then try to use it."""
+            transport = AsyncHTTPX2Transport()
+            await transport.aclose()
+            await transport(
+                method="GET",
+                url="https://vws.vuforia.com/summary",
+                headers={},
+                data=b"",
+                request_timeout=30.0,
+            )
+
+        with MockVWS(), pytest.raises(expected_exception=RuntimeError):
+            _run(coroutine=close_then_request())
+
+
+class TestAsyncInterception:
+    """Which addresses an asynchronous ``httpx2`` client can reach."""
+
+    @staticmethod
+    def test_unmocked_address_blocked() -> None:
+        """Requests to non-Vuforia addresses are blocked."""
+        url = _unused_local_url()
+
+        with (
+            MockVWS(),
+            pytest.raises(expected_exception=httpx2.ConnectError),
+        ):
+            _run(coroutine=_async_get(url=url))
+
+    @staticmethod
+    def test_real_http() -> None:
+        """With ``real_http``, requests reach the transport underneath.
+
+        Nothing is listening on the address, so the error comes from that
+        transport rather than from the mock.
+        """
+        url = _unused_local_url()
+
+        with (
+            MockVWS(real_http=True),
+            pytest.raises(expected_exception=httpx2.ConnectError),
+        ):
+            _run(coroutine=_async_get(url=url))
 
 
 class TestModelTargetWebAPI:

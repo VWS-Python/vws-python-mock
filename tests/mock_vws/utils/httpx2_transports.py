@@ -6,8 +6,6 @@ what the tests use to show that ``vws-python`` clients work against the
 mock over ``httpx2``.
 """
 
-from typing import Self
-
 import httpx2
 from beartype import BeartypeConf, beartype
 from vws.response import Response
@@ -79,17 +77,6 @@ class HTTPX2Transport:
         """Close the underlying ``httpx2.Client``."""
         self._client.close()
 
-    def __enter__(self) -> Self:
-        """
-        Returns:
-            ``self``.
-        """
-        return self
-
-    def __exit__(self, *_args: object) -> None:
-        """Close the underlying ``httpx2.Client``."""
-        self.close()
-
     def __call__(
         self,
         *,
@@ -133,17 +120,6 @@ class AsyncHTTPX2Transport:
     async def aclose(self) -> None:
         """Close the underlying ``httpx2.AsyncClient``."""
         await self._client.aclose()
-
-    async def __aenter__(self) -> Self:
-        """
-        Returns:
-            ``self``.
-        """
-        return self
-
-    async def __aexit__(self, *_args: object) -> None:
-        """Close the underlying ``httpx2.AsyncClient``."""
-        await self.aclose()
 
     async def __call__(
         self,
