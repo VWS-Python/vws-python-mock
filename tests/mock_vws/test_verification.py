@@ -177,6 +177,31 @@ class TestCollection:
         assert result.ret == pytest.ExitCode.USAGE_ERROR
 
     @staticmethod
+    def test_unclassified_module_is_an_error(
+        *,
+        pytester: pytest.Pytester,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """A test module must say which API it exercises."""
+        monkeypatch.setenv(
+            name="PYTHONPATH",
+            value=str(object=_REPOSITORY_ROOT),
+        )
+        pytester.makeconftest(source=_PLUGIN_CONFTEST)
+        pytester.makepyfile(
+            test_a_module_which_is_not_classified=(
+                "def test_example():\n    pass\n"
+            ),
+        )
+
+        result = pytester.runpytest_subprocess("--collect-only")
+
+        result.stderr.fnmatch_lines(
+            lines2=["*test_a_module_which_is_not_classified.py*"],
+        )
+        assert result.ret == pytest.ExitCode.USAGE_ERROR
+
+    @staticmethod
     def test_declared_test_is_counted(
         *,
         pytester: pytest.Pytester,

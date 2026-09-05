@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
 import httpx
+import httpx2
 import pytest
 import requests
 from beartype import beartype
@@ -2115,6 +2116,69 @@ class TestHttpxAlsoIntercepted:
             httpx.get(url=f"http://localhost:{port}", timeout=30)
 
 
+class TestHttpx2AlsoIntercepted:
+    """Tests that MockVWS also intercepts httpx2 requests."""
+
+    @staticmethod
+    def test_httpx2_vuforia_endpoint_intercepted() -> None:
+        """``MockVWS`` intercepts ``httpx2`` requests to Vuforia
+        endpoints.
+        """
+        with MockVWS():
+            response = httpx2.get(
+                url="https://vws.vuforia.com/summary",
+                headers={
+                    "Date": rfc_1123_date(),
+                    "Authorization": "bad_auth_token",
+                },
+                timeout=30,
+            )
+        assert response.status_code is not None
+
+    @staticmethod
+    def test_httpx2_client_made_before_start_intercepted() -> None:
+        """A client which was made before the mock started is
+        intercepted.
+        """
+        with httpx2.Client() as client, MockVWS():
+            response = client.get(
+                url="https://vws.vuforia.com/summary",
+                headers={
+                    "Date": rfc_1123_date(),
+                    "Authorization": "bad_auth_token",
+                },
+                timeout=30,
+            )
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+
+    @staticmethod
+    def test_httpx2_unmocked_address_blocked() -> None:
+        """``MockVWS`` blocks ``httpx2`` requests to non-Vuforia
+        addresses.
+        """
+        sock = socket.socket()
+        sock.bind(("", 0))
+        port = sock.getsockname()[1]
+        sock.close()
+        with MockVWS(), pytest.raises(expected_exception=httpx2.ConnectError):
+            httpx2.get(url=f"http://localhost:{port}", timeout=30)
+
+    @staticmethod
+    def test_httpx2_real_http() -> None:
+        """When ``real_http=True``, ``httpx2`` requests to non-Vuforia
+        addresses are not blocked.
+        """
+        sock = socket.socket()
+        sock.bind(("", 0))
+        port = sock.getsockname()[1]
+        sock.close()
+        with (
+            MockVWS(real_http=True),
+            pytest.raises(expected_exception=httpx2.ConnectError),
+        ):
+            httpx2.get(url=f"http://localhost:{port}", timeout=30)
+
+
 class TestModelTargetWebAPI:
     """Tests for the Model Target Web API."""
 
@@ -2301,6 +2365,32 @@ class TestDecorator:
 
         with pytest.raises(expected_exception=httpx.ConnectError):
             httpx.get(url=summary_url, timeout=30)
+
+    @staticmethod
+    def test_httpx2_requests_are_mocked() -> None:
+        """Requests made with ``httpx2`` are mocked within the decorated
+        function.
+        """
+        base_vws_url = _unused_local_url()
+        summary_url = base_vws_url + "/summary"
+
+        @MockVWS(base_vws_url=base_vws_url)
+        def make_request() -> httpx2.Response:
+            """Make a request to the mocked VWS API."""
+            return httpx2.get(
+                url=summary_url,
+                headers={
+                    "Date": rfc_1123_date(),
+                    "Authorization": "bad_auth_token",
+                },
+                timeout=30,
+            )
+
+        response = make_request()
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+
+        with pytest.raises(expected_exception=httpx2.ConnectError):
+            httpx2.get(url=summary_url, timeout=30)
 
     @staticmethod
     def test_arguments_and_return_value() -> None:

@@ -96,6 +96,7 @@ _API_BY_MODULE: Mapping[str, VuforiaAPI] = {
     "test_get_duplicates": VuforiaAPI.TARGET,
     "test_get_target": VuforiaAPI.TARGET,
     "test_healthcheck": VuforiaAPI.MOCK_TOOLING,
+    "test_httpx2_mock_usage": VuforiaAPI.MOCK_TOOLING,
     "test_invalid_given_id": VuforiaAPI.TARGET,
     "test_invalid_json": VuforiaAPI.CROSS_CUTTING,
     "test_model_target_failure_response": VuforiaAPI.MODEL_TARGET,

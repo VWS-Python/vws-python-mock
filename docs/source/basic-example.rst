@@ -1,4 +1,4 @@
-``MockVWS`` intercepts requests to Vuforia made with `requests`_ or `httpx`_.
+``MockVWS`` intercepts requests to Vuforia made with `requests`_, `httpx`_ or `HTTPX2`_.
 
 .. code-block:: python
 
@@ -47,3 +47,4 @@ See :ref:`mock-api-reference` for details of what can be changed and how.
 
 .. _requests: https://pypi.org/project/requests/
 .. _httpx: https://pypi.org/project/httpx/
+.. _HTTPX2: https://httpx2.pydantic.dev/

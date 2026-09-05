@@ -56,6 +56,15 @@ If instead the test should reach real Vuforia, give it the
 ``verify_mock_vuforia`` or ``verify_model_target_mock_vuforia`` fixture.
 """
 
+_UNCLASSIFIED_MODULE_MESSAGE = """\
+These test modules are not classified by the API which they exercise:
+
+{modules}
+
+Add each one to the mapping in ``tests/mock_vws/verification.py``, so
+that the verified and unverified split reports its tests.
+"""
+
 
 @beartype
 def pytest_addoption(parser: pytest.Parser) -> None:
@@ -96,15 +105,21 @@ def _split(*, items: list[pytest.Item]) -> dict[str, Counter[str]]:
 
     Raises:
         UsageError: A test which never runs against real Vuforia does
-            not declare why.
+            not declare why, or its module is not classified by the API
+            which it exercises.
     """
     split: dict[str, Counter[str]] = {}
     missing: list[str] = []
+    unclassified: set[str] = set()
     real_backend_id = str(object=VuforiaBackend.REAL.value)
     test_functions = [item for item in items if is_test_function(item=item)]
     for test_id, test_items in group_by_test(items=test_functions).items():
         first_item = test_items[0]
-        api = api_for_test_path(path=first_item.path)
+        try:
+            api = api_for_test_path(path=first_item.path)
+        except KeyError:
+            unclassified.add(first_item.path.name)
+            continue
         counts = split.setdefault(api.value, Counter())
         marker = mock_only_marker(item=first_item)
         if marker is None:
@@ -127,14 +142,31 @@ def _split(*, items: list[pytest.Item]) -> dict[str, Counter[str]]:
             if real_backend_id in str.partition(item.nodeid, "[")[2]:
                 item.add_marker(marker=skip_real)
 
-    if missing:
-        raise pytest.UsageError(
-            _MISSING_MARKER_MESSAGE.format(
-                tests="\n".join(f"    {test}" for test in missing),
-            ),
+    problems = [
+        message.format(**{name: _listed(items=listed)})
+        for listed, message, name in (
+            (missing, _MISSING_MARKER_MESSAGE, "tests"),
+            (sorted(unclassified), _UNCLASSIFIED_MODULE_MESSAGE, "modules"),
         )
+        if listed
+    ]
+    if problems:
+        raise pytest.UsageError("\n".join(problems))
 
     return split
+
+
+@beartype
+def _listed(*, items: list[str]) -> str:
+    """One indented line per item, for a message.
+
+    Args:
+        items: The items to list.
+
+    Returns:
+        The items, one indented line each.
+    """
+    return "\n".join(f"    {item}" for item in items)
 
 
 @beartype
