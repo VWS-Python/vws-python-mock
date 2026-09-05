@@ -124,6 +124,31 @@ class TestVWS:
             with pytest.raises(expected_exception=UnknownTargetError):
                 client.get_target_record(target_id=target_id)
 
+    @staticmethod
+    def test_nested_mocks() -> None:
+        """A mock inside another mock leaves the outer one working.
+
+        The innermost mock is the only one which answers while it is
+        running, which is what the ``requests`` and ``httpx2`` backends do
+        too, and the outer mock answers again once the inner one has
+        stopped.
+        """
+        outer_url = "https://vws.vuforia.com/summary"
+        inner_url = "https://vuforia.vws.example.com/summary"
+
+        with MockVWS():
+            with MockVWS(base_vws_url="https://vuforia.vws.example.com"):
+                inner_response = httpx.get(url=inner_url, timeout=30)
+                with pytest.raises(expected_exception=httpx.ConnectError):
+                    httpx.get(url=outer_url, timeout=30)
+            outer_response = httpx.get(url=outer_url, timeout=30)
+
+            with pytest.raises(expected_exception=httpx.ConnectError):
+                httpx.get(url=inner_url, timeout=30)
+
+        assert inner_response.status_code == HTTPStatus.UNAUTHORIZED
+        assert outer_response.status_code == HTTPStatus.UNAUTHORIZED
+
 
 class TestCloudRecoService:
     """Synchronous cloud query usage through the mock via ``httpx``."""
