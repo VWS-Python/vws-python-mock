@@ -29,6 +29,7 @@ chunked
 cmyk
 config
 connectionerror
+coroutine
 customizable
 dataclass
 dataclasses
@@ -56,6 +57,7 @@ html
 http
 https
 httpx
+httpx2
 iff
 io
 issuecomment
@@ -106,6 +108,7 @@ reportAttributeAccessIssue
 reportGeneralTypeIssues
 reportMissingTypeStubs
 reportPrivateImportUsage
+reportPrivateUsage
 reportUnknownArgumentType
 reportUnknownMemberType
 reportUnknownVariableType

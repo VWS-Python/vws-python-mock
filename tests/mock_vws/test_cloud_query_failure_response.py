@@ -5,6 +5,7 @@ from collections.abc import Callable
 from http import HTTPMethod, HTTPStatus
 
 import httpx
+import httpx2
 import pytest
 import requests
 from urllib3.filepost import encode_multipart_formdata
@@ -14,7 +15,7 @@ from mock_vws import CloudQueryFailureResponse, MockVWS
 from mock_vws.database import CloudDatabase
 
 _QUERY_URL = "https://cloudreco.vuforia.com/v1/query"
-type _HTTPResponse = requests.Response | httpx.Response
+type _HTTPResponse = requests.Response | httpx.Response | httpx2.Response
 type _QuerySender = Callable[[dict[str, str], bytes], _HTTPResponse]
 
 
@@ -31,6 +32,16 @@ def _requests_query(headers: dict[str, str], body: bytes) -> _HTTPResponse:
 def _httpx_query(headers: dict[str, str], body: bytes) -> _HTTPResponse:
     """Send a Cloud Query request with ``httpx``."""
     return httpx.post(
+        url=_QUERY_URL,
+        headers=headers,
+        content=body,
+        timeout=30,
+    )
+
+
+def _httpx2_query(headers: dict[str, str], body: bytes) -> _HTTPResponse:
+    """Send a Cloud Query request with ``httpx2``."""
+    return httpx2.post(
         url=_QUERY_URL,
         headers=headers,
         content=body,
@@ -70,8 +81,8 @@ def _valid_query(
 
 @pytest.mark.parametrize(
     argnames="send_query",
-    argvalues=[_requests_query, _httpx_query],
-    ids=["requests", "httpx"],
+    argvalues=[_requests_query, _httpx_query, _httpx2_query],
+    ids=["requests", "httpx", "httpx2"],
 )
 @pytest.mark.parametrize(
     argnames=("status_code", "headers", "body", "expected_body"),
@@ -110,7 +121,7 @@ def test_configured_failure_response(
     body: str | bytes,
     expected_body: bytes,
 ) -> None:
-    """Both in-process backends preserve the configured response."""
+    """Every in-process backend preserves the configured response."""
     database = CloudDatabase()
     query_headers, query_body = _valid_query(
         database=database,

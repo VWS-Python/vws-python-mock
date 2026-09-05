@@ -5,6 +5,7 @@ from http import HTTPStatus
 from typing import Any
 
 import httpx
+import httpx2
 import pytest
 import requests
 
@@ -35,7 +36,7 @@ _REQUEST_BODY: dict[str, Any] = {
         },
     ],
 }
-type _HTTPResponse = requests.Response | httpx.Response
+type _HTTPResponse = requests.Response | httpx.Response | httpx2.Response
 type _RequestSender = Callable[[str, dict[str, Any] | None], _HTTPResponse]
 
 
@@ -77,10 +78,29 @@ def _httpx_request(
     )
 
 
+def _httpx2_request(
+    url: str,
+    json_body: dict[str, Any] | None,
+) -> _HTTPResponse:
+    """Send a Model Target request with ``httpx2``."""
+    if json_body is None:
+        return httpx2.get(
+            url=url,
+            headers={"Authorization": _AUTHORIZATION},
+            timeout=30,
+        )
+    return httpx2.post(
+        url=url,
+        headers={"Authorization": _AUTHORIZATION},
+        json=json_body,
+        timeout=30,
+    )
+
+
 @pytest.mark.parametrize(
     argnames="send_request",
-    argvalues=[_requests_request, _httpx_request],
-    ids=["requests", "httpx"],
+    argvalues=[_requests_request, _httpx_request, _httpx2_request],
+    ids=["requests", "httpx", "httpx2"],
 )
 @pytest.mark.parametrize(
     argnames=("processing_time_seconds", "expected_status", "time_field"),

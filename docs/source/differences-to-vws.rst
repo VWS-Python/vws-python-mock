@@ -193,7 +193,7 @@ The Vuforia Cloud Query API documents failure responses with JSON, arbitrary
 content, or no body. Use
 :paramref:`mock_vws.MockVWS.cloud_query_failure_response` to make every Cloud
 Query request return a particular documented failure shape through the
-in-process ``requests`` and ``httpx`` backends::
+in-process ``requests``, ``httpx`` and ``httpx2`` backends::
 
     from mock_vws import CloudQueryFailureResponse, MockVWS
 
@@ -238,8 +238,8 @@ behavior after successful token acquisition::
 
 Omit ``requests`` to affect create, status, download, and delete requests.
 Other phases retain their normal behavior. This configuration works with
-the in-process ``requests`` and ``httpx`` backends and is not supported by the
-Flask/Docker backend.
+the in-process ``requests``, ``httpx`` and ``httpx2`` backends and is not
+supported by the Flask/Docker backend.
 
 Other configurable result codes
 -------------------------------
@@ -446,9 +446,9 @@ For any other request which it does not serve, such as ``DELETE /summary`` or
 and the path of the request.
 The Flask and Docker mock reproduces both response shapes.
 
-The ``requests`` and ``httpx`` backends mock only the paths which the mock
-serves, so a request to any other path raises a connection error rather than
-giving the 404 response which real Vuforia gives.
+The ``requests``, ``httpx`` and ``httpx2`` backends mock only the paths which
+the mock serves, so a request to any other path raises a connection error
+rather than giving the 404 response which real Vuforia gives.
 
 Header cases
 ------------

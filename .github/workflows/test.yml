@@ -130,6 +130,7 @@ jobs:
           - tests/mock_vws/test_target_validators.py
           - tests/mock_vws/test_requests_mock_usage.py
           - tests/mock_vws/test_respx_mock_usage.py
+          - tests/mock_vws/test_httpx2_mock_usage.py
           - tests/mock_vws/test_flask_app_usage.py
           - tests/mock_vws/test_healthcheck.py
           - tests/mock_vws/test_docker.py
