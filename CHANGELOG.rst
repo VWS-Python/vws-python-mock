@@ -3,6 +3,36 @@ Changelog
 
 .. towncrier release notes start
 
+2026.09.06
+----------
+
+- Add ``MockVWS.set_target_recognition_counts`` and a matching target manager endpoint for the Flask and Docker mock, for setting the recognition counts which the target summary report and the reco counts report show for a target.
+  A reco counts report now has a row for each target with recognitions in the requested month, and the recognition counts and recognition threshold of a cloud database are kept when the database is created in the Flask and Docker mock.
+
+- Order Query API and ``GET /duplicates/{target_id}`` results by match score, with the best match first, as the real Query API does.
+  Matches with equal scores keep the existing upload date and then target ID order.
+
+  Image matchers now return a score, or ``None`` for no match, rather than a ``bool``.
+  ``StructuralSimilarityMatcher`` returns the images' SSIM score, and ``ExactMatcher`` gives every match the same score.
+  A custom ``query_match_checker`` or ``duplicate_match_checker`` which returns a ``bool`` now raises a ``TypeError``; return a score, such as ``1.0``, for a match and ``None`` for no match instead.
+  The mock's ranking is its matcher's opinion, not Vuforia's proprietary one, so the mock's order still need not agree with the real Query API's order.
+
+- Respond, rather than failing to respond, to a request body which is not UTF-8 and to a query request whose ``multipart/form-data`` body ends before its closing boundary.
+
+- Return a ``400`` response which names the offending field and the accepted values, rather than a ``500`` response, when the target manager container is given an invalid cloud database or VuMark database to create.
+  Return a ``404`` response, rather than a ``500`` response, when the target manager container is asked to add a target to a database which does not exist.
+
+- Say which claims about the real Vuforia Web Services the mock has not had checked against them. :doc:`unverified-behavior` lists each such claim and what would verify it, and ``differences-to-vws`` marks the unverified assumptions among its deliberate differences.
+
+- Return a ``BadImage`` response, rather than failing to respond, when an image given to the Target API is truncated before the end of its image data.
+
+- ``MockVWS`` now intercepts ``httpx2`` requests, synchronous and asynchronous, alongside ``requests`` and ``httpx``. The ``httpx2`` path uses native ``httpx2`` requests and responses, and does not need ``httpx2.alias_httpx()``.
+
+- Fix nested ``MockVWS`` instances on the ``httpx`` backend: an inner mock is now the only one which answers while it is running, matching the ``requests`` and ``httpx2`` backends. Previously the outer mock kept answering and requests to the inner mock's URL were refused.
+
+- Return a response, rather than raising an uncaught ``JSONDecodeError``, when an empty body is given to a VWS endpoint which takes a JSON body.
+  As real Vuforia does, ``POST /targets`` and ``PUT /targets/<target_id>`` now return a 500 ``Fail`` response, the reco counts report endpoint returns a 400 ``Fail`` response, and the VuMark instance generation endpoint returns a 400 ``BadRequest`` response.
+
 2026.08.26.1
 ------------
 
