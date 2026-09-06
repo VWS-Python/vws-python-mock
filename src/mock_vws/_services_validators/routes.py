@@ -44,8 +44,9 @@ from .instance_id_validators import (
     validate_instance_id_type,
 )
 from .json_validators import (
-    validate_json,
     validate_no_body_given,
+    validate_reco_counts_report_json,
+    validate_target_json,
     validate_vumark_instance_json,
 )
 from .key_validators import validate_keys
@@ -175,7 +176,7 @@ _ADD_TARGET = Route(
         *_PROJECT_VALIDATORS,
         validate_target_quota,
         *_DATE_HEADER_VALIDATORS,
-        validate_json,
+        validate_target_json,
         validate_keys,
         *_METADATA_VALIDATORS,
         validate_active_flag,
@@ -209,7 +210,7 @@ _UPDATE_TARGET = Route(
         *_PROJECT_VALIDATORS,
         validate_target_id_exists,
         *_DATE_HEADER_VALIDATORS,
-        validate_json,
+        validate_target_json,
         validate_keys,
         *_METADATA_VALIDATORS,
         validate_active_flag,
@@ -349,7 +350,7 @@ _RECO_COUNTS_REPORT = Route(
         validate_database_id_matches_keys,
         *_PROJECT_VALIDATORS,
         *_DATE_HEADER_VALIDATORS,
-        validate_json,
+        validate_reco_counts_report_json,
         validate_keys,
         validate_content_type_header_given,
         *_CONTENT_LENGTH_HEADER_VALIDATORS,

@@ -89,6 +89,7 @@ jobs:
           - tests/mock_vws/test_invalid_json.py::TestInvalidJSON::test_not_json
           - tests/mock_vws/test_invalid_json.py::TestInvalidJSON::test_not_an_object
           - tests/mock_vws/test_invalid_json.py::TestInvalidJSON::test_not_utf_8
+          - tests/mock_vws/test_invalid_json.py::TestInvalidJSON::test_empty_body
           - tests/mock_vws/test_invalid_json.py::TestInvalidJSON::test_invalid_json_with_skewed_time
           - tests/mock_vws/test_target_list.py
           - tests/mock_vws/test_reco_counts_report.py
@@ -110,6 +111,7 @@ jobs:
           - tests/mock_vws/test_update_target.py::TestImage::test_not_base64_encoded_not_processable
           - tests/mock_vws/test_update_target.py::TestImage::test_not_image
           - tests/mock_vws/test_update_target.py::TestImage::test_invalid_type
+          - tests/mock_vws/test_update_target.py::TestImage::test_rating_does_not_return_to_minus_one
           - tests/mock_vws/test_update_target.py::TestImage::test_rating_can_change
           - tests/mock_vws/test_update_target.py::TestTargetName::test_name_valid
           - tests/mock_vws/test_update_target.py::TestTargetName::test_name_invalid

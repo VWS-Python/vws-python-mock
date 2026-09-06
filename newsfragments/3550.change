@@ -1,0 +1,2 @@
+Return a response, rather than raising an uncaught ``JSONDecodeError``, when an empty body is given to a VWS endpoint which takes a JSON body.
+As real Vuforia does, ``POST /targets`` and ``PUT /targets/<target_id>`` now return a 500 ``Fail`` response, the reco counts report endpoint returns a 400 ``Fail`` response, and the VuMark instance generation endpoint returns a 400 ``BadRequest`` response.
