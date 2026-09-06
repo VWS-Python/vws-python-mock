@@ -135,7 +135,11 @@ def run_services_validators[DatabaseT: AnyDatabase](
     validate_date_format(request_headers=request_headers)
     validate_date_in_range(request_headers=request_headers)
 
-    validate_json(request_body=request_body, request_path=request_path)
+    validate_json(
+        request_body=request_body,
+        request_path=request_path,
+        request_method=request_method,
+    )
 
     validate_keys(
         request_body=request_body,
