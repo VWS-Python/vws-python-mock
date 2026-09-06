@@ -831,6 +831,41 @@ class TestImage:
         )
 
     @staticmethod
+    def test_rating_does_not_return_to_minus_one(
+        *,
+        image_file_success_state_low_rating: io.BytesIO,
+        high_quality_image: io.BytesIO,
+        vws_client: VWS,
+    ) -> None:
+        """An update does not start a new -1 tracking rating window.
+
+        A target reports a rating of -1 for a short time after it is
+        uploaded, and then the image's rating, while it is still
+        processing. An update returns the target to the processing
+        state, but the rating does not go back to -1: the new image's
+        rating is reported straight away.
+
+        Anyone who polls for an update to be processed by watching the
+        rating leave -1, rather than by watching the status, would wait
+        forever, so the mock must not offer them a window which the real
+        Vuforia does not have.
+        """
+        target_id = vws_client.add_target(
+            name=uuid.uuid4().hex,
+            width=1,
+            image=image_file_success_state_low_rating,
+            active_flag=True,
+            application_metadata=None,
+        )
+
+        vws_client.wait_for_target_processed(target_id=target_id)
+
+        vws_client.update_target(target_id=target_id, image=high_quality_image)
+
+        target_details = vws_client.get_target_record(target_id=target_id)
+        assert target_details.target_record.tracking_rating in range(6)
+
+    @staticmethod
     def test_rating_can_change(
         *,
         image_file_success_state_low_rating: io.BytesIO,

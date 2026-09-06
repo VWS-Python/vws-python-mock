@@ -47,6 +47,10 @@ Targets are assigned a rating between 0 and 5 of how good they are for tracking 
 In the mock this is calculated from the image quality, differently to how Vuforia does this.
 This is customizable with the :paramref:`~mock_vws.MockVWS.target_tracking_rater` parameter.
 
+A target which is being processed after an upload reports a rating of -1 for a short time, and then the image's rating, while it is still processing.
+An update does not start a new -1 window: it returns the target to the processing state and reports the new image's rating straight away.
+The mock does the same, in proportion to :paramref:`~mock_vws.MockVWS.processing_time_seconds` rather than to the real timings.
+
 Image targets which are not suited to detection are given 'failed' statuses.
 The criteria for these images is not defined by the Vuforia documentation.
 The mock is more forgiving than the real Vuforia Web Services.

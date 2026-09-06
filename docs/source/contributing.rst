@@ -190,6 +190,8 @@ This is because the target goes into a processing state.
 ``image`` is required for ``POST /targets``, but it is documented as not mandatory.
 
 The ``tracking_rating`` returned by ``GET /targets/<target_id>`` can be -1.
+This happens only while a newly uploaded target is processing, and it lasts for about a second.
+Updating a target returns it to the processing state but does not return the rating to -1; the new image's rating is reported straight away.
 
 The database summary from ``GET /summary`` has multiple undocumented return fields.
 
