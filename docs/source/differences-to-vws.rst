@@ -9,12 +9,9 @@ This document mixes three kinds of statement, and it says which is which:
 * A deliberate difference, where the mock does something else on purpose.
   The image matchers are one.
 * Behavior which the mock does not implement.
-* An unverified assumption, where the mock follows Vuforia's documentation and
-  nobody has checked that the documentation is accurate.
-  Each of these carries a note pointing at its entry in
-  :doc:`unverified-behavior`, which says what would verify it.
-  These are the ones which can bite: the mock passes its tests, your tests
-  pass, and the divergence appears in production.
+* An unverified assumption, where the mock follows Vuforia's documentation and nobody has checked that the documentation is accurate.
+  Each of these carries a note pointing at its entry in :doc:`unverified-behavior`, which says what would verify it.
+  These are the ones which can bite: the mock passes its tests, your tests pass, and the divergence appears in production.
 
 Image matching
 --------------
@@ -158,9 +155,8 @@ These are:
 Request quota exhaustion
 ------------------------
 
-The mock returns ``RequestQuotaReached`` when a
-:class:`mock_vws.database.CloudDatabase` is created with
-``request_quota=0``. This behavior follows the public Vuforia documentation.
+The mock returns ``RequestQuotaReached`` when a :class:`mock_vws.database.CloudDatabase` is created with ``request_quota=0``.
+This behavior follows the public Vuforia documentation.
 
 .. admonition:: Unverified assumption
 
@@ -174,10 +170,8 @@ endpoints in general, with 45 requests per second for
 ``GET /targets/{target_id}``, 10 requests per second for
 ``GET /duplicates/{target_id}``, and 1 request per minute for ``GET /targets``.
 
-The mock models these limits separately for each group of endpoints, but it
-applies no limit by default. Applying a limit of 1 request per minute to
-``GET /targets`` by default would break the tests of anything which uses the
-mock.
+The mock models these limits separately for each group of endpoints, but it applies no limit by default.
+Applying a limit of 1 request per minute to ``GET /targets`` by default would break the tests of anything which uses the mock.
 
 .. admonition:: Unverified assumption
 
@@ -205,8 +199,7 @@ the documented limits::
 VWS endpoints together, and it is tracked separately from the per-endpoint
 limits.
 
-Vuforia also documents that ``GET /targets`` fails for databases with more than
-1 million images, which the mock does not implement.
+Vuforia also documents that ``GET /targets`` fails for databases with more than 1 million images, which the mock does not implement.
 
 .. admonition:: Unverified assumption
 
@@ -270,8 +263,7 @@ supported by the Flask/Docker backend.
 Other configurable result codes
 -------------------------------
 
-The mock also supports four other result codes which come from Vuforia's
-result codes table rather than from a response which a real database gave:
+The mock also supports four other result codes which come from Vuforia's result codes table rather than from a response which a real database gave:
 
 .. admonition:: Unverified assumption
 
@@ -394,13 +386,10 @@ Real Vuforia uses ``userId:<numeric-user-id>`` where the numeric portion is per-
 Standard and advanced routes share datasets by UUID. Access to each route
 family is separated by its corresponding OAuth scope.
 
-Some Model Target Web API paths remain mock-only in
-``tests/mock_vws/test_model_target_web_api.py::TestAdditionalBehaviors``.
+Some Model Target Web API paths remain mock-only in ``tests/mock_vws/test_model_target_web_api.py::TestAdditionalBehaviors``.
 Downloads of still-processing datasets are mock-only because exercising the path against real Vuforia would require creating a dataset on every test run; the mock drives the processing window deterministically.
-A download request for a dataset which is not ready reports the dataset's
-training status. The mock reports ``not-started`` for the whole processing
-window, as real Vuforia does for a dataset which was just created, and
-``failed`` for a dataset whose generation failed.
+A download request for a dataset which is not ready reports the dataset's training status.
+The mock reports ``not-started`` for the whole processing window, as real Vuforia does for a dataset which was just created, and ``failed`` for a dataset whose generation failed.
 
 .. admonition:: Unverified assumption
 
