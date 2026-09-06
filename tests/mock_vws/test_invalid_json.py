@@ -142,6 +142,85 @@ class TestInvalidJSON:
         _assert_body_rejected(endpoint=endpoint, content=content)
 
     @staticmethod
+    def test_empty_body(endpoint: Endpoint) -> None:
+        """Giving an empty body to an endpoint which takes JSON returns an
+        error response.
+
+        Real Vuforia gives a server error for an empty body given to the
+        target endpoints, but a bad request for one given to the reco counts
+        report endpoint or to the VuMark instance generation endpoint.
+
+        Unlike the other malformed bodies which this class sends, an empty
+        body is answered promptly by real Vuforia, so this test runs against
+        it.
+        """
+        takes_json_data = (
+            endpoint.auth_header_content_type == "application/json"
+        )
+        if not takes_json_data:
+            pytest.skip(reason="This endpoint does not take a JSON body.")
+
+        if endpoint.path_url.endswith("/instances"):
+            expected_status_code = HTTPStatus.BAD_REQUEST
+            expected_result_code = ResultCodes.BAD_REQUEST
+        elif endpoint.path_url.endswith("/reports/recoCounts"):
+            expected_status_code = HTTPStatus.BAD_REQUEST
+            expected_result_code = ResultCodes.FAIL
+        else:
+            expected_status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+            expected_result_code = ResultCodes.FAIL
+
+        content = b""
+        gmt = ZoneInfo(key="GMT")
+        now = datetime.now(tz=gmt)
+        time_to_freeze = now
+        with freeze_time(time_to_freeze=time_to_freeze):
+            date = rfc_1123_date()
+
+        authorization_string = authorization_header(
+            access_key=endpoint.access_key,
+            secret_key=endpoint.secret_key,
+            method=endpoint.method,
+            content=content,
+            content_type=endpoint.auth_header_content_type,
+            date=date,
+            request_path=endpoint.path_url,
+        )
+
+        new_headers = {
+            **endpoint.headers,
+            "Authorization": authorization_string,
+            "Date": date,
+            "Content-Length": str(object=len(content)),
+        }
+
+        new_endpoint = Endpoint(
+            base_url=endpoint.base_url,
+            path_url=endpoint.path_url,
+            method=endpoint.method,
+            headers=new_headers,
+            data=content,
+            successful_headers_result_code=endpoint.successful_headers_result_code,
+            successful_headers_status_code=endpoint.successful_headers_status_code,
+            access_key=endpoint.access_key,
+            secret_key=endpoint.secret_key,
+        )
+
+        response = new_endpoint.send()
+
+        # A server error is the expected response for some endpoints, so
+        # only treat one as transient where it is not expected.
+        if expected_status_code != HTTPStatus.INTERNAL_SERVER_ERROR:
+            handle_server_errors(response=response)
+
+        assert_valid_date_header(response=response)
+        assert_vws_failure(
+            response=response,
+            status_code=expected_status_code,
+            result_code=expected_result_code,
+        )
+
+    @staticmethod
     def test_invalid_json_with_skewed_time(endpoint: Endpoint) -> None:
         """Giving invalid JSON to endpoints returns error responses."""
         # We use a skew of 70 because the maximum allowed skew for services is

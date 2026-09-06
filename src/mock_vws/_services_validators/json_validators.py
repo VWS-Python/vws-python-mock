@@ -44,21 +44,39 @@ def validate_body_given(*, request_body: bytes, request_method: str) -> None:
 
 
 @beartype
-def validate_json(*, request_body: bytes, request_path: str) -> None:
+def validate_json(
+    *,
+    request_body: bytes,
+    request_path: str,
+    request_method: str,
+) -> None:
     """Validate that any given body is valid JSON.
 
     Args:
         request_body: The body of the request.
         request_path: The path of the request.
+        request_method: The HTTP method of the request.
 
     Raises:
-        BadRequestError: The request body is not valid UTF-8, or includes
-            invalid JSON, for the VuMark instance generation endpoint.
-        FailError: The request body is not valid UTF-8, or includes invalid
-            JSON, for other endpoints.
+        BadRequestError: The request body is empty, is not valid UTF-8, or
+            includes invalid JSON, for the VuMark instance generation
+            endpoint.
+        FailError: The request body is empty, is not valid UTF-8, or includes
+            invalid JSON, for other endpoints.
     """
     if not request_body:
-        return
+        if request_method not in {HTTPMethod.POST, HTTPMethod.PUT}:
+            return
+
+        _LOGGER.warning(msg="The request body is empty.")
+        if request_path.endswith("/instances"):
+            raise BadRequestError
+        # Vuforia reports a server error for an empty body given to the
+        # target endpoints, but a bad request for one given to the reco
+        # counts report endpoint.
+        if request_path.endswith("/reports/recoCounts"):
+            raise FailError(status_code=HTTPStatus.BAD_REQUEST)
+        raise FailError(status_code=HTTPStatus.INTERNAL_SERVER_ERROR)
 
     try:
         # Vuforia gives the same response for a body which is not UTF-8, such

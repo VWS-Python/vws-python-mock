@@ -89,6 +89,7 @@ jobs:
           - tests/mock_vws/test_invalid_json.py::TestInvalidJSON::test_not_json
           - tests/mock_vws/test_invalid_json.py::TestInvalidJSON::test_not_an_object
           - tests/mock_vws/test_invalid_json.py::TestInvalidJSON::test_not_utf_8
+          - tests/mock_vws/test_invalid_json.py::TestInvalidJSON::test_empty_body
           - tests/mock_vws/test_invalid_json.py::TestInvalidJSON::test_invalid_json_with_skewed_time
           - tests/mock_vws/test_target_list.py
           - tests/mock_vws/test_reco_counts_report.py
