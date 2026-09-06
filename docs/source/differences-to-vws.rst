@@ -4,6 +4,15 @@ Differences between the mock and the real Vuforia Web Services
 The mock attempts to be realistic, but it was built without access to the source code of the original API.
 Please report any issues `here <https://github.com/VWS-Python/vws-python-mock/issues>`__.
 
+This document mixes three kinds of statement, and it says which is which:
+
+* A deliberate difference, where the mock does something else on purpose.
+  The image matchers are one.
+* Behavior which the mock does not implement.
+* An unverified assumption, where the mock follows Vuforia's documentation and nobody has checked that the documentation is accurate.
+  Each of these carries a note pointing at its entry in :doc:`unverified-behavior`, which says what would verify it.
+  These are the ones which can bite: the mock passes its tests, your tests pass, and the divergence appears in production.
+
 Image matching
 --------------
 
@@ -130,7 +139,11 @@ NGINX Error cases
 
 Vuforia uses NGINX.
 This has error handling which is not duplicated in the mock.
-For example, Vuforia returns a 400 (``BAD REQUEST``) response if a header or cookie is given which is larger than 8 KiB.
+For example, Vuforia is documented as returning a 400 (``BAD REQUEST``) response if a header or cookie is given which is larger than 8 KiB.
+
+.. admonition:: Unverified assumption
+
+   :ref:`unverified-nginx-oversized-header-or-cookie`
 
 Result codes
 ------------
@@ -146,11 +159,12 @@ These are:
 Request quota exhaustion
 ------------------------
 
-The mock returns ``RequestQuotaReached`` when a
-:class:`mock_vws.database.CloudDatabase` is created with
-``request_quota=0``. This behavior follows the public Vuforia documentation,
-but the response has not been verified against a real database with an
-exhausted quota.
+The mock returns ``RequestQuotaReached`` when a :class:`mock_vws.database.CloudDatabase` is created with ``request_quota=0``.
+This behavior follows the public Vuforia documentation.
+
+.. admonition:: Unverified assumption
+
+   :ref:`unverified-request-quota-exhaustion`
 
 Request rate limits
 -------------------
@@ -160,11 +174,14 @@ endpoints in general, with 45 requests per second for
 ``GET /targets/{target_id}``, 10 requests per second for
 ``GET /duplicates/{target_id}``, and 1 request per minute for ``GET /targets``.
 
-The mock models these limits separately for each group of endpoints, but it
-applies no limit by default. The documented numbers have not been verified
-against a real database, and applying a limit of 1 request per minute to
-``GET /targets`` by default would break the tests of anything which uses the
-mock. Set ``request_rate_limits`` to
+The mock models these limits separately for each group of endpoints, but it applies no limit by default.
+Applying a limit of 1 request per minute to ``GET /targets`` by default would break the tests of anything which uses the mock.
+
+.. admonition:: Unverified assumption
+
+   :ref:`unverified-request-rate-limits`
+
+Set ``request_rate_limits`` to
 :data:`mock_vws.request_rate_limits.DOCUMENTED_REQUEST_RATE_LIMITS` to apply
 the documented limits::
 
@@ -186,9 +203,11 @@ the documented limits::
 VWS endpoints together, and it is tracked separately from the per-endpoint
 limits.
 
-Vuforia also documents that ``GET /targets`` fails for databases with more than
-1 million images, but the mock does not implement this, as the behavior is not
-reproducible against a test account.
+Vuforia also documents that ``GET /targets`` fails for databases with more than 1 million images, which the mock does not implement.
+
+.. admonition:: Unverified assumption
+
+   :ref:`unverified-targets-over-one-million-images`
 
 Configurable Cloud Query failures
 ---------------------------------
@@ -248,8 +267,12 @@ supported by the Flask/Docker backend.
 Other configurable result codes
 -------------------------------
 
-The mock also supports four other result codes which have not been verified
-against real databases in the corresponding states:
+The mock also supports four other result codes which come from Vuforia's result codes table rather than from a response which a real database gave:
+
+.. admonition:: Unverified assumption
+
+   :ref:`unverified-additional-result-codes`
+
 
 * ``TargetQuotaReached`` is returned when adding a target to a
   :class:`mock_vws.database.CloudDatabase` which already contains
@@ -367,14 +390,15 @@ Real Vuforia uses ``userId:<numeric-user-id>`` where the numeric portion is per-
 Standard and advanced routes share datasets by UUID. Access to each route
 family is separated by its corresponding OAuth scope.
 
-Some Model Target Web API paths remain mock-only in
-``tests/mock_vws/test_model_target_web_api.py::TestAdditionalBehaviors``.
+Some Model Target Web API paths remain mock-only in ``tests/mock_vws/test_model_target_web_api.py::TestAdditionalBehaviors``.
 Downloads of still-processing datasets are mock-only because exercising the path against real Vuforia would require creating a dataset on every test run; the mock drives the processing window deterministically.
-A download request for a dataset which is not ready reports the dataset's
-training status. The mock reports ``not-started`` for the whole processing
-window, as real Vuforia does for a dataset which was just created, and
-``failed`` for a dataset whose generation failed. The name which real Vuforia
-reports for a failed dataset has not been observed.
+A download request for a dataset which is not ready reports the dataset's training status.
+The mock reports ``not-started`` for the whole processing window, as real Vuforia does for a dataset which was just created, and ``failed`` for a dataset whose generation failed.
+
+.. admonition:: Unverified assumption
+
+   :ref:`unverified-model-target-failed-dataset-name`
+
 Some malformed State-Based Model Target configuration documents remain
 mock-only because real Vuforia returns an internal server error for them.
 
@@ -393,8 +417,11 @@ Each row ends with a carriage return and a line feed, as the header row does.
 The mock takes the counts when the report is requested, so counts which are
 set after that are not in that report.
 The mock orders the rows by target ID.
-Real Vuforia's order is not known, because no report with rows has been
-observed.
+
+.. admonition:: Unverified assumption
+
+   :ref:`unverified-reco-counts-report-row-order`
+
 Setting recognition counts is mock-only, because real Vuforia's counts are
 delayed for longer than a test runs, so the tests for reports with rows in
 ``tests/mock_vws/test_reco_counts_report.py`` run against the mocks only.
@@ -436,8 +463,10 @@ The mock's URL returns a 404 response until the report is ready, and requires
 no authorization.
 The lack of authorization matches real Vuforia, whose URL carries its own
 signature.
-The 404 has not been verified, because no request for a real report has caught
-one before it was generated.
+
+.. admonition:: Unverified assumption
+
+   :ref:`unverified-reco-counts-report-not-ready`
 
 Paths which the mock does not serve
 -----------------------------------
