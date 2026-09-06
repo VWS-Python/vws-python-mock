@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 from beartype import beartype
 
-from mock_vws._services_validators.request_rate_validators import (
+from mock_vws._services_validators.request_rate_limiter import (
     RequestRateLimiter,
 )
 from mock_vws.database import CloudDatabase, VuMarkDatabase

@@ -1,0 +1,1 @@
+A request body which is empty is now rejected with the same error as a request body which is not valid JSON, on every VWS endpoint which takes one. Previously the mock raised an unhandled error.
