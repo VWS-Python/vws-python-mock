@@ -149,7 +149,8 @@ class ImageTarget:
         """Return the tracking rating of the target recognition image."""
         pre_rating_time = datetime.timedelta(
             # That this is half of the total processing time is unrealistic.
-            # In VWS it is not a constant percentage.
+            # In VWS it is not a constant percentage: it was observed as
+            # roughly one second of a roughly thirty second processing time.
             seconds=float(self.processing_time_seconds) / 2,
         )
 
@@ -157,8 +158,14 @@ class ImageTarget:
         now = datetime.datetime.now(tz=timezone)
         time_since_upload = now - self.upload_date
 
-        # The real VWS seems to give -1 for a short time while processing, then
-        # the real rating, even while it is still processing.
+        # The real VWS gives -1 for a short time after an upload, then the
+        # real rating, even while it is still processing.
+        #
+        # This is measured from the upload date rather than from the last
+        # modified date, so an update does not start a new -1 window. That
+        # matches the real VWS: an update returns a target to 'processing'
+        # and publishes the new image's rating straight away, without
+        # passing through -1 again.
         if time_since_upload <= pre_rating_time:
             return -1
 
