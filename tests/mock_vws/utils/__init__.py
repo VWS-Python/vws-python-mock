@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import Literal
 from urllib.parse import urljoin
 
+import pytest
 import requests
 from beartype import beartype
 from PIL import Image
@@ -17,10 +18,6 @@ from vws.response import Response
 from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils.model_target_retries import (
     send_with_transient_retries,
-)
-from tests.mock_vws.verification import (
-    UnverifiedReason,
-    unverified_at_runtime,
 )
 
 _REQUEST_TIMEOUT_SECONDS = 5
@@ -53,15 +50,7 @@ def _send_request(
         if url.startswith(
             ("https://vws.vuforia.com/", "https://cloudreco.vuforia.com/"),
         ):
-            # A test which gives up here verifies nothing, so it is
-            # counted rather than quietly dropped.
-            unverified_at_runtime(
-                reason=UnverifiedReason.TEMPORARILY_UNVERIFIABLE,
-                detail=(
-                    f"The real Vuforia service timed out for {url} after "
-                    f"{_REQUEST_TIMEOUT_SECONDS} seconds."
-                ),
-            )
+            pytest.skip(reason="The real Vuforia service timed out.")
         raise
     return Response(
         text=requests_response.text,

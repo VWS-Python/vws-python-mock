@@ -379,8 +379,6 @@ ignore_names = [
     "DatabaseDict",
     # Too difficult to test (see notes in the code)
     "DATE_RANGE_ERROR",
-    # ``pytest`` reads this back from the session
-    "exitstatus",
     "extensions",
     # pytest fixtures - we name fixtures like this for this purpose
     "fixture_*",
@@ -406,10 +404,7 @@ ignore_names = [
     "pytest_collect_file",
     "pytest_collection_modifyitems",
     "pytest_plugins",
-    "pytest_sessionfinish",
     "pytest_set_filtered_exceptions",
-    "pytest_terminal_summary",
-    # ``pytest`` reads this from each test module and class
     "pytestmark",
     "REQUEST_QUOTA_REACHED",
     "rst_prolog",
@@ -470,9 +465,6 @@ addopts = [
 cumulative_timing = false
 log_cli = true
 markers = [
-    # ``mock_only(reason=..., detail=...)`` says why a test never runs
-    # against the real Vuforia. See ``tests/mock_vws/verification.py``.
-    "mock_only",
     "requires_docker_build",
 ]
 # Options for pytest-retry.
@@ -486,11 +478,6 @@ run.branch = true
 run.parallel = true
 run.relative_files = true
 run.patch = [ "subprocess" ]
-# Subprocesses started by ``pytester`` record absolute paths, because
-# their working directory is a temporary directory rather than the
-# repository. Map the GitHub Actions checkout on every runner back to
-# the repository root so that data measured on Windows combines on Linux.
-paths.source = [ ".", "*/vws-python-mock/vws-python-mock" ]
 report.fail_under = 100
 report.exclude_also = [
     "case _ as unreachable:\n\\s*assert_never\\(",

@@ -33,44 +33,6 @@ Never attempted
    This is the category which bites: the mock looks verified, and a
    divergence appears in production.
 
-A fourth category, ``no-vuforia-claim``, is used for tests rather than for
-claims. It covers tests of the mock's own configuration API, of its target
-manager, of its container and of test helpers, none of which say anything
-about real Vuforia.
-
-How this is enforced
---------------------
-
-Every test which never runs against the real Vuforia declares its category
-with the ``mock_only`` marker, which is defined in
-``tests/mock_vws/verification.py``::
-
-    @mock_only(
-        reason=UnverifiedReason.INHERENTLY_UNVERIFIABLE,
-        detail="Why real Vuforia cannot be asked this.",
-    )
-
-Collection fails if a test which never reaches real Vuforia does not carry
-one, so a test which uses ``MockVWS()`` directly cannot avoid declaring
-itself.
-A marked test does not run against the real Vuforia even when it is
-run over it as a parameter, so the declaration and the behavior are the same
-thing rather than two things which can drift apart.
-
-``verification.toml`` records the resulting verified and unverified split for
-each API. ``python -m admin.verification_report`` checks that file against the
-suite and against this document, and says which way each count moved:
-
-.. code-block:: console
-
-   $ python -m admin.verification_report
-   $ python -m admin.verification_report --update
-
-A test which gives up on verifying anything while it runs, such as one which
-the account's Model Target training allowance rejects, is recorded as well.
-``pytest`` reports those in a ``stopped verifying anything while running``
-section, and ``--fail-on-runtime-unverified`` turns them into a failing run.
-
 .. _unverified-request-quota-exhaustion:
 
 Request quota exhaustion
