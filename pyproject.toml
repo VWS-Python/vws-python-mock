@@ -118,7 +118,7 @@ optional-dependencies.dev = [
     "urllib3==2.7.0",
     "vale==3.20.0.0",
     "vulture==2.16",
-    "vws-python==2026.8.26",
+    "vws-python==2026.9.7",
     "vws-test-fixtures==2026.8.26",
     "vws-web-tools==2026.8.27",
     "yamlfix==1.19.1",

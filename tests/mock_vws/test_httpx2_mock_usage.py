@@ -23,16 +23,13 @@ from vws.exceptions.vws_exceptions import (
     UnknownTargetError,
 )
 from vws.reports import TargetStatuses
+from vws.transports import AsyncHTTPX2Transport, HTTPX2Transport
 from vws.vumark_accept import VuMarkAccept
 
 from mock_vws import MockVWS
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.image_matchers import ExactMatcher
 from mock_vws.target import VuMarkTarget
-from tests.mock_vws.utils.httpx2_transports import (
-    AsyncHTTPX2Transport,
-    HTTPX2Transport,
-)
 
 _MODEL_TARGET_AUTHORIZATION = (
     "Bearer eyJhbGciOiJtb2NrIn0."
