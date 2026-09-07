@@ -454,6 +454,7 @@ search_path = [
     "src",
 ]
 errors.non-exhaustive-match = "error"
+preset = "strict"
 
 [tool.pyright]
 typeCheckingMode = "strict"

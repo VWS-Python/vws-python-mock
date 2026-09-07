@@ -1335,7 +1335,7 @@ def _validate_dataset_request(
         for model in models:
             if isinstance(model.get("views"), list):
                 model["views"] = [
-                    view if isinstance(view, dict) else {}
+                    view if isinstance(view, dict) else dict[str, Any]()
                     for view in model["views"]
                 ]
         details = (
