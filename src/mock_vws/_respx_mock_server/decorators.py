@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 
 import httpx
 import respx
+from mock_response_delay.for_httpx import delayed_httpx_handler
 from respx.mocks import Mocker
 
 from mock_vws._mock_common import RequestData, Route
@@ -91,27 +92,12 @@ def _make_respx_callback(
 
         Returns:
             An httpx.Response built from the handler's return value.
-
-        Raises:
-            Exception: A timeout error is raised when the response
-                delay exceeds the read timeout.
         """
         request_data = _to_request_data(
             request=request,
             base_path=base_path,
         )
-        timeout_info: dict[str, float | None] = request.extensions.get(
-            "timeout", {}
-        )
-        read_timeout = timeout_info.get("read")
-        if read_timeout is not None and delay_seconds > read_timeout:
-            sleep_fn(read_timeout)
-            raise httpx.ReadTimeout(
-                message="Response delay exceeded read timeout",
-                request=request,
-            )
         status_code, headers, body = handler(request_data)
-        sleep_fn(delay_seconds)
         if isinstance(body, str):
             body = body.encode()
         return httpx.Response(
@@ -120,7 +106,11 @@ def _make_respx_callback(
             content=body,
         )
 
-    return callback
+    return delayed_httpx_handler(
+        handler=callback,
+        delay_seconds=delay_seconds,
+        sleep_fn=sleep_fn,
+    )
 
 
 def start_respx_router(
