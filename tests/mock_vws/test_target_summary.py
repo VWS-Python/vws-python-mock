@@ -61,8 +61,6 @@ def _add_target_and_get_pre_rating_summary(
     Raises:
         AssertionError: The tracking rating was not -1 on any attempt.
     """
-    # The client reads the image to its end, so rewind it for each attempt.
-    image_file.seek(0)
     target_id = vws_client.add_target(
         name=name,
         width=1,
