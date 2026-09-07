@@ -137,7 +137,7 @@ def query() -> Response:
 
     databases = get_all_cloud_databases()
     request_body = request.stream.read()
-    run_query_validators(
+    validated_query = run_query_validators(
         request_headers=dict(request.headers),
         request_body=request_body,
         request_method=request.method,
@@ -147,11 +147,7 @@ def query() -> Response:
     date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
 
     response_text = get_query_match_response_text(
-        request_headers=dict(request.headers),
-        request_body=request_body,
-        request_method=request.method,
-        request_path=request.path,
-        databases=databases,
+        validated_query=validated_query,
         query_match_checker=query_match_checker,
     )
 
