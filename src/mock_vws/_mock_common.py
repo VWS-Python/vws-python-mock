@@ -1,11 +1,12 @@
 """Common utilities for creating mock routes."""
 
+import datetime
 import email.utils
 import json
 import uuid
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, override
 
 from beartype import beartype
 
@@ -34,6 +35,7 @@ class MissingSchemeError(Exception):
         super().__init__()
         self.url = url
 
+    @override
     def __str__(self) -> str:
         """
         Give a string representation of this error with a
@@ -81,6 +83,19 @@ class Route:
 
 
 @beartype
+def _upload_order_key(target: ImageTarget) -> tuple[datetime.datetime, str]:
+    """Give the sort key which orders targets by upload date, then ID.
+
+    Args:
+        target: The target to give a sort key for.
+
+    Returns:
+        The target's upload date and ID.
+    """
+    return (target.upload_date, target.target_id)
+
+
+@beartype
 def sorted_targets(*, targets: Iterable[ImageTarget]) -> list[ImageTarget]:
     """Put targets into a deterministic order.
 
@@ -94,10 +109,7 @@ def sorted_targets(*, targets: Iterable[ImageTarget]) -> list[ImageTarget]:
     Returns:
         The given targets, ordered by upload date and then by target ID.
     """
-    return sorted(
-        targets,
-        key=lambda target: (target.upload_date, target.target_id),
-    )
+    return sorted(targets, key=_upload_order_key)
 
 
 @beartype

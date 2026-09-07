@@ -10,7 +10,7 @@ needed to use it.
 import re
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
-from typing import Protocol
+from typing import Protocol, override
 from unittest import mock
 from urllib.parse import urlparse
 
@@ -173,6 +173,7 @@ class _SyncVuforiaTransport(httpx2.BaseTransport):
         self._fakes = fakes
         self._wrapped = wrapped
 
+    @override
     def handle_request(self, request: httpx2.Request) -> httpx2.Response:
         """Handle a request from a synchronous ``httpx2`` client.
 
@@ -217,6 +218,7 @@ class _AsyncVuforiaTransport(httpx2.AsyncBaseTransport):
         self._fakes = fakes
         self._wrapped = wrapped
 
+    @override
     async def handle_async_request(
         self,
         request: httpx2.Request,
