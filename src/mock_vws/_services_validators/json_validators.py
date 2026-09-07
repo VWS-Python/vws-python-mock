@@ -2,95 +2,140 @@
 
 import json
 import logging
-from http import HTTPMethod, HTTPStatus
+from collections.abc import Callable
+from http import HTTPStatus
 from json.decoder import JSONDecodeError
 
 from beartype import beartype
 
+from mock_vws._services_validators.context import ValidatorContext
 from mock_vws._services_validators.exceptions import (
     BadRequestError,
     FailError,
     UnnecessaryRequestBodyError,
+    ValidatorError,
 )
 
 _LOGGER = logging.getLogger(name=__name__)
 
 
 @beartype
-def validate_body_given(*, request_body: bytes, request_method: str) -> None:
-    """Validate that no JSON is given for requests other than ``POST`` and
-    ``PUT`` requests.
+def validate_no_body_given(*, context: ValidatorContext) -> None:
+    """Validate that no body is given to an endpoint which does not take
+    one.
 
     Args:
-        request_body: The body of the request.
-        request_method: The HTTP method of the request.
+        context: The context of the request.
 
     Raises:
-        UnnecessaryRequestBodyError: A request body was given for an endpoint
-            which does not require one.
-        FailError: The request body includes invalid JSON.
+        UnnecessaryRequestBodyError: A request body was given.
     """
-    if not request_body:
+    if not context.request_body:
         return
 
-    if request_method not in {HTTPMethod.POST, HTTPMethod.PUT}:
-        _LOGGER.warning(
-            msg=(
-                "A request body was given for an endpoint which does not "
-                "require one."
-            ),
-        )
-        raise UnnecessaryRequestBodyError
+    _LOGGER.warning(
+        msg=(
+            "A request body was given for an endpoint which does not "
+            "require one."
+        ),
+    )
+    raise UnnecessaryRequestBodyError
 
 
 @beartype
-def validate_json(
+def _validate_json(
     *,
-    request_body: bytes,
-    request_path: str,
-    request_method: str,
+    context: ValidatorContext,
+    make_empty_body_error: Callable[[], ValidatorError],
+    make_invalid_json_error: Callable[[], ValidatorError],
 ) -> None:
-    """Validate that any given body is valid JSON.
+    """Validate that the given body is a JSON object.
 
     Args:
-        request_body: The body of the request.
-        request_path: The path of the request.
-        request_method: The HTTP method of the request.
+        context: The context of the request.
+        make_empty_body_error: Create the error to raise if the body is
+            empty.
+        make_invalid_json_error: Create the error to raise if the body is not
+            a JSON object.
 
     Raises:
-        BadRequestError: The request body is empty, is not valid UTF-8, or
-            includes invalid JSON, for the VuMark instance generation
-            endpoint.
-        FailError: The request body is empty, is not valid UTF-8, or includes
-            invalid JSON, for other endpoints.
+        ValidatorError: The request body is empty, is not valid UTF-8, or is
+            not a JSON object.
     """
-    if not request_body:
-        if request_method not in {HTTPMethod.POST, HTTPMethod.PUT}:
-            return
-
+    if not context.request_body:
         _LOGGER.warning(msg="The request body is empty.")
-        if request_path.endswith("/instances"):
-            raise BadRequestError
-        # Vuforia reports a server error for an empty body given to the
-        # target endpoints, but a bad request for one given to the reco
-        # counts report endpoint.
-        if request_path.endswith("/reports/recoCounts"):
-            raise FailError(status_code=HTTPStatus.BAD_REQUEST)
-        raise FailError(status_code=HTTPStatus.INTERNAL_SERVER_ERROR)
+        raise make_empty_body_error()
 
     try:
         # Vuforia gives the same response for a body which is not UTF-8, such
         # as JSON encoded as latin-1, as it gives for a body which is not
         # valid JSON.
-        request_json = json.loads(s=request_body.decode(encoding="utf-8"))
+        request_json = json.loads(
+            s=context.request_body.decode(encoding="utf-8"),
+        )
     except (JSONDecodeError, UnicodeDecodeError) as exc:
         _LOGGER.warning(msg="The request body is not valid JSON.")
-        if request_path.endswith("/instances"):
-            raise BadRequestError from exc
-        raise FailError(status_code=HTTPStatus.BAD_REQUEST) from exc
+        raise make_invalid_json_error() from exc
 
     if not isinstance(request_json, dict):
         _LOGGER.warning(msg="The request body is not a JSON object.")
-        if request_path.endswith("/instances"):
-            raise BadRequestError
-        raise FailError(status_code=HTTPStatus.BAD_REQUEST)
+        raise make_invalid_json_error()
+
+
+@beartype
+def validate_target_json(*, context: ValidatorContext) -> None:
+    """Validate the body given to the add and update target endpoints.
+
+    Vuforia reports a server error for an empty body given to these
+    endpoints, but a bad request for a body which is not a JSON object.
+
+    Args:
+        context: The context of the request.
+    """
+    _validate_json(
+        context=context,
+        make_empty_body_error=lambda: FailError(
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+        ),
+        make_invalid_json_error=lambda: FailError(
+            status_code=HTTPStatus.BAD_REQUEST,
+        ),
+    )
+
+
+@beartype
+def validate_reco_counts_report_json(*, context: ValidatorContext) -> None:
+    """Validate the body given to the reco counts report endpoint.
+
+    Unlike the target endpoints, this endpoint reports a bad request rather
+    than a server error for an empty body.
+
+    Args:
+        context: The context of the request.
+    """
+    _validate_json(
+        context=context,
+        make_empty_body_error=lambda: FailError(
+            status_code=HTTPStatus.BAD_REQUEST,
+        ),
+        make_invalid_json_error=lambda: FailError(
+            status_code=HTTPStatus.BAD_REQUEST,
+        ),
+    )
+
+
+@beartype
+def validate_vumark_instance_json(*, context: ValidatorContext) -> None:
+    """Validate the body given to the VuMark instance generation endpoint.
+
+    That endpoint gives a different error from every other VWS endpoint for
+    a body which is empty or which is not a JSON object.
+
+    Args:
+        context: The context of the request.
+    """
+    _validate_json(
+        context=context,
+        make_empty_body_error=BadRequestError,
+        make_invalid_json_error=BadRequestError,
+    )

@@ -1,11 +1,10 @@
 """Validators for the project state."""
 
 import logging
-from http import HTTPMethod
 
 from beartype import beartype
 
-from mock_vws._database_matchers import AnyDatabase
+from mock_vws._services_validators.context import ValidatorContext
 from mock_vws._services_validators.exceptions import (
     ProjectHasNoApiAccessError,
     ProjectInactiveError,
@@ -19,18 +18,11 @@ _LOGGER = logging.getLogger(name=__name__)
 
 
 @beartype
-def validate_project_state(
-    *,
-    request_path: str,
-    request_method: str,
-    database: AnyDatabase,
-) -> None:
+def validate_project_state(*, context: ValidatorContext) -> None:
     """Validate the state of the project.
 
     Args:
-        request_path: The path of the request.
-        request_method: The HTTP method of the request.
-        database: The database which the request's server keys belong to.
+        context: The context of the request.
 
     Raises:
         ProjectInactiveError: The project is inactive and this endpoint does
@@ -40,20 +32,19 @@ def validate_project_state(
         States.PROJECT_HAS_NO_API_ACCESS: ProjectHasNoApiAccessError,
         States.PROJECT_SUSPENDED: ProjectSuspendedError,
     }
-    if error := state_errors.get(database.state):
+    if error := state_errors.get(context.database.state):
         raise error
 
-    if database.state != States.PROJECT_INACTIVE:
+    if context.database.state != States.PROJECT_INACTIVE:
         return
 
     if (
-        isinstance(database, CloudDatabase)
-        and request_method == HTTPMethod.GET
-        and "duplicates" not in request_path
+        isinstance(context.database, CloudDatabase)
+        and context.allowed_for_inactive_cloud_project
     ):
         return
 
-    if isinstance(database, VuMarkDatabase):
+    if isinstance(context.database, VuMarkDatabase):
         return
 
     _LOGGER.warning(msg="The project is inactive.")

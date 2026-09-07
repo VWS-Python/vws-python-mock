@@ -8,6 +8,7 @@ from http import HTTPStatus
 from beartype import beartype
 
 from mock_vws._base64_decoding import decode_base64
+from mock_vws._services_validators.context import ValidatorContext
 from mock_vws._services_validators.exceptions import (
     FailError,
     MetadataTooLargeError,
@@ -17,23 +18,19 @@ _LOGGER = logging.getLogger(name=__name__)
 
 
 @beartype
-def validate_metadata_size(*, request_body: bytes) -> None:
+def validate_metadata_size(*, context: ValidatorContext) -> None:
     """Validate that the given application metadata is a string or 1024 *
     1024
     bytes or fewer.
 
     Args:
-        request_body: The body of the request.
+        context: The context of the request.
 
     Raises:
         MetadataTooLargeError: Application metadata is given and it is too
             large.
     """
-    if not request_body:
-        return
-
-    request_text = request_body.decode()
-    request_json = json.loads(s=request_text)
+    request_json = json.loads(s=context.request_body.decode())
     application_metadata = request_json.get("application_metadata")
     if application_metadata is None:
         return
@@ -48,24 +45,17 @@ def validate_metadata_size(*, request_body: bytes) -> None:
 
 
 @beartype
-def validate_metadata_encoding(*, request_body: bytes) -> None:
+def validate_metadata_encoding(*, context: ValidatorContext) -> None:
     """Validate that the given application metadata can be base64 decoded.
 
     Args:
-        request_body: The body of the request.
+        context: The context of the request.
 
     Raises:
         FailError: Application metadata is given and it cannot be base64
             decoded.
     """
-    if not request_body:
-        return
-
-    request_text = request_body.decode()
-    request_json = json.loads(s=request_text)
-    if "application_metadata" not in request_json:
-        return
-
+    request_json = json.loads(s=context.request_body.decode())
     application_metadata = request_json.get("application_metadata")
 
     if application_metadata is None:
@@ -79,25 +69,21 @@ def validate_metadata_encoding(*, request_body: bytes) -> None:
 
 
 @beartype
-def validate_metadata_type(*, request_body: bytes) -> None:
+def validate_metadata_type(*, context: ValidatorContext) -> None:
     """Validate that the given application metadata is a string or NULL.
 
     Args:
-        request_body: The body of the request.
+        context: The context of the request.
 
     Raises:
         FailError: Application metadata is given and it is not a string or
             NULL.
     """
-    if not request_body:
-        return
-
-    request_text = request_body.decode()
-    request_json = json.loads(s=request_text)
+    request_json = json.loads(s=context.request_body.decode())
     if "application_metadata" not in request_json:
         return
 
-    application_metadata = request_json.get("application_metadata")
+    application_metadata = request_json["application_metadata"]
 
     if application_metadata is None or isinstance(application_metadata, str):
         return

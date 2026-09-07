@@ -1,28 +1,27 @@
 """Validators for the VWS target quota."""
 
-from http import HTTPMethod
-
 from beartype import beartype
 
-from mock_vws._database_matchers import AnyDatabase
 from mock_vws.database import CloudDatabase
 
+from .context import ValidatorContext
 from .exceptions import TargetQuotaReachedError
 
 
 @beartype
-def validate_target_quota(
-    *,
-    request_method: str,
-    request_path: str,
-    database: AnyDatabase,
-) -> None:
-    """Raise an error when adding a target would exceed the quota."""
-    if request_method != HTTPMethod.POST or request_path != "/targets":
-        return
+def validate_target_quota(*, context: ValidatorContext) -> None:
+    """Raise an error when adding a target would exceed the quota.
 
+    Args:
+        context: The context of the request.
+
+    Raises:
+        TargetQuotaReachedError: The database already holds as many targets
+            as its quota allows.
+    """
     if (
-        isinstance(database, CloudDatabase)
-        and len(database.not_deleted_targets) >= database.target_quota
+        isinstance(context.database, CloudDatabase)
+        and len(context.database.not_deleted_targets)
+        >= context.database.target_quota
     ):
         raise TargetQuotaReachedError

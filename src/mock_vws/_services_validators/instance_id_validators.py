@@ -5,6 +5,7 @@ import logging
 
 from beartype import beartype
 
+from mock_vws._services_validators.context import ValidatorContext
 from mock_vws._services_validators.exceptions import (
     BadRequestError,
     InvalidInstanceIdError,
@@ -14,25 +15,18 @@ _LOGGER = logging.getLogger(name=__name__)
 
 
 @beartype
-def validate_instance_id_type(*, request_body: bytes) -> None:
+def validate_instance_id_type(*, context: ValidatorContext) -> None:
     """Validate the type of the instance_id data given to the VuMark
     instance generation endpoint.
 
     Args:
-        request_body: The body of the request.
+        context: The context of the request.
 
     Raises:
         BadRequestError: There is instance_id data given to the endpoint
             which is not a string.
     """
-    if not request_body:
-        return
-
-    request_text = request_body.decode()
-    if "instance_id" not in json.loads(s=request_text):
-        return
-
-    instance_id = json.loads(s=request_text)["instance_id"]
+    instance_id = json.loads(s=context.request_body.decode())["instance_id"]
 
     if isinstance(instance_id, str):
         return
@@ -44,25 +38,18 @@ def validate_instance_id_type(*, request_body: bytes) -> None:
 
 
 @beartype
-def validate_instance_id_not_empty(*, request_body: bytes) -> None:
+def validate_instance_id_not_empty(*, context: ValidatorContext) -> None:
     """Validate that the instance_id data given to the VuMark instance
     generation endpoint is not empty.
 
     Args:
-        request_body: The body of the request.
+        context: The context of the request.
 
     Raises:
         InvalidInstanceIdError: There is instance_id data given to the
             endpoint which is an empty string.
     """
-    if not request_body:
-        return
-
-    request_text = request_body.decode()
-    if "instance_id" not in json.loads(s=request_text):
-        return
-
-    instance_id = json.loads(s=request_text)["instance_id"]
+    instance_id = json.loads(s=context.request_body.decode())["instance_id"]
 
     if instance_id:
         return

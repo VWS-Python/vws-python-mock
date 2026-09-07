@@ -2,81 +2,150 @@
 
 import json
 import logging
-from http import HTTPMethod, HTTPStatus
+from http import HTTPStatus
 
 from beartype import beartype
 
-from mock_vws._database_matchers import AnyDatabase
+from mock_vws._services_validators.context import ValidatorContext
 from mock_vws._services_validators.exceptions import (
     FailError,
     TargetNameExistError,
 )
+from mock_vws._services_validators.target_validators import (
+    target_id_from_path,
+)
+from mock_vws.target import ImageTarget, VuMarkTarget
 
 _LOGGER = logging.getLogger(name=__name__)
 
+_MAX_CHARACTER_ORD = 65535
+
 
 @beartype
-def validate_name_characters_in_range(
-    *,
-    request_body: bytes,
-    request_method: str,
-    request_path: str,
-) -> None:
-    """Validate the characters in the name argument given to a VWS
-    endpoint.
+def _given_name(*, context: ValidatorContext) -> str | None:
+    """Return the name given in the request body.
 
     Args:
-        request_body: The body of the request.
-        request_method: The HTTP method the request is using.
-        request_path: The path to the endpoint.
+        context: The context of the request.
+
+    Returns:
+        The value of the ``name`` field, or ``None`` if no name was given.
+        The value has already been checked to be a string by
+        :py:func:`validate_name_type`.
+    """
+    request_json = json.loads(s=context.request_body.decode())
+    name: str | None = request_json.get("name")
+    return name
+
+
+@beartype
+def _name_characters_in_range(*, name: str) -> bool:
+    """Whether every character in a name is in the range Vuforia accepts.
+
+    Args:
+        name: The name given in the request body.
+
+    Returns:
+        Whether every character in the name is in range.
+    """
+    return all(ord(character) <= _MAX_CHARACTER_ORD for character in name)
+
+
+@beartype
+def _new_target_name(*, context: ValidatorContext) -> str:
+    """Return the name given when adding a target.
+
+    Args:
+        context: The context of the request.
+
+    Returns:
+        The value of the ``name`` field. ``name`` is a mandatory key on the
+        add target endpoint, so :py:func:`validate_keys` has already rejected
+        a request which does not give one, and :py:func:`validate_name_type`
+        has already rejected one which is not a string.
+    """
+    name: str = json.loads(s=context.request_body.decode())["name"]
+    return name
+
+
+@beartype
+def _targets_with_name(
+    *,
+    context: ValidatorContext,
+    name: str,
+) -> list[ImageTarget | VuMarkTarget]:
+    """Return the targets in the database which have the given name.
+
+    Args:
+        context: The context of the request.
+        name: The name to look for.
+
+    Returns:
+        Every target which is not deleted and which has the given name.
+    """
+    return [
+        target
+        for target in context.database.not_deleted_targets
+        if target.name == name
+    ]
+
+
+@beartype
+def validate_new_target_name_characters_in_range(
+    *,
+    context: ValidatorContext,
+) -> None:
+    """Validate the characters in the name given when adding a target.
+
+    Args:
+        context: The context of the request.
 
     Raises:
-        FailError: Characters are out of range and the request is trying to
-            make a new target.
-        TargetNameExistError: Characters are out of range and the request is
-            for another endpoint.
+        FailError: Characters are out of range.
     """
-    if not request_body:
+    if _name_characters_in_range(name=_new_target_name(context=context)):
         return
 
-    request_text = request_body.decode()
-    if "name" not in json.loads(s=request_text):
+    _LOGGER.warning(msg="Characters are out of range.")
+    raise FailError(status_code=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+
+@beartype
+def validate_existing_target_name_characters_in_range(
+    *,
+    context: ValidatorContext,
+) -> None:
+    """Validate the characters in the name given when updating a target.
+
+    Args:
+        context: The context of the request.
+
+    Raises:
+        TargetNameExistError: Characters are out of range.
+    """
+    name = _given_name(context=context)
+    if name is None or _name_characters_in_range(name=name):
         return
-
-    name = json.loads(s=request_text)["name"]
-
-    max_character_ord = 65535
-    if all(ord(character) <= max_character_ord for character in name):
-        return
-
-    if (request_method, request_path) == (HTTPMethod.POST, "/targets"):
-        _LOGGER.warning(msg="Characters are out of range.")
-        raise FailError(status_code=HTTPStatus.INTERNAL_SERVER_ERROR)
 
     _LOGGER.warning(msg="Characters are out of range.")
     raise TargetNameExistError
 
 
 @beartype
-def validate_name_type(*, request_body: bytes) -> None:
+def validate_name_type(*, context: ValidatorContext) -> None:
     """Validate the type of the name argument given to a VWS endpoint.
 
     Args:
-        request_body: The body of the request.
+        context: The context of the request.
 
     Raises:
         FailError: A name is given and it is not a string.
     """
-    if not request_body:
+    request_json = json.loads(s=context.request_body.decode())
+    if "name" not in request_json:
         return
 
-    request_text = request_body.decode()
-    if "name" not in json.loads(s=request_text):
-        return
-
-    name = json.loads(s=request_text)["name"]
-
-    if isinstance(name, str):
+    if isinstance(request_json["name"], str):
         return
 
     _LOGGER.warning(msg="Name is not a string.")
@@ -84,24 +153,19 @@ def validate_name_type(*, request_body: bytes) -> None:
 
 
 @beartype
-def validate_name_length(*, request_body: bytes) -> None:
+def validate_name_length(*, context: ValidatorContext) -> None:
     """Validate the length of the name argument given to a VWS endpoint.
 
     Args:
-        request_body: The body of the request.
+        context: The context of the request.
 
     Raises:
         FailError: A name is given and it is not a between 1 and 64 characters
             in length.
     """
-    if not request_body:
+    name = _given_name(context=context)
+    if name is None:
         return
-
-    request_text = request_body.decode()
-    if "name" not in json.loads(s=request_text):
-        return
-
-    name = json.loads(s=request_text)["name"]
 
     max_length = 64
     if name and len(name) <= max_length:
@@ -114,42 +178,18 @@ def validate_name_length(*, request_body: bytes) -> None:
 @beartype
 def validate_name_does_not_exist_new_target(
     *,
-    database: AnyDatabase,
-    request_body: bytes,
-    request_path: str,
+    context: ValidatorContext,
 ) -> None:
     """Validate that the name does not exist for any existing target.
 
     Args:
-        database: The database which the request's server keys belong to.
-        request_body: The body of the request.
-        request_path: The path to the endpoint.
+        context: The context of the request.
 
     Raises:
         TargetNameExistError: The target name already exists.
     """
-    if not request_body:
-        return
-
-    request_text = request_body.decode()
-    if "name" not in json.loads(s=request_text):
-        return
-
-    split_path = request_path.split(sep="/")
-
-    split_path_no_target_id_length = 2
-    if len(split_path) != split_path_no_target_id_length:
-        return
-
-    name = json.loads(s=request_text)["name"]
-
-    matching_name_targets = [
-        target
-        for target in database.not_deleted_targets
-        if target.name == name
-    ]
-
-    if not matching_name_targets:
+    name = _new_target_name(context=context)
+    if not _targets_with_name(context=context, name=name):
         return
 
     _LOGGER.warning(msg="Target name already exists.")
@@ -159,50 +199,31 @@ def validate_name_does_not_exist_new_target(
 @beartype
 def validate_name_does_not_exist_existing_target(
     *,
-    request_body: bytes,
-    request_path: str,
-    database: AnyDatabase,
+    context: ValidatorContext,
 ) -> None:
     """Validate that the name does not exist for any existing target apart
     from
     the one being updated.
 
     Args:
-        database: The database which the request's server keys belong to.
-        request_body: The body of the request.
-        request_path: The path to the endpoint.
+        context: The context of the request.
 
     Raises:
         TargetNameExistError: The target name is not the same as the name of
             the target being updated but it is the same as another target.
     """
-    if not request_body:
+    name = _given_name(context=context)
+    if name is None:
         return
 
-    request_text = request_body.decode()
-    if "name" not in json.loads(s=request_text):
-        return
-
-    split_path = request_path.split(sep="/")
-    split_path_no_target_id_length = 2
-    if len(split_path) == split_path_no_target_id_length:
-        return
-
-    target_id = split_path[-1]
-
-    name = json.loads(s=request_text)["name"]
-
-    matching_name_targets = [
-        target
-        for target in database.not_deleted_targets
-        if target.name == name
-    ]
-
+    matching_name_targets = _targets_with_name(context=context, name=name)
     if not matching_name_targets:
         return
 
     (matching_name_target,) = matching_name_targets
-    if matching_name_target.target_id == target_id:
+    if matching_name_target.target_id == target_id_from_path(
+        request_path=context.request_path,
+    ):
         return
 
     _LOGGER.warning(msg="Name already exists for another target.")
