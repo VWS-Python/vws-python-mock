@@ -7,11 +7,11 @@ import time
 from collections.abc import Callable, Generator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Literal, Self
+from typing import TYPE_CHECKING, Literal, Self
 from urllib.parse import urlparse
 
-import requests
 from beartype import BeartypeConf, beartype
+from mock_response_delay.for_requests import delayed_responses_callback
 from requests import PreparedRequest
 from responses import RequestsMock
 
@@ -467,38 +467,10 @@ class MockVWS:
         sleep_fn: Callable[[float], None],
         base_path: str,
     ) -> _ResponsesCallback:
-        """Wrap a callback to add a response delay."""
+        """Wrap a callback to add a response delay and timeout."""
 
-        def wrapped(
-            request: PreparedRequest,
-        ) -> _ResponseType:
-            """Handle the response delay and timeout logic."""
-            # req_kwargs is added dynamically by the responses
-            # library onto PreparedRequest objects - it is not
-            # in the requests type stubs.
-            req_kwargs: dict[str, Any] = getattr(  # pylint: disable=bad-builtin
-                request,
-                "req_kwargs",
-                {},
-            )
-            timeout: tuple[float, float] | float | int | None = req_kwargs.get(
-                "timeout"
-            )
-            # requests allows timeout as a (connect, read)
-            # tuple. The delay simulates server response
-            # time, so compare against the read timeout.
-            match timeout:
-                case (_, int() | float() as read_timeout):
-                    effective: float | None = float(read_timeout)
-                case int() | float():
-                    effective = float(timeout)
-                case _:
-                    effective = None
-
-            if effective is not None and delay_seconds > effective:
-                sleep_fn(effective)
-                raise requests.exceptions.Timeout
-
+        def respond(request: PreparedRequest) -> _ResponseType:
+            """Give a request to the callback."""
             match request.body:
                 case None:
                     body_bytes = b""
@@ -517,11 +489,13 @@ class MockVWS:
                 headers=dict(request.headers),
                 body=body_bytes,
             )
-            result = callback(request_data)
-            sleep_fn(delay_seconds)
-            return result
+            return callback(request_data)
 
-        return wrapped
+        return delayed_responses_callback(
+            callback=respond,
+            delay_seconds=delay_seconds,
+            sleep_fn=sleep_fn,
+        )
 
     def __enter__(self) -> Self:
         """Start an instance of a Vuforia mock.

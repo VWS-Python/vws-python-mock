@@ -15,11 +15,13 @@ from unittest import mock
 from urllib.parse import urlparse
 
 import httpx2
+from mock_response_delay.for_httpx2 import delayed_httpx2_handler
 
 from mock_vws._mock_common import RequestData, Route
 
 _ResponseType = tuple[int, Mapping[str, str], str | bytes]
 _Handler = Callable[[RequestData], _ResponseType]
+_Httpx2Handler = Callable[[httpx2.Request], httpx2.Response]
 
 
 class _APIHandler(Protocol):
@@ -35,14 +37,12 @@ class _MockRoute:
     Args:
         url_pattern: The pattern which the URL of a request must match.
         http_method: The HTTP method which the route handles.
-        base_path: The base path prefix to strip from the request path.
-        handler: The handler which the request is given to.
+        handler: What answers a request which the route matches.
     """
 
     url_pattern: re.Pattern[str]
     http_method: str
-    base_path: str
-    handler: _Handler
+    handler: _Httpx2Handler
 
 
 def _to_request_data(
@@ -70,6 +70,45 @@ def _to_request_data(
     )
 
 
+def _httpx2_handler(
+    *,
+    handler: _Handler,
+    base_path: str,
+) -> _Httpx2Handler:
+    """Make a handler of ``RequestData`` answer ``httpx2`` requests.
+
+    Args:
+        handler: The handler which takes a ``RequestData`` and returns a
+            response tuple.
+        base_path: The base path prefix to strip from the request path.
+
+    Returns:
+        A handler which takes an ``httpx2`` request and returns an
+        ``httpx2`` response.
+    """
+
+    def respond(request: httpx2.Request) -> httpx2.Response:
+        """Give a request to the handler.
+
+        Args:
+            request: The request to respond to.
+
+        Returns:
+            An ``httpx2`` response built from the return value of the
+            handler.
+        """
+        request_data = _to_request_data(request=request, base_path=base_path)
+        status_code, headers, body = handler(request_data)
+        body_bytes = body.encode() if isinstance(body, str) else body
+        return httpx2.Response(
+            status_code=status_code,
+            headers=headers,
+            content=body_bytes,
+        )
+
+    return respond
+
+
 def _refuse(*, request: httpx2.Request) -> httpx2.ConnectError:
     """The error to raise for a request which no fake route matches.
 
@@ -91,13 +130,9 @@ class _Fakes:
 
     Args:
         routes: The routes of the fakes.
-        response_delay_seconds: The number of seconds to delay responses.
-        sleep_fn: The function to use for sleeping during delays.
     """
 
     routes: Sequence[_MockRoute]
-    response_delay_seconds: float
-    sleep_fn: Callable[[float], None]
 
     def match(self, *, request: httpx2.Request) -> _MockRoute | None:
         """The route which handles a request, if there is one.
@@ -116,51 +151,6 @@ class _Fakes:
             if route.url_pattern.search(string=url):
                 return route
         return None
-
-    def respond(
-        self,
-        *,
-        request: httpx2.Request,
-        route: _MockRoute,
-    ) -> httpx2.Response:
-        """The response which a fake route gives for a request.
-
-        Args:
-            request: The request to respond to.
-            route: The route which handles the request.
-
-        Returns:
-            An ``httpx2`` response built from the return value of the
-            handler of the given route.
-
-        Raises:
-            Exception: A timeout error is raised when the response delay
-                exceeds the read timeout.
-        """
-        timeout_info: Mapping[str, float | None] = request.extensions.get(
-            "timeout",
-            {},
-        )
-        read_timeout = timeout_info.get("read")
-        delay_seconds = self.response_delay_seconds
-        if read_timeout is not None and delay_seconds > read_timeout:
-            self.sleep_fn(read_timeout)
-            raise httpx2.ReadTimeout(
-                message="Response delay exceeded read timeout",
-                request=request,
-            )
-        request_data = _to_request_data(
-            request=request,
-            base_path=route.base_path,
-        )
-        status_code, headers, body = route.handler(request_data)
-        self.sleep_fn(delay_seconds)
-        body_bytes = body.encode() if isinstance(body, str) else body
-        return httpx2.Response(
-            status_code=status_code,
-            headers=headers,
-            content=body_bytes,
-        )
 
 
 class _SyncVuforiaTransport(httpx2.BaseTransport):
@@ -201,7 +191,7 @@ class _SyncVuforiaTransport(httpx2.BaseTransport):
         request.read()
         route = self._fakes.match(request=request)
         if route is not None:
-            return self._fakes.respond(request=request, route=route)
+            return route.handler(request)
         if self._wrapped is None:
             raise _refuse(request=request)
         return self._wrapped.handle_request(request=request)
@@ -248,7 +238,7 @@ class _AsyncVuforiaTransport(httpx2.AsyncBaseTransport):
         await request.aread()
         route = self._fakes.match(request=request)
         if route is not None:
-            return self._fakes.respond(request=request, route=route)
+            return route.handler(request)
         if self._wrapped is None:
             raise _refuse(request=request)
         return await self._wrapped.handle_async_request(request=request)
@@ -273,12 +263,16 @@ class Httpx2Router:
 def _mock_routes(
     *,
     api_base_urls: Sequence[tuple[_APIHandler, str]],
+    response_delay_seconds: float,
+    sleep_fn: Callable[[float], None],
 ) -> list[_MockRoute]:
     """The routes of fake APIs, ready to match ``httpx2`` requests.
 
     Args:
         api_base_urls: Each fake API, with the base URL which it is served
             at.
+        response_delay_seconds: The number of seconds to delay responses.
+        sleep_fn: The function to use for sleeping during delays.
 
     Returns:
         A route for each HTTP method of each route of each given API.
@@ -293,12 +287,16 @@ def _mock_routes(
                 api,
                 route.route_name,
             )
+            httpx2_handler = delayed_httpx2_handler(
+                handler=_httpx2_handler(handler=handler, base_path=base_path),
+                delay_seconds=response_delay_seconds,
+                sleep_fn=sleep_fn,
+            )
             mock_routes.extend(
                 _MockRoute(
                     url_pattern=compiled_url_pattern,
                     http_method=http_method,
-                    base_path=base_path,
-                    handler=handler,
+                    handler=httpx2_handler,
                 )
                 for http_method in route.http_methods
             )
@@ -339,9 +337,9 @@ def start_httpx2_router(
                 (mock_vws_api, base_vws_url),
                 (mock_vwq_api, base_vwq_url),
             ),
+            response_delay_seconds=response_delay_seconds,
+            sleep_fn=sleep_fn,
         ),
-        response_delay_seconds=response_delay_seconds,
-        sleep_fn=sleep_fn,
     )
 
     # pylint: disable=protected-access
