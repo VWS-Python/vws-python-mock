@@ -237,7 +237,7 @@ jobs:
           uv run --extra=dev \
             coverage run -m pytest \
               --skip-marker=requires_docker_build \
-              --skip-backend=docker_in_memory \
+              --skip-backend=flask_in_process \
               --skip-backend=mock \
               --skip-backend=real \
               --capture=no \

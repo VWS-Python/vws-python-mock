@@ -179,7 +179,7 @@ def _enable_use_mock_vuforia(
 
 
 @beartype
-def _enable_use_docker_in_memory(
+def _enable_use_flask_in_process(
     *,
     working_database: CloudDatabase,
     inactive_cloud_database: CloudDatabase,
@@ -187,7 +187,14 @@ def _enable_use_docker_in_memory(
     inactive_vumark_database: InactiveVuMarkCloudDatabase,
     monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None]:
-    """Test against mock Vuforia created to be run in a container."""
+    """Test against the Flask applications of the mock, in this process.
+
+    This exercises the handlers of the Flask applications which the
+    Docker deployment runs, but not the deployment itself: all three
+    applications are served from one process, so state which the
+    deployment keeps in separate containers is shared here.
+    ``tests/mock_vws/test_docker.py`` covers the container split.
+    """
     # We set ``wsgi.input_terminated`` to ``True`` so that when going through
     # ``requests`` in our tests, the Flask applications
     # have the given ``Content-Length`` headers and the given data in
@@ -316,7 +323,7 @@ def _enable_use_mock_model_target_vuforia(
 
 
 @beartype
-def _enable_use_docker_in_memory_model_target_vuforia(
+def _enable_use_flask_in_process_model_target_vuforia(
     *,
     monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None]:
@@ -348,11 +355,15 @@ def _enable_use_docker_in_memory_model_target_vuforia(
 
 
 class VuforiaBackend(Enum):
-    """Backends for tests."""
+    """Backends for tests.
+
+    The names of the members give the ``--skip-backend`` options, and
+    the values give the test IDs.
+    """
 
     REAL = "Real Vuforia"
     MOCK = "In Memory Mock Vuforia"
-    DOCKER_IN_MEMORY = "In Memory version of Docker application"
+    FLASK_IN_PROCESS = "In Process Flask Applications"
 
 
 _ALL_BACKENDS = list(VuforiaBackend)
@@ -368,14 +379,14 @@ _MOCK_BACKENDS = [
 _SETUP_FUNCTIONS = {
     VuforiaBackend.REAL: _enable_use_real_vuforia,
     VuforiaBackend.MOCK: _enable_use_mock_vuforia,
-    VuforiaBackend.DOCKER_IN_MEMORY: _enable_use_docker_in_memory,
+    VuforiaBackend.FLASK_IN_PROCESS: _enable_use_flask_in_process,
 }
 
 _MODEL_TARGET_SETUP_FUNCTIONS = {
     VuforiaBackend.REAL: _enable_use_real_model_target_vuforia,
     VuforiaBackend.MOCK: _enable_use_mock_model_target_vuforia,
-    VuforiaBackend.DOCKER_IN_MEMORY: (
-        _enable_use_docker_in_memory_model_target_vuforia
+    VuforiaBackend.FLASK_IN_PROCESS: (
+        _enable_use_flask_in_process_model_target_vuforia
     ),
 }
 
