@@ -113,16 +113,22 @@ For the complete archive and GitHub Actions setup procedure, see
 Skipping Some Tests
 -------------------
 
-Use the following custom ``pytest`` options to skip some tests:
+The tests run against several backends: the real Vuforia, the in-memory mock, and the in-memory version of the Docker application.
+The `pytest-multi-backend`_ plugin adds options which skip some tests:
 
 .. code-block:: text
 
-   --skip-real           Skip tests for Real Vuforia
-   --skip-mock           Skip tests for In Memory Mock Vuforia
-   --skip-docker_in_memory
-                         Skip tests for In Memory version of Docker application
-   --skip-docker_build_tests
+   --skip-backend=real   Skip tests against the real Vuforia
+   --skip-backend=mock   Skip tests against the in-memory mock Vuforia
+   --skip-backend=docker_in_memory
+                         Skip tests against the in-memory version of the
+                         Docker application
+   --skip-marker=requires_docker_build
                          Skip tests for building Docker images
+
+Give an option once per backend or marker to skip.
+
+.. _pytest-multi-backend: https://adamtheturtle.github.io/pytest-multi-backend/
 
 Verifying signed Model Target requests
 --------------------------------------

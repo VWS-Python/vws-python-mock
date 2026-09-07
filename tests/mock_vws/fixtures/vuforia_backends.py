@@ -9,6 +9,7 @@ import pytest
 import requests
 import responses
 from beartype import beartype
+from pytest_multi_backend import backend_fixture
 from requests_mock_flask import add_flask_app_to_mock
 from vws import VWS
 from vws.exceptions.vws_exceptions import (
@@ -22,7 +23,6 @@ from mock_vws._flask_server.vws import VWS_FLASK_APP
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.states import States
 from mock_vws.target import VuMarkTarget
-from tests.backend_harness import add_skip_options, backend_fixture
 from tests.mock_vws.fixtures.credentials import (
     InactiveVuMarkCloudDatabase,
     VuMarkCloudDatabase,
@@ -399,20 +399,11 @@ _INVALID_JSON_REAL_SKIP_REASON = (
 
 @beartype
 def pytest_addoption(parser: pytest.Parser) -> None:
-    """
-    Add options to the pytest command line for skipping tests with
-    particular
-    backends.
-    """
-    add_skip_options(parser=parser, backends=_ALL_BACKENDS)
+    """Add the option which opts in to signed Model Target requests.
 
-    parser.addoption(
-        "--skip-docker_build_tests",
-        action="store_true",
-        default=False,
-        help="Skip tests for building Docker images",
-    )
-
+    The options which skip backends and the Docker build tests come
+    from ``pytest-multi-backend``.
+    """
     parser.addoption(
         VERIFY_MODEL_TARGET_SIGNING_OPTION,
         action="store_true",
@@ -431,19 +422,8 @@ def pytest_collection_modifyitems(
     config: pytest.Config,
     items: list[pytest.Item],
 ) -> None:
-    """Apply configured and infrastructure-specific test skips."""
-    skip_docker_build_tests_option = "--skip-docker_build_tests"
-    skip_docker_build_tests_marker = pytest.mark.skip(
-        reason=(
-            "Skipping docker build tests because "
-            f"{skip_docker_build_tests_option} was set"
-        ),
-    )
-    if config.getoption(name=skip_docker_build_tests_option):
-        for item in items:
-            if "requires_docker_build" in item.keywords:
-                item.add_marker(marker=skip_docker_build_tests_marker)
-
+    """Apply infrastructure-specific test skips."""
+    del config
     invalid_json_real_marker = pytest.mark.skip(
         reason=_INVALID_JSON_REAL_SKIP_REASON,
     )

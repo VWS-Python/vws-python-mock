@@ -1725,6 +1725,15 @@ wheels = [
 ]
 
 [[package]]
+name = "pytest-multi-backend"
+version = "0.0.0.post6+gfffda3ee3"
+source = { git = "https://github.com/adamtheturtle/pytest-multi-backend?rev=fffda3ee31205c6abf2c883678ec3d7ad254c5c8#fffda3ee31205c6abf2c883678ec3d7ad254c5c8" }
+dependencies = [
+    { name = "beartype" },
+    { name = "pytest" },
+]
+
+[[package]]
 name = "pytest-partition-check"
 version = "2026.8.23"
 source = { registry = "https://pypi.org/simple" }
@@ -2824,6 +2833,7 @@ dev = [
     { name = "pyroma" },
     { name = "pytest" },
     { name = "pytest-beartype-tests" },
+    { name = "pytest-multi-backend" },
     { name = "pytest-partition-check" },
     { name = "pytest-retry" },
     { name = "pytest-xdist" },
@@ -2904,6 +2914,7 @@ requires-dist = [
     { name = "pyteenybrisque", specifier = ">=0.1.1" },
     { name = "pytest", marker = "extra == 'dev'", specifier = "==9.1.1" },
     { name = "pytest-beartype-tests", marker = "extra == 'dev'", specifier = "==2026.8.16" },
+    { name = "pytest-multi-backend", marker = "extra == 'dev'", git = "https://github.com/adamtheturtle/pytest-multi-backend?rev=fffda3ee31205c6abf2c883678ec3d7ad254c5c8" },
     { name = "pytest-partition-check", marker = "extra == 'dev'", specifier = "==2026.8.23" },
     { name = "pytest-retry", marker = "extra == 'dev'", specifier = "==1.7.0" },
     { name = "pytest-xdist", marker = "extra == 'dev'", specifier = "==3.8.0" },

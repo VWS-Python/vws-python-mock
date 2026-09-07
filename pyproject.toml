@@ -82,6 +82,7 @@ optional-dependencies.dev = [
     "pyroma==5.0.1",
     "pytest==9.1.1",
     "pytest-beartype-tests==2026.8.16",
+    "pytest-multi-backend",
     "pytest-partition-check==2026.8.23",
     "pytest-retry==1.7.0",
     "pytest-xdist==3.8.0",
@@ -151,6 +152,10 @@ version_scheme = "post-release"
 #
 # This must be a PEP 440 compliant version.
 fallback_version = "0.0.0"
+
+[tool.uv]
+# Until the first release of ``pytest-multi-backend`` is on PyPI.
+sources.pytest-multi-backend = { git = "https://github.com/adamtheturtle/pytest-multi-backend", rev = "fffda3ee31205c6abf2c883678ec3d7ad254c5c8" }
 
 [tool.ruff]
 line-length = 79
