@@ -82,6 +82,7 @@ optional-dependencies.dev = [
     "pyroma==5.0.1",
     "pytest==9.1.1",
     "pytest-beartype-tests==2026.8.16",
+    "pytest-multi-backend==2026.9.7",
     "pytest-partition-check==2026.8.23",
     "pytest-retry==1.7.0",
     "pytest-xdist==3.8.0",

@@ -236,10 +236,10 @@ jobs:
         run: |
           uv run --extra=dev \
             coverage run -m pytest \
-              --skip-docker_build_tests \
-              --skip-docker_in_memory \
-              --skip-mock \
-              --skip-real \
+              --skip-marker=requires_docker_build \
+              --skip-backend=docker_in_memory \
+              --skip-backend=mock \
+              --skip-backend=real \
               --capture=no \
               -vvv \
               --exitfirst \
@@ -302,7 +302,7 @@ jobs:
           #
           uv run --extra=dev \
             coverage run -m pytest \
-              --skip-real \
+              --skip-backend=real \
               -vvv \
               --exitfirst \
               -n auto \

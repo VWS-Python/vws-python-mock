@@ -1725,6 +1725,19 @@ wheels = [
 ]
 
 [[package]]
+name = "pytest-multi-backend"
+version = "2026.9.7"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "beartype" },
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/3e/aa/83b9bdb46bb3400986766012fb9eefd0953546b109137360ae6e3863aaa6/pytest_multi_backend-2026.9.7.tar.gz", hash = "sha256:211cb2eb41b366a3b156a67b0bd26da08ce9c023c16a83de0da26b06520a3c3c", size = 150970, upload-time = "2026-09-07T14:34:12.257Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/0b/37/16f47df9be59dae0bdd7c0af14201cdf67de39807844d776d54666dcc9e3/pytest_multi_backend-2026.9.7-py3-none-any.whl", hash = "sha256:d5ec1c53539db7228589bedcad9f78420e74a682d5d1ca37fa1aaabdf80219c7", size = 10163, upload-time = "2026-09-07T14:34:10.688Z" },
+]
+
+[[package]]
 name = "pytest-partition-check"
 version = "2026.8.23"
 source = { registry = "https://pypi.org/simple" }
@@ -2824,6 +2837,7 @@ dev = [
     { name = "pyroma" },
     { name = "pytest" },
     { name = "pytest-beartype-tests" },
+    { name = "pytest-multi-backend" },
     { name = "pytest-partition-check" },
     { name = "pytest-retry" },
     { name = "pytest-xdist" },
@@ -2904,6 +2918,7 @@ requires-dist = [
     { name = "pyteenybrisque", specifier = ">=0.1.1" },
     { name = "pytest", marker = "extra == 'dev'", specifier = "==9.1.1" },
     { name = "pytest-beartype-tests", marker = "extra == 'dev'", specifier = "==2026.8.16" },
+    { name = "pytest-multi-backend", marker = "extra == 'dev'", specifier = "==2026.9.7" },
     { name = "pytest-partition-check", marker = "extra == 'dev'", specifier = "==2026.8.23" },
     { name = "pytest-retry", marker = "extra == 'dev'", specifier = "==1.7.0" },
     { name = "pytest-xdist", marker = "extra == 'dev'", specifier = "==3.8.0" },
