@@ -113,18 +113,20 @@ For the complete archive and GitHub Actions setup procedure, see
 Skipping Some Tests
 -------------------
 
-The tests run against several backends: the real Vuforia, the in-memory mock, and the in-memory version of the Docker application.
+The tests run against several backends: the real Vuforia, the in-memory mock, and the Flask applications of the mock served in the test process.
+The last of these exercises the handlers which the Docker deployment runs, but not the split between its containers.
+The tests in ``tests/mock_vws/test_docker.py`` build and run the containers for that.
 The `pytest-multi-backend`_ plugin adds options which skip some tests:
 
 .. code-block:: text
 
    --skip-backend=real   Skip tests against the real Vuforia
    --skip-backend=mock   Skip tests against the in-memory mock Vuforia
-   --skip-backend=docker_in_memory
-                         Skip tests against the in-memory version of the
-                         Docker application
+   --skip-backend=flask_in_process
+                         Skip tests against the Flask applications served
+                         in the test process
    --skip-marker=requires_docker_build
-                         Skip tests for building Docker images
+                         Skip tests which build and run the Docker images
 
 Give an option once per backend or marker to skip.
 
