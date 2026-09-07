@@ -552,7 +552,7 @@ wheels = [
 
 [[package]]
 name = "doccmd"
-version = "2026.8.30.1"
+version = "2026.9.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "beartype" },
@@ -565,9 +565,9 @@ dependencies = [
     { name = "sybil" },
     { name = "sybil-extras" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/cc/a3/24b601dc98a18b75ab5fb14fa6211e75fe902215ed55c9b0e11283078704/doccmd-2026.8.30.1.tar.gz", hash = "sha256:b7eea2b27c0c44b7f4514461b27a26cdf61803317a36b84e87cbfd841cbaedf4", size = 207648, upload-time = "2026-08-30T09:37:41.12Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f2/c0/7545fc5f023d7973cca8b59583e83a2f81e736be44cba0f25a36e535f929/doccmd-2026.9.1.tar.gz", hash = "sha256:2fb30f4a59b0881dfa43257c4d2aad3d9fa09c6f4403b5aa70b5cf7910adf81e", size = 207835, upload-time = "2026-09-01T23:12:59.593Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d2/5b/76a9ed56196e8d7bd98f3dd05cfa97c31396edd5f240fd835d62161b5a4f/doccmd-2026.8.30.1-py3-none-any.whl", hash = "sha256:66a8c48c6e42326c98346d1c035d515e9b8e8cc1ca57f41504814671a0609bbd", size = 23677, upload-time = "2026-08-30T09:37:39.505Z" },
+    { url = "https://files.pythonhosted.org/packages/b7/c2/b244a59fda286121940942d4299aa7472cc8f060c56d396b08171902831d/doccmd-2026.9.1-py3-none-any.whl", hash = "sha256:7b351d2b42b6939b738a6da79b43a24a27bed7f1aaad3b1de6217db6caabf0b3", size = 23644, upload-time = "2026-09-01T23:12:57.866Z" },
 ]
 
 [[package]]
@@ -2875,7 +2875,7 @@ requires-dist = [
     { name = "deptry", marker = "extra == 'dev'", specifier = "==0.25.1" },
     { name = "dirty-equals", marker = "extra == 'dev'", specifier = "==0.11" },
     { name = "doc8", marker = "extra == 'dev'", specifier = "==2.0.0" },
-    { name = "doccmd", marker = "extra == 'dev'", specifier = "==2026.8.30.1" },
+    { name = "doccmd", marker = "extra == 'dev'", specifier = "==2026.9.1" },
     { name = "docker", marker = "extra == 'dev'", specifier = "==7.2.0" },
     { name = "flask", specifier = ">=3.0.3" },
     { name = "freezegun", marker = "extra == 'dev'", specifier = "==1.5.5" },
