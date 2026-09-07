@@ -787,9 +787,8 @@ def delete_target(database_name: str, target_id: str) -> Response:
 
         target = database.get_target(target_id=target_id)
         now = datetime.datetime.now(tz=target.upload_date.tzinfo)
-        # See https://github.com/facebook/pyrefly/issues/1897
-        new_target: ImageTarget = copy.replace(
-            target,  # pyrefly: ignore[bad-argument-type]
+        new_target = copy.replace(
+            target,
             delete_date=now,
         )
         database.targets.remove(target)
@@ -831,9 +830,8 @@ def update_target(database_name: str, target_id: str) -> Response:
         image_value = target.image_value
         if "image" in request_json:
             image_value = base64.b64decode(s=request_json["image"])
-        # See https://github.com/facebook/pyrefly/issues/1897
-        new_target: ImageTarget = copy.replace(
-            target,  # pyrefly: ignore[bad-argument-type]
+        new_target = copy.replace(
+            target,
             name=name,
             width=width,
             active_flag=active_flag,
@@ -891,9 +889,8 @@ def set_target_recognition_counts(
 
         target = database.get_target(target_id=target_id)
 
-        # See https://github.com/facebook/pyrefly/issues/1897
-        new_target: ImageTarget = copy.replace(
-            target,  # pyrefly: ignore[bad-argument-type]
+        new_target = copy.replace(
+            target,
             current_month_recos=request_json.get(
                 "current_month_recos",
                 target.current_month_recos,
