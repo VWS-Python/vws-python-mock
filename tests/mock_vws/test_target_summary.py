@@ -57,11 +57,20 @@ class TestTargetSummary:
             date_after_add_target,
         }
 
-        # While processing the tracking rating is -1.
-        assert report.tracking_rating == -1
         assert report.total_recos == 0
         assert report.current_month_recos == 0
         assert report.previous_month_recos == 0
+
+        # The real VWS reports a tracking rating of -1 for a short time
+        # after an upload, and then the image's rating, even while the
+        # target is still processing. That window is short enough that a
+        # single poll straight after the upload can miss it, so we accept
+        # either -1 or the rating which the target settles on.
+        vws_client.wait_for_target_processed(target_id=target_id)
+        settled_report = vws_client.get_target_summary_report(
+            target_id=target_id,
+        )
+        assert report.tracking_rating in {-1, settled_report.tracking_rating}
 
     @staticmethod
     @pytest.mark.parametrize(
