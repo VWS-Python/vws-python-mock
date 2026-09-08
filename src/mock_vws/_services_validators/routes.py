@@ -65,7 +65,6 @@ from .name_validators import (
 )
 from .project_state_validators import validate_project_state
 from .request_quota_validators import validate_request_quota
-from .request_rate_validators import validate_request_rate
 from .target_quota_validators import validate_target_quota
 from .target_validators import validate_target_id_exists
 from .width_validators import validate_width
@@ -128,11 +127,11 @@ class Route:
     validators: Sequence[Validator]
 
 
-# Every route is quota checked, rate limited and refused when the project is
-# in a state which does not allow it.
+# Every route is quota checked and refused when the project is in a state
+# which does not allow it. The request rate limits are applied before any
+# route validator, by ``run_services_validators``.
 _PROJECT_VALIDATORS: Sequence[Validator] = (
     validate_request_quota,
-    validate_request_rate,
     validate_project_state,
 )
 

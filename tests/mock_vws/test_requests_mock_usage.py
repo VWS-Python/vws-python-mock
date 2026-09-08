@@ -21,6 +21,7 @@ from freezegun import freeze_time
 from PIL import Image
 from vws import VWS, CloudRecoService, VuMarkService
 from vws.exceptions.vws_exceptions import (
+    AuthenticationFailureError,
     ProjectSuspendedError,
     RequestQuotaReachedError,
     TargetQuotaReachedError,
@@ -52,7 +53,10 @@ from mock_vws.states import States
 from mock_vws.target import ImageTarget, VuMarkTarget
 from mock_vws.target_raters import HardcodedTargetTrackingRater
 from tests.mock_vws.utils import Endpoint
-from tests.mock_vws.utils.assertions import assert_vws_failure
+from tests.mock_vws.utils.assertions import (
+    assert_vws_failure,
+    assert_vws_too_many_requests,
+)
 from tests.mock_vws.utils.usage_test_helpers import (
     processing_time_seconds,
 )
@@ -479,11 +483,34 @@ class TestRequestRateLimit:
             ) as exc_info:
                 client.list_targets()
 
-        assert_vws_failure(
-            response=exc_info.value.response,
-            status_code=HTTPStatus.TOO_MANY_REQUESTS,
-            result_code=ResultCodes.TOO_MANY_REQUESTS,
+        assert_vws_too_many_requests(response=exc_info.value.response)
+
+    @staticmethod
+    def test_limit_applies_before_authentication() -> None:
+        """The limit is keyed on the access key and applied before the
+        signature is checked, as real Vuforia's Envoy layer does.
+
+        A request with a bad signature uses up the budget, and a request over
+        the limit is rejected as rate limited rather than as unauthorized.
+        """
+        database = CloudDatabase(requests_per_second_limit=1)
+        client_with_bad_secret = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=uuid.uuid4().hex,
         )
+        client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+        )
+
+        with MockVWS() as mock:
+            mock.add_cloud_database(cloud_database=database)
+            with pytest.raises(expected_exception=AuthenticationFailureError):
+                client_with_bad_secret.list_targets()
+            with pytest.raises(expected_exception=TooManyRequestsError):
+                client_with_bad_secret.list_targets()
+            with pytest.raises(expected_exception=TooManyRequestsError):
+                client.list_targets()
 
     @staticmethod
     def test_rolling_window() -> None:
@@ -672,7 +699,8 @@ class TestPerEndpointRequestRateLimits:
 
         with MockVWS() as mock:
             mock.add_cloud_database(cloud_database=database)
-            # ``GET /targets`` is limited to one request per minute.
+            # ``GET /targets`` is limited to two requests per minute.
+            client.list_targets()
             client.list_targets()
             with pytest.raises(
                 expected_exception=TooManyRequestsError,
@@ -682,11 +710,7 @@ class TestPerEndpointRequestRateLimits:
             # Other endpoints have their own budgets.
             client.get_database_summary_report()
 
-        assert_vws_failure(
-            response=exc_info.value.response,
-            status_code=HTTPStatus.TOO_MANY_REQUESTS,
-            result_code=ResultCodes.TOO_MANY_REQUESTS,
-        )
+        assert_vws_too_many_requests(response=exc_info.value.response)
 
     @staticmethod
     def test_get_target_and_duplicates_limits(

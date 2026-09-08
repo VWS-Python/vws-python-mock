@@ -49,6 +49,48 @@ def assert_vws_failure(
 
 
 @beartype
+def assert_vws_too_many_requests(*, response: Response) -> None:
+    """Assert that a response is the rate-limited response which real
+    Vuforia's Envoy layer gives.
+
+    The response has no body and no ``Content-Type`` header. Real Vuforia
+    has an Envoy layer at its edge and another in front of the application,
+    and either may reject the request. Only a rejection by the inner layer
+    carries an ``x-envoy-upstream-service-time`` header. This was observed
+    against real Vuforia on 2026-09-08.
+
+    Args:
+        response: The response returned by a request to VWS.
+
+    Raises:
+        AssertionError: The response is not the rate-limited response.
+    """
+    assert response.status_code == HTTPStatus.TOO_MANY_REQUESTS
+    assert response.text == ""
+    required_header_keys = {
+        "connection",
+        "content-length",
+        "date",
+        "server",
+        "strict-transport-security",
+        "x-aws-region",
+        "x-content-type-options",
+        "x-envoy-ratelimited",
+    }
+    optional_header_keys = {"x-envoy-upstream-service-time"}
+    response_header_keys = {str.lower(key) for key in response.headers}
+    assert required_header_keys <= response_header_keys
+    assert response_header_keys <= required_header_keys | optional_header_keys
+    assert response.headers["Content-Length"] == "0"
+    assert response.headers["server"] == "envoy"
+    assert response.headers["x-envoy-ratelimited"] == "true"
+    assert response.headers["x-content-type-options"] == "nosniff"
+    assert "-" in response.headers["x-aws-region"]
+    assert response.headers["strict-transport-security"] == "max-age=31536000"
+    assert_valid_date_header(response=response)
+
+
+@beartype
 def assert_valid_date_header(
     *,
     response: Response,

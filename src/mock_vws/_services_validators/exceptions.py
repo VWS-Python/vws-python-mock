@@ -100,19 +100,28 @@ class RequestQuotaReachedError(ValidatorError):
 
 @beartype
 class TooManyRequestsError(ValidatorError):
-    """Exception raised when a database exceeds its request rate limit."""
+    """Exception raised when a database exceeds its request rate limit.
+
+    Real Vuforia's Envoy layer applies the rate limits, before the request
+    reaches the application, and its response has no body and no
+    ``Content-Type`` header. This was observed on 2026-09-08.
+    """
 
     def __init__(self) -> None:
-        """Initialize a ``TooManyRequests`` response."""
+        """Initialize a ``429 Too Many Requests`` response."""
         super().__init__()
         self.status_code = HTTPStatus.TOO_MANY_REQUESTS
-        self.response_text = result_code_response_text(
-            result_code=ResultCodes.TOO_MANY_REQUESTS,
-        )
+        self.response_text = ""
         self.headers = {
-            **_STANDARD_HEADERS,
+            "Connection": "keep-alive",
+            "Content-Length": "0",
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "server": "envoy",
+            "strict-transport-security": "max-age=31536000",
+            "x-aws-region": "us-east-2, us-west-2",
+            "x-content-type-options": "nosniff",
+            "x-envoy-ratelimited": "true",
+            "x-envoy-upstream-service-time": "5",
         }
 
 

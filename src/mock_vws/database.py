@@ -100,7 +100,7 @@ class CloudDatabase:
             whatever it is set to.
         requests_per_second_limit: The maximum number of VWS requests accepted
             in a rolling one-second window, across all VWS endpoints. Set this
-            to ``0`` to make VWS endpoints return ``TooManyRequests``. By
+            to ``0`` to make VWS endpoints return a ``429`` response. By
             default, the mock does not apply this limit.
         request_rate_limits: Request rate limits which apply to individual
             groups of VWS endpoints, tracked separately from each other and

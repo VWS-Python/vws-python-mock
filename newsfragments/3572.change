@@ -1,0 +1,2 @@
+Match real Vuforia's request rate limiting, which was checked against it on 2026-09-08.
+``DOCUMENTED_REQUEST_RATE_LIMITS`` now allows two ``GET /targets`` requests per minute rather than one, a rate-limited request gets Envoy's empty-bodied ``429`` response rather than a JSON ``TooManyRequests`` body, and the limits are applied before the request's signature is checked.
