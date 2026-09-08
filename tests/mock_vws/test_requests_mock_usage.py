@@ -135,7 +135,7 @@ def request_unmocked_address() -> None:
         requests.exceptions.ConnectionError: This is expected as there is
             nothing to connect to.
         requests.exceptions.ConnectionError: This request is being made in the
-            context of a ``responses`` mock which does not mock local
+            context of a ``requests-mock`` mock which does not mock local
             addresses.
     """
     sock = socket.socket()

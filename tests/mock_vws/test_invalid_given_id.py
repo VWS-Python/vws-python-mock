@@ -71,7 +71,7 @@ def _send_unrouted_request(
     }
 
     if backend == VuforiaBackend.FLASK_IN_PROCESS:
-        # The ``responses`` library intercepts only the paths and methods
+        # The ``requests-mock`` library intercepts only the paths and methods
         # which the Flask app routes, so requests to any other path never
         # reach the app. A running container serves every path, so we drive
         # the app with its own test client.

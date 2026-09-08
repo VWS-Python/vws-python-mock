@@ -1058,14 +1058,10 @@ wheels = [
 
 [[package]]
 name = "mock-response-delay"
-version = "2026.9.7"
-source = { registry = "https://pypi.org/simple" }
+version = "2026.9.7.post7+gbebcfbf51"
+source = { git = "https://github.com/adamtheturtle/mock-response-delay?rev=bebcfbf51a1cbee316ebf8168a04159d19ecc0fa#bebcfbf51a1cbee316ebf8168a04159d19ecc0fa" }
 dependencies = [
     { name = "beartype" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/da/e4/994f1f6b3efca29fac956c1f40ccb0973f093ee096fd19ca9841d62fe347/mock_response_delay-2026.9.7.tar.gz", hash = "sha256:06f74384b7eed3daf74f83a2a4821bdf699accb286d940e982326b8e6228fe64", size = 152616, upload-time = "2026-09-07T15:53:37.153Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/e1/7b/c9e0c7f3bc4175c1be6e1ce24194b42f4723b9d176ff04b5425dc2355dfb/mock_response_delay-2026.9.7-py3-none-any.whl", hash = "sha256:841a414b6a433afb672d12df6e3a05a37f64f94d6742390fe4aacc5dd99e10a6", size = 9975, upload-time = "2026-09-07T15:53:35.921Z" },
 ]
 
 [[package]]
@@ -2815,7 +2811,7 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "pyteenybrisque" },
     { name = "requests" },
-    { name = "responses" },
+    { name = "requests-mock" },
     { name = "respx" },
     { name = "tzdata", marker = "sys_platform == 'win32'" },
     { name = "vws-auth-tools" },
@@ -2857,6 +2853,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "pyyaml" },
     { name = "requests-mock-flask" },
+    { name = "responses" },
     { name = "ruff" },
     { name = "shellcheck-py" },
     { name = "shfmt-py" },
@@ -2912,7 +2909,7 @@ requires-dist = [
     { name = "httpx", specifier = ">=0.27.0" },
     { name = "httpx2", specifier = ">=2.12" },
     { name = "interrogate", marker = "extra == 'dev'", specifier = "==1.7.0" },
-    { name = "mock-response-delay", specifier = ">=2026.9.7" },
+    { name = "mock-response-delay", git = "https://github.com/adamtheturtle/mock-response-delay?rev=bebcfbf51a1cbee316ebf8168a04159d19ecc0fa" },
     { name = "mypy", extras = ["faster-cache"], marker = "extra == 'dev'", specifier = "==2.3.1" },
     { name = "mypy-strict-kwargs", marker = "extra == 'dev'", specifier = "==2026.8.25.1" },
     { name = "no-defaults", marker = "extra == 'dev'", specifier = "==2026.9.1" },
@@ -2939,8 +2936,9 @@ requires-dist = [
     { name = "pytest-xdist", marker = "extra == 'dev'", specifier = "==3.8.0" },
     { name = "pyyaml", marker = "extra == 'dev'", specifier = "==6.0.3" },
     { name = "requests", specifier = ">=2.32.3" },
+    { name = "requests-mock", specifier = ">=1.12.1" },
     { name = "requests-mock-flask", marker = "extra == 'dev'", specifier = "==2026.8.16" },
-    { name = "responses", specifier = ">=0.25.3" },
+    { name = "responses", marker = "extra == 'dev'", specifier = "==0.26.3" },
     { name = "respx", specifier = ">=0.21.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = "==0.16.6" },
     { name = "shellcheck-py", marker = "extra == 'dev'", specifier = "==0.11.0.1" },

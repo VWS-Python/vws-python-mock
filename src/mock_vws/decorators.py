@@ -7,13 +7,15 @@ import time
 from collections.abc import Callable, Generator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Literal, Self
+from typing import TYPE_CHECKING, Literal, Protocol, Self
 from urllib.parse import urlparse
 
+import requests
+import requests_mock
 from beartype import BeartypeConf, beartype
-from mock_response_delay.for_requests import delayed_responses_callback
-from requests import PreparedRequest
-from responses import RequestsMock
+from mock_response_delay.for_requests_mock import (
+    delayed_requests_mock_callback,
+)
 
 from mock_vws._httpx2_mock_server.decorators import (
     Httpx2Router,
@@ -47,10 +49,38 @@ from mock_vws.vumark import VuMarkGenerationFailure
 
 if TYPE_CHECKING:
     import respx
+    from requests_mock import Context as _RequestsMockContext
+    from requests_mock import Request as _RequestsMockRequest
+else:
+
+    class _RequestsMockRequest(Protocol):
+        """The parts of a ``requests-mock`` request which we use."""
+
+        body: str | bytes | None
+        headers: Mapping[str, str]
+        method: str | None
+        path_url: str
+
+        @property
+        def timeout(
+            self,
+        ) -> tuple[float | None, float | None] | float | int | None:
+            """The timeout passed to ``requests``."""
+
+    class _RequestsMockContext(Protocol):
+        """The parts of a response context which we use."""
+
+        headers: dict[str, str]
+        status_code: int
+
 
 _ResponseType = tuple[int, Mapping[str, str], str | bytes]
 _MockCallback = Callable[[RequestData], _ResponseType]
-_ResponsesCallback = Callable[[PreparedRequest], _ResponseType]
+
+
+_RequestsMockCallback = Callable[
+    [_RequestsMockRequest, _RequestsMockContext], bytes
+]
 
 _STRUCTURAL_SIMILARITY_MATCHER = StructuralSimilarityMatcher()
 _BRISQUE_TRACKING_RATER = BrisqueTargetTrackingRater()
@@ -223,7 +253,7 @@ class MockVWS:
         # when a decorated function calls another decorated function, so the
         # started mocks are kept as a stack.
         self._started: list[
-            tuple[RequestsMock, respx.MockRouter, Httpx2Router]
+            tuple[requests_mock.Mocker, respx.MockRouter, Httpx2Router]
         ] = []
         self._added_cloud_databases: list[CloudDatabase] = []
         self._added_vumark_databases: list[VuMarkDatabase] = []
@@ -463,10 +493,13 @@ class MockVWS:
         delay_seconds: float,
         sleep_fn: Callable[[float], None],
         base_path: str,
-    ) -> _ResponsesCallback:
+    ) -> _RequestsMockCallback:
         """Wrap a callback to add a response delay and timeout."""
 
-        def respond(request: PreparedRequest) -> _ResponseType:
+        def respond(
+            request: _RequestsMockRequest,
+            context: _RequestsMockContext,
+        ) -> bytes:
             """Give a request to the callback."""
             match request.body:
                 case None:
@@ -486,9 +519,14 @@ class MockVWS:
                 headers=dict(request.headers),
                 body=body_bytes,
             )
-            return callback(request_data)
+            status_code, headers, body = callback(request_data)
+            context.status_code = status_code
+            context.headers = dict(headers)
+            if isinstance(body, str):
+                return body.encode()
+            return body
 
-        return delayed_responses_callback(
+        return delayed_requests_mock_callback(
             callback=respond,
             delay_seconds=delay_seconds,
             sleep_fn=sleep_fn,
@@ -500,7 +538,13 @@ class MockVWS:
         Returns:
             ``self``.
         """
-        mock = RequestsMock(assert_all_requests_are_fired=False)
+        mock = requests_mock.Mocker(real_http=self._options.real_http)
+        if not self._options.real_http:
+            mock.register_uri(
+                method=requests_mock.ANY,
+                url=re.compile(pattern=".*"),
+                exc=requests.exceptions.ConnectionError,
+            )
 
         for api, base_url in (
             (self._mock_vws_api, self._options.base_vws_url),
@@ -516,21 +560,16 @@ class MockVWS:
                         api,
                         route.route_name,
                     )
-                    mock.add_callback(
+                    mock.register_uri(
                         method=http_method,
                         url=compiled_url_pattern,
-                        callback=self._wrap_callback(
+                        content=self._wrap_callback(
                             callback=original_callback,
                             delay_seconds=self._options.response_delay_seconds,
                             sleep_fn=self._options.sleep_fn,
                             base_path=base_path,
                         ),
-                        content_type=None,
                     )
-
-        if self._options.real_http:
-            all_requests_pattern = re.compile(pattern=".*")
-            mock.add_passthru(prefix=all_requests_pattern)
 
         mock.start()
 
