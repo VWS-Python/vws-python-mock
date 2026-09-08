@@ -188,7 +188,7 @@ jobs:
 
       - name: Run tests
         run: |
-          uv run --extra=dev \
+          uv run --group=dev \
             coverage run -m pytest \
               -s \
               -vvv \
@@ -237,7 +237,7 @@ jobs:
 
       - name: Run tests
         run: |
-          uv run --extra=dev \
+          uv run --group=dev \
             coverage run -m pytest \
               --skip-marker=requires_docker_build \
               --skip-backend=flask_in_process \
@@ -303,7 +303,7 @@ jobs:
           # We use pytest-xdist to make this run much faster.
           # The downside is that we cannot use -s / --capture=no.
           #
-          uv run --extra=dev \
+          uv run --group=dev \
             coverage run -m pytest \
               --skip-backend=real \
               -vvv \
@@ -347,15 +347,15 @@ jobs:
       - name: Require 100% Coverage
         id: coverage
         run: |
-          uv run --extra=dev coverage combine
-          uv run --extra=dev coverage html --skip-covered --skip-empty
+          uv run --group=dev coverage combine
+          uv run --group=dev coverage html --skip-covered --skip-empty
 
           # Report and write to summary, without failing yet.
-          uv run --extra=dev coverage report --format=markdown \
+          uv run --group=dev coverage report --format=markdown \
             >> "$GITHUB_STEP_SUMMARY" || true
 
           # Report again and fail if under 100%.
-          uv run --extra=dev coverage report
+          uv run --group=dev coverage report
 
       - name: Upload HTML report if check failed
         uses: actions/upload-artifact@v7
