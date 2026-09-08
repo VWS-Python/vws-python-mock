@@ -1,1 +1,0 @@
-The response delay and client timeout simulation is now provided by the ``mock-response-delay`` package.

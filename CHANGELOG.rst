@@ -3,6 +3,16 @@ Changelog
 
 .. towncrier release notes start
 
+2026.09.08
+----------
+
+- The response delay and client timeout simulation is now provided by the ``mock-response-delay`` package.
+
+- The mock now returns NGINX's ``400 Request Header Or Cookie Too Large`` response for any request header line longer than 8190 bytes, as real Vuforia does.
+
+- Match real Vuforia's request rate limiting, which was checked against it on 2026-09-08.
+  ``DOCUMENTED_REQUEST_RATE_LIMITS`` now allows two ``GET /targets`` requests per minute rather than one, a rate-limited request gets Envoy's empty-bodied ``429`` response rather than a JSON ``TooManyRequests`` body, and the limits are applied before the request's signature is checked.
+
 2026.09.06
 ----------
 
