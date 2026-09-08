@@ -3,6 +3,14 @@ Changelog
 
 .. towncrier release notes start
 
+2026.09.08.1
+------------
+
+- The URL of a reco counts report now has the shape of the presigned cloud storage URL which real Vuforia returns.
+  The report file is named ``{date}-{hour}.csv`` for the current month and ``{month}.csv`` for the previous month, so two requests for the same month in the same hour name the same file and serve the report which the first request generated.
+  The URL carries the query parameters of a presigned URL, and the mock honors ``X-Amz-Date`` and ``X-Amz-Expires`` as real Vuforia's storage does, so a URL which is out of date or which has no query parameters gives the ``403`` XML error document which Amazon S3 gives.
+  A report which is not yet generated gives the ``404`` ``NoSuchKey`` XML error document which Amazon S3 gives, as real Vuforia has now been observed to do, rather than an empty body.
+
 2026.09.08
 ----------
 
