@@ -49,7 +49,7 @@ def get_query_match_response_text(
         # In the real Vuforia, targets which have just
         # been deleted may still get recognized.
         # We document this difference in ``differences-to-vws.rst``.
-        and not target.delete_date
+        and not bool(target.delete_date)
         and target.status == TargetStatuses.SUCCESS.value
     ]
 
@@ -61,7 +61,7 @@ def get_query_match_response_text(
         if match.tracking_rating > minimum_rating
     ]
 
-    results: list[dict[str, Any]] = []
+    results: list[dict[str, Any]] = []  # pyrefly: ignore [explicit-any]
     for target in matches:
         target_timestamp = target.last_modified_date.timestamp()
         if target.application_metadata is None:
@@ -77,7 +77,7 @@ def get_query_match_response_text(
         }
 
         if include_target_data == "all" or (
-            include_target_data == "top" and not results
+            include_target_data == "top" and not bool(results)
         ):
             result = {
                 "target_id": target.target_id,

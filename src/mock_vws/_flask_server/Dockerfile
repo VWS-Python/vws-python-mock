@@ -21,9 +21,9 @@ WORKDIR /app
 # Install the locked dependencies before copying the source, so that
 # source edits do not invalidate the dependency layer.
 COPY --chown=10001:10001 pyproject.toml uv.lock /app/
-RUN uv sync --locked --no-cache --no-install-project
+RUN uv sync --locked --no-cache --no-dev --no-install-project
 COPY --chown=10001:10001 . /app
-RUN uv sync --locked --no-cache
+RUN uv sync --locked --no-cache --no-dev
 EXPOSE 5000
 ENTRYPOINT ["python"]
 HEALTHCHECK --interval=1s --timeout=10s --start-period=5s --retries=3 CMD ["python", "/app/src/mock_vws/_flask_server/healthcheck.py"]

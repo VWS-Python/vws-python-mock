@@ -50,7 +50,7 @@ class TestMissing:
             **endpoint.headers,
             "Authorization": authorization_string,
         }
-        new_headers.pop("Date", None)
+        _ = new_headers.pop("Date", None)
 
         new_endpoint = Endpoint(
             base_url=endpoint.base_url,

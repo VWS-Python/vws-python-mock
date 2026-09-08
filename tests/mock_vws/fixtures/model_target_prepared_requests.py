@@ -19,7 +19,7 @@ from tests.mock_vws.utils.assertions import assert_model_target_status
 MODEL_TARGET_VWS_HOST = "https://vws.vuforia.com"
 MODEL_TARGET_DATASET_UUID = "0b12466eee5d49409a440927006ff5d8"
 
-_DATASET_REQUEST: dict[str, Any] = {
+_DATASET_REQUEST: dict[str, Any] = {  # pyrefly: ignore [explicit-any]
     "name": "dataset-name",
     "targetSdk": "10.18",
     "models": [
@@ -77,7 +77,7 @@ def get_access_token(
         response=response,
         status_codes=HTTPStatus.OK,
     )
-    response_json: dict[str, Any] = json.loads(s=response.text)
+    response_json: dict[str, Any] = json.loads(s=response.text)  # pyrefly: ignore [explicit-any]
     access_token = response_json["access_token"]
     assert isinstance(access_token, str)
     assert response_json["token_type"] == "bearer"

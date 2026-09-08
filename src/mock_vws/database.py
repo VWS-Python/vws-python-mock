@@ -216,7 +216,9 @@ class CloudDatabase:
     @property
     def not_deleted_targets(self) -> set[ImageTarget]:
         """All targets which have not been deleted."""
-        return {target for target in self.targets if not target.delete_date}
+        return {
+            target for target in self.targets if not bool(target.delete_date)
+        }
 
     @property
     def active_targets(self) -> set[ImageTarget]:

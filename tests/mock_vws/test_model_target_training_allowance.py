@@ -14,7 +14,7 @@ _AUTHORIZATION = (
     "eyJzY29wZSI6Im1vZGVsdGFyZ2V0cy5hbGwifQ."
     "c2lnbmF0dXJl"
 )
-_REQUEST_BODY: dict[str, Any] = {
+_REQUEST_BODY: dict[str, Any] = {  # pyrefly: ignore [explicit-any]
     "name": "dataset-name",
     "targetSdk": "10.18",
     "models": [

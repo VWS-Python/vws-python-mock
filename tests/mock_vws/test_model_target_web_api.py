@@ -50,7 +50,7 @@ _MOCK_BEARER_TOKEN = (
 )
 
 
-_VIEW: dict[str, Any] = {
+_VIEW: dict[str, Any] = {  # pyrefly: ignore [explicit-any]
     "name": "view-name",
     "guideViewPosition": {
         "translation": [0, 0, 5],
@@ -60,7 +60,7 @@ _VIEW: dict[str, Any] = {
 
 
 @beartype
-def _dataset_request(*, cad_data_url: str) -> dict[str, Any]:
+def _dataset_request(*, cad_data_url: str) -> dict[str, Any]:  # pyrefly: ignore [explicit-any]
     """Return a standard Model Target dataset request."""
     return {
         "name": f"dataset-{uuid4().hex}",
@@ -88,7 +88,7 @@ def _cad_data_blob() -> str:
 
 
 @beartype
-def _blob_dataset_request() -> dict[str, Any]:
+def _blob_dataset_request() -> dict[str, Any]:  # pyrefly: ignore [explicit-any]
     """Return a standard dataset request with inline CAD data."""
     return {
         "name": f"dataset-{uuid4().hex}",
@@ -104,25 +104,25 @@ def _blob_dataset_request() -> dict[str, Any]:
     }
 
 
-_MODEL: dict[str, Any] = {
+_MODEL: dict[str, Any] = {  # pyrefly: ignore [explicit-any]
     "name": "model-name",
     "cadDataUrl": "https://example.com/model.glb",
     "views": [_VIEW],
 }
 
-_MODEL_WITHOUT_CAD_DATA: dict[str, Any] = {
+_MODEL_WITHOUT_CAD_DATA: dict[str, Any] = {  # pyrefly: ignore [explicit-any]
     key: value for key, value in _MODEL.items() if key != "cadDataUrl"
 }
 
-_EMPTY_MODEL: dict[str, Any] = {}
+_EMPTY_MODEL: dict[str, Any] = {}  # pyrefly: ignore [explicit-any]
 
-_EMPTY_VIEW: dict[str, Any] = {}
+_EMPTY_VIEW: dict[str, Any] = {}  # pyrefly: ignore [explicit-any]
 
-_EMPTY_GUIDE_VIEW_POSITION: list[Any] = []
+_EMPTY_GUIDE_VIEW_POSITION: list[Any] = []  # pyrefly: ignore [explicit-any]
 
-_EMPTY_GUIDE_VIEW_POSITION_OBJECT: dict[str, Any] = {}
+_EMPTY_GUIDE_VIEW_POSITION_OBJECT: dict[str, Any] = {}  # pyrefly: ignore [explicit-any]
 
-_UNAUTHENTICATED_DATASET_REQUEST: dict[str, Any] = {
+_UNAUTHENTICATED_DATASET_REQUEST: dict[str, Any] = {  # pyrefly: ignore [explicit-any]
     "name": "dataset-name",
     "targetSdk": "10.18",
     "models": [_MODEL],
@@ -226,7 +226,7 @@ def _assert_unknown_dataset(*, response: Response) -> None:
         response=response,
         status_codes=HTTPStatus.NOT_FOUND,
     )
-    error = json.loads(s=response.text)["error"]
+    error = json.loads(s=response.text)["error"]  # pyrefly: ignore [unknown-variable-type]
     assert error["code"] == "NOT_FOUND"
     assert error["message"] == (
         "Could not find a model-view database with uuid "
@@ -470,7 +470,7 @@ class TestAuthentication:
                 status_codes=HTTPStatus.CREATED,
             )
             client_id = create_response.json()["client_id"]
-            client_secret = create_response.json()["client_secret"]
+            client_secret = create_response.json()["client_secret"]  # pyrefly: ignore [unknown-variable-type]
 
             list_response = model_target_get(
                 url=f"{_VWS_HOST}/oauth2/clientcredentials",
@@ -520,7 +520,7 @@ class TestAuthentication:
                 response=client_token_response,
                 status_codes=HTTPStatus.OK,
             )
-            client_access_token = client_token_response.json()["access_token"]
+            client_access_token = client_token_response.json()["access_token"]  # pyrefly: ignore [unknown-variable-type]
             insufficient_response = requests.post(
                 url=f"{_VWS_HOST}/modeltargets/datasets",
                 headers={
@@ -805,7 +805,7 @@ class TestInvalidJson:
             "Authorization": f"Bearer {access_token}",
         }
         if content_type is None:
-            new_headers.pop("Content-Type", None)
+            _ = new_headers.pop("Content-Type", None)
         else:
             new_headers["Content-Type"] = content_type
         new_endpoint = dataclasses.replace(
@@ -823,7 +823,7 @@ class TestInvalidJson:
             response=response,
             status_codes=HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
         )
-        error = json.loads(s=response.text)["error"]
+        error = json.loads(s=response.text)["error"]  # pyrefly: ignore [unknown-variable-type]
         assert error["code"] == "ERROR"
         assert error["message"] == (
             "Expecting text/json or application/json body"
@@ -863,7 +863,7 @@ class TestInvalidJson:
             response=response,
             status_codes=HTTPStatus.BAD_REQUEST,
         )
-        error = json.loads(s=response.text)["error"]
+        error = json.loads(s=response.text)["error"]  # pyrefly: ignore [unknown-variable-type]
         assert error["code"] == "ERROR"
         assert error["message"].startswith("Invalid Json")
         assert "target" not in error
@@ -901,7 +901,7 @@ class TestInvalidJson:
             response=response,
             status_codes=HTTPStatus.BAD_REQUEST,
         )
-        error = json.loads(s=response.text)["error"]
+        error = json.loads(s=response.text)["error"]  # pyrefly: ignore [unknown-variable-type]
         assert error["code"] == "ERROR"
         assert error["message"].startswith("Invalid Json")
         assert "target" not in error
@@ -950,7 +950,7 @@ class TestInvalidJson:
             response=response,
             status_codes=HTTPStatus.BAD_REQUEST,
         )
-        error = json.loads(s=response.text)["error"]
+        error = json.loads(s=response.text)["error"]  # pyrefly: ignore [unknown-variable-type]
         assert error["code"] == "BAD_REQUEST"
         assert error["message"] == (
             f"Validation error for request {error['target']}"
@@ -1493,7 +1493,7 @@ class TestErrorResponses:
             response=response,
             status_codes=HTTPStatus.BAD_REQUEST,
         )
-        error = response.json()["error"]
+        error = response.json()["error"]  # pyrefly: ignore [unknown-variable-type]
         assert error["code"] == "BAD_REQUEST"
         assert error["message"] == (
             f"Validation error for request {error['target']}"
@@ -1532,7 +1532,7 @@ class TestErrorResponses:
             response=response,
             status_codes=HTTPStatus.BAD_REQUEST,
         )
-        error = response.json()["error"]
+        error = response.json()["error"]  # pyrefly: ignore [unknown-variable-type]
         assert error["code"] == "BAD_REQUEST"
         assert {detail["message"] for detail in error["details"]} == {
             "names of models must be unique within a Target.",
@@ -1588,7 +1588,7 @@ class TestErrorResponses:
             response=response,
             status_codes=HTTPStatus.NOT_FOUND,
         )
-        error = response.json()["error"]
+        error = response.json()["error"]  # pyrefly: ignore [unknown-variable-type]
         assert error["code"] == "NOT_FOUND"
         assert error["message"] == (
             "Could not find a model-view database with uuid "
@@ -1705,7 +1705,7 @@ class TestStateBasedDatasets:
             response=create_response,
             status_codes=HTTPStatus.CREATED,
         )
-        dataset_uuid = create_response.json()["uuid"]
+        dataset_uuid = create_response.json()["uuid"]  # pyrefly: ignore [unknown-variable-type]
         delete_response = requests.delete(
             url=f"{_VWS_HOST}{dataset_path}/{dataset_uuid}",
             headers=headers,
@@ -1748,7 +1748,7 @@ class TestStateBasedDatasets:
             response=response,
             status_codes=HTTPStatus.BAD_REQUEST,
         )
-        error = response.json()["error"]
+        error = response.json()["error"]  # pyrefly: ignore [unknown-variable-type]
         assert error["code"] == "BAD_REQUEST"
         assert [detail["message"] for detail in error["details"]] == [
             "states in entrypoint view-name' must be a subset of all states",
@@ -1854,7 +1854,7 @@ class TestAdditionalBehaviors:
             response=response,
             status_codes=HTTPStatus.BAD_REQUEST,
         )
-        error = response.json()["error"]
+        error = response.json()["error"]  # pyrefly: ignore [unknown-variable-type]
         assert error["code"] == "BAD_REQUEST"
         assert [detail["message"] for detail in error["details"]] == [
             expected_message,
@@ -1901,7 +1901,7 @@ class TestAdditionalBehaviors:
             response=advanced_response,
             status_codes=HTTPStatus.BAD_REQUEST,
         )
-        error = advanced_response.json()["error"]
+        error = advanced_response.json()["error"]  # pyrefly: ignore [unknown-variable-type]
         assert error["code"] == "BAD_REQUEST"
         assert [detail["message"] for detail in error["details"]] == [
             '`realisticAppearance` must be one of "true", "false", "auto".` ',
@@ -1951,7 +1951,7 @@ class TestAdditionalBehaviors:
                 json=_UNAUTHENTICATED_DATASET_REQUEST,
                 timeout=30,
             )
-            dataset_uuid = create_response.json()["uuid"]
+            dataset_uuid = create_response.json()["uuid"]  # pyrefly: ignore [unknown-variable-type]
             response = requests.get(
                 url=(
                     f"{_VWS_HOST}/modeltargets/datasets/{dataset_uuid}/dataset"
@@ -1964,7 +1964,7 @@ class TestAdditionalBehaviors:
             response=response,
             status_codes=HTTPStatus.UNPROCESSABLE_ENTITY,
         )
-        error = response.json()["error"]
+        error = response.json()["error"]  # pyrefly: ignore [unknown-variable-type]
         assert error["code"] == "UNSUPPORTED_STATE"
         assert error["message"] == (
             f"Training status for dataset {dataset_uuid} is "
@@ -1993,7 +1993,7 @@ class TestAdditionalBehaviors:
                 json=_UNAUTHENTICATED_DATASET_REQUEST,
                 timeout=30,
             )
-            dataset_uuid = create_response.json()["uuid"]
+            dataset_uuid = create_response.json()["uuid"]  # pyrefly: ignore [unknown-variable-type]
             status_response = requests.get(
                 url=f"{_VWS_HOST}/modeltargets/datasets/{dataset_uuid}/status",
                 headers={"Authorization": f"Bearer {_MOCK_BEARER_TOKEN}"},
@@ -2012,7 +2012,7 @@ class TestAdditionalBehaviors:
             response=response,
             status_codes=HTTPStatus.UNPROCESSABLE_ENTITY,
         )
-        error = response.json()["error"]
+        error = response.json()["error"]  # pyrefly: ignore [unknown-variable-type]
         assert error["code"] == "UNSUPPORTED_STATE"
         assert error["message"] == (
             f"Training status for dataset {dataset_uuid} is failed != done"
@@ -2150,7 +2150,7 @@ class TestStandardDataset:
                 response=create_response,
                 status_codes=HTTPStatus.CREATED,
             )
-            create_response_json: dict[str, Any] = json.loads(
+            create_response_json: dict[str, Any] = json.loads(  # pyrefly: ignore [explicit-any]
                 s=create_response.text,
             )
             dataset_uuid_value = create_response_json["uuid"]
@@ -2170,7 +2170,7 @@ class TestStandardDataset:
                 response=status_response,
                 status_codes=HTTPStatus.OK,
             )
-            status_response_json: dict[str, Any] = json.loads(
+            status_response_json: dict[str, Any] = json.loads(  # pyrefly: ignore [explicit-any]
                 s=status_response.text,
             )
             assert status_response_json["status"] in {
@@ -2277,7 +2277,7 @@ class TestStandardDataset:
             response=create_response,
             status_codes=HTTPStatus.CREATED,
         )
-        create_response_json: dict[str, Any] = json.loads(
+        create_response_json: dict[str, Any] = json.loads(  # pyrefly: ignore [explicit-any]
             s=create_response.text,
         )
         dataset_uuid = create_response_json["uuid"]
@@ -2513,7 +2513,7 @@ class TestMockOnlyOAuth2EdgeCases:
                 json={"scopes": []},
                 timeout=30,
             )
-            client_id = created.json()["client_id"]
+            client_id = created.json()["client_id"]  # pyrefly: ignore [unknown-variable-type]
             for content in (b"{", b'"scope"', b"[1]"):
                 response = requests.put(
                     url=(

@@ -132,7 +132,7 @@ def _presigned_url(*, vuforia_database: CloudDatabase, month: str) -> str:
         month=month,
     )
     assert response.status_code == HTTPStatus.OK
-    presigned_url = json.loads(s=response.text)["presigned_url"]
+    presigned_url: object = json.loads(s=response.text)["presigned_url"]
     assert isinstance(presigned_url, str)
     return presigned_url
 
@@ -171,9 +171,12 @@ def _assert_not_ready(*, response: requests.Response, key: str) -> None:
             f"<Key>{key}</Key>"
         ),
     )
-    assert re.fullmatch(
-        pattern=expected_pattern + _REQUEST_IDS_PATTERN + "</Error>",
-        string=response.text,
+    assert (
+        re.fullmatch(
+            pattern=expected_pattern + _REQUEST_IDS_PATTERN + "</Error>",
+            string=response.text,
+        )
+        is not None
     ), response.text
 
 
@@ -235,7 +238,8 @@ class TestRecoCountsReport:
             "presigned_url",
         }
         assert response_json["result_code"] == ResultCodes.SUCCESS.value
-        transaction_id = response_json["transaction_id"]
+        transaction_id: object = response_json["transaction_id"]
+        assert isinstance(transaction_id, str)
         assert all(char in hexdigits for char in transaction_id)
         assert response_json["presigned_url"].startswith("https://")
 
@@ -255,7 +259,7 @@ class TestRecoCountsReport:
         query = parse_qsl(qs=urlsplit(url=presigned_url).query)
         assert [name for name, _ in query] == _PRESIGNED_URL_PARAMETERS
         parameters = dict(query)
-        assert parameters["X-Amz-Security-Token"]
+        assert parameters["X-Amz-Security-Token"] != ""
         assert parameters["X-Amz-Algorithm"] == "AWS4-HMAC-SHA256"
         assert parameters["X-Amz-SignedHeaders"] == "host"
         assert parameters["X-Amz-Expires"] == str(object=_URL_EXPIRY_SECONDS)
@@ -447,9 +451,12 @@ class TestDownloadReport:
         # A real database may have recognitions this month.
         assert ready_response.text.startswith(_CSV_HEADER)
         rows = ready_response.text.removeprefix(_CSV_HEADER)
-        assert re.fullmatch(
-            pattern=f"({_CSV_ROW_PATTERN.pattern})*",
-            string=rows,
+        assert (
+            re.fullmatch(
+                pattern=f"({_CSV_ROW_PATTERN.pattern})*",
+                string=rows,
+            )
+            is not None
         ), rows
 
     @staticmethod
@@ -524,14 +531,17 @@ class TestDownloadReport:
             r"<ServerTime>[0-9]{4}-[0-9]{2}-[0-9]{2}T"
             r"[0-9]{2}:[0-9]{2}:[0-9]{2}Z</ServerTime>"
         )
-        assert re.fullmatch(
-            pattern=(
-                expected_pattern
-                + server_time_pattern
-                + _REQUEST_IDS_PATTERN
-                + "</Error>"
-            ),
-            string=response.text,
+        assert (
+            re.fullmatch(
+                pattern=(
+                    expected_pattern
+                    + server_time_pattern
+                    + _REQUEST_IDS_PATTERN
+                    + "</Error>"
+                ),
+                string=response.text,
+            )
+            is not None
         ), response.text
 
     @staticmethod
@@ -579,9 +589,12 @@ class TestDownloadReport:
                 "<Message>Access Denied</Message>"
             ),
         )
-        assert re.fullmatch(
-            pattern=expected_pattern + _REQUEST_IDS_PATTERN + "</Error>",
-            string=response.text,
+        assert (
+            re.fullmatch(
+                pattern=expected_pattern + _REQUEST_IDS_PATTERN + "</Error>",
+                string=response.text,
+            )
+            is not None
         ), response.text
 
 

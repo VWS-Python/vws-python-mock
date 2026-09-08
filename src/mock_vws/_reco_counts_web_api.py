@@ -250,7 +250,7 @@ def _reco_counts_for_month(
     return {
         target_id: reco_count
         for target_id, reco_count in reco_counts.items()
-        if reco_count
+        if bool(reco_count)
     }
 
 
@@ -285,10 +285,12 @@ def create_reco_counts_report(
         FailError: The given month is not a month in the ``YYYY-mm`` form
             which the report can be requested for.
     """
-    request_json: dict[str, Any] = json.loads(s=request_body)
+    request_json: dict[str, Any] = json.loads(s=request_body)  # pyrefly: ignore [explicit-any]
     month = request_json["month"]
-    if not isinstance(month, str) or not _MONTH_PATTERN.fullmatch(
-        string=month,
+    if not isinstance(month, str) or not bool(
+        _MONTH_PATTERN.fullmatch(
+            string=month,
+        )
     ):
         _LOGGER.warning(msg='The given "month" is not in the YYYY-mm form.')
         raise FailError(status_code=HTTPStatus.BAD_REQUEST)

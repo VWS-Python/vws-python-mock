@@ -50,7 +50,7 @@ class TestDelete:
         vws_client.delete_target(target_id=target_id)
 
         with pytest.raises(expected_exception=UnknownTargetError):
-            vws_client.get_target_record(target_id=target_id)
+            _ = vws_client.get_target_record(target_id=target_id)
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")

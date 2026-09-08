@@ -46,7 +46,7 @@ def validate_content_length_header_is_int(
             integer
     """
     try:
-        int(_given_content_length(context=context))
+        _ = int(_given_content_length(context=context))
     except ValueError as exc:
         _LOGGER.warning(msg="The Content-Length header is not an integer.")
         raise ContentLengthHeaderNotIntError from exc

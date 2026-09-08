@@ -32,7 +32,8 @@ def validate_project_state(*, context: ValidatorContext) -> None:
         States.PROJECT_HAS_NO_API_ACCESS: ProjectHasNoApiAccessError,
         States.PROJECT_SUSPENDED: ProjectSuspendedError,
     }
-    if error := state_errors.get(context.database.state):
+    error = state_errors.get(context.database.state)
+    if error is not None:
         raise error
 
     if context.database.state != States.PROJECT_INACTIVE:
