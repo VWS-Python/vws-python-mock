@@ -522,12 +522,12 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
         """Download a generated reco counts report.
 
         This stands in for the presigned URL which real Vuforia returns, so
-        it does not require any authorization.
+        it does not require any authorization beyond the query parameters of
+        that URL.
         """
-        report_id = request.path.split(sep="/")[-1]
         return download_reco_counts_report(
             report_store=self._target_manager,
-            report_id=report_id,
+            request_path=request.path,
         )
 
     @route(

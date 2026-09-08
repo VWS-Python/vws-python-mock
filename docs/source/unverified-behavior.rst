@@ -85,19 +85,6 @@ The mock does not implement this, so a user of the mock sees a successful respon
 
 A database with more than a million images would verify this, which a test account cannot hold.
 
-.. _unverified-reco-counts-report-not-ready:
-
-A reco counts report which is not ready
----------------------------------------
-
-:Category: never-attempted
-:API: Reco Counts Report API
-
-The URL which the mock returns for a reco counts report gives a 404 response until the report is ready.
-
-A request for a real report which caught it before it was generated would verify this.
-Every real report requested so far has been ready by the time it was asked for.
-
 .. _unverified-reco-counts-report-row-order:
 
 The order of reco counts report rows
