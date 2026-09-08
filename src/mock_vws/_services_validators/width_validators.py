@@ -1,6 +1,5 @@
 """Validators for the width field."""
 
-import json
 import logging
 from http import HTTPStatus
 
@@ -22,7 +21,7 @@ def validate_width(*, context: ValidatorContext) -> None:
     Raises:
         FailError: Width is given and is not a positive number.
     """
-    request_json = json.loads(s=context.request_body.decode())
+    request_json = context.request_json
     if "width" not in request_json:
         return
 

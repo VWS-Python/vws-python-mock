@@ -1,7 +1,6 @@
 """Validators for application metadata."""
 
 import binascii
-import json
 import logging
 from http import HTTPStatus
 
@@ -30,7 +29,7 @@ def validate_metadata_size(*, context: ValidatorContext) -> None:
         MetadataTooLargeError: Application metadata is given and it is too
             large.
     """
-    request_json = json.loads(s=context.request_body.decode())
+    request_json = context.request_json
     application_metadata = request_json.get("application_metadata")
     if application_metadata is None:
         return
@@ -55,7 +54,7 @@ def validate_metadata_encoding(*, context: ValidatorContext) -> None:
         FailError: Application metadata is given and it cannot be base64
             decoded.
     """
-    request_json = json.loads(s=context.request_body.decode())
+    request_json = context.request_json
     application_metadata = request_json.get("application_metadata")
 
     if application_metadata is None:
@@ -79,7 +78,7 @@ def validate_metadata_type(*, context: ValidatorContext) -> None:
         FailError: Application metadata is given and it is not a string or
             NULL.
     """
-    request_json = json.loads(s=context.request_body.decode())
+    request_json = context.request_json
     if "application_metadata" not in request_json:
         return
 

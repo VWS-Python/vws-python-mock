@@ -1,10 +1,8 @@
 """Validators for given JSON."""
 
-import json
 import logging
 from collections.abc import Callable
 from http import HTTPStatus
-from json.decoder import JSONDecodeError
 
 from beartype import beartype
 
@@ -66,20 +64,14 @@ def _validate_json(
         _LOGGER.warning(msg="The request body is empty.")
         raise make_empty_body_error()
 
+    # Vuforia gives the same response for a body which is not UTF-8, such as
+    # JSON encoded as latin-1, as it gives for a body which is not valid JSON
+    # or which is not a JSON object.
     try:
-        # Vuforia gives the same response for a body which is not UTF-8, such
-        # as JSON encoded as latin-1, as it gives for a body which is not
-        # valid JSON.
-        request_json = json.loads(
-            s=context.request_body.decode(encoding="utf-8"),
-        )
-    except (JSONDecodeError, UnicodeDecodeError) as exc:
-        _LOGGER.warning(msg="The request body is not valid JSON.")
-        raise make_invalid_json_error() from exc
-
-    if not isinstance(request_json, dict):
+        _ = context.request_json
+    except (TypeError, ValueError) as exc:
         _LOGGER.warning(msg="The request body is not a JSON object.")
-        raise make_invalid_json_error()
+        raise make_invalid_json_error() from exc
 
 
 @beartype

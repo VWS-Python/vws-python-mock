@@ -2,13 +2,11 @@
 
 import binascii
 import io
-import json
 import logging
 from http import HTTPStatus
 
 from beartype import beartype
 
-from mock_vws._base64_decoding import decode_base64
 from mock_vws._image_opening import open_image
 from mock_vws._services_validators.context import ValidatorContext
 from mock_vws._services_validators.exceptions import (
@@ -21,25 +19,6 @@ _LOGGER = logging.getLogger(name=__name__)
 
 
 @beartype
-def _decoded_image(*, context: ValidatorContext) -> bytes | None:
-    """Return the base64 decoded image given in the request body.
-
-    Args:
-        context: The context of the request.
-
-    Returns:
-        The decoded image data, or ``None`` if no image was given. The data
-        has already been checked to be a decodable string by
-        :py:func:`validate_image_data_type` and
-        :py:func:`validate_image_encoding`.
-    """
-    image = json.loads(s=context.request_body.decode()).get("image")
-    if image is None:
-        return None
-    return decode_base64(encoded_data=image)
-
-
-@beartype
 def validate_image_data_type(*, context: ValidatorContext) -> None:
     """Validate that the given image data is a string.
 
@@ -49,7 +28,7 @@ def validate_image_data_type(*, context: ValidatorContext) -> None:
     Raises:
         FailError: Image data is given and it is not a string.
     """
-    request_json = json.loads(s=context.request_body.decode())
+    request_json = context.request_json
     if "image" not in request_json:
         return
 
@@ -72,12 +51,8 @@ def validate_image_encoding(*, context: ValidatorContext) -> None:
     Raises:
         FailError: Image data is given and it cannot be base64 decoded.
     """
-    request_json = json.loads(s=context.request_body.decode())
-    if "image" not in request_json:
-        return
-
     try:
-        decode_base64(encoded_data=request_json["image"])
+        _ = context.decoded_image
     except binascii.Error as exc:
         _LOGGER.warning('Image data cannot be base64 decoded: "%s"', exc)
         raise FailError(status_code=HTTPStatus.UNPROCESSABLE_ENTITY) from exc
@@ -93,7 +68,7 @@ def validate_image_is_image(*, context: ValidatorContext) -> None:
     Raises:
         BadImageError: Image data is given and it is not an image file.
     """
-    decoded = _decoded_image(context=context)
+    decoded = context.decoded_image
     if decoded is None:
         return
 
@@ -117,7 +92,7 @@ def validate_image_format(*, context: ValidatorContext) -> None:
     Raises:
         BadImageError:  The image is given and is not either a PNG or a JPEG.
     """
-    decoded = _decoded_image(context=context)
+    decoded = context.decoded_image
     if decoded is None:
         return
 
@@ -141,7 +116,7 @@ def validate_image_color_space(*, context: ValidatorContext) -> None:
         BadImageError: The image is given and is not in either the RGB or
             greyscale color space.
     """
-    decoded = _decoded_image(context=context)
+    decoded = context.decoded_image
     if decoded is None:
         return
 
@@ -167,7 +142,7 @@ def validate_image_size(*, context: ValidatorContext) -> None:
         ImageTooLargeError:  The image is given and is not under a certain file
             size threshold.
     """
-    decoded = _decoded_image(context=context)
+    decoded = context.decoded_image
     if decoded is None:
         return
 
@@ -193,7 +168,7 @@ def validate_image_pixel_count(*, context: ValidatorContext) -> None:
         ImageTooLargeError: The image is given and it has more than the
             maximum number of pixels.
     """
-    decoded = _decoded_image(context=context)
+    decoded = context.decoded_image
     if decoded is None:
         return
 
@@ -221,7 +196,7 @@ def validate_image_integrity(*, context: ValidatorContext) -> None:
     Raises:
         BadImageError: The image is given and is not a valid image file.
     """
-    decoded = _decoded_image(context=context)
+    decoded = context.decoded_image
     if decoded is None:
         return
 

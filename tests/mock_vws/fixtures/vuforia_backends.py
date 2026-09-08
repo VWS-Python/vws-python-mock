@@ -30,7 +30,10 @@ from tests.mock_vws.fixtures.credentials import (
 from tests.mock_vws.utils.model_target_retries import (
     retrying_transient_real_backend_failures,
 )
-from tests.mock_vws.utils.retries import RETRY_ON_TRANSIENT_VWS_FAILURE
+from tests.mock_vws.utils.retries import (
+    RETRY_ON_TARGET_STILL_PROCESSING,
+    RETRY_ON_TRANSIENT_VWS_FAILURE,
+)
 
 LOGGER = logging.getLogger(name=__name__)
 LOGGER.setLevel(level=logging.DEBUG)
@@ -82,7 +85,19 @@ def _delete_all_targets(*, database_keys: CloudDatabase) -> None:
         with contextlib.suppress(TargetStatusNotSuccessError):
             vws_client.update_target(target_id=target, active_flag=False)
         vws_client.wait_for_target_processed(target_id=target)
-        vws_client.delete_target(target_id=target)
+        _delete_processed_target(vws_client=vws_client, target_id=target)
+
+
+@beartype
+@RETRY_ON_TARGET_STILL_PROCESSING
+def _delete_processed_target(*, vws_client: VWS, target_id: str) -> None:
+    """Delete a target which has just been waited on to be processed.
+
+    Args:
+        vws_client: A client for the database the target is in.
+        target_id: The ID of the target to delete.
+    """
+    vws_client.delete_target(target_id=target_id)
 
 
 @beartype

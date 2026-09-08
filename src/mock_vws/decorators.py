@@ -38,7 +38,6 @@ from mock_vws.model_target import (
     ModelTargetGenerationFailure,
     ModelTargetGenerationWarning,
 )
-from mock_vws.target import ImageTarget
 from mock_vws.target_manager import TargetManager
 from mock_vws.target_raters import (
     BrisqueTargetTrackingRater,
@@ -377,10 +376,8 @@ class MockVWS:
             for cloud_database, target in matches:
                 # Recognizing a target does not change it, so the target's
                 # last modified date is not changed here.
-                #
-                # See https://github.com/facebook/pyrefly/issues/1897
-                new_target: ImageTarget = copy.replace(
-                    target,  # pyrefly: ignore[bad-argument-type]
+                new_target = copy.replace(
+                    target,
                     current_month_recos=(
                         target.current_month_recos
                         if current_month_recos is None

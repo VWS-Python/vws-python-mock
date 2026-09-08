@@ -1,6 +1,5 @@
 """Validators for the active flag."""
 
-import json
 import logging
 from http import HTTPStatus
 
@@ -23,7 +22,7 @@ def validate_active_flag(*, context: ValidatorContext) -> None:
         FailError: There is active flag data given to the endpoint which is not
             either a Boolean or NULL.
     """
-    request_json = json.loads(s=context.request_body.decode())
+    request_json = context.request_json
     if "active_flag" not in request_json:
         return
 

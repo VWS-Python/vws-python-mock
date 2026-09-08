@@ -77,19 +77,6 @@ The mock does not implement this, so a user of the mock sees a successful respon
 
 A database with more than a million images would verify this, which a test account cannot hold.
 
-.. _unverified-nginx-oversized-header-or-cookie:
-
-Large headers and cookies
--------------------------
-
-:Category: never-attempted
-:API: Cross-cutting request handling
-
-Vuforia runs behind NGINX, which is documented as returning a 400 (``BAD REQUEST``) response for a header or a cookie larger than 8 KiB.
-The mock does not implement this, and no test sends such a request to either.
-
-Sending a request with a header larger than 8 KiB to a real database would verify this.
-
 .. _unverified-reco-counts-report-row-order:
 
 The order of reco counts report rows

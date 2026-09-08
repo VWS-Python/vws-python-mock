@@ -2394,7 +2394,7 @@ class TestMockOnlyOAuth2EdgeCases:
         """Credential-management routes enforce bearer-token validity and
         scope.
         """
-        headers = [
+        headers: list[dict[str, str]] = [
             {},
             {"Authorization": "Bearer malformed"},
             {"Authorization": "Bearer e30.e30.signature"},

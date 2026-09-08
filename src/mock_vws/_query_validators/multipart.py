@@ -5,6 +5,7 @@ API.
 import io
 import logging
 from collections.abc import Mapping
+from dataclasses import dataclass
 from email.message import EmailMessage
 
 from beartype import beartype
@@ -14,6 +15,27 @@ from werkzeug.formparser import MultiPartParser
 from mock_vws._query_validators.exceptions import NoContentDispositionError
 
 _LOGGER = logging.getLogger(name=__name__)
+
+
+@beartype
+@dataclass(frozen=True, kw_only=True)
+class MultipartForm:
+    """The parsed ``multipart/form-data`` body of a query request.
+
+    Where the body gives a field more than once, the first value is kept, as
+    it is by every reader of the raw parse.
+
+    Args:
+        fields: The form fields, by name.
+        files: The content of each file part, by name.
+
+    Attributes:
+        fields: The form fields, by name.
+        files: The content of each file part, by name.
+    """
+
+    fields: Mapping[str, str]
+    files: Mapping[str, bytes]
 
 
 @beartype
@@ -47,7 +69,7 @@ def parse_multipart(
     *,
     request_headers: Mapping[str, str],
     request_body: bytes,
-) -> tuple[MultiDict[str, str], MultiDict[str, FileStorage]]:
+) -> MultipartForm:
     """Parse the multipart body of a query request.
 
     Vuforia accepts a body which ends before its closing boundary, as a
@@ -60,7 +82,7 @@ def parse_multipart(
         request_body: The body of the request.
 
     Returns:
-        The fields and the files parsed from the multipart body.
+        The form parsed from the multipart body.
 
     Raises:
         NoContentDispositionError: The body ends within the headers of a part,
@@ -95,12 +117,19 @@ def parse_multipart(
 
     for candidate in candidates:
         try:
-            return _parse_with_boundary(
+            fields, files = _parse_with_boundary(
                 request_body=candidate,
                 boundary=boundary,
             )
         except ValueError:
             continue
+        return MultipartForm(
+            fields=fields.to_dict(),
+            files={
+                name: file_storage.stream.read()
+                for name, file_storage in files.items()
+            },
+        )
 
     # Every remaining body is one in which a part has no usable
     # ``Content-Disposition`` header, either because the body ends before that

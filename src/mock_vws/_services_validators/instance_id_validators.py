@@ -1,6 +1,5 @@
 """Validators for VuMark instance IDs."""
 
-import json
 import logging
 
 from beartype import beartype
@@ -26,7 +25,7 @@ def validate_instance_id_type(*, context: ValidatorContext) -> None:
         BadRequestError: There is instance_id data given to the endpoint
             which is not a string.
     """
-    instance_id = json.loads(s=context.request_body.decode())["instance_id"]
+    instance_id = context.request_json["instance_id"]
 
     if isinstance(instance_id, str):
         return
@@ -49,7 +48,7 @@ def validate_instance_id_not_empty(*, context: ValidatorContext) -> None:
         InvalidInstanceIdError: There is instance_id data given to the
             endpoint which is an empty string.
     """
-    instance_id = json.loads(s=context.request_body.decode())["instance_id"]
+    instance_id = context.request_json["instance_id"]
 
     if instance_id:
         return
