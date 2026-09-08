@@ -65,6 +65,9 @@ jobs:
           - tests/mock_vws/test_content_length.py::TestIncorrect::test_not_integer
           - tests/mock_vws/test_content_length.py::TestIncorrect::test_too_large
           - tests/mock_vws/test_content_length.py::TestIncorrect::test_too_small
+          - tests/mock_vws/test_header_size.py::TestOversizedHeaderLine::test_header_too_large
+          - tests/mock_vws/test_header_size.py::TestOversizedHeaderLine::test_cookie_too_large
+          - tests/mock_vws/test_header_size.py::TestOversizedHeaderLine::test_large_header_within_limit
           - tests/mock_vws/test_database_summary.py::TestDatabaseSummary::test_success
           - tests/mock_vws/test_database_summary.py::TestDatabaseSummary::test_active_images
           - tests/mock_vws/test_database_summary.py::TestDatabaseSummary::test_failed_images

@@ -357,6 +357,43 @@ class ContentLengthHeaderTooLargeError(ValidatorError):
 
 
 @beartype
+class RequestHeaderOrCookieTooLargeError(ValidatorError):
+    """Exception raised when a request header line is too long for NGINX.
+
+    NGINX rejects the request before it reaches the Vuforia application,
+    so this takes precedence over every other validation, including
+    authorization.
+    """
+
+    def __init__(self) -> None:
+        """Initialize an NGINX request header too large response."""
+        super().__init__()
+        self.status_code = HTTPStatus.BAD_REQUEST
+        self.response_text = "".join(
+            f"{line}\r\n"
+            for line in (
+                "<html>",
+                (
+                    "<head><title>400 Request Header Or Cookie Too Large"
+                    "</title></head>"
+                ),
+                "<body>",
+                "<center><h1>400 Bad Request</h1></center>",
+                "<center>Request Header Or Cookie Too Large</center>",
+                "<hr><center>nginx</center>",
+                "</body>",
+                "</html>",
+            )
+        )
+        self.headers = {
+            **_STANDARD_HEADERS,
+            "Content-Type": "text/html",
+            "Date": http_date(),
+            "Content-Length": str(object=len(self.response_text)),
+        }
+
+
+@beartype
 class ContentLengthHeaderNotIntError(ValidatorError):
     """
     Exception raised when the given content length header is not an
