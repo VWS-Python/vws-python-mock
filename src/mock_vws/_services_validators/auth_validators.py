@@ -35,17 +35,22 @@ def validate_auth_header_exists(*, request_headers: Mapping[str, str]) -> None:
 
 
 @beartype
-def validate_access_key_exists(
+def validate_access_key_exists[DatabaseT: AnyDatabase](
     *,
     request_headers: Mapping[str, str],
-    databases: Iterable[AnyDatabase],
-) -> None:
+    databases: Iterable[DatabaseT],
+) -> DatabaseT:
     """Validate the authorization header includes an access key for a
     database.
 
     Args:
         request_headers: The headers sent with the request.
         databases: All Vuforia databases.
+
+    Returns:
+        The database whose server access key the header names. The header's
+        signature has not been checked, so the request is not yet known to
+        be authorized for that database.
 
     Raises:
         FailError: The access key does not match a given database.
@@ -55,7 +60,7 @@ def validate_access_key_exists(
     _, access_key = first_part.split(sep=" ")
     for database in databases:
         if access_key == database.server_access_key:
-            return
+            return database
 
     _LOGGER.warning(
         'The access key "%s" does not match a known database.',

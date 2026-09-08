@@ -38,19 +38,6 @@ The status code and the body shape come from Vuforia's documentation and from th
 A real database with an exhausted request quota would verify this.
 No such response has been seen.
 
-.. _unverified-request-rate-limits:
-
-Request rate limits
--------------------
-
-:Category: never-attempted
-:API: VWS Target API
-
-Vuforia documents a limit of 15 requests per second for VWS endpoints in general, 45 per second for ``GET /targets/{target_id}``, 10 per second for ``GET /duplicates/{target_id}`` and one per minute for ``GET /targets``.
-The mock models the limits separately for each group of endpoints, and applies them only when it is asked to.
-
-Sending more than the documented number of requests to a real database, and seeing what it returns, would verify this.
-
 .. _unverified-project-suspended:
 
 A suspended database
@@ -79,8 +66,9 @@ Additional result codes
 :Category: never-attempted
 :API: VWS Target API
 
-``ProjectHasNoApiAccess``, ``TargetQuotaReached`` and ``TooManyRequests`` come from Vuforia's result codes table.
+``ProjectHasNoApiAccess`` and ``TargetQuotaReached`` come from Vuforia's result codes table.
 No response from a real database in any of those states has been seen, which is why the mock's ``ProjectHasNoApiAccess`` casing is the table's casing rather than an observed one.
+The table also lists ``TooManyRequests``, but a rate-limited request to a real database gets a ``429`` response with no body at all, so the mock never returns that result code.
 
 A database put into each state by the Target Manager portal would verify these.
 

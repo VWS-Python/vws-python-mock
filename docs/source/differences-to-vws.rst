@@ -184,16 +184,30 @@ endpoints in general, with 45 requests per second for
 ``GET /targets/{target_id}``, 10 requests per second for
 ``GET /duplicates/{target_id}``, and 1 request per minute for ``GET /targets``.
 
-The mock models these limits separately for each group of endpoints, but it applies no limit by default.
-Applying a limit of 1 request per minute to ``GET /targets`` by default would break the tests of anything which uses the mock.
+The limits were checked against real Vuforia on 2026-09-08, by sending bursts of requests to read-only endpoints:
 
-.. admonition:: Unverified assumption
+* ``GET /targets`` accepts two requests per minute, not one.
+  The window is a fixed clock minute: two requests at 40 seconds past the minute were accepted, a third was rejected, and a request three seconds into the next minute was accepted again.
+* The per-second limits are enforced roughly, not exactly.
+  Bursts of 40 concurrent ``GET /summary`` requests saw between 17 and 37 succeed against the documented 15, and a burst of 120 ``GET /targets/{target_id}`` requests saw 74 succeed against the documented 45, so the limiter appears to be spread over more than one instance or window.
+* A limit is keyed on the server access key in the ``Authorization`` header, so one database's burst does not affect another database.
+  Vuforia applies the limit before checking the signature, so a request with a bad signature counts towards the limit, and a request over the limit gets a ``429`` response whether or not it is signed correctly.
+  Requests without an ``Authorization`` header are not rate limited.
+* A rate-limited request gets a ``429`` (``TOO MANY REQUESTS``) response from Envoy with an empty body, no ``Content-Type`` header and an ``x-envoy-ratelimited: true`` header.
+  Vuforia has an Envoy layer at its edge and another in front of the application, and either may reject the request.
+  Only a rejection by the inner layer carries an ``x-envoy-upstream-service-time`` header, which the mock always includes.
+  The ``TooManyRequests`` result code from Vuforia's result codes table does not appear.
 
-   :ref:`unverified-request-rate-limits`
+The mock returns the empty Envoy response, applies each limit before checking the request's signature, and tracks each limit separately for each database and each group of endpoints.
+The mock's windows are rolling rather than clock-aligned, so two ``GET /targets`` requests block a third until a minute has passed since the first, and the mock enforces the per-second limits exactly.
+The mock only limits requests whose access key belongs to a database, because the limits are configured on the database.
+
+The mock applies no limit by default.
+Applying a limit of two requests per minute to ``GET /targets`` by default would break the tests of anything which uses the mock.
 
 Set ``request_rate_limits`` to
 :data:`mock_vws.request_rate_limits.DOCUMENTED_REQUEST_RATE_LIMITS` to apply
-the documented limits::
+the limits which real Vuforia applies::
 
     from mock_vws import MockVWS
     from mock_vws.database import CloudDatabase
@@ -205,8 +219,8 @@ the documented limits::
 
     with MockVWS() as mock:
         mock.add_cloud_database(cloud_database=database)
-        # A second ``GET /targets`` request within a minute returns
-        # ``TooManyRequests``.
+        # A third ``GET /targets`` request within a minute gets a ``429``
+        # response.
         ...
 
 ``requests_per_second_limit`` remains available. It applies one limit to all
