@@ -469,7 +469,7 @@ class TestAuthentication:
                 response=create_response,
                 status_codes=HTTPStatus.CREATED,
             )
-            client_id = create_response.json()["client_id"]
+            client_id = create_response.json()["client_id"]  # ty: ignore[unsound-assignment]
             client_secret = create_response.json()["client_secret"]  # pyrefly: ignore [unknown-variable-type]
 
             list_response = model_target_get(
@@ -2062,7 +2062,7 @@ class TestAdditionalBehaviors:
                 response=create_response,
                 status_codes=HTTPStatus.CREATED,
             )
-            dataset_uuid = create_response.json()["uuid"]
+            dataset_uuid = create_response.json()["uuid"]  # ty: ignore[unsound-assignment]
 
             other_status_response = model_target_get(
                 url=f"{_VWS_HOST}{other_path}/{dataset_uuid}/status",

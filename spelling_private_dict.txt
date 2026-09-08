@@ -129,6 +129,7 @@ timestamp
 todo
 travis
 txt
+ty
 unlinks
 unmocked
 unrouted

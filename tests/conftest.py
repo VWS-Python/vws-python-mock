@@ -206,7 +206,7 @@ def endpoint(*, request: pytest.FixtureRequest) -> Endpoint:
     the cross-cutting ``Authorization`` and ``Date`` header concerns do not
     apply to it.
     """
-    endpoint_fixture: Endpoint = request.getfixturevalue(argname=request.param)
+    endpoint_fixture: Endpoint = request.getfixturevalue(argname=request.param)  # ty: ignore[unsound-assignment]
     return endpoint_fixture
 
 
@@ -234,7 +234,7 @@ def model_target_endpoint(
     """
     endpoint_fixture: ModelTargetEndpoint = request.getfixturevalue(
         argname=request.param,
-    )
+    )  # ty: ignore[unsound-assignment]
     return endpoint_fixture
 
 
@@ -265,7 +265,7 @@ def not_base64_encoded_processable(*, request: pytest.FixtureRequest) -> str:
 
     ``UNPROCESSABLE_ENTITY`` when this is given.
     """
-    not_base64_encoded_string: str = request.param
+    not_base64_encoded_string: str = request.param  # ty: ignore[unsound-assignment]
 
     with pytest.raises(expected_exception=binascii.Error):
         _ = base64.b64decode(s=not_base64_encoded_string, validate=True)
@@ -291,7 +291,7 @@ def not_base64_encoded_not_processable(
     will
     return an ``UNPROCESSABLE_ENTITY`` response when this is given.
     """
-    not_base64_encoded_string: str = request.param
+    not_base64_encoded_string: str = request.param  # ty: ignore[unsound-assignment]
 
     with pytest.raises(expected_exception=binascii.Error):
         _ = base64.b64decode(s=not_base64_encoded_string, validate=True)

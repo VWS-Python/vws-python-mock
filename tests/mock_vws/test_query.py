@@ -1025,7 +1025,7 @@ def _add_and_wait_for_targets(
     num_targets: int,
 ) -> None:
     """Add targets with the given image."""
-    target_ids: Iterable[str] = set()
+    target_ids: Iterable[str] = set()  # ty: ignore[unsound-assignment]
     for _ in range(num_targets):
         target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
@@ -1034,7 +1034,7 @@ def _add_and_wait_for_targets(
             active_flag=True,
             application_metadata=None,
         )
-        target_ids = {*target_ids, target_id}
+        target_ids = {*target_ids, target_id}  # ty: ignore[unsound-assignment]
 
     for created_target_id in target_ids:
         vws_client.wait_for_target_processed(target_id=created_target_id)

@@ -42,7 +42,7 @@ def _unused_port() -> int:
     """Return a port with nothing listening on it."""
     with socket.socket() as sock:
         sock.bind(("localhost", 0))
-        port: int = sock.getsockname()[1]
+        port: int = sock.getsockname()[1]  # ty: ignore[unsound-assignment]
     return port
 
 

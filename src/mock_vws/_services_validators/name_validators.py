@@ -33,7 +33,7 @@ def _given_name(*, context: ValidatorContext) -> str | None:
         :py:func:`validate_name_type`.
     """
     request_json = context.request_json
-    name: str | None = request_json.get("name")
+    name: str | None = request_json.get("name")  # ty: ignore[unsound-assignment]
     return name
 
 
@@ -63,7 +63,7 @@ def _new_target_name(*, context: ValidatorContext) -> str:
         a request which does not give one, and :py:func:`validate_name_type`
         has already rejected one which is not a string.
     """
-    name: str = context.request_json["name"]
+    name: str = context.request_json["name"]  # ty: ignore[unsound-assignment]
     return name
 
 
