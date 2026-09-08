@@ -90,19 +90,6 @@ The mock does not implement this, and no test sends such a request to either.
 
 Sending a request with a header larger than 8 KiB to a real database would verify this.
 
-.. _unverified-reco-counts-report-not-ready:
-
-A reco counts report which is not ready
----------------------------------------
-
-:Category: never-attempted
-:API: Reco Counts Report API
-
-The URL which the mock returns for a reco counts report gives a 404 response until the report is ready.
-
-A request for a real report which caught it before it was generated would verify this.
-Every real report requested so far has been ready by the time it was asked for.
-
 .. _unverified-reco-counts-report-row-order:
 
 The order of reco counts report rows
