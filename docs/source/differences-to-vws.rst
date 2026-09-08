@@ -134,16 +134,26 @@ The mock uses the fixed sample value ``us-east-2, us-west-2`` for
 ``x-aws-region`` response headers. The regions returned by the real Vuforia
 Web Services can differ, so tests should not rely on the mock's exact value.
 
+.. _differences-nginx-error-cases:
+
 NGINX Error cases
 -----------------
 
-Vuforia uses NGINX.
-This has error handling which is not duplicated in the mock.
-For example, Vuforia is documented as returning a 400 (``BAD REQUEST``) response if a header or cookie is given which is larger than 8 KiB.
+Vuforia uses NGINX in front of both the Target API and the Query API.
+NGINX reads each request header line into an 8 KiB buffer, and returns a 400 (``BAD REQUEST``) response with an HTML body titled ``400 Request Header Or Cookie Too Large`` for a line which does not fit.
+The line's terminating CRLF also counts towards the buffer, so the longest accepted line is 8190 bytes, where a line is the header name, a colon, a space and the value.
+This was observed against real Vuforia on 2026-09-08.
 
-.. admonition:: Unverified assumption
+The mock returns that response for any header line longer than 8190 bytes.
+The mock does not implement the following related behaviors, which were observed in the same session:
 
-   :ref:`unverified-nginx-oversized-header-or-cookie`
+* The Target API's Envoy layer lets a ``Cookie`` line slightly over the limit through.
+  A ``Cookie`` line of 8193 bytes was accepted and one of 8300 bytes was rejected.
+* The Target API's AWS load balancer rejects a header line of 16384 bytes or more itself, with a shorter HTML body and a ``Server: awselb/2.0`` header.
+  A ``Cookie`` line of that size passes the load balancer and is rejected by NGINX instead.
+* The Query API's application server rejects a request whose headers total about 8 KiB with a 431 (``REQUEST HEADER FIELDS TOO LARGE``) HTML response before the NGINX limit is reached.
+  With the headers which a query normally has, a header line of 7500 bytes was accepted and one of 8000 bytes was rejected this way.
+* The Model Target Web API, the OAuth2 token endpoint and reco counts report downloads in the mock do not apply the limit.
 
 Result codes
 ------------

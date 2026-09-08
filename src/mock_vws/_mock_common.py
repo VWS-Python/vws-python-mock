@@ -6,7 +6,7 @@ import json
 import uuid
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
-from typing import Any, override
+from typing import Any, Final, override
 
 from beartype import beartype
 
@@ -144,3 +144,28 @@ def json_dump(*, body: dict[str, Any]) -> str:
         JSON dump of data in the same way that Vuforia dumps data.
     """
     return json.dumps(obj=body, separators=(",", ":"))
+
+
+# NGINX, which sits in front of both Vuforia APIs, reads each header line
+# into an 8 KiB buffer which also holds the line's terminating CRLF.
+# A line of 8190 bytes is accepted and a line of 8191 bytes is rejected.
+MAX_HEADER_LINE_LENGTH: Final[int] = 8190
+
+
+@beartype
+def has_oversized_header_line(*, request_headers: Mapping[str, str]) -> bool:
+    """Whether any header line is too long for NGINX's header buffer.
+
+    A header line is the header name, a colon, a space and the value, as
+    sent on the wire.
+
+    Args:
+        request_headers: The headers sent with the request.
+
+    Returns:
+        Whether any header line is longer than ``MAX_HEADER_LINE_LENGTH``.
+    """
+    return any(
+        len(f"{name}: {value}".encode()) > MAX_HEADER_LINE_LENGTH
+        for name, value in request_headers.items()
+    )
