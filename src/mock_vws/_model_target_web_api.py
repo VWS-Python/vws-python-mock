@@ -345,8 +345,8 @@ def _jwt_scopes(*, bearer_token: str) -> frozenset[str]:
     )
     scope = payload.get("scope", "")  # pyrefly: ignore [unknown-variable-type]
     if not isinstance(scope, str):
-        return frozenset()
-    return frozenset(scope.split())
+        return frozenset()  # ty: ignore[unsound-return-statement]
+    return frozenset(scope.split())  # ty: ignore[unsound-return-statement]
 
 
 @beartype

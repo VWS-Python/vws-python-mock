@@ -288,7 +288,7 @@ def _mock_routes(
             handler: _Handler = getattr(  # pylint: disable=bad-builtin
                 api,
                 route.route_name,
-            )
+            )  # ty: ignore[unsound-assignment]
             httpx2_handler = delayed_httpx2_handler(
                 handler=_httpx2_handler(handler=handler, base_path=base_path),
                 delay_seconds=response_delay_seconds,
