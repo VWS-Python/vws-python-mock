@@ -7,11 +7,10 @@ https://developer.vuforia.com/library/web-api/vuforia-query-web-api
 import email.utils
 from collections.abc import Callable, Iterable, Mapping
 from http import HTTPMethod, HTTPStatus
-from typing import ParamSpec, Protocol, runtime_checkable
 
 from beartype import beartype
 
-from mock_vws._mock_common import RequestData, Route
+from mock_vws._mock_common import RequestData, Route, RouteDefinition
 from mock_vws._query_tools import (
     get_query_match_response_text,
 )
@@ -23,21 +22,12 @@ from mock_vws.cloud_query import CloudQueryFailureResponse
 from mock_vws.image_matchers import ImageMatcher
 from mock_vws.target_manager import TargetManager
 
-_ROUTES: set[Route] = set()
-
 _ResponseType = tuple[int, Mapping[str, str], str | bytes]
-_P = ParamSpec("_P")
-
-
-@runtime_checkable
-class _RouteMethod(Protocol[_P]):
-    """Callable used for routing which also exposes ``__name__``."""
-
-    __name__: str
-
-    def __call__(self, *args: _P.args, **kwargs: _P.kwargs) -> _ResponseType:
-        """Return a mock response."""
-        ...  # pylint: disable=unnecessary-ellipsis
+type _RouteMethod = Callable[
+    ["MockVuforiaWebQueryAPI", RequestData],
+    _ResponseType,
+]
+_ROUTES: set[RouteDefinition[MockVuforiaWebQueryAPI]] = set()
 
 
 @beartype
@@ -45,7 +35,7 @@ def route(
     *,
     path_pattern: str,
     http_methods: Iterable[str],
-) -> Callable[[_RouteMethod[_P]], _RouteMethod[_P]]:
+) -> Callable[[_RouteMethod], _RouteMethod]:
     """Register a decorated method so that it can be recognized as a route.
 
     Args:
@@ -58,8 +48,8 @@ def route(
     """
 
     def decorator(
-        method: _RouteMethod[_P],
-    ) -> _RouteMethod[_P]:
+        method: _RouteMethod,
+    ) -> _RouteMethod:
         """Register a decorated method so that it can be recognized as a
         route.
 
@@ -67,8 +57,8 @@ def route(
             The given `method` with multiple changes, including added
             validators.
         """
-        new_route = Route(
-            route_name=method.__name__,
+        new_route = RouteDefinition(
+            handler=method,
             path_pattern=path_pattern,
             http_methods=frozenset(http_methods),
         )
@@ -101,7 +91,7 @@ class MockVuforiaWebQueryAPI:
         Attributes:
             routes: The `Route`s to be used in the mock.
         """
-        self.routes = _ROUTES
+        self.routes: set[Route] = {route.bind(api=self) for route in _ROUTES}
         self._target_manager = target_manager
         self._query_match_checker = query_match_checker
         self._failure_response = failure_response

@@ -12,7 +12,7 @@ import json
 import uuid
 from collections.abc import Callable, Iterable, Mapping
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, Any, ParamSpec, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any
 from zoneinfo import ZoneInfo
 
 from beartype import BeartypeConf, beartype
@@ -30,6 +30,7 @@ from mock_vws._mock_common import (
     RECO_COUNTS_REPORT_PATH_PATTERN,
     RequestData,
     Route,
+    RouteDefinition,
     json_dump,
     sorted_targets,
 )
@@ -78,21 +79,12 @@ _TARGET_ID_PATTERN = "[A-Za-z0-9]+"
 _MODEL_TARGET_DATASET_UUID_PATTERN = "[A-Za-z0-9-]+"
 
 
-_ROUTES: set[Route] = set()
-
 _ResponseType = tuple[int, Mapping[str, str], str | bytes]
-_P = ParamSpec("_P")
-
-
-@runtime_checkable
-class _RouteMethod(Protocol[_P]):
-    """Callable used for routing which also exposes ``__name__``."""
-
-    __name__: str
-
-    def __call__(self, *args: _P.args, **kwargs: _P.kwargs) -> _ResponseType:
-        """Return a mock response."""
-        ...  # pylint: disable=unnecessary-ellipsis
+type _RouteMethod = Callable[
+    ["MockVuforiaWebServicesAPI", RequestData],
+    _ResponseType,
+]
+_ROUTES: set[RouteDefinition[MockVuforiaWebServicesAPI]] = set()
 
 
 @beartype
@@ -100,7 +92,7 @@ def route(
     *,
     path_pattern: str,
     http_methods: Iterable[HTTPMethod],
-) -> Callable[[_RouteMethod[_P]], _RouteMethod[_P]]:
+) -> Callable[[_RouteMethod], _RouteMethod]:
     """Register a decorated method so that it can be recognized as a route.
 
     Args:
@@ -114,8 +106,8 @@ def route(
 
     @beartype
     def decorator(
-        method: _RouteMethod[_P],
-    ) -> _RouteMethod[_P]:
+        method: _RouteMethod,
+    ) -> _RouteMethod:
         """Register a decorated method so that it can be recognized as a
         route.
 
@@ -123,8 +115,8 @@ def route(
             The given `method` with multiple changes, including added
             validators.
         """
-        new_route = Route(
-            route_name=method.__name__,
+        new_route = RouteDefinition(
+            handler=method,
             path_pattern=path_pattern,
             http_methods=frozenset(http_methods),
         )
@@ -186,7 +178,7 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
         """
         self._target_manager = target_manager
         self._base_vws_url = base_vws_url
-        self.routes = _ROUTES
+        self.routes: set[Route] = {route.bind(api=self) for route in _ROUTES}
         self._processing_time_seconds = processing_time_seconds
         self._model_target_generation_failure = model_target_generation_failure
         self._model_target_failure_response = model_target_failure_response
