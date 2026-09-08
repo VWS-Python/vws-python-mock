@@ -112,8 +112,8 @@ class TestRecoCountsReport:
             "presigned_url",
         }
         assert response_json["result_code"] == ResultCodes.SUCCESS.value
-        transaction_id = response_json["transaction_id"]
-        assert all(char in hexdigits for char in transaction_id)
+        transaction_id = response_json["transaction_id"]  # pyrefly: ignore [unknown-variable-type]
+        assert all(char in hexdigits for char in transaction_id)  # pyrefly: ignore [unknown-argument-type]
         assert response_json["presigned_url"].startswith("https://")
 
     @staticmethod
@@ -215,14 +215,14 @@ class TestDownloadReport:
             database_id=vuforia_database.database_id,
             month=_month_offset_from_now(months=0),
         )
-        presigned_url = json.loads(s=response.text)["presigned_url"]
+        presigned_url = json.loads(s=response.text)["presigned_url"]  # pyrefly: ignore [unknown-variable-type]
 
-        not_ready_response = requests.get(url=presigned_url, timeout=30)
+        not_ready_response = requests.get(url=presigned_url, timeout=30)  # pyrefly: ignore [unknown-argument-type]
         assert not_ready_response.status_code == HTTPStatus.NOT_FOUND
 
         time.sleep(_GENERATION_TIME_SECONDS + 1)
 
-        ready_response = requests.get(url=presigned_url, timeout=30)
+        ready_response = requests.get(url=presigned_url, timeout=30)  # pyrefly: ignore [unknown-argument-type]
         assert ready_response.status_code == HTTPStatus.OK
         assert ready_response.headers["Content-Type"] == "text/plain"
         assert ready_response.text == "target_id,reco_count\r\n"
@@ -279,11 +279,11 @@ class TestDownloadReport:
             database_id=vuforia_database.database_id,
             month=_month_offset_from_now(months=-months_ago),
         )
-        presigned_url = json.loads(s=response.text)["presigned_url"]
+        presigned_url = json.loads(s=response.text)["presigned_url"]  # pyrefly: ignore [unknown-variable-type]
 
         time.sleep(_GENERATION_TIME_SECONDS + 1)
 
-        ready_response = requests.get(url=presigned_url, timeout=30)
+        ready_response = requests.get(url=presigned_url, timeout=30)  # pyrefly: ignore [unknown-argument-type]
         assert ready_response.status_code == HTTPStatus.OK
         assert ready_response.text == (
             "target_id,reco_count\r\n"

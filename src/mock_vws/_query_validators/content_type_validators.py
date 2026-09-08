@@ -39,7 +39,7 @@ def validate_content_type_header(
     """
     request_headers_dict = dict(request_headers)
     content_type_header = request_headers_dict.get("Content-Type", "")
-    if not content_type_header:
+    if not bool(content_type_header):
         _LOGGER.warning(msg="The content type header is empty.")
         raise NoContentTypeError
 

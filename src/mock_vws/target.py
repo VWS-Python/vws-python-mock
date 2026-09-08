@@ -127,7 +127,7 @@ class ImageTarget:
         suitable the target is for detection.
         """
         processing_time = datetime.timedelta(
-            seconds=float(self.processing_time_seconds),
+            seconds=float(self.processing_time_seconds),  # pyrefly: ignore [unnecessary-type-conversion]
         )
 
         timezone = self.upload_date.tzinfo
@@ -151,7 +151,7 @@ class ImageTarget:
             # That this is half of the total processing time is unrealistic.
             # In VWS it is not a constant percentage: it was observed as
             # roughly one second of a roughly thirty second processing time.
-            seconds=float(self.processing_time_seconds) / 2,
+            seconds=float(self.processing_time_seconds) / 2,  # pyrefly: ignore [unnecessary-type-conversion]
         )
 
         timezone = self.upload_date.tzinfo
@@ -221,7 +221,7 @@ class ImageTarget:
     def to_dict(self) -> ImageTargetDict:
         """Dump a target to a dictionary which can be loaded as JSON."""
         delete_date: str | None = None
-        if self.delete_date:
+        if self.delete_date is not None:
             delete_date = self.delete_date.isoformat()
 
         image_base64 = base64.encodebytes(s=self.image_value).decode()
@@ -231,7 +231,7 @@ class ImageTarget:
             "width": self.width,
             "image_base64": image_base64,
             "active_flag": self.active_flag,
-            "processing_time_seconds": float(self.processing_time_seconds),
+            "processing_time_seconds": float(self.processing_time_seconds),  # pyrefly: ignore [unnecessary-type-conversion]
             "application_metadata": self.application_metadata,
             "target_id": self.target_id,
             "last_modified_date": self.last_modified_date.isoformat(),
@@ -268,7 +268,7 @@ class VuMarkTarget:
         VuMark targets always succeed after processing.
         """
         processing_time = datetime.timedelta(
-            seconds=float(self.processing_time_seconds),
+            seconds=float(self.processing_time_seconds),  # pyrefly: ignore [unnecessary-type-conversion]
         )
 
         timezone = self.upload_date.tzinfo
@@ -305,7 +305,7 @@ class VuMarkTarget:
         return {
             "target_id": self.target_id,
             "name": self.name,
-            "processing_time_seconds": float(self.processing_time_seconds),
+            "processing_time_seconds": float(self.processing_time_seconds),  # pyrefly: ignore [unnecessary-type-conversion]
             "last_modified_date": self.last_modified_date.isoformat(),
             "upload_date": self.upload_date.isoformat(),
         }

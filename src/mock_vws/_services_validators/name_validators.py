@@ -167,7 +167,7 @@ def validate_name_length(*, context: ValidatorContext) -> None:
         return
 
     max_length = 64
-    if name and len(name) <= max_length:
+    if len(name) > 0 and len(name) <= max_length:
         return
 
     _LOGGER.warning(msg="Name is not between 1 and 64 characters in length.")
@@ -188,7 +188,7 @@ def validate_name_does_not_exist_new_target(
         TargetNameExistError: The target name already exists.
     """
     name = _new_target_name(context=context)
-    if not _targets_with_name(context=context, name=name):
+    if not bool(_targets_with_name(context=context, name=name)):
         return
 
     _LOGGER.warning(msg="Target name already exists.")
@@ -216,7 +216,7 @@ def validate_name_does_not_exist_existing_target(
         return
 
     matching_name_targets = _targets_with_name(context=context, name=name)
-    if not matching_name_targets:
+    if not bool(matching_name_targets):
         return
 
     (matching_name_target,) = matching_name_targets

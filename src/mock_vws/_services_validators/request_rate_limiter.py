@@ -79,8 +79,10 @@ class RequestRateLimiter:
                     deque(),
                 )
                 window_start = now - limit.window_seconds
-                while request_times and request_times[0] <= window_start:
-                    request_times.popleft()
+                while (
+                    len(request_times) > 0 and request_times[0] <= window_start
+                ):
+                    _ = request_times.popleft()
 
                 if len(request_times) >= limit.max_requests:
                     raise TooManyRequestsError

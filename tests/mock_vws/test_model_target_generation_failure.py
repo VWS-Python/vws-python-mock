@@ -17,7 +17,7 @@ _AUTHORIZATION = (
     "c2lnbmF0dXJl"
 )
 _CREATE_URL = "https://vws.vuforia.com/modeltargets/datasets"
-_REQUEST_BODY: dict[str, Any] = {
+_REQUEST_BODY: dict[str, Any] = {  # pyrefly: ignore [explicit-any]
     "name": "dataset-name",
     "targetSdk": "10.18",
     "models": [
@@ -37,12 +37,12 @@ _REQUEST_BODY: dict[str, Any] = {
     ],
 }
 type _HTTPResponse = requests.Response | httpx.Response | httpx2.Response
-type _RequestSender = Callable[[str, dict[str, Any] | None], _HTTPResponse]
+type _RequestSender = Callable[[str, dict[str, Any] | None], _HTTPResponse]  # pyrefly: ignore [explicit-any]
 
 
 def _requests_request(
     url: str,
-    json_body: dict[str, Any] | None,
+    json_body: dict[str, Any] | None,  # pyrefly: ignore [explicit-any]
 ) -> _HTTPResponse:
     """Send a Model Target request with ``requests``."""
     if json_body is None:
@@ -61,7 +61,7 @@ def _requests_request(
 
 def _httpx_request(
     url: str,
-    json_body: dict[str, Any] | None,
+    json_body: dict[str, Any] | None,  # pyrefly: ignore [explicit-any]
 ) -> _HTTPResponse:
     """Send a Model Target request with ``httpx``."""
     if json_body is None:
@@ -80,7 +80,7 @@ def _httpx_request(
 
 def _httpx2_request(
     url: str,
-    json_body: dict[str, Any] | None,
+    json_body: dict[str, Any] | None,  # pyrefly: ignore [explicit-any]
 ) -> _HTTPResponse:
     """Send a Model Target request with ``httpx2``."""
     if json_body is None:
@@ -111,7 +111,7 @@ def _httpx2_request(
 )
 def test_configured_generation_failure(
     *,
-    send_request: _RequestSender,
+    send_request: _RequestSender,  # pyrefly: ignore [explicit-any]
     processing_time_seconds: float,
     expected_status: str,
     time_field: str,
@@ -125,7 +125,7 @@ def test_configured_generation_failure(
         model_target_generation_failure=failure,
     ):
         create_response = send_request(_CREATE_URL, _REQUEST_BODY)
-        dataset_uuid = create_response.json()["uuid"]
+        dataset_uuid = create_response.json()["uuid"]  # pyrefly: ignore [unknown-variable-type]
         status_response = send_request(
             f"{_CREATE_URL}/{dataset_uuid}/status",
             None,

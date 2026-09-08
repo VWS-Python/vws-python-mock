@@ -20,7 +20,7 @@ def validate_content_type_header_given(*, context: ValidatorContext) -> None:
     Raises:
         AuthenticationFailureError: No ``Content-Type`` header is given.
     """
-    if dict(context.request_headers).get("Content-Type"):
+    if bool(dict(context.request_headers).get("Content-Type")):
         return
 
     _LOGGER.warning(msg="No Content-Type header is given.")

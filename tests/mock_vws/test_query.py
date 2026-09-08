@@ -160,7 +160,7 @@ def _query_raw(
 def _query(
     *,
     vuforia_database: CloudDatabase,
-    body: dict[str, Any],
+    body: dict[str, Any],  # pyrefly: ignore [explicit-any]
 ) -> Response:
     """Make a request to the endpoint to make an image recognition query.
 
@@ -362,7 +362,7 @@ class TestContentType:
             content=requests_response.content,
         )
         handle_server_errors(response=vws_response)
-        assert not requests_response.text
+        assert not bool(requests_response.text)
         assert_vwq_failure(
             response=vws_response,
             status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
@@ -629,7 +629,7 @@ class TestSuccess:
                 "target_timestamp": IsInstance(expected_type=int),
             },
         }
-        target_timestamp = int(result["target_data"]["target_timestamp"])
+        target_timestamp = int(result["target_data"]["target_timestamp"])  # pyrefly: ignore [unknown-argument-type]
         time_difference = abs(approximate_target_created - target_timestamp)
         max_time_difference = 5
         assert time_difference < max_time_difference
@@ -661,7 +661,7 @@ class TestSuccess:
 
         vws_client.wait_for_target_processed(target_id=target_id)
         matching_targets = cloud_reco_client.query(image=image_file)
-        assert not matching_targets
+        assert not bool(matching_targets)
 
     @staticmethod
     def test_match_similar(
@@ -882,7 +882,7 @@ class TestMaxNumResults:
 
         assert_query_success(response=response)
         response_json = json.loads(s=response.text)
-        assert len(response_json["results"]) == 1
+        assert len(response_json["results"]) == 1  # pyrefly: ignore [unknown-argument-type]
 
     @staticmethod
     @pytest.mark.parametrize(argnames="num_results", argvalues=[1, b"1", 50])
@@ -958,7 +958,7 @@ class TestMaxNumResults:
         with pytest.raises(
             expected_exception=MaxNumResultsOutOfRangeError,
         ) as exc_info:
-            cloud_reco_client.query(
+            _ = cloud_reco_client.query(
                 image=high_quality_image,
                 max_num_results=num_results,
             )
@@ -1499,7 +1499,7 @@ class TestBadImage:
         given.
         """
         with pytest.raises(expected_exception=BadImageError) as exc_info:
-            cloud_reco_client.query(image=corrupted_image_file)
+            _ = cloud_reco_client.query(image=corrupted_image_file)
 
         response = exc_info.value.response
 
@@ -1522,7 +1522,7 @@ class TestBadImage:
         not_image_data = b"not_image_data"
 
         with pytest.raises(expected_exception=BadImageError) as exc_info:
-            cloud_reco_client.query(
+            _ = cloud_reco_client.query(
                 image=io.BytesIO(initial_bytes=not_image_data)
             )
 
@@ -1611,7 +1611,7 @@ class TestMaximumImageFileSize:
         with pytest.raises(
             expected_exception=RequestEntityTooLargeError
         ) as exc_info:
-            cloud_reco_client.query(image=png_too_large)
+            _ = cloud_reco_client.query(image=png_too_large)
 
         response = exc_info.value.response
 
@@ -1670,7 +1670,7 @@ class TestMaximumImageFileSize:
         with pytest.raises(
             expected_exception=RequestEntityTooLargeError
         ) as exc_info:
-            cloud_reco_client.query(image=jpeg_too_large)
+            _ = cloud_reco_client.query(image=jpeg_too_large)
 
         response = exc_info.value.response
 
@@ -1719,7 +1719,7 @@ class TestMaximumImageDimensions:
         )
 
         with pytest.raises(expected_exception=BadImageError) as exc_info:
-            cloud_reco_client.query(image=png_too_tall)
+            _ = cloud_reco_client.query(image=png_too_tall)
 
         response = exc_info.value.response
 
@@ -1868,7 +1868,7 @@ class TestImageFormats:
         image_content = image_buffer.getvalue()
 
         with pytest.raises(expected_exception=BadImageError) as exc_info:
-            cloud_reco_client.query(
+            _ = cloud_reco_client.query(
                 image=io.BytesIO(initial_bytes=image_content)
             )
 
@@ -1971,7 +1971,7 @@ class TestUpdate:
             application_metadata=metadata_encoded,
         )
 
-        calendar.timegm(tuple=time.gmtime())
+        _ = calendar.timegm(tuple=time.gmtime())
 
         vws_client.wait_for_target_processed(target_id=target_id)
 
@@ -2219,7 +2219,7 @@ class TestInactiveProject:
         with pytest.raises(
             expected_exception=InactiveProjectError
         ) as exc_info:
-            inactive_cloud_reco_client.query(image=high_quality_image)
+            _ = inactive_cloud_reco_client.query(image=high_quality_image)
 
         response = exc_info.value.response
 

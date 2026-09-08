@@ -83,7 +83,7 @@ def validate_auth_header_has_signature(
         FailError: The "Authorization" header does not include a signature.
     """
     header = request_headers["Authorization"]
-    if header.count(":") == 1 and header.split(sep=":")[1]:
+    if bool(header.count(":") == 1 and header.split(sep=":")[1]):
         return
 
     _LOGGER.warning(

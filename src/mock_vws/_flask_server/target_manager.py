@@ -687,9 +687,9 @@ def put_oauth2_client_credential() -> Response:
     """Add or replace an OAuth2 client credential."""
     value = json.loads(s=request.data)
     credential = OAuth2ClientCredential(
-        client_id=value["client_id"],
-        client_secret=value["client_secret"],
-        scopes=tuple(value["scopes"]),
+        client_id=value["client_id"],  # pyrefly: ignore [unknown-argument-type]
+        client_secret=value["client_secret"],  # pyrefly: ignore [unknown-argument-type]
+        scopes=tuple(value["scopes"]),  # pyrefly: ignore [unknown-argument-type]
     )
     TARGET_MANAGER.add_oauth2_client_credential(credential=credential)
     return Response(response="", status=HTTPStatus.NO_CONTENT)
@@ -722,16 +722,16 @@ def create_target(database_name: str) -> Response:
     request_json = json.loads(s=request.data)
     settings = TargetManagerSettings.model_validate(obj={})
 
-    image_bytes = base64.b64decode(s=request_json["image_base64"])
+    image_bytes = base64.b64decode(s=request_json["image_base64"])  # pyrefly: ignore [unknown-argument-type]
     target_tracking_rater = settings.target_rater.to_target_rater()
     target = ImageTarget(
-        name=request_json["name"],
-        width=request_json["width"],
+        name=request_json["name"],  # pyrefly: ignore [unknown-argument-type]
+        width=request_json["width"],  # pyrefly: ignore [unknown-argument-type]
         image_value=image_bytes,
-        active_flag=request_json["active_flag"],
-        processing_time_seconds=request_json["processing_time_seconds"],
-        application_metadata=request_json["application_metadata"],
-        target_id=request_json["target_id"],
+        active_flag=request_json["active_flag"],  # pyrefly: ignore [unknown-argument-type]
+        processing_time_seconds=request_json["processing_time_seconds"],  # pyrefly: ignore [unknown-argument-type]
+        application_metadata=request_json["application_metadata"],  # pyrefly: ignore [unknown-argument-type]
+        target_id=request_json["target_id"],  # pyrefly: ignore [unknown-argument-type]
         target_tracking_rater=target_tracking_rater,
     )
     with TARGET_MANAGER.lock:
@@ -816,26 +816,26 @@ def update_target(database_name: str, target_id: str) -> Response:
 
         target = database.get_target(target_id=target_id)
 
-        name = request_json.get("name", target.name)
-        active_flag = request_json.get("active_flag", target.active_flag)
+        name = request_json.get("name", target.name)  # pyrefly: ignore [unknown-variable-type]
+        active_flag = request_json.get("active_flag", target.active_flag)  # pyrefly: ignore [unknown-variable-type]
 
         gmt = ZoneInfo(key="GMT")
         last_modified_date = datetime.datetime.now(tz=gmt)
 
-        width = request_json.get("width", target.width)
-        application_metadata = request_json.get(
+        width = request_json.get("width", target.width)  # pyrefly: ignore [unknown-variable-type]
+        application_metadata = request_json.get(  # pyrefly: ignore [unknown-variable-type]
             "application_metadata",
             target.application_metadata,
         )
         image_value = target.image_value
         if "image" in request_json:
-            image_value = base64.b64decode(s=request_json["image"])
+            image_value = base64.b64decode(s=request_json["image"])  # pyrefly: ignore [unknown-argument-type]
         new_target = copy.replace(
             target,
-            name=name,
-            width=width,
-            active_flag=active_flag,
-            application_metadata=application_metadata,
+            name=name,  # pyrefly: ignore [unknown-argument-type]
+            width=width,  # pyrefly: ignore [unknown-argument-type]
+            active_flag=active_flag,  # pyrefly: ignore [unknown-argument-type]
+            application_metadata=application_metadata,  # pyrefly: ignore [unknown-argument-type]
             image_value=image_value,
             last_modified_date=last_modified_date,
         )
@@ -891,15 +891,15 @@ def set_target_recognition_counts(
 
         new_target = copy.replace(
             target,
-            current_month_recos=request_json.get(
+            current_month_recos=request_json.get(  # pyrefly: ignore [unknown-argument-type]
                 "current_month_recos",
                 target.current_month_recos,
             ),
-            previous_month_recos=request_json.get(
+            previous_month_recos=request_json.get(  # pyrefly: ignore [unknown-argument-type]
                 "previous_month_recos",
                 target.previous_month_recos,
             ),
-            total_recos=request_json.get("total_recos", target.total_recos),
+            total_recos=request_json.get("total_recos", target.total_recos),  # pyrefly: ignore [unknown-argument-type]
         )
 
         database.targets.remove(target)

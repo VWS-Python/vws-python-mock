@@ -385,6 +385,7 @@ def match_route(*, request_path: str, request_method: str) -> Route:
         route
         for route in _ROUTES
         if re.fullmatch(pattern=route.path_pattern, string=request_path)
+        is not None
         and request_method == route.http_method
     )
     return matching_route

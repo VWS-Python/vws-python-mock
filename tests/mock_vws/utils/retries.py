@@ -17,7 +17,8 @@ from vws.exceptions.vws_exceptions import (
 
 # ``pytest-retry`` checks whether the type of the exception which failed a
 # test is *in* this tuple, so a subclass of a listed type is not retried.
-# ``requests`` raises the ``Timeout`` subclasses below, never ``Timeout``
+# ``requests`` raises the derived ``Timeout`` exceptions below, never
+# ``Timeout``
 # itself, so each one is listed. ``Timeout`` and ``ConnectionError`` stay
 # for the ``tenacity`` retries, which do use ``isinstance``.
 TRANSIENT_VWS_EXCEPTIONS = (

@@ -203,7 +203,7 @@ def make_image_file(
             )
 
     image.save(fp=image_buffer, format=file_format)
-    image_buffer.seek(0)
+    _ = image_buffer.seek(0)
     return image_buffer
 
 
@@ -224,7 +224,7 @@ def make_single_color_image_file(*, width: int, height: int) -> io.BytesIO:
     image_buffer = io.BytesIO()
     image = Image.new(mode="L", size=(width, height))
     image.save(fp=image_buffer, format="PNG")
-    image_buffer.seek(0)
+    _ = image_buffer.seek(0)
     return image_buffer
 
 

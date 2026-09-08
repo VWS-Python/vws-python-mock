@@ -61,7 +61,7 @@ def validate_metadata_encoding(*, context: ValidatorContext) -> None:
         return
 
     try:
-        decode_base64(encoded_data=application_metadata)
+        _ = decode_base64(encoded_data=application_metadata)
     except binascii.Error as exc:
         _LOGGER.warning(msg="The application metadata is not base64 encoded.")
         raise FailError(status_code=HTTPStatus.UNPROCESSABLE_ENTITY) from exc

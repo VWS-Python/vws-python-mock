@@ -43,7 +43,7 @@ _MAX_METADATA_BYTES: Final[int] = 1024 * 1024 - 1
 def _add_target_to_vws(
     *,
     vws_client: VWS,
-    data: dict[str, Any],
+    data: dict[str, Any],  # pyrefly: ignore [explicit-any]
     content_type: str,
 ) -> Response:
     """Return a response from a request to the endpoint to add a target.
@@ -81,10 +81,10 @@ def assert_success(response: Response) -> None:
     )
     expected_keys = {"result_code", "transaction_id", "target_id"}
     response_json = json.loads(s=response.text)
-    target_id = response_json["target_id"]
+    target_id = response_json["target_id"]  # pyrefly: ignore [unknown-variable-type]
     expected_target_id_length = 32
-    assert len(target_id) == expected_target_id_length
-    assert all(char in hexdigits for char in target_id)
+    assert len(target_id) == expected_target_id_length  # pyrefly: ignore [unknown-argument-type]
+    assert all(char in hexdigits for char in target_id)  # pyrefly: ignore [unknown-argument-type]
     assert isinstance(response_json, dict)
     assert response_json.keys() == expected_keys
 
@@ -158,7 +158,7 @@ class TestContentTypes:
         with pytest.raises(
             expected_exception=AuthenticationFailureError,
         ) as exc:
-            _add_target_to_vws(
+            _ = _add_target_to_vws(
                 vws_client=vws_client,
                 data=data,
                 content_type="",
@@ -197,10 +197,10 @@ class TestMissingData:
             "width": 1,
             "image": image_data_encoded,
         }
-        data.pop(data_to_remove)
+        _ = data.pop(data_to_remove)
 
         with pytest.raises(expected_exception=FailError) as exc:
-            _add_target_to_vws(
+            _ = _add_target_to_vws(
                 vws_client=vws_client,
                 data=data,
                 content_type="application/json",
@@ -242,7 +242,7 @@ class TestWidth:
         }
 
         with pytest.raises(expected_exception=FailError) as exc:
-            _add_target_to_vws(
+            _ = _add_target_to_vws(
                 vws_client=vws_client,
                 data=data,
                 content_type="application/json",
@@ -261,7 +261,7 @@ class TestWidth:
         image_file_failed_state: io.BytesIO,
     ) -> None:
         """Positive numbers are valid widths."""
-        vws_client.add_target(
+        _ = vws_client.add_target(
             name="example",
             width=0.01,
             image=image_file_failed_state,
@@ -297,7 +297,7 @@ class TestTargetName:
         vws_client: VWS,
     ) -> None:
         """Names between 1 and 64 characters in length are valid."""
-        vws_client.add_target(
+        _ = vws_client.add_target(
             name=name,
             width=1,
             image=image_file_failed_state,
@@ -356,14 +356,14 @@ class TestTargetName:
 
         if status_code == HTTPStatus.INTERNAL_SERVER_ERROR:
             with pytest.raises(expected_exception=ServerError) as exc:
-                _add_target_to_vws(
+                _ = _add_target_to_vws(
                     vws_client=vws_client,
                     data=data,
                     content_type="application/json",
                 )
         else:
             with pytest.raises(expected_exception=FailError) as exc:
-                _add_target_to_vws(
+                _ = _add_target_to_vws(
                     vws_client=vws_client,
                     data=data,
                     content_type="application/json",
@@ -382,7 +382,7 @@ class TestTargetName:
         vws_client: VWS,
     ) -> None:
         """Only one target can have a given name."""
-        vws_client.add_target(
+        _ = vws_client.add_target(
             name="example_name",
             width=1,
             image=image_file_failed_state,
@@ -391,7 +391,7 @@ class TestTargetName:
         )
 
         with pytest.raises(expected_exception=TargetNameExistError) as exc:
-            vws_client.add_target(
+            _ = vws_client.add_target(
                 name="example_name",
                 width=1,
                 image=image_file_failed_state,
@@ -422,7 +422,7 @@ class TestTargetName:
 
         vws_client.wait_for_target_processed(target_id=target_id)
         vws_client.delete_target(target_id=target_id)
-        vws_client.add_target(
+        _ = vws_client.add_target(
             name="example_name",
             width=1,
             image=image_file_failed_state,
@@ -449,7 +449,7 @@ class TestImage:
         JPEG and PNG files in the RGB and greyscale color spaces are
         allowed.
         """
-        vws_client.add_target(
+        _ = vws_client.add_target(
             name="example_name",
             width=1,
             image=image_files_failed_state,
@@ -470,7 +470,7 @@ class TestImage:
         greyscale or RGB color space.
         """
         with pytest.raises(expected_exception=BadImageError) as exc:
-            vws_client.add_target(
+            _ = vws_client.add_target(
                 name="example_name",
                 width=1,
                 image=bad_image_file,
@@ -492,7 +492,7 @@ class TestImage:
     ) -> None:
         """An error is returned when the given image is corrupted."""
         with pytest.raises(expected_exception=BadImageError) as exc:
-            vws_client.add_target(
+            _ = vws_client.add_target(
                 name="example_name",
                 width=1,
                 image=corrupted_image_file,
@@ -516,7 +516,7 @@ class TestImage:
         image_file = make_truncated_png_file()
 
         with pytest.raises(expected_exception=BadImageError) as exc:
-            vws_client.add_target(
+            _ = vws_client.add_target(
                 name="example_name",
                 width=1,
                 image=image_file,
@@ -541,7 +541,7 @@ class TestImage:
         assert len(image_file.getvalue()) < max_bytes
 
         with pytest.raises(expected_exception=ImageTooLargeError) as exc:
-            vws_client.add_target(
+            _ = vws_client.add_target(
                 name="example_name",
                 width=1,
                 image=image_file,
@@ -576,7 +576,7 @@ class TestImage:
             height=height,
         )
 
-        vws_client.add_target(
+        _ = vws_client.add_target(
             name="example_name",
             width=1,
             image=image_not_too_many_pixels,
@@ -585,7 +585,7 @@ class TestImage:
         )
 
         with pytest.raises(expected_exception=ImageTooLargeError) as exc:
-            vws_client.add_target(
+            _ = vws_client.add_target(
                 name="example_name_2",
                 width=1,
                 image=pixel_count_too_large,
@@ -617,7 +617,7 @@ class TestImage:
         assert image_content_size < max_bytes
         assert (image_content_size * 1.05) > max_bytes
 
-        vws_client.add_target(
+        _ = vws_client.add_target(
             name="example_name",
             width=1,
             image=png_just_under_max_size,
@@ -629,7 +629,7 @@ class TestImage:
         assert image_content_size > max_bytes
 
         with pytest.raises(expected_exception=ImageTooLargeError) as exc:
-            vws_client.add_target(
+            _ = vws_client.add_target(
                 name="example_name_2",
                 width=1,
                 image=png_too_large,
@@ -663,7 +663,7 @@ class TestImage:
         }
 
         with pytest.raises(expected_exception=BadImageError) as exc:
-            _add_target_to_vws(
+            _ = _add_target_to_vws(
                 vws_client=vws_client,
                 data=data,
                 content_type="application/json",
@@ -694,7 +694,7 @@ class TestImage:
         }
 
         with pytest.raises(expected_exception=FailError) as exc:
-            _add_target_to_vws(
+            _ = _add_target_to_vws(
                 vws_client=vws_client,
                 data=data,
                 content_type="application/json",
@@ -714,7 +714,7 @@ class TestImage:
         is returned.
         """
         with pytest.raises(expected_exception=BadImageError) as exc:
-            vws_client.add_target(
+            _ = vws_client.add_target(
                 name="example_name",
                 width=1,
                 image=io.BytesIO(initial_bytes=b"not_image_data"),
@@ -746,7 +746,7 @@ class TestImage:
         }
 
         with pytest.raises(expected_exception=FailError) as exc:
-            _add_target_to_vws(
+            _ = _add_target_to_vws(
                 vws_client=vws_client,
                 data=data,
                 content_type="application/json",
@@ -821,7 +821,7 @@ class TestActiveFlag:
         }
 
         with pytest.raises(expected_exception=FailError) as exc:
-            _add_target_to_vws(
+            _ = _add_target_to_vws(
                 vws_client=vws_client,
                 data=data,
                 content_type=content_type,
@@ -855,8 +855,8 @@ class TestActiveFlag:
             vws_client=vws_client, data=data, content_type="application/json"
         )
         response_json = json.loads(s=response.text)
-        target_id = response_json["target_id"]
-        target_details = vws_client.get_target_record(target_id=target_id)
+        target_id = response_json["target_id"]  # pyrefly: ignore [unknown-variable-type]
+        target_details = vws_client.get_target_record(target_id=target_id)  # pyrefly: ignore [unknown-argument-type]
         assert target_details.target_record.active_flag is True
 
     @staticmethod
@@ -883,8 +883,8 @@ class TestActiveFlag:
         )
 
         response_json = json.loads(s=response.text)
-        target_id = response_json["target_id"]
-        target_details = vws_client.get_target_record(target_id=target_id)
+        target_id = response_json["target_id"]  # pyrefly: ignore [unknown-variable-type]
+        target_details = vws_client.get_target_record(target_id=target_id)  # pyrefly: ignore [unknown-argument-type]
         assert target_details.target_record.active_flag is True
 
 
@@ -918,7 +918,7 @@ class TestUnexpectedData:
         }
 
         with pytest.raises(expected_exception=FailError) as exc:
-            _add_target_to_vws(
+            _ = _add_target_to_vws(
                 vws_client=vws_client,
                 data=data,
                 content_type="application/json",
@@ -955,7 +955,7 @@ class TestApplicationMetadata:
             encoding="ascii"
         )
 
-        vws_client.add_target(
+        _ = vws_client.add_target(
             name="example",
             width=1,
             image=image_file_failed_state,
@@ -1013,7 +1013,7 @@ class TestApplicationMetadata:
         }
 
         with pytest.raises(expected_exception=FailError) as exc:
-            _add_target_to_vws(
+            _ = _add_target_to_vws(
                 vws_client=vws_client,
                 data=data,
                 content_type="application/json",
@@ -1037,7 +1037,7 @@ class TestApplicationMetadata:
         allowed as
         application metadata.
         """
-        vws_client.add_target(
+        _ = vws_client.add_target(
             name="example",
             width=1,
             image=high_quality_image,
@@ -1058,7 +1058,7 @@ class TestApplicationMetadata:
         as application metadata.
         """
         with pytest.raises(expected_exception=FailError) as exc:
-            vws_client.add_target(
+            _ = vws_client.add_target(
                 name="example",
                 width=1,
                 image=high_quality_image,
@@ -1092,7 +1092,7 @@ class TestApplicationMetadata:
         ).decode(encoding="ascii")
 
         with pytest.raises(expected_exception=MetadataTooLargeError) as exc:
-            vws_client.add_target(
+            _ = vws_client.add_target(
                 name="example",
                 width=1,
                 image=image_file_failed_state,
@@ -1122,7 +1122,7 @@ class TestInactiveProject:
         returned.
         """
         with pytest.raises(expected_exception=ProjectInactiveError) as exc:
-            inactive_vws_client.add_target(
+            _ = inactive_vws_client.add_target(
                 name="example",
                 width=1,
                 image=image_file_failed_state,

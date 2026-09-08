@@ -38,6 +38,26 @@ The status code and the body shape come from Vuforia's documentation and from th
 A real database with an exhausted request quota would verify this.
 No such response has been seen.
 
+.. _unverified-project-suspended:
+
+A suspended database
+--------------------
+
+:Category: temporarily-unverifiable
+:API: VWS Target API
+
+The mock returns a ``ProjectSuspended`` response with status code 403 from every VWS endpoint for a database in the :attr:`mock_vws.states.States.PROJECT_SUSPENDED` state.
+
+The result code string is confirmed.
+In August 2026 real Vuforia suspended one of the CI databases after it passed its monthly recognition threshold of 1000, and ``vws-python`` raised ``ProjectSuspendedError`` from the real response.
+Reads such as ``GET /targets`` and the database summary kept working, and writes such as ``POST /targets`` were rejected.
+
+The status code, body and headers of the real response were not recorded, and which endpoints reject requests was only partly observed.
+The mock rejects requests to every VWS endpoint, so it is stricter than the real service was seen to be.
+
+Driving a throwaway database past 1000 recognitions in a month with query requests, and recording the response from each VWS endpoint, would verify the rest.
+That is a deliberate one-off rather than a suite test because of the quota cost.
+
 .. _unverified-additional-result-codes:
 
 Additional result codes
@@ -46,7 +66,7 @@ Additional result codes
 :Category: never-attempted
 :API: VWS Target API
 
-``ProjectSuspended``, ``ProjectHasNoApiAccess`` and ``TargetQuotaReached`` come from Vuforia's result codes table.
+``ProjectHasNoApiAccess`` and ``TargetQuotaReached`` come from Vuforia's result codes table.
 No response from a real database in any of those states has been seen, which is why the mock's ``ProjectHasNoApiAccess`` casing is the table's casing rather than an observed one.
 The table also lists ``TooManyRequests``, but a rate-limited request to a real database gets a ``429`` response with no body at all, so the mock never returns that result code.
 

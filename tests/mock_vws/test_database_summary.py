@@ -262,7 +262,7 @@ class TestProcessingImages:
 
         with MockVWS() as mock:
             mock.add_cloud_database(cloud_database=database)
-            vws_client.add_target(
+            _ = vws_client.add_target(
                 name=uuid.uuid4().hex,
                 width=1,
                 image=image_file_success_state_low_rating,
@@ -320,7 +320,7 @@ class TestRecos:
         vws_client.wait_for_target_processed(target_id=target_id)
 
         report_before = vws_client.get_database_summary_report()
-        cloud_reco_client.query(image=high_quality_image)
+        _ = cloud_reco_client.query(image=high_quality_image)
 
         report_after = vws_client.get_database_summary_report()
         total_recos_change = (
@@ -371,7 +371,7 @@ class TestRequestUsage:
         original_request_usage = report.request_usage
 
         with pytest.raises(expected_exception=FailError) as exc:
-            vws_client.add_target(
+            _ = vws_client.add_target(
                 name="example",
                 width=-1,
                 image=high_quality_image,
@@ -398,7 +398,7 @@ class TestRequestUsage:
         """
         report = vws_client.get_database_summary_report()
         original_request_usage = report.request_usage
-        cloud_reco_client.query(image=high_quality_image)
+        _ = cloud_reco_client.query(image=high_quality_image)
         report = vws_client.get_database_summary_report()
         new_request_usage = report.request_usage
         # The request usage goes up for the database summary request, not the
@@ -415,4 +415,4 @@ class TestInactiveProject:
         inactive_vws_client: VWS,
     ) -> None:
         """The project's active state does not affect the database summary."""
-        inactive_vws_client.get_database_summary_report()
+        _ = inactive_vws_client.get_database_summary_report()

@@ -52,7 +52,7 @@ def validate_auth_header_number_of_parts(
     header = request_headers["Authorization"]
     parts = header.split(sep=" ")
     expected_number_of_parts = 2
-    if len(parts) == expected_number_of_parts and parts[1]:
+    if bool(len(parts) == expected_number_of_parts and parts[1]):
         return
 
     _LOGGER.warning(msg="The authorization header is malformed.")
@@ -100,7 +100,7 @@ def validate_auth_header_has_signature(
         MalformedAuthHeaderError: The "Authorization" header has no signature.
     """
     header = request_headers["Authorization"]
-    if header.count(":") == 1 and header.split(sep=":")[1]:
+    if bool(header.count(":") == 1 and header.split(sep=":")[1]):
         return
 
     _LOGGER.warning(msg="The authorization header has no signature.")

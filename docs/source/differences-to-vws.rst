@@ -291,9 +291,13 @@ supported by the Flask/Docker backend.
 Other configurable result codes
 -------------------------------
 
-The mock also supports four other result codes which come from Vuforia's result codes table rather than from a response which a real database gave:
+The mock also supports four other result codes.
+``ProjectSuspended`` has been seen from a real database.
+The other three come from Vuforia's result codes table rather than from a response which a real database gave:
 
-.. admonition:: Unverified assumption
+.. admonition:: Unverified assumptions
+
+   :ref:`unverified-project-suspended`
 
    :ref:`unverified-additional-result-codes`
 
@@ -301,8 +305,13 @@ The mock also supports four other result codes which come from Vuforia's result 
 * ``TargetQuotaReached`` is returned when adding a target to a
   :class:`mock_vws.database.CloudDatabase` which already contains
   ``target_quota`` targets.
-* ``ProjectSuspended`` is returned by VWS endpoints when a database uses the
+* ``ProjectSuspended`` is returned with status code 403 by every VWS endpoint
+  when a database uses the
   :attr:`mock_vws.states.States.PROJECT_SUSPENDED` state.
+  Real Vuforia has returned this result code for a database which passed its
+  monthly recognition threshold, but its status code, body and headers were
+  not recorded, and reads such as ``GET /targets`` and the database summary
+  kept working there.
 * ``ProjectHasNoApiAccess`` is returned by VWS endpoints when a database uses
   the :attr:`mock_vws.states.States.PROJECT_HAS_NO_API_ACCESS` state.
   This casing comes from Vuforia's result codes table, as no response from a

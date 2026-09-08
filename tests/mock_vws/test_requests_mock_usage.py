@@ -126,7 +126,7 @@ def _unused_local_url() -> str:
     """Return a URL for a local address with nothing listening on it."""
     sock = socket.socket()
     sock.bind(("", 0))
-    port = sock.getsockname()[1]
+    port = sock.getsockname()[1]  # pyrefly: ignore [unknown-variable-type]
     sock.close()
     return f"http://localhost:{port}"
 
@@ -144,9 +144,9 @@ def request_unmocked_address() -> None:
     """
     sock = socket.socket()
     sock.bind(("", 0))
-    port = sock.getsockname()[1]
+    port = sock.getsockname()[1]  # pyrefly: ignore [unknown-variable-type]
     sock.close()
-    requests.get(url=f"http://localhost:{port}", timeout=30)
+    _ = requests.get(url=f"http://localhost:{port}", timeout=30)
 
 
 @beartype
@@ -155,7 +155,7 @@ def request_mocked_address() -> None:
     Make a request, using `requests` to an address that is mocked by
     `MockVWS`.
     """
-    requests.get(
+    _ = requests.get(
         url="https://vws.vuforia.com/summary",
         headers={
             "Date": rfc_1123_date(),
@@ -240,7 +240,7 @@ class TestResponseDelay:
             MockVWS(response_delay_seconds=0.5),
             pytest.raises(expected_exception=requests.exceptions.Timeout),
         ):
-            requests.get(
+            _ = requests.get(
                 url="https://vws.vuforia.com/summary",
                 headers={
                     "Date": rfc_1123_date(),
@@ -304,7 +304,7 @@ class TestResponseDelay:
         ):
             # Tuple timeout: (connect_timeout, read_timeout)
             # The read timeout (0.1) is less than the delay (0.5)
-            requests.get(
+            _ = requests.get(
                 url="https://vws.vuforia.com/summary",
                 headers={
                     "Date": rfc_1123_date(),
@@ -325,7 +325,7 @@ class TestResponseDelay:
             response_delay_seconds=5.0,
             sleep_fn=calls.append,
         ):
-            requests.get(
+            _ = requests.get(
                 url="https://vws.vuforia.com/summary",
                 headers={
                     "Date": rfc_1123_date(),
@@ -350,7 +350,7 @@ class TestResponseDelay:
             ),
             pytest.raises(expected_exception=requests.exceptions.Timeout),
         ):
-            requests.get(
+            _ = requests.get(
                 url="https://vws.vuforia.com/summary",
                 headers={
                     "Date": rfc_1123_date(),
@@ -439,7 +439,7 @@ class TestRequestQuota:
             mock.add_cloud_database(cloud_database=database)
             targets = client.list_targets()
 
-        assert not targets
+        assert not bool(targets)
 
     @staticmethod
     def test_request_quota_reached() -> None:
@@ -455,7 +455,7 @@ class TestRequestQuota:
             with pytest.raises(
                 expected_exception=RequestQuotaReachedError,
             ) as exc_info:
-                client.list_targets()
+                _ = client.list_targets()
 
         assert_vws_failure(
             response=exc_info.value.response,
@@ -481,7 +481,7 @@ class TestRequestRateLimit:
             with pytest.raises(
                 expected_exception=TooManyRequestsError,
             ) as exc_info:
-                client.list_targets()
+                _ = client.list_targets()
 
         assert_vws_too_many_requests(response=exc_info.value.response)
 
@@ -506,11 +506,11 @@ class TestRequestRateLimit:
         with MockVWS() as mock:
             mock.add_cloud_database(cloud_database=database)
             with pytest.raises(expected_exception=AuthenticationFailureError):
-                client_with_bad_secret.list_targets()
+                _ = client_with_bad_secret.list_targets()
             with pytest.raises(expected_exception=TooManyRequestsError):
-                client_with_bad_secret.list_targets()
+                _ = client_with_bad_secret.list_targets()
             with pytest.raises(expected_exception=TooManyRequestsError):
-                client.list_targets()
+                _ = client.list_targets()
 
     @staticmethod
     def test_rolling_window() -> None:
@@ -700,15 +700,15 @@ class TestPerEndpointRequestRateLimits:
         with MockVWS() as mock:
             mock.add_cloud_database(cloud_database=database)
             # ``GET /targets`` is limited to two requests per minute.
-            client.list_targets()
-            client.list_targets()
+            _targets = client.list_targets()
+            _targets = client.list_targets()
             with pytest.raises(
                 expected_exception=TooManyRequestsError,
             ) as exc_info:
-                client.list_targets()
+                _targets = client.list_targets()
 
             # Other endpoints have their own budgets.
-            client.get_database_summary_report()
+            _summary = client.get_database_summary_report()
 
         assert_vws_too_many_requests(response=exc_info.value.response)
 
@@ -745,13 +745,13 @@ class TestPerEndpointRequestRateLimits:
                 application_metadata=None,
                 active_flag=True,
             )
-            client.get_target_record(target_id=target_id)
-            client.get_duplicate_targets(target_id=target_id)
+            _target = client.get_target_record(target_id=target_id)
+            _duplicates = client.get_duplicate_targets(target_id=target_id)
             with pytest.raises(expected_exception=TooManyRequestsError):
-                client.get_duplicate_targets(target_id=target_id)
-            client.get_target_record(target_id=target_id)
+                _duplicates = client.get_duplicate_targets(target_id=target_id)
+            _target = client.get_target_record(target_id=target_id)
             with pytest.raises(expected_exception=TooManyRequestsError):
-                client.get_target_record(target_id=target_id)
+                _target = client.get_target_record(target_id=target_id)
 
 
 class TestAdditionalResultCodes:
@@ -774,7 +774,7 @@ class TestAdditionalResultCodes:
             with pytest.raises(
                 expected_exception=TargetQuotaReachedError,
             ) as exc_info:
-                client.add_target(
+                _ = client.add_target(
                     name="example",
                     width=1,
                     image=image_file_failed_state,
@@ -802,7 +802,7 @@ class TestAdditionalResultCodes:
             with pytest.raises(
                 expected_exception=ProjectSuspendedError,
             ) as exc:
-                client.list_targets()
+                _ = client.list_targets()
 
         assert_vws_failure(
             response=exc.value.response,
@@ -859,13 +859,15 @@ class TestCustomBaseURLs:
             with pytest.raises(
                 expected_exception=requests.exceptions.ConnectionError
             ):
-                requests.get(url="https://vws.vuforia.com/summary", timeout=30)
+                _ = requests.get(
+                    url="https://vws.vuforia.com/summary", timeout=30
+                )
 
-            requests.get(
+            _ = requests.get(
                 url="https://vuforia.vws.example.com/summary",
                 timeout=30,
             )
-            requests.post(
+            _ = requests.post(
                 url="https://cloudreco.vuforia.com/v1/query",
                 timeout=30,
             )
@@ -880,16 +882,16 @@ class TestCustomBaseURLs:
             with pytest.raises(
                 expected_exception=requests.exceptions.ConnectionError
             ):
-                requests.post(
+                _ = requests.post(
                     url="https://cloudreco.vuforia.com/v1/query",
                     timeout=30,
                 )
 
-            requests.post(
+            _ = requests.post(
                 url="https://vuforia.vwq.example.com/v1/query",
                 timeout=30,
             )
-            requests.get(
+            _ = requests.get(
                 url="https://vws.vuforia.com/summary",
                 timeout=30,
             )
@@ -906,12 +908,12 @@ class TestCustomBaseURLs:
             with pytest.raises(
                 expected_exception=requests.exceptions.ConnectionError
             ):
-                requests.get(
+                _ = requests.get(
                     url="https://vuforia.vws.example.com/summary",
                     timeout=30,
                 )
 
-            requests.get(
+            _ = requests.get(
                 url="https://vuforia.vws.example.com/prefix/summary",
                 timeout=30,
             )
@@ -928,12 +930,12 @@ class TestCustomBaseURLs:
             with pytest.raises(
                 expected_exception=requests.exceptions.ConnectionError
             ):
-                requests.post(
+                _ = requests.post(
                     url="https://vuforia.vwq.example.com/v1/query",
                     timeout=30,
                 )
 
-            requests.post(
+            _ = requests.post(
                 url="https://vuforia.vwq.example.com/prefix/v1/query",
                 timeout=30,
             )
@@ -978,7 +980,7 @@ class TestCustomBaseURLs:
     def test_no_scheme() -> None:
         """An error if raised if a URL is given with no scheme."""
         with pytest.raises(expected_exception=MissingSchemeError) as vws_exc:
-            MockVWS(base_vws_url="vuforia.vws.example.com")
+            _ = MockVWS(base_vws_url="vuforia.vws.example.com")
 
         expected = (
             'Invalid URL "vuforia.vws.example.com": No scheme supplied. '
@@ -986,7 +988,7 @@ class TestCustomBaseURLs:
         )
         assert str(object=vws_exc.value) == expected
         with pytest.raises(expected_exception=MissingSchemeError) as vwq_exc:
-            MockVWS(base_vwq_url="vuforia.vwq.example.com")
+            _ = MockVWS(base_vwq_url="vuforia.vwq.example.com")
         expected = (
             'Invalid URL "vuforia.vwq.example.com": No scheme supplied. '
             'Perhaps you meant "https://vuforia.vwq.example.com".'
@@ -1012,7 +1014,7 @@ class TestTargets:
 
         with MockVWS() as mock:
             mock.add_cloud_database(cloud_database=database)
-            vws_client.add_target(
+            _ = vws_client.add_target(
                 name="example",
                 width=1,
                 image=high_quality_image,
@@ -1026,7 +1028,7 @@ class TestTargets:
         target_dict = target.to_dict()
 
         # The dictionary is JSON dump-able
-        assert json.dumps(obj=target_dict)
+        assert bool(json.dumps(obj=target_dict))
 
         new_target = ImageTarget.from_dict(target_dict=target_dict)
         assert new_target == target
@@ -1063,7 +1065,7 @@ class TestTargets:
         target_dict = target.to_dict()
 
         # The dictionary is JSON dump-able
-        assert json.dumps(obj=target_dict)
+        assert bool(json.dumps(obj=target_dict))
 
         new_target = ImageTarget.from_dict(target_dict=target_dict)
         assert new_target.delete_date == target.delete_date
@@ -1130,7 +1132,7 @@ class TestTargets:
 
         target_dict = target.to_dict()
         # The dictionary is JSON dump-able
-        assert json.dumps(obj=target_dict)
+        assert bool(json.dumps(obj=target_dict))
 
         new_target = ImageTarget.from_dict(target_dict=target_dict)
         assert new_target == target
@@ -1147,7 +1149,7 @@ class TestTargets:
         )
         target_dict = vumark_target.to_dict()
 
-        assert json.dumps(obj=target_dict)
+        assert bool(json.dumps(obj=target_dict))
 
         new_target = VuMarkTarget.from_dict(target_dict=target_dict)
         assert new_target == vumark_target
@@ -1270,7 +1272,7 @@ class TestDatabaseToDict:
         # We test a database with a target added.
         with MockVWS() as mock:
             mock.add_cloud_database(cloud_database=database)
-            vws_client.add_target(
+            _ = vws_client.add_target(
                 name="example",
                 width=1,
                 image=high_quality_image,
@@ -1280,7 +1282,7 @@ class TestDatabaseToDict:
 
         database_dict = database.to_dict()
         # The dictionary is JSON dump-able
-        assert json.dumps(obj=database_dict)
+        assert bool(json.dumps(obj=database_dict))
 
         new_database = CloudDatabase.from_dict(database_dict=database_dict)
         assert new_database == database
@@ -1332,7 +1334,7 @@ class TestDatabaseToDict:
         )
 
         database_dict = database.to_dict()
-        assert json.dumps(obj=database_dict)
+        assert bool(json.dumps(obj=database_dict))
         new_database = CloudDatabase.from_dict(database_dict=database_dict)
 
         assert (
@@ -1410,7 +1412,7 @@ class TestDatabaseToDict:
 
         database_dict = database.to_dict()
         # The dictionary is JSON dump-able
-        assert json.dumps(obj=database_dict)
+        assert bool(json.dumps(obj=database_dict))
 
         new_database = CloudDatabase.from_dict(database_dict=database_dict)
         assert new_database == database
@@ -1429,7 +1431,7 @@ class TestDatabaseToDict:
         )
 
         database_dict = database.to_dict()
-        assert json.dumps(obj=database_dict)
+        assert bool(json.dumps(obj=database_dict))
 
         new_database = VuMarkDatabase.from_dict(database_dict=database_dict)
         assert new_database == database
@@ -1612,7 +1614,7 @@ class TestContextManagerReuse:
         mock.add_cloud_database(cloud_database=database)
 
         with mock:
-            vws_client.add_target(
+            _ = vws_client.add_target(
                 name="my-target",
                 width=1,
                 image=high_quality_image,
@@ -1662,7 +1664,7 @@ class TestQueryImageMatchers:
             different_image_result = cloud_reco_client.query(
                 image=re_exported_image,
             )
-            assert not different_image_result
+            assert not bool(different_image_result)
 
     @staticmethod
     def test_custom_matcher(high_quality_image: io.BytesIO) -> None:
@@ -1694,7 +1696,7 @@ class TestQueryImageMatchers:
             same_image_result = cloud_reco_client.query(
                 image=high_quality_image,
             )
-            assert not same_image_result
+            assert not bool(same_image_result)
             different_image_result = cloud_reco_client.query(
                 image=re_exported_image,
             )
@@ -1745,7 +1747,7 @@ class TestQueryImageMatchers:
             different_image_result = cloud_reco_client.query(
                 image=different_high_quality_image,
             )
-            assert not different_image_result
+            assert not bool(different_image_result)
 
     @staticmethod
     def test_results_are_ordered_by_match_score(
@@ -1833,7 +1835,7 @@ class TestQueryImageMatchers:
                 expected_exception=TypeError,
                 match=expected_message,
             ):
-                cloud_reco_client.query(image=high_quality_image)
+                _ = cloud_reco_client.query(image=high_quality_image)
 
 
 class TestDuplicatesImageMatchers:
@@ -2075,10 +2077,10 @@ class TestHttpxAlsoIntercepted:
         """
         sock = socket.socket()
         sock.bind(("", 0))
-        port = sock.getsockname()[1]
+        port = sock.getsockname()[1]  # pyrefly: ignore [unknown-variable-type]
         sock.close()
         with MockVWS(), pytest.raises(expected_exception=httpx.ConnectError):
-            httpx.get(url=f"http://localhost:{port}", timeout=30)
+            _ = httpx.get(url=f"http://localhost:{port}", timeout=30)
 
     @staticmethod
     def test_httpx_real_http() -> None:
@@ -2087,13 +2089,13 @@ class TestHttpxAlsoIntercepted:
         """
         sock = socket.socket()
         sock.bind(("", 0))
-        port = sock.getsockname()[1]
+        port = sock.getsockname()[1]  # pyrefly: ignore [unknown-variable-type]
         sock.close()
         with (
             MockVWS(real_http=True),
             pytest.raises(expected_exception=httpx.ConnectError),
         ):
-            httpx.get(url=f"http://localhost:{port}", timeout=30)
+            _ = httpx.get(url=f"http://localhost:{port}", timeout=30)
 
 
 class TestHttpx2AlsoIntercepted:
@@ -2138,10 +2140,10 @@ class TestHttpx2AlsoIntercepted:
         """
         sock = socket.socket()
         sock.bind(("", 0))
-        port = sock.getsockname()[1]
+        port = sock.getsockname()[1]  # pyrefly: ignore [unknown-variable-type]
         sock.close()
         with MockVWS(), pytest.raises(expected_exception=httpx2.ConnectError):
-            httpx2.get(url=f"http://localhost:{port}", timeout=30)
+            _ = httpx2.get(url=f"http://localhost:{port}", timeout=30)
 
     @staticmethod
     def test_httpx2_real_http() -> None:
@@ -2150,13 +2152,13 @@ class TestHttpx2AlsoIntercepted:
         """
         sock = socket.socket()
         sock.bind(("", 0))
-        port = sock.getsockname()[1]
+        port = sock.getsockname()[1]  # pyrefly: ignore [unknown-variable-type]
         sock.close()
         with (
             MockVWS(real_http=True),
             pytest.raises(expected_exception=httpx2.ConnectError),
         ):
-            httpx2.get(url=f"http://localhost:{port}", timeout=30)
+            _ = httpx2.get(url=f"http://localhost:{port}", timeout=30)
 
 
 class TestModelTargetWebAPI:
@@ -2174,7 +2176,7 @@ class TestModelTargetWebAPI:
                 data={"grant_type": "client_credentials"},
                 timeout=30,
             )
-            token = token_response.json()["access_token"]
+            token = token_response.json()["access_token"]  # pyrefly: ignore [unknown-variable-type]
             headers = {"Authorization": f"Bearer {token}"}
 
             create_response = requests.post(
@@ -2183,7 +2185,7 @@ class TestModelTargetWebAPI:
                 json=_MODEL_TARGET_DATASET_REQUEST,
                 timeout=30,
             )
-            dataset_uuid = create_response.json()["uuid"]
+            dataset_uuid = create_response.json()["uuid"]  # pyrefly: ignore [unknown-variable-type]
 
             status_response = requests.get(
                 url=(
@@ -2220,7 +2222,7 @@ class TestModelTargetWebAPI:
                 json=_MODEL_TARGET_DATASET_REQUEST,
                 timeout=30,
             )
-            dataset_uuid = response.json()["uuid"]
+            dataset_uuid = response.json()["uuid"]  # pyrefly: ignore [unknown-variable-type]
             status_response = requests.get(
                 url=(
                     "https://vws.vuforia.com/modeltargets/"
@@ -2245,7 +2247,7 @@ class TestModelTargetWebAPI:
                     json=_MODEL_TARGET_DATASET_REQUEST,
                     timeout=30,
                 )
-            dataset_uuid = create_response.json()["uuid"]
+            dataset_uuid = create_response.json()["uuid"]  # pyrefly: ignore [unknown-variable-type]
             dataset_url = (
                 "https://vws.vuforia.com/modeltargets/datasets/"
                 f"{dataset_uuid}/dataset"
@@ -2318,7 +2320,7 @@ class TestDecorator:
         with pytest.raises(
             expected_exception=requests.exceptions.ConnectionError
         ):
-            requests.get(url=summary_url, timeout=30)
+            _ = requests.get(url=summary_url, timeout=30)
 
     @staticmethod
     def test_httpx_requests_are_mocked() -> None:
@@ -2344,7 +2346,7 @@ class TestDecorator:
         assert response.status_code == HTTPStatus.BAD_REQUEST
 
         with pytest.raises(expected_exception=httpx.ConnectError):
-            httpx.get(url=summary_url, timeout=30)
+            _ = httpx.get(url=summary_url, timeout=30)
 
     @staticmethod
     def test_httpx2_requests_are_mocked() -> None:
@@ -2370,7 +2372,7 @@ class TestDecorator:
         assert response.status_code == HTTPStatus.BAD_REQUEST
 
         with pytest.raises(expected_exception=httpx2.ConnectError):
-            httpx2.get(url=summary_url, timeout=30)
+            _ = httpx2.get(url=summary_url, timeout=30)
 
     @staticmethod
     def test_arguments_and_return_value() -> None:
@@ -2511,7 +2513,7 @@ class TestDecorator:
         @mock
         def add_one_target() -> None:
             """Add a target with a name used only once per call."""
-            vws_client.add_target(
+            _ = vws_client.add_target(
                 name="only-one",
                 width=1,
                 image=high_quality_image,
@@ -2553,7 +2555,7 @@ class TestDecorator:
             Returns:
                 The number of targets, including the one added here.
             """
-            vws_client.add_target(
+            _ = vws_client.add_target(
                 name="inner",
                 width=1,
                 image=high_quality_image,
@@ -2570,7 +2572,7 @@ class TestDecorator:
                 The number of targets seen by the inner call, and the number
                 of targets seen here once the inner call has returned.
             """
-            vws_client.add_target(
+            _ = vws_client.add_target(
                 name="outer",
                 width=1,
                 image=high_quality_image,
@@ -2583,7 +2585,7 @@ class TestDecorator:
         inner_count, outer_count = add_outer_target()
         assert inner_count == targets_seen_by_inner_call
         assert outer_count == 1
-        assert not database.targets
+        assert not bool(database.targets)
 
     @staticmethod
     def test_database_targets_are_restored(
@@ -2605,7 +2607,7 @@ class TestDecorator:
         @mock
         def add_one_target() -> None:
             """Add a target and inspect it on the database object."""
-            vws_client.add_target(
+            _ = vws_client.add_target(
                 name="only-one",
                 width=1,
                 image=high_quality_image,
@@ -2616,7 +2618,7 @@ class TestDecorator:
             assert target.name == "only-one"
 
         add_one_target()
-        assert not database.targets
+        assert not bool(database.targets)
 
     @staticmethod
     def test_exception_restores_database_targets(
@@ -2640,7 +2642,7 @@ class TestDecorator:
             Raises:
                 ValueError: Always.
             """
-            vws_client.add_target(
+            _ = vws_client.add_target(
                 name="only-one",
                 width=1,
                 image=high_quality_image,
@@ -2656,7 +2658,7 @@ class TestDecorator:
         ):
             add_one_target_then_raise()
 
-        assert not database.targets
+        assert not bool(database.targets)
 
     @staticmethod
     def test_query(high_quality_image: io.BytesIO) -> None:

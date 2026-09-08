@@ -170,4 +170,6 @@ class TestInactiveProject:
     def test_inactive_project(inactive_vws_client: VWS) -> None:
         """The project's active state does not affect getting a target."""
         with pytest.raises(expected_exception=UnknownTargetError):
-            inactive_vws_client.get_target_record(target_id=uuid.uuid4().hex)
+            _ = inactive_vws_client.get_target_record(
+                target_id=uuid.uuid4().hex
+            )

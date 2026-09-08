@@ -32,7 +32,7 @@ class TestIncorrect:
         Length`` is
         not an integer.
         """
-        if not endpoint.headers.get("Content-Type"):
+        if not bool(endpoint.headers.get("Content-Type")):
             return
 
         content_length = "0.4"
@@ -60,7 +60,7 @@ class TestIncorrect:
 
         netloc = urlparse(url=endpoint.base_url).netloc
         if netloc == "cloudreco.vuforia.com":
-            assert not response.text
+            assert not bool(response.text)
             assert response.headers == {
                 "Content-Length": str(object=len(response.text)),
                 "Connection": "Close",
@@ -92,7 +92,7 @@ class TestIncorrect:
     @pytest.mark.skip(reason="It takes too long to run this test.")
     def test_too_large(endpoint: Endpoint) -> None:  # pragma: no cover
         """An error is given if the given content length is too large."""
-        if not endpoint.headers.get("Content-Type"):
+        if not bool(endpoint.headers.get("Content-Type")):
             pytest.skip(reason="No Content-Type header for this request")
 
         netloc = urlparse(url=endpoint.base_url).netloc
@@ -123,7 +123,7 @@ class TestIncorrect:
         # retry on the Gateway Timeout.
         if netloc == "cloudreco.vuforia.com":
             assert response.status_code == HTTPStatus.GATEWAY_TIMEOUT
-            assert not response.text
+            assert not bool(response.text)
             assert response.headers == {
                 "Content-Length": str(object=len(response.text)),
                 "Connection": "keep-alive",
@@ -151,7 +151,7 @@ class TestIncorrect:
         length is
         too small.
         """
-        if not endpoint.headers.get("Content-Type"):
+        if not bool(endpoint.headers.get("Content-Type")):
             return
 
         real_content_length = len(endpoint.data)

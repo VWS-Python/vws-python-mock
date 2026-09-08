@@ -133,7 +133,7 @@ def _create_and_get_vumark_target_id(
     vumark_template_name: str,
 ) -> str:
     """Upload a VuMark template and get its target ID."""
-    vws_web_tools.upload_vumark_template(
+    _ = vws_web_tools.upload_vumark_template(
         driver=driver,
         database_name=vumark_database_name,
         svg_file_path=VUMARK_TEMPLATE_SVG_FILE_PATH,
@@ -292,11 +292,11 @@ def main() -> None:
     files_to_create = [file for file in required_files if not file.exists()]
     driver: WebDriver | None = None
 
-    while files_to_create:
+    while bool(files_to_create):
         if driver is None:
             driver = vws_web_tools.create_chrome_driver()
         file = files_to_create[-1]
-        sys.stdout.write(f"Creating database {file.name}\n")
+        _ = sys.stdout.write(f"Creating database {file.name}\n")
         (
             cloud_license_name,
             cloud_database_name,
@@ -305,7 +305,7 @@ def main() -> None:
         ) = _create_vuforia_resource_names()
 
         try:
-            sys.stdout.write("Creating cloud database details\n")
+            _ = sys.stdout.write("Creating cloud database details\n")
             cloud_database_details = _create_and_get_cloud_database_details(
                 driver=driver,
                 email_address=email_address,
@@ -313,19 +313,19 @@ def main() -> None:
                 cloud_license_name=cloud_license_name,
                 cloud_database_name=cloud_database_name,
             )
-            sys.stdout.write("Creating VuMark database details\n")
+            _ = sys.stdout.write("Creating VuMark database details\n")
             vumark_details = _create_and_get_vumark_details(
                 driver=driver,
                 vumark_database_name=vumark_database_name,
             )
-            sys.stdout.write("Creating VuMark target\n")
+            _ = sys.stdout.write("Creating VuMark target\n")
             vumark_target_id = _create_and_get_vumark_target_id(
                 driver=driver,
                 vumark_database_name=vumark_database_name,
                 vumark_template_name=vumark_template_name,
             )
         except TimeoutException:
-            sys.stderr.write("Timed out during database setup\n")
+            _ = sys.stderr.write("Timed out during database setup\n")
             driver.quit()
             driver = None
             continue
@@ -343,9 +343,9 @@ def main() -> None:
             model_target_username=email_address,
             model_target_password=password,
         )
-        file.write_text(data=file_contents)
-        sys.stdout.write(f"Created database {file.name}\n")
-        files_to_create.pop()
+        _ = file.write_text(data=file_contents)
+        _ = sys.stdout.write(f"Created database {file.name}\n")
+        _ = files_to_create.pop()
 
 
 if __name__ == "__main__":
