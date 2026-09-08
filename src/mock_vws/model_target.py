@@ -14,11 +14,11 @@ from beartype import beartype
 class ModelTargetDatasetDict(TypedDict):
     """A dictionary type which represents a Model Target dataset."""
 
-    request_body: dict[str, Any]
+    request_body: dict[str, Any]  # pyrefly: ignore [explicit-any]
     dataset_type_name: str
     processing_time_seconds: float
     generation_failure_message: str | None
-    generation_warning: dict[str, Any] | None
+    generation_warning: dict[str, Any] | None  # pyrefly: ignore [explicit-any]
     uuid: str
     created_at: str
 
@@ -100,7 +100,7 @@ class ModelTargetGenerationWarning:
     """
 
     message: str = "Warning after creating dataset"
-    details: list[dict[str, Any]] = field(
+    details: list[dict[str, Any]] = field(  # pyrefly: ignore [explicit-any]
         default_factory=lambda: [
             {
                 "code": "LOW_RECOGNITION_QUALITY",
@@ -141,7 +141,7 @@ class ModelTargetDataset:
         generation_warning: A warning to return when processing completes.
     """
 
-    request_body: dict[str, Any] = field(hash=False)
+    request_body: dict[str, Any] = field(hash=False)  # pyrefly: ignore [explicit-any]
     dataset_type: ModelTargetDatasetType
     processing_time_seconds: float = field(hash=False)
     generation_failure: ModelTargetGenerationFailure | None = field(hash=False)
@@ -188,7 +188,7 @@ class ModelTargetDataset:
         if self.generation_failure is not None:
             generation_failure_message = self.generation_failure.message
 
-        generation_warning: dict[str, Any] | None = None
+        generation_warning: dict[str, Any] | None = None  # pyrefly: ignore [explicit-any]
         if self.generation_warning is not None:
             generation_warning = {
                 "message": self.generation_warning.message,
@@ -221,10 +221,10 @@ class ModelTargetDataset:
             return "failed"
         return "done"
 
-    def status_body(self) -> dict[str, Any]:
+    def status_body(self) -> dict[str, Any]:  # pyrefly: ignore [explicit-any]
         """Return a status response body for this dataset."""
         status = self.status
-        body: dict[str, Any] = {
+        body: dict[str, Any] = {  # pyrefly: ignore [explicit-any]
             "status": status,
             "uuid": self.uuid_,
             "createdAt": _format_datetime(value=self.created_at),

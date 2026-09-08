@@ -47,7 +47,7 @@ def validate_date_format(*, context: ValidatorContext) -> None:
     """
     date_header = context.request_headers["Date"]
     try:
-        datetime.datetime.strptime(date_header, _DATE_FORMAT).astimezone()
+        _ = datetime.datetime.strptime(date_header, _DATE_FORMAT).astimezone()
     except ValueError as exc:
         _LOGGER.warning(msg="The date header is in the wrong format.")
         raise FailError(status_code=HTTPStatus.BAD_REQUEST) from exc

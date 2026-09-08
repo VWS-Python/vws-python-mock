@@ -52,6 +52,6 @@ def validate_target_id_exists(*, context: ValidatorContext) -> None:
         for target in context.database.not_deleted_targets
         if target.target_id == target_id
     ]
-    if not matching_targets:
+    if not bool(matching_targets):
         _LOGGER.warning('The target ID "%s" does not exist.', target_id)
         raise UnknownTargetError

@@ -16,7 +16,7 @@ from .request_rate_limiter import RequestRateLimiter
 
 
 @beartype
-def _is_json_object(value: object, /) -> TypeIs[dict[str, Any]]:
+def _is_json_object(value: object, /) -> TypeIs[dict[str, Any]]:  # pyrefly: ignore [explicit-any]
     """Return whether a decoded JSON value is an object.
 
     JSON object keys are always strings, so a ``dict`` from ``json.loads``
@@ -77,7 +77,7 @@ class ValidatorContext:
     allowed_for_inactive_cloud_project: bool
 
     @cached_property
-    def request_json(self) -> dict[str, Any]:
+    def request_json(self) -> dict[str, Any]:  # pyrefly: ignore [explicit-any]
         """The request body parsed as a JSON object.
 
         A route's JSON validator runs before any validator which reads this,

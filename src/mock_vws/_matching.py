@@ -46,7 +46,7 @@ def _match_score(
         raise TypeError(message)
     if score is None:
         return None
-    return float(score)
+    return score
 
 
 @beartype

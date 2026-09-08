@@ -28,7 +28,7 @@ def validate_no_body_given(*, context: ValidatorContext) -> None:
     Raises:
         UnnecessaryRequestBodyError: A request body was given.
     """
-    if not context.request_body:
+    if not bool(context.request_body):
         return
 
     _LOGGER.warning(
@@ -60,7 +60,7 @@ def _validate_json(
         ValidatorError: The request body is empty, is not valid UTF-8, or is
             not a JSON object.
     """
-    if not context.request_body:
+    if not bool(context.request_body):
         _LOGGER.warning(msg="The request body is empty.")
         raise make_empty_body_error()
 

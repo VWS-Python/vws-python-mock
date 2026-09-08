@@ -348,7 +348,7 @@ def update_target(
     target_id: str,
 ) -> Endpoint:
     """Return details of the endpoint for updating a target."""
-    data: dict[str, Any] = {}
+    data: dict[str, Any] = {}  # pyrefly: ignore [explicit-any]
     request_path = f"/targets/{target_id}"
     content = json.dumps(obj=data).encode(encoding="utf-8")
     content_type = "application/json"

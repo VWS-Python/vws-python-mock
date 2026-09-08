@@ -60,7 +60,7 @@ def _to_request_data(
         A ``RequestData`` with method, path, headers, and body set.
     """
     path = request.url.raw_path.decode(encoding="ascii")
-    if base_path and path.startswith(base_path):
+    if len(base_path) > 0 and path.startswith(base_path):
         path = path[len(base_path) :]
     return RequestData(
         method=request.method,
@@ -148,7 +148,7 @@ class _Fakes:
         for route in self.routes:
             if route.http_method != request.method:
                 continue
-            if route.url_pattern.search(string=url):
+            if bool(route.url_pattern.search(string=url)):
                 return route
         return None
 
@@ -189,7 +189,7 @@ class _SyncVuforiaTransport(httpx2.BaseTransport):
                 fake route matches, unless unmatched requests are passed
                 through.
         """
-        request.read()
+        _ = request.read()
         route = self._fakes.match(request=request)
         if route is not None:
             return route.handler(request)
@@ -391,6 +391,6 @@ def start_httpx2_router(
         attribute="_transport_for_url",
         new=async_transport_for_url,
     )
-    sync_patch.start()
-    async_patch.start()
+    _ = sync_patch.start()
+    _ = async_patch.start()
     return Httpx2Router(stop_fns=(async_patch.stop, sync_patch.stop))

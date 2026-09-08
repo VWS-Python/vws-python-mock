@@ -67,7 +67,9 @@ def validate_date_format(*, request_headers: Mapping[str, str]) -> None:
 
     for date_format in _accepted_date_formats():
         with contextlib.suppress(ValueError):
-            datetime.datetime.strptime(date_header, date_format).astimezone()
+            _ = datetime.datetime.strptime(
+                date_header, date_format
+            ).astimezone()
             return
 
     _LOGGER.warning(msg="The date header is in the wrong format.")
