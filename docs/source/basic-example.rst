@@ -13,7 +13,7 @@
         database = CloudDatabase()
         mock.add_cloud_database(cloud_database=database)
         # This will use the Vuforia mock.
-        requests.get(url="https://vws.vuforia.com/summary", timeout=30)
+        _ = requests.get(url="https://vws.vuforia.com/summary", timeout=30)
 
 By default, an exception will be raised if any requests to unmocked addresses are made.
 
@@ -35,7 +35,7 @@ A ``MockVWS`` instance can also decorate a function:
     @mock
     def get_summary() -> None:
         """Make a request which uses the Vuforia mock."""
-        requests.get(url="https://vws.vuforia.com/summary", timeout=30)
+        _ = requests.get(url="https://vws.vuforia.com/summary", timeout=30)
 
 
     get_summary()

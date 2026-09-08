@@ -32,7 +32,7 @@ This requires Python |minimum-python-version|\+.
         database = CloudDatabase()
         mock.add_cloud_database(cloud_database=database)
         # This will use the Vuforia mock.
-        requests.get(url="https://vws.vuforia.com/summary", timeout=30)
+        _ = requests.get(url="https://vws.vuforia.com/summary", timeout=30)
 
 ``MockVWS`` also intercepts `httpx`_ requests:
 
@@ -49,7 +49,7 @@ This requires Python |minimum-python-version|\+.
         database = CloudDatabase()
         mock.add_cloud_database(cloud_database=database)
         # This will use the Vuforia mock.
-        httpx.get(url="https://vws.vuforia.com/summary", timeout=30)
+        _ = httpx.get(url="https://vws.vuforia.com/summary", timeout=30)
 
 ``MockVWS`` also intercepts `HTTPX2`_ requests, with no need for ``httpx2.alias_httpx()``:
 
@@ -66,7 +66,7 @@ This requires Python |minimum-python-version|\+.
         database = CloudDatabase()
         mock.add_cloud_database(cloud_database=database)
         # This will use the Vuforia mock.
-        httpx2.get(url="https://vws.vuforia.com/summary", timeout=30)
+        _ = httpx2.get(url="https://vws.vuforia.com/summary", timeout=30)
 
 Asynchronous ``httpx`` and `HTTPX2`_ clients are intercepted as well.
 
