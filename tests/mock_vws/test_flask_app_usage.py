@@ -16,6 +16,7 @@ from typing import Any
 import pytest
 import requests
 import responses
+from beartype import beartype
 from PIL import Image
 from requests_mock_flask import add_flask_app_to_mock
 from vws import VWS, CloudRecoService
@@ -69,9 +70,29 @@ _MODEL_TARGET_DATASET_REQUEST = {
 }
 
 
+@beartype
+def _clear_target_manager() -> None:
+    """Remove everything from the target manager which the Flask
+    applications share.
+    """
+    for cloud_database in TARGET_MANAGER.cloud_databases:
+        TARGET_MANAGER.remove_cloud_database(cloud_database=cloud_database)
+    for vumark_database in TARGET_MANAGER.vumark_databases:
+        TARGET_MANAGER.remove_vumark_database(vumark_database=vumark_database)
+    for dataset_uuid in TARGET_MANAGER.model_target_datasets:
+        TARGET_MANAGER.remove_model_target_dataset(dataset_uuid=dataset_uuid)
+
+
 @pytest.fixture(autouse=True)
 def _(*, monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
-    """Enable a mock service backed by the Flask applications."""
+    """Enable a mock service backed by the Flask applications.
+
+    The target manager is cleared before the test as well as after it,
+    because the tests which use the in-process Flask backend fixture leave
+    their databases in it, and which of those ran last in this process
+    depends on how the tests are distributed.
+    """
+    _clear_target_manager()
     with responses.RequestsMock(
         assert_all_requests_are_fired=False,
     ) as mock_obj:
@@ -105,12 +126,7 @@ def _(*, monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
 
         yield
 
-    for cloud_database in TARGET_MANAGER.cloud_databases:
-        TARGET_MANAGER.remove_cloud_database(cloud_database=cloud_database)
-    for vumark_database in TARGET_MANAGER.vumark_databases:
-        TARGET_MANAGER.remove_vumark_database(vumark_database=vumark_database)
-    for dataset_uuid in TARGET_MANAGER.model_target_datasets:
-        TARGET_MANAGER.remove_model_target_dataset(dataset_uuid=dataset_uuid)
+    _clear_target_manager()
 
 
 class TestProcessingTime:

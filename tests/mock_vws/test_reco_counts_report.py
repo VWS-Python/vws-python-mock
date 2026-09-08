@@ -319,22 +319,24 @@ class TestRecoCountsReport:
         same file.
         """
         month = _month_offset_from_now(months=0)
+        first_url = _presigned_url(
+            vuforia_database=vuforia_database,
+            month=month,
+        )
+        second_url = _presigned_url(
+            vuforia_database=vuforia_database,
+            month=month,
+        )
+        hour_after = _now().strftime(format="%Y-%m-%d-%H")
 
-        def request_twice() -> tuple[str, str]:
-            """Request the report twice and return both URLs."""
-            return (
-                _presigned_url(vuforia_database=vuforia_database, month=month),
-                _presigned_url(vuforia_database=vuforia_database, month=month),
-            )
-
-        hour_before = _now().hour
-        first_url, second_url = request_twice()
-        if _now().hour != hour_before:
-            # The requests straddled an hour boundary, so they legitimately
-            # named different files.
-            first_url, second_url = request_twice()
-
-        assert urlsplit(url=first_url).path == urlsplit(url=second_url).path
+        # If the requests straddled an hour boundary, the second one
+        # legitimately names the new hour's file instead.
+        database_id = vuforia_database.database_id
+        expected_paths = {
+            urlsplit(url=first_url).path,
+            f"/reports/{database_id}/{hour_after}.csv",
+        }
+        assert urlsplit(url=second_url).path in expected_paths
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -468,13 +470,17 @@ class TestDownloadReport:
             vuforia_database=vuforia_database,
             month=month,
         )
-        if urlsplit(url=first_url).path != urlsplit(url=second_url).path:
-            pytest.skip(reason="The requests straddled an hour boundary.")
-
         second_response = requests.get(url=second_url, timeout=30)
 
-        assert second_response.status_code == HTTPStatus.OK
-        assert second_response.text == first_response.text
+        # If the requests straddled an hour boundary, the second one names a
+        # new file, and nothing is claimed about that.
+        same_file = (
+            urlsplit(url=first_url).path == urlsplit(url=second_url).path
+        )
+        assert not same_file or (
+            second_response.status_code == HTTPStatus.OK
+            and second_response.text == first_response.text
+        )
 
     @staticmethod
     def test_expired_url(*, vuforia_database: CloudDatabase) -> None:
@@ -748,9 +754,11 @@ class TestDownloadReportMockOnly:
             vuforia_database=fresh_database,
             month=month,
         )
-        if urlsplit(url=first_url).path != urlsplit(url=second_url).path:
-            pytest.skip(reason="The requests straddled an hour boundary.")
-
         ready_response = _wait_for_report(presigned_url=second_url)
 
-        assert ready_response.text == _CSV_HEADER
+        # If the requests straddled an hour boundary, the second one names a
+        # new file, and nothing is claimed about that.
+        same_file = (
+            urlsplit(url=first_url).path == urlsplit(url=second_url).path
+        )
+        assert not same_file or ready_response.text == _CSV_HEADER
