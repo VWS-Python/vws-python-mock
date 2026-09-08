@@ -184,10 +184,10 @@ def test_endpoint_send() -> None:
     This is the path which the cross-cutting Model Target endpoint tests
     take, and it is where a gateway failure has been seen.
     """
-    _ = responses.add(
+    responses.add(  # pyrefly: ignore [unused-call-result]
         method=responses.GET, url=_URL, status=HTTPStatus.BAD_GATEWAY
     )
-    _ = responses.add(
+    responses.add(  # pyrefly: ignore [unused-call-result]
         method=responses.GET, url=_URL, status=HTTPStatus.UNAUTHORIZED
     )
     endpoint = ModelTargetEndpoint(
@@ -208,10 +208,12 @@ def test_endpoint_send() -> None:
 @responses.activate
 def test_model_target_get() -> None:
     """``model_target_get`` retries a transient failure."""
-    _ = responses.add(
+    responses.add(  # pyrefly: ignore [unused-call-result]
         method=responses.GET, url=_URL, status=HTTPStatus.GATEWAY_TIMEOUT
     )
-    _ = responses.add(method=responses.GET, url=_URL, body=b"dataset")
+    responses.add(  # pyrefly: ignore [unused-call-result]
+        method=responses.GET, url=_URL, body=b"dataset"
+    )
 
     with retrying_transient_real_backend_failures():
         response = model_target_get(url=_URL, headers={}, timeout=30)

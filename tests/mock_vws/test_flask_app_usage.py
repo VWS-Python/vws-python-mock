@@ -258,12 +258,12 @@ class TestRequestQuota:
             server_secret_key=database.server_secret_key,
         )
 
-        _ = client.list_targets()
+        _targets = client.list_targets()
         with pytest.raises(expected_exception=TooManyRequestsError):
-            _ = client.list_targets()
+            _targets = client.list_targets()
 
         # Other endpoints are not limited.
-        _ = client.get_database_summary_report()
+        _summary = client.get_database_summary_report()
 
 
 class TestRecognitionCounts:

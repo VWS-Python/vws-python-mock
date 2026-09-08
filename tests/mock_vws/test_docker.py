@@ -643,18 +643,18 @@ def test_request_rate_limit(*, mock_deployment: _MockDeployment) -> None:
     _create_cloud_database(deployment=mock_deployment, database=database)
     vws_client = _vws_client(deployment=mock_deployment, database=database)
 
-    _ = vws_client.list_targets()
+    _targets = vws_client.list_targets()
 
     with pytest.raises(expected_exception=TooManyRequestsError):
-        _ = vws_client.list_targets()
+        _targets = vws_client.list_targets()
 
     # Other endpoints are not limited.
-    _ = vws_client.get_database_summary_report()
+    _summary = vws_client.get_database_summary_report()
 
     mock_deployment.vws_container.restart()
     wait_for_health_check(container=mock_deployment.vws_container)
 
-    _ = vws_client.list_targets()
+    _targets = vws_client.list_targets()
 
 
 def test_deleted_database(*, mock_deployment: _MockDeployment) -> None:

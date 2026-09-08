@@ -206,7 +206,8 @@ class MockVWS:
             cloud_query_failure_response=cloud_query_failure_response,
             duplicate_match_checker=duplicate_match_checker,
             query_match_checker=query_match_checker,
-            processing_time_seconds=processing_time_seconds,
+            # Runtime callers may pass integers accepted by the numeric tower.
+            processing_time_seconds=float(processing_time_seconds),  # pyrefly: ignore [unnecessary-type-conversion]
             model_target_generation_failure=model_target_generation_failure,
             model_target_failure_response=model_target_failure_response,
             model_target_generation_warning=model_target_generation_warning,

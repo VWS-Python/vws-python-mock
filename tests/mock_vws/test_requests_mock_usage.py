@@ -673,14 +673,14 @@ class TestPerEndpointRequestRateLimits:
         with MockVWS() as mock:
             mock.add_cloud_database(cloud_database=database)
             # ``GET /targets`` is limited to one request per minute.
-            _ = client.list_targets()
+            _targets = client.list_targets()
             with pytest.raises(
                 expected_exception=TooManyRequestsError,
             ) as exc_info:
-                _ = client.list_targets()
+                _targets = client.list_targets()
 
             # Other endpoints have their own budgets.
-            _ = client.get_database_summary_report()
+            _summary = client.get_database_summary_report()
 
         assert_vws_failure(
             response=exc_info.value.response,
@@ -721,13 +721,13 @@ class TestPerEndpointRequestRateLimits:
                 application_metadata=None,
                 active_flag=True,
             )
-            _ = client.get_target_record(target_id=target_id)
-            _ = client.get_duplicate_targets(target_id=target_id)
+            _target = client.get_target_record(target_id=target_id)
+            _duplicates = client.get_duplicate_targets(target_id=target_id)
             with pytest.raises(expected_exception=TooManyRequestsError):
-                _ = client.get_duplicate_targets(target_id=target_id)
-            _ = client.get_target_record(target_id=target_id)
+                _duplicates = client.get_duplicate_targets(target_id=target_id)
+            _target = client.get_target_record(target_id=target_id)
             with pytest.raises(expected_exception=TooManyRequestsError):
-                _ = client.get_target_record(target_id=target_id)
+                _target = client.get_target_record(target_id=target_id)
 
 
 class TestAdditionalResultCodes:
