@@ -38,7 +38,10 @@ dependencies = [
     "flask>=3.0.3",
     "httpx>=0.27.0",
     "httpx2>=2.12",
-    "mock-response-delay>=2026.9.7.post7",
+    """\
+    mock-response-delay @ \
+    git+https://github.com/adamtheturtle/mock-response-delay@bebcfbf51a1cbee316ebf8168a04159d19ecc0fa\
+    """,
     "numpy>=2.4.4",
     "opencv-contrib-python-headless>=5.0.0.93",
     "pillow>=12.2.0",
@@ -154,9 +157,6 @@ version_scheme = "post-release"
 #
 # This must be a PEP 440 compliant version.
 fallback_version = "0.0.0"
-
-[tool.uv]
-sources.mock-response-delay = { git = "https://github.com/adamtheturtle/mock-response-delay", rev = "bebcfbf51a1cbee316ebf8168a04159d19ecc0fa" }
 
 [tool.ruff]
 line-length = 79
