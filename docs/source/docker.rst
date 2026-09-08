@@ -95,10 +95,8 @@ To delete a database use the following endpoint:
 Setting the recognition counts of a target
 ------------------------------------------
 
-The mock does not count recognitions, because the counts which the real
-Vuforia Web Services report lag behind its queries by longer than a test runs.
-To make the target summary report and the reco counts report show non-zero
-counts, set the counts with the following endpoint:
+The mock does not count recognitions, because the counts which the real Vuforia Web Services report lag behind its queries by longer than a test runs.
+To make the target summary report and the reco counts report show non-zero counts, set the counts with the following endpoint:
 
 .. autoflask:: mock_vws._flask_server.target_manager:TARGET_MANAGER_FLASK_APP
    :endpoints: set_target_recognition_counts

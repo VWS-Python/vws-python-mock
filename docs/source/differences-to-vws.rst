@@ -130,9 +130,8 @@ The mock Query API sends all responses with ``Content-Encoding: gzip``.
 ``x-aws-region`` headers
 ------------------------
 
-The mock uses the fixed sample value ``us-east-2, us-west-2`` for
-``x-aws-region`` response headers. The regions returned by the real Vuforia
-Web Services can differ, so tests should not rely on the mock's exact value.
+The mock uses the fixed sample value ``us-east-2, us-west-2`` for ``x-aws-region`` response headers.
+The regions returned by the real Vuforia Web Services can differ, so tests should not rely on the mock's exact value.
 
 .. _differences-nginx-error-cases:
 
@@ -179,10 +178,7 @@ This behavior follows the public Vuforia documentation.
 Request rate limits
 -------------------
 
-Vuforia documents a request rate limit of 15 requests per second for VWS
-endpoints in general, with 45 requests per second for
-``GET /targets/{target_id}``, 10 requests per second for
-``GET /duplicates/{target_id}``, and 1 request per minute for ``GET /targets``.
+Vuforia documents a request rate limit of 15 requests per second for VWS endpoints in general, with 45 requests per second for ``GET /targets/{target_id}``, 10 requests per second for ``GET /duplicates/{target_id}``, and 1 request per minute for ``GET /targets``.
 
 The limits were checked against real Vuforia on 2026-09-08, by sending bursts of requests to read-only endpoints:
 
@@ -223,9 +219,8 @@ the limits which real Vuforia applies::
         # response.
         ...
 
-``requests_per_second_limit`` remains available. It applies one limit to all
-VWS endpoints together, and it is tracked separately from the per-endpoint
-limits.
+``requests_per_second_limit`` remains available.
+It applies one limit to all VWS endpoints together, and it is tracked separately from the per-endpoint limits.
 
 Vuforia also documents that ``GET /targets`` fails for databases with more than 1 million images, which the mock does not implement.
 
@@ -254,17 +249,15 @@ in-process ``requests``, ``httpx`` and ``httpx2`` backends::
         # Cloud Query calls return the configured response.
         ...
 
-The configured response bypasses normal Cloud Query validation and image
-matching. Omitting it preserves the normal successful-query behavior. This
-configuration is not supported by the Flask/Docker backend.
+The configured response bypasses normal Cloud Query validation and image matching.
+Omitting it preserves the normal successful-query behavior.
+This configuration is not supported by the Flask/Docker backend.
 
 Configurable Model Target failures
 ----------------------------------
 
-Use :paramref:`mock_vws.MockVWS.model_target_failure_response` to return a
-particular HTTP failure from selected Model Target dataset request phases. The
-OAuth2 token request is still handled normally, so this exercises client
-behavior after successful token acquisition::
+Use :paramref:`mock_vws.MockVWS.model_target_failure_response` to return a particular HTTP failure from selected Model Target dataset request phases.
+The OAuth2 token request is still handled normally, so this exercises client behavior after successful token acquisition::
 
     from mock_vws import (
         MockVWS,
@@ -284,9 +277,8 @@ behavior after successful token acquisition::
         ...
 
 Omit ``requests`` to affect create, status, download, and delete requests.
-Other phases retain their normal behavior. This configuration works with
-the in-process ``requests``, ``httpx`` and ``httpx2`` backends and is not
-supported by the Flask/Docker backend.
+Other phases retain their normal behavior.
+This configuration works with the in-process ``requests``, ``httpx`` and ``httpx2`` backends and is not supported by the Flask/Docker backend.
 
 Other configurable result codes
 -------------------------------
@@ -312,13 +304,9 @@ The other three come from Vuforia's result codes table rather than from a respon
   monthly recognition threshold, but its status code, body and headers were
   not recorded, and reads such as ``GET /targets`` and the database summary
   kept working there.
-* ``ProjectHasNoApiAccess`` is returned by VWS endpoints when a database uses
-  the :attr:`mock_vws.states.States.PROJECT_HAS_NO_API_ACCESS` state.
-  This casing comes from Vuforia's result codes table, as no response from a
-  real database in this state has been seen.
-  ``vws-python`` and ``vws-cli`` map this result code by the
-  ``ProjectHasNoAPIAccess`` spelling, so they do not recognize this response
-  until they are updated.
+* ``ProjectHasNoApiAccess`` is returned by VWS endpoints when a database uses the :attr:`mock_vws.states.States.PROJECT_HAS_NO_API_ACCESS` state.
+  This casing comes from Vuforia's result codes table, as no response from a real database in this state has been seen.
+  ``vws-python`` and ``vws-cli`` map this result code by the ``ProjectHasNoAPIAccess`` spelling, so they do not recognize this response until they are updated.
 * ``TooManyRequests`` is returned when a
   :class:`mock_vws.database.CloudDatabase` exceeds a configured request rate
   limit. Set ``requests_per_second_limit`` to ``0`` to return this result code
@@ -374,54 +362,27 @@ The OAuth2 client-credentials management routes support creating, listing,
 updating and deleting credentials, including Vuforia's limit of 100 created
 credentials per account.
 
-Dataset creation request bodies which are valid JSON but not JSON objects are
-reported as missing every required top-level field.
-Dataset creation request bodies which cannot be decoded as UTF-8 are reported
-as invalid JSON, as malformed JSON bodies are.
-An OAuth2 token request body which cannot be decoded as UTF-8 is treated as one
-which does not name a grant type.
-Dataset creation requests are validated for the required top-level ``models``,
-``name`` and ``targetSdk`` fields, for those fields' types, for each ``models``
-entry being a JSON object, and for the number of models.
-Each model is validated for the required ``name`` field, for exactly one of
-``cadDataUrl`` and ``cadDataBlob`` being given, for the types of the
-``automaticColoring``, ``cadDataBlob``, ``cadDataFormat``, ``cadDataUrl``,
-``motionHint``, ``name``, ``optimizeTrackingFor``, ``simplify`` and
-``trackingMode`` fields, for each of the ``automaticColoring``,
-``cadDataFormat``, ``motionHint``, ``optimizeTrackingFor``, ``simplify`` and
-``trackingMode`` fields being one of the values which the Model Target OpenAPI
-specification documents for it when the field is given, and for ``views``
-being a JSON array when it is given. The optional
-``stateBasedConfigurationJsonString`` field must be a string containing a JSON
-object with a ``states`` object.
-The ``realisticAppearance`` model field is validated in the same way for
-advanced datasets; the OpenAPI specification does not document it as a
-standard dataset model field, so standard dataset creation does not validate
-it.
-Each ``views`` entry is validated for being a JSON object, for the required
-``name`` field, and for the types of ``name`` and the optional
-``guideViewPosition`` field.
-State-Based Model Target views require ``guideViewPosition``, matching real
-Vuforia.
-An optional ``states`` field must be an array of strings. Each named state must
-be declared by the model's ``stateBasedConfigurationJsonString``. Omitting the
-field makes the view available to every configured state.
-Each ``guideViewPosition`` object is validated for the required ``rotation``
-and ``translation`` fields, for those fields being JSON arrays, and for the
-elements of those arrays being JSON numbers.
-The mock does not validate the contents of each model further, such as whether
-``cadDataUrl`` values are reachable, whether ``cadDataBlob`` values are valid
-base64-encoded archives of the named ``cadDataFormat``, whether
-``cadDataFormat`` is given alongside ``cadDataBlob``, the lengths of
-``rotation`` and ``translation`` arrays, or ``targetSdk`` version numbers.
-It also does not validate the state configuration beyond its top-level
-``states`` object.
+Dataset creation request bodies which are valid JSON but not JSON objects are reported as missing every required top-level field.
+Dataset creation request bodies which cannot be decoded as UTF-8 are reported as invalid JSON, as malformed JSON bodies are.
+An OAuth2 token request body which cannot be decoded as UTF-8 is treated as one which does not name a grant type.
+Dataset creation requests are validated for the required top-level ``models``, ``name`` and ``targetSdk`` fields, for those fields' types, for each ``models`` entry being a JSON object, and for the number of models.
+Each model is validated for the required ``name`` field, for exactly one of ``cadDataUrl`` and ``cadDataBlob`` being given, for the types of the ``automaticColoring``, ``cadDataBlob``, ``cadDataFormat``, ``cadDataUrl``, ``motionHint``, ``name``, ``optimizeTrackingFor``, ``simplify`` and ``trackingMode`` fields, for each of the ``automaticColoring``, ``cadDataFormat``, ``motionHint``, ``optimizeTrackingFor``, ``simplify`` and ``trackingMode`` fields being one of the values which the Model Target OpenAPI specification documents for it when the field is given, and for ``views`` being a JSON array when it is given.
+The optional ``stateBasedConfigurationJsonString`` field must be a string containing a JSON object with a ``states`` object.
+The ``realisticAppearance`` model field is validated in the same way for advanced datasets; the OpenAPI specification does not document it as a standard dataset model field, so standard dataset creation does not validate it.
+Each ``views`` entry is validated for being a JSON object, for the required ``name`` field, and for the types of ``name`` and the optional ``guideViewPosition`` field.
+State-Based Model Target views require ``guideViewPosition``, matching real Vuforia.
+An optional ``states`` field must be an array of strings.
+Each named state must be declared by the model's ``stateBasedConfigurationJsonString``.
+Omitting the field makes the view available to every configured state.
+Each ``guideViewPosition`` object is validated for the required ``rotation`` and ``translation`` fields, for those fields being JSON arrays, and for the elements of those arrays being JSON numbers.
+The mock does not validate the contents of each model further, such as whether ``cadDataUrl`` values are reachable, whether ``cadDataBlob`` values are valid base64-encoded archives of the named ``cadDataFormat``, whether ``cadDataFormat`` is given alongside ``cadDataBlob``, the lengths of ``rotation`` and ``translation`` arrays, or ``targetSdk`` version numbers.
+It also does not validate the state configuration beyond its top-level ``states`` object.
 
 For unknown Model Target datasets, the mock returns an error whose ``target`` is ``userId:mock``.
 Real Vuforia uses ``userId:<numeric-user-id>`` where the numeric portion is per-account.
 
-Standard and advanced routes share datasets by UUID. Access to each route
-family is separated by its corresponding OAuth scope.
+Standard and advanced routes share datasets by UUID.
+Access to each route family is separated by its corresponding OAuth scope.
 
 Some Model Target Web API paths remain mock-only in ``tests/mock_vws/test_model_target_web_api.py::TestAdditionalBehaviors``.
 Downloads of still-processing datasets are mock-only because exercising the path against real Vuforia would require creating a dataset on every test run; the mock drives the processing window deterministically.
@@ -432,34 +393,25 @@ The mock reports ``not-started`` for the whole processing window, as real Vufori
 
    :ref:`unverified-model-target-failed-dataset-name`
 
-Some malformed State-Based Model Target configuration documents remain
-mock-only because real Vuforia returns an internal server error for them.
+Some malformed State-Based Model Target configuration documents remain mock-only because real Vuforia returns an internal server error for them.
 
 Reco counts reports
 -------------------
 
-The mock does not count recognitions, so a generated reco counts report
-contains only the ``target_id,reco_count`` header row, ending with a carriage
-return and a line feed, until recognition counts are set on targets.
+The mock does not count recognitions, so a generated reco counts report contains only the ``target_id,reco_count`` header row, ending with a carriage return and a line feed, until recognition counts are set on targets.
 That is what real Vuforia returns for a database with no recognitions.
 
-A report for the current month has a row for each target with a non-zero
-``current_month_recos``, and a report for the previous month has a row for
-each target with a non-zero ``previous_month_recos``.
+A report for the current month has a row for each target with a non-zero ``current_month_recos``, and a report for the previous month has a row for each target with a non-zero ``previous_month_recos``.
 Each row ends with a carriage return and a line feed, as the header row does.
-The mock takes the counts when the report is requested, so counts which are
-set after that are not in that report.
+The mock takes the counts when the report is requested, so counts which are set after that are not in that report.
 The mock orders the rows by target ID.
 
 .. admonition:: Unverified assumption
 
    :ref:`unverified-reco-counts-report-row-order`
 
-Setting recognition counts is mock-only, because real Vuforia's counts are
-delayed for longer than a test runs, so the tests for reports with rows in
-``tests/mock_vws/test_reco_counts_report.py`` run against the mocks only.
-As with real Vuforia, the report is served with a ``text/plain`` content type
-rather than a CSV one.
+Setting recognition counts is mock-only, because real Vuforia's counts are delayed for longer than a test runs, so the tests for reports with rows in ``tests/mock_vws/test_reco_counts_report.py`` run against the mocks only.
+As with real Vuforia, the report is served with a ``text/plain`` content type rather than a CSV one.
 
 Real Vuforia assigns a database an ID, which the target manager shows.
 The ID of a database in the mock is
@@ -494,62 +446,33 @@ The mock does not check the signature, so a URL whose signature or file name
 has been changed, which real Vuforia refuses with a ``SignatureDoesNotMatch``
 error document, is served by the mock as if it were signed.
 
-Real Vuforia names the report file after the requested month, and does so
-differently for each of the two months it accepts.
-A report for the current month is named for the UTC date and hour, such as
-``2026-08-08-21.csv``, and a report for the previous month is named for the
-month, such as ``2026-07.csv``.
-The mock does the same, so two requests for the same month in the same hour
-name the same file, and two requests for the previous month always do.
-Real Vuforia does not generate the report again for such a request: the URL
-which the second request returns serves the file which the first request
-generated, unchanged.
-The mock does the same, so recognition counts set between the two requests
-are not in the report which the second URL serves.
+Real Vuforia names the report file after the requested month, and does so differently for each of the two months it accepts.
+A report for the current month is named for the UTC date and hour, such as ``2026-08-08-21.csv``, and a report for the previous month is named for the month, such as ``2026-07.csv``.
+The mock does the same, so two requests for the same month in the same hour name the same file, and two requests for the previous month always do.
+Real Vuforia does not generate the report again for such a request: the URL which the second request returns serves the file which the first request generated, unchanged.
+The mock does the same, so recognition counts set between the two requests are not in the report which the second URL serves.
 
-The URL expires ``X-Amz-Expires`` seconds after its ``X-Amz-Date``, which
-is one second under seven days.
-Real Vuforia's storage checks that the URL is in date before it checks the
-signature, so a URL whose ``X-Amz-Date`` or ``X-Amz-Expires`` has been
-edited to put it out of date gives the same 403 response as a URL which has
-expired, even though the edit invalidates the signature.
-The mock honors those two parameters in the same way, so code which handles
-a stale URL can be tested by editing them.
-The 403 response is the XML ``AccessDenied`` error document which Amazon S3
-gives, with a ``Request has expired`` message, the expiry time and the
-server time.
-A URL without those parameters gives the ``AccessDenied`` error document
-with an ``Access Denied`` message, as it does on real Vuforia.
+The URL expires ``X-Amz-Expires`` seconds after its ``X-Amz-Date``, which is one second under seven days.
+Real Vuforia's storage checks that the URL is in date before it checks the signature, so a URL whose ``X-Amz-Date`` or ``X-Amz-Expires`` has been edited to put it out of date gives the same 403 response as a URL which has expired, even though the edit invalidates the signature.
+The mock honors those two parameters in the same way, so code which handles a stale URL can be tested by editing them.
+The 403 response is the XML ``AccessDenied`` error document which Amazon S3 gives, with a ``Request has expired`` message, the expiry time and the server time.
+A URL without those parameters gives the ``AccessDenied`` error document with an ``Access Denied`` message, as it does on real Vuforia.
 
-Until the report is ready, the URL gives a 404 response with the XML
-``NoSuchKey`` error document which Amazon S3 gives, naming the file's key.
-The mock does the same, and the mock gives the same response for a file
-which no request generated.
-The mock's error documents carry random request identifiers where Amazon's
-carry its own.
-The report takes :paramref:`~mock_vws.MockVWS.processing_time_seconds`
-seconds to generate in the mock.
-The documentation says a real report takes between a few seconds and one
-hour, but a real report has been observed ready within a second of the
-request, and the 404 response has been observed by fetching the URL straight
-after the request.
-The download requires no authorization beyond the query parameters of the
-URL, as on real Vuforia.
+Until the report is ready, the URL gives a 404 response with the XML ``NoSuchKey`` error document which Amazon S3 gives, naming the file's key.
+The mock does the same, and the mock gives the same response for a file which no request generated.
+The mock's error documents carry random request identifiers where Amazon's carry its own.
+The report takes :paramref:`~mock_vws.MockVWS.processing_time_seconds` seconds to generate in the mock.
+The documentation says a real report takes between a few seconds and one hour, but a real report has been observed ready within a second of the request, and the 404 response has been observed by fetching the URL straight after the request.
+The download requires no authorization beyond the query parameters of the URL, as on real Vuforia.
 
 Paths which the mock does not serve
 -----------------------------------
 
-Real Vuforia gives an empty body with a 404 response only for a request to a
-path which does not start with a served path, such as
-``/some-random-endpoint``.
-For any other request which it does not serve, such as ``DELETE /summary`` or
-``GET /targetsfoo``, it gives an HTML "Not Found" page which names the method
-and the path of the request.
+Real Vuforia gives an empty body with a 404 response only for a request to a path which does not start with a served path, such as ``/some-random-endpoint``.
+For any other request which it does not serve, such as ``DELETE /summary`` or ``GET /targetsfoo``, it gives an HTML "Not Found" page which names the method and the path of the request.
 The Flask and Docker mock reproduces both response shapes.
 
-The ``requests``, ``httpx`` and ``httpx2`` backends mock only the paths which
-the mock serves, so a request to any other path raises a connection error
-rather than giving the 404 response which real Vuforia gives.
+The ``requests``, ``httpx`` and ``httpx2`` backends mock only the paths which the mock serves, so a request to any other path raises a connection error rather than giving the 404 response which real Vuforia gives.
 
 Header cases
 ------------
