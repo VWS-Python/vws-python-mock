@@ -24,8 +24,7 @@ Create environment variable files for secrets:
    $ cp vuforia_secrets.env.example ci_secrets/vuforia_secrets_1.env
    $ ...
 
-Populate every variable listed in :file:`vuforia_secrets.env.example`.
-Each file needs distinct active Cloud database credentials so concurrent jobs do not modify the same database.
+Populate every variable listed in :file:`vuforia_secrets.env.example`. Each file needs distinct active Cloud database credentials so concurrent jobs do not modify the same database.
 The files can share the inactive Cloud, active and inactive VuMark, and Model Target credentials.
 Add at least as many consecutively numbered files, starting at zero, as there are builds in the GitHub test matrix.
 
