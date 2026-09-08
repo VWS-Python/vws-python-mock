@@ -1,5 +1,8 @@
 """Helpers for retrying requests to VWS."""
 
+from requests.exceptions import ConnectionError as RequestsConnectionError
+from requests.exceptions import ConnectTimeout as RequestsConnectTimeout
+from requests.exceptions import ReadTimeout as RequestsReadTimeout
 from requests.exceptions import Timeout as RequestsTimeout
 from tenacity import retry
 from tenacity.retry import retry_if_exception_type
@@ -12,7 +15,19 @@ from vws.exceptions.vws_exceptions import (
     UnknownTargetError,
 )
 
-TRANSIENT_VWS_EXCEPTIONS = (TooManyRequestsError, ServerError, RequestsTimeout)
+# ``pytest-retry`` checks whether the type of the exception which failed a
+# test is *in* this tuple, so a subclass of a listed type is not retried.
+# ``requests`` raises the ``Timeout`` subclasses below, never ``Timeout``
+# itself, so each one is listed. ``Timeout`` and ``ConnectionError`` stay
+# for the ``tenacity`` retries, which do use ``isinstance``.
+TRANSIENT_VWS_EXCEPTIONS = (
+    TooManyRequestsError,
+    ServerError,
+    RequestsTimeout,
+    RequestsReadTimeout,
+    RequestsConnectTimeout,
+    RequestsConnectionError,
+)
 TRANSIENT_VWS_RETRY_ATTEMPTS = 10
 
 # We rely on pytest-retry for exceptions *during* tests.

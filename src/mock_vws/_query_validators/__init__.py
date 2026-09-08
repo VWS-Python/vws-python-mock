@@ -31,6 +31,7 @@ from .date_validators import (
     validate_date_in_range,
 )
 from .fields_validators import validate_extra_fields
+from .header_size_validators import validate_header_lines_not_too_large
 from .image_validators import (
     validate_image_dimensions,
     validate_image_field_given,
@@ -77,6 +78,9 @@ def run_query_validators(
     validators here, so that order is the mock's record of Vuforia's error
     precedence, verified against the real service.
 
+    NGINX rejects a request with an over-long header line before it reaches
+    Vuforia, so that is checked first.
+
     The body is parsed once, after the ``Content-Type`` header which names
     its boundary has been validated, and the parsed form is shared by every
     validator which reads the body.
@@ -92,6 +96,7 @@ def run_query_validators(
         The database which the request's client keys belong to, and the
         parsed body of the request.
     """
+    validate_header_lines_not_too_large(request_headers=request_headers)
     validate_content_length_header_is_int(request_headers=request_headers)
     validate_content_length_header_not_too_large(
         request_headers=request_headers,

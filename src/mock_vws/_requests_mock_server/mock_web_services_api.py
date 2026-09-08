@@ -624,9 +624,8 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
             )
 
         now = datetime.datetime.now(tz=target.upload_date.tzinfo)
-        # See https://github.com/facebook/pyrefly/issues/1897
-        new_target: ImageTarget = copy.replace(
-            target,  # pyrefly: ignore[bad-argument-type]
+        new_target = copy.replace(
+            target,
             delete_date=now,
         )
         database.targets.remove(target)
@@ -1039,9 +1038,8 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
                 fail_exception.response_text,
             )
 
-        # See https://github.com/facebook/pyrefly/issues/1897
-        new_target: ImageTarget = copy.replace(
-            target,  # pyrefly: ignore[bad-argument-type]
+        new_target = copy.replace(
+            target,
             name=name,
             width=width,
             active_flag=active_flag,

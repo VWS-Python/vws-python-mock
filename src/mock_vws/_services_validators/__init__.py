@@ -13,6 +13,7 @@ from .auth_validators import (
     validate_authorization,
 )
 from .context import ValidatorContext
+from .header_size_validators import validate_header_lines_not_too_large
 from .request_rate_limiter import RequestRateLimiter
 from .routes import match_route
 
@@ -29,7 +30,9 @@ def run_services_validators[DatabaseT: AnyDatabase](
 ) -> DatabaseT:
     """Run the validators which apply to the request.
 
-    Every request is authorized first, because the validators which follow
+    NGINX rejects a request with an over-long header line before it reaches
+    Vuforia, so that is checked first.
+    Every request is then authorized, because the validators which follow
     are given the database which the request's server keys belong to. Which
     validators follow, and in which order, is decided by the route the
     request was made to. See :py:mod:`mock_vws._services_validators.routes`.
@@ -45,6 +48,7 @@ def run_services_validators[DatabaseT: AnyDatabase](
     Returns:
         The database which the request's server keys belong to.
     """
+    validate_header_lines_not_too_large(request_headers=request_headers)
     validate_auth_header_exists(request_headers=request_headers)
     validate_auth_header_has_signature(request_headers=request_headers)
     validate_access_key_exists(
