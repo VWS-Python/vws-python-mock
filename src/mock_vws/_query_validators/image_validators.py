@@ -2,10 +2,8 @@
 
 import io
 import logging
-from collections.abc import Mapping
 
 from beartype import beartype
-from werkzeug.datastructures import FileStorage, MultiDict
 
 from mock_vws._image_opening import open_image
 from mock_vws._query_validators.exceptions import (
@@ -13,53 +11,22 @@ from mock_vws._query_validators.exceptions import (
     ImageNotGivenError,
     RequestEntityTooLargeError,
 )
-from mock_vws._query_validators.multipart import parse_multipart
+from mock_vws._query_validators.multipart import MultipartForm
 
 _LOGGER = logging.getLogger(name=__name__)
 
 
 @beartype
-def _parse_multipart_files(
-    *,
-    request_headers: Mapping[str, str],
-    request_body: bytes,
-) -> MultiDict[str, FileStorage]:
-    """Parse the multipart body and return the files section.
-
-    Args:
-        request_headers: The headers sent with the request.
-        request_body: The body of the request.
-
-    Returns:
-        The files parsed from the multipart body.
-    """
-    _, files = parse_multipart(
-        request_headers=request_headers,
-        request_body=request_body,
-    )
-    return files
-
-
-@beartype
-def validate_image_field_given(
-    *,
-    request_headers: Mapping[str, str],
-    request_body: bytes,
-) -> None:
+def validate_image_field_given(*, form: MultipartForm) -> None:
     """Validate that the image field is given.
 
     Args:
-        request_headers: The headers sent with the request.
-        request_body: The body of the request.
+        form: The parsed body of the request.
 
     Raises:
         ImageNotGivenError: The image field is not given.
     """
-    files = _parse_multipart_files(
-        request_headers=request_headers,
-        request_body=request_body,
-    )
-    if files.get(key="image") is not None:
+    if "image" in form.files:
         return
 
     _LOGGER.warning(msg="The image field is not given.")
@@ -67,26 +34,16 @@ def validate_image_field_given(
 
 
 @beartype
-def validate_image_file_size(
-    *,
-    request_headers: Mapping[str, str],
-    request_body: bytes,
-) -> None:
+def validate_image_file_size(*, form: MultipartForm) -> None:
     """Validate the file size of the image given to the query endpoint.
 
     Args:
-        request_headers: The headers sent with the request.
-        request_body: The body of the request.
+        form: The parsed body of the request.
 
     Raises:
         RequestEntityTooLargeError: The image file size is too large.
     """
-    files = _parse_multipart_files(
-        request_headers=request_headers,
-        request_body=request_body,
-    )
-    image_part = files["image"]
-    image_value = image_part.stream.read()
+    image_value = form.files["image"]
 
     # This is the documented maximum size of a PNG as per.
     # https://developer.vuforia.com/library/web-api/vuforia-query-web-api.
@@ -102,28 +59,17 @@ def validate_image_file_size(
 
 
 @beartype
-def validate_image_dimensions(
-    *,
-    request_headers: Mapping[str, str],
-    request_body: bytes,
-) -> None:
+def validate_image_dimensions(*, form: MultipartForm) -> None:
     """Validate the dimensions the image given to the query endpoint.
 
     Args:
-        request_headers: The headers sent with the request.
-        request_body: The body of the request.
+        form: The parsed body of the request.
 
     Raises:
         BadImageError: The image is given and is not within the maximum width
             and height limits.
     """
-    files = _parse_multipart_files(
-        request_headers=request_headers,
-        request_body=request_body,
-    )
-    image_part = files["image"]
-    image_value = image_part.stream.read()
-    image_file = io.BytesIO(initial_bytes=image_value)
+    image_file = io.BytesIO(initial_bytes=form.files["image"])
     with open_image(fp=image_file) as pil_image:
         max_width = 30000
         max_height = 30000
@@ -135,26 +81,17 @@ def validate_image_dimensions(
 
 
 @beartype
-def validate_image_format(
-    *,
-    request_headers: Mapping[str, str],
-    request_body: bytes,
-) -> None:
+def validate_image_format(*, form: MultipartForm) -> None:
     """Validate the format of the image given to the query endpoint.
 
     Args:
-        request_headers: The headers sent with the request.
-        request_body: The body of the request.
+        form: The parsed body of the request.
 
     Raises:
         BadImageError: The image is given and is not either a PNG or a JPEG.
     """
-    files = _parse_multipart_files(
-        request_headers=request_headers,
-        request_body=request_body,
-    )
-    image_part = files["image"]
-    with open_image(fp=image_part.stream) as pil_image:
+    image_file = io.BytesIO(initial_bytes=form.files["image"])
+    with open_image(fp=image_file) as pil_image:
         if pil_image.format in {"PNG", "JPEG"}:
             return
 
@@ -163,25 +100,16 @@ def validate_image_format(
 
 
 @beartype
-def validate_image_is_image(
-    *,
-    request_headers: Mapping[str, str],
-    request_body: bytes,
-) -> None:
+def validate_image_is_image(*, form: MultipartForm) -> None:
     """Validate that the given image data is actually an image file.
 
     Args:
-        request_headers: The headers sent with the request.
-        request_body: The body of the request.
+        form: The parsed body of the request.
 
     Raises:
         BadImageError: Image data is given and it is not an image file.
     """
-    files = _parse_multipart_files(
-        request_headers=request_headers,
-        request_body=request_body,
-    )
-    image_file = files["image"].stream
+    image_file = io.BytesIO(initial_bytes=form.files["image"])
 
     try:
         with open_image(fp=image_file) as _:

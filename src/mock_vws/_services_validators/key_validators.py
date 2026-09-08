@@ -1,6 +1,5 @@
 """Validators for JSON keys."""
 
-import json
 import logging
 from http import HTTPStatus
 
@@ -25,7 +24,7 @@ def validate_keys(*, context: ValidatorContext) -> None:
             missing.
     """
     allowed_keys = context.mandatory_keys | context.optional_keys
-    request_json = json.loads(s=context.request_body.decode())
+    request_json = context.request_json
     given_keys = set(request_json.keys())
     all_given_keys_allowed = given_keys.issubset(allowed_keys)
     all_mandatory_keys_given = context.mandatory_keys.issubset(given_keys)

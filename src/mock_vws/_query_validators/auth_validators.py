@@ -115,7 +115,7 @@ def validate_authorization(
     request_body: bytes,
     request_method: str,
     databases: Iterable[CloudDatabase],
-) -> None:
+) -> CloudDatabase:
     """Validate the authorization header given to the query endpoint.
 
     Args:
@@ -125,12 +125,15 @@ def validate_authorization(
         request_method: The HTTP method of the request.
         databases: All Vuforia databases.
 
+    Returns:
+        The database which the request's client keys belong to.
+
     Raises:
         AuthenticationFailureError: The "Authorization" header is not as
             expected.
     """
     try:
-        get_database_matching_client_keys(
+        return get_database_matching_client_keys(
             request_headers=request_headers,
             request_body=request_body,
             request_method=request_method,

@@ -117,7 +117,7 @@ class MockVuforiaWebQueryAPI:
             )
 
         try:
-            run_query_validators(
+            validated_query = run_query_validators(
                 request_path=request.path,
                 request_headers=request.headers,
                 request_body=request.body,
@@ -128,11 +128,7 @@ class MockVuforiaWebQueryAPI:
             return exc.status_code, exc.headers, exc.response_text
 
         response_text = get_query_match_response_text(
-            request_headers=request.headers,
-            request_body=request.body,
-            request_method=request.method,
-            request_path=request.path,
-            databases=self._target_manager.cloud_databases,
+            validated_query=validated_query,
             query_match_checker=self._query_match_checker,
         )
 

@@ -1,6 +1,5 @@
 """Validators for target names."""
 
-import json
 import logging
 from http import HTTPStatus
 
@@ -33,7 +32,7 @@ def _given_name(*, context: ValidatorContext) -> str | None:
         The value has already been checked to be a string by
         :py:func:`validate_name_type`.
     """
-    request_json = json.loads(s=context.request_body.decode())
+    request_json = context.request_json
     name: str | None = request_json.get("name")
     return name
 
@@ -64,7 +63,7 @@ def _new_target_name(*, context: ValidatorContext) -> str:
         a request which does not give one, and :py:func:`validate_name_type`
         has already rejected one which is not a string.
     """
-    name: str = json.loads(s=context.request_body.decode())["name"]
+    name: str = context.request_json["name"]
     return name
 
 
@@ -141,7 +140,7 @@ def validate_name_type(*, context: ValidatorContext) -> None:
     Raises:
         FailError: A name is given and it is not a string.
     """
-    request_json = json.loads(s=context.request_body.decode())
+    request_json = context.request_json
     if "name" not in request_json:
         return
 

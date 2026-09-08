@@ -2,65 +2,39 @@
 
 import base64
 import uuid
-from collections.abc import Iterable, Mapping
 from typing import Any
 
 from beartype import beartype
 
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._constants import ResultCodes, TargetStatuses
-from mock_vws._database_matchers import get_database_matching_client_keys
 from mock_vws._matching import matching_targets
 from mock_vws._mock_common import json_dump
-from mock_vws._query_validators.multipart import parse_multipart
-from mock_vws.database import CloudDatabase
+from mock_vws._query_validators import ValidatedQuery
 from mock_vws.image_matchers import ImageMatcher
 
 
 @beartype
 def get_query_match_response_text(
     *,
-    request_headers: Mapping[str, str],
-    request_body: bytes,
-    request_method: str,
-    request_path: str,
-    databases: Iterable[CloudDatabase],
+    validated_query: ValidatedQuery,
     query_match_checker: ImageMatcher,
 ) -> str:
     """
     Args:
-        request_path: The path of the request.
-        request_headers: The headers sent with the request.
-        request_body: The body of the request.
-        request_method: The HTTP method of the request.
-        databases: All Vuforia databases.
+        validated_query: The database and the parsed body which the query
+            validators resolved the request to.
         query_match_checker: A callable which takes two image values and
             returns a match score, or ``None`` if they do not match.
 
     Returns:
         The response text for a query endpoint request.
     """
-    fields, files = parse_multipart(
-        request_headers=request_headers,
-        request_body=request_body,
-    )
-
-    max_num_results = fields.get(key="max_num_results", default="1")
-    include_target_data = fields.get(
-        key="include_target_data",
-        default="top",
-    ).lower()
-
-    image_part = files["image"]
-    image_value = image_part.stream.read()
-
-    database = get_database_matching_client_keys(
-        request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
-    )
+    fields = validated_query.form.fields
+    max_num_results = fields.get("max_num_results", "1")
+    include_target_data = fields.get("include_target_data", "top").lower()
+    image_value = validated_query.form.files["image"]
+    database = validated_query.database
 
     matches_best_first = matching_targets(
         matcher=query_match_checker,

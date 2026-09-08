@@ -1,9 +1,14 @@
 """Input validators to use in the mock query API."""
 
 from collections.abc import Iterable, Mapping
+from dataclasses import dataclass
 
 from beartype import beartype
 
+from mock_vws._query_validators.multipart import (
+    MultipartForm,
+    parse_multipart,
+)
 from mock_vws.database import CloudDatabase
 
 from .accept_header_validators import validate_accept_header
@@ -40,6 +45,24 @@ from .project_state_validators import validate_project_state
 
 
 @beartype
+@dataclass(frozen=True, kw_only=True)
+class ValidatedQuery:
+    """What the validators learn about a query request which passes them.
+
+    Args:
+        database: The database which the request's client keys belong to.
+        form: The parsed body of the request.
+
+    Attributes:
+        database: The database which the request's client keys belong to.
+        form: The parsed body of the request.
+    """
+
+    database: CloudDatabase
+    form: MultipartForm
+
+
+@beartype
 def run_query_validators(
     *,
     request_path: str,
@@ -47,11 +70,20 @@ def run_query_validators(
     request_body: bytes,
     request_method: str,
     databases: Iterable[CloudDatabase],
-) -> None:
+) -> ValidatedQuery:
     """Run all validators.
+
+    Vuforia reports one problem with a request even when the request has
+    more than one. Which problem it reports is decided by the order of the
+    validators here, so that order is the mock's record of Vuforia's error
+    precedence, verified against the real service.
 
     NGINX rejects a request with an over-long header line before it reaches
     Vuforia, so that is checked first.
+
+    The body is parsed once, after the ``Content-Type`` header which names
+    its boundary has been validated, and the parsed form is shared by every
+    validator which reads the body.
 
     Args:
         request_path: The path of the request.
@@ -59,6 +91,10 @@ def run_query_validators(
         request_body: The body of the request.
         request_method: The HTTP method of the request.
         databases: All Vuforia databases.
+
+    Returns:
+        The database which the request's client keys belong to, and the
+        parsed body of the request.
     """
     validate_header_lines_not_too_large(request_headers=request_headers)
     validate_content_length_header_is_int(request_headers=request_headers)
@@ -77,20 +113,14 @@ def run_query_validators(
         request_headers=request_headers,
         databases=databases,
     )
-    validate_authorization(
+    database = validate_authorization(
         request_headers=request_headers,
         request_body=request_body,
         request_method=request_method,
         request_path=request_path,
         databases=databases,
     )
-    validate_project_state(
-        request_headers=request_headers,
-        request_body=request_body,
-        request_method=request_method,
-        request_path=request_path,
-        databases=databases,
-    )
+    validate_project_state(database=database)
     validate_accept_header(request_headers=request_headers)
     validate_date_header_given(request_headers=request_headers)
     validate_date_format(request_headers=request_headers)
@@ -99,35 +129,16 @@ def run_query_validators(
         request_headers=request_headers,
         request_body=request_body,
     )
-    validate_extra_fields(
+    form = parse_multipart(
         request_headers=request_headers,
         request_body=request_body,
     )
-    validate_image_field_given(
-        request_headers=request_headers,
-        request_body=request_body,
-    )
-    validate_image_is_image(
-        request_headers=request_headers,
-        request_body=request_body,
-    )
-    validate_image_format(
-        request_headers=request_headers,
-        request_body=request_body,
-    )
-    validate_image_dimensions(
-        request_headers=request_headers,
-        request_body=request_body,
-    )
-    validate_image_file_size(
-        request_headers=request_headers,
-        request_body=request_body,
-    )
-    validate_max_num_results(
-        request_headers=request_headers,
-        request_body=request_body,
-    )
-    validate_include_target_data(
-        request_headers=request_headers,
-        request_body=request_body,
-    )
+    validate_extra_fields(form=form)
+    validate_image_field_given(form=form)
+    validate_image_is_image(form=form)
+    validate_image_format(form=form)
+    validate_image_dimensions(form=form)
+    validate_image_file_size(form=form)
+    validate_max_num_results(form=form)
+    validate_include_target_data(form=form)
+    return ValidatedQuery(database=database, form=form)
