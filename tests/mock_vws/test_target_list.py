@@ -96,29 +96,24 @@ def fixture_rate_limited_database(
     database with the limits, so that the shared database which the other
     tests use is not limited.
     """
-    match verify_mock_vuforia:
-        case VuforiaBackend.REAL:
-            return vuforia_database
-        case VuforiaBackend.MOCK:
-            database = CloudDatabase(
-                request_rate_limits=DOCUMENTED_REQUEST_RATE_LIMITS,
-            )
-            running_in_memory_mock().add_cloud_database(
-                cloud_database=database,
-            )
-            return database
-        case VuforiaBackend.FLASK_IN_PROCESS:
-            database = CloudDatabase(
-                request_rate_limits=DOCUMENTED_REQUEST_RATE_LIMITS,
-            )
-            target_manager_base_url = os.environ["TARGET_MANAGER_BASE_URL"]
-            response = requests.post(
-                url=f"{target_manager_base_url}/cloud_databases",
-                json=database.to_dict(),
-                timeout=30,
-            )
-            response.raise_for_status()
-            return database
+    if verify_mock_vuforia == VuforiaBackend.REAL:
+        return vuforia_database
+
+    database = CloudDatabase(
+        request_rate_limits=DOCUMENTED_REQUEST_RATE_LIMITS
+    )
+    if verify_mock_vuforia == VuforiaBackend.MOCK:
+        running_in_memory_mock().add_cloud_database(cloud_database=database)
+        return database
+
+    target_manager_base_url = os.environ["TARGET_MANAGER_BASE_URL"]
+    response = requests.post(
+        url=f"{target_manager_base_url}/cloud_databases",
+        json=database.to_dict(),
+        timeout=30,
+    )
+    response.raise_for_status()
+    return database
 
 
 @pytest.mark.usefixtures("verify_mock_vuforia")
@@ -144,7 +139,10 @@ class TestRateLimit:
         limit = DOCUMENTED_REQUEST_RATE_LIMITS.list_targets
         assert limit is not None
         responses: list[Response] = []
-        for _ in range(5):
+        # Real Vuforia's fixed window means the rejection may come on any
+        # of the first three requests, so requests are sent until one is
+        # rejected, with a cap well above the limit.
+        while True:
             date = rfc_1123_date()
             authorization = authorization_header(
                 access_key=rate_limited_database.server_access_key,
@@ -170,6 +168,7 @@ class TestRateLimit:
             responses.append(response)
             if response.status_code == HTTPStatus.TOO_MANY_REQUESTS:
                 break
+            assert len(responses) <= limit.max_requests + 2
 
         status_codes = [response.status_code for response in responses]
         if verify_mock_vuforia != VuforiaBackend.REAL:
