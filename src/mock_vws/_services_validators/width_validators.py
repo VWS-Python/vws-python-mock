@@ -25,7 +25,7 @@ def validate_width(*, context: ValidatorContext) -> None:
     if "width" not in request_json:
         return
 
-    width = request_json["width"]  # pyrefly: ignore [unknown-variable-type]
+    width = request_json["width"]
 
     width_is_number = isinstance(width, int | float)
     width_positive = width_is_number and width > 0
