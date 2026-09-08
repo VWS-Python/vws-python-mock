@@ -1,1 +1,0 @@
-The mock now returns NGINX's ``400 Request Header Or Cookie Too Large`` response for any request header line longer than 8190 bytes, as real Vuforia does.

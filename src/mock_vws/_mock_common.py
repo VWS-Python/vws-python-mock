@@ -19,8 +19,14 @@ DATABASE_ID_PATTERN = "[A-Za-z0-9_-]+"
 RECO_COUNTS_REPORT_PATH_PATTERN = (
     f"/imagetargets/databases/{DATABASE_ID_PATTERN}/reports/recoCounts"
 )
-# The path which stands in for a reco counts report presigned URL.
-RECO_COUNTS_DOWNLOAD_PATH_PATTERN = "/reports/recoCounts/[A-Za-z0-9]+"
+# The path which stands in for a reco counts report presigned URL, with the
+# query string of that URL.
+# Any file name is matched, so that a file which no request generated gives
+# the response which cloud storage gives for a missing object rather than
+# leaving the request unmatched.
+RECO_COUNTS_DOWNLOAD_PATH_PATTERN = (
+    f"/reports/{DATABASE_ID_PATTERN}/[^/?]+(\\?.*)?"
+)
 
 
 @beartype

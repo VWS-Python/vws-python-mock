@@ -3,6 +3,24 @@ Changelog
 
 .. towncrier release notes start
 
+2026.09.08.1
+------------
+
+- The URL of a reco counts report now has the shape of the presigned cloud storage URL which real Vuforia returns.
+  The report file is named ``{date}-{hour}.csv`` for the current month and ``{month}.csv`` for the previous month, so two requests for the same month in the same hour name the same file and serve the report which the first request generated.
+  The URL carries the query parameters of a presigned URL, and the mock honors ``X-Amz-Date`` and ``X-Amz-Expires`` as real Vuforia's storage does, so a URL which is out of date or which has no query parameters gives the ``403`` XML error document which Amazon S3 gives.
+  A report which is not yet generated gives the ``404`` ``NoSuchKey`` XML error document which Amazon S3 gives, as real Vuforia has now been observed to do, rather than an empty body.
+
+2026.09.08
+----------
+
+- The response delay and client timeout simulation is now provided by the ``mock-response-delay`` package.
+
+- The mock now returns NGINX's ``400 Request Header Or Cookie Too Large`` response for any request header line longer than 8190 bytes, as real Vuforia does.
+
+- Match real Vuforia's request rate limiting, which was checked against it on 2026-09-08.
+  ``DOCUMENTED_REQUEST_RATE_LIMITS`` now allows two ``GET /targets`` requests per minute rather than one, a rate-limited request gets Envoy's empty-bodied ``429`` response rather than a JSON ``TooManyRequests`` body, and the limits are applied before the request's signature is checked.
+
 2026.09.06
 ----------
 

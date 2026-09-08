@@ -464,8 +464,8 @@ def create_cloud_database() -> Response:
 
     :reqjson int requests_per_second_limit: (Optional) The maximum number of
       VWS requests accepted in a rolling one-second window, across all VWS
-      endpoints. Set this to zero to make VWS endpoints return
-      ``TooManyRequests``.
+      endpoints. Set this to zero to make VWS endpoints return a ``429``
+      response.
 
     :reqjson request_rate_limits: (Optional) Request rate limits for
       individual groups of VWS endpoints. This is an object with the optional

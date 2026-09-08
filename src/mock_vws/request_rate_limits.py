@@ -170,10 +170,16 @@ DOCUMENTED_REQUEST_RATE_LIMITS = RequestRateLimits(
     other=RequestRateLimit(max_requests=15, window_seconds=1.0),
     get_target=RequestRateLimit(max_requests=45, window_seconds=1.0),
     get_duplicates=RequestRateLimit(max_requests=10, window_seconds=1.0),
-    list_targets=RequestRateLimit(max_requests=1, window_seconds=60.0),
+    list_targets=RequestRateLimit(max_requests=2, window_seconds=60.0),
 )
-"""The request rate limits documented by Vuforia.
+"""The request rate limits which Vuforia documents, corrected by
+observation.
 
-These limits have not been verified against the real Vuforia Web Services,
-and so they are not applied by default.
+Vuforia documents 15 requests per second for VWS endpoints in general, 45 per
+second for ``GET /targets/{target_id}``, 10 per second for
+``GET /duplicates/{target_id}`` and one per minute for ``GET /targets``.
+Real Vuforia was observed on 2026-09-08 to accept two ``GET /targets``
+requests per minute, not one, so that is the limit here.
+
+These limits are not applied by default.
 """

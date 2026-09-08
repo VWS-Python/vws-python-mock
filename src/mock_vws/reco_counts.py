@@ -1,7 +1,6 @@
 """Reco counts report objects."""
 
 import datetime
-import uuid
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from zoneinfo import ZoneInfo
@@ -25,21 +24,25 @@ class RecoCountsReport:
     """A requested reco counts report.
 
     Args:
+        key: The path of the report file, without a leading slash, such as
+            ``reports/{database_id}/2026-08-08-21.csv``. Real Vuforia stores
+            each report as an object with this key, so a second request for
+            the same file is served the report which the first request
+            generated.
         generation_time_seconds: The number of seconds before the report is
             available to download.
         reco_counts: The number of recognitions to report for each target,
             keyed by target ID. Targets with no recognitions in the requested
             month are not in the report.
-        uuid_: The report identifier, used in the report's download URL.
         created_at: When the report was requested.
     """
 
+    key: str
     generation_time_seconds: float = field(hash=False)
     reco_counts: Mapping[str, int] = field(
         default_factory=dict[str, int],
         hash=False,
     )
-    uuid_: str = field(default_factory=lambda: uuid.uuid4().hex)
     created_at: datetime.datetime = field(default_factory=_now)
 
     @property

@@ -286,7 +286,7 @@ class _InMemoryRecoCountsReportStore:
 
     @property
     def reco_counts_reports(self) -> dict[str, RecoCountsReport]:
-        """All reco counts reports, keyed by report identifier."""
+        """All reco counts reports, keyed by report file path."""
         with self._lock:
             return dict(self._reports)
 
@@ -299,7 +299,7 @@ class _InMemoryRecoCountsReportStore:
     ) -> None:
         """Add a reco counts report."""
         with self._lock:
-            self._reports[reco_counts_report.uuid_] = reco_counts_report
+            self._reports[reco_counts_report.key] = reco_counts_report
 
 
 _RECO_COUNTS_REPORT_STORE = _InMemoryRecoCountsReportStore()
@@ -364,7 +364,7 @@ def validate_request() -> None:
     if (
         request.path.startswith("/oauth2/")
         or request.path.startswith("/modeltargets/")
-        or request.path.startswith("/reports/recoCounts/")
+        or request.path.startswith("/reports/")
     ):
         return
     _ = run_services_validators(
@@ -707,20 +707,25 @@ def reco_counts_report(database_id: str) -> Response:
 
 
 @VWS_FLASK_APP.route(
-    rule="/reports/recoCounts/<string:report_id>",
+    rule="/reports/<string:database_id>/<string:file_name>",
     methods=[HTTPMethod.GET],
 )
 @beartype
-def download_reco_counts_report(report_id: str) -> Response:
+def download_reco_counts_report(database_id: str, file_name: str) -> Response:
     """Download a generated reco counts report.
 
     This stands in for the presigned URL which real Vuforia returns, so it
-    does not require any authorization.
+    does not require any authorization beyond the query parameters of that
+    URL.
     """
+    # The report is looked up by the whole path, which names the database
+    # and the file.
+    del database_id
+    del file_name
     return _to_flask_response(
         api_response=download_report(
             report_store=_RECO_COUNTS_REPORT_STORE,
-            report_id=report_id,
+            request_path=request.full_path,
         ),
     )
 

@@ -184,16 +184,30 @@ endpoints in general, with 45 requests per second for
 ``GET /targets/{target_id}``, 10 requests per second for
 ``GET /duplicates/{target_id}``, and 1 request per minute for ``GET /targets``.
 
-The mock models these limits separately for each group of endpoints, but it applies no limit by default.
-Applying a limit of 1 request per minute to ``GET /targets`` by default would break the tests of anything which uses the mock.
+The limits were checked against real Vuforia on 2026-09-08, by sending bursts of requests to read-only endpoints:
 
-.. admonition:: Unverified assumption
+* ``GET /targets`` accepts two requests per minute, not one.
+  The window is a fixed clock minute: two requests at 40 seconds past the minute were accepted, a third was rejected, and a request three seconds into the next minute was accepted again.
+* The per-second limits are enforced roughly, not exactly.
+  Bursts of 40 concurrent ``GET /summary`` requests saw between 17 and 37 succeed against the documented 15, and a burst of 120 ``GET /targets/{target_id}`` requests saw 74 succeed against the documented 45, so the limiter appears to be spread over more than one instance or window.
+* A limit is keyed on the server access key in the ``Authorization`` header, so one database's burst does not affect another database.
+  Vuforia applies the limit before checking the signature, so a request with a bad signature counts towards the limit, and a request over the limit gets a ``429`` response whether or not it is signed correctly.
+  Requests without an ``Authorization`` header are not rate limited.
+* A rate-limited request gets a ``429`` (``TOO MANY REQUESTS``) response from Envoy with an empty body, no ``Content-Type`` header and an ``x-envoy-ratelimited: true`` header.
+  Vuforia has an Envoy layer at its edge and another in front of the application, and either may reject the request.
+  Only a rejection by the inner layer carries an ``x-envoy-upstream-service-time`` header, which the mock always includes.
+  The ``TooManyRequests`` result code from Vuforia's result codes table does not appear.
 
-   :ref:`unverified-request-rate-limits`
+The mock returns the empty Envoy response, applies each limit before checking the request's signature, and tracks each limit separately for each database and each group of endpoints.
+The mock's windows are rolling rather than clock-aligned, so two ``GET /targets`` requests block a third until a minute has passed since the first, and the mock enforces the per-second limits exactly.
+The mock only limits requests whose access key belongs to a database, because the limits are configured on the database.
+
+The mock applies no limit by default.
+Applying a limit of two requests per minute to ``GET /targets`` by default would break the tests of anything which uses the mock.
 
 Set ``request_rate_limits`` to
 :data:`mock_vws.request_rate_limits.DOCUMENTED_REQUEST_RATE_LIMITS` to apply
-the documented limits::
+the limits which real Vuforia applies::
 
     from mock_vws import MockVWS
     from mock_vws.database import CloudDatabase
@@ -205,8 +219,8 @@ the documented limits::
 
     with MockVWS() as mock:
         mock.add_cloud_database(cloud_database=database)
-        # A second ``GET /targets`` request within a minute returns
-        # ``TooManyRequests``.
+        # A third ``GET /targets`` request within a minute gets a ``429``
+        # response.
         ...
 
 ``requests_per_second_limit`` remains available. It applies one limit to all
@@ -457,35 +471,70 @@ As real Vuforia does, the mock returns a 401 response with the
 server keys but which names any other database, including one named by its
 name rather than by its ID.
 
-Real Vuforia returns a presigned URL for cloud storage.
-The mock returns a URL served by the mock itself, without the query
-parameters of a presigned URL, so the mock's URL never expires where a real
-one expires after just under seven days.
+Real Vuforia returns a presigned URL for cloud storage, of this form:
+
+.. code-block:: text
+
+   https://guacamole-targetstore-production-targets.s3.us-west-1.amazonaws.com/reports/{database_id}/{file_name}.csv
+     ?X-Amz-Security-Token=...
+     &X-Amz-Algorithm=AWS4-HMAC-SHA256
+     &X-Amz-Date=20260808T210052Z
+     &X-Amz-SignedHeaders=host
+     &X-Amz-Credential=.../20260808/us-west-1/s3/aws4_request
+     &X-Amz-Expires=604799
+     &X-Amz-Signature=...
+
+The mock returns a URL with the same path and the same query parameters,
+served by the mock itself rather than by cloud storage.
 The URL returned by the Flask and Docker mock is built from the
 :envvar:`VWS_BASE_URL` environment variable.
-The report takes :paramref:`~mock_vws.MockVWS.processing_time_seconds`
-seconds to generate in the mock.
-The documentation says a real report takes between a few seconds and one
-hour, but a report for a database with no recognitions has been observed
-ready within seconds.
+The credential, the security token and the signature are placeholders of
+the right shape.
+The mock does not check the signature, so a URL whose signature or file name
+has been changed, which real Vuforia refuses with a ``SignatureDoesNotMatch``
+error document, is served by the mock as if it were signed.
 
 Real Vuforia names the report file after the requested month, and does so
 differently for each of the two months it accepts.
-A report for the current month is named for the date and the hour, such as
+A report for the current month is named for the UTC date and hour, such as
 ``2026-08-08-21.csv``, and a report for the previous month is named for the
 month, such as ``2026-07.csv``.
-The mock names every report after an opaque report identifier, so the
-requested month cannot be recovered from the mock's URL, and two requests for
-the same month never give the same URL.
+The mock does the same, so two requests for the same month in the same hour
+name the same file, and two requests for the previous month always do.
+Real Vuforia does not generate the report again for such a request: the URL
+which the second request returns serves the file which the first request
+generated, unchanged.
+The mock does the same, so recognition counts set between the two requests
+are not in the report which the second URL serves.
 
-The mock's URL returns a 404 response until the report is ready, and requires
-no authorization.
-The lack of authorization matches real Vuforia, whose URL carries its own
-signature.
+The URL expires ``X-Amz-Expires`` seconds after its ``X-Amz-Date``, which
+is one second under seven days.
+Real Vuforia's storage checks that the URL is in date before it checks the
+signature, so a URL whose ``X-Amz-Date`` or ``X-Amz-Expires`` has been
+edited to put it out of date gives the same 403 response as a URL which has
+expired, even though the edit invalidates the signature.
+The mock honors those two parameters in the same way, so code which handles
+a stale URL can be tested by editing them.
+The 403 response is the XML ``AccessDenied`` error document which Amazon S3
+gives, with a ``Request has expired`` message, the expiry time and the
+server time.
+A URL without those parameters gives the ``AccessDenied`` error document
+with an ``Access Denied`` message, as it does on real Vuforia.
 
-.. admonition:: Unverified assumption
-
-   :ref:`unverified-reco-counts-report-not-ready`
+Until the report is ready, the URL gives a 404 response with the XML
+``NoSuchKey`` error document which Amazon S3 gives, naming the file's key.
+The mock does the same, and the mock gives the same response for a file
+which no request generated.
+The mock's error documents carry random request identifiers where Amazon's
+carry its own.
+The report takes :paramref:`~mock_vws.MockVWS.processing_time_seconds`
+seconds to generate in the mock.
+The documentation says a real report takes between a few seconds and one
+hour, but a real report has been observed ready within a second of the
+request, and the 404 response has been observed by fetching the URL straight
+after the request.
+The download requires no authorization beyond the query parameters of the
+URL, as on real Vuforia.
 
 Paths which the mock does not serve
 -----------------------------------

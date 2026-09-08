@@ -10,9 +10,6 @@ from beartype import beartype
 
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._database_matchers import AnyDatabase
-from mock_vws.request_rate_limits import RateLimitedEndpoint
-
-from .request_rate_limiter import RequestRateLimiter
 
 
 @beartype
@@ -44,11 +41,8 @@ class ValidatorContext:
         request_headers: The headers sent with the request.
         request_body: The body of the request.
         database: The database which the request's server keys belong to.
-        request_rate_limiter: The rate limiter tracking recent requests.
         mandatory_keys: Keys which the route requires in the request body.
         optional_keys: Keys which the route allows in the request body.
-        rate_limited_endpoint: The group of endpoints which the route shares
-            a request rate limit with.
         allowed_for_inactive_cloud_project: Whether the route works against
             an inactive cloud database.
 
@@ -57,11 +51,8 @@ class ValidatorContext:
         request_headers: The headers sent with the request.
         request_body: The body of the request.
         database: The database which the request's server keys belong to.
-        request_rate_limiter: The rate limiter tracking recent requests.
         mandatory_keys: Keys which the route requires in the request body.
         optional_keys: Keys which the route allows in the request body.
-        rate_limited_endpoint: The group of endpoints which the route shares
-            a request rate limit with.
         allowed_for_inactive_cloud_project: Whether the route works against
             an inactive cloud database.
     """
@@ -70,10 +61,8 @@ class ValidatorContext:
     request_headers: Mapping[str, str]
     request_body: bytes
     database: AnyDatabase
-    request_rate_limiter: RequestRateLimiter
     mandatory_keys: frozenset[str]
     optional_keys: frozenset[str]
-    rate_limited_endpoint: RateLimitedEndpoint
     allowed_for_inactive_cloud_project: bool
 
     @cached_property

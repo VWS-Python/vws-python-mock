@@ -75,7 +75,7 @@ class TargetManager:
 
     @property
     def reco_counts_reports(self) -> dict[str, RecoCountsReport]:
-        """All reco counts reports, keyed by report identifier."""
+        """All reco counts reports, keyed by report file path."""
         with self._lock:
             return dict(self._reco_counts_reports)
 
@@ -101,7 +101,7 @@ class TargetManager:
     ) -> None:
         """Add a reco counts report."""
         with self._lock:
-            self._reco_counts_reports[reco_counts_report.uuid_] = (
+            self._reco_counts_reports[reco_counts_report.key] = (
                 reco_counts_report
             )
 
