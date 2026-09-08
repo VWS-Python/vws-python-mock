@@ -42,7 +42,7 @@ class TestAuthorizationHeader:
             **endpoint.headers,
             "Date": date,
         }
-        new_headers.pop("Authorization", None)
+        _ = new_headers.pop("Authorization", None)
 
         new_endpoint = Endpoint(
             base_url=endpoint.base_url,
@@ -259,7 +259,7 @@ class TestBadKey:
         )
 
         with pytest.raises(expected_exception=FailError) as exc:
-            vws_client.get_target_record(target_id=uuid.uuid4().hex)
+            _ = vws_client.get_target_record(target_id=uuid.uuid4().hex)
 
         assert exc.value.response.status_code == HTTPStatus.BAD_REQUEST
 
@@ -281,7 +281,7 @@ class TestBadKey:
         with pytest.raises(
             expected_exception=cloud_reco_exceptions.AuthenticationFailureError
         ) as exc:
-            cloud_reco_client.query(image=high_quality_image)
+            _ = cloud_reco_client.query(image=high_quality_image)
 
         response = exc.value.response
 
@@ -299,8 +299,8 @@ class TestBadKey:
             "result_code",
         }
         assert_valid_transaction_id(response=response)
-        result_code = json.loads(s=response.text)["result_code"]
-        transaction_id = json.loads(s=response.text)["transaction_id"]
+        result_code = json.loads(s=response.text)["result_code"]  # pyrefly: ignore [unknown-variable-type]
+        transaction_id = json.loads(s=response.text)["transaction_id"]  # pyrefly: ignore [unknown-variable-type]
         assert result_code == ResultCodes.AUTHENTICATION_FAILURE.value
         # The separators are inconsistent and we test this.
         expected_text = (
@@ -325,7 +325,7 @@ class TestBadKey:
         )
 
         with pytest.raises(expected_exception=AuthenticationFailureError):
-            vws_client.get_target_record(target_id=uuid.uuid4().hex)
+            _ = vws_client.get_target_record(target_id=uuid.uuid4().hex)
 
     @staticmethod
     def test_bad_secret_key_query(
@@ -345,7 +345,7 @@ class TestBadKey:
         with pytest.raises(
             expected_exception=cloud_reco_exceptions.AuthenticationFailureError
         ) as exc:
-            cloud_reco_client.query(image=high_quality_image)
+            _ = cloud_reco_client.query(image=high_quality_image)
 
         response = exc.value.response
 
@@ -363,8 +363,8 @@ class TestBadKey:
             "result_code",
         }
         assert_valid_transaction_id(response=response)
-        result_code = json.loads(s=response.text)["result_code"]
-        transaction_id = json.loads(s=response.text)["transaction_id"]
+        result_code = json.loads(s=response.text)["result_code"]  # pyrefly: ignore [unknown-variable-type]
+        transaction_id = json.loads(s=response.text)["transaction_id"]  # pyrefly: ignore [unknown-variable-type]
         assert result_code == ResultCodes.AUTHENTICATION_FAILURE.value
         # The separators are inconsistent and we test this.
         expected_text = (

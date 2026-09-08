@@ -135,10 +135,10 @@ def _enable_use_real_vuforia(
     monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None]:
     """Test against the real Vuforia."""
-    assert monkeypatch
-    assert inactive_cloud_database
-    assert vumark_vuforia_database
-    assert inactive_vumark_database
+    assert bool(monkeypatch)
+    assert bool(inactive_cloud_database)
+    assert bool(vumark_vuforia_database)
+    assert bool(inactive_vumark_database)
     _delete_all_targets(database_keys=working_database)
     yield
 
@@ -153,7 +153,7 @@ def _enable_use_mock_vuforia(
     monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None]:
     """Test against the in-memory mock Vuforia."""
-    assert monkeypatch
+    assert bool(monkeypatch)
     working_database = CloudDatabase(
         database_id=working_database.database_id,
         database_name=working_database.database_name,
@@ -265,40 +265,40 @@ def _enable_use_flask_in_process(
         for database in requests.get(
             url=cloud_databases_url, timeout=30
         ).json():
-            requests.delete(
-                url=cloud_databases_url + "/" + database["database_name"],
+            _ = requests.delete(
+                url=cloud_databases_url + "/" + database["database_name"],  # pyrefly: ignore [unknown-argument-type]
                 timeout=30,
             )
         for database in requests.get(
             url=vumark_databases_url, timeout=30
         ).json():
-            requests.delete(
-                url=vumark_databases_url + "/" + database["database_name"],
+            _ = requests.delete(
+                url=vumark_databases_url + "/" + database["database_name"],  # pyrefly: ignore [unknown-argument-type]
                 timeout=30,
             )
 
-        requests.post(
+        _ = requests.post(
             url=cloud_databases_url,
             json=working_database.to_dict(),
             timeout=30,
         )
-        requests.post(
+        _ = requests.post(
             url=cloud_databases_url,
             json=inactive_cloud_database.to_dict(),
             timeout=30,
         )
-        requests.post(
+        _ = requests.post(
             url=vumark_databases_url,
             json=vumark_database.to_dict(),
             timeout=30,
         )
-        requests.post(
+        _ = requests.post(
             url=vumark_databases_url,
             json=inactive_vumark_db.to_dict(),
             timeout=30,
         )
         for vumark_target in vumark_database.vumark_targets:
-            requests.post(
+            _ = requests.post(
                 url=(
                     f"{vumark_databases_url}"
                     f"/{vumark_database.database_name}/vumark_targets"
@@ -321,7 +321,7 @@ def _enable_use_real_model_target_vuforia(
     the load balancer in front of the real Model Target Web API
     occasionally returns for a request which is not at fault.
     """
-    assert monkeypatch
+    assert bool(monkeypatch)
     with retrying_transient_real_backend_failures():
         yield
 
@@ -332,7 +332,7 @@ def _enable_use_mock_model_target_vuforia(
     monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None]:
     """Test against the in-memory mock Model Target Web API."""
-    assert monkeypatch
+    assert bool(monkeypatch)
     with MockVWS():
         yield
 
@@ -343,7 +343,7 @@ def _enable_use_flask_in_process_model_target_vuforia(
     monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[None]:
     """Test against the Flask-backed mock Model Target Web API."""
-    assert monkeypatch
+    assert bool(monkeypatch)
     VWS_FLASK_APP.config["VWS_MOCK_TERMINATE_WSGI_INPUT"] = True
     target_manager_base_url = "http://example.com"
     monkeypatch.setenv(

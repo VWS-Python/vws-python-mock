@@ -32,12 +32,12 @@ def validate_image_data_type(*, context: ValidatorContext) -> None:
     if "image" not in request_json:
         return
 
-    image = request_json["image"]
+    image = request_json["image"]  # pyrefly: ignore [unknown-variable-type]
 
     if isinstance(image, str):
         return
 
-    _LOGGER.warning('Image data is not a string: "%s"', image)
+    _LOGGER.warning('Image data is not a string: "%s"', image)  # pyrefly: ignore [unknown-argument-type]
     raise FailError(status_code=HTTPStatus.BAD_REQUEST)
 
 

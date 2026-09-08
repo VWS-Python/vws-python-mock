@@ -36,7 +36,7 @@ def _to_request_data(
         A RequestData with method, path, headers, and body set.
     """
     path = request.url.raw_path.decode(encoding="ascii")
-    if base_path and path.startswith(base_path):
+    if len(base_path) > 0 and path.startswith(base_path):
         path = path[len(base_path) :]
     return RequestData(
         method=request.method,
@@ -156,7 +156,7 @@ def start_respx_router(
                     api,
                     route.route_name,
                 )
-                router.route(
+                _ = router.route(
                     method=http_method,
                     url=compiled_url_pattern,
                 ).mock(
@@ -169,9 +169,9 @@ def start_respx_router(
                 )
 
     if real_http:
-        router.route().pass_through()
+        _ = router.route().pass_through()
     else:
-        router.route().mock(side_effect=_block_unmatched)
+        _ = router.route().mock(side_effect=_block_unmatched)
 
     router.start()
 
@@ -186,7 +186,7 @@ def start_respx_router(
     # backends, whose patches form a LIFO stack. ``respx.Router.start``
     # looks its mocker up by name, and this router is created with the
     # default name, so the lookup cannot fail.
-    mocker = Mocker.registry[router.using or ""]
+    mocker = Mocker.registry[router.using if router.using is not None else ""]
     mocker.routers.remove(router)
     mocker.routers.insert(0, router)
 

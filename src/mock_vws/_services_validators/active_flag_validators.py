@@ -26,9 +26,9 @@ def validate_active_flag(*, context: ValidatorContext) -> None:
     if "active_flag" not in request_json:
         return
 
-    active_flag = request_json["active_flag"]
+    active_flag = request_json["active_flag"]  # pyrefly: ignore [unknown-variable-type]
 
-    if active_flag in {True, False, None}:
+    if active_flag in {True, False, None}:  # pyrefly: ignore [unknown-argument-type]
         return
 
     _LOGGER.warning(

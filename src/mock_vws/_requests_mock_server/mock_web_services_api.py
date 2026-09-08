@@ -290,9 +290,10 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
         request: RequestData,
     ) -> _ResponseType:
         """Create a standard Model Target dataset."""
-        if failure := self._configured_model_target_failure(
+        failure = self._configured_model_target_failure(
             request_phase=ModelTargetRequest.CREATE,
-        ):
+        )
+        if failure is not None:
             return failure
         return create_model_target_dataset(
             request=request,
@@ -315,9 +316,10 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
         request: RequestData,
     ) -> _ResponseType:
         """Create an advanced Model Target dataset."""
-        if failure := self._configured_model_target_failure(
+        failure = self._configured_model_target_failure(
             request_phase=ModelTargetRequest.CREATE,
-        ):
+        )
+        if failure is not None:
             return failure
         return create_model_target_dataset(
             request=request,
@@ -343,9 +345,10 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
         request: RequestData,
     ) -> _ResponseType:
         """Return a standard Model Target dataset creation status."""
-        if failure := self._configured_model_target_failure(
+        failure = self._configured_model_target_failure(
             request_phase=ModelTargetRequest.STATUS,
-        ):
+        )
+        if failure is not None:
             return failure
         dataset_uuid = request.path.split(sep="/")[-2]
         return get_model_target_dataset_status(
@@ -367,9 +370,10 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
         request: RequestData,
     ) -> _ResponseType:
         """Return an advanced Model Target dataset creation status."""
-        if failure := self._configured_model_target_failure(
+        failure = self._configured_model_target_failure(
             request_phase=ModelTargetRequest.STATUS,
-        ):
+        )
+        if failure is not None:
             return failure
         dataset_uuid = request.path.split(sep="/")[-2]
         return get_model_target_dataset_status(
@@ -391,9 +395,10 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
         request: RequestData,
     ) -> _ResponseType:
         """Download a standard Model Target dataset."""
-        if failure := self._configured_model_target_failure(
+        failure = self._configured_model_target_failure(
             request_phase=ModelTargetRequest.DOWNLOAD,
-        ):
+        )
+        if failure is not None:
             return failure
         dataset_uuid = request.path.split(sep="/")[-2]
         return download_model_target_dataset(
@@ -415,9 +420,10 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
         request: RequestData,
     ) -> _ResponseType:
         """Download an advanced Model Target dataset."""
-        if failure := self._configured_model_target_failure(
+        failure = self._configured_model_target_failure(
             request_phase=ModelTargetRequest.DOWNLOAD,
-        ):
+        )
+        if failure is not None:
             return failure
         dataset_uuid = request.path.split(sep="/")[-2]
         return download_model_target_dataset(
@@ -438,9 +444,10 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
         request: RequestData,
     ) -> _ResponseType:
         """Delete a standard Model Target dataset."""
-        if failure := self._configured_model_target_failure(
+        failure = self._configured_model_target_failure(
             request_phase=ModelTargetRequest.DELETE,
-        ):
+        )
+        if failure is not None:
             return failure
         dataset_uuid = request.path.split(sep="/")[-1]
         return delete_model_target_dataset(
@@ -462,9 +469,10 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
         request: RequestData,
     ) -> _ResponseType:
         """Delete an advanced Model Target dataset."""
-        if failure := self._configured_model_target_failure(
+        failure = self._configured_model_target_failure(
             request_phase=ModelTargetRequest.DELETE,
-        ):
+        )
+        if failure is not None:
             return failure
         dataset_uuid = request.path.split(sep="/")[-1]
         return delete_model_target_dataset(
@@ -544,7 +552,7 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
 
-        request_json: dict[str, Any] = json.loads(s=request.body)
+        request_json: dict[str, Any] = json.loads(s=request.body)  # pyrefly: ignore [explicit-any]
         given_active_flag = request_json.get("active_flag")
         active_flag = {
             None: True,
@@ -1002,7 +1010,7 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
                 exception.response_text,
             )
 
-        request_json: dict[str, Any] = json.loads(s=request.body)
+        request_json: dict[str, Any] = json.loads(s=request.body)  # pyrefly: ignore [explicit-any]
         name = request_json.get("name", target.name)
         active_flag = request_json.get("active_flag", target.active_flag)
 

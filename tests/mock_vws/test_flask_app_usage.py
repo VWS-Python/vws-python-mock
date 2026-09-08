@@ -127,7 +127,9 @@ class TestProcessingTime:
         """By default, targets in the mock takes 2 seconds to be processed."""
         database = CloudDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
-        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+        _ = requests.post(
+            url=databases_url, json=database.to_dict(), timeout=30
+        )
 
         time_taken = processing_time_seconds(
             vuforia_database=database,
@@ -151,7 +153,9 @@ class TestProcessingTime:
         )
         database = CloudDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
-        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+        _ = requests.post(
+            url=databases_url, json=database.to_dict(), timeout=30
+        )
 
         time_taken = processing_time_seconds(
             vuforia_database=database,
@@ -182,7 +186,7 @@ class TestRequestQuota:
         )
 
         with pytest.raises(expected_exception=RequestQuotaReachedError):
-            client.list_targets()
+            _ = client.list_targets()
 
     @staticmethod
     def test_target_quota_reached(
@@ -204,7 +208,7 @@ class TestRequestQuota:
         )
 
         with pytest.raises(expected_exception=TargetQuotaReachedError):
-            client.add_target(
+            _ = client.add_target(
                 name="example",
                 width=1,
                 image=image_file_failed_state,
@@ -229,7 +233,7 @@ class TestRequestQuota:
         )
 
         with pytest.raises(expected_exception=TooManyRequestsError):
-            client.list_targets()
+            _ = client.list_targets()
 
     @staticmethod
     def test_per_endpoint_limits() -> None:
@@ -254,12 +258,12 @@ class TestRequestQuota:
             server_secret_key=database.server_secret_key,
         )
 
-        client.list_targets()
+        _ = client.list_targets()
         with pytest.raises(expected_exception=TooManyRequestsError):
-            client.list_targets()
+            _ = client.list_targets()
 
         # Other endpoints are not limited.
-        client.get_database_summary_report()
+        _ = client.get_database_summary_report()
 
 
 class TestRecognitionCounts:
@@ -371,7 +375,9 @@ class TestAddCloudDatabase:
         )
 
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
-        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+        _ = requests.post(
+            url=databases_url, json=database.to_dict(), timeout=30
+        )
 
         for bad_database, expected_message in (
             (bad_server_access_key_db, server_access_key_conflict_error),
@@ -405,17 +411,17 @@ class TestAddCloudDatabase:
         assert "database_name" in data
 
         vws_client = VWS(
-            server_access_key=data["server_access_key"],
-            server_secret_key=data["server_secret_key"],
+            server_access_key=data["server_access_key"],  # pyrefly: ignore [unknown-argument-type]
+            server_secret_key=data["server_secret_key"],  # pyrefly: ignore [unknown-argument-type]
         )
 
         cloud_reco_client = CloudRecoService(
-            client_access_key=data["client_access_key"],
-            client_secret_key=data["client_secret_key"],
+            client_access_key=data["client_access_key"],  # pyrefly: ignore [unknown-argument-type]
+            client_secret_key=data["client_secret_key"],  # pyrefly: ignore [unknown-argument-type]
         )
 
-        assert not vws_client.list_targets()
-        assert not cloud_reco_client.query(image=high_quality_image)
+        assert not bool(vws_client.list_targets())
+        assert not bool(cloud_reco_client.query(image=high_quality_image))
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -473,7 +479,7 @@ class TestAddCloudDatabase:
         ],
     )
     def test_invalid_field(
-        body: dict[str, Any],
+        body: dict[str, Any],  # pyrefly: ignore [explicit-any]
         expected_loc: list[str],
         expected_message: str,
     ) -> None:
@@ -488,7 +494,7 @@ class TestAddCloudDatabase:
         (error,) = response.json()["errors"]
         assert error["loc"] == expected_loc
         assert error["msg"] == expected_message
-        assert not TARGET_MANAGER.cloud_databases
+        assert not bool(TARGET_MANAGER.cloud_databases)
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -600,7 +606,9 @@ class TestAddVuMarkDatabase:
         )
 
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/vumark_databases"
-        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+        _ = requests.post(
+            url=databases_url, json=database.to_dict(), timeout=30
+        )
 
         for bad_database, expected_message in (
             (bad_server_access_key_db, server_access_key_conflict_error),
@@ -636,7 +644,7 @@ class TestAddVuMarkDatabase:
             "'PROJECT_SUSPENDED', 'PROJECT_INACTIVE', "
             "'PROJECT_HAS_NO_API_ACCESS'"
         )
-        assert not TARGET_MANAGER.vumark_databases
+        assert not bool(TARGET_MANAGER.vumark_databases)
 
 
 class TestTargetInUnknownDatabase:
@@ -740,11 +748,11 @@ class TestDeleteCloudDatabase:
         assert response.status_code == HTTPStatus.CREATED
 
         data = json.loads(s=response.text)
-        delete_url = databases_url + "/" + data["database_name"]
-        response = requests.delete(url=delete_url, json={}, timeout=30)
+        delete_url = databases_url + "/" + data["database_name"]  # pyrefly: ignore [unknown-variable-type]
+        response = requests.delete(url=delete_url, json={}, timeout=30)  # pyrefly: ignore [unknown-argument-type]
         assert response.status_code == HTTPStatus.OK
 
-        response = requests.delete(url=delete_url, json={}, timeout=30)
+        response = requests.delete(url=delete_url, json={}, timeout=30)  # pyrefly: ignore [unknown-argument-type]
         assert response.status_code == HTTPStatus.NOT_FOUND
 
 
@@ -770,11 +778,11 @@ class TestDeleteVuMarkDatabase:
         assert response.status_code == HTTPStatus.CREATED
 
         data = json.loads(s=response.text)
-        delete_url = databases_url + "/" + data["database_name"]
-        response = requests.delete(url=delete_url, json={}, timeout=30)
+        delete_url = databases_url + "/" + data["database_name"]  # pyrefly: ignore [unknown-variable-type]
+        response = requests.delete(url=delete_url, json={}, timeout=30)  # pyrefly: ignore [unknown-argument-type]
         assert response.status_code == HTTPStatus.OK
 
-        response = requests.delete(url=delete_url, json={}, timeout=30)
+        response = requests.delete(url=delete_url, json={}, timeout=30)  # pyrefly: ignore [unknown-argument-type]
         assert response.status_code == HTTPStatus.NOT_FOUND
 
 
@@ -806,7 +814,9 @@ class TestQueryImageMatchers:
         pil_image.save(fp=re_exported_image, format="PNG")
 
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
-        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+        _ = requests.post(
+            url=databases_url, json=database.to_dict(), timeout=30
+        )
 
         target_id = vws_client.add_target(
             name="example",
@@ -823,7 +833,7 @@ class TestQueryImageMatchers:
         different_image_result = cloud_reco_client.query(
             image=re_exported_image,
         )
-        assert not different_image_result
+        assert not bool(different_image_result)
 
     @staticmethod
     def test_structural_similarity_matcher(
@@ -851,7 +861,9 @@ class TestQueryImageMatchers:
         re_exported_image = io.BytesIO()
         pil_image.save(fp=re_exported_image, format="PNG")
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
-        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+        _ = requests.post(
+            url=databases_url, json=database.to_dict(), timeout=30
+        )
 
         assert re_exported_image.getvalue() != high_quality_image.getvalue()
 
@@ -875,7 +887,7 @@ class TestQueryImageMatchers:
         different_image_result = cloud_reco_client.query(
             image=different_high_quality_image,
         )
-        assert not different_image_result
+        assert not bool(different_image_result)
 
 
 class TestDuplicatesImageMatchers:
@@ -900,7 +912,9 @@ class TestDuplicatesImageMatchers:
         pil_image.save(fp=re_exported_image, format="PNG")
 
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
-        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+        _ = requests.post(
+            url=databases_url, json=database.to_dict(), timeout=30
+        )
 
         target_id = vws_client.add_target(
             name="example_0",
@@ -953,7 +967,9 @@ class TestDuplicatesImageMatchers:
         pil_image.save(fp=re_exported_image, format="PNG")
 
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
-        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+        _ = requests.post(
+            url=databases_url, json=database.to_dict(), timeout=30
+        )
 
         target_id = vws_client.add_target(
             name="example",
@@ -987,7 +1003,9 @@ class TestTargetRaters:
         """By default, the BRISQUE target rater is used."""
         database = CloudDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
-        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+        _ = requests.post(
+            url=databases_url, json=database.to_dict(), timeout=30
+        )
 
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -1039,7 +1057,9 @@ class TestTargetRaters:
 
         database = CloudDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
-        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+        _ = requests.post(
+            url=databases_url, json=database.to_dict(), timeout=30
+        )
 
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -1089,7 +1109,9 @@ class TestTargetRaters:
         monkeypatch.setenv(name="TARGET_RATER", value="perfect")
         database = CloudDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
-        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+        _ = requests.post(
+            url=databases_url, json=database.to_dict(), timeout=30
+        )
 
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -1130,7 +1152,9 @@ class TestTargetRaters:
 
         database = CloudDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
-        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+        _ = requests.post(
+            url=databases_url, json=database.to_dict(), timeout=30
+        )
 
         vws_client = VWS(
             server_access_key=database.server_access_key,
@@ -1260,7 +1284,7 @@ class TestModelTargetWebAPI:
             data={"grant_type": "client_credentials"},
             timeout=30,
         )
-        token = token_response.json()["access_token"]
+        token = token_response.json()["access_token"]  # pyrefly: ignore [unknown-variable-type]
         headers = {"Authorization": f"Bearer {token}"}
 
         create_response = requests.post(
@@ -1269,7 +1293,7 @@ class TestModelTargetWebAPI:
             json=_MODEL_TARGET_DATASET_REQUEST,
             timeout=30,
         )
-        dataset_uuid = create_response.json()["uuid"]
+        dataset_uuid = create_response.json()["uuid"]  # pyrefly: ignore [unknown-variable-type]
         status_response = requests.get(
             url=(
                 "https://vws.vuforia.com/modeltargets/datasets/"
@@ -1296,7 +1320,7 @@ class TestModelTargetWebAPI:
             assert dataset_zip.namelist() == ["MTDataset.dat", "MTDataset.xml"]
 
     @staticmethod
-    def _dataset_status(dataset_uuid: str) -> dict[str, Any]:
+    def _dataset_status(dataset_uuid: str) -> dict[str, Any]:  # pyrefly: ignore [explicit-any]
         """Return a dataset's status response body from the VWS app."""
         token_response = requests.post(
             url="https://vws.vuforia.com/oauth2/token",
@@ -1304,7 +1328,7 @@ class TestModelTargetWebAPI:
             data={"grant_type": "client_credentials"},
             timeout=30,
         )
-        token = token_response.json()["access_token"]
+        token = token_response.json()["access_token"]  # pyrefly: ignore [unknown-variable-type]
         status_response = requests.get(
             url=(
                 "https://vws.vuforia.com/modeltargets/datasets/"
@@ -1314,7 +1338,7 @@ class TestModelTargetWebAPI:
             timeout=30,
         )
         assert status_response.status_code == HTTPStatus.OK
-        status_body: dict[str, Any] = status_response.json()
+        status_body: dict[str, Any] = status_response.json()  # pyrefly: ignore [explicit-any]
         return status_body
 
     def test_seeded_generation_failure(self) -> None:
@@ -1403,7 +1427,7 @@ class TestResponseDelay:
     @staticmethod
     def _make_request() -> None:
         """Make a request to the VWS API."""
-        requests.get(
+        _ = requests.get(
             url="https://vws.vuforia.com/summary",
             headers={
                 "Date": email.utils.formatdate(
@@ -1421,7 +1445,9 @@ class TestResponseDelay:
         """By default, there is no response delay."""
         database = CloudDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
-        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+        _ = requests.post(
+            url=databases_url, json=database.to_dict(), timeout=30
+        )
 
         start = time.monotonic()
         self._make_request()
@@ -1439,7 +1465,9 @@ class TestResponseDelay:
         )
         database = CloudDatabase()
         databases_url = _EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
-        requests.post(url=databases_url, json=database.to_dict(), timeout=30)
+        _ = requests.post(
+            url=databases_url, json=database.to_dict(), timeout=30
+        )
 
         start = time.monotonic()
         self._make_request()
@@ -1613,7 +1641,7 @@ class TestConcurrentRequests:
         database = _create_cloud_database(base_url=base_url)
         with requests.Session() as setup_session:
             for _ in range(_NUM_EXISTING_TARGETS):
-                _create_image_target(
+                _ = _create_image_target(
                     session=setup_session,
                     base_url=base_url,
                     database=database,
@@ -1643,7 +1671,7 @@ class TestConcurrentRequests:
             for response in all_responses
             if response.status_code not in {HTTPStatus.OK, HTTPStatus.CREATED}
         ]
-        assert not error_statuses
+        assert not bool(error_statuses)
 
         expected_num_targets = _NUM_EXISTING_TARGETS + (
             _NUM_WRITER_THREADS * _NUM_REQUESTS_PER_WRITER
@@ -1676,7 +1704,7 @@ class TestConcurrentRequests:
                     database=database,
                     image_base64=small_image_base64,
                 )
-                target_ids.add(response.json()["target_id"])
+                target_ids.add(response.json()["target_id"])  # pyrefly: ignore [unknown-argument-type]
 
         target_ids_to_update = list(target_ids)[:_NUM_WRITER_THREADS]
         target_ids_to_update_lock = threading.Lock()
@@ -1705,7 +1733,7 @@ class TestConcurrentRequests:
             for response in all_responses
             if response.status_code != HTTPStatus.OK
         ]
-        assert not error_statuses
+        assert not bool(error_statuses)
 
         listings = [
             response.json()

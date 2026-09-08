@@ -103,7 +103,7 @@ def _assert_body_rejected(*, endpoint: Endpoint, content: bytes) -> None:
         return
 
     assert response.status_code == HTTPStatus.BAD_REQUEST
-    assert not response.text
+    assert not bool(response.text)
     assert "Content-Type" not in response.headers
 
 
@@ -302,5 +302,5 @@ class TestInvalidJSON:
             return
 
         assert response.status_code == HTTPStatus.BAD_REQUEST
-        assert not response.text
+        assert not bool(response.text)
         assert "Content-Type" not in response.headers

@@ -190,7 +190,7 @@ class TestGenerateInstance:
             server_secret_key=vumark_vuforia_database.server_secret_key,
         )
         with pytest.raises(expected_exception=InvalidInstanceIdError) as exc:
-            vumark_client.generate_vumark_instance(
+            _ = vumark_client.generate_vumark_instance(
                 target_id=vumark_vuforia_database.target_id,
                 instance_id="",
                 accept=VuMarkAccept.PNG,
@@ -288,7 +288,7 @@ class TestGenerateInstance:
             application_metadata=None,
         )
         with pytest.raises(expected_exception=InvalidTargetTypeError) as exc:
-            vumark_client.generate_vumark_instance(
+            _ = vumark_client.generate_vumark_instance(
                 target_id=target_id,
                 instance_id=uuid4().hex,
                 accept=VuMarkAccept.PNG,
@@ -349,7 +349,7 @@ class TestProcessingTarget:
         with pytest.raises(
             expected_exception=TargetStatusNotSuccessError,
         ) as exc:
-            vumark_client.generate_vumark_instance(
+            _ = vumark_client.generate_vumark_instance(
                 target_id=vumark_vuforia_database.processing_target_id,
                 instance_id=uuid4().hex,
                 accept=VuMarkAccept.PNG,

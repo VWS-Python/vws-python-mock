@@ -33,7 +33,7 @@ def validate_metadata_size(*, context: ValidatorContext) -> None:
     application_metadata = request_json.get("application_metadata")
     if application_metadata is None:
         return
-    decoded = decode_base64(encoded_data=application_metadata)
+    decoded = decode_base64(encoded_data=application_metadata)  # pyrefly: ignore [unknown-argument-type]
 
     max_metadata_bytes = 1024 * 1024 - 1
     if len(decoded) <= max_metadata_bytes:
@@ -61,7 +61,7 @@ def validate_metadata_encoding(*, context: ValidatorContext) -> None:
         return
 
     try:
-        decode_base64(encoded_data=application_metadata)
+        _ = decode_base64(encoded_data=application_metadata)  # pyrefly: ignore [unknown-argument-type]
     except binascii.Error as exc:
         _LOGGER.warning(msg="The application metadata is not base64 encoded.")
         raise FailError(status_code=HTTPStatus.UNPROCESSABLE_ENTITY) from exc
@@ -82,7 +82,7 @@ def validate_metadata_type(*, context: ValidatorContext) -> None:
     if "application_metadata" not in request_json:
         return
 
-    application_metadata = request_json["application_metadata"]
+    application_metadata = request_json["application_metadata"]  # pyrefly: ignore [unknown-variable-type]
 
     if application_metadata is None or isinstance(application_metadata, str):
         return

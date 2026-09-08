@@ -210,7 +210,7 @@ class _HTTPModelTargetDatasetStore:
     ) -> None:
         """Add a Model Target dataset."""
         timeout_seconds = 30
-        requests.post(
+        _ = requests.post(
             url=self._datasets_url,
             json=model_target_dataset.to_dict(),
             timeout=timeout_seconds,
@@ -219,7 +219,7 @@ class _HTTPModelTargetDatasetStore:
     def remove_model_target_dataset(self, dataset_uuid: str) -> None:
         """Remove a Model Target dataset."""
         timeout_seconds = 30
-        requests.delete(
+        _ = requests.delete(
             url=f"{self._datasets_url}/{dataset_uuid}",
             timeout=timeout_seconds,
         )
@@ -230,9 +230,9 @@ class _HTTPModelTargetDatasetStore:
         response = requests.get(url=self._credentials_url, timeout=30)
         credentials = (
             OAuth2ClientCredential(
-                client_id=value["client_id"],
-                client_secret=value["client_secret"],
-                scopes=tuple(value["scopes"]),
+                client_id=value["client_id"],  # pyrefly: ignore [unknown-argument-type]
+                client_secret=value["client_secret"],  # pyrefly: ignore [unknown-argument-type]
+                scopes=tuple(value["scopes"]),  # pyrefly: ignore [unknown-argument-type]
             )
             for value in response.json()
         )
@@ -243,7 +243,7 @@ class _HTTPModelTargetDatasetStore:
         credential: OAuth2ClientCredential,
     ) -> None:
         """Add or replace an OAuth2 client credential."""
-        requests.post(
+        _ = requests.post(
             url=self._credentials_url,
             json={
                 "client_id": credential.client_id,
@@ -255,7 +255,7 @@ class _HTTPModelTargetDatasetStore:
 
     def remove_oauth2_client_credential(self, client_id: str) -> None:
         """Remove an OAuth2 client credential."""
-        requests.delete(
+        _ = requests.delete(
             url=f"{self._credentials_url}/{client_id}",
             timeout=30,
         )
@@ -332,7 +332,7 @@ def set_terminate_wsgi_input() -> None:
     """
     try:
         set_terminate_wsgi_input_true = (
-            VWS_FLASK_APP.config["VWS_MOCK_TERMINATE_WSGI_INPUT"] is True
+            VWS_FLASK_APP.config["VWS_MOCK_TERMINATE_WSGI_INPUT"] is True  # pyrefly: ignore [unknown-variable-type]
         )
     except KeyError:
         set_terminate_wsgi_input_true = False
@@ -367,7 +367,7 @@ def validate_request() -> None:
         or request.path.startswith("/reports/recoCounts/")
     ):
         return
-    run_services_validators(
+    _ = run_services_validators(
         request_headers=dict(request.headers),
         request_body=request.data,
         request_method=request.method,
@@ -746,8 +746,8 @@ def add_target() -> Response:
     # We do not use ``request.get_json(force=True)`` because this only works
     # when the content type is given as ``application/json``.
     request_json = json.loads(s=request.data)
-    name = request_json["name"]
-    active_flag = request_json.get("active_flag")
+    name = request_json["name"]  # pyrefly: ignore [unknown-variable-type]
+    active_flag = request_json.get("active_flag")  # pyrefly: ignore [unknown-variable-type]
     if active_flag is None:
         active_flag = True
 
@@ -755,18 +755,18 @@ def add_target() -> Response:
     target_tracking_rater = HardcodedTargetTrackingRater(rating=1)
 
     new_target = ImageTarget(
-        name=name,
-        width=request_json["width"],
-        image_value=base64.b64decode(s=request_json["image"]),
-        active_flag=active_flag,
+        name=name,  # pyrefly: ignore [unknown-argument-type]
+        width=request_json["width"],  # pyrefly: ignore [unknown-argument-type]
+        image_value=base64.b64decode(s=request_json["image"]),  # pyrefly: ignore [unknown-argument-type]
+        active_flag=active_flag,  # pyrefly: ignore [unknown-argument-type]
         processing_time_seconds=settings.processing_time_seconds,
-        application_metadata=request_json.get("application_metadata"),
+        application_metadata=request_json.get("application_metadata"),  # pyrefly: ignore [unknown-argument-type]
         target_tracking_rater=target_tracking_rater,
     )
 
     databases_url = f"{settings.target_manager_base_url}/cloud_databases"
     timeout_seconds = 30
-    requests.post(
+    _ = requests.post(
         url=f"{databases_url}/{database.database_name}/targets",
         json=new_target.to_dict(),
         timeout=timeout_seconds,
@@ -885,7 +885,7 @@ def delete_target(target_id: str) -> Response:
         raise TargetStatusProcessingError
 
     databases_url = f"{settings.target_manager_base_url}/cloud_databases"
-    requests.delete(
+    _ = requests.delete(
         url=f"{databases_url}/{database.database_name}/targets/{target_id}",
         timeout=30,
     )
@@ -929,7 +929,7 @@ def generate_vumark_instance(target_id: str) -> Response:
         *cloud_databases,
         *vumark_databases,
     ]
-    run_services_validators(
+    _ = run_services_validators(
         request_headers=dict(request.headers),
         request_body=request.data,
         request_method=request.method,
@@ -1234,10 +1234,10 @@ def update_target(target_id: str) -> Response:
 
     update_values: dict[str, str | int | float | bool | None] = {}
     if "width" in request_json:
-        update_values["width"] = request_json["width"]
+        update_values["width"] = request_json["width"]  # pyrefly: ignore [unknown-argument-type]
 
     if "active_flag" in request_json:
-        active_flag = request_json["active_flag"]
+        active_flag = request_json["active_flag"]  # pyrefly: ignore [unknown-variable-type]
         if active_flag is None:
             _LOGGER.warning(
                 msg=(
@@ -1246,10 +1246,10 @@ def update_target(target_id: str) -> Response:
                 ),
             )
             raise FailError(status_code=HTTPStatus.BAD_REQUEST)
-        update_values["active_flag"] = active_flag
+        update_values["active_flag"] = active_flag  # pyrefly: ignore [unknown-argument-type]
 
     if "application_metadata" in request_json:
-        application_metadata = request_json["application_metadata"]
+        application_metadata = request_json["application_metadata"]  # pyrefly: ignore [unknown-variable-type]
         if application_metadata is None:
             _LOGGER.warning(
                 msg=(
@@ -1258,21 +1258,21 @@ def update_target(target_id: str) -> Response:
                 ),
             )
             raise FailError(status_code=HTTPStatus.BAD_REQUEST)
-        update_values["application_metadata"] = application_metadata
+        update_values["application_metadata"] = application_metadata  # pyrefly: ignore [unknown-argument-type]
 
     if "name" in request_json:
-        name = request_json["name"]
-        update_values["name"] = name
+        name = request_json["name"]  # pyrefly: ignore [unknown-variable-type]
+        update_values["name"] = name  # pyrefly: ignore [unknown-argument-type]
 
     if "image" in request_json:
-        image = request_json["image"]
-        update_values["image"] = image
+        image = request_json["image"]  # pyrefly: ignore [unknown-variable-type]
+        update_values["image"] = image  # pyrefly: ignore [unknown-argument-type]
 
     put_url = (
         f"{settings.target_manager_base_url}/cloud_databases/"
         f"{database.database_name}/targets/{target_id}"
     )
-    requests.put(url=put_url, json=update_values, timeout=30)
+    _ = requests.put(url=put_url, json=update_values, timeout=30)
 
     date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
     headers = {

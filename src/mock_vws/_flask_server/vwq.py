@@ -95,7 +95,7 @@ def set_terminate_wsgi_input() -> None:
     """
     try:
         set_terminate_wsgi_input_true = (
-            CLOUDRECO_FLASK_APP.config["VWS_MOCK_TERMINATE_WSGI_INPUT"] is True
+            CLOUDRECO_FLASK_APP.config["VWS_MOCK_TERMINATE_WSGI_INPUT"] is True  # pyrefly: ignore [unknown-variable-type]
         )
     except KeyError:
         set_terminate_wsgi_input_true = False

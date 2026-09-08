@@ -69,7 +69,7 @@ class TestVWS:
                 transport=HTTPXTransport(),
             )
             with pytest.raises(expected_exception=httpx.ReadTimeout):
-                client.get_database_summary_report()
+                _ = client.get_database_summary_report()
 
         assert calls == [0.1]
 
@@ -122,7 +122,7 @@ class TestVWS:
             client.delete_target(target_id=target_id)
 
             with pytest.raises(expected_exception=UnknownTargetError):
-                client.get_target_record(target_id=target_id)
+                _ = client.get_target_record(target_id=target_id)
 
     @staticmethod
     def test_nested_mocks() -> None:
@@ -140,11 +140,11 @@ class TestVWS:
             with MockVWS(base_vws_url="https://vuforia.vws.example.com"):
                 inner_response = httpx.get(url=inner_url, timeout=30)
                 with pytest.raises(expected_exception=httpx.ConnectError):
-                    httpx.get(url=outer_url, timeout=30)
+                    _ = httpx.get(url=outer_url, timeout=30)
             outer_response = httpx.get(url=outer_url, timeout=30)
 
             with pytest.raises(expected_exception=httpx.ConnectError):
-                httpx.get(url=inner_url, timeout=30)
+                _ = httpx.get(url=inner_url, timeout=30)
 
         assert inner_response.status_code == HTTPStatus.UNAUTHORIZED
         assert outer_response.status_code == HTTPStatus.UNAUTHORIZED
@@ -225,7 +225,7 @@ class TestModelTargetWebAPI:
                 json=_MODEL_TARGET_DATASET_REQUEST,
                 timeout=30,
             )
-            dataset_uuid = create_response.json()["uuid"]
+            dataset_uuid = create_response.json()["uuid"]  # pyrefly: ignore [unknown-variable-type]
             status_response = httpx.get(
                 url=(
                     "https://vws.vuforia.com/modeltargets/datasets/"

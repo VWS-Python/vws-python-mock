@@ -23,7 +23,7 @@ def validate_extra_fields(*, form: MultipartForm) -> None:
     parsed_keys = form.fields.keys() | form.files.keys()
     known_parameters = {"image", "max_num_results", "include_target_data"}
 
-    if not parsed_keys - known_parameters:
+    if not bool(parsed_keys - known_parameters):
         return
 
     _LOGGER.warning(msg="Unknown parameters are given.")

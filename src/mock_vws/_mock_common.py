@@ -138,7 +138,7 @@ def http_date() -> str:
 
 
 @beartype
-def json_dump(*, body: dict[str, Any]) -> str:
+def json_dump(*, body: dict[str, Any]) -> str:  # pyrefly: ignore [explicit-any]
     """
     Returns:
         JSON dump of data in the same way that Vuforia dumps data.

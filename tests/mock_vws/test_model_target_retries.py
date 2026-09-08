@@ -103,7 +103,7 @@ class TestRealBackend:
                 match=r"Connection aborted\.",
             ),
         ):
-            send_with_transient_retries(method=HTTPMethod.GET, send=send)
+            _ = send_with_transient_retries(method=HTTPMethod.GET, send=send)
 
     @staticmethod
     def test_error_response_is_not_retried() -> None:
@@ -119,7 +119,7 @@ class TestRealBackend:
             return _response(status_code=HTTPStatus.UNAUTHORIZED)
 
         with retrying_transient_real_backend_failures():
-            send_with_transient_retries(method=HTTPMethod.GET, send=send)
+            _ = send_with_transient_retries(method=HTTPMethod.GET, send=send)
 
         assert attempts == 1
 
@@ -140,7 +140,7 @@ class TestRealBackend:
             return _response(status_code=HTTPStatus.BAD_GATEWAY)
 
         with retrying_transient_real_backend_failures():
-            send_with_transient_retries(method=HTTPMethod.POST, send=send)
+            _ = send_with_transient_retries(method=HTTPMethod.POST, send=send)
 
         assert attempts == 1
 
@@ -184,10 +184,10 @@ def test_endpoint_send() -> None:
     This is the path which the cross-cutting Model Target endpoint tests
     take, and it is where a gateway failure has been seen.
     """
-    responses.add(
+    _ = responses.add(
         method=responses.GET, url=_URL, status=HTTPStatus.BAD_GATEWAY
     )
-    responses.add(
+    _ = responses.add(
         method=responses.GET, url=_URL, status=HTTPStatus.UNAUTHORIZED
     )
     endpoint = ModelTargetEndpoint(
@@ -208,10 +208,10 @@ def test_endpoint_send() -> None:
 @responses.activate
 def test_model_target_get() -> None:
     """``model_target_get`` retries a transient failure."""
-    responses.add(
+    _ = responses.add(
         method=responses.GET, url=_URL, status=HTTPStatus.GATEWAY_TIMEOUT
     )
-    responses.add(method=responses.GET, url=_URL, body=b"dataset")
+    _ = responses.add(method=responses.GET, url=_URL, body=b"dataset")
 
     with retrying_transient_real_backend_failures():
         response = model_target_get(url=_URL, headers={}, timeout=30)

@@ -292,6 +292,6 @@ class TestInactiveProject:
         returned.
         """
         with pytest.raises(expected_exception=ProjectInactiveError):
-            inactive_vws_client.get_duplicate_targets(
+            _ = inactive_vws_client.get_duplicate_targets(
                 target_id=uuid.uuid4().hex,
             )

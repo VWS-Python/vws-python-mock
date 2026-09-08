@@ -194,7 +194,7 @@ class MockVWS:
 
         for url in (base_vwq_url, base_vws_url):
             parse_result = urlparse(url=url)
-            if not parse_result.scheme:
+            if not bool(parse_result.scheme):
                 raise MissingSchemeError(url=url)
 
         # The options are kept so that decorating a function can build an
@@ -206,7 +206,7 @@ class MockVWS:
             cloud_query_failure_response=cloud_query_failure_response,
             duplicate_match_checker=duplicate_match_checker,
             query_match_checker=query_match_checker,
-            processing_time_seconds=float(processing_time_seconds),
+            processing_time_seconds=processing_time_seconds,
             model_target_generation_failure=model_target_generation_failure,
             model_target_failure_response=model_target_failure_response,
             model_target_generation_warning=model_target_generation_warning,
@@ -369,7 +369,7 @@ class MockVWS:
                 if target.target_id == target_id
             ]
 
-            if not matches:
+            if not bool(matches):
                 msg = f'No target has the ID "{target_id}".'
                 raise ValueError(msg)
 
@@ -477,11 +477,11 @@ class MockVWS:
                     body_bytes = request.body
 
             path = request.path_url
-            if base_path and path.startswith(base_path):
+            if len(base_path) > 0 and path.startswith(base_path):
                 path = path[len(base_path) :]
 
             request_data = RequestData(
-                method=request.method or "",
+                method=request.method if request.method is not None else "",
                 path=path,
                 headers=dict(request.headers),
                 body=body_bytes,
@@ -516,7 +516,7 @@ class MockVWS:
                         api,
                         route.route_name,
                     )
-                    mock.add_callback(
+                    _ = mock.add_callback(
                         method=http_method,
                         url=compiled_url_pattern,
                         callback=self._wrap_callback(

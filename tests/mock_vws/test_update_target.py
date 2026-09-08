@@ -37,7 +37,7 @@ _MAX_METADATA_BYTES: Final[int] = 1024 * 1024 - 1
 def _update_target(
     *,
     vws_client: VWS,
-    data: dict[str, Any],
+    data: dict[str, Any],  # pyrefly: ignore [explicit-any]
     target_id: str,
     content_type: str,
 ) -> Response:
@@ -99,7 +99,7 @@ class TestUpdate:
         with pytest.raises(
             expected_exception=TargetStatusNotSuccessError
         ) as exc:
-            _update_target(
+            _ = _update_target(
                 vws_client=vws_client,
                 data={"name": "Adam"},
                 target_id=target_id,
@@ -135,7 +135,7 @@ class TestUpdate:
         with pytest.raises(
             expected_exception=AuthenticationFailureError
         ) as exc:
-            _update_target(
+            _ = _update_target(
                 vws_client=vws_client,
                 data={"name": "Adam"},
                 target_id=target_id,
@@ -197,7 +197,7 @@ class TestUnexpectedData:
         given.
         """
         with pytest.raises(expected_exception=FailError) as exc:
-            _update_target(
+            _ = _update_target(
                 vws_client=vws_client,
                 data={"extra_thing": 1},
                 target_id=target_id,
@@ -232,7 +232,7 @@ class TestWidth:
         original_width = target_details.target_record.width
 
         with pytest.raises(expected_exception=FailError) as exc:
-            _update_target(
+            _ = _update_target(
                 vws_client=vws_client,
                 data={"width": width},
                 target_id=target_id,
@@ -311,7 +311,7 @@ class TestActiveFlag:
         flags.
         """
         with pytest.raises(expected_exception=FailError) as exc:
-            _update_target(
+            _ = _update_target(
                 vws_client=vws_client,
                 data={"active_flag": desired_active_flag},
                 target_id=target_id,
@@ -363,7 +363,7 @@ class TestApplicationMetadata:
     ) -> None:
         """Non-string values cannot be given as valid application metadata."""
         with pytest.raises(expected_exception=FailError) as exc:
-            _update_target(
+            _ = _update_target(
                 vws_client=vws_client,
                 data={"application_metadata": invalid_metadata},
                 target_id=target_id,
@@ -526,7 +526,7 @@ class TestTargetName:
     ) -> None:
         """A target's name must be a string of length 0 < N < 65."""
         with pytest.raises(expected_exception=VWSError) as exc:
-            _update_target(
+            _ = _update_target(
                 vws_client=vws_client,
                 data={"name": name},
                 target_id=target_id,
@@ -745,7 +745,7 @@ class TestImage:
         not a valid image.
         """
         with pytest.raises(expected_exception=BadImageError) as exc:
-            _update_target(
+            _ = _update_target(
                 vws_client=vws_client,
                 data={"image": not_base64_encoded_processable},
                 target_id=target_id,
@@ -772,7 +772,7 @@ class TestImage:
         a "Fail" response.
         """
         with pytest.raises(expected_exception=FailError) as exc:
-            _update_target(
+            _ = _update_target(
                 vws_client=vws_client,
                 data={"image": not_base64_encoded_not_processable},
                 target_id=target_id,
@@ -817,7 +817,7 @@ class TestImage:
     ) -> None:
         """If the given image is not a string, a `Fail` result is returned."""
         with pytest.raises(expected_exception=FailError) as exc:
-            _update_target(
+            _ = _update_target(
                 vws_client=vws_client,
                 data={"image": invalid_type_image},
                 target_id=target_id,

@@ -95,10 +95,10 @@ def assert_valid_transaction_id(
     Raises:
         AssertionError: The response does not include a valid transaction ID.
     """
-    transaction_id = json.loads(s=response.text)["transaction_id"]
+    transaction_id = json.loads(s=response.text)["transaction_id"]  # pyrefly: ignore [unknown-variable-type]
     expected_transaction_id_length = 32
-    assert len(transaction_id) == expected_transaction_id_length
-    assert all(char in hexdigits for char in transaction_id)
+    assert len(transaction_id) == expected_transaction_id_length  # pyrefly: ignore [unknown-argument-type]
+    assert all(char in hexdigits for char in transaction_id)  # pyrefly: ignore [unknown-argument-type]
 
 
 @beartype
@@ -143,7 +143,7 @@ def assert_vws_response(
             given codes.
     """
     assert response.status_code == status_code
-    response_result_code = json.loads(s=response.text)["result_code"]
+    response_result_code = json.loads(s=response.text)["result_code"]  # pyrefly: ignore [unknown-variable-type]
     assert response_result_code == result_code.value
     response_header_keys = {
         "connection",
@@ -285,15 +285,15 @@ def assert_query_success(*, response: Response) -> None:
         "query_id",
     }
 
-    query_id = json.loads(s=response.text)["query_id"]
+    query_id = json.loads(s=response.text)["query_id"]  # pyrefly: ignore [unknown-variable-type]
     expected_query_id_length = 32
-    assert len(query_id) == expected_query_id_length
-    assert all(char in hexdigits for char in query_id)
+    assert len(query_id) == expected_query_id_length  # pyrefly: ignore [unknown-argument-type]
+    assert all(char in hexdigits for char in query_id)  # pyrefly: ignore [unknown-argument-type]
 
     assert json.loads(s=response.text)["result_code"] == "Success"
     assert_valid_date_header(response=response)
     copied_response_headers = response.headers.copy()
-    copied_response_headers.pop("Date")
+    _ = copied_response_headers.pop("Date")
 
     # In the mock, all responses have the ``Content-Encoding`` ``gzip``.
     # In the real Vuforia, some do and some do not.

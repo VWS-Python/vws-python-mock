@@ -144,7 +144,7 @@ _ADVANCED_MODEL_ENUM_FIELD_VALUES: dict[str, frozenset[str]] = {
 def _json_response(
     *,
     status_code: HTTPStatus,
-    body: dict[str, Any],
+    body: dict[str, Any],  # pyrefly: ignore [explicit-any]
 ) -> _ResponseType:
     """Return a JSON response."""
     body_json = json_dump(body=body)
@@ -168,7 +168,7 @@ def _error_response(
     details: list[dict[str, str]] | None,
 ) -> _ResponseType:
     """Return an error response shaped like the Model Target Web API."""
-    error: dict[str, Any] = {"code": code, "message": message}
+    error: dict[str, Any] = {"code": code, "message": message}  # pyrefly: ignore [explicit-any]
     if target is not None:
         error["target"] = target
     if details is not None:
@@ -235,7 +235,7 @@ def _content_length_error(request: RequestData) -> _ResponseType | None:
         return None
 
     try:
-        int(given_content_length)
+        _ = int(given_content_length)
     except ValueError:
         error = ContentLengthHeaderNotIntError()
         return (error.status_code, dict(error.headers), error.response_text)
@@ -259,7 +259,7 @@ def _basic_auth_credentials(auth_header: str | None) -> tuple[str, str] | None:
         return None
 
     client_id, separator, client_secret = decoded_credentials.partition(":")
-    if not separator:
+    if len(separator) == 0:
         return None
 
     return client_id, client_secret
@@ -315,12 +315,12 @@ def _jwt_signature_error(*, bearer_token: str) -> str | None:
     signature.
     """
     encoded_signature = bearer_token.rpartition(".")[2]
-    if not encoded_signature:
+    if len(encoded_signature) == 0:
         return "The signature must not be empty"
 
     try:
         padding = "=" * (-len(encoded_signature) % 4)
-        base64.b64decode(
+        _ = base64.b64decode(
             s=encoded_signature + padding,
             altchars=b"-_",
             validate=True,
@@ -343,7 +343,7 @@ def _jwt_scopes(*, bearer_token: str) -> frozenset[str]:
             validate=True,
         ),
     )
-    scope = payload.get("scope", "")
+    scope = payload.get("scope", "")  # pyrefly: ignore [unknown-variable-type]
     if not isinstance(scope, str):
         return frozenset()
     return frozenset(scope.split())
@@ -365,7 +365,7 @@ def _require_bearer_token(
             details=None,
         )
     bearer_token = auth_header.removeprefix("Bearer ").strip()
-    if not bearer_token:
+    if len(bearer_token) == 0:
         return _error_response(
             status_code=HTTPStatus.UNAUTHORIZED,
             code="401",
@@ -443,7 +443,7 @@ def _require_state_based_scope(
 def _fake_jwt(*, token_source: bytes, scopes: frozenset[str]) -> str:
     """Return a deterministic bearer token for the mock."""
 
-    def encode_part(value: dict[str, Any]) -> str:
+    def encode_part(value: dict[str, Any]) -> str:  # pyrefly: ignore [explicit-any]
         """Return a base64url-encoded token part."""
         raw_part = json.dumps(
             obj=value,
@@ -531,7 +531,7 @@ def oauth2_token(  # noqa: PLR0911  # pylint: disable=too-many-return-statements
     else:
         username = form.get("username", [""])[0]
         password = form.get("password", [""])[0]
-        if not username or not password:
+        if len(username) == 0 or len(password) == 0:
             return _oauth2_error_response(
                 status_code=HTTPStatus.BAD_REQUEST,
                 body={
@@ -551,7 +551,10 @@ def oauth2_token(  # noqa: PLR0911  # pylint: disable=too-many-return-statements
                 },
             )
 
-    token_source = request.body or (auth_header or "").encode()
+    auth_text = auth_header if auth_header is not None else ""
+    token_source = (
+        request.body if len(request.body) > 0 else auth_text.encode()
+    )
     requested_scope = form.get("scope", [""])[0]
     if grant_type == "client_credentials" and dynamic_credential is not None:
         credential_scopes = frozenset(dynamic_credential.scopes)
@@ -559,7 +562,10 @@ def oauth2_token(  # noqa: PLR0911  # pylint: disable=too-many-return-statements
         credential_scopes = _MODEL_TARGET_SCOPES | {
             _CLIENT_CREDENTIALS_SCOPE,
         }
-    scopes = frozenset(requested_scope.split()) or credential_scopes
+    requested_scopes = frozenset(requested_scope.split())
+    scopes = (
+        requested_scopes if len(requested_scopes) > 0 else credential_scopes
+    )
     if not scopes.issubset(credential_scopes):
         return _oauth2_error_response(
             status_code=HTTPStatus.BAD_REQUEST,
@@ -603,11 +609,11 @@ def _require_client_credentials_scope(
             target="jwt",
             details=None,
         )
-    jwt_error = (
-        _jwt_header_error(bearer_token=bearer_token)
-        or _jwt_payload_error(bearer_token=bearer_token)
-        or _jwt_signature_error(bearer_token=bearer_token)
-    )
+    jwt_error = _jwt_header_error(bearer_token=bearer_token)
+    if jwt_error is None:
+        jwt_error = _jwt_payload_error(bearer_token=bearer_token)
+    if jwt_error is None:
+        jwt_error = _jwt_signature_error(bearer_token=bearer_token)
     if jwt_error is not None:
         return _error_response(
             status_code=HTTPStatus.UNAUTHORIZED,
@@ -793,9 +799,12 @@ def _is_json_object(*, value: object) -> bool:
 
 
 @beartype
-def _load_request_json(request: RequestData) -> dict[str, Any] | _ResponseType:
+def _load_request_json(request: RequestData) -> dict[str, Any] | _ResponseType:  # pyrefly: ignore [explicit-any]
     """Load a Model Target dataset creation request body."""
-    content_type = _get_header(request=request, name="Content-Type") or ""
+    content_type_header = _get_header(request=request, name="Content-Type")
+    content_type = (
+        content_type_header if content_type_header is not None else ""
+    )
     if "application/json" not in content_type:
         return _error_response(
             status_code=HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
@@ -805,7 +814,7 @@ def _load_request_json(request: RequestData) -> dict[str, Any] | _ResponseType:
             details=None,
         )
     try:
-        request_json: dict[str, Any] = json.loads(
+        request_json: dict[str, Any] = json.loads(  # pyrefly: ignore [explicit-any]
             s=request.body.decode(encoding="utf-8"),
         )
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
@@ -827,7 +836,7 @@ def _load_request_json(request: RequestData) -> dict[str, Any] | _ResponseType:
 
 
 @beartype
-def _cad_data_source_details(*, models: list[Any]) -> list[dict[str, str]]:
+def _cad_data_source_details(*, models: list[Any]) -> list[dict[str, str]]:  # pyrefly: ignore [explicit-any]
     """Return validation details for each model's CAD data source.
 
     One and only one of ``cadDataUrl``, ``cadDataBlob`` and ``cadDataUuid``
@@ -841,7 +850,7 @@ def _cad_data_source_details(*, models: list[Any]) -> list[dict[str, str]]:
                 + (
                     "One of `cadDataBlob`, `cadDataUrl`, `cadDataUuid` need "
                     "to be provided"
-                    if not sources
+                    if not bool(sources)
                     else "Only one of `cadDataBlob`, `cadDataUrl`, "
                     "`cadDataUuid` need to be provided"
                 )
@@ -862,7 +871,7 @@ def _cad_data_source_details(*, models: list[Any]) -> list[dict[str, str]]:
 @beartype
 def _model_field_details(
     *,
-    models: list[Any],
+    models: list[Any],  # pyrefly: ignore [explicit-any]
     dataset_type: ModelTargetDatasetType,
 ) -> list[dict[str, str]]:
     """Return validation details for the fields of each model."""
@@ -880,11 +889,11 @@ def _model_field_details(
         for field in ("name", "views")
         if field not in model
     ]
-    if missing_details:
+    if bool(missing_details):
         return missing_details
 
     cad_data_source_details = _cad_data_source_details(models=models)
-    if cad_data_source_details:
+    if bool(cad_data_source_details):
         return cad_data_source_details
 
     string_fields = sorted(
@@ -905,7 +914,7 @@ def _model_field_details(
         for field in string_fields
         if field in model and not isinstance(model[field], str)
     ]
-    if string_details:
+    if bool(string_details):
         return string_details
 
     enum_details: list[dict[str, str]] = []
@@ -913,15 +922,16 @@ def _model_field_details(
         for field, allowed_values in sorted(enum_field_values.items()):
             if field in {"motionHint", "trackingMode"}:
                 continue
-            if field not in model or model[field] in allowed_values:
+            if field not in model or model[field] in allowed_values:  # pyrefly: ignore [unknown-argument-type]
                 continue
-            value = model[field]
+            value = model[field]  # pyrefly: ignore [unknown-variable-type]
             messages = {
                 "automaticColoring": (
                     "invalid automaticColoring. Should be one of 'never', "
                     f"'always', 'auto'. You provided '{value}'"
                 ),
                 "cadDataFormat": (
+                    # pyrefly: ignore [unknown-argument-type]
                     "Unrecognized cadDataFormat '"
                     f"{str(object=value).upper()}'.  "
                     "Allowed values are: ZIP, GLB, DRC_GLB, DRC_GLTF, DAE, "
@@ -971,7 +981,7 @@ def _model_field_details(
 
 
 @beartype
-def _view_details(*, models: list[Any]) -> list[dict[str, str]]:
+def _view_details(*, models: list[Any]) -> list[dict[str, str]]:  # pyrefly: ignore [explicit-any]
     """Return validation details for the guide views of each model."""
     views = [
         (model_index, view_index, view)
@@ -990,7 +1000,7 @@ def _view_details(*, models: list[Any]) -> list[dict[str, str]]:
         for model_index, view_index, view in views
         if not isinstance(view, dict)
     ]
-    if object_details:
+    if bool(object_details):
         return object_details
 
     missing_details = [
@@ -1005,7 +1015,7 @@ def _view_details(*, models: list[Any]) -> list[dict[str, str]]:
         for field in ("name",)
         if field not in view
     ]
-    if missing_details:
+    if bool(missing_details):
         return missing_details
 
     name_details = [
@@ -1047,7 +1057,7 @@ def _is_json_number(*, value: object) -> bool:
 @beartype
 def _guide_view_position_details(
     *,
-    models: list[Any],
+    models: list[Any],  # pyrefly: ignore [explicit-any]
 ) -> list[dict[str, str]]:
     """Return validation details for the guide view positions."""
     positions = [
@@ -1069,7 +1079,7 @@ def _guide_view_position_details(
         for field in ("rotation", "translation")
         if field not in position
     ]
-    if missing_details:
+    if bool(missing_details):
         return missing_details
 
     array_details = [
@@ -1084,7 +1094,7 @@ def _guide_view_position_details(
         for field in ("rotation", "translation")
         if not isinstance(position[field], list)
     ]
-    if array_details:
+    if bool(array_details):
         return array_details
 
     return [
@@ -1099,7 +1109,7 @@ def _guide_view_position_details(
         for model_index, view_index, position in positions
         for field in ("rotation", "translation")
         for element_index, element in enumerate(iterable=position[field])
-        if not _is_json_number(value=element)
+        if not _is_json_number(value=element)  # pyrefly: ignore [unknown-argument-type]
     ]
 
 
@@ -1111,7 +1121,7 @@ def _configuration_states(
 ) -> tuple[frozenset[str] | None, dict[str, str] | None]:
     """Load the state names from a State-Based Model Target config."""
     try:
-        configuration: Any = json.loads(s=configuration_string)
+        configuration: Any = json.loads(s=configuration_string)  # pyrefly: ignore [explicit-any]
     except json.JSONDecodeError:
         return None, {
             "code": "VALIDATION_ERROR",
@@ -1137,13 +1147,13 @@ def _configuration_states(
                 "states: error.expected.jsobject"
             ),
         }
-    configuration_states: dict[str, Any] = configuration["states"]
+    configuration_states: dict[str, Any] = configuration["states"]  # pyrefly: ignore [explicit-any]
     state_names = frozenset(configuration_states)
     return state_names, None
 
 
 @beartype
-def _state_based_details(*, models: list[Any]) -> list[dict[str, str]]:
+def _state_based_details(*, models: list[Any]) -> list[dict[str, str]]:  # pyrefly: ignore [explicit-any]
     """Return validation details for State-Based Model Targets."""
     state_fields = [
         (model_index, view_index, view["states"])
@@ -1162,7 +1172,7 @@ def _state_based_details(*, models: list[Any]) -> list[dict[str, str]]:
         for model_index, view_index, states in state_fields
         if not isinstance(states, list)
     ]
-    if array_details:
+    if bool(array_details):
         return array_details
 
     element_details = [
@@ -1177,13 +1187,13 @@ def _state_based_details(*, models: list[Any]) -> list[dict[str, str]]:
         for state_index, state in enumerate(iterable=states)
         if not isinstance(state, str)
     ]
-    if element_details:
+    if bool(element_details):
         return element_details
 
     details: list[dict[str, str]] = []
     configured_states: dict[int, frozenset[str]] = {}
     for model_index, model in enumerate(iterable=models):
-        configuration_string = model.get("stateBasedConfigurationJsonString")
+        configuration_string = model.get("stateBasedConfigurationJsonString")  # pyrefly: ignore [unknown-variable-type]
         if not isinstance(configuration_string, str):
             continue
         state_names, detail = _configuration_states(
@@ -1195,7 +1205,7 @@ def _state_based_details(*, models: list[Any]) -> list[dict[str, str]]:
         if state_names is not None:
             configured_states[model_index] = state_names
 
-    if details:
+    if bool(details):
         return details
 
     for model_index, view_index, states in state_fields:
@@ -1221,7 +1231,7 @@ def _state_based_details(*, models: list[Any]) -> list[dict[str, str]]:
                 ),
             }
             for state in states
-            if state not in configured_states[model_index]
+            if state not in configured_states[model_index]  # pyrefly: ignore [unknown-argument-type]
         )
 
     return details
@@ -1230,7 +1240,7 @@ def _state_based_details(*, models: list[Any]) -> list[dict[str, str]]:
 @beartype
 def _model_count_details(
     *,
-    models: list[Any],
+    models: list[Any],  # pyrefly: ignore [explicit-any]
     dataset_type: ModelTargetDatasetType,
 ) -> list[dict[str, str]]:
     """Return validation details for the number of models."""
@@ -1281,7 +1291,7 @@ def _model_count_details(
 @beartype
 def _top_level_details(
     *,
-    request_json: dict[str, Any],
+    request_json: dict[str, Any],  # pyrefly: ignore [explicit-any]
 ) -> list[dict[str, str]]:
     """Return validation details for the top-level dataset fields."""
     missing_details = [
@@ -1292,7 +1302,7 @@ def _top_level_details(
         for field in ("models", "name", "targetSdk")
         if field not in request_json
     ]
-    if missing_details:
+    if bool(missing_details):
         return missing_details
 
     type_details = [
@@ -1320,15 +1330,15 @@ def _top_level_details(
 @beartype
 def _validate_dataset_request(
     *,
-    request_json: dict[str, Any],
+    request_json: dict[str, Any],  # pyrefly: ignore [explicit-any]
     dataset_type: ModelTargetDatasetType,
 ) -> _ResponseType | None:
     """Validate the dataset request enough for useful mock feedback."""
     details = _top_level_details(request_json=request_json)
-    if not details:
+    if not bool(details):
         # Vuforia's schema validator reads fields from non-object model and
         # view values as though they were empty objects.
-        models: list[Any] = [
+        models: list[Any] = [  # pyrefly: ignore [explicit-any]
             model if isinstance(model, dict) else {}
             for model in request_json["models"]
         ]
@@ -1338,18 +1348,22 @@ def _validate_dataset_request(
                     view if isinstance(view, dict) else dict[str, Any]()
                     for view in model["views"]
                 ]
-        details = (
-            _model_field_details(models=models, dataset_type=dataset_type)
-            or _view_details(models=models)
-            or _guide_view_position_details(models=models)
-            or _state_based_details(models=models)
-            or _model_count_details(
+        details = _model_field_details(
+            models=models, dataset_type=dataset_type
+        )
+        if len(details) == 0:
+            details = _view_details(models=models)
+        if len(details) == 0:
+            details = _guide_view_position_details(models=models)
+        if len(details) == 0:
+            details = _state_based_details(models=models)
+        if len(details) == 0:
+            details = _model_count_details(
                 models=models,
                 dataset_type=dataset_type,
             )
-        )
 
-    if details:
+    if bool(details):
         return _validation_error_response(details=details)
 
     return None

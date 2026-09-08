@@ -14,10 +14,10 @@ _BASE_URL = "https://vws.vuforia.com"
 _CLIENT_ID = "client-id"
 _CLIENT_SECRET = "client-secret"
 type _HTTPResponse = requests.Response | httpx.Response
-type _DatasetRequestSender = Callable[[dict[str, Any]], _HTTPResponse]
+type _DatasetRequestSender = Callable[[dict[str, Any]], _HTTPResponse]  # pyrefly: ignore [explicit-any]
 
 
-def _dataset_body() -> dict[str, Any]:
+def _dataset_body() -> dict[str, Any]:  # pyrefly: ignore [explicit-any]
     """Return an otherwise-valid Model Target dataset request body."""
     return {
         "name": "configured-failure-test",
@@ -32,7 +32,7 @@ def _dataset_body() -> dict[str, Any]:
     }
 
 
-def _requests_create_dataset(body: dict[str, Any]) -> _HTTPResponse:
+def _requests_create_dataset(body: dict[str, Any]) -> _HTTPResponse:  # pyrefly: ignore [explicit-any]
     """Acquire a token and create a dataset using ``requests``."""
     token_response = requests.post(
         url=f"{_BASE_URL}/oauth2/token",
@@ -41,7 +41,7 @@ def _requests_create_dataset(body: dict[str, Any]) -> _HTTPResponse:
         timeout=30,
     )
     token_response.raise_for_status()
-    token = token_response.json()["access_token"]
+    token = token_response.json()["access_token"]  # pyrefly: ignore [unknown-variable-type]
     return requests.post(
         url=f"{_BASE_URL}/modeltargets/datasets",
         headers={"Authorization": f"Bearer {token}"},
@@ -50,7 +50,7 @@ def _requests_create_dataset(body: dict[str, Any]) -> _HTTPResponse:
     )
 
 
-def _httpx_create_dataset(body: dict[str, Any]) -> _HTTPResponse:
+def _httpx_create_dataset(body: dict[str, Any]) -> _HTTPResponse:  # pyrefly: ignore [explicit-any]
     """Acquire a token and create a dataset using ``httpx``."""
     token_response = httpx.post(
         url=f"{_BASE_URL}/oauth2/token",
@@ -58,8 +58,8 @@ def _httpx_create_dataset(body: dict[str, Any]) -> _HTTPResponse:
         data={"grant_type": "client_credentials"},
         timeout=30,
     )
-    token_response.raise_for_status()
-    token = token_response.json()["access_token"]
+    _ = token_response.raise_for_status()
+    token = token_response.json()["access_token"]  # pyrefly: ignore [unknown-variable-type]
     return httpx.post(
         url=f"{_BASE_URL}/modeltargets/datasets",
         headers={"Authorization": f"Bearer {token}"},
@@ -108,7 +108,7 @@ def _httpx_create_dataset(body: dict[str, Any]) -> _HTTPResponse:
 )
 def test_configured_failure_response(
     *,
-    send_request: _DatasetRequestSender,
+    send_request: _DatasetRequestSender,  # pyrefly: ignore [explicit-any]
     status_code: HTTPStatus,
     headers: dict[str, str],
     body: str | bytes,
@@ -136,7 +136,8 @@ def test_configured_failure_response(
     ids=["requests", "httpx"],
 )
 def test_unselected_request_is_handled_normally(
-    *, send_request: _DatasetRequestSender
+    *,
+    send_request: _DatasetRequestSender,  # pyrefly: ignore [explicit-any]
 ) -> None:
     """A failure configured for another phase does not affect creation."""
     failure = ModelTargetFailureResponse(
@@ -196,7 +197,7 @@ def test_selected_request_returns_failure(
             timeout=30,
         )
         token_response.raise_for_status()
-        token = token_response.json()["access_token"]
+        token = token_response.json()["access_token"]  # pyrefly: ignore [unknown-variable-type]
         response = requests.request(
             method=method,
             url=f"{_BASE_URL}/modeltargets/{collection}{path_suffix}",

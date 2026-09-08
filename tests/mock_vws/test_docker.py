@@ -71,7 +71,7 @@ class _MockDeployment:
 def _poll_health_check(container: Container) -> None:
     """Poll a container until it reports a healthy status."""
     container.reload()
-    health_status = container.attrs["State"]["Health"]["Status"]
+    health_status = container.attrs["State"]["Health"]["Status"]  # pyrefly: ignore [unknown-variable-type]
     # In theory this might not be hit by coverage.
     # Let's keep it required by coverage for now.
     if health_status != "healthy":
@@ -93,7 +93,7 @@ def wait_for_health_check(container: Container) -> None:
     except ValueError as exc:  # pragma: no cover
         container.reload()
         logs = container.logs().decode(errors="replace")
-        health_log = container.attrs["State"]["Health"].get("Log", [])
+        health_log = container.attrs["State"]["Health"].get("Log", [])  # pyrefly: ignore [unknown-variable-type]
         probes = "\n".join(
             f"  exit={entry.get('ExitCode')!r} "
             f"start={entry.get('Start')!r} end={entry.get('End')!r}\n"
@@ -130,7 +130,7 @@ def _wait_for_model_target_dataset_done(
         timeout=30,
     )
     assert response.status_code == HTTPStatus.OK
-    status = response.json()["status"]
+    status = response.json()["status"]  # pyrefly: ignore [unknown-variable-type]
     if status != "done":
         error_message = f"Dataset {dataset_uuid} status is {status!r}."
         raise ValueError(error_message)
@@ -185,16 +185,16 @@ def _free_port() -> int:
         type=socket.SOCK_STREAM,
     ) as sock:
         sock.bind(("127.0.0.1", 0))
-        return int(sock.getsockname()[1])
+        return int(sock.getsockname()[1])  # pyrefly: ignore [unknown-argument-type]
 
 
 @beartype
 def _published_base_url(*, container: Container) -> str:
     """Return the host-reachable base URL of a container."""
     container.reload()
-    port_attrs = container.attrs["NetworkSettings"]["Ports"]
-    host_ip = port_attrs["5000/tcp"][0]["HostIp"]
-    host_port = port_attrs["5000/tcp"][0]["HostPort"]
+    port_attrs = container.attrs["NetworkSettings"]["Ports"]  # pyrefly: ignore [unknown-variable-type]
+    host_ip = port_attrs["5000/tcp"][0]["HostIp"]  # pyrefly: ignore [unknown-variable-type]
+    host_port = port_attrs["5000/tcp"][0]["HostPort"]  # pyrefly: ignore [unknown-variable-type]
     return f"http://{host_ip}:{host_port}"
 
 
@@ -262,7 +262,7 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
 
         # This does leave behind untagged images.
         for image in images_to_remove:
-            image.remove(force=True)
+            _ = image.remove(force=True)
         network.remove()
 
 
@@ -445,7 +445,7 @@ def test_model_target_dataset_survives_vws_restart(
         timeout=30,
     )
     assert oauth_response.status_code == HTTPStatus.OK
-    access_token = oauth_response.json()["access_token"]
+    access_token = oauth_response.json()["access_token"]  # pyrefly: ignore [unknown-variable-type]
 
     dataset_request = {
         "name": "example-dataset",
@@ -473,12 +473,12 @@ def test_model_target_dataset_survives_vws_restart(
         timeout=30,
     )
     assert create_dataset_response.status_code == HTTPStatus.CREATED
-    dataset_uuid = create_dataset_response.json()["uuid"]
+    dataset_uuid = create_dataset_response.json()["uuid"]  # pyrefly: ignore [unknown-variable-type]
 
     _wait_for_model_target_dataset_done(
         base_vws_url=base_vws_url,
-        dataset_uuid=dataset_uuid,
-        access_token=access_token,
+        dataset_uuid=dataset_uuid,  # pyrefly: ignore [unknown-argument-type]
+        access_token=access_token,  # pyrefly: ignore [unknown-argument-type]
     )
 
     mock_deployment.vws_container.restart()
@@ -572,12 +572,12 @@ def test_reco_counts_report_round_trip(
     assert report_response.status_code == HTTPStatus.OK
     report_json = report_response.json()
     assert report_json["result_code"] == "Success"
-    presigned_url = report_json["presigned_url"]
+    presigned_url = report_json["presigned_url"]  # pyrefly: ignore [unknown-variable-type]
     # The download URL is built from the ``VWS_BASE_URL`` of the VWS
     # container, so it reaches that container.
     assert presigned_url.startswith(mock_deployment.base_vws_url)
 
-    report_content = _wait_for_reco_counts_report(presigned_url=presigned_url)
+    report_content = _wait_for_reco_counts_report(presigned_url=presigned_url)  # pyrefly: ignore [unknown-argument-type]
 
     assert report_content == (
         f"target_id,reco_count\r\n{target_id},{_CURRENT_MONTH_RECOS}\r\n"
@@ -643,18 +643,18 @@ def test_request_rate_limit(*, mock_deployment: _MockDeployment) -> None:
     _create_cloud_database(deployment=mock_deployment, database=database)
     vws_client = _vws_client(deployment=mock_deployment, database=database)
 
-    vws_client.list_targets()
+    _ = vws_client.list_targets()
 
     with pytest.raises(expected_exception=TooManyRequestsError):
-        vws_client.list_targets()
+        _ = vws_client.list_targets()
 
     # Other endpoints are not limited.
-    vws_client.get_database_summary_report()
+    _ = vws_client.get_database_summary_report()
 
     mock_deployment.vws_container.restart()
     wait_for_health_check(container=mock_deployment.vws_container)
 
-    vws_client.list_targets()
+    _ = vws_client.list_targets()
 
 
 def test_deleted_database(*, mock_deployment: _MockDeployment) -> None:
@@ -668,7 +668,7 @@ def test_deleted_database(*, mock_deployment: _MockDeployment) -> None:
     _create_cloud_database(deployment=mock_deployment, database=database)
     vws_client = _vws_client(deployment=mock_deployment, database=database)
 
-    vws_client.list_targets()
+    _ = vws_client.list_targets()
 
     delete_response = requests.delete(
         url=(
@@ -680,6 +680,6 @@ def test_deleted_database(*, mock_deployment: _MockDeployment) -> None:
     assert delete_response.status_code == HTTPStatus.OK
 
     with pytest.raises(expected_exception=FailError) as exc:
-        vws_client.list_targets()
+        _ = vws_client.list_targets()
 
     assert exc.value.response.status_code == HTTPStatus.BAD_REQUEST

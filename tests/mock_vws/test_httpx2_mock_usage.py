@@ -57,7 +57,7 @@ _MODEL_TARGET_DATASET_REQUEST = {
 }
 
 
-def _run[T](*, coroutine: Coroutine[Any, Any, T]) -> T:
+def _run[T](*, coroutine: Coroutine[Any, Any, T]) -> T:  # pyrefly: ignore [explicit-any]
     """Run a coroutine to completion.
 
     The test suite has no plugin for asynchronous tests, so asynchronous
@@ -80,7 +80,7 @@ def _unused_local_url() -> str:
     """
     sock = socket.socket()
     sock.bind(("", 0))
-    port = sock.getsockname()[1]
+    port = sock.getsockname()[1]  # pyrefly: ignore [unknown-variable-type]
     sock.close()
     return f"http://localhost:{port}"
 
@@ -124,7 +124,7 @@ class TestVWS:
                 transport=HTTPX2Transport(),
             )
             with pytest.raises(expected_exception=httpx2.ReadTimeout):
-                client.get_database_summary_report()
+                _ = client.get_database_summary_report()
 
         assert calls == [0.1]
 
@@ -162,7 +162,7 @@ class TestVWS:
             with pytest.raises(
                 expected_exception=AuthenticationFailureError,
             ):
-                client.get_database_summary_report()
+                _ = client.get_database_summary_report()
 
     @staticmethod
     def test_add_get_and_delete_target(
@@ -194,7 +194,7 @@ class TestVWS:
             client.delete_target(target_id=target_id)
 
             with pytest.raises(expected_exception=UnknownTargetError):
-                client.get_target_record(target_id=target_id)
+                _ = client.get_target_record(target_id=target_id)
 
     @staticmethod
     def test_nested_mocks() -> None:
@@ -211,11 +211,11 @@ class TestVWS:
             with MockVWS(base_vws_url="https://vuforia.vws.example.com"):
                 inner_response = httpx2.get(url=inner_url, timeout=30)
                 with pytest.raises(expected_exception=httpx2.ConnectError):
-                    httpx2.get(url=outer_url, timeout=30)
+                    _ = httpx2.get(url=outer_url, timeout=30)
             outer_response = httpx2.get(url=outer_url, timeout=30)
 
             with pytest.raises(expected_exception=httpx2.ConnectError):
-                httpx2.get(url=inner_url, timeout=30)
+                _ = httpx2.get(url=inner_url, timeout=30)
 
         assert inner_response.status_code == HTTPStatus.UNAUTHORIZED
         assert outer_response.status_code == HTTPStatus.UNAUTHORIZED
@@ -450,7 +450,7 @@ class TestTransportClose:
         transport.close()
 
         with MockVWS(), pytest.raises(expected_exception=RuntimeError):
-            transport(
+            _ = transport(
                 method="GET",
                 url="https://vws.vuforia.com/summary",
                 headers={},
@@ -490,7 +490,7 @@ class TestAsyncInterception:
             MockVWS(),
             pytest.raises(expected_exception=httpx2.ConnectError),
         ):
-            _run(coroutine=_async_get(url=url))
+            _ = _run(coroutine=_async_get(url=url))
 
     @staticmethod
     def test_real_http() -> None:
@@ -505,7 +505,7 @@ class TestAsyncInterception:
             MockVWS(real_http=True),
             pytest.raises(expected_exception=httpx2.ConnectError),
         ):
-            _run(coroutine=_async_get(url=url))
+            _ = _run(coroutine=_async_get(url=url))
 
 
 class TestModelTargetWebAPI:
@@ -521,7 +521,7 @@ class TestModelTargetWebAPI:
                 json=_MODEL_TARGET_DATASET_REQUEST,
                 timeout=30,
             )
-            dataset_uuid = create_response.json()["uuid"]
+            dataset_uuid = create_response.json()["uuid"]  # pyrefly: ignore [unknown-variable-type]
             status_response = httpx2.get(
                 url=(
                     "https://vws.vuforia.com/modeltargets/datasets/"

@@ -30,7 +30,7 @@ class TestTargetList:
     ) -> None:
         """Deleted targets are not returned in the list."""
         vws_client.delete_target(target_id=target_id)
-        assert not vws_client.list_targets()
+        assert not bool(vws_client.list_targets())
 
     @staticmethod
     def test_order_is_upload_date_then_target_id(
@@ -69,4 +69,4 @@ class TestInactiveProject:
     def test_inactive_project(inactive_vws_client: VWS) -> None:
         """The project's active state does not affect the target list."""
         # No exception is raised.
-        inactive_vws_client.list_targets()
+        _ = inactive_vws_client.list_targets()
