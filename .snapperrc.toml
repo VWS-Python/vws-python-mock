@@ -4,4 +4,3 @@ ignore = [
   "docs/source/differences-to-vws.rst",
   "docs/source/unverified-behavior.rst",
 ]
-
