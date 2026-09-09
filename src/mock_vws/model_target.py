@@ -12,7 +12,7 @@ from zoneinfo import ZoneInfo
 from beartype import beartype
 
 type _JSONObject = Mapping[str, object]
-type _MutableJSONObject = dict[str, object]
+type _MutableJsonObject = dict[str, object]
 
 
 class _GenerationWarningDict(TypedDict):
@@ -237,10 +237,10 @@ class ModelTargetDataset:
             return "failed"
         return "done"
 
-    def status_body(self) -> _MutableJSONObject:
+    def status_body(self) -> _MutableJsonObject:
         """Return a status response body for this dataset."""
         status = self.status
-        body: _MutableJSONObject = {
+        body: _MutableJsonObject = {
             "status": status,
             "uuid": self.uuid_,
             "createdAt": _format_datetime(value=self.created_at),
