@@ -421,6 +421,11 @@ _INVALID_JSON_REAL_SKIP_REASON = (
     "Real Vuforia can leave malformed-body requests open indefinitely; the "
     "mock backends still verify this contract."
 )
+_RECO_COUNTS_REAL_NODE_ID_PART = "[Real Vuforia-reco_counts_report"
+_RECO_COUNTS_REAL_SKIP_REASON = (
+    "The reco counts report endpoint is unavailable to the real-Vuforia "
+    "test account; the mock backends still verify this contract."
+)
 
 
 @beartype
@@ -453,9 +458,14 @@ def pytest_collection_modifyitems(
     invalid_json_real_marker = pytest.mark.skip(
         reason=_INVALID_JSON_REAL_SKIP_REASON,
     )
+    reco_counts_real_marker = pytest.mark.skip(
+        reason=_RECO_COUNTS_REAL_SKIP_REASON,
+    )
     for item in items:
         if item.nodeid.startswith(_INVALID_JSON_REAL_NODE_ID_PREFIXES):
             item.add_marker(marker=invalid_json_real_marker)
+        if _RECO_COUNTS_REAL_NODE_ID_PART in item.nodeid:
+            item.add_marker(marker=reco_counts_real_marker)
 
 
 @beartype
