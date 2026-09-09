@@ -1424,7 +1424,7 @@ def create_model_target_dataset(
     is_state_based = isinstance(models_value, list) and any(
         isinstance(model, dict)
         and "stateBasedConfigurationJsonString" in model
-        for model in models_value  # pyright: ignore[reportUnknownVariableType]
+        for model in models_value
     )
     if is_state_based:
         state_scope_error = _require_state_based_scope(
