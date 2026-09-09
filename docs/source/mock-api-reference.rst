@@ -35,7 +35,9 @@ API Reference
    :members:
    :undoc-members:
 
-.. autodata:: mock_vws.model_target.JSONValue
+.. py:data:: mock_vws.model_target.JSONValue
+
+   A recursive JSON value type.
 
 .. Many parts of the CloudDatabase API are used for the Flask target
 .. database app, but Python users are not expected to use them.
