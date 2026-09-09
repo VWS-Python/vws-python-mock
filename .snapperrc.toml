@@ -1,0 +1,6 @@
+# These files contain markup constructs that Snapper main does not yet preserve.
+ignore = [
+  "CHANGELOG.rst",
+  "docs/source/differences-to-vws.rst",
+  "docs/source/unverified-behavior.rst",
+]

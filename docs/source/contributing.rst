@@ -56,8 +56,7 @@ Create an environment variable file for secrets:
    $ cp vuforia_secrets.env.example vuforia_secrets.env
 
 Some tests require Vuforia credentials.
-To run these tests, add the Vuforia credentials to the file :file:`vuforia_secrets.env`.
-See :ref:`connecting-to-vuforia`.
+To run these tests, add the Vuforia credentials to the file :file:`vuforia_secrets.env`. See :ref:`connecting-to-vuforia`.
 
 Then run ``pytest``:
 
@@ -73,14 +72,12 @@ Connecting to Vuforia
 To connect to Vuforia, Vuforia target databases must be created via the Vuforia Web UI.
 Then, secret keys must be set as environment variables.
 
-The test infrastructure allows those keys to be set in the file :file:`vuforia_secrets.env`.
-See :file:`vuforia_secrets.env.example` for the environment variables to set.
+The test infrastructure allows those keys to be set in the file :file:`vuforia_secrets.env`. See :file:`vuforia_secrets.env.example` for the environment variables to set.
 
 Do not use a target database that you are using for other purposes.
 This is because the test suite adds and deletes targets.
 
-To create a target database, first create a license key in the `Vuforia License Manager`_.
-Then, add a database from the `Vuforia Target Manager`_.
+To create a target database, first create a license key in the `Vuforia License Manager`_. Then, add a database from the `Vuforia Target Manager`_.
 
 To find the environment variables to set in the :file:`vuforia_secrets.env` file, visit the Target Database in the `Vuforia Target Manager`_ and view the "Database Access Keys".
 
