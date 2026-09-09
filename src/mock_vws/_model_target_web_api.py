@@ -26,6 +26,10 @@ from mock_vws.model_target import (
     OAuth2ClientCredential,
 )
 
+type _JSONValue = (
+    bool | int | float | str | list[_JSONValue] | dict[str, _JSONValue] | None
+)
+
 _ResponseType = tuple[int, dict[str, str], str | bytes]
 
 
@@ -806,21 +810,21 @@ def delete_oauth2_client_credential(
 
 
 @beartype
-def _is_json_object(value: object, /) -> TypeGuard[dict[str, object]]:
+def _is_json_object(value: object, /) -> TypeGuard[dict[str, _JSONValue]]:
     """Return whether a decoded JSON value is an object."""
-    return TypeHint(hint=dict[str, object]).is_bearable(obj=value)
+    return TypeHint(hint=dict[str, _JSONValue]).is_bearable(obj=value)
 
 
 @beartype
-def _is_json_array(value: object, /) -> TypeGuard[list[object]]:
+def _is_json_array(value: object, /) -> TypeGuard[list[_JSONValue]]:
     """Return whether a decoded JSON value is an array."""
-    return isinstance(value, list)
+    return TypeHint(hint=list[_JSONValue]).is_bearable(obj=value)
 
 
 @beartype
 def _load_request_json(
     request: RequestData,
-) -> dict[str, object] | _ResponseType:
+) -> dict[str, _JSONValue] | _ResponseType:
     """Load a Model Target dataset creation request body."""
     content_type_header = _get_header(request=request, name="Content-Type")
     content_type = (
