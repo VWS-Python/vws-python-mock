@@ -111,7 +111,7 @@ class ModelTargetGenerationWarning:
     """
 
     message: str = "Warning after creating dataset"
-    details: Sequence[_JSONObject] = field(
+    details: Sequence[Mapping[str, object]] = field(
         default_factory=lambda: [
             {
                 "code": "LOW_RECOGNITION_QUALITY",
