@@ -12,6 +12,7 @@ from typing import Any, Protocol, TypeGuard, runtime_checkable
 from urllib.parse import parse_qs
 
 from beartype import beartype
+from beartype.door import TypeHint
 
 from mock_vws._mock_common import RequestData, json_dump
 from mock_vws._services_validators.exceptions import (
@@ -664,10 +665,10 @@ def _client_credential_not_found(*, client_id: str) -> _ResponseType:
 @beartype
 def _string_list(value: object) -> list[str] | None:
     """Return a string list when ``value`` contains only strings."""
-    if not isinstance(value, list):
+    if not _is_json_array(value):
         return None
     strings: list[str] = []
-    for item in value:  # pyright: ignore[reportUnknownVariableType]
+    for item in value:
         if not isinstance(item, str):
             return None
         strings.append(item)
@@ -805,13 +806,21 @@ def delete_oauth2_client_credential(
 
 
 @beartype
-def _is_json_object(*, value: object) -> bool:
+def _is_json_object(value: object, /) -> TypeGuard[dict[str, object]]:
     """Return whether a decoded JSON value is an object."""
-    return isinstance(value, dict)
+    return TypeHint(hint=dict[str, object]).is_bearable(obj=value)
 
 
 @beartype
-def _load_request_json(request: RequestData) -> dict[str, Any] | _ResponseType:  # pyrefly: ignore [explicit-any]
+def _is_json_array(value: object, /) -> TypeGuard[list[object]]:
+    """Return whether a decoded JSON value is an array."""
+    return isinstance(value, list)
+
+
+@beartype
+def _load_request_json(
+    request: RequestData,
+) -> dict[str, object] | _ResponseType:
     """Load a Model Target dataset creation request body."""
     content_type_header = _get_header(request=request, name="Content-Type")
     content_type = (
@@ -826,7 +835,7 @@ def _load_request_json(request: RequestData) -> dict[str, Any] | _ResponseType: 
             details=None,
         )
     try:
-        request_json: dict[str, Any] = json.loads(  # pyrefly: ignore [explicit-any]
+        request_json: object = json.loads(
             s=request.body.decode(encoding="utf-8"),
         )
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
@@ -837,7 +846,7 @@ def _load_request_json(request: RequestData) -> dict[str, Any] | _ResponseType: 
             target=None,
             details=None,
         )
-    if not _is_json_object(value=request_json):
+    if not _is_json_object(request_json):
         # The required top-level fields are read from the request body, so a
         # body which is valid JSON but not a JSON object is reported as
         # having every required field missing.
@@ -1142,7 +1151,7 @@ def _configuration_states(
                 "error.expected.validjson"
             ),
         }
-    if not _is_json_object(value=configuration):
+    if not _is_json_object(configuration):
         return None, {
             "code": "VALIDATION_ERROR",
             "message": (
@@ -1151,7 +1160,7 @@ def _configuration_states(
             ),
         }
     configuration_states_value: object = configuration.get("states")
-    if not _is_json_object(value=configuration_states_value):
+    if not _is_json_object(configuration_states_value):
         return None, {
             "code": "VALIDATION_ERROR",
             "message": (
@@ -1159,8 +1168,7 @@ def _configuration_states(
                 "states: error.expected.jsobject"
             ),
         }
-    configuration_states: dict[str, Any] = configuration["states"]  # pyrefly: ignore [explicit-any]
-    state_names = frozenset(configuration_states)
+    state_names = frozenset(configuration_states_value)
     return state_names, None
 
 
