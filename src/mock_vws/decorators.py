@@ -19,7 +19,10 @@ from mock_vws._httpx2_mock_server.decorators import (
     Httpx2Router,
     start_httpx2_router,
 )
-from mock_vws._mock_common import MissingSchemeError, RequestData
+from mock_vws._mock_common import (
+    MissingSchemeError,
+    RequestData,
+)
 from mock_vws._requests_mock_server.mock_web_query_api import (
     MockVuforiaWebQueryAPI,
 )
@@ -513,10 +516,7 @@ class MockVWS:
                 compiled_url_pattern = re.compile(pattern=url_pattern)
 
                 for http_method in route.http_methods:
-                    original_callback = getattr(  # pylint: disable=bad-builtin
-                        api,
-                        route.route_name,
-                    )
+                    original_callback = route.handler
                     _ = mock.add_callback(
                         method=http_method,
                         url=compiled_url_pattern,

@@ -4,8 +4,9 @@ import datetime
 import email.utils
 import json
 import uuid
-from collections.abc import Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass
+from functools import partial
 from typing import Any, Final, override
 
 from beartype import beartype
@@ -71,21 +72,50 @@ class RequestData:
     body: bytes
 
 
+type RouteHandler = Callable[
+    [RequestData],
+    tuple[int, Mapping[str, str], str | bytes],
+]
+
+
 @beartype
 @dataclass(frozen=True, kw_only=True)
 class Route:
     """A representation of a VWS route.
 
     Args:
-        route_name: The name of the method.
+        handler: The callback which handles the route.
         path_pattern: The end part of a URL pattern. E.g. `/targets` or
             `/targets/.+`.
         http_methods: HTTP methods that map to the route function.
     """
 
-    route_name: str
+    handler: RouteHandler
     path_pattern: str
     http_methods: Iterable[str]
+
+
+@beartype
+@dataclass(frozen=True, kw_only=True)
+class RouteDefinition[API]:
+    """An API route whose handler has not yet been bound to an
+    instance.
+    """
+
+    handler: Callable[
+        [API, RequestData],
+        tuple[int, Mapping[str, str], str | bytes],
+    ]
+    path_pattern: str
+    http_methods: Iterable[str]
+
+    def bind(self, *, api: API) -> Route:
+        """Bind the route handler to an API instance."""
+        return Route(
+            handler=partial(self.handler, api),
+            path_pattern=self.path_pattern,
+            http_methods=self.http_methods,
+        )
 
 
 @beartype

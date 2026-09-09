@@ -285,10 +285,7 @@ def _mock_routes(
         for route in api.routes:
             url_pattern = base_url.rstrip("/") + route.path_pattern + "$"
             compiled_url_pattern = re.compile(pattern=url_pattern)
-            handler: _Handler = getattr(  # pylint: disable=bad-builtin
-                api,
-                route.route_name,
-            )  # ty: ignore[unsound-assignment]
+            handler = route.handler
             httpx2_handler = delayed_httpx2_handler(
                 handler=_httpx2_handler(handler=handler, base_path=base_path),
                 delay_seconds=response_delay_seconds,
