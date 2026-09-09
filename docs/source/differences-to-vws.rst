@@ -398,6 +398,12 @@ Some malformed State-Based Model Target configuration documents remain mock-only
 Reco counts reports
 -------------------
 
+Vuforia documents ``POST /imagetargets/databases/{database_id}/reports/recoCounts``, and this endpoint previously worked against real Vuforia, so the mock continues to implement it.
+The endpoint now returns an HTML 404 response for every database available to this project's test account, including a newly created database whose ID and server keys were read directly from the Target Manager.
+This project treats that as a permanent limitation of its real-Vuforia test account.
+The report tests therefore run against the mock backends only, including the cross-cutting authorization, date, content-length and JSON tests.
+The mock remains useful for testing clients of the documented endpoint, but its behavior can no longer be compared continuously with the real service and may differ for accounts which can still use the endpoint.
+
 The mock does not count recognitions, so a generated reco counts report contains only the ``target_id,reco_count`` header row, ending with a carriage return and a line feed, until recognition counts are set on targets.
 That is what real Vuforia returns for a database with no recognitions.
 

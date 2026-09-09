@@ -4,7 +4,6 @@ import io
 import secrets
 from collections.abc import Mapping
 from dataclasses import dataclass
-from http import HTTPStatus
 from typing import Literal
 from urllib.parse import urljoin
 
@@ -104,23 +103,12 @@ class Endpoint:
     @beartype
     def send(self) -> Response:
         """Send the request."""
-        url = urljoin(base=self.base_url, url=self.path_url)
-        response = _send_request(
+        return _send_request(
             method=self.method,
-            url=url,
+            url=urljoin(base=self.base_url, url=self.path_url),
             headers=self.headers,
             data=self.data,
         )
-        if (
-            url.startswith("https://vws.vuforia.com/imagetargets/databases/")
-            and url.endswith("/reports/recoCounts")
-            and response.status_code == HTTPStatus.NOT_FOUND
-            and response.headers.get("Content-Type", "").startswith(
-                "text/html",
-            )
-        ):  # pragma: no cover
-            pytest.skip(reason="The real reco counts endpoint is unavailable.")
-        return response
 
     @property
     def auth_header_content_type(self) -> str:

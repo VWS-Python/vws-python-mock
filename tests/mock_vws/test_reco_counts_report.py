@@ -108,7 +108,7 @@ def _request_reco_counts_report(
         request_path=request_path,
     )
 
-    response = requests.post(
+    return requests.post(
         url=_VWS_HOST + request_path,
         headers={
             "Authorization": authorization_string,
@@ -119,11 +119,6 @@ def _request_reco_counts_report(
         data=content,
         timeout=30,
     )
-    if response.status_code == HTTPStatus.NOT_FOUND and response.headers.get(
-        "Content-Type", ""
-    ).startswith("text/html"):  # pragma: no cover
-        pytest.skip(reason="The real reco counts endpoint is unavailable.")
-    return response
 
 
 @beartype
@@ -211,7 +206,7 @@ def _wait_for_report(*, presigned_url: str) -> requests.Response:
     raise _ReportNotReadyError
 
 
-@pytest.mark.usefixtures("verify_mock_vuforia")
+@pytest.mark.usefixtures("mock_only_vuforia")
 class TestRecoCountsReport:
     """Tests for requesting a reco counts report."""
 
@@ -429,12 +424,12 @@ class TestRecoCountsReport:
         )
 
 
-@pytest.mark.usefixtures("verify_mock_vuforia")
+@pytest.mark.usefixtures("mock_only_vuforia")
 class TestDownloadReport:
     """Tests for downloading a generated reco counts report.
 
-    A real report has been observed ready within a second of being
-    requested, so these run against real Vuforia as well as the mocks.
+    The endpoint is unavailable to the real-Vuforia test account, so these
+    run against the mocks only.
     """
 
     @staticmethod
