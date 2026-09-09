@@ -19,15 +19,12 @@ from mock_vws._services_validators.exceptions import (
     ContentLengthHeaderNotIntError,
 )
 from mock_vws.model_target import (
+    JSONValue,
     ModelTargetDataset,
     ModelTargetDatasetType,
     ModelTargetGenerationFailure,
     ModelTargetGenerationWarning,
     OAuth2ClientCredential,
-)
-
-type _JSONValue = (
-    bool | int | float | str | list[_JSONValue] | dict[str, _JSONValue] | None
 )
 
 _ResponseType = tuple[int, dict[str, str], str | bytes]
@@ -810,21 +807,21 @@ def delete_oauth2_client_credential(
 
 
 @beartype
-def _is_json_object(value: object, /) -> TypeGuard[dict[str, _JSONValue]]:
+def _is_json_object(value: object, /) -> TypeGuard[dict[str, JSONValue]]:
     """Return whether a decoded JSON value is an object."""
-    return TypeHint(hint=dict[str, _JSONValue]).is_bearable(obj=value)
+    return TypeHint(hint=dict[str, JSONValue]).is_bearable(obj=value)
 
 
 @beartype
-def _is_json_array(value: object, /) -> TypeGuard[list[_JSONValue]]:
+def _is_json_array(value: object, /) -> TypeGuard[list[JSONValue]]:
     """Return whether a decoded JSON value is an array."""
-    return TypeHint(hint=list[_JSONValue]).is_bearable(obj=value)
+    return TypeHint(hint=list[JSONValue]).is_bearable(obj=value)
 
 
 @beartype
 def _load_request_json(
     request: RequestData,
-) -> dict[str, _JSONValue] | _ResponseType:
+) -> dict[str, JSONValue] | _ResponseType:
     """Load a Model Target dataset creation request body."""
     content_type_header = _get_header(request=request, name="Content-Type")
     content_type = (

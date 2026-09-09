@@ -37,6 +37,7 @@ from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
 from mock_vws._flask_server.vws import VWS_FLASK_APP
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.model_target import (
+    JSONValue,
     ModelTargetDataset,
     ModelTargetDatasetType,
     ModelTargetGenerationFailure,
@@ -49,7 +50,7 @@ from tests.mock_vws.utils.usage_test_helpers import (
 )
 
 _EXAMPLE_URL_FOR_TARGET_MANAGER = "http://" + uuid.uuid4().hex + ".com"
-_MODEL_TARGET_DATASET_REQUEST = {
+_MODEL_TARGET_DATASET_REQUEST: dict[str, JSONValue] = {
     "name": "dataset-name",
     "targetSdk": "10.18",
     "models": [

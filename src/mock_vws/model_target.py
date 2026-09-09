@@ -11,15 +11,18 @@ from zoneinfo import ZoneInfo
 
 from beartype import beartype
 
-type _JSONObject = Mapping[str, object]
-type _MutableJsonObject = dict[str, object]
+type JSONValue = (
+    bool | int | float | str | list[JSONValue] | dict[str, JSONValue] | None
+)
+type _JSONObject = Mapping[str, JSONValue]
+type _MutableJsonObject = dict[str, JSONValue]
 
 
 class _GenerationWarningDict(TypedDict):
     """The persisted form of a Model Target generation warning."""
 
     message: str
-    details: list[dict[str, object]]
+    details: list[dict[str, JSONValue]]
 
 
 class ModelTargetDatasetDict(TypedDict):
@@ -111,7 +114,7 @@ class ModelTargetGenerationWarning:
     """
 
     message: str = "Warning after creating dataset"
-    details: Sequence[Mapping[str, object]] = field(
+    details: Sequence[Mapping[str, JSONValue]] = field(
         default_factory=lambda: [
             {
                 "code": "LOW_RECOGNITION_QUALITY",
@@ -259,7 +262,12 @@ class ModelTargetDataset:
                 "code": "WARNING",
                 "message": self.generation_warning.message,
                 "target": self.uuid_,
-                "details": copy.deepcopy(x=self.generation_warning.details),
+                "details": [
+                    dict(detail)
+                    for detail in copy.deepcopy(
+                        x=self.generation_warning.details
+                    )
+                ],
             }
 
         return body

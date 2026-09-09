@@ -13,6 +13,7 @@ from mock_vws import (
     ModelTargetGenerationFailure,
     ModelTargetGenerationWarning,
 )
+from mock_vws.model_target import JSONValue
 
 _AUTHORIZATION = (
     "Bearer eyJhbGciOiJtb2NrIn0."
@@ -103,7 +104,7 @@ def test_configured_generation_warning(
     """A configured warning is returned only after processing
     completes.
     """
-    details = [
+    details: list[dict[str, JSONValue]] = [
         {
             "code": "LOW_RECOGNITION_QUALITY",
             "message": "The model has substandard recognition quality.",
