@@ -6,8 +6,9 @@ import json
 import secrets
 import uuid
 import zipfile
+from collections.abc import Mapping
 from http import HTTPStatus
-from typing import Any, Protocol, runtime_checkable
+from typing import Any, Protocol, TypeGuard, runtime_checkable
 from urllib.parse import parse_qs
 
 from beartype import beartype
@@ -88,6 +89,13 @@ _MODEL_TARGET_SCOPES = frozenset(
 )
 _CLIENT_CREDENTIALS_SCOPE = "oauth2.clientcredentials.all"
 _MAX_CLIENT_CREDENTIALS = 100
+
+
+def _is_object_mapping(value: object, /) -> TypeGuard[Mapping[object, object]]:
+    """Return whether a value is a mapping with unchecked entries."""
+    return isinstance(value, Mapping)
+
+
 # A stable mock value standing in for the user-id segment that real
 # Vuforia embeds in some Model Target error targets such as
 # ``userId:7635391``. The numeric portion is per-account in real Vuforia;
@@ -290,8 +298,10 @@ def _jwt_header_error(*, bearer_token: str) -> str | None:
 
 
 @beartype
-def _jwt_payload_error(*, bearer_token: str) -> str | None:
-    """Return the Vuforia error for an invalid JSON Web Token payload."""
+def _jwt_payload(*, bearer_token: str) -> tuple[Mapping[object, object], bool]:
+    """Decode a JSON Web Token payload and report whether it is an
+    object.
+    """
     encoded_payload = bearer_token.split(sep=".")[1]
     try:
         padding = "=" * (-len(encoded_payload) % 4)
@@ -300,11 +310,20 @@ def _jwt_payload_error(*, bearer_token: str) -> str | None:
             altchars=b"-_",
             validate=True,
         )
-        payload = json.loads(s=decoded_payload)
+        payload: object = json.loads(s=decoded_payload)
     except ValueError:
         payload = None
 
-    if not isinstance(payload, dict):
+    if not _is_object_mapping(payload):
+        return dict[object, object](), False
+    return payload, True
+
+
+@beartype
+def _jwt_payload_error(*, bearer_token: str) -> str | None:
+    """Return the Vuforia error for an invalid JSON Web Token payload."""
+    _, is_object = _jwt_payload(bearer_token=bearer_token)
+    if not is_object:
         return "Payload of JWS object is not a valid JSON object"
     return None
 
@@ -334,19 +353,12 @@ def _jwt_signature_error(*, bearer_token: str) -> str | None:
 @beartype
 def _jwt_scopes(*, bearer_token: str) -> frozenset[str]:
     """Return scopes from a valid mock JSON Web Token."""
-    encoded_payload = bearer_token.split(sep=".")[1]
-    padding = "=" * (-len(encoded_payload) % 4)
-    payload = json.loads(
-        s=base64.b64decode(
-            s=encoded_payload + padding,
-            altchars=b"-_",
-            validate=True,
-        ),
-    )
-    scope = payload.get("scope", "")  # pyrefly: ignore [unknown-variable-type]
+    empty_scopes = frozenset[str]()
+    payload, _ = _jwt_payload(bearer_token=bearer_token)
+    scope: object = payload.get("scope", "")
     if not isinstance(scope, str):
-        return frozenset()  # ty: ignore[unsound-return-statement]
-    return frozenset(scope.split())  # ty: ignore[unsound-return-statement]
+        return empty_scopes
+    return frozenset(scope.split())
 
 
 @beartype

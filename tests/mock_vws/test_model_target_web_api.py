@@ -2445,8 +2445,20 @@ class TestMockOnlyOAuth2EdgeCases:
             )
 
     @staticmethod
-    def test_non_string_token_scope() -> None:
-        """A token with a non-string scope has no usable scopes."""
+    @pytest.mark.parametrize(
+        argnames=("payload", "status_code"),
+        argvalues=[
+            (b'{"scope":[]}', HTTPStatus.FORBIDDEN),
+            (b"[]", HTTPStatus.UNAUTHORIZED),
+        ],
+    )
+    def test_invalid_token_scope(
+        payload: bytes,
+        status_code: HTTPStatus,
+    ) -> None:
+        """A non-string scope or non-object payload has no usable
+        scopes.
+        """
         encoded_header = (
             base64.urlsafe_b64encode(
                 s=b'{"alg":"mock"}',
@@ -2456,7 +2468,7 @@ class TestMockOnlyOAuth2EdgeCases:
         )
         encoded_payload = (
             base64.urlsafe_b64encode(
-                s=b'{"scope":[]}',
+                s=payload,
             )
             .decode(encoding="ascii")
             .rstrip("=")
@@ -2470,7 +2482,7 @@ class TestMockOnlyOAuth2EdgeCases:
             )
             assert_model_target_status(
                 response=response,
-                status_codes=HTTPStatus.FORBIDDEN,
+                status_codes=status_code,
             )
 
     @staticmethod
