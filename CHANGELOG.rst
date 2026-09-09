@@ -44,9 +44,11 @@ Changelog
 
 - Return a ``BadImage`` response, rather than failing to respond, when an image given to the Target API is truncated before the end of its image data.
 
-- ``MockVWS`` now intercepts ``httpx2`` requests, synchronous and asynchronous, alongside ``requests`` and ``httpx``. The ``httpx2`` path uses native ``httpx2`` requests and responses, and does not need ``httpx2.alias_httpx()``.
+- ``MockVWS`` now intercepts ``httpx2`` requests, synchronous and asynchronous, alongside ``requests`` and ``httpx``.
+  The ``httpx2`` path uses native ``httpx2`` requests and responses, and does not need ``httpx2.alias_httpx()``.
 
-- Fix nested ``MockVWS`` instances on the ``httpx`` backend: an inner mock is now the only one which answers while it is running, matching the ``requests`` and ``httpx2`` backends. Previously the outer mock kept answering and requests to the inner mock's URL were refused.
+- Fix nested ``MockVWS`` instances on the ``httpx`` backend: an inner mock is now the only one which answers while it is running, matching the ``requests`` and ``httpx2`` backends.
+  Previously the outer mock kept answering and requests to the inner mock's URL were refused.
 
 - Return a response, rather than raising an uncaught ``JSONDecodeError``, when an empty body is given to a VWS endpoint which takes a JSON body.
   As real Vuforia does, ``POST /targets`` and ``PUT /targets/<target_id>`` now return a 500 ``Fail`` response, the reco counts report endpoint returns a 400 ``Fail`` response, and the VuMark instance generation endpoint returns a 400 ``BadRequest`` response.
@@ -77,16 +79,17 @@ Changelog
 - Return a response, rather than raising an uncaught ``PIL.Image.DecompressionBombError``, when an image with a small file size but a huge number of pixels is given to ``POST /targets`` or ``POST /v1/query``.
   As real Vuforia does, ``POST /targets`` now returns the ``ImageTooLarge`` result code for an image with more than 37748736 pixels, and the Query API applies no pixel count limit.
 
-- Return targets in a deterministic order from the Query API, ``GET /targets``
-  and ``GET /duplicates/{target_id}``.  Targets are ordered by upload date and
-  then by target ID, so repeated runs agree with each other.  This order is not
-  Vuforia's match score order.
+- Return targets in a deterministic order from the Query API, ``GET /targets`` and ``GET /duplicates/{target_id}``.
+  Targets are ordered by upload date and then by target ID, so repeated runs agree with each other.
+  This order is not Vuforia's match score order.
 
 - Document the Docker containers' configuration with the environment variable names and values which the applications actually read, starting with ``TARGET_MANAGER_BASE_URL``.
 
 - Build the Docker images from a committed ``uv.lock`` with a ``.dockerignore``, so that image contents are reproducible from a commit, source edits no longer invalidate the dependency layer, and repository files such as tests and documentation are no longer copied into the images.
 
-- Store Model Target datasets in the target manager service rather than in the VWS application. In the Docker deployment, datasets now survive a restart of the VWS container, matching how cloud databases and their targets are stored. The VWS application also no longer imports the target manager module's state: it constructs its own request rate limiter and reco counts report store.
+- Store Model Target datasets in the target manager service rather than in the VWS application.
+  In the Docker deployment, datasets now survive a restart of the VWS container, matching how cloud databases and their targets are stored.
+  The VWS application also no longer imports the target manager module's state: it constructs its own request rate limiter and reco counts report store.
 
 - Report the Docker containers as unhealthy without a traceback in the health check probe output while nothing is yet listening on the port.
 
@@ -122,9 +125,7 @@ Changelog
 
 - Reject Model Target dataset creation requests with ``views`` entries which are not JSON objects, which are missing ``guideViewPosition`` or ``name``, or which have wrongly typed ``guideViewPosition`` or ``name`` values.
 
-- Model VWS request rate limits per endpoint with the new
-  ``CloudDatabase.request_rate_limits`` setting, including the limits which
-  Vuforia documents as ``mock_vws.request_rate_limits.DOCUMENTED_REQUEST_RATE_LIMITS``.
+- Model VWS request rate limits per endpoint with the new ``CloudDatabase.request_rate_limits`` setting, including the limits which Vuforia documents as ``mock_vws.request_rate_limits.DOCUMENTED_REQUEST_RATE_LIMITS``.
   No request rate limit is applied by default.
 
 - Change the ``ProjectHasNoAPIAccess`` result code to ``ProjectHasNoApiAccess``, matching Vuforia's result codes table.
@@ -144,19 +145,16 @@ Changelog
 2026.08.04.2
 ------------
 
-- Replace the PyTorch image-quality stack with OpenCV and a lightweight BRISQUE
-  implementation. This reduces dependency download and installation sizes and
-  removes the need to configure PyTorch's CPU-only package index.
+- Replace the PyTorch image-quality stack with OpenCV and a lightweight BRISQUE implementation.
+  This reduces dependency download and installation sizes and removes the need to configure PyTorch's CPU-only package index.
 
 - Allow VuMark generation requests to be configured to return ``QuotaExceeded``, ``LicenseCheckFailed``, or ``AuthorizationFailed`` responses.
 
-- Cloud databases with ``request_quota=0`` now return a
-  ``RequestQuotaReached`` response from VWS endpoints.
+- Cloud databases with ``request_quota=0`` now return a ``RequestQuotaReached`` response from VWS endpoints.
 
 - Add a mock implementation of the Model Target Web API, including OAuth2 token creation, standard and advanced dataset creation, status polling, dataset download, and deletion.
 
-- Improve Model Target Web API mock authentication failure responses, including
-  malformed and unsecured JSON Web Token headers.
+- Improve Model Target Web API mock authentication failure responses, including malformed and unsecured JSON Web Token headers.
 
 - Match real Vuforia Model Target dataset creation validation error shape, including per-request UUID, details list, and status codes (415 for unsupported media type, 400 with ``BAD_REQUEST`` validation details).
 
@@ -167,11 +165,9 @@ Changelog
 
 - Match real Vuforia Model Target Web API error responses for invalid request bodies, invalid dataset creation payloads, unknown datasets, and downloads of still-processing datasets.
 
-- Add configurable ``TargetQuotaReached``, ``ProjectSuspended``, and
-  ``ProjectHasNoAPIAccess`` responses from VWS endpoints.
+- Add configurable ``TargetQuotaReached``, ``ProjectSuspended``, and ``ProjectHasNoAPIAccess`` responses from VWS endpoints.
 
-- Add configurable ``TooManyRequests`` responses from VWS endpoints using the
-  ``CloudDatabase.requests_per_second_limit`` setting.
+- Add configurable ``TooManyRequests`` responses from VWS endpoints using the ``CloudDatabase.requests_per_second_limit`` setting.
 
 - Add ``CloudQueryFailureResponse`` and the ``MockVWS.cloud_query_failure_response`` parameter for returning configurable Cloud Query failure status codes, headers, and raw bodies through the ``requests`` and ``httpx`` backends.
 

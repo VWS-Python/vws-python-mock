@@ -108,7 +108,7 @@ def _request_reco_counts_report(
         request_path=request_path,
     )
 
-    return requests.post(
+    response = requests.post(
         url=_VWS_HOST + request_path,
         headers={
             "Authorization": authorization_string,
@@ -119,6 +119,11 @@ def _request_reco_counts_report(
         data=content,
         timeout=30,
     )
+    if response.status_code == HTTPStatus.NOT_FOUND and response.headers.get(
+        "Content-Type", ""
+    ).startswith("text/html"):  # pragma: no cover
+        pytest.skip(reason="The real reco counts endpoint is unavailable.")
+    return response
 
 
 @beartype
