@@ -1,6 +1,5 @@
-# These files contain markup constructs that Snapper main does not yet preserve.
+# https://github.com/TurtleTech-ehf/snapper/issues/126
+# This file contains an RST bullet continuation that Snapper does not yet preserve.
 ignore = [
-  "CHANGELOG.rst",
   "docs/source/differences-to-vws.rst",
-  "docs/source/unverified-behavior.rst",
 ]
