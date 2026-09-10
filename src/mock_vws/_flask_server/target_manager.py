@@ -307,6 +307,14 @@ _IMAGE_TARGET_UPDATE_ADAPTER = TypeAdapter(type=ImageTargetUpdateBody)
 _RECOGNITION_COUNTS_ADAPTER = TypeAdapter(type=RecognitionCountsBody)
 
 
+class _RequestBodyError(TypedDict):
+    """A JSON-serializable request-body validation error."""
+
+    type: str
+    loc: list[int | str]
+    msg: str
+
+
 @beartype
 class _InvalidRequestBodyError(Exception):
     """A request body which cannot be used to create a resource.
@@ -319,18 +327,34 @@ class _InvalidRequestBodyError(Exception):
             in ``msg``.
     """
 
-    def __init__(self, *, errors: Sequence[object]) -> None:
+    def __init__(self, *, errors: Sequence[_RequestBodyError]) -> None:
         """Record the problems with the body."""
         super().__init__(errors)
         self.errors = errors
 
 
 @beartype
-def _whole_body_error(*, msg: str) -> dict[str, object]:
+def _whole_body_error(*, msg: str) -> _RequestBodyError:
     """Describe a problem with a request body as a whole, in the form which
     :meth:`pydantic.ValidationError.errors` gives.
     """
     return {"type": "value_error", "loc": [], "msg": msg}
+
+
+@beartype
+def _request_body_errors(*, error: ValidationError) -> list[_RequestBodyError]:
+    """Return Pydantic validation problems in the target manager shape."""
+    errors: list[_RequestBodyError] = []
+    for item in error.errors(
+        include_url=False,
+        include_context=False,
+        include_input=False,
+    ):
+        loc = list(item["loc"])
+        errors.append(
+            {"type": item["type"], "loc": loc, "msg": item["msg"]},
+        )
+    return errors
 
 
 @beartype
@@ -367,16 +391,12 @@ def _validate_request_body[T: BaseModel](
         return model.model_validate(obj=dict(defaults) | parsed)
     except ValidationError as exc:
         raise _InvalidRequestBodyError(
-            errors=exc.errors(
-                include_url=False,
-                include_context=False,
-                include_input=False,
-            ),
+            errors=_request_body_errors(error=exc),
         ) from exc
 
 
 @beartype
-def _bad_request_response(*, errors: Sequence[object]) -> Response:
+def _bad_request_response(*, errors: Sequence[_RequestBodyError]) -> Response:
     """Return a response describing why a request body was rejected.
 
     The response is a JSON object with an ``errors`` list.
