@@ -5,6 +5,7 @@ import logging
 from http import HTTPStatus
 
 from beartype import beartype
+from pydantic import TypeAdapter
 
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._services_validators.context import ValidatorContext
@@ -14,6 +15,9 @@ from mock_vws._services_validators.exceptions import (
 )
 
 _LOGGER = logging.getLogger(name=__name__)
+_OPTIONAL_METADATA_ADAPTER: TypeAdapter[str | None] = TypeAdapter(
+    type=str | None,
+)
 
 
 @beartype
@@ -30,7 +34,10 @@ def validate_metadata_size(*, context: ValidatorContext) -> None:
             large.
     """
     request_json = context.request_json
-    application_metadata = request_json.get("application_metadata")
+    application_metadata = _OPTIONAL_METADATA_ADAPTER.validate_python(
+        request_json.get("application_metadata"),
+        strict=True,
+    )
     if application_metadata is None:
         return
     decoded = decode_base64(encoded_data=application_metadata)
@@ -55,7 +62,10 @@ def validate_metadata_encoding(*, context: ValidatorContext) -> None:
             decoded.
     """
     request_json = context.request_json
-    application_metadata = request_json.get("application_metadata")
+    application_metadata = _OPTIONAL_METADATA_ADAPTER.validate_python(
+        request_json.get("application_metadata"),
+        strict=True,
+    )
 
     if application_metadata is None:
         return

@@ -3,7 +3,6 @@
 import base64
 import datetime
 import email.utils
-import json
 import logging
 import re
 import secrets
@@ -11,11 +10,12 @@ import string
 import uuid
 from collections.abc import Mapping
 from http import HTTPStatus
-from typing import Any, Protocol, runtime_checkable
+from typing import Protocol, TypedDict, runtime_checkable
 from urllib.parse import parse_qs, urlencode, urlsplit
 from zoneinfo import ZoneInfo
 
 from beartype import beartype
+from pydantic import TypeAdapter, ValidationError
 
 from mock_vws._constants import ResultCodes
 from mock_vws._mock_common import json_dump
@@ -36,6 +36,15 @@ _S3_TIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 _URL_EXPIRY_SECONDS = 604799
 # Real Vuforia signs its presigned URLs for this region.
 _SIGNING_REGION = "us-west-1"
+
+
+class _RecoCountsRequest(TypedDict):
+    """JSON body for a recognition-count report request."""
+
+    month: str
+
+
+_RECO_COUNTS_REQUEST_ADAPTER = TypeAdapter(type=_RecoCountsRequest)
 
 
 @runtime_checkable
@@ -285,13 +294,13 @@ def create_reco_counts_report(
         FailError: The given month is not a month in the ``YYYY-mm`` form
             which the report can be requested for.
     """
-    request_json: dict[str, Any] = json.loads(s=request_body)  # pyrefly: ignore [explicit-any]
+    try:
+        request_json = _RECO_COUNTS_REQUEST_ADAPTER.validate_json(request_body)
+    except ValidationError as exc:
+        _LOGGER.warning(msg='The given "month" is not in the YYYY-mm form.')
+        raise FailError(status_code=HTTPStatus.BAD_REQUEST) from exc
     month = request_json["month"]
-    if not isinstance(month, str) or not bool(
-        _MONTH_PATTERN.fullmatch(
-            string=month,
-        )
-    ):
+    if not bool(_MONTH_PATTERN.fullmatch(string=month)):
         _LOGGER.warning(msg='The given "month" is not in the YYYY-mm form.')
         raise FailError(status_code=HTTPStatus.BAD_REQUEST)
 

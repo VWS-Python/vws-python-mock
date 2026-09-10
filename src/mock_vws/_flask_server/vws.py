@@ -8,18 +8,18 @@ import base64
 import email.utils
 import gzip
 import html
-import json
 import logging
 import threading
 import time
 import uuid
 from enum import StrEnum, auto
 from http import HTTPMethod, HTTPStatus
-from typing import assert_never
+from typing import NotRequired, TypedDict, assert_never
 
 import requests
 from beartype import beartype
 from flask import Flask, Response, request
+from pydantic import TypeAdapter
 from pydantic_settings import BaseSettings
 from werkzeug.exceptions import MethodNotAllowed, NotFound
 
@@ -98,6 +98,30 @@ _REQUEST_RATE_LIMITER = RequestRateLimiter(time_function=time.monotonic)
 
 
 _LOGGER = logging.getLogger(name=__name__)
+
+
+class _AddTargetBody(TypedDict):
+    """A validated add-target request body."""
+
+    name: str
+    width: float
+    image: str
+    active_flag: NotRequired[bool | None]
+    application_metadata: NotRequired[str | None]
+
+
+class _UpdateTargetBody(TypedDict):
+    """A validated update-target request body."""
+
+    width: NotRequired[float]
+    active_flag: NotRequired[bool | None]
+    application_metadata: NotRequired[str | None]
+    name: NotRequired[str]
+    image: NotRequired[str]
+
+
+_ADD_TARGET_BODY_ADAPTER = TypeAdapter(type=_AddTargetBody)
+_UPDATE_TARGET_BODY_ADAPTER = TypeAdapter(type=_UpdateTargetBody)
 
 
 @beartype
@@ -750,9 +774,12 @@ def add_target() -> Response:
 
     # We do not use ``request.get_json(force=True)`` because this only works
     # when the content type is given as ``application/json``.
-    request_json = json.loads(s=request.data)
-    name = request_json["name"]  # pyrefly: ignore [unknown-variable-type]
-    active_flag = request_json.get("active_flag")  # pyrefly: ignore [unknown-variable-type]
+    request_json = _ADD_TARGET_BODY_ADAPTER.validate_json(
+        request.data,
+        strict=True,
+    )
+    name = request_json["name"]
+    active_flag = request_json.get("active_flag")
     if active_flag is None:
         active_flag = True
 
@@ -760,12 +787,12 @@ def add_target() -> Response:
     target_tracking_rater = HardcodedTargetTrackingRater(rating=1)
 
     new_target = ImageTarget(
-        name=name,  # pyrefly: ignore [unknown-argument-type]
-        width=request_json["width"],  # pyrefly: ignore [unknown-argument-type]
-        image_value=base64.b64decode(s=request_json["image"]),  # pyrefly: ignore [unknown-argument-type]
-        active_flag=active_flag,  # pyrefly: ignore [unknown-argument-type]
+        name=name,
+        width=request_json["width"],
+        image_value=base64.b64decode(s=request_json["image"]),
+        active_flag=active_flag,
         processing_time_seconds=settings.processing_time_seconds,
-        application_metadata=request_json.get("application_metadata"),  # pyrefly: ignore [unknown-argument-type]
+        application_metadata=request_json.get("application_metadata"),
         target_tracking_rater=target_tracking_rater,
     )
 
@@ -1220,7 +1247,10 @@ def update_target(target_id: str) -> Response:
     settings = VWSSettings.model_validate(obj={})
     # We do not use ``request.get_json(force=True)`` because this only works
     # when the content type is given as ``application/json``.
-    request_json = json.loads(s=request.data)
+    request_json = _UPDATE_TARGET_BODY_ADAPTER.validate_json(
+        request.data,
+        strict=True,
+    )
     databases = get_all_cloud_databases()
     database = get_database_matching_server_keys(
         request_headers=dict(request.headers),
@@ -1239,10 +1269,10 @@ def update_target(target_id: str) -> Response:
 
     update_values: dict[str, str | int | float | bool | None] = {}
     if "width" in request_json:
-        update_values["width"] = request_json["width"]  # pyrefly: ignore [unknown-argument-type]
+        update_values["width"] = request_json["width"]
 
     if "active_flag" in request_json:
-        active_flag = request_json["active_flag"]  # pyrefly: ignore [unknown-variable-type]
+        active_flag = request_json["active_flag"]
         if active_flag is None:
             _LOGGER.warning(
                 msg=(
@@ -1251,10 +1281,10 @@ def update_target(target_id: str) -> Response:
                 ),
             )
             raise FailError(status_code=HTTPStatus.BAD_REQUEST)
-        update_values["active_flag"] = active_flag  # pyrefly: ignore [unknown-argument-type]
+        update_values["active_flag"] = active_flag
 
     if "application_metadata" in request_json:
-        application_metadata = request_json["application_metadata"]  # pyrefly: ignore [unknown-variable-type]
+        application_metadata = request_json["application_metadata"]
         if application_metadata is None:
             _LOGGER.warning(
                 msg=(
@@ -1263,15 +1293,15 @@ def update_target(target_id: str) -> Response:
                 ),
             )
             raise FailError(status_code=HTTPStatus.BAD_REQUEST)
-        update_values["application_metadata"] = application_metadata  # pyrefly: ignore [unknown-argument-type]
+        update_values["application_metadata"] = application_metadata
 
     if "name" in request_json:
-        name = request_json["name"]  # pyrefly: ignore [unknown-variable-type]
-        update_values["name"] = name  # pyrefly: ignore [unknown-argument-type]
+        name = request_json["name"]
+        update_values["name"] = name
 
     if "image" in request_json:
-        image = request_json["image"]  # pyrefly: ignore [unknown-variable-type]
-        update_values["image"] = image  # pyrefly: ignore [unknown-argument-type]
+        image = request_json["image"]
+        update_values["image"] = image
 
     put_url = (
         f"{settings.target_manager_base_url}/cloud_databases/"

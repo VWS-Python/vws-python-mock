@@ -50,7 +50,7 @@ def validate_instance_id_not_empty(*, context: ValidatorContext) -> None:
     """
     instance_id = context.request_json["instance_id"]
 
-    if instance_id:
+    if instance_id != "":
         return
 
     _LOGGER.warning(msg='The value of "instance_id" is empty.')

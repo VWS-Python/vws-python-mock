@@ -7,7 +7,7 @@ import json
 from collections.abc import Callable, Mapping, Sequence
 from enum import Enum, StrEnum, auto
 from http import HTTPMethod, HTTPStatus
-from typing import Annotated, TypeIs, assert_never
+from typing import Annotated, NotRequired, TypedDict, TypeIs, assert_never
 from zoneinfo import ZoneInfo
 
 from beartype import beartype
@@ -16,6 +16,7 @@ from pydantic import (
     BaseModel,
     BeforeValidator,
     ConfigDict,
+    TypeAdapter,
     ValidationError,
     model_validator,
 )
@@ -242,6 +243,59 @@ class VuMarkDatabaseRequestBody(BaseModel):
             database_name=self.database_name,
             state=self.state_name,
         )
+
+
+class OAuth2ClientCredentialBody(BaseModel):
+    """A request to register an OAuth2 client credential."""
+
+    model_config = ConfigDict(strict=True, extra="forbid")
+
+    client_id: str
+    client_secret: str
+    scopes: tuple[str, ...]
+
+
+class ImageTargetBody(TypedDict):
+    """An image target sent to the storage service."""
+
+    name: str
+    width: float
+    image_base64: str
+    active_flag: bool
+    processing_time_seconds: float
+    application_metadata: str | None
+    target_id: str
+    last_modified_date: NotRequired[str]
+    delete_date_optional: NotRequired[str | None]
+    upload_date: NotRequired[str]
+    tracking_rating: NotRequired[int]
+    current_month_recos: NotRequired[int]
+    previous_month_recos: NotRequired[int]
+    total_recos: NotRequired[int]
+    reco_rating: NotRequired[str]
+
+
+class ImageTargetUpdateBody(TypedDict):
+    """Fields which may update a stored image target."""
+
+    name: NotRequired[str]
+    width: NotRequired[float]
+    active_flag: NotRequired[bool]
+    application_metadata: NotRequired[str | None]
+    image: NotRequired[str]
+
+
+class RecognitionCountsBody(TypedDict):
+    """Recognition counts to update on a stored target."""
+
+    current_month_recos: NotRequired[int]
+    previous_month_recos: NotRequired[int]
+    total_recos: NotRequired[int]
+
+
+_IMAGE_TARGET_ADAPTER = TypeAdapter(type=ImageTargetBody)
+_IMAGE_TARGET_UPDATE_ADAPTER = TypeAdapter(type=ImageTargetUpdateBody)
+_RECOGNITION_COUNTS_ADAPTER = TypeAdapter(type=RecognitionCountsBody)
 
 
 @beartype
@@ -685,11 +739,13 @@ def get_oauth2_client_credentials() -> Response:
 @beartype
 def put_oauth2_client_credential() -> Response:
     """Add or replace an OAuth2 client credential."""
-    value = json.loads(s=request.data)
+    value = OAuth2ClientCredentialBody.model_validate_json(
+        json_data=request.data,
+    )
     credential = OAuth2ClientCredential(
-        client_id=value["client_id"],  # pyrefly: ignore [unknown-argument-type]
-        client_secret=value["client_secret"],  # pyrefly: ignore [unknown-argument-type]
-        scopes=tuple(value["scopes"]),  # pyrefly: ignore [unknown-argument-type]
+        client_id=value.client_id,
+        client_secret=value.client_secret,
+        scopes=value.scopes,
     )
     TARGET_MANAGER.add_oauth2_client_credential(credential=credential)
     return Response(response="", status=HTTPStatus.NO_CONTENT)
@@ -719,19 +775,22 @@ def create_target(database_name: str) -> Response:
     :status 201: The target has been created.
     :status 404: There is no cloud database with the given name.
     """
-    request_json = json.loads(s=request.data)
+    request_body = _IMAGE_TARGET_ADAPTER.validate_json(
+        request.data,
+        strict=True,
+    )
     settings = TargetManagerSettings.model_validate(obj={})
 
-    image_bytes = base64.b64decode(s=request_json["image_base64"])  # pyrefly: ignore [unknown-argument-type]
+    image_bytes = base64.b64decode(s=request_body["image_base64"])
     target_tracking_rater = settings.target_rater.to_target_rater()
     target = ImageTarget(
-        name=request_json["name"],  # pyrefly: ignore [unknown-argument-type]
-        width=request_json["width"],  # pyrefly: ignore [unknown-argument-type]
+        name=request_body["name"],
+        width=request_body["width"],
         image_value=image_bytes,
-        active_flag=request_json["active_flag"],  # pyrefly: ignore [unknown-argument-type]
-        processing_time_seconds=request_json["processing_time_seconds"],  # pyrefly: ignore [unknown-argument-type]
-        application_metadata=request_json["application_metadata"],  # pyrefly: ignore [unknown-argument-type]
-        target_id=request_json["target_id"],  # pyrefly: ignore [unknown-argument-type]
+        active_flag=request_body["active_flag"],
+        processing_time_seconds=request_body["processing_time_seconds"],
+        application_metadata=request_body["application_metadata"],
+        target_id=request_body["target_id"],
         target_tracking_rater=target_tracking_rater,
     )
     with TARGET_MANAGER.lock:
@@ -807,7 +866,10 @@ def delete_target(database_name: str, target_id: str) -> Response:
 @beartype
 def update_target(database_name: str, target_id: str) -> Response:
     """Update a target."""
-    request_json = json.loads(s=request.data)
+    request_body = _IMAGE_TARGET_UPDATE_ADAPTER.validate_json(
+        request.data,
+        strict=True,
+    )
 
     with TARGET_MANAGER.lock:
         database = _find_cloud_database(database_name=database_name)
@@ -816,26 +878,25 @@ def update_target(database_name: str, target_id: str) -> Response:
 
         target = database.get_target(target_id=target_id)
 
-        name = request_json.get("name", target.name)  # pyrefly: ignore [unknown-variable-type]
-        active_flag = request_json.get("active_flag", target.active_flag)  # pyrefly: ignore [unknown-variable-type]
+        name = request_body.get("name", target.name)
+        active_flag = request_body.get("active_flag", target.active_flag)
 
         gmt = ZoneInfo(key="GMT")
         last_modified_date = datetime.datetime.now(tz=gmt)
 
-        width = request_json.get("width", target.width)  # pyrefly: ignore [unknown-variable-type]
-        application_metadata = request_json.get(  # pyrefly: ignore [unknown-variable-type]
-            "application_metadata",
-            target.application_metadata,
+        width = request_body.get("width", target.width)
+        application_metadata = request_body.get(
+            "application_metadata", target.application_metadata
         )
         image_value = target.image_value
-        if "image" in request_json:
-            image_value = base64.b64decode(s=request_json["image"])  # pyrefly: ignore [unknown-argument-type]
+        if "image" in request_body:
+            image_value = base64.b64decode(s=request_body["image"])
         new_target = copy.replace(
             target,
-            name=name,  # pyrefly: ignore [unknown-argument-type]
-            width=width,  # pyrefly: ignore [unknown-argument-type]
-            active_flag=active_flag,  # pyrefly: ignore [unknown-argument-type]
-            application_metadata=application_metadata,  # pyrefly: ignore [unknown-argument-type]
+            name=name,
+            width=width,
+            active_flag=active_flag,
+            application_metadata=application_metadata,
             image_value=image_value,
             last_modified_date=last_modified_date,
         )
@@ -880,7 +941,10 @@ def set_target_recognition_counts(
 
     :status 200: The recognition counts have been set.
     """
-    request_json = json.loads(s=request.data)
+    request_body = _RECOGNITION_COUNTS_ADAPTER.validate_json(
+        request.data,
+        strict=True,
+    )
 
     with TARGET_MANAGER.lock:
         database = _find_cloud_database(database_name=database_name)
@@ -891,15 +955,13 @@ def set_target_recognition_counts(
 
         new_target = copy.replace(
             target,
-            current_month_recos=request_json.get(  # pyrefly: ignore [unknown-argument-type]
-                "current_month_recos",
-                target.current_month_recos,
+            current_month_recos=request_body.get(
+                "current_month_recos", target.current_month_recos
             ),
-            previous_month_recos=request_json.get(  # pyrefly: ignore [unknown-argument-type]
-                "previous_month_recos",
-                target.previous_month_recos,
+            previous_month_recos=request_body.get(
+                "previous_month_recos", target.previous_month_recos
             ),
-            total_recos=request_json.get("total_recos", target.total_recos),  # pyrefly: ignore [unknown-argument-type]
+            total_recos=request_body.get("total_recos", target.total_recos),
         )
 
         database.targets.remove(target)
