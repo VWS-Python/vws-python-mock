@@ -6,7 +6,6 @@ import json
 import secrets
 import uuid
 import zipfile
-from collections.abc import Mapping
 from http import HTTPStatus
 from typing import Any, Protocol, TypeGuard, runtime_checkable
 from urllib.parse import parse_qs
@@ -91,11 +90,6 @@ _MODEL_TARGET_SCOPES = frozenset(
 )
 _CLIENT_CREDENTIALS_SCOPE = "oauth2.clientcredentials.all"
 _MAX_CLIENT_CREDENTIALS = 100
-
-
-def _is_object_mapping(value: object, /) -> TypeGuard[Mapping[object, object]]:
-    """Return whether a value is a mapping with unchecked entries."""
-    return isinstance(value, Mapping)
 
 
 # A stable mock value standing in for the user-id segment that real
@@ -300,7 +294,7 @@ def _jwt_header_error(*, bearer_token: str) -> str | None:
 
 
 @beartype
-def _jwt_payload(*, bearer_token: str) -> tuple[Mapping[object, object], bool]:
+def _jwt_payload(*, bearer_token: str) -> tuple[dict[str, JSONValue], bool]:
     """Decode a JSON Web Token payload and report whether it is an
     object.
     """
@@ -316,8 +310,8 @@ def _jwt_payload(*, bearer_token: str) -> tuple[Mapping[object, object], bool]:
     except ValueError:
         payload = None
 
-    if not _is_object_mapping(payload):
-        return dict[object, object](), False
+    if not _is_json_object(payload):
+        return {}, False
     return payload, True
 
 
@@ -357,7 +351,7 @@ def _jwt_scopes(*, bearer_token: str) -> frozenset[str]:
     """Return scopes from a valid mock JSON Web Token."""
     empty_scopes = frozenset[str]()
     payload, _ = _jwt_payload(bearer_token=bearer_token)
-    scope: object = payload.get("scope", "")
+    scope = payload.get("scope", "")
     if not isinstance(scope, str):
         return empty_scopes
     return frozenset(scope.split())
