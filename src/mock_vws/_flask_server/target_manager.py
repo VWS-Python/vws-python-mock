@@ -24,7 +24,11 @@ from pydantic_settings import BaseSettings
 
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.database_type import DatabaseType
-from mock_vws.model_target import ModelTargetDataset, OAuth2ClientCredential
+from mock_vws.model_target import (
+    JSONValue,
+    ModelTargetDataset,
+    OAuth2ClientCredential,
+)
 from mock_vws.request_rate_limits import RequestRateLimit, RequestRateLimits
 from mock_vws.states import States
 from mock_vws.target import ImageTarget, VuMarkTarget
@@ -298,6 +302,9 @@ _IMAGE_TARGET_UPDATE_ADAPTER = TypeAdapter(type=ImageTargetUpdateBody)
 _RECOGNITION_COUNTS_ADAPTER = TypeAdapter(type=RecognitionCountsBody)
 
 
+type _RequestBodyError = dict[str, JSONValue]
+
+
 @beartype
 class _InvalidRequestBodyError(Exception):
     """A request body which cannot be used to create a resource.
@@ -310,18 +317,41 @@ class _InvalidRequestBodyError(Exception):
             in ``msg``.
     """
 
-    def __init__(self, *, errors: Sequence[object]) -> None:
+    def __init__(self, *, errors: Sequence[_RequestBodyError]) -> None:
         """Record the problems with the body."""
         super().__init__(errors)
         self.errors = errors
 
 
 @beartype
-def _whole_body_error(*, msg: str) -> dict[str, object]:
+def _whole_body_error(*, msg: str) -> _RequestBodyError:
     """Describe a problem with a request body as a whole, in the form which
     :meth:`pydantic.ValidationError.errors` gives.
     """
     return {"type": "value_error", "loc": [], "msg": msg}
+
+
+@beartype
+def _error_location(*, location: tuple[int | str, ...]) -> list[JSONValue]:
+    """Return a Pydantic error location as a JSON array."""
+    return list[JSONValue](location)
+
+
+@beartype
+def _request_body_errors(*, error: ValidationError) -> list[_RequestBodyError]:
+    """Return Pydantic validation problems in the target manager shape."""
+    return [
+        {
+            "type": item["type"],
+            "loc": _error_location(location=item["loc"]),
+            "msg": item["msg"],
+        }
+        for item in error.errors(
+            include_url=False,
+            include_context=False,
+            include_input=False,
+        )
+    ]
 
 
 @beartype
@@ -358,16 +388,12 @@ def _validate_request_body[T: BaseModel](
         return model.model_validate(obj=dict(defaults) | parsed)
     except ValidationError as exc:
         raise _InvalidRequestBodyError(
-            errors=exc.errors(
-                include_url=False,
-                include_context=False,
-                include_input=False,
-            ),
+            errors=_request_body_errors(error=exc),
         ) from exc
 
 
 @beartype
-def _bad_request_response(*, errors: Sequence[object]) -> Response:
+def _bad_request_response(*, errors: Sequence[_RequestBodyError]) -> Response:
     """Return a response describing why a request body was rejected.
 
     The response is a JSON object with an ``errors`` list.
