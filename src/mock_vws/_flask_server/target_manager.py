@@ -4,7 +4,7 @@ import base64
 import copy
 import datetime
 import json
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Sequence
 from enum import Enum, StrEnum, auto
 from http import HTTPMethod, HTTPStatus
 from typing import Annotated, NotRequired, TypedDict, TypeIs, assert_never
@@ -22,9 +22,18 @@ from pydantic import (
 )
 from pydantic_settings import BaseSettings
 
-from mock_vws.database import CloudDatabase, VuMarkDatabase
+from mock_vws.database import (
+    CloudDatabase,
+    CloudDatabaseDict,
+    VuMarkDatabase,
+    VuMarkDatabaseDict,
+)
 from mock_vws.database_type import DatabaseType
-from mock_vws.model_target import ModelTargetDataset, OAuth2ClientCredential
+from mock_vws.model_target import (
+    JSONValue,
+    ModelTargetDataset,
+    OAuth2ClientCredential,
+)
 from mock_vws.request_rate_limits import RequestRateLimit, RequestRateLimits
 from mock_vws.states import States
 from mock_vws.target import ImageTarget, VuMarkTarget
@@ -103,7 +112,7 @@ _DatabaseTypeName = Annotated[
 
 
 @beartype
-def _is_json_object(value: object, /) -> TypeIs[dict[str, object]]:
+def _is_json_object(value: object, /) -> TypeIs[dict[str, JSONValue]]:
     """Whether a value parsed from JSON is an object.
 
     JSON object keys are always strings.
@@ -329,7 +338,7 @@ def _validate_request_body[T: BaseModel](
     *,
     model: type[T],
     data: bytes,
-    defaults: Mapping[str, object],
+    defaults: CloudDatabaseDict | VuMarkDatabaseDict,
 ) -> T:
     """Parse a request body as a JSON object and validate it as a model.
 
