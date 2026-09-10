@@ -7,6 +7,7 @@ import time
 from collections.abc import Callable, Generator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass
+from types import TracebackType
 from typing import TYPE_CHECKING, Literal, Self
 from urllib.parse import urlparse
 
@@ -558,16 +559,17 @@ class MockVWS:
         self._started.append((mock, router, httpx2_router))
         return self
 
-    def __exit__(self, *exc: object) -> Literal[False]:
+    def __exit__(
+        self,
+        _exc_type: type[BaseException] | None,
+        _exc_value: BaseException | None,
+        _traceback: TracebackType | None,
+    ) -> Literal[False]:
         """Stop the Vuforia mock.
 
         Returns:
             False
         """
-        # __exit__ needs this to be passed in but vulture thinks that it is
-        # unused, so we "use" it here.
-        del exc
-
         mock, router, httpx2_router = self._started.pop()
         mock.stop()
         router.stop()
