@@ -14,7 +14,7 @@ import json
 import socket
 import uuid
 import zipfile
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterator
 from dataclasses import dataclass
 from http import HTTPMethod, HTTPStatus
 from zoneinfo import ZoneInfo
@@ -252,13 +252,13 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
         yield network
     finally:
         network.reload()
-        images_to_remove: Iterable[Image] = set()  # ty: ignore[unsound-assignment]
+        images_to_remove: set[Image] = set()
         for container in network.containers:
             network.disconnect(container=container)
             container.stop()
             container.remove(v=True, force=True)
             assert container.image is not None
-            images_to_remove = {*images_to_remove, container.image}  # ty: ignore[unsound-assignment]
+            images_to_remove.add(container.image)
 
         # This does leave behind untagged images.
         for image in images_to_remove:

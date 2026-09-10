@@ -469,8 +469,12 @@ class TestAuthentication:
                 response=create_response,
                 status_codes=HTTPStatus.CREATED,
             )
-            client_id = create_response.json()["client_id"]  # ty: ignore[unsound-assignment]
-            client_secret = create_response.json()["client_secret"]  # pyrefly: ignore [unknown-variable-type]
+            response_json = create_response.json()
+            client_id_value: object = response_json["client_id"]
+            client_secret: object = response_json["client_secret"]
+            assert isinstance(client_id_value, str)
+            assert isinstance(client_secret, str)
+            client_id = client_id_value
 
             list_response = model_target_get(
                 url=f"{_VWS_HOST}/oauth2/clientcredentials",
@@ -2062,7 +2066,9 @@ class TestAdditionalBehaviors:
                 response=create_response,
                 status_codes=HTTPStatus.CREATED,
             )
-            dataset_uuid = create_response.json()["uuid"]  # ty: ignore[unsound-assignment]
+            dataset_uuid_value: object = create_response.json()["uuid"]
+            assert isinstance(dataset_uuid_value, str)
+            dataset_uuid = dataset_uuid_value
 
             other_status_response = model_target_get(
                 url=f"{_VWS_HOST}{other_path}/{dataset_uuid}/status",

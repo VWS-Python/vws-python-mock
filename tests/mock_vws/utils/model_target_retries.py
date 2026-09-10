@@ -91,7 +91,8 @@ def _last_outcome(retry_state: RetryCallState) -> Response | requests.Response:
     status and body, and a transport failure propagates.
     """
     assert retry_state.outcome is not None
-    outcome: Response | requests.Response = retry_state.outcome.result()  # ty: ignore[unsound-assignment]
+    outcome = retry_state.outcome.result()
+    assert isinstance(outcome, Response | requests.Response)
     return outcome
 
 
