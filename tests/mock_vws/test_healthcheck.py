@@ -40,8 +40,13 @@ def _app_responding_with(*, status: HTTPStatus) -> Generator[int]:
 @beartype
 def _unused_port() -> int:
     """Return a port with nothing listening on it."""
-    with socket.socket() as sock:
+    with socket.socket(
+        family=socket.AF_INET,
+        type=socket.SOCK_STREAM,
+    ) as sock:
         sock.bind(("localhost", 0))
+        # The socket stubs cannot specialize this result from the configured
+        # IPv4 address family, although the second tuple item is always a port.
         port: int = sock.getsockname()[1]  # ty: ignore[unsound-assignment]
     return port
 

@@ -15,7 +15,7 @@ import time
 import uuid
 from email.message import EmailMessage
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, Any
+from typing import Any
 from urllib.parse import urljoin
 from zoneinfo import ZoneInfo
 
@@ -52,9 +52,6 @@ from tests.mock_vws.utils.assertions import (
 )
 from tests.mock_vws.utils.retries import TRANSIENT_VWS_EXCEPTIONS
 from tests.mock_vws.utils.too_many_requests import handle_server_errors
-
-if TYPE_CHECKING:
-    from collections.abc import Iterable
 
 VWQ_HOST = "https://cloudreco.vuforia.com"
 
@@ -1025,7 +1022,7 @@ def _add_and_wait_for_targets(
     num_targets: int,
 ) -> None:
     """Add targets with the given image."""
-    target_ids: Iterable[str] = set()  # ty: ignore[unsound-assignment]
+    target_ids: set[str] = set()
     for _ in range(num_targets):
         target_id = vws_client.add_target(
             name=uuid.uuid4().hex,
@@ -1034,7 +1031,7 @@ def _add_and_wait_for_targets(
             active_flag=True,
             application_metadata=None,
         )
-        target_ids = {*target_ids, target_id}  # ty: ignore[unsound-assignment]
+        target_ids.add(target_id)
 
     for created_target_id in target_ids:
         vws_client.wait_for_target_processed(target_id=created_target_id)
