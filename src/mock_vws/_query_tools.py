@@ -61,7 +61,7 @@ def get_query_match_response_text(
         if match.tracking_rating > minimum_rating
     ]
 
-    results: list[dict[str, JSONValue]] = []
+    results: list[JSONValue] = []
     for target in matches:
         target_timestamp = target.last_modified_date.timestamp()
         if target.application_metadata is None:
@@ -76,23 +76,18 @@ def get_query_match_response_text(
             "application_metadata": application_metadata,
         }
 
-        result: dict[str, JSONValue]
+        result: dict[str, JSONValue] = {
+            "target_id": target.target_id,
+        }
         if include_target_data == "all" or (
             include_target_data == "top" and not bool(results)
         ):
-            result = {
-                "target_id": target.target_id,
-                "target_data": target_data,
-            }
-        else:
-            result = {
-                "target_id": target.target_id,
-            }
+            result["target_data"] = target_data
 
         results.append(result)
 
     results = results[: int(max_num_results)]
-    body = {
+    body: dict[str, JSONValue] = {
         "result_code": ResultCodes.SUCCESS.value,
         "results": results,
         "query_id": uuid.uuid4().hex,

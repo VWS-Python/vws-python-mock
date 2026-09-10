@@ -12,6 +12,7 @@ from typing import Final, override
 from beartype import beartype
 
 from mock_vws._constants import ResultCodes
+from mock_vws.model_target import JSONValue
 from mock_vws.target import ImageTarget
 
 # A database ID as it appears in the path of a reco counts report request.
@@ -174,7 +175,7 @@ def http_date() -> str:
 
 
 @beartype
-def json_dump(*, body: Mapping[str, object]) -> str:
+def json_dump(*, body: Mapping[str, JSONValue]) -> str:
     """
     Returns:
         JSON dump of data in the same way that Vuforia dumps data.
