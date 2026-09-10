@@ -298,7 +298,7 @@ _IMAGE_TARGET_UPDATE_ADAPTER = TypeAdapter(type=ImageTargetUpdateBody)
 _RECOGNITION_COUNTS_ADAPTER = TypeAdapter(type=RecognitionCountsBody)
 
 
-class RequestBodyError(TypedDict):
+class _RequestBodyError(TypedDict):
     """A JSON-serializable request-body validation error."""
 
     type: str
@@ -318,14 +318,14 @@ class _InvalidRequestBodyError(Exception):
             in ``msg``.
     """
 
-    def __init__(self, *, errors: Sequence[RequestBodyError]) -> None:
+    def __init__(self, *, errors: Sequence[_RequestBodyError]) -> None:
         """Record the problems with the body."""
         super().__init__(errors)
         self.errors = errors
 
 
 @beartype
-def _whole_body_error(*, msg: str) -> RequestBodyError:
+def _whole_body_error(*, msg: str) -> _RequestBodyError:
     """Describe a problem with a request body as a whole, in the form which
     :meth:`pydantic.ValidationError.errors` gives.
     """
@@ -333,9 +333,9 @@ def _whole_body_error(*, msg: str) -> RequestBodyError:
 
 
 @beartype
-def _request_body_errors(*, error: ValidationError) -> list[RequestBodyError]:
+def _request_body_errors(*, error: ValidationError) -> list[_RequestBodyError]:
     """Return Pydantic validation problems in the target manager shape."""
-    errors: list[RequestBodyError] = []
+    errors: list[_RequestBodyError] = []
     for item in error.errors(
         include_url=False,
         include_context=False,
@@ -387,7 +387,7 @@ def _validate_request_body[T: BaseModel](
 
 
 @beartype
-def _bad_request_response(*, errors: Sequence[RequestBodyError]) -> Response:
+def _bad_request_response(*, errors: Sequence[_RequestBodyError]) -> Response:
     """Return a response describing why a request body was rejected.
 
     The response is a JSON object with an ``errors`` list.
