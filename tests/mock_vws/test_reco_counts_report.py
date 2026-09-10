@@ -83,11 +83,11 @@ def _month_offset_from_now(*, months: int) -> str:
 
 
 @beartype
-def _request_reco_counts_report(
+def _request_reco_counts_report_json(
     *,
     vuforia_database: CloudDatabase,
     database_id: str,
-    month: str | int,
+    request_json: object,
 ) -> requests.Response:
     """Request a reco counts report and return the response.
 
@@ -96,7 +96,7 @@ def _request_reco_counts_report(
     """
     request_path = f"/imagetargets/databases/{database_id}/reports/recoCounts"
     content_type = "application/json"
-    content = json.dumps(obj={"month": month}).encode(encoding="utf-8")
+    content = json.dumps(obj=request_json).encode(encoding="utf-8")
     date = rfc_1123_date()
     authorization_string = authorization_header(
         access_key=vuforia_database.server_access_key,
@@ -118,6 +118,21 @@ def _request_reco_counts_report(
         },
         data=content,
         timeout=30,
+    )
+
+
+@beartype
+def _request_reco_counts_report(
+    *,
+    vuforia_database: CloudDatabase,
+    database_id: str,
+    month: str | int,
+) -> requests.Response:
+    """Request a reco counts report for one month."""
+    return _request_reco_counts_report_json(
+        vuforia_database=vuforia_database,
+        database_id=database_id,
+        request_json={"month": month},
     )
 
 
@@ -380,6 +395,22 @@ class TestRecoCountsReport:
             vuforia_database=vuforia_database,
             database_id=vuforia_database.database_id,
             month=month,
+        )
+
+        assert response.status_code == HTTPStatus.BAD_REQUEST
+        response_json = json.loads(s=response.text)
+        assert response_json["result_code"] == ResultCodes.FAIL.value
+
+    @staticmethod
+    def test_body_is_not_an_object(
+        *,
+        vuforia_database: CloudDatabase,
+    ) -> None:
+        """The request body must be a JSON object."""
+        response = _request_reco_counts_report_json(
+            vuforia_database=vuforia_database,
+            database_id=vuforia_database.database_id,
+            request_json=[],
         )
 
         assert response.status_code == HTTPStatus.BAD_REQUEST

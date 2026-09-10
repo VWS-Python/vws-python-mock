@@ -4,6 +4,7 @@ import logging
 from http import HTTPStatus
 
 from beartype import beartype
+from pydantic import TypeAdapter
 
 from mock_vws._services_validators.context import ValidatorContext
 from mock_vws._services_validators.exceptions import (
@@ -18,6 +19,8 @@ from mock_vws.target import ImageTarget, VuMarkTarget
 _LOGGER = logging.getLogger(name=__name__)
 
 _MAX_CHARACTER_ORD = 65535
+_OPTIONAL_NAME_ADAPTER: TypeAdapter[str | None] = TypeAdapter(type=str | None)
+_NAME_ADAPTER: TypeAdapter[str] = TypeAdapter(type=str)
 
 
 @beartype
@@ -32,9 +35,10 @@ def _given_name(*, context: ValidatorContext) -> str | None:
         The value has already been checked to be a string by
         :py:func:`validate_name_type`.
     """
-    request_json = context.request_json
-    name: str | None = request_json.get("name")  # ty: ignore[unsound-assignment]
-    return name
+    return _OPTIONAL_NAME_ADAPTER.validate_python(
+        context.request_json.get("name"),
+        strict=True,
+    )
 
 
 @beartype
@@ -63,8 +67,10 @@ def _new_target_name(*, context: ValidatorContext) -> str:
         a request which does not give one, and :py:func:`validate_name_type`
         has already rejected one which is not a string.
     """
-    name: str = context.request_json["name"]  # ty: ignore[unsound-assignment]
-    return name
+    return _NAME_ADAPTER.validate_python(
+        context.request_json["name"],
+        strict=True,
+    )
 
 
 @beartype

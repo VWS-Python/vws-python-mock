@@ -3,22 +3,36 @@
 import copy
 import datetime
 import uuid
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Any, Self, TypedDict
+from typing import Self, TypedDict
 from zoneinfo import ZoneInfo
 
 from beartype import beartype
+
+type JSONValue = (
+    bool | int | float | str | list[JSONValue] | dict[str, JSONValue] | None
+)
+type _JSONObject = Mapping[str, JSONValue]
+type _MutableJsonObject = dict[str, JSONValue]
+
+
+class _GenerationWarningDict(TypedDict):
+    """The persisted form of a Model Target generation warning."""
+
+    message: str
+    details: list[dict[str, JSONValue]]
 
 
 class ModelTargetDatasetDict(TypedDict):
     """A dictionary type which represents a Model Target dataset."""
 
-    request_body: dict[str, Any]  # pyrefly: ignore [explicit-any]
+    request_body: _JSONObject
     dataset_type_name: str
     processing_time_seconds: float
     generation_failure_message: str | None
-    generation_warning: dict[str, Any] | None  # pyrefly: ignore [explicit-any]
+    generation_warning: _GenerationWarningDict | None
     uuid: str
     created_at: str
 
@@ -100,7 +114,7 @@ class ModelTargetGenerationWarning:
     """
 
     message: str = "Warning after creating dataset"
-    details: list[dict[str, Any]] = field(  # pyrefly: ignore [explicit-any]
+    details: Sequence[Mapping[str, JSONValue]] = field(
         default_factory=lambda: [
             {
                 "code": "LOW_RECOGNITION_QUALITY",
@@ -141,7 +155,7 @@ class ModelTargetDataset:
         generation_warning: A warning to return when processing completes.
     """
 
-    request_body: dict[str, Any] = field(hash=False)  # pyrefly: ignore [explicit-any]
+    request_body: _JSONObject = field(hash=False)
     dataset_type: ModelTargetDatasetType
     processing_time_seconds: float = field(hash=False)
     generation_failure: ModelTargetGenerationFailure | None = field(hash=False)
@@ -188,11 +202,16 @@ class ModelTargetDataset:
         if self.generation_failure is not None:
             generation_failure_message = self.generation_failure.message
 
-        generation_warning: dict[str, Any] | None = None  # pyrefly: ignore [explicit-any]
+        generation_warning: _GenerationWarningDict | None = None
         if self.generation_warning is not None:
             generation_warning = {
                 "message": self.generation_warning.message,
-                "details": copy.deepcopy(x=self.generation_warning.details),
+                "details": [
+                    dict(detail)
+                    for detail in copy.deepcopy(
+                        x=self.generation_warning.details
+                    )
+                ],
             }
 
         return {
@@ -221,10 +240,10 @@ class ModelTargetDataset:
             return "failed"
         return "done"
 
-    def status_body(self) -> dict[str, Any]:  # pyrefly: ignore [explicit-any]
+    def status_body(self) -> _MutableJsonObject:
         """Return a status response body for this dataset."""
         status = self.status
-        body: dict[str, Any] = {  # pyrefly: ignore [explicit-any]
+        body: _MutableJsonObject = {
             "status": status,
             "uuid": self.uuid_,
             "createdAt": _format_datetime(value=self.created_at),
@@ -243,7 +262,12 @@ class ModelTargetDataset:
                 "code": "WARNING",
                 "message": self.generation_warning.message,
                 "target": self.uuid_,
-                "details": copy.deepcopy(x=self.generation_warning.details),
+                "details": [
+                    dict(detail)
+                    for detail in copy.deepcopy(
+                        x=self.generation_warning.details
+                    )
+                ],
             }
 
         return body

@@ -8,14 +8,14 @@ import base64
 import copy
 import datetime
 import email.utils
-import json
 import uuid
 from collections.abc import Callable, Iterable, Mapping
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, NotRequired, TypedDict
 from zoneinfo import ZoneInfo
 
 from beartype import BeartypeConf, beartype
+from pydantic import TypeAdapter
 
 from mock_vws._constants import (
     VUMARK_PDF,
@@ -77,6 +77,30 @@ if TYPE_CHECKING:
 
 _TARGET_ID_PATTERN = "[A-Za-z0-9]+"
 _MODEL_TARGET_DATASET_UUID_PATTERN = "[A-Za-z0-9-]+"
+
+
+class _AddTargetBody(TypedDict):
+    """A validated add-target request body."""
+
+    name: str
+    width: float
+    image: str
+    active_flag: NotRequired[bool | None]
+    application_metadata: NotRequired[str | None]
+
+
+class _UpdateTargetBody(TypedDict):
+    """A validated update-target request body."""
+
+    name: NotRequired[str]
+    width: NotRequired[float]
+    image: NotRequired[str]
+    active_flag: NotRequired[bool | None]
+    application_metadata: NotRequired[str | None]
+
+
+_ADD_TARGET_BODY_ADAPTER = TypeAdapter(type=_AddTargetBody)
+_UPDATE_TARGET_BODY_ADAPTER = TypeAdapter(type=_UpdateTargetBody)
 
 
 _ResponseType = tuple[int, Mapping[str, str], str | bytes]
@@ -544,7 +568,10 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
         except ValidatorError as exc:
             return exc.status_code, exc.headers, exc.response_text
 
-        request_json: dict[str, Any] = json.loads(s=request.body)  # pyrefly: ignore [explicit-any]
+        request_json = _ADD_TARGET_BODY_ADAPTER.validate_json(
+            request.body,
+            strict=True,
+        )
         given_active_flag = request_json.get("active_flag")
         active_flag = {
             None: True,
@@ -1002,11 +1029,14 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
                 exception.response_text,
             )
 
-        request_json: dict[str, Any] = json.loads(s=request.body)  # pyrefly: ignore [explicit-any]
+        request_json = _UPDATE_TARGET_BODY_ADAPTER.validate_json(
+            request.body,
+            strict=True,
+        )
         name = request_json.get("name", target.name)
         active_flag = request_json.get("active_flag", target.active_flag)
 
-        if "active_flag" in request_json and active_flag is None:
+        if active_flag is None:
             fail_exception = FailError(status_code=HTTPStatus.BAD_REQUEST)
             return (
                 fail_exception.status_code,

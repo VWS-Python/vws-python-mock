@@ -4,20 +4,28 @@ import json
 from collections.abc import Mapping
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Any, TypeIs
+from typing import TypeIs
 
 from beartype import beartype
+from pydantic import TypeAdapter
 
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._database_matchers import AnyDatabase
 
+type JSONValue = (
+    bool | int | float | str | list[JSONValue] | dict[str, JSONValue] | None
+)
+_OPTIONAL_STRING_ADAPTER: TypeAdapter[str | None] = TypeAdapter(
+    type=str | None,
+)
+
 
 @beartype
-def _is_json_object(value: object, /) -> TypeIs[dict[str, Any]]:  # pyrefly: ignore [explicit-any]
+def _is_json_object(value: object, /) -> TypeIs[dict[str, JSONValue]]:
     """Return whether a decoded JSON value is an object.
 
     JSON object keys are always strings, so a ``dict`` from ``json.loads``
-    is a ``dict[str, Any]``.
+    is a ``dict[str, JSONValue]``.
     """
     return isinstance(value, dict)
 
@@ -66,7 +74,7 @@ class ValidatorContext:
     allowed_for_inactive_cloud_project: bool
 
     @cached_property
-    def request_json(self) -> dict[str, Any]:  # pyrefly: ignore [explicit-any]
+    def request_json(self) -> dict[str, JSONValue]:
         """The request body parsed as a JSON object.
 
         A route's JSON validator runs before any validator which reads this,
@@ -99,7 +107,10 @@ class ValidatorContext:
         Raises:
             binascii.Error: The image cannot be base64 decoded.
         """
-        image = self.request_json.get("image")
+        image = _OPTIONAL_STRING_ADAPTER.validate_python(
+            self.request_json.get("image"),
+            strict=True,
+        )
         if image is None:
             return None
         return decode_base64(encoded_data=image)

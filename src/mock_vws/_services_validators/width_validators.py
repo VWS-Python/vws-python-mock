@@ -27,9 +27,6 @@ def validate_width(*, context: ValidatorContext) -> None:
 
     width = request_json["width"]
 
-    width_is_number = isinstance(width, int | float)
-    width_positive = width_is_number and width > 0
-
-    if not width_positive:
+    if not isinstance(width, int | float) or width <= 0:
         _LOGGER.warning(msg="Width is not a positive number.")
         raise FailError(status_code=HTTPStatus.BAD_REQUEST)
