@@ -1,5 +1,0 @@
-# https://github.com/TurtleTech-ehf/snapper/issues/126
-# This file contains an RST bullet continuation that Snapper does not yet preserve.
-ignore = [
-  "docs/source/differences-to-vws.rst",
-]
