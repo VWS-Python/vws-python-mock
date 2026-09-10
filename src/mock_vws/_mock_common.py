@@ -7,7 +7,7 @@ import uuid
 from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass
 from functools import partial
-from typing import Any, Final, override
+from typing import Final, override
 
 from beartype import beartype
 
@@ -174,7 +174,7 @@ def http_date() -> str:
 
 
 @beartype
-def json_dump(*, body: dict[str, Any]) -> str:  # pyrefly: ignore [explicit-any]
+def json_dump(*, body: Mapping[str, object]) -> str:
     """
     Returns:
         JSON dump of data in the same way that Vuforia dumps data.
