@@ -29,7 +29,11 @@ from mock_vws.database import (
     VuMarkDatabaseDict,
 )
 from mock_vws.database_type import DatabaseType
-from mock_vws.model_target import ModelTargetDataset, OAuth2ClientCredential
+from mock_vws.model_target import (
+    JSONValue,
+    ModelTargetDataset,
+    OAuth2ClientCredential,
+)
 from mock_vws.request_rate_limits import RequestRateLimit, RequestRateLimits
 from mock_vws.states import States
 from mock_vws.target import ImageTarget, VuMarkTarget
@@ -108,7 +112,7 @@ _DatabaseTypeName = Annotated[
 
 
 @beartype
-def _is_json_object(value: object, /) -> TypeIs[dict[str, object]]:
+def _is_json_object(value: object, /) -> TypeIs[dict[str, JSONValue]]:
     """Whether a value parsed from JSON is an object.
 
     JSON object keys are always strings.
