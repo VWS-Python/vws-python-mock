@@ -185,12 +185,11 @@ def _free_port() -> int:
         type=socket.SOCK_STREAM,
     ) as sock:
         sock.bind(("127.0.0.1", 0))
-        match sock.getsockname():
-            case (str(), int() as port):
-                return port
-            case address:
-                msg = f"Expected an IPv4 socket address, got {address!r}"
-                raise TypeError(msg)
+        address = sock.getsockname()
+        assert isinstance(address, tuple)
+        assert isinstance(address[1], int)
+        port: int = address[1]
+        return port
 
 
 @beartype

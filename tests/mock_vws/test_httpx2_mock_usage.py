@@ -80,12 +80,10 @@ def _unused_local_url() -> str:
     """
     with socket.socket() as sock:
         sock.bind(("", 0))
-        match sock.getsockname():
-            case (str(), int() as port):
-                pass
-            case address:
-                msg = f"Expected an IPv4 socket address, got {address!r}"
-                raise TypeError(msg)
+        address = sock.getsockname()
+        assert isinstance(address, tuple)
+        assert isinstance(address[1], int)
+        port: int = address[1]
     return f"http://localhost:{port}"
 
 
