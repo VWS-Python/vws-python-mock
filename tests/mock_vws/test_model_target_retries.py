@@ -184,12 +184,14 @@ def test_endpoint_send() -> None:
     This is the path which the cross-cutting Model Target endpoint tests
     take, and it is where a gateway failure has been seen.
     """
-    responses.add(  # pyrefly: ignore [unused-call-result]
+    gateway_response = responses.Response(
         method=responses.GET, url=_URL, status=HTTPStatus.BAD_GATEWAY
     )
-    responses.add(  # pyrefly: ignore [unused-call-result]
+    unauthorized_response = responses.Response(
         method=responses.GET, url=_URL, status=HTTPStatus.UNAUTHORIZED
     )
+    assert responses.add(gateway_response) is gateway_response
+    assert responses.add(unauthorized_response) is unauthorized_response
     endpoint = ModelTargetEndpoint(
         base_url="https://vws.vuforia.com",
         path_url="/modeltargets/datasets/uuid/dataset",
@@ -203,19 +205,25 @@ def test_endpoint_send() -> None:
         response = endpoint.send()
 
     assert response.status_code == HTTPStatus.UNAUTHORIZED
+    assert gateway_response.call_count == 1
+    assert unauthorized_response.call_count == 1
 
 
 @responses.activate
 def test_model_target_get() -> None:
     """``model_target_get`` retries a transient failure."""
-    responses.add(  # pyrefly: ignore [unused-call-result]
+    gateway_response = responses.Response(
         method=responses.GET, url=_URL, status=HTTPStatus.GATEWAY_TIMEOUT
     )
-    responses.add(  # pyrefly: ignore [unused-call-result]
+    dataset_response = responses.Response(
         method=responses.GET, url=_URL, body=b"dataset"
     )
+    assert responses.add(gateway_response) is gateway_response
+    assert responses.add(dataset_response) is dataset_response
 
     with retrying_transient_real_backend_failures():
         response = model_target_get(url=_URL, headers={}, timeout=30)
 
     assert response.content == b"dataset"
+    assert gateway_response.call_count == 1
+    assert dataset_response.call_count == 1
