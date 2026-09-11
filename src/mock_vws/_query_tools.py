@@ -2,7 +2,6 @@
 
 import base64
 import uuid
-from typing import Any
 
 from beartype import beartype
 
@@ -12,6 +11,7 @@ from mock_vws._matching import matching_targets
 from mock_vws._mock_common import json_dump
 from mock_vws._query_validators import ValidatedQuery
 from mock_vws.image_matchers import ImageMatcher
+from mock_vws.model_target import JSONValue
 
 
 @beartype
@@ -61,7 +61,7 @@ def get_query_match_response_text(
         if match.tracking_rating > minimum_rating
     ]
 
-    results: list[dict[str, Any]] = []  # pyrefly: ignore [explicit-any]
+    results: list[JSONValue] = []
     for target in matches:
         target_timestamp = target.last_modified_date.timestamp()
         if target.application_metadata is None:
@@ -70,28 +70,24 @@ def get_query_match_response_text(
             application_metadata = base64.b64encode(
                 s=decode_base64(encoded_data=target.application_metadata),
             ).decode(encoding="ascii")
-        target_data = {
+        target_data: dict[str, JSONValue] = {
             "target_timestamp": int(target_timestamp),
             "name": target.name,
             "application_metadata": application_metadata,
         }
 
+        result: dict[str, JSONValue] = {
+            "target_id": target.target_id,
+        }
         if include_target_data == "all" or (
             include_target_data == "top" and not bool(results)
         ):
-            result = {
-                "target_id": target.target_id,
-                "target_data": target_data,
-            }
-        else:
-            result = {
-                "target_id": target.target_id,
-            }
+            result["target_data"] = target_data
 
         results.append(result)
 
     results = results[: int(max_num_results)]
-    body = {
+    body: dict[str, JSONValue] = {
         "result_code": ResultCodes.SUCCESS.value,
         "results": results,
         "query_id": uuid.uuid4().hex,
