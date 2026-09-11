@@ -137,10 +137,13 @@ def assert_valid_transaction_id(
     Raises:
         AssertionError: The response does not include a valid transaction ID.
     """
-    transaction_id = json.loads(s=response.text)["transaction_id"]  # pyrefly: ignore [unknown-variable-type]
+    response_json = json.loads(s=response.text)
+    assert isinstance(response_json, dict)
+    assert isinstance(response_json["transaction_id"], str)
+    transaction_id: str = response_json["transaction_id"]
     expected_transaction_id_length = 32
-    assert len(transaction_id) == expected_transaction_id_length  # pyrefly: ignore [unknown-argument-type]
-    assert all(char in hexdigits for char in transaction_id)  # pyrefly: ignore [unknown-argument-type]
+    assert len(transaction_id) == expected_transaction_id_length
+    assert all(char in hexdigits for char in transaction_id)
 
 
 @beartype
@@ -185,7 +188,10 @@ def assert_vws_response(
             given codes.
     """
     assert response.status_code == status_code
-    response_result_code = json.loads(s=response.text)["result_code"]  # pyrefly: ignore [unknown-variable-type]
+    response_json = json.loads(s=response.text)
+    assert isinstance(response_json, dict)
+    assert isinstance(response_json["result_code"], str)
+    response_result_code: str = response_json["result_code"]
     assert response_result_code == result_code.value
     response_header_keys = {
         "connection",
@@ -327,10 +333,13 @@ def assert_query_success(*, response: Response) -> None:
         "query_id",
     }
 
-    query_id = json.loads(s=response.text)["query_id"]  # pyrefly: ignore [unknown-variable-type]
+    response_json = json.loads(s=response.text)
+    assert isinstance(response_json, dict)
+    assert isinstance(response_json["query_id"], str)
+    query_id: str = response_json["query_id"]
     expected_query_id_length = 32
-    assert len(query_id) == expected_query_id_length  # pyrefly: ignore [unknown-argument-type]
-    assert all(char in hexdigits for char in query_id)  # pyrefly: ignore [unknown-argument-type]
+    assert len(query_id) == expected_query_id_length
+    assert all(char in hexdigits for char in query_id)
 
     assert json.loads(s=response.text)["result_code"] == "Success"
     assert_valid_date_header(response=response)
