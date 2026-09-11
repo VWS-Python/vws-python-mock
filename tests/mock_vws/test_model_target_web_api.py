@@ -50,7 +50,7 @@ _MOCK_BEARER_TOKEN = (
 )
 
 
-_VIEW: dict[str, Any] = {  # pyrefly: ignore [explicit-any]
+_VIEW: dict[str, object] = {
     "name": "view-name",
     "guideViewPosition": {
         "translation": [0, 0, 5],
@@ -60,7 +60,7 @@ _VIEW: dict[str, Any] = {  # pyrefly: ignore [explicit-any]
 
 
 @beartype
-def _dataset_request(*, cad_data_url: str) -> dict[str, Any]:  # pyrefly: ignore [explicit-any]
+def _dataset_request(*, cad_data_url: str) -> dict[str, object]:
     """Return a standard Model Target dataset request."""
     return {
         "name": f"dataset-{uuid4().hex}",
@@ -88,7 +88,7 @@ def _cad_data_blob() -> str:
 
 
 @beartype
-def _blob_dataset_request() -> dict[str, Any]:  # pyrefly: ignore [explicit-any]
+def _blob_dataset_request() -> dict[str, object]:
     """Return a standard dataset request with inline CAD data."""
     return {
         "name": f"dataset-{uuid4().hex}",
@@ -104,25 +104,25 @@ def _blob_dataset_request() -> dict[str, Any]:  # pyrefly: ignore [explicit-any]
     }
 
 
-_MODEL: dict[str, Any] = {  # pyrefly: ignore [explicit-any]
+_MODEL: dict[str, object] = {
     "name": "model-name",
     "cadDataUrl": "https://example.com/model.glb",
     "views": [_VIEW],
 }
 
-_MODEL_WITHOUT_CAD_DATA: dict[str, Any] = {  # pyrefly: ignore [explicit-any]
+_MODEL_WITHOUT_CAD_DATA: dict[str, object] = {
     key: value for key, value in _MODEL.items() if key != "cadDataUrl"
 }
 
-_EMPTY_MODEL: dict[str, Any] = {}  # pyrefly: ignore [explicit-any]
+_EMPTY_MODEL: dict[str, object] = {}
 
-_EMPTY_VIEW: dict[str, Any] = {}  # pyrefly: ignore [explicit-any]
+_EMPTY_VIEW: dict[str, object] = {}
 
-_EMPTY_GUIDE_VIEW_POSITION: list[Any] = []  # pyrefly: ignore [explicit-any]
+_EMPTY_GUIDE_VIEW_POSITION: list[object] = []
 
-_EMPTY_GUIDE_VIEW_POSITION_OBJECT: dict[str, Any] = {}  # pyrefly: ignore [explicit-any]
+_EMPTY_GUIDE_VIEW_POSITION_OBJECT: dict[str, object] = {}
 
-_UNAUTHENTICATED_DATASET_REQUEST: dict[str, Any] = {  # pyrefly: ignore [explicit-any]
+_UNAUTHENTICATED_DATASET_REQUEST: dict[str, object] = {
     "name": "dataset-name",
     "targetSdk": "10.18",
     "models": [_MODEL],
@@ -1065,10 +1065,7 @@ class TestErrorResponses:
             pytest.param(
                 {
                     **_UNAUTHENTICATED_DATASET_REQUEST,
-                    "models": [
-                        *_UNAUTHENTICATED_DATASET_REQUEST["models"],
-                        "model",
-                    ],
+                    "models": [_MODEL, "model"],
                 },
                 {
                     "/models(1)/name: element is required",
