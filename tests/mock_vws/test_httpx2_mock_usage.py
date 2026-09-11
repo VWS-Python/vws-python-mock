@@ -78,10 +78,14 @@ def _unused_local_url() -> str:
     Returns:
         The URL of a port which was free when this was called.
     """
-    sock = socket.socket()
-    sock.bind(("", 0))
-    port = sock.getsockname()[1]  # pyrefly: ignore [unknown-variable-type]
-    sock.close()
+    with socket.socket() as sock:
+        sock.bind(("", 0))
+        match sock.getsockname():
+            case (str(), int() as port):
+                pass
+            case address:
+                msg = f"Expected an IPv4 socket address, got {address!r}"
+                raise TypeError(msg)
     return f"http://localhost:{port}"
 
 

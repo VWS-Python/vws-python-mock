@@ -124,10 +124,14 @@ def _bool_matcher(
 @beartype
 def _unused_local_url() -> str:
     """Return a URL for a local address with nothing listening on it."""
-    sock = socket.socket()
-    sock.bind(("", 0))
-    port = sock.getsockname()[1]  # pyrefly: ignore [unknown-variable-type]
-    sock.close()
+    with socket.socket() as sock:
+        sock.bind(("", 0))
+        match sock.getsockname():
+            case (str(), int() as port):
+                pass
+            case address:
+                msg = f"Expected an IPv4 socket address, got {address!r}"
+                raise TypeError(msg)
     return f"http://localhost:{port}"
 
 
@@ -142,11 +146,7 @@ def request_unmocked_address() -> None:
             context of a ``responses`` mock which does not mock local
             addresses.
     """
-    sock = socket.socket()
-    sock.bind(("", 0))
-    port = sock.getsockname()[1]  # pyrefly: ignore [unknown-variable-type]
-    sock.close()
-    _ = requests.get(url=f"http://localhost:{port}", timeout=30)
+    _ = requests.get(url=_unused_local_url(), timeout=30)
 
 
 @beartype
@@ -2075,27 +2075,19 @@ class TestHttpxAlsoIntercepted:
         """``MockVWS`` blocks ``httpx`` requests to non-Vuforia
         addresses.
         """
-        sock = socket.socket()
-        sock.bind(("", 0))
-        port = sock.getsockname()[1]  # pyrefly: ignore [unknown-variable-type]
-        sock.close()
         with MockVWS(), pytest.raises(expected_exception=httpx.ConnectError):
-            _ = httpx.get(url=f"http://localhost:{port}", timeout=30)
+            _ = httpx.get(url=_unused_local_url(), timeout=30)
 
     @staticmethod
     def test_httpx_real_http() -> None:
         """When ``real_http=True``, ``httpx`` requests to non-Vuforia
         addresses are not blocked.
         """
-        sock = socket.socket()
-        sock.bind(("", 0))
-        port = sock.getsockname()[1]  # pyrefly: ignore [unknown-variable-type]
-        sock.close()
         with (
             MockVWS(real_http=True),
             pytest.raises(expected_exception=httpx.ConnectError),
         ):
-            _ = httpx.get(url=f"http://localhost:{port}", timeout=30)
+            _ = httpx.get(url=_unused_local_url(), timeout=30)
 
 
 class TestHttpx2AlsoIntercepted:
@@ -2138,27 +2130,19 @@ class TestHttpx2AlsoIntercepted:
         """``MockVWS`` blocks ``httpx2`` requests to non-Vuforia
         addresses.
         """
-        sock = socket.socket()
-        sock.bind(("", 0))
-        port = sock.getsockname()[1]  # pyrefly: ignore [unknown-variable-type]
-        sock.close()
         with MockVWS(), pytest.raises(expected_exception=httpx2.ConnectError):
-            _ = httpx2.get(url=f"http://localhost:{port}", timeout=30)
+            _ = httpx2.get(url=_unused_local_url(), timeout=30)
 
     @staticmethod
     def test_httpx2_real_http() -> None:
         """When ``real_http=True``, ``httpx2`` requests to non-Vuforia
         addresses are not blocked.
         """
-        sock = socket.socket()
-        sock.bind(("", 0))
-        port = sock.getsockname()[1]  # pyrefly: ignore [unknown-variable-type]
-        sock.close()
         with (
             MockVWS(real_http=True),
             pytest.raises(expected_exception=httpx2.ConnectError),
         ):
-            _ = httpx2.get(url=f"http://localhost:{port}", timeout=30)
+            _ = httpx2.get(url=_unused_local_url(), timeout=30)
 
 
 class TestModelTargetWebAPI:
