@@ -81,11 +81,12 @@ def assert_success(response: Response) -> None:
     )
     expected_keys = {"result_code", "transaction_id", "target_id"}
     response_json = json.loads(s=response.text)
-    target_id = response_json["target_id"]  # pyrefly: ignore [unknown-variable-type]
-    expected_target_id_length = 32
-    assert len(target_id) == expected_target_id_length  # pyrefly: ignore [unknown-argument-type]
-    assert all(char in hexdigits for char in target_id)  # pyrefly: ignore [unknown-argument-type]
     assert isinstance(response_json, dict)
+    assert isinstance(response_json["target_id"], str)
+    target_id: str = response_json["target_id"]
+    expected_target_id_length = 32
+    assert len(target_id) == expected_target_id_length
+    assert all(char in hexdigits for char in target_id)
     assert response_json.keys() == expected_keys
 
 
@@ -855,8 +856,10 @@ class TestActiveFlag:
             vws_client=vws_client, data=data, content_type="application/json"
         )
         response_json = json.loads(s=response.text)
-        target_id = response_json["target_id"]  # pyrefly: ignore [unknown-variable-type]
-        target_details = vws_client.get_target_record(target_id=target_id)  # pyrefly: ignore [unknown-argument-type]
+        assert isinstance(response_json, dict)
+        assert isinstance(response_json["target_id"], str)
+        target_id: str = response_json["target_id"]
+        target_details = vws_client.get_target_record(target_id=target_id)
         assert target_details.target_record.active_flag is True
 
     @staticmethod
@@ -883,8 +886,10 @@ class TestActiveFlag:
         )
 
         response_json = json.loads(s=response.text)
-        target_id = response_json["target_id"]  # pyrefly: ignore [unknown-variable-type]
-        target_details = vws_client.get_target_record(target_id=target_id)  # pyrefly: ignore [unknown-argument-type]
+        assert isinstance(response_json, dict)
+        assert isinstance(response_json["target_id"], str)
+        target_id: str = response_json["target_id"]
+        target_details = vws_client.get_target_record(target_id=target_id)
         assert target_details.target_record.active_flag is True
 
 

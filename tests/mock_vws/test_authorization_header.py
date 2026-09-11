@@ -299,8 +299,12 @@ class TestBadKey:
             "result_code",
         }
         assert_valid_transaction_id(response=response)
-        result_code = json.loads(s=response.text)["result_code"]  # pyrefly: ignore [unknown-variable-type]
-        transaction_id = json.loads(s=response.text)["transaction_id"]  # pyrefly: ignore [unknown-variable-type]
+        response_json = json.loads(s=response.text)
+        assert isinstance(response_json, dict)
+        assert isinstance(response_json["result_code"], str)
+        assert isinstance(response_json["transaction_id"], str)
+        result_code: str = response_json["result_code"]
+        transaction_id: str = response_json["transaction_id"]
         assert result_code == ResultCodes.AUTHENTICATION_FAILURE.value
         # The separators are inconsistent and we test this.
         expected_text = (
@@ -363,8 +367,12 @@ class TestBadKey:
             "result_code",
         }
         assert_valid_transaction_id(response=response)
-        result_code = json.loads(s=response.text)["result_code"]  # pyrefly: ignore [unknown-variable-type]
-        transaction_id = json.loads(s=response.text)["transaction_id"]  # pyrefly: ignore [unknown-variable-type]
+        response_json = json.loads(s=response.text)
+        assert isinstance(response_json, dict)
+        assert isinstance(response_json["result_code"], str)
+        assert isinstance(response_json["transaction_id"], str)
+        result_code: str = response_json["result_code"]
+        transaction_id: str = response_json["transaction_id"]
         assert result_code == ResultCodes.AUTHENTICATION_FAILURE.value
         # The separators are inconsistent and we test this.
         expected_text = (
