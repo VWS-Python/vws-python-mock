@@ -27,6 +27,7 @@ from docker.errors import BuildError, NotFound
 from docker.models.containers import Container
 from docker.models.images import Image
 from docker.models.networks import Network
+from pydantic import TypeAdapter
 from tenacity import retry
 from tenacity.retry import retry_if_exception_type
 from tenacity.stop import stop_after_delay
@@ -71,7 +72,13 @@ class _MockDeployment:
 def _poll_health_check(container: Container) -> None:
     """Poll a container until it reports a healthy status."""
     container.reload()
-    health_status = container.attrs["State"]["Health"]["Status"]  # pyrefly: ignore [unknown-variable-type]
+    state = TypeAdapter(type=dict[str, object]).validate_python(
+        container.attrs["State"],
+    )
+    health = TypeAdapter(type=dict[str, object]).validate_python(
+        state["Health"],
+    )
+    health_status = TypeAdapter(type=str).validate_python(health["Status"])
     # In theory this might not be hit by coverage.
     # Let's keep it required by coverage for now.
     if health_status != "healthy":
@@ -93,7 +100,15 @@ def wait_for_health_check(container: Container) -> None:
     except ValueError as exc:  # pragma: no cover
         container.reload()
         logs = container.logs().decode(errors="replace")
-        health_log = container.attrs["State"]["Health"].get("Log", [])  # pyrefly: ignore [unknown-variable-type]
+        state = TypeAdapter(type=dict[str, object]).validate_python(
+            container.attrs["State"],
+        )
+        health = TypeAdapter(type=dict[str, object]).validate_python(
+            state["Health"],
+        )
+        health_log = TypeAdapter(type=list[dict[str, object]]).validate_python(
+            health.get("Log", []),
+        )
         probes = "\n".join(
             f"  exit={entry.get('ExitCode')!r} "
             f"start={entry.get('Start')!r} end={entry.get('End')!r}\n"
@@ -130,7 +145,11 @@ def _wait_for_model_target_dataset_done(
         timeout=30,
     )
     assert response.status_code == HTTPStatus.OK
-    status = response.json()["status"]  # pyrefly: ignore [unknown-variable-type]
+    response_json = TypeAdapter(type=dict[str, object]).validate_python(
+        response.json(),
+    )
+    status: object = response_json["status"]
+    assert isinstance(status, str)
     if status != "done":
         error_message = f"Dataset {dataset_uuid} status is {status!r}."
         raise ValueError(error_message)
@@ -196,9 +215,17 @@ def _free_port() -> int:
 def _published_base_url(*, container: Container) -> str:
     """Return the host-reachable base URL of a container."""
     container.reload()
-    port_attrs = container.attrs["NetworkSettings"]["Ports"]  # pyrefly: ignore [unknown-variable-type]
-    host_ip = port_attrs["5000/tcp"][0]["HostIp"]  # pyrefly: ignore [unknown-variable-type]
-    host_port = port_attrs["5000/tcp"][0]["HostPort"]  # pyrefly: ignore [unknown-variable-type]
+    network_settings = TypeAdapter(type=dict[str, object]).validate_python(
+        container.attrs["NetworkSettings"],
+    )
+    ports = TypeAdapter(type=dict[str, object]).validate_python(
+        network_settings["Ports"],
+    )
+    bindings = TypeAdapter(type=list[dict[str, object]]).validate_python(
+        ports["5000/tcp"],
+    )
+    host_ip = TypeAdapter(type=str).validate_python(bindings[0]["HostIp"])
+    host_port = TypeAdapter(type=str).validate_python(bindings[0]["HostPort"])
     return f"http://{host_ip}:{host_port}"
 
 
@@ -449,7 +476,11 @@ def test_model_target_dataset_survives_vws_restart(
         timeout=30,
     )
     assert oauth_response.status_code == HTTPStatus.OK
-    access_token = oauth_response.json()["access_token"]  # pyrefly: ignore [unknown-variable-type]
+    oauth_response_json = TypeAdapter(type=dict[str, object]).validate_python(
+        oauth_response.json(),
+    )
+    access_token: object = oauth_response_json["access_token"]
+    assert isinstance(access_token, str)
 
     dataset_request = {
         "name": "example-dataset",
@@ -477,12 +508,16 @@ def test_model_target_dataset_survives_vws_restart(
         timeout=30,
     )
     assert create_dataset_response.status_code == HTTPStatus.CREATED
-    dataset_uuid = create_dataset_response.json()["uuid"]  # pyrefly: ignore [unknown-variable-type]
+    create_response_json = TypeAdapter(type=dict[str, object]).validate_python(
+        create_dataset_response.json(),
+    )
+    dataset_uuid: object = create_response_json["uuid"]
+    assert isinstance(dataset_uuid, str)
 
     _wait_for_model_target_dataset_done(
         base_vws_url=base_vws_url,
-        dataset_uuid=dataset_uuid,  # pyrefly: ignore [unknown-argument-type]
-        access_token=access_token,  # pyrefly: ignore [unknown-argument-type]
+        dataset_uuid=dataset_uuid,
+        access_token=access_token,
     )
 
     mock_deployment.vws_container.restart()
@@ -576,12 +611,13 @@ def test_reco_counts_report_round_trip(
     assert report_response.status_code == HTTPStatus.OK
     report_json = report_response.json()
     assert report_json["result_code"] == "Success"
-    presigned_url = report_json["presigned_url"]  # pyrefly: ignore [unknown-variable-type]
+    presigned_url: object = report_json["presigned_url"]
+    assert isinstance(presigned_url, str)
     # The download URL is built from the ``VWS_BASE_URL`` of the VWS
     # container, so it reaches that container.
     assert presigned_url.startswith(mock_deployment.base_vws_url)
 
-    report_content = _wait_for_reco_counts_report(presigned_url=presigned_url)  # pyrefly: ignore [unknown-argument-type]
+    report_content = _wait_for_reco_counts_report(presigned_url=presigned_url)
 
     assert report_content == (
         f"target_id,reco_count\r\n{target_id},{_CURRENT_MONTH_RECOS}\r\n"
