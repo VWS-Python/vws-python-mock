@@ -2,22 +2,22 @@
 
 from collections.abc import Callable
 from http import HTTPStatus
-from typing import Any
 
 import httpx
 import pytest
 import requests
 
 from mock_vws import MockVWS, ModelTargetFailureResponse, ModelTargetRequest
+from mock_vws.model_target import JSONValue
 
 _BASE_URL = "https://vws.vuforia.com"
 _CLIENT_ID = "client-id"
 _CLIENT_SECRET = "client-secret"
 type _HTTPResponse = requests.Response | httpx.Response
-type _DatasetRequestSender = Callable[[dict[str, Any]], _HTTPResponse]  # pyrefly: ignore [explicit-any]
+type _DatasetRequestSender = Callable[[dict[str, JSONValue]], _HTTPResponse]
 
 
-def _dataset_body() -> dict[str, Any]:  # pyrefly: ignore [explicit-any]
+def _dataset_body() -> dict[str, JSONValue]:
     """Return an otherwise-valid Model Target dataset request body."""
     return {
         "name": "configured-failure-test",
@@ -32,7 +32,7 @@ def _dataset_body() -> dict[str, Any]:  # pyrefly: ignore [explicit-any]
     }
 
 
-def _requests_create_dataset(body: dict[str, Any]) -> _HTTPResponse:  # pyrefly: ignore [explicit-any]
+def _requests_create_dataset(body: dict[str, JSONValue]) -> _HTTPResponse:
     """Acquire a token and create a dataset using ``requests``."""
     token_response = requests.post(
         url=f"{_BASE_URL}/oauth2/token",
@@ -41,7 +41,10 @@ def _requests_create_dataset(body: dict[str, Any]) -> _HTTPResponse:  # pyrefly:
         timeout=30,
     )
     token_response.raise_for_status()
-    token = token_response.json()["access_token"]  # pyrefly: ignore [unknown-variable-type]
+    token_body = token_response.json()
+    assert isinstance(token_body, dict)
+    assert isinstance(token_body["access_token"], str)
+    token: str = token_body["access_token"]
     return requests.post(
         url=f"{_BASE_URL}/modeltargets/datasets",
         headers={"Authorization": f"Bearer {token}"},
@@ -50,7 +53,7 @@ def _requests_create_dataset(body: dict[str, Any]) -> _HTTPResponse:  # pyrefly:
     )
 
 
-def _httpx_create_dataset(body: dict[str, Any]) -> _HTTPResponse:  # pyrefly: ignore [explicit-any]
+def _httpx_create_dataset(body: dict[str, JSONValue]) -> _HTTPResponse:
     """Acquire a token and create a dataset using ``httpx``."""
     token_response = httpx.post(
         url=f"{_BASE_URL}/oauth2/token",
@@ -59,7 +62,10 @@ def _httpx_create_dataset(body: dict[str, Any]) -> _HTTPResponse:  # pyrefly: ig
         timeout=30,
     )
     _ = token_response.raise_for_status()
-    token = token_response.json()["access_token"]  # pyrefly: ignore [unknown-variable-type]
+    token_body = token_response.json()
+    assert isinstance(token_body, dict)
+    assert isinstance(token_body["access_token"], str)
+    token: str = token_body["access_token"]
     return httpx.post(
         url=f"{_BASE_URL}/modeltargets/datasets",
         headers={"Authorization": f"Bearer {token}"},
@@ -108,7 +114,7 @@ def _httpx_create_dataset(body: dict[str, Any]) -> _HTTPResponse:  # pyrefly: ig
 )
 def test_configured_failure_response(
     *,
-    send_request: _DatasetRequestSender,  # pyrefly: ignore [explicit-any]
+    send_request: _DatasetRequestSender,
     status_code: HTTPStatus,
     headers: dict[str, str],
     body: str | bytes,
@@ -137,7 +143,7 @@ def test_configured_failure_response(
 )
 def test_unselected_request_is_handled_normally(
     *,
-    send_request: _DatasetRequestSender,  # pyrefly: ignore [explicit-any]
+    send_request: _DatasetRequestSender,
 ) -> None:
     """A failure configured for another phase does not affect creation."""
     failure = ModelTargetFailureResponse(
@@ -197,7 +203,10 @@ def test_selected_request_returns_failure(
             timeout=30,
         )
         token_response.raise_for_status()
-        token = token_response.json()["access_token"]  # pyrefly: ignore [unknown-variable-type]
+        token_body = token_response.json()
+        assert isinstance(token_body, dict)
+        assert isinstance(token_body["access_token"], str)
+        token: str = token_body["access_token"]
         response = requests.request(
             method=method,
             url=f"{_BASE_URL}/modeltargets/{collection}{path_suffix}",
