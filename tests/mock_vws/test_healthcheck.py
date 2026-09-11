@@ -45,9 +45,10 @@ def _unused_port() -> int:
         type=socket.SOCK_STREAM,
     ) as sock:
         sock.bind(("localhost", 0))
-        # The socket stubs cannot specialize this result from the configured
-        # IPv4 address family, although the second tuple item is always a port.
-        port: int = sock.getsockname()[1]  # ty: ignore[unsound-assignment]
+        address = sock.getsockname()
+        assert isinstance(address, tuple)
+        assert isinstance(address[1], int)
+        port: int = address[1]
     return port
 
 

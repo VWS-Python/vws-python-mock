@@ -78,10 +78,12 @@ def _unused_local_url() -> str:
     Returns:
         The URL of a port which was free when this was called.
     """
-    sock = socket.socket()
-    sock.bind(("", 0))
-    port = sock.getsockname()[1]  # pyrefly: ignore [unknown-variable-type]
-    sock.close()
+    with socket.socket() as sock:
+        sock.bind(("", 0))
+        address = sock.getsockname()
+        assert isinstance(address, tuple)
+        assert isinstance(address[1], int)
+        port: int = address[1]
     return f"http://localhost:{port}"
 
 

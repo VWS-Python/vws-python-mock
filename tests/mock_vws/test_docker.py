@@ -185,7 +185,11 @@ def _free_port() -> int:
         type=socket.SOCK_STREAM,
     ) as sock:
         sock.bind(("127.0.0.1", 0))
-        return int(sock.getsockname()[1])  # pyrefly: ignore [unknown-argument-type]
+        address = sock.getsockname()
+        assert isinstance(address, tuple)
+        assert isinstance(address[1], int)
+        port: int = address[1]
+        return port
 
 
 @beartype
