@@ -265,15 +265,19 @@ def _enable_use_flask_in_process(
         for database in requests.get(
             url=cloud_databases_url, timeout=30
         ).json():
+            database_name: object = database["database_name"]
+            assert isinstance(database_name, str)
             _ = requests.delete(
-                url=cloud_databases_url + "/" + database["database_name"],  # pyrefly: ignore [unknown-argument-type]
+                url=cloud_databases_url + "/" + database_name,
                 timeout=30,
             )
         for database in requests.get(
             url=vumark_databases_url, timeout=30
         ).json():
+            database_name = database["database_name"]
+            assert isinstance(database_name, str)
             _ = requests.delete(
-                url=vumark_databases_url + "/" + database["database_name"],  # pyrefly: ignore [unknown-argument-type]
+                url=vumark_databases_url + "/" + database_name,
                 timeout=30,
             )
 
