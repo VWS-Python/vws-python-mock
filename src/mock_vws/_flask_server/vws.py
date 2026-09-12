@@ -125,8 +125,19 @@ class _UpdateTargetBody(TypedDict):
     image: NotRequired[str]
 
 
+class _OAuth2ClientCredentialBody(TypedDict):
+    """An OAuth2 client credential returned by the target manager."""
+
+    client_id: str
+    client_secret: str
+    scopes: list[str]
+
+
 _ADD_TARGET_BODY_ADAPTER = TypeAdapter(type=_AddTargetBody)
 _UPDATE_TARGET_BODY_ADAPTER = TypeAdapter(type=_UpdateTargetBody)
+_OAUTH2_CLIENT_CREDENTIALS_ADAPTER = TypeAdapter(
+    type=list[_OAuth2ClientCredentialBody],
+)
 
 
 @beartype
@@ -259,11 +270,13 @@ class _HTTPModelTargetDatasetStore:
         response = requests.get(url=self._credentials_url, timeout=30)
         credentials = (
             OAuth2ClientCredential(
-                client_id=value["client_id"],  # pyrefly: ignore [unknown-argument-type]
-                client_secret=value["client_secret"],  # pyrefly: ignore [unknown-argument-type]
-                scopes=tuple(value["scopes"]),  # pyrefly: ignore [unknown-argument-type]
+                client_id=value["client_id"],
+                client_secret=value["client_secret"],
+                scopes=tuple(value["scopes"]),
             )
-            for value in response.json()
+            for value in _OAUTH2_CLIENT_CREDENTIALS_ADAPTER.validate_python(
+                response.json(),
+            )
         )
         return {credential.client_id: credential for credential in credentials}
 
@@ -359,14 +372,14 @@ def set_terminate_wsgi_input() -> None:
     same as the real Vuforia.
     This is documented as a difference in the documentation for this package.
     """
-    try:
-        set_terminate_wsgi_input_true = (
-            VWS_FLASK_APP.config["VWS_MOCK_TERMINATE_WSGI_INPUT"] is True  # pyrefly: ignore [unknown-variable-type]
-        )
-    except KeyError:
-        set_terminate_wsgi_input_true = False
+    config = TypeAdapter(type=dict[str, object]).validate_python(
+        VWS_FLASK_APP.config,
+    )
+    terminate_wsgi_input = config.get(
+        "VWS_MOCK_TERMINATE_WSGI_INPUT",
+    )
 
-    if set_terminate_wsgi_input_true:
+    if terminate_wsgi_input is True:
         request.environ["wsgi.input_terminated"] = True
 
 

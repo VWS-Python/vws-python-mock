@@ -13,6 +13,7 @@ from typing import assert_never
 import requests
 from beartype import beartype
 from flask import Flask, Response, request
+from pydantic import TypeAdapter
 from pydantic_settings import BaseSettings
 
 from mock_vws._query_tools import (
@@ -93,14 +94,14 @@ def set_terminate_wsgi_input() -> None:
     same as the real Vuforia.
     This is documented as a difference in the documentation for this package.
     """
-    try:
-        set_terminate_wsgi_input_true = (
-            CLOUDRECO_FLASK_APP.config["VWS_MOCK_TERMINATE_WSGI_INPUT"] is True  # pyrefly: ignore [unknown-variable-type]
-        )
-    except KeyError:
-        set_terminate_wsgi_input_true = False
+    config = TypeAdapter(type=dict[str, object]).validate_python(
+        CLOUDRECO_FLASK_APP.config,
+    )
+    terminate_wsgi_input = config.get(
+        "VWS_MOCK_TERMINATE_WSGI_INPUT",
+    )
 
-    if set_terminate_wsgi_input_true:
+    if terminate_wsgi_input is True:
         request.environ["wsgi.input_terminated"] = True
 
 
