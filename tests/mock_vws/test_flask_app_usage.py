@@ -11,13 +11,13 @@ import uuid
 import zipfile
 from collections.abc import Callable, Iterator
 from http import HTTPMethod, HTTPStatus
-from typing import Any
 
 import pytest
 import requests
 import responses
 from beartype import beartype
 from PIL import Image
+from pydantic import TypeAdapter
 from requests_mock_flask import add_flask_app_to_mock
 from vws import VWS, CloudRecoService
 from vws.exceptions.vws_exceptions import (
@@ -421,20 +421,31 @@ class TestAddCloudDatabase:
         response = requests.post(url=databases_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.CREATED
 
-        data = json.loads(s=response.text)
+        data = TypeAdapter(type=dict[str, JSONValue]).validate_json(
+            response.text,
+        )
 
         assert data["targets"] == []
         assert data["state_name"] == "WORKING"
         assert "database_name" in data
 
+        server_access_key = data["server_access_key"]
+        server_secret_key = data["server_secret_key"]
+        client_access_key = data["client_access_key"]
+        client_secret_key = data["client_secret_key"]
+        assert isinstance(server_access_key, str)
+        assert isinstance(server_secret_key, str)
+        assert isinstance(client_access_key, str)
+        assert isinstance(client_secret_key, str)
+
         vws_client = VWS(
-            server_access_key=data["server_access_key"],  # pyrefly: ignore [unknown-argument-type]
-            server_secret_key=data["server_secret_key"],  # pyrefly: ignore [unknown-argument-type]
+            server_access_key=server_access_key,
+            server_secret_key=server_secret_key,
         )
 
         cloud_reco_client = CloudRecoService(
-            client_access_key=data["client_access_key"],  # pyrefly: ignore [unknown-argument-type]
-            client_secret_key=data["client_secret_key"],  # pyrefly: ignore [unknown-argument-type]
+            client_access_key=client_access_key,
+            client_secret_key=client_secret_key,
         )
 
         assert not bool(vws_client.list_targets())
@@ -496,7 +507,7 @@ class TestAddCloudDatabase:
         ],
     )
     def test_invalid_field(
-        body: dict[str, Any],  # pyrefly: ignore [explicit-any]
+        body: dict[str, JSONValue],
         expected_loc: list[str],
         expected_message: str,
     ) -> None:
@@ -764,12 +775,16 @@ class TestDeleteCloudDatabase:
         response = requests.post(url=databases_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.CREATED
 
-        data = json.loads(s=response.text)
-        delete_url = databases_url + "/" + data["database_name"]  # pyrefly: ignore [unknown-variable-type]
-        response = requests.delete(url=delete_url, json={}, timeout=30)  # pyrefly: ignore [unknown-argument-type]
+        data = TypeAdapter(type=dict[str, JSONValue]).validate_json(
+            response.text,
+        )
+        database_name = data["database_name"]
+        assert isinstance(database_name, str)
+        delete_url = databases_url + "/" + database_name
+        response = requests.delete(url=delete_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.OK
 
-        response = requests.delete(url=delete_url, json={}, timeout=30)  # pyrefly: ignore [unknown-argument-type]
+        response = requests.delete(url=delete_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.NOT_FOUND
 
 
@@ -794,12 +809,16 @@ class TestDeleteVuMarkDatabase:
         response = requests.post(url=databases_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.CREATED
 
-        data = json.loads(s=response.text)
-        delete_url = databases_url + "/" + data["database_name"]  # pyrefly: ignore [unknown-variable-type]
-        response = requests.delete(url=delete_url, json={}, timeout=30)  # pyrefly: ignore [unknown-argument-type]
+        data = TypeAdapter(type=dict[str, JSONValue]).validate_json(
+            response.text,
+        )
+        database_name = data["database_name"]
+        assert isinstance(database_name, str)
+        delete_url = databases_url + "/" + database_name
+        response = requests.delete(url=delete_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.OK
 
-        response = requests.delete(url=delete_url, json={}, timeout=30)  # pyrefly: ignore [unknown-argument-type]
+        response = requests.delete(url=delete_url, json={}, timeout=30)
         assert response.status_code == HTTPStatus.NOT_FOUND
 
 
@@ -1301,7 +1320,11 @@ class TestModelTargetWebAPI:
             data={"grant_type": "client_credentials"},
             timeout=30,
         )
-        token = token_response.json()["access_token"]  # pyrefly: ignore [unknown-variable-type]
+        token_body = TypeAdapter(type=dict[str, JSONValue]).validate_python(
+            token_response.json(),
+        )
+        token = token_body["access_token"]
+        assert isinstance(token, str)
         headers = {"Authorization": f"Bearer {token}"}
 
         create_response = requests.post(
@@ -1310,7 +1333,11 @@ class TestModelTargetWebAPI:
             json=_MODEL_TARGET_DATASET_REQUEST,
             timeout=30,
         )
-        dataset_uuid = create_response.json()["uuid"]  # pyrefly: ignore [unknown-variable-type]
+        create_body = TypeAdapter(type=dict[str, JSONValue]).validate_python(
+            create_response.json(),
+        )
+        dataset_uuid = create_body["uuid"]
+        assert isinstance(dataset_uuid, str)
         status_response = requests.get(
             url=(
                 "https://vws.vuforia.com/modeltargets/datasets/"
@@ -1337,7 +1364,7 @@ class TestModelTargetWebAPI:
             assert dataset_zip.namelist() == ["MTDataset.dat", "MTDataset.xml"]
 
     @staticmethod
-    def _dataset_status(dataset_uuid: str) -> dict[str, Any]:  # pyrefly: ignore [explicit-any]
+    def _dataset_status(dataset_uuid: str) -> dict[str, JSONValue]:
         """Return a dataset's status response body from the VWS app."""
         token_response = requests.post(
             url="https://vws.vuforia.com/oauth2/token",
@@ -1345,7 +1372,11 @@ class TestModelTargetWebAPI:
             data={"grant_type": "client_credentials"},
             timeout=30,
         )
-        token = token_response.json()["access_token"]  # pyrefly: ignore [unknown-variable-type]
+        token_body = TypeAdapter(type=dict[str, JSONValue]).validate_python(
+            token_response.json(),
+        )
+        token = token_body["access_token"]
+        assert isinstance(token, str)
         status_response = requests.get(
             url=(
                 "https://vws.vuforia.com/modeltargets/datasets/"
@@ -1355,8 +1386,9 @@ class TestModelTargetWebAPI:
             timeout=30,
         )
         assert status_response.status_code == HTTPStatus.OK
-        status_body: dict[str, Any] = status_response.json()  # pyrefly: ignore [explicit-any]
-        return status_body
+        return TypeAdapter(type=dict[str, JSONValue]).validate_python(
+            status_response.json(),
+        )
 
     def test_seeded_generation_failure(self) -> None:
         """A dataset seeded with a generation failure through the target
@@ -1383,7 +1415,9 @@ class TestModelTargetWebAPI:
         assert create_response.status_code == HTTPStatus.CREATED
         status_body = self._dataset_status(dataset_uuid=dataset.uuid_)
         assert status_body["status"] == "failed"
-        assert status_body["error"]["message"] == "Seeded failure"
+        error = status_body["error"]
+        assert isinstance(error, dict)
+        assert error["message"] == "Seeded failure"
 
     def test_seeded_generation_warning(self) -> None:
         """A dataset seeded with a generation warning through the target
@@ -1410,7 +1444,9 @@ class TestModelTargetWebAPI:
         assert create_response.status_code == HTTPStatus.CREATED
         status_body = self._dataset_status(dataset_uuid=dataset.uuid_)
         assert status_body["status"] == "done"
-        assert status_body["warning"]["message"] == "Seeded warning"
+        warning = status_body["warning"]
+        assert isinstance(warning, dict)
+        assert warning["message"] == "Seeded warning"
 
     @staticmethod
     def test_delete_unknown_dataset() -> None:
@@ -1721,7 +1757,12 @@ class TestConcurrentRequests:
                     database=database,
                     image_base64=small_image_base64,
                 )
-                target_ids.add(response.json()["target_id"])  # pyrefly: ignore [unknown-argument-type]
+                response_body = TypeAdapter(
+                    type=dict[str, JSONValue],
+                ).validate_python(response.json())
+                target_id = response_body["target_id"]
+                assert isinstance(target_id, str)
+                target_ids.add(target_id)
 
         target_ids_to_update = list(target_ids)[:_NUM_WRITER_THREADS]
         target_ids_to_update_lock = threading.Lock()
