@@ -498,10 +498,7 @@ class RequestHeaderOrCookieTooLargeError(ValidatorError):
 class RequestEntityTooLargeError(ValidatorError):
     """Exception raised when the given image file size is too large."""
 
-    # Ignore coverage on this as there is a bug in urllib3 which means that we
-    # do not trigger this exception.
-    # See https://github.com/urllib3/urllib3/issues/2733.
-    def __init__(self) -> None:  # pragma: no cover
+    def __init__(self) -> None:
         """Initialize a request entity too large response."""
         super().__init__()
         self.status_code = HTTPStatus.REQUEST_ENTITY_TOO_LARGE
