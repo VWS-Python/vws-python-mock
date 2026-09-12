@@ -532,25 +532,26 @@ class NoContentTypeError(ValidatorError):
         """Initialize a missing content type response."""
         super().__init__()
         self.status_code = HTTPStatus.BAD_REQUEST
-        jetty_content_type_error = textwrap.dedent(
-            text="""\
-            <html>
-            <head>
-            <meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-1"/>
-            <title>Error 400 Bad Request</title>
-            </head>
-            <body>
-            <h2>HTTP ERROR 400 Bad Request</h2>
-            <table>
-            <tr><th>URI:</th><td>http://cloudreco.vuforia.com/v1/query</td></tr>
-            <tr><th>STATUS:</th><td>400</td></tr>
-            <tr><th>MESSAGE:</th><td>Bad Request</td></tr>
-            </table>
-            <hr/><a href="https://jetty.org/">Powered by Jetty:// 12.0.20</a><hr/>
-
-            </body>
-            </html>
-            """,  # noqa: E501
+        jetty_content_type_error = (
+            "<html>\n"
+            "<head>\n"
+            '<meta http-equiv="Content-Type" '
+            'content="text/html;charset=ISO-8859-1"/>\n'
+            "<title>Error 400 Bad Request</title>\n"
+            "</head>\n"
+            "<body>\n"
+            "<h2>HTTP ERROR 400 Bad Request</h2>\n"
+            "<table>\n"
+            "<tr><th>URI:</th>"
+            "<td>http://cloudreco.vuforia.com/v1/query</td></tr>\n"
+            "<tr><th>STATUS:</th><td>400</td></tr>\n"
+            "<tr><th>MESSAGE:</th><td>Bad Request</td></tr>\n"
+            "</table>\n"
+            '<hr/><a href="https://jetty.org/">'
+            "Powered by Jetty:// 12.0.20</a><hr/>\n"
+            "\n"
+            "</body>\n"
+            "</html>\n"
         )
         self.response_text = jetty_content_type_error
         self.headers = {
