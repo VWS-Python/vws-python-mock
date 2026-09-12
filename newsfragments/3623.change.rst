@@ -1,1 +1,0 @@
-Accept integer ``response_delay_seconds`` values when mocking ``requests`` calls.

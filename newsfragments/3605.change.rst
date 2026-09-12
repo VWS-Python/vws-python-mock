@@ -1,1 +1,0 @@
-Type target-manager request defaults as database dictionaries instead of arbitrary mappings.

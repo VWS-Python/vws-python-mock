@@ -3,6 +3,17 @@ Changelog
 
 .. towncrier release notes start
 
+2026.09.12
+----------
+
+- Validate decoded Model Target request values before processing them.
+
+- Type target-manager request defaults as database dictionaries instead of arbitrary mappings.
+
+- Type parsed Target Manager request bodies using recursive JSON values.
+
+- Accept integer ``response_delay_seconds`` values when mocking ``requests`` calls.
+
 2026.09.08.1
 ------------
 
