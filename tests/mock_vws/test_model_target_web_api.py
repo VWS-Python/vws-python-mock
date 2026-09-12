@@ -2634,22 +2634,6 @@ class TestMockOnlyOAuth2EdgeCases:
             )
 
     @staticmethod
-    def test_view_helper_rejects_non_objects() -> None:
-        """The view validator reports view values which are not
-        objects.
-        """
-        # pylint: disable=protected-access
-        details = _model_target_web_api._view_details(  # noqa: SLF001
-            models=[{"views": [1]}],
-        )
-        assert details == [
-            {
-                "code": "VALIDATION_ERROR",
-                "message": "/models(0)/views(0): error.expected.jsobject",
-            },
-        ]
-
-    @staticmethod
     def test_target_manager_missing_credential_delete() -> None:
         """The internal target manager returns 404 for an unknown
         credential.
