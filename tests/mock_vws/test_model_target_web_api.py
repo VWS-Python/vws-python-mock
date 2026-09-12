@@ -1,7 +1,5 @@
 """Verified fake tests for the Model Target Web API."""
 
-# pyright: reportPrivateUsage=false
-
 import base64
 import dataclasses
 import io
@@ -20,11 +18,7 @@ from beartype import beartype
 from pydantic import TypeAdapter
 from vws.response import Response
 
-from mock_vws import (
-    MockVWS,
-    ModelTargetGenerationFailure,
-    _model_target_web_api,
-)
+from mock_vws import MockVWS, ModelTargetGenerationFailure
 from mock_vws._flask_server import target_manager as flask_target_manager
 from mock_vws.model_target import (
     JSONValue,
@@ -2637,24 +2631,29 @@ class TestMockOnlyOAuth2EdgeCases:
                 )
 
     @staticmethod
-    def test_client_credential_limit(
-        *,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
+    def test_client_credential_limit() -> None:
         """Credential creation rejects stores at their configured
         limit.
         """
-        monkeypatch.setattr(
-            target=_model_target_web_api,
-            name="_MAX_CLIENT_CREDENTIALS",
-            value=0,
-        )
         with MockVWS():
             headers = {
                 "Authorization": (
                     f"Bearer {TestMockOnlyOAuth2EdgeCases._management_token()}"
                 ),
             }
+            credential_limit = 100
+            for _ in range(credential_limit):
+                created_response = requests.post(
+                    url=f"{_VWS_HOST}/oauth2/clientcredentials",
+                    headers=headers,
+                    json={"scopes": []},
+                    timeout=30,
+                )
+                assert_model_target_status(
+                    response=created_response,
+                    status_codes=HTTPStatus.CREATED,
+                )
+
             response = requests.post(
                 url=f"{_VWS_HOST}/oauth2/clientcredentials",
                 headers=headers,
