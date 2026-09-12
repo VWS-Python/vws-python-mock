@@ -315,12 +315,12 @@ class TestResponseDelay:
     @staticmethod
     def test_custom_sleep_fn_called_on_delay() -> None:
         """
-        When a custom ``sleep_fn`` is provided, it is called instead of
-        ``time.sleep`` for the non-timeout delay path.
+        An integer delay is passed to a custom ``sleep_fn`` instead of
+        ``time.sleep`` on the non-timeout path.
         """
         calls: list[float] = []
         with MockVWS(
-            response_delay_seconds=5.0,
+            response_delay_seconds=5,
             sleep_fn=calls.append,
         ):
             _ = requests.get(
@@ -332,7 +332,7 @@ class TestResponseDelay:
                 data=b"",
                 timeout=30,
             )
-        assert calls == [5.0]
+        assert calls == [5]
 
     @staticmethod
     def test_custom_sleep_fn_called_on_timeout() -> None:

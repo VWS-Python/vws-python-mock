@@ -1058,14 +1058,14 @@ wheels = [
 
 [[package]]
 name = "mock-response-delay"
-version = "2026.9.7"
+version = "2026.9.12"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "beartype" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/da/e4/994f1f6b3efca29fac956c1f40ccb0973f093ee096fd19ca9841d62fe347/mock_response_delay-2026.9.7.tar.gz", hash = "sha256:06f74384b7eed3daf74f83a2a4821bdf699accb286d940e982326b8e6228fe64", size = 152616, upload-time = "2026-09-07T15:53:37.153Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/55/87/9639579dc4ce58953c51add29336c3fa5d0fffe8e14e6903e79e8028a74b/mock_response_delay-2026.9.12.tar.gz", hash = "sha256:c48841a7f9e6f49eadc76cd789dc9d5894d70ab2a89ae64f82567f4bc890a8bb", size = 153580, upload-time = "2026-09-12T00:12:58.571Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e1/7b/c9e0c7f3bc4175c1be6e1ce24194b42f4723b9d176ff04b5425dc2355dfb/mock_response_delay-2026.9.7-py3-none-any.whl", hash = "sha256:841a414b6a433afb672d12df6e3a05a37f64f94d6742390fe4aacc5dd99e10a6", size = 9975, upload-time = "2026-09-07T15:53:35.921Z" },
+    { url = "https://files.pythonhosted.org/packages/82/45/41adceb85da9e1640b534ded333fb2be2d7256b6a1ef8b46d8d6bd215882/mock_response_delay-2026.9.12-py3-none-any.whl", hash = "sha256:7ba63886d202eb9c2c0508cf650d8ce314cf404e0b3f66e748ebf244a3441fc9", size = 9647, upload-time = "2026-09-12T00:12:56.734Z" },
 ]
 
 [[package]]
@@ -2912,7 +2912,7 @@ requires-dist = [
     { name = "flask", specifier = ">=3.0.3" },
     { name = "httpx", specifier = ">=0.27.0" },
     { name = "httpx2", specifier = ">=2.12" },
-    { name = "mock-response-delay", specifier = ">=2026.9.7" },
+    { name = "mock-response-delay", specifier = ">=2026.9.12" },
     { name = "numpy", specifier = ">=2.4.4" },
     { name = "opencv-contrib-python-headless", specifier = ">=5.0.0.93" },
     { name = "pillow", specifier = ">=12.2.0" },
