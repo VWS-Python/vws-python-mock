@@ -350,8 +350,7 @@ class ContentLengthHeaderTooLargeError(ValidatorError):
     large.
     """
 
-    # We skip coverage here as running a test to cover this is very slow.
-    def __init__(self) -> None:  # pragma: no cover
+    def __init__(self) -> None:
         """Initialize a stream timeout response."""
         super().__init__()
         self.status_code = HTTPStatus.REQUEST_TIMEOUT
