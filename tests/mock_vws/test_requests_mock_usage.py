@@ -2158,7 +2158,8 @@ class TestModelTargetWebAPI:
                 data={"grant_type": "client_credentials"},
                 timeout=30,
             )
-            token = token_response.json()["access_token"]  # pyrefly: ignore [unknown-variable-type]
+            token: object = token_response.json()["access_token"]
+            assert isinstance(token, str)
             headers = {"Authorization": f"Bearer {token}"}
 
             create_response = requests.post(
@@ -2167,7 +2168,8 @@ class TestModelTargetWebAPI:
                 json=_MODEL_TARGET_DATASET_REQUEST,
                 timeout=30,
             )
-            dataset_uuid = create_response.json()["uuid"]  # pyrefly: ignore [unknown-variable-type]
+            dataset_uuid: object = create_response.json()["uuid"]
+            assert isinstance(dataset_uuid, str)
 
             status_response = requests.get(
                 url=(
@@ -2204,7 +2206,8 @@ class TestModelTargetWebAPI:
                 json=_MODEL_TARGET_DATASET_REQUEST,
                 timeout=30,
             )
-            dataset_uuid = response.json()["uuid"]  # pyrefly: ignore [unknown-variable-type]
+            dataset_uuid: object = response.json()["uuid"]
+            assert isinstance(dataset_uuid, str)
             status_response = requests.get(
                 url=(
                     "https://vws.vuforia.com/modeltargets/"
@@ -2229,7 +2232,8 @@ class TestModelTargetWebAPI:
                     json=_MODEL_TARGET_DATASET_REQUEST,
                     timeout=30,
                 )
-            dataset_uuid = create_response.json()["uuid"]  # pyrefly: ignore [unknown-variable-type]
+            dataset_uuid: object = create_response.json()["uuid"]
+            assert isinstance(dataset_uuid, str)
             dataset_url = (
                 "https://vws.vuforia.com/modeltargets/datasets/"
                 f"{dataset_uuid}/dataset"

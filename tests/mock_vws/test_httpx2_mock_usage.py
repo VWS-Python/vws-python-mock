@@ -523,7 +523,8 @@ class TestModelTargetWebAPI:
                 json=_MODEL_TARGET_DATASET_REQUEST,
                 timeout=30,
             )
-            dataset_uuid = create_response.json()["uuid"]  # pyrefly: ignore [unknown-variable-type]
+            dataset_uuid: object = create_response.json()["uuid"]
+            assert isinstance(dataset_uuid, str)
             status_response = httpx2.get(
                 url=(
                     "https://vws.vuforia.com/modeltargets/datasets/"
