@@ -13,9 +13,9 @@ import re
 import textwrap
 import time
 import uuid
+from collections.abc import Mapping
 from email.message import EmailMessage
 from http import HTTPMethod, HTTPStatus
-from typing import Any
 from urllib.parse import urljoin
 from zoneinfo import ZoneInfo
 
@@ -28,6 +28,7 @@ from tenacity import Retrying
 from tenacity.retry import retry_if_exception_type
 from tenacity.stop import stop_after_delay
 from tenacity.wait import wait_fixed
+from urllib3.fields import RequestField
 from urllib3.filepost import encode_multipart_formdata
 from vws import VWS, CloudRecoService
 from vws.exceptions.cloud_reco_exceptions import (
@@ -158,9 +159,10 @@ def _query_raw(
 def _query(
     *,
     vuforia_database: CloudDatabase,
-    # urllib3 accepts integer multipart values at runtime for backwards
-    # compatibility, but its annotation excludes those values.
-    body: dict[str, Any],  # pyrefly: ignore [explicit-any]
+    body: Mapping[
+        str,
+        tuple[str | None, object, str],
+    ],
 ) -> Response:
     """Make a request to the endpoint to make an image recognition query.
 
@@ -172,7 +174,29 @@ def _query(
     Returns:
         The response returned by the API.
     """
-    content, content_type_header = encode_multipart_formdata(fields=body)
+    value_adapter: TypeAdapter[str | bytes | int | bool] = TypeAdapter(
+        type=str | bytes | int | bool
+    )
+    fields: list[RequestField] = []
+    for name, (filename, value, content_type) in body.items():
+        validated_value = value_adapter.validate_python(value, strict=True)
+        encoded_value = (
+            str(object=validated_value)
+            if isinstance(validated_value, int)
+            else validated_value
+        )
+        field = RequestField(
+            name=name,
+            data=encoded_value,
+            filename=filename,
+        )
+        field.make_multipart(
+            content_disposition="form-data",
+            content_type=content_type,
+        )
+        fields.append(field)
+
+    content, content_type_header = encode_multipart_formdata(fields=fields)
     return _query_raw(
         vuforia_database=vuforia_database,
         content=content,
