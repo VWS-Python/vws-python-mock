@@ -361,11 +361,11 @@ def _jwt_scopes(*, bearer_token: str) -> frozenset[str]:
 
 
 @beartype
-def _require_bearer_token(
+def _bearer_token_or_error(
     request: RequestData,
     dataset_type: ModelTargetDatasetType,
-) -> _ResponseType | None:
-    """Return an error response if the request has no bearer token."""
+) -> str | _ResponseType:
+    """Return a validated bearer token or an error response."""
     auth_header = _get_header(request=request, name="Authorization")
     if auth_header is None or not auth_header.startswith("Bearer "):
         return _error_response(
@@ -421,18 +421,15 @@ def _require_bearer_token(
             },
             body,
         )
-    return None
+    return bearer_token
 
 
 @beartype
 def _require_state_based_scope(
-    request: RequestData,
+    bearer_token: str,
     dataset_type: ModelTargetDatasetType,
 ) -> _ResponseType | None:
     """Return an error when a token lacks the State-Based MT scope."""
-    auth_header = _get_header(request=request, name="Authorization")
-    assert auth_header is not None  # noqa: S101
-    bearer_token = auth_header.removeprefix("Bearer ").strip()
     required_scope = (
         "modeltargets.statebasedmodeltarget.all"
         if dataset_type == ModelTargetDatasetType.STANDARD
@@ -1442,12 +1439,12 @@ def create_model_target_dataset(
     if content_length_error is not None:
         return content_length_error
 
-    auth_error = _require_bearer_token(
+    bearer_token_or_error = _bearer_token_or_error(
         request=request,
         dataset_type=dataset_type,
     )
-    if auth_error is not None:
-        return auth_error
+    if not isinstance(bearer_token_or_error, str):
+        return bearer_token_or_error
 
     request_json_or_error = _load_request_json(request=request)
     if not isinstance(request_json_or_error, dict):
@@ -1461,7 +1458,7 @@ def create_model_target_dataset(
     )
     if is_state_based:
         state_scope_error = _require_state_based_scope(
-            request=request,
+            bearer_token=bearer_token_or_error,
             dataset_type=dataset_type,
         )
         if state_scope_error is not None:
@@ -1533,12 +1530,12 @@ def get_model_target_dataset_status(
     if content_length_error is not None:
         return content_length_error
 
-    auth_error = _require_bearer_token(
+    bearer_token_or_error = _bearer_token_or_error(
         request=request,
         dataset_type=dataset_type,
     )
-    if auth_error is not None:
-        return auth_error
+    if not isinstance(bearer_token_or_error, str):
+        return bearer_token_or_error
     dataset = _find_dataset(
         dataset_store=dataset_store,
         dataset_uuid=dataset_uuid,
@@ -1600,12 +1597,12 @@ def download_model_target_dataset(
     if content_length_error is not None:
         return content_length_error
 
-    auth_error = _require_bearer_token(
+    bearer_token_or_error = _bearer_token_or_error(
         request=request,
         dataset_type=dataset_type,
     )
-    if auth_error is not None:
-        return auth_error
+    if not isinstance(bearer_token_or_error, str):
+        return bearer_token_or_error
     dataset = _find_dataset(
         dataset_store=dataset_store,
         dataset_uuid=dataset_uuid,
@@ -1650,12 +1647,12 @@ def delete_model_target_dataset(
     if content_length_error is not None:
         return content_length_error
 
-    auth_error = _require_bearer_token(
+    bearer_token_or_error = _bearer_token_or_error(
         request=request,
         dataset_type=dataset_type,
     )
-    if auth_error is not None:
-        return auth_error
+    if not isinstance(bearer_token_or_error, str):
+        return bearer_token_or_error
     dataset = _find_dataset(
         dataset_store=dataset_store,
         dataset_uuid=dataset_uuid,
