@@ -4,9 +4,8 @@ import asyncio
 import io
 import socket
 import uuid
-from collections.abc import Coroutine
+from collections.abc import Awaitable
 from http import HTTPStatus
-from typing import Any
 
 import httpx2
 import pytest
@@ -57,7 +56,7 @@ _MODEL_TARGET_DATASET_REQUEST = {
 }
 
 
-def _run[T](*, coroutine: Coroutine[Any, Any, T]) -> T:  # pyrefly: ignore [explicit-any]
+def _run[T](*, coroutine: Awaitable[T]) -> T:
     """Run a coroutine to completion.
 
     The test suite has no plugin for asynchronous tests, so asynchronous
