@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 import pytest
 
 from mock_vws._constants import ResultCodes
+from tests.mock_vws.fixtures.vuforia_backends import VuforiaBackend
 from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import (
     assert_valid_date_header,
@@ -89,9 +90,14 @@ class TestIncorrect:
         assert response.headers == expected_headers
 
     @staticmethod
-    @pytest.mark.skip(reason="It takes too long to run this test.")
-    def test_too_large(endpoint: Endpoint) -> None:  # pragma: no cover
+    def test_too_large(
+        endpoint: Endpoint,
+        verify_mock_vuforia: VuforiaBackend,
+    ) -> None:
         """An error is given if the given content length is too large."""
+        if verify_mock_vuforia is VuforiaBackend.REAL:
+            pytest.skip(reason="Real Vuforia takes too long to respond")
+
         if not bool(endpoint.headers.get("Content-Type")):
             pytest.skip(reason="No Content-Type header for this request")
 

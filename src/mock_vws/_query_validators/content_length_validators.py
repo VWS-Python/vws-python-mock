@@ -57,8 +57,7 @@ def validate_content_length_header_not_too_large(
 
     body_length = len(request_body)
     given_content_length_value = int(given_content_length)
-    # We skip coverage here as running a test to cover this is very slow.
-    if given_content_length_value > body_length:  # pragma: no cover
+    if given_content_length_value > body_length:
         _LOGGER.warning(msg="The Content-Length header is too large.")
         raise ContentLengthHeaderTooLargeError
 
