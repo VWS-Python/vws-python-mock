@@ -334,10 +334,7 @@ class _InMemoryRecoCountsReportStore:
 
     def add_reco_counts_report(
         self,
-        # The parameter name matches the ``RecoCountsReportStore`` protocol,
-        # and also happens to match the name of a route function in this
-        # module.
-        reco_counts_report: RecoCountsReport,  # pylint: disable=redefined-outer-name
+        reco_counts_report: RecoCountsReport,
     ) -> None:
         """Add a reco counts report."""
         with self._lock:
@@ -720,7 +717,7 @@ def delete_advanced_model_target_dataset(dataset_uuid: str) -> Response:
     methods=[HTTPMethod.POST],
 )
 @beartype
-def reco_counts_report(database_id: str) -> Response:
+def request_reco_counts_report(database_id: str) -> Response:
     """Request a reco counts report for a database.
 
     Fake implementation of
