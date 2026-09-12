@@ -3,9 +3,10 @@
 import base64
 import io
 import json
+from collections.abc import Mapping
 from http import HTTPMethod, HTTPStatus
 from string import hexdigits
-from typing import Any, Final
+from typing import Final
 
 import pytest
 from beartype import beartype
@@ -43,7 +44,7 @@ _MAX_METADATA_BYTES: Final[int] = 1024 * 1024 - 1
 def _add_target_to_vws(
     *,
     vws_client: VWS,
-    data: dict[str, Any],  # pyrefly: ignore [explicit-any]
+    data: Mapping[str, object],
     content_type: str,
 ) -> Response:
     """Return a response from a request to the endpoint to add a target.

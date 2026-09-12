@@ -4,8 +4,9 @@ import base64
 import io
 import json
 import uuid
+from collections.abc import Mapping
 from http import HTTPMethod, HTTPStatus
-from typing import Any, Final
+from typing import Final
 
 import pytest
 from vws import VWS
@@ -37,7 +38,7 @@ _MAX_METADATA_BYTES: Final[int] = 1024 * 1024 - 1
 def _update_target(
     *,
     vws_client: VWS,
-    data: dict[str, Any],  # pyrefly: ignore [explicit-any]
+    data: Mapping[str, object],
     target_id: str,
     content_type: str,
 ) -> Response:
