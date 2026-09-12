@@ -15,6 +15,7 @@ from unittest import mock
 from urllib.parse import urlparse
 
 import httpx2
+from beartype import beartype
 from mock_response_delay.for_httpx2 import delayed_httpx2_handler
 
 from mock_vws._mock_common import RequestData, Route
@@ -30,6 +31,7 @@ class _APIHandler(Protocol):
     routes: set[Route]
 
 
+@beartype
 @dataclass(frozen=True, kw_only=True)
 class _MockRoute:
     """One route of a fake API, ready to match ``httpx2`` requests.
@@ -45,6 +47,7 @@ class _MockRoute:
     handler: _Httpx2Handler
 
 
+@beartype
 def _to_request_data(
     *,
     request: httpx2.Request,
@@ -70,6 +73,7 @@ def _to_request_data(
     )
 
 
+@beartype
 def _httpx2_handler(
     *,
     handler: _Handler,
@@ -109,6 +113,7 @@ def _httpx2_handler(
     return respond
 
 
+@beartype
 def _refuse(*, request: httpx2.Request) -> httpx2.ConnectError:
     """The error to raise for a request which no fake route matches.
 
@@ -124,6 +129,7 @@ def _refuse(*, request: httpx2.Request) -> httpx2.ConnectError:
     )
 
 
+@beartype
 @dataclass(frozen=True, kw_only=True)
 class _Fakes:
     """Answer ``httpx2`` requests with the fakes of the Vuforia APIs.
@@ -153,6 +159,7 @@ class _Fakes:
         return None
 
 
+@beartype
 class _SyncVuforiaTransport(httpx2.BaseTransport):
     """Give synchronous ``httpx2`` requests to the fakes of the Vuforia
     APIs.
@@ -198,6 +205,7 @@ class _SyncVuforiaTransport(httpx2.BaseTransport):
         return self._wrapped.handle_request(request=request)
 
 
+@beartype
 class _AsyncVuforiaTransport(httpx2.AsyncBaseTransport):
     """Give asynchronous ``httpx2`` requests to the fakes of the Vuforia
     APIs.
@@ -246,6 +254,7 @@ class _AsyncVuforiaTransport(httpx2.AsyncBaseTransport):
         return await self._wrapped.handle_async_request(request=request)
 
 
+@beartype
 @dataclass(frozen=True, kw_only=True)
 class Httpx2Router:
     """A started patch of ``httpx2`` which routes requests to fakes.
