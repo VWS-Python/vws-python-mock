@@ -23,6 +23,7 @@ import pytest
 import requests
 from dirty_equals import IsInstance
 from PIL import Image
+from pydantic import TypeAdapter
 from tenacity import Retrying
 from tenacity.retry import retry_if_exception_type
 from tenacity.stop import stop_after_delay
@@ -157,6 +158,8 @@ def _query_raw(
 def _query(
     *,
     vuforia_database: CloudDatabase,
+    # urllib3 accepts integer multipart values at runtime for backwards
+    # compatibility, but its annotation excludes those values.
     body: dict[str, Any],  # pyrefly: ignore [explicit-any]
 ) -> Response:
     """Make a request to the endpoint to make an image recognition query.
@@ -626,7 +629,11 @@ class TestSuccess:
                 "target_timestamp": IsInstance(expected_type=int),
             },
         }
-        target_timestamp = int(result["target_data"]["target_timestamp"])  # pyrefly: ignore [unknown-argument-type]
+        target_timestamp_value: object = result["target_data"][
+            "target_timestamp"
+        ]
+        assert isinstance(target_timestamp_value, int)
+        target_timestamp = target_timestamp_value
         time_difference = abs(approximate_target_created - target_timestamp)
         max_time_difference = 5
         assert time_difference < max_time_difference
@@ -879,7 +886,11 @@ class TestMaxNumResults:
 
         assert_query_success(response=response)
         response_json = json.loads(s=response.text)
-        assert len(response_json["results"]) == 1  # pyrefly: ignore [unknown-argument-type]
+        results_value: object = response_json["results"]
+        results = TypeAdapter(type=list[object]).validate_python(
+            results_value,
+        )
+        assert len(results) == 1
 
     @staticmethod
     @pytest.mark.parametrize(argnames="num_results", argvalues=[1, b"1", 50])
