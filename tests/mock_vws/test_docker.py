@@ -72,13 +72,7 @@ class _MockDeployment:
 def _poll_health_check(container: Container) -> None:
     """Poll a container until it reports a healthy status."""
     container.reload()
-    state = TypeAdapter(type=dict[str, object]).validate_python(
-        container.attrs["State"],
-    )
-    health = TypeAdapter(type=dict[str, object]).validate_python(
-        state["Health"],
-    )
-    health_status = TypeAdapter(type=str).validate_python(health["Status"])
+    health_status = container.health
     # In theory this might not be hit by coverage.
     # Let's keep it required by coverage for now.
     if health_status != "healthy":
@@ -215,17 +209,10 @@ def _free_port() -> int:
 def _published_base_url(*, container: Container) -> str:
     """Return the host-reachable base URL of a container."""
     container.reload()
-    network_settings = TypeAdapter(type=dict[str, object]).validate_python(
-        container.attrs["NetworkSettings"],
-    )
-    ports = TypeAdapter(type=dict[str, object]).validate_python(
-        network_settings["Ports"],
-    )
-    bindings = TypeAdapter(type=list[dict[str, object]]).validate_python(
-        ports["5000/tcp"],
-    )
-    host_ip = TypeAdapter(type=str).validate_python(bindings[0]["HostIp"])
-    host_port = TypeAdapter(type=str).validate_python(bindings[0]["HostPort"])
+    bindings = container.ports["5000/tcp"]
+    assert bindings is not None
+    host_ip = bindings[0]["HostIp"]
+    host_port = bindings[0]["HostPort"]
     return f"http://{host_ip}:{host_port}"
 
 
