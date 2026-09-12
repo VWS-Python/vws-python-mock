@@ -10,7 +10,7 @@ from http import HTTPStatus
 from typing import Protocol, TypeGuard, runtime_checkable
 from urllib.parse import parse_qs
 
-from beartype import beartype
+from beartype import BeartypeConf, beartype
 from beartype.door import TypeHint
 
 from mock_vws._mock_common import RequestData, json_dump
@@ -1426,7 +1426,7 @@ def _validate_dataset_request(
     return None
 
 
-@beartype
+@beartype(conf=BeartypeConf(is_pep484_tower=True))
 def create_model_target_dataset(
     *,
     request: RequestData,

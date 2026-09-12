@@ -74,7 +74,7 @@ class _MockVWSOptions:
     cloud_query_failure_response: CloudQueryFailureResponse | None
     duplicate_match_checker: ImageMatcher
     query_match_checker: ImageMatcher
-    processing_time_seconds: float
+    processing_time_seconds: int | float
     model_target_generation_failure: ModelTargetGenerationFailure | None
     model_target_failure_response: ModelTargetFailureResponse | None
     model_target_generation_warning: ModelTargetGenerationWarning | None
@@ -210,8 +210,7 @@ class MockVWS:
             cloud_query_failure_response=cloud_query_failure_response,
             duplicate_match_checker=duplicate_match_checker,
             query_match_checker=query_match_checker,
-            # Runtime callers may pass integers accepted by the numeric tower.
-            processing_time_seconds=float(processing_time_seconds),  # pyrefly: ignore [unnecessary-type-conversion]
+            processing_time_seconds=processing_time_seconds,
             model_target_generation_failure=model_target_generation_failure,
             model_target_failure_response=model_target_failure_response,
             model_target_generation_warning=model_target_generation_warning,

@@ -30,7 +30,7 @@ class ModelTargetDatasetDict(TypedDict):
 
     request_body: _JSONObject
     dataset_type_name: str
-    processing_time_seconds: float
+    processing_time_seconds: int | float
     generation_failure_message: str | None
     generation_warning: _GenerationWarningDict | None
     uuid: str
@@ -157,7 +157,7 @@ class ModelTargetDataset:
 
     request_body: _JSONObject = field(hash=False)
     dataset_type: ModelTargetDatasetType
-    processing_time_seconds: float = field(hash=False)
+    processing_time_seconds: int | float = field(hash=False)
     generation_failure: ModelTargetGenerationFailure | None = field(hash=False)
     generation_warning: ModelTargetGenerationWarning | None = field(hash=False)
     uuid_: str = field(default_factory=lambda: uuid.uuid4().hex)
