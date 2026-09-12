@@ -351,7 +351,9 @@ def start_httpx2_router(
     )
 
     # HTTPX2 has no public hook for intercepting clients created before the
-    # mock starts. RESPX patches the equivalent private HTTPX method:
+    # mock starts. A public client extension API was proposed but closed as
+    # out of scope: https://github.com/pydantic/httpx2/issues/121
+    # RESPX patches the equivalent private HTTPX method:
     # https://github.com/lundberg/respx/blob/57d8c29705fdbbaeb5cd216f1ea3bb0386d7ba16/respx/mocks.py#L150
     # pylint: disable=protected-access
     original_sync = httpx2.Client._transport_for_url  # noqa: SLF001  # pyright: ignore[reportPrivateUsage]
