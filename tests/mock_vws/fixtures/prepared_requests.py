@@ -5,7 +5,6 @@ import datetime
 import io
 import json
 from http import HTTPMethod, HTTPStatus
-from typing import Any
 from uuid import uuid4
 from zoneinfo import ZoneInfo
 
@@ -348,7 +347,7 @@ def update_target(
     target_id: str,
 ) -> Endpoint:
     """Return details of the endpoint for updating a target."""
-    data: dict[str, Any] = {}  # pyrefly: ignore [explicit-any]
+    data: dict[str, object] = {}
     request_path = f"/targets/{target_id}"
     content = json.dumps(obj=data).encode(encoding="utf-8")
     content_type = "application/json"

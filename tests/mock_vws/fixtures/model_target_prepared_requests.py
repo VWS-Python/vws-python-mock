@@ -2,12 +2,13 @@
 
 import json
 from http import HTTPMethod, HTTPStatus
-from typing import Any
 
 import pytest
 import requests
 from beartype import beartype
+from pydantic import TypeAdapter
 
+from mock_vws.model_target import JSONValue
 from tests.mock_vws.fixtures.credentials import (
     ModelTargetCredentials,
     get_model_target_credentials,
@@ -19,7 +20,7 @@ from tests.mock_vws.utils.assertions import assert_model_target_status
 MODEL_TARGET_VWS_HOST = "https://vws.vuforia.com"
 MODEL_TARGET_DATASET_UUID = "0b12466eee5d49409a440927006ff5d8"
 
-_DATASET_REQUEST: dict[str, Any] = {  # pyrefly: ignore [explicit-any]
+_DATASET_REQUEST: dict[str, JSONValue] = {
     "name": "dataset-name",
     "targetSdk": "10.18",
     "models": [
@@ -77,7 +78,9 @@ def get_access_token(
         response=response,
         status_codes=HTTPStatus.OK,
     )
-    response_json: dict[str, Any] = json.loads(s=response.text)  # pyrefly: ignore [explicit-any]
+    response_json = TypeAdapter(type=dict[str, JSONValue]).validate_json(
+        response.text,
+    )
     access_token = response_json["access_token"]
     assert isinstance(access_token, str)
     assert response_json["token_type"] == "bearer"
