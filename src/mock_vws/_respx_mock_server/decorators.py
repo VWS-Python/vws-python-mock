@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 
 import httpx
 import respx
+from beartype import BeartypeConf, beartype
 from mock_response_delay.for_httpx import delayed_httpx_handler
 from respx.mocks import Mocker
 
@@ -21,6 +22,7 @@ class _APIHandler(Protocol):
     routes: set[Route]
 
 
+@beartype
 def _to_request_data(
     request: httpx.Request,
     *,
@@ -46,6 +48,7 @@ def _to_request_data(
     )
 
 
+@beartype
 def _block_unmatched(request: httpx.Request) -> httpx.Response:
     """Raise ConnectError for unmatched requests when real_http=False.
 
@@ -62,6 +65,7 @@ def _block_unmatched(request: httpx.Request) -> httpx.Response:
     )
 
 
+@beartype(conf=BeartypeConf(is_pep484_tower=True))
 def _make_respx_callback(
     *,
     handler: Callable[[RequestData], _ResponseType],

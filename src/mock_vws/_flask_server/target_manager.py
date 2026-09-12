@@ -143,6 +143,7 @@ def _to_request_rate_limit(
     )
 
 
+@beartype
 class RequestRateLimitsBody(BaseModel):
     """Per-endpoint request rate limits in a create cloud database
     request.
@@ -180,6 +181,7 @@ class RequestRateLimitsBody(BaseModel):
         )
 
 
+@beartype
 class CloudDatabaseRequestBody(BaseModel):
     """The body of a request to create a cloud database.
 
@@ -231,6 +233,7 @@ class CloudDatabaseRequestBody(BaseModel):
         )
 
 
+@beartype
 class VuMarkDatabaseRequestBody(BaseModel):
     """The body of a request to create a VuMark database.
 
