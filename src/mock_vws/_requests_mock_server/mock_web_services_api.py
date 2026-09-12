@@ -204,7 +204,7 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
         self._target_manager = target_manager
         self._base_vws_url = base_vws_url
         self.routes: set[Route] = {route.bind(api=self) for route in _ROUTES}
-        self._processing_time_seconds = processing_time_seconds
+        self._processing_time_seconds: int | float = processing_time_seconds
         self._model_target_generation_failure = model_target_generation_failure
         self._model_target_failure_response = model_target_failure_response
         self._model_target_generation_warning = model_target_generation_warning

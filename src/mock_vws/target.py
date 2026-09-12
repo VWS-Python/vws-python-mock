@@ -25,7 +25,7 @@ class VuMarkTargetDict(TypedDict):
 
     target_id: str
     name: str
-    processing_time_seconds: float
+    processing_time_seconds: int | float
     last_modified_date: str
     upload_date: str
 
@@ -37,7 +37,7 @@ class ImageTargetDict(TypedDict):
     width: float
     image_base64: str
     active_flag: bool
-    processing_time_seconds: float
+    processing_time_seconds: int | float
     application_metadata: str | None
     target_id: str
     last_modified_date: str
@@ -81,7 +81,7 @@ class ImageTarget:
     application_metadata: str | None
     image_value: bytes
     name: str
-    processing_time_seconds: float
+    processing_time_seconds: int | float
     width: float
     target_tracking_rater: TargetTrackingRater = field(compare=False)
     current_month_recos: int = 0
@@ -127,7 +127,7 @@ class ImageTarget:
         suitable the target is for detection.
         """
         processing_time = datetime.timedelta(
-            seconds=float(self.processing_time_seconds),  # pyrefly: ignore [unnecessary-type-conversion]
+            seconds=float(self.processing_time_seconds),
         )
 
         timezone = self.upload_date.tzinfo
@@ -151,7 +151,7 @@ class ImageTarget:
             # That this is half of the total processing time is unrealistic.
             # In VWS it is not a constant percentage: it was observed as
             # roughly one second of a roughly thirty second processing time.
-            seconds=float(self.processing_time_seconds) / 2,  # pyrefly: ignore [unnecessary-type-conversion]
+            seconds=float(self.processing_time_seconds) / 2,
         )
 
         timezone = self.upload_date.tzinfo
@@ -231,7 +231,7 @@ class ImageTarget:
             "width": self.width,
             "image_base64": image_base64,
             "active_flag": self.active_flag,
-            "processing_time_seconds": float(self.processing_time_seconds),  # pyrefly: ignore [unnecessary-type-conversion]
+            "processing_time_seconds": float(self.processing_time_seconds),
             "application_metadata": self.application_metadata,
             "target_id": self.target_id,
             "last_modified_date": self.last_modified_date.isoformat(),
@@ -256,7 +256,7 @@ class VuMarkTarget:
     """
 
     name: str
-    processing_time_seconds: float = 0.0
+    processing_time_seconds: int | float = 0.0
     target_id: str = field(default_factory=_random_hex)
     last_modified_date: datetime.datetime = field(default_factory=_time_now)
     upload_date: datetime.datetime = field(default_factory=_time_now)
@@ -268,7 +268,7 @@ class VuMarkTarget:
         VuMark targets always succeed after processing.
         """
         processing_time = datetime.timedelta(
-            seconds=float(self.processing_time_seconds),  # pyrefly: ignore [unnecessary-type-conversion]
+            seconds=float(self.processing_time_seconds),
         )
 
         timezone = self.upload_date.tzinfo
@@ -305,7 +305,7 @@ class VuMarkTarget:
         return {
             "target_id": self.target_id,
             "name": self.name,
-            "processing_time_seconds": float(self.processing_time_seconds),  # pyrefly: ignore [unnecessary-type-conversion]
+            "processing_time_seconds": float(self.processing_time_seconds),
             "last_modified_date": self.last_modified_date.isoformat(),
             "upload_date": self.upload_date.isoformat(),
         }
