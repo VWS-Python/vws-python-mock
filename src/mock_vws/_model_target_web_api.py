@@ -482,7 +482,130 @@ def _fake_jwt(*, token_source: bytes, scopes: frozenset[str]) -> str:
 
 
 @beartype
-def oauth2_token(  # noqa: PLR0911  # pylint: disable=too-many-return-statements
+def _oauth2_access_token_response(
+    *,
+    request: RequestData,
+    form: dict[str, list[str]],
+    auth_header: str | None,
+    credential_scopes: frozenset[str],
+) -> _ResponseType:
+    """Return an access token limited to ``credential_scopes``."""
+    auth_text = auth_header if auth_header is not None else ""
+    token_source = (
+        request.body if len(request.body) > 0 else auth_text.encode()
+    )
+    requested_scope = form.get("scope", [""])[0]
+    requested_scopes = frozenset(requested_scope.split())
+    scopes = (
+        requested_scopes if len(requested_scopes) > 0 else credential_scopes
+    )
+    if not scopes.issubset(credential_scopes):
+        return _oauth2_error_response(
+            status_code=HTTPStatus.BAD_REQUEST,
+            body={"error": "invalid_scope"},
+        )
+    return _json_response(
+        status_code=HTTPStatus.OK,
+        body={
+            "access_token": _fake_jwt(
+                token_source=token_source,
+                scopes=scopes,
+            ),
+            "token_type": "bearer",
+            "expires_in": 3600,
+        },
+    )
+
+
+@beartype
+def _oauth2_client_credentials_token(
+    *,
+    request: RequestData,
+    form: dict[str, list[str]],
+    auth_header: str | None,
+    credential_store: ModelTargetDatasetStore,
+) -> _ResponseType:
+    """Validate a client-credentials grant and return its token
+    response.
+    """
+    basic_credentials = _basic_auth_credentials(auth_header=auth_header)
+    if basic_credentials is None:
+        return _oauth2_error_response(
+            status_code=HTTPStatus.UNAUTHORIZED,
+            body={
+                "error": "invalid_request",
+                "error_description": "Missing or invalid authorization header",
+            },
+        )
+
+    dynamic_credential = credential_store.oauth2_client_credentials.get(
+        basic_credentials[0],
+    )
+    fixed_credential_matches = basic_credentials == (
+        _MOCK_MODEL_TARGET_CLIENT_ID,
+        _MOCK_MODEL_TARGET_CLIENT_SECRET,
+    )
+    dynamic_credential_matches = (
+        dynamic_credential is not None
+        and dynamic_credential.client_secret == basic_credentials[1]
+    )
+    if not fixed_credential_matches and not dynamic_credential_matches:
+        return _oauth2_error_response(
+            status_code=HTTPStatus.UNAUTHORIZED,
+            body={"error": "invalid_client"},
+        )
+    credential_scopes = (
+        frozenset(dynamic_credential.scopes)
+        if dynamic_credential is not None
+        else _MODEL_TARGET_SCOPES | {_CLIENT_CREDENTIALS_SCOPE}
+    )
+    return _oauth2_access_token_response(
+        request=request,
+        form=form,
+        auth_header=auth_header,
+        credential_scopes=credential_scopes,
+    )
+
+
+@beartype
+def _oauth2_password_token(
+    *,
+    request: RequestData,
+    form: dict[str, list[str]],
+    auth_header: str | None,
+) -> _ResponseType:
+    """Validate a password grant and return its token response."""
+    username = form.get("username", [""])[0]
+    password = form.get("password", [""])[0]
+    if len(username) == 0 or len(password) == 0:
+        return _oauth2_error_response(
+            status_code=HTTPStatus.BAD_REQUEST,
+            body={
+                "error": "invalid_request",
+                "error_description": "Missing username and/or password",
+            },
+        )
+    if (username, password) != (
+        _MOCK_MODEL_TARGET_USERNAME,
+        _MOCK_MODEL_TARGET_PASSWORD,
+    ):
+        return _oauth2_error_response(
+            status_code=HTTPStatus.UNAUTHORIZED,
+            body={
+                "error": "invalid_grant",
+                "error_description": "Invalid username and/or password",
+            },
+        )
+    return _oauth2_access_token_response(
+        request=request,
+        form=form,
+        auth_header=auth_header,
+        credential_scopes=(_MODEL_TARGET_SCOPES | {_CLIENT_CREDENTIALS_SCOPE}),
+    )
+
+
+@beartype
+def oauth2_token(
     *,
     request: RequestData,
     credential_store: ModelTargetDatasetStore,
@@ -506,89 +629,17 @@ def oauth2_token(  # noqa: PLR0911  # pylint: disable=too-many-return-statements
             body={"error": "unsupported_grant_type"},
         )
 
-    dynamic_credential: OAuth2ClientCredential | None = None
     if grant_type == "client_credentials":
-        basic_credentials = _basic_auth_credentials(auth_header=auth_header)
-        if basic_credentials is None:
-            return _oauth2_error_response(
-                status_code=HTTPStatus.UNAUTHORIZED,
-                body={
-                    "error": "invalid_request",
-                    "error_description": (
-                        "Missing or invalid authorization header"
-                    ),
-                },
-            )
-
-        dynamic_credential = credential_store.oauth2_client_credentials.get(
-            basic_credentials[0],
+        return _oauth2_client_credentials_token(
+            request=request,
+            form=form,
+            auth_header=auth_header,
+            credential_store=credential_store,
         )
-        fixed_credential_matches = basic_credentials == (
-            _MOCK_MODEL_TARGET_CLIENT_ID,
-            _MOCK_MODEL_TARGET_CLIENT_SECRET,
-        )
-        dynamic_credential_matches = (
-            dynamic_credential is not None
-            and dynamic_credential.client_secret == basic_credentials[1]
-        )
-        if not fixed_credential_matches and not dynamic_credential_matches:
-            return _oauth2_error_response(
-                status_code=HTTPStatus.UNAUTHORIZED,
-                body={"error": "invalid_client"},
-            )
-    else:
-        username = form.get("username", [""])[0]
-        password = form.get("password", [""])[0]
-        if len(username) == 0 or len(password) == 0:
-            return _oauth2_error_response(
-                status_code=HTTPStatus.BAD_REQUEST,
-                body={
-                    "error": "invalid_request",
-                    "error_description": "Missing username and/or password",
-                },
-            )
-        if (username, password) != (
-            _MOCK_MODEL_TARGET_USERNAME,
-            _MOCK_MODEL_TARGET_PASSWORD,
-        ):
-            return _oauth2_error_response(
-                status_code=HTTPStatus.UNAUTHORIZED,
-                body={
-                    "error": "invalid_grant",
-                    "error_description": "Invalid username and/or password",
-                },
-            )
-
-    auth_text = auth_header if auth_header is not None else ""
-    token_source = (
-        request.body if len(request.body) > 0 else auth_text.encode()
-    )
-    requested_scope = form.get("scope", [""])[0]
-    if grant_type == "client_credentials" and dynamic_credential is not None:
-        credential_scopes = frozenset(dynamic_credential.scopes)
-    else:
-        credential_scopes = _MODEL_TARGET_SCOPES | {
-            _CLIENT_CREDENTIALS_SCOPE,
-        }
-    requested_scopes = frozenset(requested_scope.split())
-    scopes = (
-        requested_scopes if len(requested_scopes) > 0 else credential_scopes
-    )
-    if not scopes.issubset(credential_scopes):
-        return _oauth2_error_response(
-            status_code=HTTPStatus.BAD_REQUEST,
-            body={"error": "invalid_scope"},
-        )
-    return _json_response(
-        status_code=HTTPStatus.OK,
-        body={
-            "access_token": _fake_jwt(
-                token_source=token_source,
-                scopes=scopes,
-            ),
-            "token_type": "bearer",
-            "expires_in": 3600,
-        },
+    return _oauth2_password_token(
+        request=request,
+        form=form,
+        auth_header=auth_header,
     )
 
 
