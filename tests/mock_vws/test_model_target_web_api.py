@@ -539,28 +539,25 @@ class TestAuthentication:
                 f"Bearer {password_token_response.json()['access_token']}"
             ),
         }
-        client_id: str | None = None
+        create_response = requests.post(
+            url=f"{_VWS_HOST}/oauth2/clientcredentials",
+            headers=headers,
+            json={
+                "scopes": ["modeltargets.standardmodeltarget.all"],
+            },
+            timeout=30,
+        )
+        assert_model_target_status(
+            response=create_response,
+            status_codes=HTTPStatus.CREATED,
+        )
+        response_json = create_response.json()
+        client_id: object = response_json["client_id"]
+        client_secret: object = response_json["client_secret"]
+        assert isinstance(client_id, str)
+        assert isinstance(client_secret, str)
 
         try:
-            create_response = requests.post(
-                url=f"{_VWS_HOST}/oauth2/clientcredentials",
-                headers=headers,
-                json={
-                    "scopes": ["modeltargets.standardmodeltarget.all"],
-                },
-                timeout=30,
-            )
-            assert_model_target_status(
-                response=create_response,
-                status_codes=HTTPStatus.CREATED,
-            )
-            response_json = create_response.json()
-            client_id_value: object = response_json["client_id"]
-            client_secret: object = response_json["client_secret"]
-            assert isinstance(client_id_value, str)
-            assert isinstance(client_secret, str)
-            client_id = client_id_value
-
             list_response = model_target_get(
                 url=f"{_VWS_HOST}/oauth2/clientcredentials",
                 headers=headers,
@@ -597,8 +594,6 @@ class TestAuthentication:
                 "scopes": ["modeltargets.advancedmodeltarget.all"],
             }
 
-            assert client_id is not None
-            assert isinstance(client_secret, str)
             client_token_response = requests.post(
                 url=f"{_VWS_HOST}/oauth2/token",
                 auth=(client_id, client_secret),
@@ -626,16 +621,15 @@ class TestAuthentication:
                 status_codes=HTTPStatus.FORBIDDEN,
             )
         finally:
-            if client_id is not None:  # pragma: no branch
-                delete_response = requests.delete(
-                    url=(f"{_VWS_HOST}/oauth2/clientcredentials/{client_id}"),
-                    headers=headers,
-                    timeout=30,
-                )
-                assert_model_target_status(
-                    response=delete_response,
-                    status_codes=HTTPStatus.NO_CONTENT,
-                )
+            delete_response = requests.delete(
+                url=(f"{_VWS_HOST}/oauth2/clientcredentials/{client_id}"),
+                headers=headers,
+                timeout=30,
+            )
+            assert_model_target_status(
+                response=delete_response,
+                status_codes=HTTPStatus.NO_CONTENT,
+            )
 
         missing_client_id = "000000000000000000000"
         missing_response = requests.delete(
@@ -2138,26 +2132,24 @@ class TestAdditionalBehaviors:
             backend=verify_model_target_mock_vuforia,
         )
         headers = {"Authorization": f"Bearer {access_token}"}
-        dataset_uuid: str | None = None
-        try:
-            create_response = requests.post(
-                url=f"{_VWS_HOST}{created_path}",
-                headers=headers,
-                json=_dataset_request(
-                    cad_data_url=credentials_for_backend(
-                        backend=verify_model_target_mock_vuforia,
-                    ).cad_data_url,
-                ),
-                timeout=30,
-            )
-            assert_model_target_status(
-                response=create_response,
-                status_codes=HTTPStatus.CREATED,
-            )
-            dataset_uuid_value: object = create_response.json()["uuid"]
-            assert isinstance(dataset_uuid_value, str)
-            dataset_uuid = dataset_uuid_value
+        create_response = requests.post(
+            url=f"{_VWS_HOST}{created_path}",
+            headers=headers,
+            json=_dataset_request(
+                cad_data_url=credentials_for_backend(
+                    backend=verify_model_target_mock_vuforia,
+                ).cad_data_url,
+            ),
+            timeout=30,
+        )
+        assert_model_target_status(
+            response=create_response,
+            status_codes=HTTPStatus.CREATED,
+        )
+        dataset_uuid: object = create_response.json()["uuid"]
+        assert isinstance(dataset_uuid, str)
 
+        try:
             other_status_response = model_target_get(
                 url=f"{_VWS_HOST}{other_path}/{dataset_uuid}/status",
                 headers=headers,
@@ -2177,19 +2169,18 @@ class TestAdditionalBehaviors:
                 timeout=30,
             )
         finally:
-            if dataset_uuid is not None:  # pragma: no branch
-                delete_response = requests.delete(
-                    url=f"{_VWS_HOST}{created_path}/{dataset_uuid}",
-                    headers=headers,
-                    timeout=30,
-                )
-                assert_model_target_status(
-                    response=delete_response,
-                    status_codes={
-                        HTTPStatus.OK,
-                        HTTPStatus.NO_CONTENT,
-                    },
-                )
+            delete_response = requests.delete(
+                url=f"{_VWS_HOST}{created_path}/{dataset_uuid}",
+                headers=headers,
+                timeout=30,
+            )
+            assert_model_target_status(
+                response=delete_response,
+                status_codes={
+                    HTTPStatus.OK,
+                    HTTPStatus.NO_CONTENT,
+                },
+            )
 
         assert_model_target_status(
             response=other_status_response,
@@ -2230,25 +2221,22 @@ class TestStandardDataset:
             backend=verify_model_target_mock_vuforia,
         )
         headers = {"Authorization": f"Bearer {access_token}"}
-        dataset_uuid: str | None = None
+        create_response = requests.post(
+            url=f"{_VWS_HOST}/modeltargets/datasets",
+            headers=headers,
+            json=_dataset_request(cad_data_url=credentials.cad_data_url),
+            timeout=30,
+        )
+
+        assert_model_target_status(
+            response=create_response,
+            status_codes=HTTPStatus.CREATED,
+        )
+        create_response_json = _response_json(response=create_response)
+        dataset_uuid: object = create_response_json["uuid"]
+        assert isinstance(dataset_uuid, str)
 
         try:
-            create_response = requests.post(
-                url=f"{_VWS_HOST}/modeltargets/datasets",
-                headers=headers,
-                json=_dataset_request(cad_data_url=credentials.cad_data_url),
-                timeout=30,
-            )
-
-            assert_model_target_status(
-                response=create_response,
-                status_codes=HTTPStatus.CREATED,
-            )
-            create_response_json = _response_json(response=create_response)
-            dataset_uuid_value = create_response_json["uuid"]
-            assert isinstance(dataset_uuid_value, str)
-            dataset_uuid = dataset_uuid_value
-
             status_response = model_target_get(
                 url=(
                     f"{_VWS_HOST}/modeltargets/advancedDatasets/"
@@ -2322,19 +2310,18 @@ class TestStandardDataset:
             ) as archive:
                 assert archive.namelist() == ["MTDataset.dat", "MTDataset.xml"]
         finally:
-            if dataset_uuid is not None:  # pragma: no branch
-                delete_response = requests.delete(
-                    url=f"{_VWS_HOST}/modeltargets/datasets/{dataset_uuid}",
-                    headers=headers,
-                    timeout=30,
-                )
-                assert_model_target_status(
-                    response=delete_response,
-                    status_codes={
-                        HTTPStatus.OK,
-                        HTTPStatus.NO_CONTENT,
-                    },
-                )
+            delete_response = requests.delete(
+                url=f"{_VWS_HOST}/modeltargets/datasets/{dataset_uuid}",
+                headers=headers,
+                timeout=30,
+            )
+            assert_model_target_status(
+                response=delete_response,
+                status_codes={
+                    HTTPStatus.OK,
+                    HTTPStatus.NO_CONTENT,
+                },
+            )
 
     @staticmethod
     def test_create_with_cad_data_blob(
