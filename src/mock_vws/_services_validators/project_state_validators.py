@@ -9,7 +9,6 @@ from mock_vws._services_validators.exceptions import (
     ProjectHasNoApiAccessError,
     ProjectInactiveError,
     ProjectSuspendedError,
-    ValidatorError,
 )
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.states import States
@@ -25,28 +24,28 @@ def validate_project_state(*, context: ValidatorContext) -> None:
         context: The context of the request.
 
     Raises:
+        ProjectHasNoApiAccessError: The project has no API access.
         ProjectInactiveError: The project is inactive and this endpoint does
             not work with inactive projects.
+        ProjectSuspendedError: The project is suspended.
     """
-    state_errors: dict[States, type[ValidatorError]] = {
-        States.PROJECT_HAS_NO_API_ACCESS: ProjectHasNoApiAccessError,
-        States.PROJECT_SUSPENDED: ProjectSuspendedError,
-    }
-    error = state_errors.get(context.database.state)
-    if error is not None:
-        raise error
+    match context.database.state:
+        case States.PROJECT_HAS_NO_API_ACCESS:
+            raise ProjectHasNoApiAccessError
+        case States.PROJECT_SUSPENDED:
+            raise ProjectSuspendedError
+        case States.PROJECT_INACTIVE:
+            pass
+        case _:
+            return
 
-    if context.database.state != States.PROJECT_INACTIVE:
-        return
-
-    if (
-        isinstance(context.database, CloudDatabase)
-        and context.allowed_for_inactive_cloud_project
-    ):
-        return
-
-    if isinstance(context.database, VuMarkDatabase):
-        return
+    match context.database:
+        case CloudDatabase() if context.allowed_for_inactive_cloud_project:
+            return
+        case VuMarkDatabase():
+            return
+        case _:
+            pass
 
     _LOGGER.warning(msg="The project is inactive.")
     raise ProjectInactiveError
