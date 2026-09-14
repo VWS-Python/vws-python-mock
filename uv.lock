@@ -1916,7 +1916,7 @@ wheels = [
 
 [[package]]
 name = "requests-mock-flask"
-version = "2026.8.16"
+version = "2026.9.8"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpretty" },
@@ -1927,9 +1927,9 @@ dependencies = [
     { name = "urllib3" },
     { name = "werkzeug" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/40/aa/1418809d073bdb36667baa251fdf739a68c63732541adb64d5a7b144b44b/requests_mock_flask-2026.8.16.tar.gz", hash = "sha256:24c406d8201d2f730c35b0f037c74ccfef3db0fac510fde2f9deb15a9e67baf9", size = 38580, upload-time = "2026-08-16T09:17:43.347Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d3/b9/f44bd96b0ea81b6fee8c54d131320aba9f83431ba98eba4de0145d3655e8/requests_mock_flask-2026.9.8.tar.gz", hash = "sha256:26bbf3d4c3970e2a0a78520a292092becf997e0bf7a51efbe96b8c5bbae44dec", size = 39211, upload-time = "2026-09-08T12:47:52.863Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d3/37/70cbffe881571599fd63f5ec4e98e13e2a592156ab293a648c93c63158fa/requests_mock_flask-2026.8.16-py3-none-any.whl", hash = "sha256:41d40c5da57e41b4fa75f4ac3f216bd6ab2f0b55d4089e133d74584b0d72eefa", size = 9535, upload-time = "2026-08-16T09:17:41.742Z" },
+    { url = "https://files.pythonhosted.org/packages/e7/da/3f0f20a76fc8fe1472f84f8726712a8a75c2780ba2dcaf3577ccc8ccb1b3/requests_mock_flask-2026.9.8-py3-none-any.whl", hash = "sha256:3659c6744e934e5257f0d9389bd69fc3ab28fdcde7f5301ee5a7451e28f0ac73", size = 9599, upload-time = "2026-09-08T12:47:51.576Z" },
 ]
 
 [[package]]
@@ -2961,7 +2961,7 @@ dev = [
     { name = "pytest-retry", specifier = "==1.7.0" },
     { name = "pytest-xdist", specifier = "==3.8.0" },
     { name = "pyyaml", specifier = "==6.0.3" },
-    { name = "requests-mock-flask", specifier = "==2026.8.16" },
+    { name = "requests-mock-flask", specifier = "==2026.9.8" },
     { name = "ruff", specifier = "==0.16.7" },
     { name = "shellcheck-py", specifier = "==0.11.0.1" },
     { name = "shfmt-py", specifier = "==4.2.0" },
