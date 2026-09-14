@@ -92,7 +92,7 @@ dev = [
     "pytest-retry==1.7.0",
     "pytest-xdist==3.8.0",
     "pyyaml==6.0.3",
-    "requests-mock-flask==2026.8.16",
+    "requests-mock-flask==2026.9.8",
     "ruff==0.16.7",
     # We add shellcheck-py not only for shell scripts and shell code blocks,
     # but also because having it installed means that ``actionlint-py`` will
