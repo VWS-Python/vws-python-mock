@@ -2,6 +2,7 @@
 
 import re
 from collections.abc import Callable, Mapping
+from functools import partial
 from typing import Protocol
 from urllib.parse import urlparse
 
@@ -14,6 +15,7 @@ from respx.mocks import Mocker
 from mock_vws._mock_common import RequestData, Route
 
 _ResponseType = tuple[int, Mapping[str, str], str | bytes]
+_RequestErrorFactory = Callable[[httpx.Request], Exception]
 
 
 class _APIHandler(Protocol):
@@ -49,20 +51,28 @@ def _to_request_data(
 
 
 @beartype
-def _block_unmatched(request: httpx.Request) -> httpx.Response:
+def _block_unmatched(
+    request: httpx.Request,
+    *,
+    make_connect_error: _RequestErrorFactory | None,
+) -> httpx.Response:
     """Raise ConnectError for unmatched requests when real_http=False.
 
     Args:
         request: The unmatched httpx request.
+        make_connect_error: A factory for another client family's native
+            connection error, or ``None`` to raise an HTTPX error.
 
     Raises:
         Exception: A connection error is always raised to block
             unmatched requests.
     """
-    raise httpx.ConnectError(
-        message="Connection refused by mock",
-        request=request,
-    )
+    if make_connect_error is None:
+        raise httpx.ConnectError(
+            message="Connection refused by mock",
+            request=request,
+        )
+    raise make_connect_error(request)
 
 
 @beartype(conf=BeartypeConf(is_pep484_tower=True))
@@ -72,6 +82,7 @@ def _make_respx_callback(
     base_path: str,
     delay_seconds: float,
     sleep_fn: Callable[[float], None],
+    make_timeout_error: _RequestErrorFactory | None,
 ) -> Callable[[httpx.Request], httpx.Response]:
     """Create a respx-compatible callback from a handler.
 
@@ -81,6 +92,8 @@ def _make_respx_callback(
         base_path: The base path prefix to strip from the request path.
         delay_seconds: The number of seconds to delay the response by.
         sleep_fn: The function to use for sleeping during delays.
+        make_timeout_error: A factory for another client family's native
+            timeout error, or ``None`` to raise an HTTPX error.
 
     Returns:
         A callback that takes an httpx.Request and returns an
@@ -110,11 +123,23 @@ def _make_respx_callback(
             content=body,
         )
 
-    return delayed_httpx_handler(
+    delayed_callback = delayed_httpx_handler(
         handler=callback,
         delay_seconds=delay_seconds,
         sleep_fn=sleep_fn,
     )
+
+    if make_timeout_error is None:
+        return delayed_callback
+
+    def translate_timeout(request: httpx.Request) -> httpx.Response:
+        """Translate an HTTPX timeout to the client family's exception."""
+        try:
+            return delayed_callback(request)
+        except httpx.ReadTimeout as exc:
+            raise make_timeout_error(request) from exc
+
+    return translate_timeout
 
 
 def start_respx_router(
@@ -126,6 +151,9 @@ def start_respx_router(
     response_delay_seconds: float,
     sleep_fn: Callable[[float], None],
     real_http: bool,
+    using: str | None,
+    make_connect_error: _RequestErrorFactory | None,
+    make_timeout_error: _RequestErrorFactory | None,
 ) -> respx.MockRouter:
     """Configure and start a respx router with Vuforia routes.
 
@@ -137,14 +165,26 @@ def start_respx_router(
         response_delay_seconds: The number of seconds to delay responses.
         sleep_fn: The function to use for sleeping during delays.
         real_http: Whether to pass through unmatched requests.
+        using: The registered RESPX mocker name, or ``None`` for HTTPX.
+        make_connect_error: A factory for another client family's native
+            connection error, or ``None`` to raise an HTTPX error.
+        make_timeout_error: A factory for another client family's native
+            timeout error, or ``None`` to raise an HTTPX error.
 
     Returns:
         A started respx router.
     """
-    router = respx.MockRouter(
-        assert_all_called=False,
-        assert_all_mocked=False,
-    )
+    if using is None:
+        router = respx.MockRouter(
+            assert_all_called=False,
+            assert_all_mocked=False,
+        )
+    else:
+        router = respx.MockRouter(
+            assert_all_called=False,
+            assert_all_mocked=False,
+            using=using,
+        )
 
     for api, base_url in (
         (mock_vws_api, base_vws_url),
@@ -166,13 +206,19 @@ def start_respx_router(
                         base_path=base_path,
                         delay_seconds=response_delay_seconds,
                         sleep_fn=sleep_fn,
+                        make_timeout_error=make_timeout_error,
                     ),
                 )
 
     if real_http:
         _ = router.route().pass_through()
     else:
-        _ = router.route().mock(side_effect=_block_unmatched)
+        _ = router.route().mock(
+            side_effect=partial(
+                _block_unmatched,
+                make_connect_error=make_connect_error,
+            )
+        )
 
     router.start()
 

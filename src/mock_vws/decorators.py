@@ -543,6 +543,9 @@ class MockVWS:
             response_delay_seconds=self._options.response_delay_seconds,
             sleep_fn=self._options.sleep_fn,
             real_http=self._options.real_http,
+            using=None,
+            make_connect_error=None,
+            make_timeout_error=None,
         )
 
         httpx2_router = start_httpx2_router(
