@@ -35,14 +35,7 @@ The mock is accurate immediately with regards to images.
 
 The mock does not count recognitions.
 Real Vuforia's recognition counts lag behind its queries by far longer than a test runs, so a query in the mock does not change any count either.
-Set the counts you want to see instead:
-:paramref:`mock_vws.database.CloudDatabase.total_recos`,
-:paramref:`mock_vws.database.CloudDatabase.current_month_recos`,
-:paramref:`mock_vws.database.CloudDatabase.previous_month_recos` and
-:paramref:`mock_vws.database.CloudDatabase.reco_threshold` for the database
-summary report, and
-:meth:`mock_vws.MockVWS.set_target_recognition_counts` for the counts of a
-target, which the target summary report and the reco counts report show.
+Set the counts you want to see instead: :paramref:`mock_vws.database.CloudDatabase.total_recos`, :paramref:`mock_vws.database.CloudDatabase.current_month_recos`, :paramref:`mock_vws.database.CloudDatabase.previous_month_recos` and :paramref:`mock_vws.database.CloudDatabase.reco_threshold` for the database summary report, and :meth:`mock_vws.MockVWS.set_target_recognition_counts` for the counts of a target, which the target summary report and the reco counts report show.
 Targets are created by API requests, so their counts are set after the target is created.
 The Flask and Docker mock has an equivalent target manager endpoint, described in :doc:`docker`.
 
@@ -198,8 +191,7 @@ The mock only limits requests whose access key belongs to a database, because th
 The mock applies no limit by default.
 Applying a limit of two requests per minute to ``GET /targets`` by default would break the tests of anything which uses the mock.
 
-Set ``request_rate_limits`` to
-:data:`mock_vws.request_rate_limits.DOCUMENTED_REQUEST_RATE_LIMITS` to apply
+Set ``request_rate_limits`` to :data:`mock_vws.request_rate_limits.DOCUMENTED_REQUEST_RATE_LIMITS` to apply
 the limits which real Vuforia applies::
 
     from mock_vws import MockVWS
@@ -229,9 +221,7 @@ Configurable Cloud Query failures
 ---------------------------------
 
 The Vuforia Cloud Query API documents failure responses with JSON, arbitrary content, or no body.
-Use
-:paramref:`mock_vws.MockVWS.cloud_query_failure_response` to make every Cloud
-Query request return a particular documented failure shape through the
+Use :paramref:`mock_vws.MockVWS.cloud_query_failure_response` to make every Cloud Query request return a particular documented failure shape through the
 in-process ``requests``, ``httpx`` and ``httpx2`` backends::
 
     from mock_vws import CloudQueryFailureResponse, MockVWS
@@ -291,11 +281,8 @@ The other three come from Vuforia's result codes table rather than from a respon
    :ref:`unverified-additional-result-codes`
 
 
-* ``TargetQuotaReached`` is returned when adding a target to a
-  :class:`mock_vws.database.CloudDatabase` which already contains
-  ``target_quota`` targets.
-* ``ProjectSuspended`` is returned with status code 403 by every VWS endpoint when a database uses the
-  :attr:`mock_vws.states.States.PROJECT_SUSPENDED` state.
+* ``TargetQuotaReached`` is returned when adding a target to a :class:`mock_vws.database.CloudDatabase` which already contains ``target_quota`` targets.
+* ``ProjectSuspended`` is returned with status code 403 by every VWS endpoint when a database uses the :attr:`mock_vws.states.States.PROJECT_SUSPENDED` state.
   Real Vuforia has returned this result code for a database which passed its monthly recognition threshold, but its status code, body and headers were not recorded, and reads such as ``GET /targets`` and the database summary kept working there.
 * ``ProjectHasNoApiAccess`` is returned by VWS endpoints when a database uses the :attr:`mock_vws.states.States.PROJECT_HAS_NO_API_ACCESS` state.
   This casing comes from Vuforia's result codes table, as no response from a real database in this state has been seen.
@@ -322,16 +309,10 @@ The Model Target Web API mock supports OAuth2 token requests, standard and advan
 The generated dataset download is a small valid ``full-dataset.zip`` with the same ``MTDataset.dat`` and ``MTDataset.xml`` filenames as Vuforia.
 Its contents are synthetic request metadata and minimal XML, not a real Vuforia Engine Model Target dataset.
 Use :paramref:`mock_vws.MockVWS.model_target_generation_failure` to make in-process Model Target datasets finish with a ``failed`` status and an ``error`` object.
-The failure is returned after the configured
-:paramref:`~mock_vws.MockVWS.processing_time_seconds`, so callers can test
-both processing and failed states.
+The failure is returned after the configured :paramref:`~mock_vws.MockVWS.processing_time_seconds`, so callers can test both processing and failed states.
 This configuration is not supported by the Flask/Docker backend.
-Use
-:paramref:`mock_vws.MockVWS.model_target_training_allowance_exceeded` to make
-in-process Model Target dataset creation return Vuforia's ``TRAINING_ALLOWANCE_EXCEEDED`` response.
-Set the
-:envvar:`MODEL_TARGET_TRAINING_ALLOWANCE_EXCEEDED` environment variable to
-``true`` to configure the same response in the Flask/Docker backend. Use :paramref:`mock_vws.MockVWS.model_target_generation_warning` to make successful in-process Model Target datasets include a Vuforia-shaped ``warning`` object after processing completes. This configuration is not supported by the Flask/Docker backend.
+Use :paramref:`mock_vws.MockVWS.model_target_training_allowance_exceeded` to make in-process Model Target dataset creation return Vuforia's ``TRAINING_ALLOWANCE_EXCEEDED`` response.
+Set the :envvar:`MODEL_TARGET_TRAINING_ALLOWANCE_EXCEEDED` environment variable to ``true`` to configure the same response in the Flask/Docker backend. Use :paramref:`mock_vws.MockVWS.model_target_generation_warning` to make successful in-process Model Target datasets include a Vuforia-shaped ``warning`` object after processing completes. This configuration is not supported by the Flask/Docker backend.
 Model Target API routes require a three-part JSON Web Token with JSON object header and payload parts, a non-``none`` ``alg`` value, and a non-empty base64url-encoded signature, such as the token returned by the mock OAuth2 route.
 The mock does not verify token signatures, payload claims such as expiry, or token revocation.
 The OAuth2 route supports both the ``client_credentials`` and ``password`` grants.
@@ -397,9 +378,7 @@ Setting recognition counts is mock-only, because real Vuforia's counts are delay
 As with real Vuforia, the report is served with a ``text/plain`` content type rather than a CSV one.
 
 Real Vuforia assigns a database an ID, which the target manager shows.
-The ID of a database in the mock is
-:paramref:`mock_vws.database.CloudDatabase.database_id`, which defaults to a
-random string, so the path of a request to this endpoint is built by reading that attribute rather than by looking the ID up.
+The ID of a database in the mock is :paramref:`mock_vws.database.CloudDatabase.database_id`, which defaults to a random string, so the path of a request to this endpoint is built by reading that attribute rather than by looking the ID up.
 As real Vuforia does, the mock returns a 401 response with the ``AuthenticationFailure`` result code for a request which is signed with valid server keys but which names any other database, including one named by its name rather than by its ID.
 
 Real Vuforia returns a presigned URL for cloud storage, of this form:
@@ -416,8 +395,7 @@ Real Vuforia returns a presigned URL for cloud storage, of this form:
      &X-Amz-Signature=...
 
 The mock returns a URL with the same path and the same query parameters, served by the mock itself rather than by cloud storage.
-The URL returned by the Flask and Docker mock is built from the
-:envvar:`VWS_BASE_URL` environment variable.
+The URL returned by the Flask and Docker mock is built from the :envvar:`VWS_BASE_URL` environment variable.
 The credential, the security token and the signature are placeholders of the right shape.
 The mock does not check the signature, so a URL whose signature or file name has been changed, which real Vuforia refuses with a ``SignatureDoesNotMatch`` error document, is served by the mock as if it were signed.
 
