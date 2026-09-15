@@ -56,7 +56,8 @@ Create an environment variable file for secrets:
    $ cp vuforia_secrets.env.example vuforia_secrets.env
 
 Some tests require Vuforia credentials.
-To run these tests, add the Vuforia credentials to the file :file:`vuforia_secrets.env`. See :ref:`connecting-to-vuforia`.
+To run these tests, add the Vuforia credentials to the file :file:`vuforia_secrets.env`.
+See :ref:`connecting-to-vuforia`.
 
 Then run ``pytest``:
 
@@ -72,7 +73,8 @@ Connecting to Vuforia
 To connect to Vuforia, Vuforia target databases must be created via the Vuforia Web UI.
 Then, secret keys must be set as environment variables.
 
-The test infrastructure allows those keys to be set in the file :file:`vuforia_secrets.env`. See :file:`vuforia_secrets.env.example` for the environment variables to set.
+The test infrastructure allows those keys to be set in the file :file:`vuforia_secrets.env`.
+See :file:`vuforia_secrets.env.example` for the environment variables to set.
 
 Do not use a target database that you are using for other purposes.
 This is because the test suite adds and deletes targets.
@@ -101,8 +103,7 @@ To create databases without using the browser, use :file:`admin/create_secrets_f
       $ python admin/create_secrets_files.py
       # Each generated file gets its own active Cloud database credentials.
 
-For the complete archive and GitHub Actions setup procedure, see
-:doc:`ci-setup`.
+For the complete archive and GitHub Actions setup procedure, see :doc:`ci-setup`.
 
 .. _Vuforia License Manager: https://developer.vuforia.com/vui/develop/licenses
 .. _Vuforia Target Manager: https://developer.vuforia.com/vui/develop/databases
