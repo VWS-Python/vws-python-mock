@@ -46,6 +46,7 @@ def _send_request(
             request=prepared_request,
             timeout=_REQUEST_TIMEOUT_SECONDS,
         )
+    # A live-service timeout is nondeterministic and cannot be forced reliably.
     except RequestsTimeout:  # pragma: no cover
         if url.startswith(
             ("https://vws.vuforia.com/", "https://cloudreco.vuforia.com/"),

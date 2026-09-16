@@ -76,8 +76,10 @@ _MAX_ADVANCED_MODEL_COUNT = 20
 _JWT_DOT_COUNT = 2
 _ZIP_EPOCH = (1980, 1, 1, 0, 0, 0)
 _MOCK_MODEL_TARGET_CLIENT_ID = "client-id"
+# This fixed, inert value authenticates only against the in-process mock.
 _MOCK_MODEL_TARGET_CLIENT_SECRET = "client-secret"  # noqa: S105
 _MOCK_MODEL_TARGET_USERNAME = "user@example.com"
+# This fixed, inert value authenticates only against the in-process mock.
 _MOCK_MODEL_TARGET_PASSWORD = "password"  # noqa: S105
 _MODEL_TARGET_SCOPES = frozenset(
     {

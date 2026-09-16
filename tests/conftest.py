@@ -141,10 +141,12 @@ def _add_target_which_processed_successfully(
         # runs no target gets a 'failed' status.
         vws_client.delete_target(target_id=target_id_)  # pragma: no cover
 
+    # This is reached only when the live service never processes a target.
     message = (  # pragma: no cover
         "No target processed with a 'success' status in "
         f"{_TARGET_SUCCESS_ATTEMPTS} attempts."
     )
+    # This is reached only when the live service never processes a target.
     raise AssertionError(message)  # pragma: no cover
 
 
