@@ -1346,6 +1346,7 @@ def update_target(target_id: str) -> Response:
     )
 
 
+# Containers execute this process entry point; import-driven tests use its API.
 if __name__ == "__main__":  # pragma: no cover
     SETTINGS = VWSSettings.model_validate(obj={})
     VWS_FLASK_APP.run(host=SETTINGS.vws_host)

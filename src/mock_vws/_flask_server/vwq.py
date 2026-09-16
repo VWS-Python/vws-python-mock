@@ -165,6 +165,7 @@ def query() -> Response:
     )
 
 
+# Containers execute this process entry point; import-driven tests use its API.
 if __name__ == "__main__":  # pragma: no cover
     SETTINGS = VWQSettings.model_validate(obj={})
     CLOUDRECO_FLASK_APP.run(host=SETTINGS.vwq_host)

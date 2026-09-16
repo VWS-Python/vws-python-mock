@@ -152,6 +152,8 @@ def route(
     return decorator
 
 
+# This single facade intentionally exposes the complete mock route surface;
+# splitting it would separate one cohesive public API.
 @beartype(conf=BeartypeConf(is_pep484_tower=True))
 class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
     """A fake implementation of the Vuforia Web Services API."""

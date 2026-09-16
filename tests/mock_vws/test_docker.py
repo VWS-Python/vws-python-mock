@@ -91,6 +91,7 @@ def wait_for_health_check(container: Container) -> None:
     """
     try:
         _poll_health_check(container=container)
+    # Healthy-container integration runs do not enter this diagnostics path.
     except ValueError as exc:  # pragma: no cover
         container.reload()
         logs = container.logs().decode(errors="replace")

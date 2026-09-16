@@ -30,5 +30,6 @@ def flask_app_healthy(port: int) -> bool:
     }
 
 
+# Containers execute this process entry point; import-driven tests use its API.
 if __name__ == "__main__":  # pragma: no cover
     sys.exit(int(not flask_app_healthy(port=5000)))

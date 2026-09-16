@@ -1005,6 +1005,7 @@ def set_target_recognition_counts(
     )
 
 
+# Containers execute this process entry point; import-driven tests use its API.
 if __name__ == "__main__":  # pragma: no cover
     SETTINGS = TargetManagerSettings.model_validate(obj={})
     TARGET_MANAGER_FLASK_APP.run(host=SETTINGS.target_manager_host)
