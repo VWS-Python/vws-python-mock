@@ -380,7 +380,6 @@ ignore_names = [
     "autoclass_content",
     "autoclass_content",
     "autodoc_member_order",
-    "autodoc_use_legacy_class_based",
     # Used in TYPE_CHECKING for type hints
     "CloudDatabaseDict",
     "copybutton_exclude",
