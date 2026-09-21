@@ -37,10 +37,6 @@ towncrier_draft_autoversion_mode = "draft"
 towncrier_draft_include_empty = True
 towncrier_draft_working_directory = f"{_pyproject_file.parent}"
 
-# Required by sphinx-toolbox 4.2.0rc1 for compatibility with Sphinx 9.
-# See https://github.com/sphinx-toolbox/sphinx-toolbox/issues/201#issuecomment-4313483053.
-autodoc_use_legacy_class_based = True
-
 templates_path = ["_templates"]
 source_suffix = ".rst"
 master_doc = "index"
