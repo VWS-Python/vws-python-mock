@@ -57,7 +57,7 @@ urls.Source = "https://github.com/VWS-Python/vws-python-mock"
 
 [dependency-groups]
 dev = [
-    "actionlint-py==1.7.12.24",
+    "actionlint-py==1.7.12.25",
     "check-manifest==0.51",
     "check-wheel-contents==0.6.3",
     "coverage==7.16.1",
