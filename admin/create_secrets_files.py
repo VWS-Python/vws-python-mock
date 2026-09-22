@@ -290,11 +290,8 @@ def main() -> None:
         for i in range(num_databases)
     ]
     files_to_create = [file for file in required_files if not file.exists()]
-    driver: WebDriver | None = None
-
     while bool(files_to_create):
-        if driver is None:
-            driver = vws_web_tools.create_chrome_driver()
+        driver = vws_web_tools.create_chrome_driver()
         file = files_to_create[-1]
         _ = sys.stdout.write(f"Creating database {file.name}\n")
         (
@@ -327,11 +324,9 @@ def main() -> None:
         except TimeoutException:
             _ = sys.stderr.write("Timed out during database setup\n")
             driver.quit()
-            driver = None
             continue
 
         driver.quit()
-        driver = None
 
         file_contents = _generate_secrets_file_content(
             cloud_database_details=cloud_database_details,
