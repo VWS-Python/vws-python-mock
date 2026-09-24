@@ -54,18 +54,14 @@ class RecoCountsReportStore(Protocol):
     @property
     def reco_counts_reports(self) -> dict[str, RecoCountsReport]:
         """All reco counts reports, keyed by report file path."""
-        # We disable a pylint warning here because the ellipsis is required
-        # for pyright to recognize this as a protocol.
-        ...  # pylint: disable=unnecessary-ellipsis
+        ...
 
     def add_reco_counts_report(
         self,
         reco_counts_report: RecoCountsReport,
     ) -> None:
         """Add a reco counts report."""
-        # We disable a pylint warning here because the ellipsis is required
-        # for pyright to recognize this as a protocol.
-        ...  # pylint: disable=unnecessary-ellipsis
+        ...
 
 
 @beartype

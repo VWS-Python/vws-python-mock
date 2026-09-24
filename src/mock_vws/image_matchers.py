@@ -35,9 +35,7 @@ class ImageMatcher(Protocol):
             every match the same score leaves the order of its matches to
             the mock's tie-break: upload date and then target ID.
         """
-        # We disable a pylint warning here because the ellipsis is required
-        # for pyright to recognize this as a protocol.
-        ...  # pylint: disable=unnecessary-ellipsis
+        ...
 
 
 @beartype

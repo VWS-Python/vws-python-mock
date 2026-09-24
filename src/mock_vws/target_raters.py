@@ -55,9 +55,7 @@ class TargetTrackingRater(Protocol):
         Args:
             image_content: A target's image's content.
         """
-        # We disable a pylint warning here because the ellipsis is required
-        # for pyright to recognize this as a protocol.
-        ...  # pylint: disable=unnecessary-ellipsis
+        ...
 
 
 @beartype
