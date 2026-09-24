@@ -36,40 +36,34 @@ class ModelTargetDatasetStore(Protocol):
     @property
     def model_target_datasets(self) -> dict[str, ModelTargetDataset]:
         """All Model Target datasets, keyed by UUID."""
-        # We disable a pylint warning here because the ellipsis is required
-        # for pyright to recognize this as a protocol.
-        ...  # pylint: disable=unnecessary-ellipsis
+        ...
 
     def add_model_target_dataset(
         self,
         model_target_dataset: ModelTargetDataset,
     ) -> None:
         """Add a Model Target dataset."""
-        # We disable a pylint warning here because the ellipsis is required
-        # for pyright to recognize this as a protocol.
-        ...  # pylint: disable=unnecessary-ellipsis
+        ...
 
     def remove_model_target_dataset(self, dataset_uuid: str) -> None:
         """Remove a Model Target dataset."""
-        # We disable a pylint warning here because the ellipsis is required
-        # for pyright to recognize this as a protocol.
-        ...  # pylint: disable=unnecessary-ellipsis
+        ...
 
     @property
     def oauth2_client_credentials(self) -> dict[str, OAuth2ClientCredential]:
         """All dynamically created OAuth2 client credentials."""
-        ...  # pylint: disable=unnecessary-ellipsis
+        ...
 
     def add_oauth2_client_credential(
         self,
         credential: OAuth2ClientCredential,
     ) -> None:
         """Add an OAuth2 client credential."""
-        ...  # pylint: disable=unnecessary-ellipsis
+        ...
 
     def remove_oauth2_client_credential(self, client_id: str) -> None:
         """Remove an OAuth2 client credential."""
-        ...  # pylint: disable=unnecessary-ellipsis
+        ...
 
 
 _MAX_ADVANCED_MODEL_COUNT = 20
