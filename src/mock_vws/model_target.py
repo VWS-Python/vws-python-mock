@@ -207,6 +207,8 @@ class ModelTargetDataset:
             generation_warning = {
                 "message": self.generation_warning.message,
                 "details": [
+                    # Work around https://github.com/astral-sh/ty/issues/4598.
+                    # Remove explicit types after upgrading to a fixed release.
                     dict[str, JSONValue](detail)
                     for detail in copy.deepcopy(
                         x=self.generation_warning.details
