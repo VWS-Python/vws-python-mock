@@ -207,7 +207,7 @@ class ModelTargetDataset:
             generation_warning = {
                 "message": self.generation_warning.message,
                 "details": [
-                    dict(detail)
+                    dict[str, JSONValue](detail)
                     for detail in copy.deepcopy(
                         x=self.generation_warning.details
                     )
