@@ -58,6 +58,7 @@ urls.Source = "https://github.com/VWS-Python/vws-python-mock"
 [dependency-groups]
 dev = [
     "actionlint-py==1.7.12.25",
+    "beartype==0.23.0rc2",
     "check-manifest==0.51",
     "check-wheel-contents==0.6.3",
     "coverage==7.16.1",
@@ -86,7 +87,7 @@ dev = [
     "pyright==1.1.414",
     "pyroma==5.0.1",
     "pytest==9.1.1",
-    "pytest-beartype-tests==2026.8.16",
+    "pytest-beartype==0.3.0",
     "pytest-multi-backend==2026.9.7",
     "pytest-partition-check==2026.8.23",
     "pytest-retry==1.7.0",
@@ -478,6 +479,9 @@ analysis.strict-generic-narrowing = true
 addopts = [
     "--strict-markers",
 ]
+beartype_packages = [ "mock_vws" ]
+beartype_test_fixtures = true
+beartype_tests = true
 cumulative_timing = false
 log_cli = true
 markers = [
