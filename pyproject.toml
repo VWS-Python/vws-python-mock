@@ -453,6 +453,7 @@ plugins = [
     "pydantic.mypy",
     "mypy_strict_kwargs",
 ]
+num_workers = "auto"
 
 [tool.pyrefly]
 search_path = [
