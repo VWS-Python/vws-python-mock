@@ -61,7 +61,7 @@ dev = [
     "beartype==0.23.0rc2",
     "check-manifest==0.51",
     "check-wheel-contents==0.6.3",
-    "coverage==7.16.1",
+    "coverage==7.16.2",
     "deptry==0.25.1",
     "dirty-equals==0.11",
     "doc8==2.0.0",
