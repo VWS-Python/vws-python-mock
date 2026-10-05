@@ -17,6 +17,7 @@ import zipfile
 from collections.abc import Iterator
 from dataclasses import dataclass
 from http import HTTPMethod, HTTPStatus
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import docker
@@ -28,6 +29,7 @@ from docker.models.containers import Container
 from docker.models.images import Image
 from docker.models.networks import Network
 from pydantic import TypeAdapter
+from pyprojroot import find_root, has_file
 from tenacity import retry
 from tenacity.retry import retry_if_exception_type
 from tenacity.stop import stop_after_delay
@@ -308,7 +310,6 @@ def _build_image(*, repository_root: str, tag: str, target: str) -> Image:
 def fixture_mock_deployment(
     *,
     custom_bridge_network: Network,
-    request: pytest.FixtureRequest,
 ) -> _MockDeployment:
     """Build the mock's images and run them as the Docker deployment does.
 
@@ -319,7 +320,12 @@ def fixture_mock_deployment(
     Returns:
         The running deployment.
     """
-    repository_root = str(object=request.config.rootpath)
+    repository_root = str(
+        object=find_root(
+            criterion=has_file(file="pyproject.toml"),
+            start=Path(__file__).resolve(),
+        )
+    )
     client = docker.from_env()
     random = uuid.uuid4().hex
 
