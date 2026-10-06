@@ -43,9 +43,6 @@ def fixture_no_sleep(*, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(target=time, name="sleep", value=_do_not_sleep)
 
 
-# Tests for safe requests against the real backend.
-
-
 def test_transient_response_is_retried() -> None:
     """A transient gateway response is followed by another attempt,
     and the response to that attempt is returned.
@@ -142,9 +139,6 @@ def test_mutating_request_is_not_retried() -> None:
         _ = send_with_transient_retries(method=HTTPMethod.POST, send=send)
 
     assert attempts == 1
-
-
-# Tests for requests which do not go to the real backend.
 
 
 def test_configured_failure_is_not_retried() -> None:

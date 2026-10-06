@@ -239,19 +239,17 @@ class TestDatabaseSummary:
         )
 
 
-# Tests for processing images.
-#
-# These tests are run only on the mock, and not the real
-# implementation.
-#
-# This is because the real implementation is not reliable. This is a
-# documented difference between the mock and the real implementation.
-
-
 def test_processing_images(
     image_file_success_state_low_rating: io.BytesIO,
 ) -> None:
-    """The number of images in the processing state is returned."""
+    """The number of images in the processing state is returned.
+
+    These tests are run only on the mock, and not the real
+    implementation.
+
+    This is because the real implementation is not reliable. This is a
+    documented difference between the mock and the real implementation.
+    """
     database = CloudDatabase()
     vws_client = VWS(
         server_access_key=database.server_access_key,

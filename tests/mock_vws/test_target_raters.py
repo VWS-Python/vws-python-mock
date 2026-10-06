@@ -44,9 +44,6 @@ def test_hardcoded_target_tracking_rater(rating: int) -> None:
     assert all(given_rating == rating for given_rating in ratings)
 
 
-# Tests for the BRISQUE target tracking rater.
-
-
 def test_low_quality_image(
     image_file_success_state_low_rating: io.BytesIO,
 ) -> None:
