@@ -74,7 +74,7 @@ jobs:
           - tests/mock_vws/test_database_summary.py::TestDatabaseSummary::test_inactive_images
           - tests/mock_vws/test_database_summary.py::TestDatabaseSummary::test_inactive_failed
           - tests/mock_vws/test_database_summary.py::TestDatabaseSummary::test_deleted
-          - tests/mock_vws/test_database_summary.py::TestProcessingImages
+          - tests/mock_vws/test_database_summary.py::test_processing_images
           - tests/mock_vws/test_database_summary.py::TestQuotas
           - tests/mock_vws/test_database_summary.py::TestRecos
           - tests/mock_vws/test_database_summary.py::TestRequestUsage
@@ -128,15 +128,15 @@ jobs:
           - tests/mock_vws/test_model_target_generation_warning.py
           - tests/mock_vws/test_model_target_failure_response.py
           - tests/mock_vws/test_model_target_training_allowance.py
-          - tests/mock_vws/test_model_target_web_api.py
+          - tests/mock_vws/model_target_web_api
           - tests/mock_vws/test_model_target_retries.py
           - tests/mock_vws/test_vumark_generation_api.py
           - tests/mock_vws/test_vumark_generation_failure.py
           - tests/mock_vws/test_target_validators.py
-          - tests/mock_vws/test_requests_mock_usage.py
-          - tests/mock_vws/test_respx_mock_usage.py
-          - tests/mock_vws/test_httpx2_mock_usage.py
-          - tests/mock_vws/test_flask_app_usage.py
+          - tests/mock_vws/requests_mock
+          - tests/mock_vws/respx_mock
+          - tests/mock_vws/httpx2_mock
+          - tests/mock_vws/flask_app
           - tests/mock_vws/test_healthcheck.py
           - tests/mock_vws/test_docker.py
           - README.rst

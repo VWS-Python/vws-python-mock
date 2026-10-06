@@ -44,33 +44,29 @@ def test_hardcoded_target_tracking_rater(rating: int) -> None:
     assert all(given_rating == rating for given_rating in ratings)
 
 
-class TestBrisqueTargetTrackingRater:
-    """Tests for the BRISQUE target tracking rater."""
+def test_low_quality_image(
+    image_file_success_state_low_rating: io.BytesIO,
+) -> None:
+    """Test that a low quality image returns a low rating."""
+    rater = BrisqueTargetTrackingRater()
+    image_content = image_file_success_state_low_rating.getvalue()
+    rating = rater(image_content=image_content)
+    assert rating == 0
 
-    @staticmethod
-    def test_low_quality_image(
-        image_file_success_state_low_rating: io.BytesIO,
-    ) -> None:
-        """Test that a low quality image returns a low rating."""
-        rater = BrisqueTargetTrackingRater()
-        image_content = image_file_success_state_low_rating.getvalue()
-        rating = rater(image_content=image_content)
-        assert rating == 0
 
-    @staticmethod
-    def test_high_quality_image(high_quality_image: io.BytesIO) -> None:
-        """Test that a high quality image returns a high rating."""
-        rater = BrisqueTargetTrackingRater()
-        image_content = high_quality_image.getvalue()
-        rating = rater(image_content=image_content)
-        assert rating > 1
+def test_high_quality_image(high_quality_image: io.BytesIO) -> None:
+    """Test that a high quality image returns a high rating."""
+    rater = BrisqueTargetTrackingRater()
+    image_content = high_quality_image.getvalue()
+    rating = rater(image_content=image_content)
+    assert rating > 1
 
-    @staticmethod
-    def test_different_high_quality_image(
-        different_high_quality_image: io.BytesIO,
-    ) -> None:
-        """Test that a high quality image returns a high rating."""
-        rater = BrisqueTargetTrackingRater()
-        image_content = different_high_quality_image.getvalue()
-        rating = rater(image_content=image_content)
-        assert rating > 1
+
+def test_different_high_quality_image(
+    different_high_quality_image: io.BytesIO,
+) -> None:
+    """Test that a high quality image returns a high rating."""
+    rater = BrisqueTargetTrackingRater()
+    image_content = different_high_quality_image.getvalue()
+    rating = rater(image_content=image_content)
+    assert rating > 1
