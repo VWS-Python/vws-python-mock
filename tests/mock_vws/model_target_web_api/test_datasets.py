@@ -33,17 +33,21 @@ from tests.mock_vws.fixtures.vuforia_backends import (
     VERIFY_MODEL_TARGET_SIGNING_OPTION,
     VuforiaBackend,
 )
-from tests.mock_vws.model_target_web_api.helpers import (
+from tests.mock_vws.model_target_web_api.authentication import (
     MOCK_BEARER_TOKEN,
+    VWS_HOST,
+    access_token_for_backend,
+)
+from tests.mock_vws.model_target_web_api.responses import (
+    parse_response_json,
+    response_targeted_error,
+    response_validation_error,
+)
+from tests.mock_vws.model_target_web_api.sample_data import (
     MODEL,
     STATE_CONFIGURATION,
     UNAUTHENTICATED_DATASET_REQUEST,
     VIEW,
-    VWS_HOST,
-    access_token_for_backend,
-    parse_response_json,
-    response_targeted_error,
-    response_validation_error,
 )
 from tests.mock_vws.utils.assertions import (
     assert_model_target_status,

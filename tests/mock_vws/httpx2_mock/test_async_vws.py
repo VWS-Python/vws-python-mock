@@ -1,5 +1,6 @@
 """Tests for `AsyncVWS` through the `httpx2` mock."""
 
+import asyncio
 import io
 
 import httpx2
@@ -15,7 +16,6 @@ from vws.transports import AsyncHTTPX2Transport
 
 from mock_vws import MockVWS
 from mock_vws.database import CloudDatabase
-from tests.mock_vws.httpx2_mock.helpers import run
 
 
 def test_response_delay_causes_httpx2_timeout() -> None:
@@ -43,7 +43,7 @@ def test_response_delay_causes_httpx2_timeout() -> None:
     ) as mock:
         mock.add_cloud_database(cloud_database=database)
         with pytest.raises(expected_exception=httpx2.ReadTimeout):
-            run(coroutine=get_summary())
+            asyncio.run(main=get_summary())
 
     assert calls == [0.1]
 
@@ -88,6 +88,6 @@ def test_add_get_and_delete_target(
 
     with MockVWS(processing_time_seconds=0) as mock:
         mock.add_cloud_database(cloud_database=database)
-        name = run(coroutine=life_cycle())
+        name = asyncio.run(main=life_cycle())
 
     assert name == target_name

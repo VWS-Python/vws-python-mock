@@ -3,6 +3,7 @@
 Cloud query usage through the mock via ``httpx2``.
 """
 
+import asyncio
 import io
 
 from vws import (
@@ -15,7 +16,6 @@ from vws.transports import AsyncHTTPX2Transport, HTTPX2Transport
 from mock_vws import MockVWS
 from mock_vws.database import CloudDatabase
 from mock_vws.image_matchers import ExactMatcher
-from tests.mock_vws.httpx2_mock.helpers import run
 
 
 def test_query_returns_match(high_quality_image: io.BytesIO) -> None:
@@ -90,6 +90,6 @@ def test_async_query_returns_match(
             active_flag=True,
         )
         vws_client.wait_for_target_processed(target_id=added_target_id)
-        matched = run(coroutine=query())
+        matched = asyncio.run(main=query())
 
     assert matched == [added_target_id]

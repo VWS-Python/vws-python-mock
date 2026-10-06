@@ -4,6 +4,7 @@ Closing a transport closes the ``httpx2`` client underneath it.
 Which addresses an asynchronous ``httpx2`` client can reach.
 """
 
+import asyncio
 import socket
 
 import httpx2
@@ -11,7 +12,6 @@ import pytest
 from vws.transports import AsyncHTTPX2Transport, HTTPX2Transport
 
 from mock_vws import MockVWS
-from tests.mock_vws.httpx2_mock.helpers import run
 
 
 def _unused_local_url() -> str:
@@ -73,7 +73,7 @@ def test_aclose() -> None:
         )
 
     with MockVWS(), pytest.raises(expected_exception=RuntimeError):
-        run(coroutine=close_then_request())
+        asyncio.run(main=close_then_request())
 
 
 def test_unmocked_address_blocked() -> None:
@@ -84,7 +84,7 @@ def test_unmocked_address_blocked() -> None:
         MockVWS(),
         pytest.raises(expected_exception=httpx2.ConnectError),
     ):
-        _ = run(coroutine=_async_get(url=url))
+        _ = asyncio.run(main=_async_get(url=url))
 
 
 def test_real_http() -> None:
@@ -99,4 +99,4 @@ def test_real_http() -> None:
         MockVWS(real_http=True),
         pytest.raises(expected_exception=httpx2.ConnectError),
     ):
-        _ = run(coroutine=_async_get(url=url))
+        _ = asyncio.run(main=_async_get(url=url))

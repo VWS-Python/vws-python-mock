@@ -17,11 +17,15 @@ from tests.mock_vws.fixtures.model_target_prepared_requests import (
 from tests.mock_vws.fixtures.vuforia_backends import (
     VuforiaBackend,
 )
-from tests.mock_vws.model_target_web_api.helpers import (
-    VWS_HOST,
-    Error,
-    access_token_for_backend,
+from tests.mock_vws.model_target_web_api.assertions import (
     assert_model_target_error,
+)
+from tests.mock_vws.model_target_web_api.authentication import (
+    VWS_HOST,
+    access_token_for_backend,
+)
+from tests.mock_vws.model_target_web_api.responses import (
+    Error,
     response_targeted_error,
     response_validation_error,
 )

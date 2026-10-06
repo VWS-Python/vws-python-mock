@@ -23,14 +23,16 @@ from tests.mock_vws.fixtures.model_target_prepared_requests import (
 from tests.mock_vws.fixtures.vuforia_backends import (
     VuforiaBackend,
 )
-from tests.mock_vws.model_target_web_api.helpers import (
+from tests.mock_vws.model_target_web_api.assertions import assert_oauth2_error
+from tests.mock_vws.model_target_web_api.authentication import VWS_HOST
+from tests.mock_vws.model_target_web_api.responses import (
+    response_targeted_error,
+    response_validation_error,
+)
+from tests.mock_vws.model_target_web_api.sample_data import (
     MODEL,
     UNAUTHENTICATED_DATASET_REQUEST,
     VIEW,
-    VWS_HOST,
-    assert_oauth2_error,
-    response_targeted_error,
-    response_validation_error,
 )
 from tests.mock_vws.utils.assertions import (
     assert_model_target_status,

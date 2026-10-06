@@ -3,6 +3,7 @@
 VuMark generation usage through the mock via ``httpx2``.
 """
 
+import asyncio
 import uuid
 
 from vws import (
@@ -15,7 +16,6 @@ from vws.vumark_accept import VuMarkAccept
 from mock_vws import MockVWS
 from mock_vws.database import VuMarkDatabase
 from mock_vws.target import VuMarkTarget
-from tests.mock_vws.httpx2_mock.helpers import run
 
 
 def test_generate_vumark_instance_returns_png_bytes() -> None:
@@ -66,6 +66,6 @@ def test_async_generate_vumark_instance_returns_png_bytes() -> None:
 
     with MockVWS() as mock:
         mock.add_vumark_database(vumark_database=database)
-        response_content = run(coroutine=generate())
+        response_content = asyncio.run(main=generate())
 
     assert response_content.startswith(b"\x89PNG")
