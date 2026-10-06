@@ -74,7 +74,7 @@ jobs:
           - tests/mock_vws/test_database_summary.py::TestDatabaseSummary::test_inactive_images
           - tests/mock_vws/test_database_summary.py::TestDatabaseSummary::test_inactive_failed
           - tests/mock_vws/test_database_summary.py::TestDatabaseSummary::test_deleted
-          - tests/mock_vws/test_database_summary.py::TestProcessingImages
+          - tests/mock_vws/test_database_summary.py::test_processing_images
           - tests/mock_vws/test_database_summary.py::TestQuotas
           - tests/mock_vws/test_database_summary.py::TestRecos
           - tests/mock_vws/test_database_summary.py::TestRequestUsage

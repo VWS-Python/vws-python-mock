@@ -342,8 +342,9 @@ Real Vuforia uses ``userId:<numeric-user-id>`` where the numeric portion is per-
 Standard and advanced routes share datasets by UUID.
 Access to each route family is separated by its corresponding OAuth scope.
 
-Some Model Target Web API paths remain mock-only in ``tests/mock_vws/test_model_target_web_api.py::TestAdditionalBehaviors``.
-Downloads of still-processing datasets are mock-only because exercising the path against real Vuforia would require creating a dataset on every test run; the mock drives the processing window deterministically.
+Some Model Target Web API paths remain mock-only in ``tests/mock_vws/test_model_target_web_api.py``.
+Downloads of still-processing datasets are mock-only because exercising the path against real Vuforia would require creating a dataset on every test run.
+The mock drives the processing window deterministically.
 A download request for a dataset which is not ready reports the dataset's training status.
 The mock reports ``not-started`` for the whole processing window, as real Vuforia does for a dataset which was just created, and ``failed`` for a dataset whose generation failed.
 

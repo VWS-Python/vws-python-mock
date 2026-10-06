@@ -861,194 +861,190 @@ class TestContentLength:
         )
 
 
-class TestInvalidJson:
-    """Tests for giving Model Target endpoints bodies which are not
-    valid JSON objects.
-    """
+# Tests for giving Model Target endpoints bodies which are not
+# valid JSON objects.
 
-    @staticmethod
-    @pytest.mark.parametrize(
-        argnames="content_type",
-        argvalues=[
-            pytest.param(None, id="missing"),
-            pytest.param("", id="empty"),
-        ],
+
+@pytest.mark.parametrize(
+    argnames="content_type",
+    argvalues=[
+        pytest.param(None, id="missing"),
+        pytest.param("", id="empty"),
+    ],
+)
+def test_wrong_content_type(
+    *,
+    verify_model_target_mock_vuforia: VuforiaBackend,
+    model_target_endpoint: ModelTargetEndpoint,
+    content_type: str | None,
+) -> None:
+    """Requests without a JSON content type are rejected with 415 by
+    endpoints which read a body, and are unaffected elsewhere.
+    """
+    access_token = _access_token_for_backend(
+        backend=verify_model_target_mock_vuforia,
     )
-    def test_wrong_content_type(
-        *,
-        verify_model_target_mock_vuforia: VuforiaBackend,
-        model_target_endpoint: ModelTargetEndpoint,
-        content_type: str | None,
-    ) -> None:
-        """Requests without a JSON content type are rejected with 415 by
-        endpoints which read a body, and are unaffected elsewhere.
-        """
-        access_token = _access_token_for_backend(
-            backend=verify_model_target_mock_vuforia,
-        )
-        new_headers = {
+    new_headers = {
+        **model_target_endpoint.headers,
+        "Authorization": f"Bearer {access_token}",
+    }
+    if content_type is None:
+        _ = new_headers.pop("Content-Type", None)
+    else:
+        new_headers["Content-Type"] = content_type
+    new_endpoint = dataclasses.replace(
+        model_target_endpoint,
+        headers=new_headers,
+    )
+
+    response = new_endpoint.send()
+
+    if not model_target_endpoint.takes_json_body:
+        _assert_unknown_dataset(response=response)
+        return
+
+    assert_model_target_status(
+        response=response,
+        status_codes=HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
+    )
+    error = _response_error(response=response)
+    assert error["code"] == "ERROR"
+    assert error["message"] == ("Expecting text/json or application/json body")
+    assert "target" not in error
+
+
+def test_invalid_json(
+    *,
+    verify_model_target_mock_vuforia: VuforiaBackend,
+    model_target_endpoint: ModelTargetEndpoint,
+) -> None:
+    """Malformed JSON bodies are rejected with 400 by endpoints which
+    read a body, and are ignored elsewhere.
+    """
+    access_token = _access_token_for_backend(
+        backend=verify_model_target_mock_vuforia,
+    )
+    content = b"{"
+    new_endpoint = dataclasses.replace(
+        model_target_endpoint,
+        headers={
             **model_target_endpoint.headers,
             "Authorization": f"Bearer {access_token}",
-        }
-        if content_type is None:
-            _ = new_headers.pop("Content-Type", None)
-        else:
-            new_headers["Content-Type"] = content_type
-        new_endpoint = dataclasses.replace(
-            model_target_endpoint,
-            headers=new_headers,
-        )
-
-        response = new_endpoint.send()
-
-        if not model_target_endpoint.takes_json_body:
-            _assert_unknown_dataset(response=response)
-            return
-
-        assert_model_target_status(
-            response=response,
-            status_codes=HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
-        )
-        error = _response_error(response=response)
-        assert error["code"] == "ERROR"
-        assert error["message"] == (
-            "Expecting text/json or application/json body"
-        )
-        assert "target" not in error
-
-    @staticmethod
-    def test_invalid_json(
-        *,
-        verify_model_target_mock_vuforia: VuforiaBackend,
-        model_target_endpoint: ModelTargetEndpoint,
-    ) -> None:
-        """Malformed JSON bodies are rejected with 400 by endpoints which
-        read a body, and are ignored elsewhere.
-        """
-        access_token = _access_token_for_backend(
-            backend=verify_model_target_mock_vuforia,
-        )
-        content = b"{"
-        new_endpoint = dataclasses.replace(
-            model_target_endpoint,
-            headers={
-                **model_target_endpoint.headers,
-                "Authorization": f"Bearer {access_token}",
-                "Content-Length": str(object=len(content)),
-            },
-            data=content,
-        )
-
-        response = new_endpoint.send()
-
-        if not model_target_endpoint.takes_json_body:
-            _assert_unknown_dataset(response=response)
-            return
-
-        assert_model_target_status(
-            response=response,
-            status_codes=HTTPStatus.BAD_REQUEST,
-        )
-        error = _response_error(response=response)
-        assert error["code"] == "ERROR"
-        assert error["message"].startswith("Invalid Json")
-        assert "target" not in error
-
-    @staticmethod
-    def test_body_not_utf_8(
-        *,
-        verify_model_target_mock_vuforia: VuforiaBackend,
-        model_target_endpoint: ModelTargetEndpoint,
-    ) -> None:
-        """Bodies which are not valid UTF-8 are rejected with 400 by
-        endpoints which read a body, and are ignored elsewhere.
-        """
-        access_token = _access_token_for_backend(
-            backend=verify_model_target_mock_vuforia,
-        )
-        content = b"\xff{}"
-        new_endpoint = dataclasses.replace(
-            model_target_endpoint,
-            headers={
-                **model_target_endpoint.headers,
-                "Authorization": f"Bearer {access_token}",
-                "Content-Length": str(object=len(content)),
-            },
-            data=content,
-        )
-
-        response = new_endpoint.send()
-
-        if not model_target_endpoint.takes_json_body:
-            _assert_unknown_dataset(response=response)
-            return
-
-        assert_model_target_status(
-            response=response,
-            status_codes=HTTPStatus.BAD_REQUEST,
-        )
-        error = _response_error(response=response)
-        assert error["code"] == "ERROR"
-        assert error["message"].startswith("Invalid Json")
-        assert "target" not in error
-
-    @staticmethod
-    @pytest.mark.parametrize(
-        argnames="body",
-        argvalues=[
-            pytest.param("[]", id="array"),
-            pytest.param('"dataset"', id="string"),
-            pytest.param("1", id="number"),
-            pytest.param("true", id="boolean"),
-            pytest.param("null", id="null"),
-        ],
+            "Content-Length": str(object=len(content)),
+        },
+        data=content,
     )
-    def test_body_not_json_object(
-        *,
-        verify_model_target_mock_vuforia: VuforiaBackend,
-        model_target_endpoint: ModelTargetEndpoint,
-        body: str,
-    ) -> None:
-        """JSON bodies which are not objects are missing every field on
-        endpoints which read a body, and are ignored elsewhere.
-        """
-        access_token = _access_token_for_backend(
-            backend=verify_model_target_mock_vuforia,
-        )
-        content = body.encode(encoding="utf-8")
-        new_endpoint = dataclasses.replace(
-            model_target_endpoint,
-            headers={
-                **model_target_endpoint.headers,
-                "Authorization": f"Bearer {access_token}",
-                "Content-Length": str(object=len(content)),
-            },
-            data=content,
-        )
 
-        response = new_endpoint.send()
+    response = new_endpoint.send()
 
-        if not model_target_endpoint.takes_json_body:
-            _assert_unknown_dataset(response=response)
-            return
+    if not model_target_endpoint.takes_json_body:
+        _assert_unknown_dataset(response=response)
+        return
 
-        assert_model_target_status(
-            response=response,
-            status_codes=HTTPStatus.BAD_REQUEST,
-        )
-        error = _response_validation_error(response=response)
-        assert error["code"] == "BAD_REQUEST"
-        assert error["message"] == (
-            f"Validation error for request {error['target']}"
-        )
-        actual_messages = {detail["message"] for detail in error["details"]}
-        assert actual_messages == {
-            "/models: element is required",
-            "/name: element is required",
-            "/targetSdk: element is required",
-        }
-        for detail in error["details"]:
-            assert detail["code"] == "VALIDATION_ERROR"
+    assert_model_target_status(
+        response=response,
+        status_codes=HTTPStatus.BAD_REQUEST,
+    )
+    error = _response_error(response=response)
+    assert error["code"] == "ERROR"
+    assert error["message"].startswith("Invalid Json")
+    assert "target" not in error
+
+
+def test_body_not_utf_8(
+    *,
+    verify_model_target_mock_vuforia: VuforiaBackend,
+    model_target_endpoint: ModelTargetEndpoint,
+) -> None:
+    """Bodies which are not valid UTF-8 are rejected with 400 by
+    endpoints which read a body, and are ignored elsewhere.
+    """
+    access_token = _access_token_for_backend(
+        backend=verify_model_target_mock_vuforia,
+    )
+    content = b"\xff{}"
+    new_endpoint = dataclasses.replace(
+        model_target_endpoint,
+        headers={
+            **model_target_endpoint.headers,
+            "Authorization": f"Bearer {access_token}",
+            "Content-Length": str(object=len(content)),
+        },
+        data=content,
+    )
+
+    response = new_endpoint.send()
+
+    if not model_target_endpoint.takes_json_body:
+        _assert_unknown_dataset(response=response)
+        return
+
+    assert_model_target_status(
+        response=response,
+        status_codes=HTTPStatus.BAD_REQUEST,
+    )
+    error = _response_error(response=response)
+    assert error["code"] == "ERROR"
+    assert error["message"].startswith("Invalid Json")
+    assert "target" not in error
+
+
+@pytest.mark.parametrize(
+    argnames="body",
+    argvalues=[
+        pytest.param("[]", id="array"),
+        pytest.param('"dataset"', id="string"),
+        pytest.param("1", id="number"),
+        pytest.param("true", id="boolean"),
+        pytest.param("null", id="null"),
+    ],
+)
+def test_body_not_json_object(
+    *,
+    verify_model_target_mock_vuforia: VuforiaBackend,
+    model_target_endpoint: ModelTargetEndpoint,
+    body: str,
+) -> None:
+    """JSON bodies which are not objects are missing every field on
+    endpoints which read a body, and are ignored elsewhere.
+    """
+    access_token = _access_token_for_backend(
+        backend=verify_model_target_mock_vuforia,
+    )
+    content = body.encode(encoding="utf-8")
+    new_endpoint = dataclasses.replace(
+        model_target_endpoint,
+        headers={
+            **model_target_endpoint.headers,
+            "Authorization": f"Bearer {access_token}",
+            "Content-Length": str(object=len(content)),
+        },
+        data=content,
+    )
+
+    response = new_endpoint.send()
+
+    if not model_target_endpoint.takes_json_body:
+        _assert_unknown_dataset(response=response)
+        return
+
+    assert_model_target_status(
+        response=response,
+        status_codes=HTTPStatus.BAD_REQUEST,
+    )
+    error = _response_validation_error(response=response)
+    assert error["code"] == "BAD_REQUEST"
+    assert error["message"] == (
+        f"Validation error for request {error['target']}"
+    )
+    actual_messages = {detail["message"] for detail in error["details"]}
+    assert actual_messages == {
+        "/models: element is required",
+        "/name: element is required",
+        "/targetSdk: element is required",
+    }
+    for detail in error["details"]:
+        assert detail["code"] == "VALIDATION_ERROR"
 
 
 @pytest.mark.usefixtures("verify_model_target_mock_vuforia")
@@ -1718,525 +1714,539 @@ def _skip_unrequested_real_signing(
         pytest.skip(reason=_SIGNED_REQUEST_SKIP_REASON)
 
 
-class TestStateBasedDatasets:
-    """Verified fake tests for State-Based Model Targets.
+# Verified fake tests for State-Based Model Targets.
+#
+# The advanced (signed) cases are verified against the real Vuforia
+# only when ``--verify-model-target-signing`` is given: see
+# ``_SIGNED_REQUEST_SKIP_REASON``.
 
-    The advanced (signed) cases are verified against the real Vuforia
-    only when ``--verify-model-target-signing`` is given: see
-    ``_SIGNED_REQUEST_SKIP_REASON``.
+
+@pytest.mark.parametrize(
+    argnames="dataset_path",
+    argvalues=[
+        pytest.param("/modeltargets/datasets", id="standard"),
+        pytest.param(
+            "/modeltargets/advancedDatasets",
+            id="advanced",
+        ),
+    ],
+)
+@pytest.mark.parametrize(
+    argnames="view_updates",
+    argvalues=[
+        pytest.param({}, id="all-states"),
+        pytest.param(
+            {"states": ["assembled"]},
+            id="selected-states",
+        ),
+    ],
+)
+def test_state_based_dataset(
+    *,
+    request: pytest.FixtureRequest,
+    verify_model_target_mock_vuforia: VuforiaBackend,
+    dataset_path: str,
+    view_updates: dict[str, object],
+) -> None:
+    """State-Based Model Target fields survive a dataset round
+    trip.
     """
+    _skip_unrequested_real_signing(
+        request=request,
+        backend=verify_model_target_mock_vuforia,
+    )
+    body = {
+        **_UNAUTHENTICATED_DATASET_REQUEST,
+        "models": [
+            {
+                **_MODEL,
+                "stateBasedConfigurationJsonString": (_STATE_CONFIGURATION),
+                "views": [{**_VIEW, **view_updates}],
+            },
+        ],
+    }
+    access_token = _access_token_for_backend(
+        backend=verify_model_target_mock_vuforia,
+    )
+    headers = {"Authorization": f"Bearer {access_token}"}
+    create_response = requests.post(
+        url=f"{_VWS_HOST}{dataset_path}",
+        headers=headers,
+        json=body,
+        timeout=30,
+    )
 
-    @staticmethod
-    @pytest.mark.parametrize(
-        argnames="dataset_path",
-        argvalues=[
-            pytest.param("/modeltargets/datasets", id="standard"),
-            pytest.param(
-                "/modeltargets/advancedDatasets",
-                id="advanced",
-            ),
-        ],
+    assert_model_target_status(
+        response=create_response,
+        status_codes=HTTPStatus.CREATED,
     )
-    @pytest.mark.parametrize(
-        argnames="view_updates",
-        argvalues=[
-            pytest.param({}, id="all-states"),
-            pytest.param(
-                {"states": ["assembled"]},
-                id="selected-states",
-            ),
-        ],
+    dataset_uuid = _response_json(response=create_response)["uuid"]
+    assert isinstance(dataset_uuid, str)
+    delete_response = requests.delete(
+        url=f"{_VWS_HOST}{dataset_path}/{dataset_uuid}",
+        headers=headers,
+        timeout=30,
     )
-    def test_state_based_dataset(
-        *,
-        request: pytest.FixtureRequest,
-        verify_model_target_mock_vuforia: VuforiaBackend,
-        dataset_path: str,
-        view_updates: dict[str, object],
-    ) -> None:
-        """State-Based Model Target fields survive a dataset round
-        trip.
-        """
-        _skip_unrequested_real_signing(
-            request=request,
-            backend=verify_model_target_mock_vuforia,
-        )
-        body = {
-            **_UNAUTHENTICATED_DATASET_REQUEST,
-            "models": [
-                {
-                    **_MODEL,
-                    "stateBasedConfigurationJsonString": (
-                        _STATE_CONFIGURATION
-                    ),
-                    "views": [{**_VIEW, **view_updates}],
-                },
-            ],
-        }
-        access_token = _access_token_for_backend(
-            backend=verify_model_target_mock_vuforia,
-        )
-        headers = {"Authorization": f"Bearer {access_token}"}
+    assert_model_target_status(
+        response=delete_response,
+        status_codes=HTTPStatus.OK,
+    )
+
+
+def test_view_states_are_a_subset(
+    *,
+    verify_model_target_mock_vuforia: VuforiaBackend,
+) -> None:
+    """A view cannot select a state absent from the configuration."""
+    body = {
+        **_UNAUTHENTICATED_DATASET_REQUEST,
+        "models": [
+            {
+                **_MODEL,
+                "stateBasedConfigurationJsonString": (_STATE_CONFIGURATION),
+                "views": [{**_VIEW, "states": ["unknown"]}],
+            },
+        ],
+    }
+    access_token = _access_token_for_backend(
+        backend=verify_model_target_mock_vuforia,
+    )
+    response = requests.post(
+        url=f"{_VWS_HOST}/modeltargets/datasets",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json=body,
+        timeout=30,
+    )
+
+    assert_model_target_status(
+        response=response,
+        status_codes=HTTPStatus.BAD_REQUEST,
+    )
+    error = _response_validation_error(response=response)
+    assert error["code"] == "BAD_REQUEST"
+    assert [detail["message"] for detail in error["details"]] == [
+        "states in entrypoint view-name' must be a subset of all states",
+    ]
+    assert error["details"][0]["code"] == "VALIDATION_ERROR"
+
+
+# Additional verified and mock-only Model Target behaviors.
+
+
+@pytest.mark.parametrize(
+    argnames=("model_updates", "view_updates", "expected_message"),
+    argvalues=[
+        pytest.param(
+            {"stateBasedConfigurationJsonString": 1},
+            {},
+            (
+                "/models(0)/stateBasedConfigurationJsonString: "
+                "error.expected.jsstring"
+            ),
+            id="configuration-not-string",
+        ),
+        pytest.param(
+            {"stateBasedConfigurationJsonString": "{"},
+            {},
+            (
+                "/models(0)/stateBasedConfigurationJsonString: "
+                "error.expected.validjson"
+            ),
+            id="configuration-not-json",
+        ),
+        pytest.param(
+            {"stateBasedConfigurationJsonString": "{}"},
+            {},
+            (
+                "/models(0)/stateBasedConfigurationJsonString/states: "
+                "error.expected.jsobject"
+            ),
+            id="configuration-states-not-object",
+        ),
+        pytest.param(
+            {"stateBasedConfigurationJsonString": "[]"},
+            {},
+            (
+                "/models(0)/stateBasedConfigurationJsonString/states: "
+                "error.expected.jsobject"
+            ),
+            id="configuration-not-object",
+        ),
+        pytest.param(
+            {"stateBasedConfigurationJsonString": _STATE_CONFIGURATION},
+            {"states": "assembled"},
+            "/models(0)/views(0)/states: error.expected.jsarray",
+            id="view-states-not-array",
+        ),
+        pytest.param(
+            {"stateBasedConfigurationJsonString": _STATE_CONFIGURATION},
+            {"states": ["assembled", 1]},
+            ("/models(0)/views(0)/states(1): error.expected.jsstring"),
+            id="view-state-not-string",
+        ),
+        pytest.param(
+            {},
+            {"states": ["assembled"]},
+            (
+                "/models(0)/stateBasedConfigurationJsonString: element "
+                "is required when view states are given"
+            ),
+            id="view-states-without-configuration",
+        ),
+    ],
+)
+def test_invalid_state_based_dataset(
+    *,
+    model_target_mock_only_vuforia: VuforiaBackend,
+    model_updates: dict[str, object],
+    view_updates: dict[str, object],
+    expected_message: str,
+) -> None:
+    """Invalid State-Based Model Target fields are rejected."""
+    body = {
+        **_UNAUTHENTICATED_DATASET_REQUEST,
+        "models": [
+            {
+                **_MODEL,
+                **model_updates,
+                "views": [{**_VIEW, **view_updates}],
+            },
+        ],
+    }
+    access_token = _access_token_for_backend(
+        backend=model_target_mock_only_vuforia,
+    )
+    response = requests.post(
+        url=f"{_VWS_HOST}/modeltargets/datasets",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json=body,
+        timeout=30,
+    )
+
+    assert_model_target_status(
+        response=response,
+        status_codes=HTTPStatus.BAD_REQUEST,
+    )
+    error = _response_validation_error(response=response)
+    assert error["code"] == "BAD_REQUEST"
+    assert [detail["message"] for detail in error["details"]] == [
+        expected_message,
+    ]
+    assert error["details"][0]["code"] == "VALIDATION_ERROR"
+
+
+def test_advanced_realistic_appearance_not_in_enum(
+    *,
+    verify_model_target_mock_vuforia: VuforiaBackend,
+) -> None:
+    """Advanced dataset requests with a ``realisticAppearance`` value
+    outside the documented enumeration are rejected.
+
+    The Model Target OpenAPI specification documents
+    ``realisticAppearance`` as a model field for advanced datasets
+    only.
+    """
+    credentials = credentials_for_backend(
+        backend=verify_model_target_mock_vuforia,
+    )
+    body = {
+        **_UNAUTHENTICATED_DATASET_REQUEST,
+        "models": [
+            {
+                **_MODEL,
+                "cadDataUrl": credentials.cad_data_url,
+                "realisticAppearance": "yes",
+            },
+        ],
+    }
+    access_token = get_access_token(
+        credentials=credentials,
+        backend=verify_model_target_mock_vuforia,
+    )
+    advanced_response = requests.post(
+        url=f"{_VWS_HOST}/modeltargets/advancedDatasets",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json=body,
+        timeout=30,
+    )
+
+    assert_model_target_status(
+        response=advanced_response,
+        status_codes=HTTPStatus.BAD_REQUEST,
+    )
+    error = _response_validation_error(response=advanced_response)
+    assert error["code"] == "BAD_REQUEST"
+    assert [detail["message"] for detail in error["details"]] == [
+        '`realisticAppearance` must be one of "true", "false", "auto".` ',
+    ]
+    assert error["details"][0]["code"] == "VALIDATION_ERROR"
+
+
+def test_oauth2_token_body_not_utf_8(
+    *,
+    verify_model_target_mock_vuforia: VuforiaBackend,
+) -> None:
+    """An OAuth2 token request with a body which is not valid UTF-8 is
+    treated as one which does not name a grant type.
+
+    Real Vuforia also treats a body that cannot be decoded as an empty
+    form.
+    """
+    credentials = credentials_for_backend(
+        backend=verify_model_target_mock_vuforia,
+    )
+
+    response = requests.post(
+        url=f"{_VWS_HOST}/oauth2/token",
+        auth=(credentials.client_id, credentials.client_secret),
+        data=b"\xff",
+        timeout=30,
+    )
+
+    assert_model_target_status(
+        response=response,
+        status_codes=HTTPStatus.OK,
+    )
+    assert response.json()["token_type"] == "bearer"
+
+
+def test_processing_dataset_cannot_be_downloaded() -> None:
+    """A dataset cannot be downloaded while it is still processing.
+
+    Mock-only because exercising this against real Vuforia would require
+    creating a dataset on every test run; the mock lets us drive the
+    processing window deterministically.
+    """
+    with MockVWS(processing_time_seconds=60):
         create_response = requests.post(
-            url=f"{_VWS_HOST}{dataset_path}",
-            headers=headers,
-            json=body,
+            url=f"{_VWS_HOST}/modeltargets/datasets",
+            headers={"Authorization": f"Bearer {_MOCK_BEARER_TOKEN}"},
+            json=_UNAUTHENTICATED_DATASET_REQUEST,
             timeout=30,
-        )
-
-        assert_model_target_status(
-            response=create_response,
-            status_codes=HTTPStatus.CREATED,
         )
         dataset_uuid = _response_json(response=create_response)["uuid"]
         assert isinstance(dataset_uuid, str)
+        response = requests.get(
+            url=(f"{_VWS_HOST}/modeltargets/datasets/{dataset_uuid}/dataset"),
+            headers={"Authorization": f"Bearer {_MOCK_BEARER_TOKEN}"},
+            timeout=30,
+        )
+
+    assert_model_target_status(
+        response=response,
+        status_codes=HTTPStatus.UNPROCESSABLE_ENTITY,
+    )
+    error = _response_targeted_error(response=response)
+    assert error["code"] == "UNSUPPORTED_STATE"
+    assert error["message"] == (
+        f"Training status for dataset {dataset_uuid} is not-started != done"
+    )
+    assert error["target"] == dataset_uuid
+
+
+def test_failed_dataset_cannot_be_downloaded() -> None:
+    """A dataset which failed generation cannot be downloaded, and the
+    error reports the failed training status rather than the
+    ``not-started`` status which a still-processing dataset reports.
+
+    Mock-only because a generation failure cannot be provoked on demand
+    against real Vuforia, so the training status name it reports for a
+    failed dataset has not been observed.
+    """
+    failure = ModelTargetGenerationFailure(message="CAD model is invalid")
+    with MockVWS(
+        processing_time_seconds=0,
+        model_target_generation_failure=failure,
+    ):
+        create_response = requests.post(
+            url=f"{_VWS_HOST}/modeltargets/datasets",
+            headers={"Authorization": f"Bearer {_MOCK_BEARER_TOKEN}"},
+            json=_UNAUTHENTICATED_DATASET_REQUEST,
+            timeout=30,
+        )
+        dataset_uuid = _response_json(response=create_response)["uuid"]
+        assert isinstance(dataset_uuid, str)
+        status_response = requests.get(
+            url=f"{_VWS_HOST}/modeltargets/datasets/{dataset_uuid}/status",
+            headers={"Authorization": f"Bearer {_MOCK_BEARER_TOKEN}"},
+            timeout=30,
+        )
+        response = requests.get(
+            url=(f"{_VWS_HOST}/modeltargets/datasets/{dataset_uuid}/dataset"),
+            headers={"Authorization": f"Bearer {_MOCK_BEARER_TOKEN}"},
+            timeout=30,
+        )
+
+    assert status_response.json()["status"] == "failed"
+    assert_model_target_status(
+        response=response,
+        status_codes=HTTPStatus.UNPROCESSABLE_ENTITY,
+    )
+    error = _response_targeted_error(response=response)
+    assert error["code"] == "UNSUPPORTED_STATE"
+    assert error["message"] == (
+        f"Training status for dataset {dataset_uuid} is failed != done"
+    )
+    assert error["target"] == dataset_uuid
+
+
+@pytest.mark.parametrize(
+    argnames=("created_path", "other_path"),
+    argvalues=[
+        pytest.param(
+            "/modeltargets/datasets",
+            "/modeltargets/advancedDatasets",
+            id="standard-dataset-via-advanced-routes",
+        ),
+        pytest.param(
+            "/modeltargets/advancedDatasets",
+            "/modeltargets/datasets",
+            id="advanced-dataset-via-standard-routes",
+        ),
+    ],
+)
+def test_dataset_is_visible_to_the_other_dataset_type(
+    *,
+    verify_model_target_mock_vuforia: VuforiaBackend,
+    created_path: str,
+    other_path: str,
+) -> None:
+    """Standard and advanced routes share datasets by UUID."""
+    access_token = _access_token_for_backend(
+        backend=verify_model_target_mock_vuforia,
+    )
+    headers = {"Authorization": f"Bearer {access_token}"}
+    create_response = requests.post(
+        url=f"{_VWS_HOST}{created_path}",
+        headers=headers,
+        json=_dataset_request(
+            cad_data_url=credentials_for_backend(
+                backend=verify_model_target_mock_vuforia,
+            ).cad_data_url,
+        ),
+        timeout=30,
+    )
+    assert_model_target_status(
+        response=create_response,
+        status_codes=HTTPStatus.CREATED,
+    )
+    dataset_uuid: object = create_response.json()["uuid"]
+    assert isinstance(dataset_uuid, str)
+
+    try:
+        other_status_response = model_target_get(
+            url=f"{_VWS_HOST}{other_path}/{dataset_uuid}/status",
+            headers=headers,
+            timeout=30,
+        )
+        other_delete_response = requests.delete(
+            url=f"{_VWS_HOST}{other_path}/{dataset_uuid}",
+            headers=headers,
+            timeout=30,
+        )
+        own_status_response = model_target_get(
+            url=(
+                f"{_VWS_HOST}{created_path}/"
+                f"{create_response.json()['uuid']}/status"
+            ),
+            headers=headers,
+            timeout=30,
+        )
+    finally:
         delete_response = requests.delete(
-            url=f"{_VWS_HOST}{dataset_path}/{dataset_uuid}",
+            url=f"{_VWS_HOST}{created_path}/{dataset_uuid}",
             headers=headers,
             timeout=30,
         )
         assert_model_target_status(
             response=delete_response,
-            status_codes=HTTPStatus.OK,
-        )
-
-    @staticmethod
-    def test_view_states_are_a_subset(
-        *,
-        verify_model_target_mock_vuforia: VuforiaBackend,
-    ) -> None:
-        """A view cannot select a state absent from the configuration."""
-        body = {
-            **_UNAUTHENTICATED_DATASET_REQUEST,
-            "models": [
-                {
-                    **_MODEL,
-                    "stateBasedConfigurationJsonString": (
-                        _STATE_CONFIGURATION
-                    ),
-                    "views": [{**_VIEW, "states": ["unknown"]}],
-                },
-            ],
-        }
-        access_token = _access_token_for_backend(
-            backend=verify_model_target_mock_vuforia,
-        )
-        response = requests.post(
-            url=f"{_VWS_HOST}/modeltargets/datasets",
-            headers={"Authorization": f"Bearer {access_token}"},
-            json=body,
-            timeout=30,
-        )
-
-        assert_model_target_status(
-            response=response,
-            status_codes=HTTPStatus.BAD_REQUEST,
-        )
-        error = _response_validation_error(response=response)
-        assert error["code"] == "BAD_REQUEST"
-        assert [detail["message"] for detail in error["details"]] == [
-            "states in entrypoint view-name' must be a subset of all states",
-        ]
-        assert error["details"][0]["code"] == "VALIDATION_ERROR"
-
-
-class TestAdditionalBehaviors:
-    """Additional verified and mock-only Model Target behaviors."""
-
-    @staticmethod
-    @pytest.mark.parametrize(
-        argnames=("model_updates", "view_updates", "expected_message"),
-        argvalues=[
-            pytest.param(
-                {"stateBasedConfigurationJsonString": 1},
-                {},
-                (
-                    "/models(0)/stateBasedConfigurationJsonString: "
-                    "error.expected.jsstring"
-                ),
-                id="configuration-not-string",
-            ),
-            pytest.param(
-                {"stateBasedConfigurationJsonString": "{"},
-                {},
-                (
-                    "/models(0)/stateBasedConfigurationJsonString: "
-                    "error.expected.validjson"
-                ),
-                id="configuration-not-json",
-            ),
-            pytest.param(
-                {"stateBasedConfigurationJsonString": "{}"},
-                {},
-                (
-                    "/models(0)/stateBasedConfigurationJsonString/states: "
-                    "error.expected.jsobject"
-                ),
-                id="configuration-states-not-object",
-            ),
-            pytest.param(
-                {"stateBasedConfigurationJsonString": "[]"},
-                {},
-                (
-                    "/models(0)/stateBasedConfigurationJsonString/states: "
-                    "error.expected.jsobject"
-                ),
-                id="configuration-not-object",
-            ),
-            pytest.param(
-                {"stateBasedConfigurationJsonString": _STATE_CONFIGURATION},
-                {"states": "assembled"},
-                "/models(0)/views(0)/states: error.expected.jsarray",
-                id="view-states-not-array",
-            ),
-            pytest.param(
-                {"stateBasedConfigurationJsonString": _STATE_CONFIGURATION},
-                {"states": ["assembled", 1]},
-                ("/models(0)/views(0)/states(1): error.expected.jsstring"),
-                id="view-state-not-string",
-            ),
-            pytest.param(
-                {},
-                {"states": ["assembled"]},
-                (
-                    "/models(0)/stateBasedConfigurationJsonString: element "
-                    "is required when view states are given"
-                ),
-                id="view-states-without-configuration",
-            ),
-        ],
-    )
-    def test_invalid_state_based_dataset(
-        *,
-        model_target_mock_only_vuforia: VuforiaBackend,
-        model_updates: dict[str, object],
-        view_updates: dict[str, object],
-        expected_message: str,
-    ) -> None:
-        """Invalid State-Based Model Target fields are rejected."""
-        body = {
-            **_UNAUTHENTICATED_DATASET_REQUEST,
-            "models": [
-                {
-                    **_MODEL,
-                    **model_updates,
-                    "views": [{**_VIEW, **view_updates}],
-                },
-            ],
-        }
-        access_token = _access_token_for_backend(
-            backend=model_target_mock_only_vuforia,
-        )
-        response = requests.post(
-            url=f"{_VWS_HOST}/modeltargets/datasets",
-            headers={"Authorization": f"Bearer {access_token}"},
-            json=body,
-            timeout=30,
-        )
-
-        assert_model_target_status(
-            response=response,
-            status_codes=HTTPStatus.BAD_REQUEST,
-        )
-        error = _response_validation_error(response=response)
-        assert error["code"] == "BAD_REQUEST"
-        assert [detail["message"] for detail in error["details"]] == [
-            expected_message,
-        ]
-        assert error["details"][0]["code"] == "VALIDATION_ERROR"
-
-    @staticmethod
-    def test_advanced_realistic_appearance_not_in_enum(
-        *,
-        verify_model_target_mock_vuforia: VuforiaBackend,
-    ) -> None:
-        """Advanced dataset requests with a ``realisticAppearance`` value
-        outside the documented enumeration are rejected.
-
-        The Model Target OpenAPI specification documents
-        ``realisticAppearance`` as a model field for advanced datasets
-        only.
-        """
-        credentials = credentials_for_backend(
-            backend=verify_model_target_mock_vuforia,
-        )
-        body = {
-            **_UNAUTHENTICATED_DATASET_REQUEST,
-            "models": [
-                {
-                    **_MODEL,
-                    "cadDataUrl": credentials.cad_data_url,
-                    "realisticAppearance": "yes",
-                },
-            ],
-        }
-        access_token = get_access_token(
-            credentials=credentials,
-            backend=verify_model_target_mock_vuforia,
-        )
-        advanced_response = requests.post(
-            url=f"{_VWS_HOST}/modeltargets/advancedDatasets",
-            headers={"Authorization": f"Bearer {access_token}"},
-            json=body,
-            timeout=30,
-        )
-
-        assert_model_target_status(
-            response=advanced_response,
-            status_codes=HTTPStatus.BAD_REQUEST,
-        )
-        error = _response_validation_error(response=advanced_response)
-        assert error["code"] == "BAD_REQUEST"
-        assert [detail["message"] for detail in error["details"]] == [
-            '`realisticAppearance` must be one of "true", "false", "auto".` ',
-        ]
-        assert error["details"][0]["code"] == "VALIDATION_ERROR"
-
-    @staticmethod
-    def test_oauth2_token_body_not_utf_8(
-        *,
-        verify_model_target_mock_vuforia: VuforiaBackend,
-    ) -> None:
-        """An OAuth2 token request with a body which is not valid UTF-8 is
-        treated as one which does not name a grant type.
-
-        Real Vuforia also treats a body that cannot be decoded as an empty
-        form.
-        """
-        credentials = credentials_for_backend(
-            backend=verify_model_target_mock_vuforia,
-        )
-
-        response = requests.post(
-            url=f"{_VWS_HOST}/oauth2/token",
-            auth=(credentials.client_id, credentials.client_secret),
-            data=b"\xff",
-            timeout=30,
-        )
-
-        assert_model_target_status(
-            response=response,
-            status_codes=HTTPStatus.OK,
-        )
-        assert response.json()["token_type"] == "bearer"
-
-    @staticmethod
-    def test_processing_dataset_cannot_be_downloaded() -> None:
-        """A dataset cannot be downloaded while it is still processing.
-
-        Mock-only because exercising this against real Vuforia would require
-        creating a dataset on every test run; the mock lets us drive the
-        processing window deterministically.
-        """
-        with MockVWS(processing_time_seconds=60):
-            create_response = requests.post(
-                url=f"{_VWS_HOST}/modeltargets/datasets",
-                headers={"Authorization": f"Bearer {_MOCK_BEARER_TOKEN}"},
-                json=_UNAUTHENTICATED_DATASET_REQUEST,
-                timeout=30,
-            )
-            dataset_uuid = _response_json(response=create_response)["uuid"]
-            assert isinstance(dataset_uuid, str)
-            response = requests.get(
-                url=(
-                    f"{_VWS_HOST}/modeltargets/datasets/{dataset_uuid}/dataset"
-                ),
-                headers={"Authorization": f"Bearer {_MOCK_BEARER_TOKEN}"},
-                timeout=30,
-            )
-
-        assert_model_target_status(
-            response=response,
-            status_codes=HTTPStatus.UNPROCESSABLE_ENTITY,
-        )
-        error = _response_targeted_error(response=response)
-        assert error["code"] == "UNSUPPORTED_STATE"
-        assert error["message"] == (
-            f"Training status for dataset {dataset_uuid} is "
-            "not-started != done"
-        )
-        assert error["target"] == dataset_uuid
-
-    @staticmethod
-    def test_failed_dataset_cannot_be_downloaded() -> None:
-        """A dataset which failed generation cannot be downloaded, and the
-        error reports the failed training status rather than the
-        ``not-started`` status which a still-processing dataset reports.
-
-        Mock-only because a generation failure cannot be provoked on demand
-        against real Vuforia, so the training status name it reports for a
-        failed dataset has not been observed.
-        """
-        failure = ModelTargetGenerationFailure(message="CAD model is invalid")
-        with MockVWS(
-            processing_time_seconds=0,
-            model_target_generation_failure=failure,
-        ):
-            create_response = requests.post(
-                url=f"{_VWS_HOST}/modeltargets/datasets",
-                headers={"Authorization": f"Bearer {_MOCK_BEARER_TOKEN}"},
-                json=_UNAUTHENTICATED_DATASET_REQUEST,
-                timeout=30,
-            )
-            dataset_uuid = _response_json(response=create_response)["uuid"]
-            assert isinstance(dataset_uuid, str)
-            status_response = requests.get(
-                url=f"{_VWS_HOST}/modeltargets/datasets/{dataset_uuid}/status",
-                headers={"Authorization": f"Bearer {_MOCK_BEARER_TOKEN}"},
-                timeout=30,
-            )
-            response = requests.get(
-                url=(
-                    f"{_VWS_HOST}/modeltargets/datasets/{dataset_uuid}/dataset"
-                ),
-                headers={"Authorization": f"Bearer {_MOCK_BEARER_TOKEN}"},
-                timeout=30,
-            )
-
-        assert status_response.json()["status"] == "failed"
-        assert_model_target_status(
-            response=response,
-            status_codes=HTTPStatus.UNPROCESSABLE_ENTITY,
-        )
-        error = _response_targeted_error(response=response)
-        assert error["code"] == "UNSUPPORTED_STATE"
-        assert error["message"] == (
-            f"Training status for dataset {dataset_uuid} is failed != done"
-        )
-        assert error["target"] == dataset_uuid
-
-    @staticmethod
-    @pytest.mark.parametrize(
-        argnames=("created_path", "other_path"),
-        argvalues=[
-            pytest.param(
-                "/modeltargets/datasets",
-                "/modeltargets/advancedDatasets",
-                id="standard-dataset-via-advanced-routes",
-            ),
-            pytest.param(
-                "/modeltargets/advancedDatasets",
-                "/modeltargets/datasets",
-                id="advanced-dataset-via-standard-routes",
-            ),
-        ],
-    )
-    def test_dataset_is_visible_to_the_other_dataset_type(
-        *,
-        verify_model_target_mock_vuforia: VuforiaBackend,
-        created_path: str,
-        other_path: str,
-    ) -> None:
-        """Standard and advanced routes share datasets by UUID."""
-        access_token = _access_token_for_backend(
-            backend=verify_model_target_mock_vuforia,
-        )
-        headers = {"Authorization": f"Bearer {access_token}"}
-        create_response = requests.post(
-            url=f"{_VWS_HOST}{created_path}",
-            headers=headers,
-            json=_dataset_request(
-                cad_data_url=credentials_for_backend(
-                    backend=verify_model_target_mock_vuforia,
-                ).cad_data_url,
-            ),
-            timeout=30,
-        )
-        assert_model_target_status(
-            response=create_response,
-            status_codes=HTTPStatus.CREATED,
-        )
-        dataset_uuid: object = create_response.json()["uuid"]
-        assert isinstance(dataset_uuid, str)
-
-        try:
-            other_status_response = model_target_get(
-                url=f"{_VWS_HOST}{other_path}/{dataset_uuid}/status",
-                headers=headers,
-                timeout=30,
-            )
-            other_delete_response = requests.delete(
-                url=f"{_VWS_HOST}{other_path}/{dataset_uuid}",
-                headers=headers,
-                timeout=30,
-            )
-            own_status_response = model_target_get(
-                url=(
-                    f"{_VWS_HOST}{created_path}/"
-                    f"{create_response.json()['uuid']}/status"
-                ),
-                headers=headers,
-                timeout=30,
-            )
-        finally:
-            delete_response = requests.delete(
-                url=f"{_VWS_HOST}{created_path}/{dataset_uuid}",
-                headers=headers,
-                timeout=30,
-            )
-            assert_model_target_status(
-                response=delete_response,
-                status_codes={
-                    HTTPStatus.OK,
-                    HTTPStatus.NO_CONTENT,
-                },
-            )
-
-        assert_model_target_status(
-            response=other_status_response,
-            status_codes=HTTPStatus.OK,
-        )
-        assert_model_target_status(
-            response=other_delete_response,
             status_codes={
                 HTTPStatus.OK,
                 HTTPStatus.NO_CONTENT,
             },
         )
-        assert_model_target_status(
-            response=own_status_response,
-            status_codes=HTTPStatus.OK,
-        )
+
+    assert_model_target_status(
+        response=other_status_response,
+        status_codes=HTTPStatus.OK,
+    )
+    assert_model_target_status(
+        response=other_delete_response,
+        status_codes={
+            HTTPStatus.OK,
+            HTTPStatus.NO_CONTENT,
+        },
+    )
+    assert_model_target_status(
+        response=own_status_response,
+        status_codes=HTTPStatus.OK,
+    )
 
 
-class TestStandardDataset:
-    """Tests for standard Model Target datasets."""
+# Tests for standard Model Target datasets.
 
-    @staticmethod
-    def test_create_status_and_delete(
-        *,
-        verify_model_target_mock_vuforia: VuforiaBackend,
-    ) -> None:
-        """A standard dataset works through the shared advanced routes.
 
-        Standard generation is fast enough for verified CI coverage. Real
-        Vuforia exposes its completed artifact through both route families,
-        so this also verifies the advanced status and download endpoints.
-        """
-        credentials = credentials_for_backend(
-            backend=verify_model_target_mock_vuforia,
-        )
-        access_token = get_access_token(
-            credentials=credentials,
-            backend=verify_model_target_mock_vuforia,
-        )
-        headers = {"Authorization": f"Bearer {access_token}"}
-        create_response = requests.post(
-            url=f"{_VWS_HOST}/modeltargets/datasets",
+def test_create_status_and_delete(
+    *,
+    verify_model_target_mock_vuforia: VuforiaBackend,
+) -> None:
+    """A standard dataset works through the shared advanced routes.
+
+    Standard generation is fast enough for verified CI coverage. Real
+    Vuforia exposes its completed artifact through both route families,
+    so this also verifies the advanced status and download endpoints.
+    """
+    credentials = credentials_for_backend(
+        backend=verify_model_target_mock_vuforia,
+    )
+    access_token = get_access_token(
+        credentials=credentials,
+        backend=verify_model_target_mock_vuforia,
+    )
+    headers = {"Authorization": f"Bearer {access_token}"}
+    create_response = requests.post(
+        url=f"{_VWS_HOST}/modeltargets/datasets",
+        headers=headers,
+        json=_dataset_request(cad_data_url=credentials.cad_data_url),
+        timeout=30,
+    )
+
+    assert_model_target_status(
+        response=create_response,
+        status_codes=HTTPStatus.CREATED,
+    )
+    create_response_json = _response_json(response=create_response)
+    dataset_uuid: object = create_response_json["uuid"]
+    assert isinstance(dataset_uuid, str)
+
+    try:
+        status_response = model_target_get(
+            url=(
+                f"{_VWS_HOST}/modeltargets/advancedDatasets/"
+                f"{dataset_uuid}/status"
+            ),
             headers=headers,
-            json=_dataset_request(cad_data_url=credentials.cad_data_url),
             timeout=30,
         )
 
         assert_model_target_status(
-            response=create_response,
-            status_codes=HTTPStatus.CREATED,
+            response=status_response,
+            status_codes=HTTPStatus.OK,
         )
-        create_response_json = _response_json(response=create_response)
-        dataset_uuid: object = create_response_json["uuid"]
-        assert isinstance(dataset_uuid, str)
+        status_response_json = _response_json(response=status_response)
+        assert status_response_json["status"] in {
+            "processing",
+            "done",
+            "failed",
+        }
+        assert isinstance(status_response_json["createdAt"], str)
 
-        try:
+        deadline = time.monotonic() + 60
+        while (
+            status_response_json["status"] == "processing"
+            and time.monotonic() < deadline
+        ):
+            time.sleep(1)
             status_response = model_target_get(
                 url=(
                     f"{_VWS_HOST}/modeltargets/advancedDatasets/"
@@ -2245,122 +2255,42 @@ class TestStandardDataset:
                 headers=headers,
                 timeout=30,
             )
-
             assert_model_target_status(
                 response=status_response,
                 status_codes=HTTPStatus.OK,
             )
-            status_response_json = _response_json(response=status_response)
-            assert status_response_json["status"] in {
-                "processing",
-                "done",
-                "failed",
-            }
-            assert isinstance(status_response_json["createdAt"], str)
+            status_response_json = status_response.json()
 
-            deadline = time.monotonic() + 60
-            while (
-                status_response_json["status"] == "processing"
-                and time.monotonic() < deadline
-            ):
-                time.sleep(1)
-                status_response = model_target_get(
-                    url=(
-                        f"{_VWS_HOST}/modeltargets/advancedDatasets/"
-                        f"{dataset_uuid}/status"
-                    ),
-                    headers=headers,
-                    timeout=30,
-                )
-                assert_model_target_status(
-                    response=status_response,
-                    status_codes=HTTPStatus.OK,
-                )
-                status_response_json = status_response.json()
+        assert status_response_json["status"] == "done"
+        assert isinstance(status_response_json["completedAt"], str)
+        assert set(status_response_json) == {
+            "completedAt",
+            "createdAt",
+            "status",
+            "uuid",
+        }
 
-            assert status_response_json["status"] == "done"
-            assert isinstance(status_response_json["completedAt"], str)
-            assert set(status_response_json) == {
-                "completedAt",
-                "createdAt",
-                "status",
-                "uuid",
-            }
-
-            download_response = model_target_get(
-                url=(
-                    f"{_VWS_HOST}/modeltargets/advancedDatasets/"
-                    f"{dataset_uuid}/dataset"
-                ),
-                headers=headers,
-                timeout=30,
-            )
-            assert_model_target_status(
-                response=download_response,
-                status_codes=HTTPStatus.OK,
-            )
-            assert download_response.headers["Content-Type"] == (
-                "application/zip"
-            )
-            assert download_response.headers["Content-Disposition"] == (
-                "attachment; filename=full-dataset.zip"
-            )
-            with zipfile.ZipFile(
-                file=io.BytesIO(initial_bytes=download_response.content),
-            ) as archive:
-                assert archive.namelist() == ["MTDataset.dat", "MTDataset.xml"]
-        finally:
-            delete_response = requests.delete(
-                url=f"{_VWS_HOST}/modeltargets/datasets/{dataset_uuid}",
-                headers=headers,
-                timeout=30,
-            )
-            assert_model_target_status(
-                response=delete_response,
-                status_codes={
-                    HTTPStatus.OK,
-                    HTTPStatus.NO_CONTENT,
-                },
-            )
-
-    @staticmethod
-    def test_create_with_cad_data_blob(
-        *,
-        request: pytest.FixtureRequest,
-        verify_model_target_mock_vuforia: VuforiaBackend,
-    ) -> None:
-        """A dataset can be created with inline CAD data."""
-        _skip_unrequested_real_signing(
-            request=request,
-            backend=verify_model_target_mock_vuforia,
-        )
-        credentials = credentials_for_backend(
-            backend=verify_model_target_mock_vuforia,
-        )
-        access_token = get_access_token(
-            credentials=credentials,
-            backend=verify_model_target_mock_vuforia,
-        )
-        headers = {"Authorization": f"Bearer {access_token}"}
-
-        create_response = requests.post(
-            url=f"{_VWS_HOST}/modeltargets/datasets",
+        download_response = model_target_get(
+            url=(
+                f"{_VWS_HOST}/modeltargets/advancedDatasets/"
+                f"{dataset_uuid}/dataset"
+            ),
             headers=headers,
-            json=_blob_dataset_request(),
             timeout=30,
         )
-
         assert_model_target_status(
-            response=create_response,
-            status_codes=HTTPStatus.CREATED,
+            response=download_response,
+            status_codes=HTTPStatus.OK,
         )
-        create_response_json = _response_json(response=create_response)
-        dataset_uuid = create_response_json["uuid"]
-        assert isinstance(dataset_uuid, str)
-
-        # There is nothing to assert between creating and deleting the
-        # dataset, so the delete does not need a ``finally`` block to avoid
-        # leaving a dataset behind on real Vuforia.
+        assert download_response.headers["Content-Type"] == ("application/zip")
+        assert download_response.headers["Content-Disposition"] == (
+            "attachment; filename=full-dataset.zip"
+        )
+        with zipfile.ZipFile(
+            file=io.BytesIO(initial_bytes=download_response.content),
+        ) as archive:
+            assert archive.namelist() == ["MTDataset.dat", "MTDataset.xml"]
+    finally:
         delete_response = requests.delete(
             url=f"{_VWS_HOST}/modeltargets/datasets/{dataset_uuid}",
             headers=headers,
@@ -2375,38 +2305,88 @@ class TestStandardDataset:
         )
 
 
-class TestModelTargetDatasetStatus:
-    """Tests for Model Target dataset status response bodies."""
-
-    @staticmethod
-    @pytest.mark.parametrize(
-        argnames=("processing_time_seconds", "status", "time_field"),
-        argvalues=[
-            pytest.param(3600.0, "processing", "eta", id="processing"),
-            pytest.param(0.0, "done", "completedAt", id="done"),
-        ],
+def test_create_with_cad_data_blob(
+    *,
+    request: pytest.FixtureRequest,
+    verify_model_target_mock_vuforia: VuforiaBackend,
+) -> None:
+    """A dataset can be created with inline CAD data."""
+    _skip_unrequested_real_signing(
+        request=request,
+        backend=verify_model_target_mock_vuforia,
     )
-    def test_status_uses_matching_time_field(
-        *,
-        processing_time_seconds: float,
-        status: str,
-        time_field: str,
-    ) -> None:
-        """Each status includes only its matching timestamp field."""
-        dataset = ModelTargetDataset(
-            request_body={},
-            dataset_type=ModelTargetDatasetType.STANDARD,
-            processing_time_seconds=processing_time_seconds,
-            generation_failure=None,
-            generation_warning=None,
-            uuid_="dataset-uuid",
-        )
+    credentials = credentials_for_backend(
+        backend=verify_model_target_mock_vuforia,
+    )
+    access_token = get_access_token(
+        credentials=credentials,
+        backend=verify_model_target_mock_vuforia,
+    )
+    headers = {"Authorization": f"Bearer {access_token}"}
 
-        body = dataset.status_body()
+    create_response = requests.post(
+        url=f"{_VWS_HOST}/modeltargets/datasets",
+        headers=headers,
+        json=_blob_dataset_request(),
+        timeout=30,
+    )
 
-        assert body["status"] == status
-        assert body["uuid"] == "dataset-uuid"
-        assert {"eta", "completedAt"} & body.keys() == {time_field}
+    assert_model_target_status(
+        response=create_response,
+        status_codes=HTTPStatus.CREATED,
+    )
+    create_response_json = _response_json(response=create_response)
+    dataset_uuid = create_response_json["uuid"]
+    assert isinstance(dataset_uuid, str)
+
+    # There is nothing to assert between creating and deleting the
+    # dataset, so the delete does not need a ``finally`` block to avoid
+    # leaving a dataset behind on real Vuforia.
+    delete_response = requests.delete(
+        url=f"{_VWS_HOST}/modeltargets/datasets/{dataset_uuid}",
+        headers=headers,
+        timeout=30,
+    )
+    assert_model_target_status(
+        response=delete_response,
+        status_codes={
+            HTTPStatus.OK,
+            HTTPStatus.NO_CONTENT,
+        },
+    )
+
+
+# Tests for Model Target dataset status response bodies.
+
+
+@pytest.mark.parametrize(
+    argnames=("processing_time_seconds", "status", "time_field"),
+    argvalues=[
+        pytest.param(3600.0, "processing", "eta", id="processing"),
+        pytest.param(0.0, "done", "completedAt", id="done"),
+    ],
+)
+def test_status_uses_matching_time_field(
+    *,
+    processing_time_seconds: float,
+    status: str,
+    time_field: str,
+) -> None:
+    """Each status includes only its matching timestamp field."""
+    dataset = ModelTargetDataset(
+        request_body={},
+        dataset_type=ModelTargetDatasetType.STANDARD,
+        processing_time_seconds=processing_time_seconds,
+        generation_failure=None,
+        generation_warning=None,
+        uuid_="dataset-uuid",
+    )
+
+    body = dataset.status_body()
+
+    assert body["status"] == status
+    assert body["uuid"] == "dataset-uuid"
+    assert {"eta", "completedAt"} & body.keys() == {time_field}
 
 
 class TestMockOnlyOAuth2EdgeCases:
@@ -2741,105 +2721,101 @@ def _fake_response(
     )
 
 
-class TestAssertModelTargetStatus:
-    """Tests for the Model Target status assertion helper.
+# Tests for the Model Target status assertion helper.
+#
+# The helper exists to make real Vuforia failures legible, so its
+# messages are worth testing.
 
-    The helper exists to make real Vuforia failures legible, so its
-    messages are worth testing.
-    """
 
-    @staticmethod
-    @pytest.mark.parametrize(
-        argnames="status_codes",
-        argvalues=[
-            pytest.param(HTTPStatus.OK, id="single"),
-            pytest.param(
-                {HTTPStatus.OK, HTTPStatus.NO_CONTENT},
-                id="set",
-            ),
-        ],
+@pytest.mark.parametrize(
+    argnames="status_codes",
+    argvalues=[
+        pytest.param(HTTPStatus.OK, id="single"),
+        pytest.param(
+            {HTTPStatus.OK, HTTPStatus.NO_CONTENT},
+            id="set",
+        ),
+    ],
+)
+def test_expected_status(
+    *,
+    status_codes: HTTPStatus | AbstractSet[HTTPStatus],
+) -> None:
+    """An expected status code does not raise."""
+    response = _fake_response(
+        status_code=HTTPStatus.OK,
+        text="{}",
+        url=f"{_VWS_HOST}/modeltargets/advancedDatasets",
     )
-    def test_expected_status(
-        *,
-        status_codes: HTTPStatus | AbstractSet[HTTPStatus],
-    ) -> None:
-        """An expected status code does not raise."""
-        response = _fake_response(
-            status_code=HTTPStatus.OK,
-            text="{}",
-            url=f"{_VWS_HOST}/modeltargets/advancedDatasets",
-        )
+    assert_model_target_status(
+        response=response,
+        status_codes=status_codes,
+    )
+
+
+def test_unexpected_status_shows_the_body() -> None:
+    """An unexpected status code reports the URL and the body."""
+    text = '{"error":{"code":"VALIDATION_ERROR"}}'
+    response = _fake_response(
+        status_code=HTTPStatus.BAD_REQUEST,
+        text=text,
+        url=f"{_VWS_HOST}/modeltargets/advancedDatasets",
+    )
+    with pytest.raises(expected_exception=AssertionError) as exc:
         assert_model_target_status(
             response=response,
-            status_codes=status_codes,
+            status_codes=HTTPStatus.CREATED,
         )
 
-    @staticmethod
-    def test_unexpected_status_shows_the_body() -> None:
-        """An unexpected status code reports the URL and the body."""
-        text = '{"error":{"code":"VALIDATION_ERROR"}}'
-        response = _fake_response(
-            status_code=HTTPStatus.BAD_REQUEST,
-            text=text,
-            url=f"{_VWS_HOST}/modeltargets/advancedDatasets",
-        )
-        with pytest.raises(expected_exception=AssertionError) as exc:
-            assert_model_target_status(
-                response=response,
-                status_codes=HTTPStatus.CREATED,
-            )
+    message = str(object=exc.value)
+    assert message == (
+        "Expected 201 CREATED from "
+        f"{_VWS_HOST}/modeltargets/advancedDatasets, got 400.\n"
+        f"\nResponse body:\n{text}"
+    )
 
-        message = str(object=exc.value)
-        assert message == (
-            "Expected 201 CREATED from "
-            f"{_VWS_HOST}/modeltargets/advancedDatasets, got 400.\n"
-            f"\nResponse body:\n{text}"
-        )
 
-    @staticmethod
-    def test_multiple_expected_statuses() -> None:
-        """Every expected status code is named in the message."""
-        response = _fake_response(
-            status_code=HTTPStatus.BAD_REQUEST,
-            text="{}",
-            url=f"{_VWS_HOST}/modeltargets/advancedDatasets",
-        )
-        with pytest.raises(expected_exception=AssertionError) as exc:
-            assert_model_target_status(
-                response=response,
-                status_codes={HTTPStatus.OK, HTTPStatus.NO_CONTENT},
-            )
-
-        assert "Expected 200 OK or 204 NO_CONTENT from " in str(
-            object=exc.value
+def test_multiple_expected_statuses() -> None:
+    """Every expected status code is named in the message."""
+    response = _fake_response(
+        status_code=HTTPStatus.BAD_REQUEST,
+        text="{}",
+        url=f"{_VWS_HOST}/modeltargets/advancedDatasets",
+    )
+    with pytest.raises(expected_exception=AssertionError) as exc:
+        assert_model_target_status(
+            response=response,
+            status_codes={HTTPStatus.OK, HTTPStatus.NO_CONTENT},
         )
 
-    @staticmethod
-    def test_training_allowance_exceeded() -> None:
-        """An exhausted account allowance is an expected failure, called
-        out as such in the first line so that a truncated CI summary
-        still shows it.
-        """
-        response = _fake_response(
-            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
-            text=(
-                '{"error":{"code":"TRAINING_ALLOWANCE_EXCEEDED",'
-                '"message":"Signing quota reached","target":"7635391"}}'
-            ),
-            url="http://example.com/modeltargets/datasets",
-        )
-        with pytest.raises(expected_exception=pytest.xfail.Exception) as exc:
-            assert_model_target_status(
-                response=response,
-                status_codes=HTTPStatus.CREATED,
-            )
+    assert "Expected 200 OK or 204 NO_CONTENT from " in str(object=exc.value)
 
-        message = str(object=exc.value)
-        first_line = message.splitlines()[0]
-        assert first_line == (
-            "The Vuforia account is out of Model Target training allowance - "
-            "this is not a failure of the code under test."
+
+def test_training_allowance_exceeded() -> None:
+    """An exhausted account allowance is an expected failure, called
+    out as such in the first line so that a truncated CI summary
+    still shows it.
+    """
+    response = _fake_response(
+        status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
+        text=(
+            '{"error":{"code":"TRAINING_ALLOWANCE_EXCEEDED",'
+            '"message":"Signing quota reached","target":"7635391"}}'
+        ),
+        url="http://example.com/modeltargets/datasets",
+    )
+    with pytest.raises(expected_exception=pytest.xfail.Exception) as exc:
+        assert_model_target_status(
+            response=response,
+            status_codes=HTTPStatus.CREATED,
         )
-        assert "MODEL_TARGET_VUFORIA_CLIENT_ID" in message
-        assert "has to be raised, or reset, on the Vuforia account" in message
-        assert "expected failure" in message
+
+    message = str(object=exc.value)
+    first_line = message.splitlines()[0]
+    assert first_line == (
+        "The Vuforia account is out of Model Target training allowance - "
+        "this is not a failure of the code under test."
+    )
+    assert "MODEL_TARGET_VUFORIA_CLIENT_ID" in message
+    assert "has to be raised, or reset, on the Vuforia account" in message
+    assert "expected failure" in message

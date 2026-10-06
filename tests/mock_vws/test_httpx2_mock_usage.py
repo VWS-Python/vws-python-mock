@@ -99,439 +99,430 @@ async def _async_get(*, url: str) -> httpx2.Response:
         return await client.get(url=url, timeout=30)
 
 
-class TestVWS:
-    """Synchronous ``vws-python`` client usage through the mock via
-    ``httpx2``.
+# Synchronous ``vws-python`` client usage through the mock via
+# ``httpx2``.
+
+
+def test_vws_response_delay_causes_httpx2_timeout() -> None:
+    """``httpx2`` timeouts are surfaced through ``VWS``."""
+    database = CloudDatabase()
+    calls: list[float] = []
+
+    with MockVWS(
+        response_delay_seconds=5.0,
+        sleep_fn=calls.append,
+        processing_time_seconds=0,
+    ) as mock:
+        mock.add_cloud_database(cloud_database=database)
+        client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+            # A ``(connect, read)`` tuple, so that the read timeout
+            # is the one which the response delay exceeds.
+            request_timeout_seconds=(30.0, 0.1),
+            transport=HTTPX2Transport(),
+        )
+        with pytest.raises(expected_exception=httpx2.ReadTimeout):
+            _ = client.get_database_summary_report()
+
+    assert calls == [0.1]
+
+
+def test_custom_base_vws_url_with_path_prefix() -> None:
+    """``VWS`` works with a custom VWS base URL path prefix."""
+    database = CloudDatabase()
+    base_vws_url = "https://vuforia.vws.example.com/prefix"
+
+    with MockVWS(base_vws_url=base_vws_url) as mock:
+        mock.add_cloud_database(cloud_database=database)
+        client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+            base_vws_url=base_vws_url,
+            transport=HTTPX2Transport(),
+        )
+        report = client.get_database_summary_report()
+        database_name = report.name
+
+    assert database_name == database.database_name
+
+
+def test_bad_credentials_are_rejected() -> None:
+    """Requests which are signed with the wrong keys are rejected."""
+    database = CloudDatabase()
+
+    with MockVWS() as mock:
+        mock.add_cloud_database(cloud_database=database)
+        client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key="wrong-secret-key",
+            transport=HTTPX2Transport(),
+        )
+        with pytest.raises(
+            expected_exception=AuthenticationFailureError,
+        ):
+            _ = client.get_database_summary_report()
+
+
+def test_vws_add_get_and_delete_target(
+    image_file_success_state_low_rating: io.BytesIO,
+) -> None:
+    """A target life cycle works through ``VWS``."""
+    database = CloudDatabase()
+    target_name = "httpx2-target"
+
+    with MockVWS(processing_time_seconds=0) as mock:
+        mock.add_cloud_database(cloud_database=database)
+        client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+            transport=HTTPX2Transport(),
+        )
+        target_id = client.add_target(
+            name=target_name,
+            width=1,
+            image=image_file_success_state_low_rating,
+            application_metadata=None,
+            active_flag=True,
+        )
+        client.wait_for_target_processed(target_id=target_id)
+        target_record = client.get_target_record(target_id=target_id)
+        assert target_record.status == TargetStatuses.SUCCESS
+        assert target_record.target_record.name == target_name
+
+        client.delete_target(target_id=target_id)
+
+        with pytest.raises(expected_exception=UnknownTargetError):
+            _ = client.get_target_record(target_id=target_id)
+
+
+def test_nested_mocks() -> None:
+    """A mock inside another mock leaves the outer one working.
+
+    The innermost mock is the only one which answers while it is
+    running, which is what the ``requests`` backend does too, and the
+    outer mock answers again once the inner one has stopped.
     """
+    outer_url = "https://vws.vuforia.com/summary"
+    inner_url = "https://vuforia.vws.example.com/summary"
 
-    @staticmethod
-    def test_response_delay_causes_httpx2_timeout() -> None:
-        """``httpx2`` timeouts are surfaced through ``VWS``."""
-        database = CloudDatabase()
-        calls: list[float] = []
+    with MockVWS():
+        with MockVWS(base_vws_url="https://vuforia.vws.example.com"):
+            inner_response = httpx2.get(url=inner_url, timeout=30)
+            with pytest.raises(expected_exception=httpx2.ConnectError):
+                _ = httpx2.get(url=outer_url, timeout=30)
+        outer_response = httpx2.get(url=outer_url, timeout=30)
 
-        with MockVWS(
-            response_delay_seconds=5.0,
-            sleep_fn=calls.append,
-            processing_time_seconds=0,
-        ) as mock:
-            mock.add_cloud_database(cloud_database=database)
-            client = VWS(
-                server_access_key=database.server_access_key,
-                server_secret_key=database.server_secret_key,
-                # A ``(connect, read)`` tuple, so that the read timeout
-                # is the one which the response delay exceeds.
-                request_timeout_seconds=(30.0, 0.1),
-                transport=HTTPX2Transport(),
-            )
-            with pytest.raises(expected_exception=httpx2.ReadTimeout):
-                _ = client.get_database_summary_report()
+        with pytest.raises(expected_exception=httpx2.ConnectError):
+            _ = httpx2.get(url=inner_url, timeout=30)
 
-        assert calls == [0.1]
+    assert inner_response.status_code == HTTPStatus.UNAUTHORIZED
+    assert outer_response.status_code == HTTPStatus.UNAUTHORIZED
 
-    @staticmethod
-    def test_custom_base_vws_url_with_path_prefix() -> None:
-        """``VWS`` works with a custom VWS base URL path prefix."""
-        database = CloudDatabase()
-        base_vws_url = "https://vuforia.vws.example.com/prefix"
 
-        with MockVWS(base_vws_url=base_vws_url) as mock:
-            mock.add_cloud_database(cloud_database=database)
-            client = VWS(
-                server_access_key=database.server_access_key,
-                server_secret_key=database.server_secret_key,
-                base_vws_url=base_vws_url,
-                transport=HTTPX2Transport(),
-            )
-            report = client.get_database_summary_report()
-            database_name = report.name
+# Asynchronous ``vws-python`` client usage through the mock via
+# ``httpx2``.
 
-        assert database_name == database.database_name
 
-    @staticmethod
-    def test_bad_credentials_are_rejected() -> None:
-        """Requests which are signed with the wrong keys are rejected."""
-        database = CloudDatabase()
+def test_async_vws_response_delay_causes_httpx2_timeout() -> None:
+    """``httpx2`` timeouts are surfaced through ``AsyncVWS``."""
+    database = CloudDatabase()
+    calls: list[float] = []
 
-        with MockVWS() as mock:
-            mock.add_cloud_database(cloud_database=database)
-            client = VWS(
-                server_access_key=database.server_access_key,
-                server_secret_key="wrong-secret-key",
-                transport=HTTPX2Transport(),
-            )
-            with pytest.raises(
-                expected_exception=AuthenticationFailureError,
-            ):
-                _ = client.get_database_summary_report()
+    async def get_summary() -> None:
+        """Ask for a database summary report."""
+        client = AsyncVWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+            request_timeout_seconds=0.1,
+            transport=AsyncHTTPX2Transport(),
+        )
+        try:
+            await client.get_database_summary_report()
+        finally:
+            await client.aclose()
 
-    @staticmethod
-    def test_add_get_and_delete_target(
-        image_file_success_state_low_rating: io.BytesIO,
-    ) -> None:
-        """A target life cycle works through ``VWS``."""
-        database = CloudDatabase()
-        target_name = "httpx2-target"
+    with MockVWS(
+        response_delay_seconds=5.0,
+        sleep_fn=calls.append,
+        processing_time_seconds=0,
+    ) as mock:
+        mock.add_cloud_database(cloud_database=database)
+        with pytest.raises(expected_exception=httpx2.ReadTimeout):
+            _run(coroutine=get_summary())
 
-        with MockVWS(processing_time_seconds=0) as mock:
-            mock.add_cloud_database(cloud_database=database)
-            client = VWS(
-                server_access_key=database.server_access_key,
-                server_secret_key=database.server_secret_key,
-                transport=HTTPX2Transport(),
-            )
-            target_id = client.add_target(
+    assert calls == [0.1]
+
+
+def test_async_vws_add_get_and_delete_target(
+    image_file_success_state_low_rating: io.BytesIO,
+) -> None:
+    """A target life cycle works through ``AsyncVWS``."""
+    database = CloudDatabase()
+    target_name = "async-httpx2-target"
+
+    async def life_cycle() -> str:
+        """Add a target, read it back, and delete it.
+
+        Returns:
+            The name of the target which was added.
+        """
+        client = AsyncVWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+            transport=AsyncHTTPX2Transport(),
+        )
+        try:
+            target_id = await client.add_target(
                 name=target_name,
                 width=1,
                 image=image_file_success_state_low_rating,
                 application_metadata=None,
                 active_flag=True,
             )
-            client.wait_for_target_processed(target_id=target_id)
-            target_record = client.get_target_record(target_id=target_id)
+            await client.wait_for_target_processed(target_id=target_id)
+            target_record = await client.get_target_record(
+                target_id=target_id,
+            )
             assert target_record.status == TargetStatuses.SUCCESS
-            assert target_record.target_record.name == target_name
-
-            client.delete_target(target_id=target_id)
-
+            await client.delete_target(target_id=target_id)
             with pytest.raises(expected_exception=UnknownTargetError):
-                _ = client.get_target_record(target_id=target_id)
+                await client.get_target_record(target_id=target_id)
+        finally:
+            await client.aclose()
+        return target_record.target_record.name
 
-    @staticmethod
-    def test_nested_mocks() -> None:
-        """A mock inside another mock leaves the outer one working.
+    with MockVWS(processing_time_seconds=0) as mock:
+        mock.add_cloud_database(cloud_database=database)
+        name = _run(coroutine=life_cycle())
 
-        The innermost mock is the only one which answers while it is
-        running, which is what the ``requests`` backend does too, and the
-        outer mock answers again once the inner one has stopped.
+    assert name == target_name
+
+
+# Cloud query usage through the mock via ``httpx2``.
+
+
+def test_query_returns_match(high_quality_image: io.BytesIO) -> None:
+    """``CloudRecoService`` returns a match via the mock."""
+    database = CloudDatabase()
+
+    with MockVWS(
+        processing_time_seconds=0,
+        query_match_checker=ExactMatcher(),
+    ) as mock:
+        mock.add_cloud_database(cloud_database=database)
+        vws_client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+            transport=HTTPX2Transport(),
+        )
+        query_client = CloudRecoService(
+            client_access_key=database.client_access_key,
+            client_secret_key=database.client_secret_key,
+            transport=HTTPX2Transport(),
+        )
+        target_id = vws_client.add_target(
+            name="query-target",
+            width=1,
+            image=high_quality_image,
+            application_metadata=None,
+            active_flag=True,
+        )
+        vws_client.wait_for_target_processed(target_id=target_id)
+        results = query_client.query(image=high_quality_image)
+        assert [result.target_id for result in results] == [target_id]
+
+
+def test_async_query_returns_match(
+    high_quality_image: io.BytesIO,
+) -> None:
+    """``AsyncCloudRecoService`` returns a match via the mock."""
+    database = CloudDatabase()
+
+    async def query() -> list[str]:
+        """Query for an image.
+
+        Returns:
+            The IDs of the targets which the query matched.
         """
-        outer_url = "https://vws.vuforia.com/summary"
-        inner_url = "https://vuforia.vws.example.com/summary"
+        query_client = AsyncCloudRecoService(
+            client_access_key=database.client_access_key,
+            client_secret_key=database.client_secret_key,
+            transport=AsyncHTTPX2Transport(),
+        )
+        try:
+            results = await query_client.query(image=high_quality_image)
+        finally:
+            await query_client.aclose()
+        return [result.target_id for result in results]
 
-        with MockVWS():
-            with MockVWS(base_vws_url="https://vuforia.vws.example.com"):
-                inner_response = httpx2.get(url=inner_url, timeout=30)
-                with pytest.raises(expected_exception=httpx2.ConnectError):
-                    _ = httpx2.get(url=outer_url, timeout=30)
-            outer_response = httpx2.get(url=outer_url, timeout=30)
+    with MockVWS(
+        processing_time_seconds=0,
+        query_match_checker=ExactMatcher(),
+    ) as mock:
+        mock.add_cloud_database(cloud_database=database)
+        vws_client = VWS(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+            transport=HTTPX2Transport(),
+        )
+        added_target_id = vws_client.add_target(
+            name="query-target",
+            width=1,
+            image=high_quality_image,
+            application_metadata=None,
+            active_flag=True,
+        )
+        vws_client.wait_for_target_processed(target_id=added_target_id)
+        matched = _run(coroutine=query())
 
-            with pytest.raises(expected_exception=httpx2.ConnectError):
-                _ = httpx2.get(url=inner_url, timeout=30)
-
-        assert inner_response.status_code == HTTPStatus.UNAUTHORIZED
-        assert outer_response.status_code == HTTPStatus.UNAUTHORIZED
-
-
-class TestAsyncVWS:
-    """Asynchronous ``vws-python`` client usage through the mock via
-    ``httpx2``.
-    """
-
-    @staticmethod
-    def test_response_delay_causes_httpx2_timeout() -> None:
-        """``httpx2`` timeouts are surfaced through ``AsyncVWS``."""
-        database = CloudDatabase()
-        calls: list[float] = []
-
-        async def get_summary() -> None:
-            """Ask for a database summary report."""
-            client = AsyncVWS(
-                server_access_key=database.server_access_key,
-                server_secret_key=database.server_secret_key,
-                request_timeout_seconds=0.1,
-                transport=AsyncHTTPX2Transport(),
-            )
-            try:
-                await client.get_database_summary_report()
-            finally:
-                await client.aclose()
-
-        with MockVWS(
-            response_delay_seconds=5.0,
-            sleep_fn=calls.append,
-            processing_time_seconds=0,
-        ) as mock:
-            mock.add_cloud_database(cloud_database=database)
-            with pytest.raises(expected_exception=httpx2.ReadTimeout):
-                _run(coroutine=get_summary())
-
-        assert calls == [0.1]
-
-    @staticmethod
-    def test_add_get_and_delete_target(
-        image_file_success_state_low_rating: io.BytesIO,
-    ) -> None:
-        """A target life cycle works through ``AsyncVWS``."""
-        database = CloudDatabase()
-        target_name = "async-httpx2-target"
-
-        async def life_cycle() -> str:
-            """Add a target, read it back, and delete it.
-
-            Returns:
-                The name of the target which was added.
-            """
-            client = AsyncVWS(
-                server_access_key=database.server_access_key,
-                server_secret_key=database.server_secret_key,
-                transport=AsyncHTTPX2Transport(),
-            )
-            try:
-                target_id = await client.add_target(
-                    name=target_name,
-                    width=1,
-                    image=image_file_success_state_low_rating,
-                    application_metadata=None,
-                    active_flag=True,
-                )
-                await client.wait_for_target_processed(target_id=target_id)
-                target_record = await client.get_target_record(
-                    target_id=target_id,
-                )
-                assert target_record.status == TargetStatuses.SUCCESS
-                await client.delete_target(target_id=target_id)
-                with pytest.raises(expected_exception=UnknownTargetError):
-                    await client.get_target_record(target_id=target_id)
-            finally:
-                await client.aclose()
-            return target_record.target_record.name
-
-        with MockVWS(processing_time_seconds=0) as mock:
-            mock.add_cloud_database(cloud_database=database)
-            name = _run(coroutine=life_cycle())
-
-        assert name == target_name
+    assert matched == [added_target_id]
 
 
-class TestCloudRecoService:
-    """Cloud query usage through the mock via ``httpx2``."""
-
-    @staticmethod
-    def test_query_returns_match(high_quality_image: io.BytesIO) -> None:
-        """``CloudRecoService`` returns a match via the mock."""
-        database = CloudDatabase()
-
-        with MockVWS(
-            processing_time_seconds=0,
-            query_match_checker=ExactMatcher(),
-        ) as mock:
-            mock.add_cloud_database(cloud_database=database)
-            vws_client = VWS(
-                server_access_key=database.server_access_key,
-                server_secret_key=database.server_secret_key,
-                transport=HTTPX2Transport(),
-            )
-            query_client = CloudRecoService(
-                client_access_key=database.client_access_key,
-                client_secret_key=database.client_secret_key,
-                transport=HTTPX2Transport(),
-            )
-            target_id = vws_client.add_target(
-                name="query-target",
-                width=1,
-                image=high_quality_image,
-                application_metadata=None,
-                active_flag=True,
-            )
-            vws_client.wait_for_target_processed(target_id=target_id)
-            results = query_client.query(image=high_quality_image)
-            assert [result.target_id for result in results] == [target_id]
-
-    @staticmethod
-    def test_async_query_returns_match(
-        high_quality_image: io.BytesIO,
-    ) -> None:
-        """``AsyncCloudRecoService`` returns a match via the mock."""
-        database = CloudDatabase()
-
-        async def query() -> list[str]:
-            """Query for an image.
-
-            Returns:
-                The IDs of the targets which the query matched.
-            """
-            query_client = AsyncCloudRecoService(
-                client_access_key=database.client_access_key,
-                client_secret_key=database.client_secret_key,
-                transport=AsyncHTTPX2Transport(),
-            )
-            try:
-                results = await query_client.query(image=high_quality_image)
-            finally:
-                await query_client.aclose()
-            return [result.target_id for result in results]
-
-        with MockVWS(
-            processing_time_seconds=0,
-            query_match_checker=ExactMatcher(),
-        ) as mock:
-            mock.add_cloud_database(cloud_database=database)
-            vws_client = VWS(
-                server_access_key=database.server_access_key,
-                server_secret_key=database.server_secret_key,
-                transport=HTTPX2Transport(),
-            )
-            added_target_id = vws_client.add_target(
-                name="query-target",
-                width=1,
-                image=high_quality_image,
-                application_metadata=None,
-                active_flag=True,
-            )
-            vws_client.wait_for_target_processed(target_id=added_target_id)
-            matched = _run(coroutine=query())
-
-        assert matched == [added_target_id]
+# VuMark generation usage through the mock via ``httpx2``.
 
 
-class TestVuMarkService:
-    """VuMark generation usage through the mock via ``httpx2``."""
+def test_generate_vumark_instance_returns_png_bytes() -> None:
+    """``VuMarkService`` returns VuMark image bytes."""
+    vumark_target = VuMarkTarget(name="test-target")
+    database = VuMarkDatabase(vumark_targets={vumark_target})
 
-    @staticmethod
-    def test_generate_vumark_instance_returns_png_bytes() -> None:
-        """``VuMarkService`` returns VuMark image bytes."""
-        vumark_target = VuMarkTarget(name="test-target")
-        database = VuMarkDatabase(vumark_targets={vumark_target})
+    with MockVWS() as mock:
+        mock.add_vumark_database(vumark_database=database)
+        client = VuMarkService(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+            transport=HTTPX2Transport(),
+        )
+        response_content = client.generate_vumark_instance(
+            target_id=vumark_target.target_id,
+            instance_id=uuid.uuid4().hex,
+            accept=VuMarkAccept.PNG,
+        )
 
-        with MockVWS() as mock:
-            mock.add_vumark_database(vumark_database=database)
-            client = VuMarkService(
-                server_access_key=database.server_access_key,
-                server_secret_key=database.server_secret_key,
-                transport=HTTPX2Transport(),
-            )
-            response_content = client.generate_vumark_instance(
+    assert response_content.startswith(b"\x89PNG")
+
+
+def test_async_generate_vumark_instance_returns_png_bytes() -> None:
+    """``AsyncVuMarkService`` returns VuMark image bytes."""
+    vumark_target = VuMarkTarget(name="test-target")
+    database = VuMarkDatabase(vumark_targets={vumark_target})
+
+    async def generate() -> bytes:
+        """Generate a VuMark instance.
+
+        Returns:
+            The bytes of the generated VuMark image.
+        """
+        client = AsyncVuMarkService(
+            server_access_key=database.server_access_key,
+            server_secret_key=database.server_secret_key,
+            transport=AsyncHTTPX2Transport(),
+        )
+        try:
+            return await client.generate_vumark_instance(
                 target_id=vumark_target.target_id,
                 instance_id=uuid.uuid4().hex,
                 accept=VuMarkAccept.PNG,
             )
+        finally:
+            await client.aclose()
 
-        assert response_content.startswith(b"\x89PNG")
+    with MockVWS() as mock:
+        mock.add_vumark_database(vumark_database=database)
+        response_content = _run(coroutine=generate())
 
-    @staticmethod
-    def test_async_generate_vumark_instance_returns_png_bytes() -> None:
-        """``AsyncVuMarkService`` returns VuMark image bytes."""
-        vumark_target = VuMarkTarget(name="test-target")
-        database = VuMarkDatabase(vumark_targets={vumark_target})
-
-        async def generate() -> bytes:
-            """Generate a VuMark instance.
-
-            Returns:
-                The bytes of the generated VuMark image.
-            """
-            client = AsyncVuMarkService(
-                server_access_key=database.server_access_key,
-                server_secret_key=database.server_secret_key,
-                transport=AsyncHTTPX2Transport(),
-            )
-            try:
-                return await client.generate_vumark_instance(
-                    target_id=vumark_target.target_id,
-                    instance_id=uuid.uuid4().hex,
-                    accept=VuMarkAccept.PNG,
-                )
-            finally:
-                await client.aclose()
-
-        with MockVWS() as mock:
-            mock.add_vumark_database(vumark_database=database)
-            response_content = _run(coroutine=generate())
-
-        assert response_content.startswith(b"\x89PNG")
+    assert response_content.startswith(b"\x89PNG")
 
 
-class TestTransportClose:
-    """Closing a transport closes the ``httpx2`` client underneath it."""
-
-    @staticmethod
-    def test_close() -> None:
-        """A closed ``HTTPX2Transport`` cannot make a request."""
-        transport = HTTPX2Transport()
-        transport.close()
-
-        with MockVWS(), pytest.raises(expected_exception=RuntimeError):
-            _ = transport(
-                method="GET",
-                url="https://vws.vuforia.com/summary",
-                headers={},
-                data=b"",
-                request_timeout=30.0,
-            )
-
-    @staticmethod
-    def test_aclose() -> None:
-        """A closed ``AsyncHTTPX2Transport`` cannot make a request."""
-
-        async def close_then_request() -> None:
-            """Close the transport and then try to use it."""
-            transport = AsyncHTTPX2Transport()
-            await transport.aclose()
-            await transport(
-                method="GET",
-                url="https://vws.vuforia.com/summary",
-                headers={},
-                data=b"",
-                request_timeout=30.0,
-            )
-
-        with MockVWS(), pytest.raises(expected_exception=RuntimeError):
-            _run(coroutine=close_then_request())
+# Closing a transport closes the ``httpx2`` client underneath it.
 
 
-class TestAsyncInterception:
-    """Which addresses an asynchronous ``httpx2`` client can reach."""
+def test_close() -> None:
+    """A closed ``HTTPX2Transport`` cannot make a request."""
+    transport = HTTPX2Transport()
+    transport.close()
 
-    @staticmethod
-    def test_unmocked_address_blocked() -> None:
-        """Requests to non-Vuforia addresses are blocked."""
-        url = _unused_local_url()
-
-        with (
-            MockVWS(),
-            pytest.raises(expected_exception=httpx2.ConnectError),
-        ):
-            _ = _run(coroutine=_async_get(url=url))
-
-    @staticmethod
-    def test_real_http() -> None:
-        """With ``real_http``, requests reach the transport underneath.
-
-        Nothing is listening on the address, so the error comes from that
-        transport rather than from the mock.
-        """
-        url = _unused_local_url()
-
-        with (
-            MockVWS(real_http=True),
-            pytest.raises(expected_exception=httpx2.ConnectError),
-        ):
-            _ = _run(coroutine=_async_get(url=url))
+    with MockVWS(), pytest.raises(expected_exception=RuntimeError):
+        _ = transport(
+            method="GET",
+            url="https://vws.vuforia.com/summary",
+            headers={},
+            data=b"",
+            request_timeout=30.0,
+        )
 
 
-class TestModelTargetWebAPI:
-    """Model Target Web API usage through the mock via ``httpx2``."""
+def test_aclose() -> None:
+    """A closed ``AsyncHTTPX2Transport`` cannot make a request."""
 
-    @staticmethod
-    def test_standard_dataset_status() -> None:
-        """``httpx2`` requests can use Model Target Web API routes."""
-        with MockVWS(processing_time_seconds=0):
-            create_response = httpx2.post(
-                url="https://vws.vuforia.com/modeltargets/datasets",
-                headers={"Authorization": _MODEL_TARGET_AUTHORIZATION},
-                json=_MODEL_TARGET_DATASET_REQUEST,
-                timeout=30,
-            )
-            dataset_uuid: object = create_response.json()["uuid"]
-            assert isinstance(dataset_uuid, str)
-            status_response = httpx2.get(
-                url=(
-                    "https://vws.vuforia.com/modeltargets/datasets/"
-                    f"{dataset_uuid}/status"
-                ),
-                headers={"Authorization": _MODEL_TARGET_AUTHORIZATION},
-                timeout=30,
-            )
+    async def close_then_request() -> None:
+        """Close the transport and then try to use it."""
+        transport = AsyncHTTPX2Transport()
+        await transport.aclose()
+        await transport(
+            method="GET",
+            url="https://vws.vuforia.com/summary",
+            headers={},
+            data=b"",
+            request_timeout=30.0,
+        )
 
-        assert create_response.status_code == HTTPStatus.CREATED
-        assert status_response.json()["status"] == "done"
+    with MockVWS(), pytest.raises(expected_exception=RuntimeError):
+        _run(coroutine=close_then_request())
+
+
+# Which addresses an asynchronous ``httpx2`` client can reach.
+
+
+def test_unmocked_address_blocked() -> None:
+    """Requests to non-Vuforia addresses are blocked."""
+    url = _unused_local_url()
+
+    with (
+        MockVWS(),
+        pytest.raises(expected_exception=httpx2.ConnectError),
+    ):
+        _ = _run(coroutine=_async_get(url=url))
+
+
+def test_real_http() -> None:
+    """With ``real_http``, requests reach the transport underneath.
+
+    Nothing is listening on the address, so the error comes from that
+    transport rather than from the mock.
+    """
+    url = _unused_local_url()
+
+    with (
+        MockVWS(real_http=True),
+        pytest.raises(expected_exception=httpx2.ConnectError),
+    ):
+        _ = _run(coroutine=_async_get(url=url))
+
+
+# Model Target Web API usage through the mock via ``httpx2``.
+
+
+def test_standard_dataset_status() -> None:
+    """``httpx2`` requests can use Model Target Web API routes."""
+    with MockVWS(processing_time_seconds=0):
+        create_response = httpx2.post(
+            url="https://vws.vuforia.com/modeltargets/datasets",
+            headers={"Authorization": _MODEL_TARGET_AUTHORIZATION},
+            json=_MODEL_TARGET_DATASET_REQUEST,
+            timeout=30,
+        )
+        dataset_uuid: object = create_response.json()["uuid"]
+        assert isinstance(dataset_uuid, str)
+        status_response = httpx2.get(
+            url=(
+                "https://vws.vuforia.com/modeltargets/datasets/"
+                f"{dataset_uuid}/status"
+            ),
+            headers={"Authorization": _MODEL_TARGET_AUTHORIZATION},
+            timeout=30,
+        )
+
+    assert create_response.status_code == HTTPStatus.CREATED
+    assert status_response.json()["status"] == "done"
