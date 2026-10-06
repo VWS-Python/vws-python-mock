@@ -7,7 +7,6 @@ import pytest
 import requests
 
 from mock_vws.database import CloudDatabase
-from tests.mock_vws.flask_app.helpers import EXAMPLE_URL_FOR_TARGET_MANAGER
 
 
 class TestResponseDelay:
@@ -40,10 +39,10 @@ class TestResponseDelay:
             timeout=30,
         )
 
-    def test_default_no_delay(self) -> None:
+    def test_default_no_delay(self, target_manager_url: str) -> None:
         """By default, there is no response delay."""
         database = CloudDatabase()
-        databases_url = EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+        databases_url = target_manager_url + "/cloud_databases"
         _ = requests.post(
             url=databases_url, json=database.to_dict(), timeout=30
         )
@@ -54,8 +53,7 @@ class TestResponseDelay:
         assert elapsed < self.DELAY_SECONDS
 
     def test_delay_is_applied(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
+        self, monkeypatch: pytest.MonkeyPatch, target_manager_url: str
     ) -> None:
         """When response_delay_seconds is set, the response is delayed."""
         monkeypatch.setenv(
@@ -63,7 +61,7 @@ class TestResponseDelay:
             value=f"{self.DELAY_SECONDS}",
         )
         database = CloudDatabase()
-        databases_url = EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+        databases_url = target_manager_url + "/cloud_databases"
         _ = requests.post(
             url=databases_url, json=database.to_dict(), timeout=30
         )

@@ -4,7 +4,6 @@ import requests
 from vws import VWS
 
 from mock_vws.database import CloudDatabase
-from tests.mock_vws.flask_app.helpers import EXAMPLE_URL_FOR_TARGET_MANAGER
 
 
 class TestRecognitionCounts:
@@ -21,7 +20,7 @@ class TestRecognitionCounts:
     TOTAL_RECOS = 8
     RECO_THRESHOLD = 20
 
-    def test_seeded_database_counts(self) -> None:
+    def test_seeded_database_counts(self, target_manager_url: str) -> None:
         """The Flask mock preserves the counts of a seeded database."""
         database = CloudDatabase(
             current_month_recos=self.CURRENT_MONTH_RECOS,
@@ -29,7 +28,7 @@ class TestRecognitionCounts:
             total_recos=self.TOTAL_RECOS,
             reco_threshold=self.RECO_THRESHOLD,
         )
-        databases_url = EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+        databases_url = target_manager_url + "/cloud_databases"
         response = requests.post(
             url=databases_url,
             json=database.to_dict(),

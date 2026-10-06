@@ -9,13 +9,13 @@ from PIL import Image
 from vws import VWS, CloudRecoService
 
 from mock_vws.database import CloudDatabase
-from tests.mock_vws.flask_app.helpers import EXAMPLE_URL_FOR_TARGET_MANAGER
 
 
 def test_query_image_matchers_exact_match(
     *,
     high_quality_image: io.BytesIO,
     monkeypatch: pytest.MonkeyPatch,
+    target_manager_url: str,
 ) -> None:
     """The exact matcher matches only exactly the same images."""
     monkeypatch.setenv(name="QUERY_IMAGE_MATCHER", value="exact")
@@ -35,7 +35,7 @@ def test_query_image_matchers_exact_match(
     re_exported_image = io.BytesIO()
     pil_image.save(fp=re_exported_image, format="PNG")
 
-    databases_url = EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+    databases_url = target_manager_url + "/cloud_databases"
     _ = requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
     target_id = vws_client.add_target(
@@ -61,6 +61,7 @@ def test_query_image_matchers_structural_similarity_matcher(
     high_quality_image: io.BytesIO,
     different_high_quality_image: io.BytesIO,
     monkeypatch: pytest.MonkeyPatch,
+    target_manager_url: str,
 ) -> None:
     """The structural similarity matcher matches similar images."""
     monkeypatch.setenv(
@@ -80,7 +81,7 @@ def test_query_image_matchers_structural_similarity_matcher(
     pil_image = Image.open(fp=high_quality_image)
     re_exported_image = io.BytesIO()
     pil_image.save(fp=re_exported_image, format="PNG")
-    databases_url = EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+    databases_url = target_manager_url + "/cloud_databases"
     _ = requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
     assert re_exported_image.getvalue() != high_quality_image.getvalue()
@@ -112,6 +113,7 @@ def test_duplicates_image_matchers_exact_match(
     *,
     high_quality_image: io.BytesIO,
     monkeypatch: pytest.MonkeyPatch,
+    target_manager_url: str,
 ) -> None:
     """The exact matcher matches only exactly the same images."""
     monkeypatch.setenv(name="DUPLICATES_IMAGE_MATCHER", value="exact")
@@ -125,7 +127,7 @@ def test_duplicates_image_matchers_exact_match(
     re_exported_image = io.BytesIO()
     pil_image.save(fp=re_exported_image, format="PNG")
 
-    databases_url = EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+    databases_url = target_manager_url + "/cloud_databases"
     _ = requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
     target_id = vws_client.add_target(
@@ -162,6 +164,7 @@ def test_duplicates_image_matchers_structural_similarity_matcher(
     *,
     high_quality_image: io.BytesIO,
     monkeypatch: pytest.MonkeyPatch,
+    target_manager_url: str,
 ) -> None:
     """The structural similarity matcher matches similar images."""
     monkeypatch.setenv(
@@ -178,7 +181,7 @@ def test_duplicates_image_matchers_structural_similarity_matcher(
     re_exported_image = io.BytesIO()
     pil_image.save(fp=re_exported_image, format="PNG")
 
-    databases_url = EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+    databases_url = target_manager_url + "/cloud_databases"
     _ = requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
     target_id = vws_client.add_target(
@@ -205,10 +208,11 @@ def test_default(
     *,
     image_file_success_state_low_rating: io.BytesIO,
     high_quality_image: io.BytesIO,
+    target_manager_url: str,
 ) -> None:
     """By default, the BRISQUE target rater is used."""
     database = CloudDatabase()
-    databases_url = EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+    databases_url = target_manager_url + "/cloud_databases"
     _ = requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
     vws_client = VWS(
@@ -255,12 +259,13 @@ def test_brisque(
     monkeypatch: pytest.MonkeyPatch,
     image_file_success_state_low_rating: io.BytesIO,
     high_quality_image: io.BytesIO,
+    target_manager_url: str,
 ) -> None:
     """It is possible to use the BRISQUE target rater."""
     monkeypatch.setenv(name="TARGET_RATER", value="brisque")
 
     database = CloudDatabase()
-    databases_url = EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+    databases_url = target_manager_url + "/cloud_databases"
     _ = requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
     vws_client = VWS(
@@ -306,11 +311,12 @@ def test_perfect(
     *,
     monkeypatch: pytest.MonkeyPatch,
     high_quality_image: io.BytesIO,
+    target_manager_url: str,
 ) -> None:
     """It is possible to use the perfect target rater."""
     monkeypatch.setenv(name="TARGET_RATER", value="perfect")
     database = CloudDatabase()
-    databases_url = EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+    databases_url = target_manager_url + "/cloud_databases"
     _ = requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
     vws_client = VWS(
@@ -346,12 +352,13 @@ def test_random(
     *,
     monkeypatch: pytest.MonkeyPatch,
     high_quality_image: io.BytesIO,
+    target_manager_url: str,
 ) -> None:
     """It is possible to use the random target rater."""
     monkeypatch.setenv(name="TARGET_RATER", value="random")
 
     database = CloudDatabase()
-    databases_url = EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+    databases_url = target_manager_url + "/cloud_databases"
     _ = requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
     vws_client = VWS(

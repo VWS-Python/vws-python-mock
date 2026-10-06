@@ -1,5 +1,6 @@
 """Fixtures for flask app tests."""
 
+import uuid
 from collections.abc import Iterator
 
 import pytest
@@ -13,7 +14,6 @@ from mock_vws._flask_server.target_manager import (
 )
 from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
 from mock_vws._flask_server.vws import VWS_FLASK_APP
-from tests.mock_vws.flask_app.helpers import EXAMPLE_URL_FOR_TARGET_MANAGER
 
 
 @beartype
@@ -29,8 +29,16 @@ def _clear_target_manager() -> None:
         TARGET_MANAGER.remove_model_target_dataset(dataset_uuid=dataset_uuid)
 
 
+@pytest.fixture(name="target_manager_url", scope="session")
+def fixture_target_manager_url() -> str:
+    """Return the target-manager URL shared by setup and tests."""
+    return "http://" + uuid.uuid4().hex + ".com"
+
+
 @pytest.fixture(autouse=True)
-def _(*, monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
+def _(
+    *, monkeypatch: pytest.MonkeyPatch, target_manager_url: str
+) -> Iterator[None]:
     """Enable a mock service backed by the Flask applications.
 
     The target manager is cleared before the test as well as after it,
@@ -57,12 +65,12 @@ def _(*, monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
         add_flask_app_to_mock(
             mock_obj=mock_obj,
             flask_app=TARGET_MANAGER_FLASK_APP,
-            base_url=EXAMPLE_URL_FOR_TARGET_MANAGER,
+            base_url=target_manager_url,
         )
 
         monkeypatch.setenv(
             name="TARGET_MANAGER_BASE_URL",
-            value=EXAMPLE_URL_FOR_TARGET_MANAGER,
+            value=target_manager_url,
         )
 
         # Some tests serve an application themselves, on a local port, so

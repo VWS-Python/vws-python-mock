@@ -13,13 +13,12 @@ from vws.exceptions.vws_exceptions import (
 
 from mock_vws.database import CloudDatabase
 from mock_vws.request_rate_limits import RequestRateLimit, RequestRateLimits
-from tests.mock_vws.flask_app.helpers import EXAMPLE_URL_FOR_TARGET_MANAGER
 
 
-def test_request_quota_reached() -> None:
+def test_request_quota_reached(target_manager_url: str) -> None:
     """The Flask mock preserves and enforces a zero request quota."""
     database = CloudDatabase(request_quota=0)
-    databases_url = EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+    databases_url = target_manager_url + "/cloud_databases"
     response = requests.post(
         url=databases_url,
         json=database.to_dict(),
@@ -36,12 +35,11 @@ def test_request_quota_reached() -> None:
 
 
 def test_target_quota_reached(
-    *,
-    image_file_failed_state: io.BytesIO,
+    *, image_file_failed_state: io.BytesIO, target_manager_url: str
 ) -> None:
     """The Flask mock preserves and enforces a zero target quota."""
     database = CloudDatabase(target_quota=0)
-    databases_url = EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+    databases_url = target_manager_url + "/cloud_databases"
     response = requests.post(
         url=databases_url,
         json=database.to_dict(),
@@ -63,10 +61,10 @@ def test_target_quota_reached(
         )
 
 
-def test_too_many_requests() -> None:
+def test_too_many_requests(target_manager_url: str) -> None:
     """The Flask mock preserves and enforces a zero request rate limit."""
     database = CloudDatabase(requests_per_second_limit=0)
-    databases_url = EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+    databases_url = target_manager_url + "/cloud_databases"
     response = requests.post(
         url=databases_url,
         json=database.to_dict(),
@@ -82,7 +80,7 @@ def test_too_many_requests() -> None:
         _ = client.list_targets()
 
 
-def test_per_endpoint_limits() -> None:
+def test_per_endpoint_limits(target_manager_url: str) -> None:
     """The Flask mock preserves and enforces per-endpoint limits."""
     database = CloudDatabase(
         request_rate_limits=RequestRateLimits(
@@ -92,7 +90,7 @@ def test_per_endpoint_limits() -> None:
             ),
         ),
     )
-    databases_url = EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+    databases_url = target_manager_url + "/cloud_databases"
     response = requests.post(
         url=databases_url,
         json=database.to_dict(),

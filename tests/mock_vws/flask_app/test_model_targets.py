@@ -16,7 +16,6 @@ from mock_vws.model_target import (
     ModelTargetGenerationFailure,
     ModelTargetGenerationWarning,
 )
-from tests.mock_vws.flask_app.helpers import EXAMPLE_URL_FOR_TARGET_MANAGER
 
 _MODEL_TARGET_DATASET_REQUEST: dict[str, JSONValue] = {
     "name": "dataset-name",
@@ -124,7 +123,7 @@ class TestModelTargetWebAPI:
             status_response.json(),
         )
 
-    def test_seeded_generation_failure(self) -> None:
+    def test_seeded_generation_failure(self, target_manager_url: str) -> None:
         """A dataset seeded with a generation failure through the target
         manager API reports the failure through the VWS app.
         """
@@ -137,9 +136,7 @@ class TestModelTargetWebAPI:
             ),
             generation_warning=None,
         )
-        datasets_url = (
-            EXAMPLE_URL_FOR_TARGET_MANAGER + "/model_target_datasets"
-        )
+        datasets_url = target_manager_url + "/model_target_datasets"
         create_response = requests.post(
             url=datasets_url,
             json=dataset.to_dict(),
@@ -153,7 +150,7 @@ class TestModelTargetWebAPI:
         assert isinstance(error, dict)
         assert error["message"] == "Seeded failure"
 
-    def test_seeded_generation_warning(self) -> None:
+    def test_seeded_generation_warning(self, target_manager_url: str) -> None:
         """A dataset seeded with a generation warning through the target
         manager API reports the warning through the VWS app.
         """
@@ -166,9 +163,7 @@ class TestModelTargetWebAPI:
                 message="Seeded warning",
             ),
         )
-        datasets_url = (
-            EXAMPLE_URL_FOR_TARGET_MANAGER + "/model_target_datasets"
-        )
+        datasets_url = target_manager_url + "/model_target_datasets"
         create_response = requests.post(
             url=datasets_url,
             json=dataset.to_dict(),
@@ -183,13 +178,11 @@ class TestModelTargetWebAPI:
         assert warning["message"] == "Seeded warning"
 
     @staticmethod
-    def test_delete_unknown_dataset() -> None:
+    def test_delete_unknown_dataset(target_manager_url: str) -> None:
         """Deleting an unknown dataset from the target manager returns a
         404 response.
         """
-        datasets_url = (
-            EXAMPLE_URL_FOR_TARGET_MANAGER + "/model_target_datasets"
-        )
+        datasets_url = target_manager_url + "/model_target_datasets"
         delete_response = requests.delete(
             url=datasets_url + "/" + uuid.uuid4().hex,
             timeout=30,

@@ -2,6 +2,7 @@
 
 import io
 import uuid
+from collections.abc import Callable
 from http import HTTPStatus
 
 import httpx
@@ -17,10 +18,11 @@ from vws_auth_tools import rfc_1123_date
 from mock_vws import MockVWS
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.target import VuMarkTarget
-from tests.mock_vws.requests_mock.helpers import unused_local_url
 
 
-def test_requests_are_mocked_only_within_the_function() -> None:
+def test_requests_are_mocked_only_within_the_function(
+    unused_local_url: Callable[[], str],
+) -> None:
     """Requests to Vuforia are mocked within the decorated function,
     and
     they are not mocked once the decorated function has returned.
@@ -50,7 +52,9 @@ def test_requests_are_mocked_only_within_the_function() -> None:
         _ = requests.get(url=summary_url, timeout=30)
 
 
-def test_httpx_requests_are_mocked() -> None:
+def test_httpx_requests_are_mocked(
+    unused_local_url: Callable[[], str],
+) -> None:
     """Requests made with ``httpx`` are mocked within the decorated
     function.
     """
@@ -76,7 +80,9 @@ def test_httpx_requests_are_mocked() -> None:
         _ = httpx.get(url=summary_url, timeout=30)
 
 
-def test_httpx2_requests_are_mocked() -> None:
+def test_httpx2_requests_are_mocked(
+    unused_local_url: Callable[[], str],
+) -> None:
     """Requests made with ``httpx2`` are mocked within the decorated
     function.
     """

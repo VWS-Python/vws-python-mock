@@ -18,10 +18,9 @@ from mock_vws.model_target import (
     JSONValue,
 )
 from mock_vws.target import VuMarkTarget
-from tests.mock_vws.flask_app.helpers import EXAMPLE_URL_FOR_TARGET_MANAGER
 
 
-def test_add_cloud_database_duplicate_keys() -> None:
+def test_add_cloud_database_duplicate_keys(target_manager_url: str) -> None:
     """
     It is not possible to have multiple cloud databases with
     matching
@@ -62,7 +61,7 @@ def test_add_cloud_database_duplicate_keys() -> None:
         'There is already a database with the name "5".'
     )
 
-    databases_url = EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+    databases_url = target_manager_url + "/cloud_databases"
     _ = requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
     for bad_database, expected_message in (
@@ -82,11 +81,13 @@ def test_add_cloud_database_duplicate_keys() -> None:
         assert response.text == expected_message
 
 
-def test_give_no_details(high_quality_image: io.BytesIO) -> None:
+def test_give_no_details(
+    high_quality_image: io.BytesIO, target_manager_url: str
+) -> None:
     """It is possible to create a cloud database without giving any
     data.
     """
-    databases_url = EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+    databases_url = target_manager_url + "/cloud_databases"
     response = requests.post(url=databases_url, json={}, timeout=30)
     assert response.status_code == HTTPStatus.CREATED
 
@@ -179,11 +180,12 @@ def test_invalid_field(
     body: dict[str, JSONValue],
     expected_loc: list[str],
     expected_message: str,
+    target_manager_url: str,
 ) -> None:
     """A field with an unaccepted value gives a 400 response which
     names the field and describes what is accepted.
     """
-    databases_url = EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+    databases_url = target_manager_url + "/cloud_databases"
     response = requests.post(url=databases_url, json=body, timeout=30)
 
     assert response.status_code == HTTPStatus.BAD_REQUEST
@@ -202,9 +204,11 @@ def test_invalid_field(
     ],
     ids=["not_json", "not_an_object"],
 )
-def test_body_not_an_object(data: str, expected_message: str) -> None:
+def test_body_not_an_object(
+    data: str, expected_message: str, target_manager_url: str
+) -> None:
     """A body which is not a JSON object gives a 400 response."""
-    databases_url = EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+    databases_url = target_manager_url + "/cloud_databases"
     response = requests.post(
         url=databases_url,
         data=data,
@@ -219,11 +223,11 @@ def test_body_not_an_object(data: str, expected_message: str) -> None:
     assert error["msg"] == expected_message
 
 
-def test_null_field() -> None:
+def test_null_field(target_manager_url: str) -> None:
     """A field which cannot be null is rejected when given as null, and
     a field which can be null is accepted.
     """
-    databases_url = EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+    databases_url = target_manager_url + "/cloud_databases"
     response = requests.post(
         url=databases_url,
         json={"request_quota": None},
@@ -245,11 +249,11 @@ def test_null_field() -> None:
     assert response.json()["requests_per_second_limit"] is None
 
 
-def test_partial_request_rate_limits() -> None:
+def test_partial_request_rate_limits(target_manager_url: str) -> None:
     """Groups of endpoints which are not given in the request rate
     limits have no limit of their own.
     """
-    databases_url = EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+    databases_url = target_manager_url + "/cloud_databases"
     response = requests.post(
         url=databases_url,
         json={
@@ -269,7 +273,7 @@ def test_partial_request_rate_limits() -> None:
     }
 
 
-def test_add_vu_mark_database_duplicate_keys() -> None:
+def test_add_vu_mark_database_duplicate_keys(target_manager_url: str) -> None:
     """
     It is not possible to have multiple VuMark databases with
     matching
@@ -298,7 +302,7 @@ def test_add_vu_mark_database_duplicate_keys() -> None:
         'There is already a database with the name "3".'
     )
 
-    databases_url = EXAMPLE_URL_FOR_TARGET_MANAGER + "/vumark_databases"
+    databases_url = target_manager_url + "/vumark_databases"
     _ = requests.post(url=databases_url, json=database.to_dict(), timeout=30)
 
     for bad_database, expected_message in (
@@ -316,11 +320,11 @@ def test_add_vu_mark_database_duplicate_keys() -> None:
         assert response.text == expected_message
 
 
-def test_invalid_state_name() -> None:
+def test_invalid_state_name(target_manager_url: str) -> None:
     """A state name which is not accepted gives a 400 response which
     names the field and the accepted values.
     """
-    databases_url = EXAMPLE_URL_FOR_TARGET_MANAGER + "/vumark_databases"
+    databases_url = target_manager_url + "/vumark_databases"
     response = requests.post(
         url=databases_url,
         json={"state_name": "working"},
@@ -338,13 +342,13 @@ def test_invalid_state_name() -> None:
     assert not bool(TARGET_MANAGER.vumark_databases)
 
 
-def test_add_to_cloud_database(high_quality_image: io.BytesIO) -> None:
+def test_add_to_cloud_database(
+    high_quality_image: io.BytesIO, target_manager_url: str
+) -> None:
     """Adding a target to an unknown cloud database gives a 404
     response.
     """
-    target_url = (
-        EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases/unknown/targets"
-    )
+    target_url = target_manager_url + "/cloud_databases/unknown/targets"
     image_base64 = base64.b64encode(
         s=high_quality_image.getvalue(),
     ).decode()
@@ -375,15 +379,14 @@ def test_add_to_cloud_database(high_quality_image: io.BytesIO) -> None:
     ids=["delete", "update", "set_recognition_counts"],
 )
 def test_change_target_in_cloud_database(
-    method: HTTPMethod,
-    path: str,
+    method: HTTPMethod, path: str, target_manager_url: str
 ) -> None:
     """Changing a target in an unknown cloud database gives a 404
     response.
     """
     response = requests.request(
         method=method,
-        url=EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases/unknown" + path,
+        url=target_manager_url + "/cloud_databases/unknown" + path,
         json={},
         timeout=30,
     )
@@ -391,13 +394,12 @@ def test_change_target_in_cloud_database(
     assert response.status_code == HTTPStatus.NOT_FOUND
 
 
-def test_add_to_vumark_database() -> None:
+def test_add_to_vumark_database(target_manager_url: str) -> None:
     """Adding a VuMark target to an unknown VuMark database gives a 404
     response.
     """
     target_url = (
-        EXAMPLE_URL_FOR_TARGET_MANAGER
-        + "/vumark_databases/unknown/vumark_targets"
+        target_manager_url + "/vumark_databases/unknown/vumark_targets"
     )
     response = requests.post(
         url=target_url,
@@ -408,20 +410,20 @@ def test_add_to_vumark_database() -> None:
     assert response.status_code == HTTPStatus.NOT_FOUND
 
 
-def test_delete_cloud_database_not_found() -> None:
+def test_delete_cloud_database_not_found(target_manager_url: str) -> None:
     """
     A 404 error is returned when trying to delete a cloud database
     which does not exist.
     """
-    databases_url = EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+    databases_url = target_manager_url + "/cloud_databases"
     delete_url = databases_url + "/" + "foobar"
     response = requests.delete(url=delete_url, json={}, timeout=30)
     assert response.status_code == HTTPStatus.NOT_FOUND
 
 
-def test_delete_cloud_database() -> None:
+def test_delete_cloud_database(target_manager_url: str) -> None:
     """It is possible to delete a cloud database."""
-    databases_url = EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+    databases_url = target_manager_url + "/cloud_databases"
     response = requests.post(url=databases_url, json={}, timeout=30)
     assert response.status_code == HTTPStatus.CREATED
 
@@ -438,20 +440,20 @@ def test_delete_cloud_database() -> None:
     assert response.status_code == HTTPStatus.NOT_FOUND
 
 
-def test_delete_vu_mark_database_not_found() -> None:
+def test_delete_vu_mark_database_not_found(target_manager_url: str) -> None:
     """
     A 404 error is returned when trying to delete a VuMark database
     which does not exist.
     """
-    databases_url = EXAMPLE_URL_FOR_TARGET_MANAGER + "/vumark_databases"
+    databases_url = target_manager_url + "/vumark_databases"
     delete_url = databases_url + "/" + "foobar"
     response = requests.delete(url=delete_url, json={}, timeout=30)
     assert response.status_code == HTTPStatus.NOT_FOUND
 
 
-def test_delete_vumark_database() -> None:
+def test_delete_vumark_database(target_manager_url: str) -> None:
     """It is possible to delete a VuMark database."""
-    databases_url = EXAMPLE_URL_FOR_TARGET_MANAGER + "/vumark_databases"
+    databases_url = target_manager_url + "/vumark_databases"
     response = requests.post(url=databases_url, json={}, timeout=30)
     assert response.status_code == HTTPStatus.CREATED
 

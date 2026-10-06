@@ -6,7 +6,6 @@ import pytest
 import requests
 
 from mock_vws.database import CloudDatabase
-from tests.mock_vws.flask_app.helpers import EXAMPLE_URL_FOR_TARGET_MANAGER
 from tests.mock_vws.utils.usage_test_helpers import (
     processing_time_seconds,
 )
@@ -20,12 +19,11 @@ class TestProcessingTime:
     LEEWAY = 1.0
 
     def test_default(
-        self,
-        image_file_failed_state: io.BytesIO,
+        self, image_file_failed_state: io.BytesIO, target_manager_url: str
     ) -> None:
         """By default, targets in the mock takes 2 seconds to be processed."""
         database = CloudDatabase()
-        databases_url = EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+        databases_url = target_manager_url + "/cloud_databases"
         _ = requests.post(
             url=databases_url, json=database.to_dict(), timeout=30
         )
@@ -43,6 +41,7 @@ class TestProcessingTime:
         *,
         image_file_failed_state: io.BytesIO,
         monkeypatch: pytest.MonkeyPatch,
+        target_manager_url: str,
     ) -> None:
         """It is possible to set a custom processing time."""
         seconds = 5.0
@@ -51,7 +50,7 @@ class TestProcessingTime:
             value=str(object=seconds),
         )
         database = CloudDatabase()
-        databases_url = EXAMPLE_URL_FOR_TARGET_MANAGER + "/cloud_databases"
+        databases_url = target_manager_url + "/cloud_databases"
         _ = requests.post(
             url=databases_url, json=database.to_dict(), timeout=30
         )

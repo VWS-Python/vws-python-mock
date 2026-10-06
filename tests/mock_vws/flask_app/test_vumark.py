@@ -10,10 +10,9 @@ from vws_auth_tools import authorization_header, rfc_1123_date
 from mock_vws._constants import ResultCodes
 from mock_vws.database import VuMarkDatabase
 from mock_vws.target import VuMarkTarget
-from tests.mock_vws.flask_app.helpers import EXAMPLE_URL_FOR_TARGET_MANAGER
 
 
-def test_processing_target_returns_forbidden() -> None:
+def test_processing_target_returns_forbidden(target_manager_url: str) -> None:
     """A VuMark target still processing returns 403 when generating
     an instance via the Flask app.
     """
@@ -25,7 +24,7 @@ def test_processing_target_returns_forbidden() -> None:
         vumark_targets=set(),
     )
 
-    vumark_databases_url = EXAMPLE_URL_FOR_TARGET_MANAGER + "/vumark_databases"
+    vumark_databases_url = target_manager_url + "/vumark_databases"
     response = requests.post(
         url=vumark_databases_url,
         json=vumark_database.to_dict(),

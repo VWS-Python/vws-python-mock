@@ -1,5 +1,6 @@
 """Tests for network through the `requests-mock` backend."""
 
+from collections.abc import Callable
 from http import HTTPStatus
 
 import httpx
@@ -11,11 +12,10 @@ from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws import MissingSchemeError, MockVWS
 from mock_vws.database import CloudDatabase
-from tests.mock_vws.requests_mock.helpers import unused_local_url
 
 
 @beartype
-def request_unmocked_address() -> None:
+def request_unmocked_address(unused_local_url: Callable[[], str]) -> None:
     """Make a request, using `requests` to an unmocked, free local address.
 
     Raises:
@@ -45,7 +45,7 @@ def request_mocked_address() -> None:
     )
 
 
-def test_default() -> None:
+def test_default(unused_local_url: Callable[[], str]) -> None:
     """
     By default, the mock stops any requests made with `requests` to
     non-
@@ -55,7 +55,7 @@ def test_default() -> None:
         with pytest.raises(
             expected_exception=requests.exceptions.ConnectionError
         ):
-            request_unmocked_address()
+            request_unmocked_address(unused_local_url=unused_local_url)
 
         # No exception is raised when making a request to a mocked
         # endpoint.
@@ -63,10 +63,10 @@ def test_default() -> None:
 
     # The mocking stops when the context manager stops.
     with pytest.raises(expected_exception=requests.exceptions.ConnectionError):
-        request_unmocked_address()
+        request_unmocked_address(unused_local_url=unused_local_url)
 
 
-def test_real_http() -> None:
+def test_real_http(unused_local_url: Callable[[], str]) -> None:
     """
     When the `real_http` parameter given to the context manager is
     set to
@@ -76,7 +76,7 @@ def test_real_http() -> None:
         MockVWS(real_http=True),
         pytest.raises(expected_exception=requests.exceptions.ConnectionError),
     ):
-        request_unmocked_address()
+        request_unmocked_address(unused_local_url=unused_local_url)
 
 
 def test_custom_base_vws_url() -> None:
@@ -239,7 +239,9 @@ def test_httpx_vuforia_endpoint_intercepted() -> None:
     assert response.status_code is not None
 
 
-def test_httpx_unmocked_address_blocked() -> None:
+def test_httpx_unmocked_address_blocked(
+    unused_local_url: Callable[[], str],
+) -> None:
     """``MockVWS`` blocks ``httpx`` requests to non-Vuforia
     addresses.
     """
@@ -247,7 +249,7 @@ def test_httpx_unmocked_address_blocked() -> None:
         _ = httpx.get(url=unused_local_url(), timeout=30)
 
 
-def test_httpx_real_http() -> None:
+def test_httpx_real_http(unused_local_url: Callable[[], str]) -> None:
     """When ``real_http=True``, ``httpx`` requests to non-Vuforia
     addresses are not blocked.
     """
@@ -290,7 +292,9 @@ def test_httpx2_client_made_before_start_intercepted() -> None:
     assert response.status_code == HTTPStatus.BAD_REQUEST
 
 
-def test_httpx2_unmocked_address_blocked() -> None:
+def test_httpx2_unmocked_address_blocked(
+    unused_local_url: Callable[[], str],
+) -> None:
     """``MockVWS`` blocks ``httpx2`` requests to non-Vuforia
     addresses.
     """
@@ -298,7 +302,7 @@ def test_httpx2_unmocked_address_blocked() -> None:
         _ = httpx2.get(url=unused_local_url(), timeout=30)
 
 
-def test_httpx2_real_http() -> None:
+def test_httpx2_real_http(unused_local_url: Callable[[], str]) -> None:
     """When ``real_http=True``, ``httpx2`` requests to non-Vuforia
     addresses are not blocked.
     """
