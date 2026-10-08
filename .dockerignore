@@ -17,7 +17,7 @@ prek.toml
 .vale.ini
 .yamlfmt
 admin
-CHANGELOG.rst
+CHANGELOG.md
 ci
 CODE_OF_CONDUCT.rst
 CONTRIBUTING.rst
