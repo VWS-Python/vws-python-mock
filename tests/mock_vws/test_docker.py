@@ -281,13 +281,31 @@ def _build_image(
     """
     client = docker.from_env()
     dockerfile = f"{repository_root}/src/mock_vws/_flask_server/Dockerfile"
-    image, _ = client.images.build(
-        path=repository_root,
-        dockerfile=dockerfile,
-        tag=tag,
-        target=target,
-        rm=True,
-    )
+    try:
+        image, _ = client.images.build(
+            path=repository_root,
+            dockerfile=dockerfile,
+            tag=tag,
+            target=target,
+            rm=True,
+        )
+    except BuildError as exc:
+        full_log = "\n".join(
+            [item["stream"] for item in exc.build_log if "stream" in item],
+        )
+        windows_message_substrings = (
+            "no matching manifest for windows/amd64",
+            "no matching manifest for windows(10.0.26100)/amd64",
+        )
+        if any(
+            windows_message_substring in exc.msg
+            for windows_message_substring in windows_message_substrings
+        ):
+            pytest.skip(
+                reason="We do not currently support using Windows containers."
+            )
+        exc.add_note(full_log)
+        raise
     # Remove this run's tag, preserving other runs which share a cached image.
     _ = resources.callback(client.images.remove, image=tag, force=True)
     return image
@@ -325,31 +343,12 @@ def fixture_mock_deployment() -> Iterator[_MockDeployment]:
     random = uuid.uuid4().hex
 
     with ExitStack() as resources:
-        try:
-            target_manager_image = _build_image(
-                resources=resources,
-                repository_root=repository_root,
-                tag=f"vws-mock-target-manager:latest-{random}",
-                target="target-manager",
-            )
-        except BuildError as exc:
-            full_log = "\n".join(
-                [item["stream"] for item in exc.build_log if "stream" in item],
-            )
-            windows_message_substrings = (
-                "no matching manifest for windows/amd64",
-                "no matching manifest for windows(10.0.26100)/amd64",
-            )
-            # If this assertion fails, it may be useful to look at the other
-            # properties of ``exc``.
-            is_windows_container_error = any(
-                windows_message_substring in exc.msg
-                for windows_message_substring in windows_message_substrings
-            )
-            assert is_windows_container_error, full_log
-            pytest.skip(
-                reason="We do not currently support using Windows containers."
-            )
+        target_manager_image = _build_image(
+            resources=resources,
+            repository_root=repository_root,
+            tag=f"vws-mock-target-manager:latest-{random}",
+            target="target-manager",
+        )
 
         vwq_image = _build_image(
             resources=resources,
@@ -807,3 +806,18 @@ def test_cleanup_after_container_start_failure() -> None:
         _remaining_container = client.containers.get(container_id=name)
     with pytest.raises(expected_exception=NotFound):
         _remaining_image = client.images.get(name=tag)
+
+
+def test_network_cleanup() -> None:
+    """Network cleanup also works when no images are built.
+
+    This exercises the Windows network driver even when the deployment's
+    Linux images cannot be built on that host.
+    """
+    client = docker.from_env()
+    with ExitStack() as resources:
+        network = _create_bridge_network(resources=resources)
+        network_id = network.id
+        assert network_id is not None
+    with pytest.raises(expected_exception=NotFound):
+        _ = client.networks.get(network_id=network_id)
