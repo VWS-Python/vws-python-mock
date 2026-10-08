@@ -4,6 +4,7 @@ import base64
 import binascii
 import io
 import uuid
+from dataclasses import dataclass
 
 import pytest
 from beartype import beartype
@@ -115,12 +116,20 @@ def _wait_for_target_processed(*, vws_client: VWS, target_id_: str) -> None:
     vws_client.wait_for_target_processed(target_id=target_id_)
 
 
+@dataclass(frozen=True, kw_only=True)
+class _TargetProcessingResult:
+    """The ID and processing status of an uploaded target."""
+
+    target_id: str
+    status: TargetStatuses
+
+
 @beartype
-def _target_processed_successfully(result: tuple[str, TargetStatuses]) -> bool:
+def _target_processed_successfully(result: _TargetProcessingResult) -> bool:
     """Return whether an uploaded target finished processing
     successfully.
     """
-    return result[1] == TargetStatuses.SUCCESS
+    return result.status == TargetStatuses.SUCCESS
 
 
 @beartype
@@ -134,7 +143,7 @@ def _add_target_which_processed_successfully(
     *,
     vws_client: VWS,
     image: io.BytesIO,
-) -> tuple[str, TargetStatuses]:
+) -> _TargetProcessingResult:
     """Add a target which finishes processing with a 'success' status.
 
     Real Vuforia sometimes rates the given image badly enough to give the
@@ -153,7 +162,10 @@ def _add_target_which_processed_successfully(
     # Failed processing is nondeterministic against the live service.
     if target_details.status != TargetStatuses.SUCCESS:
         vws_client.delete_target(target_id=target_id_)  # pragma: no cover
-    return target_id_, target_details.status
+    return _TargetProcessingResult(
+        target_id=target_id_,
+        status=target_details.status,
+    )
 
 
 @pytest.fixture
@@ -166,11 +178,11 @@ def target_id(*, high_quality_image: io.BytesIO, vws_client: VWS) -> str:
     generated 5x5 image, and real Vuforia often gives such an image a
     'failed' status. No test which uses this fixture needs a low rating.
     """
-    target_id_, _status = _add_target_which_processed_successfully(
+    result = _add_target_which_processed_successfully(
         vws_client=vws_client,
         image=high_quality_image,
     )
-    return target_id_
+    return result.target_id
 
 
 @pytest.fixture
