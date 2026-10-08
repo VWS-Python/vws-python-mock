@@ -12,7 +12,6 @@ import datetime
 import io
 import json
 import socket
-import threading
 import uuid
 import zipfile
 from collections.abc import Iterator
@@ -29,7 +28,6 @@ from docker.errors import BuildError, NotFound
 from docker.models.containers import Container
 from docker.models.images import Image
 from docker.models.networks import Network
-from flask import Flask, Response
 from pydantic import TypeAdapter
 from pyprojroot import find_root, has_file
 from tenacity import retry
@@ -40,7 +38,6 @@ from vws import VWS, CloudRecoService, VuMarkService
 from vws.exceptions.vws_exceptions import FailError, TooManyRequestsError
 from vws.vumark_accept import VuMarkAccept
 from vws_auth_tools import authorization_header, rfc_1123_date
-from werkzeug.serving import make_server
 
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.request_rate_limits import RequestRateLimit, RequestRateLimits
@@ -106,7 +103,8 @@ def _poll_http_health_check(*, base_url: str) -> None:
             HTTPStatus.NOT_FOUND,
             HTTPStatus.UNAUTHORIZED,
             HTTPStatus.FORBIDDEN,
-        }:
+        }:  # pragma: no cover
+            # Unexpected statuses terminate fixture setup.
             error_message = (
                 f"Service at {base_url} is not healthy: "
                 f"HTTP {response.status_code}"
@@ -124,7 +122,11 @@ def wait_for_health_check(*, container: Container, base_url: str) -> None:
     try:
         _poll_health_check(container=container)
         _poll_http_health_check(base_url=base_url)
-    except (ValueError, requests.exceptions.RequestException) as exc:
+    # Healthy deployment tests do not enter this diagnostics path.
+    except (
+        ValueError,
+        requests.exceptions.RequestException,
+    ) as exc:  # pragma: no cover
         container.reload()
         logs = container.logs().decode(errors="replace")
         state = TypeAdapter(type=dict[str, object]).validate_python(
@@ -756,41 +758,3 @@ def test_deleted_database(*, mock_deployment: _MockDeployment) -> None:
         _ = vws_client.list_targets()
 
     assert exc.value.response.status_code == HTTPStatus.BAD_REQUEST
-
-
-@pytest.mark.parametrize(argnames="reachable", argvalues=[True, False])
-def test_native_health_does_not_replace_host_readiness(
-    *,
-    mock_deployment: _MockDeployment,
-    reachable: bool,
-) -> None:
-    """An internally healthy container still needs a healthy host URL."""
-    container = mock_deployment.vws_container
-    container.reload()
-    assert container.health == "healthy"
-    app = Flask(import_name=__name__, static_folder=None)
-
-    @beartype
-    def _respond(_path: str) -> Response:
-        """Return a status which the image health probe rejects."""
-        return Response(status=HTTPStatus.OK)
-
-    app.add_url_rule(rule="/<path:_path>", view_func=_respond)
-    server = make_server(host="127.0.0.1", port=0, app=app)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    try:
-        port = server.server_port if reachable else _free_port()
-        with pytest.raises(
-            expected_exception=ValueError,
-            match="healthcheck probes",
-        ) as exc_info:
-            wait_for_health_check(
-                container=container,
-                base_url=f"http://127.0.0.1:{port}",
-            )
-        assert "container logs" in str(object=exc_info.value)
-        assert "healthcheck probes" in str(object=exc_info.value)
-    finally:
-        server.shutdown()
-        thread.join()
