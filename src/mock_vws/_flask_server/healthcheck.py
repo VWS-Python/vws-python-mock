@@ -10,7 +10,7 @@ from beartype import beartype
 @beartype
 def flask_app_healthy(port: int) -> bool:
     """Check if the Flask app is healthy."""
-    conn = http.client.HTTPConnection(host="localhost", port=port)
+    conn = http.client.HTTPConnection(host="localhost", port=port, timeout=5)
     try:
         conn.request(method="GET", url="/some-random-endpoint")
         response = conn.getresponse()
