@@ -31,8 +31,8 @@ from docker.models.images import Image
 from docker.models.networks import Network
 from pydantic import TypeAdapter
 from pyprojroot import find_root, has_file
-from tenacity import retry
-from tenacity.retry import retry_if_exception_type
+from tenacity import RetryError, retry
+from tenacity.retry import retry_if_exception_type, retry_if_not_result
 from tenacity.stop import stop_after_delay
 from tenacity.wait import wait_fixed
 from vws import VWS, CloudRecoService, VuMarkService
@@ -85,17 +85,47 @@ def _poll_health_check(container: Container) -> None:
         raise ValueError(error_message)
 
 
+@retry(
+    wait=wait_fixed(wait=0.5),
+    stop=stop_after_delay(max_delay=20),
+    retry=(
+        retry_if_not_result(predicate=bool)
+        | retry_if_exception_type(
+            exception_types=(requests.exceptions.RequestException,),
+        )
+    ),
+    reraise=True,
+)
 @beartype
-def wait_for_health_check(container: Container) -> None:
-    """Wait for a container to pass its health check.
+def _poll_http_health_check(*, base_url: str) -> bool:
+    """Poll the published service URL until its HTTP probe succeeds."""
+    with requests.get(
+        url=f"{base_url}/some-random-endpoint",
+        timeout=5,
+    ) as response:
+        return response.status_code in {
+            HTTPStatus.NOT_FOUND,
+            HTTPStatus.UNAUTHORIZED,
+            HTTPStatus.FORBIDDEN,
+        }
+
+
+@beartype
+def wait_for_health_check(*, container: Container, base_url: str) -> None:
+    """Wait for native Docker health and host-side HTTP readiness.
 
     On failure, augment the error with the container's logs and the
     Docker health check probe history so CI failures are easier to diagnose.
     """
     try:
         _poll_health_check(container=container)
-    # Healthy-container integration runs do not enter this diagnostics path.
-    except ValueError as exc:  # pragma: no cover
+        _ = _poll_http_health_check(base_url=base_url)
+    # Healthy deployment tests do not enter this diagnostics path.
+    except (
+        ValueError,
+        requests.exceptions.RequestException,
+        RetryError,
+    ) as exc:  # pragma: no cover
         container.reload()
         logs = container.logs().decode(errors="replace")
         state = TypeAdapter(type=dict[str, object]).validate_python(
@@ -412,7 +442,10 @@ def fixture_mock_deployment() -> Iterator[_MockDeployment]:
             vws_container,
             vwq_container,
         ):
-            wait_for_health_check(container=container)
+            wait_for_health_check(
+                container=container,
+                base_url=_published_base_url(container=container),
+            )
 
         yield _MockDeployment(
             vws_container=vws_container,
@@ -523,7 +556,10 @@ def test_model_target_dataset_survives_vws_restart(
     )
 
     mock_deployment.vws_container.restart()
-    wait_for_health_check(container=mock_deployment.vws_container)
+    wait_for_health_check(
+        container=mock_deployment.vws_container,
+        base_url=mock_deployment.base_vws_url,
+    )
 
     status_response = requests.get(
         url=f"{base_vws_url}/modeltargets/datasets/{dataset_uuid}/status",
@@ -694,7 +730,10 @@ def test_request_rate_limit(*, mock_deployment: _MockDeployment) -> None:
     _summary = vws_client.get_database_summary_report()
 
     mock_deployment.vws_container.restart()
-    wait_for_health_check(container=mock_deployment.vws_container)
+    wait_for_health_check(
+        container=mock_deployment.vws_container,
+        base_url=mock_deployment.base_vws_url,
+    )
 
     _targets = vws_client.list_targets()
 
