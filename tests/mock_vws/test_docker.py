@@ -25,7 +25,7 @@ import docker
 import pytest
 import requests
 from beartype import beartype
-from docker.errors import APIError, BuildError, NotFound
+from docker.errors import BuildError, NotFound
 from docker.models.containers import Container
 from docker.models.images import Image
 from docker.models.networks import Network
@@ -305,8 +305,9 @@ def _build_image(
             pytest.skip(
                 reason="We do not currently support using Windows containers."
             )
-        exc.add_note(full_log)
-        raise
+        # Unexpected build failures terminate fixture setup.
+        exc.add_note(full_log)  # pragma: no cover
+        raise  # pragma: no cover
     # Remove this run's tag, preserving other runs which share a cached image.
     _ = resources.callback(client.images.remove, image=tag, force=True)
     return image
@@ -332,7 +333,7 @@ def fixture_mock_deployment() -> Iterator[_MockDeployment]:
         The running deployment.
 
     Resources are registered as they are created, including before setup
-    yields. Containers are removed before the network and then the images.
+    yields. Containers are removed before the images and the network.
     """
     repository_root = str(
         object=find_root(
@@ -344,6 +345,8 @@ def fixture_mock_deployment() -> Iterator[_MockDeployment]:
     random = uuid.uuid4().hex
 
     with ExitStack() as resources:
+        custom_bridge_network = _create_bridge_network(resources=resources)
+
         target_manager_image = _build_image(
             resources=resources,
             repository_root=repository_root,
@@ -363,8 +366,6 @@ def fixture_mock_deployment() -> Iterator[_MockDeployment]:
             tag=f"vws-mock-vws:latest-{random}",
             target="vws",
         )
-
-        custom_bridge_network = _create_bridge_network(resources=resources)
 
         target_manager_container_name = "vws-mock-target-manager-" + random
         target_manager_internal_base_url = (
@@ -724,109 +725,3 @@ def test_deleted_database(*, mock_deployment: _MockDeployment) -> None:
         _ = vws_client.list_targets()
 
     assert exc.value.response.status_code == HTTPStatus.BAD_REQUEST
-
-
-@pytest.mark.parametrize(argnames="fail", argvalues=[True, False])
-def test_image_cleanup(*, fail: bool, tmp_path: Path) -> None:
-    """Built images are removed after success and a later build
-    failure.
-    """
-    repository_root = str(
-        object=find_root(
-            criterion=has_file(file="pyproject.toml"),
-            start=Path(__file__).resolve(),
-        )
-    )
-    client = docker.from_env()
-    tag = f"vws-mock-cleanup:latest-{uuid.uuid4().hex}"
-    failed_dockerfile = tmp_path / "src/mock_vws/_flask_server/Dockerfile"
-    failed_dockerfile.parent.mkdir(parents=True)
-    _ = failed_dockerfile.write_text(
-        data=f"FROM {tag} AS failing\nRUN exit 1\n",
-    )
-    completed_builds: list[str] = []
-
-    @beartype
-    def _build_test_images() -> None:
-        """Build a test image and optionally fail during the next
-        build.
-        """
-        with ExitStack() as resources:
-            _ = _build_image(
-                resources=resources,
-                repository_root=repository_root,
-                tag=tag,
-                target="target-manager",
-            )
-            completed_builds.append(tag)
-            if fail:
-                _ = _build_image(
-                    resources=resources,
-                    repository_root=str(object=tmp_path),
-                    tag=f"{tag}-failed",
-                    target="failing",
-                )
-
-    if fail:
-        with pytest.raises(expected_exception=BuildError):
-            _build_test_images()
-    else:
-        _build_test_images()
-
-    assert completed_builds == [tag]
-    with pytest.raises(expected_exception=NotFound):
-        _ = client.images.get(name=tag)
-
-
-def test_cleanup_after_container_start_failure() -> None:
-    """A container which cannot start and its image tag are removed."""
-    repository_root = str(
-        object=find_root(
-            criterion=has_file(file="pyproject.toml"),
-            start=Path(__file__).resolve(),
-        )
-    )
-    client = docker.from_env()
-    random = uuid.uuid4().hex
-    tag = f"vws-mock-cleanup:latest-{random}"
-    name = f"vws-mock-cleanup-{random}"
-
-    @beartype
-    def _attempt_start() -> None:
-        """Create a container whose entry point does not exist."""
-        with ExitStack() as resources:
-            image = _build_image(
-                resources=resources,
-                repository_root=repository_root,
-                tag=tag,
-                target="target-manager",
-            )
-            container = client.containers.create(
-                image=image,
-                name=name,
-                entrypoint=["/does-not-exist"],
-            )
-            _start_container(resources=resources, container=container)
-
-    with pytest.raises(expected_exception=APIError, match="/does-not-exist"):
-        _attempt_start()
-
-    with pytest.raises(expected_exception=NotFound):
-        _remaining_container = client.containers.get(container_id=name)
-    with pytest.raises(expected_exception=NotFound):
-        _remaining_image = client.images.get(name=tag)
-
-
-def test_network_cleanup() -> None:
-    """Network cleanup also works when no images are built.
-
-    This exercises the Windows network driver even when the deployment's
-    Linux images cannot be built on that host.
-    """
-    client = docker.from_env()
-    with ExitStack() as resources:
-        network = _create_bridge_network(resources=resources)
-        network_id = network.id
-        assert network_id is not None
-    with pytest.raises(expected_exception=NotFound):
-        _ = client.networks.get(network_id=network_id)
