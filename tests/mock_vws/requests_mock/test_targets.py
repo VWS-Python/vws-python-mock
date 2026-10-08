@@ -194,7 +194,7 @@ def test_zero_processing_vumark_target_status(server_time: str) -> None:
         ("2026-10-08 11:59:59.500000", TargetStatuses.PROCESSING),
         ("2026-10-08 12:00:00", TargetStatuses.PROCESSING),
         ("2026-10-08 12:00:00.499999", TargetStatuses.PROCESSING),
-        ("2026-10-08 12:00:00.500000", TargetStatuses.PROCESSING),
+        ("2026-10-08 12:00:00.500000", TargetStatuses.SUCCESS),
         ("2026-10-08 12:00:00.500001", TargetStatuses.SUCCESS),
     ],
     ids=["behind", "equal", "before-completion", "at-completion", "after"],
@@ -202,9 +202,7 @@ def test_zero_processing_vumark_target_status(server_time: str) -> None:
 def test_positive_processing_vumark_target_status(
     *, server_time: str, expected_status: TargetStatuses
 ) -> None:
-    """A positive duration processes through the exact completion
-    boundary.
-    """
+    """A positive duration finishes at the exact completion timestamp."""
     with freeze_time(time_to_freeze="2026-10-08 12:00:00"):
         target_dict = VuMarkTarget(
             name="example", processing_time_seconds=0.5
