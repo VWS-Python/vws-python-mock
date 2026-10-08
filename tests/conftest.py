@@ -4,9 +4,13 @@ import base64
 import binascii
 import io
 import uuid
+from dataclasses import dataclass
 
 import pytest
 from beartype import beartype
+from tenacity import retry
+from tenacity.retry import retry_if_not_result
+from tenacity.stop import stop_after_attempt
 from vws import VWS, CloudRecoService
 from vws.reports import TargetStatuses
 
@@ -112,13 +116,34 @@ def _wait_for_target_processed(*, vws_client: VWS, target_id_: str) -> None:
     vws_client.wait_for_target_processed(target_id=target_id_)
 
 
+@dataclass(frozen=True, kw_only=True)
+class _TargetProcessingResult:
+    """The ID and processing status of an uploaded target."""
+
+    target_id: str
+    status: TargetStatuses
+
+
+@beartype
+def _target_processed_successfully(result: _TargetProcessingResult) -> bool:
+    """Return whether an uploaded target finished processing
+    successfully.
+    """
+    return result.status == TargetStatuses.SUCCESS
+
+
 @beartype
 @RETRY_ON_TRANSIENT_VWS_FAILURE
+@retry(
+    retry=retry_if_not_result(predicate=_target_processed_successfully),
+    stop=stop_after_attempt(max_attempt_number=_TARGET_SUCCESS_ATTEMPTS),
+    reraise=True,
+)
 def _add_target_which_processed_successfully(
     *,
     vws_client: VWS,
     image: io.BytesIO,
-) -> str:
+) -> _TargetProcessingResult:
     """Add a target which finishes processing with a 'success' status.
 
     Real Vuforia sometimes rates the given image badly enough to give the
@@ -126,28 +151,21 @@ def _add_target_which_processed_successfully(
     one.
 
     Returns:
-        The ID of a target with a 'success' status.
+        The ID and processing status of the added target.
     """
-    for _ in range(_TARGET_SUCCESS_ATTEMPTS):
-        target_id_ = _add_target(vws_client=vws_client, image=image)
-        _wait_for_target_processed(
-            vws_client=vws_client,
-            target_id_=target_id_,
-        )
-        target_details = vws_client.get_target_record(target_id=target_id_)
-        if target_details.status == TargetStatuses.SUCCESS:
-            return target_id_
-        # We do not cover the rest of this function because in most test
-        # runs no target gets a 'failed' status.
-        vws_client.delete_target(target_id=target_id_)  # pragma: no cover
-
-    # This is reached only when the live service never processes a target.
-    message = (  # pragma: no cover
-        "No target processed with a 'success' status in "
-        f"{_TARGET_SUCCESS_ATTEMPTS} attempts."
+    target_id_ = _add_target(vws_client=vws_client, image=image)
+    _wait_for_target_processed(
+        vws_client=vws_client,
+        target_id_=target_id_,
     )
-    # This is reached only when the live service never processes a target.
-    raise AssertionError(message)  # pragma: no cover
+    target_details = vws_client.get_target_record(target_id=target_id_)
+    # Failed processing is nondeterministic against the live service.
+    if target_details.status != TargetStatuses.SUCCESS:
+        vws_client.delete_target(target_id=target_id_)  # pragma: no cover
+    return _TargetProcessingResult(
+        target_id=target_id_,
+        status=target_details.status,
+    )
 
 
 @pytest.fixture
@@ -160,10 +178,11 @@ def target_id(*, high_quality_image: io.BytesIO, vws_client: VWS) -> str:
     generated 5x5 image, and real Vuforia often gives such an image a
     'failed' status. No test which uses this fixture needs a low rating.
     """
-    return _add_target_which_processed_successfully(
+    result = _add_target_which_processed_successfully(
         vws_client=vws_client,
         image=high_quality_image,
     )
+    return result.target_id
 
 
 @pytest.fixture
