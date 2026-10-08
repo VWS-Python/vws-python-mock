@@ -15,6 +15,7 @@ import socket
 import uuid
 import zipfile
 from collections.abc import Iterator
+from contextlib import ExitStack
 from dataclasses import dataclass
 from http import HTTPMethod, HTTPStatus
 from pathlib import Path
@@ -250,16 +251,9 @@ def _vws_client(
     )
 
 
-@pytest.fixture(name="custom_bridge_network", scope="module")
-def fixture_custom_bridge_network() -> Iterator[Network]:
-    """Yield a custom bridge network which containers can connect to.
-
-    This also cleans up all containers connected to the network and the network
-    after the tests.
-
-    Yields:
-        A custom bridge network.
-    """
+@beartype
+def _create_bridge_network(*, resources: ExitStack) -> Network:
+    """Create a test network and register its removal immediately."""
     client = docker.from_env()
     name = "test-vws-bridge-" + uuid.uuid4().hex
     try:
@@ -268,27 +262,18 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
         # On Windows the "bridge" network driver is not available and we use
         # the "nat" driver instead.
         network = client.networks.create(name=name, driver="nat")
-
-    try:
-        yield network
-    finally:
-        network.reload()
-        images_to_remove: set[Image] = set()
-        for container in network.containers:
-            network.disconnect(container=container)
-            container.stop()
-            container.remove(v=True, force=True)
-            assert container.image is not None
-            images_to_remove.add(container.image)
-
-        # This does leave behind untagged images.
-        for image in images_to_remove:
-            _ = image.remove(force=True)
-        network.remove()
+    _ = resources.callback(network.remove)
+    return network
 
 
 @beartype
-def _build_image(*, repository_root: str, tag: str, target: str) -> Image:
+def _build_image(
+    *,
+    resources: ExitStack,
+    repository_root: str,
+    tag: str,
+    target: str,
+) -> Image:
     """Build one stage of the ``Dockerfile`` of the mock.
 
     Returns:
@@ -303,22 +288,24 @@ def _build_image(*, repository_root: str, tag: str, target: str) -> Image:
         target=target,
         rm=True,
     )
+    # Remove this run's tag, preserving other runs which share a cached image.
+    _ = resources.callback(client.images.remove, image=tag, force=True)
     return image
 
 
 @pytest.fixture(name="mock_deployment", scope="module")
-def fixture_mock_deployment(
-    *,
-    custom_bridge_network: Network,
-) -> _MockDeployment:
+def fixture_mock_deployment() -> Iterator[_MockDeployment]:
     """Build the mock's images and run them as the Docker deployment does.
 
     The images are built and the containers are run once for all tests in
     this module, because building the images is the slowest thing these
     tests do.
 
-    Returns:
+    Yields:
         The running deployment.
+
+    Resources are registered as they are created, including before setup
+    yields. Containers are removed before the network and then the images.
     """
     repository_root = str(
         object=find_root(
@@ -329,91 +316,111 @@ def fixture_mock_deployment(
     client = docker.from_env()
     random = uuid.uuid4().hex
 
-    try:
-        target_manager_image = _build_image(
+    with ExitStack() as resources:
+        try:
+            target_manager_image = _build_image(
+                resources=resources,
+                repository_root=repository_root,
+                tag=f"vws-mock-target-manager:latest-{random}",
+                target="target-manager",
+            )
+        except BuildError as exc:
+            full_log = "\n".join(
+                [item["stream"] for item in exc.build_log if "stream" in item],
+            )
+            windows_message_substrings = (
+                "no matching manifest for windows/amd64",
+                "no matching manifest for windows(10.0.26100)/amd64",
+            )
+            # If this assertion fails, it may be useful to look at the other
+            # properties of ``exc``.
+            is_windows_container_error = any(
+                windows_message_substring in exc.msg
+                for windows_message_substring in windows_message_substrings
+            )
+            assert is_windows_container_error, full_log
+            pytest.skip(
+                reason="We do not currently support using Windows containers."
+            )
+
+        vwq_image = _build_image(
+            resources=resources,
             repository_root=repository_root,
-            tag=f"vws-mock-target-manager:latest-{random}",
-            target="target-manager",
+            tag=f"vws-mock-vwq:latest-{random}",
+            target="vwq",
         )
-    except BuildError as exc:
-        full_log = "\n".join(
-            [item["stream"] for item in exc.build_log if "stream" in item],
-        )
-        windows_message_substrings = (
-            "no matching manifest for windows/amd64",
-            "no matching manifest for windows(10.0.26100)/amd64",
-        )
-        # If this assertion fails, it may be useful to look at the other
-        # properties of ``exc``.
-        is_windows_container_error = any(
-            windows_message_substring in exc.msg
-            for windows_message_substring in windows_message_substrings
-        )
-        assert is_windows_container_error, full_log
-        pytest.skip(
-            reason="We do not currently support using Windows containers."
+        vws_image = _build_image(
+            resources=resources,
+            repository_root=repository_root,
+            tag=f"vws-mock-vws:latest-{random}",
+            target="vws",
         )
 
-    vwq_image = _build_image(
-        repository_root=repository_root,
-        tag=f"vws-mock-vwq:latest-{random}",
-        target="vwq",
-    )
-    vws_image = _build_image(
-        repository_root=repository_root,
-        tag=f"vws-mock-vws:latest-{random}",
-        target="vws",
-    )
+        custom_bridge_network = _create_bridge_network(resources=resources)
 
-    target_manager_container_name = "vws-mock-target-manager-" + random
-    target_manager_internal_base_url = (
-        f"http://{target_manager_container_name}:5000"
-    )
-    vws_host_port = _free_port()
-    base_vws_url = f"http://127.0.0.1:{vws_host_port}"
+        target_manager_container_name = "vws-mock-target-manager-" + random
+        target_manager_internal_base_url = (
+            f"http://{target_manager_container_name}:5000"
+        )
+        vws_host_port = _free_port()
+        base_vws_url = f"http://127.0.0.1:{vws_host_port}"
 
-    target_manager_container = client.containers.run(
-        image=target_manager_image,
-        detach=True,
-        name=target_manager_container_name,
-        publish_all_ports=True,
-        network=custom_bridge_network.name,
-    )
-    vws_container = client.containers.run(
-        image=vws_image,
-        detach=True,
-        name="vws-mock-vws-" + random,
-        ports={"5000/tcp": ("127.0.0.1", vws_host_port)},
-        network=custom_bridge_network.name,
-        environment={
-            "TARGET_MANAGER_BASE_URL": target_manager_internal_base_url,
-            # Report download URLs are built from this, so the URLs which
-            # the VWS container gives out reach it from the host.
-            "VWS_BASE_URL": base_vws_url,
-        },
-    )
-    vwq_container = client.containers.run(
-        image=vwq_image,
-        detach=True,
-        name="vws-mock-vwq-" + random,
-        publish_all_ports=True,
-        network=custom_bridge_network.name,
-        environment={
-            "TARGET_MANAGER_BASE_URL": target_manager_internal_base_url,
-        },
-    )
+        target_manager_container = client.containers.run(
+            image=target_manager_image,
+            detach=True,
+            name=target_manager_container_name,
+            publish_all_ports=True,
+            network=custom_bridge_network.name,
+        )
+        _ = resources.callback(
+            target_manager_container.remove,
+            v=True,
+            force=True,
+        )
+        _ = resources.callback(target_manager_container.stop)
+        vws_container = client.containers.run(
+            image=vws_image,
+            detach=True,
+            name="vws-mock-vws-" + random,
+            ports={"5000/tcp": ("127.0.0.1", vws_host_port)},
+            network=custom_bridge_network.name,
+            environment={
+                "TARGET_MANAGER_BASE_URL": target_manager_internal_base_url,
+                # Report download URLs are built from this, so the URLs which
+                # the VWS container gives out reach it from the host.
+                "VWS_BASE_URL": base_vws_url,
+            },
+        )
+        _ = resources.callback(vws_container.remove, v=True, force=True)
+        _ = resources.callback(vws_container.stop)
+        vwq_container = client.containers.run(
+            image=vwq_image,
+            detach=True,
+            name="vws-mock-vwq-" + random,
+            publish_all_ports=True,
+            network=custom_bridge_network.name,
+            environment={
+                "TARGET_MANAGER_BASE_URL": target_manager_internal_base_url,
+            },
+        )
+        _ = resources.callback(vwq_container.remove, v=True, force=True)
+        _ = resources.callback(vwq_container.stop)
 
-    for container in (target_manager_container, vws_container, vwq_container):
-        wait_for_health_check(container=container)
+        for container in (
+            target_manager_container,
+            vws_container,
+            vwq_container,
+        ):
+            wait_for_health_check(container=container)
 
-    return _MockDeployment(
-        vws_container=vws_container,
-        base_vws_url=base_vws_url,
-        base_vwq_url=_published_base_url(container=vwq_container),
-        base_target_manager_url=_published_base_url(
-            container=target_manager_container,
-        ),
-    )
+        yield _MockDeployment(
+            vws_container=vws_container,
+            base_vws_url=base_vws_url,
+            base_vwq_url=_published_base_url(container=vwq_container),
+            base_target_manager_url=_published_base_url(
+                container=target_manager_container,
+            ),
+        )
 
 
 def test_add_target_and_query(
@@ -717,3 +724,47 @@ def test_deleted_database(*, mock_deployment: _MockDeployment) -> None:
         _ = vws_client.list_targets()
 
     assert exc.value.response.status_code == HTTPStatus.BAD_REQUEST
+
+
+@pytest.mark.parametrize(argnames="fail", argvalues=[True, False])
+def test_image_cleanup(*, fail: bool) -> None:
+    """Built images are removed after success and a later build
+    failure.
+    """
+    repository_root = str(
+        object=find_root(
+            criterion=has_file(file="pyproject.toml"),
+            start=Path(__file__).resolve(),
+        )
+    )
+    client = docker.from_env()
+    tag = f"vws-mock-cleanup:latest-{uuid.uuid4().hex}"
+
+    @beartype
+    def _build_test_images() -> None:
+        """Build a test image and optionally fail during the next
+        build.
+        """
+        with ExitStack() as resources:
+            _ = _build_image(
+                resources=resources,
+                repository_root=repository_root,
+                tag=tag,
+                target="target-manager",
+            )
+            if fail:
+                _ = _build_image(
+                    resources=resources,
+                    repository_root=repository_root,
+                    tag=f"{tag}-invalid",
+                    target="nonexistent-stage",
+                )
+
+    if fail:
+        with pytest.raises(expected_exception=BuildError):
+            _build_test_images()
+    else:
+        _build_test_images()
+
+    with pytest.raises(expected_exception=NotFound):
+        _ = client.images.get(name=tag)
