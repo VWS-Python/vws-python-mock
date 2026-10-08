@@ -266,7 +266,13 @@ class VuMarkTarget:
         """Return the status of the target.
 
         VuMark targets always succeed after processing.
+        Zero processing time means immediate success, even when the last
+        modified date is ahead of the server clock. A positive duration keeps
+        the target processing through the exact completion timestamp.
         """
+        if self.processing_time_seconds == 0:
+            return TargetStatuses.SUCCESS.value
+
         processing_time = datetime.timedelta(
             seconds=float(self.processing_time_seconds),
         )
