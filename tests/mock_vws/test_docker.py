@@ -288,6 +288,7 @@ def _build_image(
             tag=tag,
             target=target,
             rm=True,
+            forcerm=True,
         )
     except BuildError as exc:
         full_log = "\n".join(
@@ -726,7 +727,7 @@ def test_deleted_database(*, mock_deployment: _MockDeployment) -> None:
 
 
 @pytest.mark.parametrize(argnames="fail", argvalues=[True, False])
-def test_image_cleanup(*, fail: bool) -> None:
+def test_image_cleanup(*, fail: bool, tmp_path: Path) -> None:
     """Built images are removed after success and a later build
     failure.
     """
@@ -738,6 +739,12 @@ def test_image_cleanup(*, fail: bool) -> None:
     )
     client = docker.from_env()
     tag = f"vws-mock-cleanup:latest-{uuid.uuid4().hex}"
+    failed_dockerfile = tmp_path / "src/mock_vws/_flask_server/Dockerfile"
+    failed_dockerfile.parent.mkdir(parents=True)
+    _ = failed_dockerfile.write_text(
+        data=f"FROM {tag} AS failing\nRUN exit 1\n",
+    )
+    completed_builds: list[str] = []
 
     @beartype
     def _build_test_images() -> None:
@@ -751,12 +758,13 @@ def test_image_cleanup(*, fail: bool) -> None:
                 tag=tag,
                 target="target-manager",
             )
+            completed_builds.append(tag)
             if fail:
                 _ = _build_image(
                     resources=resources,
-                    repository_root=repository_root,
-                    tag=f"{tag}-invalid",
-                    target="nonexistent-stage",
+                    repository_root=str(object=tmp_path),
+                    tag=f"{tag}-failed",
+                    target="failing",
                 )
 
     if fail:
@@ -765,6 +773,7 @@ def test_image_cleanup(*, fail: bool) -> None:
     else:
         _build_test_images()
 
+    assert completed_builds == [tag]
     with pytest.raises(expected_exception=NotFound):
         _ = client.images.get(name=tag)
 
