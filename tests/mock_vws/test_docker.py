@@ -25,7 +25,7 @@ import docker
 import pytest
 import requests
 from beartype import beartype
-from docker.errors import BuildError, NotFound
+from docker.errors import APIError, BuildError, NotFound
 from docker.models.containers import Container
 from docker.models.images import Image
 from docker.models.networks import Network
@@ -293,6 +293,14 @@ def _build_image(
     return image
 
 
+@beartype
+def _start_container(*, resources: ExitStack, container: Container) -> None:
+    """Register cleanup before starting an already-created container."""
+    _ = resources.callback(container.remove, v=True, force=True)
+    _ = resources.callback(container.stop)
+    container.start()
+
+
 @pytest.fixture(name="mock_deployment", scope="module")
 def fixture_mock_deployment() -> Iterator[_MockDeployment]:
     """Build the mock's images and run them as the Docker deployment does.
@@ -365,22 +373,17 @@ def fixture_mock_deployment() -> Iterator[_MockDeployment]:
         vws_host_port = _free_port()
         base_vws_url = f"http://127.0.0.1:{vws_host_port}"
 
-        target_manager_container = client.containers.run(
+        target_manager_container = client.containers.create(
             image=target_manager_image,
-            detach=True,
             name=target_manager_container_name,
             publish_all_ports=True,
             network=custom_bridge_network.name,
         )
-        _ = resources.callback(
-            target_manager_container.remove,
-            v=True,
-            force=True,
+        _start_container(
+            resources=resources, container=target_manager_container
         )
-        _ = resources.callback(target_manager_container.stop)
-        vws_container = client.containers.run(
+        vws_container = client.containers.create(
             image=vws_image,
-            detach=True,
             name="vws-mock-vws-" + random,
             ports={"5000/tcp": ("127.0.0.1", vws_host_port)},
             network=custom_bridge_network.name,
@@ -391,11 +394,9 @@ def fixture_mock_deployment() -> Iterator[_MockDeployment]:
                 "VWS_BASE_URL": base_vws_url,
             },
         )
-        _ = resources.callback(vws_container.remove, v=True, force=True)
-        _ = resources.callback(vws_container.stop)
-        vwq_container = client.containers.run(
+        _start_container(resources=resources, container=vws_container)
+        vwq_container = client.containers.create(
             image=vwq_image,
-            detach=True,
             name="vws-mock-vwq-" + random,
             publish_all_ports=True,
             network=custom_bridge_network.name,
@@ -403,8 +404,7 @@ def fixture_mock_deployment() -> Iterator[_MockDeployment]:
                 "TARGET_MANAGER_BASE_URL": target_manager_internal_base_url,
             },
         )
-        _ = resources.callback(vwq_container.remove, v=True, force=True)
-        _ = resources.callback(vwq_container.stop)
+        _start_container(resources=resources, container=vwq_container)
 
         for container in (
             target_manager_container,
@@ -768,3 +768,42 @@ def test_image_cleanup(*, fail: bool) -> None:
 
     with pytest.raises(expected_exception=NotFound):
         _ = client.images.get(name=tag)
+
+
+def test_cleanup_after_container_start_failure() -> None:
+    """A container which cannot start and its image tag are removed."""
+    repository_root = str(
+        object=find_root(
+            criterion=has_file(file="pyproject.toml"),
+            start=Path(__file__).resolve(),
+        )
+    )
+    client = docker.from_env()
+    random = uuid.uuid4().hex
+    tag = f"vws-mock-cleanup:latest-{random}"
+    name = f"vws-mock-cleanup-{random}"
+
+    @beartype
+    def _attempt_start() -> None:
+        """Create a container whose entry point does not exist."""
+        with ExitStack() as resources:
+            image = _build_image(
+                resources=resources,
+                repository_root=repository_root,
+                tag=tag,
+                target="target-manager",
+            )
+            container = client.containers.create(
+                image=image,
+                name=name,
+                entrypoint=["/does-not-exist"],
+            )
+            _start_container(resources=resources, container=container)
+
+    with pytest.raises(expected_exception=APIError, match="/does-not-exist"):
+        _attempt_start()
+
+    with pytest.raises(expected_exception=NotFound):
+        _remaining_container = client.containers.get(container_id=name)
+    with pytest.raises(expected_exception=NotFound):
+        _remaining_image = client.images.get(name=tag)
