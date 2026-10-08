@@ -2,6 +2,7 @@
 
 import socket
 import threading
+import time
 from collections.abc import Generator
 from contextlib import contextmanager
 from http import HTTPStatus
@@ -12,6 +13,8 @@ from flask import Flask, Response
 from werkzeug.serving import make_server
 
 from mock_vws._flask_server.healthcheck import flask_app_healthy
+
+_HEALTH_CHECK_DEADLINE_SECONDS = 10
 
 
 @beartype
@@ -60,6 +63,45 @@ def test_nothing_listening() -> None:
     port.
     """
     assert not flask_app_healthy(port=_unused_port())
+
+
+@beartype
+def test_no_http_response() -> None:
+    """A listener which withholds its response cannot block the probe."""
+    release = threading.Event()
+    accepted = threading.Event()
+    with socket.socket(
+        family=socket.AF_INET,
+        type=socket.SOCK_STREAM,
+    ) as listener:
+        listener.bind(("localhost", 0))
+        listener.listen()
+        listener.settimeout(_HEALTH_CHECK_DEADLINE_SECONDS)
+        address = listener.getsockname()
+        assert isinstance(address, tuple)
+        assert isinstance(address[1], int)
+        port: int = address[1]
+
+        @beartype
+        def _withhold_response() -> None:
+            """Accept a connection and keep it open until released."""
+            connection, _ = listener.accept()
+            with connection:
+                accepted.set()
+                _ = release.wait(timeout=_HEALTH_CHECK_DEADLINE_SECONDS)
+
+        thread = threading.Thread(target=_withhold_response, daemon=True)
+        thread.start()
+        try:
+            start = time.monotonic()
+            assert not flask_app_healthy(port=port)
+            elapsed = time.monotonic() - start
+            assert accepted.is_set()
+            assert elapsed < _HEALTH_CHECK_DEADLINE_SECONDS
+            assert not release.is_set()
+        finally:
+            release.set()
+            thread.join(timeout=_HEALTH_CHECK_DEADLINE_SECONDS)
 
 
 @pytest.mark.parametrize(
