@@ -1697,15 +1697,15 @@ wheels = [
 
 [[package]]
 name = "pyteenybrisque"
-version = "0.1.1"
+version = "0.1.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy" },
     { name = "pillow" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/81/43/294f291398c93ed695ef208333857394763e50581da3fcef4a3aded3228f/pyteenybrisque-0.1.1.tar.gz", hash = "sha256:eb804b121146056ec6b6d08581f6f19983b565df11e746af0ebe802575c5e56e", size = 182546, upload-time = "2026-05-03T19:28:40.997Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/71/de/d80ece1d741108959a6265ab864c8a8c0702210b4883a7585ac6918f4218/pyteenybrisque-0.1.2.tar.gz", hash = "sha256:d52151b3e840fb4075d1eddb2e155c018766e8130f050faf87ef424a15fe5db2", size = 183890, upload-time = "2026-10-04T07:37:31.235Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/75/e6/40048a4eb960ee9fc48f7cade4d98274dac591ecc733beacfb3babacf703/pyteenybrisque-0.1.1-py3-none-any.whl", hash = "sha256:d3437290463c62c8479300fad0ab579e1357ce5bfc967e299a4916e24877a426", size = 182791, upload-time = "2026-05-03T19:28:39.587Z" },
+    { url = "https://files.pythonhosted.org/packages/bc/17/5e9cf9f24614bcffe592a6d24fd9ce34e98245db9cf8473d861ed07f9225/pyteenybrisque-0.1.2-py3-none-any.whl", hash = "sha256:3c4b9f1eaef2e812daf2d07fd586cfd778479d2855073eacff35fd4a8469487b", size = 184186, upload-time = "2026-10-04T07:37:29.809Z" },
 ]
 
 [[package]]
