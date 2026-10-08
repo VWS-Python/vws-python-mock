@@ -30,8 +30,8 @@ from docker.models.images import Image
 from docker.models.networks import Network
 from pydantic import TypeAdapter
 from pyprojroot import find_root, has_file
-from tenacity import retry
-from tenacity.retry import retry_if_exception_type
+from tenacity import RetryError, retry
+from tenacity.retry import retry_if_exception_type, retry_if_not_result
 from tenacity.stop import stop_after_delay
 from tenacity.wait import wait_fixed
 from vws import VWS, CloudRecoService, VuMarkService
@@ -87,29 +87,26 @@ def _poll_health_check(container: Container) -> None:
 @retry(
     wait=wait_fixed(wait=0.5),
     stop=stop_after_delay(max_delay=20),
-    retry=retry_if_exception_type(
-        exception_types=(requests.exceptions.RequestException, ValueError),
+    retry=(
+        retry_if_not_result(predicate=bool)
+        | retry_if_exception_type(
+            exception_types=(requests.exceptions.RequestException,),
+        )
     ),
     reraise=True,
 )
 @beartype
-def _poll_http_health_check(*, base_url: str) -> None:
+def _poll_http_health_check(*, base_url: str) -> bool:
     """Poll the published service URL until its HTTP probe succeeds."""
     with requests.get(
         url=f"{base_url}/some-random-endpoint",
         timeout=5,
     ) as response:
-        if response.status_code not in {
+        return response.status_code in {
             HTTPStatus.NOT_FOUND,
             HTTPStatus.UNAUTHORIZED,
             HTTPStatus.FORBIDDEN,
-        }:  # pragma: no cover
-            # Unexpected statuses terminate fixture setup.
-            error_message = (
-                f"Service at {base_url} is not healthy: "
-                f"HTTP {response.status_code}"
-            )
-            raise ValueError(error_message)
+        }
 
 
 @beartype
@@ -121,11 +118,12 @@ def wait_for_health_check(*, container: Container, base_url: str) -> None:
     """
     try:
         _poll_health_check(container=container)
-        _poll_http_health_check(base_url=base_url)
+        _ = _poll_http_health_check(base_url=base_url)
     # Healthy deployment tests do not enter this diagnostics path.
     except (
         ValueError,
         requests.exceptions.RequestException,
+        RetryError,
     ) as exc:  # pragma: no cover
         container.reload()
         logs = container.logs().decode(errors="replace")
