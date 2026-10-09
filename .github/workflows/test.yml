@@ -324,7 +324,7 @@ jobs:
   coverage:
     name: Combine & check coverage
     needs: [ci-tests, skip-tests, windows-tests]
-    if: always()
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
 
     steps:
@@ -368,7 +368,7 @@ jobs:
   completion-ci:
     needs: [ci-tests, skip-tests, windows-tests, coverage]
     runs-on: ubuntu-latest
-    if: always()
+    if: ${{ !cancelled() }}
     steps:
       - name: Check all jobs status
         run: |-
