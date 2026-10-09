@@ -33,6 +33,7 @@ Creating containers
        --detach \
        --publish 5006:5000 \
        -e TARGET_MANAGER_BASE_URL=http://vuforia-target-manager-mock:5000 \
+       -e VWS_BASE_URL=http://127.0.0.1:5006 \
        --network vws-bridge-network \
        ghcr.io/vws-python/vuforia-vws-mock
    $ docker run \
@@ -41,6 +42,10 @@ Creating containers
        -e TARGET_MANAGER_BASE_URL=http://vuforia-target-manager-mock:5000 \
        --network vws-bridge-network \
        ghcr.io/vws-python/vuforia-vwq-mock
+
+The VWS container uses :envvar:`VWS_BASE_URL` to generate report download URLs.
+Set it to the URL clients use to reach the published VWS port.
+For clients on another machine, replace ``http://127.0.0.1:5006`` with an address those clients can reach.
 
 
 Adding a database to the mock target manager
