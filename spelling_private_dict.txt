@@ -7,6 +7,7 @@ MyST
 OAuth
 Pydantic
 Reco
+Socktainer
 Towncrier
 Ubuntu
 VuMark
@@ -73,6 +74,7 @@ learnings
 linters
 linting
 login
+loopback
 macOS
 matcher
 matcher's
@@ -126,6 +128,7 @@ rfc
 rgb
 str
 stringify
+subnet
 subprocess
 timestamp
 todo

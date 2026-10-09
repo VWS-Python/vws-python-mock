@@ -1,7 +1,8 @@
-Running a server with Docker
-============================
+Running a server in containers
+==============================
 
-It is possible run a Mock VWS instance using Docker containers.
+You can run a Mock VWS instance using Docker or Apple's `container`_ CLI.
+Both use the same published images.
 
 This allows you to run tests against a mock VWS instance regardless of the language or tooling you are using.
 
@@ -17,8 +18,11 @@ The VWS and VWQ containers must point to the target manager container using the 
 
 .. _creating-containers:
 
-Creating containers
-^^^^^^^^^^^^^^^^^^^
+Creating containers with Docker
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Docker users can run the commands below directly.
+For a deployment using Apple's CLI directly, follow :ref:`apple-container-setup`.
 
 .. code-block:: console
 
@@ -48,6 +52,78 @@ Set it to the URL clients use to reach the published VWS port.
 For clients on another machine, replace ``http://127.0.0.1:5006`` with an address those clients can reach.
 
 
+.. _apple-container-setup:
+
+Creating containers with Apple container
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This setup requires a Mac with Apple silicon and macOS 26 or later, Apple's ``container`` CLI 1.5.0 or later, and ``jq`` to read the container's address.
+Install the runtime, start its services, and install the recommended Linux kernel:
+
+.. code-block:: console
+
+   $ brew install container jq
+   $ container system start --disable-kernel-install
+   $ container system kernel set --recommended
+
+Allow Local Network access for ``container-runtime-linux`` when macOS prompts.
+If requests to a published port reset, check this permission in System Settings → Privacy & Security → Local Network, then restart the container services.
+
+Create a network and start the target manager first.
+Read its IP address on that network for the VWS and VWQ services to use:
+
+.. code-block:: console
+
+   $ container network create vws-bridge-network
+   $ container run \
+       --detach \
+       --publish 127.0.0.1:5005:5000 \
+       --name vuforia-target-manager-mock \
+       --network vws-bridge-network \
+       ghcr.io/vws-python/vuforia-target-manager-mock
+   $ TARGET_MANAGER_IP="$(container inspect vuforia-target-manager-mock | jq -er '.[0].status.networks[0].ipv4Address | split("/")[0]')"
+   $ export TARGET_MANAGER_BASE_URL="http://$TARGET_MANAGER_IP:5000"
+   $ container run \
+       --detach \
+       --publish 127.0.0.1:5006:5000 \
+       --name vuforia-vws-mock \
+       --env "TARGET_MANAGER_BASE_URL=$TARGET_MANAGER_BASE_URL" \
+       --env VWS_BASE_URL=http://127.0.0.1:5006 \
+       --network vws-bridge-network \
+       ghcr.io/vws-python/vuforia-vws-mock
+   $ container run \
+       --detach \
+       --publish 127.0.0.1:5007:5000 \
+       --name vuforia-vwq-mock \
+       --env "TARGET_MANAGER_BASE_URL=$TARGET_MANAGER_BASE_URL" \
+       --network vws-bridge-network \
+       ghcr.io/vws-python/vuforia-vwq-mock
+
+Using the target manager's IP avoids requiring DNS configuration for container names on this network.
+The IP lookup removes the subnet suffix returned by ``container inspect``.
+The scheme and container port are fixed, so the URL is constructed separately.
+If you recreate the target manager, read its new address and recreate VWS and VWQ with the updated ``TARGET_MANAGER_BASE_URL``.
+The host ports match the Docker example, so the HTTP examples below work with either deployment.
+``VWS_BASE_URL`` is the URL clients use to reach VWS and download recognition reports.
+
+Run each readiness probe until it exits successfully:
+
+.. code-block:: console
+
+   $ container exec vuforia-target-manager-mock python /app/src/mock_vws/_flask_server/healthcheck.py
+   $ container exec vuforia-vws-mock python /app/src/mock_vws/_flask_server/healthcheck.py
+   $ container exec vuforia-vwq-mock python /app/src/mock_vws/_flask_server/healthcheck.py
+
+To stop and remove this deployment:
+
+.. code-block:: console
+
+   $ container rm --force vuforia-vwq-mock vuforia-vws-mock vuforia-target-manager-mock
+   $ container network rm vws-bridge-network
+
+.. _container: https://github.com/apple/container
+
+
 Adding a database to the mock target manager
 --------------------------------------------
 
@@ -61,7 +137,7 @@ To add a database, make a request to the following endpoint against the target m
 .. autoflask:: mock_vws._flask_server.target_manager:TARGET_MANAGER_FLASK_APP
    :endpoints: create_cloud_database
 
-For example, with the containers set up as in :ref:`creating-containers`, use ``curl``:
+For example, with either deployment above, use ``curl``:
 
 .. code-block:: console
 
@@ -200,6 +276,8 @@ VWS container
 Building images from source
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+These commands build the images with ``docker buildx``.
+
 .. code-block:: console
 
    $ export REPOSITORY_ROOT="$PWD"
@@ -212,3 +290,11 @@ Building images from source
    $ docker buildx build "$REPOSITORY_ROOT" --file "$DOCKERFILE" --target target-manager --tag "$TARGET_MANAGER_TAG"
    $ docker buildx build "$REPOSITORY_ROOT" --file "$DOCKERFILE" --target vws --tag "$VWS_TAG"
    $ docker buildx build "$REPOSITORY_ROOT" --file "$DOCKERFILE" --target vwq --tag "$VWQ_TAG"
+
+To build the same ``Dockerfile`` stages with Apple's CLI, set the variables above and run:
+
+.. code-block:: console
+
+   $ container build "$REPOSITORY_ROOT" --file "$DOCKERFILE" --target target-manager --tag "$TARGET_MANAGER_TAG"
+   $ container build "$REPOSITORY_ROOT" --file "$DOCKERFILE" --target vws --tag "$VWS_TAG"
+   $ container build "$REPOSITORY_ROOT" --file "$DOCKERFILE" --target vwq --tag "$VWQ_TAG"

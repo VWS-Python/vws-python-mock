@@ -130,6 +130,52 @@ Give an option once per backend or marker to skip.
 
 .. _pytest-multi-backend: https://adamtheturtle.github.io/pytest-multi-backend/
 
+Container deployment tests
+--------------------------
+
+The deployment tests build and run three separate services through the Docker Python SDK.
+They use the Docker engine selected by the current Docker configuration by default:
+
+.. code-block:: console
+
+   $ uv run --group=dev pytest tests/mock_vws/test_docker.py
+
+.. _socktainer-setup:
+
+To run the same tests with Apple's container runtime, complete the runtime installation steps in :ref:`apple-container-setup`, then install `Socktainer`_ 1.5.1 or later.
+It provides the Docker-compatible API used by the Python deployment tests:
+
+.. code-block:: console
+
+   $ brew install socktainer
+   $ socktainer --no-auto-start --no-docker-context
+
+Keep Socktainer running in that terminal.
+In another terminal, select its socket and API version for the test command:
+
+.. code-block:: console
+
+   $ DOCKER_HOST="unix://$HOME/.socktainer/container.sock" \
+       DOCKER_API_VERSION=1.51 \
+       uv run --group=dev pytest tests/mock_vws/test_docker.py
+
+Socktainer 1.5.1 requires the explicit API version because its automatic version negotiation is incompatible with the Docker Python SDK.
+This is tracked in `Socktainer issue 433`_.
+The deployment tests automatically negotiate the API version when ``DOCKER_API_VERSION`` is unset.
+
+Both configurations exercise native health checks, published HTTP ports, application behavior and restarts.
+Running the mock directly with Apple's CLI uses the same images and is documented in :ref:`apple-container-setup`.
+The tests bind their published ports to loopback explicitly because Socktainer 1.5.1 ignores automatic port publishing.
+See `Socktainer issue 434`_.
+Test containers, image tags and networks are removed after the run, including when setup fails.
+Hosted CI continues to use Docker.
+Apple deployment validation runs on a local Mac.
+
+.. _Socktainer: https://github.com/socktainer/socktainer
+.. _Socktainer issue 433: https://github.com/socktainer/socktainer/issues/433
+.. _Socktainer issue 434: https://github.com/socktainer/socktainer/issues/434
+
+
 Verifying signed Model Target requests
 --------------------------------------
 
