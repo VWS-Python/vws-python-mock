@@ -25,7 +25,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.14', '3.15']
+        python-version: ['3.15']
         ci_pattern:
           - tests/mock_vws/test_query.py::TestContentType
           - tests/mock_vws/test_query.py::TestSuccess
@@ -216,7 +216,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.14', '3.15']
+        python-version: ['3.15']
         platform: [ubuntu-latest]
 
     steps:
@@ -262,7 +262,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        python-version: ['3.14', '3.15']
+        python-version: ['3.15']
 
     steps:
       - uses: actions/checkout@v7
@@ -336,7 +336,7 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: '**/pyproject.toml'
-          python-version: '3.14'
+          python-version: '3.15'
 
       - uses: actions/download-artifact@v8
         with:

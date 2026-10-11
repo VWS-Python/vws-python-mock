@@ -96,4 +96,4 @@ This includes details on how to use the mock, options, and details of the differ
    :target: https://github.com/VWS-Python/vws-python-mock/actions
 .. |PyPI| image:: https://badge.fury.io/py/VWS-Python-Mock.svg
     :target: https://badge.fury.io/py/VWS-Python-Mock
-.. |minimum-python-version| replace:: 3.14
+.. |minimum-python-version| replace:: 3.15

@@ -1,4 +1,7 @@
-FROM ghcr.io/astral-sh/uv:0.11.7-python3.14-trixie-slim AS base
+FROM ghcr.io/astral-sh/uv:0.13.0-trixie-slim AS base
+ENV UV_PYTHON_INSTALL_DIR=/opt/python
+ENV UV_PYTHON_BIN_DIR=/usr/local/bin
+RUN uv python install --default 3.15.0
 # We set this pretend version as we do not have Git in our path, and we do
 # not care enough about having the version correct inside the Docker container
 # to install it.
