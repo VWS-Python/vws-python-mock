@@ -1,4 +1,8 @@
 FROM ghcr.io/astral-sh/uv:0.13.0-trixie-slim AS base
+# The Debian base has no system certificate store for HTTPS clients.
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y ca-certificates=20250419 \
+    && rm -rf /var/lib/apt/lists/*
 ENV UV_PYTHON_INSTALL_DIR=/opt/python
 ENV UV_PYTHON_BIN_DIR=/usr/local/bin
 RUN uv python install --default 3.15.0

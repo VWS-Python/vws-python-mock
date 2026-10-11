@@ -63,6 +63,10 @@ dev = [
     "check-wheel-contents==0.6.3",
     "coverage==7.16.2",
     "deptry==0.25.1",
+    # Dill 0.4.1 predates Python 3.15 removal of co_lnotab.
+    # Replace the source pin with a release containing this fix:
+    # https://github.com/uqfoundation/dill/pull/755
+    "dill @ git+https://github.com/uqfoundation/dill.git@37d2bf717ac7ac110f06be5210f989847959c2cd",
     "dirty-equals==0.11",
     "doc8==2.0.0",
     "doccmd==2026.9.16.1",
