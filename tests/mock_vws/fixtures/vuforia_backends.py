@@ -417,7 +417,7 @@ _MODEL_TARGET_SETUP_FUNCTIONS = {
 # Vuforia only when this option is given.
 VERIFY_MODEL_TARGET_SIGNING_OPTION = "--verify-model-target-signing"
 _INVALID_JSON_REAL_NODE_ID_PREFIXES = tuple(
-    f"tests/mock_vws/test_invalid_json.py::TestInvalidJSON::{test_name}["
+    f"tests/mock_vws/invalid_json/test_invalid_json.py::{test_name}["
     "Real Vuforia-"
     for test_name in ("test_not_json", "test_not_an_object", "test_not_utf_8")
 )

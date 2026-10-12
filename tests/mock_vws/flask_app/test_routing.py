@@ -3,7 +3,7 @@
 Tests for requests which the Flask app does not route.
 
 Signed requests are covered by
-``tests/mock_vws/test_invalid_given_id.py``, which verifies the
+``tests/mock_vws/invalid_given_id``, which verifies the
 responses against real Vuforia.
 """
 
