@@ -7,7 +7,18 @@ from http import HTTPStatus
 import requests
 from freezegun import freeze_time
 
-from mock_vws import MockVWS
+from mock_vws import MockVWS, ModelTargetGenerationFailure
+from tests.mock_vws.model_target_web_api.authentication import (
+    MOCK_BEARER_TOKEN,
+)
+from tests.mock_vws.model_target_web_api.responses import (
+    parse_response_json,
+    response_targeted_error,
+)
+from tests.mock_vws.model_target_web_api.sample_data import (
+    UNAUTHENTICATED_DATASET_REQUEST,
+)
+from tests.mock_vws.utils.assertions import assert_model_target_status
 
 _MODEL_TARGET_AUTHORIZATION = (
     "Bearer eyJhbGciOiJtb2NrIn0."
@@ -159,3 +170,88 @@ def test_bearer_token_required() -> None:
         "message": "no Bearer token",
         "target": "jwt",
     }
+
+
+def test_processing_dataset_cannot_be_downloaded(*, base_vws_url: str) -> None:
+    """A dataset cannot be downloaded while it is still processing.
+
+    Mock-only because exercising this against real Vuforia would require
+    creating a dataset on every test run; the mock lets us drive the
+    processing window deterministically.
+    """
+    with MockVWS(base_vws_url=base_vws_url, processing_time_seconds=60):
+        create_response = requests.post(
+            url=f"{base_vws_url}/modeltargets/datasets",
+            headers={"Authorization": f"Bearer {MOCK_BEARER_TOKEN}"},
+            json=UNAUTHENTICATED_DATASET_REQUEST,
+            timeout=30,
+        )
+        dataset_uuid = parse_response_json(response=create_response)["uuid"]
+        assert isinstance(dataset_uuid, str)
+        response = requests.get(
+            url=(
+                f"{base_vws_url}/modeltargets/datasets/{dataset_uuid}/dataset"
+            ),
+            headers={"Authorization": f"Bearer {MOCK_BEARER_TOKEN}"},
+            timeout=30,
+        )
+
+    assert_model_target_status(
+        response=response,
+        status_codes=HTTPStatus.UNPROCESSABLE_ENTITY,
+    )
+    error = response_targeted_error(response=response)
+    assert error["code"] == "UNSUPPORTED_STATE"
+    assert error["message"] == (
+        f"Training status for dataset {dataset_uuid} is not-started != done"
+    )
+    assert error["target"] == dataset_uuid
+
+
+def test_failed_dataset_cannot_be_downloaded(*, base_vws_url: str) -> None:
+    """A dataset which failed generation cannot be downloaded, and the
+    error reports the failed training status rather than the
+    ``not-started`` status which a still-processing dataset reports.
+
+    Mock-only because a generation failure cannot be provoked on demand
+    against real Vuforia, so the training status name it reports for a
+    failed dataset has not been observed.
+    """
+    failure = ModelTargetGenerationFailure(message="CAD model is invalid")
+    with MockVWS(
+        base_vws_url=base_vws_url,
+        processing_time_seconds=0,
+        model_target_generation_failure=failure,
+    ):
+        create_response = requests.post(
+            url=f"{base_vws_url}/modeltargets/datasets",
+            headers={"Authorization": f"Bearer {MOCK_BEARER_TOKEN}"},
+            json=UNAUTHENTICATED_DATASET_REQUEST,
+            timeout=30,
+        )
+        dataset_uuid = parse_response_json(response=create_response)["uuid"]
+        assert isinstance(dataset_uuid, str)
+        status_response = requests.get(
+            url=f"{base_vws_url}/modeltargets/datasets/{dataset_uuid}/status",
+            headers={"Authorization": f"Bearer {MOCK_BEARER_TOKEN}"},
+            timeout=30,
+        )
+        response = requests.get(
+            url=(
+                f"{base_vws_url}/modeltargets/datasets/{dataset_uuid}/dataset"
+            ),
+            headers={"Authorization": f"Bearer {MOCK_BEARER_TOKEN}"},
+            timeout=30,
+        )
+
+    assert status_response.json()["status"] == "failed"
+    assert_model_target_status(
+        response=response,
+        status_codes=HTTPStatus.UNPROCESSABLE_ENTITY,
+    )
+    error = response_targeted_error(response=response)
+    assert error["code"] == "UNSUPPORTED_STATE"
+    assert error["message"] == (
+        f"Training status for dataset {dataset_uuid} is failed != done"
+    )
+    assert error["target"] == dataset_uuid
