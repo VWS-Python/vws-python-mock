@@ -22,6 +22,7 @@ from mock_vws._flask_server.target_manager import TARGET_MANAGER_FLASK_APP
 from mock_vws._flask_server.vwq import CLOUDRECO_FLASK_APP
 from mock_vws._flask_server.vws import VWS_FLASK_APP
 from mock_vws.database import CloudDatabase, VuMarkDatabase
+from mock_vws.request_rate_limits import DOCUMENTED_REQUEST_RATE_LIMITS
 from mock_vws.states import States
 from mock_vws.target import VuMarkTarget
 from tests.mock_vws.fixtures.credentials import (
@@ -551,13 +552,13 @@ fixture_mock_only_vuforia = backend_fixture(
 )
 
 
-@pytest.fixture(name="add_cloud_database")
-def fixture_add_cloud_database(
+@beartype
+def _cloud_database_adder(
     *,
-    mock_only_vuforia: VuforiaBackend,
+    backend: VuforiaBackend,
 ) -> AddCloudDatabase:
     """The database creation operation for the running mock backend."""
-    if mock_only_vuforia == VuforiaBackend.MOCK:
+    if backend == VuforiaBackend.MOCK:
         return running_in_memory_mock().add_cloud_database
 
     @beartype
@@ -572,6 +573,38 @@ def fixture_add_cloud_database(
         response.raise_for_status()
 
     return add_flask_cloud_database
+
+
+@pytest.fixture(name="add_cloud_database")
+def fixture_add_cloud_database(
+    *,
+    mock_only_vuforia: VuforiaBackend,
+) -> AddCloudDatabase:
+    """The database creation operation for the running mock backend."""
+    return _cloud_database_adder(backend=mock_only_vuforia)
+
+
+@pytest.fixture(name="rate_limited_database")
+def fixture_rate_limited_database(
+    *,
+    verify_mock_vuforia: VuforiaBackend,
+    vuforia_database: CloudDatabase,
+) -> CloudDatabase:
+    """Return a database which applies real Vuforia's request rate limits.
+
+    The real database applies them itself. Each mock is given a fresh
+    database with the limits, so that the shared database which the other
+    tests use is not limited.
+    """
+    if verify_mock_vuforia == VuforiaBackend.REAL:
+        return vuforia_database
+
+    database = CloudDatabase(
+        request_rate_limits=DOCUMENTED_REQUEST_RATE_LIMITS
+    )
+    add_cloud_database = _cloud_database_adder(backend=verify_mock_vuforia)
+    add_cloud_database(cloud_database=database)
+    return database
 
 
 @pytest.fixture(name="seed_recognition_counts")
