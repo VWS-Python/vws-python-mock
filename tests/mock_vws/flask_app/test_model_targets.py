@@ -9,6 +9,7 @@ import pytest
 import requests
 from pydantic import TypeAdapter
 
+from mock_vws._flask_server import target_manager as flask_target_manager
 from mock_vws.model_target import (
     JSONValue,
     ModelTargetDataset,
@@ -190,3 +191,13 @@ def test_delete_unknown_dataset(target_manager_url: str) -> None:
     )
 
     assert delete_response.status_code == HTTPStatus.NOT_FOUND
+
+
+def test_target_manager_missing_credential_delete() -> None:
+    """The internal target manager returns 404 for an unknown
+    credential.
+    """
+    response = flask_target_manager.remove_oauth2_client_credential(
+        client_id="missing",
+    )
+    assert response.status_code == HTTPStatus.NOT_FOUND

@@ -7,7 +7,6 @@ import pytest
 import requests
 
 from mock_vws import MockVWS
-from mock_vws._flask_server import target_manager as flask_target_manager
 from tests.mock_vws.model_target_web_api.authentication import (
     MOCK_BEARER_TOKEN,
 )
@@ -317,13 +316,3 @@ def test_dataset_scope_and_shape_errors(*, base_vws_url: str) -> None:
             response=advanced_empty,
             status_codes=HTTPStatus.BAD_REQUEST,
         )
-
-
-def test_target_manager_missing_credential_delete() -> None:
-    """The internal target manager returns 404 for an unknown
-    credential.
-    """
-    response = flask_target_manager.remove_oauth2_client_credential(
-        client_id="missing",
-    )
-    assert response.status_code == HTTPStatus.NOT_FOUND
