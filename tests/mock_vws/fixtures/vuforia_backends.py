@@ -348,6 +348,7 @@ def _enable_use_flask_in_process(
 def _enable_use_real_model_target_vuforia(
     *,
     monkeypatch: pytest.MonkeyPatch,
+    base_vws_url: str,
 ) -> Generator[None]:
     """Test against the real Model Target Web API.
 
@@ -355,6 +356,7 @@ def _enable_use_real_model_target_vuforia(
     the load balancer in front of the real Model Target Web API
     occasionally returns for a request which is not at fault.
     """
+    del base_vws_url
     assert bool(monkeypatch)
     with retrying_transient_real_backend_failures():
         yield
@@ -364,10 +366,11 @@ def _enable_use_real_model_target_vuforia(
 def _enable_use_mock_model_target_vuforia(
     *,
     monkeypatch: pytest.MonkeyPatch,
+    base_vws_url: str,
 ) -> Generator[None]:
     """Test against the in-memory mock Model Target Web API."""
     assert bool(monkeypatch)
-    with MockVWS():
+    with MockVWS(base_vws_url=base_vws_url):
         yield
 
 
@@ -375,6 +378,7 @@ def _enable_use_mock_model_target_vuforia(
 def _enable_use_flask_in_process_model_target_vuforia(
     *,
     monkeypatch: pytest.MonkeyPatch,
+    base_vws_url: str,
 ) -> Generator[None]:
     """Test against the Flask-backed mock Model Target Web API."""
     assert bool(monkeypatch)
@@ -389,7 +393,7 @@ def _enable_use_flask_in_process_model_target_vuforia(
         add_flask_app_to_mock(
             mock_obj=mock,
             flask_app=VWS_FLASK_APP,
-            base_url="https://vws.vuforia.com",
+            base_url=base_vws_url,
         )
 
         # The VWS app stores Model Target datasets in the target manager
@@ -543,6 +547,7 @@ def _setup_model_target_backend(
     """
     yield from _MODEL_TARGET_SETUP_FUNCTIONS[backend](
         monkeypatch=request.getfixturevalue(argname="monkeypatch"),
+        base_vws_url=request.getfixturevalue(argname="base_vws_url"),
     )
 
 

@@ -5,7 +5,6 @@ from http import HTTPStatus
 
 import pytest
 
-from tests.mock_vws.model_target_web_api.authentication import VWS_HOST
 from tests.mock_vws.model_target_web_api.errors.helpers import (
     fake_response,
 )
@@ -26,13 +25,14 @@ from tests.mock_vws.utils.assertions import (
 )
 def test_expected_status(
     *,
+    base_vws_url: str,
     status_codes: HTTPStatus | AbstractSet[HTTPStatus],
 ) -> None:
     """An expected status code does not raise."""
     response = fake_response(
         status_code=HTTPStatus.OK,
         text="{}",
-        url=f"{VWS_HOST}/modeltargets/advancedDatasets",
+        url=f"{base_vws_url}/modeltargets/advancedDatasets",
     )
     assert_model_target_status(
         response=response,
@@ -40,13 +40,13 @@ def test_expected_status(
     )
 
 
-def test_unexpected_status_shows_the_body() -> None:
+def test_unexpected_status_shows_the_body(*, base_vws_url: str) -> None:
     """An unexpected status code reports the URL and the body."""
     text = '{"error":{"code":"VALIDATION_ERROR"}}'
     response = fake_response(
         status_code=HTTPStatus.BAD_REQUEST,
         text=text,
-        url=f"{VWS_HOST}/modeltargets/advancedDatasets",
+        url=f"{base_vws_url}/modeltargets/advancedDatasets",
     )
     with pytest.raises(expected_exception=AssertionError) as exc:
         assert_model_target_status(
@@ -57,17 +57,17 @@ def test_unexpected_status_shows_the_body() -> None:
     message = str(object=exc.value)
     assert message == (
         "Expected 201 CREATED from "
-        f"{VWS_HOST}/modeltargets/advancedDatasets, got 400.\n"
+        f"{base_vws_url}/modeltargets/advancedDatasets, got 400.\n"
         f"\nResponse body:\n{text}"
     )
 
 
-def test_multiple_expected_statuses() -> None:
+def test_multiple_expected_statuses(*, base_vws_url: str) -> None:
     """Every expected status code is named in the message."""
     response = fake_response(
         status_code=HTTPStatus.BAD_REQUEST,
         text="{}",
-        url=f"{VWS_HOST}/modeltargets/advancedDatasets",
+        url=f"{base_vws_url}/modeltargets/advancedDatasets",
     )
     with pytest.raises(expected_exception=AssertionError) as exc:
         assert_model_target_status(

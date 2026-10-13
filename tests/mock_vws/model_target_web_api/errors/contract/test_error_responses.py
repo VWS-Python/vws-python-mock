@@ -15,7 +15,6 @@ from tests.mock_vws.fixtures.vuforia_backends import (
     VuforiaBackend,
 )
 from tests.mock_vws.model_target_web_api.assertions import assert_oauth2_error
-from tests.mock_vws.model_target_web_api.authentication import VWS_HOST
 from tests.mock_vws.model_target_web_api.errors.helpers import (
     EMPTY_GUIDE_VIEW_POSITION,
     EMPTY_GUIDE_VIEW_POSITION_OBJECT,
@@ -50,10 +49,12 @@ from tests.mock_vws.utils.assertions import (
         ),
     ],
 )
-def test_invalid_basic_auth_header(*, authorization: str) -> None:
+def test_invalid_basic_auth_header(
+    *, base_vws_url: str, authorization: str
+) -> None:
     """Malformed OAuth2 Basic auth headers are rejected."""
     response = requests.post(
-        url=f"{VWS_HOST}/oauth2/token",
+        url=f"{base_vws_url}/oauth2/token",
         headers={"Authorization": authorization},
         data={"grant_type": "client_credentials"},
         timeout=30,
@@ -534,6 +535,7 @@ def test_invalid_basic_auth_header(*, authorization: str) -> None:
 )
 def test_invalid_dataset_request(
     *,
+    base_vws_url: str,
     verify_model_target_mock_vuforia: VuforiaBackend,
     body: dict[str, object],
     expected_messages: set[str],
@@ -543,11 +545,12 @@ def test_invalid_dataset_request(
         backend=verify_model_target_mock_vuforia,
     )
     access_token = get_access_token(
+        base_vws_url=base_vws_url,
         credentials=credentials,
         backend=verify_model_target_mock_vuforia,
     )
     response = requests.post(
-        url=f"{VWS_HOST}/modeltargets/datasets",
+        url=f"{base_vws_url}/modeltargets/datasets",
         headers={"Authorization": f"Bearer {access_token}"},
         json=body,
         timeout=30,
@@ -570,6 +573,7 @@ def test_invalid_dataset_request(
 
 def test_advanced_model_count_exceeds_limit(
     *,
+    base_vws_url: str,
     verify_model_target_mock_vuforia: VuforiaBackend,
 ) -> None:
     """Advanced datasets reject more than 20 uniquely named models."""
@@ -582,11 +586,12 @@ def test_advanced_model_count_exceeds_limit(
         backend=verify_model_target_mock_vuforia,
     )
     access_token = get_access_token(
+        base_vws_url=base_vws_url,
         credentials=credentials,
         backend=verify_model_target_mock_vuforia,
     )
     response = requests.post(
-        url=f"{VWS_HOST}/modeltargets/advancedDatasets",
+        url=f"{base_vws_url}/modeltargets/advancedDatasets",
         headers={"Authorization": f"Bearer {access_token}"},
         json=body,
         timeout=30,
@@ -629,6 +634,7 @@ def test_advanced_model_count_exceeds_limit(
 )
 def test_unknown_dataset(
     *,
+    base_vws_url: str,
     verify_model_target_mock_vuforia: VuforiaBackend,
     method: HTTPMethod,
     path: str,
@@ -638,12 +644,13 @@ def test_unknown_dataset(
         backend=verify_model_target_mock_vuforia,
     )
     access_token = get_access_token(
+        base_vws_url=base_vws_url,
         credentials=credentials,
         backend=verify_model_target_mock_vuforia,
     )
     response = requests.request(
         method=method,
-        url=f"{VWS_HOST}{path}",
+        url=f"{base_vws_url}{path}",
         headers={"Authorization": f"Bearer {access_token}"},
         timeout=30,
     )
