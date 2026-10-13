@@ -35,7 +35,6 @@ from tests.mock_vws.fixtures.vuforia_backends import (
 )
 from tests.mock_vws.model_target_web_api.authentication import (
     MOCK_BEARER_TOKEN,
-    VWS_HOST,
     access_token_for_backend,
 )
 from tests.mock_vws.model_target_web_api.responses import (
@@ -158,6 +157,7 @@ def _skip_unrequested_real_signing(
 )
 def test_state_based_dataset(
     *,
+    base_vws_url: str,
     request: pytest.FixtureRequest,
     verify_model_target_mock_vuforia: VuforiaBackend,
     dataset_path: str,
@@ -181,11 +181,12 @@ def test_state_based_dataset(
         ],
     }
     access_token = access_token_for_backend(
+        base_vws_url=base_vws_url,
         backend=verify_model_target_mock_vuforia,
     )
     headers = {"Authorization": f"Bearer {access_token}"}
     create_response = requests.post(
-        url=f"{VWS_HOST}{dataset_path}",
+        url=f"{base_vws_url}{dataset_path}",
         headers=headers,
         json=body,
         timeout=30,
@@ -198,7 +199,7 @@ def test_state_based_dataset(
     dataset_uuid = parse_response_json(response=create_response)["uuid"]
     assert isinstance(dataset_uuid, str)
     delete_response = requests.delete(
-        url=f"{VWS_HOST}{dataset_path}/{dataset_uuid}",
+        url=f"{base_vws_url}{dataset_path}/{dataset_uuid}",
         headers=headers,
         timeout=30,
     )
@@ -210,6 +211,7 @@ def test_state_based_dataset(
 
 def test_view_states_are_a_subset(
     *,
+    base_vws_url: str,
     verify_model_target_mock_vuforia: VuforiaBackend,
 ) -> None:
     """A view cannot select a state absent from the configuration."""
@@ -224,10 +226,11 @@ def test_view_states_are_a_subset(
         ],
     }
     access_token = access_token_for_backend(
+        base_vws_url=base_vws_url,
         backend=verify_model_target_mock_vuforia,
     )
     response = requests.post(
-        url=f"{VWS_HOST}/modeltargets/datasets",
+        url=f"{base_vws_url}/modeltargets/datasets",
         headers={"Authorization": f"Bearer {access_token}"},
         json=body,
         timeout=30,
@@ -309,6 +312,7 @@ def test_view_states_are_a_subset(
 )
 def test_invalid_state_based_dataset(
     *,
+    base_vws_url: str,
     model_target_mock_only_vuforia: VuforiaBackend,
     model_updates: dict[str, object],
     view_updates: dict[str, object],
@@ -326,10 +330,11 @@ def test_invalid_state_based_dataset(
         ],
     }
     access_token = access_token_for_backend(
+        base_vws_url=base_vws_url,
         backend=model_target_mock_only_vuforia,
     )
     response = requests.post(
-        url=f"{VWS_HOST}/modeltargets/datasets",
+        url=f"{base_vws_url}/modeltargets/datasets",
         headers={"Authorization": f"Bearer {access_token}"},
         json=body,
         timeout=30,
@@ -349,6 +354,7 @@ def test_invalid_state_based_dataset(
 
 def test_advanced_realistic_appearance_not_in_enum(
     *,
+    base_vws_url: str,
     verify_model_target_mock_vuforia: VuforiaBackend,
 ) -> None:
     """Advanced dataset requests with a ``realisticAppearance`` value
@@ -372,11 +378,12 @@ def test_advanced_realistic_appearance_not_in_enum(
         ],
     }
     access_token = get_access_token(
+        base_vws_url=base_vws_url,
         credentials=credentials,
         backend=verify_model_target_mock_vuforia,
     )
     advanced_response = requests.post(
-        url=f"{VWS_HOST}/modeltargets/advancedDatasets",
+        url=f"{base_vws_url}/modeltargets/advancedDatasets",
         headers={"Authorization": f"Bearer {access_token}"},
         json=body,
         timeout=30,
@@ -396,6 +403,7 @@ def test_advanced_realistic_appearance_not_in_enum(
 
 def test_oauth2_token_body_not_utf_8(
     *,
+    base_vws_url: str,
     verify_model_target_mock_vuforia: VuforiaBackend,
 ) -> None:
     """An OAuth2 token request with a body which is not valid UTF-8 is
@@ -409,7 +417,7 @@ def test_oauth2_token_body_not_utf_8(
     )
 
     response = requests.post(
-        url=f"{VWS_HOST}/oauth2/token",
+        url=f"{base_vws_url}/oauth2/token",
         auth=(credentials.client_id, credentials.client_secret),
         data=b"\xff",
         timeout=30,
@@ -422,16 +430,16 @@ def test_oauth2_token_body_not_utf_8(
     assert response.json()["token_type"] == "bearer"
 
 
-def test_processing_dataset_cannot_be_downloaded() -> None:
+def test_processing_dataset_cannot_be_downloaded(*, base_vws_url: str) -> None:
     """A dataset cannot be downloaded while it is still processing.
 
     Mock-only because exercising this against real Vuforia would require
     creating a dataset on every test run; the mock lets us drive the
     processing window deterministically.
     """
-    with MockVWS(processing_time_seconds=60):
+    with MockVWS(base_vws_url=base_vws_url, processing_time_seconds=60):
         create_response = requests.post(
-            url=f"{VWS_HOST}/modeltargets/datasets",
+            url=f"{base_vws_url}/modeltargets/datasets",
             headers={"Authorization": f"Bearer {MOCK_BEARER_TOKEN}"},
             json=UNAUTHENTICATED_DATASET_REQUEST,
             timeout=30,
@@ -439,7 +447,9 @@ def test_processing_dataset_cannot_be_downloaded() -> None:
         dataset_uuid = parse_response_json(response=create_response)["uuid"]
         assert isinstance(dataset_uuid, str)
         response = requests.get(
-            url=(f"{VWS_HOST}/modeltargets/datasets/{dataset_uuid}/dataset"),
+            url=(
+                f"{base_vws_url}/modeltargets/datasets/{dataset_uuid}/dataset"
+            ),
             headers={"Authorization": f"Bearer {MOCK_BEARER_TOKEN}"},
             timeout=30,
         )
@@ -456,7 +466,7 @@ def test_processing_dataset_cannot_be_downloaded() -> None:
     assert error["target"] == dataset_uuid
 
 
-def test_failed_dataset_cannot_be_downloaded() -> None:
+def test_failed_dataset_cannot_be_downloaded(*, base_vws_url: str) -> None:
     """A dataset which failed generation cannot be downloaded, and the
     error reports the failed training status rather than the
     ``not-started`` status which a still-processing dataset reports.
@@ -467,11 +477,12 @@ def test_failed_dataset_cannot_be_downloaded() -> None:
     """
     failure = ModelTargetGenerationFailure(message="CAD model is invalid")
     with MockVWS(
+        base_vws_url=base_vws_url,
         processing_time_seconds=0,
         model_target_generation_failure=failure,
     ):
         create_response = requests.post(
-            url=f"{VWS_HOST}/modeltargets/datasets",
+            url=f"{base_vws_url}/modeltargets/datasets",
             headers={"Authorization": f"Bearer {MOCK_BEARER_TOKEN}"},
             json=UNAUTHENTICATED_DATASET_REQUEST,
             timeout=30,
@@ -479,12 +490,14 @@ def test_failed_dataset_cannot_be_downloaded() -> None:
         dataset_uuid = parse_response_json(response=create_response)["uuid"]
         assert isinstance(dataset_uuid, str)
         status_response = requests.get(
-            url=f"{VWS_HOST}/modeltargets/datasets/{dataset_uuid}/status",
+            url=f"{base_vws_url}/modeltargets/datasets/{dataset_uuid}/status",
             headers={"Authorization": f"Bearer {MOCK_BEARER_TOKEN}"},
             timeout=30,
         )
         response = requests.get(
-            url=(f"{VWS_HOST}/modeltargets/datasets/{dataset_uuid}/dataset"),
+            url=(
+                f"{base_vws_url}/modeltargets/datasets/{dataset_uuid}/dataset"
+            ),
             headers={"Authorization": f"Bearer {MOCK_BEARER_TOKEN}"},
             timeout=30,
         )
@@ -519,17 +532,19 @@ def test_failed_dataset_cannot_be_downloaded() -> None:
 )
 def test_dataset_is_visible_to_the_other_dataset_type(
     *,
+    base_vws_url: str,
     verify_model_target_mock_vuforia: VuforiaBackend,
     created_path: str,
     other_path: str,
 ) -> None:
     """Standard and advanced routes share datasets by UUID."""
     access_token = access_token_for_backend(
+        base_vws_url=base_vws_url,
         backend=verify_model_target_mock_vuforia,
     )
     headers = {"Authorization": f"Bearer {access_token}"}
     create_response = requests.post(
-        url=f"{VWS_HOST}{created_path}",
+        url=f"{base_vws_url}{created_path}",
         headers=headers,
         json=_dataset_request(
             cad_data_url=credentials_for_backend(
@@ -547,18 +562,18 @@ def test_dataset_is_visible_to_the_other_dataset_type(
 
     try:
         other_status_response = model_target_get(
-            url=f"{VWS_HOST}{other_path}/{dataset_uuid}/status",
+            url=f"{base_vws_url}{other_path}/{dataset_uuid}/status",
             headers=headers,
             timeout=30,
         )
         other_delete_response = requests.delete(
-            url=f"{VWS_HOST}{other_path}/{dataset_uuid}",
+            url=f"{base_vws_url}{other_path}/{dataset_uuid}",
             headers=headers,
             timeout=30,
         )
         own_status_response = model_target_get(
             url=(
-                f"{VWS_HOST}{created_path}/"
+                f"{base_vws_url}{created_path}/"
                 f"{create_response.json()['uuid']}/status"
             ),
             headers=headers,
@@ -566,7 +581,7 @@ def test_dataset_is_visible_to_the_other_dataset_type(
         )
     finally:
         delete_response = requests.delete(
-            url=f"{VWS_HOST}{created_path}/{dataset_uuid}",
+            url=f"{base_vws_url}{created_path}/{dataset_uuid}",
             headers=headers,
             timeout=30,
         )
@@ -597,6 +612,7 @@ def test_dataset_is_visible_to_the_other_dataset_type(
 
 def test_create_status_and_delete(
     *,
+    base_vws_url: str,
     verify_model_target_mock_vuforia: VuforiaBackend,
 ) -> None:
     """A standard dataset works through the shared advanced routes.
@@ -609,12 +625,13 @@ def test_create_status_and_delete(
         backend=verify_model_target_mock_vuforia,
     )
     access_token = get_access_token(
+        base_vws_url=base_vws_url,
         credentials=credentials,
         backend=verify_model_target_mock_vuforia,
     )
     headers = {"Authorization": f"Bearer {access_token}"}
     create_response = requests.post(
-        url=f"{VWS_HOST}/modeltargets/datasets",
+        url=f"{base_vws_url}/modeltargets/datasets",
         headers=headers,
         json=_dataset_request(cad_data_url=credentials.cad_data_url),
         timeout=30,
@@ -631,7 +648,7 @@ def test_create_status_and_delete(
     try:
         status_response = model_target_get(
             url=(
-                f"{VWS_HOST}/modeltargets/advancedDatasets/"
+                f"{base_vws_url}/modeltargets/advancedDatasets/"
                 f"{dataset_uuid}/status"
             ),
             headers=headers,
@@ -658,7 +675,7 @@ def test_create_status_and_delete(
             time.sleep(1)
             status_response = model_target_get(
                 url=(
-                    f"{VWS_HOST}/modeltargets/advancedDatasets/"
+                    f"{base_vws_url}/modeltargets/advancedDatasets/"
                     f"{dataset_uuid}/status"
                 ),
                 headers=headers,
@@ -681,7 +698,7 @@ def test_create_status_and_delete(
 
         download_response = model_target_get(
             url=(
-                f"{VWS_HOST}/modeltargets/advancedDatasets/"
+                f"{base_vws_url}/modeltargets/advancedDatasets/"
                 f"{dataset_uuid}/dataset"
             ),
             headers=headers,
@@ -701,7 +718,7 @@ def test_create_status_and_delete(
             assert archive.namelist() == ["MTDataset.dat", "MTDataset.xml"]
     finally:
         delete_response = requests.delete(
-            url=f"{VWS_HOST}/modeltargets/datasets/{dataset_uuid}",
+            url=f"{base_vws_url}/modeltargets/datasets/{dataset_uuid}",
             headers=headers,
             timeout=30,
         )
@@ -716,6 +733,7 @@ def test_create_status_and_delete(
 
 def test_create_with_cad_data_blob(
     *,
+    base_vws_url: str,
     request: pytest.FixtureRequest,
     verify_model_target_mock_vuforia: VuforiaBackend,
 ) -> None:
@@ -728,13 +746,14 @@ def test_create_with_cad_data_blob(
         backend=verify_model_target_mock_vuforia,
     )
     access_token = get_access_token(
+        base_vws_url=base_vws_url,
         credentials=credentials,
         backend=verify_model_target_mock_vuforia,
     )
     headers = {"Authorization": f"Bearer {access_token}"}
 
     create_response = requests.post(
-        url=f"{VWS_HOST}/modeltargets/datasets",
+        url=f"{base_vws_url}/modeltargets/datasets",
         headers=headers,
         json=_blob_dataset_request(),
         timeout=30,
@@ -752,7 +771,7 @@ def test_create_with_cad_data_blob(
     # dataset, so the delete does not need a ``finally`` block to avoid
     # leaving a dataset behind on real Vuforia.
     delete_response = requests.delete(
-        url=f"{VWS_HOST}/modeltargets/datasets/{dataset_uuid}",
+        url=f"{base_vws_url}/modeltargets/datasets/{dataset_uuid}",
         headers=headers,
         timeout=30,
     )

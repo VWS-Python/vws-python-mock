@@ -33,6 +33,7 @@ from tests.mock_vws.utils.assertions import (
 )
 def test_wrong_content_type(
     *,
+    base_vws_url: str,
     verify_model_target_mock_vuforia: VuforiaBackend,
     model_target_endpoint: ModelTargetEndpoint,
     content_type: str | None,
@@ -41,6 +42,7 @@ def test_wrong_content_type(
     endpoints which read a body, and are unaffected elsewhere.
     """
     access_token = access_token_for_backend(
+        base_vws_url=base_vws_url,
         backend=verify_model_target_mock_vuforia,
     )
     new_headers = {
@@ -74,6 +76,7 @@ def test_wrong_content_type(
 
 def test_invalid_json(
     *,
+    base_vws_url: str,
     verify_model_target_mock_vuforia: VuforiaBackend,
     model_target_endpoint: ModelTargetEndpoint,
 ) -> None:
@@ -81,6 +84,7 @@ def test_invalid_json(
     read a body, and are ignored elsewhere.
     """
     access_token = access_token_for_backend(
+        base_vws_url=base_vws_url,
         backend=verify_model_target_mock_vuforia,
     )
     content = b"{"
@@ -112,6 +116,7 @@ def test_invalid_json(
 
 def test_body_not_utf_8(
     *,
+    base_vws_url: str,
     verify_model_target_mock_vuforia: VuforiaBackend,
     model_target_endpoint: ModelTargetEndpoint,
 ) -> None:
@@ -119,6 +124,7 @@ def test_body_not_utf_8(
     endpoints which read a body, and are ignored elsewhere.
     """
     access_token = access_token_for_backend(
+        base_vws_url=base_vws_url,
         backend=verify_model_target_mock_vuforia,
     )
     content = b"\xff{}"
@@ -160,6 +166,7 @@ def test_body_not_utf_8(
 )
 def test_body_not_json_object(
     *,
+    base_vws_url: str,
     verify_model_target_mock_vuforia: VuforiaBackend,
     model_target_endpoint: ModelTargetEndpoint,
     body: str,
@@ -168,6 +175,7 @@ def test_body_not_json_object(
     endpoints which read a body, and are ignored elsewhere.
     """
     access_token = access_token_for_backend(
+        base_vws_url=base_vws_url,
         backend=verify_model_target_mock_vuforia,
     )
     content = body.encode(encoding="utf-8")

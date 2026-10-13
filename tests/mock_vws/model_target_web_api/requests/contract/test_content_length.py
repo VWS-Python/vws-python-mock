@@ -16,9 +16,6 @@ from http import HTTPMethod, HTTPStatus
 from tests.mock_vws.model_target_web_api.assertions import (
     assert_model_target_error,
 )
-from tests.mock_vws.model_target_web_api.authentication import (
-    VWS_HOST,
-)
 from tests.mock_vws.model_target_web_api.requests.helpers import (
     assert_load_balancer_bad_request,
 )
@@ -46,14 +43,14 @@ def test_not_integer(
     assert_load_balancer_bad_request(response=response)
 
 
-def test_not_integer_oauth2_token() -> None:
+def test_not_integer_oauth2_token(*, base_vws_url: str) -> None:
     """The OAuth2 token endpoint is behind the same load balancer.
 
     It is not in the ``model_target_endpoint`` fixture because it takes
     HTTP Basic credentials rather than a bearer token.
     """
     endpoint = ModelTargetEndpoint(
-        base_url=VWS_HOST,
+        base_url=base_vws_url,
         path_url="/oauth2/token",
         method=HTTPMethod.POST,
         headers={

@@ -19,9 +19,6 @@ from tests.mock_vws.fixtures.vuforia_backends import (
 from tests.mock_vws.model_target_web_api.assertions import (
     assert_oauth2_error,
 )
-from tests.mock_vws.model_target_web_api.authentication import (
-    VWS_HOST,
-)
 from tests.mock_vws.model_target_web_api.responses import parse_response_json
 from tests.mock_vws.utils.assertions import (
     assert_model_target_status,
@@ -85,6 +82,7 @@ from tests.mock_vws.utils.model_target_retries import model_target_get
 )
 def test_invalid_oauth2_token_request(
     *,
+    base_vws_url: str,
     auth: tuple[str, str] | None,
     data: dict[str, str],
     status_code: HTTPStatus,
@@ -92,7 +90,7 @@ def test_invalid_oauth2_token_request(
 ) -> None:
     """Invalid OAuth2 token requests are rejected."""
     response = requests.post(
-        url=f"{VWS_HOST}/oauth2/token",
+        url=f"{base_vws_url}/oauth2/token",
         auth=auth,
         data=data,
         timeout=30,
@@ -107,6 +105,7 @@ def test_invalid_oauth2_token_request(
 
 def test_password_grant(
     *,
+    base_vws_url: str,
     verify_model_target_mock_vuforia: VuforiaBackend,
 ) -> None:
     """A username and password can be exchanged for a scoped token."""
@@ -114,7 +113,7 @@ def test_password_grant(
         backend=verify_model_target_mock_vuforia,
     )
     response = requests.post(
-        url=f"{VWS_HOST}/oauth2/token",
+        url=f"{base_vws_url}/oauth2/token",
         data={
             "grant_type": "password",
             "username": credentials.username,
@@ -134,6 +133,7 @@ def test_password_grant(
 
 def test_scoped_client_credentials_grant(
     *,
+    base_vws_url: str,
     verify_model_target_mock_vuforia: VuforiaBackend,
 ) -> None:
     """A client credentials request accepts an explicit scope."""
@@ -141,7 +141,7 @@ def test_scoped_client_credentials_grant(
         backend=verify_model_target_mock_vuforia,
     )
     response = requests.post(
-        url=f"{VWS_HOST}/oauth2/token",
+        url=f"{base_vws_url}/oauth2/token",
         auth=(credentials.client_id, credentials.client_secret),
         data={
             "grant_type": "client_credentials",
@@ -160,6 +160,7 @@ def test_scoped_client_credentials_grant(
 
 def test_insufficient_scope(
     *,
+    base_vws_url: str,
     verify_model_target_mock_vuforia: VuforiaBackend,
 ) -> None:
     """A route rejects a token carrying only another route's scope."""
@@ -167,7 +168,7 @@ def test_insufficient_scope(
         backend=verify_model_target_mock_vuforia,
     )
     token_response = requests.post(
-        url=f"{VWS_HOST}/oauth2/token",
+        url=f"{base_vws_url}/oauth2/token",
         auth=(credentials.client_id, credentials.client_secret),
         data={
             "grant_type": "client_credentials",
@@ -181,7 +182,7 @@ def test_insufficient_scope(
     )
 
     response = requests.post(
-        url=f"{VWS_HOST}/modeltargets/advancedDatasets",
+        url=f"{base_vws_url}/modeltargets/advancedDatasets",
         headers={
             "Authorization": (
                 f"Bearer {token_response.json()['access_token']}"
@@ -202,6 +203,7 @@ def test_insufficient_scope(
 
 def test_client_credentials_management(
     *,
+    base_vws_url: str,
     verify_model_target_mock_vuforia: VuforiaBackend,
 ) -> None:
     """Client credentials can be created, listed, updated and
@@ -211,7 +213,7 @@ def test_client_credentials_management(
         backend=verify_model_target_mock_vuforia,
     )
     password_token_response = requests.post(
-        url=f"{VWS_HOST}/oauth2/token",
+        url=f"{base_vws_url}/oauth2/token",
         data={
             "grant_type": "password",
             "username": credentials.username,
@@ -230,7 +232,7 @@ def test_client_credentials_management(
         ),
     }
     create_response = requests.post(
-        url=f"{VWS_HOST}/oauth2/clientcredentials",
+        url=f"{base_vws_url}/oauth2/clientcredentials",
         headers=headers,
         json={
             "scopes": ["modeltargets.standardmodeltarget.all"],
@@ -249,7 +251,7 @@ def test_client_credentials_management(
 
     try:
         list_response = model_target_get(
-            url=f"{VWS_HOST}/oauth2/clientcredentials",
+            url=f"{base_vws_url}/oauth2/clientcredentials",
             headers=headers,
             timeout=30,
         )
@@ -268,7 +270,9 @@ def test_client_credentials_management(
         ]
 
         update_response = requests.put(
-            url=(f"{VWS_HOST}/oauth2/clientcredentials/{client_id}/scopes"),
+            url=(
+                f"{base_vws_url}/oauth2/clientcredentials/{client_id}/scopes"
+            ),
             headers=headers,
             json=["modeltargets.advancedmodeltarget.all"],
             timeout=30,
@@ -283,7 +287,7 @@ def test_client_credentials_management(
         }
 
         client_token_response = requests.post(
-            url=f"{VWS_HOST}/oauth2/token",
+            url=f"{base_vws_url}/oauth2/token",
             auth=(client_id, client_secret),
             data={"grant_type": "client_credentials"},
             timeout=30,
@@ -297,7 +301,7 @@ def test_client_credentials_management(
         )["access_token"]
         assert isinstance(client_access_token, str)
         insufficient_response = requests.post(
-            url=f"{VWS_HOST}/modeltargets/datasets",
+            url=f"{base_vws_url}/modeltargets/datasets",
             headers={
                 "Authorization": f"Bearer {client_access_token}",
             },
@@ -310,7 +314,7 @@ def test_client_credentials_management(
         )
     finally:
         delete_response = requests.delete(
-            url=(f"{VWS_HOST}/oauth2/clientcredentials/{client_id}"),
+            url=(f"{base_vws_url}/oauth2/clientcredentials/{client_id}"),
             headers=headers,
             timeout=30,
         )
@@ -321,7 +325,7 @@ def test_client_credentials_management(
 
     missing_client_id = "000000000000000000000"
     missing_response = requests.delete(
-        url=(f"{VWS_HOST}/oauth2/clientcredentials/{missing_client_id}"),
+        url=(f"{base_vws_url}/oauth2/clientcredentials/{missing_client_id}"),
         headers=headers,
         timeout=30,
     )

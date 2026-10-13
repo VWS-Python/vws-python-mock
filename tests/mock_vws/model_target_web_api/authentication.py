@@ -8,9 +8,6 @@ from tests.mock_vws.fixtures.model_target_prepared_requests import (
 )
 from tests.mock_vws.fixtures.vuforia_backends import VuforiaBackend
 
-VWS_HOST = "https://vws.vuforia.com"
-
-
 MOCK_BEARER_TOKEN = (
     "eyJhbGciOiJtb2NrIn0."
     "eyJzY29wZSI6Im1vZGVsdGFyZ2V0cy5zdGFuZGFyZG1vZGVsdGFyZ2V0LmFsbCJ9."
@@ -19,7 +16,11 @@ MOCK_BEARER_TOKEN = (
 
 
 @beartype
-def access_token_for_backend(*, backend: VuforiaBackend) -> str:
+def access_token_for_backend(
+    *, base_vws_url: str, backend: VuforiaBackend
+) -> str:
     """Return a valid access token for the chosen backend."""
     credentials = credentials_for_backend(backend=backend)
-    return get_access_token(credentials=credentials, backend=backend)
+    return get_access_token(
+        base_vws_url=base_vws_url, credentials=credentials, backend=backend
+    )
