@@ -14,7 +14,7 @@ from typing import Protocol, TypedDict, runtime_checkable
 from urllib.parse import parse_qs, urlencode, urlsplit
 from zoneinfo import ZoneInfo
 
-from beartype import beartype
+from beartype import BeartypeConf, beartype
 from pydantic import TypeAdapter, ValidationError
 
 from mock_vws._constants import ResultCodes
@@ -259,7 +259,7 @@ def _reco_counts_for_month(
     }
 
 
-@beartype
+@beartype(conf=BeartypeConf(is_pep484_tower=True))
 def create_reco_counts_report(
     *,
     request_body: bytes,
