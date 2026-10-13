@@ -2,6 +2,7 @@
 
 import contextlib
 import logging
+import os
 from collections.abc import Generator
 from enum import Enum
 
@@ -27,6 +28,7 @@ from tests.mock_vws.fixtures.credentials import (
     InactiveVuMarkCloudDatabase,
     VuMarkCloudDatabase,
 )
+from tests.mock_vws.utils.cloud_databases import AddCloudDatabase
 from tests.mock_vws.utils.model_target_retries import (
     retrying_transient_real_backend_failures,
 )
@@ -546,3 +548,26 @@ fixture_mock_only_vuforia = backend_fixture(
     backends=_MOCK_BACKENDS,
     setup_for=_setup_backend,
 )
+
+
+@pytest.fixture(name="add_cloud_database")
+def fixture_add_cloud_database(
+    *,
+    mock_only_vuforia: VuforiaBackend,
+) -> AddCloudDatabase:
+    """The database creation operation for the running mock backend."""
+    if mock_only_vuforia == VuforiaBackend.MOCK:
+        return running_in_memory_mock().add_cloud_database
+
+    @beartype
+    def add_flask_cloud_database(*, cloud_database: CloudDatabase) -> None:
+        """Create a cloud database through the target manager service."""
+        target_manager_base_url = os.environ["TARGET_MANAGER_BASE_URL"]
+        response = requests.post(
+            url=f"{target_manager_base_url}/cloud_databases",
+            json=cloud_database.to_dict(),
+            timeout=30,
+        )
+        response.raise_for_status()
+
+    return add_flask_cloud_database
