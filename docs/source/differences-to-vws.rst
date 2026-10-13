@@ -375,7 +375,7 @@ The mock orders the rows by target ID.
 
    :ref:`unverified-reco-counts-report-row-order`
 
-Setting recognition counts is mock-only, because real Vuforia's counts are delayed for longer than a test runs, so the tests for reports with rows in ``tests/mock_vws/test_reco_counts_report.py`` run against the mocks only.
+Setting recognition counts is mock-only, because real Vuforia's counts are delayed for longer than a test runs, so the tests for reports with rows in ``tests/mock_vws/reco_counts_report`` run against the mocks only.
 As with real Vuforia, the report is served with a ``text/plain`` content type rather than a CSV one.
 
 Real Vuforia assigns a database an ID, which the target manager shows.
