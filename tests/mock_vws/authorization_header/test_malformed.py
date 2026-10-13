@@ -1,7 +1,6 @@
 """Tests for passing a malformed ``Authorization`` header."""
 
 from http import HTTPStatus
-from urllib.parse import urlparse
 
 from vws_auth_tools import rfc_1123_date
 
@@ -14,7 +13,7 @@ from tests.mock_vws.utils.assertions import (
 from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
 
-def test_one_part_no_space(endpoint: Endpoint) -> None:
+def test_one_part_no_space(endpoint: Endpoint, base_vwq_url: str) -> None:
     """A valid authorization string is two "parts" when split on a
     space.
 
@@ -49,8 +48,7 @@ def test_one_part_no_space(endpoint: Endpoint) -> None:
     response = new_endpoint.send()
     handle_server_errors(response=response)
 
-    netloc = urlparse(url=endpoint.base_url).netloc
-    if netloc == "cloudreco.vuforia.com":
+    if endpoint.base_url == base_vwq_url:
         assert_vwq_failure(
             response=response,
             status_code=HTTPStatus.UNAUTHORIZED,
@@ -69,7 +67,7 @@ def test_one_part_no_space(endpoint: Endpoint) -> None:
     )
 
 
-def test_one_part_with_space(endpoint: Endpoint) -> None:
+def test_one_part_with_space(endpoint: Endpoint, base_vwq_url: str) -> None:
     """A valid authorization string is two "parts" when split on a
     space.
 
@@ -100,8 +98,7 @@ def test_one_part_with_space(endpoint: Endpoint) -> None:
     response = new_endpoint.send()
     handle_server_errors(response=response)
 
-    netloc = urlparse(url=endpoint.base_url).netloc
-    if netloc == "cloudreco.vuforia.com":
+    if endpoint.base_url == base_vwq_url:
         assert_vwq_failure(
             response=response,
             status_code=HTTPStatus.UNAUTHORIZED,
@@ -120,7 +117,7 @@ def test_one_part_with_space(endpoint: Endpoint) -> None:
     )
 
 
-def test_missing_signature(endpoint: Endpoint) -> None:
+def test_missing_signature(endpoint: Endpoint, base_vwq_url: str) -> None:
     """
     If a signature is missing `Authorization` header is given, a
     ``BAD_REQUEST`` response is given.
@@ -149,8 +146,7 @@ def test_missing_signature(endpoint: Endpoint) -> None:
     response = new_endpoint.send()
     handle_server_errors(response=response)
 
-    netloc = urlparse(url=endpoint.base_url).netloc
-    if netloc == "cloudreco.vuforia.com":
+    if endpoint.base_url == base_vwq_url:
         assert_vwq_failure(
             response=response,
             status_code=HTTPStatus.UNAUTHORIZED,

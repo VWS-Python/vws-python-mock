@@ -5,7 +5,6 @@ format.
 
 from datetime import datetime
 from http import HTTPStatus
-from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
 from freezegun import freeze_time
@@ -20,7 +19,7 @@ from tests.mock_vws.utils.assertions import (
 from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
 
-def test_incorrect_date_format(endpoint: Endpoint) -> None:
+def test_incorrect_date_format(endpoint: Endpoint, base_vwq_url: str) -> None:
     """A `BAD_REQUEST` response is returned when the date given in the
     date
     header is not in the expected format (RFC 1123) to VWS API.
@@ -63,8 +62,7 @@ def test_incorrect_date_format(endpoint: Endpoint) -> None:
 
     handle_server_errors(response=response)
 
-    netloc = urlparse(url=endpoint.base_url).netloc
-    if netloc == "cloudreco.vuforia.com":
+    if endpoint.base_url == base_vwq_url:
         assert response.text == "Malformed date header."
         assert_vwq_failure(
             response=response,
