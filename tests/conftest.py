@@ -39,20 +39,30 @@ pytest_plugins = [
 
 
 @pytest.fixture(name="vws_client")
-def fixture_vws_client(*, vuforia_database: CloudDatabase) -> VWS:
+def fixture_vws_client(
+    *,
+    vuforia_database: CloudDatabase,
+    base_vws_url: str,
+) -> VWS:
     """A VWS client for an active VWS database."""
     return VWS(
         server_access_key=vuforia_database.server_access_key,
         server_secret_key=vuforia_database.server_secret_key,
+        base_vws_url=base_vws_url,
     )
 
 
 @pytest.fixture
-def cloud_reco_client(*, vuforia_database: CloudDatabase) -> CloudRecoService:
+def cloud_reco_client(
+    *,
+    vuforia_database: CloudDatabase,
+    base_vwq_url: str,
+) -> CloudRecoService:
     """A query client for an active VWS database."""
     return CloudRecoService(
         client_access_key=vuforia_database.client_access_key,
         client_secret_key=vuforia_database.client_secret_key,
+        base_vwq_url=base_vwq_url,
     )
 
 
@@ -60,11 +70,13 @@ def cloud_reco_client(*, vuforia_database: CloudDatabase) -> CloudRecoService:
 def fixture_inactive_vws_client(
     *,
     inactive_cloud_database: CloudDatabase,
+    base_vws_url: str,
 ) -> VWS:
     """A client for an inactive VWS database."""
     return VWS(
         server_access_key=inactive_cloud_database.server_access_key,
         server_secret_key=inactive_cloud_database.server_secret_key,
+        base_vws_url=base_vws_url,
     )
 
 
@@ -72,11 +84,13 @@ def fixture_inactive_vws_client(
 def inactive_cloud_reco_client(
     *,
     inactive_cloud_database: CloudDatabase,
+    base_vwq_url: str,
 ) -> CloudRecoService:
     """A query client for an inactive VWS database."""
     return CloudRecoService(
         client_access_key=inactive_cloud_database.client_access_key,
         client_secret_key=inactive_cloud_database.client_secret_key,
+        base_vwq_url=base_vwq_url,
     )
 
 
