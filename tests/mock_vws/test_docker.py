@@ -11,10 +11,12 @@ separate containers, and so are the only tests which can.
 import datetime
 import io
 import json
+import os
 import socket
 import uuid
 import zipfile
 from collections.abc import Iterator
+from contextlib import ExitStack
 from dataclasses import dataclass
 from http import HTTPMethod, HTTPStatus
 from pathlib import Path
@@ -30,8 +32,8 @@ from docker.models.images import Image
 from docker.models.networks import Network
 from pydantic import TypeAdapter
 from pyprojroot import find_root, has_file
-from tenacity import retry
-from tenacity.retry import retry_if_exception_type
+from tenacity import RetryError, retry
+from tenacity.retry import retry_if_exception_type, retry_if_not_result
 from tenacity.stop import stop_after_delay
 from tenacity.wait import wait_fixed
 from vws import VWS, CloudRecoService, VuMarkService
@@ -84,17 +86,47 @@ def _poll_health_check(container: Container) -> None:
         raise ValueError(error_message)
 
 
+@retry(
+    wait=wait_fixed(wait=0.5),
+    stop=stop_after_delay(max_delay=20),
+    retry=(
+        retry_if_not_result(predicate=bool)
+        | retry_if_exception_type(
+            exception_types=(requests.exceptions.RequestException,),
+        )
+    ),
+    reraise=True,
+)
 @beartype
-def wait_for_health_check(container: Container) -> None:
-    """Wait for a container to pass its health check.
+def _poll_http_health_check(*, base_url: str) -> bool:
+    """Poll the published service URL until its HTTP probe succeeds."""
+    with requests.get(
+        url=f"{base_url}/some-random-endpoint",
+        timeout=5,
+    ) as response:
+        return response.status_code in {
+            HTTPStatus.NOT_FOUND,
+            HTTPStatus.UNAUTHORIZED,
+            HTTPStatus.FORBIDDEN,
+        }
+
+
+@beartype
+def wait_for_health_check(*, container: Container, base_url: str) -> None:
+    """Wait for native Docker health and host-side HTTP readiness.
 
     On failure, augment the error with the container's logs and the
     Docker health check probe history so CI failures are easier to diagnose.
     """
     try:
         _poll_health_check(container=container)
-    # Healthy-container integration runs do not enter this diagnostics path.
-    except ValueError as exc:  # pragma: no cover
+        _ = _poll_http_health_check(base_url=base_url)
+    # Healthy deployment tests do not enter this diagnostics path.
+    except (
+        ValueError,
+        requests.exceptions.RequestException,
+        RetryError,
+    ) as exc:  # pragma: no cover
         container.reload()
         logs = container.logs().decode(errors="replace")
         state = TypeAdapter(type=dict[str, object]).validate_python(
@@ -250,17 +282,25 @@ def _vws_client(
     )
 
 
-@pytest.fixture(name="custom_bridge_network", scope="module")
-def fixture_custom_bridge_network() -> Iterator[Network]:
-    """Yield a custom bridge network which containers can connect to.
+@beartype
+def _docker_client() -> docker.DockerClient:
+    """Return a client for the Docker API engine selected by the
+    environment.
 
-    This also cleans up all containers connected to the network and the network
-    after the tests.
-
-    Yields:
-        A custom bridge network.
+    Returns:
+        A client using the requested API version, or automatic negotiation.
     """
-    client = docker.from_env()
+    # Socktainer needs an explicit API version until negotiation is fixed:
+    # https://github.com/socktainer/socktainer/issues/433
+    return docker.from_env(
+        version=os.environ.get(key="DOCKER_API_VERSION", default="auto"),
+    )
+
+
+@beartype
+def _create_bridge_network(*, resources: ExitStack) -> Network:
+    """Create a test network and register its removal immediately."""
+    client = _docker_client()
     name = "test-vws-bridge-" + uuid.uuid4().hex
     try:
         network = client.networks.create(name=name, driver="bridge")
@@ -268,72 +308,33 @@ def fixture_custom_bridge_network() -> Iterator[Network]:
         # On Windows the "bridge" network driver is not available and we use
         # the "nat" driver instead.
         network = client.networks.create(name=name, driver="nat")
-
-    try:
-        yield network
-    finally:
-        network.reload()
-        images_to_remove: set[Image] = set()
-        for container in network.containers:
-            network.disconnect(container=container)
-            container.stop()
-            container.remove(v=True, force=True)
-            assert container.image is not None
-            images_to_remove.add(container.image)
-
-        # This does leave behind untagged images.
-        for image in images_to_remove:
-            _ = image.remove(force=True)
-        network.remove()
+    _ = resources.callback(network.remove)
+    return network
 
 
 @beartype
-def _build_image(*, repository_root: str, tag: str, target: str) -> Image:
+def _build_image(
+    *,
+    resources: ExitStack,
+    repository_root: str,
+    tag: str,
+    target: str,
+) -> Image:
     """Build one stage of the ``Dockerfile`` of the mock.
 
     Returns:
         The built image.
     """
-    client = docker.from_env()
+    client = _docker_client()
     dockerfile = f"{repository_root}/src/mock_vws/_flask_server/Dockerfile"
-    image, _ = client.images.build(
-        path=repository_root,
-        dockerfile=dockerfile,
-        tag=tag,
-        target=target,
-        rm=True,
-    )
-    return image
-
-
-@pytest.fixture(name="mock_deployment", scope="module")
-def fixture_mock_deployment(
-    *,
-    custom_bridge_network: Network,
-) -> _MockDeployment:
-    """Build the mock's images and run them as the Docker deployment does.
-
-    The images are built and the containers are run once for all tests in
-    this module, because building the images is the slowest thing these
-    tests do.
-
-    Returns:
-        The running deployment.
-    """
-    repository_root = str(
-        object=find_root(
-            criterion=has_file(file="pyproject.toml"),
-            start=Path(__file__).resolve(),
-        )
-    )
-    client = docker.from_env()
-    random = uuid.uuid4().hex
-
     try:
-        target_manager_image = _build_image(
-            repository_root=repository_root,
-            tag=f"vws-mock-target-manager:latest-{random}",
-            target="target-manager",
+        image, _ = client.images.build(
+            path=repository_root,
+            dockerfile=dockerfile,
+            tag=tag,
+            target=target,
+            rm=True,
+            forcerm=True,
         )
     except BuildError as exc:
         full_log = "\n".join(
@@ -343,77 +344,136 @@ def fixture_mock_deployment(
             "no matching manifest for windows/amd64",
             "no matching manifest for windows(10.0.26100)/amd64",
         )
-        # If this assertion fails, it may be useful to look at the other
-        # properties of ``exc``.
-        is_windows_container_error = any(
+        if any(
             windows_message_substring in exc.msg
             for windows_message_substring in windows_message_substrings
+        ):
+            pytest.skip(
+                reason="We do not currently support using Windows containers."
+            )
+        # Unexpected build failures terminate fixture setup.
+        exc.add_note(full_log)  # pragma: no cover
+        raise  # pragma: no cover
+    # Remove this run's tag, preserving other runs which share a cached image.
+    _ = resources.callback(client.images.remove, image=tag, force=True)
+    return image
+
+
+@beartype
+def _start_container(*, resources: ExitStack, container: Container) -> None:
+    """Register cleanup before starting an already-created container."""
+    _ = resources.callback(container.remove, v=True, force=True)
+    _ = resources.callback(container.stop)
+    container.start()
+
+
+@pytest.fixture(name="mock_deployment", scope="module")
+def fixture_mock_deployment() -> Iterator[_MockDeployment]:
+    """Build the mock's images and run them as the Docker deployment does.
+
+    The images are built and the containers are run once for all tests in
+    this module, because building the images is the slowest thing these
+    tests do.
+
+    Yields:
+        The running deployment.
+
+    Resources are registered as they are created, including before setup
+    yields. Containers are removed before the images and the network.
+    """
+    repository_root = str(
+        object=find_root(
+            criterion=has_file(file="pyproject.toml"),
+            start=Path(__file__).resolve(),
         )
-        assert is_windows_container_error, full_log
-        pytest.skip(
-            reason="We do not currently support using Windows containers."
+    )
+    client = _docker_client()
+    random = uuid.uuid4().hex
+
+    with ExitStack() as resources:
+        custom_bridge_network = _create_bridge_network(resources=resources)
+
+        target_manager_image = _build_image(
+            resources=resources,
+            repository_root=repository_root,
+            tag=f"vws-mock-target-manager:latest-{random}",
+            target="target-manager",
         )
 
-    vwq_image = _build_image(
-        repository_root=repository_root,
-        tag=f"vws-mock-vwq:latest-{random}",
-        target="vwq",
-    )
-    vws_image = _build_image(
-        repository_root=repository_root,
-        tag=f"vws-mock-vws:latest-{random}",
-        target="vws",
-    )
+        vwq_image = _build_image(
+            resources=resources,
+            repository_root=repository_root,
+            tag=f"vws-mock-vwq:latest-{random}",
+            target="vwq",
+        )
+        vws_image = _build_image(
+            resources=resources,
+            repository_root=repository_root,
+            tag=f"vws-mock-vws:latest-{random}",
+            target="vws",
+        )
 
-    target_manager_container_name = "vws-mock-target-manager-" + random
-    target_manager_internal_base_url = (
-        f"http://{target_manager_container_name}:5000"
-    )
-    vws_host_port = _free_port()
-    base_vws_url = f"http://127.0.0.1:{vws_host_port}"
+        target_manager_container_name = "vws-mock-target-manager-" + random
+        target_manager_internal_base_url = (
+            f"http://{target_manager_container_name}:5000"
+        )
+        vws_host_port = _free_port()
+        base_vws_url = f"http://127.0.0.1:{vws_host_port}"
 
-    target_manager_container = client.containers.run(
-        image=target_manager_image,
-        detach=True,
-        name=target_manager_container_name,
-        publish_all_ports=True,
-        network=custom_bridge_network.name,
-    )
-    vws_container = client.containers.run(
-        image=vws_image,
-        detach=True,
-        name="vws-mock-vws-" + random,
-        ports={"5000/tcp": ("127.0.0.1", vws_host_port)},
-        network=custom_bridge_network.name,
-        environment={
-            "TARGET_MANAGER_BASE_URL": target_manager_internal_base_url,
-            # Report download URLs are built from this, so the URLs which
-            # the VWS container gives out reach it from the host.
-            "VWS_BASE_URL": base_vws_url,
-        },
-    )
-    vwq_container = client.containers.run(
-        image=vwq_image,
-        detach=True,
-        name="vws-mock-vwq-" + random,
-        publish_all_ports=True,
-        network=custom_bridge_network.name,
-        environment={
-            "TARGET_MANAGER_BASE_URL": target_manager_internal_base_url,
-        },
-    )
+        # Target-manager and VWQ need explicit ports while Socktainer ignores
+        # publish_all_ports=True:
+        # https://github.com/socktainer/socktainer/issues/434
+        target_manager_container = client.containers.create(
+            image=target_manager_image,
+            name=target_manager_container_name,
+            ports={"5000/tcp": ("127.0.0.1", _free_port())},
+            network=custom_bridge_network.name,
+        )
+        _start_container(
+            resources=resources, container=target_manager_container
+        )
+        vws_container = client.containers.create(
+            image=vws_image,
+            name="vws-mock-vws-" + random,
+            ports={"5000/tcp": ("127.0.0.1", vws_host_port)},
+            network=custom_bridge_network.name,
+            environment={
+                "TARGET_MANAGER_BASE_URL": target_manager_internal_base_url,
+                # Report download URLs are built from this, so the URLs which
+                # the VWS container gives out reach it from the host.
+                "VWS_BASE_URL": base_vws_url,
+            },
+        )
+        _start_container(resources=resources, container=vws_container)
+        vwq_container = client.containers.create(
+            image=vwq_image,
+            name="vws-mock-vwq-" + random,
+            ports={"5000/tcp": ("127.0.0.1", _free_port())},
+            network=custom_bridge_network.name,
+            environment={
+                "TARGET_MANAGER_BASE_URL": target_manager_internal_base_url,
+            },
+        )
+        _start_container(resources=resources, container=vwq_container)
 
-    for container in (target_manager_container, vws_container, vwq_container):
-        wait_for_health_check(container=container)
+        for container in (
+            target_manager_container,
+            vws_container,
+            vwq_container,
+        ):
+            wait_for_health_check(
+                container=container,
+                base_url=_published_base_url(container=container),
+            )
 
-    return _MockDeployment(
-        vws_container=vws_container,
-        base_vws_url=base_vws_url,
-        base_vwq_url=_published_base_url(container=vwq_container),
-        base_target_manager_url=_published_base_url(
-            container=target_manager_container,
-        ),
-    )
+        yield _MockDeployment(
+            vws_container=vws_container,
+            base_vws_url=base_vws_url,
+            base_vwq_url=_published_base_url(container=vwq_container),
+            base_target_manager_url=_published_base_url(
+                container=target_manager_container,
+            ),
+        )
 
 
 def test_add_target_and_query(
@@ -515,7 +575,10 @@ def test_model_target_dataset_survives_vws_restart(
     )
 
     mock_deployment.vws_container.restart()
-    wait_for_health_check(container=mock_deployment.vws_container)
+    wait_for_health_check(
+        container=mock_deployment.vws_container,
+        base_url=mock_deployment.base_vws_url,
+    )
 
     status_response = requests.get(
         url=f"{base_vws_url}/modeltargets/datasets/{dataset_uuid}/status",
@@ -686,7 +749,10 @@ def test_request_rate_limit(*, mock_deployment: _MockDeployment) -> None:
     _summary = vws_client.get_database_summary_report()
 
     mock_deployment.vws_container.restart()
-    wait_for_health_check(container=mock_deployment.vws_container)
+    wait_for_health_check(
+        container=mock_deployment.vws_container,
+        base_url=mock_deployment.base_vws_url,
+    )
 
     _targets = vws_client.list_targets()
 

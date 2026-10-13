@@ -76,10 +76,10 @@ By default, an exception will be raised if any requests to unmocked addresses ar
 .. _httpx: https://pypi.org/project/httpx/
 .. _HTTPX2: https://httpx2.pydantic.dev/
 
-Using Docker to mock calls to Vuforia from any language
--------------------------------------------------------
+Using containers to mock calls to Vuforia from any language
+-----------------------------------------------------------
 
-It is possible run a Mock VWS instance using Docker containers.
+You can run a Mock VWS instance using Docker or Apple's ``container`` CLI.
 
 This allows you to run tests against a mock VWS instance regardless of the language or tooling you are using.
 
@@ -96,4 +96,4 @@ This includes details on how to use the mock, options, and details of the differ
    :target: https://github.com/VWS-Python/vws-python-mock/actions
 .. |PyPI| image:: https://badge.fury.io/py/VWS-Python-Mock.svg
     :target: https://badge.fury.io/py/VWS-Python-Mock
-.. |minimum-python-version| replace:: 3.14
+.. |minimum-python-version| replace:: 3.15

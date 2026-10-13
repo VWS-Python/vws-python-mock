@@ -4,8 +4,7 @@ name: Lint
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
+  pull_request: {}
   schedule:
     # * is a special character in YAML so you have to quote this string
     # Run at 1:00 every day
@@ -18,7 +17,7 @@ jobs:
   build:
     strategy:
       matrix:
-        python-version: ['3.14']
+        python-version: ['3.15']
         platform: [ubuntu-latest, windows-latest]
         hook-stage: [pre-commit, pre-push, manual]
 
@@ -33,7 +32,7 @@ jobs:
         uses: astral-sh/setup-uv@v10.2.0
 
       - name: Lint
-        uses: j178/prek-action@v3.0.0
+        uses: j178/prek-action@v3.0.1
         with:
           prek-version: 0.4.11
           extra-args: >-
@@ -49,7 +48,7 @@ jobs:
   completion-lint:
     needs: build
     runs-on: ubuntu-latest
-    if: always()  # Run even if one matrix job fails
+    if: ${{ !cancelled() }}  # Run even if one matrix job fails
     steps:
       - name: Check matrix job status
         run: |-

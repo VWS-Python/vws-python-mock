@@ -112,7 +112,7 @@ hooks = [
       "python"
     ],
     pass_filenames = false,
-    additional_dependencies = ["uv==0.11.7"]
+    additional_dependencies = ["uv==0.13.0"]
   },
   {
     id = "actionlint",
@@ -121,7 +121,7 @@ hooks = [
     language = "python",
     pass_filenames = false,
     types_or = ["yaml"],
-    additional_dependencies = ["uv==0.11.7"],
+    additional_dependencies = ["uv==0.13.0"],
     stages = ["pre-commit"]
   },
   {
@@ -130,7 +130,7 @@ hooks = [
     entry = "uv run --group=dev hadolint",
     language = "python",
     types_or = ["dockerfile"],
-    additional_dependencies = ["uv==0.11.7"],
+    additional_dependencies = ["uv==0.13.0"],
     stages = ["pre-commit"]
   },
   {
@@ -139,7 +139,7 @@ hooks = [
     entry = "uv run --group=dev pydocstringformatter",
     language = "python",
     types_or = ["python"],
-    additional_dependencies = ["uv==0.11.7"],
+    additional_dependencies = ["uv==0.13.0"],
     stages = ["pre-commit"]
   },
   {
@@ -148,7 +148,7 @@ hooks = [
     entry = "uv run --group=dev shellcheck --shell=bash",
     language = "python",
     types_or = ["shell"],
-    additional_dependencies = ["uv==0.11.7"],
+    additional_dependencies = ["uv==0.13.0"],
     stages = ["pre-commit"]
   },
   {
@@ -160,7 +160,7 @@ hooks = [
       "markdown",
       "rst"
     ],
-    additional_dependencies = ["uv==0.11.7"],
+    additional_dependencies = ["uv==0.13.0"],
     stages = ["pre-commit"]
   },
   {
@@ -169,7 +169,7 @@ hooks = [
     entry = "uv run --group=dev shfmt --write --space-redirects --indent=4",
     language = "python",
     types_or = ["shell"],
-    additional_dependencies = ["uv==0.11.7"],
+    additional_dependencies = ["uv==0.13.0"],
     stages = ["pre-commit"]
   },
   {
@@ -181,7 +181,7 @@ hooks = [
       "markdown",
       "rst"
     ],
-    additional_dependencies = ["uv==0.11.7"],
+    additional_dependencies = ["uv==0.13.0"],
     stages = ["pre-commit"]
   },
   {
@@ -195,7 +195,7 @@ hooks = [
       "toml"
     ],
     pass_filenames = false,
-    additional_dependencies = ["uv==0.11.7"]
+    additional_dependencies = ["uv==0.13.0"]
   },
   {
     id = "mypy-docs",
@@ -215,7 +215,7 @@ hooks = [
     entry = "uv run --group=dev -m check_manifest",
     language = "python",
     pass_filenames = false,
-    additional_dependencies = ["uv==0.11.7"]
+    additional_dependencies = ["uv==0.13.0"]
   },
   {
     id = "pyright",
@@ -228,7 +228,7 @@ hooks = [
       "toml"
     ],
     pass_filenames = false,
-    additional_dependencies = ["uv==0.11.7"]
+    additional_dependencies = ["uv==0.13.0"]
   },
   {
     id = "pyright-docs",
@@ -249,7 +249,7 @@ hooks = [
     language = "python",
     pass_filenames = false,
     types_or = ["python"],
-    additional_dependencies = ["uv==0.11.7"]
+    additional_dependencies = ["uv==0.13.0"]
   },
   {
     id = "ty",
@@ -262,7 +262,7 @@ hooks = [
       "toml"
     ],
     pass_filenames = false,
-    additional_dependencies = ["uv==0.11.7"]
+    additional_dependencies = ["uv==0.13.0"]
   },
   {
     id = "ty-docs",
@@ -274,7 +274,7 @@ hooks = [
       "markdown",
       "rst"
     ],
-    additional_dependencies = ["uv==0.11.7"]
+    additional_dependencies = ["uv==0.13.0"]
   },
   {
     id = "vulture",
@@ -283,7 +283,7 @@ hooks = [
     language = "python",
     types_or = ["python"],
     pass_filenames = false,
-    additional_dependencies = ["uv==0.11.7"],
+    additional_dependencies = ["uv==0.13.0"],
     stages = ["pre-commit"]
   },
   {
@@ -293,7 +293,7 @@ hooks = [
     language = "python",
     types_or = ["python"],
     pass_filenames = false,
-    additional_dependencies = ["uv==0.11.7"],
+    additional_dependencies = ["uv==0.13.0"],
     stages = ["pre-commit"]
   },
   {
@@ -303,7 +303,7 @@ hooks = [
     language = "python",
     pass_filenames = false,
     types_or = ["toml"],
-    additional_dependencies = ["uv==0.11.7"],
+    additional_dependencies = ["uv==0.13.0"],
     stages = ["pre-commit"]
   },
   {
@@ -312,7 +312,7 @@ hooks = [
     entry = "uv run --group=dev -m deptry src/",
     language = "python",
     pass_filenames = false,
-    additional_dependencies = ["uv==0.11.7"],
+    additional_dependencies = ["uv==0.13.0"],
     stages = ["pre-commit"]
   },
   {
@@ -322,7 +322,7 @@ hooks = [
     language = "python",
     stages = ["manual"],
     pass_filenames = false,
-    additional_dependencies = ["uv==0.11.7"]
+    additional_dependencies = ["uv==0.13.0"]
   },
   {
     id = "pylint-docs",
@@ -341,7 +341,7 @@ hooks = [
     entry = "uv run --group=dev -m ruff check --fix",
     language = "python",
     types_or = ["python"],
-    additional_dependencies = ["uv==0.11.7"],
+    additional_dependencies = ["uv==0.13.0"],
     stages = ["pre-commit"]
   },
   {
@@ -353,7 +353,7 @@ hooks = [
       "markdown",
       "rst"
     ],
-    additional_dependencies = ["uv==0.11.7"],
+    additional_dependencies = ["uv==0.13.0"],
     stages = ["pre-commit"]
   },
   {
@@ -362,7 +362,7 @@ hooks = [
     entry = "uv run --group=dev -m ruff format",
     language = "python",
     types_or = ["python"],
-    additional_dependencies = ["uv==0.11.7"],
+    additional_dependencies = ["uv==0.13.0"],
     stages = ["pre-commit"]
   },
   {
@@ -374,7 +374,7 @@ hooks = [
       "markdown",
       "rst"
     ],
-    additional_dependencies = ["uv==0.11.7"],
+    additional_dependencies = ["uv==0.13.0"],
     stages = ["pre-commit"]
   },
   {
@@ -383,7 +383,7 @@ hooks = [
     entry = "uv run --group=dev strict-kwargs check --fix",
     language = "python",
     types_or = ["python"],
-    additional_dependencies = ["uv==0.11.7"],
+    additional_dependencies = ["uv==0.13.0"],
     stages = ["pre-commit"],
     require_serial = true
   },
@@ -393,7 +393,7 @@ hooks = [
     entry = "uv run --group=dev no-defaults",
     language = "python",
     types_or = ["python"],
-    additional_dependencies = ["uv==0.11.7"],
+    additional_dependencies = ["uv==0.13.0"],
     stages = ["pre-commit"],
     require_serial = true
   },
@@ -406,7 +406,7 @@ hooks = [
     language = "python",
     pass_filenames = false,
     files = '(\.(rst|md)$|^\.vale\.ini$)',
-    additional_dependencies = ["uv==0.11.7"],
+    additional_dependencies = ["uv==0.13.0"],
     stages = ["pre-commit"]
   },
   {
@@ -419,7 +419,7 @@ hooks = [
       "markdown"
     ],
     require_serial = true,
-    additional_dependencies = ["uv==0.11.7"],
+    additional_dependencies = ["uv==0.13.0"],
     stages = ["pre-commit"]
   },
   {
@@ -432,7 +432,7 @@ hooks = [
       "markdown"
     ],
     require_serial = true,
-    additional_dependencies = ["uv==0.11.7"],
+    additional_dependencies = ["uv==0.13.0"],
     stages = ["pre-commit"]
   },
   {
@@ -441,7 +441,7 @@ hooks = [
     entry = "uv run --group=dev -m doc8",
     language = "python",
     types_or = ["rst"],
-    additional_dependencies = ["uv==0.11.7"],
+    additional_dependencies = ["uv==0.13.0"],
     stages = ["pre-commit"]
   },
   {
@@ -462,7 +462,7 @@ hooks = [
       "markdown",
       "rst"
     ],
-    additional_dependencies = ["uv==0.11.7"],
+    additional_dependencies = ["uv==0.13.0"],
     stages = ["pre-commit"]
   },
   {
@@ -482,7 +482,7 @@ hooks = [
     types_or = ["rst", "markdown"],
     stages = ["manual"],
     pass_filenames = false,
-    additional_dependencies = ["uv==0.11.7"]
+    additional_dependencies = ["uv==0.13.0"]
   },
   {
     id = "spelling",
@@ -492,7 +492,7 @@ hooks = [
     types_or = ["rst", "markdown"],
     stages = ["manual"],
     pass_filenames = false,
-    additional_dependencies = ["uv==0.11.7"]
+    additional_dependencies = ["uv==0.13.0"]
   },
   {
     id = "docs",
@@ -501,7 +501,7 @@ hooks = [
     language = "python",
     stages = ["manual"],
     pass_filenames = false,
-    additional_dependencies = ["uv==0.11.7"]
+    additional_dependencies = ["uv==0.13.0"]
   },
   {
     id = "yamlfix",
@@ -509,7 +509,7 @@ hooks = [
     entry = "uv run --group=dev yamlfix",
     language = "python",
     types_or = ["yaml"],
-    additional_dependencies = ["uv==0.11.7"],
+    additional_dependencies = ["uv==0.13.0"],
     stages = ["pre-commit"]
   },
   {
@@ -519,7 +519,7 @@ hooks = [
     language = "python",
     pass_filenames = false,
     types_or = ["yaml"],
-    additional_dependencies = ["uv==0.11.7"],
+    additional_dependencies = ["uv==0.13.0"],
     stages = ["pre-commit"]
   },
   {
@@ -528,7 +528,7 @@ hooks = [
     entry = "uv run --group=dev sphinx-lint --enable=all --disable=line-too-long",
     language = "python",
     types_or = ["rst"],
-    additional_dependencies = ["uv==0.11.7"],
+    additional_dependencies = ["uv==0.13.0"],
     stages = ["pre-commit"]
   },
   {
@@ -542,7 +542,7 @@ hooks = [
       "toml"
     ],
     pass_filenames = false,
-    additional_dependencies = ["uv==0.11.7"]
+    additional_dependencies = ["uv==0.13.0"]
   },
   {
     id = "pyrefly-docs",
@@ -554,7 +554,7 @@ hooks = [
       "markdown",
       "rst"
     ],
-    additional_dependencies = ["uv==0.11.7"]
+    additional_dependencies = ["uv==0.13.0"]
   },
   {
     id = "hclfmt",

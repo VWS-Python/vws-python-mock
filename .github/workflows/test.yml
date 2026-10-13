@@ -4,8 +4,7 @@ name: Test
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
+  pull_request: {}
   schedule:
     # * is a special character in YAML so you have to quote this string
     # Run at 1:00 every day
@@ -26,7 +25,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.14']
+        python-version: ['3.15']
         ci_pattern:
           - tests/mock_vws/test_query.py::TestContentType
           - tests/mock_vws/test_query.py::TestSuccess
@@ -217,7 +216,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.14']
+        python-version: ['3.15']
         platform: [ubuntu-latest]
 
     steps:
@@ -263,7 +262,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        python-version: ['3.14']
+        python-version: ['3.15']
 
     steps:
       - uses: actions/checkout@v7
@@ -324,7 +323,7 @@ jobs:
   coverage:
     name: Combine & check coverage
     needs: [ci-tests, skip-tests, windows-tests]
-    if: always()
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
 
     steps:
@@ -337,7 +336,7 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: '**/pyproject.toml'
-          python-version: '3.14'
+          python-version: '3.15'
 
       - uses: actions/download-artifact@v8
         with:
@@ -368,7 +367,7 @@ jobs:
   completion-ci:
     needs: [ci-tests, skip-tests, windows-tests, coverage]
     runs-on: ubuntu-latest
-    if: always()
+    if: ${{ !cancelled() }}
     steps:
       - name: Check all jobs status
         run: |-
