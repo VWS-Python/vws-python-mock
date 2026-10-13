@@ -5,8 +5,6 @@ NGINX's buffer also holds the line's CRLF, so the longest accepted
 line is 8190 bytes.
 """
 
-from urllib.parse import urlparse
-
 from mock_vws._mock_common import MAX_HEADER_LINE_LENGTH
 from tests.mock_vws.header_size.helpers import (
     assert_nginx_too_large_response,
@@ -22,7 +20,7 @@ from tests.mock_vws.utils.assertions import (
 from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
 
-def test_header_too_large(endpoint: Endpoint) -> None:
+def test_header_too_large(endpoint: Endpoint, base_vwq_url: str) -> None:
     """A header line one byte too long for NGINX gives a
     ``BAD_REQUEST``
     response with NGINX's HTML body, before any authorization.
@@ -43,10 +41,11 @@ def test_header_too_large(endpoint: Endpoint) -> None:
     assert_nginx_too_large_response(
         endpoint=endpoint,
         response=response,
+        base_vwq_url=base_vwq_url,
     )
 
 
-def test_cookie_too_large(endpoint: Endpoint) -> None:
+def test_cookie_too_large(endpoint: Endpoint, base_vwq_url: str) -> None:
     """A cookie which makes the ``Cookie`` line too long for NGINX
     gives
     the same ``BAD_REQUEST`` response as any other header.
@@ -72,10 +71,13 @@ def test_cookie_too_large(endpoint: Endpoint) -> None:
     assert_nginx_too_large_response(
         endpoint=endpoint,
         response=response,
+        base_vwq_url=base_vwq_url,
     )
 
 
-def test_large_header_within_limit(endpoint: Endpoint) -> None:
+def test_large_header_within_limit(
+    endpoint: Endpoint, base_vwq_url: str
+) -> None:
     """A large header line which fits in NGINX's buffer is accepted.
 
     This does not send a line at the limit exactly, because the Query
@@ -96,8 +98,7 @@ def test_large_header_within_limit(endpoint: Endpoint) -> None:
     response = new_endpoint.send()
     handle_server_errors(response=response)
 
-    netloc = urlparse(url=endpoint.base_url).netloc
-    if netloc == "cloudreco.vuforia.com":
+    if endpoint.base_url == base_vwq_url:
         assert_query_success(response=response)
         return
 
