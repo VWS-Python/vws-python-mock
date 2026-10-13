@@ -7,7 +7,6 @@ time.
 import json
 from datetime import datetime
 from http import HTTPStatus
-from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
 from freezegun import freeze_time
@@ -30,7 +29,9 @@ from tests.mock_vws.utils.assertions import (
 from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
 
-def test_date_out_of_range_after(endpoint: Endpoint) -> None:
+def test_date_out_of_range_after(
+    endpoint: Endpoint, base_vwq_url: str
+) -> None:
     """If the date header is more than five minutes (target API) or 65
     minutes (query API) after the request is sent, a `FORBIDDEN`
     response
@@ -39,11 +40,11 @@ def test_date_out_of_range_after(endpoint: Endpoint) -> None:
     Because there is a small delay in sending requests and Vuforia
     isn't consistent, some leeway is given.
     """
-    netloc = urlparse(url=endpoint.base_url).netloc
-    skew = {
-        "vws.vuforia.com": VWS_MAX_TIME_SKEW,
-        "cloudreco.vuforia.com": VWQ_MAX_TIME_SKEW,
-    }[netloc]
+    skew = (
+        VWQ_MAX_TIME_SKEW
+        if endpoint.base_url == base_vwq_url
+        else VWS_MAX_TIME_SKEW
+    )
     time_difference_from_now = skew + LEEWAY
     gmt = ZoneInfo(key="GMT")
     with freeze_time(
@@ -84,7 +85,7 @@ def test_date_out_of_range_after(endpoint: Endpoint) -> None:
     handle_server_errors(response=response)
 
     # Even with the query endpoint, we get a JSON response.
-    if netloc == "cloudreco.vuforia.com":
+    if endpoint.base_url == base_vwq_url:
         response_json = json.loads(s=response.text)
         assert isinstance(response_json, dict)
         assert response_json.keys() == {"transaction_id", "result_code"}
@@ -107,7 +108,9 @@ def test_date_out_of_range_after(endpoint: Endpoint) -> None:
     )
 
 
-def test_date_out_of_range_before(endpoint: Endpoint) -> None:
+def test_date_out_of_range_before(
+    endpoint: Endpoint, base_vwq_url: str
+) -> None:
     """If the date header is more than five minutes (target API) or 65
     minutes (query API) before the request is sent, a `FORBIDDEN`
     response
@@ -116,11 +119,11 @@ def test_date_out_of_range_before(endpoint: Endpoint) -> None:
     Because there is a small delay in sending requests and Vuforia
     isn't consistent, some leeway is given.
     """
-    netloc = urlparse(url=endpoint.base_url).netloc
-    skew = {
-        "vws.vuforia.com": VWS_MAX_TIME_SKEW,
-        "cloudreco.vuforia.com": VWQ_MAX_TIME_SKEW,
-    }[netloc]
+    skew = (
+        VWQ_MAX_TIME_SKEW
+        if endpoint.base_url == base_vwq_url
+        else VWS_MAX_TIME_SKEW
+    )
     time_difference_from_now = skew + LEEWAY
     gmt = ZoneInfo(key="GMT")
     with freeze_time(
@@ -161,7 +164,7 @@ def test_date_out_of_range_before(endpoint: Endpoint) -> None:
     handle_server_errors(response=response)
 
     # Even with the query endpoint, we get a JSON response.
-    if netloc == "cloudreco.vuforia.com":
+    if endpoint.base_url == base_vwq_url:
         response_json = json.loads(s=response.text)
         assert isinstance(response_json, dict)
         assert response_json.keys() == {"transaction_id", "result_code"}
@@ -184,7 +187,7 @@ def test_date_out_of_range_before(endpoint: Endpoint) -> None:
     )
 
 
-def test_date_in_range_after(endpoint: Endpoint) -> None:
+def test_date_in_range_after(endpoint: Endpoint, base_vwq_url: str) -> None:
     """If a date header is within five minutes after the request is
     sent,
     no error is returned.
@@ -192,11 +195,11 @@ def test_date_in_range_after(endpoint: Endpoint) -> None:
     Because there is a small delay in sending requests and Vuforia
     isn't consistent, some leeway is given.
     """
-    netloc = urlparse(url=endpoint.base_url).netloc
-    skew = {
-        "vws.vuforia.com": VWS_MAX_TIME_SKEW,
-        "cloudreco.vuforia.com": VWQ_MAX_TIME_SKEW,
-    }[netloc]
+    skew = (
+        VWQ_MAX_TIME_SKEW
+        if endpoint.base_url == base_vwq_url
+        else VWS_MAX_TIME_SKEW
+    )
     time_difference_from_now = skew - LEEWAY
     gmt = ZoneInfo(key="GMT")
     with freeze_time(
@@ -236,8 +239,7 @@ def test_date_in_range_after(endpoint: Endpoint) -> None:
 
     handle_server_errors(response=response)
 
-    netloc = urlparse(url=endpoint.base_url).netloc
-    if netloc == "cloudreco.vuforia.com":
+    if endpoint.base_url == base_vwq_url:
         assert_query_success(response=response)
         return
 
@@ -252,7 +254,7 @@ def test_date_in_range_after(endpoint: Endpoint) -> None:
     )
 
 
-def test_date_in_range_before(endpoint: Endpoint) -> None:
+def test_date_in_range_before(endpoint: Endpoint, base_vwq_url: str) -> None:
     """If a date header is within five minutes before the request is
     sent,
     no error is returned.
@@ -260,11 +262,11 @@ def test_date_in_range_before(endpoint: Endpoint) -> None:
     Because there is a small delay in sending requests and Vuforia
     isn't consistent, some leeway is given.
     """
-    netloc = urlparse(url=endpoint.base_url).netloc
-    skew = {
-        "vws.vuforia.com": VWS_MAX_TIME_SKEW,
-        "cloudreco.vuforia.com": VWQ_MAX_TIME_SKEW,
-    }[netloc]
+    skew = (
+        VWQ_MAX_TIME_SKEW
+        if endpoint.base_url == base_vwq_url
+        else VWS_MAX_TIME_SKEW
+    )
     time_difference_from_now = skew - LEEWAY
     gmt = ZoneInfo(key="GMT")
     with freeze_time(
@@ -304,8 +306,7 @@ def test_date_in_range_before(endpoint: Endpoint) -> None:
 
     handle_server_errors(response=response)
 
-    netloc = urlparse(url=endpoint.base_url).netloc
-    if netloc == "cloudreco.vuforia.com":
+    if endpoint.base_url == base_vwq_url:
         assert_query_success(response=response)
         return
 
