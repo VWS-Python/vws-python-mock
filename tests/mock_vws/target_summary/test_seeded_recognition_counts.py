@@ -13,8 +13,7 @@ from vws import VWS
 from vws.reports import TargetStatuses
 
 from mock_vws.database import CloudDatabase
-from tests.mock_vws.fixtures.vuforia_backends import VuforiaBackend
-from tests.mock_vws.utils.recognition_counts import seed_recognition_counts
+from tests.mock_vws.utils.recognition_counts import SeedRecognitionCounts
 
 _CURRENT_MONTH_RECOS = 3
 _PREVIOUS_MONTH_RECOS = 5
@@ -23,7 +22,7 @@ _TOTAL_RECOS = 8
 
 def test_seeded_counts(
     *,
-    mock_only_vuforia: VuforiaBackend,
+    seed_recognition_counts: SeedRecognitionCounts,
     vws_client: VWS,
     vuforia_database: CloudDatabase,
     high_quality_image: io.BytesIO,
@@ -39,7 +38,6 @@ def test_seeded_counts(
     vws_client.wait_for_target_processed(target_id=target_id)
 
     seed_recognition_counts(
-        backend=mock_only_vuforia,
         vuforia_database=vuforia_database,
         target_id=target_id,
         current_month_recos=_CURRENT_MONTH_RECOS,

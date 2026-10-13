@@ -32,6 +32,7 @@ from tests.mock_vws.utils.cloud_databases import AddCloudDatabase
 from tests.mock_vws.utils.model_target_retries import (
     retrying_transient_real_backend_failures,
 )
+from tests.mock_vws.utils.recognition_counts import SeedRecognitionCounts
 from tests.mock_vws.utils.retries import (
     RETRY_ON_TARGET_STILL_PROCESSING,
     RETRY_ON_TRANSIENT_VWS_FAILURE,
@@ -571,3 +572,62 @@ def fixture_add_cloud_database(
         response.raise_for_status()
 
     return add_flask_cloud_database
+
+
+@pytest.fixture(name="seed_recognition_counts")
+def fixture_seed_recognition_counts(
+    *,
+    mock_only_vuforia: VuforiaBackend,
+) -> SeedRecognitionCounts:
+    """The recognition-count operation for the running mock backend."""
+    if mock_only_vuforia == VuforiaBackend.MOCK:
+
+        @beartype
+        def seed_in_memory_counts(
+            *,
+            vuforia_database: CloudDatabase,
+            target_id: str,
+            current_month_recos: int,
+            previous_month_recos: int,
+            total_recos: int,
+        ) -> None:
+            """Set recognition counts through the running in-memory
+            mock.
+            """
+            del vuforia_database
+            running_in_memory_mock().set_target_recognition_counts(
+                target_id=target_id,
+                current_month_recos=current_month_recos,
+                previous_month_recos=previous_month_recos,
+                total_recos=total_recos,
+            )
+
+        return seed_in_memory_counts
+
+    @beartype
+    def seed_flask_counts(
+        *,
+        vuforia_database: CloudDatabase,
+        target_id: str,
+        current_month_recos: int,
+        previous_month_recos: int,
+        total_recos: int,
+    ) -> None:
+        """Set recognition counts through the target manager service."""
+        target_manager_base_url = os.environ["TARGET_MANAGER_BASE_URL"]
+        database_name = vuforia_database.database_name
+        response = requests.post(
+            url=(
+                f"{target_manager_base_url}/cloud_databases/"
+                f"{database_name}/targets/{target_id}/recognition_counts"
+            ),
+            json={
+                "current_month_recos": current_month_recos,
+                "previous_month_recos": previous_month_recos,
+                "total_recos": total_recos,
+            },
+            timeout=30,
+        )
+        response.raise_for_status()
+
+    return seed_flask_counts
