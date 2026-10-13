@@ -6,13 +6,10 @@ from http import HTTPMethod, HTTPStatus
 import pytest
 import requests
 
+from tests.mock_vws.fixtures.credentials import ModelTargetCredentials
 from tests.mock_vws.fixtures.model_target_prepared_requests import (
     MODEL_TARGET_DATASET_UUID,
-    credentials_for_backend,
     get_access_token,
-)
-from tests.mock_vws.fixtures.vuforia_backends import (
-    VuforiaBackend,
 )
 from tests.mock_vws.model_target_web_api.assertions import assert_oauth2_error
 from tests.mock_vws.model_target_web_api.errors.helpers import (
@@ -535,19 +532,15 @@ def test_invalid_basic_auth_header(
 )
 def test_invalid_dataset_request(
     *,
+    model_target_credentials: ModelTargetCredentials,
     base_vws_url: str,
-    verify_model_target_mock_vuforia: VuforiaBackend,
     body: dict[str, object],
     expected_messages: set[str],
 ) -> None:
     """Invalid standard dataset creation requests are rejected."""
-    credentials = credentials_for_backend(
-        backend=verify_model_target_mock_vuforia,
-    )
     access_token = get_access_token(
         base_vws_url=base_vws_url,
-        credentials=credentials,
-        backend=verify_model_target_mock_vuforia,
+        credentials=model_target_credentials,
     )
     response = requests.post(
         url=f"{base_vws_url}/modeltargets/datasets",
@@ -573,8 +566,8 @@ def test_invalid_dataset_request(
 
 def test_advanced_model_count_exceeds_limit(
     *,
+    model_target_credentials: ModelTargetCredentials,
     base_vws_url: str,
-    verify_model_target_mock_vuforia: VuforiaBackend,
 ) -> None:
     """Advanced datasets reject more than 20 uniquely named models."""
     models = [{**MODEL, "name": f"model-{index}"} for index in range(21)]
@@ -582,13 +575,9 @@ def test_advanced_model_count_exceeds_limit(
     # Vuforia returns together for this request.
     models[-1]["name"] = models[0]["name"]
     body = {**UNAUTHENTICATED_DATASET_REQUEST, "models": models}
-    credentials = credentials_for_backend(
-        backend=verify_model_target_mock_vuforia,
-    )
     access_token = get_access_token(
         base_vws_url=base_vws_url,
-        credentials=credentials,
-        backend=verify_model_target_mock_vuforia,
+        credentials=model_target_credentials,
     )
     response = requests.post(
         url=f"{base_vws_url}/modeltargets/advancedDatasets",
@@ -634,19 +623,15 @@ def test_advanced_model_count_exceeds_limit(
 )
 def test_unknown_dataset(
     *,
+    model_target_credentials: ModelTargetCredentials,
     base_vws_url: str,
-    verify_model_target_mock_vuforia: VuforiaBackend,
     method: HTTPMethod,
     path: str,
 ) -> None:
     """Unknown datasets are rejected with a NOT_FOUND error."""
-    credentials = credentials_for_backend(
-        backend=verify_model_target_mock_vuforia,
-    )
     access_token = get_access_token(
         base_vws_url=base_vws_url,
-        credentials=credentials,
-        backend=verify_model_target_mock_vuforia,
+        credentials=model_target_credentials,
     )
     response = requests.request(
         method=method,

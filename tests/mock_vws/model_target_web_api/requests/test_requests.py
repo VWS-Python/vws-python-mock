@@ -5,11 +5,9 @@ from http import HTTPStatus
 
 import pytest
 
-from tests.mock_vws.fixtures.vuforia_backends import (
-    VuforiaBackend,
-)
-from tests.mock_vws.model_target_web_api.authentication import (
-    access_token_for_backend,
+from tests.mock_vws.fixtures.credentials import ModelTargetCredentials
+from tests.mock_vws.fixtures.model_target_prepared_requests import (
+    get_access_token,
 )
 from tests.mock_vws.model_target_web_api.requests.helpers import (
     assert_unknown_dataset,
@@ -33,17 +31,17 @@ from tests.mock_vws.utils.assertions import (
 )
 def test_wrong_content_type(
     *,
+    model_target_credentials: ModelTargetCredentials,
     base_vws_url: str,
-    verify_model_target_mock_vuforia: VuforiaBackend,
     model_target_endpoint: ModelTargetEndpoint,
     content_type: str | None,
 ) -> None:
     """Requests without a JSON content type are rejected with 415 by
     endpoints which read a body, and are unaffected elsewhere.
     """
-    access_token = access_token_for_backend(
+    access_token = get_access_token(
         base_vws_url=base_vws_url,
-        backend=verify_model_target_mock_vuforia,
+        credentials=model_target_credentials,
     )
     new_headers = {
         **model_target_endpoint.headers,
@@ -76,16 +74,16 @@ def test_wrong_content_type(
 
 def test_invalid_json(
     *,
+    model_target_credentials: ModelTargetCredentials,
     base_vws_url: str,
-    verify_model_target_mock_vuforia: VuforiaBackend,
     model_target_endpoint: ModelTargetEndpoint,
 ) -> None:
     """Malformed JSON bodies are rejected with 400 by endpoints which
     read a body, and are ignored elsewhere.
     """
-    access_token = access_token_for_backend(
+    access_token = get_access_token(
         base_vws_url=base_vws_url,
-        backend=verify_model_target_mock_vuforia,
+        credentials=model_target_credentials,
     )
     content = b"{"
     new_endpoint = dataclasses.replace(
@@ -116,16 +114,16 @@ def test_invalid_json(
 
 def test_body_not_utf_8(
     *,
+    model_target_credentials: ModelTargetCredentials,
     base_vws_url: str,
-    verify_model_target_mock_vuforia: VuforiaBackend,
     model_target_endpoint: ModelTargetEndpoint,
 ) -> None:
     """Bodies which are not valid UTF-8 are rejected with 400 by
     endpoints which read a body, and are ignored elsewhere.
     """
-    access_token = access_token_for_backend(
+    access_token = get_access_token(
         base_vws_url=base_vws_url,
-        backend=verify_model_target_mock_vuforia,
+        credentials=model_target_credentials,
     )
     content = b"\xff{}"
     new_endpoint = dataclasses.replace(
@@ -166,17 +164,17 @@ def test_body_not_utf_8(
 )
 def test_body_not_json_object(
     *,
+    model_target_credentials: ModelTargetCredentials,
     base_vws_url: str,
-    verify_model_target_mock_vuforia: VuforiaBackend,
     model_target_endpoint: ModelTargetEndpoint,
     body: str,
 ) -> None:
     """JSON bodies which are not objects are missing every field on
     endpoints which read a body, and are ignored elsewhere.
     """
-    access_token = access_token_for_backend(
+    access_token = get_access_token(
         base_vws_url=base_vws_url,
-        backend=verify_model_target_mock_vuforia,
+        credentials=model_target_credentials,
     )
     content = body.encode(encoding="utf-8")
     new_endpoint = dataclasses.replace(

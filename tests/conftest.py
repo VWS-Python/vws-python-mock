@@ -32,8 +32,6 @@ pytest_plugins = [
     "tests.mock_vws.fixtures.credentials",
     "tests.mock_vws.fixtures.prepared_requests",
     "tests.mock_vws.fixtures.vuforia_backends",
-    # ``model_target_prepared_requests`` imports from
-    # ``vuforia_backends``, so it must be listed after it.
     "tests.mock_vws.fixtures.model_target_prepared_requests",
 ]
 

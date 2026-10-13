@@ -11,9 +11,7 @@ from pydantic import TypeAdapter
 from mock_vws.model_target import JSONValue
 from tests.mock_vws.fixtures.credentials import (
     ModelTargetCredentials,
-    get_model_target_credentials,
 )
-from tests.mock_vws.fixtures.vuforia_backends import VuforiaBackend
 from tests.mock_vws.utils import ModelTargetEndpoint
 from tests.mock_vws.utils.assertions import assert_model_target_status
 
@@ -41,32 +39,12 @@ _DATASET_REQUEST: dict[str, JSONValue] = {
 
 
 @beartype
-def credentials_for_backend(
-    *,
-    backend: VuforiaBackend,
-) -> ModelTargetCredentials:
-    """Return Model Target credentials for the chosen backend."""
-    if backend == VuforiaBackend.REAL:
-        return get_model_target_credentials()
-
-    return ModelTargetCredentials(
-        client_id="client-id",
-        client_secret="client-secret",
-        cad_data_url="https://example.com/model.glb",
-        username="user@example.com",
-        password="password",
-    )
-
-
-@beartype
 def get_access_token(
     *,
     base_vws_url: str,
     credentials: ModelTargetCredentials,
-    backend: VuforiaBackend,
 ) -> str:
     """Return an OAuth2 access token."""
-    del backend
     response = requests.post(
         url=f"{base_vws_url}/oauth2/token",
         auth=(credentials.client_id, credentials.client_secret),

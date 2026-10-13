@@ -4,7 +4,7 @@ Verified fake tests for State-Based Model Targets.
 
 The advanced (signed) cases are verified against the real Vuforia
 only when ``--verify-model-target-signing`` is given: see
-``_SIGNED_REQUEST_SKIP_REASON``.
+the ``signed_model_target_credentials`` fixture.
 Additional verified and mock-only Model Target behaviors.
 """
 
@@ -25,17 +25,12 @@ from mock_vws.model_target import (
     ModelTargetDataset,
     ModelTargetDatasetType,
 )
+from tests.mock_vws.fixtures.credentials import ModelTargetCredentials
 from tests.mock_vws.fixtures.model_target_prepared_requests import (
-    credentials_for_backend,
     get_access_token,
-)
-from tests.mock_vws.fixtures.vuforia_backends import (
-    VERIFY_MODEL_TARGET_SIGNING_OPTION,
-    VuforiaBackend,
 )
 from tests.mock_vws.model_target_web_api.authentication import (
     MOCK_BEARER_TOKEN,
-    access_token_for_backend,
 )
 from tests.mock_vws.model_target_web_api.responses import (
     parse_response_json,
@@ -99,42 +94,6 @@ def _blob_dataset_request() -> dict[str, object]:
     }
 
 
-# Creating an advanced dataset with a state-based configuration or a standard
-# dataset with inline CAD data is a "signed" request: the real Vuforia signs
-# the trained dataset, and each signing consumes the account's allowance. The
-# allowance is tiny (roughly 20 signings, under ten CI runs' worth), it
-# is shared by every CI job and every concurrent run, and it cannot be
-# raised or reset by us.  Verifying this behavior on every run therefore
-# burns the whole allowance within hours and then turns every CI run red
-# with ``TRAINING_ALLOWANCE_EXCEEDED`` - which is exactly what happened
-# when it ran unconditionally.  The equivalent unsigned requests (a
-# standard dataset, or an advanced dataset without a state-based
-# configuration) are far cheaper and stay enabled, though with enough
-# traffic they can also hit the allowance; an unexpected allowance
-# rejection is reported as an expected failure by
-# ``assert_model_target_status`` rather than failing the run.
-_SIGNED_REQUEST_SKIP_REASON = (
-    "Signed Model Target requests consume the real Vuforia account's "
-    "small, shared, non-resettable training allowance, so they are not "
-    "verified against the real Vuforia by default. Pass "
-    f"{VERIFY_MODEL_TARGET_SIGNING_OPTION} to verify them, for example "
-    "after the allowance has recovered. The mock backends always run "
-    "this test."
-)
-
-
-def _skip_unrequested_real_signing(
-    *,
-    request: pytest.FixtureRequest,
-    backend: VuforiaBackend,
-) -> None:
-    """Skip a signing request against real Vuforia unless opted in."""
-    if backend is VuforiaBackend.REAL and not request.config.getoption(
-        name=VERIFY_MODEL_TARGET_SIGNING_OPTION,
-    ):
-        pytest.skip(reason=_SIGNED_REQUEST_SKIP_REASON)
-
-
 @pytest.mark.parametrize(
     argnames="dataset_path",
     argvalues=[
@@ -157,19 +116,14 @@ def _skip_unrequested_real_signing(
 )
 def test_state_based_dataset(
     *,
+    signed_model_target_credentials: ModelTargetCredentials,
     base_vws_url: str,
-    request: pytest.FixtureRequest,
-    verify_model_target_mock_vuforia: VuforiaBackend,
     dataset_path: str,
     view_updates: dict[str, object],
 ) -> None:
     """State-Based Model Target fields survive a dataset round
     trip.
     """
-    _skip_unrequested_real_signing(
-        request=request,
-        backend=verify_model_target_mock_vuforia,
-    )
     body = {
         **UNAUTHENTICATED_DATASET_REQUEST,
         "models": [
@@ -180,9 +134,9 @@ def test_state_based_dataset(
             },
         ],
     }
-    access_token = access_token_for_backend(
+    access_token = get_access_token(
         base_vws_url=base_vws_url,
-        backend=verify_model_target_mock_vuforia,
+        credentials=signed_model_target_credentials,
     )
     headers = {"Authorization": f"Bearer {access_token}"}
     create_response = requests.post(
@@ -211,8 +165,8 @@ def test_state_based_dataset(
 
 def test_view_states_are_a_subset(
     *,
+    model_target_credentials: ModelTargetCredentials,
     base_vws_url: str,
-    verify_model_target_mock_vuforia: VuforiaBackend,
 ) -> None:
     """A view cannot select a state absent from the configuration."""
     body = {
@@ -225,9 +179,9 @@ def test_view_states_are_a_subset(
             },
         ],
     }
-    access_token = access_token_for_backend(
+    access_token = get_access_token(
         base_vws_url=base_vws_url,
-        backend=verify_model_target_mock_vuforia,
+        credentials=model_target_credentials,
     )
     response = requests.post(
         url=f"{base_vws_url}/modeltargets/datasets",
@@ -312,8 +266,8 @@ def test_view_states_are_a_subset(
 )
 def test_invalid_state_based_dataset(
     *,
+    mock_model_target_credentials: ModelTargetCredentials,
     base_vws_url: str,
-    model_target_mock_only_vuforia: VuforiaBackend,
     model_updates: dict[str, object],
     view_updates: dict[str, object],
     expected_message: str,
@@ -329,9 +283,9 @@ def test_invalid_state_based_dataset(
             },
         ],
     }
-    access_token = access_token_for_backend(
+    access_token = get_access_token(
         base_vws_url=base_vws_url,
-        backend=model_target_mock_only_vuforia,
+        credentials=mock_model_target_credentials,
     )
     response = requests.post(
         url=f"{base_vws_url}/modeltargets/datasets",
@@ -354,8 +308,8 @@ def test_invalid_state_based_dataset(
 
 def test_advanced_realistic_appearance_not_in_enum(
     *,
+    model_target_credentials: ModelTargetCredentials,
     base_vws_url: str,
-    verify_model_target_mock_vuforia: VuforiaBackend,
 ) -> None:
     """Advanced dataset requests with a ``realisticAppearance`` value
     outside the documented enumeration are rejected.
@@ -364,23 +318,19 @@ def test_advanced_realistic_appearance_not_in_enum(
     ``realisticAppearance`` as a model field for advanced datasets
     only.
     """
-    credentials = credentials_for_backend(
-        backend=verify_model_target_mock_vuforia,
-    )
     body = {
         **UNAUTHENTICATED_DATASET_REQUEST,
         "models": [
             {
                 **MODEL,
-                "cadDataUrl": credentials.cad_data_url,
+                "cadDataUrl": model_target_credentials.cad_data_url,
                 "realisticAppearance": "yes",
             },
         ],
     }
     access_token = get_access_token(
         base_vws_url=base_vws_url,
-        credentials=credentials,
-        backend=verify_model_target_mock_vuforia,
+        credentials=model_target_credentials,
     )
     advanced_response = requests.post(
         url=f"{base_vws_url}/modeltargets/advancedDatasets",
@@ -403,8 +353,8 @@ def test_advanced_realistic_appearance_not_in_enum(
 
 def test_oauth2_token_body_not_utf_8(
     *,
+    model_target_credentials: ModelTargetCredentials,
     base_vws_url: str,
-    verify_model_target_mock_vuforia: VuforiaBackend,
 ) -> None:
     """An OAuth2 token request with a body which is not valid UTF-8 is
     treated as one which does not name a grant type.
@@ -412,13 +362,12 @@ def test_oauth2_token_body_not_utf_8(
     Real Vuforia also treats a body that cannot be decoded as an empty
     form.
     """
-    credentials = credentials_for_backend(
-        backend=verify_model_target_mock_vuforia,
-    )
-
     response = requests.post(
         url=f"{base_vws_url}/oauth2/token",
-        auth=(credentials.client_id, credentials.client_secret),
+        auth=(
+            model_target_credentials.client_id,
+            model_target_credentials.client_secret,
+        ),
         data=b"\xff",
         timeout=30,
     )
@@ -532,24 +481,22 @@ def test_failed_dataset_cannot_be_downloaded(*, base_vws_url: str) -> None:
 )
 def test_dataset_is_visible_to_the_other_dataset_type(
     *,
+    model_target_credentials: ModelTargetCredentials,
     base_vws_url: str,
-    verify_model_target_mock_vuforia: VuforiaBackend,
     created_path: str,
     other_path: str,
 ) -> None:
     """Standard and advanced routes share datasets by UUID."""
-    access_token = access_token_for_backend(
+    access_token = get_access_token(
         base_vws_url=base_vws_url,
-        backend=verify_model_target_mock_vuforia,
+        credentials=model_target_credentials,
     )
     headers = {"Authorization": f"Bearer {access_token}"}
     create_response = requests.post(
         url=f"{base_vws_url}{created_path}",
         headers=headers,
         json=_dataset_request(
-            cad_data_url=credentials_for_backend(
-                backend=verify_model_target_mock_vuforia,
-            ).cad_data_url,
+            cad_data_url=model_target_credentials.cad_data_url,
         ),
         timeout=30,
     )
@@ -612,8 +559,8 @@ def test_dataset_is_visible_to_the_other_dataset_type(
 
 def test_create_status_and_delete(
     *,
+    model_target_credentials: ModelTargetCredentials,
     base_vws_url: str,
-    verify_model_target_mock_vuforia: VuforiaBackend,
 ) -> None:
     """A standard dataset works through the shared advanced routes.
 
@@ -621,19 +568,17 @@ def test_create_status_and_delete(
     Vuforia exposes its completed artifact through both route families,
     so this also verifies the advanced status and download endpoints.
     """
-    credentials = credentials_for_backend(
-        backend=verify_model_target_mock_vuforia,
-    )
     access_token = get_access_token(
         base_vws_url=base_vws_url,
-        credentials=credentials,
-        backend=verify_model_target_mock_vuforia,
+        credentials=model_target_credentials,
     )
     headers = {"Authorization": f"Bearer {access_token}"}
     create_response = requests.post(
         url=f"{base_vws_url}/modeltargets/datasets",
         headers=headers,
-        json=_dataset_request(cad_data_url=credentials.cad_data_url),
+        json=_dataset_request(
+            cad_data_url=model_target_credentials.cad_data_url
+        ),
         timeout=30,
     )
 
@@ -733,22 +678,13 @@ def test_create_status_and_delete(
 
 def test_create_with_cad_data_blob(
     *,
+    signed_model_target_credentials: ModelTargetCredentials,
     base_vws_url: str,
-    request: pytest.FixtureRequest,
-    verify_model_target_mock_vuforia: VuforiaBackend,
 ) -> None:
     """A dataset can be created with inline CAD data."""
-    _skip_unrequested_real_signing(
-        request=request,
-        backend=verify_model_target_mock_vuforia,
-    )
-    credentials = credentials_for_backend(
-        backend=verify_model_target_mock_vuforia,
-    )
     access_token = get_access_token(
         base_vws_url=base_vws_url,
-        credentials=credentials,
-        backend=verify_model_target_mock_vuforia,
+        credentials=signed_model_target_credentials,
     )
     headers = {"Authorization": f"Bearer {access_token}"}
 
