@@ -46,12 +46,14 @@ from tests.mock_vws.vumark_generation_api.helpers import (
 )
 def test_generate_instance_format(
     *,
+    base_vws_url: str,
     accept: VuMarkAccept,
     expected_signature: bytes,
     vumark_vuforia_database: VuMarkCloudDatabase,
 ) -> None:
     """A VuMark instance can be generated in the requested format."""
     vumark_client = make_vumark_service(
+        base_vws_url=base_vws_url,
         server_access_key=vumark_vuforia_database.server_access_key,
         server_secret_key=vumark_vuforia_database.server_secret_key,
     )
@@ -75,12 +77,14 @@ def test_generate_instance_format(
 )
 def test_generate_instance_content_type_header(
     *,
+    base_vws_url: str,
     accept: str,
     expected_content_type: str,
     vumark_vuforia_database: VuMarkCloudDatabase,
 ) -> None:
     """VuMark image responses include the expected content type."""
     response = make_vumark_request(
+        base_vws_url=base_vws_url,
         server_access_key=vumark_vuforia_database.server_access_key,
         server_secret_key=vumark_vuforia_database.server_secret_key,
         target_id=vumark_vuforia_database.target_id,
@@ -96,10 +100,12 @@ def test_generate_instance_content_type_header(
 
 
 def test_invalid_accept_header(
+    base_vws_url: str,
     vumark_vuforia_database: VuMarkCloudDatabase,
 ) -> None:
     """An unsupported Accept header returns an error."""
     response = make_vumark_request(
+        base_vws_url=base_vws_url,
         server_access_key=vumark_vuforia_database.server_access_key,
         server_secret_key=vumark_vuforia_database.server_secret_key,
         target_id=vumark_vuforia_database.target_id,
@@ -115,10 +121,12 @@ def test_invalid_accept_header(
 
 
 def test_empty_instance_id(
+    base_vws_url: str,
     vumark_vuforia_database: VuMarkCloudDatabase,
 ) -> None:
     """An empty instance_id returns InvalidInstanceId."""
     vumark_client = make_vumark_service(
+        base_vws_url=base_vws_url,
         server_access_key=vumark_vuforia_database.server_access_key,
         server_secret_key=vumark_vuforia_database.server_secret_key,
     )
@@ -154,11 +162,13 @@ def test_empty_instance_id(
 )
 def test_non_string_instance_id(
     *,
+    base_vws_url: str,
     instance_id: JsonValue,
     vumark_vuforia_database: VuMarkCloudDatabase,
 ) -> None:
     """An instance_id which is not a string returns BadRequest."""
     response = make_vumark_request(
+        base_vws_url=base_vws_url,
         server_access_key=vumark_vuforia_database.server_access_key,
         server_secret_key=vumark_vuforia_database.server_secret_key,
         target_id=vumark_vuforia_database.target_id,
@@ -172,10 +182,12 @@ def test_non_string_instance_id(
 
 
 def test_unknown_target(
+    base_vws_url: str,
     vumark_vuforia_database: VuMarkCloudDatabase,
 ) -> None:
     """An unknown target_id returns UnknownTarget."""
     response = make_vumark_request(
+        base_vws_url=base_vws_url,
         server_access_key=vumark_vuforia_database.server_access_key,
         server_secret_key=vumark_vuforia_database.server_secret_key,
         target_id=uuid4().hex,
@@ -189,6 +201,7 @@ def test_unknown_target(
 
 
 def test_non_vumark_database(
+    base_vws_url: str,
     vuforia_database: CloudDatabase,
 ) -> None:
     """Generating a VuMark instance for a target in a non-VuMark
@@ -197,10 +210,12 @@ def test_non_vumark_database(
     server_access_key = vuforia_database.server_access_key
     server_secret_key = vuforia_database.server_secret_key
     vws_client = VWS(
+        base_vws_url=base_vws_url,
         server_access_key=server_access_key,
         server_secret_key=server_secret_key,
     )
     vumark_client = make_vumark_service(
+        base_vws_url=base_vws_url,
         server_access_key=server_access_key,
         server_secret_key=server_secret_key,
     )
@@ -232,10 +247,12 @@ def test_non_vumark_database(
 
 
 def test_successful_target(
+    base_vws_url: str,
     vumark_vuforia_database: VuMarkCloudDatabase,
 ) -> None:
     """A VuMark target that has finished processing succeeds."""
     vumark_client = make_vumark_service(
+        base_vws_url=base_vws_url,
         server_access_key=vumark_vuforia_database.server_access_key,
         server_secret_key=vumark_vuforia_database.server_secret_key,
     )

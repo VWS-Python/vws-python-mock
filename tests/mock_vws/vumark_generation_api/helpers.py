@@ -12,8 +12,6 @@ type JsonValue = (
     str | int | float | bool | list[JsonValue] | dict[str, JsonValue] | None
 )
 
-_VWS_HOST = "https://vws.vuforia.com"
-
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
 PDF_SIGNATURE = b"%PDF"
@@ -24,11 +22,13 @@ SVG_START = b"<"
 @beartype
 def make_vumark_service(
     *,
+    base_vws_url: str,
     server_access_key: str,
     server_secret_key: str,
 ) -> VuMarkService:
     """Return a VuMark service client."""
     return VuMarkService(
+        base_vws_url=base_vws_url,
         server_access_key=server_access_key,
         server_secret_key=server_secret_key,
     )
@@ -37,6 +37,7 @@ def make_vumark_service(
 @beartype
 def make_vumark_request(
     *,
+    base_vws_url: str,
     server_access_key: str,
     server_secret_key: str,
     target_id: str,
@@ -63,7 +64,7 @@ def make_vumark_request(
     )
 
     return requests.post(
-        url=_VWS_HOST + request_path,
+        url=base_vws_url + request_path,
         headers={
             "Accept": accept,
             "Authorization": authorization_string,
