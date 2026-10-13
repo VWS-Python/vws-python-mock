@@ -10,12 +10,7 @@ from http import HTTPStatus
 import pytest
 import requests
 
-from tests.mock_vws.fixtures.model_target_prepared_requests import (
-    credentials_for_backend,
-)
-from tests.mock_vws.fixtures.vuforia_backends import (
-    VuforiaBackend,
-)
+from tests.mock_vws.fixtures.credentials import ModelTargetCredentials
 from tests.mock_vws.model_target_web_api.assertions import (
     assert_oauth2_error,
 )
@@ -105,19 +100,16 @@ def test_invalid_oauth2_token_request(
 
 def test_password_grant(
     *,
+    model_target_credentials: ModelTargetCredentials,
     base_vws_url: str,
-    verify_model_target_mock_vuforia: VuforiaBackend,
 ) -> None:
     """A username and password can be exchanged for a scoped token."""
-    credentials = credentials_for_backend(
-        backend=verify_model_target_mock_vuforia,
-    )
     response = requests.post(
         url=f"{base_vws_url}/oauth2/token",
         data={
             "grant_type": "password",
-            "username": credentials.username,
-            "password": credentials.password,
+            "username": model_target_credentials.username,
+            "password": model_target_credentials.password,
             "scope": "modeltargets.standardmodeltarget.all",
         },
         timeout=30,
@@ -133,16 +125,16 @@ def test_password_grant(
 
 def test_scoped_client_credentials_grant(
     *,
+    model_target_credentials: ModelTargetCredentials,
     base_vws_url: str,
-    verify_model_target_mock_vuforia: VuforiaBackend,
 ) -> None:
     """A client credentials request accepts an explicit scope."""
-    credentials = credentials_for_backend(
-        backend=verify_model_target_mock_vuforia,
-    )
     response = requests.post(
         url=f"{base_vws_url}/oauth2/token",
-        auth=(credentials.client_id, credentials.client_secret),
+        auth=(
+            model_target_credentials.client_id,
+            model_target_credentials.client_secret,
+        ),
         data={
             "grant_type": "client_credentials",
             "scope": "modeltargets.standardmodeltarget.all",
@@ -160,16 +152,16 @@ def test_scoped_client_credentials_grant(
 
 def test_insufficient_scope(
     *,
+    model_target_credentials: ModelTargetCredentials,
     base_vws_url: str,
-    verify_model_target_mock_vuforia: VuforiaBackend,
 ) -> None:
     """A route rejects a token carrying only another route's scope."""
-    credentials = credentials_for_backend(
-        backend=verify_model_target_mock_vuforia,
-    )
     token_response = requests.post(
         url=f"{base_vws_url}/oauth2/token",
-        auth=(credentials.client_id, credentials.client_secret),
+        auth=(
+            model_target_credentials.client_id,
+            model_target_credentials.client_secret,
+        ),
         data={
             "grant_type": "client_credentials",
             "scope": "modeltargets.standardmodeltarget.all",
@@ -203,21 +195,18 @@ def test_insufficient_scope(
 
 def test_client_credentials_management(
     *,
+    model_target_credentials: ModelTargetCredentials,
     base_vws_url: str,
-    verify_model_target_mock_vuforia: VuforiaBackend,
 ) -> None:
     """Client credentials can be created, listed, updated and
     deleted.
     """
-    credentials = credentials_for_backend(
-        backend=verify_model_target_mock_vuforia,
-    )
     password_token_response = requests.post(
         url=f"{base_vws_url}/oauth2/token",
         data={
             "grant_type": "password",
-            "username": credentials.username,
-            "password": credentials.password,
+            "username": model_target_credentials.username,
+            "password": model_target_credentials.password,
             "scope": "oauth2.clientcredentials.all",
         },
         timeout=30,

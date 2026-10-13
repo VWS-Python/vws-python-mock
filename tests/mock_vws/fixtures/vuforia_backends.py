@@ -29,7 +29,9 @@ from mock_vws.states import States
 from mock_vws.target import VuMarkTarget
 from tests.mock_vws.fixtures.credentials import (
     InactiveVuMarkCloudDatabase,
+    ModelTargetCredentials,
     VuMarkCloudDatabase,
+    get_model_target_credentials,
 )
 from tests.mock_vws.utils.cloud_databases import AddCloudDatabase
 from tests.mock_vws.utils.model_target_retries import (
@@ -786,4 +788,98 @@ def _send_flask_unrouted_request(
         upstream_service_time=test_client_response.headers.get(
             key="x-envoy-upstream-service-time",
         ),
+    )
+
+
+@beartype
+def _model_target_credentials_for_backend(
+    *,
+    backend: VuforiaBackend,
+) -> ModelTargetCredentials:
+    """Return Model Target credentials for the chosen backend."""
+    if backend == VuforiaBackend.REAL:
+        return get_model_target_credentials()
+
+    return ModelTargetCredentials(
+        client_id="client-id",
+        client_secret="client-secret",
+        cad_data_url="https://example.com/model.glb",
+        username="user@example.com",
+        password="password",
+    )
+
+
+@pytest.fixture(name="model_target_credentials")
+def fixture_model_target_credentials(
+    *,
+    verify_model_target_mock_vuforia: VuforiaBackend,
+) -> ModelTargetCredentials:
+    """Model Target credentials supplied by the running backend."""
+    return _model_target_credentials_for_backend(
+        backend=verify_model_target_mock_vuforia,
+    )
+
+
+@pytest.fixture(name="mock_model_target_credentials")
+def fixture_mock_model_target_credentials(
+    *,
+    model_target_mock_only_vuforia: VuforiaBackend,
+) -> ModelTargetCredentials:
+    """Model Target credentials for tests which require a mock."""
+    return _model_target_credentials_for_backend(
+        backend=model_target_mock_only_vuforia,
+    )
+
+
+# Creating an advanced dataset with a state-based configuration or a standard
+# dataset with inline CAD data is a "signed" request: the real Vuforia signs
+# the trained dataset, and each signing consumes the account's allowance. The
+# allowance is tiny (roughly 20 signings, under ten CI runs' worth), it
+# is shared by every CI job and every concurrent run, and it cannot be
+# raised or reset by us.  Verifying this behavior on every run therefore
+# burns the whole allowance within hours and then turns every CI run red
+# with ``TRAINING_ALLOWANCE_EXCEEDED`` - which is exactly what happened
+# when it ran unconditionally.  The equivalent unsigned requests (a
+# standard dataset, or an advanced dataset without a state-based
+# configuration) are far cheaper and stay enabled, though with enough
+# traffic they can also hit the allowance; an unexpected allowance
+# rejection is reported as an expected failure by
+# ``assert_model_target_status`` rather than failing the run.
+_SIGNED_REQUEST_SKIP_REASON = (
+    "Signed Model Target requests consume the real Vuforia account's "
+    "small, shared, non-resettable training allowance, so they are not "
+    "verified against the real Vuforia by default. Pass "
+    f"{VERIFY_MODEL_TARGET_SIGNING_OPTION} to verify them, for example "
+    "after the allowance has recovered. The mock backends always run "
+    "this test."
+)
+
+
+def _skip_unrequested_real_signing(
+    *,
+    request: pytest.FixtureRequest,
+    backend: VuforiaBackend,
+) -> None:
+    """Skip a signing request against real Vuforia unless opted in."""
+    if backend is VuforiaBackend.REAL and not request.config.getoption(
+        name=VERIFY_MODEL_TARGET_SIGNING_OPTION,
+    ):
+        pytest.skip(reason=_SIGNED_REQUEST_SKIP_REASON)
+
+
+@pytest.fixture(name="signed_model_target_credentials")
+def fixture_signed_model_target_credentials(
+    *,
+    verify_model_target_mock_vuforia: VuforiaBackend,
+    request: pytest.FixtureRequest,
+) -> ModelTargetCredentials:
+    """Credentials for signing tests, after applying the real-service
+    opt-in policy.
+    """
+    _skip_unrequested_real_signing(
+        request=request,
+        backend=verify_model_target_mock_vuforia,
+    )
+    return _model_target_credentials_for_backend(
+        backend=verify_model_target_mock_vuforia,
     )
