@@ -3,6 +3,7 @@
 import io
 from collections.abc import Callable
 from http import HTTPMethod, HTTPStatus
+from urllib.parse import urljoin
 
 import httpx
 import httpx2
@@ -14,35 +15,40 @@ from vws_auth_tools import authorization_header, rfc_1123_date
 from mock_vws import CloudQueryFailureResponse, MockVWS
 from mock_vws.database import CloudDatabase
 
-_QUERY_URL = "https://cloudreco.vuforia.com/v1/query"
 type _HTTPResponse = requests.Response | httpx.Response | httpx2.Response
-type _QuerySender = Callable[[dict[str, str], bytes], _HTTPResponse]
+type _QuerySender = Callable[[str, dict[str, str], bytes], _HTTPResponse]
 
 
-def _requests_query(headers: dict[str, str], body: bytes) -> _HTTPResponse:
+def _requests_query(
+    url: str, headers: dict[str, str], body: bytes
+) -> _HTTPResponse:
     """Send a Cloud Query request with ``requests``."""
     return requests.post(
-        url=_QUERY_URL,
+        url=url,
         headers=headers,
         data=body,
         timeout=30,
     )
 
 
-def _httpx_query(headers: dict[str, str], body: bytes) -> _HTTPResponse:
+def _httpx_query(
+    url: str, headers: dict[str, str], body: bytes
+) -> _HTTPResponse:
     """Send a Cloud Query request with ``httpx``."""
     return httpx.post(
-        url=_QUERY_URL,
+        url=url,
         headers=headers,
         content=body,
         timeout=30,
     )
 
 
-def _httpx2_query(headers: dict[str, str], body: bytes) -> _HTTPResponse:
+def _httpx2_query(
+    url: str, headers: dict[str, str], body: bytes
+) -> _HTTPResponse:
     """Send a Cloud Query request with ``httpx2``."""
     return httpx2.post(
-        url=_QUERY_URL,
+        url=url,
         headers=headers,
         content=body,
         timeout=30,
@@ -115,6 +121,7 @@ def _valid_query(
 def test_configured_failure_response(
     *,
     high_quality_image: io.BytesIO,
+    base_vwq_url: str,
     send_query: _QuerySender,
     status_code: HTTPStatus,
     headers: dict[str, str],
@@ -133,9 +140,16 @@ def test_configured_failure_response(
         body=body,
     )
 
-    with MockVWS(cloud_query_failure_response=failure) as mock:
+    with MockVWS(
+        base_vwq_url=base_vwq_url,
+        cloud_query_failure_response=failure,
+    ) as mock:
         mock.add_cloud_database(cloud_database=database)
-        response = send_query(query_headers, query_body)
+        response = send_query(
+            urljoin(base=base_vwq_url, url="/v1/query"),
+            query_headers,
+            query_body,
+        )
 
     assert response.status_code == status_code
     assert response.content == expected_body

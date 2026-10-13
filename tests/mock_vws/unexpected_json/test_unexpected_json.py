@@ -2,7 +2,6 @@
 
 import json
 from http import HTTPStatus
-from urllib.parse import urlparse
 
 from vws_auth_tools import authorization_header, rfc_1123_date
 
@@ -11,7 +10,7 @@ from tests.mock_vws.utils.assertions import assert_vwq_failure
 from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
 
-def test_does_not_take_data(endpoint: Endpoint) -> None:
+def test_does_not_take_data(endpoint: Endpoint, base_vwq_url: str) -> None:
     """
     Giving JSON to endpoints which do not take any JSON data returns
     error
@@ -62,8 +61,7 @@ def test_does_not_take_data(endpoint: Endpoint) -> None:
 
     handle_server_errors(response=response)
 
-    netloc = urlparse(url=endpoint.base_url).netloc
-    if netloc == "cloudreco.vuforia.com":
+    if endpoint.base_url == base_vwq_url:
         # The multipart/formdata boundary is no longer in the given
         # content.
         assert not bool(response.text)

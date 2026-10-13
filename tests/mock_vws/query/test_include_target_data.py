@@ -23,6 +23,7 @@ def test_default(
     high_quality_image: io.BytesIO,
     vws_client: VWS,
     vuforia_database: CloudDatabase,
+    base_vwq_url: str,
 ) -> None:
     """The default ``include_target_data`` is 'top'."""
     add_and_wait_for_targets(
@@ -36,7 +37,9 @@ def test_default(
         "max_num_results": (None, 2, "text/plain"),
     }
 
-    response = query(vuforia_database=vuforia_database, body=body)
+    response = query(
+        vuforia_database=vuforia_database, body=body, base_vwq_url=base_vwq_url
+    )
 
     assert_query_success(response=response)
     response_json = json.loads(s=response.text)
@@ -55,6 +58,7 @@ def test_top(
     vuforia_database: CloudDatabase,
     include_target_data: str,
     vws_client: VWS,
+    base_vwq_url: str,
 ) -> None:
     """
     When ``include_target_data`` is set to "top" (case insensitive),
@@ -73,7 +77,9 @@ def test_top(
         "max_num_results": (None, 2, "text/plain"),
     }
 
-    response = query(vuforia_database=vuforia_database, body=body)
+    response = query(
+        vuforia_database=vuforia_database, body=body, base_vwq_url=base_vwq_url
+    )
 
     assert_query_success(response=response)
     response_json = json.loads(s=response.text)
@@ -92,6 +98,7 @@ def test_none(
     vuforia_database: CloudDatabase,
     include_target_data: str,
     vws_client: VWS,
+    base_vwq_url: str,
 ) -> None:
     """
     When ``include_target_data`` is set to "none" (case
@@ -110,7 +117,9 @@ def test_none(
         "max_num_results": (None, 2, "text/plain"),
     }
 
-    response = query(vuforia_database=vuforia_database, body=body)
+    response = query(
+        vuforia_database=vuforia_database, body=body, base_vwq_url=base_vwq_url
+    )
 
     assert_query_success(response=response)
     response_json = json.loads(s=response.text)
@@ -129,6 +138,7 @@ def test_all(
     vuforia_database: CloudDatabase,
     include_target_data: str,
     vws_client: VWS,
+    base_vwq_url: str,
 ) -> None:
     """
     When ``include_target_data`` is set to "all" (case insensitive),
@@ -147,7 +157,9 @@ def test_all(
         "max_num_results": (None, 2, "text/plain"),
     }
 
-    response = query(vuforia_database=vuforia_database, body=body)
+    response = query(
+        vuforia_database=vuforia_database, body=body, base_vwq_url=base_vwq_url
+    )
 
     assert_query_success(response=response)
     response_json = json.loads(s=response.text)
@@ -165,6 +177,7 @@ def test_invalid_value(
     high_quality_image: io.BytesIO,
     vuforia_database: CloudDatabase,
     include_target_data: str | bool | int,
+    base_vwq_url: str,
 ) -> None:
     """
     A ``BAD_REQUEST`` error is given when a string that is not one
@@ -176,7 +189,9 @@ def test_invalid_value(
         "image": ("image.jpeg", image_content, "image/jpeg"),
         "include_target_data": (None, include_target_data, "text/plain"),
     }
-    response = query(vuforia_database=vuforia_database, body=body)
+    response = query(
+        vuforia_database=vuforia_database, body=body, base_vwq_url=base_vwq_url
+    )
 
     expected_text = (
         f"Invalid value '{str(object=include_target_data).lower()}' in "

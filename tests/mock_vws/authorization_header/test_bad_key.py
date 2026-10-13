@@ -20,6 +20,7 @@ from tests.mock_vws.utils.assertions import (
 
 def test_bad_access_key_services(
     vuforia_database: CloudDatabase,
+    base_vws_url: str,
 ) -> None:
     """
     If the server access key given does not match any database, a
@@ -29,6 +30,7 @@ def test_bad_access_key_services(
     vws_client = VWS(
         server_access_key="example",
         server_secret_key=vuforia_database.server_secret_key,
+        base_vws_url=base_vws_url,
     )
 
     with pytest.raises(expected_exception=FailError) as exc:
@@ -41,6 +43,7 @@ def test_bad_access_key_query(
     *,
     vuforia_database: CloudDatabase,
     high_quality_image: io.BytesIO,
+    base_vwq_url: str,
 ) -> None:
     """
     If the client access key given is incorrect, an ``UNAUTHORIZED``
@@ -49,6 +52,7 @@ def test_bad_access_key_query(
     cloud_reco_client = CloudRecoService(
         client_access_key="example",
         client_secret_key=vuforia_database.client_secret_key,
+        base_vwq_url=base_vwq_url,
     )
 
     with pytest.raises(
@@ -91,6 +95,7 @@ def test_bad_access_key_query(
 
 def test_bad_secret_key_services(
     vuforia_database: CloudDatabase,
+    base_vws_url: str,
 ) -> None:
     """
     If the server secret key given is incorrect, an
@@ -99,6 +104,7 @@ def test_bad_secret_key_services(
     vws_client = VWS(
         server_access_key=vuforia_database.server_access_key,
         server_secret_key="example",
+        base_vws_url=base_vws_url,
     )
 
     with pytest.raises(expected_exception=AuthenticationFailureError):
@@ -109,6 +115,7 @@ def test_bad_secret_key_query(
     *,
     vuforia_database: CloudDatabase,
     high_quality_image: io.BytesIO,
+    base_vwq_url: str,
 ) -> None:
     """
     If the client secret key given is incorrect, an ``UNAUTHORIZED``
@@ -117,6 +124,7 @@ def test_bad_secret_key_query(
     cloud_reco_client = CloudRecoService(
         client_access_key=vuforia_database.client_access_key,
         client_secret_key="example",
+        base_vwq_url=base_vwq_url,
     )
 
     with pytest.raises(

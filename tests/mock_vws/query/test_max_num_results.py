@@ -28,6 +28,7 @@ def test_default(
     high_quality_image: io.BytesIO,
     vuforia_database: CloudDatabase,
     vws_client: VWS,
+    base_vwq_url: str,
 ) -> None:
     """The default ``max_num_results`` is 1."""
     image_content = high_quality_image.getvalue()
@@ -53,7 +54,9 @@ def test_default(
         "image": ("image.jpeg", image_content, "image/jpeg"),
     }
 
-    response = query(vuforia_database=vuforia_database, body=body)
+    response = query(
+        vuforia_database=vuforia_database, body=body, base_vwq_url=base_vwq_url
+    )
 
     assert_query_success(response=response)
     response_json = json.loads(s=response.text)
@@ -70,6 +73,7 @@ def test_valid_accepted(
     high_quality_image: io.BytesIO,
     vuforia_database: CloudDatabase,
     num_results: int | bytes,
+    base_vwq_url: str,
 ) -> None:
     """Numbers between 1 and 50 are valid inputs.
 
@@ -89,7 +93,9 @@ def test_valid_accepted(
         "max_num_results": (None, num_results, "text/plain"),
     }
 
-    response = query(vuforia_database=vuforia_database, body=body)
+    response = query(
+        vuforia_database=vuforia_database, body=body, base_vwq_url=base_vwq_url
+    )
 
     assert_query_success(response=response)
     response_json = json.loads(s=response.text)
@@ -166,6 +172,7 @@ def test_invalid_type(
     high_quality_image: io.BytesIO,
     vuforia_database: CloudDatabase,
     num_results: bytes,
+    base_vwq_url: str,
 ) -> None:
     """An error is returned if ``max_num_results`` is given as
     something
@@ -179,7 +186,9 @@ def test_invalid_type(
         "image": ("image.jpeg", image_content, "image/jpeg"),
         "max_num_results": (None, num_results, "text/plain"),
     }
-    response = query(vuforia_database=vuforia_database, body=body)
+    response = query(
+        vuforia_database=vuforia_database, body=body, base_vwq_url=base_vwq_url
+    )
 
     expected_text = (
         f"Invalid value '{num_results.decode()}' in form data part "

@@ -24,6 +24,7 @@ def test_no_closing_boundary(
     *,
     high_quality_image: io.BytesIO,
     vuforia_database: CloudDatabase,
+    base_vwq_url: str,
 ) -> None:
     """A body which has all of the image data but no closing boundary
     is
@@ -38,6 +39,7 @@ def test_no_closing_boundary(
         vuforia_database=vuforia_database,
         content=truncated,
         content_type_header=content_type_header,
+        base_vwq_url=base_vwq_url,
     )
 
     assert_query_success(response=response)
@@ -48,6 +50,7 @@ def test_partial_closing_boundary(
     *,
     high_quality_image: io.BytesIO,
     vuforia_database: CloudDatabase,
+    base_vwq_url: str,
 ) -> None:
     """A body which is cut off part-way through its closing boundary is
     treated as if the closing boundary were given.
@@ -61,6 +64,7 @@ def test_partial_closing_boundary(
         vuforia_database=vuforia_database,
         content=truncated,
         content_type_header=content_type_header,
+        base_vwq_url=base_vwq_url,
     )
 
     assert_query_success(response=response)
@@ -71,6 +75,7 @@ def test_truncated_at_end_of_header(
     *,
     high_quality_image: io.BytesIO,
     vuforia_database: CloudDatabase,
+    base_vwq_url: str,
 ) -> None:
     """A body which is cut off at the end of a header of a part, before
     the line ending of that header, gives a ``BadImage`` response, as
@@ -87,6 +92,7 @@ def test_truncated_at_end_of_header(
         vuforia_database=vuforia_database,
         content=truncated,
         content_type_header=content_type_header,
+        base_vwq_url=base_vwq_url,
     )
 
     assert_vwq_failure(
@@ -105,6 +111,7 @@ def test_truncated_image_data(
     *,
     high_quality_image: io.BytesIO,
     vuforia_database: CloudDatabase,
+    base_vwq_url: str,
 ) -> None:
     """A body which is cut off within the image data gives a
     ``BadImage`` response.
@@ -118,6 +125,7 @@ def test_truncated_image_data(
         vuforia_database=vuforia_database,
         content=truncated,
         content_type_header=content_type_header,
+        base_vwq_url=base_vwq_url,
     )
 
     assert_vwq_failure(
@@ -136,6 +144,7 @@ def test_truncated_in_part_headers(
     *,
     high_quality_image: io.BytesIO,
     vuforia_database: CloudDatabase,
+    base_vwq_url: str,
 ) -> None:
     """A body which is cut off within the headers of a part, so that no
     ``Content-Disposition`` header is complete, gives a ``BAD_REQUEST``
@@ -150,6 +159,7 @@ def test_truncated_in_part_headers(
         vuforia_database=vuforia_database,
         content=truncated,
         content_type_header=content_type_header,
+        base_vwq_url=base_vwq_url,
     )
 
     expected_text = "Could find no Content-Disposition header within part"
@@ -168,6 +178,7 @@ def test_no_content_disposition_header(
     *,
     high_quality_image: io.BytesIO,
     vuforia_database: CloudDatabase,
+    base_vwq_url: str,
 ) -> None:
     """A complete body with a part which has no ``Content-Disposition``
     header gives a ``BAD_REQUEST`` response.
@@ -192,6 +203,7 @@ def test_no_content_disposition_header(
         vuforia_database=vuforia_database,
         content=without_content_disposition,
         content_type_header=content_type_header,
+        base_vwq_url=base_vwq_url,
     )
 
     expected_text = "Could find no Content-Disposition header within part"

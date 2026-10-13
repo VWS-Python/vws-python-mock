@@ -12,12 +12,17 @@ from tests.mock_vws.utils.assertions import (
 )
 
 
-def test_missing_image(vuforia_database: CloudDatabase) -> None:
+def test_missing_image(
+    vuforia_database: CloudDatabase,
+    base_vwq_url: str,
+) -> None:
     """
     If an image is not given, a ``BAD_REQUEST`` response is
     returned.
     """
-    response = query(vuforia_database=vuforia_database, body={})
+    response = query(
+        vuforia_database=vuforia_database, body={}, base_vwq_url=base_vwq_url
+    )
 
     assert response.text == "No image."
     assert_vwq_failure(
@@ -34,6 +39,7 @@ def test_extra_fields(
     *,
     high_quality_image: io.BytesIO,
     vuforia_database: CloudDatabase,
+    base_vwq_url: str,
 ) -> None:
     """If extra fields are given, a ``BAD_REQUEST`` response is
     returned.
@@ -47,7 +53,9 @@ def test_extra_fields(
         "extra_field": (None, 1, "text/plain"),
     }
 
-    response = query(vuforia_database=vuforia_database, body=body)
+    response = query(
+        vuforia_database=vuforia_database, body=body, base_vwq_url=base_vwq_url
+    )
 
     assert response.text == "Unknown parameters in the request."
     assert_vwq_failure(
@@ -62,6 +70,7 @@ def test_extra_fields(
 
 def test_missing_image_and_extra_fields(
     vuforia_database: CloudDatabase,
+    base_vwq_url: str,
 ) -> None:
     """If extra fields are given and no image field is given, a
     ``BAD_REQUEST`` response is returned.
@@ -72,7 +81,9 @@ def test_missing_image_and_extra_fields(
         "extra_field": (None, 1, "text/plain"),
     }
 
-    response = query(vuforia_database=vuforia_database, body=body)
+    response = query(
+        vuforia_database=vuforia_database, body=body, base_vwq_url=base_vwq_url
+    )
 
     assert response.text == "Unknown parameters in the request."
     assert_vwq_failure(

@@ -12,9 +12,6 @@ from vws.response import Response
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws.database import CloudDatabase
-from tests.mock_vws.query.helpers import (
-    VWQ_HOST,
-)
 from tests.mock_vws.utils.assertions import (
     assert_query_success,
     assert_vwq_failure,
@@ -36,6 +33,7 @@ def test_valid(
     high_quality_image: io.BytesIO,
     vuforia_database: CloudDatabase,
     extra_headers: dict[str, str],
+    base_vwq_url: str,
 ) -> None:
     """An ``Accept`` header can be given iff its value is
     "application/json".
@@ -67,7 +65,7 @@ def test_valid(
 
     requests_response = requests.request(
         method=method,
-        url=urljoin(base=VWQ_HOST, url=request_path),
+        url=urljoin(base=base_vwq_url, url=request_path),
         headers=headers,
         data=content,
         timeout=30,
@@ -92,6 +90,7 @@ def test_invalid(
     *,
     high_quality_image: io.BytesIO,
     vuforia_database: CloudDatabase,
+    base_vwq_url: str,
 ) -> None:
     """
     A NOT_ACCEPTABLE response is returned if an ``Accept`` header is
@@ -127,7 +126,7 @@ def test_invalid(
 
     requests_response = requests.request(
         method=method,
-        url=urljoin(base=VWQ_HOST, url=request_path),
+        url=urljoin(base=base_vwq_url, url=request_path),
         headers=headers,
         data=content,
         timeout=30,

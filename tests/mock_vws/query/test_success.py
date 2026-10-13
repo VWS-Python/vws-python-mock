@@ -39,6 +39,7 @@ def test_match_exact(
     high_quality_image: io.BytesIO,
     vuforia_database: CloudDatabase,
     vws_client: VWS,
+    base_vwq_url: str,
 ) -> None:
     """
     If the exact high quality image that was added is queried for,
@@ -64,7 +65,9 @@ def test_match_exact(
 
     body = {"image": ("image.jpeg", image_content, "image/jpeg")}
 
-    response = query(vuforia_database=vuforia_database, body=body)
+    response = query(
+        vuforia_database=vuforia_database, body=body, base_vwq_url=base_vwq_url
+    )
 
     assert_query_success(response=response)
     response_json = json.loads(s=response.text)
