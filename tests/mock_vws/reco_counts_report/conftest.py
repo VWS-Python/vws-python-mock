@@ -4,13 +4,13 @@ import pytest
 
 from mock_vws.database import CloudDatabase
 from tests.mock_vws.fixtures.vuforia_backends import VuforiaBackend
-from tests.mock_vws.utils.cloud_databases import add_cloud_database
+from tests.mock_vws.utils.cloud_databases import AddCloudDatabase
 
 
 @pytest.fixture(name="fresh_database")
 def fixture_fresh_database(
     *,
-    mock_only_vuforia: VuforiaBackend,
+    add_cloud_database: AddCloudDatabase,
 ) -> CloudDatabase:
     """A database which no report has been requested for.
 
@@ -22,7 +22,7 @@ def fixture_fresh_database(
     database.
     """
     database = CloudDatabase()
-    add_cloud_database(backend=mock_only_vuforia, cloud_database=database)
+    add_cloud_database(cloud_database=database)
     return database
 
 
