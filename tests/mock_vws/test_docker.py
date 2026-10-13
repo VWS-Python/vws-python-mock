@@ -11,6 +11,7 @@ separate containers, and so are the only tests which can.
 import datetime
 import io
 import json
+import os
 import socket
 import uuid
 import zipfile
@@ -282,9 +283,24 @@ def _vws_client(
 
 
 @beartype
+def _docker_client() -> docker.DockerClient:
+    """Return a client for the Docker API engine selected by the
+    environment.
+
+    Returns:
+        A client using the requested API version, or automatic negotiation.
+    """
+    # Socktainer needs an explicit API version until negotiation is fixed:
+    # https://github.com/socktainer/socktainer/issues/433
+    return docker.from_env(
+        version=os.environ.get(key="DOCKER_API_VERSION", default="auto"),
+    )
+
+
+@beartype
 def _create_bridge_network(*, resources: ExitStack) -> Network:
     """Create a test network and register its removal immediately."""
-    client = docker.from_env()
+    client = _docker_client()
     name = "test-vws-bridge-" + uuid.uuid4().hex
     try:
         network = client.networks.create(name=name, driver="bridge")
@@ -309,7 +325,7 @@ def _build_image(
     Returns:
         The built image.
     """
-    client = docker.from_env()
+    client = _docker_client()
     dockerfile = f"{repository_root}/src/mock_vws/_flask_server/Dockerfile"
     try:
         image, _ = client.images.build(
@@ -371,7 +387,7 @@ def fixture_mock_deployment() -> Iterator[_MockDeployment]:
             start=Path(__file__).resolve(),
         )
     )
-    client = docker.from_env()
+    client = _docker_client()
     random = uuid.uuid4().hex
 
     with ExitStack() as resources:
@@ -404,10 +420,13 @@ def fixture_mock_deployment() -> Iterator[_MockDeployment]:
         vws_host_port = _free_port()
         base_vws_url = f"http://127.0.0.1:{vws_host_port}"
 
+        # Target-manager and VWQ need explicit ports while Socktainer ignores
+        # publish_all_ports=True:
+        # https://github.com/socktainer/socktainer/issues/434
         target_manager_container = client.containers.create(
             image=target_manager_image,
             name=target_manager_container_name,
-            publish_all_ports=True,
+            ports={"5000/tcp": ("127.0.0.1", _free_port())},
             network=custom_bridge_network.name,
         )
         _start_container(
@@ -429,7 +448,7 @@ def fixture_mock_deployment() -> Iterator[_MockDeployment]:
         vwq_container = client.containers.create(
             image=vwq_image,
             name="vws-mock-vwq-" + random,
-            publish_all_ports=True,
+            ports={"5000/tcp": ("127.0.0.1", _free_port())},
             network=custom_bridge_network.name,
             environment={
                 "TARGET_MANAGER_BASE_URL": target_manager_internal_base_url,

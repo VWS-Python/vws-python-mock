@@ -4,8 +4,7 @@ name: Deploy documentation
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
+  pull_request: {}
 
 jobs:
   pages:
@@ -22,6 +21,6 @@ jobs:
         with:
           documentation_path: docs/source
           pyproject_group: dev
-          python_version: '3.14'
+          python_version: '3.15'
           sphinx_build_options: -W
           publish: ${{ github.ref_name == 'main' }}

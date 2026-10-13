@@ -4,8 +4,7 @@ name: autofix.ci
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
+  pull_request: {}
 
 permissions:
   contents: read
@@ -33,7 +32,7 @@ jobs:
             --verbose
         env:
           UV_NO_CACHE: '1'
-          UV_PYTHON: '3.14'
+          UV_PYTHON: '3.15'
 
       - uses: autofix-ci/action@v1.3.4
         if: always()
