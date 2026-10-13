@@ -25,12 +25,14 @@ from tests.mock_vws.vumark_generation_api.helpers import (
 
 
 def test_processing_target(
+    base_vws_url: str,
     vumark_vuforia_database: VuMarkCloudDatabase,
 ) -> None:
     """A VuMark target still processing returns
     TargetStatusNotSuccess.
     """
     vumark_client = make_vumark_service(
+        base_vws_url=base_vws_url,
         server_access_key=vumark_vuforia_database.server_access_key,
         server_secret_key=vumark_vuforia_database.server_secret_key,
     )
@@ -52,12 +54,14 @@ def test_processing_target(
 
 
 def test_processing_target_raw_response(
+    base_vws_url: str,
     vumark_vuforia_database: VuMarkCloudDatabase,
 ) -> None:
     """The raw HTTP response for a processing target has the expected
     status code and result code.
     """
     response = make_vumark_request(
+        base_vws_url=base_vws_url,
         server_access_key=vumark_vuforia_database.server_access_key,
         server_secret_key=vumark_vuforia_database.server_secret_key,
         target_id=vumark_vuforia_database.processing_target_id,

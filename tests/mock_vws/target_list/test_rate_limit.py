@@ -17,6 +17,7 @@ from tests.mock_vws.utils.assertions import assert_vws_too_many_requests
 
 def test_two_requests_per_minute(
     *,
+    base_vws_url: str,
     verify_mock_vuforia: VuforiaBackend,
     rate_limited_database: CloudDatabase,
 ) -> None:
@@ -48,7 +49,7 @@ def test_two_requests_per_minute(
             request_path="/targets",
         )
         endpoint = Endpoint(
-            base_url="https://vws.vuforia.com",
+            base_url=base_vws_url,
             path_url="/targets",
             method=HTTPMethod.GET,
             headers={"Authorization": authorization, "Date": date},
