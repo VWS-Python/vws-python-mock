@@ -1,0 +1,1 @@
+Tag manually selected release branches at their changelog commit and verify the remote tag before publishing packages or container images.
