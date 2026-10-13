@@ -1,10 +1,12 @@
 """Choose which backends to use for the tests."""
 
 import contextlib
+import gzip
 import logging
 import os
 from collections.abc import Generator
 from enum import Enum
+from http import HTTPMethod
 
 import pytest
 import requests
@@ -37,6 +39,10 @@ from tests.mock_vws.utils.recognition_counts import SeedRecognitionCounts
 from tests.mock_vws.utils.retries import (
     RETRY_ON_TARGET_STILL_PROCESSING,
     RETRY_ON_TRANSIENT_VWS_FAILURE,
+)
+from tests.mock_vws.utils.unrouted_requests import (
+    UnroutedRequests,
+    UnroutedResponse,
 )
 
 LOGGER = logging.getLogger(name=__name__)
@@ -698,3 +704,86 @@ def fixture_seed_recognition_counts(
         response.raise_for_status()
 
     return seed_flask_counts
+
+
+@pytest.fixture(name="unrouted_requests")
+def fixture_unrouted_requests(
+    *,
+    verify_mock_vuforia: VuforiaBackend,
+    base_vws_url: str,
+) -> UnroutedRequests:
+    """The transport for unmatched requests on the running backend."""
+    if verify_mock_vuforia == VuforiaBackend.FLASK_IN_PROCESS:
+        return UnroutedRequests(
+            send=_send_flask_unrouted_request,
+            returns_response=True,
+        )
+
+    @beartype
+    def send_http_request(
+        *,
+        method: HTTPMethod,
+        request_path: str,
+        headers: dict[str, str],
+    ) -> UnroutedResponse | None:
+        """Send an unmatched request to the configured VWS URL."""
+        try:
+            response = requests.request(
+                method=method,
+                url=base_vws_url + request_path,
+                headers=headers,
+                timeout=30,
+            )
+        except requests.exceptions.ConnectionError:
+            return None
+
+        return UnroutedResponse(
+            status_code=response.status_code,
+            body=response.content,
+            content_type=response.headers.get("Content-Type"),
+            content_encoding=response.headers.get("Content-Encoding"),
+            upstream_service_time=response.headers.get(
+                "x-envoy-upstream-service-time",
+            ),
+        )
+
+    return UnroutedRequests(
+        send=send_http_request,
+        returns_response=verify_mock_vuforia != VuforiaBackend.MOCK,
+    )
+
+
+@beartype
+def _send_flask_unrouted_request(
+    *,
+    method: HTTPMethod,
+    request_path: str,
+    headers: dict[str, str],
+) -> UnroutedResponse:
+    """Send an unmatched request through the in-process Flask client."""
+    # The ``responses`` library intercepts only the paths and methods
+    # which the Flask app routes, so requests to any other path never
+    # reach the app. A running container serves every path, so we drive
+    # the app with its own test client.
+    test_client_response = VWS_FLASK_APP.test_client().open(
+        request_path,
+        method=method,
+        headers=headers,
+    )
+    response_body = test_client_response.data
+    content_encoding = test_client_response.headers.get(
+        key="Content-Encoding",
+    )
+    if content_encoding == "gzip":
+        response_body = gzip.decompress(data=response_body)
+    return UnroutedResponse(
+        status_code=test_client_response.status_code,
+        body=response_body,
+        content_type=test_client_response.headers.get(
+            key="Content-Type",
+        ),
+        content_encoding=content_encoding,
+        upstream_service_time=test_client_response.headers.get(
+            key="x-envoy-upstream-service-time",
+        ),
+    )
