@@ -164,36 +164,37 @@ def test_custom_sleep_fn_called_on_timeout() -> None:
     assert calls == [1.0]
 
 
-class TestProcessingTime:
-    """Tests for the time taken to process targets in the mock."""
+# Tests for the time taken to process targets in the mock.
 
-    # There is a race condition in this test type - if tests start to
-    # fail, consider increasing the leeway.
-    LEEWAY = 1.0
+# There is a race condition in this test type - if tests start to
+# fail, consider increasing the leeway.
+_LEEWAY = 1.0
 
-    def test_default(self, image_file_failed_state: io.BytesIO) -> None:
-        """By default, targets in the mock takes 2 seconds to be processed."""
-        database = CloudDatabase()
-        with MockVWS() as mock:
-            mock.add_cloud_database(cloud_database=database)
-            time_taken = processing_time_seconds(
-                vuforia_database=database,
-                image=image_file_failed_state,
-            )
 
-        expected = 2
-        assert expected - self.LEEWAY < time_taken < expected + self.LEEWAY
+def test_default(image_file_failed_state: io.BytesIO) -> None:
+    """By default, targets in the mock takes 2 seconds to be processed."""
+    database = CloudDatabase()
+    with MockVWS() as mock:
+        mock.add_cloud_database(cloud_database=database)
+        time_taken = processing_time_seconds(
+            vuforia_database=database,
+            image=image_file_failed_state,
+        )
 
-    def test_custom(self, image_file_failed_state: io.BytesIO) -> None:
-        """It is possible to set a custom processing time."""
-        database = CloudDatabase()
-        seconds = 5
-        with MockVWS(processing_time_seconds=seconds) as mock:
-            mock.add_cloud_database(cloud_database=database)
-            time_taken = processing_time_seconds(
-                vuforia_database=database,
-                image=image_file_failed_state,
-            )
+    expected = 2
+    assert expected - _LEEWAY < time_taken < expected + _LEEWAY
 
-        expected = seconds
-        assert expected - self.LEEWAY < time_taken < expected + self.LEEWAY
+
+def test_custom(image_file_failed_state: io.BytesIO) -> None:
+    """It is possible to set a custom processing time."""
+    database = CloudDatabase()
+    seconds = 5
+    with MockVWS(processing_time_seconds=seconds) as mock:
+        mock.add_cloud_database(cloud_database=database)
+        time_taken = processing_time_seconds(
+            vuforia_database=database,
+            image=image_file_failed_state,
+        )
+
+    expected = seconds
+    assert expected - _LEEWAY < time_taken < expected + _LEEWAY

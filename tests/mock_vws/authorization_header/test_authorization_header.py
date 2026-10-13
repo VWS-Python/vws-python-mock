@@ -1,0 +1,66 @@
+"""
+Tests for what happens when the `Authorization` header is not as
+expected.
+"""
+
+from http import HTTPStatus
+from urllib.parse import urlparse
+
+from vws_auth_tools import rfc_1123_date
+
+from mock_vws._constants import ResultCodes
+from tests.mock_vws.utils import Endpoint
+from tests.mock_vws.utils.assertions import (
+    assert_vwq_failure,
+    assert_vws_failure,
+)
+from tests.mock_vws.utils.too_many_requests import handle_server_errors
+
+
+def test_missing(endpoint: Endpoint) -> None:
+    """
+    An `UNAUTHORIZED` response is returned when no `Authorization`
+    header
+    is given.
+    """
+    date = rfc_1123_date()
+    new_headers: dict[str, str] = {
+        **endpoint.headers,
+        "Date": date,
+    }
+    _ = new_headers.pop("Authorization", None)
+
+    new_endpoint = Endpoint(
+        base_url=endpoint.base_url,
+        path_url=endpoint.path_url,
+        method=endpoint.method,
+        headers=new_headers,
+        data=endpoint.data,
+        successful_headers_result_code=endpoint.successful_headers_result_code,
+        successful_headers_status_code=endpoint.successful_headers_status_code,
+        access_key=endpoint.access_key,
+        secret_key=endpoint.secret_key,
+    )
+
+    response = new_endpoint.send()
+
+    handle_server_errors(response=response)
+
+    netloc = urlparse(url=endpoint.base_url).netloc
+    if netloc == "cloudreco.vuforia.com":
+        assert_vwq_failure(
+            response=response,
+            status_code=HTTPStatus.UNAUTHORIZED,
+            content_type="text/plain;charset=iso-8859-1",
+            cache_control=None,
+            www_authenticate="KWS",
+            connection="keep-alive",
+        )
+        assert response.text == "Authorization header missing."
+        return
+
+    assert_vws_failure(
+        response=response,
+        status_code=HTTPStatus.UNAUTHORIZED,
+        result_code=ResultCodes.AUTHENTICATION_FAILURE,
+    )
