@@ -2,7 +2,6 @@
 
 import functools
 import io
-import math
 import secrets
 import warnings
 from typing import Protocol, runtime_checkable
@@ -11,6 +10,7 @@ from beartype import beartype
 from pyteenybrisque import score
 
 from mock_vws._image_opening import open_image
+from mock_vws._target_tracking_rating import rating_from_brisque_score
 
 
 @functools.cache
@@ -27,22 +27,16 @@ def _get_brisque_target_tracking_rating(*, image_content: bytes) -> int:
     """
     image_file = io.BytesIO(initial_bytes=image_content)
     with open_image(fp=image_file) as image, warnings.catch_warnings():
-        # Uniform images produce a zero-variance warning and non-finite score.
+        # Degenerate images can produce a zero-variance warning.
         warnings.simplefilter(action="ignore", category=RuntimeWarning)
         try:
             brisque_score = score(image=image)
-        except ZeroDivisionError:
-            # An image of a single color divides by zero rather than giving a
-            # non-finite score.
+        except ValueError, ZeroDivisionError:
+            # BRISQUE is undefined for images without contrast. Older scorer
+            # versions divide by zero instead of raising ValueError.
             return 0
 
-    if not math.isfinite(brisque_score):
-        return 0
-
-    # BRISQUE ranges from 0 (best) to 100 (worst), while Vuforia's target
-    # tracking rating ranges from 0 (worst) to 5 (best).
-    rating = 5 - math.floor(brisque_score / 20)
-    return min(5, max(0, rating))
+    return rating_from_brisque_score(brisque_score=brisque_score)
 
 
 @runtime_checkable
