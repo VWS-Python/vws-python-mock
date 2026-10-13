@@ -34,11 +34,14 @@ from tests.mock_vws.reco_counts_report.helpers import (
 from tests.mock_vws.utils.recognition_counts import SeedRecognitionCounts
 
 
-def test_not_ready(*, fresh_database: CloudDatabase) -> None:
+def test_not_ready(
+    *, base_vws_url: str, fresh_database: CloudDatabase
+) -> None:
     """Until the report is generated, the URL gives the response which
     storage gives for a missing object.
     """
     presigned_url = get_presigned_url(
+        base_vws_url=base_vws_url,
         vuforia_database=fresh_database,
         month=month_offset_from_now(months=0),
     )
@@ -51,7 +54,9 @@ def test_not_ready(*, fresh_database: CloudDatabase) -> None:
     )
 
 
-def test_unknown_report(*, vuforia_database: CloudDatabase) -> None:
+def test_unknown_report(
+    *, base_vws_url: str, vuforia_database: CloudDatabase
+) -> None:
     """A file which no request generated gives the response which
     storage gives for a missing object.
 
@@ -59,6 +64,7 @@ def test_unknown_report(*, vuforia_database: CloudDatabase) -> None:
     the file, and the mock does not check signatures.
     """
     presigned_url = get_presigned_url(
+        base_vws_url=base_vws_url,
         vuforia_database=vuforia_database,
         month=month_offset_from_now(months=0),
     )
@@ -84,6 +90,7 @@ def test_unknown_report(*, vuforia_database: CloudDatabase) -> None:
 )
 def test_seeded_recognition_counts(
     *,
+    base_vws_url: str,
     seed_recognition_counts: SeedRecognitionCounts,
     fresh_database: CloudDatabase,
     high_quality_image: io.BytesIO,
@@ -94,7 +101,9 @@ def test_seeded_recognition_counts(
     """The report has a row for each target recognized in the
     month.
     """
-    vws_client = make_vws_client(database=fresh_database)
+    vws_client = make_vws_client(
+        base_vws_url=base_vws_url, database=fresh_database
+    )
     recognized_target_id = vws_client.add_target(
         name=uuid.uuid4().hex,
         width=1,
@@ -117,6 +126,7 @@ def test_seeded_recognition_counts(
         total_recos=TOTAL_RECOS,
     )
     presigned_url = get_presigned_url(
+        base_vws_url=base_vws_url,
         vuforia_database=fresh_database,
         month=month_offset_from_now(months=-months_ago),
     )
@@ -131,6 +141,7 @@ def test_seeded_recognition_counts(
 
 def test_counts_set_after_first_request(
     *,
+    base_vws_url: str,
     seed_recognition_counts: SeedRecognitionCounts,
     fresh_database: CloudDatabase,
     high_quality_image: io.BytesIO,
@@ -138,7 +149,9 @@ def test_counts_set_after_first_request(
     """A second request in the same hour does not generate the report
     again, so counts set between the two requests are not in it.
     """
-    vws_client = make_vws_client(database=fresh_database)
+    vws_client = make_vws_client(
+        base_vws_url=base_vws_url, database=fresh_database
+    )
     target_id = vws_client.add_target(
         name=uuid.uuid4().hex,
         width=1,
@@ -148,6 +161,7 @@ def test_counts_set_after_first_request(
     )
     month = month_offset_from_now(months=0)
     first_url = get_presigned_url(
+        base_vws_url=base_vws_url,
         vuforia_database=fresh_database,
         month=month,
     )
@@ -159,6 +173,7 @@ def test_counts_set_after_first_request(
         total_recos=TOTAL_RECOS,
     )
     second_url = get_presigned_url(
+        base_vws_url=base_vws_url,
         vuforia_database=fresh_database,
         month=month,
     )
@@ -179,17 +194,23 @@ def test_counts_set_after_first_request(
     ],
 )
 @beartype(conf=BeartypeConf(is_pep484_tower=True))
-def test_report_processing_time(*, processing_time_seconds: float) -> None:
+def test_report_processing_time(
+    *, base_vws_url: str, processing_time_seconds: float
+) -> None:
     """Integer and float delays make reports ready at their completion
     time.
     """
     database = CloudDatabase()
     with (
         freeze_time(time_to_freeze="2026-10-13 12:00:00") as frozen_time,
-        MockVWS(processing_time_seconds=processing_time_seconds) as mock,
+        MockVWS(
+            base_vws_url=base_vws_url,
+            processing_time_seconds=processing_time_seconds,
+        ) as mock,
     ):
         mock.add_cloud_database(cloud_database=database)
         presigned_url = get_presigned_url(
+            base_vws_url=base_vws_url,
             vuforia_database=database,
             month=month_offset_from_now(months=0),
         )

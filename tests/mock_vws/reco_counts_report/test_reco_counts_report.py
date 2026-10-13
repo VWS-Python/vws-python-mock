@@ -31,6 +31,7 @@ from tests.mock_vws.reco_counts_report.helpers import (
 )
 def test_reco_counts_report(
     *,
+    base_vws_url: str,
     vuforia_database: CloudDatabase,
     months_ago: int,
 ) -> None:
@@ -38,6 +39,7 @@ def test_reco_counts_report(
     month.
     """
     response = request_reco_counts_report(
+        base_vws_url=base_vws_url,
         vuforia_database=vuforia_database,
         database_id=vuforia_database.database_id,
         month=month_offset_from_now(months=-months_ago),
@@ -54,16 +56,23 @@ def test_reco_counts_report(
     transaction_id: object = response_json["transaction_id"]
     assert isinstance(transaction_id, str)
     assert all(char in hexdigits for char in transaction_id)
-    assert response_json["presigned_url"].startswith("https://")
+    presigned_url: object = response_json["presigned_url"]
+    assert isinstance(presigned_url, str)
+    download_url = urlsplit(url=presigned_url)
+    assert download_url.scheme in {"http", "https"}
+    assert download_url.netloc != ""
 
 
-def test_presigned_url_query(*, vuforia_database: CloudDatabase) -> None:
+def test_presigned_url_query(
+    *, base_vws_url: str, vuforia_database: CloudDatabase
+) -> None:
     """The URL carries the query parameters of a presigned URL.
 
     It is signed for one second under seven days.
     """
     before = utc_now().replace(microsecond=0)
     presigned_url = get_presigned_url(
+        base_vws_url=base_vws_url,
         vuforia_database=vuforia_database,
         month=month_offset_from_now(months=0),
     )
@@ -92,6 +101,7 @@ def test_presigned_url_query(*, vuforia_database: CloudDatabase) -> None:
 
 def test_current_month_file_name(
     *,
+    base_vws_url: str,
     vuforia_database: CloudDatabase,
 ) -> None:
     """A report for the current month is named for the date and the
@@ -99,6 +109,7 @@ def test_current_month_file_name(
     """
     hours_before = utc_now().strftime(format="%Y-%m-%d-%H")
     presigned_url = get_presigned_url(
+        base_vws_url=base_vws_url,
         vuforia_database=vuforia_database,
         month=month_offset_from_now(months=0),
     )
@@ -114,11 +125,13 @@ def test_current_month_file_name(
 
 def test_previous_month_file_name(
     *,
+    base_vws_url: str,
     vuforia_database: CloudDatabase,
 ) -> None:
     """A report for the previous month is named for the month."""
     month = month_offset_from_now(months=-1)
     presigned_url = get_presigned_url(
+        base_vws_url=base_vws_url,
         vuforia_database=vuforia_database,
         month=month,
     )
@@ -130,6 +143,7 @@ def test_previous_month_file_name(
 
 def test_same_file_in_the_same_hour(
     *,
+    base_vws_url: str,
     vuforia_database: CloudDatabase,
 ) -> None:
     """Two requests for the current month in the same hour name the
@@ -137,10 +151,12 @@ def test_same_file_in_the_same_hour(
     """
     month = month_offset_from_now(months=0)
     first_url = get_presigned_url(
+        base_vws_url=base_vws_url,
         vuforia_database=vuforia_database,
         month=month,
     )
     second_url = get_presigned_url(
+        base_vws_url=base_vws_url,
         vuforia_database=vuforia_database,
         month=month,
     )
@@ -163,11 +179,13 @@ def test_same_file_in_the_same_hour(
 )
 def test_month_out_of_range(
     *,
+    base_vws_url: str,
     vuforia_database: CloudDatabase,
     months_ago: int,
 ) -> None:
     """Only the current and the previous month can be requested."""
     response = request_reco_counts_report(
+        base_vws_url=base_vws_url,
         vuforia_database=vuforia_database,
         database_id=vuforia_database.database_id,
         month=month_offset_from_now(months=-months_ago),
@@ -185,11 +203,13 @@ def test_month_out_of_range(
 )
 def test_malformed_month(
     *,
+    base_vws_url: str,
     vuforia_database: CloudDatabase,
     month: str | int,
 ) -> None:
     """The month must be given in the ``YYYY-mm`` form."""
     response = request_reco_counts_report(
+        base_vws_url=base_vws_url,
         vuforia_database=vuforia_database,
         database_id=vuforia_database.database_id,
         month=month,
@@ -202,10 +222,12 @@ def test_malformed_month(
 
 def test_body_is_not_an_object(
     *,
+    base_vws_url: str,
     vuforia_database: CloudDatabase,
 ) -> None:
     """The request body must be a JSON object."""
     response = request_reco_counts_report_json(
+        base_vws_url=base_vws_url,
         vuforia_database=vuforia_database,
         database_id=vuforia_database.database_id,
         request_json=[],
@@ -216,11 +238,14 @@ def test_body_is_not_an_object(
     assert response_json["result_code"] == ResultCodes.FAIL.value
 
 
-def test_unknown_database_id(*, vuforia_database: CloudDatabase) -> None:
+def test_unknown_database_id(
+    *, base_vws_url: str, vuforia_database: CloudDatabase
+) -> None:
     """The path must name the database which the request's server
     keys belong to.
     """
     response = request_reco_counts_report(
+        base_vws_url=base_vws_url,
         vuforia_database=vuforia_database,
         database_id=uuid.uuid4().hex,
         month=month_offset_from_now(months=0),
@@ -236,10 +261,12 @@ def test_unknown_database_id(*, vuforia_database: CloudDatabase) -> None:
 
 def test_database_name_in_path(
     *,
+    base_vws_url: str,
     vuforia_database: CloudDatabase,
 ) -> None:
     """A database is named in the path by its ID, not by its name."""
     response = request_reco_counts_report(
+        base_vws_url=base_vws_url,
         vuforia_database=vuforia_database,
         database_id=vuforia_database.database_name,
         month=month_offset_from_now(months=0),

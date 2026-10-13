@@ -29,13 +29,16 @@ from tests.mock_vws.reco_counts_report.helpers import (
 )
 
 
-def test_download_report(*, vuforia_database: CloudDatabase) -> None:
+def test_download_report(
+    *, base_vws_url: str, vuforia_database: CloudDatabase
+) -> None:
     """The report is available from the given URL once it is ready.
 
     Until then the URL gives the response which storage gives for a
     missing object.
     """
     presigned_url = get_presigned_url(
+        base_vws_url=base_vws_url,
         vuforia_database=vuforia_database,
         month=month_offset_from_now(months=0),
     )
@@ -58,6 +61,7 @@ def test_download_report(*, vuforia_database: CloudDatabase) -> None:
 
 def test_second_request_serves_first_report(
     *,
+    base_vws_url: str,
     vuforia_database: CloudDatabase,
 ) -> None:
     """A second request in the same hour serves the report which the
@@ -65,11 +69,13 @@ def test_second_request_serves_first_report(
     """
     month = month_offset_from_now(months=0)
     first_url = get_presigned_url(
+        base_vws_url=base_vws_url,
         vuforia_database=vuforia_database,
         month=month,
     )
     first_response = wait_for_report(presigned_url=first_url)
     second_url = get_presigned_url(
+        base_vws_url=base_vws_url,
         vuforia_database=vuforia_database,
         month=month,
     )
@@ -84,7 +90,9 @@ def test_second_request_serves_first_report(
     )
 
 
-def test_expired_url(*, vuforia_database: CloudDatabase) -> None:
+def test_expired_url(
+    *, base_vws_url: str, vuforia_database: CloudDatabase
+) -> None:
     """A URL which has expired gives a 403 response.
 
     Storage checks the expiry before the signature, so a URL whose
@@ -92,6 +100,7 @@ def test_expired_url(*, vuforia_database: CloudDatabase) -> None:
     which has expired, even against real Vuforia.
     """
     presigned_url = get_presigned_url(
+        base_vws_url=base_vws_url,
         vuforia_database=vuforia_database,
         month=month_offset_from_now(months=0),
     )
@@ -139,11 +148,14 @@ def test_expired_url(*, vuforia_database: CloudDatabase) -> None:
     ), response.text
 
 
-def test_shortened_expiry(*, vuforia_database: CloudDatabase) -> None:
+def test_shortened_expiry(
+    *, base_vws_url: str, vuforia_database: CloudDatabase
+) -> None:
     """The URL expires ``X-Amz-Expires`` seconds after its
     ``X-Amz-Date``, so shortening that puts it out of date.
     """
     presigned_url = get_presigned_url(
+        base_vws_url=base_vws_url,
         vuforia_database=vuforia_database,
         month=month_offset_from_now(months=0),
     )
@@ -160,12 +172,15 @@ def test_shortened_expiry(*, vuforia_database: CloudDatabase) -> None:
     assert "<X-Amz-Expires>1</X-Amz-Expires>" in response.text
 
 
-def test_missing_query(*, vuforia_database: CloudDatabase) -> None:
+def test_missing_query(
+    *, base_vws_url: str, vuforia_database: CloudDatabase
+) -> None:
     """The query parameters of the URL are its authorization, so the
     path
     alone is refused.
     """
     presigned_url = get_presigned_url(
+        base_vws_url=base_vws_url,
         vuforia_database=vuforia_database,
         month=month_offset_from_now(months=0),
     )

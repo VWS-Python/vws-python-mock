@@ -20,8 +20,6 @@ from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws.database import CloudDatabase
 
-_VWS_HOST = "https://vws.vuforia.com"
-
 CURRENT_MONTH_RECOS = 3
 
 PREVIOUS_MONTH_RECOS = 5
@@ -80,6 +78,7 @@ def month_offset_from_now(*, months: int) -> str:
 @beartype
 def request_reco_counts_report_json(
     *,
+    base_vws_url: str,
     vuforia_database: CloudDatabase,
     database_id: str,
     request_json: object,
@@ -104,7 +103,7 @@ def request_reco_counts_report_json(
     )
 
     return requests.post(
-        url=_VWS_HOST + request_path,
+        url=base_vws_url + request_path,
         headers={
             "Authorization": authorization_string,
             "Content-Length": str(object=len(content)),
@@ -119,12 +118,14 @@ def request_reco_counts_report_json(
 @beartype
 def request_reco_counts_report(
     *,
+    base_vws_url: str,
     vuforia_database: CloudDatabase,
     database_id: str,
     month: str | int,
 ) -> requests.Response:
     """Request a reco counts report for one month."""
     return request_reco_counts_report_json(
+        base_vws_url=base_vws_url,
         vuforia_database=vuforia_database,
         database_id=database_id,
         request_json={"month": month},
@@ -132,11 +133,14 @@ def request_reco_counts_report(
 
 
 @beartype
-def get_presigned_url(*, vuforia_database: CloudDatabase, month: str) -> str:
+def get_presigned_url(
+    *, base_vws_url: str, vuforia_database: CloudDatabase, month: str
+) -> str:
     """Request a report for the given month and return its download
     URL.
     """
     response = request_reco_counts_report(
+        base_vws_url=base_vws_url,
         vuforia_database=vuforia_database,
         database_id=vuforia_database.database_id,
         month=month,
@@ -217,9 +221,10 @@ def wait_for_report(*, presigned_url: str) -> requests.Response:
 
 
 @beartype
-def make_vws_client(*, database: CloudDatabase) -> VWS:
+def make_vws_client(*, base_vws_url: str, database: CloudDatabase) -> VWS:
     """Return a client for the given database."""
     return VWS(
+        base_vws_url=base_vws_url,
         server_access_key=database.server_access_key,
         server_secret_key=database.server_secret_key,
     )

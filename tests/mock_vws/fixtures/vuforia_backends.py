@@ -255,6 +255,7 @@ def _enable_use_flask_in_process(
     VWS_FLASK_APP.config["VWS_MOCK_TERMINATE_WSGI_INPUT"] = True
     CLOUDRECO_FLASK_APP.config["VWS_MOCK_TERMINATE_WSGI_INPUT"] = True
 
+    monkeypatch.setenv(name="VWS_BASE_URL", value=base_vws_url)
     target_manager_base_url = "http://example.com"
     monkeypatch.setenv(
         name="TARGET_MANAGER_BASE_URL",
