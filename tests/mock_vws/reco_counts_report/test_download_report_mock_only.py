@@ -19,7 +19,6 @@ from freezegun import freeze_time
 
 from mock_vws import MockVWS
 from mock_vws.database import CloudDatabase
-from tests.mock_vws.fixtures.vuforia_backends import VuforiaBackend
 from tests.mock_vws.reco_counts_report.helpers import (
     CSV_HEADER,
     CURRENT_MONTH_RECOS,
@@ -32,7 +31,7 @@ from tests.mock_vws.reco_counts_report.helpers import (
     report_key,
     wait_for_report,
 )
-from tests.mock_vws.utils.recognition_counts import seed_recognition_counts
+from tests.mock_vws.utils.recognition_counts import SeedRecognitionCounts
 
 
 def test_not_ready(*, fresh_database: CloudDatabase) -> None:
@@ -85,7 +84,7 @@ def test_unknown_report(*, vuforia_database: CloudDatabase) -> None:
 )
 def test_seeded_recognition_counts(
     *,
-    mock_only_vuforia: VuforiaBackend,
+    seed_recognition_counts: SeedRecognitionCounts,
     fresh_database: CloudDatabase,
     high_quality_image: io.BytesIO,
     image_file_failed_state: io.BytesIO,
@@ -111,7 +110,6 @@ def test_seeded_recognition_counts(
         application_metadata=None,
     )
     seed_recognition_counts(
-        backend=mock_only_vuforia,
         vuforia_database=fresh_database,
         target_id=recognized_target_id,
         current_month_recos=CURRENT_MONTH_RECOS,
@@ -133,7 +131,7 @@ def test_seeded_recognition_counts(
 
 def test_counts_set_after_first_request(
     *,
-    mock_only_vuforia: VuforiaBackend,
+    seed_recognition_counts: SeedRecognitionCounts,
     fresh_database: CloudDatabase,
     high_quality_image: io.BytesIO,
 ) -> None:
@@ -154,7 +152,6 @@ def test_counts_set_after_first_request(
         month=month,
     )
     seed_recognition_counts(
-        backend=mock_only_vuforia,
         vuforia_database=fresh_database,
         target_id=target_id,
         current_month_recos=CURRENT_MONTH_RECOS,
