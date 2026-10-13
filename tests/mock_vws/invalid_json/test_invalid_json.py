@@ -9,7 +9,6 @@ https://github.com/VWS-Python/vws-python-mock/issues/3540.
 import json
 from datetime import datetime, timedelta
 from http import HTTPStatus
-from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -30,28 +29,36 @@ from tests.mock_vws.utils.assertions import (
 from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
 
-def test_not_json(endpoint: Endpoint) -> None:
+def test_not_json(endpoint: Endpoint, base_vwq_url: str) -> None:
     """Giving a body which is not JSON returns an error response."""
-    assert_body_rejected(endpoint=endpoint, content=b"a")
+    assert_body_rejected(
+        endpoint=endpoint, content=b"a", base_vwq_url=base_vwq_url
+    )
 
 
 @pytest.mark.parametrize(
     argnames="content",
     argvalues=[b"[]", b'"hello"', b"5", b"null", b"true"],
 )
-def test_not_an_object(endpoint: Endpoint, content: bytes) -> None:
+def test_not_an_object(
+    endpoint: Endpoint, content: bytes, base_vwq_url: str
+) -> None:
     """Giving valid JSON which is not an object returns an error
     response.
     """
-    assert_body_rejected(endpoint=endpoint, content=content)
+    assert_body_rejected(
+        endpoint=endpoint, content=content, base_vwq_url=base_vwq_url
+    )
 
 
-def test_not_utf_8(endpoint: Endpoint) -> None:
+def test_not_utf_8(endpoint: Endpoint, base_vwq_url: str) -> None:
     """Giving a JSON object which is not encoded as UTF-8 returns an
     error response.
     """
     content = '{"name": "café"}'.encode(encoding="latin-1")
-    assert_body_rejected(endpoint=endpoint, content=content)
+    assert_body_rejected(
+        endpoint=endpoint, content=content, base_vwq_url=base_vwq_url
+    )
 
 
 def test_empty_body(endpoint: Endpoint) -> None:
@@ -131,7 +138,9 @@ def test_empty_body(endpoint: Endpoint) -> None:
     )
 
 
-def test_invalid_json_with_skewed_time(endpoint: Endpoint) -> None:
+def test_invalid_json_with_skewed_time(
+    endpoint: Endpoint, base_vwq_url: str
+) -> None:
     """Giving invalid JSON to endpoints returns error responses."""
     # We use a skew of 70 because the maximum allowed skew for services is
     # 5 minutes, and for query is 65 minutes. 70 is comfortably larger than
@@ -189,8 +198,7 @@ def test_invalid_json_with_skewed_time(endpoint: Endpoint) -> None:
         )
         return
 
-    netloc = urlparse(url=endpoint.base_url).netloc
-    if netloc == "cloudreco.vuforia.com":
+    if endpoint.base_url == base_vwq_url:
         response_json = json.loads(s=response.text)
         assert isinstance(response_json, dict)
         assert response_json.keys() == {

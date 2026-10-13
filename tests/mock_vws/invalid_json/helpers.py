@@ -2,7 +2,6 @@
 
 from datetime import datetime
 from http import HTTPStatus
-from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
 from beartype import beartype
@@ -20,7 +19,12 @@ from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
 
 @beartype
-def assert_body_rejected(*, endpoint: Endpoint, content: bytes) -> None:
+def assert_body_rejected(
+    *,
+    endpoint: Endpoint,
+    content: bytes,
+    base_vwq_url: str,
+) -> None:
     """Send the given body to the given endpoint and assert that it is
     rejected.
 
@@ -28,6 +32,7 @@ def assert_body_rejected(*, endpoint: Endpoint, content: bytes) -> None:
         endpoint: The endpoint to send the body to.
         content: The body to send, which is not a JSON object encoded as
             UTF-8.
+        base_vwq_url: The base URL of the query API for the backend.
     """
     gmt = ZoneInfo(key="GMT")
     now = datetime.now(tz=gmt)
@@ -85,8 +90,7 @@ def assert_body_rejected(*, endpoint: Endpoint, content: bytes) -> None:
         )
         return
 
-    netloc = urlparse(url=endpoint.base_url).netloc
-    if netloc == "cloudreco.vuforia.com":
+    if endpoint.base_url == base_vwq_url:
         assert_vwq_failure(
             response=response,
             status_code=HTTPStatus.BAD_REQUEST,
