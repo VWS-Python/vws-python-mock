@@ -71,7 +71,18 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           custom_tag: ${{ steps.calver.outputs.release }}
           tag_prefix: ''
+          release_branches: .*
           commit_sha: ${{ steps.commit.outputs.commit_hash }}
+
+      - name: Verify the tag points to the release commit
+        env:
+          RELEASE_TAG: ${{ steps.tag_version.outputs.new_tag }}
+          RELEASE_COMMIT: ${{ steps.commit.outputs.commit_hash }}
+        run: |
+          test -n "$RELEASE_TAG"
+          test -n "$RELEASE_COMMIT"
+          TAG_COMMIT=$(git ls-remote origin "refs/tags/$RELEASE_TAG" | cut -f1)
+          test "$TAG_COMMIT" = "$RELEASE_COMMIT"
 
       - name: Create a GitHub release
         uses: ncipollo/release-action@v1
