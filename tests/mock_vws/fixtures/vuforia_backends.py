@@ -42,6 +42,19 @@ from tests.mock_vws.utils.retries import (
 LOGGER = logging.getLogger(name=__name__)
 LOGGER.setLevel(level=logging.DEBUG)
 
+
+@pytest.fixture
+def base_vws_url() -> str:
+    """The Vuforia Web Services API URL for the backend."""
+    return "https://vws.vuforia.com"
+
+
+@pytest.fixture
+def base_vwq_url() -> str:
+    """The Vuforia Web Query API URL for the backend."""
+    return "https://cloudreco.vuforia.com"
+
+
 # The in-memory mock which the ``MOCK`` backend is running, if any.
 #
 # Tests which use APIs of the mock itself, such as seeding recognition counts,
