@@ -5,7 +5,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from zoneinfo import ZoneInfo
 
-from beartype import beartype
+from beartype import BeartypeConf, beartype
 
 # Real Vuforia ends each row, including the header row, with a carriage
 # return and a line feed.
@@ -18,7 +18,7 @@ def _now() -> datetime.datetime:
     return datetime.datetime.now(tz=ZoneInfo(key="UTC"))
 
 
-@beartype
+@beartype(conf=BeartypeConf(is_pep484_tower=True))
 @dataclass(frozen=True, kw_only=True)
 class RecoCountsReport:
     """A requested reco counts report.
