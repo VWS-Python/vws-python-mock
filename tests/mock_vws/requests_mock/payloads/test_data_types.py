@@ -1,17 +1,13 @@
 """Tests for sending various data types."""
 
-from urllib.parse import urlparse
-
 import pytest
 
 from tests.mock_vws.utils import Endpoint
 
 
-def test_text(endpoint: Endpoint) -> None:
+def test_text(endpoint: Endpoint, base_vwq_url: str) -> None:
     """It is possible to send strings to VWS endpoints."""
-    netloc = urlparse(url=endpoint.base_url).netloc
-
-    if netloc == "cloudreco.vuforia.com":
+    if endpoint.base_url == base_vwq_url:
         pytest.skip()
 
     assert isinstance(endpoint.data, bytes)

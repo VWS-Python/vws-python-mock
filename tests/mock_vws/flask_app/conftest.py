@@ -37,7 +37,11 @@ def fixture_target_manager_url() -> str:
 
 @pytest.fixture(autouse=True)
 def _(
-    *, monkeypatch: pytest.MonkeyPatch, target_manager_url: str
+    *,
+    monkeypatch: pytest.MonkeyPatch,
+    target_manager_url: str,
+    base_vws_url: str,
+    base_vwq_url: str,
 ) -> Iterator[None]:
     """Enable a mock service backed by the Flask applications.
 
@@ -53,13 +57,13 @@ def _(
         add_flask_app_to_mock(
             mock_obj=mock_obj,
             flask_app=VWS_FLASK_APP,
-            base_url="https://vws.vuforia.com",
+            base_url=base_vws_url,
         )
 
         add_flask_app_to_mock(
             mock_obj=mock_obj,
             flask_app=CLOUDRECO_FLASK_APP,
-            base_url="https://cloudreco.vuforia.com",
+            base_url=base_vwq_url,
         )
 
         add_flask_app_to_mock(

@@ -15,7 +15,6 @@ from mock_vws.database import CloudDatabase
 from tests.mock_vws.query.helpers import (
     JETTY_CONTENT_TYPE_ERROR,
     JETTY_VERSION_RE,
-    VWQ_HOST,
 )
 from tests.mock_vws.utils.assertions import (
     assert_query_success,
@@ -79,6 +78,7 @@ def test_incorrect_no_boundary(
     resp_content_type: str | None,
     resp_cache_control: str | None,
     resp_text: str,
+    base_vwq_url: str,
 ) -> None:
     """With bad Content-Type headers we get a variety of results."""
     image_content = high_quality_image.getvalue()
@@ -108,7 +108,7 @@ def test_incorrect_no_boundary(
 
     requests_response = requests.request(
         method=method,
-        url=urljoin(base=VWQ_HOST, url=request_path),
+        url=urljoin(base=base_vwq_url, url=request_path),
         headers=headers,
         data=content,
         timeout=30,
@@ -145,6 +145,7 @@ def test_incorrect_with_boundary(
     *,
     high_quality_image: io.BytesIO,
     vuforia_database: CloudDatabase,
+    base_vwq_url: str,
 ) -> None:
     """
     If a Content-Type header which is not ``multipart/form-data`` is
@@ -185,7 +186,7 @@ def test_incorrect_with_boundary(
 
     requests_response = requests.request(
         method=method,
-        url=urljoin(base=VWQ_HOST, url=request_path),
+        url=urljoin(base=base_vwq_url, url=request_path),
         headers=headers,
         data=content,
         timeout=30,
@@ -225,6 +226,7 @@ def test_no_boundary(
     high_quality_image: io.BytesIO,
     vuforia_database: CloudDatabase,
     content_type: str,
+    base_vwq_url: str,
 ) -> None:
     """If no boundary is given, a ``BAD_REQUEST`` is returned."""
     image_content = high_quality_image.getvalue()
@@ -255,7 +257,7 @@ def test_no_boundary(
 
     requests_response = requests.request(
         method=method,
-        url=urljoin(base=VWQ_HOST, url=request_path),
+        url=urljoin(base=base_vwq_url, url=request_path),
         headers=headers,
         data=content,
         timeout=30,
@@ -286,6 +288,7 @@ def test_bogus_boundary(
     *,
     high_quality_image: io.BytesIO,
     vuforia_database: CloudDatabase,
+    base_vwq_url: str,
 ) -> None:
     """If a bogus boundary is given, a ``BAD_REQUEST`` is returned."""
     image_content = high_quality_image.getvalue()
@@ -316,7 +319,7 @@ def test_bogus_boundary(
 
     requests_response = requests.request(
         method=method,
-        url=urljoin(base=VWQ_HOST, url=request_path),
+        url=urljoin(base=base_vwq_url, url=request_path),
         headers=headers,
         data=content,
         timeout=30,
@@ -349,6 +352,7 @@ def test_extra_section(
     *,
     high_quality_image: io.BytesIO,
     vuforia_database: CloudDatabase,
+    base_vwq_url: str,
 ) -> None:
     """
     If sections that are not the boundary section are given in the
@@ -383,7 +387,7 @@ def test_extra_section(
 
     requests_response = requests.request(
         method=method,
-        url=urljoin(base=VWQ_HOST, url=request_path),
+        url=urljoin(base=base_vwq_url, url=request_path),
         headers=headers,
         data=content,
         timeout=30,

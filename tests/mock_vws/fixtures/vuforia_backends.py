@@ -43,14 +43,14 @@ LOGGER = logging.getLogger(name=__name__)
 LOGGER.setLevel(level=logging.DEBUG)
 
 
-@pytest.fixture
-def base_vws_url() -> str:
+@pytest.fixture(name="base_vws_url")
+def fixture_base_vws_url() -> str:
     """The Vuforia Web Services API URL for the backend."""
     return "https://vws.vuforia.com"
 
 
-@pytest.fixture
-def base_vwq_url() -> str:
+@pytest.fixture(name="base_vwq_url")
+def fixture_base_vwq_url() -> str:
     """The Vuforia Web Query API URL for the backend."""
     return "https://cloudreco.vuforia.com"
 
@@ -76,16 +76,20 @@ def running_in_memory_mock() -> MockVWS:
 
 @beartype
 @RETRY_ON_TRANSIENT_VWS_FAILURE
-def _delete_all_targets(*, database_keys: CloudDatabase) -> None:
+def _delete_all_targets(
+    *, database_keys: CloudDatabase, base_vws_url: str
+) -> None:
     """Delete all targets.
 
     Args:
         database_keys: The credentials to the Vuforia target database to delete
             all targets in.
+        base_vws_url: The base URL of the services API for the backend.
     """
     vws_client = VWS(
         server_access_key=database_keys.server_access_key,
         server_secret_key=database_keys.server_secret_key,
+        base_vws_url=base_vws_url,
     )
 
     targets = vws_client.list_targets()
@@ -150,13 +154,18 @@ def _enable_use_real_vuforia(
     vumark_vuforia_database: VuMarkCloudDatabase,
     inactive_vumark_database: InactiveVuMarkCloudDatabase,
     monkeypatch: pytest.MonkeyPatch,
+    base_vws_url: str,
+    base_vwq_url: str,
 ) -> Generator[None]:
     """Test against the real Vuforia."""
     assert bool(monkeypatch)
     assert bool(inactive_cloud_database)
     assert bool(vumark_vuforia_database)
     assert bool(inactive_vumark_database)
-    _delete_all_targets(database_keys=working_database)
+    del base_vwq_url
+    _delete_all_targets(
+        database_keys=working_database, base_vws_url=base_vws_url
+    )
     yield
 
 
@@ -168,6 +177,8 @@ def _enable_use_mock_vuforia(
     vumark_vuforia_database: VuMarkCloudDatabase,
     inactive_vumark_database: InactiveVuMarkCloudDatabase,
     monkeypatch: pytest.MonkeyPatch,
+    base_vws_url: str,
+    base_vwq_url: str,
 ) -> Generator[None]:
     """Test against the in-memory mock Vuforia."""
     assert bool(monkeypatch)
@@ -198,7 +209,7 @@ def _enable_use_mock_vuforia(
         server_secret_key=inactive_vumark_database.server_secret_key,
     )
 
-    with MockVWS() as mock:
+    with MockVWS(base_vws_url=base_vws_url, base_vwq_url=base_vwq_url) as mock:
         mock.add_cloud_database(cloud_database=working_database)
         mock.add_cloud_database(cloud_database=inactive_cloud_database)
         mock.add_vumark_database(vumark_database=vumark_database)
@@ -218,6 +229,8 @@ def _enable_use_flask_in_process(
     vumark_vuforia_database: VuMarkCloudDatabase,
     inactive_vumark_database: InactiveVuMarkCloudDatabase,
     monkeypatch: pytest.MonkeyPatch,
+    base_vws_url: str,
+    base_vwq_url: str,
 ) -> Generator[None]:
     """Test against the Flask applications of the mock, in this process.
 
@@ -261,13 +274,13 @@ def _enable_use_flask_in_process(
         add_flask_app_to_mock(
             mock_obj=mock,
             flask_app=VWS_FLASK_APP,
-            base_url="https://vws.vuforia.com",
+            base_url=base_vws_url,
         )
 
         add_flask_app_to_mock(
             mock_obj=mock,
             flask_app=CLOUDRECO_FLASK_APP,
-            base_url="https://cloudreco.vuforia.com",
+            base_url=base_vwq_url,
         )
 
         add_flask_app_to_mock(
@@ -512,6 +525,8 @@ def _setup_backend(
             argname="inactive_vumark_database",
         ),
         monkeypatch=request.getfixturevalue(argname="monkeypatch"),
+        base_vws_url=request.getfixturevalue(argname="base_vws_url"),
+        base_vwq_url=request.getfixturevalue(argname="base_vwq_url"),
     )
 
 

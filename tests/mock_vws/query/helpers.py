@@ -19,8 +19,6 @@ from vws_auth_tools import authorization_header, rfc_1123_date
 from mock_vws.database import CloudDatabase
 from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
-VWQ_HOST = "https://cloudreco.vuforia.com"
-
 JETTY_CONTENT_TYPE_ERROR = textwrap.dedent(
     text="""\
     <html>
@@ -62,6 +60,7 @@ def query_raw(
     vuforia_database: CloudDatabase,
     content: bytes,
     content_type_header: str,
+    base_vwq_url: str,
 ) -> Response:
     """Make a request to the endpoint to make an image recognition query,
     with a body which is sent exactly as given.
@@ -70,6 +69,7 @@ def query_raw(
         vuforia_database: The credentials to use to connect to
             Vuforia.
         content: The request body to send.
+        base_vwq_url: The base URL of the query API for the backend.
         content_type_header: The ``Content-Type`` header to send.
 
     Returns:
@@ -98,10 +98,9 @@ def query_raw(
         "Content-Type": content_type_header,
     }
 
-    vwq_host = "https://cloudreco.vuforia.com"
     requests_response = requests.request(
         method=method,
-        url=urljoin(base=vwq_host, url=request_path),
+        url=urljoin(base=base_vwq_url, url=request_path),
         headers=headers,
         data=content,
         timeout=30,
@@ -127,6 +126,7 @@ def query(
         str,
         tuple[str | None, object, str],
     ],
+    base_vwq_url: str,
 ) -> Response:
     """Make a request to the endpoint to make an image recognition query.
 
@@ -134,6 +134,7 @@ def query(
         vuforia_database: The credentials to use to connect to
             Vuforia.
         body: The request body to send in ``multipart/formdata`` format.
+        base_vwq_url: The base URL of the query API for the backend.
 
     Returns:
         The response returned by the API.
@@ -165,6 +166,7 @@ def query(
         vuforia_database=vuforia_database,
         content=content,
         content_type_header=content_type_header,
+        base_vwq_url=base_vwq_url,
     )
 
 

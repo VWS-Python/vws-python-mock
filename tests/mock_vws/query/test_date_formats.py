@@ -25,9 +25,6 @@ from vws.response import Response
 from vws_auth_tools import authorization_header
 
 from mock_vws.database import CloudDatabase
-from tests.mock_vws.query.helpers import (
-    VWQ_HOST,
-)
 from tests.mock_vws.utils.assertions import (
     assert_query_success,
 )
@@ -50,6 +47,7 @@ def test_date_formats(
     vuforia_database: CloudDatabase,
     datetime_format: str,
     include_tz: bool,
+    base_vwq_url: str,
 ) -> None:
     """Test various date formats which are known to be accepted.
 
@@ -89,7 +87,7 @@ def test_date_formats(
 
     requests_response = requests.request(
         method=method,
-        url=urljoin(base=VWQ_HOST, url=request_path),
+        url=urljoin(base=base_vwq_url, url=request_path),
         headers=headers,
         data=content,
         timeout=30,

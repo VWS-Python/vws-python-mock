@@ -23,6 +23,7 @@ def test_order_is_upload_date_then_target_id(
     high_quality_image: io.BytesIO,
     vws_client: VWS,
     vuforia_database: CloudDatabase,
+    base_vwq_url: str,
 ) -> None:
     """Matches with the same score are ordered by upload date.
 
@@ -57,7 +58,9 @@ def test_order_is_upload_date_then_target_id(
         "max_num_results": (None, 3, "text/plain"),
     }
 
-    response = query(vuforia_database=vuforia_database, body=body)
+    response = query(
+        vuforia_database=vuforia_database, body=body, base_vwq_url=base_vwq_url
+    )
 
     assert_query_success(response=response)
     response_json = json.loads(s=response.text)
@@ -73,6 +76,7 @@ def test_max_num_results_keeps_the_first_results(
     high_quality_image: io.BytesIO,
     vws_client: VWS,
     vuforia_database: CloudDatabase,
+    base_vwq_url: str,
 ) -> None:
     """``max_num_results`` truncates a deterministically ordered
     list.
@@ -105,7 +109,9 @@ def test_max_num_results_keeps_the_first_results(
         "max_num_results": (None, 1, "text/plain"),
     }
 
-    response = query(vuforia_database=vuforia_database, body=body)
+    response = query(
+        vuforia_database=vuforia_database, body=body, base_vwq_url=base_vwq_url
+    )
 
     assert_query_success(response=response)
     response_json = json.loads(s=response.text)
