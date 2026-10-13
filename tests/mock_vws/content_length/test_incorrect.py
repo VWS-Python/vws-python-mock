@@ -7,7 +7,6 @@ prepared request because ``requests-mock`` behaves differently to
 
 import textwrap
 from http import HTTPStatus
-from urllib.parse import urlparse
 
 import pytest
 
@@ -22,7 +21,7 @@ from tests.mock_vws.utils.assertions import (
 from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
 
-def test_not_integer(endpoint: Endpoint) -> None:
+def test_not_integer(endpoint: Endpoint, base_vwq_url: str) -> None:
     """
     A ``BAD_REQUEST`` error is given when the given ``Content-
     Length`` is
@@ -54,8 +53,7 @@ def test_not_integer(endpoint: Endpoint) -> None:
     handle_server_errors(response=response)
     assert response.status_code == HTTPStatus.BAD_REQUEST
 
-    netloc = urlparse(url=endpoint.base_url).netloc
-    if netloc == "cloudreco.vuforia.com":
+    if endpoint.base_url == base_vwq_url:
         assert not bool(response.text)
         assert response.headers == {
             "Content-Length": str(object=len(response.text)),
@@ -88,6 +86,7 @@ def test_not_integer(endpoint: Endpoint) -> None:
 def test_too_large(
     endpoint: Endpoint,
     verify_mock_vuforia: VuforiaBackend,
+    base_vwq_url: str,
 ) -> None:
     """An error is given if the given content length is too large."""
     if verify_mock_vuforia is VuforiaBackend.REAL:
@@ -96,7 +95,6 @@ def test_too_large(
     if not bool(endpoint.headers.get("Content-Type")):
         pytest.skip(reason="No Content-Type header for this request")
 
-    netloc = urlparse(url=endpoint.base_url).netloc
     content_length = str(object=int(endpoint.headers["Content-Length"]) + 1)
 
     new_headers = {
@@ -120,7 +118,7 @@ def test_too_large(
 
     # We do not use ``handle_server_errors`` here because we do not want to
     # retry on the Gateway Timeout.
-    if netloc == "cloudreco.vuforia.com":
+    if endpoint.base_url == base_vwq_url:
         assert response.status_code == HTTPStatus.GATEWAY_TIMEOUT
         assert not bool(response.text)
         assert response.headers == {
@@ -144,7 +142,7 @@ def test_too_large(
     assert response.status_code == HTTPStatus.REQUEST_TIMEOUT
 
 
-def test_too_small(endpoint: Endpoint) -> None:
+def test_too_small(endpoint: Endpoint, base_vwq_url: str) -> None:
     """
     An ``UNAUTHORIZED`` response is given if the given content
     length is
@@ -177,8 +175,7 @@ def test_too_small(endpoint: Endpoint) -> None:
 
     handle_server_errors(response=response)
 
-    netloc = urlparse(url=endpoint.base_url).netloc
-    if netloc == "cloudreco.vuforia.com":
+    if endpoint.base_url == base_vwq_url:
         assert_vwq_failure(
             response=response,
             status_code=HTTPStatus.UNAUTHORIZED,

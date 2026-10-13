@@ -1,7 +1,6 @@
 """Shared helpers for header size tests."""
 
 from http import HTTPStatus
-from urllib.parse import urlparse
 
 from vws.response import Response
 
@@ -51,6 +50,7 @@ def assert_nginx_too_large_response(
     *,
     endpoint: Endpoint,
     response: Response,
+    base_vwq_url: str,
 ) -> None:
     """Assert that the response is NGINX's rejection of a long header."""
     assert response.status_code == HTTPStatus.BAD_REQUEST
@@ -64,8 +64,7 @@ def assert_nginx_too_large_response(
     )
     assert headers["connection"] == "keep-alive"
 
-    netloc = urlparse(url=endpoint.base_url).netloc
-    if netloc == "cloudreco.vuforia.com":
+    if endpoint.base_url == base_vwq_url:
         assert headers["server"] == "nginx"
         return
 
