@@ -33,6 +33,7 @@ from tests.mock_vws.fixtures.credentials import (
     VuMarkCloudDatabase,
     get_model_target_credentials,
 )
+from tests.mock_vws.utils.backend_capabilities import BackendCapabilities
 from tests.mock_vws.utils.cloud_databases import AddCloudDatabase
 from tests.mock_vws.utils.model_target_retries import (
     retrying_transient_real_backend_failures,
@@ -882,4 +883,19 @@ def fixture_signed_model_target_credentials(
     )
     return _model_target_credentials_for_backend(
         backend=verify_model_target_mock_vuforia,
+    )
+
+
+@pytest.fixture(name="backend_capabilities")
+def fixture_backend_capabilities(
+    *,
+    verify_mock_vuforia: VuforiaBackend,
+) -> BackendCapabilities:
+    """The behavior supported by the running VWS and query backend."""
+    is_mock = verify_mock_vuforia != VuforiaBackend.REAL
+    return BackendCapabilities(
+        deterministic_target_order=is_mock,
+        deterministic_query_order=is_mock,
+        fast_oversized_content_length_response=is_mock,
+        rolling_rate_limit_window=is_mock,
     )

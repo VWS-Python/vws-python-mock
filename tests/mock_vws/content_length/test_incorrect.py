@@ -11,13 +11,13 @@ from http import HTTPStatus
 import pytest
 
 from mock_vws._constants import ResultCodes
-from tests.mock_vws.fixtures.vuforia_backends import VuforiaBackend
 from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import (
     assert_valid_date_header,
     assert_vwq_failure,
     assert_vws_failure,
 )
+from tests.mock_vws.utils.backend_capabilities import BackendCapabilities
 from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
 
@@ -85,12 +85,14 @@ def test_not_integer(endpoint: Endpoint, base_vwq_url: str) -> None:
 
 def test_too_large(
     endpoint: Endpoint,
-    verify_mock_vuforia: VuforiaBackend,
+    backend_capabilities: BackendCapabilities,
     base_vwq_url: str,
 ) -> None:
     """An error is given if the given content length is too large."""
-    if verify_mock_vuforia is VuforiaBackend.REAL:
-        pytest.skip(reason="Real Vuforia takes too long to respond")
+    if not backend_capabilities.fast_oversized_content_length_response:
+        pytest.skip(
+            reason="This backend responds slowly to oversized Content-Length."
+        )
 
     if not bool(endpoint.headers.get("Content-Type")):
         pytest.skip(reason="No Content-Type header for this request")
