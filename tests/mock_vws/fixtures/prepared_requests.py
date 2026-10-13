@@ -17,14 +17,12 @@ from mock_vws.database import CloudDatabase
 from tests.mock_vws.fixtures.credentials import VuMarkCloudDatabase
 from tests.mock_vws.utils import Endpoint
 
-VWS_HOST = "https://vws.vuforia.com"
-VWQ_HOST = "https://cloudreco.vuforia.com"
-
 
 @pytest.fixture
 def add_target(
     *,
     vuforia_database: CloudDatabase,
+    base_vws_url: str,
     image_file_failed_state: io.BytesIO,
 ) -> Endpoint:
     """Return details of the endpoint for adding a target."""
@@ -66,7 +64,7 @@ def add_target(
     return Endpoint(
         successful_headers_status_code=HTTPStatus.CREATED,
         successful_headers_result_code=ResultCodes.TARGET_CREATED,
-        base_url=VWS_HOST,
+        base_url=base_vws_url,
         path_url=request_path,
         method=method,
         headers=headers,
@@ -80,6 +78,7 @@ def add_target(
 def delete_target(
     *,
     vuforia_database: CloudDatabase,
+    base_vws_url: str,
     target_id: str,
 ) -> Endpoint:
     """Return details of the endpoint for deleting a target."""
@@ -107,7 +106,7 @@ def delete_target(
     }
 
     return Endpoint(
-        base_url=VWS_HOST,
+        base_url=base_vws_url,
         path_url=request_path,
         method=method,
         headers=headers,
@@ -120,7 +119,11 @@ def delete_target(
 
 
 @pytest.fixture
-def database_summary(*, vuforia_database: CloudDatabase) -> Endpoint:
+def database_summary(
+    *,
+    vuforia_database: CloudDatabase,
+    base_vws_url: str,
+) -> Endpoint:
     """
     Return details of the endpoint for getting details about the
     database.
@@ -150,7 +153,7 @@ def database_summary(*, vuforia_database: CloudDatabase) -> Endpoint:
     }
 
     return Endpoint(
-        base_url=VWS_HOST,
+        base_url=base_vws_url,
         path_url=request_path,
         method=method,
         headers=headers,
@@ -166,6 +169,7 @@ def database_summary(*, vuforia_database: CloudDatabase) -> Endpoint:
 def get_duplicates(
     *,
     vuforia_database: CloudDatabase,
+    base_vws_url: str,
     target_id: str,
 ) -> Endpoint:
     """
@@ -197,7 +201,7 @@ def get_duplicates(
     }
 
     return Endpoint(
-        base_url=VWS_HOST,
+        base_url=base_vws_url,
         path_url=request_path,
         method=method,
         headers=headers,
@@ -213,6 +217,7 @@ def get_duplicates(
 def get_target(
     *,
     vuforia_database: CloudDatabase,
+    base_vws_url: str,
     target_id: str,
 ) -> Endpoint:
     """Return details of the endpoint for getting details of a target."""
@@ -243,7 +248,7 @@ def get_target(
     return Endpoint(
         successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=ResultCodes.SUCCESS,
-        base_url=VWS_HOST,
+        base_url=base_vws_url,
         path_url=request_path,
         method=method,
         headers=headers,
@@ -254,7 +259,11 @@ def get_target(
 
 
 @pytest.fixture
-def target_list(*, vuforia_database: CloudDatabase) -> Endpoint:
+def target_list(
+    *,
+    vuforia_database: CloudDatabase,
+    base_vws_url: str,
+) -> Endpoint:
     """Return details of the endpoint for getting a list of targets."""
     date = rfc_1123_date()
     request_path = "/targets"
@@ -283,7 +292,7 @@ def target_list(*, vuforia_database: CloudDatabase) -> Endpoint:
     return Endpoint(
         successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=ResultCodes.SUCCESS,
-        base_url=VWS_HOST,
+        base_url=base_vws_url,
         path_url=request_path,
         method=method,
         headers=headers,
@@ -297,6 +306,7 @@ def target_list(*, vuforia_database: CloudDatabase) -> Endpoint:
 def target_summary(
     *,
     vuforia_database: CloudDatabase,
+    base_vws_url: str,
     target_id: str,
 ) -> Endpoint:
     """
@@ -330,7 +340,7 @@ def target_summary(
     return Endpoint(
         successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=ResultCodes.SUCCESS,
-        base_url=VWS_HOST,
+        base_url=base_vws_url,
         path_url=request_path,
         method=method,
         headers=headers,
@@ -344,6 +354,7 @@ def target_summary(
 def update_target(
     *,
     vuforia_database: CloudDatabase,
+    base_vws_url: str,
     target_id: str,
 ) -> Endpoint:
     """Return details of the endpoint for updating a target."""
@@ -377,7 +388,7 @@ def update_target(
     return Endpoint(
         successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=ResultCodes.SUCCESS,
-        base_url=VWS_HOST,
+        base_url=base_vws_url,
         path_url=request_path,
         method=method,
         headers=headers,
@@ -391,6 +402,7 @@ def update_target(
 def query(
     *,
     vuforia_database: CloudDatabase,
+    base_vwq_url: str,
     high_quality_image: io.BytesIO,
 ) -> Endpoint:
     """
@@ -428,7 +440,7 @@ def query(
     return Endpoint(
         successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=ResultCodes.SUCCESS,
-        base_url=VWQ_HOST,
+        base_url=base_vwq_url,
         path_url=request_path,
         method=method,
         headers=headers,
@@ -442,6 +454,7 @@ def query(
 def vumark_generate_instance(
     *,
     vumark_vuforia_database: VuMarkCloudDatabase,
+    base_vws_url: str,
 ) -> Endpoint:
     """Return details of the endpoint for generating a VuMark instance."""
     request_path = f"/targets/{vumark_vuforia_database.target_id}/instances"
@@ -475,7 +488,7 @@ def vumark_generate_instance(
     return Endpoint(
         successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=None,
-        base_url=VWS_HOST,
+        base_url=base_vws_url,
         path_url=request_path,
         method=method,
         headers=headers,
@@ -486,7 +499,11 @@ def vumark_generate_instance(
 
 
 @pytest.fixture
-def reco_counts_report(*, vuforia_database: CloudDatabase) -> Endpoint:
+def reco_counts_report(
+    *,
+    vuforia_database: CloudDatabase,
+    base_vws_url: str,
+) -> Endpoint:
     """Return details of the endpoint for requesting a reco counts
     report.
     """
@@ -521,7 +538,7 @@ def reco_counts_report(*, vuforia_database: CloudDatabase) -> Endpoint:
     return Endpoint(
         successful_headers_status_code=HTTPStatus.OK,
         successful_headers_result_code=ResultCodes.SUCCESS,
-        base_url=VWS_HOST,
+        base_url=base_vws_url,
         path_url=request_path,
         method=method,
         headers=headers,

@@ -1,7 +1,6 @@
 """Tests for what happens when the `Date` header is missing."""
 
 from http import HTTPStatus
-from urllib.parse import urlparse
 
 from vws_auth_tools import authorization_header
 
@@ -14,7 +13,7 @@ from tests.mock_vws.utils.assertions import (
 from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
 
-def test_no_date_header(endpoint: Endpoint) -> None:
+def test_no_date_header(endpoint: Endpoint, base_vwq_url: str) -> None:
     """
     A `BAD_REQUEST` response is returned when no `Date` header is
     given.
@@ -51,9 +50,7 @@ def test_no_date_header(endpoint: Endpoint) -> None:
 
     handle_server_errors(response=response)
 
-    netloc = urlparse(url=endpoint.base_url).netloc
-
-    if netloc == "cloudreco.vuforia.com":
+    if endpoint.base_url == base_vwq_url:
         expected_content_type = "text/plain;charset=iso-8859-1"
         assert response.text == "Date header required."
         assert_vwq_failure(

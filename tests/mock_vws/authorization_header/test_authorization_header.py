@@ -4,7 +4,6 @@ expected.
 """
 
 from http import HTTPStatus
-from urllib.parse import urlparse
 
 from vws_auth_tools import rfc_1123_date
 
@@ -17,7 +16,7 @@ from tests.mock_vws.utils.assertions import (
 from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
 
-def test_missing(endpoint: Endpoint) -> None:
+def test_missing(endpoint: Endpoint, base_vwq_url: str) -> None:
     """
     An `UNAUTHORIZED` response is returned when no `Authorization`
     header
@@ -46,8 +45,7 @@ def test_missing(endpoint: Endpoint) -> None:
 
     handle_server_errors(response=response)
 
-    netloc = urlparse(url=endpoint.base_url).netloc
-    if netloc == "cloudreco.vuforia.com":
+    if endpoint.base_url == base_vwq_url:
         assert_vwq_failure(
             response=response,
             status_code=HTTPStatus.UNAUTHORIZED,
