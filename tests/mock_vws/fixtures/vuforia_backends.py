@@ -7,6 +7,7 @@ import os
 from collections.abc import Generator
 from enum import Enum
 from http import HTTPMethod
+from uuid import uuid4
 
 import pytest
 import requests
@@ -31,7 +32,13 @@ from tests.mock_vws.fixtures.credentials import (
     InactiveVuMarkCloudDatabase,
     ModelTargetCredentials,
     VuMarkCloudDatabase,
+)
+from tests.mock_vws.fixtures.real_credentials import (
     get_model_target_credentials,
+    get_real_cloud_database,
+    get_real_inactive_cloud_database,
+    get_real_inactive_vumark_database,
+    get_real_vumark_database,
 )
 from tests.mock_vws.utils.backend_capabilities import BackendCapabilities
 from tests.mock_vws.utils.cloud_databases import AddCloudDatabase
@@ -435,6 +442,72 @@ _ALL_BACKENDS = list(VuforiaBackend)
 _MOCK_BACKENDS = [
     backend for backend in _ALL_BACKENDS if backend != VuforiaBackend.REAL
 ]
+
+
+@beartype
+def _credential_backend(*, request: pytest.FixtureRequest) -> VuforiaBackend:
+    """Read the active VWS selector without adding another backend matrix.
+
+    Implementation tests which manage their own mock have no selector and
+    receive mock credentials.
+    """
+    for fixture_name in ("_vws_backend", "_mock_vws_backend"):
+        if fixture_name in request.fixturenames:
+            backend = request.getfixturevalue(argname=fixture_name)
+            assert isinstance(backend, VuforiaBackend)
+            return backend
+    return VuforiaBackend.MOCK
+
+
+@pytest.fixture(name="vuforia_database")
+def fixture_vuforia_database(
+    *, request: pytest.FixtureRequest
+) -> CloudDatabase:
+    """An active database with credentials supplied by the backend."""
+    if _credential_backend(request=request) == VuforiaBackend.REAL:
+        return get_real_cloud_database()
+    return CloudDatabase()
+
+
+@pytest.fixture(name="inactive_cloud_database")
+def fixture_inactive_cloud_database(
+    *, request: pytest.FixtureRequest
+) -> CloudDatabase:
+    """An inactive database with credentials supplied by the backend."""
+    if _credential_backend(request=request) == VuforiaBackend.REAL:
+        return get_real_inactive_cloud_database()
+    return CloudDatabase(state=States.PROJECT_INACTIVE)
+
+
+@pytest.fixture(name="inactive_vumark_database")
+def fixture_inactive_vumark_database(
+    *, request: pytest.FixtureRequest
+) -> InactiveVuMarkCloudDatabase:
+    """An inactive VuMark database supplied by the backend."""
+    if _credential_backend(request=request) == VuforiaBackend.REAL:
+        return get_real_inactive_vumark_database()
+    return InactiveVuMarkCloudDatabase(
+        target_manager_database_name=uuid4().hex,
+        server_access_key=uuid4().hex,
+        server_secret_key=uuid4().hex,
+    )
+
+
+@pytest.fixture(name="vumark_vuforia_database")
+def fixture_vumark_vuforia_database(
+    *, request: pytest.FixtureRequest
+) -> VuMarkCloudDatabase:
+    """A VuMark database with credentials supplied by the backend."""
+    if _credential_backend(request=request) == VuforiaBackend.REAL:
+        return get_real_vumark_database()
+    return VuMarkCloudDatabase(
+        target_manager_database_name=uuid4().hex,
+        server_access_key=uuid4().hex,
+        server_secret_key=uuid4().hex,
+        target_id=uuid4().hex,
+        processing_target_id=uuid4().hex,
+    )
+
 
 # These deliberately have no type annotation, so that the keyword
 # arguments of the setup functions are still checked where they are
