@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from typing import Literal
 from urllib.parse import urljoin
 
-import pytest
 import requests
 from beartype import beartype
 from PIL import Image
@@ -19,6 +18,7 @@ from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils.model_target_retries import (
     send_with_transient_retries,
 )
+from tests.mock_vws.utils.request_timeout_policy import handle_request_timeout
 
 _REQUEST_TIMEOUT_SECONDS = 5
 
@@ -46,12 +46,8 @@ def _send_request(
             request=prepared_request,
             timeout=_REQUEST_TIMEOUT_SECONDS,
         )
-    # A live-service timeout is nondeterministic and cannot be forced reliably.
-    except RequestsTimeout:  # pragma: no cover
-        if url.startswith(
-            ("https://vws.vuforia.com/", "https://cloudreco.vuforia.com/"),
-        ):
-            pytest.skip(reason="The real Vuforia service timed out.")
+    except RequestsTimeout as error:
+        handle_request_timeout(url=url, error=error)
         raise
     return Response(
         text=requests_response.text,
