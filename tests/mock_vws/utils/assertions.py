@@ -4,19 +4,19 @@ import copy
 import datetime
 import email.utils
 import json
-import textwrap
 from collections.abc import Set as AbstractSet
 from http import HTTPStatus
 from string import hexdigits
-from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
-import pytest
 import requests
 from beartype import beartype
 from vws.response import Response
 
 from mock_vws._constants import ResultCodes
+from tests.mock_vws.utils.model_target_response_policy import (
+    handle_unexpected_model_target_response,
+)
 
 
 @beartype
@@ -218,34 +218,6 @@ def assert_vws_response(
     assert_valid_date_header(response=response)
 
 
-_TRAINING_ALLOWANCE_EXCEEDED = "TRAINING_ALLOWANCE_EXCEEDED"
-
-# The first line of the failure message, because a truncated failure summary
-# in a CI log has to be enough to tell this apart from a real regression.
-_TRAINING_ALLOWANCE_EXCEEDED_HEADLINE = (
-    "The Vuforia account is out of Model Target training allowance - "
-    "this is not a failure of the code under test."
-)
-
-_TRAINING_ALLOWANCE_EXCEEDED_EXPLANATION = textwrap.dedent(
-    text="""\
-    ``TRAINING_ALLOWANCE_EXCEEDED`` is a quota on the Vuforia account behind
-    ``MODEL_TARGET_VUFORIA_CLIENT_ID``, not a fault in the code under test or
-    in this request. Every CI job shares one set of Model Target credentials,
-    so the allowance is consumed across all jobs and all concurrent runs.
-
-    The allowance has to be raised, or reset, on the Vuforia account for this
-    request to succeed against the real backend again. Signed dataset types,
-    such as an advanced dataset with a state-based configuration, exhaust it
-    first, but with enough traffic unsigned dataset creation is rejected too.
-
-    An unexpected allowance rejection is reported as an expected failure
-    (xfail) rather than a test failure, so that the shared account running
-    dry does not turn CI red: the test passes again automatically once the
-    allowance recovers.""",
-)
-
-
 @beartype
 def assert_model_target_status(
     *,
@@ -254,11 +226,8 @@ def assert_model_target_status(
 ) -> None:
     """Assert the status code of a Model Target Web API response.
 
-    A bare ``assert response.status_code == ...`` hides the response body,
-    which is where the real Model Target Web API says *why* it rejected a
-    request. That matters most when the reason has nothing to do with the
-    request, such as an exhausted account allowance, so this helper always
-    reports the body and calls out that case by name.
+    An unexpected status reports the URL and body. A backend may supply
+    a response handler for restrictions of the service it runs against.
 
     Args:
         response: The response returned by a request to the Model Target Web
@@ -268,12 +237,7 @@ def assert_model_target_status(
 
     Raises:
         AssertionError: The response does not have one of the expected status
-            codes.
-        Exception: The response unexpectedly reports a
-            ``TRAINING_ALLOWANCE_EXCEEDED`` rejection. That is the shared
-            Vuforia account running out of Model Target training allowance,
-            not a fault in the code under test, so it is an expected failure
-            rather than a test failure.
+            codes and the backend handler has not handled the rejection.
     """
     expected = (
         frozenset({status_codes})
@@ -283,36 +247,14 @@ def assert_model_target_status(
     if response.status_code in expected:
         return
 
+    handle_unexpected_model_target_response(response=response)
     expected_description = " or ".join(
         sorted(f"{item} {item.name}" for item in expected)
     )
-    allowance_exceeded = _TRAINING_ALLOWANCE_EXCEEDED in response.text
-    if (
-        allowance_exceeded
-        and urlparse(url=response.url).hostname == "vws.vuforia.com"
-    ):
-        pytest.skip(reason=_TRAINING_ALLOWANCE_EXCEEDED_HEADLINE)
-    headline = (
-        [_TRAINING_ALLOWANCE_EXCEEDED_HEADLINE] if allowance_exceeded else []
+    message = (
+        f"Expected {expected_description} from {response.url}, "
+        f"got {response.status_code}.\n\nResponse body:\n{response.text}"
     )
-    explanation = (
-        [_TRAINING_ALLOWANCE_EXCEEDED_EXPLANATION]
-        if allowance_exceeded
-        else []
-    )
-    message = "\n\n".join(
-        [
-            *headline,
-            (
-                f"Expected {expected_description} from {response.url}, "
-                f"got {response.status_code}."
-            ),
-            f"Response body:\n{response.text}",
-            *explanation,
-        ],
-    )
-    if allowance_exceeded:
-        pytest.xfail(reason=message)
     raise AssertionError(message)
 
 
