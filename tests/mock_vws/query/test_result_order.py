@@ -8,18 +8,18 @@ import pytest
 from vws import VWS
 
 from mock_vws.database import CloudDatabase
-from tests.mock_vws.fixtures.vuforia_backends import VuforiaBackend
 from tests.mock_vws.query.helpers import (
     query,
 )
 from tests.mock_vws.utils.assertions import (
     assert_query_success,
 )
+from tests.mock_vws.utils.backend_capabilities import BackendCapabilities
 
 
 def test_order_is_upload_date_then_target_id(
     *,
-    verify_mock_vuforia: VuforiaBackend,
+    backend_capabilities: BackendCapabilities,
     high_quality_image: io.BytesIO,
     vws_client: VWS,
     vuforia_database: CloudDatabase,
@@ -33,9 +33,9 @@ def test_order_is_upload_date_then_target_id(
     matcher, so we do not verify this against the real Vuforia Web
     Services.
     """
-    if verify_mock_vuforia == VuforiaBackend.REAL:
+    if not backend_capabilities.deterministic_query_order:
         pytest.skip(
-            reason="The real Query API uses Vuforia's match scores.",
+            reason="This backend does not guarantee query upload-date order.",
         )
 
     target_ids = [
@@ -72,7 +72,7 @@ def test_order_is_upload_date_then_target_id(
 
 def test_max_num_results_keeps_the_first_results(
     *,
-    verify_mock_vuforia: VuforiaBackend,
+    backend_capabilities: BackendCapabilities,
     high_quality_image: io.BytesIO,
     vws_client: VWS,
     vuforia_database: CloudDatabase,
@@ -84,9 +84,9 @@ def test_max_num_results_keeps_the_first_results(
     Which matches survive the truncation therefore does not vary
     between runs.
     """
-    if verify_mock_vuforia == VuforiaBackend.REAL:
+    if not backend_capabilities.deterministic_query_order:
         pytest.skip(
-            reason="The real Query API uses Vuforia's match scores.",
+            reason="This backend does not guarantee query upload-date order.",
         )
 
     target_ids = [

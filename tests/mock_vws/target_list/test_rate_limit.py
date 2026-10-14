@@ -8,17 +8,15 @@ from vws_auth_tools import authorization_header, rfc_1123_date
 from mock_vws._constants import ResultCodes
 from mock_vws.database import CloudDatabase
 from mock_vws.request_rate_limits import DOCUMENTED_REQUEST_RATE_LIMITS
-from tests.mock_vws.fixtures.vuforia_backends import (
-    VuforiaBackend,
-)
 from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import assert_vws_too_many_requests
+from tests.mock_vws.utils.backend_capabilities import BackendCapabilities
 
 
 def test_two_requests_per_minute(
     *,
     base_vws_url: str,
-    verify_mock_vuforia: VuforiaBackend,
+    backend_capabilities: BackendCapabilities,
     rate_limited_database: CloudDatabase,
 ) -> None:
     """A third ``GET /targets`` request within a minute is rate
@@ -66,7 +64,7 @@ def test_two_requests_per_minute(
         assert len(responses) <= limit.max_requests + 2
 
     status_codes = [response.status_code for response in responses]
-    if verify_mock_vuforia != VuforiaBackend.REAL:
+    if backend_capabilities.rolling_rate_limit_window:
         assert status_codes == [
             *[HTTPStatus.OK] * limit.max_requests,
             HTTPStatus.TOO_MANY_REQUESTS,

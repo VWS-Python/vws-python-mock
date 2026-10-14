@@ -9,7 +9,7 @@ from PIL import Image
 from vws import VWS
 from vws.reports import TargetStatuses
 
-from tests.mock_vws.fixtures.vuforia_backends import VuforiaBackend
+from tests.mock_vws.utils.backend_capabilities import BackendCapabilities
 
 
 def test_duplicates(
@@ -136,7 +136,7 @@ def test_status(
 
 def test_order_is_upload_date_then_target_id(
     *,
-    verify_mock_vuforia: VuforiaBackend,
+    backend_capabilities: BackendCapabilities,
     high_quality_image: io.BytesIO,
     vws_client: VWS,
 ) -> None:
@@ -145,8 +145,10 @@ def test_order_is_upload_date_then_target_id(
     The real Vuforia Web Services do not document an order, so we do
     not verify this against them.
     """
-    if verify_mock_vuforia == VuforiaBackend.REAL:
-        pytest.skip(reason="The real Vuforia does not document an order.")
+    if not backend_capabilities.deterministic_target_order:
+        pytest.skip(
+            reason="This backend does not guarantee target upload-date order."
+        )
 
     target_ids = [
         vws_client.add_target(
