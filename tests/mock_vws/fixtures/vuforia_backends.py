@@ -561,38 +561,106 @@ def _setup_model_target_backend(
     )
 
 
-# Tests which use this are run against the real Vuforia and against each
-# mock. This is useful for verifying the mocks.
-fixture_verify_mock_vuforia = backend_fixture(
-    name="verify_mock_vuforia",
+@beartype
+def _defer_backend_setup(
+    *,
+    backend: VuforiaBackend,
+    request: pytest.FixtureRequest,
+) -> Generator[None]:
+    """Leave setup to the shared fixture after backend selection.
+
+    Yields:
+        ``None``, without setting up the selected backend.
+    """
+    del backend, request
+    yield
+
+
+# These adapter-internal fixtures select and apply skip policy for a backend.
+# Public fixtures below set up and tear down the selected backend without
+# exposing that selection to the shared suite.
+fixture_vws_backend = backend_fixture(
+    name="_vws_backend",
     backends=_ALL_BACKENDS,
-    setup_for=_setup_backend,
+    setup_for=_defer_backend_setup,
 )
-
-# Model Target Web API contract tests, run against the real Vuforia and
-# against each mock.
-fixture_verify_model_target_mock_vuforia = backend_fixture(
-    name="verify_model_target_mock_vuforia",
+fixture_model_target_backend = backend_fixture(
+    name="_model_target_backend",
     backends=_ALL_BACKENDS,
-    setup_for=_setup_model_target_backend,
+    setup_for=_defer_backend_setup,
+)
+fixture_model_target_mock_backend = backend_fixture(
+    name="_model_target_mock_backend",
+    backends=_MOCK_BACKENDS,
+    setup_for=_defer_backend_setup,
+)
+fixture_mock_vws_backend = backend_fixture(
+    name="_mock_vws_backend",
+    backends=_MOCK_BACKENDS,
+    setup_for=_defer_backend_setup,
 )
 
-# Model Target Web API tests which need scopes that the real test account does
-# not have, run against each mock only.
-fixture_model_target_mock_only_vuforia = backend_fixture(
-    name="model_target_mock_only_vuforia",
-    backends=_MOCK_BACKENDS,
-    setup_for=_setup_model_target_backend,
-)
 
-# Tests which use this are run against each mock, and not against the
-# real Vuforia. This is useful for testing the mock using fixtures which
-# connect to Vuforia.
-fixture_mock_only_vuforia = backend_fixture(
-    name="mock_only_vuforia",
-    backends=_MOCK_BACKENDS,
-    setup_for=_setup_backend,
-)
+@pytest.fixture(name="verify_mock_vuforia")
+def fixture_verify_mock_vuforia(
+    *,
+    _vws_backend: VuforiaBackend,
+    request: pytest.FixtureRequest,
+) -> Generator[None]:
+    """Set up and tear down the selected VWS/query backend.
+
+    Yields:
+        ``None``, once the backend is ready for shared tests.
+    """
+    yield from _setup_backend(backend=_vws_backend, request=request)
+
+
+@pytest.fixture(name="verify_model_target_mock_vuforia")
+def fixture_verify_model_target_mock_vuforia(
+    *,
+    _model_target_backend: VuforiaBackend,
+    request: pytest.FixtureRequest,
+) -> Generator[None]:
+    """Set up and tear down the selected Model Target backend.
+
+    Yields:
+        ``None``, once the backend is ready for shared tests.
+    """
+    yield from _setup_model_target_backend(
+        backend=_model_target_backend,
+        request=request,
+    )
+
+
+@pytest.fixture(name="model_target_mock_only_vuforia")
+def fixture_model_target_mock_only_vuforia(
+    *,
+    _model_target_mock_backend: VuforiaBackend,
+    request: pytest.FixtureRequest,
+) -> Generator[None]:
+    """Set up and tear down a Model Target mock backend.
+
+    Yields:
+        ``None``, once the backend is ready for mock-only tests.
+    """
+    yield from _setup_model_target_backend(
+        backend=_model_target_mock_backend,
+        request=request,
+    )
+
+
+@pytest.fixture(name="mock_only_vuforia")
+def fixture_mock_only_vuforia(
+    *,
+    _mock_vws_backend: VuforiaBackend,
+    request: pytest.FixtureRequest,
+) -> Generator[None]:
+    """Set up and tear down a VWS/query mock backend.
+
+    Yields:
+        ``None``, once the backend is ready for mock-only tests.
+    """
+    yield from _setup_backend(backend=_mock_vws_backend, request=request)
 
 
 @beartype
@@ -621,16 +689,19 @@ def _cloud_database_adder(
 @pytest.fixture(name="add_cloud_database")
 def fixture_add_cloud_database(
     *,
-    mock_only_vuforia: VuforiaBackend,
+    mock_only_vuforia: None,
+    _mock_vws_backend: VuforiaBackend,
 ) -> AddCloudDatabase:
     """The database creation operation for the running mock backend."""
-    return _cloud_database_adder(backend=mock_only_vuforia)
+    del mock_only_vuforia
+    return _cloud_database_adder(backend=_mock_vws_backend)
 
 
 @pytest.fixture(name="rate_limited_database")
 def fixture_rate_limited_database(
     *,
-    verify_mock_vuforia: VuforiaBackend,
+    verify_mock_vuforia: None,
+    _vws_backend: VuforiaBackend,
     vuforia_database: CloudDatabase,
 ) -> CloudDatabase:
     """Return a database which applies real Vuforia's request rate limits.
@@ -639,13 +710,14 @@ def fixture_rate_limited_database(
     database with the limits, so that the shared database which the other
     tests use is not limited.
     """
-    if verify_mock_vuforia == VuforiaBackend.REAL:
+    del verify_mock_vuforia
+    if _vws_backend == VuforiaBackend.REAL:
         return vuforia_database
 
     database = CloudDatabase(
         request_rate_limits=DOCUMENTED_REQUEST_RATE_LIMITS
     )
-    add_cloud_database = _cloud_database_adder(backend=verify_mock_vuforia)
+    add_cloud_database = _cloud_database_adder(backend=_vws_backend)
     add_cloud_database(cloud_database=database)
     return database
 
@@ -653,10 +725,12 @@ def fixture_rate_limited_database(
 @pytest.fixture(name="seed_recognition_counts")
 def fixture_seed_recognition_counts(
     *,
-    mock_only_vuforia: VuforiaBackend,
+    mock_only_vuforia: None,
+    _mock_vws_backend: VuforiaBackend,
 ) -> SeedRecognitionCounts:
     """The recognition-count operation for the running mock backend."""
-    if mock_only_vuforia == VuforiaBackend.MOCK:
+    del mock_only_vuforia
+    if _mock_vws_backend == VuforiaBackend.MOCK:
 
         @beartype
         def seed_in_memory_counts(
@@ -712,11 +786,13 @@ def fixture_seed_recognition_counts(
 @pytest.fixture(name="unrouted_requests")
 def fixture_unrouted_requests(
     *,
-    verify_mock_vuforia: VuforiaBackend,
+    verify_mock_vuforia: None,
+    _vws_backend: VuforiaBackend,
     base_vws_url: str,
 ) -> UnroutedRequests:
     """The transport for unmatched requests on the running backend."""
-    if verify_mock_vuforia == VuforiaBackend.FLASK_IN_PROCESS:
+    del verify_mock_vuforia
+    if _vws_backend == VuforiaBackend.FLASK_IN_PROCESS:
         return UnroutedRequests(
             send=_send_flask_unrouted_request,
             returns_response=True,
@@ -752,7 +828,7 @@ def fixture_unrouted_requests(
 
     return UnroutedRequests(
         send=send_http_request,
-        returns_response=verify_mock_vuforia != VuforiaBackend.MOCK,
+        returns_response=_vws_backend != VuforiaBackend.MOCK,
     )
 
 
@@ -813,22 +889,26 @@ def _model_target_credentials_for_backend(
 @pytest.fixture(name="model_target_credentials")
 def fixture_model_target_credentials(
     *,
-    verify_model_target_mock_vuforia: VuforiaBackend,
+    verify_model_target_mock_vuforia: None,
+    _model_target_backend: VuforiaBackend,
 ) -> ModelTargetCredentials:
     """Model Target credentials supplied by the running backend."""
+    del verify_model_target_mock_vuforia
     return _model_target_credentials_for_backend(
-        backend=verify_model_target_mock_vuforia,
+        backend=_model_target_backend,
     )
 
 
 @pytest.fixture(name="mock_model_target_credentials")
 def fixture_mock_model_target_credentials(
     *,
-    model_target_mock_only_vuforia: VuforiaBackend,
+    model_target_mock_only_vuforia: None,
+    _model_target_mock_backend: VuforiaBackend,
 ) -> ModelTargetCredentials:
     """Model Target credentials for tests which require a mock."""
+    del model_target_mock_only_vuforia
     return _model_target_credentials_for_backend(
-        backend=model_target_mock_only_vuforia,
+        backend=_model_target_mock_backend,
     )
 
 
@@ -871,28 +951,32 @@ def _skip_unrequested_real_signing(
 @pytest.fixture(name="signed_model_target_credentials")
 def fixture_signed_model_target_credentials(
     *,
-    verify_model_target_mock_vuforia: VuforiaBackend,
+    verify_model_target_mock_vuforia: None,
+    _model_target_backend: VuforiaBackend,
     request: pytest.FixtureRequest,
 ) -> ModelTargetCredentials:
     """Credentials for signing tests, after applying the real-service
     opt-in policy.
     """
+    del verify_model_target_mock_vuforia
     _skip_unrequested_real_signing(
         request=request,
-        backend=verify_model_target_mock_vuforia,
+        backend=_model_target_backend,
     )
     return _model_target_credentials_for_backend(
-        backend=verify_model_target_mock_vuforia,
+        backend=_model_target_backend,
     )
 
 
 @pytest.fixture(name="backend_capabilities")
 def fixture_backend_capabilities(
     *,
-    verify_mock_vuforia: VuforiaBackend,
+    verify_mock_vuforia: None,
+    _vws_backend: VuforiaBackend,
 ) -> BackendCapabilities:
     """The behavior supported by the running VWS and query backend."""
-    is_mock = verify_mock_vuforia != VuforiaBackend.REAL
+    del verify_mock_vuforia
+    is_mock = _vws_backend != VuforiaBackend.REAL
     return BackendCapabilities(
         deterministic_target_order=is_mock,
         deterministic_query_order=is_mock,
