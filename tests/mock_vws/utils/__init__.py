@@ -10,7 +10,6 @@ from urllib.parse import urljoin
 import requests
 from beartype import beartype
 from PIL import Image
-from requests.exceptions import Timeout as RequestsTimeout
 from requests.structures import CaseInsensitiveDict
 from vws.response import Response
 
@@ -18,7 +17,9 @@ from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils.model_target_retries import (
     send_with_transient_retries,
 )
-from tests.mock_vws.utils.request_timeout_policy import handle_request_timeout
+from tests.mock_vws.utils.request_timeout_policy import (
+    propagating_request_timeouts,
+)
 
 _REQUEST_TIMEOUT_SECONDS = 5
 
@@ -41,14 +42,11 @@ def _send_request(
     prepared_request = request.prepare()
     prepared_request.headers = CaseInsensitiveDict(data=headers)
     session = requests.Session()
-    try:
+    with propagating_request_timeouts(url=url):
         requests_response = session.send(
             request=prepared_request,
             timeout=_REQUEST_TIMEOUT_SECONDS,
         )
-    except RequestsTimeout as error:
-        handle_request_timeout(url=url, error=error)
-        raise
     return Response(
         text=requests_response.text,
         url=requests_response.url,

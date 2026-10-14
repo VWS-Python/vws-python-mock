@@ -37,8 +37,17 @@ def handling_request_timeouts(
         _ = _TIMEOUT_HANDLERS.pop()
 
 
+@contextlib.contextmanager
 @beartype
-def handle_request_timeout(*, url: str, error: RequestsTimeout) -> None:
-    """Notify the backend before propagating a request timeout."""
-    if bool(_TIMEOUT_HANDLERS):
-        _TIMEOUT_HANDLERS[-1](url=url, error=error)
+def propagating_request_timeouts(*, url: str) -> Generator[None]:
+    """Apply the active policy to timeouts raised by a request.
+
+    Yields:
+        ``None``, while the request runs.
+    """
+    try:
+        yield
+    except RequestsTimeout as error:
+        if bool(_TIMEOUT_HANDLERS):
+            _TIMEOUT_HANDLERS[-1](url=url, error=error)
+        raise
