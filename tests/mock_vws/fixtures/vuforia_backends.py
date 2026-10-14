@@ -14,6 +14,7 @@ import requests
 import responses
 from beartype import beartype
 from pytest_multi_backend import backend_fixture
+from requests.exceptions import Timeout as RequestsTimeout
 from requests_mock_flask import add_flask_app_to_mock
 from vws import VWS
 from vws.exceptions.vws_exceptions import (
@@ -50,6 +51,9 @@ from tests.mock_vws.utils.model_target_retries import (
     retrying_transient_real_backend_failures,
 )
 from tests.mock_vws.utils.recognition_counts import SeedRecognitionCounts
+from tests.mock_vws.utils.request_timeout_policy import (
+    handling_request_timeouts,
+)
 from tests.mock_vws.utils.retries import (
     RETRY_ON_TARGET_STILL_PROCESSING,
     RETRY_ON_TRANSIENT_VWS_FAILURE,
@@ -167,6 +171,13 @@ def _vumark_database(
 
 
 @beartype
+def _handle_real_request_timeout(*, url: str, error: RequestsTimeout) -> None:
+    """Skip a shared request which timed out against the real service."""
+    del url, error
+    pytest.skip(reason="The real Vuforia service timed out.")
+
+
+@beartype
 def _enable_use_real_vuforia(
     *,
     working_database: CloudDatabase,
@@ -186,7 +197,8 @@ def _enable_use_real_vuforia(
     _delete_all_targets(
         database_keys=working_database, base_vws_url=base_vws_url
     )
-    yield
+    with handling_request_timeouts(handler=_handle_real_request_timeout):
+        yield
 
 
 @beartype
@@ -396,6 +408,7 @@ def _enable_use_real_model_target_vuforia(
     assert bool(monkeypatch)
     with (
         retrying_transient_real_backend_failures(),
+        handling_request_timeouts(handler=_handle_real_request_timeout),
         handling_unexpected_model_target_responses(
             handler=_handle_real_model_target_response,
         ),

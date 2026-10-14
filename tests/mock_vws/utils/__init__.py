@@ -7,17 +7,18 @@ from dataclasses import dataclass
 from typing import Literal
 from urllib.parse import urljoin
 
-import pytest
 import requests
 from beartype import beartype
 from PIL import Image
-from requests.exceptions import Timeout as RequestsTimeout
 from requests.structures import CaseInsensitiveDict
 from vws.response import Response
 
 from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils.model_target_retries import (
     send_with_transient_retries,
+)
+from tests.mock_vws.utils.request_timeout_policy import (
+    propagating_request_timeouts,
 )
 
 _REQUEST_TIMEOUT_SECONDS = 5
@@ -41,18 +42,11 @@ def _send_request(
     prepared_request = request.prepare()
     prepared_request.headers = CaseInsensitiveDict(data=headers)
     session = requests.Session()
-    try:
+    with propagating_request_timeouts(url=url):
         requests_response = session.send(
             request=prepared_request,
             timeout=_REQUEST_TIMEOUT_SECONDS,
         )
-    # A live-service timeout is nondeterministic and cannot be forced reliably.
-    except RequestsTimeout:  # pragma: no cover
-        if url.startswith(
-            ("https://vws.vuforia.com/", "https://cloudreco.vuforia.com/"),
-        ):
-            pytest.skip(reason="The real Vuforia service timed out.")
-        raise
     return Response(
         text=requests_response.text,
         url=requests_response.url,
