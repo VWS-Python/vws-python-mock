@@ -19,6 +19,7 @@ from vws import VWS
 from vws.exceptions.vws_exceptions import (
     TargetStatusNotSuccessError,
 )
+from vws.response import Response
 
 from mock_vws import MockVWS
 from mock_vws._flask_server.target_manager import TARGET_MANAGER_FLASK_APP
@@ -42,6 +43,9 @@ from tests.mock_vws.fixtures.real_credentials import (
 )
 from tests.mock_vws.utils.backend_capabilities import BackendCapabilities
 from tests.mock_vws.utils.cloud_databases import AddCloudDatabase
+from tests.mock_vws.utils.model_target_response_policy import (
+    handling_unexpected_model_target_responses,
+)
 from tests.mock_vws.utils.model_target_retries import (
     retrying_transient_real_backend_failures,
 )
@@ -362,6 +366,21 @@ def _enable_use_flask_in_process(
 
 
 @beartype
+def _handle_real_model_target_response(
+    *,
+    response: Response | requests.Response,
+) -> None:
+    """Skip an unexpected rejection by the shared real account's allowance."""
+    if "TRAINING_ALLOWANCE_EXCEEDED" in response.text:
+        pytest.skip(
+            reason=(
+                "The Vuforia account is out of Model Target training "
+                "allowance - this is not a failure of the code under test."
+            ),
+        )
+
+
+@beartype
 def _enable_use_real_model_target_vuforia(
     *,
     monkeypatch: pytest.MonkeyPatch,
@@ -375,7 +394,12 @@ def _enable_use_real_model_target_vuforia(
     """
     del base_vws_url
     assert bool(monkeypatch)
-    with retrying_transient_real_backend_failures():
+    with (
+        retrying_transient_real_backend_failures(),
+        handling_unexpected_model_target_responses(
+            handler=_handle_real_model_target_response,
+        ),
+    ):
         yield
 
 
@@ -997,8 +1021,7 @@ def fixture_mock_model_target_credentials(
 # standard dataset, or an advanced dataset without a state-based
 # configuration) are far cheaper and stay enabled, though with enough
 # traffic they can also hit the allowance; an unexpected allowance
-# rejection is reported as an expected failure by
-# ``assert_model_target_status`` rather than failing the run.
+# rejection is skipped by the real adapter rather than failing the run.
 _SIGNED_REQUEST_SKIP_REASON = (
     "Signed Model Target requests consume the real Vuforia account's "
     "small, shared, non-resettable training allowance, so they are not "

@@ -78,31 +78,28 @@ def test_multiple_expected_statuses(*, base_vws_url: str) -> None:
     assert "Expected 200 OK or 204 NO_CONTENT from " in str(object=exc.value)
 
 
-def test_training_allowance_exceeded() -> None:
-    """An exhausted account allowance is an expected failure, called
-    out as such in the first line so that a truncated CI summary
-    still shows it.
-    """
+@pytest.mark.parametrize(
+    argnames="base_url",
+    argvalues=["http://example.com", "https://vws.vuforia.com"],
+)
+def test_training_allowance_exceeded(*, base_url: str) -> None:
+    """An unexpected allowance response fails without a backend policy."""
     response = fake_response(
         status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
         text=(
             '{"error":{"code":"TRAINING_ALLOWANCE_EXCEEDED",'
             '"message":"Signing quota reached","target":"7635391"}}'
         ),
-        url="http://example.com/modeltargets/datasets",
+        url=f"{base_url}/modeltargets/datasets",
     )
-    with pytest.raises(expected_exception=pytest.xfail.Exception) as exc:
+    with pytest.raises(expected_exception=AssertionError) as exc:
         assert_model_target_status(
             response=response,
             status_codes=HTTPStatus.CREATED,
         )
 
     message = str(object=exc.value)
-    first_line = message.splitlines()[0]
-    assert first_line == (
-        "The Vuforia account is out of Model Target training allowance - "
-        "this is not a failure of the code under test."
+    assert message == (
+        f"Expected 201 CREATED from {base_url}/modeltargets/datasets, "
+        f"got 422.\n\nResponse body:\n{response.text}"
     )
-    assert "MODEL_TARGET_VUFORIA_CLIENT_ID" in message
-    assert "has to be raised, or reset, on the Vuforia account" in message
-    assert "expected failure" in message
