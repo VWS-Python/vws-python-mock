@@ -3,7 +3,6 @@
 import pytest
 
 from mock_vws.database import CloudDatabase
-from tests.mock_vws.fixtures.vuforia_backends import VuforiaBackend
 from tests.mock_vws.utils.cloud_databases import AddCloudDatabase
 
 
@@ -29,7 +28,7 @@ def fixture_fresh_database(
 @pytest.fixture(autouse=True)
 def fixture_verify_backend(
     *,
-    mock_only_vuforia: VuforiaBackend,
+    mock_only_vuforia: object,
 ) -> None:
     """Set up the backend for every contract test in this directory."""
     del mock_only_vuforia
