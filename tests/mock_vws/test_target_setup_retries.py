@@ -2,11 +2,13 @@
 
 import io
 import time
+from collections.abc import Generator
 from unittest.mock import call, patch
 
 import pytest
 from requests.exceptions import ReadTimeout
 from tenacity import RetryError
+from tenacity.wait import wait_none
 from vws import VWS
 from vws.exceptions.vws_exceptions import (
     TooManyRequestsError,
@@ -18,7 +20,11 @@ from vws.response import Response
 from tests.mock_vws.fixtures.api_contract import (
     _add_target_which_processed_successfully,  # pyright: ignore[reportPrivateUsage]
 )
-from tests.mock_vws.utils.retries import TRANSIENT_VWS_RETRY_ATTEMPTS
+from tests.mock_vws.fixtures.real_vws_retries import REAL_VWS_RETRYING
+from tests.mock_vws.utils.retries import (
+    TRANSIENT_VWS_RETRY_ATTEMPTS,
+    retrying_vws_requests,
+)
 
 
 def _record(*, status: TargetStatuses) -> TargetStatusAndRecord:
@@ -57,9 +63,18 @@ def _no_sleep(seconds: float) -> None:
 
 
 @pytest.fixture(autouse=True)
-def fixture_no_sleep(*, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Exercise the actual retry decorators without sleeping."""
+def fixture_no_sleep(*, monkeypatch: pytest.MonkeyPatch) -> Generator[None]:
+    """Exercise the real policy without sleeping, including visibility
+    waits.
+
+    Yields:
+        ``None``, with real fixture retries enabled.
+    """
     monkeypatch.setattr(target=time, name="sleep", value=_no_sleep)
+    with retrying_vws_requests(
+        retrying=REAL_VWS_RETRYING.copy(wait=wait_none())
+    ):
+        yield
 
 
 @pytest.fixture(name="client")
