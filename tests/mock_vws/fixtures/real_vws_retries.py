@@ -37,7 +37,9 @@ def _retry_after_seconds(
     """Read HTTP delay-seconds or an HTTP-date, rejecting malformed values."""
     value = value.strip()
     if value.isascii() and value.isdecimal():
-        value = value.lstrip("0") or "0"
+        value = value.lstrip("0")
+        if value == "":
+            return 0.0
         # Longer values exceed any useful retry deadline. Avoid integer
         # conversion limits and float overflow for external header values.
         if len(value) > _MAX_DELAY_DIGITS:

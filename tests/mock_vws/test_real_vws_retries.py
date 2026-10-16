@@ -151,7 +151,7 @@ def test_deadline_accounts_for_elapsed_time() -> None:
         def sleep(seconds: float) -> None:
             """Advance the fake clock instead of actually sleeping."""
             sleeps.append(seconds)
-            frozen.tick(delta=datetime.timedelta(seconds=seconds))
+            _ = frozen.tick(delta=datetime.timedelta(seconds=seconds))
 
         def send() -> None:
             """Spend part of the deadline waiting for a server
@@ -159,7 +159,7 @@ def test_deadline_accounts_for_elapsed_time() -> None:
             """
             nonlocal attempts
             attempts += 1
-            frozen.tick(delta=datetime.timedelta(seconds=10))
+            _ = frozen.tick(delta=datetime.timedelta(seconds=10))
             raise error
 
         with pytest.raises(expected_exception=TooManyRequestsError):
@@ -268,7 +268,7 @@ def test_real_adapter_installs_policy_before_cleanup(
         """Recover a single transient error under the installed policy."""
         nonlocal attempts
         attempts += 1
-        if attempts % 2:
+        if attempts % 2 == 1:
             raise error
 
     def cleanup(*, database_keys: CloudDatabase, base_vws_url: str) -> None:
