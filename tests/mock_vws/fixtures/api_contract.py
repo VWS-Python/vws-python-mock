@@ -2,6 +2,7 @@
 
 import base64
 import binascii
+import contextlib
 import io
 import uuid
 from dataclasses import dataclass
@@ -12,7 +13,7 @@ from tenacity import retry
 from tenacity.retry import retry_if_not_result
 from tenacity.stop import stop_after_attempt
 from vws import VWS, CloudRecoService
-from vws.reports import TargetStatuses
+from vws.reports import TargetStatusAndRecord, TargetStatuses
 
 from mock_vws.database import CloudDatabase
 from tests.mock_vws.utils import Endpoint, ModelTargetEndpoint
@@ -107,9 +108,12 @@ def _add_target(*, vws_client: VWS, image: io.BytesIO) -> str:
 
 
 @beartype
+@RETRY_ON_TRANSIENT_VWS_FAILURE
 @RETRY_ON_TARGET_NOT_YET_VISIBLE
-def _wait_for_target_processed(*, vws_client: VWS, target_id_: str) -> None:
-    """Wait for a target to finish processing.
+def _get_processed_target(
+    *, vws_client: VWS, target_id_: str
+) -> TargetStatusAndRecord:
+    """Wait for and read a known target without repeating its creation.
 
     Real Vuforia sometimes reports a target which it has just created as
     unknown, because the target is not yet visible to the read path. We know
@@ -117,6 +121,7 @@ def _wait_for_target_processed(*, vws_client: VWS, target_id_: str) -> None:
     than fail.
     """
     vws_client.wait_for_target_processed(target_id=target_id_)
+    return vws_client.get_target_record(target_id=target_id_)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -136,7 +141,6 @@ def _target_processed_successfully(result: _TargetProcessingResult) -> bool:
 
 
 @beartype
-@RETRY_ON_TRANSIENT_VWS_FAILURE
 @retry(
     retry=retry_if_not_result(predicate=_target_processed_successfully),
     stop=stop_after_attempt(max_attempt_number=_TARGET_SUCCESS_ATTEMPTS),
@@ -157,14 +161,21 @@ def _add_target_which_processed_successfully(
         The ID and processing status of the added target.
     """
     target_id_ = _add_target(vws_client=vws_client, image=image)
-    _wait_for_target_processed(
-        vws_client=vws_client,
-        target_id_=target_id_,
-    )
-    target_details = vws_client.get_target_record(target_id=target_id_)
+    try:
+        target_details = _get_processed_target(
+            vws_client=vws_client,
+            target_id_=target_id_,
+        )
+    except Exception:
+        # Setup owns the target until it can return it to the test. Cleanup
+        # is best effort: a processing target may still reject deletion.
+        # The real adapter also clears remaining targets before the next test.
+        with contextlib.suppress(Exception):
+            vws_client.delete_target(target_id=target_id_)
+        raise
     # Failed processing is nondeterministic against the live service.
     if target_details.status != TargetStatuses.SUCCESS:
-        vws_client.delete_target(target_id=target_id_)  # pragma: no cover
+        vws_client.delete_target(target_id=target_id_)
     return _TargetProcessingResult(
         target_id=target_id_,
         status=target_details.status,
