@@ -30,9 +30,10 @@ class ValidatorError(Exception):
     endpoints.
     """
 
-    status_code: HTTPStatus
-    response_text: str
-    headers: Mapping[str, str]
+    # Concrete validator errors initialize these response fields.
+    status_code: HTTPStatus  # pyrefly: ignore[uninitialized-instance-variable]
+    response_text: str  # pyrefly: ignore[uninitialized-instance-variable]
+    headers: Mapping[str, str]  # pyrefly: ignore[uninitialized-instance-variable]
 
 
 @beartype
