@@ -61,6 +61,7 @@ jobs:
           - tests/mock_vws/authorization_header/test_malformed.py::test_missing_signature
           - tests/mock_vws/authorization_header/test_bad_key.py
           - tests/mock_vws/test_cloud_query_failure_response.py
+          - tests/mock_vws/test_validator_errors.py
           - tests/mock_vws/content_length/test_incorrect.py::test_not_integer
           - tests/mock_vws/content_length/test_incorrect.py::test_too_large
           - tests/mock_vws/content_length/test_incorrect.py::test_too_small

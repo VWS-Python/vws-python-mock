@@ -63,10 +63,24 @@ class ValidatorError(Exception):
     client endpoints.
     """
 
-    # Concrete validator errors initialize these response fields.
-    status_code: HTTPStatus  # pyrefly: ignore[uninitialized-instance-variable]
-    response_text: str  # pyrefly: ignore[uninitialized-instance-variable]
-    headers: Mapping[str, str]  # pyrefly: ignore[uninitialized-instance-variable]
+    def __init__(
+        self,
+        *,
+        status_code: HTTPStatus,
+        response_text: str,
+        headers: Mapping[str, str],
+    ) -> None:
+        """Initialize the HTTP response represented by this error.
+
+        Args:
+            status_code: The response's HTTP status.
+            response_text: The response body.
+            headers: The response headers.
+        """
+        super().__init__()
+        self.status_code = status_code
+        self.response_text = response_text
+        self.headers = headers
 
 
 @beartype
@@ -75,14 +89,18 @@ class DateHeaderNotGivenError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize a missing date header response."""
-        super().__init__()
-        self.status_code = HTTPStatus.BAD_REQUEST
-        self.response_text = "Date header required."
-        self.headers = {
+        status_code = HTTPStatus.BAD_REQUEST
+        response_text = "Date header required."
+        headers = {
             **_TEXT_HEADERS,
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -91,15 +109,19 @@ class DateFormatNotValidError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize a malformed date header response."""
-        super().__init__()
-        self.status_code = HTTPStatus.UNAUTHORIZED
-        self.response_text = "Malformed date header."
-        self.headers = {
+        status_code = HTTPStatus.UNAUTHORIZED
+        response_text = "Malformed date header."
+        headers = {
             **_TEXT_HEADERS,
             "Date": http_date(),
             "WWW-Authenticate": "KWS",
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -110,16 +132,20 @@ class RequestTimeTooSkewedError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize a ``RequestTimeTooSkewed`` response."""
-        super().__init__()
-        self.status_code = HTTPStatus.FORBIDDEN
-        self.response_text = result_code_response_text(
+        status_code = HTTPStatus.FORBIDDEN
+        response_text = result_code_response_text(
             result_code=ResultCodes.REQUEST_TIME_TOO_SKEWED,
         )
-        self.headers = {
+        headers = {
             **_JSON_HEADERS,
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -130,17 +156,21 @@ class BadImageError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize a ``BadImage`` response."""
-        super().__init__()
-        self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
-        self.response_text = _unusual_separators_response_text(
+        status_code = HTTPStatus.UNPROCESSABLE_ENTITY
+        response_text = _unusual_separators_response_text(
             result_code=ResultCodes.BAD_IMAGE,
             space_after_transaction_id_key=True,
         )
-        self.headers = {
+        headers = {
             **_JSON_HEADERS,
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -151,18 +181,22 @@ class AuthenticationFailureError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize an ``AuthenticationFailure`` response."""
-        super().__init__()
-        self.status_code = HTTPStatus.UNAUTHORIZED
-        self.response_text = _unusual_separators_response_text(
+        status_code = HTTPStatus.UNAUTHORIZED
+        response_text = _unusual_separators_response_text(
             result_code=ResultCodes.AUTHENTICATION_FAILURE,
             space_after_transaction_id_key=False,
         )
-        self.headers = {
+        headers = {
             **_JSON_HEADERS,
             "Date": http_date(),
             "WWW-Authenticate": "VWS",
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -173,17 +207,21 @@ class AuthenticationFailureGoodFormattingError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize a well formatted ``AuthenticationFailure`` body."""
-        super().__init__()
-        self.status_code = HTTPStatus.UNAUTHORIZED
-        self.response_text = result_code_response_text(
+        status_code = HTTPStatus.UNAUTHORIZED
+        response_text = result_code_response_text(
             result_code=ResultCodes.AUTHENTICATION_FAILURE,
         )
-        self.headers = {
+        headers = {
             **_JSON_HEADERS,
             "Date": http_date(),
             "WWW-Authenticate": "VWS",
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -192,14 +230,18 @@ class ImageNotGivenError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize a missing image response."""
-        super().__init__()
-        self.status_code = HTTPStatus.BAD_REQUEST
-        self.response_text = "No image."
-        self.headers = {
+        status_code = HTTPStatus.BAD_REQUEST
+        response_text = "No image."
+        headers = {
             **_JSON_HEADERS,
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -212,17 +254,19 @@ class NoContentDispositionError(ValidatorError):
         """Initialize a missing ``Content-Disposition`` header
         response.
         """
-        super().__init__()
-        self.status_code = HTTPStatus.BAD_REQUEST
-        self.response_text = (
-            "Could find no Content-Disposition header within part"
-        )
-        self.headers = {
+        status_code = HTTPStatus.BAD_REQUEST
+        response_text = "Could find no Content-Disposition header within part"
+        headers = {
             **_BASE_HEADERS,
             "Content-Type": "text/plain;charset=utf-8",
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -231,15 +275,19 @@ class AuthHeaderMissingError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize a missing authorization header response."""
-        super().__init__()
-        self.status_code = HTTPStatus.UNAUTHORIZED
-        self.response_text = "Authorization header missing."
-        self.headers = {
+        status_code = HTTPStatus.UNAUTHORIZED
+        response_text = "Authorization header missing."
+        headers = {
             **_TEXT_HEADERS,
             "Date": http_date(),
             "WWW-Authenticate": "KWS",
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -248,15 +296,19 @@ class MalformedAuthHeaderError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize a malformed authorization header response."""
-        super().__init__()
-        self.status_code = HTTPStatus.UNAUTHORIZED
-        self.response_text = "Malformed authorization header."
-        self.headers = {
+        status_code = HTTPStatus.UNAUTHORIZED
+        response_text = "Malformed authorization header."
+        headers = {
             **_TEXT_HEADERS,
             "Date": http_date(),
             "WWW-Authenticate": "KWS",
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -265,14 +317,18 @@ class UnknownParametersError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize an unknown parameters response."""
-        super().__init__()
-        self.status_code = HTTPStatus.BAD_REQUEST
-        self.response_text = "Unknown parameters in the request."
-        self.headers = {
+        status_code = HTTPStatus.BAD_REQUEST
+        response_text = "Unknown parameters in the request."
+        headers = {
             **_JSON_HEADERS,
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -283,17 +339,21 @@ class InactiveProjectError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize an ``InactiveProject`` response."""
-        super().__init__()
-        self.status_code = HTTPStatus.FORBIDDEN
-        self.response_text = _unusual_separators_response_text(
+        status_code = HTTPStatus.FORBIDDEN
+        response_text = _unusual_separators_response_text(
             result_code=ResultCodes.INACTIVE_PROJECT,
             space_after_transaction_id_key=True,
         )
-        self.headers = {
+        headers = {
             **_JSON_HEADERS,
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -308,17 +368,21 @@ class InvalidMaxNumResultsError(ValidatorError):
         Args:
             given_value: The given value of the "max_num_results" field.
         """
-        super().__init__()
-        self.status_code = HTTPStatus.BAD_REQUEST
-        self.response_text = (
+        status_code = HTTPStatus.BAD_REQUEST
+        response_text = (
             f"Invalid value '{given_value}' in form data part 'max_result'. "
             "Expecting integer value in range from 1 to 50 (inclusive)."
         )
-        self.headers = {
+        headers = {
             **_JSON_HEADERS,
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -333,17 +397,21 @@ class MaxNumResultsOutOfRangeError(ValidatorError):
         Args:
             given_value: The given value of the "max_num_results" field.
         """
-        super().__init__()
-        self.status_code = HTTPStatus.BAD_REQUEST
-        self.response_text = (
+        status_code = HTTPStatus.BAD_REQUEST
+        response_text = (
             f"Integer out of range ({given_value}) in form data part "
             "'max_result'. Accepted range is from 1 to 50 (inclusive)."
         )
-        self.headers = {
+        headers = {
             **_JSON_HEADERS,
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -357,19 +425,23 @@ class InvalidIncludeTargetDataError(ValidatorError):
         Args:
             given_value: The given "include_target_data" value.
         """
-        super().__init__()
-        self.status_code = HTTPStatus.BAD_REQUEST
-        self.response_text = (
+        status_code = HTTPStatus.BAD_REQUEST
+        response_text = (
             f"Invalid value '{given_value.lower()}' in form data part "
             "'include_target_data'. "
             "Expecting one of the (unquoted) string values 'all', 'none' or "
             "'top'."
         )
-        self.headers = {
+        headers = {
             **_JSON_HEADERS,
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -378,14 +450,18 @@ class UnsupportedMediaTypeError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize an unsupported media type response."""
-        super().__init__()
-        self.status_code = HTTPStatus.UNSUPPORTED_MEDIA_TYPE
-        self.response_text = ""
-        self.headers = {
+        status_code = HTTPStatus.UNSUPPORTED_MEDIA_TYPE
+        response_text = ""
+        headers = {
             **_BASE_HEADERS,
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -394,14 +470,18 @@ class InvalidAcceptHeaderError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize an invalid accept header response."""
-        super().__init__()
-        self.status_code = HTTPStatus.NOT_ACCEPTABLE
-        self.response_text = ""
-        self.headers = {
+        status_code = HTTPStatus.NOT_ACCEPTABLE
+        response_text = ""
+        headers = {
             **_BASE_HEADERS,
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -410,15 +490,19 @@ class NoBoundaryFoundError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize a missing multipart boundary response."""
-        super().__init__()
-        self.status_code = HTTPStatus.BAD_REQUEST
-        self.response_text = "Unable to get boundary for multipart"
-        self.headers = {
+        status_code = HTTPStatus.BAD_REQUEST
+        response_text = "Unable to get boundary for multipart"
+        headers = {
             **_BASE_HEADERS,
             "Content-Type": "text/plain;charset=utf-8",
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -430,13 +514,17 @@ class ContentLengthHeaderTooLargeError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize a gateway timeout response."""
-        super().__init__()
-        self.status_code = HTTPStatus.GATEWAY_TIMEOUT
-        self.response_text = ""
-        self.headers = {
+        status_code = HTTPStatus.GATEWAY_TIMEOUT
+        response_text = ""
+        headers = {
             "Connection": "keep-alive",
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -448,13 +536,17 @@ class ContentLengthHeaderNotIntError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize an empty bad request response."""
-        super().__init__()
-        self.status_code = HTTPStatus.BAD_REQUEST
-        self.response_text = ""
-        self.headers = {
+        status_code = HTTPStatus.BAD_REQUEST
+        response_text = ""
+        headers = {
             "Connection": "Close",
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -468,9 +560,8 @@ class RequestHeaderOrCookieTooLargeError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize an NGINX request header too large response."""
-        super().__init__()
-        self.status_code = HTTPStatus.BAD_REQUEST
-        self.response_text = "".join(
+        status_code = HTTPStatus.BAD_REQUEST
+        response_text = "".join(
             f"{line}\r\n"
             for line in (
                 "<html>",
@@ -486,12 +577,17 @@ class RequestHeaderOrCookieTooLargeError(ValidatorError):
                 "</html>",
             )
         )
-        self.headers = {
+        headers = {
             **_BASE_HEADERS,
             "Content-Type": "text/html",
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -500,9 +596,8 @@ class RequestEntityTooLargeError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize a request entity too large response."""
-        super().__init__()
-        self.status_code = HTTPStatus.REQUEST_ENTITY_TOO_LARGE
-        self.response_text = textwrap.dedent(
+        status_code = HTTPStatus.REQUEST_ENTITY_TOO_LARGE
+        response_text = textwrap.dedent(
             text="""\
             <html>\r
             <head><title>413 Request Entity Too Large</title></head>\r
@@ -513,13 +608,18 @@ class RequestEntityTooLargeError(ValidatorError):
             </html>\r
             """,
         )
-        self.headers = {
+        headers = {
             "Connection": "Close",
             "Date": http_date(),
             "Server": "nginx",
             "Content-Type": "text/html",
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -531,8 +631,7 @@ class NoContentTypeError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize a missing content type response."""
-        super().__init__()
-        self.status_code = HTTPStatus.BAD_REQUEST
+        status_code = HTTPStatus.BAD_REQUEST
         jetty_content_type_error = textwrap.dedent(
             text="""\
             <html>
@@ -553,12 +652,17 @@ class NoContentTypeError(ValidatorError):
             </html>
             """,  # noqa: E501
         )
-        self.response_text = jetty_content_type_error
-        self.headers = {
+        response_text = jetty_content_type_error
+        headers = {
             "Connection": "keep-alive",
             "Content-Type": "text/html;charset=iso-8859-1",
             "Server": "nginx",
             "Cache-Control": "must-revalidate,no-cache,no-store",
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
