@@ -1,7 +1,7 @@
 """Validators of the date header to use in the mock query API."""
 
 import contextlib
-import datetime
+import datetime as dt
 import logging
 from collections.abc import Mapping
 from zoneinfo import ZoneInfo
@@ -67,9 +67,7 @@ def validate_date_format(*, request_headers: Mapping[str, str]) -> None:
 
     for date_format in _accepted_date_formats():
         with contextlib.suppress(ValueError):
-            _ = datetime.datetime.strptime(
-                date_header, date_format
-            ).astimezone()
+            _ = dt.datetime.strptime(date_header, date_format).astimezone()
             return
 
     _LOGGER.warning(msg="The date header is in the wrong format.")
@@ -89,21 +87,21 @@ def validate_date_in_range(*, request_headers: Mapping[str, str]) -> None:
     date_header = request_headers["Date"]
     gmt = ZoneInfo(key="GMT")
 
-    dates: list[datetime.datetime] = []
+    dates: list[dt.datetime] = []
     for date_format in _accepted_date_formats():
         with contextlib.suppress(ValueError):
-            date = datetime.datetime.strptime(
+            date = dt.datetime.strptime(
                 date_header,
                 date_format,
             ).astimezone()
             dates.append(date)
 
     date = dates[0]
-    now = datetime.datetime.now(tz=gmt)
+    now = dt.datetime.now(tz=gmt)
     date_from_header = date.replace(tzinfo=gmt)
     time_difference = now - date_from_header
 
-    maximum_time_difference = datetime.timedelta(minutes=65)
+    maximum_time_difference = dt.timedelta(minutes=65)
 
     if abs(time_difference) < maximum_time_difference:
         return

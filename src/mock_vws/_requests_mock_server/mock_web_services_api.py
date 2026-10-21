@@ -6,7 +6,7 @@ https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api
 
 import base64
 import copy
-import datetime
+import datetime as dt
 import email.utils
 import uuid
 from collections.abc import Callable, Iterable, Mapping
@@ -653,7 +653,7 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
                 target_processing_exception.response_text,
             )
 
-        now = datetime.datetime.now(tz=target.upload_date.tzinfo)
+        now = dt.datetime.now(tz=target.upload_date.tzinfo)
         new_target = copy.replace(
             target,
             delete_date=now,
@@ -1048,7 +1048,7 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
             )
 
         gmt = ZoneInfo(key="GMT")
-        last_modified_date = datetime.datetime.now(tz=gmt)
+        last_modified_date = dt.datetime.now(tz=gmt)
 
         width = request_json.get("width", target.width)
         application_metadata = request_json.get(

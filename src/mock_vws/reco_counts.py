@@ -1,6 +1,6 @@
 """Reco counts report objects."""
 
-import datetime
+import datetime as dt
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from zoneinfo import ZoneInfo
@@ -13,9 +13,9 @@ _CSV_HEADER = "target_id,reco_count\r\n"
 
 
 @beartype
-def _now() -> datetime.datetime:
+def _now() -> dt.datetime:
     """Return the current time in UTC."""
-    return datetime.datetime.now(tz=ZoneInfo(key="UTC"))
+    return dt.datetime.now(tz=ZoneInfo(key="UTC"))
 
 
 @beartype(conf=BeartypeConf(is_pep484_tower=True))
@@ -43,12 +43,12 @@ class RecoCountsReport:
         default_factory=dict[str, int],
         hash=False,
     )
-    created_at: datetime.datetime = field(default_factory=_now)
+    created_at: dt.datetime = field(default_factory=_now)
 
     @property
-    def available_at(self) -> datetime.datetime:
+    def available_at(self) -> dt.datetime:
         """When the report becomes available to download."""
-        return self.created_at + datetime.timedelta(
+        return self.created_at + dt.timedelta(
             seconds=self.generation_time_seconds,
         )
 

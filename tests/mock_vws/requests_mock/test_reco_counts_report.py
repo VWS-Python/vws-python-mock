@@ -1,6 +1,6 @@
 """Tests for report timing in the in-memory mock."""
 
-import datetime
+import datetime as dt
 from http import HTTPStatus
 
 import pytest
@@ -52,7 +52,7 @@ def test_report_processing_time(
         assert_not_ready(response=response, key=report_key(url=presigned_url))
 
         _ = frozen_time.tick(
-            delta=datetime.timedelta(seconds=processing_time_seconds),
+            delta=dt.timedelta(seconds=processing_time_seconds),
         )
         response = requests.get(url=presigned_url, timeout=30)
         assert response.status_code == HTTPStatus.OK
