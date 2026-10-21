@@ -1,7 +1,7 @@
 """Tests for targets through the `requests-mock` backend."""
 
 import dataclasses
-import datetime
+import datetime as dt
 import io
 import json
 import uuid
@@ -104,11 +104,9 @@ def test_round_trip_non_default_fields(
         active_flag=False,
         application_metadata="example-metadata",
         current_month_recos=1,
-        delete_date=datetime.datetime(year=2020, month=1, day=4, tzinfo=gmt),
+        delete_date=dt.datetime(year=2020, month=1, day=4, tzinfo=gmt),
         image_value=high_quality_image.getvalue(),
-        last_modified_date=datetime.datetime(
-            year=2020, month=1, day=3, tzinfo=gmt
-        ),
+        last_modified_date=dt.datetime(year=2020, month=1, day=3, tzinfo=gmt),
         name="example",
         previous_month_recos=2,
         processing_time_seconds=0.5,
@@ -116,7 +114,7 @@ def test_round_trip_non_default_fields(
         target_id="example-target-id",
         target_tracking_rater=HardcodedTargetTrackingRater(rating=4),
         total_recos=3,
-        upload_date=datetime.datetime(year=2020, month=1, day=2, tzinfo=gmt),
+        upload_date=dt.datetime(year=2020, month=1, day=2, tzinfo=gmt),
         width=1.5,
     )
     # Adding a field to ``ImageTarget`` must mean adding it to this

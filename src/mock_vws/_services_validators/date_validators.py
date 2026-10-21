@@ -1,6 +1,6 @@
 """Validators of the date header to use in the mock services API."""
 
-import datetime
+import datetime as dt
 import logging
 from http import HTTPStatus
 from zoneinfo import ZoneInfo
@@ -47,7 +47,7 @@ def validate_date_format(*, context: ValidatorContext) -> None:
     """
     date_header = context.request_headers["Date"]
     try:
-        _ = datetime.datetime.strptime(date_header, _DATE_FORMAT).astimezone()
+        _ = dt.datetime.strptime(date_header, _DATE_FORMAT).astimezone()
     except ValueError as exc:
         _LOGGER.warning(msg="The date header is in the wrong format.")
         raise FailError(status_code=HTTPStatus.BAD_REQUEST) from exc
@@ -64,15 +64,15 @@ def validate_date_in_range(*, context: ValidatorContext) -> None:
         RequestTimeTooSkewedError: The date is out of range.
     """
     gmt = ZoneInfo(key="GMT")
-    date_from_header = datetime.datetime.strptime(
+    date_from_header = dt.datetime.strptime(
         context.request_headers["Date"],
         _DATE_FORMAT,
     ).replace(tzinfo=gmt)
 
-    now = datetime.datetime.now(tz=gmt)
+    now = dt.datetime.now(tz=gmt)
     time_difference = now - date_from_header
 
-    maximum_time_difference = datetime.timedelta(minutes=5)
+    maximum_time_difference = dt.timedelta(minutes=5)
 
     if abs(time_difference) >= maximum_time_difference:
         _LOGGER.warning(msg="The date header is out of range.")

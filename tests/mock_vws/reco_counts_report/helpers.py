@@ -1,6 +1,6 @@
 """Shared helpers for reco counts report tests."""
 
-import datetime
+import datetime as dt
 import json
 import re
 from http import HTTPMethod, HTTPStatus
@@ -59,9 +59,9 @@ class _ReportNotReadyError(Exception):
 
 
 @beartype
-def utc_now() -> datetime.datetime:
+def utc_now() -> dt.datetime:
     """Return the current time in UTC."""
-    return datetime.datetime.now(tz=ZoneInfo(key="UTC"))
+    return dt.datetime.now(tz=ZoneInfo(key="UTC"))
 
 
 @beartype

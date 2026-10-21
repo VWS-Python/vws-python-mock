@@ -1,6 +1,6 @@
 """Tests for the target summary endpoint."""
 
-import datetime
+import datetime as dt
 import io
 import uuid
 from zoneinfo import ZoneInfo
@@ -26,7 +26,7 @@ def test_target_summary(
     """A target summary is returned."""
     name = uuid.uuid4().hex
     gmt = ZoneInfo(key="GMT")
-    date_before_add_target = datetime.datetime.now(tz=gmt).date()
+    date_before_add_target = dt.datetime.now(tz=gmt).date()
 
     report = add_target_and_get_pre_rating_summary(
         vws_client=vws_client,
@@ -35,7 +35,7 @@ def test_target_summary(
         active_flag=active_flag,
     )
 
-    date_after_add_target = datetime.datetime.now(tz=gmt).date()
+    date_after_add_target = dt.datetime.now(tz=gmt).date()
 
     assert report.status == TargetStatuses.PROCESSING
     assert report.database_name == vuforia_database.database_name
