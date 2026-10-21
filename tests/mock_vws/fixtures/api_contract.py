@@ -107,7 +107,12 @@ def _add_target(*, vws_client: VWS, image: io.BytesIO) -> str:
 
 @beartype
 @RETRY_ON_TARGET_NOT_YET_VISIBLE
-def _wait_for_target_processed(*, vws_client: VWS, target_id_: str) -> None:
+def _wait_for_target_processed(
+    *,
+    vws_client: VWS,
+    target_id_: str,
+    seconds_between_requests: float,
+) -> None:
     """Wait for a target to finish processing.
 
     Real Vuforia sometimes reports a target which it has just created as
@@ -115,7 +120,10 @@ def _wait_for_target_processed(*, vws_client: VWS, target_id_: str) -> None:
     the target exists, because Vuforia gave us its ID, so we retry rather
     than fail.
     """
-    vws_client.wait_for_target_processed(target_id=target_id_)
+    vws_client.wait_for_target_processed(
+        target_id=target_id_,
+        seconds_between_requests=seconds_between_requests,
+    )
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -145,6 +153,7 @@ def _add_target_which_processed_successfully(
     *,
     vws_client: VWS,
     image: io.BytesIO,
+    seconds_between_requests: float,
 ) -> _TargetProcessingResult:
     """Add a target which finishes processing with a 'success' status.
 
@@ -159,6 +168,7 @@ def _add_target_which_processed_successfully(
     _wait_for_target_processed(
         vws_client=vws_client,
         target_id_=target_id_,
+        seconds_between_requests=seconds_between_requests,
     )
     target_details = vws_client.get_target_record(target_id=target_id_)
     # Failed processing is nondeterministic against the live service.
@@ -171,7 +181,12 @@ def _add_target_which_processed_successfully(
 
 
 @pytest.fixture
-def target_id(*, high_quality_image: io.BytesIO, vws_client: VWS) -> str:
+def target_id(
+    *,
+    high_quality_image: io.BytesIO,
+    vws_client: VWS,
+    target_processing_poll_interval: float,
+) -> str:
     """Return the target ID of a target in the database which has finished
     processing with a 'success' status.
 
@@ -183,6 +198,7 @@ def target_id(*, high_quality_image: io.BytesIO, vws_client: VWS) -> str:
     result = _add_target_which_processed_successfully(
         vws_client=vws_client,
         image=high_quality_image,
+        seconds_between_requests=target_processing_poll_interval,
     )
     return result.target_id
 

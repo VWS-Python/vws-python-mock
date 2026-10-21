@@ -129,7 +129,9 @@ def _delete_all_targets(
         # we change the target to inactive before deleting it.
         with contextlib.suppress(TargetStatusNotSuccessError):
             vws_client.update_target(target_id=target, active_flag=False)
-        vws_client.wait_for_target_processed(target_id=target)
+        vws_client.wait_for_target_processed(
+            target_id=target, seconds_between_requests=2
+        )
         _delete_processed_target(vws_client=vws_client, target_id=target)
 
 
@@ -494,6 +496,16 @@ def _credential_backend(*, request: pytest.FixtureRequest) -> VuforiaBackend:
             assert isinstance(backend, VuforiaBackend)
             return backend
     return VuforiaBackend.MOCK
+
+
+@pytest.fixture(name="target_processing_poll_interval")
+def fixture_target_processing_poll_interval(
+    *, request: pytest.FixtureRequest
+) -> float:
+    """Poll the live service at the same interval used during cleanup."""
+    if _credential_backend(request=request) == VuforiaBackend.REAL:
+        return 2.0
+    return 0.2
 
 
 @pytest.fixture(name="vuforia_database")
