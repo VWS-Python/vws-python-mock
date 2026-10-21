@@ -3,7 +3,7 @@
 See the instructions in the contributing guide in the documentation.
 """
 
-import datetime
+import datetime as dt
 import os
 import sys
 import textwrap
@@ -235,7 +235,7 @@ def _get_model_target_web_api_details(
 
 def _create_vuforia_resource_names() -> tuple[str, str, str, str]:
     """Create names for Vuforia resources."""
-    time = datetime.datetime.now(tz=datetime.UTC).strftime(
+    time = dt.datetime.now(tz=dt.UTC).strftime(
         format="%Y-%m-%d-%H-%M-%S",
     )
     return (
@@ -253,7 +253,7 @@ def main() -> None:
     new_secrets_dir = Path(os.environ["NEW_SECRETS_DIR"]).expanduser()
     new_secrets_dir.mkdir(exist_ok=True)
 
-    time = datetime.datetime.now(tz=datetime.UTC).strftime(
+    time = dt.datetime.now(tz=dt.UTC).strftime(
         format="%Y-%m-%d-%H-%M-%S",
     )
     inactive_driver = vws_web_tools.create_chrome_driver()

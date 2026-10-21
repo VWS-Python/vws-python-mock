@@ -32,9 +32,10 @@ def fixture_vws_client(
     *,
     vuforia_database: CloudDatabase,
     base_vws_url: str,
+    vws_client_class: type[VWS],
 ) -> VWS:
     """A VWS client for an active VWS database."""
-    return VWS(
+    return vws_client_class(
         server_access_key=vuforia_database.server_access_key,
         server_secret_key=vuforia_database.server_secret_key,
         base_vws_url=base_vws_url,

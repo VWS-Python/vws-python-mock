@@ -4,7 +4,7 @@ The endpoint is unavailable to the real-Vuforia test account, so these
 run against the mocks only.
 """
 
-import datetime
+import datetime as dt
 import re
 import time
 from http import HTTPStatus
@@ -104,7 +104,7 @@ def test_expired_url(
         vuforia_database=vuforia_database,
         month=month_offset_from_now(months=0),
     )
-    signed_at = utc_now().replace(microsecond=0) - datetime.timedelta(
+    signed_at = utc_now().replace(microsecond=0) - dt.timedelta(
         days=8,
     )
     expired_url = with_query(
@@ -116,7 +116,7 @@ def test_expired_url(
 
     response = requests.get(url=expired_url, timeout=30)
 
-    expires_at = signed_at + datetime.timedelta(
+    expires_at = signed_at + dt.timedelta(
         seconds=URL_EXPIRY_SECONDS,
     )
     assert response.status_code == HTTPStatus.FORBIDDEN

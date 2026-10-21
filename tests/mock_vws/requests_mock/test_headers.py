@@ -1,6 +1,6 @@
 """Tests for headers through the `requests-mock` backend."""
 
-import datetime
+import datetime as dt
 import email.utils
 
 import requests
@@ -15,11 +15,11 @@ def test_date_changes() -> None:
     header.
     """
     new_year = 2012
-    new_time = datetime.datetime(
+    new_time = dt.datetime(
         year=new_year,
         month=1,
         day=1,
-        tzinfo=datetime.UTC,
+        tzinfo=dt.UTC,
     )
     with MockVWS(), freeze_time(time_to_freeze=new_time):
         response = requests.get(

@@ -11,7 +11,7 @@ format. It says:
 > header.
 """
 
-import datetime
+import datetime as dt
 import io
 import json
 from http import HTTPMethod
@@ -61,7 +61,7 @@ def test_date_formats(
         datetime_format += " GMT"
 
     gmt = ZoneInfo(key="GMT")
-    now = datetime.datetime.now(tz=gmt)
+    now = dt.datetime.now(tz=gmt)
     date = now.strftime(format=datetime_format)
     request_path = "/v1/query"
     content, content_type_header = encode_multipart_formdata(fields=body)

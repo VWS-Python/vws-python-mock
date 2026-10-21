@@ -1,7 +1,7 @@
 """A fake implementation of a target for the Vuforia Web Services API."""
 
 import base64
-import datetime
+import datetime as dt
 import io
 import statistics
 import uuid
@@ -57,10 +57,10 @@ def _random_hex() -> str:
 
 
 @beartype
-def _time_now() -> datetime.datetime:
+def _time_now() -> dt.datetime:
     """Return the current time in the GMT time zone."""
     gmt = ZoneInfo(key="GMT")
-    return datetime.datetime.now(tz=gmt)
+    return dt.datetime.now(tz=gmt)
 
 
 @beartype(conf=BeartypeConf(is_pep484_tower=True))
@@ -85,13 +85,13 @@ class ImageTarget:
     width: float
     target_tracking_rater: TargetTrackingRater = field(compare=False)
     current_month_recos: int = 0
-    delete_date: datetime.datetime | None = None
-    last_modified_date: datetime.datetime = field(default_factory=_time_now)
+    delete_date: dt.datetime | None = None
+    last_modified_date: dt.datetime = field(default_factory=_time_now)
     previous_month_recos: int = 0
     reco_rating: str = ""
     target_id: str = field(default_factory=_random_hex)
     total_recos: int = 0
-    upload_date: datetime.datetime = field(default_factory=_time_now)
+    upload_date: dt.datetime = field(default_factory=_time_now)
 
     @property
     def _post_processing_status(self) -> TargetStatuses:
@@ -126,12 +126,12 @@ class ImageTarget:
         How VWS determines this is unknown, but it relates to how
         suitable the target is for detection.
         """
-        processing_time = datetime.timedelta(
+        processing_time = dt.timedelta(
             seconds=float(self.processing_time_seconds),
         )
 
         timezone = self.upload_date.tzinfo
-        now = datetime.datetime.now(tz=timezone)
+        now = dt.datetime.now(tz=timezone)
         time_since_change = now - self.last_modified_date
 
         if time_since_change <= processing_time:
@@ -147,7 +147,7 @@ class ImageTarget:
     @property
     def tracking_rating(self) -> int:
         """Return the tracking rating of the target recognition image."""
-        pre_rating_time = datetime.timedelta(
+        pre_rating_time = dt.timedelta(
             # That this is half of the total processing time is unrealistic.
             # In VWS it is not a constant percentage: it was observed as
             # roughly one second of a roughly thirty second processing time.
@@ -155,7 +155,7 @@ class ImageTarget:
         )
 
         timezone = self.upload_date.tzinfo
-        now = datetime.datetime.now(tz=timezone)
+        now = dt.datetime.now(tz=timezone)
         time_since_upload = now - self.upload_date
 
         # The real VWS gives -1 for a short time after an upload, then the
@@ -187,13 +187,13 @@ class ImageTarget:
         if delete_date_optional is None:
             delete_date = None
         else:
-            delete_date = datetime.datetime.fromisoformat(delete_date_optional)
+            delete_date = dt.datetime.fromisoformat(delete_date_optional)
             delete_date = delete_date.replace(tzinfo=timezone)
 
-        last_modified_date = datetime.datetime.fromisoformat(
+        last_modified_date = dt.datetime.fromisoformat(
             target_dict["last_modified_date"],
         ).replace(tzinfo=timezone)
-        upload_date = datetime.datetime.fromisoformat(
+        upload_date = dt.datetime.fromisoformat(
             target_dict["upload_date"],
         ).replace(tzinfo=timezone)
 
@@ -258,8 +258,8 @@ class VuMarkTarget:
     name: str
     processing_time_seconds: int | float = 0.0
     target_id: str = field(default_factory=_random_hex)
-    last_modified_date: datetime.datetime = field(default_factory=_time_now)
-    upload_date: datetime.datetime = field(default_factory=_time_now)
+    last_modified_date: dt.datetime = field(default_factory=_time_now)
+    upload_date: dt.datetime = field(default_factory=_time_now)
 
     @property
     def status(self) -> str:
@@ -270,15 +270,13 @@ class VuMarkTarget:
         modified date is ahead of the server clock. A positive duration keeps
         the target processing until the exact completion timestamp.
         """
-        processing_time = datetime.timedelta(
+        processing_time = dt.timedelta(
             seconds=float(self.processing_time_seconds),
         )
 
         timezone = self.upload_date.tzinfo
-        now = datetime.datetime.now(tz=timezone)
-        time_since_change = max(
-            datetime.timedelta(), now - self.last_modified_date
-        )
+        now = dt.datetime.now(tz=timezone)
+        time_since_change = max(dt.timedelta(), now - self.last_modified_date)
 
         if time_since_change < processing_time:
             return TargetStatuses.PROCESSING.value
@@ -289,10 +287,10 @@ class VuMarkTarget:
     def from_dict(cls, target_dict: VuMarkTargetDict) -> Self:
         """Load a VuMark target from a dictionary."""
         timezone = ZoneInfo(key="GMT")
-        last_modified_date = datetime.datetime.fromisoformat(
+        last_modified_date = dt.datetime.fromisoformat(
             target_dict["last_modified_date"],
         ).replace(tzinfo=timezone)
-        upload_date = datetime.datetime.fromisoformat(
+        upload_date = dt.datetime.fromisoformat(
             target_dict["upload_date"],
         ).replace(tzinfo=timezone)
         return cls(
