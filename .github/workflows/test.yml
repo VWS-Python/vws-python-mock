@@ -24,6 +24,8 @@ jobs:
     environment: vuforia
     strategy:
       fail-fast: false
+      # Keep the combined polling load on the live Vuforia service bounded.
+      max-parallel: 10
       matrix:
         python-version: ['3.15']
         ci_pattern:

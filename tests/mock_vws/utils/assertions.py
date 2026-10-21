@@ -1,7 +1,7 @@
 """Assertion helpers."""
 
 import copy
-import datetime
+import datetime as dt
 import email.utils
 import json
 from collections.abc import Set as AbstractSet
@@ -110,7 +110,7 @@ def assert_valid_date_header(
     assert date_from_response is not None
     year, month, day, hour, minute, second, _, _, _ = date_from_response
     gmt = ZoneInfo(key="GMT")
-    datetime_from_response = datetime.datetime(
+    datetime_from_response = dt.datetime(
         year=year,
         month=month,
         day=day,
@@ -119,9 +119,9 @@ def assert_valid_date_header(
         second=second,
         tzinfo=gmt,
     )
-    current_date = datetime.datetime.now(tz=gmt)
+    current_date = dt.datetime.now(tz=gmt)
     time_difference = abs(current_date - datetime_from_response)
-    assert time_difference < datetime.timedelta(minutes=2)
+    assert time_difference < dt.timedelta(minutes=2)
 
 
 @beartype

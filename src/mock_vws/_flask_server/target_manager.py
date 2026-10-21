@@ -2,7 +2,7 @@
 
 import base64
 import copy
-import datetime
+import datetime as dt
 import json
 from collections.abc import Callable, Sequence
 from enum import Enum, StrEnum, auto
@@ -877,7 +877,7 @@ def delete_target(database_name: str, target_id: str) -> Response:
             return Response(response="", status=HTTPStatus.NOT_FOUND)
 
         target = database.get_target(target_id=target_id)
-        now = datetime.datetime.now(tz=target.upload_date.tzinfo)
+        now = dt.datetime.now(tz=target.upload_date.tzinfo)
         new_target = copy.replace(
             target,
             delete_date=now,
@@ -914,7 +914,7 @@ def update_target(database_name: str, target_id: str) -> Response:
         active_flag = request_body.get("active_flag", target.active_flag)
 
         gmt = ZoneInfo(key="GMT")
-        last_modified_date = datetime.datetime.now(tz=gmt)
+        last_modified_date = dt.datetime.now(tz=gmt)
 
         width = request_body.get("width", target.width)
         application_metadata = request_body.get(

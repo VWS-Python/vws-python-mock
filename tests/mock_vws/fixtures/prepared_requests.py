@@ -1,7 +1,7 @@
 """Fixtures which prepare requests."""
 
 import base64
-import datetime
+import datetime as dt
 import io
 import json
 from http import HTTPMethod, HTTPStatus
@@ -511,7 +511,7 @@ def reco_counts_report(
     request_path = f"/imagetargets/databases/{database_id}/reports/recoCounts"
     content_type = "application/json"
     method = HTTPMethod.POST
-    now = datetime.datetime.now(tz=ZoneInfo(key="UTC"))
+    now = dt.datetime.now(tz=ZoneInfo(key="UTC"))
     current_month = now.strftime(format="%Y-%m")
     content = json.dumps(obj={"month": current_month}).encode(encoding="utf-8")
     date = rfc_1123_date()
