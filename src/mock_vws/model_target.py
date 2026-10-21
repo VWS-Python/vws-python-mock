@@ -1,7 +1,7 @@
 """Model Target dataset objects."""
 
 import copy
-import datetime
+import datetime as dt
 import uuid
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
@@ -128,13 +128,13 @@ class ModelTargetGenerationWarning:
 
 
 @beartype
-def _now() -> datetime.datetime:
+def _now() -> dt.datetime:
     """Return the current time in UTC."""
-    return datetime.datetime.now(tz=ZoneInfo(key="UTC"))
+    return dt.datetime.now(tz=ZoneInfo(key="UTC"))
 
 
 @beartype
-def _format_datetime(value: datetime.datetime) -> str:
+def _format_datetime(value: dt.datetime) -> str:
     """Format a timestamp like the Model Target Web API."""
     return value.isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
@@ -161,7 +161,7 @@ class ModelTargetDataset:
     generation_failure: ModelTargetGenerationFailure | None = field(hash=False)
     generation_warning: ModelTargetGenerationWarning | None = field(hash=False)
     uuid_: str = field(default_factory=lambda: uuid.uuid4().hex)
-    created_at: datetime.datetime = field(default_factory=_now)
+    created_at: dt.datetime = field(default_factory=_now)
 
     @classmethod
     def from_dict(cls, dataset_dict: ModelTargetDatasetDict) -> Self:
@@ -191,7 +191,7 @@ class ModelTargetDataset:
             generation_failure=generation_failure,
             generation_warning=generation_warning,
             uuid_=dataset_dict["uuid"],
-            created_at=datetime.datetime.fromisoformat(
+            created_at=dt.datetime.fromisoformat(
                 dataset_dict["created_at"],
             ),
         )
@@ -225,9 +225,9 @@ class ModelTargetDataset:
         }
 
     @property
-    def completed_at(self) -> datetime.datetime:
+    def completed_at(self) -> dt.datetime:
         """When the dataset completes processing."""
-        return self.created_at + datetime.timedelta(
+        return self.created_at + dt.timedelta(
             seconds=self.processing_time_seconds,
         )
 

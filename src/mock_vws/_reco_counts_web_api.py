@@ -1,7 +1,7 @@
 """A fake implementation of the Vuforia reco counts report endpoints."""
 
 import base64
-import datetime
+import datetime as dt
 import email.utils
 import logging
 import re
@@ -65,9 +65,9 @@ class RecoCountsReportStore(Protocol):
 
 
 @beartype
-def _now() -> datetime.datetime:
+def _now() -> dt.datetime:
     """Return the current time in UTC."""
-    return datetime.datetime.now(tz=ZoneInfo(key="UTC"))
+    return dt.datetime.now(tz=ZoneInfo(key="UTC"))
 
 
 @beartype
@@ -161,7 +161,7 @@ def _months_in_range() -> set[str]:
     """
     now = _now()
     first_of_month = now.replace(day=1)
-    last_of_previous_month = first_of_month - datetime.timedelta(days=1)
+    last_of_previous_month = first_of_month - dt.timedelta(days=1)
     return {
         _current_month(),
         last_of_previous_month.strftime(format="%Y-%m"),
@@ -189,7 +189,7 @@ def _report_file_name(*, month: str) -> str:
 
 
 @beartype
-def _presigned_query(*, signed_at: datetime.datetime) -> str:
+def _presigned_query(*, signed_at: dt.datetime) -> str:
     """Return the query string of a presigned URL.
 
     The parameters are the ones which real Vuforia's presigned URLs carry, in
@@ -355,11 +355,11 @@ def _expiry_error(*, query: Mapping[str, list[str]]) -> _ResponseType | None:
     try:
         (date_value,) = query.get("X-Amz-Date", [])
         (expires_value,) = query.get("X-Amz-Expires", [])
-        signed_at = datetime.datetime.strptime(
+        signed_at = dt.datetime.strptime(
             date_value,
             _AMZ_DATE_FORMAT,
         ).replace(tzinfo=ZoneInfo(key="UTC"))
-        expires_after = datetime.timedelta(seconds=int(expires_value))
+        expires_after = dt.timedelta(seconds=int(expires_value))
     except ValueError:
         return access_denied
 

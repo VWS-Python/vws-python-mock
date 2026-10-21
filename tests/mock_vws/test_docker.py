@@ -8,7 +8,7 @@ These tests run the applications as the Docker deployment runs them, in
 separate containers, and so are the only tests which can.
 """
 
-import datetime
+import datetime as dt
 import io
 import json
 import socket
@@ -212,7 +212,7 @@ def _current_month() -> str:
     Returns:
         The month which a reco counts report is requested for.
     """
-    now = datetime.datetime.now(tz=ZoneInfo(key="UTC"))
+    now = dt.datetime.now(tz=ZoneInfo(key="UTC"))
     return now.strftime(format="%Y-%m")
 
 

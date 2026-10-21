@@ -1,6 +1,6 @@
 """Tests for requesting a reco counts report."""
 
-import datetime
+import datetime as dt
 import json
 import uuid
 from http import HTTPStatus
@@ -86,12 +86,12 @@ def test_presigned_url_query(
     assert parameters["X-Amz-SignedHeaders"] == "host"
     assert parameters["X-Amz-Expires"] == str(object=URL_EXPIRY_SECONDS)
     assert all(char in hexdigits for char in parameters["X-Amz-Signature"])
-    signed_at = datetime.datetime.strptime(
+    signed_at = dt.datetime.strptime(
         parameters["X-Amz-Date"],
         AMZ_DATE_FORMAT,
     ).replace(tzinfo=ZoneInfo(key="UTC"))
     # Real Vuforia's clock is not the test's clock.
-    clock_skew = datetime.timedelta(minutes=5)
+    clock_skew = dt.timedelta(minutes=5)
     assert before - clock_skew <= signed_at <= after + clock_skew
     signed_date = signed_at.strftime(format="%Y%m%d")
     assert parameters["X-Amz-Credential"].endswith(
