@@ -7,12 +7,13 @@ import os
 from collections.abc import Generator
 from enum import Enum
 from http import HTTPMethod
+from typing import override
 from uuid import uuid4
 
 import pytest
 import requests
 import responses
-from beartype import beartype
+from beartype import BeartypeConf, beartype
 from pytest_multi_backend import backend_fixture
 from requests.exceptions import Timeout as RequestsTimeout
 from requests_mock_flask import add_flask_app_to_mock
@@ -498,14 +499,35 @@ def _credential_backend(*, request: pytest.FixtureRequest) -> VuforiaBackend:
     return VuforiaBackend.MOCK
 
 
-@pytest.fixture(name="target_processing_poll_interval")
-def fixture_target_processing_poll_interval(
-    *, request: pytest.FixtureRequest
-) -> float:
-    """Poll the live service at the same interval used during cleanup."""
+@beartype(conf=BeartypeConf(is_pep484_tower=True))
+class _LiveVWS(VWS):
+    """A client with a polling default suited to the live contract
+    tests.
+    """
+
+    # Preserve the optional parameters of the upstream VWS API.
+    @override
+    def wait_for_target_processed(
+        self,
+        *,
+        target_id: str,
+        seconds_between_requests: float = 2.0,  # noqa: NOD001
+        timeout_seconds: float = 60 * 5,  # noqa: NOD001
+    ) -> None:
+        """Poll at the cleanup interval while retaining explicit overrides."""
+        super().wait_for_target_processed(
+            target_id=target_id,
+            seconds_between_requests=seconds_between_requests,
+            timeout_seconds=timeout_seconds,
+        )
+
+
+@pytest.fixture(name="vws_client_class")
+def fixture_vws_client_class(*, request: pytest.FixtureRequest) -> type[VWS]:
+    """Use slower polling only for clients of the live Vuforia service."""
     if _credential_backend(request=request) == VuforiaBackend.REAL:
-        return 2.0
-    return 0.2
+        return _LiveVWS
+    return VWS
 
 
 @pytest.fixture(name="vuforia_database")
