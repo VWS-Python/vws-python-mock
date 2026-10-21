@@ -6,6 +6,8 @@ updates:
   # together, keeping the lockfile in sync so that
   # ``uv sync --locked`` in the Dockerfile keeps working.
   - package-ecosystem: uv
+    allow:
+      - dependency-type: all
     directory: /
     schedule:
       interval: daily
@@ -14,7 +16,6 @@ updates:
     directory: /
     schedule:
       interval: daily
-  - package-ecosystem: pre-commit
-    directory: /
-    schedule:
-      interval: daily
+
+  # Dependabot cannot read prek.toml yet:
+  # https://github.com/dependabot/dependabot-core/issues/14624

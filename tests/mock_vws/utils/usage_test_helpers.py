@@ -1,6 +1,6 @@
 """Helpers for testing the usage of the mocks."""
 
-import datetime
+import datetime as dt
 import io
 
 from beartype import beartype
@@ -28,7 +28,7 @@ def processing_time_seconds(
         active_flag=True,
         application_metadata=None,
     )
-    start_time = datetime.datetime.now(tz=datetime.UTC)
+    start_time = dt.datetime.now(tz=dt.UTC)
 
     while (
         vws_client.get_target_record(target_id=target_id).status
@@ -36,5 +36,5 @@ def processing_time_seconds(
     ):
         pass
 
-    processing_time = datetime.datetime.now(tz=datetime.UTC) - start_time
+    processing_time = dt.datetime.now(tz=dt.UTC) - start_time
     return processing_time.total_seconds()
