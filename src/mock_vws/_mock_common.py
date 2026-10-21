@@ -1,6 +1,6 @@
 """Common utilities for creating mock routes."""
 
-import datetime
+import datetime as dt
 import email.utils
 import json
 import uuid
@@ -120,7 +120,7 @@ class RouteDefinition[API]:
 
 
 @beartype
-def _upload_order_key(target: ImageTarget) -> tuple[datetime.datetime, str]:
+def _upload_order_key(target: ImageTarget) -> tuple[dt.datetime, str]:
     """Give the sort key which orders targets by upload date, then ID.
 
     Args:

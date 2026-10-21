@@ -1,7 +1,7 @@
 """Tests for databases through the `requests-mock` backend."""
 
 import dataclasses
-import datetime
+import datetime as dt
 import io
 import json
 from zoneinfo import ZoneInfo
@@ -124,13 +124,11 @@ def test_round_trip_non_default_fields(
         active_flag=True,
         application_metadata=None,
         image_value=high_quality_image.getvalue(),
-        last_modified_date=datetime.datetime(
-            year=2020, month=1, day=3, tzinfo=gmt
-        ),
+        last_modified_date=dt.datetime(year=2020, month=1, day=3, tzinfo=gmt),
         name="example",
         processing_time_seconds=0.5,
         target_tracking_rater=HardcodedTargetTrackingRater(rating=4),
-        upload_date=datetime.datetime(year=2020, month=1, day=2, tzinfo=gmt),
+        upload_date=dt.datetime(year=2020, month=1, day=2, tzinfo=gmt),
         width=1.5,
     )
     database = CloudDatabase(
