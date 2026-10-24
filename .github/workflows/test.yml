@@ -13,7 +13,10 @@ on:
 
 # We share Vuforia credentials and therefore Vuforia databases across
 # workflows. We therefore want to run only one workflow at a time.
-concurrency: vuforia_credentials
+# Queue pending runs so updates to other PRs do not cancel their tests.
+concurrency:
+  group: vuforia_credentials
+  queue: max
 
 permissions: {}
 
@@ -133,6 +136,7 @@ jobs:
           - tests/mock_vws/test_model_target_retries.py
           - tests/mock_vws/vumark_generation_api
           - tests/mock_vws/test_vumark_generation_failure.py
+          - tests/mock_vws/test_target_setup_retries.py
           - tests/mock_vws/test_target_validators.py
           - tests/mock_vws/requests_mock
           - tests/mock_vws/respx_mock
