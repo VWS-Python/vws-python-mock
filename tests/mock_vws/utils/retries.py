@@ -1,10 +1,16 @@
 """Helpers for retrying requests to VWS."""
 
+import contextlib
+from collections.abc import Callable, Generator
+from contextvars import ContextVar
+from functools import wraps
+
+from beartype import beartype
 from requests.exceptions import ConnectionError as RequestsConnectionError
 from requests.exceptions import ConnectTimeout as RequestsConnectTimeout
 from requests.exceptions import ReadTimeout as RequestsReadTimeout
 from requests.exceptions import Timeout as RequestsTimeout
-from tenacity import retry
+from tenacity import Retrying, retry
 from tenacity.retry import retry_if_exception_type
 from tenacity.stop import stop_after_attempt
 from tenacity.wait import wait_fixed
@@ -31,15 +37,48 @@ TRANSIENT_VWS_EXCEPTIONS = (
 )
 TRANSIENT_VWS_RETRY_ATTEMPTS = 10
 
-# We rely on pytest-retry for exceptions *during* tests.
-# We use tenacity for exceptions *before* tests.
-# See https://github.com/str0zzapreti/pytest-retry/issues/33.
-RETRY_ON_TRANSIENT_VWS_FAILURE = retry(
-    retry=retry_if_exception_type(exception_types=TRANSIENT_VWS_EXCEPTIONS),
-    stop=stop_after_attempt(max_attempt_number=TRANSIENT_VWS_RETRY_ATTEMPTS),
-    wait=wait_fixed(wait=10),
-    reraise=True,
+# Shared helpers send once unless an adapter supplies a retry policy.
+# ContextVar requires a positional name at runtime.
+_VWS_RETRYING: ContextVar[Retrying | None] = ContextVar(  # type: ignore[call-arg]
+    "vws_retrying",
+    default=None,
 )
+
+
+@contextlib.contextmanager
+@beartype
+def retrying_vws_requests(*, retrying: Retrying) -> Generator[None]:
+    """Install an adapter's fixture retry policy for this scope.
+
+    Yields:
+        ``None``, with the policy active and its predecessor restored on exit.
+    """
+    token = _VWS_RETRYING.set(retrying)
+    try:
+        yield
+    finally:
+        _VWS_RETRYING.reset(token)
+
+
+@beartype
+def retry_transient_vws_failures[**P, T](
+    operation: Callable[P, T],
+) -> Callable[P, T]:
+    """Apply the adapter's policy without multiplying nested retry budgets."""
+
+    @wraps(wrapped=operation)
+    def wrapped(*args: P.args, **kwargs: P.kwargs) -> T:
+        """Run an operation under at most one transient retry loop."""
+        retrying = _VWS_RETRYING.get()
+        if retrying is None:
+            return operation(*args, **kwargs)
+        token = _VWS_RETRYING.set(None)
+        try:
+            return retrying.copy()(operation, *args, **kwargs)
+        finally:
+            _VWS_RETRYING.reset(token)
+
+    return wrapped
 
 
 # Real Vuforia sometimes reports a target which it has just created as

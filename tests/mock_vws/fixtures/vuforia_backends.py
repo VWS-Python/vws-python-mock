@@ -43,6 +43,7 @@ from tests.mock_vws.fixtures.real_credentials import (
     get_real_inactive_vumark_database,
     get_real_vumark_database,
 )
+from tests.mock_vws.fixtures.real_vws_retries import REAL_VWS_RETRYING
 from tests.mock_vws.utils.backend_capabilities import BackendCapabilities
 from tests.mock_vws.utils.cloud_databases import AddCloudDatabase
 from tests.mock_vws.utils.model_target_response_policy import (
@@ -57,7 +58,8 @@ from tests.mock_vws.utils.request_timeout_policy import (
 )
 from tests.mock_vws.utils.retries import (
     RETRY_ON_TARGET_STILL_PROCESSING,
-    RETRY_ON_TRANSIENT_VWS_FAILURE,
+    retry_transient_vws_failures,
+    retrying_vws_requests,
 )
 from tests.mock_vws.utils.unrouted_requests import (
     UnroutedRequests,
@@ -100,7 +102,7 @@ def running_in_memory_mock() -> MockVWS:
 
 
 @beartype
-@RETRY_ON_TRANSIENT_VWS_FAILURE
+@retry_transient_vws_failures
 def _delete_all_targets(
     *, database_keys: CloudDatabase, base_vws_url: str
 ) -> None:
@@ -197,10 +199,13 @@ def _enable_use_real_vuforia(
     assert bool(vumark_vuforia_database)
     assert bool(inactive_vumark_database)
     del base_vwq_url
-    _delete_all_targets(
-        database_keys=working_database, base_vws_url=base_vws_url
-    )
-    with handling_request_timeouts(handler=_handle_real_request_timeout):
+    with (
+        retrying_vws_requests(retrying=REAL_VWS_RETRYING),
+        handling_request_timeouts(handler=_handle_real_request_timeout),
+    ):
+        _delete_all_targets(
+            database_keys=working_database, base_vws_url=base_vws_url
+        )
         yield
 
 
