@@ -284,7 +284,7 @@ def main() -> None:
     )
     model_target_driver.quit()
 
-    num_databases = 100
+    num_databases = 200
     required_files = [
         (new_secrets_dir / f"vuforia_secrets_{i}.env")
         for i in range(num_databases)
