@@ -16,18 +16,18 @@ from flask import Flask, Response, request
 from pydantic import TypeAdapter
 from pydantic_settings import BaseSettings
 
-from mock_vws._query_tools import (
-    get_query_match_response_text,
-)
-from mock_vws._query_validators import run_query_validators
-from mock_vws._query_validators.exceptions import (
-    ValidatorError,
-)
 from mock_vws.database import CloudDatabase
 from mock_vws.image_matchers import (
     ExactMatcher,
     ImageMatcher,
     StructuralSimilarityMatcher,
+)
+from mock_vws.server_api import (
+    QueryValidatorError as ValidatorError,
+)
+from mock_vws.server_api import (
+    get_query_match_response_text,
+    run_query_validators,
 )
 
 CLOUDRECO_FLASK_APP = Flask(import_name=__name__, static_folder=None)
