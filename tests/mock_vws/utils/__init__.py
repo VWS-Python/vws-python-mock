@@ -148,8 +148,8 @@ class ModelTargetEndpoint:
     def send(self) -> Response:
         """Send the request.
 
-        A safe request to the real Model Target Web API is retried if it
-        hits a transient gateway failure. See
+        Safe requests use the retry policy supplied by the backend
+        adapter. See
         :py:mod:`tests.mock_vws.utils.model_target_retries`.
         """
         return send_with_transient_retries(

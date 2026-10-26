@@ -13,7 +13,10 @@ on:
 
 # We share Vuforia credentials and therefore Vuforia databases across
 # workflows. We therefore want to run only one workflow at a time.
-concurrency: vuforia_credentials
+# Queue pending runs so updates to other PRs do not cancel their tests.
+concurrency:
+  group: vuforia_credentials
+  queue: max
 
 permissions: {}
 
@@ -150,7 +153,7 @@ jobs:
           persist-credentials: false
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v10.3.0
+        uses: astral-sh/setup-uv@v10.3.2
         with:
           enable-cache: true
           cache-dependency-glob: '**/pyproject.toml'
@@ -228,7 +231,7 @@ jobs:
           persist-credentials: false
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v10.3.0
+        uses: astral-sh/setup-uv@v10.3.2
         with:
           enable-cache: true
           cache-dependency-glob: '**/pyproject.toml'
@@ -273,7 +276,7 @@ jobs:
           persist-credentials: false
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v10.3.0
+        uses: astral-sh/setup-uv@v10.3.2
         with:
           enable-cache: true
           cache-dependency-glob: '**/pyproject.toml'
@@ -335,7 +338,7 @@ jobs:
           persist-credentials: false
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v10.3.0
+        uses: astral-sh/setup-uv@v10.3.2
         with:
           enable-cache: true
           cache-dependency-glob: '**/pyproject.toml'
