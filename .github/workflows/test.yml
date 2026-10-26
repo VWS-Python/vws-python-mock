@@ -13,10 +13,7 @@ on:
 
 # We share Vuforia credentials and therefore Vuforia databases across
 # workflows. We therefore want to run only one workflow at a time.
-# Queue pending runs so updates to other PRs do not cancel their tests.
-concurrency:
-  group: vuforia_credentials
-  queue: max
+concurrency: vuforia_credentials
 
 permissions: {}
 
