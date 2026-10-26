@@ -30,9 +30,24 @@ class ValidatorError(Exception):
     endpoints.
     """
 
-    status_code: HTTPStatus
-    response_text: str
-    headers: Mapping[str, str]
+    def __init__(
+        self,
+        *,
+        status_code: HTTPStatus,
+        response_text: str,
+        headers: Mapping[str, str],
+    ) -> None:
+        """Initialize the HTTP response represented by this error.
+
+        Args:
+            status_code: The response's HTTP status.
+            response_text: The response body.
+            headers: The response headers.
+        """
+        super().__init__()
+        self.status_code = status_code
+        self.response_text = response_text
+        self.headers = headers
 
 
 @beartype
@@ -43,16 +58,20 @@ class UnknownTargetError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize an ``UnknownTarget`` response."""
-        super().__init__()
-        self.status_code = HTTPStatus.NOT_FOUND
-        self.response_text = result_code_response_text(
+        status_code = HTTPStatus.NOT_FOUND
+        response_text = result_code_response_text(
             result_code=ResultCodes.UNKNOWN_TARGET,
         )
-        self.headers = {
+        headers = {
             **_STANDARD_HEADERS,
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -63,16 +82,20 @@ class ProjectInactiveError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize a ``ProjectInactive`` response."""
-        super().__init__()
-        self.status_code = HTTPStatus.FORBIDDEN
-        self.response_text = result_code_response_text(
+        status_code = HTTPStatus.FORBIDDEN
+        response_text = result_code_response_text(
             result_code=ResultCodes.PROJECT_INACTIVE,
         )
-        self.headers = {
+        headers = {
             **_STANDARD_HEADERS,
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -86,16 +109,20 @@ class RequestQuotaReachedError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize a ``RequestQuotaReached`` response."""
-        super().__init__()
-        self.status_code = HTTPStatus.FORBIDDEN
-        self.response_text = result_code_response_text(
+        status_code = HTTPStatus.FORBIDDEN
+        response_text = result_code_response_text(
             result_code=ResultCodes.REQUEST_QUOTA_REACHED,
         )
-        self.headers = {
+        headers = {
             **_STANDARD_HEADERS,
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -109,10 +136,9 @@ class TooManyRequestsError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize a ``429 Too Many Requests`` response."""
-        super().__init__()
-        self.status_code = HTTPStatus.TOO_MANY_REQUESTS
-        self.response_text = ""
-        self.headers = {
+        status_code = HTTPStatus.TOO_MANY_REQUESTS
+        response_text = ""
+        headers = {
             "Connection": "keep-alive",
             "Content-Length": "0",
             "Date": http_date(),
@@ -123,6 +149,11 @@ class TooManyRequestsError(ValidatorError):
             "x-envoy-ratelimited": "true",
             "x-envoy-upstream-service-time": "5",
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -131,16 +162,20 @@ class TargetQuotaReachedError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize a ``TargetQuotaReached`` response."""
-        super().__init__()
-        self.status_code = HTTPStatus.FORBIDDEN
-        self.response_text = result_code_response_text(
+        status_code = HTTPStatus.FORBIDDEN
+        response_text = result_code_response_text(
             result_code=ResultCodes.TARGET_QUOTA_REACHED,
         )
-        self.headers = {
+        headers = {
             **_STANDARD_HEADERS,
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -149,16 +184,20 @@ class ProjectSuspendedError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize a ``ProjectSuspended`` response."""
-        super().__init__()
-        self.status_code = HTTPStatus.FORBIDDEN
-        self.response_text = result_code_response_text(
+        status_code = HTTPStatus.FORBIDDEN
+        response_text = result_code_response_text(
             result_code=ResultCodes.PROJECT_SUSPENDED,
         )
-        self.headers = {
+        headers = {
             **_STANDARD_HEADERS,
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -167,16 +206,20 @@ class ProjectHasNoApiAccessError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize a ``ProjectHasNoApiAccess`` response."""
-        super().__init__()
-        self.status_code = HTTPStatus.FORBIDDEN
-        self.response_text = result_code_response_text(
+        status_code = HTTPStatus.FORBIDDEN
+        response_text = result_code_response_text(
             result_code=ResultCodes.PROJECT_HAS_NO_API_ACCESS,
         )
-        self.headers = {
+        headers = {
             **_STANDARD_HEADERS,
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -187,16 +230,20 @@ class AuthenticationFailureError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize an ``AuthenticationFailure`` response."""
-        super().__init__()
-        self.status_code = HTTPStatus.UNAUTHORIZED
-        self.response_text = result_code_response_text(
+        status_code = HTTPStatus.UNAUTHORIZED
+        response_text = result_code_response_text(
             result_code=ResultCodes.AUTHENTICATION_FAILURE,
         )
-        self.headers = {
+        headers = {
             **_STANDARD_HEADERS,
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -211,16 +258,19 @@ class FailError(ValidatorError):
             status_code: The status code to use in a response if this is
                 raised.
         """
-        super().__init__()
-        self.status_code = status_code
-        self.response_text = result_code_response_text(
+        response_text = result_code_response_text(
             result_code=ResultCodes.FAIL,
         )
-        self.headers = {
+        headers = {
             **_STANDARD_HEADERS,
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -231,16 +281,20 @@ class BadRequestError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize a ``BadRequest`` response."""
-        super().__init__()
-        self.status_code = HTTPStatus.BAD_REQUEST
-        self.response_text = result_code_response_text(
+        status_code = HTTPStatus.BAD_REQUEST
+        response_text = result_code_response_text(
             result_code=ResultCodes.BAD_REQUEST,
         )
-        self.headers = {
+        headers = {
             **_STANDARD_HEADERS,
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -251,16 +305,20 @@ class MetadataTooLargeError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize a ``MetadataTooLarge`` response."""
-        super().__init__()
-        self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
-        self.response_text = result_code_response_text(
+        status_code = HTTPStatus.UNPROCESSABLE_ENTITY
+        response_text = result_code_response_text(
             result_code=ResultCodes.METADATA_TOO_LARGE,
         )
-        self.headers = {
+        headers = {
             **_STANDARD_HEADERS,
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -271,16 +329,20 @@ class TargetNameExistError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize a ``TargetNameExist`` response."""
-        super().__init__()
-        self.status_code = HTTPStatus.FORBIDDEN
-        self.response_text = result_code_response_text(
+        status_code = HTTPStatus.FORBIDDEN
+        response_text = result_code_response_text(
             result_code=ResultCodes.TARGET_NAME_EXIST,
         )
-        self.headers = {
+        headers = {
             **_STANDARD_HEADERS,
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -291,16 +353,20 @@ class BadImageError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize a ``BadImage`` response."""
-        super().__init__()
-        self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
-        self.response_text = result_code_response_text(
+        status_code = HTTPStatus.UNPROCESSABLE_ENTITY
+        response_text = result_code_response_text(
             result_code=ResultCodes.BAD_IMAGE,
         )
-        self.headers = {
+        headers = {
             **_STANDARD_HEADERS,
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -311,16 +377,20 @@ class ImageTooLargeError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize an ``ImageTooLarge`` response."""
-        super().__init__()
-        self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
-        self.response_text = result_code_response_text(
+        status_code = HTTPStatus.UNPROCESSABLE_ENTITY
+        response_text = result_code_response_text(
             result_code=ResultCodes.IMAGE_TOO_LARGE,
         )
-        self.headers = {
+        headers = {
             **_STANDARD_HEADERS,
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -331,16 +401,20 @@ class RequestTimeTooSkewedError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize a ``RequestTimeTooSkewed`` response."""
-        super().__init__()
-        self.status_code = HTTPStatus.FORBIDDEN
-        self.response_text = result_code_response_text(
+        status_code = HTTPStatus.FORBIDDEN
+        response_text = result_code_response_text(
             result_code=ResultCodes.REQUEST_TIME_TOO_SKEWED,
         )
-        self.headers = {
+        headers = {
             **_STANDARD_HEADERS,
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -352,16 +426,20 @@ class ContentLengthHeaderTooLargeError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize a stream timeout response."""
-        super().__init__()
-        self.status_code = HTTPStatus.REQUEST_TIMEOUT
-        self.response_text = "stream timeout"
-        self.headers = {
-            "Content-Length": str(object=len(self.response_text)),
+        status_code = HTTPStatus.REQUEST_TIMEOUT
+        response_text = "stream timeout"
+        headers = {
+            "Content-Length": str(object=len(response_text)),
             "Date": http_date(),
             "server": "envoy",
             "Content-Type": "text/plain",
             "Connection": "close",
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -375,9 +453,8 @@ class RequestHeaderOrCookieTooLargeError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize an NGINX request header too large response."""
-        super().__init__()
-        self.status_code = HTTPStatus.BAD_REQUEST
-        self.response_text = "".join(
+        status_code = HTTPStatus.BAD_REQUEST
+        response_text = "".join(
             f"{line}\r\n"
             for line in (
                 "<html>",
@@ -393,12 +470,17 @@ class RequestHeaderOrCookieTooLargeError(ValidatorError):
                 "</html>",
             )
         )
-        self.headers = {
+        headers = {
             **_STANDARD_HEADERS,
             "Content-Type": "text/html",
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -410,9 +492,8 @@ class ContentLengthHeaderNotIntError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize a load balancer bad request response."""
-        super().__init__()
-        self.status_code = HTTPStatus.BAD_REQUEST
-        self.response_text = textwrap.dedent(
+        status_code = HTTPStatus.BAD_REQUEST
+        response_text = textwrap.dedent(
             text="""\
             <html>\r
             <head><title>400 Bad Request</title></head>\r
@@ -422,13 +503,18 @@ class ContentLengthHeaderNotIntError(ValidatorError):
             </html>\r
             """,
         )
-        self.headers = {
+        headers = {
             "Connection": "close",
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
             "Date": http_date(),
             "Server": "awselb/2.0",
             "Content-Type": "text/html",
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -437,15 +523,19 @@ class UnnecessaryRequestBodyError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize an empty bad request response."""
-        super().__init__()
-        self.status_code = HTTPStatus.BAD_REQUEST
-        self.response_text = ""
-        self.headers = {
+        status_code = HTTPStatus.BAD_REQUEST
+        response_text = ""
+        headers = {
             "server": "envoy",
             "Date": http_date(),
             "x-envoy-upstream-service-time": "5",
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -457,16 +547,20 @@ class TargetStatusNotSuccessError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize a ``TargetStatusNotSuccess`` response."""
-        super().__init__()
-        self.status_code = HTTPStatus.FORBIDDEN
-        self.response_text = result_code_response_text(
+        status_code = HTTPStatus.FORBIDDEN
+        response_text = result_code_response_text(
             result_code=ResultCodes.TARGET_STATUS_NOT_SUCCESS,
         )
-        self.headers = {
+        headers = {
             **_STANDARD_HEADERS,
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -475,16 +569,20 @@ class InvalidAcceptHeaderError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize an ``InvalidAcceptHeader`` response."""
-        super().__init__()
-        self.status_code = HTTPStatus.BAD_REQUEST
-        self.response_text = result_code_response_text(
+        status_code = HTTPStatus.BAD_REQUEST
+        response_text = result_code_response_text(
             result_code=ResultCodes.INVALID_ACCEPT_HEADER,
         )
-        self.headers = {
+        headers = {
             **_STANDARD_HEADERS,
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -493,16 +591,20 @@ class InvalidInstanceIdError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize an ``InvalidInstanceId`` response."""
-        super().__init__()
-        self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
-        self.response_text = result_code_response_text(
+        status_code = HTTPStatus.UNPROCESSABLE_ENTITY
+        response_text = result_code_response_text(
             result_code=ResultCodes.INVALID_INSTANCE_ID,
         )
-        self.headers = {
+        headers = {
             **_STANDARD_HEADERS,
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -513,16 +615,20 @@ class InvalidTargetTypeError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize an ``InvalidTargetType`` response."""
-        super().__init__()
-        self.status_code = HTTPStatus.UNPROCESSABLE_ENTITY
-        self.response_text = result_code_response_text(
+        status_code = HTTPStatus.UNPROCESSABLE_ENTITY
+        response_text = result_code_response_text(
             result_code=ResultCodes.INVALID_TARGET_TYPE,
         )
-        self.headers = {
+        headers = {
             **_STANDARD_HEADERS,
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
 
 
 @beartype
@@ -531,13 +637,17 @@ class TargetStatusProcessingError(ValidatorError):
 
     def __init__(self) -> None:
         """Initialize a ``TargetStatusProcessing`` response."""
-        super().__init__()
-        self.status_code = HTTPStatus.FORBIDDEN
-        self.response_text = result_code_response_text(
+        status_code = HTTPStatus.FORBIDDEN
+        response_text = result_code_response_text(
             result_code=ResultCodes.TARGET_STATUS_PROCESSING,
         )
-        self.headers = {
+        headers = {
             **_STANDARD_HEADERS,
             "Date": http_date(),
-            "Content-Length": str(object=len(self.response_text)),
+            "Content-Length": str(object=len(response_text)),
         }
+        super().__init__(
+            status_code=status_code,
+            response_text=response_text,
+            headers=headers,
+        )
