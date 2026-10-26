@@ -117,9 +117,7 @@ hooks = [
   {
     id = "actionlint",
     name = "actionlint",
-    # actionlint does not yet recognize GitHub's concurrency.queue key.
-    # Remove this exact diagnostic filter when rhysd/actionlint#657 is fixed.
-    entry = "uv run --group=dev actionlint -ignore 'unexpected key \"queue\" for \"concurrency\" section'",
+    entry = "uv run --group=dev actionlint",
     language = "python",
     pass_filenames = false,
     types_or = ["yaml"],
