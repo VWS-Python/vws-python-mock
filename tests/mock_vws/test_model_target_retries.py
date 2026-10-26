@@ -4,19 +4,26 @@
 layered on it, which cannot be provoked against a backend on demand.
 """
 
-import time
 from http import HTTPMethod, HTTPStatus
 
 import pytest
 import requests
 import responses
 from beartype import beartype
+from tenacity import Retrying
+from tenacity.retry import retry_if_exception_type
+from tenacity.stop import stop_after_attempt
+from tenacity.wait import wait_none
 
+from tests.mock_vws.fixtures.real_model_target_retries import (
+    MODEL_TARGET_RETRY_ATTEMPTS,
+    REAL_MODEL_TARGET_RETRY_POLICY,
+)
+from tests.mock_vws.fixtures.vuforia_backends import VuforiaBackend
 from tests.mock_vws.utils import ModelTargetEndpoint
 from tests.mock_vws.utils.model_target_retries import (
-    MODEL_TARGET_RETRY_ATTEMPTS,
     model_target_get,
-    retrying_transient_real_backend_failures,
+    retrying_model_target_requests,
     send_with_transient_retries,
 )
 
@@ -31,25 +38,25 @@ def _response(*, status_code: HTTPStatus) -> requests.Response:
     return response
 
 
-@beartype
-def _do_not_sleep(seconds: float) -> None:
-    """Do not sleep."""
-    del seconds
+@pytest.fixture(name="retry_policy")
+def fixture_retry_policy() -> Retrying:
+    """Use the real retry criteria without waiting between attempts."""
+    return REAL_MODEL_TARGET_RETRY_POLICY.copy(wait=wait_none())
 
 
-@pytest.fixture(autouse=True, name="no_sleep")
-def fixture_no_sleep(*, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Do not wait between attempts."""
-    monkeypatch.setattr(target=time, name="sleep", value=_do_not_sleep)
+@pytest.fixture(name="_model_target_backend")
+def fixture_model_target_backend() -> VuforiaBackend:
+    """Select the real policy without credential lookup or requests."""
+    return VuforiaBackend.REAL
 
 
-def test_transient_response_is_retried() -> None:
+def test_transient_response_is_retried(*, retry_policy: Retrying) -> None:
     """A transient gateway response is followed by another attempt,
     and the response to that attempt is returned.
     """
     remaining = [HTTPStatus.BAD_GATEWAY, HTTPStatus.OK]
 
-    with retrying_transient_real_backend_failures():
+    with retrying_model_target_requests(retrying=retry_policy):
         response = send_with_transient_retries(
             method=HTTPMethod.GET,
             send=lambda: _response(status_code=remaining.pop(0)),
@@ -58,7 +65,7 @@ def test_transient_response_is_retried() -> None:
     assert response.status_code == HTTPStatus.OK
 
 
-def test_persistent_transient_response() -> None:
+def test_persistent_transient_response(*, retry_policy: Retrying) -> None:
     """The last response is returned rather than hidden, so that the
     caller's assertion reports the real status and body.
     """
@@ -70,7 +77,7 @@ def test_persistent_transient_response() -> None:
         attempts += 1
         return _response(status_code=HTTPStatus.SERVICE_UNAVAILABLE)
 
-    with retrying_transient_real_backend_failures():
+    with retrying_model_target_requests(retrying=retry_policy):
         response = send_with_transient_retries(
             method=HTTPMethod.GET,
             send=send,
@@ -80,7 +87,7 @@ def test_persistent_transient_response() -> None:
     assert attempts == MODEL_TARGET_RETRY_ATTEMPTS
 
 
-def test_persistent_transport_failure() -> None:
+def test_persistent_transport_failure(*, retry_policy: Retrying) -> None:
     """A transport failure on the last attempt is not swallowed."""
 
     def send() -> requests.Response:
@@ -93,7 +100,7 @@ def test_persistent_transport_failure() -> None:
         raise requests.exceptions.ConnectionError(msg)
 
     with (
-        retrying_transient_real_backend_failures(),
+        retrying_model_target_requests(retrying=retry_policy),
         pytest.raises(
             expected_exception=requests.exceptions.ConnectionError,
             match=r"Connection aborted\.",
@@ -102,7 +109,7 @@ def test_persistent_transport_failure() -> None:
         _ = send_with_transient_retries(method=HTTPMethod.GET, send=send)
 
 
-def test_error_response_is_not_retried() -> None:
+def test_error_response_is_not_retried(*, retry_policy: Retrying) -> None:
     """A response which came from Vuforia rather than from the
     gateway is returned as it is, however unsuccessful it is.
     """
@@ -114,13 +121,13 @@ def test_error_response_is_not_retried() -> None:
         attempts += 1
         return _response(status_code=HTTPStatus.UNAUTHORIZED)
 
-    with retrying_transient_real_backend_failures():
+    with retrying_model_target_requests(retrying=retry_policy):
         _ = send_with_transient_retries(method=HTTPMethod.GET, send=send)
 
     assert attempts == 1
 
 
-def test_mutating_request_is_not_retried() -> None:
+def test_mutating_request_is_not_retried(*, retry_policy: Retrying) -> None:
     """A request which is not safe to repeat is sent exactly once,
     even when it fails transiently.
 
@@ -135,13 +142,13 @@ def test_mutating_request_is_not_retried() -> None:
         attempts += 1
         return _response(status_code=HTTPStatus.BAD_GATEWAY)
 
-    with retrying_transient_real_backend_failures():
+    with retrying_model_target_requests(retrying=retry_policy):
         _ = send_with_transient_retries(method=HTTPMethod.POST, send=send)
 
     assert attempts == 1
 
 
-def test_configured_failure_is_not_retried() -> None:
+def test_configured_failure_is_not_retried(*, retry_policy: Retrying) -> None:
     """A 5xx response is returned immediately outside the context.
 
     Tests which configure a mock to fail with a 5xx expect exactly
@@ -157,7 +164,7 @@ def test_configured_failure_is_not_retried() -> None:
 
     # Enter and leave the context first, to check it is switched off
     # again for a mock backend test which runs after a real one.
-    with retrying_transient_real_backend_failures():
+    with retrying_model_target_requests(retrying=retry_policy):
         pass
 
     response = send_with_transient_retries(
@@ -170,7 +177,7 @@ def test_configured_failure_is_not_retried() -> None:
 
 
 @responses.activate
-def test_endpoint_send() -> None:
+def test_endpoint_send(*, retry_policy: Retrying) -> None:
     """A ``GET`` endpoint retries a transient failure.
 
     This is the path which the cross-cutting Model Target endpoint tests
@@ -193,7 +200,7 @@ def test_endpoint_send() -> None:
         takes_json_body=False,
     )
 
-    with retrying_transient_real_backend_failures():
+    with retrying_model_target_requests(retrying=retry_policy):
         response = endpoint.send()
 
     assert response.status_code == HTTPStatus.UNAUTHORIZED
@@ -202,7 +209,7 @@ def test_endpoint_send() -> None:
 
 
 @responses.activate
-def test_model_target_get() -> None:
+def test_model_target_get(*, retry_policy: Retrying) -> None:
     """``model_target_get`` retries a transient failure."""
     gateway_response = responses.Response(
         method=responses.GET, url=_URL, status=HTTPStatus.GATEWAY_TIMEOUT
@@ -213,9 +220,77 @@ def test_model_target_get() -> None:
     assert responses.add(gateway_response) is gateway_response
     assert responses.add(dataset_response) is dataset_response
 
-    with retrying_transient_real_backend_failures():
+    with retrying_model_target_requests(retrying=retry_policy):
         response = model_target_get(url=_URL, headers={}, timeout=30)
 
     assert response.content == b"dataset"
     assert gateway_response.call_count == 1
     assert dataset_response.call_count == 1
+
+
+@pytest.mark.usefixtures("verify_model_target_mock_vuforia")
+def test_real_adapter_installs_retry_policy() -> None:
+    """Real adapter setup installs its policy without account access."""
+    remaining = [HTTPStatus.BAD_GATEWAY, HTTPStatus.OK]
+    response = send_with_transient_retries(
+        method=HTTPMethod.GET,
+        send=lambda: _response(status_code=remaining.pop(0)),
+    )
+    assert response.status_code == HTTPStatus.OK
+    assert not bool(remaining)
+
+
+def test_nested_retry_policies() -> None:
+    """Nested policies restore the outer policy after a raised
+    exception.
+    """
+    outer = Retrying(
+        retry=retry_if_exception_type(exception_types=ValueError),
+        stop=stop_after_attempt(max_attempt_number=2),
+        wait=wait_none(),
+        reraise=True,
+    )
+    inner = outer.copy(
+        retry=retry_if_exception_type(exception_types=KeyError),
+    )
+    error = ValueError("Controlled failure")
+    response = _response(status_code=HTTPStatus.OK)
+    remaining: list[ValueError | requests.Response] = [
+        error,
+        response,
+        error,
+        error,
+        response,
+        error,
+    ]
+
+    def send() -> requests.Response:
+        """Return the next controlled response or raise its exception."""
+        outcome = remaining.pop(0)
+        if isinstance(outcome, ValueError):
+            raise outcome
+        return outcome
+
+    with retrying_model_target_requests(retrying=outer):
+        assert (
+            send_with_transient_retries(method=HTTPMethod.GET, send=send)
+            is response
+        )
+        with (
+            pytest.raises(
+                expected_exception=ValueError, match="Controlled failure"
+            ) as exc,
+            retrying_model_target_requests(retrying=inner),
+        ):
+            _ = send_with_transient_retries(method=HTTPMethod.GET, send=send)
+        assert exc.value is error
+        assert (
+            send_with_transient_retries(method=HTTPMethod.GET, send=send)
+            is response
+        )
+    with pytest.raises(
+        expected_exception=ValueError, match="Controlled failure"
+    ) as exc:
+        _ = send_with_transient_retries(method=HTTPMethod.GET, send=send)
+    assert exc.value is error
+    assert not bool(remaining)
