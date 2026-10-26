@@ -24,8 +24,8 @@ from mock_vws.database import CloudDatabase
 from tests.mock_vws.utils import Endpoint, ModelTargetEndpoint
 from tests.mock_vws.utils.retries import (
     RETRY_ON_TARGET_NOT_YET_VISIBLE,
-    RETRY_ON_TRANSIENT_VWS_FAILURE,
     TRANSIENT_VWS_EXCEPTIONS,
+    retry_transient_vws_failures,
 )
 
 # The number of targets to add before giving up on getting one which
@@ -91,7 +91,7 @@ def inactive_cloud_reco_client(
 
 
 @beartype
-@RETRY_ON_TRANSIENT_VWS_FAILURE
+@retry_transient_vws_failures
 def _add_target(*, vws_client: VWS, image: io.BytesIO) -> str:
     """Add a target, which is then in the processing state.
 
@@ -114,7 +114,7 @@ def _add_target(*, vws_client: VWS, image: io.BytesIO) -> str:
 
 
 @beartype
-@RETRY_ON_TRANSIENT_VWS_FAILURE
+@retry_transient_vws_failures
 @RETRY_ON_TARGET_NOT_YET_VISIBLE
 def _get_processed_target(
     *, vws_client: VWS, target_id_: str
