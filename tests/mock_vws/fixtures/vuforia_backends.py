@@ -43,13 +43,16 @@ from tests.mock_vws.fixtures.real_credentials import (
     get_real_inactive_vumark_database,
     get_real_vumark_database,
 )
+from tests.mock_vws.fixtures.real_model_target_retries import (
+    REAL_MODEL_TARGET_RETRY_POLICY,
+)
 from tests.mock_vws.utils.backend_capabilities import BackendCapabilities
 from tests.mock_vws.utils.cloud_databases import AddCloudDatabase
 from tests.mock_vws.utils.model_target_response_policy import (
     handling_unexpected_model_target_responses,
 )
 from tests.mock_vws.utils.model_target_retries import (
-    retrying_transient_real_backend_failures,
+    retrying_model_target_requests,
 )
 from tests.mock_vws.utils.recognition_counts import SeedRecognitionCounts
 from tests.mock_vws.utils.request_timeout_policy import (
@@ -410,7 +413,9 @@ def _enable_use_real_model_target_vuforia(
     del base_vws_url
     assert bool(monkeypatch)
     with (
-        retrying_transient_real_backend_failures(),
+        retrying_model_target_requests(
+            retrying=REAL_MODEL_TARGET_RETRY_POLICY,
+        ),
         handling_request_timeouts(handler=_handle_real_request_timeout),
         handling_unexpected_model_target_responses(
             handler=_handle_real_model_target_response,
