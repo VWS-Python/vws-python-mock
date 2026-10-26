@@ -166,7 +166,7 @@ def _add_target_which_processed_successfully(
             vws_client=vws_client,
             target_id_=target_id_,
         )
-    except Exception:
+    except Exception:  # pragma: no cover
         # Setup owns the target until it can return it to the test. Cleanup
         # is best effort: a processing target may still reject deletion.
         # The real adapter also clears remaining targets before the next test.
@@ -175,7 +175,7 @@ def _add_target_which_processed_successfully(
         raise
     # Failed processing is nondeterministic against the live service.
     if target_details.status != TargetStatuses.SUCCESS:
-        vws_client.delete_target(target_id=target_id_)
+        vws_client.delete_target(target_id=target_id_)  # pragma: no cover
     return _TargetProcessingResult(
         target_id=target_id_,
         status=target_details.status,
