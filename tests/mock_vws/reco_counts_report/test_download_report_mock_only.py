@@ -114,7 +114,7 @@ def test_seeded_recognition_counts(
         application_metadata=None,
     )
     seed_recognition_counts(
-        vuforia_database=fresh_database,
+        database_name=fresh_database.database_name,
         target_id=recognized_target_id,
         current_month_recos=CURRENT_MONTH_RECOS,
         previous_month_recos=PREVIOUS_MONTH_RECOS,
@@ -161,7 +161,7 @@ def test_counts_set_after_first_request(
         month=month,
     )
     seed_recognition_counts(
-        vuforia_database=fresh_database,
+        database_name=fresh_database.database_name,
         target_id=target_id,
         current_month_recos=CURRENT_MONTH_RECOS,
         previous_month_recos=PREVIOUS_MONTH_RECOS,
