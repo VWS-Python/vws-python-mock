@@ -130,6 +130,16 @@ Give an option once per backend or marker to skip.
 
 .. _pytest-multi-backend: https://adamtheturtle.github.io/pytest-multi-backend/
 
+Shared database credentials
+---------------------------
+
+The shared API client fixtures, raw query helpers and recognition-report helpers accept ``CloudDatabaseCredentials`` from ``tests.mock_vws.fixtures.credentials``.
+An adapter supplies an object with read-only string attributes ``server_access_key``, ``server_secret_key``, ``client_access_key``, ``client_secret_key`` and ``database_id``.
+The helpers use those values for signing HTTP requests and constructing report URLs.
+They do not require a ``mock_vws.database.CloudDatabase`` object or access to its targets and storage state.
+The current adapters' database objects satisfy the protocol, and another adapter can provide its own credential object.
+Backend setup and mock controls remain responsible for managing database state.
+
 Container deployment tests
 --------------------------
 

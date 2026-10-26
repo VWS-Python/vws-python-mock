@@ -16,7 +16,7 @@ from vws import VWS
 from vws.response import Response
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from mock_vws.database import CloudDatabase
+from tests.mock_vws.fixtures.credentials import CloudDatabaseCredentials
 from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
 JETTY_CONTENT_TYPE_ERROR = textwrap.dedent(
@@ -57,7 +57,7 @@ NGINX_REQUEST_ENTITY_TOO_LARGE_ERROR = textwrap.dedent(
 
 def query_raw(
     *,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     content: bytes,
     content_type_header: str,
     base_vwq_url: str,
@@ -121,7 +121,7 @@ def query_raw(
 
 def query(
     *,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     body: Mapping[
         str,
         tuple[str | None, object, str],
