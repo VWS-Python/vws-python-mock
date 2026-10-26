@@ -2,7 +2,7 @@
 
 from http import HTTPMethod, HTTPStatus
 
-from mock_vws.database import CloudDatabase
+from tests.mock_vws.fixtures.credentials import CloudDatabaseCredentials
 from tests.mock_vws.invalid_given_id.helpers import (
     send_unrouted_request,
 )
@@ -11,7 +11,7 @@ from tests.mock_vws.utils.unrouted_requests import UnroutedRequests
 
 def test_unknown_path(
     *,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     unrouted_requests: UnroutedRequests,
 ) -> None:
     """A request to a path which is not served returns a 404 with no
@@ -40,7 +40,7 @@ def test_unknown_path(
 
 def test_unknown_method(
     *,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     unrouted_requests: UnroutedRequests,
 ) -> None:
     """A request to a served path with a method which that path does

@@ -5,7 +5,7 @@ from http import HTTPMethod
 from beartype import beartype
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from mock_vws.database import CloudDatabase
+from tests.mock_vws.fixtures.credentials import CloudDatabaseCredentials
 from tests.mock_vws.utils.unrouted_requests import (
     SendUnroutedRequest,
     UnroutedResponse,
@@ -16,7 +16,7 @@ from tests.mock_vws.utils.unrouted_requests import (
 def send_unrouted_request(
     *,
     send: SendUnroutedRequest,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     method: HTTPMethod,
     request_path: str,
 ) -> UnroutedResponse | None:
