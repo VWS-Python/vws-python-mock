@@ -20,7 +20,7 @@ from vws.exceptions.vws_exceptions import (
 )
 from vws.reports import TargetStatusAndRecord, TargetStatuses
 
-from mock_vws.database import CloudDatabase
+from tests.mock_vws.fixtures.credentials import CloudDatabaseCredentials
 from tests.mock_vws.utils import Endpoint, ModelTargetEndpoint
 from tests.mock_vws.utils.retries import (
     RETRY_ON_TARGET_NOT_YET_VISIBLE,
@@ -36,7 +36,7 @@ _TARGET_SUCCESS_ATTEMPTS = 3
 @pytest.fixture(name="vws_client")
 def fixture_vws_client(
     *,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     base_vws_url: str,
     vws_client_class: type[VWS],
 ) -> VWS:
@@ -51,7 +51,7 @@ def fixture_vws_client(
 @pytest.fixture
 def cloud_reco_client(
     *,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     base_vwq_url: str,
 ) -> CloudRecoService:
     """A query client for an active VWS database."""
@@ -65,7 +65,7 @@ def cloud_reco_client(
 @pytest.fixture(name="inactive_vws_client")
 def fixture_inactive_vws_client(
     *,
-    inactive_cloud_database: CloudDatabase,
+    inactive_cloud_database: CloudDatabaseCredentials,
     base_vws_url: str,
 ) -> VWS:
     """A client for an inactive VWS database."""
@@ -79,7 +79,7 @@ def fixture_inactive_vws_client(
 @pytest.fixture
 def inactive_cloud_reco_client(
     *,
-    inactive_cloud_database: CloudDatabase,
+    inactive_cloud_database: CloudDatabaseCredentials,
     base_vwq_url: str,
 ) -> CloudRecoService:
     """A query client for an inactive VWS database."""

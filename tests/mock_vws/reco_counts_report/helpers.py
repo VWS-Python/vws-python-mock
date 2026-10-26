@@ -18,7 +18,7 @@ from tenacity import (
 from vws import VWS
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from mock_vws.database import CloudDatabase
+from tests.mock_vws.fixtures.credentials import CloudDatabaseCredentials
 
 CURRENT_MONTH_RECOS = 3
 
@@ -79,7 +79,7 @@ def month_offset_from_now(*, months: int) -> str:
 def request_reco_counts_report_json(
     *,
     base_vws_url: str,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     database_id: str,
     request_json: object,
 ) -> requests.Response:
@@ -119,7 +119,7 @@ def request_reco_counts_report_json(
 def request_reco_counts_report(
     *,
     base_vws_url: str,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     database_id: str,
     month: str | int,
 ) -> requests.Response:
@@ -134,7 +134,10 @@ def request_reco_counts_report(
 
 @beartype
 def get_presigned_url(
-    *, base_vws_url: str, vuforia_database: CloudDatabase, month: str
+    *,
+    base_vws_url: str,
+    vuforia_database: CloudDatabaseCredentials,
+    month: str,
 ) -> str:
     """Request a report for the given month and return its download
     URL.
@@ -221,7 +224,9 @@ def wait_for_report(*, presigned_url: str) -> requests.Response:
 
 
 @beartype
-def make_vws_client(*, base_vws_url: str, database: CloudDatabase) -> VWS:
+def make_vws_client(
+    *, base_vws_url: str, database: CloudDatabaseCredentials
+) -> VWS:
     """Return a client for the given database."""
     return VWS(
         base_vws_url=base_vws_url,
