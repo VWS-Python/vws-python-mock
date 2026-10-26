@@ -6,18 +6,18 @@ from http import HTTPStatus
 import httpx
 import pytest
 import requests
+from pydantic import JsonValue
 
 from mock_vws import MockVWS, ModelTargetFailureResponse, ModelTargetRequest
-from mock_vws.model_target import JSONValue
 
 _BASE_URL = "https://vws.vuforia.com"
 _CLIENT_ID = "client-id"
 _CLIENT_SECRET = "client-secret"
 type _HTTPResponse = requests.Response | httpx.Response
-type _DatasetRequestSender = Callable[[dict[str, JSONValue]], _HTTPResponse]
+type _DatasetRequestSender = Callable[[dict[str, JsonValue]], _HTTPResponse]
 
 
-def _dataset_body() -> dict[str, JSONValue]:
+def _dataset_body() -> dict[str, JsonValue]:
     """Return an otherwise-valid Model Target dataset request body."""
     return {
         "name": "configured-failure-test",
@@ -32,7 +32,7 @@ def _dataset_body() -> dict[str, JSONValue]:
     }
 
 
-def _requests_create_dataset(body: dict[str, JSONValue]) -> _HTTPResponse:
+def _requests_create_dataset(body: dict[str, JsonValue]) -> _HTTPResponse:
     """Acquire a token and create a dataset using ``requests``."""
     token_response = requests.post(
         url=f"{_BASE_URL}/oauth2/token",
@@ -53,7 +53,7 @@ def _requests_create_dataset(body: dict[str, JSONValue]) -> _HTTPResponse:
     )
 
 
-def _httpx_create_dataset(body: dict[str, JSONValue]) -> _HTTPResponse:
+def _httpx_create_dataset(body: dict[str, JsonValue]) -> _HTTPResponse:
     """Acquire a token and create a dataset using ``httpx``."""
     token_response = httpx.post(
         url=f"{_BASE_URL}/oauth2/token",

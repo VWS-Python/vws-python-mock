@@ -7,9 +7,9 @@ import httpx
 import httpx2
 import pytest
 import requests
+from pydantic import JsonValue
 
 from mock_vws import MockVWS, ModelTargetGenerationFailure
-from mock_vws.model_target import JSONValue
 
 _AUTHORIZATION = (
     "Bearer eyJhbGciOiJtb2NrIn0."
@@ -17,7 +17,7 @@ _AUTHORIZATION = (
     "c2lnbmF0dXJl"
 )
 _CREATE_URL = "https://vws.vuforia.com/modeltargets/datasets"
-_REQUEST_BODY: dict[str, JSONValue] = {
+_REQUEST_BODY: dict[str, JsonValue] = {
     "name": "dataset-name",
     "targetSdk": "10.18",
     "models": [
@@ -38,13 +38,13 @@ _REQUEST_BODY: dict[str, JSONValue] = {
 }
 type _HTTPResponse = requests.Response | httpx.Response | httpx2.Response
 type _RequestSender = Callable[
-    [str, dict[str, JSONValue] | None], _HTTPResponse
+    [str, dict[str, JsonValue] | None], _HTTPResponse
 ]
 
 
 def _requests_request(
     url: str,
-    json_body: dict[str, JSONValue] | None,
+    json_body: dict[str, JsonValue] | None,
 ) -> _HTTPResponse:
     """Send a Model Target request with ``requests``."""
     if json_body is None:
@@ -63,7 +63,7 @@ def _requests_request(
 
 def _httpx_request(
     url: str,
-    json_body: dict[str, JSONValue] | None,
+    json_body: dict[str, JsonValue] | None,
 ) -> _HTTPResponse:
     """Send a Model Target request with ``httpx``."""
     if json_body is None:
@@ -82,7 +82,7 @@ def _httpx_request(
 
 def _httpx2_request(
     url: str,
-    json_body: dict[str, JSONValue] | None,
+    json_body: dict[str, JsonValue] | None,
 ) -> _HTTPResponse:
     """Send a Model Target request with ``httpx2``."""
     if json_body is None:

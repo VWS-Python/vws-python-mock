@@ -19,7 +19,7 @@ from typing import NotRequired, TypedDict, assert_never
 import requests
 from beartype import beartype
 from flask import Flask, Response, request
-from pydantic import TypeAdapter
+from pydantic import JsonValue, TypeAdapter
 from pydantic_settings import BaseSettings
 from werkzeug.exceptions import MethodNotAllowed, NotFound
 
@@ -30,7 +30,6 @@ from mock_vws.image_matchers import (
     StructuralSimilarityMatcher,
 )
 from mock_vws.model_target import (
-    JSONValue,
     ModelTargetDataset,
     ModelTargetDatasetType,
     OAuth2ClientCredential,
@@ -864,7 +863,7 @@ def get_target(target_id: str) -> Response:
     width = target.width
     tracking_rating = target.tracking_rating
     reco_rating = target.reco_rating
-    target_record: dict[str, JSONValue] = {
+    target_record: dict[str, JsonValue] = {
         "target_id": target.target_id,
         "active_flag": target.active_flag,
         "name": target.name,
@@ -884,7 +883,7 @@ def get_target(target_id: str) -> Response:
         "x-aws-region": "us-east-2, us-west-2",
         "x-content-type-options": "nosniff",
     }
-    body: dict[str, JSONValue] = {
+    body: dict[str, JsonValue] = {
         "result_code": ResultCodes.SUCCESS.value,
         "transaction_id": uuid.uuid4().hex,
         "target_record": target_record,
@@ -931,7 +930,7 @@ def delete_target(target_id: str) -> Response:
         timeout=30,
     )
 
-    body: dict[str, JSONValue] = {
+    body: dict[str, JsonValue] = {
         "transaction_id": uuid.uuid4().hex,
         "result_code": ResultCodes.SUCCESS.value,
     }
@@ -1039,7 +1038,7 @@ def database_summary() -> Response:
         databases=databases,
     )
 
-    body: dict[str, JSONValue] = {
+    body: dict[str, JsonValue] = {
         "result_code": ResultCodes.SUCCESS.value,
         "transaction_id": uuid.uuid4().hex,
         "name": database.database_name,
@@ -1102,7 +1101,7 @@ def target_summary(target_id: str) -> Response:
     total_recos = target.total_recos
     current_month_recos = target.current_month_recos
     previous_month_recos = target.previous_month_recos
-    body: dict[str, JSONValue] = {
+    body: dict[str, JsonValue] = {
         "status": target.status,
         "transaction_id": uuid.uuid4().hex,
         "result_code": ResultCodes.SUCCESS.value,
@@ -1166,7 +1165,7 @@ def get_duplicates(target_id: str) -> Response:
         and other.active_flag
     }
 
-    similar_targets: list[JSONValue] = [
+    similar_targets: list[JsonValue] = [
         other.target_id
         for other in matching_targets(
             matcher=image_match_checker,
@@ -1175,7 +1174,7 @@ def get_duplicates(target_id: str) -> Response:
         )
     ]
 
-    body: dict[str, JSONValue] = {
+    body: dict[str, JsonValue] = {
         "transaction_id": uuid.uuid4().hex,
         "result_code": ResultCodes.SUCCESS.value,
         "similar_targets": similar_targets,
@@ -1215,12 +1214,12 @@ def target_list() -> Response:
         request_path=request.path,
         databases=databases,
     )
-    results: list[JSONValue] = [
+    results: list[JsonValue] = [
         target.target_id
         for target in sorted_targets(targets=database.not_deleted_targets)
     ]
 
-    body: dict[str, JSONValue] = {
+    body: dict[str, JsonValue] = {
         "transaction_id": uuid.uuid4().hex,
         "result_code": ResultCodes.SUCCESS.value,
         "results": results,

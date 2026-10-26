@@ -12,13 +12,13 @@ from urllib.parse import parse_qs
 
 from beartype import BeartypeConf, beartype
 from beartype.door import TypeHint
+from pydantic import JsonValue
 
 from mock_vws._mock_common import RequestData, json_dump
 from mock_vws._services_validators.exceptions import (
     ContentLengthHeaderNotIntError,
 )
 from mock_vws.model_target import (
-    JSONValue,
     ModelTargetDataset,
     ModelTargetDatasetType,
     ModelTargetGenerationFailure,
@@ -144,7 +144,7 @@ _ADVANCED_MODEL_ENUM_FIELD_VALUES: dict[str, frozenset[str]] = {
 def _json_response(
     *,
     status_code: HTTPStatus,
-    body: dict[str, JSONValue],
+    body: dict[str, JsonValue],
 ) -> _ResponseType:
     """Return a JSON response."""
     body_json = json_dump(body=body)
@@ -168,11 +168,11 @@ def _error_response(
     details: list[dict[str, str]] | None,
 ) -> _ResponseType:
     """Return an error response shaped like the Model Target Web API."""
-    error: dict[str, JSONValue] = {"code": code, "message": message}
+    error: dict[str, JsonValue] = {"code": code, "message": message}
     if target is not None:
         error["target"] = target
     if details is not None:
-        error["details"] = [dict[str, JSONValue](detail) for detail in details]
+        error["details"] = [dict[str, JsonValue](detail) for detail in details]
     return _json_response(status_code=status_code, body={"error": error})
 
 
@@ -206,7 +206,7 @@ def _oauth2_error_response(
     """Return an OAuth2 error response."""
     return _json_response(
         status_code=status_code,
-        body=dict[str, JSONValue](body),
+        body=dict[str, JsonValue](body),
     )
 
 
@@ -293,7 +293,7 @@ def _jwt_header_error(*, bearer_token: str) -> str | None:
 
 
 @beartype
-def _jwt_payload(*, bearer_token: str) -> tuple[dict[str, JSONValue], bool]:
+def _jwt_payload(*, bearer_token: str) -> tuple[dict[str, JsonValue], bool]:
     """Decode a JSON Web Token payload and report whether it is an
     object.
     """
@@ -447,7 +447,7 @@ def _require_state_based_scope(
 def _fake_jwt(*, token_source: bytes, scopes: frozenset[str]) -> str:
     """Return a deterministic bearer token for the mock."""
 
-    def encode_part(value: dict[str, JSONValue]) -> str:
+    def encode_part(value: dict[str, JsonValue]) -> str:
         """Return a base64url-encoded token part."""
         raw_part = json.dumps(
             obj=value,
@@ -828,7 +828,7 @@ def update_oauth2_client_credential_scopes(
         status_code=HTTPStatus.OK,
         body={
             "clientId": client_id,
-            "scopes": list[JSONValue](scopes),
+            "scopes": list[JsonValue](scopes),
         },
     )
 
@@ -851,21 +851,21 @@ def delete_oauth2_client_credential(
 
 
 @beartype
-def _is_json_object(value: object, /) -> TypeGuard[dict[str, JSONValue]]:
+def _is_json_object(value: object, /) -> TypeGuard[dict[str, JsonValue]]:
     """Return whether a decoded JSON value is an object."""
-    return TypeHint(hint=dict[str, JSONValue]).is_bearable(obj=value)
+    return TypeHint(hint=dict[str, JsonValue]).is_bearable(obj=value)
 
 
 @beartype
-def _is_json_array(value: object, /) -> TypeGuard[list[JSONValue]]:
+def _is_json_array(value: object, /) -> TypeGuard[list[JsonValue]]:
     """Return whether a decoded JSON value is an array."""
-    return TypeHint(hint=list[JSONValue]).is_bearable(obj=value)
+    return TypeHint(hint=list[JsonValue]).is_bearable(obj=value)
 
 
 @beartype
 def _load_request_json(
     request: RequestData,
-) -> dict[str, JSONValue] | _ResponseType:
+) -> dict[str, JsonValue] | _ResponseType:
     """Load a Model Target dataset creation request body."""
     content_type_header = _get_header(request=request, name="Content-Type")
     content_type = (
@@ -904,7 +904,7 @@ def _load_request_json(
 @beartype
 def _cad_data_source_details(
     *,
-    models: list[dict[str, JSONValue]],
+    models: list[dict[str, JsonValue]],
 ) -> list[dict[str, str]]:
     """Return validation details for each model's CAD data source.
 
@@ -940,7 +940,7 @@ def _cad_data_source_details(
 @beartype
 def _model_field_details(
     *,
-    models: list[dict[str, JSONValue]],
+    models: list[dict[str, JsonValue]],
     dataset_type: ModelTargetDatasetType,
 ) -> list[dict[str, str]]:
     """Return validation details for the fields of each model."""
@@ -1051,10 +1051,10 @@ def _model_field_details(
 @beartype
 def _view_details(
     *,
-    models: list[dict[str, JSONValue]],
+    models: list[dict[str, JsonValue]],
 ) -> list[dict[str, str]]:
     """Return validation details for the guide views of each model."""
-    views: list[tuple[int, int, JSONValue]] = [
+    views: list[tuple[int, int, JsonValue]] = [
         (model_index, view_index, view)
         for model_index, model in enumerate(iterable=models)
         for views_value in (model.get("views"),)
@@ -1062,7 +1062,7 @@ def _view_details(
         for view_index, view in enumerate(iterable=views_value)
     ]
 
-    object_views: list[tuple[int, int, dict[str, JSONValue]]] = [
+    object_views: list[tuple[int, int, dict[str, JsonValue]]] = [
         (model_index, view_index, view)
         for model_index, view_index, view in views
         if isinstance(view, dict)
@@ -1122,10 +1122,10 @@ def _is_json_number(*, value: object) -> bool:
 @beartype
 def _guide_view_position_details(
     *,
-    models: list[dict[str, JSONValue]],
+    models: list[dict[str, JsonValue]],
 ) -> list[dict[str, str]]:
     """Return validation details for the guide view positions."""
-    positions: list[tuple[int, int, dict[str, JSONValue]]] = [
+    positions: list[tuple[int, int, dict[str, JsonValue]]] = [
         (model_index, view_index, position)
         for model_index, model in enumerate(iterable=models)
         for views_value in (model.get("views"),)
@@ -1225,10 +1225,10 @@ def _configuration_states(
 @beartype
 def _state_based_details(
     *,
-    models: list[dict[str, JSONValue]],
+    models: list[dict[str, JsonValue]],
 ) -> list[dict[str, str]]:
     """Return validation details for State-Based Model Targets."""
-    state_fields: list[tuple[int, int, dict[str, JSONValue], JSONValue]] = [
+    state_fields: list[tuple[int, int, dict[str, JsonValue], JsonValue]] = [
         (model_index, view_index, view, view["states"])
         for model_index, model in enumerate(iterable=models)
         for views_value in (model.get("views"),)
@@ -1252,7 +1252,7 @@ def _state_based_details(
         return array_details
 
     state_lists: list[
-        tuple[int, int, dict[str, JSONValue], list[JSONValue]]
+        tuple[int, int, dict[str, JsonValue], list[JsonValue]]
     ] = [
         (model_index, view_index, view, states)
         for model_index, view_index, view, states in state_fields
@@ -1335,7 +1335,7 @@ def _state_based_details(
 @beartype
 def _model_count_details(
     *,
-    models: list[dict[str, JSONValue]],
+    models: list[dict[str, JsonValue]],
     dataset_type: ModelTargetDatasetType,
 ) -> list[dict[str, str]]:
     """Return validation details for the number of models."""
@@ -1386,7 +1386,7 @@ def _model_count_details(
 @beartype
 def _top_level_details(
     *,
-    request_json: dict[str, JSONValue],
+    request_json: dict[str, JsonValue],
 ) -> list[dict[str, str]]:
     """Return validation details for the top-level dataset fields."""
     missing_details = [
@@ -1425,7 +1425,7 @@ def _top_level_details(
 @beartype
 def _validate_dataset_request(
     *,
-    request_json: dict[str, JSONValue],
+    request_json: dict[str, JsonValue],
     dataset_type: ModelTargetDatasetType,
 ) -> _ResponseType | None:
     """Validate the dataset request enough for useful mock feedback."""
@@ -1434,7 +1434,7 @@ def _validate_dataset_request(
         # Vuforia's schema validator reads fields from non-object model and
         # view values as though they were empty objects.
         models_value = request_json["models"]
-        models: list[dict[str, JSONValue]] = (
+        models: list[dict[str, JsonValue]] = (
             [
                 model if isinstance(model, dict) else {}
                 for model in models_value
@@ -1446,7 +1446,7 @@ def _validate_dataset_request(
             views_value = model.get("views")
             if isinstance(views_value, list):
                 model["views"] = [
-                    view if isinstance(view, dict) else dict[str, JSONValue]()
+                    view if isinstance(view, dict) else dict[str, JsonValue]()
                     for view in views_value
                 ]
         details = _model_field_details(

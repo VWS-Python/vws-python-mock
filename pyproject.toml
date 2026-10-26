@@ -424,6 +424,8 @@ ignore_names = [
     "pytestmark",
     "REQUEST_QUOTA_REACHED",
     "rst_prolog",
+    # Sphinx extension entry point, called by the documentation builder.
+    "setup",
     "source_suffix",
     "spelling_word_list_filename",
     "templates_path",

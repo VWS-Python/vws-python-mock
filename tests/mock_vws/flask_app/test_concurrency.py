@@ -17,7 +17,7 @@ from http import HTTPMethod, HTTPStatus
 import pytest
 import requests
 from PIL import Image
-from pydantic import TypeAdapter
+from pydantic import JsonValue, TypeAdapter
 from werkzeug.serving import BaseWSGIServer, make_server
 
 from mock_vws._flask_server.target_manager import (
@@ -25,9 +25,6 @@ from mock_vws._flask_server.target_manager import (
     TARGET_MANAGER_FLASK_APP,
 )
 from mock_vws.database import CloudDatabase
-from mock_vws.model_target import (
-    JSONValue,
-)
 
 _NUM_WRITER_THREADS = 4
 _NUM_READER_THREADS = 4
@@ -251,7 +248,7 @@ def test_update_targets_while_listing_databases(
                 image_base64=small_image_base64,
             )
             response_body = TypeAdapter(
-                type=dict[str, JSONValue],
+                type=dict[str, JsonValue],
             ).validate_python(response.json())
             target_id = response_body["target_id"]
             assert isinstance(target_id, str)

@@ -4,17 +4,17 @@ from http import HTTPStatus
 
 import pytest
 import requests
+from pydantic import JsonValue
 
 from mock_vws import MockVWS
 from mock_vws._flask_server.vws import VWS_FLASK_APP
-from mock_vws.model_target import JSONValue
 
 _AUTHORIZATION = (
     "Bearer eyJhbGciOiJtb2NrIn0."
     "eyJzY29wZSI6Im1vZGVsdGFyZ2V0cy5hbGwifQ."
     "c2lnbmF0dXJl"
 )
-_REQUEST_BODY: dict[str, JSONValue] = {
+_REQUEST_BODY: dict[str, JsonValue] = {
     "name": "dataset-name",
     "targetSdk": "10.18",
     "models": [

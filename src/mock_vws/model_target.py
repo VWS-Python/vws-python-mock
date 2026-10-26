@@ -10,19 +10,23 @@ from typing import Self, TypedDict
 from zoneinfo import ZoneInfo
 
 from beartype import beartype
+from pydantic import JsonValue
 
+# Keep the public spelling recursive in its own name: Beartype resolves
+# forward references in the importing module when callers use this alias.
 type JSONValue = (
     bool | int | float | str | list[JSONValue] | dict[str, JSONValue] | None
 )
-type _JSONObject = Mapping[str, JSONValue]
-type _MutableJsonObject = dict[str, JSONValue]
+
+type _JSONObject = Mapping[str, JsonValue]
+type _MutableJsonObject = dict[str, JsonValue]
 
 
 class _GenerationWarningDict(TypedDict):
     """The persisted form of a Model Target generation warning."""
 
     message: str
-    details: list[dict[str, JSONValue]]
+    details: list[dict[str, JsonValue]]
 
 
 class ModelTargetDatasetDict(TypedDict):
@@ -114,7 +118,7 @@ class ModelTargetGenerationWarning:
     """
 
     message: str = "Warning after creating dataset"
-    details: Sequence[Mapping[str, JSONValue]] = field(
+    details: Sequence[Mapping[str, JsonValue]] = field(
         default_factory=lambda: [
             {
                 "code": "LOW_RECOGNITION_QUALITY",
