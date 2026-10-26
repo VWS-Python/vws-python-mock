@@ -13,6 +13,7 @@ from tenacity import retry
 from tenacity.retry import retry_if_not_result
 from tenacity.stop import stop_after_attempt
 from vws import VWS, CloudRecoService
+from vws.exceptions.custom_exceptions import TargetProcessingTimeoutError
 from vws.exceptions.vws_exceptions import (
     TargetStatusProcessingError,
     UnknownTargetError,
@@ -171,7 +172,11 @@ def _add_target_which_processed_successfully(
             vws_client=vws_client,
             target_id_=target_id_,
         )
-    except Exception:  # pragma: no cover
+    except (
+        *TRANSIENT_VWS_EXCEPTIONS,
+        UnknownTargetError,
+        TargetProcessingTimeoutError,
+    ):  # pragma: no cover
         # Setup owns the target until it can return it to the test. Cleanup
         # is best effort: transient failures, a processing target, or one
         # already gone must not hide the setup error.
