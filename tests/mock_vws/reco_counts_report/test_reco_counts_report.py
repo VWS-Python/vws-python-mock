@@ -10,7 +10,6 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from mock_vws._constants import ResultCodes
 from mock_vws.database import CloudDatabase
 from tests.mock_vws.reco_counts_report.helpers import (
     AMZ_DATE_FORMAT,
@@ -52,7 +51,7 @@ def test_reco_counts_report(
         "transaction_id",
         "presigned_url",
     }
-    assert response_json["result_code"] == ResultCodes.SUCCESS.value
+    assert response_json["result_code"] == "Success"
     transaction_id: object = response_json["transaction_id"]
     assert isinstance(transaction_id, str)
     assert all(char in hexdigits for char in transaction_id)
@@ -193,7 +192,7 @@ def test_month_out_of_range(
 
     assert response.status_code == HTTPStatus.BAD_REQUEST
     response_json = json.loads(s=response.text)
-    assert response_json["result_code"] == ResultCodes.FAIL.value
+    assert response_json["result_code"] == "Fail"
 
 
 @pytest.mark.parametrize(
@@ -217,7 +216,7 @@ def test_malformed_month(
 
     assert response.status_code == HTTPStatus.BAD_REQUEST
     response_json = json.loads(s=response.text)
-    assert response_json["result_code"] == ResultCodes.FAIL.value
+    assert response_json["result_code"] == "Fail"
 
 
 def test_body_is_not_an_object(
@@ -235,7 +234,7 @@ def test_body_is_not_an_object(
 
     assert response.status_code == HTTPStatus.BAD_REQUEST
     response_json = json.loads(s=response.text)
-    assert response_json["result_code"] == ResultCodes.FAIL.value
+    assert response_json["result_code"] == "Fail"
 
 
 def test_unknown_database_id(
@@ -253,10 +252,7 @@ def test_unknown_database_id(
 
     assert response.status_code == HTTPStatus.UNAUTHORIZED
     response_json = json.loads(s=response.text)
-    assert (
-        response_json["result_code"]
-        == ResultCodes.AUTHENTICATION_FAILURE.value
-    )
+    assert response_json["result_code"] == "AuthenticationFailure"
 
 
 def test_database_name_in_path(
@@ -274,7 +270,4 @@ def test_database_name_in_path(
 
     assert response.status_code == HTTPStatus.UNAUTHORIZED
     response_json = json.loads(s=response.text)
-    assert (
-        response_json["result_code"]
-        == ResultCodes.AUTHENTICATION_FAILURE.value
-    )
+    assert response_json["result_code"] == "AuthenticationFailure"

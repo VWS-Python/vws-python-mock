@@ -10,7 +10,6 @@ from vws.exceptions.vws_exceptions import (
     AuthenticationFailureError,
 )
 
-from mock_vws._constants import ResultCodes
 from tests.mock_vws.add_target.helpers import (
     add_target_to_vws,
     assert_success,
@@ -93,5 +92,5 @@ def test_empty_content_type(
     assert_vws_failure(
         response=exc.value.response,
         status_code=HTTPStatus.UNAUTHORIZED,
-        result_code=ResultCodes.AUTHENTICATION_FAILURE,
+        result_code="AuthenticationFailure",
     )

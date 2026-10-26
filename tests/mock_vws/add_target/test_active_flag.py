@@ -11,7 +11,6 @@ from vws.exceptions.vws_exceptions import (
     FailError,
 )
 
-from mock_vws._constants import ResultCodes
 from tests.mock_vws.add_target.helpers import (
     add_target_to_vws,
     assert_success,
@@ -87,7 +86,7 @@ def test_invalid(
     assert_vws_failure(
         response=exc.value.response,
         status_code=HTTPStatus.BAD_REQUEST,
-        result_code=ResultCodes.FAIL,
+        result_code="Fail",
     )
 
 

@@ -8,7 +8,6 @@ from http import HTTPStatus
 
 from vws import VWS
 
-from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import assert_vws_failure
 from tests.mock_vws.utils.too_many_requests import handle_server_errors
@@ -40,5 +39,5 @@ def test_not_real_id(
     assert_vws_failure(
         response=response,
         status_code=HTTPStatus.NOT_FOUND,
-        result_code=ResultCodes.UNKNOWN_TARGET,
+        result_code="UnknownTarget",
     )

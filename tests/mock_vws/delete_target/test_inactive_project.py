@@ -8,7 +8,6 @@ from vws.exceptions.vws_exceptions import (
     ProjectInactiveError,
 )
 
-from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils.assertions import assert_vws_failure
 
 
@@ -24,5 +23,5 @@ def test_inactive_project(inactive_vws_client: VWS) -> None:
     assert_vws_failure(
         response=exc.value.response,
         status_code=HTTPStatus.FORBIDDEN,
-        result_code=ResultCodes.PROJECT_INACTIVE,
+        result_code="ProjectInactive",
     )

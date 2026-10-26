@@ -18,7 +18,6 @@ from vws.exceptions.vws_exceptions import (
 from vws.reports import TargetStatuses
 from vws_test_fixtures.images import VWS_MAX_IMAGE_FILE_SIZE
 
-from mock_vws._constants import ResultCodes
 from tests.mock_vws.update_target.helpers import (
     update_target,
 )
@@ -80,7 +79,7 @@ def test_corrupted(
     assert_vws_failure(
         response=exc.value.response,
         status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
-        result_code=ResultCodes.BAD_IMAGE,
+        result_code="BadImage",
     )
 
 
@@ -105,7 +104,7 @@ def test_truncated(
     assert_vws_failure(
         response=exc.value.response,
         status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
-        result_code=ResultCodes.BAD_IMAGE,
+        result_code="BadImage",
     )
 
 
@@ -143,7 +142,7 @@ def test_image_too_large(
     assert_vws_failure(
         response=exc.value.response,
         status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
-        result_code=ResultCodes.IMAGE_TOO_LARGE,
+        result_code="ImageTooLarge",
     )
 
 
@@ -171,7 +170,7 @@ def test_not_base64_encoded_processable(
     assert_vws_failure(
         response=exc.value.response,
         status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
-        result_code=ResultCodes.BAD_IMAGE,
+        result_code="BadImage",
     )
 
 
@@ -198,7 +197,7 @@ def test_not_base64_encoded_not_processable(
     assert_vws_failure(
         response=exc.value.response,
         status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
-        result_code=ResultCodes.FAIL,
+        result_code="Fail",
     )
 
 
@@ -217,7 +216,7 @@ def test_not_image(*, target_id: str, vws_client: VWS) -> None:
     assert_vws_failure(
         response=exc.value.response,
         status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
-        result_code=ResultCodes.BAD_IMAGE,
+        result_code="BadImage",
     )
 
 
@@ -243,7 +242,7 @@ def test_invalid_type(
     assert_vws_failure(
         response=exc.value.response,
         status_code=HTTPStatus.BAD_REQUEST,
-        result_code=ResultCodes.FAIL,
+        result_code="Fail",
     )
 
 

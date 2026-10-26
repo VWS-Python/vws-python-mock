@@ -14,7 +14,6 @@ from vws.exceptions.vws_exceptions import (
 )
 from vws.vumark_accept import VuMarkAccept
 
-from mock_vws._constants import ResultCodes
 from tests.mock_vws.fixtures.credentials import (
     VuMarkCloudDatabase,
 )
@@ -47,10 +46,7 @@ def test_processing_target(
 
     assert exc.value.response.status_code == HTTPStatus.FORBIDDEN
     response_json = json.loads(s=exc.value.response.text)
-    assert (
-        response_json["result_code"]
-        == ResultCodes.TARGET_STATUS_NOT_SUCCESS.value
-    )
+    assert response_json["result_code"] == "TargetStatusNotSuccess"
 
 
 def test_processing_target_raw_response(
@@ -71,7 +67,4 @@ def test_processing_target_raw_response(
 
     assert response.status_code == HTTPStatus.FORBIDDEN
     response_json = response.json()
-    assert (
-        response_json["result_code"]
-        == ResultCodes.TARGET_STATUS_NOT_SUCCESS.value
-    )
+    assert response_json["result_code"] == "TargetStatusNotSuccess"

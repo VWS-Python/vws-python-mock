@@ -12,7 +12,6 @@ from vws.exceptions.vws_exceptions import (
 )
 from vws.vumark_accept import VuMarkAccept
 
-from mock_vws._constants import ResultCodes
 from mock_vws.database import CloudDatabase
 from tests.mock_vws.fixtures.credentials import (
     VuMarkCloudDatabase,
@@ -115,9 +114,7 @@ def test_invalid_accept_header(
 
     assert response.status_code == HTTPStatus.BAD_REQUEST
     response_json = response.json()
-    assert (
-        response_json["result_code"] == ResultCodes.INVALID_ACCEPT_HEADER.value
-    )
+    assert response_json["result_code"] == "InvalidAcceptHeader"
 
 
 def test_empty_instance_id(
@@ -139,9 +136,7 @@ def test_empty_instance_id(
 
     assert exc.value.response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
     response_json = json.loads(s=exc.value.response.text)
-    assert (
-        response_json["result_code"] == ResultCodes.INVALID_INSTANCE_ID.value
-    )
+    assert response_json["result_code"] == "InvalidInstanceId"
 
 
 @pytest.mark.parametrize(
@@ -178,7 +173,7 @@ def test_non_string_instance_id(
 
     assert response.status_code == HTTPStatus.BAD_REQUEST
     response_json = response.json()
-    assert response_json["result_code"] == ResultCodes.BAD_REQUEST.value
+    assert response_json["result_code"] == "BadRequest"
 
 
 def test_unknown_target(
@@ -197,7 +192,7 @@ def test_unknown_target(
 
     assert response.status_code == HTTPStatus.NOT_FOUND
     response_json = response.json()
-    assert response_json["result_code"] == ResultCodes.UNKNOWN_TARGET.value
+    assert response_json["result_code"] == "UnknownTarget"
 
 
 def test_non_vumark_database(
@@ -241,9 +236,7 @@ def test_non_vumark_database(
 
     assert exc.value.response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
     response_json = json.loads(s=exc.value.response.text)
-    assert (
-        response_json["result_code"] == ResultCodes.INVALID_TARGET_TYPE.value
-    )
+    assert response_json["result_code"] == "InvalidTargetType"
 
 
 def test_successful_target(

@@ -4,7 +4,6 @@ from http import HTTPStatus
 
 from vws_auth_tools import authorization_header
 
-from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import (
     assert_vwq_failure,
@@ -66,5 +65,5 @@ def test_no_date_header(endpoint: Endpoint, base_vwq_url: str) -> None:
     assert_vws_failure(
         response=response,
         status_code=HTTPStatus.BAD_REQUEST,
-        result_code=ResultCodes.FAIL,
+        result_code="Fail",
     )

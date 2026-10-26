@@ -14,7 +14,6 @@ from vws.exceptions.vws_exceptions import (
     TargetNameExistError,
 )
 
-from mock_vws._constants import ResultCodes
 from tests.mock_vws.add_target.helpers import (
     add_target_to_vws,
 )
@@ -120,7 +119,7 @@ def test_name_invalid(
     assert_vws_failure(
         response=exc.value.response,
         status_code=status_code,
-        result_code=ResultCodes.FAIL,
+        result_code="Fail",
     )
 
 
@@ -150,7 +149,7 @@ def test_existing_target_name(
     assert_vws_failure(
         response=exc.value.response,
         status_code=HTTPStatus.FORBIDDEN,
-        result_code=ResultCodes.TARGET_NAME_EXIST,
+        result_code="TargetNameExist",
     )
 
 

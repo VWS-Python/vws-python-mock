@@ -8,7 +8,6 @@ from beartype import beartype
 from freezegun import freeze_time
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import (
     assert_valid_date_header,
@@ -79,9 +78,9 @@ def assert_body_rejected(
 
     if takes_json_data:
         expected_result_code = (
-            ResultCodes.BAD_REQUEST
+            "BadRequest"
             if endpoint.path_url.endswith("/instances")
-            else ResultCodes.FAIL
+            else "Fail"
         )
         assert_vws_failure(
             response=response,

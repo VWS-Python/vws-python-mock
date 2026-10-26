@@ -24,7 +24,6 @@ from vws.exceptions.vws_exceptions import (
 from vws_auth_tools import authorization_header, rfc_1123_date
 
 from mock_vws import MockVWS
-from mock_vws._constants import ResultCodes
 from mock_vws._services_validators.exceptions import (
     TooManyRequestsError as TooManyRequestsValidatorError,
 )
@@ -78,7 +77,7 @@ def test_request_quota_reached() -> None:
     assert_vws_failure(
         response=exc_info.value.response,
         status_code=HTTPStatus.FORBIDDEN,
-        result_code=ResultCodes.REQUEST_QUOTA_REACHED,
+        result_code="RequestQuotaReached",
     )
 
 
@@ -383,7 +382,7 @@ def test_target_quota_reached(
     assert_vws_failure(
         response=exc_info.value.response,
         status_code=HTTPStatus.FORBIDDEN,
-        result_code=ResultCodes.TARGET_QUOTA_REACHED,
+        result_code="TargetQuotaReached",
     )
 
 
@@ -405,7 +404,7 @@ def test_project_suspended() -> None:
     assert_vws_failure(
         response=exc.value.response,
         status_code=HTTPStatus.FORBIDDEN,
-        result_code=ResultCodes.PROJECT_SUSPENDED,
+        result_code="ProjectSuspended",
     )
 
 

@@ -7,7 +7,6 @@ from http import HTTPStatus
 
 from vws_auth_tools import rfc_1123_date
 
-from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import (
     assert_vwq_failure,
@@ -60,5 +59,5 @@ def test_missing(endpoint: Endpoint, base_vwq_url: str) -> None:
     assert_vws_failure(
         response=response,
         status_code=HTTPStatus.UNAUTHORIZED,
-        result_code=ResultCodes.AUTHENTICATION_FAILURE,
+        result_code="AuthenticationFailure",
     )
