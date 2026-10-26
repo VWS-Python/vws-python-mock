@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, NotRequired, TypedDict
 from zoneinfo import ZoneInfo
 
 from beartype import BeartypeConf, beartype
-from pydantic import TypeAdapter
+from pydantic import JsonValue, TypeAdapter
 
 from mock_vws._constants import (
     VUMARK_PDF,
@@ -61,7 +61,6 @@ from mock_vws._services_validators.exceptions import (
 from mock_vws.database import VuMarkDatabase
 from mock_vws.image_matchers import ImageMatcher
 from mock_vws.model_target import (
-    JSONValue,
     ModelTargetDatasetType,
     ModelTargetFailureResponse,
     ModelTargetGenerationFailure,
@@ -601,7 +600,7 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
             usegmt=True,
         )
         status_code = HTTPStatus.CREATED
-        body: dict[str, JSONValue] = {
+        body: dict[str, JsonValue] = {
             "transaction_id": uuid.uuid4().hex,
             "result_code": ResultCodes.TARGET_CREATED.value,
             "target_id": new_target.target_id,
@@ -787,7 +786,7 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
             localtime=False,
             usegmt=True,
         )
-        body: dict[str, JSONValue] = {
+        body: dict[str, JsonValue] = {
             "result_code": ResultCodes.SUCCESS.value,
             "transaction_id": uuid.uuid4().hex,
             "name": database.database_name,
@@ -842,11 +841,11 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
             usegmt=True,
         )
 
-        response_results: list[JSONValue] = [
+        response_results: list[JsonValue] = [
             target.target_id
             for target in sorted_targets(targets=database.not_deleted_targets)
         ]
-        body: dict[str, JSONValue] = {
+        body: dict[str, JsonValue] = {
             "transaction_id": uuid.uuid4().hex,
             "result_code": ResultCodes.SUCCESS.value,
             "results": response_results,
@@ -892,7 +891,7 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
         width = target.width
         tracking_rating = target.tracking_rating
         reco_rating = target.reco_rating
-        target_record: dict[str, JSONValue] = {
+        target_record: dict[str, JsonValue] = {
             "target_id": target.target_id,
             "active_flag": target.active_flag,
             "name": target.name,
@@ -906,7 +905,7 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
             usegmt=True,
         )
 
-        body: dict[str, JSONValue] = {
+        body: dict[str, JsonValue] = {
             "result_code": ResultCodes.SUCCESS.value,
             "transaction_id": uuid.uuid4().hex,
             "target_record": target_record,
@@ -959,7 +958,7 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
             and other.active_flag
         }
 
-        similar_targets: list[JSONValue] = [
+        similar_targets: list[JsonValue] = [
             other.target_id
             for other in matching_targets(
                 matcher=self._duplicate_match_checker,
@@ -973,7 +972,7 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
             localtime=False,
             usegmt=True,
         )
-        body: dict[str, JSONValue] = {
+        body: dict[str, JsonValue] = {
             "transaction_id": uuid.uuid4().hex,
             "result_code": ResultCodes.SUCCESS.value,
             "similar_targets": similar_targets,
@@ -1135,7 +1134,7 @@ class MockVuforiaWebServicesAPI:  # pylint: disable=too-many-public-methods
         total_recos = target.total_recos
         current_month_recos = target.current_month_recos
         previous_month_recos = target.previous_month_recos
-        body: dict[str, JSONValue] = {
+        body: dict[str, JsonValue] = {
             "status": target.status,
             "transaction_id": uuid.uuid4().hex,
             "result_code": ResultCodes.SUCCESS.value,

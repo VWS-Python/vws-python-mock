@@ -4,10 +4,8 @@ from typing import TypedDict
 
 import requests
 from beartype import beartype
-from pydantic import TypeAdapter
+from pydantic import JsonValue, TypeAdapter
 from vws.response import Response
-
-from mock_vws.model_target import JSONValue
 
 
 class ErrorDetail(TypedDict):
@@ -52,9 +50,9 @@ class ValidationErrorResponse(TypedDict):
 def parse_response_json(
     *,
     response: requests.Response | Response,
-) -> dict[str, JSONValue]:
+) -> dict[str, JsonValue]:
     """Validate and return a JSON object response."""
-    return TypeAdapter(type=dict[str, JSONValue]).validate_json(response.text)
+    return TypeAdapter(type=dict[str, JsonValue]).validate_json(response.text)
 
 
 @beartype

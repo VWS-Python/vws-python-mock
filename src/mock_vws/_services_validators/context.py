@@ -7,25 +7,22 @@ from functools import cached_property
 from typing import TypeIs
 
 from beartype import beartype
-from pydantic import TypeAdapter
+from pydantic import JsonValue, TypeAdapter
 
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._database_matchers import AnyDatabase
 
-type JSONValue = (
-    bool | int | float | str | list[JSONValue] | dict[str, JSONValue] | None
-)
 _OPTIONAL_STRING_ADAPTER: TypeAdapter[str | None] = TypeAdapter(
     type=str | None,
 )
 
 
 @beartype
-def _is_json_object(value: object, /) -> TypeIs[dict[str, JSONValue]]:
+def _is_json_object(value: object, /) -> TypeIs[dict[str, JsonValue]]:
     """Return whether a decoded JSON value is an object.
 
     JSON object keys are always strings, so a ``dict`` from ``json.loads``
-    is a ``dict[str, JSONValue]``.
+    is a ``dict[str, JsonValue]``.
     """
     return isinstance(value, dict)
 
@@ -74,7 +71,7 @@ class ValidatorContext:
     allowed_for_inactive_cloud_project: bool
 
     @cached_property
-    def request_json(self) -> dict[str, JSONValue]:
+    def request_json(self) -> dict[str, JsonValue]:
         """The request body parsed as a JSON object.
 
         A route's JSON validator runs before any validator which reads this,

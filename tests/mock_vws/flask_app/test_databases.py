@@ -7,16 +7,13 @@ from http import HTTPMethod, HTTPStatus
 
 import pytest
 import requests
-from pydantic import TypeAdapter
+from pydantic import JsonValue, TypeAdapter
 from vws import VWS, CloudRecoService
 
 from mock_vws._flask_server.target_manager import (
     TARGET_MANAGER,
 )
 from mock_vws.database import CloudDatabase, VuMarkDatabase
-from mock_vws.model_target import (
-    JSONValue,
-)
 from mock_vws.target import VuMarkTarget
 
 
@@ -91,7 +88,7 @@ def test_give_no_details(
     response = requests.post(url=databases_url, json={}, timeout=30)
     assert response.status_code == HTTPStatus.CREATED
 
-    data = TypeAdapter(type=dict[str, JSONValue]).validate_json(
+    data = TypeAdapter(type=dict[str, JsonValue]).validate_json(
         response.text,
     )
 
@@ -177,7 +174,7 @@ def test_give_no_details(
     ],
 )
 def test_invalid_field(
-    body: dict[str, JSONValue],
+    body: dict[str, JsonValue],
     expected_loc: list[str],
     expected_message: str,
     target_manager_url: str,
@@ -427,7 +424,7 @@ def test_delete_cloud_database(target_manager_url: str) -> None:
     response = requests.post(url=databases_url, json={}, timeout=30)
     assert response.status_code == HTTPStatus.CREATED
 
-    data = TypeAdapter(type=dict[str, JSONValue]).validate_json(
+    data = TypeAdapter(type=dict[str, JsonValue]).validate_json(
         response.text,
     )
     database_name = data["database_name"]
@@ -457,7 +454,7 @@ def test_delete_vumark_database(target_manager_url: str) -> None:
     response = requests.post(url=databases_url, json={}, timeout=30)
     assert response.status_code == HTTPStatus.CREATED
 
-    data = TypeAdapter(type=dict[str, JSONValue]).validate_json(
+    data = TypeAdapter(type=dict[str, JsonValue]).validate_json(
         response.text,
     )
     database_name = data["database_name"]

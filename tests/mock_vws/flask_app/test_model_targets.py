@@ -7,18 +7,17 @@ from http import HTTPStatus
 
 import pytest
 import requests
-from pydantic import TypeAdapter
+from pydantic import JsonValue, TypeAdapter
 
 from mock_vws._flask_server import target_manager as flask_target_manager
 from mock_vws.model_target import (
-    JSONValue,
     ModelTargetDataset,
     ModelTargetDatasetType,
     ModelTargetGenerationFailure,
     ModelTargetGenerationWarning,
 )
 
-_MODEL_TARGET_DATASET_REQUEST: dict[str, JSONValue] = {
+_MODEL_TARGET_DATASET_REQUEST: dict[str, JsonValue] = {
     "name": "dataset-name",
     "targetSdk": "10.18",
     "models": [
@@ -53,7 +52,7 @@ def test_standard_dataset_workflow(
         data={"grant_type": "client_credentials"},
         timeout=30,
     )
-    token_body = TypeAdapter(type=dict[str, JSONValue]).validate_python(
+    token_body = TypeAdapter(type=dict[str, JsonValue]).validate_python(
         token_response.json(),
     )
     token = token_body["access_token"]
@@ -66,7 +65,7 @@ def test_standard_dataset_workflow(
         json=_MODEL_TARGET_DATASET_REQUEST,
         timeout=30,
     )
-    create_body = TypeAdapter(type=dict[str, JSONValue]).validate_python(
+    create_body = TypeAdapter(type=dict[str, JsonValue]).validate_python(
         create_response.json(),
     )
     dataset_uuid = create_body["uuid"]
@@ -97,7 +96,7 @@ def test_standard_dataset_workflow(
         assert dataset_zip.namelist() == ["MTDataset.dat", "MTDataset.xml"]
 
 
-def _dataset_status(dataset_uuid: str) -> dict[str, JSONValue]:
+def _dataset_status(dataset_uuid: str) -> dict[str, JsonValue]:
     """Return a dataset's status response body from the VWS app."""
     token_response = requests.post(
         url="https://vws.vuforia.com/oauth2/token",
@@ -105,7 +104,7 @@ def _dataset_status(dataset_uuid: str) -> dict[str, JSONValue]:
         data={"grant_type": "client_credentials"},
         timeout=30,
     )
-    token_body = TypeAdapter(type=dict[str, JSONValue]).validate_python(
+    token_body = TypeAdapter(type=dict[str, JsonValue]).validate_python(
         token_response.json(),
     )
     token = token_body["access_token"]
@@ -119,7 +118,7 @@ def _dataset_status(dataset_uuid: str) -> dict[str, JSONValue]:
         timeout=30,
     )
     assert status_response.status_code == HTTPStatus.OK
-    return TypeAdapter(type=dict[str, JSONValue]).validate_python(
+    return TypeAdapter(type=dict[str, JsonValue]).validate_python(
         status_response.json(),
     )
 

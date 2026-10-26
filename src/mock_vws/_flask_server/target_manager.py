@@ -16,6 +16,7 @@ from pydantic import (
     BaseModel,
     BeforeValidator,
     ConfigDict,
+    JsonValue,
     TypeAdapter,
     ValidationError,
     model_validator,
@@ -30,7 +31,6 @@ from mock_vws.database import (
 )
 from mock_vws.database_type import DatabaseType
 from mock_vws.model_target import (
-    JSONValue,
     ModelTargetDataset,
     OAuth2ClientCredential,
 )
@@ -112,7 +112,7 @@ _DatabaseTypeName = Annotated[
 
 
 @beartype
-def _is_json_object(value: object, /) -> TypeIs[dict[str, JSONValue]]:
+def _is_json_object(value: object, /) -> TypeIs[dict[str, JsonValue]]:
     """Whether a value parsed from JSON is an object.
 
     JSON object keys are always strings.

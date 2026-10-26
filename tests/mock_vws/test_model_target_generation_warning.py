@@ -6,13 +6,13 @@ from http import HTTPStatus
 import httpx
 import pytest
 import requests
+from pydantic import JsonValue
 
 from mock_vws import (
     MockVWS,
     ModelTargetGenerationFailure,
     ModelTargetGenerationWarning,
 )
-from mock_vws.model_target import JSONValue
 
 _AUTHORIZATION = (
     "Bearer eyJhbGciOiJtb2NrIn0."
@@ -20,7 +20,7 @@ _AUTHORIZATION = (
     "c2lnbmF0dXJl"
 )
 _CREATE_URL = "https://vws.vuforia.com/modeltargets/datasets"
-_REQUEST_BODY: dict[str, JSONValue] = {
+_REQUEST_BODY: dict[str, JsonValue] = {
     "name": "dataset-name",
     "targetSdk": "10.18",
     "models": [
@@ -41,13 +41,13 @@ _REQUEST_BODY: dict[str, JSONValue] = {
 }
 type _HTTPResponse = requests.Response | httpx.Response
 type _RequestSender = Callable[
-    [str, dict[str, JSONValue] | None], _HTTPResponse
+    [str, dict[str, JsonValue] | None], _HTTPResponse
 ]
 
 
 def _requests_request(
     url: str,
-    json_body: dict[str, JSONValue] | None,
+    json_body: dict[str, JsonValue] | None,
 ) -> _HTTPResponse:
     """Send a Model Target request with ``requests``."""
     if json_body is None:
@@ -66,7 +66,7 @@ def _requests_request(
 
 def _httpx_request(
     url: str,
-    json_body: dict[str, JSONValue] | None,
+    json_body: dict[str, JsonValue] | None,
 ) -> _HTTPResponse:
     """Send a Model Target request with ``httpx``."""
     if json_body is None:
@@ -105,7 +105,7 @@ def test_configured_generation_warning(
     """A configured warning is returned only after processing
     completes.
     """
-    details: list[dict[str, JSONValue]] = [
+    details: list[dict[str, JsonValue]] = [
         {
             "code": "LOW_RECOGNITION_QUALITY",
             "message": "The model has substandard recognition quality.",
