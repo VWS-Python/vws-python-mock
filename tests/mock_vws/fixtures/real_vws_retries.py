@@ -7,9 +7,7 @@ no retry fits the budget. Without one, full jitter spreads retries over an
 exponentially increasing interval, starting at one second and capped at 30.
 """
 
-import datetime as dt
 import logging
-from email.utils import parsedate_to_datetime
 from http import HTTPStatus
 
 from beartype import beartype
@@ -17,6 +15,8 @@ from tenacity import RetryCallState, Retrying
 from tenacity.retry import retry_if_exception_type
 from tenacity.stop import stop_after_attempt, stop_before_delay
 from tenacity.wait import wait_random_exponential
+from urllib3.exceptions import InvalidHeader
+from urllib3.util import Retry
 from vws.exceptions.vws_exceptions import TooManyRequestsError
 
 from tests.mock_vws.utils.retries import (
@@ -26,35 +26,12 @@ from tests.mock_vws.utils.retries import (
 
 RETRY_BUDGET_SECONDS = 120
 _LOGGER = logging.getLogger(name=__name__)
-_MAX_DELAY_DIGITS = 9
 _FALLBACK_WAIT = wait_random_exponential(multiplier=1, max=30)
+# Capped server delays must still exceed the budget to prevent early retries.
+_RETRY_AFTER_PARSER = Retry(retry_after_max=RETRY_BUDGET_SECONDS + 1)
 
 
 # Live-service throttling responses cannot be forced by the API tests.
-@beartype
-def _retry_after_seconds(
-    *, value: str, now: dt.datetime
-) -> float | None:  # pragma: no cover
-    """Read HTTP delay-seconds or an HTTP-date, rejecting malformed values."""
-    value = value.strip()
-    if value.isascii() and value.isdecimal():
-        value = value.lstrip("0")
-        if value == "":
-            return 0.0
-        # Longer values exceed any useful retry deadline. Avoid integer
-        # conversion limits and float overflow for external header values.
-        if len(value) > _MAX_DELAY_DIGITS:
-            return float("inf")
-        return float(value)
-    try:
-        retry_at = parsedate_to_datetime(data=value)
-    except ValueError, TypeError, OverflowError:
-        return None
-    if retry_at.tzinfo is None:
-        return None
-    return max(0.0, (retry_at - now).total_seconds())
-
-
 @beartype
 def wait_for_real_vws(
     retry_state: RetryCallState,
@@ -65,12 +42,17 @@ def wait_for_real_vws(
     if isinstance(error, TooManyRequestsError):
         for name, value in error.response.headers.items():
             if name.casefold() == "retry-after":
-                delay = _retry_after_seconds(
-                    value=value,
-                    now=dt.datetime.now(tz=dt.UTC),
-                )
-                if delay is not None:
-                    return delay
+                try:
+                    return float(
+                        _RETRY_AFTER_PARSER.parse_retry_after(
+                            retry_after=value
+                        )
+                    )
+                except InvalidHeader:
+                    break
+                except ValueError, OverflowError:
+                    # An unrepresentable delay must not cause an early retry.
+                    return float(RETRY_BUDGET_SECONDS + 1)
     return _FALLBACK_WAIT(retry_state=retry_state)
 
 
