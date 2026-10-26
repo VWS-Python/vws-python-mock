@@ -11,7 +11,7 @@ from urllib3.filepost import encode_multipart_formdata
 from vws.response import Response
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from mock_vws.database import CloudDatabase
+from tests.mock_vws.fixtures.credentials import CloudDatabaseCredentials
 from tests.mock_vws.query.helpers import (
     JETTY_CONTENT_TYPE_ERROR,
     JETTY_VERSION_RE,
@@ -72,7 +72,7 @@ from tests.mock_vws.utils.too_many_requests import handle_server_errors
 def test_incorrect_no_boundary(
     *,
     high_quality_image: io.BytesIO,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     content_type: str,
     resp_status_code: int,
     resp_content_type: str | None,
@@ -144,7 +144,7 @@ def test_incorrect_no_boundary(
 def test_incorrect_with_boundary(
     *,
     high_quality_image: io.BytesIO,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     base_vwq_url: str,
 ) -> None:
     """
@@ -224,7 +224,7 @@ def test_incorrect_with_boundary(
 def test_no_boundary(
     *,
     high_quality_image: io.BytesIO,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     content_type: str,
     base_vwq_url: str,
 ) -> None:
@@ -287,7 +287,7 @@ def test_no_boundary(
 def test_bogus_boundary(
     *,
     high_quality_image: io.BytesIO,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     base_vwq_url: str,
 ) -> None:
     """If a bogus boundary is given, a ``BAD_REQUEST`` is returned."""
@@ -351,7 +351,7 @@ def test_bogus_boundary(
 def test_extra_section(
     *,
     high_quality_image: io.BytesIO,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     base_vwq_url: str,
 ) -> None:
     """

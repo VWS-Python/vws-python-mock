@@ -7,7 +7,7 @@ from http import HTTPStatus
 import pytest
 from vws import VWS
 
-from mock_vws.database import CloudDatabase
+from tests.mock_vws.fixtures.credentials import CloudDatabaseCredentials
 from tests.mock_vws.query.helpers import (
     add_and_wait_for_targets,
     query,
@@ -22,7 +22,7 @@ def test_default(
     *,
     high_quality_image: io.BytesIO,
     vws_client: VWS,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     base_vwq_url: str,
 ) -> None:
     """The default ``include_target_data`` is 'top'."""
@@ -55,7 +55,7 @@ def test_default(
 def test_top(
     *,
     high_quality_image: io.BytesIO,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     include_target_data: str,
     vws_client: VWS,
     base_vwq_url: str,
@@ -95,7 +95,7 @@ def test_top(
 def test_none(
     *,
     high_quality_image: io.BytesIO,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     include_target_data: str,
     vws_client: VWS,
     base_vwq_url: str,
@@ -135,7 +135,7 @@ def test_none(
 def test_all(
     *,
     high_quality_image: io.BytesIO,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     include_target_data: str,
     vws_client: VWS,
     base_vwq_url: str,
@@ -175,7 +175,7 @@ def test_all(
 def test_invalid_value(
     *,
     high_quality_image: io.BytesIO,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     include_target_data: str | bool | int,
     base_vwq_url: str,
 ) -> None:

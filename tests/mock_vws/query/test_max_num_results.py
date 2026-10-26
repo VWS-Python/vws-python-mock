@@ -12,7 +12,7 @@ from vws.exceptions.cloud_reco_exceptions import (
     MaxNumResultsOutOfRangeError,
 )
 
-from mock_vws.database import CloudDatabase
+from tests.mock_vws.fixtures.credentials import CloudDatabaseCredentials
 from tests.mock_vws.query.helpers import (
     add_and_wait_for_targets,
     query,
@@ -26,7 +26,7 @@ from tests.mock_vws.utils.assertions import (
 def test_default(
     *,
     high_quality_image: io.BytesIO,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     vws_client: VWS,
     base_vwq_url: str,
 ) -> None:
@@ -71,7 +71,7 @@ def test_default(
 def test_valid_accepted(
     *,
     high_quality_image: io.BytesIO,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     num_results: int | bytes,
     base_vwq_url: str,
 ) -> None:
@@ -170,7 +170,7 @@ def test_out_of_range(
 def test_invalid_type(
     *,
     high_quality_image: io.BytesIO,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     num_results: bytes,
     base_vwq_url: str,
 ) -> None:

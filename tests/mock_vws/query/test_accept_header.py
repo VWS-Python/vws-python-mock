@@ -11,7 +11,7 @@ from urllib3.filepost import encode_multipart_formdata
 from vws.response import Response
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from mock_vws.database import CloudDatabase
+from tests.mock_vws.fixtures.credentials import CloudDatabaseCredentials
 from tests.mock_vws.utils.assertions import (
     assert_query_success,
     assert_vwq_failure,
@@ -31,7 +31,7 @@ from tests.mock_vws.utils.too_many_requests import handle_server_errors
 def test_valid(
     *,
     high_quality_image: io.BytesIO,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     extra_headers: dict[str, str],
     base_vwq_url: str,
 ) -> None:
@@ -89,7 +89,7 @@ def test_valid(
 def test_invalid(
     *,
     high_quality_image: io.BytesIO,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     base_vwq_url: str,
 ) -> None:
     """
