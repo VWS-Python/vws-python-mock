@@ -13,12 +13,18 @@ from tenacity import retry
 from tenacity.retry import retry_if_not_result
 from tenacity.stop import stop_after_attempt
 from vws import VWS, CloudRecoService
+from vws.exceptions.custom_exceptions import TargetProcessingTimeoutError
+from vws.exceptions.vws_exceptions import (
+    TargetStatusProcessingError,
+    UnknownTargetError,
+)
 from vws.reports import TargetStatusAndRecord, TargetStatuses
 
 from mock_vws.database import CloudDatabase
 from tests.mock_vws.utils import Endpoint, ModelTargetEndpoint
 from tests.mock_vws.utils.retries import (
     RETRY_ON_TARGET_NOT_YET_VISIBLE,
+    TRANSIENT_VWS_EXCEPTIONS,
     retry_transient_vws_failures,
 )
 
@@ -166,16 +172,25 @@ def _add_target_which_processed_successfully(
             vws_client=vws_client,
             target_id_=target_id_,
         )
-    except Exception:
+    except (
+        *TRANSIENT_VWS_EXCEPTIONS,
+        UnknownTargetError,
+        TargetProcessingTimeoutError,
+    ):  # pragma: no cover
         # Setup owns the target until it can return it to the test. Cleanup
-        # is best effort: a processing target may still reject deletion.
+        # is best effort: transient failures, a processing target, or one
+        # already gone must not hide the setup error.
         # The real adapter also clears remaining targets before the next test.
-        with contextlib.suppress(Exception):
+        with contextlib.suppress(
+            *TRANSIENT_VWS_EXCEPTIONS,
+            TargetStatusProcessingError,
+            UnknownTargetError,
+        ):
             vws_client.delete_target(target_id=target_id_)
         raise
     # Failed processing is nondeterministic against the live service.
     if target_details.status != TargetStatuses.SUCCESS:
-        vws_client.delete_target(target_id=target_id_)
+        vws_client.delete_target(target_id=target_id_)  # pragma: no cover
     return _TargetProcessingResult(
         target_id=target_id_,
         status=target_details.status,

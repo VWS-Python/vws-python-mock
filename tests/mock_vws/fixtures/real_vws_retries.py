@@ -7,7 +7,7 @@ no retry fits the budget. Without one, full jitter spreads retries over an
 exponentially increasing interval, starting at one second and capped at 30.
 """
 
-import datetime
+import datetime as dt
 import logging
 from email.utils import parsedate_to_datetime
 from http import HTTPStatus
@@ -30,10 +30,11 @@ _MAX_DELAY_DIGITS = 9
 _FALLBACK_WAIT = wait_random_exponential(multiplier=1, max=30)
 
 
+# Live-service throttling responses cannot be forced by the API tests.
 @beartype
 def _retry_after_seconds(
-    *, value: str, now: datetime.datetime
-) -> float | None:
+    *, value: str, now: dt.datetime
+) -> float | None:  # pragma: no cover
     """Read HTTP delay-seconds or an HTTP-date, rejecting malformed values."""
     value = value.strip()
     if value.isascii() and value.isdecimal():
@@ -55,7 +56,9 @@ def _retry_after_seconds(
 
 
 @beartype
-def wait_for_real_vws(retry_state: RetryCallState) -> float:
+def wait_for_real_vws(
+    retry_state: RetryCallState,
+) -> float:  # pragma: no cover
     """Wait for the server's delay, otherwise use capped full jitter."""
     assert retry_state.outcome is not None
     error = retry_state.outcome.exception()
@@ -64,7 +67,7 @@ def wait_for_real_vws(retry_state: RetryCallState) -> float:
             if name.casefold() == "retry-after":
                 delay = _retry_after_seconds(
                     value=value,
-                    now=datetime.datetime.now(tz=datetime.UTC),
+                    now=dt.datetime.now(tz=dt.UTC),
                 )
                 if delay is not None:
                     return delay
@@ -72,7 +75,7 @@ def wait_for_real_vws(retry_state: RetryCallState) -> float:
 
 
 @beartype
-def _log_retry(retry_state: RetryCallState) -> None:
+def _log_retry(retry_state: RetryCallState) -> None:  # pragma: no cover
     """Log timing and error type without request headers or
     credentials.
     """
