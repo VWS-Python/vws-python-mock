@@ -51,7 +51,7 @@ def wait_for_real_vws(
                 except InvalidHeader:
                     break
                 except ValueError, OverflowError:
-                    # An unrepresentable delay must not cause an early retry.
+                    # A delay too large to parse must not cause an early retry.
                     return float(RETRY_BUDGET_SECONDS + 1)
     return _FALLBACK_WAIT(retry_state=retry_state)
 
