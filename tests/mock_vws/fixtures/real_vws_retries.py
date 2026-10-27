@@ -3,8 +3,9 @@
 At most ten attempts are scheduled within 120 seconds of the first attempt.
 A retry cannot interrupt an in-flight client request or its processing poll.
 Valid Retry-After values are honored, even when that means giving up because
-no retry fits the budget. Without one, full jitter spreads retries over an
-exponentially increasing interval, starting at one second and capped at 30.
+no retry fits the budget. Without one, exponential jitter waits between ten
+and 30 seconds. The floor prevents ten quick attempts from exhausting the
+policy before a complete minute of Vuforia's rate-limit window has elapsed.
 """
 
 import logging
@@ -26,7 +27,7 @@ from tests.mock_vws.utils.retries import (
 
 RETRY_BUDGET_SECONDS = 120
 _LOGGER = logging.getLogger(name=__name__)
-_FALLBACK_WAIT = wait_random_exponential(multiplier=1, max=30)
+_FALLBACK_WAIT = wait_random_exponential(multiplier=10, min=10, max=30)
 # Capped server delays must still exceed the budget to prevent early retries.
 _RETRY_AFTER_PARSER = Retry(retry_after_max=RETRY_BUDGET_SECONDS + 1)
 
@@ -36,7 +37,9 @@ _RETRY_AFTER_PARSER = Retry(retry_after_max=RETRY_BUDGET_SECONDS + 1)
 def wait_for_real_vws(
     retry_state: RetryCallState,
 ) -> float:  # pragma: no cover
-    """Wait for the server's delay, otherwise use capped full jitter."""
+    """Wait for the server's delay, otherwise use bounded exponential
+    jitter.
+    """
     assert retry_state.outcome is not None
     error = retry_state.outcome.exception()
     if isinstance(error, TooManyRequestsError):
