@@ -4,7 +4,6 @@ from http import HTTPStatus
 
 from vws_auth_tools import rfc_1123_date
 
-from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import (
     assert_vwq_failure,
@@ -63,7 +62,7 @@ def test_one_part_no_space(endpoint: Endpoint, base_vwq_url: str) -> None:
     assert_vws_failure(
         response=response,
         status_code=HTTPStatus.BAD_REQUEST,
-        result_code=ResultCodes.FAIL,
+        result_code="Fail",
     )
 
 
@@ -113,7 +112,7 @@ def test_one_part_with_space(endpoint: Endpoint, base_vwq_url: str) -> None:
     assert_vws_failure(
         response=response,
         status_code=HTTPStatus.BAD_REQUEST,
-        result_code=ResultCodes.FAIL,
+        result_code="Fail",
     )
 
 
@@ -161,5 +160,5 @@ def test_missing_signature(endpoint: Endpoint, base_vwq_url: str) -> None:
     assert_vws_failure(
         response=response,
         status_code=HTTPStatus.BAD_REQUEST,
-        result_code=ResultCodes.FAIL,
+        result_code="Fail",
     )

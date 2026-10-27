@@ -8,8 +8,6 @@ from typing import Final
 from vws import VWS
 from vws.response import Response
 
-from mock_vws._constants import ResultCodes
-
 MAX_METADATA_BYTES: Final[int] = 1024 * 1024 - 1
 
 
@@ -36,6 +34,6 @@ def update_target(
         method=HTTPMethod.PUT,
         data=content,
         request_path=f"/targets/{target_id}",
-        expected_result_code=ResultCodes.SUCCESS.value,
+        expected_result_code="Success",
         content_type=content_type,
     )

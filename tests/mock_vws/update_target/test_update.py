@@ -12,7 +12,6 @@ from vws.exceptions.vws_exceptions import (
 )
 from vws.reports import TargetStatuses
 
-from mock_vws._constants import ResultCodes
 from tests.mock_vws.update_target.helpers import (
     update_target,
 )
@@ -63,7 +62,7 @@ def test_content_types(
     assert_vws_failure(
         response=exc.value.response,
         status_code=HTTPStatus.FORBIDDEN,
-        result_code=ResultCodes.TARGET_STATUS_NOT_SUCCESS,
+        result_code="TargetStatusNotSuccess",
     )
 
 
@@ -96,7 +95,7 @@ def test_empty_content_type(
     assert_vws_failure(
         response=exc.value.response,
         status_code=HTTPStatus.UNAUTHORIZED,
-        result_code=ResultCodes.AUTHENTICATION_FAILURE,
+        result_code="AuthenticationFailure",
     )
 
 
@@ -116,7 +115,7 @@ def test_no_fields_given(
     assert_vws_response(
         response=response,
         status_code=HTTPStatus.OK,
-        result_code=ResultCodes.SUCCESS,
+        result_code="Success",
     )
 
     response_json = json.loads(s=response.text)

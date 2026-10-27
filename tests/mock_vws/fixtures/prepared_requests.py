@@ -12,7 +12,6 @@ import pytest
 from urllib3.filepost import encode_multipart_formdata
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from mock_vws._constants import ResultCodes
 from mock_vws.database import CloudDatabase
 from tests.mock_vws.fixtures.credentials import VuMarkCloudDatabase
 from tests.mock_vws.utils import Endpoint
@@ -63,7 +62,7 @@ def add_target(
 
     return Endpoint(
         successful_headers_status_code=HTTPStatus.CREATED,
-        successful_headers_result_code=ResultCodes.TARGET_CREATED,
+        successful_headers_result_code="TargetCreated",
         base_url=base_vws_url,
         path_url=request_path,
         method=method,
@@ -112,7 +111,7 @@ def delete_target(
         headers=headers,
         data=content,
         successful_headers_status_code=HTTPStatus.OK,
-        successful_headers_result_code=ResultCodes.SUCCESS,
+        successful_headers_result_code="Success",
         access_key=access_key,
         secret_key=secret_key,
     )
@@ -159,7 +158,7 @@ def database_summary(
         headers=headers,
         data=content,
         successful_headers_status_code=HTTPStatus.OK,
-        successful_headers_result_code=ResultCodes.SUCCESS,
+        successful_headers_result_code="Success",
         access_key=access_key,
         secret_key=secret_key,
     )
@@ -207,7 +206,7 @@ def get_duplicates(
         headers=headers,
         data=content,
         successful_headers_status_code=HTTPStatus.OK,
-        successful_headers_result_code=ResultCodes.SUCCESS,
+        successful_headers_result_code="Success",
         access_key=access_key,
         secret_key=secret_key,
     )
@@ -247,7 +246,7 @@ def get_target(
 
     return Endpoint(
         successful_headers_status_code=HTTPStatus.OK,
-        successful_headers_result_code=ResultCodes.SUCCESS,
+        successful_headers_result_code="Success",
         base_url=base_vws_url,
         path_url=request_path,
         method=method,
@@ -291,7 +290,7 @@ def target_list(
 
     return Endpoint(
         successful_headers_status_code=HTTPStatus.OK,
-        successful_headers_result_code=ResultCodes.SUCCESS,
+        successful_headers_result_code="Success",
         base_url=base_vws_url,
         path_url=request_path,
         method=method,
@@ -339,7 +338,7 @@ def target_summary(
 
     return Endpoint(
         successful_headers_status_code=HTTPStatus.OK,
-        successful_headers_result_code=ResultCodes.SUCCESS,
+        successful_headers_result_code="Success",
         base_url=base_vws_url,
         path_url=request_path,
         method=method,
@@ -387,7 +386,7 @@ def update_target(
 
     return Endpoint(
         successful_headers_status_code=HTTPStatus.OK,
-        successful_headers_result_code=ResultCodes.SUCCESS,
+        successful_headers_result_code="Success",
         base_url=base_vws_url,
         path_url=request_path,
         method=method,
@@ -439,7 +438,7 @@ def query(
 
     return Endpoint(
         successful_headers_status_code=HTTPStatus.OK,
-        successful_headers_result_code=ResultCodes.SUCCESS,
+        successful_headers_result_code="Success",
         base_url=base_vwq_url,
         path_url=request_path,
         method=method,
@@ -537,7 +536,7 @@ def reco_counts_report(
 
     return Endpoint(
         successful_headers_status_code=HTTPStatus.OK,
-        successful_headers_result_code=ResultCodes.SUCCESS,
+        successful_headers_result_code="Success",
         base_url=base_vws_url,
         path_url=request_path,
         method=method,

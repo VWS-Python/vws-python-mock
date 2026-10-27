@@ -9,7 +9,6 @@ from vws.exceptions.vws_exceptions import (
     UnknownTargetError,
 )
 
-from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils.assertions import assert_vws_failure
 
 
@@ -33,7 +32,7 @@ def test_no_wait(
     assert_vws_failure(
         response=exc.value.response,
         status_code=HTTPStatus.FORBIDDEN,
-        result_code=ResultCodes.TARGET_STATUS_PROCESSING,
+        result_code="TargetStatusProcessing",
     )
 
 

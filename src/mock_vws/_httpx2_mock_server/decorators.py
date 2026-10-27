@@ -1,7 +1,7 @@
 """Route HTTPX2 requests through RESPX."""
 
 from collections.abc import Callable
-from typing import ClassVar, Protocol
+from typing import ClassVar, Protocol, runtime_checkable
 
 import httpx
 import httpx2
@@ -15,6 +15,7 @@ from mock_vws._respx_mock_server.decorators import start_respx_router
 type Httpx2Router = respx.MockRouter
 
 
+@runtime_checkable
 class _APIHandler(Protocol):
     """An API handler with mock routes."""
 

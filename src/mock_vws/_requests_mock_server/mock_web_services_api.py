@@ -11,7 +11,7 @@ import email.utils
 import uuid
 from collections.abc import Callable, Iterable, Mapping
 from http import HTTPMethod, HTTPStatus
-from typing import TYPE_CHECKING, NotRequired, TypedDict
+from typing import NotRequired, TypedDict
 from zoneinfo import ZoneInfo
 
 from beartype import BeartypeConf, beartype
@@ -58,7 +58,7 @@ from mock_vws._services_validators.exceptions import (
     TargetStatusProcessingError,
     ValidatorError,
 )
-from mock_vws.database import VuMarkDatabase
+from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.image_matchers import ImageMatcher
 from mock_vws.model_target import (
     ModelTargetDatasetType,
@@ -71,9 +71,6 @@ from mock_vws.target import ImageTarget
 from mock_vws.target_manager import TargetManager
 from mock_vws.target_raters import TargetTrackingRater
 from mock_vws.vumark import VuMarkGenerationFailure
-
-if TYPE_CHECKING:
-    from mock_vws.database import CloudDatabase
 
 _TARGET_ID_PATTERN = "[A-Za-z0-9]+"
 _MODEL_TARGET_DATASET_UUID_PATTERN = "[A-Za-z0-9-]+"
@@ -108,7 +105,7 @@ type _RouteMethod = Callable[
     ["MockVuforiaWebServicesAPI", RequestData],
     _ResponseType,
 ]
-_ROUTES: set[RouteDefinition[MockVuforiaWebServicesAPI]] = set()
+_ROUTES = set[RouteDefinition["MockVuforiaWebServicesAPI"]]()
 
 
 @beartype

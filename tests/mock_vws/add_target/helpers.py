@@ -10,7 +10,6 @@ from beartype import beartype
 from vws import VWS
 from vws.response import Response
 
-from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils.assertions import (
     assert_vws_response,
 )
@@ -40,7 +39,7 @@ def add_target_to_vws(
         method=HTTPMethod.POST,
         data=content,
         request_path="/targets",
-        expected_result_code=ResultCodes.TARGET_CREATED.value,
+        expected_result_code="TargetCreated",
         content_type=content_type,
     )
 
@@ -56,7 +55,7 @@ def assert_success(response: Response) -> None:
     assert_vws_response(
         response=response,
         status_code=HTTPStatus.CREATED,
-        result_code=ResultCodes.TARGET_CREATED,
+        result_code="TargetCreated",
     )
     expected_keys = {"result_code", "transaction_id", "target_id"}
     response_json = json.loads(s=response.text)

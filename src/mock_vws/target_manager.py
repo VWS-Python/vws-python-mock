@@ -3,19 +3,16 @@
 import threading
 import time
 from contextlib import AbstractContextManager
-from typing import TYPE_CHECKING
 
 from beartype import beartype
 
+from mock_vws._database_matchers import AnyDatabase
 from mock_vws._services_validators.request_rate_limiter import (
     RequestRateLimiter,
 )
 from mock_vws.database import CloudDatabase, VuMarkDatabase
 from mock_vws.model_target import ModelTargetDataset, OAuth2ClientCredential
 from mock_vws.reco_counts import RecoCountsReport
-
-if TYPE_CHECKING:
-    from mock_vws._database_matchers import AnyDatabase
 
 
 @beartype

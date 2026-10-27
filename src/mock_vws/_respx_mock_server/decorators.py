@@ -3,7 +3,7 @@
 import re
 from collections.abc import Callable, Mapping
 from functools import partial
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 from urllib.parse import urlparse
 
 import httpx
@@ -18,6 +18,7 @@ _ResponseType = tuple[int, Mapping[str, str], str | bytes]
 _RequestErrorFactory = Callable[[httpx.Request], Exception]
 
 
+@runtime_checkable
 class _APIHandler(Protocol):
     """An API handler with mock routes."""
 

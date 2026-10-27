@@ -5,7 +5,6 @@ from http import HTTPMethod, HTTPStatus
 from vws.response import Response
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from mock_vws._constants import ResultCodes
 from mock_vws.database import CloudDatabase
 from mock_vws.request_rate_limits import DOCUMENTED_REQUEST_RATE_LIMITS
 from tests.mock_vws.utils import Endpoint
@@ -52,7 +51,7 @@ def test_two_requests_per_minute(
             method=HTTPMethod.GET,
             headers={"Authorization": authorization, "Date": date},
             data=b"",
-            successful_headers_result_code=ResultCodes.SUCCESS,
+            successful_headers_result_code="Success",
             successful_headers_status_code=HTTPStatus.OK,
             access_key=rate_limited_database.server_access_key,
             secret_key=rate_limited_database.server_secret_key,

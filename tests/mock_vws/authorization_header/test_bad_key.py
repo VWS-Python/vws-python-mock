@@ -10,7 +10,6 @@ from vws import VWS, CloudRecoService
 from vws.exceptions import cloud_reco_exceptions
 from vws.exceptions.vws_exceptions import AuthenticationFailureError, FailError
 
-from mock_vws._constants import ResultCodes
 from mock_vws.database import CloudDatabase
 from tests.mock_vws.utils.assertions import (
     assert_valid_transaction_id,
@@ -82,7 +81,7 @@ def test_bad_access_key_query(
     assert isinstance(response_json["transaction_id"], str)
     result_code: str = response_json["result_code"]
     transaction_id: str = response_json["transaction_id"]
-    assert result_code == ResultCodes.AUTHENTICATION_FAILURE.value
+    assert result_code == "AuthenticationFailure"
     # The separators are inconsistent and we test this.
     expected_text = (
         '{"transaction_id":'
@@ -154,7 +153,7 @@ def test_bad_secret_key_query(
     assert isinstance(response_json["transaction_id"], str)
     result_code: str = response_json["result_code"]
     transaction_id: str = response_json["transaction_id"]
-    assert result_code == ResultCodes.AUTHENTICATION_FAILURE.value
+    assert result_code == "AuthenticationFailure"
     # The separators are inconsistent and we test this.
     expected_text = (
         '{"transaction_id":'
