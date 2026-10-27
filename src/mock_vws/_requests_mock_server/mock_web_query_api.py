@@ -27,7 +27,7 @@ type _RouteMethod = Callable[
     ["MockVuforiaWebQueryAPI", RequestData],
     _ResponseType,
 ]
-_ROUTES: set[RouteDefinition[MockVuforiaWebQueryAPI]] = set()
+_ROUTES = set[RouteDefinition["MockVuforiaWebQueryAPI"]]()
 
 
 @beartype

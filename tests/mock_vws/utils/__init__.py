@@ -13,7 +13,6 @@ from PIL import Image
 from requests.structures import CaseInsensitiveDict
 from vws.response import Response
 
-from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils.model_target_retries import (
     send_with_transient_retries,
 )
@@ -90,7 +89,7 @@ class Endpoint:
     method: str
     headers: Mapping[str, str]
     data: bytes | str
-    successful_headers_result_code: ResultCodes | None
+    successful_headers_result_code: str | None
     successful_headers_status_code: int
     access_key: str
     secret_key: str

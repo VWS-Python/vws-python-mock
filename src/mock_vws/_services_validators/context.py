@@ -12,7 +12,7 @@ from pydantic import JsonValue, TypeAdapter
 from mock_vws._base64_decoding import decode_base64
 from mock_vws._database_matchers import AnyDatabase
 
-_OPTIONAL_STRING_ADAPTER: TypeAdapter[str | None] = TypeAdapter(
+_OPTIONAL_STRING_ADAPTER = TypeAdapter[str | None](
     type=str | None,
 )
 

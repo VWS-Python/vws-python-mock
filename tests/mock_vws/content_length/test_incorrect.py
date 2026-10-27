@@ -10,7 +10,6 @@ from http import HTTPStatus
 
 import pytest
 
-from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import (
     assert_valid_date_header,
@@ -191,5 +190,5 @@ def test_too_small(endpoint: Endpoint, base_vwq_url: str) -> None:
     assert_vws_failure(
         response=response,
         status_code=HTTPStatus.UNAUTHORIZED,
-        result_code=ResultCodes.AUTHENTICATION_FAILURE,
+        result_code="AuthenticationFailure",
     )

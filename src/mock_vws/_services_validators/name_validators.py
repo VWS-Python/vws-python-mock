@@ -19,8 +19,8 @@ from mock_vws.target import ImageTarget, VuMarkTarget
 _LOGGER = logging.getLogger(name=__name__)
 
 _MAX_CHARACTER_ORD = 65535
-_OPTIONAL_NAME_ADAPTER: TypeAdapter[str | None] = TypeAdapter(type=str | None)
-_NAME_ADAPTER: TypeAdapter[str] = TypeAdapter(type=str)
+_OPTIONAL_NAME_ADAPTER = TypeAdapter[str | None](type=str | None)
+_NAME_ADAPTER = TypeAdapter[str](type=str)
 
 
 @beartype

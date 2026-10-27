@@ -8,7 +8,6 @@ from vws.exceptions.vws_exceptions import (
     FailError,
 )
 
-from mock_vws._constants import ResultCodes
 from tests.mock_vws.update_target.helpers import (
     update_target,
 )
@@ -43,7 +42,7 @@ def test_width_invalid(
     assert_vws_failure(
         response=exc.value.response,
         status_code=HTTPStatus.BAD_REQUEST,
-        result_code=ResultCodes.FAIL,
+        result_code="Fail",
     )
 
     target_details = vws_client.get_target_record(target_id=target_id)

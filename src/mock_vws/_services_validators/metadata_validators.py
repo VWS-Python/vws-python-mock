@@ -15,7 +15,7 @@ from mock_vws._services_validators.exceptions import (
 )
 
 _LOGGER = logging.getLogger(name=__name__)
-_OPTIONAL_METADATA_ADAPTER: TypeAdapter[str | None] = TypeAdapter(
+_OPTIONAL_METADATA_ADAPTER = TypeAdapter[str | None](
     type=str | None,
 )
 

@@ -15,7 +15,6 @@ import pytest
 from freezegun import freeze_time
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from mock_vws._constants import ResultCodes
 from tests.mock_vws.invalid_json.helpers import (
     assert_body_rejected,
 )
@@ -79,13 +78,13 @@ def test_empty_body(endpoint: Endpoint) -> None:
 
     if endpoint.path_url.endswith("/instances"):
         expected_status_code = HTTPStatus.BAD_REQUEST
-        expected_result_code = ResultCodes.BAD_REQUEST
+        expected_result_code = "BadRequest"
     elif endpoint.path_url.endswith("/reports/recoCounts"):
         expected_status_code = HTTPStatus.BAD_REQUEST
-        expected_result_code = ResultCodes.FAIL
+        expected_result_code = "Fail"
     else:
         expected_status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-        expected_result_code = ResultCodes.FAIL
+        expected_result_code = "Fail"
 
     content = b""
     gmt = ZoneInfo(key="GMT")
@@ -194,7 +193,7 @@ def test_invalid_json_with_skewed_time(
         assert_vws_failure(
             response=response,
             status_code=HTTPStatus.FORBIDDEN,
-            result_code=ResultCodes.REQUEST_TIME_TOO_SKEWED,
+            result_code="RequestTimeTooSkewed",
         )
         return
 

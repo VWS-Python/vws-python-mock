@@ -16,7 +16,6 @@ from vws.exceptions.vws_exceptions import (
 )
 from vws_test_fixtures.images import VWS_MAX_IMAGE_FILE_SIZE
 
-from mock_vws._constants import ResultCodes
 from tests.mock_vws.add_target.helpers import (
     add_target_to_vws,
 )
@@ -71,7 +70,7 @@ def test_bad_image_format_or_color_space(
     assert_vws_failure(
         response=exc.value.response,
         status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
-        result_code=ResultCodes.BAD_IMAGE,
+        result_code="BadImage",
     )
 
 
@@ -93,7 +92,7 @@ def test_corrupted(
     assert_vws_failure(
         response=exc.value.response,
         status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
-        result_code=ResultCodes.BAD_IMAGE,
+        result_code="BadImage",
     )
 
 
@@ -117,7 +116,7 @@ def test_truncated(vws_client: VWS) -> None:
     assert_vws_failure(
         response=exc.value.response,
         status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
-        result_code=ResultCodes.BAD_IMAGE,
+        result_code="BadImage",
     )
 
 
@@ -142,7 +141,7 @@ def test_decompression_bomb(vws_client: VWS) -> None:
     assert_vws_failure(
         response=exc.value.response,
         status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
-        result_code=ResultCodes.IMAGE_TOO_LARGE,
+        result_code="ImageTooLarge",
     )
 
 
@@ -186,7 +185,7 @@ def test_image_pixel_count_too_large(
     assert_vws_failure(
         response=exc.value.response,
         status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
-        result_code=ResultCodes.IMAGE_TOO_LARGE,
+        result_code="ImageTooLarge",
     )
 
 
@@ -230,7 +229,7 @@ def test_image_file_size_too_large(
     assert_vws_failure(
         response=exc.value.response,
         status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
-        result_code=ResultCodes.IMAGE_TOO_LARGE,
+        result_code="ImageTooLarge",
     )
 
 
@@ -262,7 +261,7 @@ def test_not_base64_encoded_processable(
     assert_vws_failure(
         response=exc.value.response,
         status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
-        result_code=ResultCodes.BAD_IMAGE,
+        result_code="BadImage",
     )
 
 
@@ -293,7 +292,7 @@ def test_not_base64_encoded_not_processable(
     assert_vws_failure(
         response=exc.value.response,
         status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
-        result_code=ResultCodes.FAIL,
+        result_code="Fail",
     )
 
 
@@ -315,7 +314,7 @@ def test_not_image(vws_client: VWS) -> None:
     assert_vws_failure(
         response=exc.value.response,
         status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
-        result_code=ResultCodes.BAD_IMAGE,
+        result_code="BadImage",
     )
 
 
@@ -345,5 +344,5 @@ def test_invalid_type(
     assert_vws_failure(
         response=exc.value.response,
         status_code=HTTPStatus.BAD_REQUEST,
-        result_code=ResultCodes.FAIL,
+        result_code="Fail",
     )

@@ -11,7 +11,6 @@ from vws.exceptions.vws_exceptions import (
     MetadataTooLargeError,
 )
 
-from mock_vws._constants import ResultCodes
 from tests.mock_vws.add_target.helpers import (
     MAX_METADATA_BYTES,
     add_target_to_vws,
@@ -106,7 +105,7 @@ def test_invalid_type(
     assert_vws_failure(
         response=exc.value.response,
         status_code=HTTPStatus.BAD_REQUEST,
-        result_code=ResultCodes.FAIL,
+        result_code="Fail",
     )
 
 
@@ -153,7 +152,7 @@ def test_not_base64_encoded_not_processable(
     assert_vws_failure(
         response=exc.value.response,
         status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
-        result_code=ResultCodes.FAIL,
+        result_code="Fail",
     )
 
 
@@ -187,5 +186,5 @@ def test_metadata_too_large(
     assert_vws_failure(
         response=exc.value.response,
         status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
-        result_code=ResultCodes.METADATA_TOO_LARGE,
+        result_code="MetadataTooLarge",
     )

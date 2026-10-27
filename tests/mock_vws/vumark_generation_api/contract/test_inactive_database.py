@@ -3,7 +3,6 @@
 from http import HTTPStatus
 from uuid import uuid4
 
-from mock_vws._constants import ResultCodes
 from tests.mock_vws.fixtures.credentials import (
     InactiveVuMarkCloudDatabase,
 )
@@ -30,4 +29,4 @@ def test_inactive_database(
 
     assert response.status_code == HTTPStatus.NOT_FOUND
     response_json = response.json()
-    assert response_json["result_code"] == ResultCodes.UNKNOWN_TARGET.value
+    assert response_json["result_code"] == "UnknownTarget"

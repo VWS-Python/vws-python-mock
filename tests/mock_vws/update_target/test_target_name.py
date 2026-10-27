@@ -10,7 +10,6 @@ from vws.exceptions.vws_exceptions import (
     TargetNameExistError,
 )
 
-from mock_vws._constants import ResultCodes
 from tests.mock_vws.update_target.helpers import (
     update_target,
 )
@@ -53,23 +52,23 @@ def test_name_valid(
 @pytest.mark.parametrize(
     argnames=("name", "status_code", "result_code"),
     argvalues=[
-        (1, HTTPStatus.BAD_REQUEST, ResultCodes.FAIL),
-        ("", HTTPStatus.BAD_REQUEST, ResultCodes.FAIL),
+        (1, HTTPStatus.BAD_REQUEST, "Fail"),
+        ("", HTTPStatus.BAD_REQUEST, "Fail"),
         (
             "a" * (_MAX_NAME_LENGTH + 1),
             HTTPStatus.BAD_REQUEST,
-            ResultCodes.FAIL,
+            "Fail",
         ),
-        (None, HTTPStatus.BAD_REQUEST, ResultCodes.FAIL),
+        (None, HTTPStatus.BAD_REQUEST, "Fail"),
         (
             chr(_MAX_CHAR_VALUE + 1),
             HTTPStatus.FORBIDDEN,
-            ResultCodes.TARGET_NAME_EXIST,
+            "TargetNameExist",
         ),
         (
             chr(_MAX_CHAR_VALUE + 1) * (_MAX_NAME_LENGTH + 1),
             HTTPStatus.BAD_REQUEST,
-            ResultCodes.FAIL,
+            "Fail",
         ),
     ],
     ids=[
@@ -87,7 +86,7 @@ def test_name_invalid(
     target_id: str,
     vws_client: VWS,
     status_code: int,
-    result_code: ResultCodes,
+    result_code: str,
 ) -> None:
     """A target's name must be a string of length 0 < N < 65."""
     with pytest.raises(expected_exception=VWSError) as exc:
@@ -142,7 +141,7 @@ def test_existing_target_name(
     assert_vws_failure(
         response=exc.value.response,
         status_code=HTTPStatus.FORBIDDEN,
-        result_code=ResultCodes.TARGET_NAME_EXIST,
+        result_code="TargetNameExist",
     )
 
 

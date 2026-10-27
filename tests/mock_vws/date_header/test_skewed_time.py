@@ -12,7 +12,6 @@ from zoneinfo import ZoneInfo
 from freezegun import freeze_time
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from mock_vws._constants import ResultCodes
 from tests.mock_vws.date_header.helpers import (
     LEEWAY,
     VWQ_MAX_TIME_SKEW,
@@ -104,7 +103,7 @@ def test_date_out_of_range_after(
     assert_vws_failure(
         response=response,
         status_code=HTTPStatus.FORBIDDEN,
-        result_code=ResultCodes.REQUEST_TIME_TOO_SKEWED,
+        result_code="RequestTimeTooSkewed",
     )
 
 
@@ -183,7 +182,7 @@ def test_date_out_of_range_before(
     assert_vws_failure(
         response=response,
         status_code=HTTPStatus.FORBIDDEN,
-        result_code=ResultCodes.REQUEST_TIME_TOO_SKEWED,
+        result_code="RequestTimeTooSkewed",
     )
 
 

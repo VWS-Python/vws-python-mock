@@ -8,9 +8,10 @@ from collections.abc import Callable, Generator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass
 from types import TracebackType
-from typing import TYPE_CHECKING, Literal, Self
+from typing import Literal, Self
 from urllib.parse import urlparse
 
+import respx
 from beartype import BeartypeConf, beartype
 from mock_response_delay.for_requests import delayed_responses_callback
 from requests import PreparedRequest
@@ -48,9 +49,6 @@ from mock_vws.target_raters import (
     TargetTrackingRater,
 )
 from mock_vws.vumark import VuMarkGenerationFailure
-
-if TYPE_CHECKING:
-    import respx
 
 _ResponseType = tuple[int, Mapping[str, str], str | bytes]
 _MockCallback = Callable[[RequestData], _ResponseType]

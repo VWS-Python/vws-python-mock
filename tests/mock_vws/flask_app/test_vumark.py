@@ -11,7 +11,6 @@ from vws import VuMarkService
 from vws.vumark_accept import VuMarkAccept
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from mock_vws._constants import ResultCodes
 from mock_vws.database import VuMarkDatabase
 from mock_vws.target import VuMarkTarget
 
@@ -123,7 +122,4 @@ def test_processing_target_returns_forbidden(target_manager_url: str) -> None:
 
     assert response.status_code == HTTPStatus.FORBIDDEN
     response_json = response.json()
-    assert (
-        response_json["result_code"]
-        == ResultCodes.TARGET_STATUS_NOT_SUCCESS.value
-    )
+    assert response_json["result_code"] == "TargetStatusNotSuccess"

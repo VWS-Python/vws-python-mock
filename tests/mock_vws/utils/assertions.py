@@ -13,7 +13,6 @@ import requests
 from beartype import beartype
 from vws.response import Response
 
-from mock_vws._constants import ResultCodes
 from tests.mock_vws.utils.model_target_response_policy import (
     handle_unexpected_model_target_response,
 )
@@ -24,7 +23,7 @@ def assert_vws_failure(
     *,
     response: Response,
     status_code: int,
-    result_code: ResultCodes,
+    result_code: str,
 ) -> None:
     """Assert that a VWS failure response is as expected.
 
@@ -167,7 +166,7 @@ def assert_vws_response(
     *,
     response: Response,
     status_code: int,
-    result_code: ResultCodes,
+    result_code: str,
 ) -> None:
     """Assert that a VWS response is as expected, at least in part.
 
@@ -192,7 +191,7 @@ def assert_vws_response(
     assert isinstance(response_json, dict)
     assert isinstance(response_json["result_code"], str)
     response_result_code: str = response_json["result_code"]
-    assert response_result_code == result_code.value
+    assert response_result_code == result_code
     response_header_keys = {
         "connection",
         "content-length",
