@@ -5,7 +5,6 @@ NGINX's buffer also holds the line's CRLF, so the longest accepted
 line is 8190 bytes.
 """
 
-from mock_vws._mock_common import MAX_HEADER_LINE_LENGTH
 from tests.mock_vws.header_size.helpers import (
     assert_nginx_too_large_response,
     endpoint_with_header,
@@ -19,6 +18,9 @@ from tests.mock_vws.utils.assertions import (
 )
 from tests.mock_vws.utils.too_many_requests import handle_server_errors
 
+# The observed NGINX boundary is an API expectation, independent of core.
+_MAX_HEADER_LINE_LENGTH = 8190
+
 
 def test_header_too_large(endpoint: Endpoint, base_vwq_url: str) -> None:
     """A header line one byte too long for NGINX gives a
@@ -31,7 +33,7 @@ def test_header_too_large(endpoint: Endpoint, base_vwq_url: str) -> None:
         name=name,
         value=header_value_for_line_length(
             name=name,
-            line_length=MAX_HEADER_LINE_LENGTH + 1,
+            line_length=_MAX_HEADER_LINE_LENGTH + 1,
         ),
     )
 
@@ -61,7 +63,7 @@ def test_cookie_too_large(endpoint: Endpoint, base_vwq_url: str) -> None:
         value="pad="
         + header_value_for_line_length(
             name=name,
-            line_length=MAX_HEADER_LINE_LENGTH + 1000,
+            line_length=_MAX_HEADER_LINE_LENGTH + 1000,
         ),
     )
 
@@ -91,7 +93,7 @@ def test_large_header_within_limit(
         name=name,
         value=header_value_for_line_length(
             name=name,
-            line_length=MAX_HEADER_LINE_LENGTH // 2,
+            line_length=_MAX_HEADER_LINE_LENGTH // 2,
         ),
     )
 
