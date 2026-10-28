@@ -1,0 +1,4 @@
+# Install local workspace projects before the pages action installs the dev group.
+.
+./contract-tests
+./test-backends
