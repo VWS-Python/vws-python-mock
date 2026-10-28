@@ -5,18 +5,19 @@ from http import HTTPMethod, HTTPStatus
 from vws.response import Response
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from mock_vws.database import CloudDatabase
-from mock_vws.request_rate_limits import DOCUMENTED_REQUEST_RATE_LIMITS
+from tests.mock_vws.fixtures.credentials import CloudDatabaseCredentials
 from tests.mock_vws.utils import Endpoint
 from tests.mock_vws.utils.assertions import assert_vws_too_many_requests
 from tests.mock_vws.utils.backend_capabilities import BackendCapabilities
+
+_REQUESTS_PER_MINUTE = 2
 
 
 def test_two_requests_per_minute(
     *,
     base_vws_url: str,
     backend_capabilities: BackendCapabilities,
-    rate_limited_database: CloudDatabase,
+    rate_limited_database: CloudDatabaseCredentials,
 ) -> None:
     """A third ``GET /targets`` request within a minute is rate
     limited,
@@ -28,8 +29,6 @@ def test_two_requests_per_minute(
     request. The mocks use a rolling window on a fresh database, so they
     reject exactly the third.
     """
-    limit = DOCUMENTED_REQUEST_RATE_LIMITS.list_targets
-    assert limit is not None
     responses: list[Response] = []
     # Real Vuforia's fixed window means the rejection may come on any
     # of the first three requests, so requests are sent until one is
@@ -60,14 +59,14 @@ def test_two_requests_per_minute(
         responses.append(response)
         if response.status_code == HTTPStatus.TOO_MANY_REQUESTS:
             break
-        assert len(responses) <= limit.max_requests + 2
+        assert len(responses) <= _REQUESTS_PER_MINUTE + 2
 
     status_codes = [response.status_code for response in responses]
     if backend_capabilities.rolling_rate_limit_window:
         assert status_codes == [
-            *[HTTPStatus.OK] * limit.max_requests,
+            *[HTTPStatus.OK] * _REQUESTS_PER_MINUTE,
             HTTPStatus.TOO_MANY_REQUESTS,
         ]
     assert status_codes[-1] == HTTPStatus.TOO_MANY_REQUESTS
-    assert status_codes.count(HTTPStatus.OK) <= limit.max_requests
+    assert status_codes.count(HTTPStatus.OK) <= _REQUESTS_PER_MINUTE
     assert_vws_too_many_requests(response=responses[-1])
