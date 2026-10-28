@@ -1,0 +1,1345 @@
+"""A fake implementation of the Vuforia Web Services API.
+
+See
+https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api
+"""
+
+import base64
+import email.utils
+import gzip
+import html
+import logging
+import threading
+import time
+import uuid
+from enum import StrEnum, auto
+from http import HTTPMethod, HTTPStatus
+from typing import NotRequired, TypedDict, assert_never
+
+import requests
+from beartype import beartype
+from flask import Flask, Response, request
+from pydantic import JsonValue, TypeAdapter
+from pydantic_settings import BaseSettings
+from werkzeug.exceptions import MethodNotAllowed, NotFound
+
+from mock_vws.database import CloudDatabase, VuMarkDatabase
+from mock_vws.image_matchers import (
+    ExactMatcher,
+    ImageMatcher,
+    StructuralSimilarityMatcher,
+)
+from mock_vws.model_target import (
+    ModelTargetDataset,
+    ModelTargetDatasetType,
+    OAuth2ClientCredential,
+)
+from mock_vws.reco_counts import RecoCountsReport
+from mock_vws.server_api import (
+    VUMARK_PDF,
+    VUMARK_PNG,
+    VUMARK_SVG,
+    FailError,
+    InvalidAcceptHeaderError,
+    InvalidTargetTypeError,
+    RequestData,
+    RequestRateLimiter,
+    ResultCodes,
+    TargetStatuses,
+    TargetStatusNotSuccessError,
+    TargetStatusProcessingError,
+    create_model_target_dataset,
+    create_reco_counts_report,
+    delete_model_target_dataset,
+    download_model_target_dataset,
+    get_database_matching_server_keys,
+    get_model_target_dataset_status,
+    json_dump,
+    matching_targets,
+    run_services_validators,
+    sorted_targets,
+)
+from mock_vws.server_api import (
+    ServicesValidatorError as ValidatorError,
+)
+from mock_vws.server_api import (
+    create_oauth2_client_credential as model_target_create_oauth2_credential,
+)
+from mock_vws.server_api import (
+    delete_oauth2_client_credential as model_target_delete_oauth2_credential,
+)
+from mock_vws.server_api import (
+    download_reco_counts_report as download_report,
+)
+from mock_vws.server_api import (
+    list_oauth2_client_credentials as model_target_list_oauth2_credentials,
+)
+from mock_vws.server_api import (
+    oauth2_token as model_target_oauth2_token,
+)
+from mock_vws.server_api import (
+    update_oauth2_client_credential_scopes as update_oauth2_scopes,
+)
+from mock_vws.target import ImageTarget
+from mock_vws.target_raters import (
+    HardcodedTargetTrackingRater,
+)
+
+VWS_FLASK_APP = Flask(import_name=__name__, static_folder=None)
+VWS_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
+
+# In the Docker deployment the target manager service owns all database and
+# target state, and each VWS app instance is otherwise stateless.
+# Request rate limit history is deliberately an exception: it is tracked per
+# VWS app instance, so it is lost when the app restarts.
+_REQUEST_RATE_LIMITER = RequestRateLimiter(time_function=time.monotonic)
+
+
+_LOGGER = logging.getLogger(name=__name__)
+
+
+class _AddTargetBody(TypedDict):
+    """A validated add-target request body."""
+
+    name: str
+    width: float
+    image: str
+    active_flag: NotRequired[bool | None]
+    application_metadata: NotRequired[str | None]
+
+
+class _UpdateTargetBody(TypedDict):
+    """A validated update-target request body."""
+
+    width: NotRequired[float]
+    active_flag: NotRequired[bool | None]
+    application_metadata: NotRequired[str | None]
+    name: NotRequired[str]
+    image: NotRequired[str]
+
+
+class _OAuth2ClientCredentialBody(TypedDict):
+    """An OAuth2 client credential returned by the target manager."""
+
+    client_id: str
+    client_secret: str
+    scopes: list[str]
+
+
+_ADD_TARGET_BODY_ADAPTER = TypeAdapter(type=_AddTargetBody)
+_UPDATE_TARGET_BODY_ADAPTER = TypeAdapter(type=_UpdateTargetBody)
+_OAUTH2_CLIENT_CREDENTIALS_ADAPTER = TypeAdapter(
+    type=list[_OAuth2ClientCredentialBody],
+)
+
+
+@beartype
+class _ImageMatcherChoice(StrEnum):
+    """Image matcher choices."""
+
+    EXACT = auto()
+    STRUCTURAL_SIMILARITY = auto()
+
+    def to_image_matcher(self: _ImageMatcherChoice) -> ImageMatcher:
+        """Get the image matcher."""
+        match self:
+            case _ImageMatcherChoice.EXACT:
+                return ExactMatcher()
+            case _ImageMatcherChoice.STRUCTURAL_SIMILARITY:
+                return StructuralSimilarityMatcher()
+            case _ as unreachable:
+                assert_never(unreachable)
+
+
+@beartype
+class VWSSettings(BaseSettings):
+    """Settings for the VWS Flask app."""
+
+    target_manager_base_url: str
+    processing_time_seconds: float = 2.0
+    vws_host: str = ""
+    # The base URL which clients use to reach this application.
+    # Generated reco counts reports are served from this URL.
+    vws_base_url: str = "https://vws.vuforia.com"
+    duplicates_image_matcher: _ImageMatcherChoice = (
+        _ImageMatcherChoice.STRUCTURAL_SIMILARITY
+    )
+    response_delay_seconds: float = 0.0
+    model_target_training_allowance_exceeded: bool = False
+
+
+@beartype
+def get_all_cloud_databases() -> set[CloudDatabase]:
+    """Get all database objects from the task manager back-end."""
+    settings = VWSSettings.model_validate(obj={})
+    timeout_seconds = 30
+    response = requests.get(
+        url=f"{settings.target_manager_base_url}/cloud_databases",
+        timeout=timeout_seconds,
+    )
+    return {
+        CloudDatabase.from_dict(database_dict=database_dict)
+        for database_dict in response.json()
+    }
+
+
+@beartype
+def get_all_vumark_databases() -> set[VuMarkDatabase]:
+    """Get all VuMark database objects from the task manager back-end."""
+    settings = VWSSettings.model_validate(obj={})
+    timeout_seconds = 30
+    response = requests.get(
+        url=f"{settings.target_manager_base_url}/vumark_databases",
+        timeout=timeout_seconds,
+    )
+    return {
+        VuMarkDatabase.from_dict(database_dict=database_dict)
+        for database_dict in response.json()
+    }
+
+
+@beartype
+def _flask_request_data() -> RequestData:
+    """Return the current Flask request as shared request data."""
+    return RequestData(
+        method=request.method,
+        path=request.path,
+        headers=dict(request.headers),
+        body=request.get_data(parse_form_data=False),
+    )
+
+
+@beartype
+class _HTTPModelTargetDatasetStore:
+    """Model Target dataset storage backed by the target manager
+    service.
+    """
+
+    def __init__(self, *, base_url: str) -> None:
+        """
+        Args:
+            base_url: The base URL of the target manager service.
+        """
+        self._datasets_url = f"{base_url}/model_target_datasets"
+        self._credentials_url = f"{base_url}/oauth2_client_credentials"
+
+    @property
+    def model_target_datasets(self) -> dict[str, ModelTargetDataset]:
+        """All Model Target datasets, keyed by UUID."""
+        timeout_seconds = 30
+        response = requests.get(
+            url=self._datasets_url,
+            timeout=timeout_seconds,
+        )
+        datasets = (
+            ModelTargetDataset.from_dict(dataset_dict=dataset_dict)
+            for dataset_dict in response.json()
+        )
+        return {dataset.uuid_: dataset for dataset in datasets}
+
+    def add_model_target_dataset(
+        self,
+        model_target_dataset: ModelTargetDataset,
+    ) -> None:
+        """Add a Model Target dataset."""
+        timeout_seconds = 30
+        _ = requests.post(
+            url=self._datasets_url,
+            json=model_target_dataset.to_dict(),
+            timeout=timeout_seconds,
+        )
+
+    def remove_model_target_dataset(self, dataset_uuid: str) -> None:
+        """Remove a Model Target dataset."""
+        timeout_seconds = 30
+        _ = requests.delete(
+            url=f"{self._datasets_url}/{dataset_uuid}",
+            timeout=timeout_seconds,
+        )
+
+    @property
+    def oauth2_client_credentials(self) -> dict[str, OAuth2ClientCredential]:
+        """All dynamically created OAuth2 client credentials."""
+        response = requests.get(url=self._credentials_url, timeout=30)
+        credentials = (
+            OAuth2ClientCredential(
+                client_id=value["client_id"],
+                client_secret=value["client_secret"],
+                scopes=tuple(value["scopes"]),
+            )
+            for value in _OAUTH2_CLIENT_CREDENTIALS_ADAPTER.validate_python(
+                response.json(),
+            )
+        )
+        return {credential.client_id: credential for credential in credentials}
+
+    def add_oauth2_client_credential(
+        self,
+        credential: OAuth2ClientCredential,
+    ) -> None:
+        """Add or replace an OAuth2 client credential."""
+        _ = requests.post(
+            url=self._credentials_url,
+            json={
+                "client_id": credential.client_id,
+                "client_secret": credential.client_secret,
+                "scopes": list(credential.scopes),
+            },
+            timeout=30,
+        )
+
+    def remove_oauth2_client_credential(self, client_id: str) -> None:
+        """Remove an OAuth2 client credential."""
+        _ = requests.delete(
+            url=f"{self._credentials_url}/{client_id}",
+            timeout=30,
+        )
+
+
+@beartype
+def _model_target_dataset_store() -> _HTTPModelTargetDatasetStore:
+    """Return the dataset store backing the Model Target routes."""
+    settings = VWSSettings.model_validate(obj={})
+    return _HTTPModelTargetDatasetStore(
+        base_url=settings.target_manager_base_url,
+    )
+
+
+@beartype
+class _InMemoryRecoCountsReportStore:
+    """Reco counts report storage for this app instance.
+
+    Generated reports are served by this app, standing in for the presigned
+    cloud storage URLs which real Vuforia returns, so reports are stored in
+    this app rather than in the target manager service.
+    """
+
+    def __init__(self) -> None:
+        """Create a store with no reports."""
+        self._reports: dict[str, RecoCountsReport] = {}
+        self._lock = threading.Lock()
+
+    @property
+    def reco_counts_reports(self) -> dict[str, RecoCountsReport]:
+        """All reco counts reports, keyed by report file path."""
+        with self._lock:
+            return dict(self._reports)
+
+    def add_reco_counts_report(
+        self,
+        reco_counts_report: RecoCountsReport,
+    ) -> None:
+        """Add a reco counts report."""
+        with self._lock:
+            self._reports[reco_counts_report.key] = reco_counts_report
+
+
+_RECO_COUNTS_REPORT_STORE = _InMemoryRecoCountsReportStore()
+
+
+@beartype
+def _to_flask_response(
+    api_response: tuple[int, dict[str, str], str | bytes],
+) -> Response:
+    """Convert a shared API response to a Flask response."""
+    status_code, headers, body = api_response
+    return Response(response=body, status=status_code, headers=headers)
+
+
+@VWS_FLASK_APP.before_request
+@beartype
+def set_terminate_wsgi_input() -> None:
+    """We set ``wsgi.input_terminated`` to ``True`` when going through
+    ``requests`` in our tests, so that requests have the given ``Content-
+    Length`` headers and the given data in ``request.headers`` and
+    ``request.data``.
+
+    We do not set this at all when running an application as standalone.
+    This is because when running the Flask application, if this is set,
+    reading ``request.data`` hangs.
+
+    Therefore, when running the real Flask application, the behavior is not the
+    same as the real Vuforia.
+    This is documented as a difference in the documentation for this package.
+    """
+    config = TypeAdapter(type=dict[str, object]).validate_python(
+        VWS_FLASK_APP.config,
+    )
+    terminate_wsgi_input = config.get(
+        "VWS_MOCK_TERMINATE_WSGI_INPUT",
+    )
+
+    if terminate_wsgi_input is True:
+        request.environ["wsgi.input_terminated"] = True
+
+
+@VWS_FLASK_APP.before_request
+@beartype
+def validate_request() -> None:
+    """Run validators on the request.
+
+    The VuMark endpoint does its own validation because it needs to
+    authenticate against both cloud and VuMark databases.
+
+    Reco counts report downloads stand in for presigned URLs, which are not
+    authorized with VWS credentials.
+
+    Flask runs ``before_request`` handlers before it raises a routing error,
+    so requests which match no route reach this function.
+    Those requests are left to Flask, which raises the routing error, and
+    ``handle_unrouted_request`` turns that into a response.
+    """
+    if request.url_rule is None:
+        return
+    if request.endpoint == "generate_vumark_instance":
+        return
+    if (
+        request.path.startswith("/oauth2/")
+        or request.path.startswith("/modeltargets/")
+        or request.path.startswith("/reports/")
+    ):
+        return
+    _ = run_services_validators(
+        request_headers=dict(request.headers),
+        request_body=request.data,
+        request_method=request.method,
+        request_path=request.path,
+        databases=get_all_cloud_databases(),
+        request_rate_limiter=_REQUEST_RATE_LIMITER,
+    )
+
+
+@VWS_FLASK_APP.after_request
+@beartype
+def add_response_delay(response: Response) -> Response:
+    """Add a delay to each response."""
+    settings = VWSSettings.model_validate(obj={})
+    time.sleep(settings.response_delay_seconds)
+    return response
+
+
+@VWS_FLASK_APP.errorhandler(code_or_exception=ValidatorError)
+@beartype
+def handle_exceptions(exc: ValidatorError) -> Response:
+    """Return the error response associated with the given exception."""
+    response = Response(
+        status=exc.status_code.value,
+        response=exc.response_text,
+        headers=exc.headers,
+    )
+
+    response.headers.clear()
+    response.headers.extend(exc.headers)
+    return response
+
+
+@VWS_FLASK_APP.errorhandler(code_or_exception=HTTPStatus.NOT_FOUND)
+@VWS_FLASK_APP.errorhandler(code_or_exception=HTTPStatus.METHOD_NOT_ALLOWED)
+@beartype
+def handle_unrouted_request(exc: NotFound | MethodNotAllowed) -> Response:
+    """Return the real Vuforia 404 shape for an unrouted request.
+
+    Vuforia's edge returns an empty response for unknown path prefixes. Paths
+    routed to the Cloud Targets application return its HTML Not Found page.
+    """
+    del exc
+    application_prefixes = ("/duplicates", "/summary", "/targets")
+    if request.path.startswith(application_prefixes):
+        request_description = html.escape(
+            s=f"{request.method} {request.path}",
+            quote=True,
+        )
+        body = f"""<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Not Found</title>
+    </head>
+    <body>
+        <h1>Not Found</h1>
+        <p id="detail">For request '{request_description}'</p>
+    </body>
+</html>
+""".encode()
+        return Response(
+            status=HTTPStatus.NOT_FOUND,
+            response=gzip.compress(data=body),
+            headers={
+                "Content-Type": "text/html; charset=UTF-8",
+                "Content-Encoding": "gzip",
+                "x-envoy-upstream-service-time": "5",
+            },
+        )
+
+    response = Response(status=HTTPStatus.NOT_FOUND, response=b"")
+    del response.headers["Content-Type"]
+    return response
+
+
+@VWS_FLASK_APP.route(rule="/oauth2/token", methods=[HTTPMethod.POST])
+@beartype
+def oauth2_token() -> Response:
+    """Obtain an OAuth2 token for the Model Target Web API."""
+    return _to_flask_response(
+        api_response=model_target_oauth2_token(
+            request=_flask_request_data(),
+            credential_store=_model_target_dataset_store(),
+        ),
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/oauth2/clientcredentials",
+    methods=[HTTPMethod.POST],
+)
+@beartype
+def create_oauth2_client_credential() -> Response:
+    """Create an OAuth2 client credential."""
+    return _to_flask_response(
+        api_response=model_target_create_oauth2_credential(
+            request=_flask_request_data(),
+            credential_store=_model_target_dataset_store(),
+        ),
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/oauth2/clientcredentials",
+    methods=[HTTPMethod.GET],
+)
+@beartype
+def list_oauth2_client_credentials() -> Response:
+    """List OAuth2 client credentials."""
+    return _to_flask_response(
+        api_response=model_target_list_oauth2_credentials(
+            request=_flask_request_data(),
+            credential_store=_model_target_dataset_store(),
+        ),
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/oauth2/clientcredentials/<string:client_id>/scopes",
+    methods=[HTTPMethod.PUT],
+)
+@beartype
+def update_oauth2_client_credential_scopes(client_id: str) -> Response:
+    """Update an OAuth2 client credential's scopes."""
+    return _to_flask_response(
+        api_response=update_oauth2_scopes(
+            request=_flask_request_data(),
+            credential_store=_model_target_dataset_store(),
+            client_id=client_id,
+        ),
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/oauth2/clientcredentials/<string:client_id>",
+    methods=[HTTPMethod.DELETE],
+)
+@beartype
+def delete_oauth2_client_credential(client_id: str) -> Response:
+    """Delete an OAuth2 client credential."""
+    return _to_flask_response(
+        api_response=model_target_delete_oauth2_credential(
+            request=_flask_request_data(),
+            credential_store=_model_target_dataset_store(),
+            client_id=client_id,
+        ),
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/modeltargets/datasets",
+    methods=[HTTPMethod.POST],
+)
+@beartype
+def create_standard_model_target_dataset() -> Response:
+    """Create a standard Model Target dataset."""
+    settings = VWSSettings.model_validate(obj={})
+    return _to_flask_response(
+        api_response=create_model_target_dataset(
+            request=_flask_request_data(),
+            dataset_store=_model_target_dataset_store(),
+            processing_time_seconds=settings.processing_time_seconds,
+            dataset_type=ModelTargetDatasetType.STANDARD,
+            generation_failure=None,
+            generation_warning=None,
+            training_allowance_exceeded=(
+                settings.model_target_training_allowance_exceeded
+            ),
+        ),
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/modeltargets/advancedDatasets",
+    methods=[HTTPMethod.POST],
+)
+@beartype
+def create_advanced_model_target_dataset() -> Response:
+    """Create an advanced Model Target dataset."""
+    settings = VWSSettings.model_validate(obj={})
+    return _to_flask_response(
+        api_response=create_model_target_dataset(
+            request=_flask_request_data(),
+            dataset_store=_model_target_dataset_store(),
+            processing_time_seconds=settings.processing_time_seconds,
+            dataset_type=ModelTargetDatasetType.ADVANCED,
+            generation_failure=None,
+            generation_warning=None,
+            training_allowance_exceeded=(
+                settings.model_target_training_allowance_exceeded
+            ),
+        ),
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/modeltargets/datasets/<string:dataset_uuid>/status",
+    methods=[HTTPMethod.GET],
+)
+@beartype
+def get_standard_model_target_dataset_status(
+    dataset_uuid: str,
+) -> Response:
+    """Return a standard Model Target dataset creation status."""
+    return _to_flask_response(
+        api_response=get_model_target_dataset_status(
+            request=_flask_request_data(),
+            dataset_store=_model_target_dataset_store(),
+            dataset_uuid=dataset_uuid,
+            dataset_type=ModelTargetDatasetType.STANDARD,
+        ),
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/modeltargets/advancedDatasets/<string:dataset_uuid>/status",
+    methods=[HTTPMethod.GET],
+)
+@beartype
+def get_advanced_model_target_dataset_status(
+    dataset_uuid: str,
+) -> Response:
+    """Return an advanced Model Target dataset creation status."""
+    return _to_flask_response(
+        api_response=get_model_target_dataset_status(
+            request=_flask_request_data(),
+            dataset_store=_model_target_dataset_store(),
+            dataset_uuid=dataset_uuid,
+            dataset_type=ModelTargetDatasetType.ADVANCED,
+        ),
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/modeltargets/datasets/<string:dataset_uuid>/dataset",
+    methods=[HTTPMethod.GET],
+)
+@beartype
+def download_standard_model_target_dataset(
+    dataset_uuid: str,
+) -> Response:
+    """Download a standard Model Target dataset."""
+    return _to_flask_response(
+        api_response=download_model_target_dataset(
+            request=_flask_request_data(),
+            dataset_store=_model_target_dataset_store(),
+            dataset_uuid=dataset_uuid,
+            dataset_type=ModelTargetDatasetType.STANDARD,
+        ),
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/modeltargets/advancedDatasets/<string:dataset_uuid>/dataset",
+    methods=[HTTPMethod.GET],
+)
+@beartype
+def download_advanced_model_target_dataset(
+    dataset_uuid: str,
+) -> Response:
+    """Download an advanced Model Target dataset."""
+    return _to_flask_response(
+        api_response=download_model_target_dataset(
+            request=_flask_request_data(),
+            dataset_store=_model_target_dataset_store(),
+            dataset_uuid=dataset_uuid,
+            dataset_type=ModelTargetDatasetType.ADVANCED,
+        ),
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/modeltargets/datasets/<string:dataset_uuid>",
+    methods=[HTTPMethod.DELETE],
+)
+@beartype
+def delete_standard_model_target_dataset(dataset_uuid: str) -> Response:
+    """Delete a standard Model Target dataset."""
+    return _to_flask_response(
+        api_response=delete_model_target_dataset(
+            request=_flask_request_data(),
+            dataset_store=_model_target_dataset_store(),
+            dataset_uuid=dataset_uuid,
+            dataset_type=ModelTargetDatasetType.STANDARD,
+        ),
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/modeltargets/advancedDatasets/<string:dataset_uuid>",
+    methods=[HTTPMethod.DELETE],
+)
+@beartype
+def delete_advanced_model_target_dataset(dataset_uuid: str) -> Response:
+    """Delete an advanced Model Target dataset."""
+    return _to_flask_response(
+        api_response=delete_model_target_dataset(
+            request=_flask_request_data(),
+            dataset_store=_model_target_dataset_store(),
+            dataset_uuid=dataset_uuid,
+            dataset_type=ModelTargetDatasetType.ADVANCED,
+        ),
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/imagetargets/databases/<string:database_id>/reports/recoCounts",
+    methods=[HTTPMethod.POST],
+)
+@beartype
+def request_reco_counts_report(database_id: str) -> Response:
+    """Request a reco counts report for a database.
+
+    Fake implementation of
+    https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api
+    """
+    # The database ID in the path is validated against the request's server
+    # keys before the request reaches this route.
+    del database_id
+    settings = VWSSettings.model_validate(obj={})
+    database = get_database_matching_server_keys(
+        request_headers=dict(request.headers),
+        request_body=request.data,
+        request_method=request.method,
+        request_path=request.path,
+        databases=get_all_cloud_databases(),
+    )
+    return _to_flask_response(
+        api_response=create_reco_counts_report(
+            request_body=request.data,
+            database=database,
+            report_store=_RECO_COUNTS_REPORT_STORE,
+            generation_time_seconds=settings.processing_time_seconds,
+            base_url=settings.vws_base_url.rstrip("/"),
+        ),
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/reports/<string:database_id>/<string:file_name>",
+    methods=[HTTPMethod.GET],
+)
+@beartype
+def download_reco_counts_report(database_id: str, file_name: str) -> Response:
+    """Download a generated reco counts report.
+
+    This stands in for the presigned URL which real Vuforia returns, so it
+    does not require any authorization beyond the query parameters of that
+    URL.
+    """
+    # The report is looked up by the whole path, which names the database
+    # and the file.
+    del database_id
+    del file_name
+    return _to_flask_response(
+        api_response=download_report(
+            report_store=_RECO_COUNTS_REPORT_STORE,
+            request_path=request.full_path,
+        ),
+    )
+
+
+@VWS_FLASK_APP.route(rule="/targets", methods=[HTTPMethod.POST])
+@beartype
+def add_target() -> Response:
+    """Add a target.
+
+    Fake implementation of
+    https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#add
+    """
+    settings = VWSSettings.model_validate(obj={})
+    databases = get_all_cloud_databases()
+    database = get_database_matching_server_keys(
+        request_headers=dict(request.headers),
+        request_body=request.data,
+        request_method=request.method,
+        request_path=request.path,
+        databases=databases,
+    )
+
+    # We do not use ``request.get_json(force=True)`` because this only works
+    # when the content type is given as ``application/json``.
+    request_json = _ADD_TARGET_BODY_ADAPTER.validate_json(
+        request.data,
+        strict=True,
+    )
+    name = request_json["name"]
+    active_flag = request_json.get("active_flag")
+    if active_flag is None:
+        active_flag = True
+
+    # This rater is not used.
+    target_tracking_rater = HardcodedTargetTrackingRater(rating=1)
+
+    new_target = ImageTarget(
+        name=name,
+        width=request_json["width"],
+        image_value=base64.b64decode(s=request_json["image"]),
+        active_flag=active_flag,
+        processing_time_seconds=settings.processing_time_seconds,
+        application_metadata=request_json.get("application_metadata"),
+        target_tracking_rater=target_tracking_rater,
+    )
+
+    databases_url = f"{settings.target_manager_base_url}/cloud_databases"
+    timeout_seconds = 30
+    _ = requests.post(
+        url=f"{databases_url}/{database.database_name}/targets",
+        json=new_target.to_dict(),
+        timeout=timeout_seconds,
+    )
+
+    date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
+    headers = {
+        "Connection": "keep-alive",
+        "Content-Type": "application/json",
+        "server": "envoy",
+        "Date": date,
+        "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
+    }
+
+    body = {
+        "transaction_id": uuid.uuid4().hex,
+        "result_code": ResultCodes.TARGET_CREATED.value,
+        "target_id": new_target.target_id,
+    }
+
+    return Response(
+        status=HTTPStatus.CREATED,
+        response=json_dump(body=body),
+        headers=headers,
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/targets/<string:target_id>", methods=[HTTPMethod.GET]
+)
+@beartype
+def get_target(target_id: str) -> Response:
+    """Get details of a target.
+
+    Fake implementation of
+    https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#target-record
+    """
+    databases = get_all_cloud_databases()
+    database = get_database_matching_server_keys(
+        request_headers=dict(request.headers),
+        request_body=request.data,
+        request_method=request.method,
+        request_path=request.path,
+        databases=databases,
+    )
+
+    (target,) = (
+        target for target in database.targets if target.target_id == target_id
+    )
+
+    width = target.width
+    tracking_rating = target.tracking_rating
+    reco_rating = target.reco_rating
+    target_record: dict[str, JsonValue] = {
+        "target_id": target.target_id,
+        "active_flag": target.active_flag,
+        "name": target.name,
+        "width": width,
+        "tracking_rating": tracking_rating,
+        "reco_rating": reco_rating,
+    }
+
+    date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
+    headers = {
+        "Connection": "keep-alive",
+        "Content-Type": "application/json",
+        "server": "envoy",
+        "Date": date,
+        "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
+    }
+    body: dict[str, JsonValue] = {
+        "result_code": ResultCodes.SUCCESS.value,
+        "transaction_id": uuid.uuid4().hex,
+        "target_record": target_record,
+        "status": target.status,
+    }
+    return Response(
+        status=HTTPStatus.OK,
+        response=json_dump(body=body),
+        headers=headers,
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/targets/<string:target_id>",
+    methods=[HTTPMethod.DELETE],
+)
+@beartype
+def delete_target(target_id: str) -> Response:
+    """Delete a target.
+
+    Fake implementation of
+    https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#delete
+    """
+    settings = VWSSettings.model_validate(obj={})
+    databases = get_all_cloud_databases()
+    database = get_database_matching_server_keys(
+        request_headers=dict(request.headers),
+        request_body=request.data,
+        request_method=request.method,
+        request_path=request.path,
+        databases=databases,
+    )
+
+    (target,) = (
+        target for target in database.targets if target.target_id == target_id
+    )
+
+    if target.status == TargetStatuses.PROCESSING.value:
+        raise TargetStatusProcessingError
+
+    databases_url = f"{settings.target_manager_base_url}/cloud_databases"
+    _ = requests.delete(
+        url=f"{databases_url}/{database.database_name}/targets/{target_id}",
+        timeout=30,
+    )
+
+    body: dict[str, JsonValue] = {
+        "transaction_id": uuid.uuid4().hex,
+        "result_code": ResultCodes.SUCCESS.value,
+    }
+    date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
+    headers = {
+        "Connection": "keep-alive",
+        "Content-Type": "application/json",
+        "server": "envoy",
+        "Date": date,
+        "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
+    }
+    return Response(
+        status=HTTPStatus.OK,
+        response=json_dump(body=body),
+        headers=headers,
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/targets/<string:target_id>/instances",
+    methods=[HTTPMethod.POST],
+)
+@beartype
+def generate_vumark_instance(target_id: str) -> Response:
+    """Generate a VuMark instance.
+
+    Fake implementation of
+    https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#generate-instance
+    """
+    cloud_databases = get_all_cloud_databases()
+    vumark_databases = get_all_vumark_databases()
+    all_databases: list[CloudDatabase | VuMarkDatabase] = [
+        *cloud_databases,
+        *vumark_databases,
+    ]
+    _ = run_services_validators(
+        request_headers=dict(request.headers),
+        request_body=request.data,
+        request_method=request.method,
+        request_path=request.path,
+        databases=all_databases,
+        request_rate_limiter=_REQUEST_RATE_LIMITER,
+    )
+
+    database = get_database_matching_server_keys(
+        request_headers=dict(request.headers),
+        request_body=request.data,
+        request_method=request.method,
+        request_path=request.path,
+        databases=all_databases,
+    )
+    if not isinstance(database, VuMarkDatabase):
+        raise InvalidTargetTypeError
+
+    target = database.get_vumark_target(target_id=target_id)
+    if target.status != TargetStatuses.SUCCESS.value:
+        raise TargetStatusNotSuccessError
+
+    accept = request.headers.get(key="Accept", default="")
+    valid_accept_types: dict[str, bytes] = {
+        "image/png": VUMARK_PNG,
+        "image/svg+xml": VUMARK_SVG,
+        "application/pdf": VUMARK_PDF,
+    }
+    if accept not in valid_accept_types:
+        raise InvalidAcceptHeaderError
+
+    response_body = valid_accept_types[accept]
+    content_type = accept
+    date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
+    headers = {
+        "Connection": "keep-alive",
+        "Content-Type": content_type,
+        "server": "envoy",
+        "Date": date,
+        "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
+    }
+    return Response(
+        status=HTTPStatus.OK,
+        response=response_body,
+        headers=headers,
+    )
+
+
+@VWS_FLASK_APP.route(rule="/summary", methods=[HTTPMethod.GET])
+@beartype
+def database_summary() -> Response:
+    """Get a database summary report.
+
+    Fake implementation of
+    https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#summary-report
+    """
+    databases = get_all_cloud_databases()
+    database = get_database_matching_server_keys(
+        request_headers=dict(request.headers),
+        request_body=request.data,
+        request_method=request.method,
+        request_path=request.path,
+        databases=databases,
+    )
+
+    body: dict[str, JsonValue] = {
+        "result_code": ResultCodes.SUCCESS.value,
+        "transaction_id": uuid.uuid4().hex,
+        "name": database.database_name,
+        "active_images": len(database.active_targets),
+        "inactive_images": len(database.inactive_targets),
+        "failed_images": len(database.failed_targets),
+        "target_quota": database.target_quota,
+        "total_recos": database.total_recos,
+        "current_month_recos": database.current_month_recos,
+        "previous_month_recos": database.previous_month_recos,
+        "processing_images": len(database.processing_targets),
+        "reco_threshold": database.reco_threshold,
+        "request_quota": database.request_quota,
+        # We have ``self.request_count`` but Vuforia always shows 0.
+        # This was not always the case.
+        "request_usage": 0,
+    }
+    date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
+    headers = {
+        "Connection": "keep-alive",
+        "Content-Type": "application/json",
+        "server": "envoy",
+        "Date": date,
+        "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
+    }
+    return Response(
+        status=HTTPStatus.OK,
+        response=json_dump(body=body),
+        headers=headers,
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/summary/<string:target_id>",
+    methods=[HTTPMethod.GET],
+)
+@beartype
+def target_summary(target_id: str) -> Response:
+    """Get a summary report for a target.
+
+    Fake implementation of
+    https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#retrieve-report
+    """
+    databases = get_all_cloud_databases()
+    database = get_database_matching_server_keys(
+        request_headers=dict(request.headers),
+        request_body=request.data,
+        request_method=request.method,
+        request_path=request.path,
+        databases=databases,
+    )
+
+    (target,) = (
+        target for target in database.targets if target.target_id == target_id
+    )
+    tracking_rating = target.tracking_rating
+    total_recos = target.total_recos
+    current_month_recos = target.current_month_recos
+    previous_month_recos = target.previous_month_recos
+    body: dict[str, JsonValue] = {
+        "status": target.status,
+        "transaction_id": uuid.uuid4().hex,
+        "result_code": ResultCodes.SUCCESS.value,
+        "database_name": database.database_name,
+        "target_name": target.name,
+        "upload_date": target.upload_date.strftime(format="%Y-%m-%d"),
+        "active_flag": target.active_flag,
+        "tracking_rating": tracking_rating,
+        "total_recos": total_recos,
+        "current_month_recos": current_month_recos,
+        "previous_month_recos": previous_month_recos,
+    }
+    date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
+    headers = {
+        "Connection": "keep-alive",
+        "Content-Type": "application/json",
+        "server": "envoy",
+        "Date": date,
+        "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
+    }
+    return Response(
+        status=HTTPStatus.OK,
+        response=json_dump(body=body),
+        headers=headers,
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/duplicates/<string:target_id>",
+    methods=[HTTPMethod.GET],
+)
+@beartype
+def get_duplicates(target_id: str) -> Response:
+    """Get targets which may be considered duplicates of a given target.
+
+    Fake implementation of
+    https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#check
+    """
+    databases = get_all_cloud_databases()
+    settings = VWSSettings.model_validate(obj={})
+    database = get_database_matching_server_keys(
+        request_headers=dict(request.headers),
+        request_body=request.data,
+        request_method=request.method,
+        request_path=request.path,
+        databases=databases,
+    )
+    image_match_checker = settings.duplicates_image_matcher.to_image_matcher()
+
+    (target,) = (
+        target for target in database.targets if target.target_id == target_id
+    )
+    other_targets = {
+        other
+        for other in database.targets - {target}
+        if TargetStatuses.FAILED.value not in {target.status, other.status}
+        and TargetStatuses.PROCESSING.value != other.status
+        and other.active_flag
+    }
+
+    similar_targets: list[JsonValue] = [
+        other.target_id
+        for other in matching_targets(
+            matcher=image_match_checker,
+            image_content=target.image_value,
+            targets=other_targets,
+        )
+    ]
+
+    body: dict[str, JsonValue] = {
+        "transaction_id": uuid.uuid4().hex,
+        "result_code": ResultCodes.SUCCESS.value,
+        "similar_targets": similar_targets,
+    }
+
+    date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
+    headers = {
+        "Connection": "keep-alive",
+        "Content-Type": "application/json",
+        "server": "envoy",
+        "Date": date,
+        "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
+    }
+    return Response(
+        status=HTTPStatus.OK,
+        response=json_dump(body=body),
+        headers=headers,
+    )
+
+
+@VWS_FLASK_APP.route(rule="/targets", methods=[HTTPMethod.GET])
+@beartype
+def target_list() -> Response:
+    """Get a list of all targets.
+
+    Fake implementation of
+    https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#details-list
+    """
+    databases = get_all_cloud_databases()
+    database = get_database_matching_server_keys(
+        request_headers=dict(request.headers),
+        request_body=request.data,
+        request_method=request.method,
+        request_path=request.path,
+        databases=databases,
+    )
+    results: list[JsonValue] = [
+        target.target_id
+        for target in sorted_targets(targets=database.not_deleted_targets)
+    ]
+
+    body: dict[str, JsonValue] = {
+        "transaction_id": uuid.uuid4().hex,
+        "result_code": ResultCodes.SUCCESS.value,
+        "results": results,
+    }
+    date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
+    headers = {
+        "Connection": "keep-alive",
+        "Content-Type": "application/json",
+        "server": "envoy",
+        "Date": date,
+        "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
+    }
+    return Response(
+        status=HTTPStatus.OK,
+        response=json_dump(body=body),
+        headers=headers,
+    )
+
+
+@VWS_FLASK_APP.route(
+    rule="/targets/<string:target_id>", methods=[HTTPMethod.PUT]
+)
+@beartype
+def update_target(target_id: str) -> Response:
+    """Update a target.
+
+    Fake implementation of
+    https://developer.vuforia.com/library/web-api/cloud-targets-web-services-api#update
+    """
+    settings = VWSSettings.model_validate(obj={})
+    # We do not use ``request.get_json(force=True)`` because this only works
+    # when the content type is given as ``application/json``.
+    request_json = _UPDATE_TARGET_BODY_ADAPTER.validate_json(
+        request.data,
+        strict=True,
+    )
+    databases = get_all_cloud_databases()
+    database = get_database_matching_server_keys(
+        request_headers=dict(request.headers),
+        request_body=request.data,
+        request_method=request.method,
+        request_path=request.path,
+        databases=databases,
+    )
+
+    (target,) = (
+        target for target in database.targets if target.target_id == target_id
+    )
+
+    if target.status != TargetStatuses.SUCCESS.value:
+        raise TargetStatusNotSuccessError
+
+    update_values: dict[str, str | int | float | bool | None] = {}
+    if "width" in request_json:
+        update_values["width"] = request_json["width"]
+
+    if "active_flag" in request_json:
+        active_flag = request_json["active_flag"]
+        if active_flag is None:
+            _LOGGER.warning(
+                msg=(
+                    'The value of "active_flag" was None. '
+                    "This is not allowed. "
+                ),
+            )
+            raise FailError(status_code=HTTPStatus.BAD_REQUEST)
+        update_values["active_flag"] = active_flag
+
+    if "application_metadata" in request_json:
+        application_metadata = request_json["application_metadata"]
+        if application_metadata is None:
+            _LOGGER.warning(
+                msg=(
+                    'The value of "application_metadata" was None. '
+                    "This is not allowed."
+                ),
+            )
+            raise FailError(status_code=HTTPStatus.BAD_REQUEST)
+        update_values["application_metadata"] = application_metadata
+
+    if "name" in request_json:
+        name = request_json["name"]
+        update_values["name"] = name
+
+    if "image" in request_json:
+        image = request_json["image"]
+        update_values["image"] = image
+
+    put_url = (
+        f"{settings.target_manager_base_url}/cloud_databases/"
+        f"{database.database_name}/targets/{target_id}"
+    )
+    _ = requests.put(url=put_url, json=update_values, timeout=30)
+
+    date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
+    headers = {
+        "Connection": "keep-alive",
+        "Content-Type": "application/json",
+        "server": "envoy",
+        "Date": date,
+        "x-envoy-upstream-service-time": "5",
+        "strict-transport-security": "max-age=31536000",
+        "x-aws-region": "us-east-2, us-west-2",
+        "x-content-type-options": "nosniff",
+    }
+    body = {
+        "result_code": ResultCodes.SUCCESS.value,
+        "transaction_id": uuid.uuid4().hex,
+    }
+    return Response(
+        status=HTTPStatus.OK,
+        response=json_dump(body=body),
+        headers=headers,
+    )
+
+
+# Containers execute this process entry point; import-driven tests use its API.
+if __name__ == "__main__":  # pragma: no cover
+    SETTINGS = VWSSettings.model_validate(obj={})
+    VWS_FLASK_APP.run(host=SETTINGS.vws_host)
