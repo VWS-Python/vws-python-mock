@@ -9,15 +9,15 @@ import uuid
 import pytest
 from vws import VWS
 
-from mock_vws.database import CloudDatabase
 from tests.mock_vws.database_summary.helpers import (
     wait_for_image_numbers,
 )
+from tests.mock_vws.fixtures.credentials import NamedCloudDatabaseCredentials
 
 
 def test_success(
     *,
-    vuforia_database: CloudDatabase,
+    vuforia_database: NamedCloudDatabaseCredentials,
     vws_client: VWS,
 ) -> None:
     """It is possible to get a success response."""

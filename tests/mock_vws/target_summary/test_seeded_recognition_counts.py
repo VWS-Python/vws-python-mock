@@ -12,7 +12,7 @@ import uuid
 from vws import VWS
 from vws.reports import TargetStatuses
 
-from mock_vws.database import CloudDatabase
+from tests.mock_vws.fixtures.credentials import NamedCloudDatabaseCredentials
 from tests.mock_vws.utils.recognition_counts import SeedRecognitionCounts
 
 _CURRENT_MONTH_RECOS = 3
@@ -24,7 +24,7 @@ def test_seeded_counts(
     *,
     seed_recognition_counts: SeedRecognitionCounts,
     vws_client: VWS,
-    vuforia_database: CloudDatabase,
+    vuforia_database: NamedCloudDatabaseCredentials,
     high_quality_image: io.BytesIO,
 ) -> None:
     """The summary shows the recognition counts set on the target."""
