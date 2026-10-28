@@ -619,9 +619,8 @@ _MODEL_TARGET_SETUP_FUNCTIONS = {
 # jobs, and cannot be raised or reset, so signed requests run against the real
 # Vuforia only when this option is given.
 VERIFY_MODEL_TARGET_SIGNING_OPTION = "--verify-model-target-signing"
-_INVALID_JSON_REAL_NODE_ID_PREFIXES = tuple(
-    f"tests/mock_vws/invalid_json/test_invalid_json.py::{test_name}["
-    "Real Vuforia-"
+_INVALID_JSON_REAL_ITEM_PREFIXES = tuple(
+    f"{test_name}[Real Vuforia-"
     for test_name in ("test_not_json", "test_not_an_object", "test_not_utf_8")
 )
 _INVALID_JSON_REAL_SKIP_REASON = (
@@ -669,7 +668,10 @@ def pytest_collection_modifyitems(
         reason=_RECO_COUNTS_REAL_SKIP_REASON,
     )
     for item in items:
-        if item.nodeid.startswith(_INVALID_JSON_REAL_NODE_ID_PREFIXES):
+        if item.path.parts[-2:] == (
+            "invalid_json",
+            "test_invalid_json.py",
+        ) and item.name.startswith(_INVALID_JSON_REAL_ITEM_PREFIXES):
             item.add_marker(marker=invalid_json_real_marker)
         if _RECO_COUNTS_REAL_NODE_ID_PART in item.nodeid:
             item.add_marker(marker=reco_counts_real_marker)
