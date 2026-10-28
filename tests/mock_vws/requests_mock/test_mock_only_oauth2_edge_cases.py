@@ -7,16 +7,18 @@ import pytest
 import requests
 
 from mock_vws import MockVWS
-from tests.mock_vws.model_target_web_api.authentication import (
+from vws_mock_contract_tests.model_target_web_api.authentication import (
     MOCK_BEARER_TOKEN,
 )
-from tests.mock_vws.model_target_web_api.responses import parse_response_json
-from tests.mock_vws.model_target_web_api.sample_data import (
+from vws_mock_contract_tests.model_target_web_api.responses import (
+    parse_response_json,
+)
+from vws_mock_contract_tests.model_target_web_api.sample_data import (
     MODEL,
     STATE_CONFIGURATION,
     UNAUTHENTICATED_DATASET_REQUEST,
 )
-from tests.mock_vws.utils.assertions import (
+from vws_mock_contract_tests.utils.assertions import (
     assert_model_target_status,
 )
 

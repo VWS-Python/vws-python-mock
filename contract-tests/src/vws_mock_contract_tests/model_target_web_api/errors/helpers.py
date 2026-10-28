@@ -5,7 +5,7 @@ from http import HTTPStatus
 from beartype import beartype
 from vws.response import Response
 
-from tests.mock_vws.model_target_web_api.sample_data import (
+from vws_mock_contract_tests.model_target_web_api.sample_data import (
     MODEL,
 )
 
