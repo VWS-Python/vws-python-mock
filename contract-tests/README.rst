@@ -42,3 +42,14 @@ Import-only modules under ``tests/mock_vws`` preserve the existing CI selectors.
 The assertions have one source in ``vws_mock_contract_tests``.
 Core coverage measures the packaged source and omits the forwarding modules.
 The root test configuration avoids collecting the packaged tests a second time.
+
+The consumer integration test builds wheels and checks them in a fresh environment:
+
+.. code-block:: console
+
+   $ uv run --group=dev pytest \
+       --confcutdir=contract-tests/consumer \
+       -c contract-tests/consumer/pytest.ini \
+       contract-tests/consumer/test_installed_suite.py
+
+The consumer's dependency and lifecycle checks are explicit pytest plugins.
