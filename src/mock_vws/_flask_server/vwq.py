@@ -1,168 +1,17 @@
-"""A fake implementation of the Vuforia Web Query API using Flask.
+"""Compatibility imports for the separately installed server package."""
 
-See
-https://developer.vuforia.com/library/web-api/vuforia-query-web-api
-"""
+from flask import Flask
 
-import email.utils
-import time
-from enum import StrEnum, auto
-from http import HTTPMethod, HTTPStatus
-from typing import assert_never
-
-import requests
-from beartype import beartype
-from flask import Flask, Response, request
-from pydantic import TypeAdapter
-from pydantic_settings import BaseSettings
-
-from mock_vws.database import CloudDatabase
-from mock_vws.image_matchers import (
-    ExactMatcher,
-    ImageMatcher,
-    StructuralSimilarityMatcher,
+from vws_mock_server.vwq import (
+    CLOUDRECO_FLASK_APP as _FLASK_APP,
 )
-from mock_vws.server_api import (
-    QueryValidatorError as ValidatorError,
-)
-from mock_vws.server_api import (
-    get_query_match_response_text,
-    run_query_validators,
+from vws_mock_server.vwq import (
+    VWQSettings,
 )
 
-CLOUDRECO_FLASK_APP = Flask(import_name=__name__, static_folder=None)
-CLOUDRECO_FLASK_APP.config["PROPAGATE_EXCEPTIONS"] = True
+CLOUDRECO_FLASK_APP: Flask = _FLASK_APP
 
-
-@beartype
-class _ImageMatcherChoice(StrEnum):
-    """Image matcher choices."""
-
-    EXACT = auto()
-    STRUCTURAL_SIMILARITY = auto()
-
-    def to_image_matcher(self: _ImageMatcherChoice) -> ImageMatcher:
-        """Get the image matcher."""
-        match self:
-            case _ImageMatcherChoice.EXACT:
-                return ExactMatcher()
-            case _ImageMatcherChoice.STRUCTURAL_SIMILARITY:
-                return StructuralSimilarityMatcher()
-            case _ as unreachable:
-                assert_never(unreachable)
-
-
-@beartype
-class VWQSettings(BaseSettings):
-    """Settings for the VWQ Flask app."""
-
-    vwq_host: str = ""
-    target_manager_base_url: str
-    query_image_matcher: _ImageMatcherChoice = (
-        _ImageMatcherChoice.STRUCTURAL_SIMILARITY
-    )
-    response_delay_seconds: float = 0.0
-
-
-@beartype
-def get_all_cloud_databases() -> set[CloudDatabase]:
-    """Get all database objects from the target manager back-end."""
-    settings = VWQSettings.model_validate(obj={})
-    response = requests.get(
-        url=f"{settings.target_manager_base_url}/cloud_databases",
-        timeout=30,
-    )
-    return {
-        CloudDatabase.from_dict(database_dict=database_dict)
-        for database_dict in response.json()
-    }
-
-
-@CLOUDRECO_FLASK_APP.before_request
-@beartype
-def set_terminate_wsgi_input() -> None:
-    """We set ``wsgi.input_terminated`` to ``True`` when going through
-    ``requests`` in our tests, so that requests have the given ``Content-
-    Length`` headers and the given data in ``request.headers`` and
-    ``request.data``.
-
-    We do not set this at all when running an application as standalone.
-    This is because when running the Flask application, if this is set,
-    reading ``request.data`` hangs.
-
-    Therefore, when running the real Flask application, the behavior is not the
-    same as the real Vuforia.
-    This is documented as a difference in the documentation for this package.
-    """
-    config = TypeAdapter(type=dict[str, object]).validate_python(
-        CLOUDRECO_FLASK_APP.config,
-    )
-    terminate_wsgi_input = config.get(
-        "VWS_MOCK_TERMINATE_WSGI_INPUT",
-    )
-
-    if terminate_wsgi_input is True:
-        request.environ["wsgi.input_terminated"] = True
-
-
-@CLOUDRECO_FLASK_APP.after_request
-@beartype
-def add_response_delay(response: Response) -> Response:
-    """Add a delay to each response."""
-    settings = VWQSettings.model_validate(obj={})
-    time.sleep(settings.response_delay_seconds)
-    return response
-
-
-@CLOUDRECO_FLASK_APP.errorhandler(code_or_exception=ValidatorError)
-@beartype
-def handle_exceptions(exc: ValidatorError) -> Response:
-    """Return the error response associated with the given exception."""
-    response = Response(
-        status=exc.status_code.value,
-        response=exc.response_text,
-        headers=exc.headers,
-    )
-
-    response.headers.clear()
-    response.headers.extend(exc.headers)
-    return response
-
-
-@CLOUDRECO_FLASK_APP.route(rule="/v1/query", methods=[HTTPMethod.POST])
-@beartype
-def query() -> Response:
-    """Perform an image recognition query."""
-    settings = VWQSettings.model_validate(obj={})
-    query_match_checker = settings.query_image_matcher.to_image_matcher()
-
-    databases = get_all_cloud_databases()
-    request_body = request.stream.read()
-    validated_query = run_query_validators(
-        request_headers=dict(request.headers),
-        request_body=request_body,
-        request_method=request.method,
-        request_path=request.path,
-        databases=databases,
-    )
-    date = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
-
-    response_text = get_query_match_response_text(
-        validated_query=validated_query,
-        query_match_checker=query_match_checker,
-    )
-
-    headers = {
-        "Content-Type": "application/json",
-        "Date": date,
-        "Connection": "keep-alive",
-        "Server": "nginx",
-    }
-    return Response(
-        status=HTTPStatus.OK,
-        response=response_text,
-        headers=headers,
-    )
+__all__ = ["CLOUDRECO_FLASK_APP", "VWQSettings"]
 
 
 # Containers execute this process entry point; import-driven tests use its API.
