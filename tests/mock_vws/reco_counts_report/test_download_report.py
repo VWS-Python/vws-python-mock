@@ -12,7 +12,7 @@ from urllib.parse import urlsplit, urlunsplit
 
 import requests
 
-from mock_vws.database import CloudDatabase
+from tests.mock_vws.fixtures.credentials import CloudDatabaseCredentials
 from tests.mock_vws.reco_counts_report.helpers import (
     AMZ_DATE_FORMAT,
     CSV_HEADER,
@@ -30,7 +30,7 @@ from tests.mock_vws.reco_counts_report.helpers import (
 
 
 def test_download_report(
-    *, base_vws_url: str, vuforia_database: CloudDatabase
+    *, base_vws_url: str, vuforia_database: CloudDatabaseCredentials
 ) -> None:
     """The report is available from the given URL once it is ready.
 
@@ -62,7 +62,7 @@ def test_download_report(
 def test_second_request_serves_first_report(
     *,
     base_vws_url: str,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
 ) -> None:
     """A second request in the same hour serves the report which the
     first request generated, without generating it again.
@@ -91,7 +91,7 @@ def test_second_request_serves_first_report(
 
 
 def test_expired_url(
-    *, base_vws_url: str, vuforia_database: CloudDatabase
+    *, base_vws_url: str, vuforia_database: CloudDatabaseCredentials
 ) -> None:
     """A URL which has expired gives a 403 response.
 
@@ -149,7 +149,7 @@ def test_expired_url(
 
 
 def test_shortened_expiry(
-    *, base_vws_url: str, vuforia_database: CloudDatabase
+    *, base_vws_url: str, vuforia_database: CloudDatabaseCredentials
 ) -> None:
     """The URL expires ``X-Amz-Expires`` seconds after its
     ``X-Amz-Date``, so shortening that puts it out of date.
@@ -173,7 +173,7 @@ def test_shortened_expiry(
 
 
 def test_missing_query(
-    *, base_vws_url: str, vuforia_database: CloudDatabase
+    *, base_vws_url: str, vuforia_database: CloudDatabaseCredentials
 ) -> None:
     """The query parameters of the URL are its authorization, so the
     path
