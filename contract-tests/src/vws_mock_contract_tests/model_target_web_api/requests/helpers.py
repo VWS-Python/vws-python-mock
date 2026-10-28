@@ -9,14 +9,14 @@ from beartype import beartype
 from pydantic import TypeAdapter
 from vws.response import Response
 
-from tests.mock_vws.fixtures.model_target_prepared_requests import (
+from vws_mock_contract_tests.fixtures.model_target_prepared_requests import (
     MODEL_TARGET_DATASET_UUID,
 )
-from tests.mock_vws.model_target_web_api.responses import (
+from vws_mock_contract_tests.model_target_web_api.responses import (
     Error,
     response_targeted_error,
 )
-from tests.mock_vws.utils.assertions import (
+from vws_mock_contract_tests.utils.assertions import (
     assert_model_target_status,
     assert_valid_date_header,
 )

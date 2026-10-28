@@ -1,12 +1,7 @@
-"""Fixtures scoped to this group of tests."""
+"""Compatibility imports for the packaged contract suite."""
 
-import pytest
+from vws_mock_contract_tests.model_target_web_api.errors.contract.conftest import (  # noqa: E501
+    fixture_verify_backend,
+)
 
-
-@pytest.fixture(autouse=True)
-def fixture_verify_backend(
-    *,
-    verify_model_target_mock_vuforia: None,
-) -> None:
-    """Set up the backend for every contract test in this directory."""
-    del verify_model_target_mock_vuforia
+__all__ = ["fixture_verify_backend"]
