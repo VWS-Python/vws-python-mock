@@ -8,17 +8,17 @@ import requests
 from freezegun import freeze_time
 
 from mock_vws import MockVWS, ModelTargetGenerationFailure
-from tests.mock_vws.model_target_web_api.authentication import (
+from vws_mock_contract_tests.model_target_web_api.authentication import (
     MOCK_BEARER_TOKEN,
 )
-from tests.mock_vws.model_target_web_api.responses import (
+from vws_mock_contract_tests.model_target_web_api.responses import (
     parse_response_json,
     response_targeted_error,
 )
-from tests.mock_vws.model_target_web_api.sample_data import (
+from vws_mock_contract_tests.model_target_web_api.sample_data import (
     UNAUTHENTICATED_DATASET_REQUEST,
 )
-from tests.mock_vws.utils.assertions import assert_model_target_status
+from vws_mock_contract_tests.utils.assertions import assert_model_target_status
 
 _MODEL_TARGET_AUTHORIZATION = (
     "Bearer eyJhbGciOiJtb2NrIn0."

@@ -3,6 +3,6 @@ repository.
 """
 
 pytest_plugins = [
-    "tests.mock_vws.fixtures.plugin",
-    "tests.mock_vws.fixtures.vuforia_backends",
+    "vws_mock_contract_tests.fixtures.plugin",
+    "vws_mock_test_backends.vuforia_backends",
 ]

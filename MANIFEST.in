@@ -1,1 +1,6 @@
 recursive-include docs *.md
+include contract-tests/pyproject.toml contract-tests/README.rst contract-tests/LICENSE
+recursive-include contract-tests/src *.py py.typed
+recursive-include contract-tests/consumer *.py *.ini
+include test-backends/pyproject.toml test-backends/README.rst test-backends/LICENSE
+recursive-include test-backends/src *.py py.typed

@@ -7,12 +7,14 @@ import pytest
 import requests
 from vws.response import Response
 
-from tests.mock_vws.fixtures.vuforia_backends import VuforiaBackend
-from tests.mock_vws.model_target_web_api.errors.helpers import fake_response
-from tests.mock_vws.utils.assertions import assert_model_target_status
-from tests.mock_vws.utils.model_target_response_policy import (
+from vws_mock_contract_tests.model_target_web_api.errors.helpers import (
+    fake_response,
+)
+from vws_mock_contract_tests.utils.assertions import assert_model_target_status
+from vws_mock_contract_tests.utils.model_target_response_policy import (
     handling_unexpected_model_target_responses,
 )
+from vws_mock_test_backends.vuforia_backends import VuforiaBackend
 
 _ALLOWANCE_BODY = '{"error":{"code":"TRAINING_ALLOWANCE_EXCEEDED"}}'
 

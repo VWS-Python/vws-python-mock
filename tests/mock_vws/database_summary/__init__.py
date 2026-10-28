@@ -1,1 +1,1 @@
-"""Database summary tests."""
+"""Compatibility imports for contract test fixtures."""

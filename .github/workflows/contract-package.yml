@@ -1,0 +1,29 @@
+---
+name: Contract package
+
+on:
+  push:
+    branches: [main]
+  pull_request: {}
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  consumer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.3.2
+      - name: Verify installed contracts through the Flask adapter
+        run: >-
+          uv run --group=dev pytest
+          --confcutdir=contract-tests/consumer
+          -c contract-tests/consumer/pytest.ini
+          contract-tests/consumer/test_installed_suite.py
+        env:
+          UV_PYTHON: '3.15'

@@ -1,1 +1,1 @@
-"""Tests using verify mock vuforia."""
+"""Compatibility imports for contract test fixtures."""

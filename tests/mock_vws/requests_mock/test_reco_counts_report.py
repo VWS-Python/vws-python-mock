@@ -10,7 +10,7 @@ from freezegun import freeze_time
 
 from mock_vws import MockVWS
 from mock_vws.database import CloudDatabase
-from tests.mock_vws.reco_counts_report.helpers import (
+from vws_mock_contract_tests.reco_counts_report.helpers import (
     CSV_HEADER,
     assert_not_ready,
     get_presigned_url,

@@ -318,7 +318,7 @@ hooks = [
   {
     id = "pylint",
     name = "pylint",
-    entry = "uv run --group=dev -m pylint *.py src/ tests/ docs/ ci/ admin/",
+    entry = "uv run --group=dev -m pylint *.py src/ tests/ contract-tests/src/ contract-tests/consumer/ test-backends/src/ docs/ ci/ admin/",
     language = "python",
     stages = ["manual"],
     pass_filenames = false,
@@ -380,7 +380,7 @@ hooks = [
   {
     id = "strict-kwargs-fix",
     name = "strict-kwargs",
-    entry = "uv run --group=dev strict-kwargs check --fix",
+    entry = "uv run --group=dev strict-kwargs check --fix --project-root .",
     language = "python",
     types_or = ["python"],
     additional_dependencies = ["uv==0.13.0"],

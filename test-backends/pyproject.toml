@@ -1,0 +1,37 @@
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = [ "setuptools" ]
+
+[project]
+name = "vws-mock-test-backends"
+version = "0.0.0"
+description = "Explicit pytest adapters for the VWS mock contract tests."
+readme = "README.rst"
+license = "MIT"
+license-files = [ "LICENSE" ]
+authors = [ { name = "Adam Dangoor", email = "adamdangoor@gmail.com" } ]
+requires-python = ">=3.15"
+classifiers = [
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.15",
+]
+dependencies = [
+  "beartype>=0.23.1",
+  "pydantic>=2.6",
+  "pydantic-settings>=2.6.1",
+  "pytest>=9.1.1",
+  "pytest-multi-backend>=2026.9.7",
+  "requests>=2.32.3",
+  "requests-mock-flask>=2026.10.9",
+  "responses>=0.25.3",
+  "tenacity>=9.2.1",
+  "urllib3>=2.8",
+  "vws-mock-contract-tests==0",
+  "vws-python>=2026.10.9",
+  "vws-python-mock",
+]
+urls.Source = "https://github.com/VWS-Python/vws-python-mock"
+
+[tool.setuptools]
+packages.find.where = [ "src" ]
+package-data.vws_mock_test_backends = [ "py.typed" ]

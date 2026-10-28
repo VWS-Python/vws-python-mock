@@ -2,6 +2,13 @@ version = 1
 revision = 5
 requires-python = ">=3.15"
 
+[manifest]
+members = [
+    "vws-mock-contract-tests",
+    "vws-mock-test-backends",
+    "vws-python-mock",
+]
+
 [[package]]
 name = "accessible-pygments"
 version = "0.0.5"
@@ -2638,6 +2645,82 @@ wheels = [
 ]
 
 [[package]]
+name = "vws-mock-contract-tests"
+version = "0.0.0"
+source = { editable = "contract-tests" }
+dependencies = [
+    { name = "beartype" },
+    { name = "dirty-equals" },
+    { name = "freezegun" },
+    { name = "pillow" },
+    { name = "pydantic" },
+    { name = "pytest" },
+    { name = "pytest-retry" },
+    { name = "requests" },
+    { name = "tenacity" },
+    { name = "tzdata", marker = "sys_platform == 'win32'" },
+    { name = "urllib3" },
+    { name = "vws-auth-tools" },
+    { name = "vws-python" },
+    { name = "vws-test-fixtures" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "beartype", specifier = ">=0.23.1" },
+    { name = "dirty-equals", specifier = ">=0.11" },
+    { name = "freezegun", specifier = ">=1.5.5" },
+    { name = "pillow", specifier = ">=12.2" },
+    { name = "pydantic", specifier = ">=2.6" },
+    { name = "pytest", specifier = ">=9.1.1" },
+    { name = "pytest-retry", specifier = ">=1.7" },
+    { name = "requests", specifier = ">=2.32.3" },
+    { name = "tenacity", specifier = ">=9.2.1" },
+    { name = "tzdata", marker = "sys_platform == 'win32'" },
+    { name = "urllib3", specifier = ">=2.8" },
+    { name = "vws-auth-tools", specifier = ">=2024.7.12" },
+    { name = "vws-python", specifier = ">=2026.10.9" },
+    { name = "vws-test-fixtures", specifier = ">=2026.10.8" },
+]
+
+[[package]]
+name = "vws-mock-test-backends"
+version = "0.0.0"
+source = { editable = "test-backends" }
+dependencies = [
+    { name = "beartype" },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
+    { name = "pytest" },
+    { name = "pytest-multi-backend" },
+    { name = "requests" },
+    { name = "requests-mock-flask" },
+    { name = "responses" },
+    { name = "tenacity" },
+    { name = "urllib3" },
+    { name = "vws-mock-contract-tests" },
+    { name = "vws-python" },
+    { name = "vws-python-mock" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "beartype", specifier = ">=0.23.1" },
+    { name = "pydantic", specifier = ">=2.6" },
+    { name = "pydantic-settings", specifier = ">=2.6.1" },
+    { name = "pytest", specifier = ">=9.1.1" },
+    { name = "pytest-multi-backend", specifier = ">=2026.9.7" },
+    { name = "requests", specifier = ">=2.32.3" },
+    { name = "requests-mock-flask", specifier = ">=2026.10.9" },
+    { name = "responses", specifier = ">=0.25.3" },
+    { name = "tenacity", specifier = ">=9.2.1" },
+    { name = "urllib3", specifier = ">=2.8" },
+    { name = "vws-mock-contract-tests", editable = "contract-tests" },
+    { name = "vws-python", specifier = ">=2026.10.9" },
+    { name = "vws-python-mock", editable = "." },
+]
+
+[[package]]
 name = "vws-python"
 version = "2026.10.9"
 source = { registry = "https://pypi.org/simple" }
@@ -2742,6 +2825,8 @@ dev = [
     { name = "urllib3" },
     { name = "vale" },
     { name = "vulture" },
+    { name = "vws-mock-contract-tests" },
+    { name = "vws-mock-test-backends" },
     { name = "vws-python" },
     { name = "vws-test-fixtures" },
     { name = "vws-web-tools" },
@@ -2839,6 +2924,8 @@ dev = [
     { name = "urllib3", specifier = "==2.8.0" },
     { name = "vale", specifier = "==3.22.0.0" },
     { name = "vulture", specifier = "==2.16" },
+    { name = "vws-mock-contract-tests", editable = "contract-tests" },
+    { name = "vws-mock-test-backends", editable = "test-backends" },
     { name = "vws-python", specifier = "==2026.10.9" },
     { name = "vws-test-fixtures", specifier = "==2026.10.8" },
     { name = "vws-web-tools", specifier = "==2026.8.27" },

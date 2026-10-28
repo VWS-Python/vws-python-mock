@@ -133,7 +133,7 @@ Give an option once per backend or marker to skip.
 Shared database credentials
 ---------------------------
 
-The shared API client fixtures, raw query helpers and recognition-report helpers accept ``CloudDatabaseCredentials`` from ``tests.mock_vws.fixtures.credentials``.
+The shared API client fixtures, raw query helpers and recognition-report helpers accept ``CloudDatabaseCredentials`` from ``vws_mock_contract_tests.fixtures.credentials``.
 An adapter supplies an object with read-only string attributes ``server_access_key``, ``server_secret_key``, ``client_access_key``, ``client_secret_key`` and ``database_id``.
 The helpers use those values for signing HTTP requests and constructing report URLs.
 They do not require a ``mock_vws.database.CloudDatabase`` object or access to its targets and storage state.
@@ -160,11 +160,18 @@ The adapter handles cleanup after the test.
 Shared fixtures depend on these public setup fixtures with a ``None`` annotation.
 Backend selection values stay inside the adapter.
 
-Adapters declare supported behavior through ``BackendCapabilities`` from ``tests.mock_vws.utils.backend_capabilities``.
+Adapters declare supported behavior through ``BackendCapabilities`` from ``vws_mock_contract_tests.utils.backend_capabilities``.
 Shared tests use those values for ordering, rate-limit windows and transport checks.
-The ``seed_recognition_counts`` operation accepts a database name, a target ID and recognition counts through ``SeedRecognitionCounts`` from ``tests.mock_vws.utils.recognition_counts``.
-The ``unrouted_requests`` fixture supplies ``UnroutedRequests`` from ``tests.mock_vws.utils.unrouted_requests``, including whether unmatched requests produce an HTTP response.
+The ``seed_recognition_counts`` operation accepts a database name, a target ID and recognition counts through ``SeedRecognitionCounts`` from ``vws_mock_contract_tests.utils.recognition_counts``.
+The ``unrouted_requests`` fixture supplies ``UnroutedRequests`` from ``vws_mock_contract_tests.utils.unrouted_requests``, including whether unmatched requests produce an HTTP response.
 These controls keep backend operations and transport differences behind the adapter's fixture contract.
+
+Installed contract tests
+------------------------
+
+The ``contract-tests`` project builds ``vws-mock-contract-tests`` with an explicit shared fixture plugin.
+The ``test-backends`` project builds the core repository's adapter plugin separately.
+See :file:`contract-tests/README.rst` for installation, invocation and revision compatibility.
 
 Container deployment tests
 --------------------------
