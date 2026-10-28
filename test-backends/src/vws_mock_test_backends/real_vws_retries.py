@@ -20,7 +20,7 @@ from urllib3.exceptions import InvalidHeader
 from urllib3.util import Retry
 from vws.exceptions.vws_exceptions import TooManyRequestsError
 
-from tests.mock_vws.utils.retries import (
+from vws_mock_contract_tests.utils.retries import (
     TRANSIENT_VWS_EXCEPTIONS,
     TRANSIENT_VWS_RETRY_ATTEMPTS,
 )

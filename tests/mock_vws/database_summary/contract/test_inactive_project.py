@@ -1,10 +1,9 @@
-"""Tests for inactive projects."""
+"""Compatibility imports for the packaged contract suite."""
 
-from vws import VWS
+from vws_mock_contract_tests.database_summary.contract import (
+    test_inactive_project as _contract_tests,
+)
 
+test_inactive_project = _contract_tests.test_inactive_project
 
-def test_inactive_project(
-    inactive_vws_client: VWS,
-) -> None:
-    """The project's active state does not affect the database summary."""
-    _ = inactive_vws_client.get_database_summary_report()
+__all__ = ["test_inactive_project"]

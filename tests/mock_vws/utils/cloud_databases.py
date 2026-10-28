@@ -1,18 +1,7 @@
-"""The database creation operation supplied by a mock backend."""
+"""Compatibility imports for the packaged contract suite."""
 
-from typing import Protocol, runtime_checkable
+from vws_mock_contract_tests.utils.cloud_databases import (
+    CreateCloudDatabase,
+)
 
-from tests.mock_vws.fixtures.credentials import NamedCloudDatabaseCredentials
-
-
-@runtime_checkable
-class CreateCloudDatabase(Protocol):
-    """A backend operation which creates a cloud database."""
-
-    def __call__(self) -> NamedCloudDatabaseCredentials:
-        """Create a database and return its name and credentials.
-
-        Returns:
-            The name and credentials of the new database.
-        """
-        ...
+__all__ = ["CreateCloudDatabase"]

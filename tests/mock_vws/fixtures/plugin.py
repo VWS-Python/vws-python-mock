@@ -1,7 +1,3 @@
-"""Load shared API fixtures independently of backend adapters."""
+"""Compatibility entry point for explicit pytest plugins."""
 
-pytest_plugins = [
-    "tests.mock_vws.fixtures.prepared_requests",
-    "tests.mock_vws.fixtures.model_target_prepared_requests",
-    "tests.mock_vws.fixtures.api_contract",
-]
+pytest_plugins = ["vws_mock_contract_tests.fixtures.plugin"]

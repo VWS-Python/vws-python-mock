@@ -131,6 +131,8 @@ dev = [
     "urllib3==2.8.0",
     "vale==3.22.0.0",
     "vulture==2.16",
+    "vws-mock-contract-tests==0.0.0",
+    "vws-mock-test-backends==0.0.0",
     "vws-python==2026.10.9",
     "vws-test-fixtures==2026.10.8",
     "vws-web-tools==2026.8.27",
@@ -162,8 +164,15 @@ version_scheme = "post-release"
 # This must be a PEP 440 compliant version.
 fallback_version = "0.0.0"
 
+[tool.uv]
+sources.vws-mock-contract-tests = { workspace = true }
+sources.vws-mock-test-backends = { workspace = true }
+sources.vws-python-mock = { workspace = true }
+workspace.members = [ "contract-tests", "test-backends" ]
+
 [tool.ruff]
 line-length = 79
+src = [ "contract-tests/src", "src", "test-backends/src" ]
 lint.select = [
     "ALL",
 ]
@@ -191,6 +200,7 @@ lint.ignore = [
     "TC003",
 ]
 lint.explicit-preview-rules = true
+lint.per-file-ignores."contract-tests/src/**" = [ "S101", "S105", "S106" ]
 lint.per-file-ignores."doccmd_*.py" = [
     # Allow our chosen docstring line-style - pydocstringformatter handles
     # formatting but docstrings in docs may not match this style.
@@ -198,6 +208,7 @@ lint.per-file-ignores."doccmd_*.py" = [
     # Allow asserts in docs.
     "S101",
 ]
+lint.per-file-ignores."test-backends/src/**" = [ "S101", "S105", "S106" ]
 lint.per-file-ignores."tests/**" = [
     # Allow asserts in tests.
     "S101",
@@ -500,13 +511,37 @@ log_cli = true
 markers = [
     "requires_docker_build",
 ]
+# Legacy import modules keep the existing CI partitions stable.
+norecursedirs = [ "contract-tests", "test-backends" ]
 # Options for pytest-retry.
 retries = "10"
 retry_delay = "10"
 xfail_strict = true
 
 [tool.coverage]
-run.source = [ "ci/", "src/", "tests/" ]
+run.source = [ "ci/", "contract-tests/src/", "src/", "test-backends/src/", "tests/" ]
+# Import-only compatibility modules contain no assertions or backend logic.
+# Their authoritative implementations remain subject to full coverage.
+run.omit = [
+    "tests/mock_vws/fixtures/credentials.py",
+    "tests/mock_vws/fixtures/model_target_prepared_requests.py",
+    "tests/mock_vws/fixtures/plugin.py",
+    "tests/mock_vws/fixtures/real_credentials.py",
+    "tests/mock_vws/fixtures/real_model_target_retries.py",
+    "tests/mock_vws/fixtures/vuforia_backends.py",
+    "tests/mock_vws/model_target_web_api/assertions.py",
+    "tests/mock_vws/utils/__init__.py",
+    "tests/mock_vws/utils/assertions.py",
+    "tests/mock_vws/utils/backend_capabilities.py",
+    "tests/mock_vws/utils/cloud_databases.py",
+    "tests/mock_vws/utils/model_target_response_policy.py",
+    "tests/mock_vws/utils/model_target_retries.py",
+    "tests/mock_vws/utils/recognition_counts.py",
+    "tests/mock_vws/utils/request_timeout_policy.py",
+    "tests/mock_vws/utils/retries.py",
+    "tests/mock_vws/utils/too_many_requests.py",
+    "tests/mock_vws/utils/unrouted_requests.py",
+]
 run.branch = true
 run.parallel = true
 run.relative_files = true

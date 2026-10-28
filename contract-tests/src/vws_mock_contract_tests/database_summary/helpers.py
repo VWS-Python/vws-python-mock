@@ -9,7 +9,7 @@ from tenacity.stop import stop_after_delay
 from tenacity.wait import wait_fixed
 from vws import VWS
 
-from tests.mock_vws.utils.retries import TRANSIENT_VWS_EXCEPTIONS
+from vws_mock_contract_tests.utils.retries import TRANSIENT_VWS_EXCEPTIONS
 
 LOGGER = logging.getLogger(name=__name__)
 

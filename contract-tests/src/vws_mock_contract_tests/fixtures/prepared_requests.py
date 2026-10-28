@@ -12,11 +12,11 @@ import pytest
 from urllib3.filepost import encode_multipart_formdata
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from tests.mock_vws.fixtures.credentials import (
+from vws_mock_contract_tests.fixtures.credentials import (
     CloudDatabaseCredentials,
     VuMarkCloudDatabase,
 )
-from tests.mock_vws.utils import Endpoint
+from vws_mock_contract_tests.utils import Endpoint
 
 
 @pytest.fixture

@@ -20,9 +20,11 @@ from vws.exceptions.vws_exceptions import (
 )
 from vws.reports import TargetStatusAndRecord, TargetStatuses
 
-from tests.mock_vws.fixtures.credentials import CloudDatabaseCredentials
-from tests.mock_vws.utils import Endpoint, ModelTargetEndpoint
-from tests.mock_vws.utils.retries import (
+from vws_mock_contract_tests.fixtures.credentials import (
+    CloudDatabaseCredentials,
+)
+from vws_mock_contract_tests.utils import Endpoint, ModelTargetEndpoint
+from vws_mock_contract_tests.utils.retries import (
     RETRY_ON_TARGET_NOT_YET_VISIBLE,
     TRANSIENT_VWS_EXCEPTIONS,
     retry_transient_vws_failures,
