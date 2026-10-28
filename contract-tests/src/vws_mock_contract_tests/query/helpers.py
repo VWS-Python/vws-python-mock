@@ -16,8 +16,12 @@ from vws import VWS
 from vws.response import Response
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from tests.mock_vws.fixtures.credentials import CloudDatabaseCredentials
-from tests.mock_vws.utils.too_many_requests import handle_server_errors
+from vws_mock_contract_tests.fixtures.credentials import (
+    CloudDatabaseCredentials,
+)
+from vws_mock_contract_tests.utils.too_many_requests import (
+    handle_server_errors,
+)
 
 JETTY_CONTENT_TYPE_ERROR = textwrap.dedent(
     text="""\
