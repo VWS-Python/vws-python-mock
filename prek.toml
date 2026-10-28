@@ -252,6 +252,17 @@ hooks = [
     additional_dependencies = ["uv==0.13.0"]
   },
   {
+    id = "pyright-verifytypes-server",
+    name = "pyright-verifytypes-server",
+    stages = ["pre-push"],
+    # Check our exports without auditing Flask's third-party annotations.
+    entry = "uv run --group=dev -m pyright --verifytypes vws_mock_server --ignoreexternal",
+    language = "python",
+    pass_filenames = false,
+    types_or = ["python", "toml"],
+    additional_dependencies = ["uv==0.13.0"]
+  },
+  {
     id = "ty",
     name = "ty",
     stages = ["pre-push"],
