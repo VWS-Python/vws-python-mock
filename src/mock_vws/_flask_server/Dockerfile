@@ -21,7 +21,7 @@ WORKDIR /app
 # Install the locked dependencies before copying the source, so that
 # source edits do not invalidate the dependency layer.
 COPY --chown=10001:10001 pyproject.toml uv.lock /app/
-RUN uv sync --locked --no-cache --no-dev --no-install-project
+RUN uv sync --frozen --no-cache --no-dev --no-install-workspace
 COPY --chown=10001:10001 . /app
 RUN uv sync --locked --no-cache --no-dev
 EXPOSE 5000
