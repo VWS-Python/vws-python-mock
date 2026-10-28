@@ -13,7 +13,7 @@ from urllib.parse import urlsplit, urlunsplit
 import pytest
 import requests
 
-from mock_vws.database import CloudDatabase
+from tests.mock_vws.fixtures.credentials import NamedCloudDatabaseCredentials
 from tests.mock_vws.reco_counts_report.helpers import (
     CSV_HEADER,
     CURRENT_MONTH_RECOS,
@@ -30,7 +30,7 @@ from tests.mock_vws.utils.recognition_counts import SeedRecognitionCounts
 
 
 def test_not_ready(
-    *, base_vws_url: str, fresh_database: CloudDatabase
+    *, base_vws_url: str, fresh_database: NamedCloudDatabaseCredentials
 ) -> None:
     """Until the report is generated, the URL gives the response which
     storage gives for a missing object.
@@ -50,7 +50,7 @@ def test_not_ready(
 
 
 def test_unknown_report(
-    *, base_vws_url: str, vuforia_database: CloudDatabase
+    *, base_vws_url: str, vuforia_database: NamedCloudDatabaseCredentials
 ) -> None:
     """A file which no request generated gives the response which
     storage gives for a missing object.
@@ -87,7 +87,7 @@ def test_seeded_recognition_counts(
     *,
     base_vws_url: str,
     seed_recognition_counts: SeedRecognitionCounts,
-    fresh_database: CloudDatabase,
+    fresh_database: NamedCloudDatabaseCredentials,
     high_quality_image: io.BytesIO,
     image_file_failed_state: io.BytesIO,
     months_ago: int,
@@ -138,7 +138,7 @@ def test_counts_set_after_first_request(
     *,
     base_vws_url: str,
     seed_recognition_counts: SeedRecognitionCounts,
-    fresh_database: CloudDatabase,
+    fresh_database: NamedCloudDatabaseCredentials,
     high_quality_image: io.BytesIO,
 ) -> None:
     """A second request in the same hour does not generate the report

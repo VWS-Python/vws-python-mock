@@ -38,6 +38,18 @@ class CloudDatabaseCredentials(Protocol):
         ...
 
 
+@runtime_checkable
+class NamedCloudDatabaseCredentials(CloudDatabaseCredentials, Protocol):
+    """Read-only credentials and a database name supplied by an
+    adapter.
+    """
+
+    @property
+    def database_name(self) -> str:
+        """The name used in summaries and backend recognition controls."""
+        ...
+
+
 @dataclass(frozen=True, kw_only=True)
 class InactiveVuMarkCloudDatabase:
     """Credentials for an inactive VuMark database."""

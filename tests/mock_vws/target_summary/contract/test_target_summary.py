@@ -9,7 +9,7 @@ import pytest
 from vws import VWS
 from vws.reports import TargetStatuses
 
-from mock_vws.database import CloudDatabase
+from tests.mock_vws.fixtures.credentials import NamedCloudDatabaseCredentials
 from tests.mock_vws.target_summary.helpers import (
     add_target_and_get_pre_rating_summary,
 )
@@ -19,7 +19,7 @@ from tests.mock_vws.target_summary.helpers import (
 def test_target_summary(
     *,
     vws_client: VWS,
-    vuforia_database: CloudDatabase,
+    vuforia_database: NamedCloudDatabaseCredentials,
     image_file_failed_state: io.BytesIO,
     active_flag: bool,
 ) -> None:

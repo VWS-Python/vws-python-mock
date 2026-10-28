@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from mock_vws.database import CloudDatabase
+from tests.mock_vws.fixtures.credentials import NamedCloudDatabaseCredentials
 from tests.mock_vws.reco_counts_report.helpers import (
     AMZ_DATE_FORMAT,
     PRESIGNED_URL_PARAMETERS,
@@ -31,7 +31,7 @@ from tests.mock_vws.reco_counts_report.helpers import (
 def test_reco_counts_report(
     *,
     base_vws_url: str,
-    vuforia_database: CloudDatabase,
+    vuforia_database: NamedCloudDatabaseCredentials,
     months_ago: int,
 ) -> None:
     """A report can be requested for the current and previous
@@ -63,7 +63,7 @@ def test_reco_counts_report(
 
 
 def test_presigned_url_query(
-    *, base_vws_url: str, vuforia_database: CloudDatabase
+    *, base_vws_url: str, vuforia_database: NamedCloudDatabaseCredentials
 ) -> None:
     """The URL carries the query parameters of a presigned URL.
 
@@ -101,7 +101,7 @@ def test_presigned_url_query(
 def test_current_month_file_name(
     *,
     base_vws_url: str,
-    vuforia_database: CloudDatabase,
+    vuforia_database: NamedCloudDatabaseCredentials,
 ) -> None:
     """A report for the current month is named for the date and the
     hour.
@@ -125,7 +125,7 @@ def test_current_month_file_name(
 def test_previous_month_file_name(
     *,
     base_vws_url: str,
-    vuforia_database: CloudDatabase,
+    vuforia_database: NamedCloudDatabaseCredentials,
 ) -> None:
     """A report for the previous month is named for the month."""
     month = month_offset_from_now(months=-1)
@@ -143,7 +143,7 @@ def test_previous_month_file_name(
 def test_same_file_in_the_same_hour(
     *,
     base_vws_url: str,
-    vuforia_database: CloudDatabase,
+    vuforia_database: NamedCloudDatabaseCredentials,
 ) -> None:
     """Two requests for the current month in the same hour name the
     same file.
@@ -179,7 +179,7 @@ def test_same_file_in_the_same_hour(
 def test_month_out_of_range(
     *,
     base_vws_url: str,
-    vuforia_database: CloudDatabase,
+    vuforia_database: NamedCloudDatabaseCredentials,
     months_ago: int,
 ) -> None:
     """Only the current and the previous month can be requested."""
@@ -203,7 +203,7 @@ def test_month_out_of_range(
 def test_malformed_month(
     *,
     base_vws_url: str,
-    vuforia_database: CloudDatabase,
+    vuforia_database: NamedCloudDatabaseCredentials,
     month: str | int,
 ) -> None:
     """The month must be given in the ``YYYY-mm`` form."""
@@ -222,7 +222,7 @@ def test_malformed_month(
 def test_body_is_not_an_object(
     *,
     base_vws_url: str,
-    vuforia_database: CloudDatabase,
+    vuforia_database: NamedCloudDatabaseCredentials,
 ) -> None:
     """The request body must be a JSON object."""
     response = request_reco_counts_report_json(
@@ -238,7 +238,7 @@ def test_body_is_not_an_object(
 
 
 def test_unknown_database_id(
-    *, base_vws_url: str, vuforia_database: CloudDatabase
+    *, base_vws_url: str, vuforia_database: NamedCloudDatabaseCredentials
 ) -> None:
     """The path must name the database which the request's server
     keys belong to.
@@ -258,7 +258,7 @@ def test_unknown_database_id(
 def test_database_name_in_path(
     *,
     base_vws_url: str,
-    vuforia_database: CloudDatabase,
+    vuforia_database: NamedCloudDatabaseCredentials,
 ) -> None:
     """A database is named in the path by its ID, not by its name."""
     response = request_reco_counts_report(
