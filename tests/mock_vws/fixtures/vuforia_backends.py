@@ -34,6 +34,7 @@ from mock_vws.target import VuMarkTarget
 from tests.mock_vws.fixtures.credentials import (
     InactiveVuMarkCloudDatabase,
     ModelTargetCredentials,
+    NamedCloudDatabaseCredentials,
     VuMarkCloudDatabase,
 )
 from tests.mock_vws.fixtures.real_credentials import (
@@ -48,7 +49,7 @@ from tests.mock_vws.fixtures.real_model_target_retries import (
 )
 from tests.mock_vws.fixtures.real_vws_retries import REAL_VWS_RETRYING
 from tests.mock_vws.utils.backend_capabilities import BackendCapabilities
-from tests.mock_vws.utils.cloud_databases import AddCloudDatabase
+from tests.mock_vws.utils.cloud_databases import CreateCloudDatabase
 from tests.mock_vws.utils.model_target_response_policy import (
     handling_unexpected_model_target_responses,
 )
@@ -818,37 +819,47 @@ def fixture_mock_only_vuforia(
 
 
 @beartype
-def _cloud_database_adder(
+def _add_cloud_database(
     *,
     backend: VuforiaBackend,
-) -> AddCloudDatabase:
-    """The database creation operation for the running mock backend."""
+    cloud_database: CloudDatabase,
+) -> None:
+    """Add a database through the running mock backend."""
     if backend == VuforiaBackend.MOCK:
-        return running_in_memory_mock().add_cloud_database
-
-    @beartype
-    def add_flask_cloud_database(*, cloud_database: CloudDatabase) -> None:
-        """Create a cloud database through the target manager service."""
-        target_manager_base_url = os.environ["TARGET_MANAGER_BASE_URL"]
-        response = requests.post(
-            url=f"{target_manager_base_url}/cloud_databases",
-            json=cloud_database.to_dict(),
-            timeout=30,
+        running_in_memory_mock().add_cloud_database(
+            cloud_database=cloud_database,
         )
-        response.raise_for_status()
+        return
 
-    return add_flask_cloud_database
+    target_manager_base_url = os.environ["TARGET_MANAGER_BASE_URL"]
+    response = requests.post(
+        url=f"{target_manager_base_url}/cloud_databases",
+        json=cloud_database.to_dict(),
+        timeout=30,
+    )
+    response.raise_for_status()
 
 
-@pytest.fixture(name="add_cloud_database")
-def fixture_add_cloud_database(
+@pytest.fixture(name="create_cloud_database")
+def fixture_create_cloud_database(
     *,
     mock_only_vuforia: None,
     _mock_vws_backend: VuforiaBackend,
-) -> AddCloudDatabase:
+) -> CreateCloudDatabase:
     """The database creation operation for the running mock backend."""
     del mock_only_vuforia
-    return _cloud_database_adder(backend=_mock_vws_backend)
+
+    @beartype
+    def create_database() -> NamedCloudDatabaseCredentials:
+        """Create a fresh database through the selected backend."""
+        database = CloudDatabase()
+        _add_cloud_database(
+            backend=_mock_vws_backend,
+            cloud_database=database,
+        )
+        return database
+
+    return create_database
 
 
 @pytest.fixture(name="rate_limited_database")
@@ -871,8 +882,7 @@ def fixture_rate_limited_database(
     database = CloudDatabase(
         request_rate_limits=DOCUMENTED_REQUEST_RATE_LIMITS
     )
-    add_cloud_database = _cloud_database_adder(backend=_vws_backend)
-    add_cloud_database(cloud_database=database)
+    _add_cloud_database(backend=_vws_backend, cloud_database=database)
     return database
 
 

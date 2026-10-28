@@ -2,17 +2,17 @@
 
 from typing import Protocol, runtime_checkable
 
-from mock_vws.database import CloudDatabase
+from tests.mock_vws.fixtures.credentials import NamedCloudDatabaseCredentials
 
 
 @runtime_checkable
-class AddCloudDatabase(Protocol):
+class CreateCloudDatabase(Protocol):
     """A backend operation which creates a cloud database."""
 
-    def __call__(self, *, cloud_database: CloudDatabase) -> None:
-        """Add the database to the running mock backend.
+    def __call__(self) -> NamedCloudDatabaseCredentials:
+        """Create a database and return its name and credentials.
 
-        Args:
-            cloud_database: The database to add.
+        Returns:
+            The name and credentials of the new database.
         """
         ...
