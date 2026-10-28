@@ -889,7 +889,7 @@ def fixture_seed_recognition_counts(
         @beartype
         def seed_in_memory_counts(
             *,
-            vuforia_database: CloudDatabase,
+            database_name: str,
             target_id: str,
             current_month_recos: int,
             previous_month_recos: int,
@@ -898,7 +898,7 @@ def fixture_seed_recognition_counts(
             """Set recognition counts through the running in-memory
             mock.
             """
-            del vuforia_database
+            del database_name
             running_in_memory_mock().set_target_recognition_counts(
                 target_id=target_id,
                 current_month_recos=current_month_recos,
@@ -911,7 +911,7 @@ def fixture_seed_recognition_counts(
     @beartype
     def seed_flask_counts(
         *,
-        vuforia_database: CloudDatabase,
+        database_name: str,
         target_id: str,
         current_month_recos: int,
         previous_month_recos: int,
@@ -919,7 +919,6 @@ def fixture_seed_recognition_counts(
     ) -> None:
         """Set recognition counts through the target manager service."""
         target_manager_base_url = os.environ["TARGET_MANAGER_BASE_URL"]
-        database_name = vuforia_database.database_name
         response = requests.post(
             url=(
                 f"{target_manager_base_url}/cloud_databases/"

@@ -38,7 +38,7 @@ def test_seeded_counts(
     vws_client.wait_for_target_processed(target_id=target_id)
 
     seed_recognition_counts(
-        vuforia_database=vuforia_database,
+        database_name=vuforia_database.database_name,
         target_id=target_id,
         current_month_recos=_CURRENT_MONTH_RECOS,
         previous_month_recos=_PREVIOUS_MONTH_RECOS,

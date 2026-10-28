@@ -7,8 +7,6 @@ being told what the counts are.
 
 from typing import Protocol, runtime_checkable
 
-from mock_vws.database import CloudDatabase
-
 
 @runtime_checkable
 class SeedRecognitionCounts(Protocol):
@@ -17,7 +15,7 @@ class SeedRecognitionCounts(Protocol):
     def __call__(
         self,
         *,
-        vuforia_database: CloudDatabase,
+        database_name: str,
         target_id: str,
         current_month_recos: int,
         previous_month_recos: int,
@@ -26,7 +24,7 @@ class SeedRecognitionCounts(Protocol):
         """Set the target's recognition counts on the running mock backend.
 
         Args:
-            vuforia_database: The database which the target is in.
+            database_name: The name of the database containing the target.
             target_id: The ID of the target to set recognition counts of.
             current_month_recos: The number of recognitions in the current
                 month.
