@@ -10,7 +10,7 @@ from vws import VWS, CloudRecoService
 from vws.exceptions import cloud_reco_exceptions
 from vws.exceptions.vws_exceptions import AuthenticationFailureError, FailError
 
-from mock_vws.database import CloudDatabase
+from tests.mock_vws.fixtures.credentials import CloudDatabaseCredentials
 from tests.mock_vws.utils.assertions import (
     assert_valid_transaction_id,
     assert_vwq_failure,
@@ -18,7 +18,7 @@ from tests.mock_vws.utils.assertions import (
 
 
 def test_bad_access_key_services(
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     base_vws_url: str,
 ) -> None:
     """
@@ -40,7 +40,7 @@ def test_bad_access_key_services(
 
 def test_bad_access_key_query(
     *,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     high_quality_image: io.BytesIO,
     base_vwq_url: str,
 ) -> None:
@@ -93,7 +93,7 @@ def test_bad_access_key_query(
 
 
 def test_bad_secret_key_services(
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     base_vws_url: str,
 ) -> None:
     """
@@ -112,7 +112,7 @@ def test_bad_secret_key_services(
 
 def test_bad_secret_key_query(
     *,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     high_quality_image: io.BytesIO,
     base_vwq_url: str,
 ) -> None:
