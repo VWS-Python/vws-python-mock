@@ -7,17 +7,19 @@ from beartype import beartype
 from vws import VWS
 from vws.reports import TargetStatuses
 
-from mock_vws.database import CloudDatabase
+from tests.mock_vws.fixtures.credentials import CloudDatabaseCredentials
 
 
 @beartype
 def processing_time_seconds(
     *,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
+    base_vws_url: str,
     image: io.BytesIO,
 ) -> float:
     """Return the time taken to process a target in the database."""
     vws_client = VWS(
+        base_vws_url=base_vws_url,
         server_access_key=vuforia_database.server_access_key,
         server_secret_key=vuforia_database.server_secret_key,
     )
