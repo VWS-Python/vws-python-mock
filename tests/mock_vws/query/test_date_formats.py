@@ -24,7 +24,7 @@ from urllib3.filepost import encode_multipart_formdata
 from vws.response import Response
 from vws_auth_tools import authorization_header
 
-from mock_vws.database import CloudDatabase
+from tests.mock_vws.fixtures.credentials import CloudDatabaseCredentials
 from tests.mock_vws.utils.assertions import (
     assert_query_success,
 )
@@ -44,7 +44,7 @@ from tests.mock_vws.utils.too_many_requests import handle_server_errors
 def test_date_formats(
     *,
     high_quality_image: io.BytesIO,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     datetime_format: str,
     include_tz: bool,
     base_vwq_url: str,

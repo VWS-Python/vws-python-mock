@@ -7,7 +7,7 @@ import uuid
 import pytest
 from vws import VWS
 
-from mock_vws.database import CloudDatabase
+from tests.mock_vws.fixtures.credentials import CloudDatabaseCredentials
 from tests.mock_vws.query.helpers import (
     query,
 )
@@ -22,7 +22,7 @@ def test_order_is_upload_date_then_target_id(
     backend_capabilities: BackendCapabilities,
     high_quality_image: io.BytesIO,
     vws_client: VWS,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     base_vwq_url: str,
 ) -> None:
     """Matches with the same score are ordered by upload date.
@@ -75,7 +75,7 @@ def test_max_num_results_keeps_the_first_results(
     backend_capabilities: BackendCapabilities,
     high_quality_image: io.BytesIO,
     vws_client: VWS,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     base_vwq_url: str,
 ) -> None:
     """``max_num_results`` truncates a deterministically ordered

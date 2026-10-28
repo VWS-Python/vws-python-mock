@@ -3,7 +3,7 @@
 import io
 from http import HTTPStatus
 
-from mock_vws.database import CloudDatabase
+from tests.mock_vws.fixtures.credentials import CloudDatabaseCredentials
 from tests.mock_vws.query.helpers import (
     query,
 )
@@ -13,7 +13,7 @@ from tests.mock_vws.utils.assertions import (
 
 
 def test_missing_image(
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     base_vwq_url: str,
 ) -> None:
     """
@@ -38,7 +38,7 @@ def test_missing_image(
 def test_extra_fields(
     *,
     high_quality_image: io.BytesIO,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     base_vwq_url: str,
 ) -> None:
     """If extra fields are given, a ``BAD_REQUEST`` response is
@@ -69,7 +69,7 @@ def test_extra_fields(
 
 
 def test_missing_image_and_extra_fields(
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     base_vwq_url: str,
 ) -> None:
     """If extra fields are given and no image field is given, a

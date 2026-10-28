@@ -10,7 +10,7 @@ from http import HTTPStatus
 
 from urllib3.filepost import encode_multipart_formdata
 
-from mock_vws.database import CloudDatabase
+from tests.mock_vws.fixtures.credentials import CloudDatabaseCredentials
 from tests.mock_vws.query.helpers import (
     query_raw,
 )
@@ -23,7 +23,7 @@ from tests.mock_vws.utils.assertions import (
 def test_no_closing_boundary(
     *,
     high_quality_image: io.BytesIO,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     base_vwq_url: str,
 ) -> None:
     """A body which has all of the image data but no closing boundary
@@ -49,7 +49,7 @@ def test_no_closing_boundary(
 def test_partial_closing_boundary(
     *,
     high_quality_image: io.BytesIO,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     base_vwq_url: str,
 ) -> None:
     """A body which is cut off part-way through its closing boundary is
@@ -74,7 +74,7 @@ def test_partial_closing_boundary(
 def test_truncated_at_end_of_header(
     *,
     high_quality_image: io.BytesIO,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     base_vwq_url: str,
 ) -> None:
     """A body which is cut off at the end of a header of a part, before
@@ -110,7 +110,7 @@ def test_truncated_at_end_of_header(
 def test_truncated_image_data(
     *,
     high_quality_image: io.BytesIO,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     base_vwq_url: str,
 ) -> None:
     """A body which is cut off within the image data gives a
@@ -143,7 +143,7 @@ def test_truncated_image_data(
 def test_truncated_in_part_headers(
     *,
     high_quality_image: io.BytesIO,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     base_vwq_url: str,
 ) -> None:
     """A body which is cut off within the headers of a part, so that no
@@ -177,7 +177,7 @@ def test_truncated_in_part_headers(
 def test_no_content_disposition_header(
     *,
     high_quality_image: io.BytesIO,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     base_vwq_url: str,
 ) -> None:
     """A complete body with a part which has no ``Content-Disposition``

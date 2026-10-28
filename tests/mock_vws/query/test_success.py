@@ -11,7 +11,7 @@ from dirty_equals import IsInstance
 from PIL import Image
 from vws import VWS, CloudRecoService
 
-from mock_vws.database import CloudDatabase
+from tests.mock_vws.fixtures.credentials import CloudDatabaseCredentials
 from tests.mock_vws.query.helpers import (
     query,
 )
@@ -37,7 +37,7 @@ def test_no_results(
 def test_match_exact(
     *,
     high_quality_image: io.BytesIO,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     vws_client: VWS,
     base_vwq_url: str,
 ) -> None:
