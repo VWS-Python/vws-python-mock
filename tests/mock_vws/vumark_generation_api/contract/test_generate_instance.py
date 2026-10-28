@@ -12,8 +12,8 @@ from vws.exceptions.vws_exceptions import (
 )
 from vws.vumark_accept import VuMarkAccept
 
-from mock_vws.database import CloudDatabase
 from tests.mock_vws.fixtures.credentials import (
+    CloudDatabaseCredentials,
     VuMarkCloudDatabase,
 )
 from tests.mock_vws.utils import make_image_file
@@ -197,7 +197,7 @@ def test_unknown_target(
 
 def test_non_vumark_database(
     base_vws_url: str,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
 ) -> None:
     """Generating a VuMark instance for a target in a non-VuMark
     database returns InvalidTargetType.
