@@ -169,8 +169,8 @@ These controls keep backend operations and transport differences behind the adap
 Installed contract tests
 ------------------------
 
-The ``contract-tests`` subproject builds ``vws-mock-contract-tests`` with an explicit shared fixture plugin.
-The ``test-backends`` subproject builds the core repository's adapter plugin separately.
+The ``contract-tests`` project builds ``vws-mock-contract-tests`` with an explicit shared fixture plugin.
+The ``test-backends`` project builds the core repository's adapter plugin separately.
 See :file:`contract-tests/README.rst` for installation, invocation and revision compatibility.
 
 Container deployment tests
