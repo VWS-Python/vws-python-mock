@@ -200,6 +200,7 @@ lint.ignore = [
     "TC003",
 ]
 lint.explicit-preview-rules = true
+lint.per-file-ignores."contract-tests/consumer/**" = [ "S101" ]
 lint.per-file-ignores."contract-tests/src/**" = [ "S101", "S105", "S106" ]
 lint.per-file-ignores."doccmd_*.py" = [
     # Allow our chosen docstring line-style - pydocstringformatter handles
