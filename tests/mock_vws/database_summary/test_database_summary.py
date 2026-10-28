@@ -3,6 +3,7 @@
 import io
 import uuid
 
+import pytest
 from vws import VWS
 
 from tests.mock_vws.database_summary.helpers import (
@@ -10,9 +11,9 @@ from tests.mock_vws.database_summary.helpers import (
 )
 
 
+@pytest.mark.usefixtures("mock_only_vuforia")
 def test_processing_images(
     *,
-    mock_only_vuforia: None,
     vws_client: VWS,
     image_file_success_state_low_rating: io.BytesIO,
 ) -> None:
@@ -21,7 +22,6 @@ def test_processing_images(
     The mock adapters report processing images immediately. Real Vuforia's
     summaries are not reliable while targets are processing.
     """
-    del mock_only_vuforia
     _ = vws_client.add_target(
         name=uuid.uuid4().hex,
         width=1,
