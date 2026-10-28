@@ -4,7 +4,7 @@ from http import HTTPStatus
 
 from vws.response import Response
 
-from tests.mock_vws.utils import Endpoint
+from vws_mock_contract_tests.utils import Endpoint
 
 _NGINX_TOO_LARGE_RESPONSE_TEXT = "".join(
     f"{line}\r\n"

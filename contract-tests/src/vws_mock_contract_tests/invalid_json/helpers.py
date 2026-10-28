@@ -8,13 +8,15 @@ from beartype import beartype
 from freezegun import freeze_time
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from tests.mock_vws.utils import Endpoint
-from tests.mock_vws.utils.assertions import (
+from vws_mock_contract_tests.utils import Endpoint
+from vws_mock_contract_tests.utils.assertions import (
     assert_valid_date_header,
     assert_vwq_failure,
     assert_vws_failure,
 )
-from tests.mock_vws.utils.too_many_requests import handle_server_errors
+from vws_mock_contract_tests.utils.too_many_requests import (
+    handle_server_errors,
+)
 
 
 @beartype
