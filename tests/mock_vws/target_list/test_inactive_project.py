@@ -1,9 +1,7 @@
-"""Tests for inactive projects."""
+"""Compatibility imports for the packaged contract suite."""
 
-from vws import VWS
+from vws_mock_contract_tests.target_list.test_inactive_project import (
+    test_inactive_project,
+)
 
-
-def test_inactive_project(inactive_vws_client: VWS) -> None:
-    """The project's active state does not affect the target list."""
-    # No exception is raised.
-    _ = inactive_vws_client.list_targets()
+__all__ = ["test_inactive_project"]

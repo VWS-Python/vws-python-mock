@@ -1,13 +1,7 @@
-"""Tests for inactive projects."""
+"""Compatibility imports for the packaged contract suite."""
 
-import uuid
+from vws_mock_contract_tests.get_target.test_inactive_project import (
+    test_inactive_project,
+)
 
-import pytest
-from vws import VWS
-from vws.exceptions.vws_exceptions import UnknownTargetError
-
-
-def test_inactive_project(inactive_vws_client: VWS) -> None:
-    """The project's active state does not affect getting a target."""
-    with pytest.raises(expected_exception=UnknownTargetError):
-        _ = inactive_vws_client.get_target_record(target_id=uuid.uuid4().hex)
+__all__ = ["test_inactive_project"]

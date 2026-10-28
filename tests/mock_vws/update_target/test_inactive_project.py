@@ -1,18 +1,7 @@
-"""Tests for inactive projects."""
+"""Compatibility imports for the packaged contract suite."""
 
-import uuid
-
-import pytest
-from vws import VWS
-from vws.exceptions.vws_exceptions import (
-    ProjectInactiveError,
+from vws_mock_contract_tests.update_target.test_inactive_project import (
+    test_inactive_project,
 )
 
-
-def test_inactive_project(inactive_vws_client: VWS) -> None:
-    """
-    If the project is inactive, a FORBIDDEN response is
-    returned.
-    """
-    with pytest.raises(expected_exception=ProjectInactiveError):
-        inactive_vws_client.update_target(target_id=uuid.uuid4().hex)
+__all__ = ["test_inactive_project"]

@@ -10,7 +10,7 @@ from beartype import beartype
 from vws import VWS
 from vws.response import Response
 
-from tests.mock_vws.utils.assertions import (
+from vws_mock_contract_tests.utils.assertions import (
     assert_vws_response,
 )
 
