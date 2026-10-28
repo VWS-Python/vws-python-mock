@@ -140,6 +140,32 @@ They do not require a ``mock_vws.database.CloudDatabase`` object or access to it
 The current adapters' database objects satisfy the protocol, and another adapter can provide its own credential object.
 Backend setup and mock controls remain responsible for managing database state.
 
+Tests which read a database name use ``NamedCloudDatabaseCredentials`` from the same module.
+It adds the read-only string attribute ``database_name`` for summary responses, recognition-count controls and report requests which distinguish a database's name from its ID.
+
+Shared backend setup
+--------------------
+
+An adapter supplies the service URLs through ``base_vws_url`` and ``base_vwq_url``.
+The shared client and prepared-request fixtures use those URLs for HTTP requests.
+The adapter also supplies ``vws_client_class`` and the active, inactive and VuMark database credentials required by each test.
+Mock adapters use synthetic credentials.
+Real Vuforia credentials and account restrictions belong to the real adapter.
+
+The ``verify_mock_vuforia`` fixture sets up the selected VWS and query backend.
+The ``verify_model_target_mock_vuforia`` fixture does the same for the Model Target API.
+Their mock-only counterparts are ``mock_only_vuforia`` and ``model_target_mock_only_vuforia``.
+Each setup fixture yields ``None`` once its backend is ready.
+The adapter handles cleanup after the test.
+Shared fixtures depend on these public setup fixtures with a ``None`` annotation.
+Backend selection values stay inside the adapter.
+
+Adapters declare supported behavior through ``BackendCapabilities`` from ``tests.mock_vws.utils.backend_capabilities``.
+Shared tests use those values for ordering, rate-limit windows and transport checks.
+The ``seed_recognition_counts`` operation accepts a database name, a target ID and recognition counts through ``SeedRecognitionCounts`` from ``tests.mock_vws.utils.recognition_counts``.
+The ``unrouted_requests`` fixture supplies ``UnroutedRequests`` from ``tests.mock_vws.utils.unrouted_requests``, including whether unmatched requests produce an HTTP response.
+These controls keep backend operations and transport differences behind the adapter's fixture contract.
+
 Container deployment tests
 --------------------------
 
