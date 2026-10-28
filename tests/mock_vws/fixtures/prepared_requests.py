@@ -12,15 +12,17 @@ import pytest
 from urllib3.filepost import encode_multipart_formdata
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from mock_vws.database import CloudDatabase
-from tests.mock_vws.fixtures.credentials import VuMarkCloudDatabase
+from tests.mock_vws.fixtures.credentials import (
+    CloudDatabaseCredentials,
+    VuMarkCloudDatabase,
+)
 from tests.mock_vws.utils import Endpoint
 
 
 @pytest.fixture
 def add_target(
     *,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     base_vws_url: str,
     image_file_failed_state: io.BytesIO,
 ) -> Endpoint:
@@ -76,7 +78,7 @@ def add_target(
 @pytest.fixture
 def delete_target(
     *,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     base_vws_url: str,
     target_id: str,
 ) -> Endpoint:
@@ -120,7 +122,7 @@ def delete_target(
 @pytest.fixture
 def database_summary(
     *,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     base_vws_url: str,
 ) -> Endpoint:
     """
@@ -167,7 +169,7 @@ def database_summary(
 @pytest.fixture
 def get_duplicates(
     *,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     base_vws_url: str,
     target_id: str,
 ) -> Endpoint:
@@ -215,7 +217,7 @@ def get_duplicates(
 @pytest.fixture
 def get_target(
     *,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     base_vws_url: str,
     target_id: str,
 ) -> Endpoint:
@@ -260,7 +262,7 @@ def get_target(
 @pytest.fixture
 def target_list(
     *,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     base_vws_url: str,
 ) -> Endpoint:
     """Return details of the endpoint for getting a list of targets."""
@@ -304,7 +306,7 @@ def target_list(
 @pytest.fixture
 def target_summary(
     *,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     base_vws_url: str,
     target_id: str,
 ) -> Endpoint:
@@ -352,7 +354,7 @@ def target_summary(
 @pytest.fixture
 def update_target(
     *,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     base_vws_url: str,
     target_id: str,
 ) -> Endpoint:
@@ -400,7 +402,7 @@ def update_target(
 @pytest.fixture
 def query(
     *,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     base_vwq_url: str,
     high_quality_image: io.BytesIO,
 ) -> Endpoint:
@@ -500,7 +502,7 @@ def vumark_generate_instance(
 @pytest.fixture
 def reco_counts_report(
     *,
-    vuforia_database: CloudDatabase,
+    vuforia_database: CloudDatabaseCredentials,
     base_vws_url: str,
 ) -> Endpoint:
     """Return details of the endpoint for requesting a reco counts
