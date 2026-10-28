@@ -17,8 +17,16 @@ from tests.mock_vws.utils.usage_test_helpers import (
 _LEEWAY = 1.0
 
 
+@pytest.fixture(name="base_vws_url")
+def fixture_base_vws_url() -> str:
+    """Use a service URL with a prefix for the processing checks."""
+    return "http://processing.example/prefix"
+
+
 def test_default(
-    image_file_failed_state: io.BytesIO, target_manager_url: str
+    image_file_failed_state: io.BytesIO,
+    target_manager_url: str,
+    base_vws_url: str,
 ) -> None:
     """By default, targets in the mock takes 2 seconds to be processed."""
     database = CloudDatabase()
@@ -27,6 +35,7 @@ def test_default(
 
     time_taken = processing_time_seconds(
         vuforia_database=database,
+        base_vws_url=base_vws_url,
         image=image_file_failed_state,
     )
 
@@ -38,6 +47,7 @@ def test_custom(
     *,
     image_file_failed_state: io.BytesIO,
     monkeypatch: pytest.MonkeyPatch,
+    base_vws_url: str,
     target_manager_url: str,
 ) -> None:
     """It is possible to set a custom processing time."""
@@ -52,6 +62,7 @@ def test_custom(
 
     time_taken = processing_time_seconds(
         vuforia_database=database,
+        base_vws_url=base_vws_url,
         image=image_file_failed_state,
     )
 

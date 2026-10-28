@@ -173,11 +173,13 @@ _LEEWAY = 1.0
 
 def test_default(image_file_failed_state: io.BytesIO) -> None:
     """By default, targets in the mock takes 2 seconds to be processed."""
+    base_vws_url = "http://processing.example/prefix"
     database = CloudDatabase()
-    with MockVWS() as mock:
+    with MockVWS(base_vws_url=base_vws_url) as mock:
         mock.add_cloud_database(cloud_database=database)
         time_taken = processing_time_seconds(
             vuforia_database=database,
+            base_vws_url=base_vws_url,
             image=image_file_failed_state,
         )
 
@@ -187,12 +189,16 @@ def test_default(image_file_failed_state: io.BytesIO) -> None:
 
 def test_custom(image_file_failed_state: io.BytesIO) -> None:
     """It is possible to set a custom processing time."""
+    base_vws_url = "http://processing.example/prefix"
     database = CloudDatabase()
     seconds = 5
-    with MockVWS(processing_time_seconds=seconds) as mock:
+    with MockVWS(
+        processing_time_seconds=seconds, base_vws_url=base_vws_url
+    ) as mock:
         mock.add_cloud_database(cloud_database=database)
         time_taken = processing_time_seconds(
             vuforia_database=database,
+            base_vws_url=base_vws_url,
             image=image_file_failed_state,
         )
 
