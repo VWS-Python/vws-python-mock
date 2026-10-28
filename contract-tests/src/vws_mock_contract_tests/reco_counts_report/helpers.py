@@ -18,7 +18,9 @@ from tenacity import (
 from vws import VWS
 from vws_auth_tools import authorization_header, rfc_1123_date
 
-from tests.mock_vws.fixtures.credentials import CloudDatabaseCredentials
+from vws_mock_contract_tests.fixtures.credentials import (
+    CloudDatabaseCredentials,
+)
 
 CURRENT_MONTH_RECOS = 3
 

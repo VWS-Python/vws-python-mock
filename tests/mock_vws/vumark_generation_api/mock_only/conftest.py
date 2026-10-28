@@ -1,12 +1,7 @@
-"""Fixtures scoped to this group of tests."""
+"""Compatibility imports for the packaged contract suite."""
 
-import pytest
+from vws_mock_contract_tests.vumark_generation_api.mock_only.conftest import (
+    fixture_verify_backend,
+)
 
-
-@pytest.fixture(autouse=True)
-def fixture_verify_backend(
-    *,
-    mock_only_vuforia: None,
-) -> None:
-    """Set up the backend for every contract test in this directory."""
-    del mock_only_vuforia
+__all__ = ["fixture_verify_backend"]
