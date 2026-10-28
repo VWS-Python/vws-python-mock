@@ -28,7 +28,7 @@ dependencies = [
   "urllib3>=2.8",
   "vws-mock-contract-tests==0",
   "vws-python>=2026.10.9",
-  "vws-python-mock",
+  "vws-python-mock[server]",
 ]
 urls.Source = "https://github.com/VWS-Python/vws-python-mock"
 

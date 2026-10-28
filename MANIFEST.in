@@ -4,3 +4,5 @@ recursive-include contract-tests/src *.py py.typed
 recursive-include contract-tests/consumer *.py *.ini
 include test-backends/pyproject.toml test-backends/README.rst test-backends/LICENSE
 recursive-include test-backends/src *.py py.typed
+include server/pyproject.toml server/README.rst server/LICENSE
+recursive-include server/src *.py py.typed

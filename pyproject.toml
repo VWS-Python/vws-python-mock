@@ -35,7 +35,6 @@ dynamic = [
 ]
 dependencies = [
     "beartype>=0.23.0",
-    "flask>=3.0.3",
     "httpx>=0.27.0",
     "httpx2>=2.12",
     "mock-response-delay>=2026.9.12",
@@ -52,6 +51,7 @@ dependencies = [
     "vws-auth-tools>=2024.7.12",
     "werkzeug>=3.1.2",
 ]
+optional-dependencies.server = [ "flask>=3.0.3", "vws-python-mock-server==0.0.0" ]
 urls.Documentation = "https://vws-python.github.io/vws-python-mock/"
 urls.Source = "https://github.com/VWS-Python/vws-python-mock"
 
@@ -134,6 +134,7 @@ dev = [
     "vws-mock-contract-tests==0.0.0",
     "vws-mock-test-backends==0.0.0",
     "vws-python==2026.10.9",
+    "vws-python-mock-server==0.0.0",
     "vws-test-fixtures==2026.10.8",
     "vws-web-tools==2026.8.27",
     "yamlfix==1.19.1",
@@ -168,11 +169,12 @@ fallback_version = "0.0.0"
 sources.vws-mock-contract-tests = { workspace = true }
 sources.vws-mock-test-backends = { workspace = true }
 sources.vws-python-mock = { workspace = true }
-workspace.members = [ "contract-tests", "test-backends" ]
+sources.vws-python-mock-server = { workspace = true }
+workspace.members = [ "contract-tests", "server", "test-backends" ]
 
 [tool.ruff]
 line-length = 79
-src = [ "contract-tests/src", "src", "test-backends/src" ]
+src = [ "contract-tests/src", "server/src", "src", "test-backends/src" ]
 lint.select = [
     "ALL",
 ]
@@ -513,14 +515,14 @@ markers = [
     "requires_docker_build",
 ]
 # Legacy import modules keep the existing CI partitions stable.
-norecursedirs = [ "contract-tests", "test-backends" ]
+norecursedirs = [ "contract-tests", "server", "test-backends" ]
 # Options for pytest-retry.
 retries = "10"
 retry_delay = "10"
 xfail_strict = true
 
 [tool.coverage]
-run.source = [ "ci/", "contract-tests/src/", "src/", "test-backends/src/", "tests/" ]
+run.source = [ "ci/", "contract-tests/src/", "server/src/", "src/", "test-backends/src/", "tests/" ]
 # Import-only compatibility modules contain no assertions or backend logic.
 # Their authoritative implementations remain subject to full coverage.
 run.omit = [

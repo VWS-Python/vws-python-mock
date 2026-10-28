@@ -2,3 +2,4 @@
 .
 ./contract-tests
 ./test-backends
+./server

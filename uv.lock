@@ -7,6 +7,7 @@ members = [
     "vws-mock-contract-tests",
     "vws-mock-test-backends",
     "vws-python-mock",
+    "vws-python-mock-server",
 ]
 
 [[package]]
@@ -2700,7 +2701,7 @@ dependencies = [
     { name = "urllib3" },
     { name = "vws-mock-contract-tests" },
     { name = "vws-python" },
-    { name = "vws-python-mock" },
+    { name = "vws-python-mock", extra = ["server"] },
 ]
 
 [package.metadata]
@@ -2717,7 +2718,7 @@ requires-dist = [
     { name = "urllib3", specifier = ">=2.8" },
     { name = "vws-mock-contract-tests", editable = "contract-tests" },
     { name = "vws-python", specifier = ">=2026.10.9" },
-    { name = "vws-python-mock", editable = "." },
+    { name = "vws-python-mock", extras = ["server"], editable = "." },
 ]
 
 [[package]]
@@ -2742,7 +2743,6 @@ name = "vws-python-mock"
 source = { editable = "." }
 dependencies = [
     { name = "beartype" },
-    { name = "flask" },
     { name = "httpx" },
     { name = "httpx2" },
     { name = "mock-response-delay" },
@@ -2758,6 +2758,12 @@ dependencies = [
     { name = "tzdata", marker = "sys_platform == 'win32'" },
     { name = "vws-auth-tools" },
     { name = "werkzeug" },
+]
+
+[package.optional-dependencies]
+server = [
+    { name = "flask" },
+    { name = "vws-python-mock-server" },
 ]
 
 [package.dev-dependencies]
@@ -2828,6 +2834,7 @@ dev = [
     { name = "vws-mock-contract-tests" },
     { name = "vws-mock-test-backends" },
     { name = "vws-python" },
+    { name = "vws-python-mock-server" },
     { name = "vws-test-fixtures" },
     { name = "vws-web-tools" },
     { name = "yamlfix" },
@@ -2841,7 +2848,7 @@ release = [
 [package.metadata]
 requires-dist = [
     { name = "beartype", specifier = ">=0.23.0" },
-    { name = "flask", specifier = ">=3.0.3" },
+    { name = "flask", marker = "extra == 'server'", specifier = ">=3.0.3" },
     { name = "httpx", specifier = ">=0.27.0" },
     { name = "httpx2", specifier = ">=2.12" },
     { name = "mock-response-delay", specifier = ">=2026.9.12" },
@@ -2856,8 +2863,10 @@ requires-dist = [
     { name = "respx", specifier = ">=0.21.0" },
     { name = "tzdata", marker = "sys_platform == 'win32'" },
     { name = "vws-auth-tools", specifier = ">=2024.7.12" },
+    { name = "vws-python-mock-server", marker = "extra == 'server'", editable = "server" },
     { name = "werkzeug", specifier = ">=3.1.2" },
 ]
+provides-extras = ["server"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -2927,6 +2936,7 @@ dev = [
     { name = "vws-mock-contract-tests", editable = "contract-tests" },
     { name = "vws-mock-test-backends", editable = "test-backends" },
     { name = "vws-python", specifier = "==2026.10.9" },
+    { name = "vws-python-mock-server", editable = "server" },
     { name = "vws-test-fixtures", specifier = "==2026.10.8" },
     { name = "vws-web-tools", specifier = "==2026.8.27" },
     { name = "yamlfix", specifier = "==1.19.1" },
@@ -2935,6 +2945,31 @@ dev = [
 release = [
     { name = "check-wheel-contents", specifier = "==0.6.3" },
     { name = "towncrier", specifier = "==26.9.0" },
+]
+
+[[package]]
+name = "vws-python-mock-server"
+version = "0.0.0"
+source = { editable = "server" }
+dependencies = [
+    { name = "beartype" },
+    { name = "flask" },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
+    { name = "requests" },
+    { name = "vws-python-mock" },
+    { name = "werkzeug" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "beartype", specifier = ">=0.23.1" },
+    { name = "flask", specifier = ">=3.0.3" },
+    { name = "pydantic", specifier = ">=2.6" },
+    { name = "pydantic-settings", specifier = ">=2.6.1" },
+    { name = "requests", specifier = ">=2.32.3" },
+    { name = "vws-python-mock", editable = "." },
+    { name = "werkzeug", specifier = ">=3.1.2" },
 ]
 
 [[package]]
