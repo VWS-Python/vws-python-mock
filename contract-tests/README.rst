@@ -1,8 +1,7 @@
 VWS mock contract tests
 =======================
 
-This project contains the shared API fixtures, helpers and database-summary tests.
-Further API groups are migrated separately.
+This project contains shared fixtures, helpers and contracts for the Vuforia Web Services and Model Target APIs.
 It is a development dependency for projects which implement the Vuforia APIs.
 
 Build and install
@@ -26,7 +25,7 @@ Run the installed suite from outside the source checkout:
    $ python -m pytest \
        -p vws_mock_contract_tests.fixtures.plugin \
        -p vws_mock_test_backends.vuforia_backends \
-       --pyargs vws_mock_contract_tests.database_summary \
+       --pyargs vws_mock_contract_tests \
        --skip-backend=real
 
 The shared plugin provides clients, prepared requests and the retry allowlist.
