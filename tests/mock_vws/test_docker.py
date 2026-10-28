@@ -240,8 +240,19 @@ def _free_port() -> int:
 
 
 @beartype
+@retry(
+    retry=retry_if_exception_type(exception_types=(KeyError, IndexError)),
+    wait=wait_fixed(wait=0.1),
+    stop=stop_after_delay(max_delay=10),
+    reraise=True,
+)
 def _published_base_url(*, container: Container) -> str:
-    """Return the host-reachable base URL of a container."""
+    """Return the host-reachable URL once Docker reports its port binding.
+
+    Docker Desktop can return an empty binding list immediately after a
+    container starts. Reloading on each bounded retry lets it finish
+    publishing the port before the readiness probes use the URL.
+    """
     container.reload()
     bindings = container.ports["5000/tcp"]
     assert bindings is not None
