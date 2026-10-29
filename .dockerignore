@@ -21,7 +21,7 @@ CHANGELOG.md
 ci
 CODE_OF_CONDUCT.rst
 CONTRIBUTING.rst
-docker-bake.hcl
+server/docker-bake.hcl
 docs
 LICENSE
 lint.mk

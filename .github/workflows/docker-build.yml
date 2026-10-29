@@ -37,8 +37,10 @@ jobs:
         uses: docker/bake-action@v7.5.0
         with:
           call: check
+          files: server/docker-bake.hcl
 
       - name: Build Docker images
         uses: docker/bake-action@v7.5.0
         with:
           push: false
+          files: server/docker-bake.hcl
