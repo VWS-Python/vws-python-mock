@@ -4,7 +4,6 @@ import logging
 from collections.abc import Generator
 from enum import Enum
 from http import HTTPMethod
-from uuid import uuid4
 
 import pytest
 import requests
@@ -14,7 +13,6 @@ from vws import VWS
 
 from mock_vws.database import CloudDatabase
 from mock_vws.request_rate_limits import DOCUMENTED_REQUEST_RATE_LIMITS
-from mock_vws.states import States
 from vws_mock_contract_tests.fixtures.credentials import (
     InactiveVuMarkCloudDatabase,
     ModelTargetCredentials,
@@ -44,6 +42,13 @@ from vws_mock_test_backends.in_memory_backend import (
     enable_in_memory_vuforia,
     running_in_memory_mock,
     seed_in_memory_counts,
+)
+from vws_mock_test_backends.mock_credentials import (
+    get_mock_cloud_database,
+    get_mock_inactive_cloud_database,
+    get_mock_inactive_vumark_database,
+    get_mock_model_target_credentials,
+    get_mock_vumark_database,
 )
 from vws_mock_test_backends.real_backend import (
     LiveVWS,
@@ -124,7 +129,7 @@ def fixture_vuforia_database(
     """An active database with credentials supplied by the backend."""
     if _credential_backend(request=request) == VuforiaBackend.REAL:
         return get_real_cloud_database()
-    return CloudDatabase()
+    return get_mock_cloud_database()
 
 
 @pytest.fixture(name="inactive_cloud_database")
@@ -134,7 +139,7 @@ def fixture_inactive_cloud_database(
     """An inactive database with credentials supplied by the backend."""
     if _credential_backend(request=request) == VuforiaBackend.REAL:
         return get_real_inactive_cloud_database()
-    return CloudDatabase(state=States.PROJECT_INACTIVE)
+    return get_mock_inactive_cloud_database()
 
 
 @pytest.fixture(name="inactive_vumark_database")
@@ -144,11 +149,7 @@ def fixture_inactive_vumark_database(
     """An inactive VuMark database supplied by the backend."""
     if _credential_backend(request=request) == VuforiaBackend.REAL:
         return get_real_inactive_vumark_database()
-    return InactiveVuMarkCloudDatabase(
-        target_manager_database_name=uuid4().hex,
-        server_access_key=uuid4().hex,
-        server_secret_key=uuid4().hex,
-    )
+    return get_mock_inactive_vumark_database()
 
 
 @pytest.fixture(name="vumark_vuforia_database")
@@ -158,13 +159,7 @@ def fixture_vumark_vuforia_database(
     """A VuMark database with credentials supplied by the backend."""
     if _credential_backend(request=request) == VuforiaBackend.REAL:
         return get_real_vumark_database()
-    return VuMarkCloudDatabase(
-        target_manager_database_name=uuid4().hex,
-        server_access_key=uuid4().hex,
-        server_secret_key=uuid4().hex,
-        target_id=uuid4().hex,
-        processing_target_id=uuid4().hex,
-    )
+    return get_mock_vumark_database()
 
 
 # These deliberately have no type annotation, so that the keyword
@@ -528,13 +523,7 @@ def _model_target_credentials_for_backend(
     if backend == VuforiaBackend.REAL:
         return get_model_target_credentials()
 
-    return ModelTargetCredentials(
-        client_id="client-id",
-        client_secret="client-secret",
-        cad_data_url="https://example.com/model.glb",
-        username="user@example.com",
-        password="password",
-    )
+    return get_mock_model_target_credentials()
 
 
 @pytest.fixture(name="model_target_credentials")
