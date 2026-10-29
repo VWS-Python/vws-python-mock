@@ -30,12 +30,12 @@ HEALTHCHECK --interval=1s --timeout=10s --start-period=5s --retries=3 CMD ["pyth
 
 FROM base AS vws
 ENV VWS_HOST=0.0.0.0
-CMD ["src/mock_vws/_flask_server/vws.py"]
+CMD ["-m", "vws_mock_server.vws"]
 
 FROM base AS vwq
 ENV VWQ_HOST=0.0.0.0
-CMD ["src/mock_vws/_flask_server/vwq.py"]
+CMD ["-m", "vws_mock_server.vwq"]
 
 FROM base AS target-manager
 ENV TARGET_MANAGER_HOST=0.0.0.0
-CMD ["src/mock_vws/_flask_server/target_manager.py"]
+CMD ["-m", "vws_mock_server.target_manager"]

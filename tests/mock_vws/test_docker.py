@@ -321,7 +321,7 @@ def _build_image(
         The built image.
     """
     client = docker.from_env()
-    dockerfile = f"{repository_root}/src/mock_vws/_flask_server/Dockerfile"
+    dockerfile = f"{repository_root}/server/Dockerfile"
     try:
         image, _ = client.images.build(
             path=repository_root,

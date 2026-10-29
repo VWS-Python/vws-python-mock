@@ -110,9 +110,9 @@ Run each readiness probe until it exits successfully:
 
 .. code-block:: console
 
-   $ container exec vuforia-target-manager-mock python /app/src/mock_vws/_flask_server/healthcheck.py
-   $ container exec vuforia-vws-mock python /app/src/mock_vws/_flask_server/healthcheck.py
-   $ container exec vuforia-vwq-mock python /app/src/mock_vws/_flask_server/healthcheck.py
+   $ container exec vuforia-target-manager-mock python -m vws_mock_server.healthcheck
+   $ container exec vuforia-vws-mock python -m vws_mock_server.healthcheck
+   $ container exec vuforia-vwq-mock python -m vws_mock_server.healthcheck
 
 To stop and remove this deployment:
 
@@ -134,7 +134,7 @@ To mimic this functionality, this mock provides a target manager container which
 
 To add a database, make a request to the following endpoint against the target manager container:
 
-.. autoflask:: mock_vws._flask_server.target_manager:TARGET_MANAGER_FLASK_APP
+.. autoflask:: vws_mock_server.target_manager:TARGET_MANAGER_FLASK_APP
    :endpoints: create_cloud_database
 
 For example, with either deployment above, use ``curl``:
@@ -170,7 +170,7 @@ Deleting a database
 
 To delete a database use the following endpoint:
 
-.. autoflask:: mock_vws._flask_server.target_manager:TARGET_MANAGER_FLASK_APP
+.. autoflask:: vws_mock_server.target_manager:TARGET_MANAGER_FLASK_APP
    :endpoints: delete_cloud_database
 
 Setting the recognition counts of a target
@@ -179,7 +179,7 @@ Setting the recognition counts of a target
 The mock does not count recognitions, because the counts which the real Vuforia Web Services report lag behind its queries by longer than a test runs.
 To make the target summary report and the reco counts report show non-zero counts, set the counts with the following endpoint:
 
-.. autoflask:: mock_vws._flask_server.target_manager:TARGET_MANAGER_FLASK_APP
+.. autoflask:: vws_mock_server.target_manager:TARGET_MANAGER_FLASK_APP
    :endpoints: set_target_recognition_counts
 
 
@@ -281,7 +281,7 @@ These commands build the images with ``docker buildx``.
 .. code-block:: console
 
    $ export REPOSITORY_ROOT="$PWD"
-   $ export DOCKERFILE="$REPOSITORY_ROOT/src/mock_vws/_flask_server/Dockerfile"
+   $ export DOCKERFILE="$REPOSITORY_ROOT/server/Dockerfile"
 
    $ export TARGET_MANAGER_TAG=ghcr.io/vws-python/vuforia-target-manager-mock:latest
    $ export VWS_TAG=ghcr.io/vws-python/vuforia-vws-mock:latest

@@ -7,7 +7,7 @@ group "default" {
 }
 
 target "_base" {
-  dockerfile = "src/mock_vws/_flask_server/Dockerfile"
+  dockerfile = "server/Dockerfile"
   platforms  = ["linux/amd64", "linux/arm64"]
 }
 
