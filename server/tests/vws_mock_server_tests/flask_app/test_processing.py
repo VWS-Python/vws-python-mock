@@ -6,7 +6,7 @@ import pytest
 import requests
 
 from mock_vws.database import CloudDatabase
-from tests.mock_vws.utils.usage_test_helpers import (
+from vws_mock_contract_tests.utils.usage_test_helpers import (
     processing_time_seconds,
 )
 

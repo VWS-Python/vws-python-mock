@@ -43,3 +43,18 @@ The published images continue to probe the local service on port 5000:
 
 The probe accepts the existing unauthorized, forbidden and missing-route responses as healthy.
 It fails on connection errors, timeouts and other HTTP statuses.
+
+Development tests
+-----------------
+
+The server project owns its Flask, health-check and container deployment tests.
+Run them from the workspace root:
+
+.. code-block:: console
+
+   $ uv run --group=dev pytest server/tests --skip-backend=real
+
+The Docker tests build and start all three services and require a running Docker daemon.
+For the Flask and health-check cases alone, add ``--skip-marker=requires_docker_build``.
+The shared fixtures are loaded explicitly from the installed contract package.
+Shared API assertions remain maintained in that package.

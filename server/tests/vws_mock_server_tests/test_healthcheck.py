@@ -12,7 +12,10 @@ from beartype import beartype
 from flask import Flask, Response
 from werkzeug.serving import make_server
 
-from mock_vws._flask_server.healthcheck import flask_app_healthy
+from mock_vws._flask_server.healthcheck import (
+    flask_app_healthy as legacy_flask_app_healthy,
+)
+from vws_mock_server.healthcheck import flask_app_healthy
 
 _HEALTH_CHECK_DEADLINE_SECONDS = 10
 
@@ -117,6 +120,7 @@ def test_healthy(*, status: HTTPStatus) -> None:
     """An app which handles a request for an unknown endpoint is
     healthy.
     """
+    assert legacy_flask_app_healthy is flask_app_healthy
     with _app_responding_with(status=status) as port:
         assert flask_app_healthy(port=port)
 

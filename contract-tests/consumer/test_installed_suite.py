@@ -93,7 +93,9 @@ def test_installed_suite(
     )
     health_tests = tmp_path / "test_server_health.py"
     _ = shutil.copyfile(
-        src=repository / "tests/mock_vws/test_healthcheck.py", dst=health_tests
+        src=repository
+        / "server/tests/vws_mock_server_tests/test_healthcheck.py",
+        dst=health_tests,
     )
     _run(args=[python, "-m", "pytest", health_tests, "-q"], cwd=tmp_path)
     _run(

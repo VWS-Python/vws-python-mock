@@ -9,13 +9,13 @@ import pytest
 import requests
 from pydantic import JsonValue, TypeAdapter
 
-from mock_vws._flask_server import target_manager as flask_target_manager
 from mock_vws.model_target import (
     ModelTargetDataset,
     ModelTargetDatasetType,
     ModelTargetGenerationFailure,
     ModelTargetGenerationWarning,
 )
+from vws_mock_server import target_manager as flask_target_manager
 
 _MODEL_TARGET_DATASET_REQUEST: dict[str, JsonValue] = {
     "name": "dataset-name",

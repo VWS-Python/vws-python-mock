@@ -378,7 +378,7 @@ def fixture_mock_deployment() -> Iterator[_MockDeployment]:
     """
     repository_root = str(
         object=find_root(
-            criterion=has_file(file="pyproject.toml"),
+            criterion=has_file(file="docker-bake.hcl"),
             start=Path(__file__).resolve(),
         )
     )
