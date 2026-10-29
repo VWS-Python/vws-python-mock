@@ -376,6 +376,7 @@ ignore = [
     "secrets.tar.gpg",
     "server/docker-bake.hcl",
     "server/Dockerfile",
+    "server/docs/**",
     "server/tests/**",
     "spelling_private_dict.txt",
     "styles/snapper/*.yml",
