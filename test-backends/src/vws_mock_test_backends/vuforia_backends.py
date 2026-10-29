@@ -3,10 +3,8 @@
 import logging
 from collections.abc import Generator
 from enum import Enum
-from http import HTTPMethod
 
 import pytest
-import requests
 from beartype import beartype
 from pytest_multi_backend import backend_fixture
 from vws import VWS
@@ -28,7 +26,6 @@ from vws_mock_contract_tests.utils.recognition_counts import (
 )
 from vws_mock_contract_tests.utils.unrouted_requests import (
     UnroutedRequests,
-    UnroutedResponse,
 )
 from vws_mock_test_backends.flask_backend import (
     add_cloud_database,
@@ -37,6 +34,7 @@ from vws_mock_test_backends.flask_backend import (
     seed_flask_recognition_counts,
     send_flask_unrouted_request,
 )
+from vws_mock_test_backends.http_transport import http_unrouted_requests
 from vws_mock_test_backends.in_memory_backend import (
     enable_in_memory_model_targets,
     enable_in_memory_vuforia,
@@ -480,36 +478,8 @@ def fixture_unrouted_requests(
             returns_response=True,
         )
 
-    @beartype
-    def send_http_request(
-        *,
-        method: HTTPMethod,
-        request_path: str,
-        headers: dict[str, str],
-    ) -> UnroutedResponse | None:
-        """Send an unmatched request to the configured VWS URL."""
-        try:
-            response = requests.request(
-                method=method,
-                url=base_vws_url + request_path,
-                headers=headers,
-                timeout=30,
-            )
-        except requests.exceptions.ConnectionError:
-            return None
-
-        return UnroutedResponse(
-            status_code=response.status_code,
-            body=response.content,
-            content_type=response.headers.get("Content-Type"),
-            content_encoding=response.headers.get("Content-Encoding"),
-            upstream_service_time=response.headers.get(
-                "x-envoy-upstream-service-time",
-            ),
-        )
-
-    return UnroutedRequests(
-        send=send_http_request,
+    return http_unrouted_requests(
+        base_vws_url=base_vws_url,
         returns_response=_vws_backend != VuforiaBackend.MOCK,
     )
 
