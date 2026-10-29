@@ -43,6 +43,7 @@ def test_installed_suite(
     for filename in (
         "pytest.ini",
         "dependency_checks.py",
+        "core_checks.py",
         "contract_checks.py",
     ):
         _ = shutil.copyfile(src=consumer / filename, dst=tmp_path / filename)
@@ -63,6 +64,22 @@ def test_installed_suite(
         ],
         cwd=tmp_path,
     )
+    core = next(dist.glob(pattern="vws_python_mock-*.whl"))
+    _run(args=[uv, "pip", "install", "--python", python, core], cwd=tmp_path)
+    _run(
+        args=[
+            python,
+            "-m",
+            "pytest",
+            "-p",
+            "core_checks",
+            "--pyargs",
+            "vws_mock_contract_tests.database_summary",
+            "--collect-only",
+            "-q",
+        ],
+        cwd=tmp_path,
+    )
     _run(
         args=[
             uv,
@@ -74,6 +91,11 @@ def test_installed_suite(
         ],
         cwd=tmp_path,
     )
+    health_tests = tmp_path / "test_server_health.py"
+    _ = shutil.copyfile(
+        src=repository / "tests/mock_vws/test_healthcheck.py", dst=health_tests
+    )
+    _run(args=[python, "-m", "pytest", health_tests, "-q"], cwd=tmp_path)
     _run(
         args=[
             python,

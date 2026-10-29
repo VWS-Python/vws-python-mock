@@ -1,33 +1,10 @@
-"""Health check for the Flask server."""
+"""Compatibility import for the server package's health check."""
 
-import http.client
 import sys
-from http import HTTPStatus
 
-from beartype import beartype
+from vws_mock_server.healthcheck import flask_app_healthy
 
-
-@beartype
-def flask_app_healthy(port: int) -> bool:
-    """Check if the Flask app is healthy."""
-    conn = http.client.HTTPConnection(host="localhost", port=port, timeout=5)
-    try:
-        conn.request(method="GET", url="/some-random-endpoint")
-        response = conn.getresponse()
-    # ``OSError`` covers ``TimeoutError``, ``ConnectionRefusedError`` and
-    # ``socket.gaierror``.
-    # ``ConnectionRefusedError`` is the expected error while the container is
-    # starting up and nothing is yet listening on the port.
-    except OSError, http.client.HTTPException:
-        return False
-    finally:
-        conn.close()
-
-    return response.status in {
-        HTTPStatus.NOT_FOUND,
-        HTTPStatus.UNAUTHORIZED,
-        HTTPStatus.FORBIDDEN,
-    }
+__all__ = ["flask_app_healthy"]
 
 
 # Containers execute this process entry point; import-driven tests use its API.
