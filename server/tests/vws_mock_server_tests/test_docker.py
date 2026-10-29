@@ -378,7 +378,7 @@ def fixture_mock_deployment() -> Iterator[_MockDeployment]:
     """
     repository_root = str(
         object=find_root(
-            criterion=has_file(file="docker-bake.hcl"),
+            criterion=has_file(file="uv.lock"),
             start=Path(__file__).resolve(),
         )
     )

@@ -58,3 +58,16 @@ The Docker tests build and start all three services and require a running Docker
 For the Flask and health-check cases alone, add ``--skip-marker=requires_docker_build``.
 The shared fixtures are loaded explicitly from the installed contract package.
 Shared API assertions remain maintained in that package.
+
+Building container images
+-------------------------
+
+From the workspace root, build the three service targets with the server's bake definition:
+
+.. code-block:: console
+
+   $ docker buildx bake --file server/docker-bake.hcl
+
+The default group builds ``linux/amd64`` and ``linux/arm64`` images.
+The ``VERSION`` variable selects the version tag alongside ``latest``.
+The image names and service targets remain the same.

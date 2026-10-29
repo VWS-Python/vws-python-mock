@@ -155,5 +155,6 @@ jobs:
         uses: docker/bake-action@v7.5.0
         with:
           push: true
+          files: server/docker-bake.hcl
         env:
           VERSION: ${{ needs.release.outputs.version }}
