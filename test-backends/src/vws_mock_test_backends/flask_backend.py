@@ -21,6 +21,7 @@ from vws_mock_contract_tests.utils.unrouted_requests import UnroutedResponse
 from vws_mock_server.target_manager import TARGET_MANAGER_FLASK_APP
 from vws_mock_server.vwq import CLOUDRECO_FLASK_APP
 from vws_mock_server.vws import VWS_FLASK_APP
+from vws_mock_test_backends import target_manager_controls
 from vws_mock_test_backends.mock_databases import create_vumark_database
 
 
@@ -227,29 +228,20 @@ def seed_flask_recognition_counts(
     total_recos: int,
 ) -> None:
     """Set recognition counts through the target manager service."""
-    target_manager_base_url = os.environ["TARGET_MANAGER_BASE_URL"]
-    response = requests.post(
-        url=(
-            f"{target_manager_base_url}/cloud_databases/"
-            f"{database_name}/targets/{target_id}/recognition_counts"
-        ),
-        json={
-            "current_month_recos": current_month_recos,
-            "previous_month_recos": previous_month_recos,
-            "total_recos": total_recos,
-        },
-        timeout=30,
+    target_manager_controls.seed_recognition_counts(
+        target_manager_base_url=os.environ["TARGET_MANAGER_BASE_URL"],
+        database_name=database_name,
+        target_id=target_id,
+        current_month_recos=current_month_recos,
+        previous_month_recos=previous_month_recos,
+        total_recos=total_recos,
     )
-    response.raise_for_status()
 
 
 @beartype
 def add_cloud_database(*, cloud_database: CloudDatabase) -> None:
     """Add a cloud database through the target manager service."""
-    target_manager_base_url = os.environ["TARGET_MANAGER_BASE_URL"]
-    response = requests.post(
-        url=f"{target_manager_base_url}/cloud_databases",
-        json=cloud_database.to_dict(),
-        timeout=30,
+    target_manager_controls.add_cloud_database(
+        target_manager_base_url=os.environ["TARGET_MANAGER_BASE_URL"],
+        cloud_database=cloud_database,
     )
-    response.raise_for_status()
